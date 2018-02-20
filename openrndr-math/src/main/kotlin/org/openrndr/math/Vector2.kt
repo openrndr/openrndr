@@ -27,6 +27,8 @@ data class Vector2(val x: Double, val y: Double) {
     operator fun plus(vector2: Vector2) = Vector2(x + vector2.x, y + vector2.y)
     operator fun minus(vector2: Vector2) = Vector2(x - vector2.x, y - vector2.y)
     operator fun times(d: Double) = Vector2(x * d, y * d)
+    operator fun times(v: Vector2) = Vector2(x * v.x, y * v.y)
+
     operator fun div(d: Double) = Vector2(x / d, y / d)
     operator fun div(d : Vector2) = Vector2(x / d.x, y/d.y)
 

@@ -22,6 +22,11 @@ class Rectangle(val corner: Vector2, val width: Double, val height: Double) {
     fun offsetEdges(offset: Double, offsetY: Double = offset): Rectangle {
         return Rectangle(Vector2(corner.x - offset, corner.y - offsetY), width + 2 * offset, height + 2 * offsetY)
     }
+
+    operator fun contains(point:Vector2):Boolean {
+        return (point.x >= corner.x && point.x < point.x+width && point.y >= corner.y && point.y < corner.y + height)
+    }
+
 }
 
 fun bounds(points: Sequence<Vector2>): Rectangle {
