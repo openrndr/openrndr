@@ -1,0 +1,11 @@
+dependencies {
+    compile project(":openrndr-core")
+    compile project(":openrndr-binpack")
+
+    compile "org.lwjgl:lwjgl:$lwjglVersion"
+    compile "org.lwjgl:lwjgl-glfw:$lwjglVersion"
+    compile "org.lwjgl:lwjgl-jemalloc:$lwjglVersion"
+    compile "org.lwjgl:lwjgl-openal:$lwjglVersion"
+    compile "org.lwjgl:lwjgl-opengl:$lwjglVersion"
+    compile "org.lwjgl:lwjgl-stb:$lwjglVersion"
+}

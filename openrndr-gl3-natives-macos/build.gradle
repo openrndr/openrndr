@@ -1,0 +1,10 @@
+project.ext.lwjglNatives = "natives-macos"
+
+dependencies {
+    runtime "org.lwjgl:lwjgl:$lwjglVersion:$lwjglNatives"
+    runtime "org.lwjgl:lwjgl-glfw:$lwjglVersion:$lwjglNatives"
+    runtime "org.lwjgl:lwjgl-jemalloc:$lwjglVersion:$lwjglNatives"
+    runtime "org.lwjgl:lwjgl-openal:$lwjglVersion:$lwjglNatives"
+    runtime "org.lwjgl:lwjgl-opengl:$lwjglVersion:$lwjglNatives"
+    runtime "org.lwjgl:lwjgl-stb:$lwjglVersion:$lwjglNatives"
+}

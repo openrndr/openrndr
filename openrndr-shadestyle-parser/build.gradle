@@ -1,0 +1,59 @@
+apply plugin: 'kotlin'
+apply plugin: 'java'
+apply plugin: 'idea'
+apply plugin: 'antlr'
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+configurations {
+    generatedCompile
+}
+sourceSets {
+    generated {
+        java.srcDir 'generated-src/antlr/main'
+    }
+
+}
+
+dependencies {
+    antlr "org.antlr:antlr4:4.5.1"
+    compile "org.antlr:antlr4-runtime:4.5.1"
+    compile sourceSets.generated.output
+    compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
+
+    generatedCompile "org.antlr:antlr4-runtime:4.5.1"
+}
+
+generateGrammarSource {
+
+    doFirst {
+        println "ggs: projectDir $projectDir"
+    }
+    maxHeapSize = "64m"
+    arguments += ["-package", "org.openrndr.shadestyle"]
+    outputDirectory = new File("$projectDir/generated-src/antlr/main/org/openrndr/shadestyle".toString())
+
+}
+
+compileJava.source sourceSets.generated.java
+
+compileGeneratedJava.dependsOn generateGrammarSource
+compileJava.dependsOn generateGrammarSource
+compileKotlin.dependsOn compileGeneratedJava
+
+
+
+
+clean {
+    delete "generated-src"
+}
+
+idea {
+    module {
+        sourceDirs += file("$projectDir/generated-src/antlr/main")
+
+    }
+}

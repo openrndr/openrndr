@@ -1,0 +1,91 @@
+group 'org.openrndr'
+version '0.3.0-SNAPSHOT'
+
+buildscript {
+
+    ext {
+        kotlin_version = "1.2.21"
+        lwjglVersion = '3.1.6'
+        dokka_version = "0.9.16-eap-3"
+    }
+
+    repositories {
+        mavenCentral()
+        jcenter()
+        maven {
+            url 'https://dl.bintray.com/kotlin/kotlin-eap'
+        }
+    }
+
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath "org.jetbrains.dokka:dokka-gradle-plugin:$dokka_version"
+        classpath 'org.jetbrains.dokka:dokka-gradle-plugin:0.9.16-eap-3'
+    }
+}
+
+subprojects {
+    group 'org.openrndr'
+    version '0.3.0-SNAPSHOT'
+
+    apply plugin: 'java'
+    apply plugin: 'kotlin'
+    apply plugin: 'maven'
+    apply plugin: 'org.jetbrains.dokka'
+
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+        compile 'io.github.microutils:kotlin-logging:1.4.6'
+        testCompile group: 'junit', name: 'junit', version: '4.12'
+    }
+
+    compileKotlin {
+        kotlinOptions.jvmTarget = "1.8"
+    }
+    compileTestKotlin {
+        kotlinOptions.jvmTarget = "1.8"
+    }
+}
+
+task dokka(type: org.jetbrains.dokka.gradle.DokkaTask, overwrite: true) {
+    moduleName = "$rootProject.name"
+    outputDirectory = "$buildDir/dokka"
+    outputFormat = "html"
+    processConfigurations = []
+    sourceDirs = files(subprojects.collect {
+        p ->
+
+            def path = new File(p.projectDir, "/src/main/kotlin")
+
+            def relativePath = rootDir.toPath().relativize(path.toPath()).toString()
+            linkMapping {
+                dir = path
+                url = "https://my-github-url/blob/master/$relativePath"
+                suffix = "#L"
+            }
+
+            return path
+    })
+}
+
+task dokkaJavaDoc(type: org.jetbrains.dokka.gradle.DokkaTask, overwrite: true) {
+    moduleName = "$rootProject.name"
+    outputDirectory = "$buildDir/javadocs"
+    outputFormat = "javadoc"
+    processConfigurations = []
+    sourceDirs = files(subprojects.collect {
+        p ->
+            def path = new File(p.projectDir, "/src/main/kotlin")
+            def relativePath = rootDir.toPath().relativize(path.toPath()).toString()
+            linkMapping {
+                dir = path
+                url = "https://my-github-url/blob/master/$relativePath"
+                suffix = "#L"
+            }
+            return path
+    })
+}

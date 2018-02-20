@@ -1,0 +1,6 @@
+dependencies {
+    compile project(":openrndr-color")
+    compile project(":openrndr-math")
+    compile project(":openrndr-shape")
+    compile project(":openrndr-event")
+}

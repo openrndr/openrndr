@@ -1,0 +1,113 @@
+package org.openrndr.internal.gl3
+
+import mu.KotlinLogging
+import org.lwjgl.BufferUtils
+import org.lwjgl.opengl.GL11.*
+import org.lwjgl.opengl.GL13.GL_TEXTURE0
+import org.lwjgl.opengl.GL13.glActiveTexture
+import org.lwjgl.opengl.GL15.*
+import org.lwjgl.opengl.GL31.GL_TEXTURE_BUFFER
+import org.lwjgl.opengl.GL31.glTexBuffer
+import org.openrndr.draw.*
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
+
+private val logger = KotlinLogging.logger {}
+
+
+class BufferTextureShadowGL3(override val bufferTexture: BufferTextureGL3) : BufferTextureShadow {
+
+    val buffer: ByteBuffer =
+            BufferUtils.createByteBuffer(bufferTexture.elementCount * bufferTexture.type.componentSize * bufferTexture.format.componentCount).apply {
+                order(ByteOrder.nativeOrder())
+            }
+
+
+    override fun upload(offset:Int, size:Int) {
+        logger.trace { "uploading shadow to buffer texture" }
+        buffer.rewind()
+        buffer.position(offset)
+//        buffer.limit(offset+size)
+        buffer.limit(buffer.capacity())
+
+        bufferTexture.write(buffer)
+        buffer.limit(buffer.capacity())
+    }
+
+    override fun download() {
+//        buffer.rewind()
+//        bufferTexture.read(buffer)
+    }
+
+    override fun destroy() {
+
+        bufferTexture.realShadow = null
+    }
+
+    override fun writer():BufferWriter {
+        return BufferWriterGL3(buffer, bufferTexture.format.componentCount * bufferTexture.type.componentSize)
+    }
+
+}
+
+class BufferTextureGL3(val texture: Int, val buffer: Int, override val elementCount: Int, override val format: ColorFormat, override val type: ColorType) : BufferTexture {
+
+    companion object {
+        fun create(elementCount: Int, format: ColorFormat, type: ColorType): BufferTextureGL3 {
+
+
+            val sizeInBytes = format.componentCount * type.componentSize * elementCount
+            val buffers = IntArray(1)
+            glGenBuffers(buffers)
+            glBindBuffer(GL_TEXTURE_BUFFER, buffers[0])
+            glBufferData(GL_TEXTURE_BUFFER, sizeInBytes.toLong(), GL_STREAM_DRAW)
+
+            val textures = IntArray(1)
+            glGenTextures(textures)
+            glBindTexture(GL_TEXTURE_BUFFER, textures[0])
+            glTexBuffer(GL_TEXTURE_BUFFER, internalFormat(format, type), buffers[0])
+
+            glBindBuffer(GL_TEXTURE_BUFFER, 0)
+
+            return BufferTextureGL3(textures[0], buffers[0], elementCount, format, type)
+        }
+    }
+
+    internal var realShadow: BufferTextureShadowGL3? = null
+    override val shadow: BufferTextureShadow
+        get() {
+
+            if (realShadow == null) {
+                realShadow = BufferTextureShadowGL3(this)
+            }
+            return realShadow!!
+        }
+
+
+    fun write(buffer:ByteBuffer) {
+        buffer.rewind()
+ //       buffer.limit(buffer.capacity())
+//        glActiveTexture(GL_TEXTURE0)
+
+        glBindBuffer(GL_TEXTURE_BUFFER, this.buffer)
+        debugGLErrors()
+        glBufferSubData(GL_TEXTURE_BUFFER, 0L, buffer)
+        debugGLErrors()
+    }
+
+
+    override fun bind(unit: Int) {
+        glActiveTexture(GL_TEXTURE0 + unit)
+        glBindTexture(GL_TEXTURE_BUFFER, texture)
+    }
+
+    internal var destroyed = false
+    override fun destroy() {
+        if (!destroyed) {
+            glDeleteTextures(texture)
+            destroyed = true
+        }
+    }
+
+
+}

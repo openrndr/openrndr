@@ -1,0 +1,16 @@
+rootProject.name = 'openrndr'
+
+include 'openrndr-core',
+        'openrndr-gl3',
+        'openrndr-gl3-natives-macos',
+        'openrndr-gl3-natives-windows',
+        'openrndr-math',
+        'openrndr-color',
+        'openrndr-shape',
+        'openrndr-event',
+        'openrndr-binpack',
+        'openrndr-filter',
+        'openrndr-svg',
+        'openrndr-animatable',
+        'openrndr-ffmpeg',
+        'openrndr-shadestyle-parser'
