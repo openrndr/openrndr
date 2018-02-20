@@ -735,6 +735,10 @@ class Drawer(val driver: Driver) {
     }
 
 
+    fun lineSegment(x0:Double, y0:Double, x1:Double, y1:Double) {
+        lineSegment(Vector2(x0, y0), Vector2(x1, y1))
+    }
+
     fun lineSegment(lineSegment: LineSegment) {
         lineSegment(lineSegment.start, lineSegment.end)
     }
