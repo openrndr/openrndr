@@ -29,6 +29,7 @@ import org.openrndr.*
 import org.openrndr.draw.Drawer
 import org.openrndr.internal.Driver
 import org.openrndr.math.Vector2
+import java.util.*
 
 private val logger = KotlinLogging.logger {}
 
@@ -394,7 +395,7 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
         var down = false
 
         glfwSetScrollCallback(window, { _, xoffset, yoffset ->
-            program.mouse.scrolled.trigger(Program.Mouse.MouseEvent(Vector2(xoffset, yoffset), MouseEventType.SCROLLED, MouseButton.NONE, globalModifiers))
+            program.mouse.scrolled.trigger(Program.Mouse.MouseEvent(program.mouse.position, Vector2(xoffset, yoffset), MouseEventType.SCROLLED, MouseButton.NONE, globalModifiers))
         })
 
         glfwSetMouseButtonCallback(window, { _, button, action, mods ->
@@ -406,6 +407,8 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
             }
 
             val modifiers = mutableSetOf<KeyboardModifier>()
+            val buttonsDown= BitSet()
+
 
             if (mods and GLFW_MOD_SHIFT != 0) {
                 modifiers.add(KeyboardModifier.SHIFT)
@@ -423,14 +426,21 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
             if (action == GLFW_PRESS) {
                 down = true
                 program.mouse.buttonDown.trigger(
-                        Program.Mouse.MouseEvent(program.mouse.position / program.window.scale, MouseEventType.BUTTON_DOWN, mouseButton, modifiers)
+                        Program.Mouse.MouseEvent(program.mouse.position / program.window.scale, Vector2.ZERO, MouseEventType.BUTTON_DOWN, mouseButton, modifiers)
                 )
+                buttonsDown.set(button, true)
+
             }
 
             if (action == GLFW_RELEASE) {
                 down = false
                 program.mouse.buttonUp.trigger(
-                        Program.Mouse.MouseEvent(program.mouse.position / program.window.scale, MouseEventType.BUTTON_UP, mouseButton, modifiers)
+                        Program.Mouse.MouseEvent(program.mouse.position / program.window.scale, Vector2.ZERO, MouseEventType.BUTTON_UP, mouseButton, modifiers)
+                )
+                buttonsDown.set(button, false)
+
+                program.mouse.clicked.trigger(
+                        Program.Mouse.MouseEvent(program.mouse.position / program.window.scale, Vector2.ZERO, MouseEventType.CLICKED, mouseButton, modifiers)
                 )
             }
         })
@@ -439,9 +449,9 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
             val position = Vector2(xpos, ypos) / program.window.scale
             logger.debug { "mouse moved $xpos $ypos -- $position" }
             program.mouse.position = position
-            program.mouse.moved.trigger(Program.Mouse.MouseEvent(position, MouseEventType.MOVED, MouseButton.NONE, globalModifiers))
+            program.mouse.moved.trigger(Program.Mouse.MouseEvent(position, Vector2.ZERO, MouseEventType.MOVED, MouseButton.NONE, globalModifiers))
             if (down) {
-                program.mouse.dragged.trigger(Program.Mouse.MouseEvent(position, MouseEventType.DRAGGED, MouseButton.NONE, emptySet()))
+                program.mouse.dragged.trigger(Program.Mouse.MouseEvent(position, Vector2.ZERO, MouseEventType.DRAGGED, MouseButton.NONE, emptySet()))
             }
         })
 
@@ -484,7 +494,6 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
 
 
         glfwGetFramebufferSize(window, fbw, fbh)
-        println("frame buffer size: ${fbw[0]} ${fbh[0]}")
         logger.info { "frame buffer size: ${fbw[0]} ${fbh[0]}" }
         program.window.size = Vector2(fbw[0] * 1.0, fbh[0] * 1.0)
 
@@ -532,6 +541,7 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
             program.keyboard.keyRepeat.deliver()
             program.mouse.moved.deliver()
             program.mouse.scrolled.deliver()
+            program.mouse.clicked.deliver()
             program.mouse.buttonDown.deliver()
             program.mouse.buttonUp.deliver()
             program.mouse.dragged.deliver()

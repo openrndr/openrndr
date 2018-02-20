@@ -187,7 +187,7 @@ open class Program {
 
 
     class Mouse {
-        class MouseEvent(val position: Vector2, val type: MouseEventType, val button: MouseButton, val modifiers: Set<KeyboardModifier>, var propagationCancelled:Boolean = false) {
+        class MouseEvent(val position: Vector2, val rotation: Vector2, val type: MouseEventType, val button: MouseButton, val modifiers: Set<KeyboardModifier>, var propagationCancelled:Boolean = false) {
             fun cancelPropagation() {
                 propagationCancelled = true
             }
@@ -200,6 +200,7 @@ open class Program {
         val dragged = Event<MouseEvent>().postpone(true)
         val moved = Event<MouseEvent>().postpone(true)
         val scrolled = Event<MouseEvent>().postpone(true)
+        val clicked =  Event<MouseEvent>().postpone(true)
     }
 
     val mouse = Mouse()
