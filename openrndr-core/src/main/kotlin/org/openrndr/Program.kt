@@ -98,7 +98,11 @@ enum class KeyEventType {
     KEY_REPEAT,
 }
 
-class KeyEvent(val type: KeyEventType, val key: Int, val scanCode: Int, val name: String, val modifiers: Set<KeyboardModifier>)
+class KeyEvent(val type: KeyEventType, val key: Int, val scanCode: Int, val name: String, val modifiers: Set<KeyboardModifier>, var propagationCancelled: Boolean = false) {
+    fun cancelPropagation() {
+        propagationCancelled = true
+    }
+}
 
 enum class WindowEventType {
     MOVED,
@@ -119,6 +123,7 @@ open class Program {
     var width = 0
     var height = 0
 
+
     lateinit var drawer: Drawer
     lateinit var driver: Driver
 
@@ -138,7 +143,12 @@ open class Program {
     }
 
     val clipboard = Clipboard()
+    private val extensions = mutableListOf<Extension>()
 
+    fun extend(extension: Extension) {
+        extensions+=extension
+        extension.setup(this)
+    }
 
     inner class Window {
 
@@ -177,7 +187,11 @@ open class Program {
 
 
     class Mouse {
-        class MouseEvent(val position: Vector2, val type: MouseEventType, val button: MouseButton, val modifiers: Set<KeyboardModifier>)
+        class MouseEvent(val position: Vector2, val type: MouseEventType, val button: MouseButton, val modifiers: Set<KeyboardModifier>, var propagationCancelled:Boolean = false) {
+            fun cancelPropagation() {
+                propagationCancelled = true
+            }
+        }
 
         var position = Vector2(0.0, 0.0)
 
@@ -191,6 +205,18 @@ open class Program {
     val mouse = Mouse()
 
     open fun setup() {}
+
+    /**
+    * This is the draw call that is called by Application. It takes care of handling extensions.
+    */
+    fun drawImpl() {
+        extensions.forEach { it.beforeDraw(drawer, this) }
+        draw()
+        extensions.reversed().forEach { it.afterDraw(drawer, this) }
+    }
+    /**
+    * This is the user facing draw call. It should be overridden by the user.
+    */
     open fun draw() {}
 
 }

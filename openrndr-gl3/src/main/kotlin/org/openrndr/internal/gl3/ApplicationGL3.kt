@@ -274,7 +274,7 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
                     logger.debug { program.window.size }
                     logger.debug { "${program.width} ${program.height}" }
                     glViewport(0, 0, fbw[0], fbh[0])
-                    program.draw()
+                    program.drawImpl()
                 } catch (e: Throwable) {
                     logger.error { "caught exception, breaking animation loop" }
                     //                  exception = e
