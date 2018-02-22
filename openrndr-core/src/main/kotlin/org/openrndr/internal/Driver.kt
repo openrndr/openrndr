@@ -41,9 +41,9 @@ interface Driver {
     fun createShadeStyleManager(vertexShaderGenerator: (ShadeStructure) -> String,
                                 fragmentShaderGenerator: (ShadeStructure) -> String): ShadeStyleManager
 
-    fun createRenderTarget(width: Int, height: Int): RenderTarget
+    fun createRenderTarget(width: Int, height: Int, contentScale:Double=1.0): RenderTarget
 
-    fun createColorBuffer(width: Int, height: Int, format: ColorFormat, type: ColorType): ColorBuffer
+    fun createColorBuffer(width: Int, height: Int, contentScale:Double, format: ColorFormat, type: ColorType): ColorBuffer
     fun createColorBufferFromUrl(url: String): ColorBuffer
 
     fun createDepthBuffer(width: Int, height: Int, format: DepthFormat): DepthBuffer

@@ -31,7 +31,7 @@ class FFMPEGVideoPlayer(url:String) {
         if (frame != null) {
             if (colorBuffer == null && frame.imageWidth > 0 && frame.imageHeight > 0) {
                 println("creating texture ${frame.imageWidth}x${frame.imageHeight}")
-                colorBuffer = ColorBuffer.create(frame.imageWidth, frame.imageHeight, ColorFormat.RGB).apply {
+                colorBuffer = ColorBuffer.create(frame.imageWidth, frame.imageHeight, format = ColorFormat.RGB).apply {
                     flipV = true
                 }
 

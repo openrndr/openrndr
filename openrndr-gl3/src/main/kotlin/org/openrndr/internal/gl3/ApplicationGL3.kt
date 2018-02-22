@@ -70,7 +70,11 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
             }
         }
         set(value) {
-            glfwSetClipboardString(window, value)
+            if (value != null) {
+                glfwSetClipboardString(window, value)
+            } else {
+                throw RuntimeException("clipboard contents can't be null")
+            }
         }
 
     var startTimeMillis = System.currentTimeMillis()

@@ -15,23 +15,15 @@ import java.util.*
 
 private val active = mutableMapOf<Long, Stack<RenderTargetGL3>>()
 
-
-
-
-class ProgramRenderTargetGL3(override val program: Program) : ProgramRenderTarget, RenderTargetGL3(glGetInteger(GL_FRAMEBUFFER_BINDING), 0, 0) {
+class ProgramRenderTargetGL3(override val program: Program) : ProgramRenderTarget, RenderTargetGL3(glGetInteger(GL_FRAMEBUFFER_BINDING), 0, 0, 1.0) {
     override val width: Int
         get() = program.window.size.x.toInt()
 
     override val height: Int
         get() = program.window.size.y.toInt()
-
-
-
 }
 
-open class RenderTargetGL3(val framebuffer: Int, override val width: Int, override val height: Int) : RenderTarget {
-
-
+open class RenderTargetGL3(val framebuffer: Int, override val width: Int, override val height: Int, override val contentScale: Double) : RenderTarget {
     override val colorBuffers: List<ColorBuffer>
         get() = _colorBuffers.map { it }
 
@@ -40,14 +32,12 @@ open class RenderTargetGL3(val framebuffer: Int, override val width: Int, overri
     var depthBuffer: DepthBuffer? = null
 
     companion object {
-        fun create(width: Int, height: Int): RenderTargetGL3 {
+        fun create(width: Int, height: Int, contentScale: Double = 1.0): RenderTargetGL3 {
             val framebuffer = glGenFramebuffers()
-            return RenderTargetGL3(framebuffer, width, height)
+            return RenderTargetGL3(framebuffer, width, height, contentScale)
         }
     }
-
     var bound = false
-
 
     override fun colorBuffer(index: Int): ColorBuffer {
         return _colorBuffers[index]
@@ -74,8 +64,6 @@ open class RenderTargetGL3(val framebuffer: Int, override val width: Int, overri
         }
     }
 
-
-
     internal fun bindTarget() {
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer)
 
@@ -97,7 +85,9 @@ open class RenderTargetGL3(val framebuffer: Int, override val width: Int, overri
 //            }
 
         }
-        glViewport(0, 0, width, height)
+        val effectiveWidth = (width * contentScale).toInt()
+        val effectiveHeight = (height*contentScale).toInt()
+        glViewport(0, 0, effectiveWidth, effectiveHeight)
         debugGLErrors { null }
     }
 
@@ -124,8 +114,11 @@ open class RenderTargetGL3(val framebuffer: Int, override val width: Int, overri
         val context = glfwGetCurrentContext()
         bindTarget()
 
-        if (!(colorBuffer.width == width && colorBuffer.height == height)) {
-            throw IllegalArgumentException("buffer dimension mismatch. expected: (" + width + " x " + height + "), got: (" + colorBuffer.width + " x " + colorBuffer.height + ")")
+        val effectiveWidth = (width * contentScale).toInt()
+        val effectiveHeight = (height * contentScale).toInt()
+
+        if (!(colorBuffer.effectiveWidth == effectiveWidth && colorBuffer.effectiveHeight == effectiveHeight)) {
+            throw IllegalArgumentException("buffer dimension mismatch. expected: (" + effectiveWidth + " x " + effectiveHeight + "), got: (" + colorBuffer.width + " x " + colorBuffer.height + ")")
         }
         colorBuffer as ColorBufferGL3
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + colorBuffers.size, colorBuffer.target, colorBuffer.texture, 0)
@@ -148,7 +141,7 @@ open class RenderTargetGL3(val framebuffer: Int, override val width: Int, overri
 
         bound {
 
-            if (!(depthBuffer.width == width && depthBuffer.height == height)) {
+            if (!(depthBuffer.width == effectiveWidth && depthBuffer.height == effectiveHeight)) {
                 throw IllegalArgumentException("buffer dimension mismatch")
             }
 

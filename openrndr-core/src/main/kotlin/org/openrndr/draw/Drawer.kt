@@ -275,10 +275,14 @@ interface ColorBufferShadow {
 interface ColorBuffer {
     val width: Int
     val height: Int
+    val contentScale: Double
     val format: ColorFormat
     val type: ColorType
 
     val bounds:Rectangle get() = Rectangle(Vector2.ZERO, width*1.0, height*1.0)
+
+    val effectiveWidth:Int get() = (width * contentScale).toInt()
+    val effectiveHeight:Int get() = (height * contentScale).toInt()
 
     fun destroy()
     fun bind(unit: Int)
@@ -301,8 +305,8 @@ interface ColorBuffer {
     }
 
     companion object {
-        fun create(width: Int, height: Int, format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.UINT8): ColorBuffer {
-            return Driver.instance.createColorBuffer(width, height, format, type)
+        fun create(width: Int, height: Int, contentScale:Double = 1.0, format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.UINT8): ColorBuffer {
+            return Driver.instance.createColorBuffer(width, height, contentScale, format, type)
         }
 
         fun fromUrl(url: String): ColorBuffer {
@@ -311,8 +315,8 @@ interface ColorBuffer {
     }
 }
 
-fun colorBuffer(width: Int, height: Int, format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.UINT8):ColorBuffer {
-    return ColorBuffer.create(width, height, format, type)
+fun colorBuffer(width: Int, height: Int, contentScale:Double = 1.0, format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.UINT8):ColorBuffer {
+    return ColorBuffer.create(width, height, contentScale, format, type)
 }
 
 interface BufferTextureShadow {
@@ -389,17 +393,17 @@ class RenderTargetBuilder(private val renderTarget: RenderTarget) {
     }
 
     fun colorBuffer(name: String, format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.UINT8) {
-        val cb = ColorBuffer.create(renderTarget.width, renderTarget.height, format, type)
+        val cb = ColorBuffer.create(renderTarget.width, renderTarget.height, renderTarget.contentScale, format, type)
         renderTarget.attach(name, cb)
     }
 
     fun colorBuffer(format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.UINT8) {
-        val cb = ColorBuffer.create(renderTarget.width, renderTarget.height, format, type)
+        val cb = ColorBuffer.create(renderTarget.width , renderTarget.height, renderTarget.contentScale, format, type)
         renderTarget.attach(cb)
     }
 
     fun depthBuffer(format: DepthFormat = DepthFormat.DEPTH24_STENCIL8) {
-        renderTarget.attach(DepthBuffer.create(renderTarget.width, renderTarget.height, format))
+        renderTarget.attach(DepthBuffer.create(renderTarget.effectiveWidth, renderTarget.effectiveHeight, format))
     }
 
     fun depthBuffer(depthBuffer: DepthBuffer) {
@@ -410,11 +414,16 @@ class RenderTargetBuilder(private val renderTarget: RenderTarget) {
 interface RenderTarget {
     val width: Int
     val height: Int
+    val contentScale: Double
+
+
+    val effectiveWidth:Int get() = (width * contentScale).toInt()
+    val effectiveHeight:Int get() = (height * contentScale).toInt()
 
     val colorBuffers: List<ColorBuffer>
 
     companion object {
-        fun create(width: Int, height: Int): RenderTarget = Driver.instance.createRenderTarget(width, height)
+        fun create(width: Int, height: Int, contentScale:Double): RenderTarget = Driver.instance.createRenderTarget(width, height, contentScale)
     }
 
     fun attach(name: String, colorBuffer: ColorBuffer)
@@ -432,8 +441,8 @@ interface RenderTarget {
     fun unbind()
 }
 
-fun renderTarget(width: Int, height: Int, builder: RenderTargetBuilder.() -> Unit): RenderTarget {
-    val renderTarget = RenderTarget.create(width, height)
+fun renderTarget(width: Int, height: Int, contentScale:Double=1.0, builder: RenderTargetBuilder.() -> Unit): RenderTarget {
+    val renderTarget = RenderTarget.create(width, height, contentScale)
     RenderTargetBuilder(renderTarget).builder()
     return renderTarget
 }

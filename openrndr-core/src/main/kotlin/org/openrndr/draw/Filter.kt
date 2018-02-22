@@ -32,7 +32,7 @@ open class Filter(val shader: Shader) {
 
     open fun apply(source: Array<ColorBuffer>, target: Array<ColorBuffer>) {
 
-        val renderTarget = RenderTarget.create(target[0].width, target[0].height)
+        val renderTarget = RenderTarget.create(target[0].width, target[0].height, 1.0)
 
         target.forEach {
             renderTarget.attach(it)

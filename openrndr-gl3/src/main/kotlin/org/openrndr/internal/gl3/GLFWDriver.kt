@@ -111,14 +111,14 @@ class DriverGL3 : Driver {
         return BufferTextureGL3.create(elementCount, format, type)
     }
 
-    override fun createRenderTarget(width: Int, height: Int): RenderTarget {
-        logger.trace { "creating render target $width x $height" }
-        return RenderTargetGL3.create(width, height)
+    override fun createRenderTarget(width: Int, height: Int, contentScale:Double): RenderTarget {
+        logger.trace { "creating render target $width x $height @ ${contentScale}x" }
+        return RenderTargetGL3.create(width, height, contentScale)
     }
 
-    override fun createColorBuffer(width: Int, height: Int, format: ColorFormat, type: ColorType): ColorBuffer {
+    override fun createColorBuffer(width: Int, height: Int, contentScale: Double, format: ColorFormat, type: ColorType): ColorBuffer {
         logger.trace { "creating color buffer $width x $height @ $format:$type" }
-        return ColorBufferGL3.create(width, height, format, type)
+        return ColorBufferGL3.create(width, height, contentScale, format, type)
     }
 
     override fun createColorBufferFromUrl(url: String): ColorBuffer {
