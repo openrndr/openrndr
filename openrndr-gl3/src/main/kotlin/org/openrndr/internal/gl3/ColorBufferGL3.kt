@@ -12,6 +12,7 @@ import org.lwjgl.opengl.GL21.GL_SRGB8
 import org.lwjgl.opengl.GL21.GL_SRGB8_ALPHA8
 import org.lwjgl.opengl.GL30.*
 import org.lwjgl.stb.STBImage
+import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.MinifyingFilter
 import java.net.URL
 import java.nio.ByteBuffer
@@ -74,7 +75,38 @@ class ColorBufferShadowGL3(override val colorBuffer: ColorBufferGL3) : ColorBuff
     override fun destroy() {
         (colorBuffer).destroyShadow()
     }
-
+    override fun write(x: Int, y: Int, color: ColorRGBa) {
+        val offset = (y * colorBuffer.width + x) * colorBuffer.format.componentCount * colorBuffer.type.componentSize
+        when (colorBuffer.type) {
+                ColorType.UINT8 -> {
+                        val ir = (color.r * 255).coerceIn(0.0, 255.0).toByte()
+                        val ig = (color.g * 255).coerceIn(0.0, 255.0).toByte()
+                        val ib = (color.b * 255).coerceIn(0.0, 255.0).toByte()
+                        val ia = (color.a * 255).coerceIn(0.0, 255.0).toByte()
+                        buffer.put(offset, ir)
+                        buffer.put(offset+1, ig)
+                        buffer.put(offset+2, ib)
+                        buffer.put(offset+3, ia)
+                    }
+                ColorType.UINT16 -> {
+                        val ir = (color.r * 65535).coerceIn(0.0, 65535.0).toChar()
+                        val ig = (color.g * 65535).coerceIn(0.0, 65535.0).toChar()
+                        val ib = (color.b * 65335).coerceIn(0.0, 65535.0).toChar()
+                        val ia = (color.a * 65535).coerceIn(0.0, 65535.0).toChar()
+                        buffer.putChar(offset, ir)
+                        buffer.putChar(offset+2, ig)
+                        buffer.putChar(offset+4, ib)
+                        buffer.putChar(offset+6, ia)
+                    }
+                ColorType.FLOAT32 -> {
+                        buffer.putFloat(offset, color.r.toFloat())
+                        buffer.putFloat(offset+4, color.g.toFloat())
+                        buffer.putFloat(offset+8, color.b.toFloat())
+                        buffer.putFloat(offset+12, color.a.toFloat())
+                    }
+                else -> TODO("support for ${colorBuffer.type}")
+            }
+    }
     override fun writer(): BufferWriter {
         return BufferWriterGL3(buffer)
     }
@@ -174,13 +206,25 @@ class ColorBufferGL3(val target: Int,
                 throw Exception("cannot create ColorBuffer with dimensions: ${width}x$height")
             }
 
+            checkGLErrors()
+
+
             val texture = glGenTextures()
+            checkGLErrors()
+
             glActiveTexture(GL_TEXTURE0)
             glBindTexture(GL_TEXTURE_2D, texture)
+            checkGLErrors()
 
             val nullBB: ByteBuffer? = null
             glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format.glFormat(), type.glType(), nullBB)
-            checkGLErrors()
+            checkGLErrors {
+                when(it) {
+                    GL_INVALID_OPERATION -> """format is GL_DEPTH_COMPONENT ${format.glFormat() == GL_DEPTH_COMPONENT} and internalFormat is not GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT16, GL_DEPTH_COMPONENT24, or GL_DEPTH_COMPONENT32F"""
+                    GL_INVALID_FRAMEBUFFER_OPERATION -> "buh?"
+                    else -> null
+                }
+            }
 
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)

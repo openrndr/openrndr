@@ -24,6 +24,9 @@ import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL30.glBindVertexArray
 import org.lwjgl.opengl.GL30.glGenVertexArrays
 import org.lwjgl.glfw.GLFWErrorCallback
+import org.lwjgl.opengl.ARBDebugOutput.glDebugMessageCallbackARB
+import org.lwjgl.opengl.GL43.glDebugMessageCallback
+import org.lwjgl.opengl.GLUtil
 
 import org.openrndr.*
 import org.openrndr.draw.Drawer
@@ -115,6 +118,10 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
         glfwWindowHint(GL_BLUE_BITS, 8)
         glfwWindowHint(GLFW_STENCIL_BITS, 8)
         glfwWindowHint(GLFW_DEPTH_BITS, 24)
+
+
+        // should make a configuration flag for this
+        // glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE)
 
         val xscale = FloatArray(1)
         val yscale = FloatArray(1)
@@ -209,6 +216,9 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
         glfwSwapInterval(1)
 
         var readyFrames = 0
+
+
+
 
         glfwSetFramebufferSizeCallback(window) { window, width, height ->
             logger.debug { "resizing window to ${width}x${height} " }
@@ -341,12 +351,20 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
             primaryWindow = glfwCreateWindow(640, 480, "OPENRNDR primary window", NULL, NULL)
         }
     }
+    fun cb(source:Int, type:Int, id:Int, severity:Int,length:Int, message:Long, userParam:Long) {
+
+        println("errorrrr: ${source} ${type} ${severity}")
+    }
 
     override fun loop() {
+
+        //glDebugMessageCallback(::cb, NULL)
+
         logger.debug { "starting loop" }
 
         createCapabilities()
-
+        // check configuration for debug setting
+        //val debugProc = GLUtil.setupDebugMessageCallback();
         // create default VAO, as per the OpenGL spec a VAO should bound at all times
         val vaos = IntArray(1)
         glGenVertexArrays(vaos)
@@ -426,7 +444,7 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
             if (action == GLFW_PRESS) {
                 down = true
                 program.mouse.buttonDown.trigger(
-                        Program.Mouse.MouseEvent(program.mouse.position / program.window.scale, Vector2.ZERO, MouseEventType.BUTTON_DOWN, mouseButton, modifiers)
+                        Program.Mouse.MouseEvent(program.mouse.position , Vector2.ZERO, MouseEventType.BUTTON_DOWN, mouseButton, modifiers)
                 )
                 buttonsDown.set(button, true)
 
@@ -435,12 +453,12 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
             if (action == GLFW_RELEASE) {
                 down = false
                 program.mouse.buttonUp.trigger(
-                        Program.Mouse.MouseEvent(program.mouse.position / program.window.scale, Vector2.ZERO, MouseEventType.BUTTON_UP, mouseButton, modifiers)
+                        Program.Mouse.MouseEvent(program.mouse.position , Vector2.ZERO, MouseEventType.BUTTON_UP, mouseButton, modifiers)
                 )
                 buttonsDown.set(button, false)
 
                 program.mouse.clicked.trigger(
-                        Program.Mouse.MouseEvent(program.mouse.position / program.window.scale, Vector2.ZERO, MouseEventType.CLICKED, mouseButton, modifiers)
+                        Program.Mouse.MouseEvent(program.mouse.position, Vector2.ZERO, MouseEventType.CLICKED, mouseButton, modifiers)
                 )
             }
         })
@@ -550,7 +568,7 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
                 logger.debug { "window: ${program.window.size.x.toInt()}x${program.window.size.y.toInt()} program: ${program.width}x${program.height}" }
                 //glViewport(16, 16, (program.window.size.x).toInt()-32, (program.window.size.y-86).toInt())
                 glViewport(0, 0, fbw[0], fbh[0])
-                program.draw()
+                program.drawImpl()
             } catch (e: Throwable) {
                 logger.error { "caught exception, breaking animation loop" }
                 exception = e

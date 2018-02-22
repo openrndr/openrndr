@@ -44,6 +44,7 @@ data class ColorRGBa(val r: Double, val g: Double, val b: Double, val a: Double 
         val BLUE = ColorRGBa(0.0, 0.0, 1.0)
         val GREEN = ColorRGBa(0.0, 1.0, 0.0)
         val YELLOW = ColorRGBa(1.0, 1.0, 0.0)
+        val GRAY = ColorRGBa(0.5, 0.5, 0.5)
 
 
 

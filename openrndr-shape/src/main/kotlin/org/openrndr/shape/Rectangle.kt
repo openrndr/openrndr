@@ -2,7 +2,7 @@ package org.openrndr.shape
 
 import org.openrndr.math.Vector2
 
-class Rectangle(val corner: Vector2, val width: Double, val height: Double) {
+data class Rectangle(val corner: Vector2, val width: Double, val height: Double) {
 
     constructor(x: Double, y: Double, width: Double, height: Double) : this(Vector2(x, y), width, height)
 
@@ -24,7 +24,10 @@ class Rectangle(val corner: Vector2, val width: Double, val height: Double) {
     }
 
     operator fun contains(point:Vector2):Boolean {
-        return (point.x >= corner.x && point.x < point.x+width && point.y >= corner.y && point.y < corner.y + height)
+        return (point.x >= corner.x &&
+                point.x < corner.x+width &&
+                point.y >= corner.y &&
+                point.y < corner.y + height)
     }
 
 }

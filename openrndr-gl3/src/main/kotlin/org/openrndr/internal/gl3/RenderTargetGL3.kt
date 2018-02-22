@@ -91,6 +91,11 @@ open class RenderTargetGL3(val framebuffer: Int, override val width: Int, overri
                     else -> null
                 }
             }
+        } else {
+//            if (this !is ProgramRenderTargetGL3) {
+//                throw RuntimeException("render target has no attached color buffers")
+//            }
+
         }
         glViewport(0, 0, width, height)
         debugGLErrors { null }

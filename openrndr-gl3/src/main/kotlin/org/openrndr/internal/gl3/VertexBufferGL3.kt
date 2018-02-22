@@ -57,7 +57,7 @@ class VertexBufferGL3(val buffer:Int, override val vertexFormat: VertexFormat, o
             val buffer = glGenBuffers()
             glBindBuffer(GL_ARRAY_BUFFER, buffer)
             val sizeInBytes = vertexFormat.size * vertexCount
-            nglBufferData(GL_ARRAY_BUFFER, sizeInBytes.toLong(), NULL, GL_STREAM_DRAW)
+            nglBufferData(GL_ARRAY_BUFFER, sizeInBytes.toLong(), NULL, GL_DYNAMIC_DRAW)
             checkGLErrors()
             return VertexBufferGL3(buffer, vertexFormat, vertexCount)
         }

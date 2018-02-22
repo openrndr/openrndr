@@ -268,6 +268,7 @@ interface ColorBufferShadow {
     fun destroy()
 
     fun writer(): BufferWriter
+    fun write(x: Int, y: Int, color: ColorRGBa)
 }
 
 

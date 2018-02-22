@@ -146,7 +146,7 @@ open class Program {
     private val extensions = mutableListOf<Extension>()
 
     fun extend(extension: Extension) {
-        extensions+=extension
+        extensions.add(extension)
         extension.setup(this)
     }
 

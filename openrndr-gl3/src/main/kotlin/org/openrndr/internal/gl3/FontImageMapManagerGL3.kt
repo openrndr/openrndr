@@ -26,6 +26,8 @@ class FontImageMapManagerGL3 : FontMapManager() {
 
     override fun fontMapFromUrl(fontUrl: String, size: Double, contentScale: Double): FontImageMap {
 
+        checkGLErrors()
+
         logger.debug { "content scale $contentScale" }
         var packSize = 256
 
