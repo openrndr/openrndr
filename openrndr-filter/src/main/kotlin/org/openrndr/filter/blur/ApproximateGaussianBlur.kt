@@ -31,7 +31,7 @@ class ApproximateGaussianBlur : Filter(Shader.createFromCode(Filter.filterVertex
         }
 
         if (intermediate == null) {
-            intermediate = ColorBuffer.create(target[0].width, target[0].height, target[0].format, target[0].type)
+            intermediate = ColorBuffer.create(target[0].width, target[0].height, target[0].contentScale, target[0].format, target[0].type)
         }
 
         intermediate?.let {

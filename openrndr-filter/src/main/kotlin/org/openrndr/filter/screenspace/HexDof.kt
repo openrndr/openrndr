@@ -43,8 +43,8 @@ class HexDof : Filter(Shader.createFromCode(Filter.filterVertexCode, filterFragm
         }
 
         if (vertical == null) {
-            vertical = ColorBuffer.create(target[0].width, target[0].height, ColorFormat.RGBa, ColorType.FLOAT16)
-            diagonal = ColorBuffer.create(target[0].width, target[0].height, ColorFormat.RGBa, ColorType.FLOAT16)
+            vertical = ColorBuffer.create(target[0].width, target[0].height, target[0].contentScale, ColorFormat.RGBa, ColorType.FLOAT16)
+            diagonal = ColorBuffer.create(target[0].width, target[0].height, target[0].contentScale, ColorFormat.RGBa, ColorType.FLOAT16)
         }
 
         source[0].filter(MinifyingFilter.LINEAR, MagnifyingFilter.LINEAR) // image
@@ -134,7 +134,7 @@ class IterativeVelocityBlur: Filter(Shader.createFromCode(Filter.filterVertexCod
         }
 
         if (intermediate == null) {
-            intermediate = ColorBuffer.create(target[0].width, target[0].height, target[0].format, target[0].type)
+            intermediate = ColorBuffer.create(target[0].width, target[0].height, target[0].contentScale, target[0].format, target[0].type)
         }
 
         val v = source[1]

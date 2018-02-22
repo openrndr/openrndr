@@ -174,6 +174,7 @@ class ColorBufferGL3(val target: Int,
                      val texture: Int,
                      override val width: Int,
                      override val height: Int,
+                     override val contentScale: Double,
                      override val format: ColorFormat,
                      override val type: ColorType) : ColorBuffer {
 
@@ -190,7 +191,7 @@ class ColorBufferGL3(val target: Int,
 
         fun fromUrl(url: String): ColorBuffer {
             val data = ColorBufferDataGL3.fromUrl(url)
-            val cb = create(data.width, data.height, data.format, data.type)
+            val cb = create(data.width, data.height, 1.0, data.format, data.type)
 
             return cb.apply {
                 cb.write(data.data)
@@ -198,7 +199,7 @@ class ColorBufferGL3(val target: Int,
             }
         }
 
-        fun create(width: Int, height: Int, format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.FLOAT32): ColorBufferGL3 {
+        fun create(width: Int, height: Int, contentScale: Double = 1.0, format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.FLOAT32): ColorBufferGL3 {
 
             val internalFormat = internalFormat(format, type)
 
@@ -216,8 +217,11 @@ class ColorBufferGL3(val target: Int,
             glBindTexture(GL_TEXTURE_2D, texture)
             checkGLErrors()
 
+            val effectiveWidth = (width * contentScale).toInt()
+            val effectiveHeight = (height*contentScale).toInt()
+
             val nullBB: ByteBuffer? = null
-            glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format.glFormat(), type.glType(), nullBB)
+            glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, effectiveWidth, effectiveHeight, 0, format.glFormat(), type.glType(), nullBB)
             checkGLErrors {
                 when(it) {
                     GL_INVALID_OPERATION -> """format is GL_DEPTH_COMPONENT ${format.glFormat() == GL_DEPTH_COMPONENT} and internalFormat is not GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT16, GL_DEPTH_COMPONENT24, or GL_DEPTH_COMPONENT32F"""
@@ -232,7 +236,7 @@ class ColorBufferGL3(val target: Int,
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
 
             checkGLErrors()
-            return ColorBufferGL3(GL_TEXTURE_2D, texture, width, height, format, type)
+            return ColorBufferGL3(GL_TEXTURE_2D, texture, width, height, contentScale, format, type)
         }
     }
 
