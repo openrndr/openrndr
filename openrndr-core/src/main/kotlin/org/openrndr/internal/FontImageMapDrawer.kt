@@ -26,7 +26,7 @@ class FontImageMapDrawer {
 
             text.forEach {
                 val metrics = fontMap.glyphMetrics[it]!!
-                insertCharacterQuad(fontMap, bw, it, x + cursorX + metrics.leftSideBearing, y + cursorY + metrics.yBitmapShift)
+                insertCharacterQuad(fontMap, bw, it, x + cursorX + metrics.leftSideBearing/fontMap.contentScale, y + cursorY + metrics.yBitmapShift/fontMap.contentScale)
                 cursorX += metrics.advanceWidth
 
             }
@@ -44,7 +44,7 @@ class FontImageMapDrawer {
         text.forEach {
             val metrics = fontMap.glyphMetrics[it]
             metrics?.let { m ->
-                insertCharacterQuad(fontMap, bw, it, x + cursorX + m.leftSideBearing, y + cursorY + m.yBitmapShift)
+                insertCharacterQuad(fontMap, bw, it, x + cursorX + m.leftSideBearing/fontMap.contentScale, y + cursorY + m.yBitmapShift/fontMap.contentScale)
                 cursorX += m.advanceWidth + tracking
             }
         }
