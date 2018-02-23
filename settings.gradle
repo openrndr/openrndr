@@ -2,6 +2,7 @@ rootProject.name = 'openrndr'
 
 include 'openrndr-core',
         'openrndr-gl3',
+		'openrndr-gl3-natives-linux-x64',
         'openrndr-gl3-natives-macos',
         'openrndr-gl3-natives-windows',
         'openrndr-math',
