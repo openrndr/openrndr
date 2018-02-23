@@ -5,4 +5,7 @@ branches:
   only:
   - /.*/
 
+before_install:
+  - openssl aes-256-cbc -K $encrypted_80297b79dae4_key -iv $encrypted_80297b79dae4_iv -in gradle.properties.enc -out gradle.properties -d
+
 script: ./buildViaTravis.sh
