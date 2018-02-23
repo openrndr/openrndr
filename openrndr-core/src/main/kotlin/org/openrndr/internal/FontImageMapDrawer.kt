@@ -28,7 +28,6 @@ class FontImageMapDrawer {
                 val metrics = fontMap.glyphMetrics[it]!!
                 insertCharacterQuad(fontMap, bw, it, x + cursorX + metrics.leftSideBearing/fontMap.contentScale, y + cursorY + metrics.yBitmapShift/fontMap.contentScale)
                 cursorX += metrics.advanceWidth
-
             }
             flush(context, drawStyle)
         }

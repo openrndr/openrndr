@@ -35,7 +35,6 @@ class ImageDrawer {
         val pc = Vector3(target.x + target.width, target.y + target.height, 0.0)
         val pd = Vector3(target.x, target.y + target.height, 0.0)
 
-
         val u0 = source.x/colorBuffer.width
         val u1 = (source.x+source.width)/colorBuffer.width
         val v0 = source.y/colorBuffer.height
@@ -69,9 +68,7 @@ class ImageDrawer {
     fun drawImage(drawContext: DrawContext,
                   drawStyle: DrawStyle, colorBuffer: ColorBuffer, x: Double, y: Double, width: Double, height: Double) {
 
-
         fun flipV(v:Double):Double = if (colorBuffer.flipV) {
-
             1.0 - v
         } else {
             v

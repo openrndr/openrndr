@@ -523,6 +523,7 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
         program.height = (fbh[0] / program.window.scale.y).toInt()
         program.drawer.width = program.width
         program.drawer.height = program.height
+        program.window.size = Vector2(fbw[0] * 1.0, fbh[0] * 1.0)
 
         program.drawer.reset()
         program.drawer.ortho()
@@ -543,16 +544,16 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
 
             glBindVertexArray(vaos[0])
 
-            val fbw = IntArray(1)
-            val fbh = IntArray(1)
-
-            glfwGetFramebufferSize(window, fbw, fbh)
-            program.window.size = Vector2(fbw[0] * 1.0, fbh[0] * 1.0)
-
-            program.width = (fbw[0] / program.window.scale.x).toInt() //(program.window.size.x/program.window.scale.x).toInt()
-            program.height = (fbh[0] / program.window.scale.y).toInt() // (program.window.size.y/program.window.scale.y).toInt()
-            program.drawer.width = program.width
-            program.drawer.height = program.height
+    //            val fbw = IntArray(1)
+    //            val fbh = IntArray(1)
+    //
+    //            glfwGetFramebufferSize(window, fbw, fbh)
+//            program.window.size = Vector2(fbw[0] * 1.0, fbh[0] * 1.0)
+//
+//            program.width = (fbw[0] / program.window.scale.x).toInt() //(program.window.size.x/program.window.scale.x).toInt()
+//            program.height = (fbh[0] / program.window.scale.y).toInt() // (program.window.size.y/program.window.scale.y).toInt()
+//            program.drawer.width = program.width
+//            program.drawer.height = program.height
 
             program.drawer.reset()
             program.drawer.ortho()
