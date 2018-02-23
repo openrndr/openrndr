@@ -1,0 +1,8 @@
+jdk: oraclejdk8
+language: groovy
+
+branches:
+  only:
+  - /.*/
+
+script: ./buildViaTravis.sh
