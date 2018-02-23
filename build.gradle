@@ -106,7 +106,7 @@ contacts {
 bintray {
     pkg {
         userOrg = 'openrndr'
-        repo = 'OPENRNDR'
+        repo = 'openrndr'
         name = 'openrndr'
         desc = project.description
         licenses = ['BSD-2-Clause']
