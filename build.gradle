@@ -46,7 +46,7 @@ plugins {
 
 group 'org.openrndr'
 
-subprojects {
+allprojects {
 
     buildscript {
         repositories {
