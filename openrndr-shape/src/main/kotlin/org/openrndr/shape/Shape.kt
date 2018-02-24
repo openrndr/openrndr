@@ -9,27 +9,53 @@ import org.openrndr.shape.internal.BezierQuadraticSampler
 class SegmentProjection(val segment: Segment, val projection: Double, val distance: Double, val point: Vector2)
 class ContourProjection(val segmentProjection: SegmentProjection, val projection: Double, val distance: Double, val point: Vector2)
 
+
+/**
+ * Segment describes a linear or bezier path between two points
+ */
 class Segment {
     val start: Vector2
     val end: Vector2
+
+    /**
+     * control points, zero-length iff the segment is linear
+     */
     val control: Array<Vector2>
 
     val linear: Boolean get() = control.isEmpty()
 
     private var lut: List<Vector2>? = null
 
+    /**
+     * Linear segment constructor
+     * @param start starting point of the segment
+     * @param end end point of the segment
+     */
     constructor(start: Vector2, end: Vector2) {
         this.start = start
         this.end = end
         this.control = emptyArray()
     }
 
+    /**
+     * Quadratic bezier segment constructor
+     * @param start starting point of the segment
+     * @param c0 control point
+     * @param end end point of the segment
+     */
     constructor(start: Vector2, c0: Vector2, end: Vector2) {
         this.start = start
         this.control = arrayOf(c0)
         this.end = end
     }
 
+    /**
+     * Cubic bezier segment constructor
+     * @param start starting point of the segment
+     * @param c0 first control point
+     * @param c1 second control point
+     * @param end end point of the segment
+     */
     constructor(start: Vector2, c0: Vector2, c1: Vector2, end: Vector2) {
         this.start = start
         this.control = arrayOf(c0, c1)
@@ -54,13 +80,11 @@ class Segment {
         var hits = 0
         var t = 0.0
         for (i in 0 until lut.size) {
-
             if ((lut[i] - point).squaredLength < error * error) {
                 hits++
                 t += i.toDouble() / lut.size
             }
         }
-
         return if (hits > 0) t / hits else null
     }
 
@@ -70,7 +94,6 @@ class Segment {
 
         var closestDistance = Double.POSITIVE_INFINITY
         for (i in 0 until points.size) {
-
             val distance = (points[i] - query).squaredLength
             if (distance < closestDistance) {
                 closestIndex = i
@@ -78,13 +101,11 @@ class Segment {
                 closestDistance = distance
             }
         }
-
         return Pair(closestIndex, closestValue)
     }
 
     fun project(point: Vector2): SegmentProjection {
         // based on bezier.js
-
         val lut = lut()
         val l = (lut.size - 1).toDouble()
         val closest = closest(lut, point)
@@ -95,7 +116,6 @@ class Segment {
                 val t = closest.first.toDouble() / l
             return SegmentProjection(this, t, closestDistance, closest.second)
         } else {
-
             val t1 = (closest.first - 1) / l
             val t2 = (closest.first + 1) / l
             val step = 0.1 / l
@@ -115,7 +135,6 @@ class Segment {
             val p = position(ft)
             return SegmentProjection(this, ft, closestDistance, p)
         }
-
     }
 
     fun transform(transform: Matrix44): Segment {
@@ -185,7 +204,6 @@ class Segment {
         }
 
     fun sub(t0: Double, t1: Double): Segment {
-
         // ftp://ftp.fu-berlin.de/tex/CTAN/dviware/dvisvgm/src/Bezier.cpp
         var z0 = t0
         var z1 = t1
@@ -200,10 +218,13 @@ class Segment {
             z1 == 1.0 -> split(z0)[1]
             else -> split(z0)[1].split(map(z0, 1.0, 0.0, 1.0, z1))[0]
         }
-
     }
 
-
+    /**
+     * Split the contour
+     * @param t the point to split the contour at
+     * @return array of parts, depending on the split point this is one or two entries long
+     */
     fun split(t: Double): Array<Segment> {
         val u = t.coerceIn(0.0, 1.0)
 
@@ -226,7 +247,6 @@ class Segment {
                             iz2, 2.0 * iz * z, z2, 0.0,
                             iz3, 3.0 * iz2 * z, 3.0 * iz * z2, z3)
 
-
                     val px = Vector4(start.x, control[0].x, control[1].x, end.x)
                     val py = Vector4(start.y, control[0].y, control[1].y, end.y)
 
@@ -240,7 +260,6 @@ class Segment {
 
                     val left = Segment(pl0, pl1, pl2, pl3)
 
-
                     val rsm = Matrix44(
                             iz3, 3.0 * iz2 * z, 3.0 * iz * z2, z3,
                             0.0, iz2, 2.0 * iz * z, z2,
@@ -248,8 +267,8 @@ class Segment {
                             0.0, 0.0, 0.0, 1.0
                     )
 
-                    val prx = rsm * px//px.multiply(rsm)
-                    val pry = rsm * py//py.multiply(rsm)
+                    val prx = rsm * px
+                    val pry = rsm * py
 
                     val pr0 = Vector2(prx.x, pry.x)
                     val pr1 = Vector2(prx.y, pry.y)
@@ -276,14 +295,13 @@ class Segment {
                     val px = Vector4(start.x, control[0].x, end.x, 0.0)
                     val py = Vector4(start.y, control[0].y, end.y, 0.0)
 
-                    val plx = lsm * px //px.multiply(lsm)
-                    val ply = lsm * py //py.multiply(lsm)
+                    val plx = lsm * px
+                    val ply = lsm * py
 
                     val left = Segment(
                             Vector2(plx.x, ply.x),
                             Vector2(plx.y, ply.y),
                             Vector2(plx.z, ply.z))
-
 
                     val rsm = Matrix44(
                             iz2, 2.0 * iz * z, z2, 0.0,
@@ -291,8 +309,8 @@ class Segment {
                             0.0, 0.0, 1.0, 0.0,
                             0.0, 0.0, 0.0, 0.0)
 
-                    val prx = rsm * px //multiply(rsm)
-                    val pry = rsm * py //.multiply(rsm)
+                    val prx = rsm * px
+                    val pry = rsm * py
 
                     val right = Segment(
                             Vector2(prx.x, pry.x),
@@ -307,11 +325,11 @@ class Segment {
         }
     }
 
-    fun intersect(other: Segment) {
-        if (control.size == 0 && other.control.size == 0) {
-            // line line intersection
-        }
-    }
+//    fun intersect(other: Segment) {
+//        if (control.size == 0 && other.control.size == 0) {
+//            // line line intersection
+//        }
+//    }
 }
 
 private fun sumDifferences(points: List<Vector2>): Double =
@@ -326,19 +344,14 @@ class ShapeContour(val segments: List<Segment>, val closed: Boolean) {
 
     val length get() = segments.sumByDouble { it.length }
 
-
     operator fun plus(other: ShapeContour): ShapeContour {
-
         val epsilon = 0.001
         val segments = mutableListOf<Segment>()
         segments.addAll(this.segments)
-
         if ((this.segments[this.segments.size - 1].end - other.segments[0].start).length > epsilon) {
             segments.add(Segment(this.segments[this.segments.size - 1].end, other.segments[0].start))
         }
-
         segments.addAll(other.segments)
-
         return ShapeContour(segments, false)
     }
 
@@ -346,20 +359,18 @@ class ShapeContour(val segments: List<Segment>, val closed: Boolean) {
         val t = ut.coerceIn(0.0, 1.0)
         val segment = (t * segments.size).toInt()
         val segmentOffset = (t * segments.size) - segment
-
         return segments[Math.min(segments.size - 1, segment)].position(segmentOffset)
     }
 
+    /**
+     * Evaluates the contour for the given position
+     */
     fun normal(ut: Double): Vector2 {
         val t = ut.coerceIn(0.0, 1.0)
         val segment = (t * segments.size).toInt()
         val segmentOffset = (t * segments.size) - segment
-
         return segments[Math.min(segments.size - 1, segment)].normal(segmentOffset)
     }
-
-
-
 
     fun adaptivePositions(distanceTolerance: Double = 0.5): List<Vector2> {
         val adaptivePoints = mutableListOf<Vector2>()
@@ -380,15 +391,25 @@ class ShapeContour(val segments: List<Segment>, val closed: Boolean) {
         return adaptivePoints
     }
 
+    /**
+     *
+     */
     fun equidistantPositions(pointCount: Int): List<Vector2> {
         return sampleEquidistant(adaptivePositions(), pointCount)
     }
 
-
+    /**
+     * Adaptively sample the contour into line segments while still approximating the original contour
+     * @param distanceTolerance controls the quality of the approximation
+     * @return a ShapeContour composed of linear segments
+     */
     fun sampleLinear(distanceTolerance: Double = 0.5): ShapeContour {
         return fromPoints(adaptivePositions(distanceTolerance), closed)
     }
 
+    /**
+     * Sample the shape contour into line segments
+     */
     fun sampleEquidistant(pointCount: Int): ShapeContour {
         val points = equidistantPositions(pointCount)
         val segments = (0 until points.size - 1).map { Segment(points[it], points[it + 1]) }
@@ -399,10 +420,16 @@ class ShapeContour(val segments: List<Segment>, val closed: Boolean) {
             = ShapeContour(segments.map { it.transform(transform) }, closed)
 
 
-    fun mod(a: Double, b: Double): Double {
+    private fun mod(a: Double, b: Double): Double {
         return ((a % b) + b) % b
     }
 
+    /**
+     * Sample a sub contour
+     * @param u0 starting point in [0, 1)
+     * @param u1 ending point in [0, 1)
+     * @return sub contour
+     */
     fun sub(u0: Double, u1: Double): ShapeContour {
         var t0 = u0
         var t1 = u1
@@ -414,7 +441,6 @@ class ShapeContour(val segments: List<Segment>, val closed: Boolean) {
             if (t0 > t1)
                 return sub(t0, 1.0) + sub(0.0, t1)
         }
-
 
         t0 = t0.coerceIn(0.0, 1.0)
         t1 = t1.coerceIn(0.0, 1.0)
@@ -428,10 +454,8 @@ class ShapeContour(val segments: List<Segment>, val closed: Boolean) {
         }
 
         val length = segments.size.toDouble()
-
         var segment0 = (z0 * length).toInt()
         val segmentOffset0 = if (segment0 < segments.size) z0 * length % 1.0 else 1.0
-
         var segment1 = (z1 * length).toInt()
         val segmentOffset1 = if (segment1 < segments.size) z1 * length % 1.0 else 1.0
 
@@ -440,8 +464,6 @@ class ShapeContour(val segments: List<Segment>, val closed: Boolean) {
 
 
         val newSegments = mutableListOf<Segment>()
-
-
         val epsilon = 0.000001
 
         for (s in segment0..segment1) {
@@ -464,6 +486,13 @@ class ShapeContour(val segments: List<Segment>, val closed: Boolean) {
     }
 
 
+    /**
+     * Checks if a give point lies on the contour
+     * @param point the point to check
+     * @param error what is the allowed error (unitless, but likely in pixels)
+     * @return the contour parameter in [0..1.0) if the point is within error `null` otherwise
+     *
+     */
     fun on(point: Vector2, error: Double = 5.0): Double? {
         for (i in 0 until segments.size) {
             val st = segments[i].on(point, error)
@@ -474,18 +503,20 @@ class ShapeContour(val segments: List<Segment>, val closed: Boolean) {
         return null
     }
 
+    /**
+     * Project a point on the contour
+     * @param point the point to project
+     * @return a projected point that lies on the contour
+     */
     fun project(point: Vector2): ContourProjection {
-
         val nearest = segments.
                 mapIndexed { index, it -> Pair(index, it.project(point)) }.
                 minBy { it.second.distance }!!
-
 
         return ContourProjection(nearest.second, (nearest.first + nearest.second.projection) /
                 segments.size, nearest.second.distance, nearest.second.point)
 
     }
-
 
     val reversed get() = ShapeContour(segments.map { it.reverse }, closed)
 }
@@ -495,9 +526,21 @@ class Shape(val contours: List<ShapeContour>) {
     val linear: Boolean get() = contours.all { it.segments.all { it.linear } }
     fun polygon(distanceTolerance: Double = 0.5) = Shape(contours.map { it.sampleLinear(distanceTolerance) })
 
+    /**
+     * The outline of the spape
+     */
     val outline get() = contours[0]
+
+    /**
+     * The indexed hole of the shape
+     * @param index
+     */
     fun hole(index: Int) = contours[index + 1]
 
+    /**
+     * Apply a tranform to the shape
+     * @param transform a Matrix44 that represents the transform
+     * @return a transformed shape instance
+     */
     fun transform(transform: Matrix44): Shape = Shape(contours.map { it.transform(transform) })
-
 }

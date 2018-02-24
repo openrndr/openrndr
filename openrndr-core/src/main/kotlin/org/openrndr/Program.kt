@@ -8,9 +8,12 @@ import org.openrndr.math.Vector2
 
 import java.io.File
 
+/**
+ *
+ */
 enum class UnfocusBehaviour {
-    NORMAL,
-    THROTTLE
+    NORMAL, /** Continue as usual **/
+    THROTTLE /** Throttle drawing **/
 }
 
 class Configuration {
@@ -28,7 +31,7 @@ class Configuration {
     /**
      * The window title
      */
-    var title: String = "OpenRNDR"
+    var title: String = "OPENRNDR"
 
     /**
      * Should debug mode be used?
@@ -61,10 +64,16 @@ class Configuration {
      */
     var position: IntVector2? = null
 
+    /**
+     * The window and drawing behaviour on window unfocus
+     **/
     var unfocusBehaviour = UnfocusBehaviour.NORMAL
 
 }
 
+/**
+ * Simple configuration builder
+ */
 fun configuration(builder:Configuration.()->Unit):Configuration {
     return Configuration().apply(builder)
 }
@@ -118,11 +127,13 @@ class DropEvent(val position:Vector2, val files:List<File>)
 val KEY_ARROW_LEFT = 263
 val KEY_ARROW_RIGHT = 262
 
+/**
+    The Program class, this is where most user implementations start
+**/
 open class Program {
 
     var width = 0
     var height = 0
-
 
     lateinit var drawer: Drawer
     lateinit var driver: Driver
@@ -145,11 +156,19 @@ open class Program {
     val clipboard = Clipboard()
     private val extensions = mutableListOf<Extension>()
 
+    /**
+     * Install an extension
+     * @param extension the extension to install
+     */
     fun extend(extension: Extension) {
         extensions.add(extension)
         extension.setup(this)
     }
 
+
+    /**
+     * Simplified window interface
+     */
     inner class Window {
 
         var title: String
@@ -161,13 +180,32 @@ open class Program {
         var size = Vector2(0.0, 0.0)
         var scale = Vector2(1.0, 1.0)
 
+
+        /**
+         * Window focused event, triggered when the window receives focus
+         */
         val focused = Event<WindowEvent>().postpone(true)
+
+        /**
+         * Window focused event, triggered when the window loses focus
+         */
         val unfocused = Event<WindowEvent>().postpone(true)
+
+        /**
+         * Window moved event
+         */
         val moved = Event<WindowEvent>().postpone(true)
         val sized = Event<WindowEvent>().postpone(true)
 
+
+        /**
+         * Drop event, triggered when a file is dropped on the window
+         */
         val drop = Event<DropEvent>().postpone(true)
 
+        /**
+         * Window position
+         */
         var position:Vector2
             get() = application.windowPosition
         set(value) {
@@ -184,7 +222,6 @@ open class Program {
     }
 
     val keyboard = Keyboard()
-
 
     class Mouse {
         class MouseEvent(val position: Vector2, val rotation: Vector2, val type: MouseEventType, val button: MouseButton, val modifiers: Set<KeyboardModifier>, var propagationCancelled:Boolean = false) {
@@ -205,6 +242,9 @@ open class Program {
 
     val mouse = Mouse()
 
+    /**
+     * This is ran exactly once before the first call to draw()
+     */
     open fun setup() {}
 
     /**
