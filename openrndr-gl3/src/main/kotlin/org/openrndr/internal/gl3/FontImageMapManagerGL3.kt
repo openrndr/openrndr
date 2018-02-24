@@ -15,6 +15,7 @@ import org.openrndr.internal.FontMapManager
 import org.openrndr.math.IntVector2
 import org.openrndr.shape.IntRectangle
 import java.net.URL
+import java.nio.Buffer
 import java.nio.ByteOrder
 
 private val logger = KotlinLogging.logger {}
@@ -47,9 +48,9 @@ class FontImageMapManagerGL3 : FontMapManager() {
 
         val bb = BufferUtils.createByteBuffer(fileSize)
         bb.order(ByteOrder.nativeOrder())
-        bb.rewind()
+        (bb as Buffer).rewind()
         bb.put(byteArray, 0, fileSize)
-        bb.rewind()
+        (bb as Buffer).rewind()
         val info = STBTTFontinfo.create()
 
         val status = stbtt_InitFont(info, bb)
@@ -142,14 +143,14 @@ class FontImageMapManagerGL3 : FontMapManager() {
                 val ascale = scale / contentScale
                 glyphMetrics[it.key] = GlyphMetrics(advanceWidth * ascale.toDouble(), leftBearing * ascale.toDouble(), x0.toDouble(), y0.toDouble())
 
-                bitmap.rewind()
-                bitmap.position((sanding + t.area.y) * packSize + sanding + t.area.x)
+                (bitmap as Buffer).rewind()
+                (bitmap as Buffer).position((sanding + t.area.y) * packSize + sanding + t.area.x)
                 stbtt_MakeGlyphBitmapSubpixel(info, bitmap, x1 - x0, y1 - y0, packSize, scale, scale, 0.0f, 0.0f, glyphIndex)
             }
         }
         logger.debug { "uploading bitmap to colorbuffer" }
         image as ColorBufferGL3
-        bitmap.rewind()
+        (bitmap as Buffer).rewind()
         image.write(bitmap)
 
         val leading = ascent - descent + lineGap
