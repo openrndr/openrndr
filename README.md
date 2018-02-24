@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/openrndr/openrndr.svg?branch=master)](https://travis-ci.org/openrndr/openrndr)
+
 # OPENRNDR
 
 A library for creative coding written in Kotlin/JVM
