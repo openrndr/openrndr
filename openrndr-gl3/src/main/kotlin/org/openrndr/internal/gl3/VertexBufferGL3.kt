@@ -11,6 +11,7 @@ import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL15.*
 import org.lwjgl.opengl.GL30.GL_VERTEX_ARRAY_BINDING
 import org.lwjgl.system.MemoryUtil.NULL
+import java.nio.Buffer
 
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -26,15 +27,15 @@ class VertexBufferShadowGL3(override val vertexBuffer:VertexBufferGL3): VertexBu
 
     override fun upload(offset:Int, size:Int) {
         logger.trace { "uploading shadow to vertex buffer" }
-        buffer.rewind()
-        buffer.position(offset)
-        buffer.limit(offset+size)
+        (buffer as Buffer).rewind()
+        (buffer as Buffer).position(offset)
+        (buffer as Buffer).limit(offset+size)
         vertexBuffer.write(buffer)
-        buffer.limit(buffer.capacity())
+        (buffer as Buffer).limit(buffer.capacity())
     }
 
     override fun download() {
-        buffer.rewind()
+        (buffer as Buffer).rewind()
         vertexBuffer.read(buffer)
     }
 
@@ -74,7 +75,7 @@ class VertexBufferGL3(val buffer:Int, override val vertexFormat: VertexFormat, o
 
     override fun write(data: ByteBuffer, offset:Int) {
         logger.trace { "writing to vertex buffer, ${data.remaining()} bytes" }
-        data.rewind()
+        (data as Buffer).rewind()
         debugGLErrors()
         bind()
         debugGLErrors()

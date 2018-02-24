@@ -19,6 +19,7 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
 import org.openrndr.draw.*
+import java.nio.Buffer
 
 data class ConversionEntry(val format: ColorFormat, val type: ColorType, val glFormat: Int)
 
@@ -131,9 +132,9 @@ class ColorBufferDataGL3(val width: Int, val height: Int, val format: ColorForma
                 logger.info("total size $size")
                 val buffer = BufferUtils.createByteBuffer(size)
 
-                buffer.rewind()
+                (buffer as Buffer).rewind()
                 buffer.put(byteArray, 0, size)
-                buffer.rewind()
+                (buffer as Buffer).rewind()
 
 
 
@@ -309,11 +310,11 @@ class ColorBufferGL3(val target: Int,
 //                println("Writing to color buffer in: $format ${format.glFormat()}, $type ${type.glType()} ")
            // }
 
-            buffer.rewind()
+            (buffer as Buffer).rewind()
             buffer.order(ByteOrder.nativeOrder())
             glTexSubImage2D(target, 0, 0, 0, width, height, format.glFormat(), type.glType(), buffer)
             debugGLErrors()
-            buffer.rewind()
+            (buffer as Buffer).rewind()
         }
     }
 
@@ -328,10 +329,10 @@ class ColorBufferGL3(val target: Int,
             debugGLErrors()
             val packAlignment = glGetInteger(GL_PACK_ALIGNMENT)
             buffer.order(ByteOrder.nativeOrder())
-            buffer.rewind()
+            (buffer as Buffer).rewind()
             glGetTexImage(target, 0, format.glFormat(), type.glType(), buffer)
             debugGLErrors()
-            buffer.rewind()
+            (buffer as Buffer).rewind()
             glPixelStorei(GL_PACK_ALIGNMENT, packAlignment)
             debugGLErrors()
         }

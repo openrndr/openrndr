@@ -13,6 +13,7 @@ import org.lwjgl.opengl.GL20.*
 import org.openrndr.color.ColorRGBa
 import java.io.File
 import java.io.FileWriter
+import java.nio.Buffer
 import java.nio.ByteBuffer
 
 private val logger = KotlinLogging.logger {}
@@ -28,7 +29,7 @@ fun checkShaderInfoLog(`object`: Int, code: String, sourceFile: String) {
 
         logger.debug { "getting log" }
         val infoLog = BufferUtils.createByteBuffer(logLength[0])
-        infoLog.rewind()
+        (infoLog as Buffer).rewind()
         glGetShaderInfoLog(`object`, logLength, infoLog)
 
        // logger.warn {

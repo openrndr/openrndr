@@ -9,6 +9,7 @@ import org.lwjgl.opengl.GL15.*
 import org.lwjgl.opengl.GL31.GL_TEXTURE_BUFFER
 import org.lwjgl.opengl.GL31.glTexBuffer
 import org.openrndr.draw.*
+import java.nio.Buffer
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
@@ -25,22 +26,18 @@ class BufferTextureShadowGL3(override val bufferTexture: BufferTextureGL3) : Buf
 
     override fun upload(offset:Int, size:Int) {
         logger.trace { "uploading shadow to buffer texture" }
-        buffer.rewind()
-        buffer.position(offset)
-//        buffer.limit(offset+size)
-        buffer.limit(buffer.capacity())
-
+        (buffer as Buffer).rewind()
+        (buffer as Buffer).position(offset)
+        (buffer as Buffer).limit(buffer.capacity())
         bufferTexture.write(buffer)
-        buffer.limit(buffer.capacity())
+        (buffer as Buffer).limit(buffer.capacity())
     }
 
     override fun download() {
-//        buffer.rewind()
-//        bufferTexture.read(buffer)
+        TODO("not implemented")
     }
 
     override fun destroy() {
-
         bufferTexture.realShadow = null
     }
 
@@ -54,8 +51,6 @@ class BufferTextureGL3(val texture: Int, val buffer: Int, override val elementCo
 
     companion object {
         fun create(elementCount: Int, format: ColorFormat, type: ColorType): BufferTextureGL3 {
-
-
             val sizeInBytes = format.componentCount * type.componentSize * elementCount
             val buffers = IntArray(1)
             glGenBuffers(buffers)
@@ -85,7 +80,7 @@ class BufferTextureGL3(val texture: Int, val buffer: Int, override val elementCo
 
 
     fun write(buffer:ByteBuffer) {
-        buffer.rewind()
+        (buffer as Buffer).rewind()
  //       buffer.limit(buffer.capacity())
 //        glActiveTexture(GL_TEXTURE0)
 
