@@ -74,37 +74,45 @@ class VertexBufferGL3(val buffer:Int, override val vertexFormat: VertexFormat, o
 
 
     override fun write(data: ByteBuffer, offset:Int) {
-        logger.trace { "writing to vertex buffer, ${data.remaining()} bytes" }
-        (data as Buffer).rewind()
-        debugGLErrors()
-        bind()
-        debugGLErrors()
+        if (data.isDirect) {
+            logger.trace { "writing to vertex buffer, ${data.remaining()} bytes" }
+            (data as Buffer).rewind()
+            debugGLErrors()
+            bind()
+            debugGLErrors()
+            glBufferSubData(GL_ARRAY_BUFFER, offset.toLong(), data)
 
-//        val vaos = IntArray(1)
-//        glGetIntegerv(GL_VERTEX_ARRAY_BINDING, vaos)
-//        val vbos = IntArray(1)
-//        glGetIntegerv(GL_ARRAY_BUFFER_BINDING, vbos)
-        glBufferSubData(GL_ARRAY_BUFFER, offset.toLong(), data)
+            checkGLErrors {
+                val vertexArrayBinding = IntArray(1)
+                glGetIntegerv(GL_VERTEX_ARRAY_BINDING, vertexArrayBinding)
 
-        checkGLErrors {
+                val arrayBufferBinding = IntArray(1)
+                glGetIntegerv(GL_ARRAY_BUFFER_BINDING, arrayBufferBinding)
 
-            val vertexArrayBinding = IntArray(1)
-            glGetIntegerv(GL_VERTEX_ARRAY_BINDING, vertexArrayBinding)
-
-            val arrayBufferBinding = IntArray(1)
-            glGetIntegerv(GL_ARRAY_BUFFER_BINDING, arrayBufferBinding)
-
-            val isBuffer = glIsBuffer(buffer)
-            when(it) {
-                GL_INVALID_OPERATION ->  "zero is bound to target. (is buffer: $isBuffer, GL_VERTEX_ARRAY_BINDING: ${vertexArrayBinding[0]}, GL_ARRAY_BUFFER_BINDING: ${arrayBufferBinding[0]})"
-                GL_INVALID_VALUE -> "offset ($offset) or size is negative, or offset+sizeoffset+size is greater than the value of GL_BUFFER_SIZE for the specified buffer object."
-                else -> null
+                val isBuffer = glIsBuffer(buffer)
+                when (it) {
+                    GL_INVALID_OPERATION -> "zero is bound to target. (is buffer: $isBuffer, GL_VERTEX_ARRAY_BINDING: ${vertexArrayBinding[0]}, GL_ARRAY_BUFFER_BINDING: ${arrayBufferBinding[0]})"
+                    GL_INVALID_VALUE -> "offset ($offset) or size is negative, or offset+sizeoffset+size is greater than the value of GL_BUFFER_SIZE for the specified buffer object."
+                    else -> null
+                }
             }
+        } else {
+            val temp = BufferUtils.createByteBuffer(data.capacity())
+            temp.put(data)
+            write(temp, offset)
         }
     }
 
     override fun read(data:ByteBuffer, offset:Int) {
-        bind()
+        if (data.isDirect) {
+            bind()
+            glGetBufferSubData(GL_ARRAY_BUFFER, offset.toLong(), data)
+            checkGLErrors()
+        } else {
+            val temp = BufferUtils.createByteBuffer(data.capacity())
+            read(temp, offset)
+            data.put(temp)
+        }
     }
 
     override fun destroy() {

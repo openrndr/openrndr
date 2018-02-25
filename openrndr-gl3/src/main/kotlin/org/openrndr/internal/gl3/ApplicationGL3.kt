@@ -360,20 +360,15 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
         println("errorrrr: ${source} ${type} ${severity}")
     }
 
-    override fun loop() {
+    private val vaos = IntArray(1)
 
-        //glDebugMessageCallback(::cb, NULL)
-
-        logger.debug { "starting loop" }
-
+    fun preloop() {
         createCapabilities()
         // check configuration for debug setting
         //val debugProc = GLUtil.setupDebugMessageCallback();
         // create default VAO, as per the OpenGL spec a VAO should bound at all times
-        val vaos = IntArray(1)
         glGenVertexArrays(vaos)
         glBindVertexArray(vaos[0])
-
         driver = DriverGL3()
         driver.defaultVAO = vaos[0]
         program.driver = driver
@@ -388,6 +383,17 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
         program.height = program.drawer.height
 
         program.drawer.ortho()
+
+    }
+
+    override fun loop() {
+
+        //glDebugMessageCallback(::cb, NULL)
+
+        logger.debug { "starting loop" }
+
+        preloop()
+
 
         var globalModifiers = setOf<KeyboardModifier>()
 
