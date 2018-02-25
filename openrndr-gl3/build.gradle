@@ -3,22 +3,12 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'org.junit.platform:junit-platform-gradle-plugin:1.0.0'
+        classpath 'org.junit.platform:junit-platform-gradle-plugin:1.1.0'
     }
 }
 
 apply plugin: 'org.junit.platform.gradle.plugin'
 
-junitPlatform {
-    filters {
-        engines {
-            include 'spek'
-        }
-        if (!project.hasProperty("testGL3")) {
-            excludeClassNamePattern 'org.openrndr.gl3.tests.*'
-        }
-    }
-}
 
 dependencies {
     compile project(":openrndr-core")
@@ -40,8 +30,18 @@ dependencies {
     }
     testRuntime project(":openrndr-gl3-natives-windows")
 
-    testRuntime ('org.jetbrains.spek:spek-junit-platform-engine:1.1.5') {
+        testRuntime ('org.jetbrains.spek:spek-junit-platform-engine:1.1.5') {
         exclude group: 'org.junit.platform'
         exclude group: 'org.jetbrains.kotlin'
+    }
+}
+
+junitPlatform {
+    filters {
+        engines {
+            if (!project.hasProperty("testGL3")) {
+                exclude 'spek'
+            }
+        }
     }
 }
