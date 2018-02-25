@@ -1,3 +1,5 @@
+package org.openrndr.gl3.tests
+
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it

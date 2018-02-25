@@ -14,6 +14,9 @@ junitPlatform {
         engines {
             include 'spek'
         }
+        if (!project.hasProperty("testGL3")) {
+            excludeClassNamePattern 'org.openrndr.gl3.tests.*'
+        }
     }
 }
 
@@ -40,11 +43,5 @@ dependencies {
     testRuntime ('org.jetbrains.spek:spek-junit-platform-engine:1.1.5') {
         exclude group: 'org.junit.platform'
         exclude group: 'org.jetbrains.kotlin'
-    }
-}
-
-test {
-    if (!project.hasProperty('testGL3')) {
-        exclude '**/*.class'
     }
 }
