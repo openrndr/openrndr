@@ -405,6 +405,7 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
             when (action) {
                 GLFW_PRESS -> program.keyboard.keyDown.trigger(KeyEvent(KeyEventType.KEY_DOWN, key, scancode, name, modifiers))
                 GLFW_RELEASE -> program.keyboard.keyUp.trigger(KeyEvent(KeyEventType.KEY_UP, key, scancode, name, modifiers))
+                GLFW_REPEAT -> program.keyboard.keyRepeat.trigger(KeyEvent(KeyEventType.KEY_REPEAT, key, scancode, name, modifiers))
             }
         }
 
