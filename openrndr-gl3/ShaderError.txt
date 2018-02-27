@@ -1,0 +1,48 @@
+#version 330
+
+
+
+
+layout(origin_upper_left) in vec4 gl_FragCoord;
+
+uniform sampler2D image;
+
+uniform mat4 u_normalMatrix;
+uniform mat4 u_viewMatrix;
+uniform mat4 u_projectionMatrix;
+uniform mat4 u_viewProjectionMatrix;
+uniform vec4 u_fill;
+uniform vec4 u_stroke;
+uniform float u_strokeWeight;
+uniform float[25] u_colorMatrix;
+
+in vec3 va_position;
+
+
+
+out vec4 o_color;
+struct VertexData {
+    vec3 position;
+    vec3 normal;
+};
+
+
+flat in int v_instance;
+
+in VertexData world;
+in VertexData view;
+in VertexData object;
+in VertexData clip;
+
+void main(void) {
+    vec2 c_screenPosition = gl_FragCoord.xy;
+    vec4 x_fill = u_fill;
+    vec4 x_stroke = u_stroke;
+    {
+        x_fill.xy = c_screenPosition.xy;
+x_fill.rg = va_position.xy;
+x_fill.b = c_contourPosition;
+    }
+    o_color = x_fill;
+    o_color.rgb *= o_color.a;
+}

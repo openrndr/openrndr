@@ -34,7 +34,6 @@ struct VertexData {
 };
 
 ${shadeStructure.fragmentPreamble?:""}
-
 flat in int v_instance;
 
 in VertexData world;
@@ -43,6 +42,8 @@ in VertexData object;
 in VertexData clip;
 
 void main(void) {
+    vec2 c_screenPosition = gl_FragCoord.xy;
+    float c_contourPosition = 0.0;
     vec4 x_fill = u_fill;
     vec4 x_stroke = u_stroke;
     {
@@ -126,6 +127,8 @@ vec4 colorTransform(vec4 color, float[25] matrix) {
 }
 
 void main(void) {
+    vec2 c_screenPosition = gl_FragCoord.xy;
+    float c_contourPosition = 0.0;
     vec4 x_fill = texture(image, va_texCoord0);
     vec4 x_stroke = u_stroke;
     {
@@ -169,6 +172,8 @@ ${shadeStructure.varyingIn?:""}
 out vec4 o_color;
 
 void main(void) {
+    vec2 c_screenPosition = gl_FragCoord.xy;
+    float c_contourPosition = 0.0;
     vec4 x_fill = u_fill;
     vec4 x_stroke = u_stroke;
     {
@@ -210,7 +215,6 @@ void main() {
     override fun fontImageMapFragmentShader(shadeStructure: ShadeStructure): String = """#version 330
 
 ${shadeStructure.uniforms?:""}
-
 layout(origin_upper_left) in vec4 gl_FragCoord;
 
 uniform sampler2D image;
@@ -222,7 +226,8 @@ ${shadeStructure.varyingIn?:""}
 out vec4 o_color;
 
 void main(void) {
-
+    vec2 c_screenPosition = gl_FragCoord.xy;
+    float c_contourPosition = 0.0;
     int instance = v_instance;
     vec3 boundsPosition = vec3(va_bounds.xy, 0.0);
     vec3 boundsSize = vec3(va_bounds.zw, 0.0);
@@ -238,8 +243,8 @@ void main(void) {
 """
 
     override fun fontImageMapVertexShader(shadeStructure: ShadeStructure): String = """#version 330
-
 $drawerUniforms
+
 ${shadeStructure.attributes?:""}
 ${shadeStructure.uniforms?:""}
 ${shadeStructure.varyingOut?:""}
@@ -265,6 +270,7 @@ void main() {
     override fun rectangleFragmentShader(shadeStructure: ShadeStructure): String = """#version 330
 
 $drawerUniforms
+layout(origin_upper_left) in vec4 gl_FragCoord;
 ${shadeStructure.uniforms?:""}
 ${shadeStructure.fragmentPreamble?:""}
 ${shadeStructure.varyingIn?:""}
@@ -272,6 +278,8 @@ ${shadeStructure.outputs?:""}
 out vec4 o_color;
 
 void main(void) {
+    vec2 c_screenPosition = gl_FragCoord.xy;
+    float c_contourPosition = 0.0;
     vec3 boundsPosition = vec3(va_texCoord0, 0.0);
     vec4 x_fill = u_fill;
     {
@@ -300,7 +308,7 @@ void main() {
     override fun expansionFragmentShader(shadeStructure: ShadeStructure): String = """#version 330
 
 ${shadeStructure.uniforms?:""}
-
+layout(origin_upper_left) in vec4 gl_FragCoord;
 $drawerUniforms
 ${shadeStructure.varyingIn?:""}
 uniform float strokeMult;
@@ -321,11 +329,11 @@ float strokeMask() {
 }
 
 void main(void) {
+    vec2 c_screenPosition = gl_FragCoord.xy;
+    vec3 c_boundsPosition = vec3(v_objectPosition.xy - bounds.xy, 0.0) / vec3(bounds.zw,1.0);
+    vec3 c_boundsSize = vec3(bounds.zw, 0.0);
 
-    vec3 boundsPosition = vec3(v_objectPosition.xy - bounds.xy, 0.0) / vec3(bounds.zw,1.0);
-    vec3 boundsSize = vec3(bounds.zw, 0.0);
-
-    float strokeOffset = va_vertexOffset;
+    float c_contourPosition = va_vertexOffset;
 	float strokeAlpha = strokeMask();
 
     vec4 x_stroke = u_stroke;
@@ -347,6 +355,7 @@ void main(void) {
 
     override fun expansionVertexShader(shadeStructure: ShadeStructure): String = """#version 330
 $drawerUniforms
+
 ${shadeStructure.attributes}
 ${shadeStructure.varyingOut?:""}
 
@@ -368,7 +377,6 @@ void main() {
 
     override fun fastLineFragmentShader(shadeStructure: ShadeStructure): String = """#version 330
 ${shadeStructure.uniforms?:""}
-
 layout(origin_upper_left) in vec4 gl_FragCoord;
 
 uniform sampler2D image;
@@ -378,6 +386,8 @@ ${shadeStructure.varyingIn?:""}
 out vec4 o_color;
 
 void main(void) {
+    vec2 c_screenPosition = gl_FragCoord.xy;
+    float c_contourPosition = 0.0;
     vec4 x_fill = u_fill;
     vec4 x_stroke = u_stroke;
     {
@@ -388,8 +398,8 @@ void main(void) {
         """
 
     override fun fastLineVertexShader(shadeStructure: ShadeStructure): String = """#version 330
-
 $drawerUniforms
+
 ${shadeStructure.attributes?:""}
 ${shadeStructure.uniforms?:""}
 

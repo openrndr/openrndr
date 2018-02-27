@@ -29,12 +29,35 @@ dependencies {
         exclude group: 'com.fasterxml.jackson.module'
     }
     testRuntime project(":openrndr-gl3-natives-windows")
+    testRuntime project(":openrndr-gl3-natives-macos")
 
-        testRuntime ('org.jetbrains.spek:spek-junit-platform-engine:1.1.5') {
+    testRuntime 'org.junit.platform:junit-platform-console:1.0.0'
+    testRuntime 'org.junit.jupiter:junit-jupiter-engine:5.0.0'
+
+    testRuntime ('org.jetbrains.spek:spek-junit-platform-engine:1.1.5') {
         exclude group: 'org.junit.platform'
         exclude group: 'org.jetbrains.kotlin'
     }
 }
+
+task junitPlatformTest(overwrite:true) {
+
+}
+
+if (project.hasProperty("testGL3")) {
+    task runJupiter(type: JavaExec) {
+        jvmArgs '-XstartOnFirstThread'
+        classpath = project.sourceSets.test.runtimeClasspath
+        main 'org.junit.platform.console.ConsoleLauncher'
+        args '--scan-class-path'
+//        args '--hide-details'
+//    args "--reports-dir=$project.testReportDir"
+
+    }
+    junitPlatformTest.dependsOn runJupiter
+    
+}
+
 
 junitPlatform {
     filters {
