@@ -462,6 +462,12 @@ internal class Path {
             }
         }
 
+        if (points.size == 2) {
+            var dx = p1.x - p0.x
+            var dy = p1.y - p0.y
+            val length = Math.sqrt(dx * dx + dy * dy)
+            offset = length
+        }
         // -- end
         if (closed) {
             // Loop it
@@ -478,10 +484,10 @@ internal class Path {
                 dx /= l
                 dy /= l
             }
-            when {
-                lineCap == LineCap.BUTT -> expansion.buttCapEnd(p1, dx, dy, weight, -aa * 0.5, aa, offset)
-                lineCap == LineCap.SQUARE -> expansion.buttCapEnd(p1, dx, dy, weight, weight - aa, aa, offset)
-                lineCap == LineCap.ROUND -> expansion.roundCapEnd(p1, dx, dy, weight, capSteps, aa, offset)
+            when (lineCap) {
+                LineCap.BUTT -> expansion.buttCapEnd(p1, dx, dy, weight, -aa * 0.5, aa, offset)
+                LineCap.SQUARE -> expansion.buttCapEnd(p1, dx, dy, weight, weight - aa, aa, offset)
+                LineCap.ROUND -> expansion.roundCapEnd(p1, dx, dy, weight, capSteps, aa, offset)
             }
         }
         return expansion
