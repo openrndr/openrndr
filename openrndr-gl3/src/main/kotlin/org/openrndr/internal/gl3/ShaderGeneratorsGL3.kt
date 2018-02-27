@@ -182,12 +182,16 @@ void main(void) {
     float wd = fwidth(length(va_texCoord0 - vec2(0.5)));
     float d = length(va_texCoord0 - vec2(0.5)) * 2;
 
-    float f = smoothstep(0, wd * 2.5, 1.0 - d);
-    float b = 0.1;
-    float f2 = smoothstep(0, wd * 2.5, 1.0 - b - d) * f;
+    float or = smoothstep(0, wd * 2.5, 1.0 - d);
+    float b = u_strokeWeight / vi_radius;
+    float ir = smoothstep(0, wd * 2.5, 1.0 - b - d);
 
-    o_color = vec4(x_fill.rgb*f2 + x_stroke.rgb*(1.0-f2), (x_fill.a*f) * f2 + (x_stroke.a*f) * (1.0-f2) );
+    o_color.rgb =  x_stroke.rgb;
+    o_color.a = or * (1.0 - ir);
     o_color.rgb *= o_color.a;
+
+    o_color.rgb += x_fill.rgb * ir * x_fill.a;
+    o_color.a += ir * x_fill.a;
 }
         """
 
@@ -268,42 +272,56 @@ void main() {
             """
 
     override fun rectangleFragmentShader(shadeStructure: ShadeStructure): String = """#version 330
+${shadeStructure.uniforms?:""}
+layout(origin_upper_left) in vec4 gl_FragCoord;
 
 $drawerUniforms
-layout(origin_upper_left) in vec4 gl_FragCoord;
-${shadeStructure.uniforms?:""}
-${shadeStructure.fragmentPreamble?:""}
 ${shadeStructure.varyingIn?:""}
-${shadeStructure.outputs?:""}
+
 out vec4 o_color;
 
 void main(void) {
     vec2 c_screenPosition = gl_FragCoord.xy;
     float c_contourPosition = 0.0;
-    vec3 boundsPosition = vec3(va_texCoord0, 0.0);
     vec4 x_fill = u_fill;
+    vec4 x_stroke = u_stroke;
     {
         ${shadeStructure.fragmentTransform?:""}
     }
-    o_color = x_fill;
+    vec2 wd = fwidth(va_texCoord0 - vec2(0.5));
+    vec2 d = abs((va_texCoord0 - vec2(0.5)) * 2);
+
+    float irx = smoothstep(0.0, wd.x * 2.5, 1.0-d.x - u_strokeWeight*2.0/vi_dimensions.x);
+    float iry = smoothstep(0.0, wd.x * 2.5, 1.0-d.y - u_strokeWeight*2.0/vi_dimensions.y);
+
+    float ir = irx*iry;
+
+    o_color.rgb =  x_stroke.rgb;
+    o_color.a = (1.0 - ir);
     o_color.rgb *= o_color.a;
-}
+
+    o_color.rgb += x_fill.rgb * ir * x_fill.a;
+    o_color.a += ir * x_fill.a;
+    }
+
         """
 
     override fun rectangleVertexShader(shadeStructure: ShadeStructure): String = """#version 330
-
 $drawerUniforms
 ${shadeStructure.attributes?:""}
 ${shadeStructure.uniforms?:""}
 ${shadeStructure.varyingOut?:""}
-${shadeStructure.vertexPreamble?:""}
 
 void main() {
     ${shadeStructure.varyingBridge?:""}
-    vec4 transformed = u_viewProjectionMatrix * vec4( vec3(a_position.xy, 0), 1.0);
+    vec3 x_position = a_position * vec3(i_dimensions,1.0) + i_offset;
+    {
+        ${shadeStructure.vertexTransform?:""}
+    }
+    vec4 transformed = u_viewProjectionMatrix * vec4( vec3(x_position), 1.0);
     gl_Position = transformed;
-}
-        """
+    }
+    """
 
     override fun expansionFragmentShader(shadeStructure: ShadeStructure): String = """#version 330
 

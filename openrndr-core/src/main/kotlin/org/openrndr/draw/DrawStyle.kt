@@ -160,9 +160,10 @@ data class DrawStyle(
 ) {
 
     fun applyToShader(shader: Shader) {
-        fill?.let { shader.uniform("u_fill", it) }
-        stroke?.let { shader.uniform("u_stroke", it) }
-        shader.uniform("u_strokeWeight", strokeWeight)
+        shader.uniform("u_fill", fill?:ColorRGBa.TRANSPARENT)
+        shader.uniform("u_stroke", stroke?:ColorRGBa.TRANSPARENT)
+
+        shader.uniform("u_strokeWeight", if (stroke != null) strokeWeight else 0.0)
         shader.uniform("u_colorMatrix", colorMatrix.floatArray)
     }
 
