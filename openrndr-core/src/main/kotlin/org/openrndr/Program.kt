@@ -224,7 +224,7 @@ open class Program {
     val keyboard = Keyboard()
 
     class Mouse {
-        class MouseEvent(val position: Vector2, val rotation: Vector2, val type: MouseEventType, val button: MouseButton, val modifiers: Set<KeyboardModifier>, var propagationCancelled:Boolean = false) {
+        class MouseEvent(val position: Vector2, val rotation: Vector2, val dragDisplacement: Vector2, val type: MouseEventType, val button: MouseButton, val modifiers: Set<KeyboardModifier>, var propagationCancelled:Boolean = false) {
             fun cancelPropagation() {
                 propagationCancelled = true
             }
