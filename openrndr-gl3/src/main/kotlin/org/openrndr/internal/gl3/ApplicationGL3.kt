@@ -395,6 +395,7 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
         preloop()
 
 
+        var lastDragPosition = Vector2.ZERO
         var globalModifiers = setOf<KeyboardModifier>()
 
         glfwSetKeyCallback(window) { _, key, scancode, action, mods ->
@@ -424,7 +425,7 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
         var down = false
 
         glfwSetScrollCallback(window, { _, xoffset, yoffset ->
-            program.mouse.scrolled.trigger(Program.Mouse.MouseEvent(program.mouse.position, Vector2(xoffset, yoffset), MouseEventType.SCROLLED, MouseButton.NONE, globalModifiers))
+            program.mouse.scrolled.trigger(Program.Mouse.MouseEvent(program.mouse.position, Vector2(xoffset, yoffset), Vector2.ZERO, MouseEventType.SCROLLED, MouseButton.NONE, globalModifiers))
         })
 
         glfwSetMouseButtonCallback(window, { _, button, action, mods ->
@@ -454,8 +455,9 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
 
             if (action == GLFW_PRESS) {
                 down = true
+                lastDragPosition = program.mouse.position
                 program.mouse.buttonDown.trigger(
-                        Program.Mouse.MouseEvent(program.mouse.position , Vector2.ZERO, MouseEventType.BUTTON_DOWN, mouseButton, modifiers)
+                        Program.Mouse.MouseEvent(program.mouse.position , Vector2.ZERO, Vector2.ZERO, MouseEventType.BUTTON_DOWN, mouseButton, modifiers)
                 )
                 buttonsDown.set(button, true)
 
@@ -464,23 +466,25 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
             if (action == GLFW_RELEASE) {
                 down = false
                 program.mouse.buttonUp.trigger(
-                        Program.Mouse.MouseEvent(program.mouse.position , Vector2.ZERO, MouseEventType.BUTTON_UP, mouseButton, modifiers)
+                        Program.Mouse.MouseEvent(program.mouse.position , Vector2.ZERO, Vector2.ZERO, MouseEventType.BUTTON_UP, mouseButton, modifiers)
                 )
                 buttonsDown.set(button, false)
 
                 program.mouse.clicked.trigger(
-                        Program.Mouse.MouseEvent(program.mouse.position, Vector2.ZERO, MouseEventType.CLICKED, mouseButton, modifiers)
+                        Program.Mouse.MouseEvent(program.mouse.position, Vector2.ZERO, Vector2.ZERO, MouseEventType.CLICKED, mouseButton, modifiers)
                 )
             }
         })
+
 
         glfwSetCursorPosCallback(window, { _, xpos, ypos ->
             val position = Vector2(xpos, ypos) / program.window.scale
             logger.debug { "mouse moved $xpos $ypos -- $position" }
             program.mouse.position = position
-            program.mouse.moved.trigger(Program.Mouse.MouseEvent(position, Vector2.ZERO, MouseEventType.MOVED, MouseButton.NONE, globalModifiers))
+            program.mouse.moved.trigger(Program.Mouse.MouseEvent(position, Vector2.ZERO, Vector2.ZERO, MouseEventType.MOVED, MouseButton.NONE, globalModifiers))
             if (down) {
-                program.mouse.dragged.trigger(Program.Mouse.MouseEvent(position, Vector2.ZERO, MouseEventType.DRAGGED, MouseButton.NONE, emptySet()))
+                program.mouse.dragged.trigger(Program.Mouse.MouseEvent(position, Vector2.ZERO, position-lastDragPosition, MouseEventType.DRAGGED, MouseButton.NONE, emptySet()))
+                lastDragPosition = position
             }
         })
 
