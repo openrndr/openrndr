@@ -452,7 +452,6 @@ enum class DrawQuality {
     PERFORMANCE
 }
 
-
 class StencilStyle {
     var stencilFailOperation = StencilOperation.KEEP
     var depthFailOperation = StencilOperation.KEEP
@@ -474,7 +473,6 @@ class StencilStyle {
         depthPassOperation = depthTestPass
     }
 }
-
 
 @Suppress("MemberVisibilityCanPrivate")
 data class DrawContext(val view: Matrix44, val projection: Matrix44, val width: Int, val height: Int) {
@@ -694,6 +692,14 @@ class Drawer(val driver: Driver) {
         rectangleDrawer.drawRectangle(context, drawStyle, x, y, width, height)
     }
 
+    fun rectangles(positions: List<Vector2>, width: Double, height:Double) {
+        rectangleDrawer.drawRectangles(context, drawStyle, positions,width, height)
+    }
+
+    fun rectangles(positions: List<Vector2>, dimensions:List<Vector2>) {
+        rectangleDrawer.drawRectangles(context, drawStyle, positions, dimensions)
+    }
+
     fun circle(position: Vector2, radius: Double) {
         circleDrawer.drawCircle(context, drawStyle, position.x, position.y, radius)
     }
@@ -772,7 +778,6 @@ class Drawer(val driver: Driver) {
                     listOf(segments[it * 2], segments[it * 2 + 1])
                 }
                 qualityLineDrawer.drawLineStrips(context, drawStyle, pairs)
-
             }
         }
     }
@@ -827,10 +832,8 @@ class Drawer(val driver: Driver) {
                 is TextNode -> TODO()
                 is GroupNode -> compositionNode.children.forEach { node(it) }
             }
-
             popView()
         }
-
         node(composition.root)
     }
 
@@ -867,7 +870,6 @@ class Drawer(val driver: Driver) {
     fun vertexBufferInstances(vertexBuffers: List<VertexBuffer>, instanceAttributes: List<VertexBuffer>, primitive: DrawPrimitive, instanceCount: Int, offset: Int = 0, vertexCount: Int = vertexBuffers[0].vertexCount) {
         vertexBufferDrawer.drawVertexBufferInstances(context, drawStyle, primitive, vertexBuffers, instanceAttributes, offset, vertexCount, instanceCount)
     }
-
 }
 
 /**
