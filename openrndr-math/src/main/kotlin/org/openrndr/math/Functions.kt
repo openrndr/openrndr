@@ -15,3 +15,7 @@ fun mod(a:Float, b:Float) : Float {
 fun mod(a:Long, b:Long) : Long {
     return ((a%b)+b)%b
 }
+
+fun clamp(value: Double, min: Double, max: Double): Double {
+    return Math.max(min, Math.min(max, value))
+}
