@@ -7,6 +7,17 @@ data class Vector3(val x: Double, val y: Double, val z: Double) {
         val UNIT_X = Vector3(1.0, 0.0, 0.0)
         val UNIT_Y = Vector3(0.0, 1.0, 0.0)
         val UNIT_Z = Vector3(0.0, 0.0, 1.0)
+
+        fun fromSpherical(s: Spherical): Vector3 {
+
+            val sinPhiRadius = Math.sin(s.phi) * s.radius
+
+            return Vector3(
+                    sinPhiRadius * Math.sin(s.theta),
+                    Math.cos(s.phi) * s.radius,
+                    sinPhiRadius * Math.cos(s.theta))
+        }
+
     }
 
     val xyz0: Vector4 get() = Vector4(x, y, z, 0.0)
