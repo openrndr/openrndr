@@ -182,9 +182,9 @@ void main(void) {
     float wd = fwidth(length(va_texCoord0 - vec2(0.5)));
     float d = length(va_texCoord0 - vec2(0.5)) * 2;
 
-    float or = smoothstep(0, wd * 2.5, 1.0 - d);
+    float or = smoothstep(0, wd * 4.5, 1.0 - d);
     float b = u_strokeWeight / vi_radius;
-    float ir = smoothstep(0, wd * 2.5, 1.0 - b - d);
+    float ir = smoothstep(0, wd * 4.5, 1.0 - b - d);
 
     o_color.rgb =  x_stroke.rgb;
     o_color.a = or * (1.0 - ir);
