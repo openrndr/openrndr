@@ -45,6 +45,7 @@ interface Driver {
 
     fun createColorBuffer(width: Int, height: Int, contentScale:Double, format: ColorFormat, type: ColorType): ColorBuffer
     fun createColorBufferFromUrl(url: String): ColorBuffer
+    fun createColorBufferFromFile(filename:String): ColorBuffer
 
     fun createDepthBuffer(width: Int, height: Int, format: DepthFormat): DepthBuffer
     fun createBufferTexture(elementCount: Int, format: ColorFormat, type: ColorType): BufferTexture

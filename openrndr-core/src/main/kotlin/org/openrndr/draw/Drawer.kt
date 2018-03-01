@@ -269,6 +269,8 @@ interface ColorBufferShadow {
 
     fun writer(): BufferWriter
     fun write(x: Int, y: Int, color: ColorRGBa)
+
+    fun read(x: Int, y:Int): ColorRGBa
 }
 
 
@@ -311,6 +313,10 @@ interface ColorBuffer {
 
         fun fromUrl(url: String): ColorBuffer {
             return Driver.instance.createColorBufferFromUrl(url)
+        }
+
+        fun fromFile(filename: String): ColorBuffer {
+            return Driver.instance.createColorBufferFromFile(filename)
         }
     }
 }

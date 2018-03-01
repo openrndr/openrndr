@@ -187,7 +187,7 @@ void main(void) {
     float ir = smoothstep(0, wd * 4.5, 1.0 - b - d);
 
     o_color.rgb =  x_stroke.rgb;
-    o_color.a = or * (1.0 - ir);
+    o_color.a = or * (1.0 - ir) * x_stroke.a;
     o_color.rgb *= o_color.a;
 
     o_color.rgb += x_fill.rgb * ir * x_fill.a;

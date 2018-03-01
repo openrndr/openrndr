@@ -125,6 +125,11 @@ class DriverGL3 : Driver {
         return ColorBufferGL3.fromUrl(url)
     }
 
+    override fun createColorBufferFromFile(url: String): ColorBuffer {
+        return ColorBufferGL3.fromFile(url)
+    }
+
+
     override fun createDepthBuffer(width: Int, height: Int, format: DepthFormat): DepthBuffer {
         logger.trace { "creating depth buffer $width x $height @ $format" }
         return DepthBufferGL3.create(width, height, format)
