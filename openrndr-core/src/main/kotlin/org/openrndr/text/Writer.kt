@@ -1,6 +1,8 @@
 package org.openrndr.text
 
+import com.sun.org.apache.xpath.internal.operations.Bool
 import org.openrndr.color.ColorRGBa
+import org.openrndr.draw.DrawStyle
 import org.openrndr.draw.Drawer
 import org.openrndr.draw.FontImageMap
 import org.openrndr.math.Vector2
@@ -21,14 +23,15 @@ class WriteStyle {
 
     var leading = 0.0
     var tracking = 0.0
-    var ellipsis:String? = "…"
+    var ellipsis: String? = "…"
 }
 
 @Suppress("unused", "UNUSED_PARAMETER")
-class Writer(val drawer: Drawer) {
+class Writer(val drawer: Drawer?) {
 
     var cursor = Cursor()
-    var box = Rectangle(Vector2.ZERO, drawer.width.toDouble(), drawer.height.toDouble())
+    var box = Rectangle(Vector2.ZERO, drawer?.width?.toDouble() ?: Double.POSITIVE_INFINITY, drawer?.height?.toDouble()
+            ?: Double.POSITIVE_INFINITY)
         set(value) {
             field = value
             cursor.x = value.corner.x
@@ -38,15 +41,23 @@ class Writer(val drawer: Drawer) {
     var style = WriteStyle()
     val styleStack = Stack<WriteStyle>()
 
+    var drawStyle: DrawStyle = DrawStyle()
+        get() {
+            return drawer?.drawStyle ?: field
+        }
+        set(value: DrawStyle) {
+            field = drawStyle
+        }
 
     fun newLine() {
         cursor.x = box.corner.x
-        cursor.y += /*(drawer.drawStyle.fontMap?.height ?: 0.0)*/ + (drawer.drawStyle.fontMap?.leading ?: 0.0) + style.leading
+        cursor.y += /*(drawer.drawStyle.fontMap?.height ?: 0.0)*/ +(drawStyle.fontMap?.leading
+                ?: 0.0) + style.leading
     }
 
     fun gaplessNewLine() {
         cursor.x = box.corner.x
-        cursor.y += drawer.drawStyle.fontMap?.height ?: 0.0
+        cursor.y += drawStyle.fontMap?.height ?: 0.0
     }
 
     fun move(x: Double, y: Double) {
@@ -55,18 +66,24 @@ class Writer(val drawer: Drawer) {
     }
 
     fun textWidth(text: String): Double =
-            text.sumByDouble { (drawer.drawStyle.fontMap as FontImageMap).glyphMetrics[it]?.advanceWidth ?:0.0}
+            text.sumByDouble { (drawStyle.fontMap as FontImageMap).glyphMetrics[it]?.advanceWidth ?: 0.0 }
 
 
-    fun text(text: String) {
-        val renderer = drawer.fontImageMapDrawer
+    fun text(text: String, visible:Boolean = true) {
         val renderTokens = makeRenderTokens(text, false)
-        renderTokens.forEach { renderer.queueText(drawer.drawStyle.fontMap!!, it.token, it.x, it.y, style.tracking) }
-        renderer.flush(drawer.context, drawer.drawStyle)
+
+
+        if (visible) {
+            drawer?.let { d ->
+                val renderer = d.fontImageMapDrawer
+                renderTokens.forEach { renderer.queueText(d.drawStyle.fontMap!!, it.token, it.x, it.y, style.tracking) }
+                renderer.flush(d.context, d.drawStyle)
+            }
+        }
     }
 
     private fun makeRenderTokens(text: String, mustFit: Boolean = false): List<RenderToken> {
-        drawer.drawStyle.fontMap?.let { font ->
+        drawStyle.fontMap?.let { font ->
 
             var fits = true
             font as FontImageMap
@@ -93,7 +110,9 @@ class Writer(val drawer: Drawer) {
                 } else {
 
 
-                    val tokenWidth = token.sumByDouble { font.glyphMetrics[it]?.advanceWidth ?: 0.0  } + style.tracking * token.length
+                    val tokenWidth = token.sumByDouble {
+                        font.glyphMetrics[it]?.advanceWidth ?: 0.0
+                    } + style.tracking * token.length
                     if (localCursor.x + tokenWidth < box.x + box.width && localCursor.y <= box.y + box.height) run {
                         val renderToken = RenderToken(token, localCursor.x, localCursor.y, tokenWidth, style.tracking)
                         emitToken(localCursor, renderTokens, renderToken)
@@ -109,7 +128,8 @@ class Writer(val drawer: Drawer) {
                             emitToken(localCursor, renderTokens, RenderToken(token, localCursor.x, localCursor.y, tokenWidth, style.tracking))
                         } else {
                             if (!mustFit && style.ellipsis != null && cursor.y <= box.y + box.height) {
-                                emitToken(localCursor, renderTokens, RenderToken(style.ellipsis?:"", localCursor.x, localCursor.y, tokenWidth, style.tracking))
+                                emitToken(localCursor, renderTokens, RenderToken(style.ellipsis
+                                        ?: "", localCursor.x, localCursor.y, tokenWidth, style.tracking))
                                 break@tokenLoop
                             } else {
                                 fits = false
