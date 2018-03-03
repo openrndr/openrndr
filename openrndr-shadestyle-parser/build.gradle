@@ -1,28 +1,20 @@
-apply plugin: 'kotlin'
-apply plugin: 'java'
-apply plugin: 'idea'
 apply plugin: 'antlr'
-
-repositories {
-    mavenLocal()
-    mavenCentral()
-}
 
 configurations {
     generatedCompile
 }
+
 sourceSets {
     generated {
         java.srcDir 'generated-src/antlr/main'
     }
-
 }
 
 dependencies {
     antlr "org.antlr:antlr4:4.5.1"
     compile "org.antlr:antlr4-runtime:4.5.1"
     compile sourceSets.generated.output
-    compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
+    compile "org.jetbrains.kotlin:kotlin-reflect"
 
     generatedCompile "org.antlr:antlr4-runtime:4.5.1"
 }
@@ -44,9 +36,6 @@ compileGeneratedJava.dependsOn generateGrammarSource
 compileJava.dependsOn generateGrammarSource
 compileKotlin.dependsOn compileGeneratedJava
 
-
-
-
 clean {
     delete "generated-src"
 }
@@ -54,6 +43,5 @@ clean {
 idea {
     module {
         sourceDirs += file("$projectDir/generated-src/antlr/main")
-
     }
 }

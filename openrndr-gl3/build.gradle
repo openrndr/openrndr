@@ -9,7 +9,6 @@ buildscript {
 
 apply plugin: 'org.junit.platform.gradle.plugin'
 
-
 dependencies {
     compile project(":openrndr-core")
     compile project(":openrndr-binpack")
@@ -23,7 +22,7 @@ dependencies {
 
     testCompile("com.fasterxml.jackson.module:jackson-module-kotlin:2.9.2")
 
-    testCompile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
+    testCompile "org.jetbrains.kotlin:kotlin-reflect"
     testCompile ('org.jetbrains.spek:spek-api:1.1.5')  {
         exclude group: 'org.jetbrains.kotlin'
         exclude group: 'com.fasterxml.jackson.module'
@@ -55,9 +54,7 @@ if (project.hasProperty("testGL3")) {
 
     }
     junitPlatformTest.dependsOn runJupiter
-    
 }
-
 
 junitPlatform {
     filters {
