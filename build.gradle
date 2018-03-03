@@ -1,158 +1,71 @@
-//version '0.3.0-SNAPSHOT'
-
-buildscript {
-
-    ext {
-        kotlin_version = "1.2.21"
-        lwjglVersion = '3.1.6'
-        dokka_version = "0.9.16-eap-3"
-    }
-
-    repositories {
-        mavenCentral()
-        jcenter()
-        maven {
-            url 'https://dl.bintray.com/kotlin/kotlin-eap'
-        }
-        maven {
-            url "https://plugins.gradle.org/m2/"
-        }
-    }
-
-    dependencies {
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        classpath "org.jetbrains.dokka:dokka-gradle-plugin:$dokka_version"
-        classpath 'org.jetbrains.dokka:dokka-gradle-plugin:0.9.16-eap-3'
-    }
-}
-
 plugins {
-    id 'maven'
+  // plugin dependencies, load without applying them
+  id 'nebula.kotlin' version '1.2.30' apply false
+  id 'com.jfrog.artifactory' version '4.6.2' apply false
 
-    id 'nebula.info' version '2.2.4'
-    id 'nebula.contacts' version '2.2.0'
-    id 'nebula.maven-apache-license' version '4.0.1'
+  id 'nebula.contacts' version '3.0.1' apply false
+  id 'nebula.info' version '3.6.0' apply false
+  id 'nebula.dependency-lock' version '5.0.4' apply false
+  id 'nebula.facet' version '3.4.1' apply false
+  id 'nebula.maven-apache-license' version '7.0.3' apply false
 
-    id 'nebula.maven-publish' version '4.0.1'
-    //id 'nebula.javadoc-jar' version '4.0.1'
-    id 'nebula.source-jar' version '4.0.1'
-
-    id 'nebula.nebula-release' version '3.0.2'
-
-    id 'nebula.nebula-bintray' version '3.1.0'
-
-    id "com.gradle.plugin-publish" version "0.9.9"
+  id 'nebula.maven-publish' version '7.0.3' apply false
+  id 'nebula.release' version '6.3.0' apply false
+  id 'nebula.nebula-bintray' version '3.5.2' apply false
+  id 'nebula.source-jar' version '7.0.3' apply false
 }
 
-group 'org.openrndr'
+project.ext {
+    lwjglVersion = '3.1.6'
+}
 
 allprojects {
 
-    buildscript {
-        repositories {
-            jcenter()
-        }
-    }
-
+    apply plugin: 'idea'
     apply plugin: 'java'
-    apply plugin: 'kotlin'
-    apply plugin: 'maven'
-    apply plugin: 'org.jetbrains.dokka'
-
-    apply plugin: 'nebula.info'
+    apply plugin: 'nebula.kotlin'
     apply plugin: 'nebula.contacts'
+    apply plugin: 'nebula.info'
+    apply plugin: 'nebula.dependency-lock'
+    apply plugin: 'nebula.facet'
     apply plugin: 'nebula.maven-apache-license'
-
+    apply plugin: 'nebula.release'
     apply plugin: 'nebula.maven-publish'
-    //apply plugin: 'nebula.javadoc-jar'
-    apply plugin: 'nebula.source-jar'
-    apply plugin: 'nebula.nebula-release'
 
-    apply plugin: 'nebula.nebula-bintray'
+    // selectively apply only the bintray plugin, snapshots are not published
+    // nebula-bintray needs to happened after nebula-release since version isn't lazy in the bintray extension
+    apply plugin: 'nebula.nebula-bintray-publishing'
+    apply plugin: 'nebula.source-jar'
 
     group 'org.openrndr'
-//    version '0.3.0-SNAPSHOT'
 
     repositories {
         jcenter()
-        mavenCentral()
     }
 
     dependencies {
-        compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
         compile 'io.github.microutils:kotlin-logging:1.4.6'
-        testCompile group: 'junit', name: 'junit', version: '4.12'
+        testCompile 'junit:junit:4.12'
     }
 
-    compileKotlin {
-        kotlinOptions.jvmTarget = "1.8"
+    contacts {
+        'edwin@openrndr.org' {
+            moniker 'Edwin Jakobs'
+            github 'edwinrndr'
+        }
     }
-    compileTestKotlin {
-        kotlinOptions.jvmTarget = "1.8"
+
+    bintray {
+        pkg {
+            userOrg = 'openrndr'
+            repo = 'openrndr'
+            name = 'openrndr'
+            desc = project.description
+            licenses = ['BSD-2-Clause']
+            vcsUrl = 'https://github.com/openrndr/openrndr.git'
+            websiteUrl = 'https://www.openrndr.org'
+            issueTrackerUrl = 'https://github.com/openrndr/openrndr/issues'
+            labels = ['creative-coding', 'realtime-rendering', 'opengl']
+        }
     }
-}
-
-contacts {
-    'edwin@openrndr.org' {
-        moniker 'Edwin Jakobs'
-        github 'edwinrndr'
-    }
-}
-
-
-/**
- * Configuration for publishing to Bintray: https://bintray.com/stackwork/gradle-plugins/stackwork/
- */
-bintray {
-    pkg {
-        userOrg = 'openrndr'
-        repo = 'openrndr'
-        name = 'openrndr'
-        desc = project.description
-        licenses = ['BSD-2-Clause']
-        vcsUrl = 'https://github.com/openrndr/openrndr.git'
-        websiteUrl = 'https://www.openrndr.org'
-        issueTrackerUrl = 'https://github.com/openrndr/openrndr/issues'
-        labels = ['creative-coding', 'realtime-rendering', 'opengl']
-    }
-}
-
-
-task dokka(type: org.jetbrains.dokka.gradle.DokkaTask, overwrite: true) {
-    moduleName = "$rootProject.name"
-    outputDirectory = "$buildDir/dokka"
-    outputFormat = "html"
-    processConfigurations = []
-    sourceDirs = files(subprojects.collect {
-        p ->
-
-            def path = new File(p.projectDir, "/src/main/kotlin")
-
-            def relativePath = rootDir.toPath().relativize(path.toPath()).toString()
-            linkMapping {
-                dir = path
-                url = "https://my-github-url/blob/master/$relativePath"
-                suffix = "#L"
-            }
-
-            return path
-    })
-}
-
-task dokkaJavaDoc(type: org.jetbrains.dokka.gradle.DokkaTask, overwrite: true) {
-    moduleName = "$rootProject.name"
-    outputDirectory = "$buildDir/javadocs"
-    outputFormat = "javadoc"
-    processConfigurations = []
-    sourceDirs = files(subprojects.collect {
-        p ->
-            def path = new File(p.projectDir, "/src/main/kotlin")
-            def relativePath = rootDir.toPath().relativize(path.toPath()).toString()
-            linkMapping {
-                dir = path
-                url = "https://my-github-url/blob/master/$relativePath"
-                suffix = "#L"
-            }
-            return path
-    })
 }
