@@ -37,8 +37,8 @@ class ImageDrawer {
 
         val u0 = source.x/colorBuffer.width
         val u1 = (source.x+source.width)/colorBuffer.width
-        val v0 = source.y/colorBuffer.height
-        val v1 = (source.y+source.height)/colorBuffer.height
+        val v0 = 1.0 - (source.y+source.height)/colorBuffer.height
+        val v1 = 1.0 - source.y/colorBuffer.height
 
         val ta = Vector2(u0, flipV(v1))
         val tb = Vector2(u1, flipV(v1))
