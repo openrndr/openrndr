@@ -292,12 +292,12 @@ void main(void) {
     vec2 d = abs((va_texCoord0 - vec2(0.5)) * 2);
 
     float irx = smoothstep(0.0, wd.x * 2.5, 1.0-d.x - u_strokeWeight*2.0/vi_dimensions.x);
-    float iry = smoothstep(0.0, wd.x * 2.5, 1.0-d.y - u_strokeWeight*2.0/vi_dimensions.y);
+    float iry = smoothstep(0.0, wd.y * 2.5, 1.0-d.y - u_strokeWeight*2.0/vi_dimensions.y);
 
     float ir = irx*iry;
 
     o_color.rgb =  x_stroke.rgb;
-    o_color.a = (1.0 - ir);
+    o_color.a = (1.0 - ir) * x_stroke.a;
     o_color.rgb *= o_color.a;
 
     o_color.rgb += x_fill.rgb * ir * x_fill.a;
