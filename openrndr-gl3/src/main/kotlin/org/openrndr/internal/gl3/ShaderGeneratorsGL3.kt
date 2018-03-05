@@ -296,14 +296,14 @@ void main(void) {
 
     float ir = irx*iry;
 
-    o_color.rgb =  x_stroke.rgb;
-    o_color.a = (1.0 - ir);
-    o_color.rgb *= o_color.a;
 
-    o_color.rgb += x_fill.rgb * ir * x_fill.a;
-    o_color.a += ir * x_fill.a;
-    }
+    o_color.rgb = x_fill.rgb * x_fill.a;
+    o_color.a = x_fill.a;
 
+    float sa = (1.0-ir) * x_stroke.a;
+    o_color.rgb = o_color.rgb * (1.0-sa) + x_stroke.rgb * sa;
+    o_color.a = o_color.a * (1.0-sa) + sa;
+}
         """
 
     override fun rectangleVertexShader(shadeStructure: ShadeStructure): String = """#version 330
