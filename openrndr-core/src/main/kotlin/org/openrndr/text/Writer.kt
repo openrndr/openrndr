@@ -1,6 +1,5 @@
 package org.openrndr.text
 
-import com.sun.org.apache.xpath.internal.operations.Bool
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.DrawStyle
 import org.openrndr.draw.Drawer
