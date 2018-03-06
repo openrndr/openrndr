@@ -131,6 +131,9 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
         val yscale = FloatArray(1)
         glfwGetMonitorContentScale(glfwGetPrimaryMonitor(), xscale, yscale)
 
+
+
+
         if (configuration.fullscreen) {
             xscale[0] = 1.0f
             yscale[0] = 1.0f
@@ -388,6 +391,21 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
 
     override fun loop() {
 
+
+        val wxSize = IntArray(1)
+        val wySize = IntArray(1)
+        glfwGetWindowSize(window, wxSize, wySize)
+
+
+        val fxSize = IntArray(1)
+        val fySize = IntArray(1)
+        glfwGetFramebufferSize(window, fxSize, fySize)
+
+
+        logger.debug { "window size: $wxSize $wySize, framebuffer size: $fxSize $fySize" }
+        program.window.coordinateScale = Vector2(wxSize[0].toDouble()/fxSize[0], wySize[0].toDouble()/fySize[0])
+
+
         //glDebugMessageCallback(::cb, NULL)
 
         logger.debug { "starting loop" }
@@ -478,7 +496,7 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
 
 
         glfwSetCursorPosCallback(window, { _, xpos, ypos ->
-            val position = Vector2(xpos, ypos) / program.window.scale
+            val position = Vector2(xpos, ypos) * program.window.coordinateScale
             logger.debug { "mouse moved $xpos $ypos -- $position" }
             program.mouse.position = position
             program.mouse.moved.trigger(Program.Mouse.MouseEvent(position, Vector2.ZERO, Vector2.ZERO, MouseEventType.MOVED, MouseButton.NONE, globalModifiers))
