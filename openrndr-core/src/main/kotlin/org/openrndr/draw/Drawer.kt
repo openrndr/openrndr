@@ -18,6 +18,7 @@ import org.openrndr.math.transforms.rotate as _rotate
 import org.openrndr.math.transforms.scale as _scale
 
 import java.io.BufferedReader
+import java.io.File
 import java.io.InputStream
 import java.io.InputStreamReader
 import java.net.URL
@@ -286,6 +287,8 @@ interface ColorBuffer {
     val effectiveWidth:Int get() = (width * contentScale).toInt()
     val effectiveHeight:Int get() = (height * contentScale).toInt()
 
+
+    fun saveToFile(file: File)
     fun destroy()
     fun bind(unit: Int)
 

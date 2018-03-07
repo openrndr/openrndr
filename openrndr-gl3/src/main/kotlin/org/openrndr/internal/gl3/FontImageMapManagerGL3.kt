@@ -33,18 +33,14 @@ class FontImageMapManagerGL3 : FontMapManager() {
         var packSize = 256
 
         val url = URL(fontUrl)
-        //val bytes = url.openStream().readAllBytes()
+        val byteArray = url.readBytes()
+        val fileSize = byteArray.size
 
-        val byteArray = ByteArray(1024 * 1024 * 10)
-
-        var fileSize = 0
-        url.openStream().use {
-            while (it.available() > 0) {
-                var a = it.available()
-                it.read(byteArray, fileSize, a)
-                fileSize += a
-            }
+        if (fileSize == 0) {
+            throw RuntimeException("0 bytes read")
         }
+
+        logger.debug { "bytes read: $fileSize"}
 
         val bb = BufferUtils.createByteBuffer(fileSize)
         bb.order(ByteOrder.nativeOrder())

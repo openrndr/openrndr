@@ -49,15 +49,21 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
 
     private var exitRequested = false
 
+    val fixWindowSize = System.getProperty("os.name").contains("windows", true)
+
     override var windowPosition: Vector2
         get() {
             val x = IntArray(1)
             val y = IntArray(1)
             glfwGetWindowPos(window, x, y)
-            return Vector2(x[0].toDouble(), y[0].toDouble())
+            return Vector2 (
+                    if (fixWindowSize) (x[0].toDouble() / program.window.scale.x) else x[0].toDouble(),
+                    if (fixWindowSize) (y[0].toDouble() / program.window.scale.y) else y[0].toDouble())
         }
         set(value) {
-            glfwSetWindowPos(window, value.x.toInt(), value.y.toInt())
+            glfwSetWindowPos(window,
+                    if (fixWindowSize) (value.x * program.window.scale.x).toInt() else value.x.toInt(),
+                    if (fixWindowSize) (value.y * program.window.scale.y).toInt() else value.y.toInt())
         }
 
     override var clipboardContents: String?
@@ -89,10 +95,6 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
             realWindowTitle = value
         }
 
-    companion object {
-        var once = true
-    }
-
     init {
         logger.debug { "debug output enabled" }
         logger.trace { "trace level enabled" }
@@ -100,10 +102,7 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
         driver = DriverGL3()
         Driver.driver = driver
         program.application = this
-
-
         createPrimaryWindow()
-
     }
 
     override fun setup() {
@@ -117,9 +116,9 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
         glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE)
 //       glfwWindowHint(GLFW_DECORATED, GLFW_FALSE)
 
-        glfwWindowHint(GL_RED_BITS, 8)
-        glfwWindowHint(GL_GREEN_BITS, 8)
-        glfwWindowHint(GL_BLUE_BITS, 8)
+        glfwWindowHint(GLFW_RED_BITS, 8)
+        glfwWindowHint(GLFW_GREEN_BITS, 8)
+        glfwWindowHint(GLFW_BLUE_BITS, 8)
         glfwWindowHint(GLFW_STENCIL_BITS, 8)
         glfwWindowHint(GLFW_DEPTH_BITS, 24)
 
@@ -145,8 +144,8 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
 
         logger.debug { "creating window" }
         window = if (!configuration.fullscreen) {
-            val adjustedWidth = (xscale[0] * configuration.width).toInt()
-            val adjustedHeight = (yscale[0] * configuration.height).toInt()
+            val adjustedWidth = if (fixWindowSize) (xscale[0] * configuration.width).toInt() else configuration.width
+            val adjustedHeight = if (fixWindowSize) (yscale[0] * configuration.height).toInt() else configuration.height
 
             glfwCreateWindow(adjustedWidth,
                     adjustedHeight,
@@ -206,7 +205,9 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
                 }
             } else {
                 configuration.position?.let {
-                    glfwSetWindowPos(window, it.x, it.y)
+                    glfwSetWindowPos(window,
+                            it.x,
+                            it.y)
                 }
             }
             Unit
@@ -348,9 +349,9 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
             glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3)
             glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE)
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE)
-            glfwWindowHint(GL_RED_BITS, 8)
-            glfwWindowHint(GL_GREEN_BITS, 8)
-            glfwWindowHint(GL_BLUE_BITS, 8)
+            glfwWindowHint(GLFW_RED_BITS, 8)
+            glfwWindowHint(GLFW_GREEN_BITS, 8)
+            glfwWindowHint(GLFW_BLUE_BITS, 8)
             glfwWindowHint(GLFW_STENCIL_BITS, 8)
             glfwWindowHint(GLFW_DEPTH_BITS, 24)
 
@@ -392,6 +393,13 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
     override fun loop() {
 
 
+
+        //glDebugMessageCallback(::cb, NULL)
+
+        logger.debug { "starting loop" }
+
+        preloop()
+
         val wxSize = IntArray(1)
         val wySize = IntArray(1)
         glfwGetWindowSize(window, wxSize, wySize)
@@ -402,16 +410,22 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
         glfwGetFramebufferSize(window, fxSize, fySize)
 
 
-        logger.debug { "window size: $wxSize $wySize, framebuffer size: $fxSize $fySize" }
+        logger.info { "window size: ${wxSize[0]} ${wySize[0]}, framebuffer size: ${fxSize[0]} ${fySize[0]}" }
         program.window.coordinateScale = Vector2(wxSize[0].toDouble()/fxSize[0], wySize[0].toDouble()/fySize[0])
 
 
-        //glDebugMessageCallback(::cb, NULL)
+        val wcsx = FloatArray(1)
+        val wcsy = FloatArray(1)
 
-        logger.debug { "starting loop" }
+        val mcsx = FloatArray(1)
+        val mcsy = FloatArray(1)
 
-        preloop()
+        glfwGetWindowContentScale(window, wcsx, wcsy)
+        glfwGetMonitorContentScale(glfwGetPrimaryMonitor(), mcsx, mcsy)
 
+        logger.info { "monitor content scale: ${mcsx[0]} ${mcsy[0]}"}
+        logger.info { "window content scale: ${wcsx[0]} ${wcsy[0]}"}
+        logger.info { "coordinate scale: ${program.window.coordinateScale}"}
 
         var lastDragPosition = Vector2.ZERO
         var globalModifiers = setOf<KeyboardModifier>()
@@ -496,8 +510,8 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
 
 
         glfwSetCursorPosCallback(window, { _, xpos, ypos ->
-            val position = Vector2(xpos, ypos) * program.window.coordinateScale
-            logger.debug { "mouse moved $xpos $ypos -- $position" }
+            val position = if (fixWindowSize) Vector2(xpos, ypos) / program.window.scale else Vector2(xpos, ypos)
+            logger.trace { "mouse moved $xpos $ypos -- $position" }
             program.mouse.position = position
             program.mouse.moved.trigger(Program.Mouse.MouseEvent(position, Vector2.ZERO, Vector2.ZERO, MouseEventType.MOVED, MouseButton.NONE, globalModifiers))
             if (down) {

@@ -18,7 +18,7 @@ float mask2(int levels, float l, int x, int y, int c) {
     return floor(levels * l + mask)/levels;
 }
 float mask3(int levels, float l, int x, int y, int c) {
-    float mask =  (((x+c*17) ^ y * 149) * 1234 & 511)/511.0;
+    float mask =  ((x + y * 237) * 119 & 255)/255.0;
     return floor(levels * l + mask)/levels;
 }
 

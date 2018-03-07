@@ -12,6 +12,7 @@ import org.lwjgl.opengl.GL21.GL_SRGB8
 import org.lwjgl.opengl.GL21.GL_SRGB8_ALPHA8
 import org.lwjgl.opengl.GL30.*
 import org.lwjgl.stb.STBImage
+import org.lwjgl.stb.STBImageWrite
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.MinifyingFilter
 import java.net.URL
@@ -397,6 +398,19 @@ class ColorBufferGL3(val target: Int,
             (buffer as Buffer).rewind()
             glPixelStorei(GL_PACK_ALIGNMENT, packAlignment)
             debugGLErrors()
+        }
+    }
+
+    override fun saveToFile(file:File) {
+        if (type == ColorType.UINT8) {
+            val pixels = BufferUtils.createByteBuffer(effectiveWidth * effectiveHeight * format.componentCount*2)
+            pixels.rewind()
+            read(pixels)
+            pixels.rewind()
+//            STBImageWrite.stbi_flip_vertically_on_write(!flipV)
+            STBImageWrite.stbi_write_png(file.absolutePath, effectiveWidth, effectiveHeight, format.componentCount, pixels, effectiveWidth * format.componentCount)
+        } else {
+            TODO("support non-UINT8 types")
         }
     }
 
