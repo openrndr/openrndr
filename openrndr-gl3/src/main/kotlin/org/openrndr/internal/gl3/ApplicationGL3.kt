@@ -24,9 +24,6 @@ import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL30.glBindVertexArray
 import org.lwjgl.opengl.GL30.glGenVertexArrays
 import org.lwjgl.glfw.GLFWErrorCallback
-import org.lwjgl.opengl.ARBDebugOutput.glDebugMessageCallbackARB
-import org.lwjgl.opengl.GL43.glDebugMessageCallback
-import org.lwjgl.opengl.GLUtil
 
 import org.openrndr.*
 import org.openrndr.draw.Drawer
@@ -68,11 +65,11 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
 
     override var clipboardContents: String?
         get() {
-            try {
+            return try {
                 val result = glfwGetClipboardString(window)
-                return result
+                result
             } catch (e: Exception) {
-                return ""
+                ""
             }
         }
         set(value) {
@@ -83,7 +80,7 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
             }
         }
 
-    var startTimeMillis = System.currentTimeMillis()
+    private var startTimeMillis = System.currentTimeMillis()
     override val seconds: Double
         get() = (System.currentTimeMillis() - startTimeMillis) / 1000.0
 
@@ -113,8 +110,8 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE)
 
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE)
-        glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE)
-//       glfwWindowHint(GLFW_DECORATED, GLFW_FALSE)
+        glfwWindowHint(GLFW_RESIZABLE, if (configuration.windowResizable) GLFW_TRUE else GLFW_FALSE)
+        glfwWindowHint(GLFW_DECORATED, if (configuration.hideWindowDecorations) GLFW_FALSE else GLFW_TRUE)
 
         glfwWindowHint(GLFW_RED_BITS, 8)
         glfwWindowHint(GLFW_GREEN_BITS, 8)
@@ -122,16 +119,12 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
         glfwWindowHint(GLFW_STENCIL_BITS, 8)
         glfwWindowHint(GLFW_DEPTH_BITS, 24)
 
-
         // should make a configuration flag for this
         // glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE)
 
         val xscale = FloatArray(1)
         val yscale = FloatArray(1)
         glfwGetMonitorContentScale(glfwGetPrimaryMonitor(), xscale, yscale)
-
-
-
 
         if (configuration.fullscreen) {
             xscale[0] = 1.0f
@@ -169,11 +162,7 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
             glfwCreateWindow(requestWidth,
                     requestHeight,
                     configuration.title, glfwGetPrimaryMonitor(), primaryWindow)
-
-
         }
-
-        val mode = glfwGetVideoMode(glfwGetPrimaryMonitor())
 
         logger.debug { "window created: $window" }
 
@@ -186,13 +175,11 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
             val pWidth = stack.mallocInt(1) // int*
             val pHeight = stack.mallocInt(1) // int*
 
-
             // Get the window size passed to glfwCreateWindow
             glfwGetWindowSize(window, pWidth, pHeight)
 
             // Get the resolution of the primary monitor
             val vidmode = glfwGetVideoMode(glfwGetPrimaryMonitor())
-
 
             if (configuration.position == null) {
                 if (vidmode != null) {
@@ -213,11 +200,6 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
             Unit
         }
 
-        //val adjustedWidth = (configuration.width * xscale[0]).toInt()
-        //val adjustedHeight = (configuration.height * yscale[0]).toInt()
-
-        //glfwSetWindowSize(window, adjustedWidth, adjustedHeight)
-
         logger.debug { "making context current" }
         glfwMakeContextCurrent(window)
         // Enable v-sync
@@ -225,82 +207,20 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
 
         var readyFrames = 0
 
-
-
+        glfwSetWindowRefreshCallback(window) {
+            drawFrame()
+            glfwSwapBuffers(window)
+        }
 
         glfwSetFramebufferSizeCallback(window) { window, width, height ->
             logger.debug { "resizing window to ${width}x${height} " }
 
-            val xscale = FloatArray(1)
-            val yscale = FloatArray(1)
+            if (readyFrames>0) {
+                setupSizes()
 
-            glfwGetWindowContentScale(window, xscale, yscale)
-
-            val fbw = IntArray(1)
-            val fbh = IntArray(1)
-
-            glfwGetFramebufferSize(window, fbw, fbh)
-
-            val fl = IntArray(1)
-            val ft = IntArray(1)
-            val fr = IntArray(1)
-            val fb = IntArray(1)
-
-
-            val monitor = glfwGetPrimaryMonitor()
-            val mode = glfwGetVideoMode(monitor)
-
-            glfwGetWindowFrameSize(window, fl, ft, fr, fb)
-            logger.debug {
-                "window scale: ${xscale[0]} ${yscale[0]}"
+                program.window.sized.trigger(WindowEvent(WindowEventType.RESIZED, program.window.position, program.window.size,  true))
             }
 
-            val ww = IntArray(1)
-            val wh = IntArray(1)
-            glfwGetWindowSize(window, ww, wh)
-
-            logger.debug { "window frame size: ${fr[0] - fl[0]} ${fb[0] - ft[0]} ${fl[0]} ${fr[0]} ${ft[0]} ${fb[0]}" }
-            logger.debug { "window size      : ${ww[0]} ${wh[0]}" }
-            logger.debug { "frame buffer size: ${fbw[0]} ${fbh[0]}" }
-
-            program.window.scale = Vector2(xscale[0].toDouble(), yscale[0].toDouble())
-            program.window.size = Vector2(width.toDouble(), height.toDouble())
-
-
-            if (readyFrames > 0) {
-                glClearColor(0.5f, 0.5f, 0.5f, 1.0f)
-                glClear(GL_COLOR_BUFFER_BIT)
-                glfwGetFramebufferSize(window, fbw, fbh)
-                program.window.size = Vector2(fbw[0] * 1.0, fbh[0] * 1.0)
-
-                program.width = (fbw[0] / program.window.scale.x).toInt() //(program.window.size.x/program.window.scale.x).toInt()
-                program.height = (fbh[0] / program.window.scale.y).toInt() // (program.window.size.y/program.window.scale.y).toInt()
-                program.drawer.width = program.width
-                program.drawer.height = program.height
-
-                program.drawer.reset()
-                program.drawer.ortho()
-
-                program.keyboard.keyDown.deliver()
-                program.keyboard.keyUp.deliver()
-                program.keyboard.keyRepeat.deliver()
-                program.mouse.moved.deliver()
-                program.mouse.buttonDown.deliver()
-                program.mouse.buttonUp.deliver()
-                program.mouse.dragged.deliver()
-
-                try {
-                    logger.debug { program.window.size }
-                    logger.debug { "${program.width} ${program.height}" }
-                    glViewport(0, 0, fbw[0], fbh[0])
-                    program.drawImpl()
-                } catch (e: Throwable) {
-                    logger.error { "caught exception, breaking animation loop" }
-                    //                  exception = e
-//                    break
-                }
-                glfwSwapBuffers(window)
-            }
             readyFrames++
             logger.debug { "all ok" }
         }
@@ -360,7 +280,6 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
         }
     }
     fun cb(source:Int, type:Int, id:Int, severity:Int,length:Int, message:Long, userParam:Long) {
-
         println("errorrrr: ${source} ${type} ${severity}")
     }
 
@@ -378,54 +297,15 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
         program.driver = driver
         program.drawer = Drawer(driver)
 
-        program.drawer.width = (program.window.size.x / program.window.scale.x).toInt()
-        program.drawer.height = (program.window.size.y / program.window.scale.y).toInt()
-
-        logger.debug { "program.drawer size ${program.drawer.width} ${program.drawer.height}" }
-
-        program.width = program.drawer.width
-        program.height = program.drawer.height
-
+        setupSizes()
         program.drawer.ortho()
 
     }
 
     override fun loop() {
-
-
-
         //glDebugMessageCallback(::cb, NULL)
-
         logger.debug { "starting loop" }
-
         preloop()
-
-        val wxSize = IntArray(1)
-        val wySize = IntArray(1)
-        glfwGetWindowSize(window, wxSize, wySize)
-
-
-        val fxSize = IntArray(1)
-        val fySize = IntArray(1)
-        glfwGetFramebufferSize(window, fxSize, fySize)
-
-
-        logger.info { "window size: ${wxSize[0]} ${wySize[0]}, framebuffer size: ${fxSize[0]} ${fySize[0]}" }
-        program.window.coordinateScale = Vector2(wxSize[0].toDouble()/fxSize[0], wySize[0].toDouble()/fySize[0])
-
-
-        val wcsx = FloatArray(1)
-        val wcsy = FloatArray(1)
-
-        val mcsx = FloatArray(1)
-        val mcsy = FloatArray(1)
-
-        glfwGetWindowContentScale(window, wcsx, wcsy)
-        glfwGetMonitorContentScale(glfwGetPrimaryMonitor(), mcsx, mcsy)
-
-        logger.info { "monitor content scale: ${mcsx[0]} ${mcsy[0]}"}
-        logger.info { "window content scale: ${wcsx[0]} ${wcsy[0]}"}
-        logger.info { "coordinate scale: ${program.window.coordinateScale}"}
 
         var lastDragPosition = Vector2.ZERO
         var globalModifiers = setOf<KeyboardModifier>()
@@ -446,11 +326,9 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
             logger.debug { "$count file(s) have been dropped" }
 
             val pointers = PointerBuffer.create(names, count)
-
             val files = (0 until count).map {
                 File(pointers.getStringUTF8(0))
             }
-
             program.window.drop.trigger(DropEvent(Vector2(0.0, 0.0), files))
         })
 
@@ -470,7 +348,6 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
 
             val modifiers = mutableSetOf<KeyboardModifier>()
             val buttonsDown= BitSet()
-
 
             if (mods and GLFW_MOD_SHIFT != 0) {
                 modifiers.add(KeyboardModifier.SHIFT)
@@ -492,7 +369,6 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
                         Program.Mouse.MouseEvent(program.mouse.position , Vector2.ZERO, Vector2.ZERO, MouseEventType.BUTTON_DOWN, mouseButton, modifiers)
                 )
                 buttonsDown.set(button, true)
-
             }
 
             if (action == GLFW_RELEASE) {
@@ -507,7 +383,6 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
                 )
             }
         })
-
 
         glfwSetCursorPosCallback(window, { _, xpos, ypos ->
             val position = if (fixWindowSize) Vector2(xpos, ypos) / program.window.scale else Vector2(xpos, ypos)
@@ -552,80 +427,32 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
         logger.debug { "opengl vendor: ${glGetString(GL_VENDOR)}" }
         logger.debug { "opengl version: ${glGetString(GL_VERSION)}" }
 
-        logger.debug { "calling program.setup" }
-
-        val fbw = IntArray(1)
-        val fbh = IntArray(1)
-
-
-        glfwGetFramebufferSize(window, fbw, fbh)
-        logger.info { "frame buffer size: ${fbw[0]} ${fbh[0]}" }
-        program.window.size = Vector2(fbw[0] * 1.0, fbh[0] * 1.0)
-
-        program.width = (fbw[0] / program.window.scale.x).toInt()
-        program.height = (fbh[0] / program.window.scale.y).toInt()
-        program.drawer.width = program.width
-        program.drawer.height = program.height
-        program.window.size = Vector2(fbw[0] * 1.0, fbh[0] * 1.0)
-
-        program.drawer.reset()
-        program.drawer.ortho()
-
-
         if (configuration.hideCursor) {
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN)
         }
 
+        logger.debug { "calling program.setup" }
         program.setup()
 
         startTimeMillis = System.currentTimeMillis()
 
-        var exception: Throwable? = null
         glfwSwapInterval(1)
 
+        var exception: Throwable? = null
         while (!exitRequested && !glfwWindowShouldClose(window)) {
 
-            glBindVertexArray(vaos[0])
+            exception = drawFrame()
 
-    //            val fbw = IntArray(1)
-    //            val fbh = IntArray(1)
-    //
-    //            glfwGetFramebufferSize(window, fbw, fbh)
-//            program.window.size = Vector2(fbw[0] * 1.0, fbh[0] * 1.0)
-//
-//            program.width = (fbw[0] / program.window.scale.x).toInt() //(program.window.size.x/program.window.scale.x).toInt()
-//            program.height = (fbh[0] / program.window.scale.y).toInt() // (program.window.size.y/program.window.scale.y).toInt()
-//            program.drawer.width = program.width
-//            program.drawer.height = program.height
-
-            program.drawer.reset()
-            program.drawer.ortho()
-
-            program.window.drop.deliver()
-            program.keyboard.keyDown.deliver()
-            program.keyboard.keyUp.deliver()
-            program.keyboard.keyRepeat.deliver()
-            program.mouse.moved.deliver()
-            program.mouse.scrolled.deliver()
-            program.mouse.clicked.deliver()
-            program.mouse.buttonDown.deliver()
-            program.mouse.buttonUp.deliver()
-            program.mouse.dragged.deliver()
-
-            try {
-                logger.debug { "window: ${program.window.size.x.toInt()}x${program.window.size.y.toInt()} program: ${program.width}x${program.height}" }
-                //glViewport(16, 16, (program.window.size.x).toInt()-32, (program.window.size.y-86).toInt())
-                glViewport(0, 0, fbw[0], fbh[0])
-                program.drawImpl()
-            } catch (e: Throwable) {
-                logger.error { "caught exception, breaking animation loop" }
-                exception = e
+            if (exception != null) {
                 break
             }
+
             glfwSwapBuffers(window) // swap the color buffers
+
             if (!windowFocused && configuration.unfocusBehaviour == UnfocusBehaviour.THROTTLE) {
                 Thread.sleep(100)
             }
+
             glfwPollEvents()
         }
 
@@ -634,14 +461,61 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
         glfwFreeCallbacks(window)
         glfwDestroyWindow(window)
 
+        // TODO: take care of these when all windows are closed
         //glfwTerminate()
         //glfwSetErrorCallback(null)?.free()
-
         logger.info { "done" }
 
         exception?.let {
             throw it
         }
+    }
+
+    private fun drawFrame():Throwable? {
+        setupSizes()
+
+        glBindVertexArray(vaos[0])
+
+        program.drawer.reset()
+        program.drawer.ortho()
+
+        program.window.drop.deliver()
+        program.window.sized.deliver()
+        program.keyboard.keyDown.deliver()
+        program.keyboard.keyUp.deliver()
+        program.keyboard.keyRepeat.deliver()
+        program.mouse.moved.deliver()
+        program.mouse.scrolled.deliver()
+        program.mouse.clicked.deliver()
+        program.mouse.buttonDown.deliver()
+        program.mouse.buttonUp.deliver()
+        program.mouse.dragged.deliver()
+
+        try {
+            logger.debug { "window: ${program.window.size.x.toInt()}x${program.window.size.y.toInt()} program: ${program.width}x${program.height}" }
+            program.drawImpl()
+        } catch (e: Throwable) {
+            logger.error { "caught exception, breaking animation loop" }
+            return e
+        }
+        return null
+    }
+
+    private fun setupSizes() {
+        val wcsx = FloatArray(1)
+        val wcsy = FloatArray(1)
+        glfwGetWindowContentScale(window, wcsx, wcsy)
+        program.window.scale = Vector2(wcsx[0].toDouble(), wcsy[0].toDouble())
+
+        val fbw = IntArray(1)
+        val fbh = IntArray(1)
+        glfwGetFramebufferSize(window, fbw, fbh)
+        glViewport(0, 0, fbw[0], fbh[0])
+        program.width = (fbw[0] / program.window.scale.x).toInt()
+        program.height = (fbh[0] / program.window.scale.y).toInt()
+        program.window.size = Vector2(program.width.toDouble(), program.height.toDouble())
+        program.drawer.width = program.width
+        program.drawer.height = program.height
     }
 
     private fun modifierSet(mods: Int): Set<KeyboardModifier> {

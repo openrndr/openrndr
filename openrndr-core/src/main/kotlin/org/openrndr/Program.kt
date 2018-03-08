@@ -69,6 +69,9 @@ class Configuration {
      **/
     var unfocusBehaviour = UnfocusBehaviour.NORMAL
 
+
+    var windowResizable:Boolean = false
+
 }
 
 /**

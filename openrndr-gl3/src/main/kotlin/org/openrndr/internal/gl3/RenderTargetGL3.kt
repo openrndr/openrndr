@@ -21,6 +21,10 @@ class ProgramRenderTargetGL3(override val program: Program) : ProgramRenderTarge
 
     override val height: Int
         get() = program.window.size.y.toInt()
+
+    override val contentScale: Double
+        get() = program.window.scale.x
+
 }
 
 open class RenderTargetGL3(val framebuffer: Int, override val width: Int, override val height: Int, override val contentScale: Double) : RenderTarget {
@@ -86,7 +90,8 @@ open class RenderTargetGL3(val framebuffer: Int, override val width: Int, overri
 
         }
         val effectiveWidth = (width * contentScale).toInt()
-        val effectiveHeight = (height*contentScale).toInt()
+        val effectiveHeight = (height * contentScale).toInt()
+
         glViewport(0, 0, effectiveWidth, effectiveHeight)
         debugGLErrors { null }
     }
