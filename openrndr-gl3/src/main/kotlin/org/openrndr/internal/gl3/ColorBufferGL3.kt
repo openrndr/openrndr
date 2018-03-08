@@ -404,9 +404,9 @@ class ColorBufferGL3(val target: Int,
     override fun saveToFile(file:File) {
         if (type == ColorType.UINT8) {
             val pixels = BufferUtils.createByteBuffer(effectiveWidth * effectiveHeight * format.componentCount*2)
-            pixels.rewind()
+            (pixels as Buffer).rewind()
             read(pixels)
-            pixels.rewind()
+            (pixels as Buffer).rewind()
 //            STBImageWrite.stbi_flip_vertically_on_write(!flipV)
             STBImageWrite.stbi_write_png(file.absolutePath, effectiveWidth, effectiveHeight, format.componentCount, pixels, effectiveWidth * format.componentCount)
         } else {

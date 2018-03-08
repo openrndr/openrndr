@@ -32,28 +32,22 @@ import org.openrndr.math.Vector2
 import java.util.*
 
 private val logger = KotlinLogging.logger {}
-
-private var primaryWindow:Long = NULL
+private var primaryWindow: Long = NULL
 
 class ApplicationGL3(private val program: Program, private val configuration: Configuration) : Application() {
-
-
     private var windowFocused = true
-
-    var window: Long = NULL
+    private var window: Long = NULL
     private var driver: DriverGL3
     private var realWindowTitle = configuration.title
-
     private var exitRequested = false
-
-    val fixWindowSize = System.getProperty("os.name").contains("windows", true)
+    private val fixWindowSize = System.getProperty("os.name").contains("windows", true)
 
     override var windowPosition: Vector2
         get() {
             val x = IntArray(1)
             val y = IntArray(1)
             glfwGetWindowPos(window, x, y)
-            return Vector2 (
+            return Vector2(
                     if (fixWindowSize) (x[0].toDouble() / program.window.scale.x) else x[0].toDouble(),
                     if (fixWindowSize) (y[0].toDouble() / program.window.scale.y) else y[0].toDouble())
         }
@@ -208,17 +202,19 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
         var readyFrames = 0
 
         glfwSetWindowRefreshCallback(window) {
-            drawFrame()
-            glfwSwapBuffers(window)
+            if (readyFrames > 0) {
+                drawFrame()
+                glfwSwapBuffers(window)
+            }
+            readyFrames++
         }
 
         glfwSetFramebufferSizeCallback(window) { window, width, height ->
             logger.debug { "resizing window to ${width}x${height} " }
 
-            if (readyFrames>0) {
+            if (readyFrames > 0) {
                 setupSizes()
-
-                program.window.sized.trigger(WindowEvent(WindowEventType.RESIZED, program.window.position, program.window.size,  true))
+                program.window.sized.trigger(WindowEvent(WindowEventType.RESIZED, program.window.position, program.window.size, true))
             }
 
             readyFrames++
@@ -279,7 +275,8 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
             primaryWindow = glfwCreateWindow(640, 480, "OPENRNDR primary window", NULL, NULL)
         }
     }
-    fun cb(source:Int, type:Int, id:Int, severity:Int,length:Int, message:Long, userParam:Long) {
+
+    fun cb(source: Int, type: Int, id: Int, severity: Int, length: Int, message: Long, userParam: Long) {
         println("errorrrr: ${source} ${type} ${severity}")
     }
 
@@ -347,7 +344,7 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
             }
 
             val modifiers = mutableSetOf<KeyboardModifier>()
-            val buttonsDown= BitSet()
+            val buttonsDown = BitSet()
 
             if (mods and GLFW_MOD_SHIFT != 0) {
                 modifiers.add(KeyboardModifier.SHIFT)
@@ -366,7 +363,7 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
                 down = true
                 lastDragPosition = program.mouse.position
                 program.mouse.buttonDown.trigger(
-                        Program.Mouse.MouseEvent(program.mouse.position , Vector2.ZERO, Vector2.ZERO, MouseEventType.BUTTON_DOWN, mouseButton, modifiers)
+                        Program.Mouse.MouseEvent(program.mouse.position, Vector2.ZERO, Vector2.ZERO, MouseEventType.BUTTON_DOWN, mouseButton, modifiers)
                 )
                 buttonsDown.set(button, true)
             }
@@ -374,7 +371,7 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
             if (action == GLFW_RELEASE) {
                 down = false
                 program.mouse.buttonUp.trigger(
-                        Program.Mouse.MouseEvent(program.mouse.position , Vector2.ZERO, Vector2.ZERO, MouseEventType.BUTTON_UP, mouseButton, modifiers)
+                        Program.Mouse.MouseEvent(program.mouse.position, Vector2.ZERO, Vector2.ZERO, MouseEventType.BUTTON_UP, mouseButton, modifiers)
                 )
                 buttonsDown.set(button, false)
 
@@ -390,7 +387,7 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
             program.mouse.position = position
             program.mouse.moved.trigger(Program.Mouse.MouseEvent(position, Vector2.ZERO, Vector2.ZERO, MouseEventType.MOVED, MouseButton.NONE, globalModifiers))
             if (down) {
-                program.mouse.dragged.trigger(Program.Mouse.MouseEvent(position, Vector2.ZERO, position-lastDragPosition, MouseEventType.DRAGGED, MouseButton.NONE, emptySet()))
+                program.mouse.dragged.trigger(Program.Mouse.MouseEvent(position, Vector2.ZERO, position - lastDragPosition, MouseEventType.DRAGGED, MouseButton.NONE, emptySet()))
                 lastDragPosition = position
             }
         })
@@ -471,7 +468,7 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
         }
     }
 
-    private fun drawFrame():Throwable? {
+    private fun drawFrame(): Throwable? {
         setupSizes()
 
         glBindVertexArray(vaos[0])
@@ -510,6 +507,7 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
         val fbw = IntArray(1)
         val fbh = IntArray(1)
         glfwGetFramebufferSize(window, fbw, fbh)
+
         glViewport(0, 0, fbw[0], fbh[0])
         program.width = (fbw[0] / program.window.scale.x).toInt()
         program.height = (fbh[0] / program.window.scale.y).toInt()
