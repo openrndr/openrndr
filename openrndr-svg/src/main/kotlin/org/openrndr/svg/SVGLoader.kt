@@ -310,12 +310,18 @@ internal class SVGPath : SVGElement() {
             val tokens = it.split(":")
 
             val attribute = tokens[0].toLowerCase().trim()
-            val value = tokens[1].trim()
+
+            fun value():String = if (tokens.size >= 2) {
+                tokens[1].trim()
+            } else {
+                ""
+            }
+
 
             when (attribute) {
-                "fill" -> fill = parseColor(value)
-                "stroke" -> stroke = parseColor(value)
-                "stroke-width" -> strokeWeight = value.toDouble()
+                "fill" -> fill = parseColor(value())
+                "stroke" -> stroke = parseColor(value())
+                "stroke-width" -> strokeWeight = value().toDouble()
             }
 
 
