@@ -344,6 +344,10 @@ class ShapeContour(val segments: List<Segment>, val closed: Boolean) {
 
     val length get() = segments.sumByDouble { it.length }
 
+    val bounds:Rectangle get() {
+        return bounds(sampleLinear().segments.flatMap { listOf(it.start, it.end) }.asSequence())
+    }
+
     operator fun plus(other: ShapeContour): ShapeContour {
         val epsilon = 0.001
         val segments = mutableListOf<Segment>()
