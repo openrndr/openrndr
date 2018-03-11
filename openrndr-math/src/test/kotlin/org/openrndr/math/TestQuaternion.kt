@@ -21,11 +21,5 @@ object TestQuaternion : Spek({
             qm.w `should equal` 1.0
         }
 
-        it("should behave nice") {
-            //            val q0 = fromAngles(Math.PI,0.0, 0.0)
-//            println("q: ${q0.x} ${q0.y} ${q0.z} ${q0.w}")
-//            println(q0.matrix)
-        }
-
     }
 })
