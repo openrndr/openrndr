@@ -31,7 +31,7 @@ private class OrbitalCamera(eye: Vector3, lookAt: Vector3) {
     var zoomSpeed = 1.0
 
     fun rotateTo(rotX: Double, rotY: Double) {
-        sphericalEnd += Spherical(0.0, -rotX, rotY)
+        sphericalEnd += Spherical(0.0, rotX, rotY)
         sphericalEnd = sphericalEnd.makeSafe()
 
         dirty = true
