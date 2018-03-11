@@ -165,6 +165,16 @@ class Debug3D(eye: Vector3, lookAt: Vector3 = Vector3.ZERO, private val fov: Dou
             drawer.fill = ColorRGBa.WHITE
             drawer.stroke = ColorRGBa.WHITE
             drawer.vertexBuffer(grid, DrawPrimitive.LINES)
+
+            // Axis cross
+            drawer.fill = ColorRGBa.RED
+            drawer.lineSegment(Vector3.ZERO, Vector3.UNIT_X)
+
+            drawer.fill = ColorRGBa.GREEN
+            drawer.lineSegment(Vector3.ZERO, Vector3.UNIT_Y)
+
+            drawer.fill = ColorRGBa.BLUE
+            drawer.lineSegment(Vector3.ZERO, Vector3.UNIT_Z)
         }
     }
 
