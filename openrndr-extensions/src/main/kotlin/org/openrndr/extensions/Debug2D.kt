@@ -22,6 +22,9 @@ private class Camera2D {
 }
 
 class Debug2D : Extension {
+
+    override var enabled: Boolean = true
+
     private val camera = Camera2D()
     override fun setup(program: Program) {
         program.mouse.dragged.listen {

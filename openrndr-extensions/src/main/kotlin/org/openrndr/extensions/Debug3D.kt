@@ -106,6 +106,8 @@ private class OrbitalCamera(eye: Vector3, lookAt: Vector3) {
 @Suppress("unused")
 class Debug3D(eye: Vector3, lookAt: Vector3 = Vector3.ZERO, private val fov: Double = 90.0) : Extension {
 
+    override var enabled: Boolean = true
+
     companion object {
         enum class STATE {
             NONE,
