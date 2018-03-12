@@ -88,8 +88,7 @@ data class Matrix44(
                 c0r0, c0r1, c0r2, c0r3,
                 c1r0, c1r1, c1r2, c1r3,
                 c2r0, c2r1, c2r2, c2r3,
-                c3r0, c3r1, c3r2, c3r3
-                       )
+                c3r0, c3r1, c3r2, c3r3)
     }
 
     operator fun times(v: Vector4): Vector4 {
@@ -99,7 +98,8 @@ data class Matrix44(
                        v.x * c0r3 + v.y * c1r3 + v.z * c2r3 + v.w * c3r3)
     }
 
-    operator fun times(v: Vector3): Vector3 = Vector3(v.x * c0r0 + v.y * c1r0 + v.z * c2r0,
+    operator fun times(v: Vector3): Vector3 = Vector3(
+            v.x * c0r0 + v.y * c1r0 + v.z * c2r0,
             v.x * c0r1 + v.y * c1r1 + v.z * c2r1,
             v.x * c0r2 + v.y * c1r2 + v.z * c2r2)
 

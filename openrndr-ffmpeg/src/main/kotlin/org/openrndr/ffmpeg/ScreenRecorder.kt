@@ -10,6 +10,9 @@ import org.openrndr.math.Matrix44
 import java.time.LocalDateTime
 
 class ScreenRecorder:Extension {
+
+    override var enabled: Boolean = true
+
     lateinit var videoWriter: VideoWriter
     lateinit var frame: RenderTarget
     override fun setup(program: Program) {

@@ -163,11 +163,11 @@ open class Program {
      * Install an extension
      * @param extension the extension to install
      */
-    fun extend(extension: Extension) {
+    fun extend(extension: Extension) : Extension{
         extensions.add(extension)
         extension.setup(this)
+        return extension
     }
-
 
     /**
      * Simplified window interface
@@ -255,9 +255,9 @@ open class Program {
     * This is the draw call that is called by Application. It takes care of handling extensions.
     */
     fun drawImpl() {
-        extensions.forEach { it.beforeDraw(drawer, this) }
+        extensions.filter { it.enabled }.forEach { it.beforeDraw(drawer, this) }
         draw()
-        extensions.reversed().forEach { it.afterDraw(drawer, this) }
+        extensions.reversed().filter { it.enabled }.forEach { it.afterDraw(drawer, this) }
     }
     /**
     * This is the user facing draw call. It should be overridden by the user.
