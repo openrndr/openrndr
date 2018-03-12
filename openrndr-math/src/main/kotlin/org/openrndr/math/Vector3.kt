@@ -28,7 +28,16 @@ data class Vector3(val x: Double, val y: Double, val z: Double) {
     val zx: Vector2 get() = Vector2(z, x)
     val xz: Vector2 get() = Vector2(x, z)
 
-    val normalized: Vector3 get() = this / length
+    val normalized: Vector3 get() {
+
+        val l = 1.0 / length
+
+        if (l.isNaN() || l.isInfinite()) {
+            return ZERO
+        }
+
+        return this * l
+    }
 
 
     private operator fun get(i: Int): Double {

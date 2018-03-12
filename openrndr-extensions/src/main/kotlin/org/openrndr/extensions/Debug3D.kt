@@ -31,7 +31,7 @@ private class OrbitalCamera(eye: Vector3, lookAt: Vector3) {
     var zoomSpeed = 1.0
 
     fun rotateTo(rotX: Double, rotY: Double) {
-        sphericalEnd += Spherical(0.0, -rotX, rotY)
+        sphericalEnd += Spherical(0.0, rotX, rotY)
         sphericalEnd = sphericalEnd.makeSafe()
 
         dirty = true
@@ -106,6 +106,8 @@ private class OrbitalCamera(eye: Vector3, lookAt: Vector3) {
 @Suppress("unused")
 class Debug3D(eye: Vector3, lookAt: Vector3 = Vector3.ZERO, private val fov: Double = 90.0) : Extension {
 
+    override var enabled: Boolean = true
+
     companion object {
         enum class STATE {
             NONE,
@@ -165,6 +167,16 @@ class Debug3D(eye: Vector3, lookAt: Vector3 = Vector3.ZERO, private val fov: Dou
             drawer.fill = ColorRGBa.WHITE
             drawer.stroke = ColorRGBa.WHITE
             drawer.vertexBuffer(grid, DrawPrimitive.LINES)
+
+            // Axis cross
+            drawer.fill = ColorRGBa.RED
+            drawer.lineSegment(Vector3.ZERO, Vector3.UNIT_X)
+
+            drawer.fill = ColorRGBa.GREEN
+            drawer.lineSegment(Vector3.ZERO, Vector3.UNIT_Y)
+
+            drawer.fill = ColorRGBa.BLUE
+            drawer.lineSegment(Vector3.ZERO, Vector3.UNIT_Z)
         }
     }
 

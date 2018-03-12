@@ -1,7 +1,7 @@
 package org.openrndr.math
 
 
-class Quaternion(val x: Double, val y: Double, val z: Double, val w: Double) {
+data class Quaternion(val x: Double, val y: Double, val z: Double, val w: Double) {
 
 
     companion object {

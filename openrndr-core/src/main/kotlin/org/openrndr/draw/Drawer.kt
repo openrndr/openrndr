@@ -7,11 +7,11 @@ import org.openrndr.math.Matrix44
 import org.openrndr.math.Vector2
 import org.openrndr.math.Vector3
 import org.openrndr.math.Vector4
-import org.openrndr.math.transforms.normalMatrix
-import org.openrndr.math.transforms.lookAt as _lookAt
-import org.openrndr.math.transforms.perspectiveDegrees
-import org.openrndr.math.transforms.rotateZ
 import org.openrndr.shape.*
+import org.openrndr.math.transforms.normalMatrix
+import org.openrndr.math.transforms.perspective as _perspective
+import org.openrndr.math.transforms.lookAt as _lookAt
+import org.openrndr.math.transforms.rotateZ
 import org.openrndr.math.transforms.ortho as _ortho
 import org.openrndr.math.transforms.translate as _translate
 import org.openrndr.math.transforms.rotate as _rotate
@@ -544,23 +544,29 @@ class Drawer(val driver: Driver) {
         ortho(0.0, renderTarget.width.toDouble(), renderTarget.height.toDouble(), 0.0, -1.0, 1.0)
     }
 
-    fun ortho(left: Double, right: Double, bottom: Double, top: Double, near: Double, far: Double) {
-        projection = _ortho(left, right, bottom, top, near, far)
-    }
-
     fun ortho() {
         ortho(0.0, width.toDouble(), height.toDouble(), 0.0, -1.0, 1.0)
     }
 
-    fun perspective(fovInDegrees: Double, ratio: Double, near: Double, far: Double) {
-        projection = perspectiveDegrees(fovInDegrees, ratio, near, far, 0.0, 0.0)
+    fun ortho(left: Double, right: Double, bottom: Double, top: Double, near: Double, far: Double) {
+        projection = _ortho(left, right, bottom, top, near, far)
     }
 
+    /**
+     *  Sets the projection to a perspective projection matrix
+     *
+     *  [fovY] Y field of view in degrees
+     *  [aspectRatio] lens aspect aspectRatio
+     *  [zNear] The distance to the zNear clipping plane along the -Z axis.
+     *  [zFar]The distance to the zFar clipping plane along the -Z axis.
+     */
+    fun perspective(fovY: Double, aspectRatio: Double, zNear: Double, zFar: Double) {
+        projection = _perspective(fovY, aspectRatio, zNear, zFar)
+    }
 
     fun lookAt(from: Vector3, to: Vector3, up: Vector3 = Vector3.UNIT_Y) {
         view *= _lookAt(from, to, up)
     }
-
 
     fun scale(s: Double) {
         view *= _scale(s, s, s)

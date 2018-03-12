@@ -1,14 +1,3 @@
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-    dependencies {
-        classpath 'org.junit.platform:junit-platform-gradle-plugin:1.1.0'
-    }
-}
-
-apply plugin: 'org.junit.platform.gradle.plugin'
-
 dependencies {
     compile project(":openrndr-core")
     compile project(":openrndr-binpack")
@@ -20,48 +9,13 @@ dependencies {
     compile "org.lwjgl:lwjgl-opengl:$lwjglVersion"
     compile "org.lwjgl:lwjgl-stb:$lwjglVersion"
 
-    testCompile("com.fasterxml.jackson.module:jackson-module-kotlin:2.9.2")
-
-    testCompile "org.jetbrains.kotlin:kotlin-reflect"
-    testCompile ('org.jetbrains.spek:spek-api:1.1.5')  {
-        exclude group: 'org.jetbrains.kotlin'
-        exclude group: 'com.fasterxml.jackson.module'
-    }
     testRuntime project(":openrndr-gl3-natives-windows")
     testRuntime project(":openrndr-gl3-natives-macos")
-
-    testRuntime 'org.junit.platform:junit-platform-console:1.0.0'
-    testRuntime 'org.junit.jupiter:junit-jupiter-engine:5.0.0'
-
-    testRuntime ('org.jetbrains.spek:spek-junit-platform-engine:1.1.5') {
-        exclude group: 'org.junit.platform'
-        exclude group: 'org.jetbrains.kotlin'
-    }
 }
 
-task junitPlatformTest(overwrite:true) {
-
-}
-
-if (project.hasProperty("testGL3")) {
-    task runJupiter(type: JavaExec) {
-        jvmArgs '-XstartOnFirstThread'
-        classpath = project.sourceSets.test.runtimeClasspath
-        main 'org.junit.platform.console.ConsoleLauncher'
-        args '--scan-class-path'
-//        args '--hide-details'
-//    args "--reports-dir=$project.testReportDir"
-
-    }
-    junitPlatformTest.dependsOn runJupiter
-}
-
-junitPlatform {
-    filters {
-        engines {
-            if (!project.hasProperty("testGL3")) {
-                exclude 'spek'
-            }
-        }
+test.doFirst {
+    if (System.getenv('TRAVIS') != null) {
+        println("Excluding OpenGL test cases for Travis CI build")
+        test.exclude('**/*GL3*')
     }
 }
