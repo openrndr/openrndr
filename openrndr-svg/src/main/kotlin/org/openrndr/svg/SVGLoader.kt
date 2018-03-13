@@ -266,8 +266,8 @@ internal class SVGPath : SVGElement() {
                         }
                     }
                     "s" -> {
-                        val relected = relativeControl * -1.0
-                        val cp0 = cursor + relected
+                        val reflected = relativeControl * -1.0
+                        val cp0 = cursor + reflected
                         val cp1 = cursor + command.vector(0, 1)
                         val target = cursor + command.vector(2, 3)
                         segments += Segment(cursor, cp0, cp1, target)
@@ -277,8 +277,8 @@ internal class SVGPath : SVGElement() {
                     "S" -> {
                         val reflected = relativeControl * -1.0
                         val cp0 = cursor + reflected
-                        val cp1 = cursor + command.vector(0, 1)
-                        val target = cursor + command.vector(2, 3)
+                        val cp1 = command.vector(0, 1)
+                        val target = command.vector(2, 3)
                         segments += Segment(cursor, cp0, cp1, target)
                         cursor = target
                         relativeControl = cp1 - target
@@ -317,16 +317,12 @@ internal class SVGPath : SVGElement() {
                 ""
             }
 
-
             when (attribute) {
                 "fill" -> fill = parseColor(value())
                 "stroke" -> stroke = parseColor(value())
                 "stroke-width" -> strokeWeight = value().toDouble()
             }
-
-
         }
-
     }
 }
 
