@@ -256,10 +256,8 @@ internal class SVGPath : SVGElement() {
                             throw RuntimeException("invalid number of operands ${allPoints.size}")
                         }
                         for (c in 0 until allPoints.size/2) {
-
                             val points = allPoints.subList(c*2, c*2+2)
                             val target = cursor + points[1]
-
                             segments += Segment(cursor, cursor + points[0], target)
                             relativeControl = (cursor + points[0]) - (cursor + points[1])
                             cursor = target
