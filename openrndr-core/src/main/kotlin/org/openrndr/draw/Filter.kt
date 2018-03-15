@@ -2,10 +2,7 @@ package org.openrndr.draw
 
 import org.openrndr.color.ColorRGBa
 import org.openrndr.internal.Driver
-import org.openrndr.math.Matrix44
-import org.openrndr.math.Vector2
-import org.openrndr.math.Vector3
-import org.openrndr.math.Vector4
+import org.openrndr.math.*
 import org.openrndr.math.transforms.ortho
 
 private val filterDrawStyle = DrawStyle().apply {
@@ -83,6 +80,7 @@ open class Filter(val shader: Shader) {
                 is Vector4 -> shader.uniform(uniform, value)
                 is ColorRGBa -> shader.uniform(uniform, value)
                 is Int -> shader.uniform(uniform, value)
+                is Matrix55 -> shader.uniform(uniform, value.floatArray)
 
                 // EJ: this is not so nice but I have no other ideas for this
                 is Array<*> -> if (value.size > 0) when(value[0]) {

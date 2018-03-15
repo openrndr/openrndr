@@ -8,6 +8,8 @@ class Linearize: Filter(Shader.createFromCode(Filter.filterVertexCode, filterFra
 class Delinearize: Filter(Shader.createFromCode(Filter.filterVertexCode, filterFragmentCode("color/delinearize.frag")))
 class TonemapUncharted2: Filter(Shader.createFromCode(Filter.filterVertexCode, filterFragmentCode("color/tonemap-uncharted2.frag")))
 
+class ColorMix: Filter(Shader.createFromCode(Filter.filterVertexCode, filterFragmentCode("color/color-mix.frag")))
+
 class HybridLogGamma:  Filter(Shader.createFromCode(Filter.filterVertexCode, filterFragmentCode("color/hybrid-log-gamma.frag")))
 
 val hybridLogGamma by lazy { HybridLogGamma() }
