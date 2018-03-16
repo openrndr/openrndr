@@ -29,6 +29,13 @@ class ShadeStyle {
         this.outputs.putAll(other.outputs)
     }
 
+
+    fun parameter(name:String, value:Cubemap):ShadeStyle {
+        parameterValues.put(name, value)
+        parameters.put(name, "Cubemap")
+        return this
+    }
+
     fun parameter(name:String, value:Int):ShadeStyle {
         parameterValues.put(name, value)
         parameters.put(name, "int")

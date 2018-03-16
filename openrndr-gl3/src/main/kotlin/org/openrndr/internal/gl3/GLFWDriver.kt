@@ -111,6 +111,18 @@ class DriverGL3 : Driver {
         return BufferTextureGL3.create(elementCount, format, type)
     }
 
+    override fun createCubemap(width: Int, format: ColorFormat, type: ColorType): Cubemap {
+        logger.trace { "creating cubemap $width"}
+        return CubemapGL3.create(width, format, type)
+    }
+
+    override fun createCubemapFromUrls(urls:List<String>):Cubemap {
+
+        logger.trace { "creating cubemap from urls $urls"}
+        return CubemapGL3.fromUrls(urls)
+
+    }
+
     override fun createRenderTarget(width: Int, height: Int, contentScale:Double): RenderTarget {
         logger.trace { "creating render target $width x $height @ ${contentScale}x" }
         return RenderTargetGL3.create(width, height, contentScale)
@@ -387,15 +399,15 @@ internal fun glStencilTest(test: StencilTest): Int {
 }
 
 internal fun glStencilOp(op: StencilOperation): Int {
-    when (op) {
-        StencilOperation.KEEP -> return GL_KEEP
-        StencilOperation.DECREASE -> return GL_DECR
-        StencilOperation.DECREASE_WRAP -> return GL_DECR_WRAP
-        StencilOperation.INCREASE -> return GL_INCR
-        StencilOperation.INCREASE_WRAP -> return GL_INCR_WRAP
-        StencilOperation.ZERO -> return GL_ZERO
-        StencilOperation.INVERT -> return GL_INVERT
-        StencilOperation.REPLACE -> return GL_REPLACE
+    return when (op) {
+        StencilOperation.KEEP -> GL_KEEP
+        StencilOperation.DECREASE -> GL_DECR
+        StencilOperation.DECREASE_WRAP -> GL_DECR_WRAP
+        StencilOperation.INCREASE -> GL_INCR
+        StencilOperation.INCREASE_WRAP -> GL_INCR_WRAP
+        StencilOperation.ZERO -> GL_ZERO
+        StencilOperation.INVERT -> GL_INVERT
+        StencilOperation.REPLACE -> GL_REPLACE
         else -> throw RuntimeException("unsupported op")
     }
 }

@@ -425,7 +425,7 @@ class ColorBufferGL3(val target: Int,
     }
 }
 
-private fun MinifyingFilter.toGLFilter(): Int {
+internal fun MinifyingFilter.toGLFilter(): Int {
     return when (this) {
         MinifyingFilter.NEAREST -> GL_NEAREST
         MinifyingFilter.LINEAR -> GL_LINEAR
@@ -436,7 +436,7 @@ private fun MinifyingFilter.toGLFilter(): Int {
     }
 }
 
-private fun MagnifyingFilter.toGLFilter(): Int {
+internal fun MagnifyingFilter.toGLFilter(): Int {
     return when (this) {
         MagnifyingFilter.NEAREST -> GL_NEAREST
         MagnifyingFilter.LINEAR -> GL_LINEAR
@@ -451,7 +451,7 @@ private fun WrapMode.glWrap(): Int {
     }
 }
 
-private fun ColorFormat.glFormat(): Int {
+internal fun ColorFormat.glFormat(): Int {
     return when (this) {
         ColorFormat.R -> GL_RED
         ColorFormat.RG -> GL_RG
@@ -462,7 +462,7 @@ private fun ColorFormat.glFormat(): Int {
     }
 }
 
-private fun ColorType.glType(): Int {
+internal fun ColorType.glType(): Int {
     return when (this) {
         ColorType.UINT8 -> GL_UNSIGNED_BYTE
         ColorType.UINT16 -> GL_UNSIGNED_SHORT

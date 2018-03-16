@@ -57,6 +57,11 @@ class ShadeStyleManagerGL3(val vertexShaderGenerator: (ShadeStructure)->String, 
                         shader.uniform("p_${it.key}", textureIndex)
                         textureIndex++
                     }
+                    is Cubemap -> {
+                        value.bind(textureIndex)
+                        shader.uniform("p_${it.key}", textureIndex)
+                        textureIndex++
+                    }
                     else -> {
                         throw RuntimeException("unsupported value type")
                     }

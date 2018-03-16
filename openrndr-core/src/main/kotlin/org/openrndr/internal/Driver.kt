@@ -50,6 +50,9 @@ interface Driver {
     fun createDepthBuffer(width: Int, height: Int, format: DepthFormat): DepthBuffer
     fun createBufferTexture(elementCount: Int, format: ColorFormat, type: ColorType): BufferTexture
 
+    fun createCubemap(width:Int, format:ColorFormat, type:ColorType) : Cubemap
+    fun createCubemapFromUrls(urls:List<String>) : Cubemap
+
     fun clear(color: ColorRGBa)
 
     fun createDynamicVertexBuffer(format: VertexFormat, vertexCount: Int): VertexBuffer
