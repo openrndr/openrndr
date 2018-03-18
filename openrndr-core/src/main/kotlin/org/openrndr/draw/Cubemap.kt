@@ -18,6 +18,11 @@ interface Cubemap {
             return Driver.instance.createCubemap(width, format, type)
         }
 
+        fun fromUrl(url:String):Cubemap {
+            return Driver.instance.createCubemapFromUrls(listOf(url))
+        }
+
+
         fun fromUrls(urls:List<String>):Cubemap {
             return Driver.instance.createCubemapFromUrls(urls)
         }

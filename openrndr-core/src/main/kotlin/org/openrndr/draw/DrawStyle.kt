@@ -61,7 +61,9 @@ enum class ColorFormat {
     R,
     RG,
     RGB,
+    BGR,
     RGBa,
+    BGRa,
     sRGB,
     sRGBa;
 
@@ -70,8 +72,8 @@ enum class ColorFormat {
             return when (this) {
                 R -> 1
                 RG -> 2
-                RGB, sRGB -> 3
-                RGBa, sRGBa -> 4
+                BGR,RGB, sRGB -> 3
+                BGRa, RGBa, sRGBa -> 4
             }
         }
 }
@@ -80,7 +82,10 @@ enum class ColorType {
     UINT8,
     UINT16,
     FLOAT16,
-    FLOAT32;
+    FLOAT32,
+    DXT1,
+    DXT3,
+    DXT5;
 
     val componentSize: Int
         get() {
@@ -88,6 +93,7 @@ enum class ColorType {
                 UINT8 -> 1
                 UINT16, FLOAT16 -> 2
                 FLOAT32 -> 4
+                DXT1, DXT3, DXT5 -> throw RuntimeException("component size of compressed types cannot be queried")
             }
         }
 }

@@ -1,9 +1,14 @@
 package org.openrndr.internal.gl3
 
+import org.lwjgl.opengl.EXTTextureCompressionS3TC.*
 import org.lwjgl.opengl.GL11.*
+import org.lwjgl.opengl.GL12.GL_BGR
 import org.lwjgl.opengl.GL13.*
 import org.lwjgl.opengl.GL30
+import org.lwjgl.opengl.GL32.GL_TEXTURE_CUBE_MAP_SEAMLESS
 import org.openrndr.draw.*
+import org.openrndr.internal.gl3.dds.loadDDS
+import java.net.URL
 import java.nio.ByteBuffer
 
 class CubemapGL3(val texture: Int, override val width: Int, val sides: List<ColorBuffer>) : Cubemap {
@@ -29,19 +34,83 @@ class CubemapGL3(val texture: Int, override val width: Int, val sides: List<Colo
             return CubemapGL3(textures[0], width, sides)
         }
 
+        fun fromUrl(url:String):CubemapGL3 {
+            glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS)
+            if (url.endsWith(".dds")) {
+                val textures = IntArray(1)
+                glGenTextures(textures)
+                checkGLErrors()
+                glActiveTexture(GL_TEXTURE0)
+                checkGLErrors()
+                glBindTexture(GL_TEXTURE_CUBE_MAP, textures[0])
+                checkGLErrors()
+                val data = loadDDS(URL(url).openStream())
+
+                val sides = (0..5).map { ColorBufferGL3(GL_TEXTURE_CUBE_MAP_POSITIVE_X + it, textures[0], data.width, data.height, 1.0, ColorFormat.RGB, ColorType.UINT8) }
+                for (level in 0 until data.mipmaps) {
+
+                    val m = Math.pow(2.0, -level*1.0)
+                    val width = (data.width * m).toInt()
+                    val height = (data.height * m).toInt()
+
+                    data.sidePX(level).rewind()
+                    data.sideNX(level).rewind()
+                    data.sidePY(level).rewind()
+                    data.sideNY(level).rewind()
+                    data.sidePZ(level).rewind()
+                    data.sideNZ(level).rewind()
+
+                    if (data.type == ColorType.DXT1||data.type == ColorType.DXT3||data.type == ColorType.DXT5) {
+                        val format = internalFormat(data.format, data.type)
+
+                        glCompressedTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, level, format, data.width, data.height, 0, data.sidePX(level))
+                        checkGLErrors()
+                        glCompressedTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, level, format, data.width, data.height, 0, data.sideNX(level))
+                        checkGLErrors()
+                        glCompressedTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, level, format, data.width, data.height, 0, data.sidePY(level))
+                        checkGLErrors()
+                        glCompressedTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, level, format, data.width, data.height, 0, data.sideNY(level))
+                        checkGLErrors()
+                        glCompressedTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, level, format, data.width, data.height, 0, data.sidePZ(level))
+                        checkGLErrors()
+                        glCompressedTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, level, format, data.width, data.height, 0, data.sideNZ(level))
+                    } else {
+                        val format = data.format.glFormat()
+                        val type = data.type.glType()
+                        val internalFormat = internalFormat(data.format, data.type)
+                        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, level, internalFormat, width, height, 0, format, type, data.sidePX(level))
+                        checkGLErrors()
+                        glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, level, internalFormat, width, height, 0, format, type,  data.sideNX(level))
+                        checkGLErrors()
+                        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, level, internalFormat, width, height, 0, format, type,  data.sidePY(level))
+                        checkGLErrors()
+                        glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, level, internalFormat, width, height, 0, format, type,  data.sideNY(level))
+                        checkGLErrors()
+                        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, level, internalFormat, width, height, 0, format, type,  data.sidePZ(level))
+                        checkGLErrors()
+                        glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, level, internalFormat, width, height, 0, format, type,  data.sideNZ(level))
+                    }
+                    checkGLErrors()
+                }
+                if (data.mipmaps == 1) {
+                    GL30.glGenerateMipmap(GL_TEXTURE_CUBE_MAP)
+                    checkGLErrors()
+                }
+                return CubemapGL3(textures[0], data.width, sides)
+            } else {
+                throw RuntimeException("only dds files can be loaded through a single url")
+            }
+        }
 
         fun fromUrls(urls: List<String>): CubemapGL3 {
             if (urls.size != 6) {
                 throw RuntimeException("6 urls are needed for a cubemap")
             }
-
-
             val textures = IntArray(1)
             glGenTextures(textures)
             glActiveTexture(GL_TEXTURE0)
             glBindTexture(GL_TEXTURE_CUBE_MAP, textures[0])
             val sides = mutableListOf<ColorBufferGL3>()
-
 
             urls.forEachIndexed { index, it ->
                 val data = ColorBufferDataGL3.fromUrl(it)
@@ -53,14 +122,12 @@ class CubemapGL3(val texture: Int, override val width: Int, val sides: List<Colo
             }
             return CubemapGL3(textures[0], sides[0].width, sides)
         }
-
     }
 
     override fun generateMipmaps() {
         bound {
             GL30.glGenerateMipmap(GL_TEXTURE_CUBE_MAP)
         }
-
     }
 
     override fun filter(min: MinifyingFilter, mag: MagnifyingFilter) {
@@ -86,10 +153,8 @@ class CubemapGL3(val texture: Int, override val width: Int, val sides: List<Colo
     fun bound(f: CubemapGL3.() -> Unit) {
         glActiveTexture(GL_TEXTURE0)
         val current = glGetInteger(GL_TEXTURE_BINDING_CUBE_MAP)
-
         glBindTexture(GL_TEXTURE_CUBE_MAP, texture)
         this.f()
         glBindTexture(GL_TEXTURE_CUBE_MAP, current)
     }
-
 }

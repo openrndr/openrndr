@@ -29,14 +29,14 @@ class DriverGL3 : Driver {
     val vaos = mutableMapOf<Long, Int>()
     var defaultVAO = 1
 
-    fun hash(shader:ShaderGL3, vertexBuffers:List<VertexBuffer>, instanceAttributes: List<VertexBuffer>):Long {
+    fun hash(shader: ShaderGL3, vertexBuffers: List<VertexBuffer>, instanceAttributes: List<VertexBuffer>): Long {
         var hash = 0L
         hash += shader.program
         for (i in 0 until vertexBuffers.size) {
-            hash+= (vertexBuffers[i] as VertexBufferGL3).buffer shl (12 + (i*12))
+            hash += (vertexBuffers[i] as VertexBufferGL3).buffer shl (12 + (i * 12))
         }
         for (i in 0 until instanceAttributes.size) {
-            hash+= (vertexBuffers[i] as VertexBufferGL3).buffer shl (12 + ((i+vertexBuffers.size)*12))
+            hash += (vertexBuffers[i] as VertexBufferGL3).buffer shl (12 + ((i + vertexBuffers.size) * 12))
         }
         return hash
     }
@@ -90,8 +90,8 @@ class DriverGL3 : Driver {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
-    override fun createShadeStyleManager(vertexShaderGenerator:(ShadeStructure)->String,
-                                         fragmentShaderGenerator:(ShadeStructure)->String) : ShadeStyleManager {
+    override fun createShadeStyleManager(vertexShaderGenerator: (ShadeStructure) -> String,
+                                         fragmentShaderGenerator: (ShadeStructure) -> String): ShadeStyleManager {
         return ShadeStyleManagerGL3(vertexShaderGenerator, fragmentShaderGenerator)
     }
 
@@ -104,26 +104,29 @@ class DriverGL3 : Driver {
         return ShaderGL3.create(vertexShader, fragmentShader)
     }
 
-    override fun createBufferTexture(elementCount:Int,
+    override fun createBufferTexture(elementCount: Int,
                                      format: ColorFormat,
-                                     type:ColorType):BufferTexture {
+                                     type: ColorType): BufferTexture {
         logger.trace { "creating buffer texture" }
         return BufferTextureGL3.create(elementCount, format, type)
     }
 
     override fun createCubemap(width: Int, format: ColorFormat, type: ColorType): Cubemap {
-        logger.trace { "creating cubemap $width"}
+        logger.trace { "creating cubemap $width" }
         return CubemapGL3.create(width, format, type)
     }
 
-    override fun createCubemapFromUrls(urls:List<String>):Cubemap {
+    override fun createCubemapFromUrls(urls: List<String>): Cubemap {
 
-        logger.trace { "creating cubemap from urls $urls"}
-        return CubemapGL3.fromUrls(urls)
-
+        logger.trace { "creating cubemap from urls $urls" }
+        return when {
+            urls.size == 1 -> CubemapGL3.fromUrl(urls[0])
+            urls.size == 6 -> CubemapGL3.fromUrls(urls)
+            else -> throw RuntimeException("expected 1 or 6 urls")
+        }
     }
 
-    override fun createRenderTarget(width: Int, height: Int, contentScale:Double): RenderTarget {
+    override fun createRenderTarget(width: Int, height: Int, contentScale: Double): RenderTarget {
         logger.trace { "creating render target $width x $height @ ${contentScale}x" }
         return RenderTargetGL3.create(width, height, contentScale)
     }
@@ -205,10 +208,10 @@ class DriverGL3 : Driver {
         glBindVertexArray(defaultVAO)
     }
 
-    private fun setupFormat(vertexBuffer:List<VertexBuffer>, instanceAttributes:List<VertexBuffer>, shader: ShaderGL3) {
+    private fun setupFormat(vertexBuffer: List<VertexBuffer>, instanceAttributes: List<VertexBuffer>, shader: ShaderGL3) {
         debugGLErrors()
 
-        fun setupBuffer(buffer:VertexBuffer, divisor:Int=0) {
+        fun setupBuffer(buffer: VertexBuffer, divisor: Int = 0) {
 
             val prefix = if (divisor == 0) "a" else "i"
 
@@ -244,14 +247,14 @@ class DriverGL3 : Driver {
                             debugGLErrors()
                         }
                         for (i in 0 until 4) {
-                            glVertexAttribPointer(attributeIndex +i,
+                            glVertexAttribPointer(attributeIndex + i,
                                     4,
-                                    item.type.glType(), false, 64, item.offset.toLong()+i*16)
+                                    item.type.glType(), false, 64, item.offset.toLong() + i * 16)
                             debugGLErrors()
                         }
 
                         for (i in 0 until 4) {
-                            glVertexAttribDivisor(attributeIndex+i, 1)
+                            glVertexAttribDivisor(attributeIndex + i, 1)
                             debugGLErrors()
                         }
                     }
@@ -280,7 +283,7 @@ class DriverGL3 : Driver {
         }
     }
 
-    private fun teardownFormat(vertexBuffers:List<VertexBuffer>, instanceAttributes: List<VertexBuffer>, shader:ShaderGL3) {
+    private fun teardownFormat(vertexBuffers: List<VertexBuffer>, instanceAttributes: List<VertexBuffer>, shader: ShaderGL3) {
         vertexBuffers.forEach { teardownFormat(it.vertexFormat, shader) }
         instanceAttributes.forEach { teardownFormat(it.vertexFormat, shader) }
     }

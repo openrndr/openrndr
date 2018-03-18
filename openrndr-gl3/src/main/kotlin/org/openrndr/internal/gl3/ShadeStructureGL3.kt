@@ -40,6 +40,7 @@ private fun mapType(type: String): String {
         "ColorRGBa" -> "vec4"
         "BufferTexture" -> "samplerBuffer"
         "ColorBuffer" -> "sampler2D"
+        "Cubemap" -> "samplerCube"
         else -> throw RuntimeException("unsupported type $type")
     }
 }

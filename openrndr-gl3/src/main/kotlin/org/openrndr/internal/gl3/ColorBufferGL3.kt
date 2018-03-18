@@ -2,8 +2,9 @@ package org.openrndr.internal.gl3
 
 import mu.KotlinLogging
 import org.lwjgl.BufferUtils
+import org.lwjgl.opengl.EXTTextureCompressionS3TC.*
 import org.lwjgl.opengl.GL11.*
-import org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE
+import org.lwjgl.opengl.GL12.*
 import org.lwjgl.opengl.GL13.GL_TEXTURE0
 import org.lwjgl.opengl.GL13.glActiveTexture
 import org.lwjgl.opengl.GL14.GL_MIRRORED_REPEAT
@@ -39,6 +40,7 @@ fun internalFormat(format: ColorFormat, type: ColorType): Int {
             ConversionEntry(ColorFormat.RGB, ColorType.UINT8, GL_RGB8),
             ConversionEntry(ColorFormat.RGB, ColorType.FLOAT16, GL_RGB16F),
             ConversionEntry(ColorFormat.RGB, ColorType.FLOAT32, GL_RGB32F),
+            ConversionEntry(ColorFormat.BGR, ColorType.UINT8, GL_RGB8),
             ConversionEntry(ColorFormat.RGBa, ColorType.UINT8, GL_RGBA8),
             ConversionEntry(ColorFormat.RGBa, ColorType.UINT16, GL_RGBA16),
             ConversionEntry(ColorFormat.RGBa, ColorType.FLOAT16, GL_RGBA16F),
@@ -47,7 +49,12 @@ fun internalFormat(format: ColorFormat, type: ColorType): Int {
             ConversionEntry(ColorFormat.R, ColorType.FLOAT16, GL_R16F),
             ConversionEntry(ColorFormat.R, ColorType.FLOAT32, GL_R32F),
             ConversionEntry(ColorFormat.sRGB, ColorType.UINT8, GL_SRGB8),
-            ConversionEntry(ColorFormat.sRGBa, ColorType.UINT8, GL_SRGB8_ALPHA8))
+            ConversionEntry(ColorFormat.sRGBa, ColorType.UINT8, GL_SRGB8_ALPHA8),
+            ConversionEntry(ColorFormat.RGBa, ColorType.DXT1, GL_COMPRESSED_RGBA_S3TC_DXT1_EXT),
+            ConversionEntry(ColorFormat.RGBa, ColorType.DXT3, GL_COMPRESSED_RGBA_S3TC_DXT3_EXT),
+            ConversionEntry(ColorFormat.RGBa, ColorType.DXT5, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT),
+            ConversionEntry(ColorFormat.RGB, ColorType.DXT1, GL_COMPRESSED_RGB_S3TC_DXT1_EXT))
+
 
     for (entry in entries) {
         if (entry.format === format && entry.type === type) {
@@ -459,6 +466,8 @@ internal fun ColorFormat.glFormat(): Int {
         ColorFormat.RGBa -> GL_RGBA
         ColorFormat.sRGB -> GL_RGB
         ColorFormat.sRGBa -> GL_RGBA
+        ColorFormat.BGR -> GL_BGR
+        ColorFormat.BGRa -> GL_BGRA
     }
 }
 
@@ -468,5 +477,6 @@ internal fun ColorType.glType(): Int {
         ColorType.UINT16 -> GL_UNSIGNED_SHORT
         ColorType.FLOAT16 -> GL_HALF_FLOAT
         ColorType.FLOAT32 -> GL_FLOAT
+        ColorType.DXT1, ColorType.DXT3, ColorType.DXT5 -> throw RuntimeException("gl type of compressed types cannot be queried")
     }
 }
