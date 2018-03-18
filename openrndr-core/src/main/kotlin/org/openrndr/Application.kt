@@ -1,6 +1,7 @@
 package org.openrndr
 
 import org.openrndr.math.Vector2
+import java.net.URL
 import kotlin.concurrent.thread
 
 abstract class Application {
@@ -38,4 +39,17 @@ abstract class Application {
 
 fun application(program:Program, configuration:Configuration = Configuration()) {
     Application.run(program, configuration)
+}
+
+fun resourceUrl(name: String): String {
+
+    val resource =  Application::class.java.getResource(name)
+
+    if (resource == null) {
+        throw RuntimeException("resource ${name} not found")
+    } else {
+
+        val url = Application::class.java.getResource(name).toExternalForm()
+        return url
+    }
 }
