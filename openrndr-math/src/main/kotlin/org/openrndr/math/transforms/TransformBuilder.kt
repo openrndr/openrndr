@@ -10,7 +10,7 @@ import org.openrndr.math.transforms.scale as _scale
 class TransformBuilder {
     var transform: Matrix44 = Matrix44.IDENTITY
 
-    fun rotate(degrees:Double, axis:Vector3=Vector3.UNIT_Z) {
+    fun rotate(axis:Vector3=Vector3.UNIT_Z, degrees:Double) {
         transform *= _rotate(axis, degrees)
     }
 
