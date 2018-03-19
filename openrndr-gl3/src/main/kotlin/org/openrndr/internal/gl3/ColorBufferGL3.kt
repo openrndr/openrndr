@@ -120,7 +120,7 @@ class ColorBufferShadowGL3(override val colorBuffer: ColorBufferGL3) : ColorBuff
         }
     }
 
-    override fun read(x:Int, y:Int):ColorRGBa {
+    override fun read(x: Int, y: Int): ColorRGBa {
 
         val ay = if (colorBuffer.flipV) y else colorBuffer.effectiveHeight - 1 - y
 
@@ -130,8 +130,8 @@ class ColorBufferShadowGL3(override val colorBuffer: ColorBufferGL3) : ColorBuff
                 val ir = buffer.get(offset).toInt() and 0xff
                 val ig = buffer.get(offset + 1).toInt() and 0xff
                 val ib = buffer.get(offset + 2).toInt() and 0xff
-                val ia = if (colorBuffer.format == ColorFormat.RGBa) (buffer.get(offset + 3).toInt() and 0xff) .toInt() else 255
-                ColorRGBa(ir/255.0, ig/255.0, ib/255.0, ia/255.0)
+                val ia = if (colorBuffer.format == ColorFormat.RGBa) (buffer.get(offset + 3).toInt() and 0xff).toInt() else 255
+                ColorRGBa(ir / 255.0, ig / 255.0, ib / 255.0, ia / 255.0)
             }
             else -> TODO("support for ${colorBuffer.type}")
         }
@@ -151,83 +151,81 @@ class ColorBufferDataGL3(val width: Int, val height: Int, val format: ColorForma
             val url = URL(urlString)
             url.openStream().use {
 
-                if (url.protocol == "file") {
-                    val byteArray = File(url.toURI()).readBytes()
-                    if (byteArray.size == 0) {
-                        throw RuntimeException("read 0 bytes from stream $urlString")
-                    }
-                    val buffer = BufferUtils.createByteBuffer(byteArray.size)
 
-                    (buffer as Buffer).rewind()
-                    buffer.put(byteArray)
-                    (buffer as Buffer).rewind()
+                val byteArray = url.readBytes()
+                if (byteArray.size == 0) {
+                    throw RuntimeException("read 0 bytes from stream $urlString")
+                }
+                val buffer = BufferUtils.createByteBuffer(byteArray.size)
+
+                (buffer as Buffer).rewind()
+                buffer.put(byteArray)
+                (buffer as Buffer).rewind()
 
 
-                    val wa = IntArray(1)
-                    val ha = IntArray(1)
-                    val ca = IntArray(1)
-                    STBImage.stbi_set_flip_vertically_on_load(true)
-                    STBImage.nstbi_set_unpremultiply_on_load(0)
-                    val data = STBImage.stbi_load_from_memory(buffer, wa, ha, ca, 0)
+                val wa = IntArray(1)
+                val ha = IntArray(1)
+                val ca = IntArray(1)
+                STBImage.stbi_set_flip_vertically_on_load(true)
+                STBImage.nstbi_set_unpremultiply_on_load(0)
+                val data = STBImage.stbi_load_from_memory(buffer, wa, ha, ca, 0)
 
-                    //println("channel count ${ca[0]}")
+                //println("channel count ${ca[0]}")
 
-                    if (data != null) {
-                        return ColorBufferDataGL3(wa[0], ha[0],
-                                when (ca[0]) {
-                                    1 -> ColorFormat.R
-                                    2 -> ColorFormat.RG
-                                    3 -> ColorFormat.RGB
-                                    4 -> ColorFormat.RGBa
-                                    else -> throw Exception("invalid component count ${ca[0]}")
-                                }
-                                , ColorType.UINT8, data)
-                    } else {
-                        throw RuntimeException("failed to load image $urlString")
-                    }
+                if (data != null) {
+                    return ColorBufferDataGL3(wa[0], ha[0],
+                            when (ca[0]) {
+                                1 -> ColorFormat.R
+                                2 -> ColorFormat.RG
+                                3 -> ColorFormat.RGB
+                                4 -> ColorFormat.RGBa
+                                else -> throw Exception("invalid component count ${ca[0]}")
+                            }
+                            , ColorType.UINT8, data)
                 } else {
-                    throw RuntimeException("unsupported protocol $urlString")
+                    throw RuntimeException("failed to load image $urlString")
                 }
 
             }
 
 
         }
+
         fun fromFile(filename: String): ColorBufferDataGL3 {
-                    val byteArray = File(filename).readBytes()
-                    if (byteArray.size == 0) {
-                        throw RuntimeException("read 0 bytes from stream $filename")
-                    }
-                    val buffer = BufferUtils.createByteBuffer(byteArray.size)
+            val byteArray = File(filename).readBytes()
+            if (byteArray.size == 0) {
+                throw RuntimeException("read 0 bytes from stream $filename")
+            }
+            val buffer = BufferUtils.createByteBuffer(byteArray.size)
 
-                    (buffer as Buffer).rewind()
-                    buffer.put(byteArray)
-                    (buffer as Buffer).rewind()
+            (buffer as Buffer).rewind()
+            buffer.put(byteArray)
+            (buffer as Buffer).rewind()
 
 
-                    val wa = IntArray(1)
-                    val ha = IntArray(1)
-                    val ca = IntArray(1)
-                    STBImage.stbi_set_flip_vertically_on_load(true)
-                    STBImage.nstbi_set_unpremultiply_on_load(0)
-                    val data = STBImage.stbi_load_from_memory(buffer, wa, ha, ca, 0)
+            val wa = IntArray(1)
+            val ha = IntArray(1)
+            val ca = IntArray(1)
+            STBImage.stbi_set_flip_vertically_on_load(true)
+            STBImage.nstbi_set_unpremultiply_on_load(0)
+            val data = STBImage.stbi_load_from_memory(buffer, wa, ha, ca, 0)
 
-                    //println("channel count ${ca[0]}")
+            //println("channel count ${ca[0]}")
 
-                    if (data != null) {
-                        return ColorBufferDataGL3(wa[0], ha[0],
-                                when (ca[0]) {
-                                    1 -> ColorFormat.R
-                                    2 -> ColorFormat.RG
-                                    3 -> ColorFormat.RGB
-                                    4 -> ColorFormat.RGBa
-                                    else -> throw Exception("invalid component count ${ca[0]}")
-                                }
-                                , ColorType.UINT8, data)
-                    } else {
-                        throw RuntimeException("failed to load image $filename")
-                    }
-                }
+            if (data != null) {
+                return ColorBufferDataGL3(wa[0], ha[0],
+                        when (ca[0]) {
+                            1 -> ColorFormat.R
+                            2 -> ColorFormat.RG
+                            3 -> ColorFormat.RGB
+                            4 -> ColorFormat.RGBa
+                            else -> throw Exception("invalid component count ${ca[0]}")
+                        }
+                        , ColorType.UINT8, data)
+            } else {
+                throw RuntimeException("failed to load image $filename")
+            }
+        }
     }
 
 }
@@ -408,9 +406,9 @@ class ColorBufferGL3(val target: Int,
         }
     }
 
-    override fun saveToFile(file:File) {
+    override fun saveToFile(file: File) {
         if (type == ColorType.UINT8) {
-            val pixels = BufferUtils.createByteBuffer(effectiveWidth * effectiveHeight * format.componentCount*2)
+            val pixels = BufferUtils.createByteBuffer(effectiveWidth * effectiveHeight * format.componentCount * 2)
             (pixels as Buffer).rewind()
             read(pixels)
             (pixels as Buffer).rewind()

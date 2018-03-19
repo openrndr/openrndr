@@ -19,7 +19,6 @@ object TestCubemapsGL3 : Spek({
         app.setup()
         app.preloop()
 
-
         it("can load a rgb8 dds cubemap") {
             CubemapGL3.fromUrl(resourceUrl("/cubemaps/garage.dds"))
         }
@@ -27,7 +26,6 @@ object TestCubemapsGL3 : Spek({
         it("can load a rgb32f dds cubemap") {
             CubemapGL3.fromUrl(resourceUrl("/cubemaps/garage-rgba32f.dds"))
         }
-
     }
 
 })

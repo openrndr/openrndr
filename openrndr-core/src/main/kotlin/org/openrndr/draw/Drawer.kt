@@ -484,13 +484,15 @@ class StencilStyle {
 }
 
 @Suppress("MemberVisibilityCanPrivate")
-data class DrawContext(val view: Matrix44, val projection: Matrix44, val width: Int, val height: Int) {
+data class DrawContext(val model: Matrix44, val view: Matrix44, val projection: Matrix44, val width: Int, val height: Int) {
     fun applyToShader(shader: Shader) {
         shader.uniform("u_viewMatrix", view)
+        shader.uniform("u_modelMatrix", model)
         shader.uniform("u_projectionMatrix", projection)
         shader.uniform("u_viewProjectionMatrix", projection * view)
         shader.uniform("u_viewDimensions", Vector2(width.toDouble(), height.toDouble()))
-        shader.uniform("u_normalMatrix", normalMatrix(view))
+        shader.uniform("u_modelNormalMatrix", if(model !== Matrix44.IDENTITY) normalMatrix(model) else Matrix44.IDENTITY)
+        shader.uniform("u_viewNormalMatrix", normalMatrix(view))
     }
 }
 
@@ -513,17 +515,19 @@ class Drawer(val driver: Driver) {
     private var qualityPolygonDrawer = QualityPolygonDrawer()
     internal val fontImageMapDrawer = FontImageMapDrawer()
 
+    val modelStack = Stack<Matrix44>()
     val viewStack = Stack<Matrix44>()
     val projectionStack = Stack<Matrix44>()
 
     var width: Int = 0
     var height: Int = 0
 
+    var model: Matrix44 = Matrix44.IDENTITY
     var view: Matrix44 = Matrix44.IDENTITY
     var projection: Matrix44 = Matrix44.IDENTITY
 
     val context: DrawContext
-        get() = DrawContext(view, projection, width, height)
+        get() = DrawContext(model, view, projection, width, height)
 
     var drawStyle = DrawStyle()
 
@@ -536,11 +540,13 @@ class Drawer(val driver: Driver) {
 
     fun reset() {
         viewStack.clear()
+        modelStack.clear()
         projectionStack.clear()
         drawStyles.clear()
         ortho()
         drawStyle = DrawStyle()
         view = Matrix44.IDENTITY
+        model = Matrix44.IDENTITY
     }
 
     fun ortho(renderTarget: RenderTarget) {
@@ -572,23 +578,23 @@ class Drawer(val driver: Driver) {
     }
 
     fun scale(s: Double) {
-        view *= _scale(s, s, s)
+        model *= _scale(s, s, s)
     }
 
     fun scale(x: Double, y: Double) {
-        view *= _scale(x, y, 1.0)
+        model *= _scale(x, y, 1.0)
     }
 
     fun scale(x: Double, y: Double, z: Double) {
-        view *= _scale(x, y, z)
+        model *= _scale(x, y, z)
     }
 
     fun translate(t: Vector2) {
-        view *= _translate(t.vector3())
+        model *= _translate(t.vector3())
     }
 
     fun translate(t: Vector3) {
-        view *= _translate(t)
+        model *= _translate(t)
     }
 
     //
@@ -597,15 +603,15 @@ class Drawer(val driver: Driver) {
     }
 
     fun translate(x: Double, y: Double, z: Double) {
-        view *= _translate(Vector3(x, y, z))
+        model *= _translate(Vector3(x, y, z))
     }
 
     fun rotate(rotationInDegrees: Double) {
-        view *= rotateZ(rotationInDegrees)
+        model *= rotateZ(rotationInDegrees)
     }
 
     fun rotate(axis: Vector3, rotationInDegrees: Double) {
-        view *= _rotate(axis, rotationInDegrees)
+        model *= _rotate(axis, rotationInDegrees)
     }
 
 
@@ -623,6 +629,10 @@ class Drawer(val driver: Driver) {
         view = viewStack.pop()
     }
 
+    fun pushModel(): Matrix44 = modelStack.push(model)
+    fun popModel() {
+        model = modelStack.pop()
+    }
 
     fun pushProjection():Matrix44 = projectionStack.push(projection)
     fun popProjection() {
@@ -630,11 +640,13 @@ class Drawer(val driver: Driver) {
     }
 
     fun pushTransforms() {
+        pushModel()
         pushView()
         pushProjection()
     }
 
     fun popTransforms() {
+        popModel()
         popView()
         popProjection()
     }
@@ -834,7 +846,7 @@ class Drawer(val driver: Driver) {
 
         fun node(compositionNode: CompositionNode) {
             pushView()
-            view *= compositionNode.transform
+            model *= compositionNode.transform
 
             when (compositionNode) {
                 is ShapeNode -> {

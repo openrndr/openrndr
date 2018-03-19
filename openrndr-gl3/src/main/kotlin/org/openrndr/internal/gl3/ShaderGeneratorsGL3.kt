@@ -3,43 +3,69 @@ package org.openrndr.internal.gl3
 import org.openrndr.draw.ShadeStructure
 import org.openrndr.internal.ShaderGenerators
 
-private val drawerUniforms = """
-uniform mat4 u_normalMatrix;
+private const val drawerUniforms = """
+uniform mat4 u_modelNormalMatrix;
+uniform mat4 u_modelMatrix;
+uniform mat4 u_normalMatrix; // will be deleted soon
+uniform mat4 u_viewNormalMatrix;
 uniform mat4 u_viewMatrix;
 uniform mat4 u_projectionMatrix;
-uniform mat4 u_viewProjectionMatrix;
+uniform mat4 u_viewProjectionMatrix; // will be deleted soon
 uniform vec4 u_fill;
 uniform vec4 u_stroke;
 uniform float u_strokeWeight;
 uniform float[25] u_colorMatrix;
 """
 
+private const val transformVaryingOut = """
+out vec3 v_worldNormal;
+out vec3 v_viewNormal;
+out vec3 v_worldPosition;
+out vec3 v_viewPosition;
+out vec4 v_clipPosition;
+"""
+
+private const val transformVaryingIn = """
+in vec3 v_worldNormal;
+in vec3 v_viewNormal;
+in vec3 v_worldPosition;
+in vec3 v_viewPosition;
+in vec4 v_clipPosition;
+"""
+
+private const val preTransform = """
+mat4 x_modelMatrix = u_modelMatrix;
+mat4 x_viewMatrix = u_viewMatrix;
+mat4 x_modelNormalMatrix = u_modelNormalMatrix;
+mat4 x_viewNormalMatrix = u_viewNormalMatrix;
+mat4 x_projectionMatrix = u_projectionMatrix;
+"""
+
+private const val postTransform = """
+v_worldNormal = (x_modelNormalMatrix * vec4(x_normal,0.0)).xyz;
+v_viewNormal = (x_viewNormalMatrix * vec4(v_worldNormal,0.0)).xyz;
+v_worldPosition = (x_modelMatrix * vec4(x_position, 1.0)).xyz;
+v_viewPosition = (x_viewMatrix * vec4(v_worldPosition, 1.0)).xyz;
+v_clipPosition = x_projectionMatrix * vec4(v_viewPosition, 1.0);
+"""
+
 class ShaderGeneratorsGL3 : ShaderGenerators {
     override fun vertexBufferFragmentShader(shadeStructure: ShadeStructure): String = """#version 330
 
 ${shadeStructure.uniforms?:""}
-
-
 layout(origin_upper_left) in vec4 gl_FragCoord;
 
 uniform sampler2D image;
 $drawerUniforms
 ${shadeStructure.varyingIn?:""}
 ${shadeStructure.outputs?:""}
+${transformVaryingIn}
 
 out vec4 o_color;
-struct VertexData {
-    vec3 position;
-    vec3 normal;
-};
 
 ${shadeStructure.fragmentPreamble?:""}
 flat in int v_instance;
 
-in VertexData world;
-in VertexData view;
-in VertexData object;
-in VertexData clip;
 
 void main(void) {
     vec2 c_screenPosition = gl_FragCoord.xy;
@@ -61,14 +87,8 @@ ${shadeStructure.attributes?:""}
 ${shadeStructure.uniforms?:""}
 ${shadeStructure.varyingOut?:""}
 
-struct VertexData {
-    vec3 position;
-    vec3 normal;
-};
+${transformVaryingOut}
 
-out VertexData object;
-out VertexData view;
-out VertexData clip;
 
 ${shadeStructure.vertexPreamble?:""}
 
@@ -84,26 +104,15 @@ void main() {
 
     vec3 x_position = a_position;
 
-    mat4 x_normalMatrix = u_normalMatrix;
-    mat4 x_viewMatrix = u_viewMatrix;
-    mat4 x_projectionMatrix = u_projectionMatrix;
+
+    ${preTransform}
     {
         ${shadeStructure.vertexTransform?:""}
     }
-
-    object.position = x_position;
-    object.normal = x_normal;
-
-    vec4 viewPosition = x_viewMatrix * vec4( x_position, 1.0);
-    view.position = viewPosition.xyz;
-    view.normal = (x_normalMatrix * vec4(x_normal, 0.0)).xyz;
-
-    vec4 clipPosition = x_projectionMatrix * viewPosition;
-    clip.position = clipPosition.xyz/clipPosition.w;
-    clip.normal = vec3(0.0);
+    ${postTransform}
 
     v_instance = instance;
-    gl_Position = clipPosition;
+    gl_Position = v_clipPosition;
 }
             """.trimMargin()
 
@@ -115,7 +124,7 @@ layout(origin_upper_left) in vec4 gl_FragCoord;
 uniform sampler2D image;
 $drawerUniforms
 ${shadeStructure.varyingIn?:""}
-
+${transformVaryingIn}
 out vec4 o_color;
 
 vec4 colorTransform(vec4 color, float[25] matrix) {
@@ -134,7 +143,6 @@ void main(void) {
     {
         ${shadeStructure.fragmentTransform?:""}
     }
-
     x_fill = colorTransform(x_fill, u_colorMatrix);
 
     o_color = x_fill;
@@ -147,18 +155,20 @@ $drawerUniforms
 ${shadeStructure.attributes?:""}
 ${shadeStructure.uniforms?:""}
 ${shadeStructure.varyingOut?:""}
-
+${transformVaryingOut}
 void main() {
 
     ${shadeStructure.varyingBridge?:""}
 
+
+    ${preTransform}
+    vec3 x_normal = a_normal;
     vec3 x_position = a_position;
     {
         ${shadeStructure.vertexTransform?:""}
     }
-
-    vec4 transformed = u_viewProjectionMatrix * vec4( vec3(x_position), 1.0);
-    gl_Position = transformed;
+    ${postTransform}
+    gl_Position = v_clipPosition;
 }
 """
 
@@ -168,6 +178,7 @@ layout(origin_upper_left) in vec4 gl_FragCoord;
 
 $drawerUniforms
 ${shadeStructure.varyingIn?:""}
+${transformVaryingIn}
 
 out vec4 o_color;
 
@@ -201,18 +212,21 @@ $drawerUniforms
 ${shadeStructure.attributes?:""}
 ${shadeStructure.uniforms?:""}
 ${shadeStructure.varyingOut?:""}
+${transformVaryingOut}
 
 void main() {
 
     ${shadeStructure.varyingBridge?:""}
 
+    ${preTransform}
+    vec3 x_normal = a_normal;
     vec3 x_position = a_position * i_radius + i_offset;
     {
         ${shadeStructure.vertexTransform?:""}
     }
-
-    vec4 transformed = u_viewProjectionMatrix * vec4( vec3(x_position), 1.0);
-    gl_Position = transformed;
+    va_position = x_position;
+    ${postTransform}
+    gl_Position = v_clipPosition;
 }
     """
 
@@ -226,6 +240,7 @@ flat in int v_instance;
 
 $drawerUniforms
 ${shadeStructure.varyingIn?:""}
+${transformVaryingIn}
 
 out vec4 o_color;
 
@@ -252,7 +267,7 @@ $drawerUniforms
 ${shadeStructure.attributes?:""}
 ${shadeStructure.uniforms?:""}
 ${shadeStructure.varyingOut?:""}
-
+${transformVaryingOut}
 flat out int v_instance;
 
 void main() {
@@ -260,14 +275,14 @@ void main() {
     v_instance = int(a_position.z);
 
     ${shadeStructure.varyingBridge?:""}
-
+    ${preTransform}
+    vec3 x_normal = vec3(0.0, 0.0, 1.0);
     vec3 x_position = decodedPosition;
     {
         ${shadeStructure.vertexTransform?:""}
     }
-
-    vec4 transformed = u_viewProjectionMatrix * vec4( vec3(x_position), 1.0);
-    gl_Position = transformed;
+    ${postTransform}
+    gl_Position = v_clipPosition;
 }
             """
 
@@ -277,6 +292,7 @@ layout(origin_upper_left) in vec4 gl_FragCoord;
 
 $drawerUniforms
 ${shadeStructure.varyingIn?:""}
+${transformVaryingIn}
 
 out vec4 o_color;
 
@@ -311,24 +327,28 @@ $drawerUniforms
 ${shadeStructure.attributes?:""}
 ${shadeStructure.uniforms?:""}
 ${shadeStructure.varyingOut?:""}
+${transformVaryingOut}
 
 void main() {
     ${shadeStructure.varyingBridge?:""}
+    ${preTransform}
+    vec3 x_normal = vec3(0.0, 0.0, 1.0);
     vec3 x_position = a_position * vec3(i_dimensions,1.0) + i_offset;
     {
         ${shadeStructure.vertexTransform?:""}
     }
-    vec4 transformed = u_viewProjectionMatrix * vec4( vec3(x_position), 1.0);
-    gl_Position = transformed;
+    ${postTransform}
+    gl_Position = v_clipPosition;
     }
     """
-
     override fun expansionFragmentShader(shadeStructure: ShadeStructure): String = """#version 330
 
 ${shadeStructure.uniforms?:""}
 layout(origin_upper_left) in vec4 gl_FragCoord;
 $drawerUniforms
 ${shadeStructure.varyingIn?:""}
+${transformVaryingIn}
+
 uniform float strokeMult;
 uniform float strokeThr;
 uniform float strokeFillFactor;
@@ -376,6 +396,7 @@ $drawerUniforms
 
 ${shadeStructure.attributes}
 ${shadeStructure.varyingOut?:""}
+${transformVaryingOut}
 
 out vec2 v_ftcoord;
 out float v_offset;
@@ -385,11 +406,17 @@ out vec3 v_objectPosition;
 void main() {
     ${shadeStructure.varyingBridge?:""}
     v_objectPosition = vec3(a_position, 0.0);
-
-
-
     v_ftcoord = a_texCoord0;
-    gl_Position = u_projectionMatrix * u_viewMatrix * vec4(a_position,0,1);
+
+    vec3 x_position = vec3(a_position, 0.0);
+    vec3 x_normal = vec3(0.0, 0.0, 1.0);
+    $preTransform
+    {
+        ${shadeStructure.vertexTransform?:""}
+    }
+    $postTransform
+
+    gl_Position = v_clipPosition;
 }
 """
 
@@ -400,7 +427,7 @@ layout(origin_upper_left) in vec4 gl_FragCoord;
 uniform sampler2D image;
 $drawerUniforms
 ${shadeStructure.varyingIn?:""}
-
+$transformVaryingIn
 out vec4 o_color;
 
 void main(void) {
@@ -422,12 +449,15 @@ ${shadeStructure.attributes?:""}
 ${shadeStructure.uniforms?:""}
 
 void main() {
+
+    $preTransform
+    vec3 x_normal = vec3(0.0, 0.0, 1.0);
     vec3 x_position = a_position;
     {
         ${shadeStructure.vertexTransform?:""}
     }
-    vec4 transformed = u_viewProjectionMatrix * vec4( vec3(x_position), 1.0);
-    gl_Position = transformed;
+    $postTransform
+    gl_Position = v_clipPosition;
 }
         """
 }
