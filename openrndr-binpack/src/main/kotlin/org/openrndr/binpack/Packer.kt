@@ -8,7 +8,7 @@ import java.util.*
 import kotlin.comparisons.compareBy
 
 interface Clipper {
-    fun inside(node: IntRectangle, rectangle: IntRectangle): Boolean
+    fun inside(node: IntRectangle, rectangle: IntRectangle, data:Any?): Boolean
 }
 
 interface Splitter {
@@ -20,7 +20,7 @@ interface Orderer {
 }
 
 class DefaultClipper : Clipper {
-    override fun inside(node: IntRectangle, rectangle: IntRectangle): Boolean = true
+    override fun inside(node: IntRectangle, rectangle: IntRectangle, data: Any?): Boolean = true
 }
 
 class DefaultOrderer : Orderer {
@@ -323,7 +323,7 @@ class IntPacker(
                     return null
                 } else if (node.area.width == rectangle.width && node.area.height == rectangle.height) {
                     // perfect fit!
-                    if (clipper.inside(node.area, rectangle)) {
+                    if (clipper.inside(node.area, rectangle, data)) {
                         node.populate(data)
                         node.freeArea = IntVector2(0, 0)
                         return node
