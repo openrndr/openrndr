@@ -383,8 +383,9 @@ internal class SVGLoader {
                 "rect" -> handleRectangle(group, c)
                 "ellipse" -> handleEllipse(group, c)
                 "circle" -> handleCircle(group, c)
-                "polyline" -> TODO()
-                "image" -> TODO()
+                "polygon" -> handlePolygon(group, c)
+//                "polyline" -> TODO()
+//                "image" -> TODO()
             }
         }
     }
