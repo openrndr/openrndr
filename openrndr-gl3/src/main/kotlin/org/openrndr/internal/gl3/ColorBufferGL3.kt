@@ -98,7 +98,9 @@ class ColorBufferShadowGL3(override val colorBuffer: ColorBufferGL3) : ColorBuff
                 buffer.put(offset, ir)
                 buffer.put(offset + 1, ig)
                 buffer.put(offset + 2, ib)
-                buffer.put(offset + 3, ia)
+                if (colorBuffer.format.componentCount>3) {
+                    buffer.put(offset + 3, ia)
+                }
             }
             ColorType.UINT16 -> {
                 val ir = (color.r * 65535).coerceIn(0.0, 65535.0).toChar()
@@ -108,13 +110,17 @@ class ColorBufferShadowGL3(override val colorBuffer: ColorBufferGL3) : ColorBuff
                 buffer.putChar(offset, ir)
                 buffer.putChar(offset + 2, ig)
                 buffer.putChar(offset + 4, ib)
-                buffer.putChar(offset + 6, ia)
+                if (colorBuffer.format.componentCount>3) {
+                    buffer.putChar(offset + 6, ia)
+                }
             }
             ColorType.FLOAT32 -> {
                 buffer.putFloat(offset, color.r.toFloat())
                 buffer.putFloat(offset + 4, color.g.toFloat())
                 buffer.putFloat(offset + 8, color.b.toFloat())
-                buffer.putFloat(offset + 12, color.a.toFloat())
+                if (colorBuffer.format.componentCount>3) {
+                    buffer.putFloat(offset + 12, color.a.toFloat())
+                }
             }
             else -> TODO("support for ${colorBuffer.type}")
         }
