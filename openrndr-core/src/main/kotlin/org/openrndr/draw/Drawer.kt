@@ -143,6 +143,8 @@ interface Shader {
     fun begin()
     fun end()
 
+    fun hasUniform(name:String): Boolean
+
     fun uniform(name: String, value: Matrix44)
     fun uniform(name: String, value: ColorRGBa)
     fun uniform(name: String, value: Vector4)
@@ -488,16 +490,45 @@ class StencilStyle {
     }
 }
 
+private var lastModel = Matrix44.IDENTITY
+private var lastModelNormal = Matrix44.IDENTITY
+private var lastView = Matrix44.IDENTITY
+private var lastViewNormal = Matrix44.IDENTITY
+
 @Suppress("MemberVisibilityCanPrivate")
 data class DrawContext(val model: Matrix44, val view: Matrix44, val projection: Matrix44, val width: Int, val height: Int) {
     fun applyToShader(shader: Shader) {
-        shader.uniform("u_viewMatrix", view)
-        shader.uniform("u_modelMatrix", model)
-        shader.uniform("u_projectionMatrix", projection)
-        shader.uniform("u_viewProjectionMatrix", projection * view)
-        shader.uniform("u_viewDimensions", Vector2(width.toDouble(), height.toDouble()))
-        shader.uniform("u_modelNormalMatrix", if (model !== Matrix44.IDENTITY) normalMatrix(model) else Matrix44.IDENTITY)
-        shader.uniform("u_viewNormalMatrix", normalMatrix(view))
+        if (shader.hasUniform("u_viewMatrix")) {
+            shader.uniform("u_viewMatrix", view)
+        }
+        if (shader.hasUniform("u_modelMatrix")) {
+            shader.uniform("u_modelMatrix", model)
+        }
+        if (shader.hasUniform("u_projectionMatrix")) {
+            shader.uniform("u_projectionMatrix", projection)
+        }
+        if (shader.hasUniform("u_viewProjectionMatrix")) {
+            shader.uniform("u_viewProjectionMatrix", projection * view)
+        }
+        if (shader.hasUniform("u_viewDimensions")) {
+            shader.uniform("u_viewDimensions", Vector2(width.toDouble(), height.toDouble()))
+        }
+        if (shader.hasUniform("u_modelNormalMatrix")) {
+            val normalMatrix = if (model === lastModel) lastModelNormal else {
+                lastModelNormal = if (model !== Matrix44.IDENTITY) normalMatrix(model) else Matrix44.IDENTITY
+                lastModel = model
+                lastModelNormal
+            }
+            shader.uniform("u_modelNormalMatrix", normalMatrix)
+        }
+        if (shader.hasUniform("u_viewNormalMatrix")) {
+            val normalMatrix = if (view === lastView) lastViewNormal else {
+                lastViewNormal = if (model !== Matrix44.IDENTITY) normalMatrix(view) else Matrix44.IDENTITY
+                lastView = view
+                lastViewNormal
+            }
+            shader.uniform("u_viewNormalMatrix", normalMatrix)
+        }
     }
 }
 
