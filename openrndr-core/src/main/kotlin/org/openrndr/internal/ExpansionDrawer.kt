@@ -22,9 +22,12 @@ internal class ExpansionDrawer {
         drawStyle.applyToShader(shader)
         Driver.instance.setState(drawStyle)
 
-        val localStyle = drawStyle
+        val localStyle = drawStyle.copy()
 
-        shader.uniform("strokeMult", drawStyle.strokeWeight / 2.0 + 0.65)
+        val fringe = 1.0
+        shader.uniform("strokeMult", (drawStyle.strokeWeight+fringe)/fringe)
+
+//        shader.uniform("strokeMult", drawStyle.strokeWeight / 2.0 + 0.65)
         shader.uniform("strokeFillFactor", 0.0)
         commands.forEach { command ->
 
@@ -38,7 +41,7 @@ internal class ExpansionDrawer {
             Driver.instance.drawVertexBuffer(shader, listOf(command.vertexBuffer), DrawPrimitive.TRIANGLE_STRIP, command.vertexOffset, command.vertexCount)
 
             // -- anti-aliased
-            shader.uniform("strokeThr", 0.0f)
+            shader.uniform("strokeThr", -1.0f)
             localStyle.stencil.stencilFunc(StencilTest.EQUAL, 0x00, 0xff)
             localStyle.stencil.stencilOp(StencilOperation.KEEP, StencilOperation.KEEP, StencilOperation.KEEP)
             Driver.instance.setState(localStyle)
@@ -138,7 +141,9 @@ internal class ExpansionDrawer {
 
         // -- pass 1 : draw fill shapes in stencil only
         shader.uniform("strokeThr", -1.0f)
-        shader.uniform("strokeMult", drawStyle.strokeWeight / 2.0 + 0.65)
+        //shader.uniform("strokeMult", drawStyle.strokeWeight / 2.0 + 0.65)
+        val fringe = 1.0
+        shader.uniform("strokeMult", (drawStyle.strokeWeight+fringe)/fringe)
         shader.uniform("strokeFillFactor", 1.0)
         val command = commands[0]
         shader.uniform("bounds", Vector4(command.minX, command.minY, command.maxX - command.minX, command.maxY - command.minY))

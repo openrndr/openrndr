@@ -416,7 +416,7 @@ internal class Path {
         val expansion = Expansion(ExpansionType.STROKE, FloatArray(cverts * 5), 0)
 
         var offset = 0.0
-        var aa = fringeWidth
+        val aa = fringeWidth
 
         var p0 = if (closed) points[points.size - 1] else points[0]
         var p1 = if (closed) points[0] else points[1]
@@ -532,15 +532,15 @@ internal class Path {
                             fill.addVertex(p1.x + p1.dmx * woff, p1.y + p1.dmy * woff, 0.5, 1.0, offset)
                         } else {
 
-                            var dlx0 = p0.dy
-                            var dly0 = -p0.dx
-                            var dlx1 = p1.dy
-                            var dly1 = -p1.dx
+                            val dlx0 = p0.dy
+                            val dly0 = -p0.dx
+                            val dlx1 = p1.dy
+                            val dly1 = -p1.dx
 
-                            var lx0 = p1.x + dlx0 * woff
-                            var ly0 = p1.y + dly0 * woff
-                            var lx1 = p1.x + dlx1 * woff
-                            var ly1 = p1.y + dly1 * woff
+                            val lx0 = p1.x + dlx0 * woff
+                            val ly0 = p1.y + dly0 * woff
+                            val lx1 = p1.x + dlx1 * woff
+                            val ly1 = p1.y + dly1 * woff
 
                             fill.addVertex(lx0, ly0, 0.5, 1.0, offset)
                             fill.addVertex(lx1, ly1, 0.5, 1.0, offset)
