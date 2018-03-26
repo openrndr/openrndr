@@ -230,7 +230,6 @@ class DriverGL3 : Driver {
                                 else -> null
                             }
                         }
-
                         glVertexAttribPointer(attributeIndex,
                                 item.count,
                                 item.type.glType(), false, format.size, item.offset.toLong())
@@ -249,10 +248,9 @@ class DriverGL3 : Driver {
                         for (i in 0 until 4) {
                             glVertexAttribPointer(attributeIndex + i,
                                     4,
-                                    item.type.glType(), false, 64, item.offset.toLong() + i * 16)
+                                    item.type.glType(), false, format.size, item.offset.toLong() + i * 16)
                             debugGLErrors()
                         }
-
                         for (i in 0 until 4) {
                             glVertexAttribDivisor(attributeIndex + i, 1)
                             debugGLErrors()
