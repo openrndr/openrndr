@@ -41,17 +41,18 @@ interface Driver {
     fun createShadeStyleManager(vertexShaderGenerator: (ShadeStructure) -> String,
                                 fragmentShaderGenerator: (ShadeStructure) -> String): ShadeStyleManager
 
-    fun createRenderTarget(width: Int, height: Int, contentScale:Double=1.0): RenderTarget
+    fun createRenderTarget(width: Int, height: Int, contentScale: Double = 1.0): RenderTarget
 
-    fun createColorBuffer(width: Int, height: Int, contentScale:Double, format: ColorFormat, type: ColorType): ColorBuffer
+    fun createColorBuffer(width: Int, height: Int, contentScale: Double, format: ColorFormat, type: ColorType): ColorBuffer
     fun createColorBufferFromUrl(url: String): ColorBuffer
-    fun createColorBufferFromFile(filename:String): ColorBuffer
+    fun createColorBufferFromFile(filename: String): ColorBuffer
 
     fun createDepthBuffer(width: Int, height: Int, format: DepthFormat): DepthBuffer
     fun createBufferTexture(elementCount: Int, format: ColorFormat, type: ColorType): BufferTexture
 
-    fun createCubemap(width:Int, format:ColorFormat, type:ColorType) : Cubemap
-    fun createCubemapFromUrls(urls:List<String>) : Cubemap
+    fun createCubemap(width: Int, format: ColorFormat, type: ColorType): Cubemap
+    fun createCubemapFromUrls(urls: List<String>): Cubemap
+
 
     fun clear(color: ColorRGBa)
 
@@ -71,6 +72,7 @@ interface Driver {
     val fontImageMapManager: FontMapManager
     val fontVectorMapManager: FontMapManager
     val shaderGenerators: ShaderGenerators
+    val activeRenderTarget: RenderTarget
 
     fun internalShaderResource(resourceId: String): String
 

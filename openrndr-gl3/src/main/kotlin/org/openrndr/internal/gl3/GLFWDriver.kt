@@ -268,8 +268,6 @@ class DriverGL3 : Driver {
         instanceAttributes.forEach {
             setupBuffer(it, 1)
         }
-
-
     }
 
     private fun teardownFormat(format: VertexFormat, shader: ShaderGL3) {
@@ -334,10 +332,10 @@ class DriverGL3 : Driver {
                 glDisable(GL_BLEND)
             }
             BlendMode.SUBTRACT -> {
-                TODO("not implemeted: subtract blend")
+                TODO("not implemented: subtract blend")
             }
             BlendMode.MULTIPLY -> {
-                TODO("not implemeted: multiply blend")
+                TODO("not implemented: multiply blend")
             }
         }
 
@@ -385,6 +383,9 @@ class DriverGL3 : Driver {
         }
         debugGLErrors()
     }
+
+    override val activeRenderTarget: RenderTarget
+        get() = RenderTargetGL3.activeRenderTarget
 }
 
 internal fun glStencilTest(test: StencilTest): Int {
