@@ -5,6 +5,7 @@ package org.openrndr.shape
 import org.openrndr.math.*
 import org.openrndr.shape.internal.BezierCubicRenderer
 import org.openrndr.shape.internal.BezierQuadraticSampler
+import java.util.*
 
 class SegmentProjection(val segment: Segment, val projection: Double, val distance: Double, val point: Vector2)
 class ContourProjection(val segmentProjection: SegmentProjection, val projection: Double, val distance: Double, val point: Vector2)
@@ -325,6 +326,11 @@ class Segment {
         }
     }
 
+    override fun toString(): String {
+        return "Segment(start=$start, end=$end, control=${Arrays.toString(control)})"
+    }
+
+
 //    fun intersect(other: Segment) {
 //        if (control.size == 0 && other.control.size == 0) {
 //            // line line intersection
@@ -335,7 +341,7 @@ class Segment {
 private fun sumDifferences(points: List<Vector2>): Double =
         (0 until points.size - 1).sumByDouble { (points[it] - points[it + 1]).length }
 
-class ShapeContour(val segments: List<Segment>, val closed: Boolean) {
+data class ShapeContour(val segments: List<Segment>, val closed: Boolean) {
 
     companion object {
         fun fromPoints(points: List<Vector2>, closed: Boolean) =
@@ -522,7 +528,7 @@ class ShapeContour(val segments: List<Segment>, val closed: Boolean) {
 
     }
 
-    val reversed get() = ShapeContour(segments.map { it.reverse }, closed)
+    val reversed get() = ShapeContour(segments.map { it.reverse } .reversed(), closed)
 }
 
 

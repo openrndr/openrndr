@@ -142,7 +142,7 @@ internal class SVGPath : SVGElement() {
         var anchor = cursor.copy()
         var relativeControl = Vector2(0.0, 0.0)
 
-        val contours = compounds().map { compound ->
+        val contours = compounds().mapIndexed { compoundIndex, compound ->
             val segments = mutableListOf<Segment>()
             var closed = false
             compound.commands.forEach { command ->
@@ -288,11 +288,13 @@ internal class SVGPath : SVGElement() {
                         closed = true
                     }
                     else -> {
-                        throw RuntimeException("unsupport op: ${command.op}")
+                        throw RuntimeException("unsupported op: ${command.op}")
                     }
                 }
             }
-            ShapeContour(segments, closed)
+            ShapeContour(segments, closed).let {
+                if (compoundIndex == 0) it else it.reversed
+            }
         }
         return Shape(contours)
     }
