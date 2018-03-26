@@ -191,10 +191,10 @@ internal class ExpansionDrawer {
         localStyle.cullTestPass = CullTestPass.ALWAYS
 
         // TODO: this is really bad
-        val minX = -10000//fill.minX
-        val maxX = 10000//fill.maxX
-        val minY = -10000//fill.minY
-        val maxY = 10000//fill.maxY
+        val minX = command.minX
+        val maxX = command.maxX
+        val minY = command.minY
+        val maxY = command.maxY
 
         quad.shadow.writer().apply {
             rewind()

@@ -143,6 +143,8 @@ interface Shader {
     fun begin()
     fun end()
 
+    fun hasUniform(name:String): Boolean
+
     fun uniform(name: String, value: Matrix44)
     fun uniform(name: String, value: ColorRGBa)
     fun uniform(name: String, value: Vector4)
@@ -191,7 +193,7 @@ interface VertexBuffer {
     fun bind()
     fun unbind()
 
-    fun put(putter:BufferWriter.()->Unit):Int {
+    fun put(putter: BufferWriter.() -> Unit): Int {
         val w = shadow.writer()
         w.rewind()
         w.putter()
@@ -271,7 +273,7 @@ interface ColorBufferShadow {
     fun writer(): BufferWriter
     fun write(x: Int, y: Int, color: ColorRGBa)
 
-    fun read(x: Int, y:Int): ColorRGBa
+    fun read(x: Int, y: Int): ColorRGBa
 }
 
 
@@ -282,10 +284,10 @@ interface ColorBuffer {
     val format: ColorFormat
     val type: ColorType
 
-    val bounds:Rectangle get() = Rectangle(Vector2.ZERO, width*1.0, height*1.0)
+    val bounds: Rectangle get() = Rectangle(Vector2.ZERO, width * 1.0, height * 1.0)
 
-    val effectiveWidth:Int get() = (width * contentScale).toInt()
-    val effectiveHeight:Int get() = (height * contentScale).toInt()
+    val effectiveWidth: Int get() = (width * contentScale).toInt()
+    val effectiveHeight: Int get() = (height * contentScale).toInt()
 
 
     fun saveToFile(file: File)
@@ -304,13 +306,13 @@ interface ColorBuffer {
     var flipV: Boolean
 
 
-    fun filter(filterMin:MinifyingFilter, filterMag:MagnifyingFilter) {
+    fun filter(filterMin: MinifyingFilter, filterMag: MagnifyingFilter) {
         this.filterMin = filterMin
         this.filterMag = filterMag
     }
 
     companion object {
-        fun create(width: Int, height: Int, contentScale:Double = 1.0, format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.UINT8): ColorBuffer {
+        fun create(width: Int, height: Int, contentScale: Double = 1.0, format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.UINT8): ColorBuffer {
             return Driver.instance.createColorBuffer(width, height, contentScale, format, type)
         }
 
@@ -324,14 +326,14 @@ interface ColorBuffer {
     }
 }
 
-fun colorBuffer(width: Int, height: Int, contentScale:Double = 1.0, format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.UINT8):ColorBuffer {
+fun colorBuffer(width: Int, height: Int, contentScale: Double = 1.0, format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.UINT8): ColorBuffer {
     return ColorBuffer.create(width, height, contentScale, format, type)
 }
 
 interface BufferTextureShadow {
     val bufferTexture: BufferTexture
 
-    fun upload(offset:Int, size:Int)
+    fun upload(offset: Int, size: Int)
     fun download()
     fun destroy()
 
@@ -341,8 +343,8 @@ interface BufferTextureShadow {
 interface BufferTexture {
     val shadow: BufferTextureShadow
 
-    val format:ColorFormat
-    val type:ColorType
+    val format: ColorFormat
+    val type: ColorType
 
     val elementCount: Int
 
@@ -355,7 +357,7 @@ interface BufferTexture {
         }
     }
 
-    fun put(putter:BufferWriter.()->Unit):Int {
+    fun put(putter: BufferWriter.() -> Unit): Int {
         val w = shadow.writer()
         w.rewind()
         w.putter()
@@ -407,7 +409,7 @@ class RenderTargetBuilder(private val renderTarget: RenderTarget) {
     }
 
     fun colorBuffer(format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.UINT8) {
-        val cb = ColorBuffer.create(renderTarget.width , renderTarget.height, renderTarget.contentScale, format, type)
+        val cb = ColorBuffer.create(renderTarget.width, renderTarget.height, renderTarget.contentScale, format, type)
         renderTarget.attach(cb)
     }
 
@@ -426,13 +428,15 @@ interface RenderTarget {
     val contentScale: Double
 
 
-    val effectiveWidth:Int get() = (width * contentScale).toInt()
-    val effectiveHeight:Int get() = (height * contentScale).toInt()
+    val effectiveWidth: Int get() = (width * contentScale).toInt()
+    val effectiveHeight: Int get() = (height * contentScale).toInt()
 
     val colorBuffers: List<ColorBuffer>
 
     companion object {
-        fun create(width: Int, height: Int, contentScale:Double): RenderTarget = Driver.instance.createRenderTarget(width, height, contentScale)
+        fun create(width: Int, height: Int, contentScale: Double): RenderTarget = Driver.instance.createRenderTarget(width, height, contentScale)
+        val active: RenderTarget
+            get() = Driver.instance.activeRenderTarget
     }
 
     fun attach(name: String, colorBuffer: ColorBuffer)
@@ -448,9 +452,12 @@ interface RenderTarget {
 
     fun bind()
     fun unbind()
+
+    val hasDepthBuffer: Boolean
+    val hasColorBuffer: Boolean
 }
 
-fun renderTarget(width: Int, height: Int, contentScale:Double=1.0, builder: RenderTargetBuilder.() -> Unit): RenderTarget {
+fun renderTarget(width: Int, height: Int, contentScale: Double = 1.0, builder: RenderTargetBuilder.() -> Unit): RenderTarget {
     val renderTarget = RenderTarget.create(width, height, contentScale)
     RenderTargetBuilder(renderTarget).builder()
     return renderTarget
@@ -483,16 +490,45 @@ class StencilStyle {
     }
 }
 
+private var lastModel = Matrix44.IDENTITY
+private var lastModelNormal = Matrix44.IDENTITY
+private var lastView = Matrix44.IDENTITY
+private var lastViewNormal = Matrix44.IDENTITY
+
 @Suppress("MemberVisibilityCanPrivate")
 data class DrawContext(val model: Matrix44, val view: Matrix44, val projection: Matrix44, val width: Int, val height: Int) {
     fun applyToShader(shader: Shader) {
-        shader.uniform("u_viewMatrix", view)
-        shader.uniform("u_modelMatrix", model)
-        shader.uniform("u_projectionMatrix", projection)
-        shader.uniform("u_viewProjectionMatrix", projection * view)
-        shader.uniform("u_viewDimensions", Vector2(width.toDouble(), height.toDouble()))
-        shader.uniform("u_modelNormalMatrix", if(model !== Matrix44.IDENTITY) normalMatrix(model) else Matrix44.IDENTITY)
-        shader.uniform("u_viewNormalMatrix", normalMatrix(view))
+        if (shader.hasUniform("u_viewMatrix")) {
+            shader.uniform("u_viewMatrix", view)
+        }
+        if (shader.hasUniform("u_modelMatrix")) {
+            shader.uniform("u_modelMatrix", model)
+        }
+        if (shader.hasUniform("u_projectionMatrix")) {
+            shader.uniform("u_projectionMatrix", projection)
+        }
+        if (shader.hasUniform("u_viewProjectionMatrix")) {
+            shader.uniform("u_viewProjectionMatrix", projection * view)
+        }
+        if (shader.hasUniform("u_viewDimensions")) {
+            shader.uniform("u_viewDimensions", Vector2(width.toDouble(), height.toDouble()))
+        }
+        if (shader.hasUniform("u_modelNormalMatrix")) {
+            val normalMatrix = if (model === lastModel) lastModelNormal else {
+                lastModelNormal = if (model !== Matrix44.IDENTITY) normalMatrix(model) else Matrix44.IDENTITY
+                lastModel = model
+                lastModelNormal
+            }
+            shader.uniform("u_modelNormalMatrix", normalMatrix)
+        }
+        if (shader.hasUniform("u_viewNormalMatrix")) {
+            val normalMatrix = if (view === lastView) lastViewNormal else {
+                lastViewNormal = if (model !== Matrix44.IDENTITY) normalMatrix(view) else Matrix44.IDENTITY
+                lastView = view
+                lastViewNormal
+            }
+            shader.uniform("u_viewNormalMatrix", normalMatrix)
+        }
     }
 }
 
@@ -619,7 +655,7 @@ class Drawer(val driver: Driver) {
         driver.clear(color)
     }
 
-    fun pushStyle():DrawStyle = drawStyles.push(drawStyle.copy())
+    fun pushStyle(): DrawStyle = drawStyles.push(drawStyle.copy())
     fun popStyle() {
         drawStyle = drawStyles.pop().copy()
     }
@@ -634,7 +670,7 @@ class Drawer(val driver: Driver) {
         model = modelStack.pop()
     }
 
-    fun pushProjection():Matrix44 = projectionStack.push(projection)
+    fun pushProjection(): Matrix44 = projectionStack.push(projection)
     fun popProjection() {
         projection = projectionStack.pop()
     }
@@ -719,11 +755,11 @@ class Drawer(val driver: Driver) {
         rectangleDrawer.drawRectangle(context, drawStyle, x, y, width, height)
     }
 
-    fun rectangles(positions: List<Vector2>, width: Double, height:Double) {
-        rectangleDrawer.drawRectangles(context, drawStyle, positions,width, height)
+    fun rectangles(positions: List<Vector2>, width: Double, height: Double) {
+        rectangleDrawer.drawRectangles(context, drawStyle, positions, width, height)
     }
 
-    fun rectangles(positions: List<Vector2>, dimensions:List<Vector2>) {
+    fun rectangles(positions: List<Vector2>, dimensions: List<Vector2>) {
         rectangleDrawer.drawRectangles(context, drawStyle, positions, dimensions)
     }
 
@@ -741,29 +777,38 @@ class Drawer(val driver: Driver) {
 
 
     fun shape(shape: Shape) {
-        if (drawStyle.fill != null) {
-            qualityPolygonDrawer.drawPolygon(context, drawStyle,
-                    shape.contours.map { it.adaptivePositions() })
+        if (RenderTarget.active.hasDepthBuffer) {
+            if (drawStyle.fill != null) {
+                qualityPolygonDrawer.drawPolygon(context, drawStyle,
+                        shape.contours.map { it.adaptivePositions() })
+            }
+        } else {
+            throw RuntimeException("drawing shapes requires a render target with a depth buffer attachment")
         }
     }
 
     fun contour(contour: ShapeContour) {
 
-        if (drawStyle.fill != null && contour.closed) {
-            qualityPolygonDrawer.drawPolygon(context, drawStyle, listOf(contour.adaptivePositions()))
-        }
+        if (RenderTarget.active.hasDepthBuffer) {
 
-        if (drawStyle.stroke != null) {
-            when (drawStyle.quality) {
-                DrawQuality.PERFORMANCE -> when (contour.closed) {
-                    true -> fastLineDrawer.drawLineLoops(context, drawStyle, listOf(contour.adaptivePositions()))
-                    false -> fastLineDrawer.drawLineLoops(context, drawStyle, listOf(contour.adaptivePositions()))
-                }
-                DrawQuality.QUALITY -> when (contour.closed) {
-                    true -> qualityLineDrawer.drawLineLoops(context, drawStyle, listOf(contour.adaptivePositions().let { it.subList(0, it.size - 1) }))
-                    false -> qualityLineDrawer.drawLineStrips(context, drawStyle, listOf(contour.adaptivePositions()))
+            if (drawStyle.fill != null && contour.closed) {
+                qualityPolygonDrawer.drawPolygon(context, drawStyle, listOf(contour.adaptivePositions()))
+            }
+
+            if (drawStyle.stroke != null) {
+                when (drawStyle.quality) {
+                    DrawQuality.PERFORMANCE -> when (contour.closed) {
+                        true -> fastLineDrawer.drawLineLoops(context, drawStyle, listOf(contour.adaptivePositions()))
+                        false -> fastLineDrawer.drawLineLoops(context, drawStyle, listOf(contour.adaptivePositions()))
+                    }
+                    DrawQuality.QUALITY -> when (contour.closed) {
+                        true -> qualityLineDrawer.drawLineLoops(context, drawStyle, listOf(contour.adaptivePositions().let { it.subList(0, it.size - 1) }))
+                        false -> qualityLineDrawer.drawLineStrips(context, drawStyle, listOf(contour.adaptivePositions()))
+                    }
                 }
             }
+        } else {
+            throw RuntimeException("drawing contours requires a render target with a depth buffer attachment")
         }
     }
 
@@ -777,7 +822,7 @@ class Drawer(val driver: Driver) {
         }
     }
 
-    fun lineSegment(x0:Double, y0:Double, x1:Double, y1:Double) {
+    fun lineSegment(x0: Double, y0: Double, x1: Double, y1: Double) {
         lineSegment(Vector2(x0, y0), Vector2(x1, y1))
     }
 
@@ -865,7 +910,7 @@ class Drawer(val driver: Driver) {
     }
 
 
-    fun image(colorBuffer: ColorBuffer, source:Rectangle, target:Rectangle) {
+    fun image(colorBuffer: ColorBuffer, source: Rectangle, target: Rectangle) {
         imageDrawer.drawImage(context, drawStyle, colorBuffer, source, target)
     }
 

@@ -230,7 +230,6 @@ class DriverGL3 : Driver {
                                 else -> null
                             }
                         }
-
                         glVertexAttribPointer(attributeIndex,
                                 item.count,
                                 item.type.glType(), false, format.size, item.offset.toLong())
@@ -249,10 +248,9 @@ class DriverGL3 : Driver {
                         for (i in 0 until 4) {
                             glVertexAttribPointer(attributeIndex + i,
                                     4,
-                                    item.type.glType(), false, 64, item.offset.toLong() + i * 16)
+                                    item.type.glType(), false, format.size, item.offset.toLong() + i * 16)
                             debugGLErrors()
                         }
-
                         for (i in 0 until 4) {
                             glVertexAttribDivisor(attributeIndex + i, 1)
                             debugGLErrors()
@@ -268,8 +266,6 @@ class DriverGL3 : Driver {
         instanceAttributes.forEach {
             setupBuffer(it, 1)
         }
-
-
     }
 
     private fun teardownFormat(format: VertexFormat, shader: ShaderGL3) {
@@ -334,10 +330,10 @@ class DriverGL3 : Driver {
                 glDisable(GL_BLEND)
             }
             BlendMode.SUBTRACT -> {
-                TODO("not implemeted: subtract blend")
+                TODO("not implemented: subtract blend")
             }
             BlendMode.MULTIPLY -> {
-                TODO("not implemeted: multiply blend")
+                TODO("not implemented: multiply blend")
             }
         }
 
@@ -385,6 +381,9 @@ class DriverGL3 : Driver {
         }
         debugGLErrors()
     }
+
+    override val activeRenderTarget: RenderTarget
+        get() = RenderTargetGL3.activeRenderTarget
 }
 
 internal fun glStencilTest(test: StencilTest): Int {

@@ -9,16 +9,11 @@ sealed class CompositionNode {
     var transform = Matrix44.IDENTITY
     var fill: ColorRGBa? = null
     var stroke: ColorRGBa? = null
-
-
-
-
-
 }
 private fun transform(node:CompositionNode):Matrix44 =
         (node.parent?.let { transform(it) }?: Matrix44.IDENTITY) * node.transform
 
-class ShapeNode(var shape: Shape) : CompositionNode() {
+data class ShapeNode(var shape: Shape) : CompositionNode() {
 
 
 

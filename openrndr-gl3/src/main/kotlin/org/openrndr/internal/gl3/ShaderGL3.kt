@@ -113,11 +113,11 @@ class ShaderGL3(val program: Int,
         }
     }
 
-    fun uniformIndex(uniform: String): Int =
+    fun uniformIndex(uniform: String, query:Boolean = false): Int =
             uniforms.getOrPut(uniform) {
                 val location = glGetUniformLocation(program, uniform)
                 debugGLErrors()
-                if (location == -1) {
+                if (location == -1 && !query) {
                     logger.warn {
                         "shader ${name} does not have uniform $uniform"
                     }
@@ -146,6 +146,10 @@ class ShaderGL3(val program: Int,
         running = false
     }
 
+
+    override fun hasUniform(name: String): Boolean {
+        return uniformIndex(name) != -1
+    }
 
     override fun uniform(name: String, value: ColorRGBa) {
         val index = uniformIndex(name)

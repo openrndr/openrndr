@@ -25,6 +25,8 @@ class ProgramRenderTargetGL3(override val program: Program) : ProgramRenderTarge
     override val contentScale: Double
         get() = program.window.scale.x
 
+    override val hasColorBuffer = true
+    override val hasDepthBuffer = true
 }
 
 open class RenderTargetGL3(val framebuffer: Int, override val width: Int, override val height: Int, override val contentScale: Double) : RenderTarget {
@@ -40,8 +42,19 @@ open class RenderTargetGL3(val framebuffer: Int, override val width: Int, overri
             val framebuffer = glGenFramebuffers()
             return RenderTargetGL3(framebuffer, width, height, contentScale)
         }
+
+        val activeRenderTarget:RenderTargetGL3
+        get() {
+            val stack = active.getOrPut(glfwGetCurrentContext()) { Stack() }
+            return stack.peek()
+        }
+
+
     }
     var bound = false
+
+    override val hasColorBuffer:Boolean get() = colorBuffers.isNotEmpty()
+    override val hasDepthBuffer:Boolean get() = depthBuffer != null
 
     override fun colorBuffer(index: Int): ColorBuffer {
         return _colorBuffers[index]

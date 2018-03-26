@@ -27,14 +27,22 @@ fun contour(f: ContourBuilder.() -> Unit): ShapeContour {
 
 @Suppress("unused")
 class ContourBuilder {
-    var cursor = Vector2(0.0, 0.0)
-    var anchor = Vector2(0.0, 0.0)
+    var cursor = Vector2.INFINITY
+    var anchor = Vector2.INFINITY
     internal var closed = false
 
     val segments = mutableListOf<Segment>()
     fun moveTo(position: Vector2) {
         cursor = position
         anchor = position
+    }
+
+    fun moveOrLineTo(position:Vector2) {
+        if (anchor === Vector2.INFINITY) {
+            moveTo(position)
+        } else {
+            lineTo(position)
+        }
     }
 
     fun lineTo(position: Vector2) {
@@ -59,6 +67,12 @@ class ContourBuilder {
         closed = true
     }
 
+    fun reverse() {
+        segments.forEachIndexed { index, segment ->
+            segments[index] = segment.reverse
+        }
+        segments.reverse()
+    }
 
     fun arcTo(crx: Double, cry: Double, angle: Double, largeArcFlag: Boolean, sweepFlag: Boolean, tx: Double, ty: Double) {
         if (crx == 0.0 || cry == 0.0) {
