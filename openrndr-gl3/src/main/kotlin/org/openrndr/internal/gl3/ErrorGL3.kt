@@ -8,7 +8,6 @@ class GL3Exception(message: String) : Exception(message)
 fun checkGLErrors(errorFunction: ((Int)->String?)?=null) {
     val error = glGetError()
     if (error != GL_NO_ERROR) {
-
         val message = when (error) {
             GL_INVALID_OPERATION             -> "GL_INVALID_OPERATION"
             GL_INVALID_VALUE                 -> "GL_INVALID_VALUE"
@@ -19,12 +18,11 @@ fun checkGLErrors(errorFunction: ((Int)->String?)?=null) {
             GL_STACK_OVERFLOW                -> "GL_STACK_OVERFLOW"
             else                             -> "<untranslated: $error>"
         }
-
         throw GL3Exception("GL ERROR: $message ${errorFunction?.invoke(error)}" )
     }
 }
 
 fun debugGLErrors(errorFunction: ((Int)->String?)?=null) {
+    // -- TODO check for a debug flag here
     //checkGLErrors(errorFunction)
 }
-
