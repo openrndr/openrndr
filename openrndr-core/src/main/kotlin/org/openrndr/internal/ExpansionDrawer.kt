@@ -190,7 +190,6 @@ internal class ExpansionDrawer {
         localStyle.channelWriteMask = ChannelMask.ALL
         localStyle.cullTestPass = CullTestPass.ALWAYS
 
-        // TODO: this is really bad
         val minX = command.minX
         val maxX = command.maxX
         val minY = command.minY

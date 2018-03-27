@@ -16,7 +16,7 @@ class QualityPolygonDrawer {
                 it.let { it.subList(0, it.size - 1) }
                         .let { if (index == 0) it else it.reversed() }
             })
-            val strokeWeight = if (drawStyle.stroke == null) 1.0 else 0.1
+            val strokeWeight = if (drawStyle.stroke == null) 1.0 else 0.0
             val fillExpansions = path.expandFill(1.0 / ratio, strokeWeight, drawStyle.lineJoin, 2.4)
             expansionDrawer.renderFill(drawContext, drawStyle, fillExpansions, path.convex)
         }

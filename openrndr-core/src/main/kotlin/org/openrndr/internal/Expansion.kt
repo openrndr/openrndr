@@ -554,12 +554,13 @@ internal class Path {
                         p1 = points[p1ptr]
                     }
                 }
-                result.add(fill)
+
             } else {
                 for (j in 0 until points.size) {
                     fill.addVertex(points[j].x, points[j].y, 0.5, 1.0, offset)
                 }
             }
+            result.add(fill)
         }
 
 
