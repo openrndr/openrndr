@@ -114,7 +114,7 @@ class Segment {
         var closestDistance = (point - closest.second).squaredLength
 
         if (closest.first == 0 || closest.first == lut.size - 1) {
-                val t = closest.first.toDouble() / l
+            val t = closest.first.toDouble() / l
             return SegmentProjection(this, t, closestDistance, closest.second)
         } else {
             val t1 = (closest.first - 1) / l
@@ -174,7 +174,7 @@ class Segment {
         }
     }
 
-    fun direction() : Vector2 {
+    fun direction(): Vector2 {
         return (start - end).normalized
     }
 
@@ -190,8 +190,8 @@ class Segment {
         }
     }
 
-    fun normal(ut:Double):Vector2 {
-        return direction(ut).let { it.copy(it.y*-1.0, it.x) }
+    fun normal(ut: Double): Vector2 {
+        return direction(ut).let { it.copy(it.y * -1.0, it.x) }
     }
 
     val reverse: Segment
@@ -341,6 +341,12 @@ class Segment {
 private fun sumDifferences(points: List<Vector2>): Double =
         (0 until points.size - 1).sumByDouble { (points[it] - points[it + 1]).length }
 
+
+enum class Winding {
+    CLOCKWISE,
+    COUNTER_CLOCKWISE
+}
+
 data class ShapeContour(val segments: List<Segment>, val closed: Boolean) {
 
     companion object {
@@ -350,9 +356,27 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean) {
 
     val length get() = segments.sumByDouble { it.length }
 
-    val bounds:Rectangle get() {
-        return bounds(sampleLinear().segments.flatMap { listOf(it.start, it.end) }.asSequence())
-    }
+    val bounds: Rectangle
+        get() {
+            return bounds(sampleLinear().segments.flatMap { listOf(it.start, it.end) }.asSequence())
+        }
+
+    val winding: Winding
+        get() {
+            var sum = 0.0
+            segments.forEachIndexed { i, v ->
+                val after = segments[mod(i + 1, segments.size)].start
+                sum += (after.x - v.start.x) * (after.y + v.start.y)
+            }
+            return if (sum < 0) {
+                Winding.COUNTER_CLOCKWISE
+            } else {
+                Winding.CLOCKWISE
+            }
+
+
+        }
+
 
     operator fun plus(other: ShapeContour): ShapeContour {
         val epsilon = 0.001
@@ -426,8 +450,7 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean) {
         return ShapeContour(segments, closed)
     }
 
-    fun transform(transform: Matrix44): ShapeContour
-            = ShapeContour(segments.map { it.transform(transform) }, closed)
+    fun transform(transform: Matrix44): ShapeContour = ShapeContour(segments.map { it.transform(transform) }, closed)
 
 
     private fun mod(a: Double, b: Double): Double {
@@ -519,16 +542,14 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean) {
      * @return a projected point that lies on the contour
      */
     fun project(point: Vector2): ContourProjection {
-        val nearest = segments.
-                mapIndexed { index, it -> Pair(index, it.project(point)) }.
-                minBy { it.second.distance }!!
+        val nearest = segments.mapIndexed { index, it -> Pair(index, it.project(point)) }.minBy { it.second.distance }!!
 
         return ContourProjection(nearest.second, (nearest.first + nearest.second.projection) /
                 segments.size, nearest.second.distance, nearest.second.point)
 
     }
 
-    val reversed get() = ShapeContour(segments.map { it.reverse } .reversed(), closed)
+    val reversed get() = ShapeContour(segments.map { it.reverse }.reversed(), closed)
 }
 
 

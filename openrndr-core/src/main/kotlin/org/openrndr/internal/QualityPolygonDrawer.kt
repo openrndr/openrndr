@@ -32,7 +32,7 @@ class QualityPolygonDrawer {
     fun drawPolygons(drawContext: DrawContext,
                     drawStyle: DrawStyle, loops: List<List<List<Vector2>>>) {
 
-        val ratio = 0.5
+        val ratio = 1.0
         if (drawStyle.fill != null) {
             val paths =
                     loops.map { loop ->
