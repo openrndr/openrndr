@@ -6,7 +6,6 @@ data class Rectangle(val corner: Vector2, val width: Double, val height: Double)
 
     constructor(x: Double, y: Double, width: Double, height: Double) : this(Vector2(x, y), width, height)
 
-
     val center: Vector2
         get() = corner + Vector2(width / 2.0, height / 2)
     val area: Double
@@ -23,9 +22,9 @@ data class Rectangle(val corner: Vector2, val width: Double, val height: Double)
         return Rectangle(Vector2(corner.x - offset, corner.y - offsetY), width + 2 * offset, height + 2 * offsetY)
     }
 
-    operator fun contains(point:Vector2):Boolean {
+    operator fun contains(point: Vector2): Boolean {
         return (point.x >= corner.x &&
-                point.x < corner.x+width &&
+                point.x < corner.x + width &&
                 point.y >= corner.y &&
                 point.y < corner.y + height)
     }
@@ -44,6 +43,20 @@ fun bounds(points: Sequence<Vector2>): Rectangle {
         minY = Math.min(minY, it.y)
         maxY = Math.max(maxY, it.y)
     }
+    return Rectangle(Vector2(minX, minY), maxX - minX, maxY - minY)
+}
 
+fun bounds(rectangles: List<Rectangle>): Rectangle {
+    var minX = Double.POSITIVE_INFINITY
+    var minY = Double.POSITIVE_INFINITY
+    var maxX = Double.NEGATIVE_INFINITY
+    var maxY = Double.NEGATIVE_INFINITY
+
+    rectangles.forEach {
+        minX = Math.min(minX, it.x)
+        maxX = Math.max(maxX, it.x + it.width)
+        minY = Math.min(minY, it.y)
+        maxY = Math.max(maxY, it.y + it.height)
+    }
     return Rectangle(Vector2(minX, minY), maxX - minX, maxY - minY)
 }

@@ -2,6 +2,7 @@ package org.openrndr.shape
 
 import org.openrndr.color.ColorRGBa
 import org.openrndr.math.Matrix44
+import org.openrndr.math.Vector2
 
 sealed class CompositionNode {
     var id: String? = null
@@ -9,18 +10,23 @@ sealed class CompositionNode {
     var transform = Matrix44.IDENTITY
     var fill: ColorRGBa? = null
     var stroke: ColorRGBa? = null
+
+    open val bounds: Rectangle
+        get() = TODO("can't have it")
+
 }
-private fun transform(node:CompositionNode):Matrix44 =
-        (node.parent?.let { transform(it) }?: Matrix44.IDENTITY) * node.transform
+
+private fun transform(node: CompositionNode): Matrix44 =
+        (node.parent?.let { transform(it) } ?: Matrix44.IDENTITY) * node.transform
 
 data class ShapeNode(var shape: Shape) : CompositionNode() {
-
-
+    override val bounds: Rectangle
+        get() = shape.contours[0].transform(transform(this)).bounds
 
     /**
      * Applies transforms of all ancestor nodes and returns a new detached ShapeNode with conflated transform
      */
-    fun conflate():ShapeNode {
+    fun conflate(): ShapeNode {
         return ShapeNode(shape).also {
             it.fill = fill
             it.stroke = stroke
@@ -29,15 +35,16 @@ data class ShapeNode(var shape: Shape) : CompositionNode() {
         }
 
     }
+
     /**
      * Applies transforms of all ancestor nodes and returns a new detached shape node with identity transform and transformed Shape
      */
 
-    fun flatten():ShapeNode {
+    fun flatten(): ShapeNode {
         return ShapeNode(shape.transform(transform(this))).also {
             it.fill = fill
             it.stroke = stroke
-            it.transform = transform
+            it.transform = Matrix44.IDENTITY
             it.id = id
         }
     }
@@ -50,6 +57,12 @@ class TextNode : CompositionNode() {
 
 class GroupNode : CompositionNode() {
     val children = mutableListOf<CompositionNode>()
+    override val bounds: Rectangle
+    get() {
+        val b = bounds(children.map { it.bounds })
+        println("group: $b")
+        return b
+    }
 }
 
 class Composition(val root: CompositionNode) {

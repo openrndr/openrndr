@@ -358,7 +358,9 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean) {
 
     val bounds: Rectangle
         get() {
-            return bounds(sampleLinear().segments.flatMap { listOf(it.start, it.end) }.asSequence())
+            val b =  bounds(sampleLinear().segments.flatMap { listOf(it.start, it.end) }.asSequence())
+            println(b)
+            return b
         }
 
     val winding: Winding
