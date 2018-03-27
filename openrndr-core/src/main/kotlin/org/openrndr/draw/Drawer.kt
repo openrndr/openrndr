@@ -889,7 +889,7 @@ class Drawer(val driver: Driver) {
     fun composition(composition: Composition) {
 
         fun node(compositionNode: CompositionNode) {
-            pushView()
+            pushModel()
             model *= compositionNode.transform
 
             when (compositionNode) {
@@ -903,7 +903,7 @@ class Drawer(val driver: Driver) {
                 is TextNode -> TODO()
                 is GroupNode -> compositionNode.children.forEach { node(it) }
             }
-            popView()
+            popModel()
         }
         node(composition.root)
     }
