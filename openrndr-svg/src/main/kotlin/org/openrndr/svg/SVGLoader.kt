@@ -428,7 +428,7 @@ internal class SVGLoader {
 
     private fun handleCircle(group: SVGGroup, e: Element) {
         var x = e.attr("cx").let { if (it.isEmpty()) 0.0 else it.toDouble() }
-        var y = e.attr("cx").let { if (it.isEmpty()) 0.0 else it.toDouble() }
+        var y = e.attr("cy").let { if (it.isEmpty()) 0.0 else it.toDouble() }
         val width = e.attr("r").let { if (it.isEmpty()) 0.0 else it.toDouble() } * 2.0
         val height = e.attr("r").let { if (it.isEmpty()) 0.0 else it.toDouble() } * 2.0
         x -= width / 2
