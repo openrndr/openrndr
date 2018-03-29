@@ -44,10 +44,10 @@ allprojects {
     }
 
     dependencies {
-        compile 'io.github.microutils:kotlin-logging:1.4.6'
+        implementation 'io.github.microutils:kotlin-logging:1.4.6'
 
-        testCompile 'org.jetbrains.spek:spek-api:1.1.5'
-        testCompile 'org.amshove.kluent:kluent:1.35'
+        testImplementation 'org.jetbrains.spek:spek-api:1.1.5'
+        testImplementation 'org.amshove.kluent:kluent:1.35'
         testRuntime 'org.jetbrains.spek:spek-junit-platform-engine:1.1.5'
         testRuntime 'org.junit.jupiter:junit-jupiter-engine:5.1.0'
         testRuntime 'org.junit.platform:junit-platform-console:1.0.0'
