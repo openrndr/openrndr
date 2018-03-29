@@ -22,8 +22,8 @@ fun writeSVG(composition:Composition):String {
                     }
                 }
                 is ShapeNode -> {
-                    val fillAttribute = fill?.let { "fill=\"${it.svg}\"" }?:"fill=\"none\""
-                    val strokeAttribute = stroke?.let { "stroke=\"${it.svg}\"" }?:"stroke=\"none\""
+                    val fillAttribute = fill.let { if (it is Color) it.color?.let { "fill=\"${it.svg}\"" }?:"fill=\"none\"" else "" }
+                    val strokeAttribute = stroke.let { if (it is Color) it.color?.let { "stroke=\"${it.svg}\"" }?:"stroke=\"none\"" else "" }
                     val strokeWidthAttribute = "stroke-weight=\"1.0\""
                     val pathAttribute = "d=\"${shape.svg}\""
                     sb.append("<path $fillAttribute $strokeAttribute $strokeWidthAttribute $pathAttribute/>\n")

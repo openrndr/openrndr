@@ -892,24 +892,40 @@ class Drawer(val driver: Driver) {
 
     fun composition(composition: Composition) {
 
+        pushStyle()
+        fill = ColorRGBa.BLACK
+        stroke = null
+
         fun node(compositionNode: CompositionNode) {
             pushModel()
+            pushStyle()
             model *= compositionNode.transform
 
             when (compositionNode) {
                 is ShapeNode -> {
-                    pushStyle()
-                    compositionNode.fill?.let { fill = it; }
-                    stroke = compositionNode.stroke
+
+                    compositionNode.fill.let {
+                        if (it is Color) {
+                            fill = it.color
+                        }
+                    }
+
+                    compositionNode.stroke.let {
+                        if (it is Color) {
+                            stroke = it.color
+                        }
+                    }
                     shape(compositionNode.shape)
-                    popStyle()
                 }
                 is TextNode -> TODO()
                 is GroupNode -> compositionNode.children.forEach { node(it) }
             }
             popModel()
+            popStyle()
         }
+
         node(composition.root)
+        popStyle()
     }
 
 

@@ -88,8 +88,8 @@ internal fun parseColor(scolor: String): ColorRGBa? {
 
 internal class SVGPath : SVGElement() {
     val commands = mutableListOf<Command>()
-    var fill: ColorRGBa? = null
-    var stroke: ColorRGBa? = null
+    var fill: CompositionColor = InheritColor
+    var stroke: CompositionColor = InheritColor
     var strokeWeight: Double? = null
 
     companion object {
@@ -300,8 +300,14 @@ internal class SVGPath : SVGElement() {
     }
 
     fun parseDrawAttributes(e: Element) {
-        fill = parseColor(e.attr("fill"))
-        stroke = parseColor(e.attr("stroke"))
+
+        if (e.hasAttr("fill")) {
+            fill = Color(parseColor(e.attr("fill")))
+        }
+
+        if (e.hasAttr("stroke")) {
+            stroke = Color(parseColor(e.attr("stroke")))
+        }
         strokeWeight = e.attr("stroke-width").let {
             if (it.isEmpty()) null else it.toDouble()
         }
@@ -318,8 +324,8 @@ internal class SVGPath : SVGElement() {
             }
 
             when (attribute) {
-                "fill" -> fill = parseColor(value())
-                "stroke" -> stroke = parseColor(value())
+                "fill" -> fill = Color(parseColor(value()))
+                "stroke" -> stroke = Color(parseColor(value()))
                 "stroke-width" -> strokeWeight = value().toDouble()
             }
         }
