@@ -55,12 +55,10 @@ class TextNode : CompositionNode() {
 
 }
 
-class GroupNode : CompositionNode() {
-    val children = mutableListOf<CompositionNode>()
+class GroupNode(val children:MutableList<CompositionNode> = mutableListOf() ): CompositionNode() {
     override val bounds: Rectangle
     get() {
         val b = bounds(children.map { it.bounds })
-        println("group: $b")
         return b
     }
 }
@@ -82,5 +80,17 @@ class Composition(val root: CompositionNode) {
     }
 
     fun findShapes(): List<ShapeNode> = findTerminals { it is ShapeNode }.map { it as ShapeNode }
+
+}
+
+
+fun CompositionNode.map( mapper: (CompositionNode) -> CompositionNode):CompositionNode {
+
+    val r = mapper(this)
+    if (r is GroupNode) {
+        return GroupNode(r.children.map { it.map(mapper) }.toMutableList())
+    } else {
+        return r
+    }
 
 }
