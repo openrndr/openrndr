@@ -18,6 +18,16 @@ data class Rectangle(val corner: Vector2, val width: Double, val height: Double)
     val x: Double get() = corner.x
     val y: Double get() = corner.y
 
+    val shape: Shape
+        get() {
+            return Shape(listOf(contour))
+        }
+
+    val contour: ShapeContour
+        get() {
+            return ShapeContour.fromPoints(listOf(corner, corner + Vector2(width, 0.0), corner + Vector2(width, height), corner + Vector2(0.0, height)), true)
+        }
+
     fun offsetEdges(offset: Double, offsetY: Double = offset): Rectangle {
         return Rectangle(Vector2(corner.x - offset, corner.y - offsetY), width + 2 * offset, height + 2 * offsetY)
     }
