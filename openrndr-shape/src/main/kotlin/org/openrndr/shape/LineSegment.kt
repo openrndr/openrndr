@@ -6,7 +6,7 @@ import org.openrndr.math.Vector2
 import org.openrndr.math.map
 
 @Suppress("MemberVisibilityCanBePrivate", "unused")
-data class LineSegment(val start:Vector2, val end:Vector2) {
+data class LineSegment(val start: Vector2, val end: Vector2) {
 
     val direction get() = (end - start)
     val normal get() = (end - start).normalized.perpendicular
@@ -105,13 +105,20 @@ data class LineSegment(val start:Vector2, val end:Vector2) {
         val cut = start + (end.minus(start) * u)
         return arrayOf(LineSegment(start, cut), LineSegment(cut, end))
     }
+
+    val contour: ShapeContour
+        get() = ShapeContour.fromPoints(listOf(start, end), false)
+
+
+    val shape: Shape
+        get() = Shape(listOf(contour))
 }
 
-fun intersection(a:LineSegment, b:LineSegment, eps:Double = 0.01):Vector2 {
+fun intersection(a: LineSegment, b: LineSegment, eps: Double = 0.01): Vector2 {
     return intersection(a.start, a.end, b.start, b.end, eps)
 }
 
-fun intersection(a0:Vector2, a1:Vector2, b0:Vector2, b1:Vector2, eps:Double = 0.01):Vector2 {
+fun intersection(a0: Vector2, a1: Vector2, b0: Vector2, b1: Vector2, eps: Double = 0.01): Vector2 {
     val x0 = a0.x
     val x1 = a1.x
     val x2 = b0.x
