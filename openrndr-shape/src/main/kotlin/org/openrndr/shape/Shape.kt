@@ -330,6 +330,9 @@ class Segment {
         return "Segment(start=$start, end=$end, control=${Arrays.toString(control)})"
     }
 
+    fun copy(start:Vector2=this.start, control:Array<Vector2> = this.control, end:Vector2=this.end):Segment {
+        return Segment(start, control, end)
+    }
 
 //    fun intersect(other: Segment) {
 //        if (control.size == 0 && other.control.size == 0) {
@@ -552,6 +555,11 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean) {
     }
 
     val reversed get() = ShapeContour(segments.map { it.reverse }.reversed(), closed)
+
+
+    fun map(closed: Boolean=this.closed, mapper:(Segment)->Segment):ShapeContour {
+        return ShapeContour(segments.map(mapper), closed)
+    }
 }
 
 
@@ -576,4 +584,11 @@ class Shape(val contours: List<ShapeContour>) {
      * @return a transformed shape instance
      */
     fun transform(transform: Matrix44): Shape = Shape(contours.map { it.transform(transform) })
+
+    /**
+     * Apply a map to the shape. Maps every contour.
+     */
+    fun map(mapper:(ShapeContour)->ShapeContour) : Shape {
+        return Shape(contours.map { mapper(it) })
+    }
 }
