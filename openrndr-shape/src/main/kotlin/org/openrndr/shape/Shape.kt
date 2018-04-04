@@ -378,8 +378,6 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean) {
             } else {
                 Winding.CLOCKWISE
             }
-
-
         }
 
 
@@ -558,7 +556,30 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean) {
 
 
     fun map(closed: Boolean=this.closed, mapper:(Segment)->Segment):ShapeContour {
-        return ShapeContour(segments.map(mapper), closed)
+
+
+        val segments = segments.map(mapper)
+        val fixedSegments = mutableListOf<Segment>()
+
+        if (segments.size > 1) {
+            for (i in 0 until segments.size - 1) {
+                val left = segments[i]
+                val right = segments[i + 1]
+                val fixLeft = Segment(left.start, left.control, right.start)
+                fixedSegments.add(fixLeft)
+            }
+
+            if (closed) {
+                val left = segments.last()
+                val right = segments.first()
+                fixedSegments.add(Segment(left.start, left.control, right.start))
+            } else {
+                fixedSegments.add(segments.last())
+            }
+        }
+
+        return ShapeContour(if (segments.size > 1) fixedSegments else segments, closed)
+
     }
 }
 
