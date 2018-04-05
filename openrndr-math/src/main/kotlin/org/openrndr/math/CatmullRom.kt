@@ -109,7 +109,7 @@ class CatmullRomChain2(points: List<Vector2>, alpha: Double = 0.5, val loop: Boo
     }
 }
 
-class CatmulRom3(val p0: Vector3, val p1: Vector3, val p2: Vector3, val p3: Vector3, val alpha: Double = 0.5) {
+class CatmullRom3(val p0: Vector3, val p1: Vector3, val p2: Vector3, val p3: Vector3, val alpha: Double = 0.5) {
     val t0: Double = 0.0
     val t1: Double = calculateT(t0, p0, p1)
     val t2: Double = calculateT(t1, p1, p2)
@@ -138,10 +138,10 @@ class CatmulRom3(val p0: Vector3, val p1: Vector3, val p2: Vector3, val p3: Vect
 
 class CatmullRomChain3(points: List<Vector3>, alpha: Double = 0.5, val loop: Boolean = false) {
     val segments = if (!loop) points.windowed(4, 1).map {
-        CatmulRom3(it[0], it[1], it[2], it[3], alpha)
+        CatmullRom3(it[0], it[1], it[2], it[3], alpha)
     } else
         (points + (points.subList(points.size - 3, points.size)) + points.subList(0, 3)).windowed(4, 1).map {
-            CatmulRom3(it[0], it[1], it[2], it[3], alpha)
+            CatmullRom3(it[0], it[1], it[2], it[3], alpha)
         }
 
     fun positions(steps:Int = segments.size*4):List<Vector3> {
