@@ -1,5 +1,6 @@
 package org.openrndr
 
+import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.Drawer
 import org.openrndr.events.Event
 import org.openrndr.internal.Driver
@@ -143,6 +144,8 @@ open class Program {
 
     lateinit var application: Application
 
+    var backgroundColor:ColorRGBa? = ColorRGBa.BLACK
+
     val seconds: Double
         get() = application.seconds
 
@@ -255,6 +258,9 @@ open class Program {
     * This is the draw call that is called by Application. It takes care of handling extensions.
     */
     fun drawImpl() {
+        backgroundColor?.let {
+            drawer.background(it)
+        }
         extensions.filter { it.enabled }.forEach { it.beforeDraw(drawer, this) }
         draw()
         extensions.reversed().filter { it.enabled }.forEach { it.afterDraw(drawer, this) }
