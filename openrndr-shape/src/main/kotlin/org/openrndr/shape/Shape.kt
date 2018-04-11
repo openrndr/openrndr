@@ -360,11 +360,7 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean) {
     val length get() = segments.sumByDouble { it.length }
 
     val bounds: Rectangle
-        get() {
-            val b =  bounds(sampleLinear().segments.flatMap { listOf(it.start, it.end) }.asSequence())
-            println(b)
-            return b
-        }
+        get() = vector2Bounds(sampleLinear().segments.flatMap { listOf(it.start, it.end) })
 
     val winding: Winding
         get() {
@@ -556,7 +552,6 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean) {
 
 
     fun map(closed: Boolean=this.closed, mapper:(Segment)->Segment):ShapeContour {
-
 
         val segments = segments.map(mapper)
         val fixedSegments = mutableListOf<Segment>()

@@ -41,7 +41,7 @@ data class Rectangle(val corner: Vector2, val width: Double, val height: Double)
 
 }
 
-fun bounds(points: Sequence<Vector2>): Rectangle {
+fun vector2Bounds(points: List<Vector2>): Rectangle {
     var minX = Double.POSITIVE_INFINITY
     var minY = Double.POSITIVE_INFINITY
     var maxX = Double.NEGATIVE_INFINITY
@@ -56,7 +56,7 @@ fun bounds(points: Sequence<Vector2>): Rectangle {
     return Rectangle(Vector2(minX, minY), maxX - minX, maxY - minY)
 }
 
-fun bounds(rectangles: List<Rectangle>): Rectangle {
+fun rectangleBounds(rectangles: List<Rectangle>): Rectangle {
     var minX = Double.POSITIVE_INFINITY
     var minY = Double.POSITIVE_INFINITY
     var maxX = Double.NEGATIVE_INFINITY

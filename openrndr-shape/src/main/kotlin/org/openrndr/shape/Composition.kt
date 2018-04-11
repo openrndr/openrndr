@@ -91,7 +91,7 @@ class TextNode : CompositionNode() {
 class GroupNode(val children: MutableList<CompositionNode> = mutableListOf()) : CompositionNode() {
     override val bounds: Rectangle
         get() {
-            val b = bounds(children.map { it.bounds })
+            val b = rectangleBounds(children.map { it.bounds })
             return b
         }
 
