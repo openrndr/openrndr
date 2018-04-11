@@ -55,13 +55,12 @@ fun internalFormat(format: ColorFormat, type: ColorType): Int {
             ConversionEntry(ColorFormat.RGBa, ColorType.DXT5, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT),
             ConversionEntry(ColorFormat.RGB, ColorType.DXT1, GL_COMPRESSED_RGB_S3TC_DXT1_EXT))
 
-
     for (entry in entries) {
         if (entry.format === format && entry.type === type) {
             return entry.glFormat
         }
-
     }
+
     throw Exception("no conversion entry for $format/$type")
 }
 
@@ -98,7 +97,7 @@ class ColorBufferShadowGL3(override val colorBuffer: ColorBufferGL3) : ColorBuff
                 buffer.put(offset, ir)
                 buffer.put(offset + 1, ig)
                 buffer.put(offset + 2, ib)
-                if (colorBuffer.format.componentCount>3) {
+                if (colorBuffer.format.componentCount > 3) {
                     buffer.put(offset + 3, ia)
                 }
             }
@@ -110,7 +109,7 @@ class ColorBufferShadowGL3(override val colorBuffer: ColorBufferGL3) : ColorBuff
                 buffer.putChar(offset, ir)
                 buffer.putChar(offset + 2, ig)
                 buffer.putChar(offset + 4, ib)
-                if (colorBuffer.format.componentCount>3) {
+                if (colorBuffer.format.componentCount > 3) {
                     buffer.putChar(offset + 6, ia)
                 }
             }
@@ -118,7 +117,7 @@ class ColorBufferShadowGL3(override val colorBuffer: ColorBufferGL3) : ColorBuff
                 buffer.putFloat(offset, color.r.toFloat())
                 buffer.putFloat(offset + 4, color.g.toFloat())
                 buffer.putFloat(offset + 8, color.b.toFloat())
-                if (colorBuffer.format.componentCount>3) {
+                if (colorBuffer.format.componentCount > 3) {
                     buffer.putFloat(offset + 12, color.a.toFloat())
                 }
             }
@@ -156,10 +155,8 @@ class ColorBufferDataGL3(val width: Int, val height: Int, val format: ColorForma
         fun fromUrl(urlString: String): ColorBufferDataGL3 {
             val url = URL(urlString)
             url.openStream().use {
-
-
                 val byteArray = url.readBytes()
-                if (byteArray.size == 0) {
+                if (byteArray.isEmpty()) {
                     throw RuntimeException("read 0 bytes from stream $urlString")
                 }
                 val buffer = BufferUtils.createByteBuffer(byteArray.size)
@@ -173,10 +170,28 @@ class ColorBufferDataGL3(val width: Int, val height: Int, val format: ColorForma
                 val ha = IntArray(1)
                 val ca = IntArray(1)
                 STBImage.stbi_set_flip_vertically_on_load(true)
-                STBImage.nstbi_set_unpremultiply_on_load(0)
+                STBImage.stbi_set_unpremultiply_on_load(false)
+
                 val data = STBImage.stbi_load_from_memory(buffer, wa, ha, ca, 0)
 
-                //println("channel count ${ca[0]}")
+                if (data != null) {
+                    var offset = 0
+                    if (ca[0] == 4) {
+                        for (y in 0 until ha[0])
+                            for (x in 0 until wa[0]) {
+
+                                val a = (data.get(offset + 3).toInt() and 0xff).toDouble() / 255.0
+                                val r = ((data.get(offset).toInt() and 0xff) * a).toByte()
+                                val g = ((data.get(offset + 1).toInt() and 0xff) * a).toByte()
+                                val b = ((data.get(offset + 2).toInt() and 0xff) * a).toByte()
+
+                                data.put(offset, r)
+                                data.put(offset + 1, g)
+                                data.put(offset + 2, b)
+                                offset += 4
+                            }
+                    }
+                }
 
                 if (data != null) {
                     return ColorBufferDataGL3(wa[0], ha[0],
@@ -191,10 +206,7 @@ class ColorBufferDataGL3(val width: Int, val height: Int, val format: ColorForma
                 } else {
                     throw RuntimeException("failed to load image $urlString")
                 }
-
             }
-
-
         }
 
         fun fromFile(filename: String): ColorBufferDataGL3 {
@@ -208,15 +220,35 @@ class ColorBufferDataGL3(val width: Int, val height: Int, val format: ColorForma
             buffer.put(byteArray)
             (buffer as Buffer).rewind()
 
-
             val wa = IntArray(1)
             val ha = IntArray(1)
             val ca = IntArray(1)
+
             STBImage.stbi_set_flip_vertically_on_load(true)
-            STBImage.nstbi_set_unpremultiply_on_load(0)
+            STBImage.stbi_set_unpremultiply_on_load(false)
+
             val data = STBImage.stbi_load_from_memory(buffer, wa, ha, ca, 0)
 
-            //println("channel count ${ca[0]}")
+            if (data != null) {
+                var offset = 0
+                if (ca[0] == 4) {
+                    for (y in 0 until ha[0])
+                        for (x in 0 until wa[0]) {
+
+                            val a = (data.get(offset + 3).toInt() and 0xff).toDouble() / 255.0
+                            val r = ((data.get(offset).toInt() and 0xff) * a).toByte()
+                            val g = ((data.get(offset + 1).toInt() and 0xff) * a).toByte()
+                            val b = ((data.get(offset + 2).toInt() and 0xff) * a).toByte()
+
+                            data.put(offset, r)
+                            data.put(offset + 1, g)
+                            data.put(offset + 2, b)
+                            offset += 4
+
+                        }
+                }
+            }
+
 
             if (data != null) {
                 return ColorBufferDataGL3(wa[0], ha[0],
@@ -233,7 +265,6 @@ class ColorBufferDataGL3(val width: Int, val height: Int, val format: ColorForma
             }
         }
     }
-
 }
 
 @Suppress("MemberVisibilityCanBePrivate")
@@ -380,9 +411,9 @@ class ColorBufferGL3(val target: Int,
         bound {
             debugGLErrors()
 
-            //logger.debug {
-//                println("Writing to color buffer in: $format ${format.glFormat()}, $type ${type.glType()} ")
-            // }
+            logger.trace {
+                "Writing to color buffer in: $format ${format.glFormat()}, $type ${type.glType()}"
+             }
 
             (buffer as Buffer).rewind()
             buffer.order(ByteOrder.nativeOrder())
@@ -395,7 +426,7 @@ class ColorBufferGL3(val target: Int,
     fun read(buffer: ByteBuffer) {
 
         bound {
-            logger.debug {
+            logger.trace {
                 "Reading from color buffer in: $format ${format.glFormat()}, $type ${type.glType()} "
             }
             debugGLErrors()
