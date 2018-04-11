@@ -338,7 +338,7 @@ open class Animatable {
         if (animationKeys != null) {
             animationKeys!!.clear()
         }
-        createAtTime = lastTime
+        createAtTime = clock.time
     }
 
     /**
