@@ -29,27 +29,25 @@ abstract class Application {
     abstract fun setup()
 
     abstract fun loop()
-    abstract var clipboardContents:String?
-    abstract var windowTitle:String
+    abstract var clipboardContents: String?
+    abstract var windowTitle: String
 
     abstract var windowPosition: Vector2
 
-    abstract val seconds:Double
+    abstract val seconds: Double
 }
 
-fun application(program:Program, configuration:Configuration = Configuration()) {
+fun application(program: Program, configuration: Configuration = Configuration()) {
     Application.run(program, configuration)
 }
 
-fun resourceUrl(name: String): String {
-
-    val resource =  Application::class.java.getResource(name)
+fun resourceUrl(name: String, `class`: Class<*> = Application::class.java): String {
+    val resource = `class`.getResource(name)
 
     if (resource == null) {
         throw RuntimeException("resource ${name} not found")
     } else {
-
-        val url = Application::class.java.getResource(name).toExternalForm()
+        val url = `class`.getResource(name).toExternalForm()
         return url
     }
 }
