@@ -14,7 +14,7 @@ val hues = listOf(
         Hue(21, 584.46, 31.5, 0.9724540, 0.8247790, 0.0014310, 0.5413700, 0.4578300, 1.7986650),
         Hue(22, 586.43, 28.00, 0.9937530, 0.7997580, 0.0013080, 0.5536700, 0.4455900, 1.7948220),
         Hue(23, 588.59, 24.4, 1.0143500, 0.7740900, 0.0011700, 0.5668000, 0.4325300, 1.7896100),
-        Hue(24, 591.06, 20.6, 1.0344020, 0.7740140, 0.0010670, 0.5812800, 0.4181100,1.7794840),
+        Hue(24, 591.06, 20.6, 1.0344020, 0.7740140, 0.0010670, 0.5812800, 0.4181100, 1.7794840),
         Hue(25, 594.00, 16.6, 1.0524660, 0.7074960, 0.0010210, 0.5976600, 0.4017600, 1.7609840),
         Hue(26, 597.74, 12.3, 1.0625440, 0.6600010, 0.0008980, 0.6165300, 0.3830000, 1.7234440),
         Hue(30, 602.72, 7.7, 1.0561250, 0.5960700, 0.0006960, 0.6389600, 0.3606100, 1.6528920),
@@ -52,19 +52,20 @@ val hues = listOf(
         Hue(75, 566.78, 66.9, 0.7083580, 0.9702520, 0.0024700, 0.4214100, 0.5771600, 1.6810810),
         Hue(76, 568.92, 62.8, 0.7441820, 0.9585920, 0.0022050, 0.4364700, 0.5622200, 1.7049810)
 )
+
 fun findHue(id: Int): Hue? = hues.find { it.name == id }
 
 @Suppress("MemberVisibilityCanBePrivate", "unused")
 data class ColorATVa(val id: Int, val t: Double, val v: Double, val alpha: Double = 1.0) {
 
     companion object {
-        fun maxT(id:Int, v:Double):Double {
+        fun maxT(id: Int, v: Double): Double {
             var left = 0.0
             var right = 200.0
             var bestGuess = left
             while (true) {
 
-                if (right-left < 0.0001) {
+                if (right - left < 0.0001) {
                     return bestGuess
                 }
 
@@ -124,5 +125,6 @@ data class ColorATVa(val id: Int, val t: Double, val v: Double, val alpha: Doubl
             ColorYxya(yy, x, y)
         } ?: ColorYxya(0.0, 0.0, 0.0, 0.0)
     }
-    fun toRGBa():ColorRGBa = toColorYxya().toXYZa().toRGBa()
+
+    fun toRGBa(): ColorRGBa = toColorYxya().toXYZa().toRGBa()
 }

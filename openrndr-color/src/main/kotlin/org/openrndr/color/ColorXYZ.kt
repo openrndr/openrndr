@@ -43,6 +43,7 @@ data class ColorXYZa(val x: Double, val y: Double, val z: Double, val a: Double 
         val b = 0.0557 * x - 0.2040 * y + 1.0570 * z
         return ColorRGBa(r, g, b, a, Linearity.LINEAR)
     }
-    fun toHSVa():ColorHSVa = toRGBa().toHSVa()
-    fun toHSLa():ColorHSLa = toRGBa().toHSLa()
+
+    fun toHSVa(): ColorHSVa = toRGBa().toHSVa()
+    fun toHSLa(): ColorHSLa = toRGBa().toHSLa()
 }

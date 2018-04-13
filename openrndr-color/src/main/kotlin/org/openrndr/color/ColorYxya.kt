@@ -26,14 +26,3 @@ fun mix(a: ColorYxya, b:ColorYxya, x:Double) : ColorYxya{
             a.y * (1.0-x) + b.y * x,
             a.a * (1.0-x) + b.a * x)
 }
-
-
-fun main(args: Array<String>) {
-
-
-    val p = ColorYxya.fromXYZa(ColorRGBa.PINK.toXYZa())
-
-    println(p)
-    println(p.toXYZa())
-    println(ColorRGBa.PINK.toXYZa())
-}
