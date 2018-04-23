@@ -384,14 +384,9 @@ class ColorBufferGL3(val target: Int,
 
     var realShadow: ColorBufferShadow? = null
 
-    fun write(buffer: ByteBuffer) {
+    override fun write(buffer: ByteBuffer) {
         bound {
             debugGLErrors()
-
-            //logger.debug {
-//                println("Writing to color buffer in: $format ${format.glFormat()}, $type ${type.glType()} ")
-            // }
-
             (buffer as Buffer).rewind()
             buffer.order(ByteOrder.nativeOrder())
             glTexSubImage2D(target, 0, 0, 0, width, height, format.glFormat(), type.glType(), buffer)
@@ -400,12 +395,8 @@ class ColorBufferGL3(val target: Int,
         }
     }
 
-    fun read(buffer: ByteBuffer) {
-
+    override fun read(buffer: ByteBuffer) {
         bound {
-            logger.debug {
-                "Reading from color buffer in: $format ${format.glFormat()}, $type ${type.glType()} "
-            }
             debugGLErrors()
             glPixelStorei(GL_PACK_ALIGNMENT, 1)
             debugGLErrors()
