@@ -24,6 +24,7 @@ data class Vector2(val x: Double, val y: Double) {
         return Vector3(x, y, z)
     }
 
+    operator fun unaryMinus() = Vector2(-x, -y)
     operator fun plus(vector2: Vector2) = Vector2(x + vector2.x, y + vector2.y)
     operator fun minus(vector2: Vector2) = Vector2(x - vector2.x, y - vector2.y)
     operator fun times(d: Double) = Vector2(x * d, y * d)

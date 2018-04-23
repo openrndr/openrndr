@@ -49,6 +49,7 @@ data class Vector3(val x: Double, val y: Double, val z: Double) {
         }
     }
 
+    operator fun unaryMinus():Vector3 = Vector3(-x, -y, -z)
     operator fun plus(v: Vector3): Vector3 = Vector3(x + v.x, y + v.y, z + v.z)
     operator fun minus(v: Vector3): Vector3 = Vector3(x - v.x, y - v.y, z - v.z)
     operator fun times(v: Vector3): Vector3 = Vector3(x * v.x, y * v.y, z * v.z)
