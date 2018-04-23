@@ -523,7 +523,7 @@ data class DrawContext(val model: Matrix44, val view: Matrix44, val projection: 
         }
         if (shader.hasUniform("u_viewNormalMatrix")) {
             val normalMatrix = if (view === lastView) lastViewNormal else {
-                lastViewNormal = if (model !== Matrix44.IDENTITY) normalMatrix(view) else Matrix44.IDENTITY
+                lastViewNormal = if (view !== Matrix44.IDENTITY) normalMatrix(view) else Matrix44.IDENTITY
                 lastView = view
                 lastViewNormal
             }
