@@ -24,18 +24,12 @@ vec2 hash22(vec2 p) {
 
 
 void main() {
-
     vec2 noise = hash22(v_texCoord0);
     vec3 color = texture(image, v_texCoord0).rgb;
     float eyeZ = -texture(position, v_texCoord0).z;
-    float z = (eyeZ - zNear) / (zFar-zNear);
 
     float a = aperture;
-    float cocScale = (a * focalLength * focalPlane * (zFar - zNear)) / ((focalPlane-focalLength)*zNear*zFar);
-    float cocBias = (a * focalLength * (zNear - focalPlane)) / ((focalPlane *focalLength) * zNear);
-
-    float size = abs(z * cocScale + cocBias);
+    float size = a * abs(1.0 - focalPlane/eyeZ);
     size = clamp(size, minCoc, maxCoc );
-
     o_output = vec4(color*exposure*size, size);
 }
