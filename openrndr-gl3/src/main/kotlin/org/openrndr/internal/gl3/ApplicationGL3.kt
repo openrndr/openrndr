@@ -41,6 +41,7 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
     private var realWindowTitle = configuration.title
     private var exitRequested = false
     private val fixWindowSize = System.getProperty("os.name").contains("windows", true)
+    private var setupCalled = false
 
     override var windowPosition: Vector2
         get() {
@@ -112,6 +113,9 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
         glfwWindowHint(GLFW_BLUE_BITS, 8)
         glfwWindowHint(GLFW_STENCIL_BITS, 8)
         glfwWindowHint(GLFW_DEPTH_BITS, 24)
+
+
+        println(glfwGetVersionString())
 
         // should make a configuration flag for this
         // glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE)
@@ -203,6 +207,7 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
 
         glfwSetWindowRefreshCallback(window) {
             if (readyFrames > 0) {
+                if (setupCalled)
                 drawFrame()
                 glfwSwapBuffers(window)
             }
@@ -424,12 +429,17 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
         logger.debug { "opengl vendor: ${glGetString(GL_VENDOR)}" }
         logger.debug { "opengl version: ${glGetString(GL_VERSION)}" }
 
+
+        println("opengl vendor: ${glGetString(GL_VENDOR)}")
+        println("opengl version: ${glGetString(GL_VERSION)}")
+
         if (configuration.hideCursor) {
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN)
         }
 
         logger.debug { "calling program.setup" }
         program.setup()
+        setupCalled = true
 
         startTimeMillis = System.currentTimeMillis()
 
@@ -493,6 +503,7 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
             program.drawImpl()
         } catch (e: Throwable) {
             logger.error { "caught exception, breaking animation loop" }
+            e.printStackTrace()
             return e
         }
         return null
