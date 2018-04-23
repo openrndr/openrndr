@@ -78,3 +78,6 @@ data class Vector3(val x: Double, val y: Double, val z: Double) {
 operator fun Double.times(v: Vector3): Vector3 {
     return v * this
 }
+
+fun min(a: Vector3, b: Vector3): Vector3 = Vector3(Math.min(a.x, b.x), Math.min(a.y, b.y), Math.min(a.z, b.z))
+fun max(a: Vector3, b: Vector3): Vector3 = Vector3(Math.max(a.x, b.x), Math.max(a.y, b.y), Math.max(a.z, b.z))

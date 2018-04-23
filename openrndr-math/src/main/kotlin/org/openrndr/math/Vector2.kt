@@ -5,7 +5,7 @@ data class Vector2(val x: Double, val y: Double) {
         get() = Math.sqrt(x * x + y * y)
 
     val squaredLength: Double
-        get() = x* x + y * y
+        get() = x * x + y * y
 
 
     val perpendicular: Vector2 get() = Vector2(-y, x)
@@ -20,7 +20,7 @@ data class Vector2(val x: Double, val y: Double) {
     val xy0 get() = Vector3(x, y, 0.0)
     val xy01 get() = Vector4(x, y, 0.0, 1.0)
 
-    fun vector3(x:Double = this.x, y:Double = this.y, z:Double=0.0):Vector3 {
+    fun vector3(x: Double = this.x, y: Double = this.y, z: Double = 0.0): Vector3 {
         return Vector3(x, y, z)
     }
 
@@ -31,7 +31,7 @@ data class Vector2(val x: Double, val y: Double) {
     operator fun times(v: Vector2) = Vector2(x * v.x, y * v.y)
 
     operator fun div(d: Double) = Vector2(x / d, y / d)
-    operator fun div(d : Vector2) = Vector2(x / d.x, y/d.y)
+    operator fun div(d: Vector2) = Vector2(x / d.x, y / d.y)
 
     companion object {
         val ZERO = Vector2(0.0, 0.0)
@@ -41,3 +41,5 @@ data class Vector2(val x: Double, val y: Double) {
     }
 }
 
+fun min(a: Vector2, b: Vector2): Vector2 = Vector2(Math.min(a.x, b.x), Math.min(a.y, b.y))
+fun max(a: Vector2, b: Vector2): Vector2 = Vector2(Math.max(a.x, b.x), Math.max(a.y, b.y))

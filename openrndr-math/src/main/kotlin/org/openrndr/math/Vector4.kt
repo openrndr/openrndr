@@ -28,3 +28,6 @@ data class Vector4(val x:Double, val y:Double, val z:Double, val w:Double) {
         return Vector4(x*s, y*s, z*s, w*s)
     }
 }
+
+fun min(a: Vector4, b: Vector4): Vector4 = Vector4(Math.min(a.x, b.x), Math.min(a.y, b.y), Math.min(a.z, b.z), Math.min(a.w, b.w))
+fun max(a: Vector4, b: Vector4): Vector4 = Vector4(Math.max(a.x, b.x), Math.max(a.y, b.y), Math.max(a.z, b.z), Math.max(a.w, b.w))
