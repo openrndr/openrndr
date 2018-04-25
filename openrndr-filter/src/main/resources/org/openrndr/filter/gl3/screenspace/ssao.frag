@@ -34,7 +34,8 @@ void main() {
     vec2 j2 =hash22(v_texCoord0);
 
     vec3 viewNormal = normalize(texture(normals, v_texCoord0).xyz);
-    vec3 viewPos = texture(positions, v_texCoord0).xyz;
+    vec4 positionData = texture(positions, v_texCoord0);
+    vec3 viewPos = positionData.xyz;
     vec3 reflected = normalize(reflect(normalize(viewPos), normalize(viewNormal)));
 
     vec3 randomVector = normalize( vec3(j2 * 2.0 -1.0,0));
@@ -67,5 +68,7 @@ void main() {
     }
     occlusion /= 64.0;
 
-    o_color.rgba = vec4(occlusion, occlusion, occlusion, 1.0);
+    float f = positionData.w >= 0 ? occlusion : 1.0;
+
+    o_color.rgba = vec4(f, f, f, 1.0);
  }
