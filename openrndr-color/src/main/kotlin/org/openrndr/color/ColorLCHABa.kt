@@ -1,16 +1,16 @@
 package org.openrndr.color
 
 
-data class ColorLCHABa(val l:Double, val c:Double, val h:Double, val alpha:Double=1.0, val ref:ColorXYZa = ColorXYZa.NEUTRAL) {
+data class ColorLCHABa(val l: Double, val c: Double, val h: Double, val alpha: Double = 1.0, val ref: ColorXYZa = ColorXYZa.NEUTRAL) {
 
     companion object {
-        fun findMaxChroma(l:Double, h:Double, ref:ColorXYZa):Double {
+        fun findMaxChroma(l: Double, h: Double, ref: ColorXYZa): Double {
             var left = 0.0
             var right = 2000.0
             var bestGuess = left
             while (true) {
 
-                if (right-left < 0.0001) {
+                if (right - left < 0.0001) {
                     return bestGuess
                 }
 
@@ -59,6 +59,7 @@ data class ColorLCHABa(val l:Double, val c:Double, val h:Double, val alpha:Doubl
             return ColorLCHABa(l, c, h, laba.alpha, laba.ref)
         }
     }
+
     fun scaleHue(scale: Double): ColorLCHABa = copy(h = (h * scale))
     fun shiftHue(shift: Double): ColorLCHABa = copy(h = (h + shift))
 
@@ -69,15 +70,15 @@ data class ColorLCHABa(val l:Double, val c:Double, val h:Double, val alpha:Doubl
     fun scaleChroma(scale: Double): ColorLCHABa = copy(c = c * scale)
 
 
-    fun toLABa():ColorLABa {
+    fun toLABa(): ColorLABa {
         val a = c * Math.cos(Math.toRadians(h))
         val b = c * Math.sin(Math.toRadians(h))
         return ColorLABa(l, a, b, alpha, ref)
     }
 
-    fun toXYZa():ColorXYZa = toLABa().toXYZa()
+    fun toXYZa(): ColorXYZa = toLABa().toXYZa()
 
-    fun toRGBa():ColorRGBa = toLABa().toXYZa().toRGBa()
+    fun toRGBa(): ColorRGBa = toLABa().toXYZa().toRGBa()
 
     fun toLSHABa() = ColorLSHABa.fromLCHABa(this)
 }

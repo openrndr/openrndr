@@ -1,6 +1,6 @@
 package org.openrndr.color
 
-data class ColorLCHUVa(val l: Double, val c: Double, val h: Double, val alpha: Double = 1.0, val ref:ColorXYZa = ColorXYZa.NEUTRAL) {
+data class ColorLCHUVa(val l: Double, val c: Double, val h: Double, val alpha: Double = 1.0, val ref: ColorXYZa = ColorXYZa.NEUTRAL) {
 
     companion object {
         fun fromLUVa(luva: ColorLUVa): ColorLCHUVa {
@@ -11,9 +11,7 @@ data class ColorLCHUVa(val l: Double, val c: Double, val h: Double, val alpha: D
             if (h < 0) {
                 h += Math.PI * 2
             }
-
             h = Math.toDegrees(h)
-
             return ColorLCHUVa(l, c, h, luva.alpha, luva.ref)
         }
 
@@ -55,9 +53,9 @@ data class ColorLCHUVa(val l: Double, val c: Double, val h: Double, val alpha: D
                     return bestGuess
                 }
             }
-
         }
     }
+
     fun scaleHue(shift: Double): ColorLCHUVa = copy(h = (h + shift))
     fun shiftHue(shift: Double): ColorLCHUVa = copy(h = (h + shift))
 
@@ -67,14 +65,12 @@ data class ColorLCHUVa(val l: Double, val c: Double, val h: Double, val alpha: D
     fun shiftChroma(shift: Double): ColorLCHUVa = copy(c = c + shift)
     fun scaleChroma(scale: Double): ColorLCHUVa = copy(c = c * scale)
 
-    fun toLUVa():ColorLUVa {
+    fun toLUVa(): ColorLUVa {
         val u = c * Math.cos(Math.toRadians(h))
         val v = c * Math.sin(Math.toRadians(h))
         return ColorLUVa(l, u, v, alpha, ref)
     }
+
     fun toLSHUVa() = ColorLSHUVa.fromLCHUVa(this)
-
     fun toRGBa() = toLUVa().toRGBa()
-
-
 }
