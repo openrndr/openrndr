@@ -68,7 +68,7 @@ void main() {
     }
     occlusion /= 64.0;
 
-    float f = positionData.w >= 0 ? occlusion : 1.0;
+    float f = positionData.w >= 0 ? occlusion : (-positionData.w) * 1.0 + (1.0+positionData.w) * occlusion;
 
     o_color.rgba = vec4(f, f, f, 1.0);
  }
