@@ -204,6 +204,7 @@ class Segment {
             }
         }
 
+
     fun sub(t0: Double, t1: Double): Segment {
         // ftp://ftp.fu-berlin.de/tex/CTAN/dviware/dvisvgm/src/Bezier.cpp
         var z0 = t0
@@ -376,6 +377,8 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean) {
             }
         }
 
+    val exploded: List<ShapeContour>
+        get() = segments.map { ShapeContour(listOf(it), false) }
 
     operator fun plus(other: ShapeContour): ShapeContour {
         val epsilon = 0.001
