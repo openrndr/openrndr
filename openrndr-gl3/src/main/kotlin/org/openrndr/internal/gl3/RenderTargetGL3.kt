@@ -27,15 +27,19 @@ class ProgramRenderTargetGL3(override val program: Program) : ProgramRenderTarge
 
     override val hasColorBuffer = true
     override val hasDepthBuffer = true
+
 }
 
 open class RenderTargetGL3(val framebuffer: Int, override val width: Int, override val height: Int, override val contentScale: Double) : RenderTarget {
     override val colorBuffers: List<ColorBuffer>
         get() = _colorBuffers.map { it }
 
+    override val depthBuffer: DepthBuffer?
+    get() = _depthBuffer
+
     private val colorBufferIndices = mutableMapOf<String, Int>()
     val _colorBuffers = mutableListOf<ColorBufferGL3>()
-    var depthBuffer: DepthBuffer? = null
+    var _depthBuffer: DepthBuffer? = null
 
     companion object {
         fun create(width: Int, height: Int, contentScale: Double = 1.0): RenderTargetGL3 {
@@ -173,7 +177,17 @@ open class RenderTargetGL3(val framebuffer: Int, override val width: Int, overri
             }
             checkGLErrors()
 
-            this.depthBuffer = depthBuffer
+            this._depthBuffer = depthBuffer
+        }
+    }
+
+    override fun detachDepthBuffer() {
+        if (this._depthBuffer != null) {
+            bound {
+                glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, 0, 0)
+                glFramebufferTexture2D(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_TEXTURE_2D, 0, 0)
+                checkGLErrors()
+            }
         }
     }
 

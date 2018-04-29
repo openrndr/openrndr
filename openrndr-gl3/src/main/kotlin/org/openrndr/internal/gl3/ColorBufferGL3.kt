@@ -437,7 +437,7 @@ class ColorBufferGL3(val target: Int,
             glGetTexImage(target, 0, format.glFormat(), type.glType(), buffer)
             debugGLErrors()
             (buffer as Buffer).rewind()
-            glPixelStorei(GL_PACK_ALIGNMENT, packAlignment)
+                glPixelStorei(GL_PACK_ALIGNMENT, packAlignment)
             debugGLErrors()
         }
     }
