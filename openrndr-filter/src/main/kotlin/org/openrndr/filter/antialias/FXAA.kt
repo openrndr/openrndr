@@ -4,28 +4,13 @@ import org.openrndr.draw.Filter
 import org.openrndr.draw.Shader
 import org.openrndr.filter.filterFragmentCode
 
-class FXAA : Filter(Shader.createFromCode(Filter.filterVertexCode, filterFragmentCode("blend/color-burn.frag"))) {
+class FXAA : Filter(Shader.createFromCode(Filter.filterVertexCode, filterFragmentCode("antialias/fxaa.frag"))) {
 
+    var lumaThreshold: Double by parameters
+    var maxSpan: Double by parameters
+    var directionReduceMultiplier:Double by parameters
 
-    var lumaThreshold: Double = 0.5
-        set(value) {
-            parameters["lumaTreshold"] = value; field = value
-        }
-    var maxSpan: Double = 8.0
-        set(value) {
-            parameters["maxSpan"] = value; field = value
-        }
-
-    var directionReduceMultiplier: Double = 0.0
-        set(value) {
-            parameters["directionReduceMultiplier"] = value; field = value
-        }
-
-    var directionReduceMinimum: Double = 0.0
-        set(value) {
-            parameters["directionReduceMinimum"] = value; field = value
-        }
-
+    var directionReduceMinimum:Double by parameters
 
     init {
         lumaThreshold = 0.5
