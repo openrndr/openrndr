@@ -252,12 +252,14 @@ void main(void) {
     vec3 boundsSize = vec3(va_bounds.zw, 0.0);
 
     float imageMap = texture(image, va_texCoord0).r;
-    vec4 x_fill = u_fill * imageMap;
+    vec4 x_fill = u_fill; // imageMap;
+    x_fill.a *= imageMap;
     vec4 x_stroke = u_stroke;
     {
         ${shadeStructure.fragmentTransform?:""}
     }
     o_color = x_fill;
+    o_color.rgb *= o_color.a;
 }
 """
 
