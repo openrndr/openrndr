@@ -15,7 +15,7 @@ layout(location = 0) out vec4 o_color;
 
 
 // --- parameters ---
-uniform float jitterGain;
+uniform float jitterOriginGain;
 uniform int iterationLimit;
 uniform float distanceLimit;
 uniform float gain;
@@ -147,7 +147,7 @@ bool traceScreenSpaceRay1(
         // You may need hitPixel.y = csZBufferSize.y - hitPixel.y; here if your vertical axis
         // is different than ours in screen space
 
-        vec4 depthData = texelFetch(csZBuffer, ivec2(hitPixel), 0).zw;
+        vec4 depthData = texelFetch(csZBuffer, ivec2(hitPixel), 0);
 
         sceneZMax = depthData.z;
         zThickness = depthData.w;
@@ -189,7 +189,7 @@ void main() {
             hitPixel,
             hitPoint);
 
-        float distanceFade = max( 0.0, (maxDistance -length(hitPoint-viewPos))/ distanceLimit);
+        float distanceFade = max( 0.0, (distanceLimit -length(hitPoint-viewPos))/ distanceLimit);
         vec4 p = projection * vec4(hitPoint, 1.0);
         float k = 1.0 / p.w;
 
