@@ -1,6 +1,8 @@
 package org.openrndr.math
 
-data class Vector2(val x: Double, val y: Double) {
+import java.io.Serializable
+
+data class Vector2(val x: Double, val y: Double) : Serializable {
     val length: Double
         get() = Math.sqrt(x * x + y * y)
 

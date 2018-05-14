@@ -1,6 +1,8 @@
 package org.openrndr.math
 
-data class Quaternion(val x: Double, val y: Double, val z: Double, val w: Double) {
+import java.io.Serializable
+
+data class Quaternion(val x: Double, val y: Double, val z: Double, val w: Double) : Serializable {
 
     companion object {
         val IDENTITY: Quaternion = Quaternion(0.0, 0.0, 0.0, 1.0)

@@ -1,9 +1,11 @@
 package org.openrndr.math
 
+import java.io.Serializable
+
 /**
  * Created by voorbeeld on 4/17/17.
  */
-data class Vector4(val x:Double, val y:Double, val z:Double, val w:Double) {
+data class Vector4(val x:Double, val y:Double, val z:Double, val w:Double) : Serializable {
     val xyz:Vector3 get() = Vector3(x, y, z)
     val div:Vector3 get() = Vector3(x/w, y/w, z/w)
 
