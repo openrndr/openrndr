@@ -14,9 +14,13 @@ class HybridLogGamma : Filter(Shader.createFromCode(Filter.filterVertexCode, fil
 class ColorLookup(lookup:ColorBuffer) : Filter(Shader.createFromCode(Filter.filterVertexCode, filterFragmentCode("color/color-lookup.frag"))) {
 
     var lookup:ColorBuffer by parameters
+    var noiseGain:Double by parameters
+    var seed:Double by parameters
 
     init {
         this.lookup = lookup
+        this.noiseGain = 0.0
+        this.seed = 0.0
 
     }
 
