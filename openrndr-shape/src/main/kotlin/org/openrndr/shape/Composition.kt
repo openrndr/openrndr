@@ -2,6 +2,7 @@ package org.openrndr.shape
 
 import org.openrndr.color.ColorRGBa
 import org.openrndr.math.Matrix44
+import java.security.acl.Group
 
 sealed class CompositionNode {
     var id: String? = null
@@ -124,6 +125,37 @@ class Composition(val root: CompositionNode) {
     }
 
     fun findShapes(): List<ShapeNode> = findTerminals { it is ShapeNode }.map { it as ShapeNode }
+}
+
+fun CompositionNode.filter(filter: (CompositionNode) -> Boolean): CompositionNode? {
+    val f = filter(this)
+
+    if (!f) {
+        return null
+    }
+
+    if (this is GroupNode) {
+        val copies = mutableListOf<CompositionNode>()
+
+        children.forEach {
+
+            val filtered = it.filter(filter)
+
+            if (filtered != null) {
+                when (filtered) {
+                    is ShapeNode -> {
+                        copies.add(filtered.copy(parent=this))
+                    }
+                    is GroupNode -> {
+                        copies.add(filtered.copy(parent=this))
+                    }
+                }
+            }
+        }
+        return GroupNode(children=copies)
+    } else {
+        return this
+    }
 }
 
 fun CompositionNode.map(mapper: (CompositionNode) -> CompositionNode): CompositionNode {
