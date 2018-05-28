@@ -2,7 +2,6 @@ package org.openrndr.shape
 
 import org.openrndr.color.ColorRGBa
 import org.openrndr.math.Matrix44
-import java.security.acl.Group
 
 sealed class CompositionNode {
     var id: String? = null

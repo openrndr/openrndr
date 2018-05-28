@@ -400,7 +400,7 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
         glfwSetCursorEnterCallback(window, { window, entered ->
             logger.debug { "cursor state changed; inside window = $entered" }
             if (entered) {
-                glfwFocusWindow(window)
+                //glfwFocusWindow(window)
             }
         })
 
