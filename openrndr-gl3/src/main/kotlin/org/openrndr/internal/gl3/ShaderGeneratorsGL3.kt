@@ -255,6 +255,8 @@ void main(void) {
     vec4 x_fill = u_fill; // imageMap;
     x_fill.a *= imageMap;
     vec4 x_stroke = u_stroke;
+
+    int c_charID = int(va_position.z);
     {
         ${shadeStructure.fragmentTransform?:""}
     }
@@ -297,10 +299,13 @@ ${shadeStructure.varyingIn?:""}
 ${transformVaryingIn}
 
 out vec4 o_color;
+flat in int v_instance;
 
 void main(void) {
+    int c_instance = v_instance;
     vec2 c_screenPosition = gl_FragCoord.xy;
     float c_contourPosition = 0.0;
+    vec2 c_boundsPosition = va_position.xy;
     vec4 x_fill = u_fill;
     vec4 x_stroke = u_stroke;
     {
@@ -330,10 +335,13 @@ ${shadeStructure.attributes?:""}
 ${shadeStructure.uniforms?:""}
 ${shadeStructure.varyingOut?:""}
 ${transformVaryingOut}
+flat out int v_instance;
+
 
 void main() {
     ${shadeStructure.varyingBridge?:""}
     ${preTransform}
+    v_instance = gl_InstanceID;
     vec3 x_normal = vec3(0.0, 0.0, 1.0);
     vec3 x_position = a_position * vec3(i_dimensions,1.0) + i_offset;
     {
