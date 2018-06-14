@@ -28,7 +28,6 @@ interface ShaderGenerators {
 
     fun fastLineFragmentShader(shadeStructure: ShadeStructure): String
     fun fastLineVertexShader(shadeStructure: ShadeStructure): String
-
 }
 
 /**

@@ -14,7 +14,6 @@ import org.openrndr.color.ColorRGBa
 import java.io.File
 import java.io.FileWriter
 import java.nio.Buffer
-import java.nio.ByteBuffer
 
 private val logger = KotlinLogging.logger {}
 
@@ -57,9 +56,9 @@ fun checkProgramInfoLog(`object`: Int, sourceFile: String) {
     if (logLength[0] > 1) {
         val infoLog = BufferUtils.createByteBuffer(logLength[0])
         glGetProgramInfoLog(`object`, logLength, infoLog)
-        val infoBytes = ByteArray(logLength[0])
-        infoLog.get(infoBytes)
-        println("GLSL link problems in\n ${String(infoBytes)}")
+        val linkInfoBytes = ByteArray(logLength[0])
+        infoLog.get(linkInfoBytes)
+        println("GLSL link problems in\n ${String(linkInfoBytes)}")
 
 
         logger.warn {

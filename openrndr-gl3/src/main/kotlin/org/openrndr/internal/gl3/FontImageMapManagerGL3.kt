@@ -25,22 +25,21 @@ class FontImageMapManagerGL3 : FontMapManager() {
     internal val fontMaps = mutableMapOf<String, FontImageMap>()
     val alphabet = charArrayOf('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'ë', 'ä', 'ö', 'ü', 'ï', 'ÿ', 'Ë', 'Ä', 'Ö', 'Ü', 'Ï', 'Ÿ', 'ñ', 'Ñ', 'ç', 'Ç', 'ø', 'Ø', 'é', 'á', 'ó', 'í', 'ú', 'É', 'Á', 'Ó', 'Í', 'Ú', 'è', 'à', 'ò', 'ì', 'ù', 'È', 'À', 'Ò', 'Ì', 'Ù', 'â', 'ê', 'î', 'û', 'ô', 'Â', 'Ê', 'Î', 'Û', 'Ô', 'œ', 'Œ', 'æ', 'Æ', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '!', '?', '¿', '¡', '…', '.', ',', ' ', ':', ';', '&', '#', '№', '“', '”', '‘', '’', '`', '¤', '€', '$', '£', '‒', '-', '—', '–', '_', '·', '•', '°', '@', '^', '*', '«', '»', '/', '\\', '"', '\'', '+', '=', '÷', '~', '%', '(', ')', '[', ']', '{', '}', '<', '>', '|')
 
-    override fun fontMapFromUrl(fontUrl: String, size: Double, contentScale: Double): FontImageMap {
+    override fun fontMapFromUrl(url: String, size: Double, contentScale: Double): FontImageMap {
 
         checkGLErrors()
 
         logger.debug { "content scale $contentScale" }
         var packSize = 256
 
-        val url = URL(fontUrl)
-        val byteArray = url.readBytes()
+        val byteArray = URL(url).readBytes()
         val fileSize = byteArray.size
 
         if (fileSize == 0) {
             throw RuntimeException("0 bytes read")
         }
 
-        logger.debug { "bytes read: $fileSize"}
+        logger.debug { "bytes read: $fileSize" }
 
         val bb = BufferUtils.createByteBuffer(fileSize)
         bb.order(ByteOrder.nativeOrder())
@@ -150,7 +149,7 @@ class FontImageMapManagerGL3 : FontMapManager() {
         image.write(bitmap)
 
         val leading = ascent - descent + lineGap
-        return FontImageMap(image, map, glyphMetrics, size, contentScale, ascent / contentScale, descent / contentScale, (ascent+descent)/contentScale, leading / contentScale, "test")
+        return FontImageMap(image, map, glyphMetrics, size, contentScale, ascent / contentScale, descent / contentScale, (ascent + descent) / contentScale, leading / contentScale, "test")
     }
 }
 
