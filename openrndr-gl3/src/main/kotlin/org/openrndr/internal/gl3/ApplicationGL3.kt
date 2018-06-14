@@ -79,7 +79,6 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
     override val seconds: Double
         get() = (System.currentTimeMillis() - startTimeMillis) / 1000.0
 
-
     override var windowTitle: String
         get() = realWindowTitle
         set(value) {
@@ -113,7 +112,6 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
         glfwWindowHint(GLFW_BLUE_BITS, 8)
         glfwWindowHint(GLFW_STENCIL_BITS, 8)
         glfwWindowHint(GLFW_DEPTH_BITS, 24)
-
 
         println(glfwGetVersionString())
 
@@ -231,7 +229,6 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
             program.window.moved.trigger(WindowEvent(WindowEventType.MOVED, Vector2(x.toDouble(), y.toDouble()), Vector2(0.0, 0.0), true))
         }
 
-
         glfwSetWindowFocusCallback(window) { _, focused ->
             logger.debug { "window focus has changed; focused=$focused" }
             windowFocused = focused
@@ -247,12 +244,10 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
         logger.debug { "glfw version: ${glfwGetVersionString()}" }
         logger.debug { "showing window" }
         glfwShowWindow(window)
-
     }
 
     private fun createPrimaryWindow() {
         if (primaryWindow == NULL) {
-
             glfwSetErrorCallback(GLFWErrorCallback.create { error, description ->
                 logger.error(
                         "LWJGL Error - Code: {}, Description: {}",
@@ -260,7 +255,6 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
                         GLFWErrorCallback.getDescription(description)
                 )
             })
-
             if (!glfwInit()) {
                 throw IllegalStateException("Unable to initialize GLFW")
             }
@@ -275,16 +269,10 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
             glfwWindowHint(GLFW_BLUE_BITS, 8)
             glfwWindowHint(GLFW_STENCIL_BITS, 8)
             glfwWindowHint(GLFW_DEPTH_BITS, 24)
-
             glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE)
             primaryWindow = glfwCreateWindow(640, 480, "OPENRNDR primary window", NULL, NULL)
         }
     }
-
-    fun cb(source: Int, type: Int, id: Int, severity: Int, length: Int, message: Long, userParam: Long) {
-        println("errorrrr: ${source} ${type} ${severity}")
-    }
-
     private val vaos = IntArray(1)
 
     fun preloop() {
@@ -324,9 +312,12 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
             }
         }
 
+        glfwSetCharCallback(window) { window, codepoint ->
+            program.keyboard.character.trigger(Program.CharacterEvent(codepoint.toChar(), emptySet()))
+        }
+
         glfwSetDropCallback(window, { _, count, names ->
             logger.debug { "$count file(s) have been dropped" }
-
             val pointers = PointerBuffer.create(names, count)
             val files = (0 until count).map {
                 File(pointers.getStringUTF8(0))
@@ -491,6 +482,7 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
         program.keyboard.keyDown.deliver()
         program.keyboard.keyUp.deliver()
         program.keyboard.keyRepeat.deliver()
+        program.keyboard.character.deliver()
         program.mouse.moved.deliver()
         program.mouse.scrolled.deliver()
         program.mouse.clicked.deliver()

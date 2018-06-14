@@ -130,6 +130,9 @@ class DropEvent(val position:Vector2, val files:List<File>)
 
 val KEY_ARROW_LEFT = 263
 val KEY_ARROW_RIGHT = 262
+val KEY_ESCAPE = 256
+val KEY_ENTER = 257
+
 
 /**
     The Program class, this is where most user implementations start
@@ -185,7 +188,6 @@ open class Program {
 
         var size = Vector2(0.0, 0.0)
         var scale = Vector2(1.0, 1.0)
-        var coordinateScale = Vector2(1.0, 1.0)
 
 
         /**
@@ -222,10 +224,17 @@ open class Program {
 
     val window = Window()
 
+    class CharacterEvent(val character:Char, val modifiers: Set<KeyboardModifier>, var propagationCancelled: Boolean = false) {
+        fun cancelPropagation() {
+            propagationCancelled = true
+        }
+    }
+
     class Keyboard {
         val keyDown = Event<KeyEvent>().postpone(true)
         val keyUp = Event<KeyEvent>().postpone(true)
         val keyRepeat = Event<KeyEvent>().postpone(true)
+        val character = Event<CharacterEvent>().postpone(true)
     }
 
     val keyboard = Keyboard()
