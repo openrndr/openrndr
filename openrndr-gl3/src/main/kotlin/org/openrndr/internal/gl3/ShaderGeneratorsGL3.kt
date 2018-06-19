@@ -143,8 +143,10 @@ void main(void) {
     {
         ${shadeStructure.fragmentTransform?:""}
     }
+    float div = x_fill.a != 0.0 ? x_fill.a : 1.0;
+    x_fill.rgb /= div;
     x_fill = colorTransform(x_fill, u_colorMatrix);
-
+    x_fill.rgb *= x_fill.a;
     o_color = x_fill;
 }"""
 
@@ -157,10 +159,7 @@ ${shadeStructure.uniforms?:""}
 ${shadeStructure.varyingOut?:""}
 ${transformVaryingOut}
 void main() {
-
     ${shadeStructure.varyingBridge?:""}
-
-
     ${preTransform}
     vec3 x_normal = a_normal;
     vec3 x_position = a_position;
@@ -316,9 +315,7 @@ void main(void) {
 
     float irx = smoothstep(0.0, wd.x * 2.5, 1.0-d.x - u_strokeWeight*2.0/vi_dimensions.x);
     float iry = smoothstep(0.0, wd.x * 2.5, 1.0-d.y - u_strokeWeight*2.0/vi_dimensions.y);
-
     float ir = irx*iry;
-
 
     o_color.rgb = x_fill.rgb * x_fill.a;
     o_color.a = x_fill.a;
@@ -367,7 +364,6 @@ uniform sampler2D tex;
 uniform vec4 bounds;
 
 in vec3 v_objectPosition;
-
 in vec2 v_ftcoord;
 
 out vec4 o_color;
