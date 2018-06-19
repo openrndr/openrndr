@@ -128,11 +128,43 @@ class WindowEvent(val type: WindowEventType, val position: Vector2, val size: Ve
 
 class DropEvent(val position:Vector2, val files:List<File>)
 
-val KEY_ARROW_LEFT = 263
-val KEY_ARROW_RIGHT = 262
+val KEY_SPACEBAR = 32
+
 val KEY_ESCAPE = 256
 val KEY_ENTER = 257
 
+val KEY_TAB = 258
+val KEY_BACKSPACE = 259
+val KEY_INSERT = 260
+val KEY_DELETE = 261
+val KEY_ARROW_RIGHT = 262
+val KEY_ARROW_LEFT = 263
+val KEY_ARROW_DOWN = 264
+val KEY_ARROW_UP = 265
+val KEY_PAGE_UP = 266
+val KEY_PAGE_DOWN = 267
+val KEY_HOME = 268
+val KEY_END = 269
+
+val KEY_CAPSLOCK = 280
+val KEY_PRINT_SCREEN = 283
+
+
+val KEY_F1 = 290
+val KEY_F2 = 291
+val KEY_F3 = 292
+val KEY_F4 = 293
+val KEY_F5 = 294
+val KEY_F6 = 295
+val KEY_F7 = 296
+val KEY_F8 = 297
+val KEY_F9 = 298
+val KEY_F10 = 299
+val KEY_F11 = 300
+val KEY_F12 = 301
+
+val KEY_LEFT_SHIFT = 340
+val KEY_RIGHT_SHIFT = 344
 
 /**
     The Program class, this is where most user implementations start
