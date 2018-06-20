@@ -298,6 +298,8 @@ $drawerUniforms
 ${shadeStructure.varyingIn?:""}
 ${transformVaryingIn}
 
+${shadeStructure.fragmentPreamble?:""}
+
 out vec4 o_color;
 flat in int v_instance;
 
@@ -337,6 +339,8 @@ ${shadeStructure.varyingOut?:""}
 ${transformVaryingOut}
 flat out int v_instance;
 
+
+${shadeStructure.vertexPreamble?:""}
 
 void main() {
     ${shadeStructure.varyingBridge?:""}
