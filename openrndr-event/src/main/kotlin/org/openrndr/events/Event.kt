@@ -100,25 +100,31 @@ class Event<T> {
     fun deliver() {
         if (postpone) {
             synchronized(messages) {
-                messages.forEach { m ->
-                    this.listeners.forEach { l ->
-                        try {
-                            l(m.v1)
-                        } catch (e: Exception) {
-                            e.printStackTrace()
-                        }
-                    }
-                    this.oneShotListeners.forEach { l ->
-                        try {
-                            l(m.v1)
-                        } catch (e: Exception) {
-                            e.printStackTrace()
-                        }
-                    }
 
-                    this.oneShotListeners.clear()
+                if (messages.size > 0) {
+                    val copy = ArrayList<Message>()
+                    copy.addAll(messages)
+                    messages.clear()
+
+                    copy.forEach { m ->
+                        this.listeners.forEach { l ->
+                            try {
+                                l(m.v1)
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                            }
+                        }
+                        this.oneShotListeners.forEach { l ->
+                            try {
+                                l(m.v1)
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                            }
+                        }
+
+                        this.oneShotListeners.clear()
+                    }
                 }
-                messages.clear()
             }
         }
 
