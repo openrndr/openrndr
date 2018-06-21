@@ -15,7 +15,7 @@ class CircleDrawer {
         attribute("radius", 1, VertexElementType.FLOAT32)
         attribute("offset", 3, VertexElementType.FLOAT32)
 
-    }, 10000)
+    }, 1024*1024)
 
     private val shaderManager: ShadeStyleManager = ShadeStyleManager.fromGenerators(Driver.instance.shaderGenerators::circleVertexShader,
             Driver.instance.shaderGenerators::circleFragmentShader)
