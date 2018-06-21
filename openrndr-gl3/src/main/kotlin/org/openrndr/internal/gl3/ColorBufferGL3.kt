@@ -187,7 +187,6 @@ class ColorBufferDataGL3(val width: Int, val height: Int, val format: ColorForma
                     if (ca[0] == 4) {
                         for (y in 0 until ha[0])
                             for (x in 0 until wa[0]) {
-
                                 val a = (data.get(offset + 3).toInt() and 0xff).toDouble() / 255.0
                                 val r = ((data.get(offset).toInt() and 0xff) * a).toByte()
                                 val g = ((data.get(offset + 1).toInt() and 0xff) * a).toByte()
@@ -420,7 +419,11 @@ class ColorBufferGL3(val target: Int,
             debugGLErrors()
             (buffer as Buffer).rewind()
             buffer.order(ByteOrder.nativeOrder())
+            val currentPack = intArrayOf(0)
+            glGetIntegerv(GL_UNPACK_ALIGNMENT,currentPack)
+            glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
             glTexSubImage2D(target, 0, 0, 0, width, height, format.glFormat(), type.glType(), buffer)
+            glPixelStorei(GL_UNPACK_ALIGNMENT,currentPack[0])
             debugGLErrors()
             (buffer as Buffer).rewind()
         }
@@ -431,13 +434,14 @@ class ColorBufferGL3(val target: Int,
             debugGLErrors()
             glPixelStorei(GL_PACK_ALIGNMENT, 1)
             debugGLErrors()
+
             val packAlignment = glGetInteger(GL_PACK_ALIGNMENT)
             buffer.order(ByteOrder.nativeOrder())
             (buffer as Buffer).rewind()
             glGetTexImage(target, 0, format.glFormat(), type.glType(), buffer)
             debugGLErrors()
             (buffer as Buffer).rewind()
-                glPixelStorei(GL_PACK_ALIGNMENT, packAlignment)
+            glPixelStorei(GL_PACK_ALIGNMENT, packAlignment)
             debugGLErrors()
         }
     }
