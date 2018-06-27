@@ -156,9 +156,17 @@ class ColorBufferShadowGL3(override val colorBuffer: ColorBufferGL3) : ColorBuff
 }
 
 
-class ColorBufferDataGL3(val width: Int, val height: Int, val format: ColorFormat, val type: ColorType, val data: ByteBuffer) {
+class ColorBufferDataGL3(val width: Int, val height: Int, val format: ColorFormat, val type: ColorType, var data: ByteBuffer?) {
+
+    fun destroy() {
+        if (data != null) {
+            STBImage.stbi_image_free(data)
+            data = null
+        }
+    }
 
     companion object {
+
 
         fun fromUrl(urlString: String): ColorBufferDataGL3 {
             val url = URL(urlString)
@@ -181,6 +189,7 @@ class ColorBufferDataGL3(val width: Int, val height: Int, val format: ColorForma
                 STBImage.stbi_set_unpremultiply_on_load(false)
 
                 val data = STBImage.stbi_load_from_memory(buffer, wa, ha, ca, 0)
+
 
                 if (data != null) {
                     var offset = 0
@@ -298,18 +307,33 @@ class ColorBufferGL3(val target: Int,
             val data = ColorBufferDataGL3.fromUrl(url)
             val cb = create(data.width, data.height, 1.0, data.format, data.type)
             return cb.apply {
-                cb.write(data.data)
-                cb.generateMipmaps()
+                val d = data.data
+                if (d!= null) {
+                    cb.write(d)
+                    cb.generateMipmaps()
+                } else {
+                    throw RuntimeException("data is null")
+                }
+                data.destroy()
             }
+
         }
 
         fun fromFile(filename: String): ColorBuffer {
             val data = ColorBufferDataGL3.fromFile(filename)
             val cb = create(data.width, data.height, 1.0, data.format, data.type)
             return cb.apply {
-                cb.write(data.data)
-                cb.generateMipmaps()
+                val d = data.data
+                if (d!= null) {
+                    cb.write(d)
+                    cb.generateMipmaps()
+                } else {
+                    throw RuntimeException("data is null")
+                }
+                data.destroy()
             }
+
+
         }
 
         fun create(width: Int, height: Int, contentScale: Double = 1.0, format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.FLOAT32): ColorBufferGL3 {
