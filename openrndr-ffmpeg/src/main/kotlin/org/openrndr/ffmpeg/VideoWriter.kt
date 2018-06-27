@@ -236,7 +236,7 @@ class VideoWriter {
         if (System.getProperty("os.name").contains("Windows")) {
             arguments.add("ffmpeg.exe")
         } else {
-            arguments.add("/usr/local/bin/ffmpeg")
+            arguments.add("ffmpeg")
         }
         arguments.addAll(Arrays.asList(*preamble))
         arguments.addAll(Arrays.asList(*codec))
