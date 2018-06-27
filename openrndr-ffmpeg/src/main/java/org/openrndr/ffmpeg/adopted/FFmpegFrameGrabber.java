@@ -53,6 +53,10 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.util.Collections;
@@ -126,6 +130,18 @@ public class FFmpegFrameGrabber extends FrameGrabber {
     public FFmpegFrameGrabber(File file) {
         this(file.getAbsolutePath());
     }
+
+    public static FFmpegFrameGrabber fromUrl(String url) {
+        try {
+            URL u = new URL(url);
+            URI uri = u.toURI();
+            File f = new File(uri);
+            return new FFmpegFrameGrabber(f.getAbsolutePath());
+        } catch (MalformedURLException | URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public FFmpegFrameGrabber(String filename) {
         this.filename = filename;
         this.pixelFormat = AV_PIX_FMT_NONE;
