@@ -472,12 +472,26 @@ class ColorBufferGL3(val target: Int,
 
     override fun saveToFile(file: File) {
         if (type == ColorType.UINT8) {
-            val pixels = BufferUtils.createByteBuffer(effectiveWidth * effectiveHeight * format.componentCount * 2)
+            val pixels = BufferUtils.createByteBuffer(effectiveWidth * effectiveHeight * format.componentCount)
             (pixels as Buffer).rewind()
             read(pixels)
             (pixels as Buffer).rewind()
-//            STBImageWrite.stbi_flip_vertically_on_write(!flipV)
-            STBImageWrite.stbi_write_png(file.absolutePath, effectiveWidth, effectiveHeight, format.componentCount, pixels, effectiveWidth * format.componentCount)
+
+            if (!flipV) {
+                val flippedPixels = BufferUtils.createByteBuffer(effectiveWidth * effectiveHeight * format.componentCount)
+                (flippedPixels as Buffer).rewind()
+                val stride = width * format.componentCount
+                val row = ByteArray(stride)
+                for (y in 0 until height) {
+                    (pixels as Buffer).position((height - y - 1) * stride)
+                    pixels.get(row)
+                    flippedPixels.put(row)
+                }
+                (flippedPixels as Buffer).rewind()
+                STBImageWrite.stbi_write_png(file.absolutePath, effectiveWidth, effectiveHeight, format.componentCount, flippedPixels, effectiveWidth * format.componentCount)
+            } else {
+                STBImageWrite.stbi_write_png(file.absolutePath, effectiveWidth, effectiveHeight, format.componentCount, pixels, effectiveWidth * format.componentCount)
+            }
         } else {
             TODO("support non-UINT8 types")
         }
