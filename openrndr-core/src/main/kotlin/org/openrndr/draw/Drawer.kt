@@ -143,7 +143,7 @@ interface Shader {
     fun begin()
     fun end()
 
-    fun hasUniform(name:String): Boolean
+    fun hasUniform(name: String): Boolean
 
     fun uniform(name: String, value: Matrix44)
     fun uniform(name: String, value: ColorRGBa)
@@ -294,6 +294,8 @@ interface ColorBuffer {
     fun destroy()
     fun bind(unit: Int)
 
+    fun write(buffer: ByteBuffer)
+    fun read(buffer: ByteBuffer)
     fun generateMipmaps()
 
     var wrapU: WrapMode
@@ -523,7 +525,7 @@ data class DrawContext(val model: Matrix44, val view: Matrix44, val projection: 
         }
         if (shader.hasUniform("u_viewNormalMatrix")) {
             val normalMatrix = if (view === lastView) lastViewNormal else {
-                lastViewNormal = if (model !== Matrix44.IDENTITY) normalMatrix(view) else Matrix44.IDENTITY
+                lastViewNormal = if (view !== Matrix44.IDENTITY) normalMatrix(view) else Matrix44.IDENTITY
                 lastView = view
                 lastViewNormal
             }

@@ -138,6 +138,14 @@ class ColorBufferShadowGL3(override val colorBuffer: ColorBufferGL3) : ColorBuff
                 val ia = if (colorBuffer.format == ColorFormat.RGBa) (buffer.get(offset + 3).toInt() and 0xff).toInt() else 255
                 ColorRGBa(ir / 255.0, ig / 255.0, ib / 255.0, ia / 255.0)
             }
+            ColorType.FLOAT32 -> {
+                val fr = buffer.getFloat(offset)
+                val fg = buffer.getFloat(offset + 4)
+                val fb = buffer.getFloat(offset + 8)
+                val fa = if (colorBuffer.format == ColorFormat.RGBa) (buffer.getFloat(offset + 12)) else 1.0f
+                ColorRGBa(fr.toDouble(), fg.toDouble(), fb.toDouble(), fa.toDouble())
+            }
+
             else -> TODO("support for ${colorBuffer.type}")
         }
     }
@@ -407,14 +415,12 @@ class ColorBufferGL3(val target: Int,
 
     var realShadow: ColorBufferShadow? = null
 
-    fun write(buffer: ByteBuffer) {
+    override fun write(buffer: ByteBuffer) {
         bound {
             debugGLErrors()
-
             logger.trace {
                 "Writing to color buffer in: $format ${format.glFormat()}, $type ${type.glType()}"
              }
-
             (buffer as Buffer).rewind()
             buffer.order(ByteOrder.nativeOrder())
             glTexSubImage2D(target, 0, 0, 0, width, height, format.glFormat(), type.glType(), buffer)
@@ -423,8 +429,7 @@ class ColorBufferGL3(val target: Int,
         }
     }
 
-    fun read(buffer: ByteBuffer) {
-
+    override fun read(buffer: ByteBuffer) {
         bound {
             logger.trace {
                 "Reading from color buffer in: $format ${format.glFormat()}, $type ${type.glType()} "

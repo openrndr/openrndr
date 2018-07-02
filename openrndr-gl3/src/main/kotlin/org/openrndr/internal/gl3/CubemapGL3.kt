@@ -9,6 +9,7 @@ import org.lwjgl.opengl.GL32.GL_TEXTURE_CUBE_MAP_SEAMLESS
 import org.openrndr.draw.*
 import org.openrndr.internal.gl3.dds.loadDDS
 import java.net.URL
+import java.nio.Buffer
 import java.nio.ByteBuffer
 
 class CubemapGL3(val texture: Int, override val width: Int, val sides: List<ColorBuffer>) : Cubemap {
@@ -53,12 +54,12 @@ class CubemapGL3(val texture: Int, override val width: Int, val sides: List<Colo
                     val width = (data.width * m).toInt()
                     val height = (data.height * m).toInt()
 
-                    data.sidePX(level).rewind()
-                    data.sideNX(level).rewind()
-                    data.sidePY(level).rewind()
-                    data.sideNY(level).rewind()
-                    data.sidePZ(level).rewind()
-                    data.sideNZ(level).rewind()
+                    (data.sidePX(level) as Buffer).rewind()
+                    (data.sideNX(level) as Buffer).rewind()
+                    (data.sidePY(level) as Buffer).rewind()
+                    (data.sideNY(level) as Buffer).rewind()
+                    (data.sidePZ(level) as Buffer).rewind()
+                    (data.sideNZ(level) as Buffer).rewind()
 
                     if (data.type == ColorType.DXT1||data.type == ColorType.DXT3||data.type == ColorType.DXT5) {
                         val format = internalFormat(data.format, data.type)

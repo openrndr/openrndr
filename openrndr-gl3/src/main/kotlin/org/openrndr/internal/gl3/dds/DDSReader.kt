@@ -11,6 +11,7 @@ import org.openrndr.draw.ColorFormat
 import org.openrndr.draw.ColorType
 import java.nio.ByteBuffer
 import java.io.InputStream
+import java.nio.Buffer
 import java.nio.ByteOrder
 
 private const val DDPF_ALPHAPIXELS = 0x1
@@ -441,6 +442,6 @@ fun loadDDS(file: InputStream): DDSData {
 private fun newByteBuffer(data: ByteArray): ByteBuffer {
     val buffer = ByteBuffer.allocateDirect(data.size).order(ByteOrder.nativeOrder())
     buffer.put(data)
-    buffer.flip()
+    (buffer as Buffer).flip()
     return buffer
 }
