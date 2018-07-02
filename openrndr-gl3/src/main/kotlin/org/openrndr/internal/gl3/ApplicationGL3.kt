@@ -316,22 +316,21 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
             program.keyboard.character.trigger(Program.CharacterEvent(codepoint.toChar(), emptySet()))
         }
 
-        glfwSetDropCallback(window, { _, count, names ->
+        glfwSetDropCallback(window) { _, count, names ->
             logger.debug { "$count file(s) have been dropped" }
             val pointers = PointerBuffer.create(names, count)
             val files = (0 until count).map {
                 File(pointers.getStringUTF8(0))
             }
             program.window.drop.trigger(DropEvent(Vector2(0.0, 0.0), files))
-        })
+        }
 
         var down = false
-
-        glfwSetScrollCallback(window, { _, xoffset, yoffset ->
+        glfwSetScrollCallback(window) { _, xoffset, yoffset ->
             program.mouse.scrolled.trigger(Program.Mouse.MouseEvent(program.mouse.position, Vector2(xoffset, yoffset), Vector2.ZERO, MouseEventType.SCROLLED, MouseButton.NONE, globalModifiers))
-        })
+        }
 
-        glfwSetMouseButtonCallback(window, { _, button, action, mods ->
+        glfwSetMouseButtonCallback(window) { _, button, action, mods ->
             val mouseButton = when (button) {
                 GLFW_MOUSE_BUTTON_LEFT -> MouseButton.LEFT
                 GLFW_MOUSE_BUTTON_RIGHT -> MouseButton.RIGHT
@@ -375,9 +374,9 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
                         Program.Mouse.MouseEvent(program.mouse.position, Vector2.ZERO, Vector2.ZERO, MouseEventType.CLICKED, mouseButton, modifiers)
                 )
             }
-        })
+        }
 
-        glfwSetCursorPosCallback(window, { _, xpos, ypos ->
+        glfwSetCursorPosCallback(window) { _, xpos, ypos ->
             val position = if (fixWindowSize) Vector2(xpos, ypos) / program.window.scale else Vector2(xpos, ypos)
             logger.trace { "mouse moved $xpos $ypos -- $position" }
             program.mouse.position = position
@@ -386,14 +385,11 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
                 program.mouse.dragged.trigger(Program.Mouse.MouseEvent(position, Vector2.ZERO, position - lastDragPosition, MouseEventType.DRAGGED, MouseButton.NONE, globalModifiers))
                 lastDragPosition = position
             }
-        })
+        }
 
-        glfwSetCursorEnterCallback(window, { window, entered ->
+        glfwSetCursorEnterCallback(window) { window, entered ->
             logger.debug { "cursor state changed; inside window = $entered" }
-            if (entered) {
-                //glfwFocusWindow(window)
-            }
-        })
+        }
 
         val defaultRenderTarget = ProgramRenderTargetGL3(program)
         defaultRenderTarget.bind()
@@ -416,10 +412,8 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
 
             glfwPollEvents()
         }
-
         logger.debug { "opengl vendor: ${glGetString(GL_VENDOR)}" }
         logger.debug { "opengl version: ${glGetString(GL_VERSION)}" }
-
 
         println("opengl vendor: ${glGetString(GL_VENDOR)}")
         println("opengl version: ${glGetString(GL_VERSION)}")

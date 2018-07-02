@@ -60,28 +60,6 @@ class BufferWriterGL3(val buffer: ByteBuffer, val elementSize: Int = 1) : Buffer
         buffer.putFloat(v.c3r1.toFloat())
         buffer.putFloat(v.c3r2.toFloat())
         buffer.putFloat(v.c3r3.toFloat())
-
-        /*
-        buffer.putFloat(v.c0r0.toFloat())
-        buffer.putFloat(v.c1r0.toFloat())
-        buffer.putFloat(v.c2r0.toFloat())
-        buffer.putFloat(v.c3r0.toFloat())
-
-        buffer.putFloat(v.c0r1.toFloat())
-        buffer.putFloat(v.c1r1.toFloat())
-        buffer.putFloat(v.c2r1.toFloat())
-        buffer.putFloat(v.c3r1.toFloat())
-
-        buffer.putFloat(v.c0r2.toFloat())
-        buffer.putFloat(v.c1r2.toFloat())
-        buffer.putFloat(v.c2r2.toFloat())
-        buffer.putFloat(v.c3r2.toFloat())
-
-        buffer.putFloat(v.c0r3.toFloat())
-        buffer.putFloat(v.c1r3.toFloat())
-        buffer.putFloat(v.c2r3.toFloat())
-        buffer.putFloat(v.c3r3.toFloat())
-        */
     }
 
     override fun write(v: Float) {
@@ -106,7 +84,6 @@ class BufferWriterGL3(val buffer: ByteBuffer, val elementSize: Int = 1) : Buffer
         buffer.putFloat(y)
     }
 
-
     override fun write(v: ColorRGBa) {
         buffer.putFloat(v.r.toFloat())
         buffer.putFloat(v.g.toFloat())
@@ -128,5 +105,4 @@ class BufferWriterGL3(val buffer: ByteBuffer, val elementSize: Int = 1) : Buffer
     override fun rewind() {
         (buffer as Buffer).rewind()
     }
-
 }
