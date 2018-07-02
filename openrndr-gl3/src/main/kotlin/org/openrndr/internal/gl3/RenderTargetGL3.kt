@@ -12,7 +12,6 @@ import org.lwjgl.opengl.GL30.*
 import org.openrndr.Program
 import java.util.*
 
-
 private val active = mutableMapOf<Long, Stack<RenderTargetGL3>>()
 
 class ProgramRenderTargetGL3(override val program: Program) : ProgramRenderTarget, RenderTargetGL3(glGetInteger(GL_FRAMEBUFFER_BINDING), 0, 0, 1.0) {
@@ -33,9 +32,12 @@ open class RenderTargetGL3(val framebuffer: Int, override val width: Int, overri
     override val colorBuffers: List<ColorBuffer>
         get() = _colorBuffers.map { it }
 
+    override val depthBuffer: DepthBuffer?
+    get() = _depthBuffer
+
     private val colorBufferIndices = mutableMapOf<String, Int>()
-    val _colorBuffers = mutableListOf<ColorBufferGL3>()
-    var depthBuffer: DepthBuffer? = null
+    private val _colorBuffers = mutableListOf<ColorBufferGL3>()
+    private var _depthBuffer: DepthBuffer? = null
 
     companion object {
         fun create(width: Int, height: Int, contentScale: Double = 1.0): RenderTargetGL3 {
@@ -48,10 +50,8 @@ open class RenderTargetGL3(val framebuffer: Int, override val width: Int, overri
             val stack = active.getOrPut(glfwGetCurrentContext()) { Stack() }
             return stack.peek()
         }
-
-
     }
-    var bound = false
+    private var bound = false
 
     override val hasColorBuffer:Boolean get() = colorBuffers.isNotEmpty()
     override val hasDepthBuffer:Boolean get() = depthBuffer != null
@@ -143,22 +143,18 @@ open class RenderTargetGL3(val framebuffer: Int, override val width: Int, overri
         debugGLErrors { null }
         _colorBuffers.add(colorBuffer)
 
-
         if (active[context]?.peek() != null)
             (active[context]?.peek() as RenderTargetGL3).bindTarget()
     }
 
-
-    internal fun bound(function: () -> Unit) {
+    private fun bound(function: () -> Unit) {
         bind()
         function()
         unbind()
     }
 
     override fun attach(depthBuffer: DepthBuffer) {
-
         bound {
-
             if (!(depthBuffer.width == effectiveWidth && depthBuffer.height == effectiveHeight)) {
                 throw IllegalArgumentException("buffer dimension mismatch")
             }
@@ -173,7 +169,17 @@ open class RenderTargetGL3(val framebuffer: Int, override val width: Int, overri
             }
             checkGLErrors()
 
-            this.depthBuffer = depthBuffer
+            this._depthBuffer = depthBuffer
+        }
+    }
+
+    override fun detachDepthBuffer() {
+        if (this._depthBuffer != null) {
+            bound {
+                glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, 0, 0)
+                glFramebufferTexture2D(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_TEXTURE_2D, 0, 0)
+                checkGLErrors()
+            }
         }
     }
 
@@ -193,7 +199,6 @@ open class RenderTargetGL3(val framebuffer: Int, override val width: Int, overri
         checkGLErrors()
     }
 
-
     override fun detachColorBuffers() {
         bound {
             _colorBuffers.forEachIndexed { index, _ ->
@@ -206,6 +211,5 @@ open class RenderTargetGL3(val framebuffer: Int, override val width: Int, overri
     override fun destroy() {
         glDeleteFramebuffers(framebuffer)
     }
-
 }
 

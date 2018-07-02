@@ -52,18 +52,18 @@ v_clipPosition = x_projectionMatrix * vec4(v_viewPosition, 1.0);
 class ShaderGeneratorsGL3 : ShaderGenerators {
     override fun vertexBufferFragmentShader(shadeStructure: ShadeStructure): String = """#version 330
 
-${shadeStructure.uniforms?:""}
+${shadeStructure.uniforms ?: ""}
 layout(origin_upper_left) in vec4 gl_FragCoord;
 
 uniform sampler2D image;
 $drawerUniforms
-${shadeStructure.varyingIn?:""}
-${shadeStructure.outputs?:""}
+${shadeStructure.varyingIn ?: ""}
+${shadeStructure.outputs ?: ""}
 ${transformVaryingIn}
 
 out vec4 o_color;
 
-${shadeStructure.fragmentPreamble?:""}
+${shadeStructure.fragmentPreamble ?: ""}
 flat in int v_instance;
 
 
@@ -73,7 +73,7 @@ void main(void) {
     vec4 x_fill = u_fill;
     vec4 x_stroke = u_stroke;
     {
-        ${shadeStructure.fragmentTransform?:""}
+        ${shadeStructure.fragmentTransform ?: ""}
     }
     o_color = x_fill;
     o_color.rgb *= o_color.a;
@@ -83,20 +83,20 @@ void main(void) {
     override fun vertexBufferVertexShader(shadeStructure: ShadeStructure): String = """#version 330
 
 $drawerUniforms
-${shadeStructure.attributes?:""}
-${shadeStructure.uniforms?:""}
-${shadeStructure.varyingOut?:""}
+${shadeStructure.attributes ?: ""}
+${shadeStructure.uniforms ?: ""}
+${shadeStructure.varyingOut ?: ""}
 
 ${transformVaryingOut}
 
 
-${shadeStructure.vertexPreamble?:""}
+${shadeStructure.vertexPreamble ?: ""}
 
 flat out int v_instance;
 void main() {
 
     int instance = gl_InstanceID;
-    ${shadeStructure.varyingBridge?:""}
+    ${shadeStructure.varyingBridge ?: ""}
 
     vec3 x_normal = vec3(0.0, 0.0, 0.0);
 
@@ -107,7 +107,7 @@ void main() {
 
     ${preTransform}
     {
-        ${shadeStructure.vertexTransform?:""}
+        ${shadeStructure.vertexTransform ?: ""}
     }
     ${postTransform}
 
@@ -117,13 +117,13 @@ void main() {
             """.trimMargin()
 
     override fun imageFragmentShader(shadeStructure: ShadeStructure): String = """#version 330
-${shadeStructure.uniforms?:""}
+${shadeStructure.uniforms ?: ""}
 
 layout(origin_upper_left) in vec4 gl_FragCoord;
 
 uniform sampler2D image;
 $drawerUniforms
-${shadeStructure.varyingIn?:""}
+${shadeStructure.varyingIn ?: ""}
 ${transformVaryingIn}
 out vec4 o_color;
 
@@ -141,10 +141,12 @@ void main(void) {
     vec4 x_fill = texture(image, va_texCoord0);
     vec4 x_stroke = u_stroke;
     {
-        ${shadeStructure.fragmentTransform?:""}
+        ${shadeStructure.fragmentTransform ?: ""}
     }
+    float div = x_fill.a != 0.0 ? x_fill.a : 1.0;
+    x_fill.rgb /= div;
     x_fill = colorTransform(x_fill, u_colorMatrix);
-
+    x_fill.rgb *= x_fill.a;
     o_color = x_fill;
 }"""
 
@@ -152,20 +154,17 @@ void main(void) {
 #version 330
 
 $drawerUniforms
-${shadeStructure.attributes?:""}
-${shadeStructure.uniforms?:""}
-${shadeStructure.varyingOut?:""}
+${shadeStructure.attributes ?: ""}
+${shadeStructure.uniforms ?: ""}
+${shadeStructure.varyingOut ?: ""}
 ${transformVaryingOut}
 void main() {
-
-    ${shadeStructure.varyingBridge?:""}
-
-
+    ${shadeStructure.varyingBridge ?: ""}
     ${preTransform}
     vec3 x_normal = a_normal;
     vec3 x_position = a_position;
     {
-        ${shadeStructure.vertexTransform?:""}
+        ${shadeStructure.vertexTransform ?: ""}
     }
     ${postTransform}
     gl_Position = v_clipPosition;
@@ -173,11 +172,11 @@ void main() {
 """
 
     override fun circleFragmentShader(shadeStructure: ShadeStructure): String = """#version 330
-${shadeStructure.uniforms?:""}
+${shadeStructure.uniforms ?: ""}
 layout(origin_upper_left) in vec4 gl_FragCoord;
 
 $drawerUniforms
-${shadeStructure.varyingIn?:""}
+${shadeStructure.varyingIn ?: ""}
 ${transformVaryingIn}
 
 out vec4 o_color;
@@ -188,7 +187,7 @@ void main(void) {
     vec4 x_fill = u_fill;
     vec4 x_stroke = u_stroke;
     {
-        ${shadeStructure.fragmentTransform?:""}
+        ${shadeStructure.fragmentTransform ?: ""}
     }
     float wd = fwidth(length(va_texCoord0 - vec2(0.5)));
     float d = length(va_texCoord0 - vec2(0.5)) * 2;
@@ -209,20 +208,20 @@ void main(void) {
     override fun circleVertexShader(shadeStructure: ShadeStructure): String = """#version 330
 
 $drawerUniforms
-${shadeStructure.attributes?:""}
-${shadeStructure.uniforms?:""}
-${shadeStructure.varyingOut?:""}
+${shadeStructure.attributes ?: ""}
+${shadeStructure.uniforms ?: ""}
+${shadeStructure.varyingOut ?: ""}
 ${transformVaryingOut}
 
 void main() {
 
-    ${shadeStructure.varyingBridge?:""}
+    ${shadeStructure.varyingBridge ?: ""}
 
     ${preTransform}
     vec3 x_normal = a_normal;
     vec3 x_position = a_position * i_radius + i_offset;
     {
-        ${shadeStructure.vertexTransform?:""}
+        ${shadeStructure.vertexTransform ?: ""}
     }
     va_position = x_position;
     ${postTransform}
@@ -232,14 +231,14 @@ void main() {
 
     override fun fontImageMapFragmentShader(shadeStructure: ShadeStructure): String = """#version 330
 
-${shadeStructure.uniforms?:""}
+${shadeStructure.uniforms ?: ""}
 layout(origin_upper_left) in vec4 gl_FragCoord;
 
 uniform sampler2D image;
 flat in int v_instance;
 
 $drawerUniforms
-${shadeStructure.varyingIn?:""}
+${shadeStructure.varyingIn ?: ""}
 ${transformVaryingIn}
 
 out vec4 o_color;
@@ -252,21 +251,25 @@ void main(void) {
     vec3 boundsSize = vec3(va_bounds.zw, 0.0);
 
     float imageMap = texture(image, va_texCoord0).r;
-    vec4 x_fill = u_fill * imageMap;
+    vec4 x_fill = u_fill; // imageMap;
+    x_fill.a *= imageMap;
     vec4 x_stroke = u_stroke;
+
+    int c_charID = int(va_position.z);
     {
-        ${shadeStructure.fragmentTransform?:""}
+        ${shadeStructure.fragmentTransform ?: ""}
     }
     o_color = x_fill;
+    o_color.rgb *= o_color.a;
 }
 """
 
     override fun fontImageMapVertexShader(shadeStructure: ShadeStructure): String = """#version 330
 $drawerUniforms
 
-${shadeStructure.attributes?:""}
-${shadeStructure.uniforms?:""}
-${shadeStructure.varyingOut?:""}
+${shadeStructure.attributes ?: ""}
+${shadeStructure.uniforms ?: ""}
+${shadeStructure.varyingOut ?: ""}
 ${transformVaryingOut}
 flat out int v_instance;
 
@@ -274,12 +277,12 @@ void main() {
     vec3 decodedPosition = vec3(a_position.xy, 0.0);
     v_instance = int(a_position.z);
 
-    ${shadeStructure.varyingBridge?:""}
+    ${shadeStructure.varyingBridge ?: ""}
     ${preTransform}
     vec3 x_normal = vec3(0.0, 0.0, 1.0);
     vec3 x_position = decodedPosition;
     {
-        ${shadeStructure.vertexTransform?:""}
+        ${shadeStructure.vertexTransform ?: ""}
     }
     ${postTransform}
     gl_Position = v_clipPosition;
@@ -287,31 +290,34 @@ void main() {
             """
 
     override fun rectangleFragmentShader(shadeStructure: ShadeStructure): String = """#version 330
-${shadeStructure.uniforms?:""}
+${shadeStructure.uniforms ?: ""}
 layout(origin_upper_left) in vec4 gl_FragCoord;
 
 $drawerUniforms
-${shadeStructure.varyingIn?:""}
+${shadeStructure.varyingIn ?: ""}
 ${transformVaryingIn}
 
+${shadeStructure.fragmentPreamble ?: ""}
+
 out vec4 o_color;
+flat in int v_instance;
 
 void main(void) {
+    int c_instance = v_instance;
     vec2 c_screenPosition = gl_FragCoord.xy;
     float c_contourPosition = 0.0;
+    vec2 c_boundsPosition = va_position.xy;
     vec4 x_fill = u_fill;
     vec4 x_stroke = u_stroke;
     {
-        ${shadeStructure.fragmentTransform?:""}
+        ${shadeStructure.fragmentTransform ?: ""}
     }
     vec2 wd = fwidth(va_texCoord0 - vec2(0.5));
     vec2 d = abs((va_texCoord0 - vec2(0.5)) * 2);
 
     float irx = smoothstep(0.0, wd.x * 2.5, 1.0-d.x - u_strokeWeight*2.0/vi_dimensions.x);
     float iry = smoothstep(0.0, wd.x * 2.5, 1.0-d.y - u_strokeWeight*2.0/vi_dimensions.y);
-
     float ir = irx*iry;
-
 
     o_color.rgb = x_fill.rgb * x_fill.a;
     o_color.a = x_fill.a;
@@ -324,29 +330,35 @@ void main(void) {
 
     override fun rectangleVertexShader(shadeStructure: ShadeStructure): String = """#version 330
 $drawerUniforms
-${shadeStructure.attributes?:""}
-${shadeStructure.uniforms?:""}
-${shadeStructure.varyingOut?:""}
+${shadeStructure.attributes ?: ""}
+${shadeStructure.uniforms ?: ""}
+${shadeStructure.varyingOut ?: ""}
 ${transformVaryingOut}
+flat out int v_instance;
+
+
+${shadeStructure.vertexPreamble ?: ""}
 
 void main() {
-    ${shadeStructure.varyingBridge?:""}
+    ${shadeStructure.varyingBridge ?: ""}
     ${preTransform}
+    v_instance = gl_InstanceID;
     vec3 x_normal = vec3(0.0, 0.0, 1.0);
     vec3 x_position = a_position * vec3(i_dimensions,1.0) + i_offset;
     {
-        ${shadeStructure.vertexTransform?:""}
+        ${shadeStructure.vertexTransform ?: ""}
     }
     ${postTransform}
     gl_Position = v_clipPosition;
     }
     """
+
     override fun expansionFragmentShader(shadeStructure: ShadeStructure): String = """#version 330
 
-${shadeStructure.uniforms?:""}
+${shadeStructure.uniforms ?: ""}
 layout(origin_upper_left) in vec4 gl_FragCoord;
 $drawerUniforms
-${shadeStructure.varyingIn?:""}
+${shadeStructure.varyingIn ?: ""}
 ${transformVaryingIn}
 
 uniform float strokeMult;
@@ -357,7 +369,6 @@ uniform sampler2D tex;
 uniform vec4 bounds;
 
 in vec3 v_objectPosition;
-
 in vec2 v_ftcoord;
 
 out vec4 o_color;
@@ -377,7 +388,7 @@ void main(void) {
     vec4 x_stroke = u_stroke;
     vec4 x_fill = u_fill;
 
-    { ${shadeStructure.fragmentTransform?:""} }
+    { ${shadeStructure.fragmentTransform ?: ""} }
 
     vec4 color = mix(x_stroke, x_fill, strokeFillFactor)  * vec4(1, 1, 1, strokeAlpha);
     vec4 result = color;
@@ -395,7 +406,7 @@ void main(void) {
 $drawerUniforms
 
 ${shadeStructure.attributes}
-${shadeStructure.varyingOut?:""}
+${shadeStructure.varyingOut ?: ""}
 ${transformVaryingOut}
 
 out vec2 v_ftcoord;
@@ -404,7 +415,7 @@ out float v_offset;
 out vec3 v_objectPosition;
 
 void main() {
-    ${shadeStructure.varyingBridge?:""}
+    ${shadeStructure.varyingBridge ?: ""}
     v_objectPosition = vec3(a_position, 0.0);
     v_ftcoord = a_texCoord0;
 
@@ -412,7 +423,7 @@ void main() {
     vec3 x_normal = vec3(0.0, 0.0, 1.0);
     $preTransform
     {
-        ${shadeStructure.vertexTransform?:""}
+        ${shadeStructure.vertexTransform ?: ""}
     }
     $postTransform
 
@@ -421,12 +432,12 @@ void main() {
 """
 
     override fun fastLineFragmentShader(shadeStructure: ShadeStructure): String = """#version 330
-${shadeStructure.uniforms?:""}
+${shadeStructure.uniforms ?: ""}
 layout(origin_upper_left) in vec4 gl_FragCoord;
 
 uniform sampler2D image;
 $drawerUniforms
-${shadeStructure.varyingIn?:""}
+${shadeStructure.varyingIn ?: ""}
 $transformVaryingIn
 out vec4 o_color;
 
@@ -436,7 +447,7 @@ void main(void) {
     vec4 x_fill = u_fill;
     vec4 x_stroke = u_stroke;
     {
-        ${shadeStructure.fragmentTransform?:""}
+        ${shadeStructure.fragmentTransform ?: ""}
     }
     o_color = x_fill;
 }
@@ -445,8 +456,8 @@ void main(void) {
     override fun fastLineVertexShader(shadeStructure: ShadeStructure): String = """#version 330
 $drawerUniforms
 
-${shadeStructure.attributes?:""}
-${shadeStructure.uniforms?:""}
+${shadeStructure.attributes ?: ""}
+${shadeStructure.uniforms ?: ""}
 
 void main() {
 
@@ -454,7 +465,7 @@ void main() {
     vec3 x_normal = vec3(0.0, 0.0, 1.0);
     vec3 x_position = a_position;
     {
-        ${shadeStructure.vertexTransform?:""}
+        ${shadeStructure.vertexTransform ?: ""}
     }
     $postTransform
     gl_Position = v_clipPosition;

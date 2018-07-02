@@ -434,6 +434,7 @@ interface RenderTarget {
     val effectiveHeight: Int get() = (height * contentScale).toInt()
 
     val colorBuffers: List<ColorBuffer>
+    val depthBuffer: DepthBuffer?
 
     companion object {
         fun create(width: Int, height: Int, contentScale: Double): RenderTarget = Driver.instance.createRenderTarget(width, height, contentScale)
@@ -446,6 +447,7 @@ interface RenderTarget {
     fun attach(colorBuffer: ColorBuffer)
     fun attach(depthBuffer: DepthBuffer)
     fun detachColorBuffers()
+    fun detachDepthBuffer()
     fun destroy()
 
     fun colorBuffer(index: Int): ColorBuffer

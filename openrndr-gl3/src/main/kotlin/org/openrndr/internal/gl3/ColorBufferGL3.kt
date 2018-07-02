@@ -126,16 +126,14 @@ class ColorBufferShadowGL3(override val colorBuffer: ColorBufferGL3) : ColorBuff
     }
 
     override fun read(x: Int, y: Int): ColorRGBa {
-
         val ay = if (colorBuffer.flipV) y else colorBuffer.effectiveHeight - 1 - y
-
         val offset = (ay * colorBuffer.effectiveWidth + x) * colorBuffer.format.componentCount * colorBuffer.type.componentSize
         return when (colorBuffer.type) {
             ColorType.UINT8 -> {
                 val ir = buffer.get(offset).toInt() and 0xff
                 val ig = buffer.get(offset + 1).toInt() and 0xff
                 val ib = buffer.get(offset + 2).toInt() and 0xff
-                val ia = if (colorBuffer.format == ColorFormat.RGBa) (buffer.get(offset + 3).toInt() and 0xff).toInt() else 255
+                val ia = if (colorBuffer.format == ColorFormat.RGBa) (buffer.get(offset + 3).toInt() and 0xff) else 255
                 ColorRGBa(ir / 255.0, ig / 255.0, ib / 255.0, ia / 255.0)
             }
             ColorType.FLOAT32 -> {
@@ -145,7 +143,6 @@ class ColorBufferShadowGL3(override val colorBuffer: ColorBufferGL3) : ColorBuff
                 val fa = if (colorBuffer.format == ColorFormat.RGBa) (buffer.getFloat(offset + 12)) else 1.0f
                 ColorRGBa(fr.toDouble(), fg.toDouble(), fb.toDouble(), fa.toDouble())
             }
-
             else -> TODO("support for ${colorBuffer.type}")
         }
     }
@@ -156,10 +153,17 @@ class ColorBufferShadowGL3(override val colorBuffer: ColorBufferGL3) : ColorBuff
 }
 
 
-class ColorBufferDataGL3(val width: Int, val height: Int, val format: ColorFormat, val type: ColorType, val data: ByteBuffer) {
+class ColorBufferDataGL3(val width: Int, val height: Int, val format: ColorFormat, val type: ColorType, var data: ByteBuffer?) {
+
+    fun destroy() {
+        val localData = data
+        if (localData != null) {
+            STBImage.stbi_image_free(localData)
+            data = null
+        }
+    }
 
     companion object {
-
         fun fromUrl(urlString: String): ColorBufferDataGL3 {
             val url = URL(urlString)
             url.openStream().use {
@@ -173,21 +177,18 @@ class ColorBufferDataGL3(val width: Int, val height: Int, val format: ColorForma
                 buffer.put(byteArray)
                 (buffer as Buffer).rewind()
 
-
                 val wa = IntArray(1)
                 val ha = IntArray(1)
                 val ca = IntArray(1)
                 STBImage.stbi_set_flip_vertically_on_load(true)
                 STBImage.stbi_set_unpremultiply_on_load(false)
-
                 val data = STBImage.stbi_load_from_memory(buffer, wa, ha, ca, 0)
 
                 if (data != null) {
                     var offset = 0
                     if (ca[0] == 4) {
-                        for (y in 0 until ha[0])
+                        for (y in 0 until ha[0]) {
                             for (x in 0 until wa[0]) {
-
                                 val a = (data.get(offset + 3).toInt() and 0xff).toDouble() / 255.0
                                 val r = ((data.get(offset).toInt() and 0xff) * a).toByte()
                                 val g = ((data.get(offset + 1).toInt() and 0xff) * a).toByte()
@@ -198,6 +199,7 @@ class ColorBufferDataGL3(val width: Int, val height: Int, val format: ColorForma
                                 data.put(offset + 2, b)
                                 offset += 4
                             }
+                        }
                     }
                 }
 
@@ -219,7 +221,7 @@ class ColorBufferDataGL3(val width: Int, val height: Int, val format: ColorForma
 
         fun fromFile(filename: String): ColorBufferDataGL3 {
             val byteArray = File(filename).readBytes()
-            if (byteArray.size == 0) {
+            if (byteArray.isEmpty()) {
                 throw RuntimeException("read 0 bytes from stream $filename")
             }
             val buffer = BufferUtils.createByteBuffer(byteArray.size)
@@ -236,13 +238,11 @@ class ColorBufferDataGL3(val width: Int, val height: Int, val format: ColorForma
             STBImage.stbi_set_unpremultiply_on_load(false)
 
             val data = STBImage.stbi_load_from_memory(buffer, wa, ha, ca, 0)
-
             if (data != null) {
                 var offset = 0
                 if (ca[0] == 4) {
-                    for (y in 0 until ha[0])
+                    for (y in 0 until ha[0]) {
                         for (x in 0 until wa[0]) {
-
                             val a = (data.get(offset + 3).toInt() and 0xff).toDouble() / 255.0
                             val r = ((data.get(offset).toInt() and 0xff) * a).toByte()
                             val g = ((data.get(offset + 1).toInt() and 0xff) * a).toByte()
@@ -252,8 +252,8 @@ class ColorBufferDataGL3(val width: Int, val height: Int, val format: ColorForma
                             data.put(offset + 1, g)
                             data.put(offset + 2, b)
                             offset += 4
-
                         }
+                    }
                 }
             }
 
@@ -284,9 +284,7 @@ class ColorBufferGL3(val target: Int,
                      override val format: ColorFormat,
                      override val type: ColorType) : ColorBuffer {
 
-
     internal var realFlipV: Boolean = false
-
     override var flipV: Boolean
         get() = realFlipV
         set(value) {
@@ -294,13 +292,18 @@ class ColorBufferGL3(val target: Int,
         }
 
     companion object {
-
         fun fromUrl(url: String): ColorBuffer {
             val data = ColorBufferDataGL3.fromUrl(url)
             val cb = create(data.width, data.height, 1.0, data.format, data.type)
             return cb.apply {
-                cb.write(data.data)
-                cb.generateMipmaps()
+                val d = data.data
+                if (d != null) {
+                    cb.write(d)
+                    cb.generateMipmaps()
+                } else {
+                    throw RuntimeException("data is null")
+                }
+                data.destroy()
             }
         }
 
@@ -308,21 +311,23 @@ class ColorBufferGL3(val target: Int,
             val data = ColorBufferDataGL3.fromFile(filename)
             val cb = create(data.width, data.height, 1.0, data.format, data.type)
             return cb.apply {
-                cb.write(data.data)
-                cb.generateMipmaps()
+                val d = data.data
+                if (d != null) {
+                    cb.write(d)
+                    cb.generateMipmaps()
+                } else {
+                    throw RuntimeException("data is null")
+                }
+                data.destroy()
             }
         }
 
         fun create(width: Int, height: Int, contentScale: Double = 1.0, format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.FLOAT32): ColorBufferGL3 {
-
             val internalFormat = internalFormat(format, type)
-
             if (width <= 0 || height <= 0) {
                 throw Exception("cannot create ColorBuffer with dimensions: ${width}x$height")
             }
-
             checkGLErrors()
-
 
             val texture = glGenTextures()
             checkGLErrors()
@@ -343,12 +348,10 @@ class ColorBufferGL3(val target: Int,
                     else -> null
                 }
             }
-
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
-
             checkGLErrors()
             return ColorBufferGL3(GL_TEXTURE_2D, texture, width, height, contentScale, format, type)
         }
@@ -357,7 +360,6 @@ class ColorBufferGL3(val target: Int,
     fun bound(f: ColorBufferGL3.() -> Unit) {
         glActiveTexture(GL_TEXTURE0)
         val current = glGetInteger(GL_TEXTURE_BINDING_2D)
-
         glBindTexture(target, texture)
         this.f()
         glBindTexture(target, current)
@@ -423,7 +425,11 @@ class ColorBufferGL3(val target: Int,
              }
             (buffer as Buffer).rewind()
             buffer.order(ByteOrder.nativeOrder())
+            val currentPack = intArrayOf(0)
+            glGetIntegerv(GL_UNPACK_ALIGNMENT, currentPack)
+            glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
             glTexSubImage2D(target, 0, 0, 0, width, height, format.glFormat(), type.glType(), buffer)
+            glPixelStorei(GL_UNPACK_ALIGNMENT, currentPack[0])
             debugGLErrors()
             (buffer as Buffer).rewind()
         }
@@ -437,6 +443,7 @@ class ColorBufferGL3(val target: Int,
             debugGLErrors()
             glPixelStorei(GL_PACK_ALIGNMENT, 1)
             debugGLErrors()
+
             val packAlignment = glGetInteger(GL_PACK_ALIGNMENT)
             buffer.order(ByteOrder.nativeOrder())
             (buffer as Buffer).rewind()
@@ -450,12 +457,26 @@ class ColorBufferGL3(val target: Int,
 
     override fun saveToFile(file: File) {
         if (type == ColorType.UINT8) {
-            val pixels = BufferUtils.createByteBuffer(effectiveWidth * effectiveHeight * format.componentCount * 2)
+            val pixels = BufferUtils.createByteBuffer(effectiveWidth * effectiveHeight * format.componentCount)
             (pixels as Buffer).rewind()
             read(pixels)
             (pixels as Buffer).rewind()
-//            STBImageWrite.stbi_flip_vertically_on_write(!flipV)
-            STBImageWrite.stbi_write_png(file.absolutePath, effectiveWidth, effectiveHeight, format.componentCount, pixels, effectiveWidth * format.componentCount)
+
+            if (!flipV) {
+                val flippedPixels = BufferUtils.createByteBuffer(effectiveWidth * effectiveHeight * format.componentCount)
+                (flippedPixels as Buffer).rewind()
+                val stride = width * format.componentCount
+                val row = ByteArray(stride)
+                for (y in 0 until height) {
+                    (pixels as Buffer).position((height - y - 1) * stride)
+                    pixels.get(row)
+                    flippedPixels.put(row)
+                }
+                (flippedPixels as Buffer).rewind()
+                STBImageWrite.stbi_write_png(file.absolutePath, effectiveWidth, effectiveHeight, format.componentCount, flippedPixels, effectiveWidth * format.componentCount)
+            } else {
+                STBImageWrite.stbi_write_png(file.absolutePath, effectiveWidth, effectiveHeight, format.componentCount, pixels, effectiveWidth * format.componentCount)
+            }
         } else {
             TODO("support non-UINT8 types")
         }

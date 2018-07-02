@@ -26,10 +26,10 @@ class DriverGL3 : Driver {
 
     override val shaderGenerators: ShaderGenerators = ShaderGeneratorsGL3()
 
-    val vaos = mutableMapOf<Long, Int>()
-    var defaultVAO = 1
+    private val vaos = mutableMapOf<Long, Int>()
+    private var defaultVAO = 1
 
-    fun hash(shader: ShaderGL3, vertexBuffers: List<VertexBuffer>, instanceAttributes: List<VertexBuffer>): Long {
+    private fun hash(shader: ShaderGL3, vertexBuffers: List<VertexBuffer>, instanceAttributes: List<VertexBuffer>): Long {
         var hash = 0L
         hash += shader.program
         for (i in 0 until vertexBuffers.size) {
@@ -144,14 +144,12 @@ class DriverGL3 : Driver {
         return ColorBufferGL3.fromFile(url)
     }
 
-
     override fun createDepthBuffer(width: Int, height: Int, format: DepthFormat): DepthBuffer {
         logger.trace { "creating depth buffer $width x $height @ $format" }
         return DepthBufferGL3.create(width, height, format)
     }
 
     override fun createDynamicVertexBuffer(format: VertexFormat, vertexCount: Int): VertexBuffer = VertexBufferGL3.createDynamic(format, vertexCount)
-
 
     override fun drawVertexBuffer(shader: Shader, vertexBuffers: List<VertexBuffer>, drawPrimitive: DrawPrimitive, vertexOffset: Int, vertexCount: Int) {
         shader as ShaderGL3

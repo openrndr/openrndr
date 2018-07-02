@@ -25,8 +25,8 @@ data class ColorHSLa(val h: Double, val s: Double, val l: Double, val a: Double 
                 0.0
             }
 
-            val max : Double
-            val maxArg : ColorRGBa.Component
+            val max: Double
+            val maxArg: ColorRGBa.Component
 
             if (rgb.r >= rgb.b && rgb.r >= rgb.g) {
                 maxArg = ColorRGBa.Component.R

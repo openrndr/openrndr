@@ -370,6 +370,7 @@ internal class SVGLoader {
         val path = SVGPath().apply {
             id = e.id()
             parseDrawAttributes(e)
+            parseTransform(e)
             commands.add(Command("M", points[0].x, points[0].y))
             (1 until points.size).mapTo(commands) { Command("L", points[it].x, points[it].y) }
             commands.add(Command("Z"))

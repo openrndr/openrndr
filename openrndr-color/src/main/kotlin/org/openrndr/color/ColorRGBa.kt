@@ -45,9 +45,6 @@ data class ColorRGBa(val r: Double, val g: Double, val b: Double, val a: Double 
         val GREEN = ColorRGBa(0.0, 1.0, 0.0)
         val YELLOW = ColorRGBa(1.0, 1.0, 0.0)
         val GRAY = ColorRGBa(0.5, 0.5, 0.5)
-
-
-
         val TRANSPARENT = ColorRGBa(0.0, 0.0, 0.0, 0.0)
 
         fun fromVector(vector: Vector3, alpha: Double = 1.0): ColorRGBa {
@@ -70,41 +67,35 @@ data class ColorRGBa(val r: Double, val g: Double, val b: Double, val a: Double 
     val minValue get() = Math.min(Math.min(r, g), b)
     val maxValue get() = Math.max(Math.max(r, g), b)
 
+    fun toHSVa(): ColorHSVa = ColorHSVa.fromRGBa(this.toSRGB())
+    fun toHSLa(): ColorHSLa = ColorHSLa.fromRGBa(this.toSRGB())
+    fun toXYZa(): ColorXYZa = ColorXYZa.fromRGBa(this.toLinear())
+    fun toLABa(ref: ColorXYZa = ColorXYZa.NEUTRAL): ColorLABa = ColorLABa.fromRGBa(this.toLinear(), ref)
+    fun toLUVa(ref: ColorXYZa = ColorXYZa.NEUTRAL): ColorLUVa = ColorLUVa.fromRGBa(this.toLinear(), ref)
+    fun toLCHABa(ref: ColorXYZa = ColorXYZa.NEUTRAL): ColorLCHABa = toXYZa().toLABa(ref).toLCHABa()
+    fun toLCHUVa(ref: ColorXYZa = ColorXYZa.NEUTRAL): ColorLCHUVa = toLUVa(ref).toLCHUVa()
 
-    fun toHSVa():ColorHSVa = ColorHSVa.fromRGBa(this.toSRGB())
-    fun toHSLa():ColorHSLa = ColorHSLa.fromRGBa(this.toSRGB())
-    fun toXYZa():ColorXYZa = ColorXYZa.fromRGBa(this.toLinear())
-    fun toLABa(ref: ColorXYZa = ColorXYZa.NEUTRAL):ColorLABa = ColorLABa.fromRGBa(this.toLinear(), ref)
-    fun toLUVa(ref: ColorXYZa = ColorXYZa.NEUTRAL):ColorLUVa = ColorLUVa.fromRGBa(this.toLinear(), ref)
-    fun toLCHABa(ref: ColorXYZa = ColorXYZa.NEUTRAL):ColorLCHABa = toXYZa().toLABa(ref).toLCHABa()
-    fun toLCHUVa(ref: ColorXYZa = ColorXYZa.NEUTRAL):ColorLCHUVa = toLUVa(ref).toLCHUVa()
-
-    fun toLinear():ColorRGBa {
-        fun t(x:Double):Double {
-            return if(x<=0.04045) x/12.92 else Math.pow((x+0.055)/(1+0.055),2.4)
+    fun toLinear(): ColorRGBa {
+        fun t(x: Double): Double {
+            return if (x <= 0.04045) x / 12.92 else Math.pow((x + 0.055) / (1 + 0.055), 2.4)
         }
-
-
-        return when(linearity) {
+        return when (linearity) {
             Linearity.SRGB -> ColorRGBa(t(r), t(g), t(b), a, Linearity.LINEAR)
             Linearity.UNKNOWN, Linearity.ASSUMED_SRGB -> ColorRGBa(t(r), t(g), t(b), a, Linearity.ASSUMED_LINEAR)
             Linearity.ASSUMED_LINEAR, Linearity.LINEAR -> this
         }
     }
 
-    fun toSRGB():ColorRGBa {
-        fun t(x:Double):Double {
-            return if (x<=0.0031308) 12.92 * x else (1+0.055)*Math.pow(x, 1.0/2.4) - 0.055
+    fun toSRGB(): ColorRGBa {
+        fun t(x: Double): Double {
+            return if (x <= 0.0031308) 12.92 * x else (1 + 0.055) * Math.pow(x, 1.0 / 2.4) - 0.055
         }
-
-        return when(linearity) {
+        return when (linearity) {
             Linearity.LINEAR -> ColorRGBa(t(r), t(g), t(b), a, Linearity.SRGB)
             Linearity.UNKNOWN, Linearity.ASSUMED_LINEAR -> ColorRGBa(t(r), t(g), t(b), a, Linearity.ASSUMED_SRGB)
             Linearity.ASSUMED_SRGB, Linearity.SRGB -> this
         }
-
     }
-
 }
 
 /**

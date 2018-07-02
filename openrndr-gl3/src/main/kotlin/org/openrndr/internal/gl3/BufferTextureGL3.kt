@@ -15,14 +15,11 @@ import java.nio.ByteOrder
 
 private val logger = KotlinLogging.logger {}
 
-
 class BufferTextureShadowGL3(override val bufferTexture: BufferTextureGL3) : BufferTextureShadow {
-
     val buffer: ByteBuffer =
             BufferUtils.createByteBuffer(bufferTexture.elementCount * bufferTexture.type.componentSize * bufferTexture.format.componentCount).apply {
                 order(ByteOrder.nativeOrder())
             }
-
 
     override fun upload(offset:Int, size:Int) {
         logger.trace { "uploading shadow to buffer texture" }
@@ -44,11 +41,9 @@ class BufferTextureShadowGL3(override val bufferTexture: BufferTextureGL3) : Buf
     override fun writer():BufferWriter {
         return BufferWriterGL3(buffer, bufferTexture.format.componentCount * bufferTexture.type.componentSize)
     }
-
 }
 
 class BufferTextureGL3(val texture: Int, val buffer: Int, override val elementCount: Int, override val format: ColorFormat, override val type: ColorType) : BufferTexture {
-
     companion object {
         fun create(elementCount: Int, format: ColorFormat, type: ColorType): BufferTextureGL3 {
             val sizeInBytes = format.componentCount * type.componentSize * elementCount
@@ -71,25 +66,19 @@ class BufferTextureGL3(val texture: Int, val buffer: Int, override val elementCo
     internal var realShadow: BufferTextureShadowGL3? = null
     override val shadow: BufferTextureShadow
         get() {
-
             if (realShadow == null) {
                 realShadow = BufferTextureShadowGL3(this)
             }
             return realShadow!!
         }
 
-
     fun write(buffer:ByteBuffer) {
         (buffer as Buffer).rewind()
- //       buffer.limit(buffer.capacity())
-//        glActiveTexture(GL_TEXTURE0)
-
         glBindBuffer(GL_TEXTURE_BUFFER, this.buffer)
         debugGLErrors()
         glBufferSubData(GL_TEXTURE_BUFFER, 0L, buffer)
         debugGLErrors()
     }
-
 
     override fun bind(unit: Int) {
         glActiveTexture(GL_TEXTURE0 + unit)
@@ -103,6 +92,4 @@ class BufferTextureGL3(val texture: Int, val buffer: Int, override val elementCo
             destroyed = true
         }
     }
-
-
 }

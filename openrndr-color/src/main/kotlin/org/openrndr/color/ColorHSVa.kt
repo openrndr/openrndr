@@ -16,8 +16,8 @@ data class ColorHSVa(val h: Double, val s: Double, val v: Double, val a: Double 
 
     companion object {
         fun fromRGBa(rgb: ColorRGBa): ColorHSVa {
-            var min = java.lang.Double.POSITIVE_INFINITY
-            var max = java.lang.Double.NEGATIVE_INFINITY
+            var min = Double.POSITIVE_INFINITY
+            var max = Double.NEGATIVE_INFINITY
 
             var h: Double
             var maxArg: ColorRGBa.Component? = null

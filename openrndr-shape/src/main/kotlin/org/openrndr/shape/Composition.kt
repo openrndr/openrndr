@@ -14,21 +14,21 @@ sealed class CompositionNode {
         get() = TODO("can't have it")
 
 
-    val effectiveStroke:ColorRGBa?
-    get() {
-        return stroke.let {
-            when (it) {
-                is InheritColor -> parent?.effectiveStroke
-                is Color -> it.color
+    val effectiveStroke: ColorRGBa?
+        get() {
+            return stroke.let {
+                when (it) {
+                    is InheritColor -> parent?.effectiveStroke
+                    is Color -> it.color
+                }
             }
         }
-    }
 
-    val effectiveFill:ColorRGBa?
+    val effectiveFill: ColorRGBa?
         get() {
             return fill.let {
                 when (it) {
-                    is InheritColor -> parent?.effectiveFill?: ColorRGBa.BLACK
+                    is InheritColor -> parent?.effectiveFill ?: ColorRGBa.BLACK
                     is Color -> it.color
                 }
             }
@@ -88,7 +88,7 @@ class TextNode : CompositionNode() {
 
 }
 
-class GroupNode(val children: MutableList<CompositionNode> = mutableListOf()) : CompositionNode() {
+open class GroupNode(val children: MutableList<CompositionNode> = mutableListOf()) : CompositionNode() {
     override val bounds: Rectangle
         get() {
             val b = rectangleBounds(children.map { it.bounds })
@@ -105,6 +105,8 @@ class GroupNode(val children: MutableList<CompositionNode> = mutableListOf()) : 
         }
     }
 }
+
+class GroupNodeStop(children: MutableList<CompositionNode>) : GroupNode(children)
 
 class Composition(val root: CompositionNode) {
     fun findTerminals(filter: (CompositionNode) -> Boolean): List<CompositionNode> {
@@ -124,15 +126,55 @@ class Composition(val root: CompositionNode) {
     fun findShapes(): List<ShapeNode> = findTerminals { it is ShapeNode }.map { it as ShapeNode }
 }
 
+fun CompositionNode.filter(filter: (CompositionNode) -> Boolean): CompositionNode? {
+    val f = filter(this)
+
+    if (!f) {
+        return null
+    }
+
+    if (this is GroupNode) {
+        val copies = mutableListOf<CompositionNode>()
+
+        children.forEach {
+
+            val filtered = it.filter(filter)
+
+            if (filtered != null) {
+                when (filtered) {
+                    is ShapeNode -> {
+                        copies.add(filtered.copy(parent=this))
+                    }
+                    is GroupNode -> {
+                        copies.add(filtered.copy(parent=this))
+                    }
+                }
+            }
+        }
+        return GroupNode(children=copies)
+    } else {
+        return this
+    }
+}
+
 fun CompositionNode.map(mapper: (CompositionNode) -> CompositionNode): CompositionNode {
     val r = mapper(this)
-    return if (r is GroupNode) {
-        val copy = r.copy(children = r.children.map { it.map(mapper) }.toMutableList())
-        copy.children.forEach {
-            it.parent = copy
+    return when (r) {
+        is GroupNodeStop -> {
+            r.copy().also { copy ->
+                copy.children.forEach {
+                    it.parent = copy
+                }
+            }
         }
-        copy
-    } else {
-        r
+        is GroupNode -> {
+            val copy = r.copy(children = r.children.map { it.map(mapper) }.toMutableList())
+            copy.children.forEach {
+                it.parent = copy
+            }
+            copy
+        }
+        else -> r
+
     }
 }

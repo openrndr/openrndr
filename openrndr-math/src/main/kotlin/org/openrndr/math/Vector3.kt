@@ -1,6 +1,8 @@
 package org.openrndr.math
 
-data class Vector3(val x: Double, val y: Double, val z: Double) {
+import java.io.Serializable
+
+data class Vector3(val x: Double, val y: Double, val z: Double) : Serializable {
 
     companion object {
         val ZERO = Vector3(0.0, 0.0, 0.0)
@@ -28,16 +30,17 @@ data class Vector3(val x: Double, val y: Double, val z: Double) {
     val zx: Vector2 get() = Vector2(z, x)
     val xz: Vector2 get() = Vector2(x, z)
 
-    val normalized: Vector3 get() {
+    val normalized: Vector3
+        get() {
 
-        val l = 1.0 / length
+            val l = 1.0 / length
 
-        if (l.isNaN() || l.isInfinite()) {
-            return ZERO
+            if (l.isNaN() || l.isInfinite()) {
+                return ZERO
+            }
+
+            return this * l
         }
-
-        return this * l
-    }
 
 
     private operator fun get(i: Int): Double {
@@ -49,7 +52,7 @@ data class Vector3(val x: Double, val y: Double, val z: Double) {
         }
     }
 
-    operator fun unaryMinus():Vector3 = Vector3(-x, -y, -z)
+    operator fun unaryMinus(): Vector3 = Vector3(-x, -y, -z)
     operator fun plus(v: Vector3): Vector3 = Vector3(x + v.x, y + v.y, z + v.z)
     operator fun minus(v: Vector3): Vector3 = Vector3(x - v.x, y - v.y, z - v.z)
     operator fun times(v: Vector3): Vector3 = Vector3(x * v.x, y * v.y, z * v.z)
@@ -70,7 +73,6 @@ data class Vector3(val x: Double, val y: Double, val z: Double) {
     val length: Double get() = Math.sqrt(x * x + y * y + z * z)
 
     fun toDoubleArray(): DoubleArray = doubleArrayOf(x, y, z)
-
 
 
 }

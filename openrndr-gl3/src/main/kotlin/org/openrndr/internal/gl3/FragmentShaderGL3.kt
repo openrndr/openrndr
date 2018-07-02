@@ -7,12 +7,10 @@ import org.lwjgl.opengl.GL20
 private val logger = KotlinLogging.logger {}
 
 class FragmentShaderGL3(val shaderObject:Int, val name:String="<unknown-fragment-shader>") {
-
     companion object {
         fun fromString(code:String, name:String="<unknown-fragment-shader>"): FragmentShaderGL3 {
             logger.trace { "compiling shader $name from $code" }
             val shaderObject = GL20.glCreateShader(GL20.GL_FRAGMENT_SHADER)
-
             GL20.glShaderSource(shaderObject, code)
             GL20.glCompileShader(shaderObject)
 
@@ -25,5 +23,4 @@ class FragmentShaderGL3(val shaderObject:Int, val name:String="<unknown-fragment
             return FragmentShaderGL3(shaderObject, name)
         }
     }
-
 }
