@@ -27,7 +27,7 @@ class DriverGL3 : Driver {
     override val shaderGenerators: ShaderGenerators = ShaderGeneratorsGL3()
 
     private val vaos = mutableMapOf<Long, Int>()
-    private var defaultVAO = 1
+    internal var defaultVAO = 1
 
     private fun hash(shader: ShaderGL3, vertexBuffers: List<VertexBuffer>, instanceAttributes: List<VertexBuffer>): Long {
         var hash = 0L
