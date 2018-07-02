@@ -32,7 +32,7 @@ import org.openrndr.math.Vector2
 import java.util.*
 
 private val logger = KotlinLogging.logger {}
-private var primaryWindow: Long = NULL
+internal var primaryWindow: Long = NULL
 
 class ApplicationGL3(private val program: Program, private val configuration: Configuration) : Application() {
     private var windowFocused = true

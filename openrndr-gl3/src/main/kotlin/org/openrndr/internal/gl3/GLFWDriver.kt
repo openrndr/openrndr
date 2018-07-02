@@ -15,6 +15,7 @@ import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
 import org.openrndr.internal.Driver
 import org.openrndr.internal.FontMapManager
+import org.openrndr.internal.ResourceThread
 import org.openrndr.internal.ShaderGenerators
 import org.openrndr.math.Matrix44
 
@@ -23,11 +24,14 @@ import java.nio.Buffer
 private val logger = KotlinLogging.logger {}
 
 class DriverGL3 : Driver {
+    override fun createResourceThread(f: () -> Unit): ResourceThread {
+        return ResourceThreadGL3.create(f)
+    }
 
     override val shaderGenerators: ShaderGenerators = ShaderGeneratorsGL3()
 
     private val vaos = mutableMapOf<Long, Int>()
-    private var defaultVAO = 1
+    internal var defaultVAO = 1
 
     private fun hash(shader: ShaderGL3, vertexBuffers: List<VertexBuffer>, instanceAttributes: List<VertexBuffer>): Long {
         var hash = 0L
