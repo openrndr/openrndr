@@ -75,6 +75,9 @@ import static org.bytedeco.javacpp.swscale.*;
  * @author Samuel Audet
  */
 public class FFmpegFrameGrabber extends FrameGrabber {
+
+    public String inputFormat;
+
     public static String[] getDeviceDescriptions() throws Exception {
         tryLoad();
         AVInputFormat f = null;
@@ -609,6 +612,11 @@ public class FFmpegFrameGrabber extends FrameGrabber {
         if (audioChannels > 0) {
             av_dict_set(options, "channels", "" + audioChannels, 0);
         }
+
+        if (inputFormat != null) {
+            av_dict_set(options, "input_format", inputFormat, 0);
+        }
+
         for (Entry<String, String> e: this.options.entrySet()) {
             av_dict_set(options, e.getKey(), e.getValue(), 0);
         }

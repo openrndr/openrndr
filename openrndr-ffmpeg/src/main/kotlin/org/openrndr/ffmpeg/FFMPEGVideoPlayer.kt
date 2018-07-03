@@ -22,7 +22,44 @@ class FFMPEGVideoPlayer private constructor(url: String) {
             return FFmpegFrameGrabber.getDeviceDescriptions().toList()
         }
 
-        fun fromDevice(deviceName: String): FFMPEGVideoPlayer {
+        fun defaultDevice():String {
+            val osName = System.getProperty("os.name").toLowerCase()
+            val device: String
+            device = when {
+                "windows" in osName -> {
+                    "Integrated Camera"
+                }
+                "mac os x" in osName -> {
+                    "0"
+                }
+                "linux" in osName -> {
+                    "/dev/video0"
+                }
+                else -> throw RuntimeException("unsupported os: $osName")
+            }
+            return device
+        }
+
+        fun defaultInputFormat():String? {
+            val osName = System.getProperty("os.name").toLowerCase()
+            val format: String?
+            format = when {
+                "windows" in osName -> {
+                    null
+                }
+                "mac os x" in osName -> {
+                    null
+                }
+                "linux" in osName -> {
+                    "mjpeg"
+                }
+                else -> throw RuntimeException("unsupported os: $osName")
+            }
+            return format
+        }
+
+
+        fun fromDevice(deviceName: String = defaultDevice(), width:Int=-1, height:Int=-1, framerate:Double=-1.0, inputFormat:String? = defaultInputFormat()): FFMPEGVideoPlayer {
             val osName = System.getProperty("os.name").toLowerCase()
             val format: String
             format = when {
@@ -33,13 +70,21 @@ class FFMPEGVideoPlayer private constructor(url: String) {
                     "avfoundation"
                 }
                 "linux" in osName -> {
-                    "video4linux"
+                    "video4linux2"
                 }
                 else -> throw RuntimeException("unsupported os: $osName")
             }
 
             val player = FFMPEGVideoPlayer(deviceName)
+            player.frameGrabber.inputFormat = inputFormat
             player.frameGrabber.format = format
+            if (width != -1 && height != -1) {
+                player.frameGrabber.imageWidth = width
+                player.frameGrabber.imageHeight = height
+            }
+            if (framerate != -1.0) {
+                player.frameGrabber.frameRate = framerate
+            }
             return player
         }
     }
