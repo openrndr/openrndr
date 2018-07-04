@@ -27,7 +27,7 @@ vec4 BlurTexture(vec4 org, sampler2D tex, vec2 uv, vec2 direction) {
     float dc = org.a/(samples);
     for (int i = 1; i < samples; ++i) {
         vec4 color = texture(tex, uv + direction * i);
-        float chroma = max(0.0, dot(vec3(1.0), color.rgb)) * 0.5 + 0.5;
+        float chroma = 1.0; //max(0.0, dot(vec3(1.0), color.rgb)) * 0.5 + 0.5;
         blurAmount += color.a * saturate(color.a - i*dc) * chroma;
         finalColor += color * saturate(color.a - i*dc) * chroma;
     }

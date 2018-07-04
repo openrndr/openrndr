@@ -32,7 +32,7 @@ vec4 BlurTexture(float coc, sampler2D tex, vec2 uv, vec2 direction)
     {
         float orgCoc = texture(original, uv + direction * (i-0)).a;
         vec4 color = texture(tex, uv + direction * (i-0));
-        float chroma = max(0.0, dot(vec3(1.0), color.rgb))*0.5+0.5;
+        float chroma = 1.0; //max(0.0, dot(vec3(1.0), color.rgb))*0.5+0.5;
         blurAmount += color.a * saturate(orgCoc-(i)*dc)*chroma;
         finalColor += color * saturate(orgCoc-(i)*dc)*chroma;
     }

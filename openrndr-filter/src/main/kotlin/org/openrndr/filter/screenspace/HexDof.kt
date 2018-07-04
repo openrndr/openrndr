@@ -99,30 +99,28 @@ class CocBlur: Filter(Shader.createFromCode(Filter.filterVertexCode, filterFragm
         window = 4
         sigma = 4.0
     }
-
 }
 
 class VelocityBlur: Filter(Shader.createFromCode(Filter.filterVertexCode, filterFragmentCode("screenspace/velocity-blur.frag"))) {
-    var window:Int by parameters
-
+    var window: Int by parameters
     var velocity: Int by parameters
     init {
         window = 10
         velocity = 1
     }
-
 }
 
 class IterativeVelocityBlur: Filter(Shader.createFromCode(Filter.filterVertexCode, filterFragmentCode("screenspace/iterative-velocity-blur.frag"))) {
-
     var iterations:Int = 10
-
     var step:Int by parameters
     var velocity: Int by parameters
+    var maxMagnitude: Double by parameters
+    var magnitudeGain: Double by parameters
     init {
         velocity = 1
+        maxMagnitude = 10.0
+        magnitudeGain = 1.0
     }
-
     var intermediate:ColorBuffer? = null
 
     override fun apply(source: Array<ColorBuffer>, target: Array<ColorBuffer>) {
@@ -140,7 +138,6 @@ class IterativeVelocityBlur: Filter(Shader.createFromCode(Filter.filterVertexCod
         val v = source[1]
         step = 0
         super.apply(arrayOf(source[0], v), arrayOf(intermediate!!))
-
         step++
         super.apply(arrayOf(intermediate!!, v), target)
         step++
@@ -149,5 +146,4 @@ class IterativeVelocityBlur: Filter(Shader.createFromCode(Filter.filterVertexCod
         super.apply(arrayOf(intermediate!!, v), target)
         step++
     }
-
 }

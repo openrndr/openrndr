@@ -2,7 +2,7 @@ package org.openrndr.internal
 
 import org.openrndr.draw.*
 
-class CharacterRectangle(val character:Char, val x:Double, val y:Double, val width:Double, val height:Double)
+class CharacterRectangle(val character: Char, val x: Double, val y: Double, val width: Double, val height: Double)
 
 class FontImageMapDrawer {
 
@@ -25,15 +25,15 @@ class FontImageMapDrawer {
             bw.position = vertices.vertexFormat.size * quads * 6
 
             text.forEach {
-                val metrics = fontMap.glyphMetrics[it]!!
-                insertCharacterQuad(fontMap, bw, it, x + cursorX + metrics.leftSideBearing/fontMap.contentScale, y + cursorY + metrics.yBitmapShift/fontMap.contentScale)
+                val metrics = fontMap.glyphMetrics[it] ?: fontMap.glyphMetrics[' ']!!
+                insertCharacterQuad(fontMap, bw, it, x + cursorX + metrics.leftSideBearing / fontMap.contentScale, y + cursorY + metrics.yBitmapShift / fontMap.contentScale)
                 cursorX += metrics.advanceWidth
             }
             flush(context, drawStyle)
         }
     }
 
-    fun queueText(fontMap:FontMap, text:String, x:Double, y:Double, tracking:Double = 0.0) {
+    fun queueText(fontMap: FontMap, text: String, x: Double, y: Double, tracking: Double = 0.0) {
         val bw = vertices.shadow.writer()
         bw.position = vertices.vertexFormat.size * quads * 6
         fontMap as FontImageMap
@@ -43,7 +43,7 @@ class FontImageMapDrawer {
         text.forEach {
             val metrics = fontMap.glyphMetrics[it]
             metrics?.let { m ->
-                insertCharacterQuad(fontMap, bw, it, x + cursorX + m.leftSideBearing/fontMap.contentScale, y + cursorY + m.yBitmapShift/fontMap.contentScale)
+                insertCharacterQuad(fontMap, bw, it, x + cursorX + m.leftSideBearing / fontMap.contentScale, y + cursorY + m.yBitmapShift / fontMap.contentScale)
                 cursorX += m.advanceWidth + tracking
             }
         }
@@ -77,9 +77,9 @@ class FontImageMapDrawer {
         val v1 = v0 + (1 + pad * 2 + rectangle.height.toFloat()) / (fontMap.texture.height)
 
         val x0 = x.toFloat() - pad
-        val x1 = x0 + rectangle.width.toFloat()/fontMap.contentScale.toFloat() + pad * 2
+        val x1 = x0 + rectangle.width.toFloat() / fontMap.contentScale.toFloat() + pad * 2
         val y0 = y.toFloat() - pad
-        val y1 = y0 + rectangle.height.toFloat()/fontMap.contentScale.toFloat() + pad * 2
+        val y1 = y0 + rectangle.height.toFloat() / fontMap.contentScale.toFloat() + pad * 2
 
         val s0 = 0.0f
         val t0 = 0.0f
