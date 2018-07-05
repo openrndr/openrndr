@@ -27,7 +27,7 @@ class FFMPEGVideoPlayer private constructor(url: String) {
             val device: String
             device = when {
                 "windows" in osName -> {
-                    "Integrated Camera"
+                    "video=Integrated Webcam"
                 }
                 "mac os x" in osName -> {
                     "0"
