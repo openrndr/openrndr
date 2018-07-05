@@ -14,7 +14,7 @@ private val filterDrawStyle = DrawStyle().apply {
 
 private var filterQuad: VertexBuffer? = null
 
-open class Filter(val shader: Shader) {
+open class Filter(private val shader: Shader? = null, private val watcher: ShaderWatcher? = null) {
 
     val parameters = mutableMapOf<String, Any>()
 
@@ -22,13 +22,12 @@ open class Filter(val shader: Shader) {
         val filterVertexCode: String get() = Driver.instance.internalShaderResource("filter.vert")
     }
 
-
     fun apply(source: RenderTarget, target: RenderTarget) {
         apply(source.colorBuffers.toTypedArray(), target.colorBuffers.toTypedArray())
     }
 
     open fun apply(source: Array<ColorBuffer>, target: Array<ColorBuffer>) {
-
+        val shader = if (this.watcher != null) watcher.shader!! else this.shader!!
         val renderTarget = RenderTarget.create(target[0].width, target[0].height, 1.0)
 
         target.forEach {
@@ -84,7 +83,7 @@ open class Filter(val shader: Shader) {
                 is Int -> shader.uniform(uniform, value)
                 is Matrix55 -> shader.uniform(uniform, value.floatArray)
 
-                // EJ: this is not so nice but I have no other ideas for this
+            // EJ: this is not so nice but I have no other ideas for this
                 is Array<*> -> if (value.size > 0) when (value[0]) {
                     is Vector2 -> shader.uniform(uniform, value as Array<Vector2>)
                     is Vector3 -> shader.uniform(uniform, value as Array<Vector3>)

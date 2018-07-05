@@ -1,24 +1,23 @@
 package org.openrndr.draw
 
 import java.io.File
+import java.net.URL
 import java.nio.file.FileSystems
 import java.nio.file.Path
 import java.nio.file.StandardWatchEventKinds
 import java.nio.file.WatchKey
 import kotlin.concurrent.thread
 
+private val watching = mutableMapOf<Path, MutableList<ShaderWatcher>>()
+private val pathKeys = mutableMapOf<Path, WatchKey>()
+private val keyPaths = mutableMapOf<WatchKey, Path>()
 
-internal val watching = mutableMapOf<Path, MutableList<ShaderWatcher>>()
-internal val pathKeys = mutableMapOf<Path, WatchKey>()
-internal val keyPaths = mutableMapOf<WatchKey, Path>()
-
-internal val watchService by lazy {
+private val watchService by lazy {
     FileSystems.getDefault().newWatchService()
 }
 
-internal val watchThread by lazy {
+private val watchThread by lazy {
     thread {
-        println("starting service")
         while (true) {
             val key = watchService.take()
             val path = keyPaths[key]
@@ -35,38 +34,63 @@ internal val watchThread by lazy {
     }
 }
 
-
-class ShaderWatcher private constructor(val vsUrlString: String, val fsUrlString: String, var currentShader: Shader) {
+class ShaderWatcher private constructor(
+        val vsUrl: String? = null,
+        val vsCode: String? = null,
+        val fsUrl: String? = null,
+        val fsCode: String? = null,
+        var currentShader: Shader) {
 
     internal var changed = false
-    companion object {
-        fun fromFiles(vsUrlString: String, fsUrlString: String): ShaderWatcher {
-            val vsFile = File(vsUrlString)
-            val fsFile = File(fsUrlString)
-            val vsPath = vsFile.toPath()
-            val fsPath = fsFile.toPath()
-            val vsParent = vsPath.parent
-            val fsParent = fsPath.parent
 
-            val watcher = ShaderWatcher(vsFile.toURL().toExternalForm(), fsFile.toURL().toExternalForm(), Shader.createFromUrls(vsFile.toURL().toExternalForm(), fsFile.toURL().toExternalForm()))
-            listOf(vsParent, fsParent).forEach {
+    companion object {
+        fun fromUrls(vsCode: String? = null,
+                     vsUrl: String? = null,
+                     fsCode: String? = null,
+                     fsUrl: String? = null): ShaderWatcher {
+            val vsFile = vsUrl?.let { URL(it).toFile().let { File(it) } }
+            val fsFile = fsUrl?.let { URL(it).toFile().let { File(it) } }
+            val vsPath = vsFile?.toPath()
+            val fsPath = fsFile?.toPath()
+            val vsParent = vsPath?.parent
+            val fsParent = fsPath?.parent
+
+            val effectiveVsCode = vsCode ?: codeFromURL(vsUrl ?: throw RuntimeException("no code or url for vertex shader"))
+            val effectiveFsCode = fsCode ?: codeFromURL(fsUrl ?: throw RuntimeException("no code or url for fragment shader"))
+            val shader = Shader.createFromCode(effectiveVsCode, effectiveFsCode)
+
+            val watcher = ShaderWatcher(
+                    vsCode = vsCode,
+                    vsUrl = vsUrl,
+                    fsCode = fsCode,
+                    fsUrl = fsUrl,
+                    currentShader = shader)
+
+            listOfNotNull(vsParent, fsParent).forEach {
                 val key = pathKeys.getOrPut(it) {
                     it.register(watchService, StandardWatchEventKinds.ENTRY_MODIFY)
                 }
                 keyPaths.getOrPut(key) { it }
-
             }
-            watching.getOrPut(vsPath) { mutableListOf() }.add(watcher)
-            watching.getOrPut(fsPath) { mutableListOf() }.add(watcher)
+            if (vsPath != null) {
+                watching.getOrPut(vsPath) { mutableListOf() }.add(watcher)
+            }
+
+            if (fsPath != null) {
+                watching.getOrPut(fsPath) { mutableListOf() }.add(watcher)
+            }
             watchThread
             return watcher
         }
     }
+
     val shader: Shader?
         get() {
             if (changed) {
                 try {
-                    currentShader = Shader.createFromUrls(vsUrlString, fsUrlString)
+                    val effectiveVsCode = vsCode ?: codeFromURL(vsUrl ?: throw RuntimeException("no code or url for vertex shader"))
+                    val effectiveFsCode = fsCode ?: codeFromURL(fsUrl ?: throw RuntimeException("no code or url for fragment shader"))
+                    currentShader = Shader.createFromCode(effectiveVsCode, effectiveFsCode)
                 } catch (exception: Throwable) {
                     exception.printStackTrace()
                 }
@@ -75,3 +99,29 @@ class ShaderWatcher private constructor(val vsUrlString: String, val fsUrlString
             return currentShader
         }
 }
+
+class ShaderWatcherBuilder {
+    var vertexShaderCode: String? = null
+    var vertexShaderUrl: String? = null
+    var fragmentShaderCode: String? = null
+    var fragmentShaderUrl: String? = null
+
+    fun build(): ShaderWatcher {
+        return ShaderWatcher.fromUrls(vsCode = vertexShaderCode, vsUrl = vertexShaderUrl, fsCode = fragmentShaderCode, fsUrl = fragmentShaderUrl)
+    }
+}
+
+private fun URL.toFile(): String? {
+    return if (protocol == "file") {
+        path
+    } else {
+        null
+    }
+}
+
+fun shaderWatcher(init: ShaderWatcherBuilder.() -> Unit):ShaderWatcher {
+    val swb = ShaderWatcherBuilder()
+    swb.init()
+    return swb.build()
+}
+
