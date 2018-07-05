@@ -6,6 +6,7 @@ import org.openrndr.internal.gl3.ColorBufferGL3
 import java.io.File
 import java.io.IOException
 import java.io.OutputStream
+import java.nio.Buffer
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.channels.Channel
@@ -235,7 +236,7 @@ class VideoWriter {
         if (System.getProperty("os.name").contains("Windows")) {
             arguments.add("ffmpeg.exe")
         } else {
-            arguments.add("/usr/local/bin/ffmpeg")
+            arguments.add("ffmpeg")
         }
         arguments.addAll(Arrays.asList(*preamble))
         arguments.addAll(Arrays.asList(*codec))
@@ -269,13 +270,13 @@ class VideoWriter {
         if (! ((frame.width == width) && frame.height == height)) {
             throw RuntimeException("frame size mismatch")
         } else {
-            frameBuffer.rewind()
+            (frameBuffer as Buffer).rewind()
             frameBuffer.order(ByteOrder.nativeOrder())
 
             frame as ColorBufferGL3
 
             frame.read(frameBuffer)
-            frameBuffer.rewind()
+            (frameBuffer as Buffer).rewind()
 
             try {
                 channel.write(frameBuffer)

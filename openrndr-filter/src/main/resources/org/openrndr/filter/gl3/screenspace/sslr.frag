@@ -13,6 +13,14 @@ uniform mat4 projection;
 // --- output ---
 layout(location = 0) out vec4 o_color;
 
+
+// --- parameters ---
+uniform float jitterOriginGain;
+uniform int iterationLimit;
+uniform float distanceLimit;
+uniform float gain;
+uniform float borderWidth;
+
 float distanceSquared(vec2 a, vec2 b) {
     vec2 d = b-a;
     return dot(d,d);
@@ -138,8 +146,11 @@ bool traceScreenSpaceRay1(
         hitPixel = permute ? P.yx : P;
         // You may need hitPixel.y = csZBufferSize.y - hitPixel.y; here if your vertical axis
         // is different than ours in screen space
-        sceneZMax = texelFetch(csZBuffer, ivec2(hitPixel), 0).z;
-        zThickness = texelFetch(csZBuffer, ivec2(hitPixel), 0).w;
+
+        vec4 depthData = texelFetch(csZBuffer, ivec2(hitPixel), 0);
+
+        sceneZMax = depthData.z;
+        zThickness = depthData.w;
     }
 
     // Advance Q based on the number of steps
@@ -150,41 +161,46 @@ bool traceScreenSpaceRay1(
 
 
 void main() {
-
-    vec2 hitPixel= vec2(0.0,0.0);
-    vec3 hitPoint= vec3(0.0, 0.0, 0.0);
+    vec2 hitPixel = vec2(0.0, 0.0);
+    vec3 hitPoint = vec3(0.0, 0.0, 0.0);
 
     vec2 jitter = abs(hash22(v_texCoord0))*1.0;
     float reflectivity = texture(normals, v_texCoord0).a;
 
-
     vec2 ts = vec2(textureSize(normals, 0).xy);
     vec3 viewNormal = normalize(texture(normals, v_texCoord0).xyz);// + (texture(noise, v_texCoord0*0.1).xyz - 0.5) * 0.0;
-     vec3 viewPos = texture(positions, v_texCoord0).xyz;
-     vec3 reflected = normalize(reflect(normalize(viewPos), normalize(viewNormal)));
+    vec3 viewPos = texture(positions, v_texCoord0).xyz;
+    vec3 reflected = normalize(reflect(normalize(viewPos), normalize(viewNormal)));
 
     float frontalFade = clamp(-reflected.z,0, 1);
     if ( reflectivity > 0 ) {
-        bool hit = traceScreenSpaceRay1(viewPos+reflected*(1.0+jitter.y*0.1), reflected, projection, positions, ts, 1.0, 0.0, 1.0, jitter.x, 1280.0/4.0, 64.0, hitPixel, hitPoint);
+        bool hit = traceScreenSpaceRay1(
+            viewPos + reflected*(1.0+jitter.y * jitterOriginGain),
+            reflected,
+            projection,
+            positions,
+            ts,
+            1.0,
+            0.0,
+            1.0,
+            jitter.x,
+            distanceLimit,
+            iterationLimit,
+            hitPixel,
+            hitPoint);
 
-        float maxDistance = 1280.0/4.0;
-        float distanceFade = max( 0.0, (maxDistance -length(hitPoint-viewPos))/ maxDistance);
+        float distanceFade = max( 0.0, (distanceLimit -length(hitPoint-viewPos))/ distanceLimit);
         vec4 p = projection * vec4(hitPoint, 1.0);
-              //  p.xy += vec2(1.0, 1.0);
-              //  p.xy *= ts/2.0;
-
         float k = 1.0 / p.w;
 
         vec2 pos = vec2(p.xy*k);
         vec2 ad = vec2(ts/2- abs(pos - ts/2));
-        float borderFade = smoothstep(0, 130, min(ad.x, ad.y));
-
+        float borderFade = smoothstep(0, borderWidth, min(ad.x, ad.y));
 
         vec4 reflectedColor = texelFetch(colors, ivec2(p.xy*k), 0);
         float hitFade = hit? 1.0: 0.0;
-        o_color = (reflectivity * reflectedColor * hitFade * frontalFade * distanceFade * borderFade * 0.25);
+        o_color = (reflectivity * reflectedColor * hitFade * frontalFade * distanceFade * borderFade * gain);
         o_color.a = 1.0;
-
     } else {
         o_color = vec4(0.0);
     }

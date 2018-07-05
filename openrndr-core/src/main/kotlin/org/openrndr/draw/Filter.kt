@@ -19,11 +19,11 @@ open class Filter(val shader: Shader) {
     val parameters = mutableMapOf<String, Any>()
 
     companion object {
-        val filterVertexCode:String get() = Driver.instance.internalShaderResource("filter.vert")
+        val filterVertexCode: String get() = Driver.instance.internalShaderResource("filter.vert")
     }
 
 
-    fun apply(source:RenderTarget, target:RenderTarget) {
+    fun apply(source: RenderTarget, target: RenderTarget) {
         apply(source.colorBuffers.toTypedArray(), target.colorBuffers.toTypedArray())
     }
 
@@ -69,6 +69,8 @@ open class Filter(val shader: Shader) {
         shader.uniform("projectionMatrix", ortho(0.0, target[0].width.toDouble(), target[0].height.toDouble(), 0.0, -1.0, 1.0))
         shader.uniform("targetSize", Vector2(target[0].width.toDouble(), target[0].height.toDouble()))
 
+
+        var textureIndex = source.size
         parameters.forEach { (uniform, value) ->
             @Suppress("UNCHECKED_CAST")
             when (value) {
@@ -83,14 +85,25 @@ open class Filter(val shader: Shader) {
                 is Matrix55 -> shader.uniform(uniform, value.floatArray)
 
                 // EJ: this is not so nice but I have no other ideas for this
-                is Array<*> -> if (value.size > 0) when(value[0]) {
+                is Array<*> -> if (value.size > 0) when (value[0]) {
                     is Vector2 -> shader.uniform(uniform, value as Array<Vector2>)
                     is Vector3 -> shader.uniform(uniform, value as Array<Vector3>)
                     is Vector4 -> shader.uniform(uniform, value as Array<Vector4>)
                 }
 
+                is ColorBuffer -> {
+                    shader.uniform("$uniform", textureIndex)
+                    value.bind(textureIndex)
+                    textureIndex++
+                }
+                is Cubemap -> {
+                    shader.uniform("$uniform", textureIndex)
+                    value.bind(textureIndex)
+                    textureIndex++
+                }
             }
         }
+
         Driver.instance.drawVertexBuffer(shader, listOf(filterQuad!!), DrawPrimitive.TRIANGLES, 0, 6)
         shader.end()
         renderTarget.unbind()

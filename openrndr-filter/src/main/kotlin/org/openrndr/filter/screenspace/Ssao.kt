@@ -39,11 +39,24 @@ class Sslr : Filter(Shader.createFromCode(Filter.filterVertexCode, filterFragmen
     var positions: Int by parameters
     var normals: Int by parameters
 
+    var jitterOriginGain: Double by parameters
+    var iterationLimit: Int by parameters
+    var distanceLimit: Double by parameters
+    var gain: Double by parameters
+    var borderWidth: Double by parameters
+
     init {
         colors = 0
         positions = 1
         normals = 2
         projection = Matrix44.IDENTITY
+
+        distanceLimit = 1280.0/4.0
+        iterationLimit = 64
+        jitterOriginGain = 0.1
+
+        gain = 0.25
+        borderWidth = 130.0
     }
 }
 

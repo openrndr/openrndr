@@ -24,7 +24,6 @@ class VertexBufferShadowGL3(override val vertexBuffer:VertexBufferGL3): VertexBu
                 order(ByteOrder.nativeOrder())
             }
 
-
     override fun upload(offset:Int, size:Int) {
         logger.trace { "uploading shadow to vertex buffer" }
         (buffer as Buffer).rewind()
@@ -46,7 +45,6 @@ class VertexBufferShadowGL3(override val vertexBuffer:VertexBufferGL3): VertexBu
     override fun writer():BufferWriter {
         return BufferWriterGL3(buffer, vertexBuffer.vertexFormat.size)
     }
-
 }
 
 class VertexBufferGL3(val buffer:Int, override val vertexFormat: VertexFormat, override val vertexCount:Int) : VertexBuffer {
@@ -71,7 +69,6 @@ class VertexBufferGL3(val buffer:Int, override val vertexFormat: VertexFormat, o
             }
             return realShadow!!
         }
-
 
     override fun write(data: ByteBuffer, offset:Int) {
         if (data.isDirect) {
@@ -131,5 +128,4 @@ class VertexBufferGL3(val buffer:Int, override val vertexFormat: VertexFormat, o
         glBindBuffer(GL_ARRAY_BUFFER, 0)
         debugGLErrors()
     }
-
 }

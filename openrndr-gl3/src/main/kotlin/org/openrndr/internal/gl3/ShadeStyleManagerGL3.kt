@@ -13,7 +13,7 @@ private val logger = KotlinLogging.logger {}
 
 class ShadeStyleManagerGL3(val vertexShaderGenerator: (ShadeStructure)->String, val fragmentShaderGenerator:(ShadeStructure)->String) : ShadeStyleManager() {
     var defaultShader: Shader? = null
-    val shaders = mutableMapOf<ShadeStructure, Shader>()
+    private val shaders = mutableMapOf<ShadeStructure, Shader>()
 
     override fun shader(style: ShadeStyle?, vertexFormats: List<VertexFormat>, instanceFormats:List<VertexFormat>):Shader {
         if (style == null) {

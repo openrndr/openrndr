@@ -1,0 +1,9 @@
+dependencies {
+    compile project(":openrndr-event")
+    compile project(":openrndr-core")
+    compile "org.lwjgl:lwjgl-nfd:$lwjglVersion"
+    runtime "org.lwjgl:lwjgl-nfd:$lwjglVersion:natives-windows"
+    runtime "org.lwjgl:lwjgl-nfd:$lwjglVersion:natives-linux"
+    runtime "org.lwjgl:lwjgl-nfd:$lwjglVersion:natives-macos"
+
+}

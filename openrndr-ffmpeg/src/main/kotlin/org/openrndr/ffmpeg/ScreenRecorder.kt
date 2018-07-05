@@ -9,18 +9,22 @@ import org.openrndr.draw.renderTarget
 import org.openrndr.math.Matrix44
 import java.time.LocalDateTime
 
-class ScreenRecorder:Extension {
+class ScreenRecorder : Extension {
 
     override var enabled: Boolean = true
 
-    lateinit var videoWriter: VideoWriter
-    lateinit var frame: RenderTarget
+    private lateinit var videoWriter: VideoWriter
+    private lateinit var frame: RenderTarget
+
+    var frameRate = 30
+    var profile = MP4Profile()
+
     override fun setup(program: Program) {
 
-        fun Int.z(zeroes:Int=2):String {
+        fun Int.z(zeroes: Int = 2): String {
             val sv = this.toString()
             var prefix = ""
-            for (i in 0 until Math.max(zeroes-sv.length, 0)) {
+            for (i in 0 until Math.max(zeroes - sv.length, 0)) {
                 prefix += "0"
             }
             return "$prefix$sv"
@@ -31,7 +35,7 @@ class ScreenRecorder:Extension {
             depthBuffer()
         }
         val dt = LocalDateTime.now()
-        videoWriter = VideoWriter().output("${program.javaClass.simpleName}-${dt.year.z(4)}-${dt.month.value.z()}-${dt.dayOfMonth.z()}-${dt.hour.z()}.${dt.minute.z()}.${dt.second.z()}.mp4").size(program.width, program.height).frameRate(30).start()
+        videoWriter = VideoWriter().profile(profile).output("${program.javaClass.simpleName}-${dt.year.z(4)}-${dt.month.value.z()}-${dt.dayOfMonth.z()}-${dt.hour.z()}.${dt.minute.z()}.${dt.second.z()}.mp4").size(program.width, program.height).frameRate(frameRate).start()
     }
 
     override fun beforeDraw(drawer: Drawer, program: Program) {
