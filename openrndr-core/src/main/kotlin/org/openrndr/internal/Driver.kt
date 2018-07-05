@@ -53,6 +53,8 @@ interface Driver {
     fun createCubemapFromUrls(urls: List<String>): Cubemap
 
 
+    fun createResourceThread(f: () -> Unit): ResourceThread
+
     fun clear(color: ColorRGBa)
 
     fun createDynamicVertexBuffer(format: VertexFormat, vertexCount: Int): VertexBuffer

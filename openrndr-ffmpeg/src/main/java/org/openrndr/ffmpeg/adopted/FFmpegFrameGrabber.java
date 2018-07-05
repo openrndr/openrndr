@@ -59,16 +59,10 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import org.bytedeco.javacpp.BytePointer;
-import org.bytedeco.javacpp.DoublePointer;
-import org.bytedeco.javacpp.IntPointer;
-import org.bytedeco.javacpp.Loader;
-import org.bytedeco.javacpp.Pointer;
-import org.bytedeco.javacpp.PointerPointer;
+
+import org.bytedeco.javacpp.*;
 
 import static org.bytedeco.javacpp.avcodec.*;
 import static org.bytedeco.javacpp.avdevice.*;
@@ -78,20 +72,33 @@ import static org.bytedeco.javacpp.swresample.*;
 import static org.bytedeco.javacpp.swscale.*;
 
 /**
- *
  * @author Samuel Audet
  */
 public class FFmpegFrameGrabber extends FrameGrabber {
+
+    public String inputFormat;
+
     public static String[] getDeviceDescriptions() throws Exception {
         tryLoad();
-        throw new UnsupportedOperationException("Device enumeration not support by FFmpeg.");
+        AVInputFormat f = null;
+        List<String> devices = new ArrayList<>();
+        return devices.toArray(new String[0]);
     }
 
-    public static FFmpegFrameGrabber createDefault(File deviceFile)   throws Exception { return new FFmpegFrameGrabber(deviceFile); }
-    public static FFmpegFrameGrabber createDefault(String devicePath) throws Exception { return new FFmpegFrameGrabber(devicePath); }
-    public static FFmpegFrameGrabber createDefault(int deviceNumber)  throws Exception { throw new Exception(FFmpegFrameGrabber.class + " does not support device numbers."); }
+    public static FFmpegFrameGrabber createDefault(File deviceFile) throws Exception {
+        return new FFmpegFrameGrabber(deviceFile);
+    }
+
+    public static FFmpegFrameGrabber createDefault(String devicePath) throws Exception {
+        return new FFmpegFrameGrabber(devicePath);
+    }
+
+    public static FFmpegFrameGrabber createDefault(int deviceNumber) throws Exception {
+        throw new Exception(FFmpegFrameGrabber.class + " does not support device numbers.");
+    }
 
     private static Exception loadingException = null;
+
     public static void tryLoad() throws Exception {
         if (loadingException != null) {
             throw loadingException;
@@ -108,11 +115,12 @@ public class FFmpegFrameGrabber extends FrameGrabber {
                 av_register_all();
                 avformat_network_init();
 
+
                 Loader.load(org.bytedeco.javacpp.avdevice.class);
                 avdevice_register_all();
             } catch (Throwable t) {
                 if (t instanceof Exception) {
-                    throw loadingException = (Exception)t;
+                    throw loadingException = (Exception) t;
                 } else {
                     throw loadingException = new Exception("Failed to load " + FFmpegFrameGrabber.class, t);
                 }
@@ -124,7 +132,8 @@ public class FFmpegFrameGrabber extends FrameGrabber {
         try {
             tryLoad();
             FFmpegLockCallback.init();
-        } catch (Exception ex) { }
+        } catch (Exception ex) {
+        }
     }
 
     public FFmpegFrameGrabber(File file) {
@@ -147,16 +156,19 @@ public class FFmpegFrameGrabber extends FrameGrabber {
         this.pixelFormat = AV_PIX_FMT_NONE;
         this.sampleFormat = AV_SAMPLE_FMT_NONE;
     }
+
     public FFmpegFrameGrabber(InputStream inputStream) {
         this.inputStream = inputStream;
         this.pixelFormat = AV_PIX_FMT_NONE;
         this.sampleFormat = AV_SAMPLE_FMT_NONE;
     }
+
     public void release() throws Exception {
         // synchronized (org.bytedeco.javacpp.avcodec.class) {
         releaseUnsafe();
         // }
     }
+
     void releaseUnsafe() throws Exception {
         if (pkt != null && pkt2 != null) {
             if (pkt2.size() > 0) {
@@ -225,11 +237,11 @@ public class FFmpegFrameGrabber extends FrameGrabber {
             samples_convert_ctx = null;
         }
 
-        got_frame     = null;
-        frameGrabbed  = false;
-        frame         = null;
-        timestamp     = 0;
-        frameNumber   = 0;
+        got_frame = null;
+        frameGrabbed = false;
+        frame = null;
+        timestamp = 0;
+        frameNumber = 0;
 
         if (inputStream != null) {
             try {
@@ -258,15 +270,18 @@ public class FFmpegFrameGrabber extends FrameGrabber {
             }
         }
     }
-    @Override protected void finalize() throws Throwable {
+
+    @Override
+    protected void finalize() throws Throwable {
         super.finalize();
         release();
     }
 
-    static Map<Pointer,InputStream> inputStreams = Collections.synchronizedMap(new HashMap<Pointer,InputStream>());
+    static Map<Pointer, InputStream> inputStreams = Collections.synchronizedMap(new HashMap<Pointer, InputStream>());
 
     static class ReadCallback extends Read_packet_Pointer_BytePointer_int {
-        @Override public int call(Pointer opaque, BytePointer buf, int buf_size) {
+        @Override
+        public int call(Pointer opaque, BytePointer buf, int buf_size) {
             try {
                 byte[] b = new byte[buf_size];
                 InputStream is = inputStreams.get(opaque);
@@ -277,8 +292,7 @@ public class FFmpegFrameGrabber extends FrameGrabber {
                     buf.put(b, 0, size);
                     return size;
                 }
-            }
-            catch (Throwable t) {
+            } catch (Throwable t) {
                 System.err.println("Error on InputStream.read(): " + t);
                 return -1;
             }
@@ -286,13 +300,18 @@ public class FFmpegFrameGrabber extends FrameGrabber {
     }
 
     static class SeekCallback extends Seek_Pointer_long_int {
-        @Override public long call(Pointer opaque, long offset, int whence) {
+        @Override
+        public long call(Pointer opaque, long offset, int whence) {
             try {
                 InputStream is = inputStreams.get(opaque);
                 switch (whence) {
-                    case 0: is.reset(); break;
-                    case 1: break;
-                    default: return -1;
+                    case 0:
+                        is.reset();
+                        break;
+                    case 1:
+                        break;
+                    default:
+                        return -1;
                 }
                 long remaining = offset;
                 while (remaining > 0) {
@@ -311,30 +330,31 @@ public class FFmpegFrameGrabber extends FrameGrabber {
     static ReadCallback readCallback = new ReadCallback();
     static SeekCallback seekCallback = new SeekCallback();
 
-    private InputStream     inputStream;
-    private AVIOContext     avio;
-    private String          filename;
+    private InputStream inputStream;
+    private AVIOContext avio;
+    private String filename;
     private AVFormatContext oc;
-    private AVStream        video_st, audio_st;
-    private AVCodecContext  video_c, audio_c;
-    private AVFrame         picture, picture_rgb;
-    private BytePointer[]   image_ptr;
-    private Buffer[]        image_buf;
-    private AVFrame         samples_frame;
-    private BytePointer[]   samples_ptr;
-    private Buffer[]        samples_buf;
-    private BytePointer[]   samples_ptr_out;
-    private Buffer[]        samples_buf_out;
-    private AVPacket        pkt, pkt2;
-    private int             sizeof_pkt;
-    private int[]           got_frame;
-    private SwsContext      img_convert_ctx;
-    private SwrContext      samples_convert_ctx;
-    private int             samples_channels, samples_format, samples_rate;
-    private boolean         frameGrabbed;
-    private Frame           frame;
+    private AVStream video_st, audio_st;
+    private AVCodecContext video_c, audio_c;
+    private AVFrame picture, picture_rgb;
+    private BytePointer[] image_ptr;
+    private Buffer[] image_buf;
+    private AVFrame samples_frame;
+    private BytePointer[] samples_ptr;
+    private Buffer[] samples_buf;
+    private BytePointer[] samples_ptr_out;
+    private Buffer[] samples_buf_out;
+    private AVPacket pkt, pkt2;
+    private int sizeof_pkt;
+    private int[] got_frame;
+    private SwsContext img_convert_ctx;
+    private SwrContext samples_convert_ctx;
+    private int samples_channels, samples_format, samples_rate;
+    private boolean frameGrabbed;
+    private Frame frame;
 
-    @Override public double getGamma() {
+    @Override
+    public double getGamma() {
         // default to a gamma of 2.2 for cheap Webcams, DV cameras, etc.
         if (gamma == 0.0) {
             return 2.2;
@@ -343,7 +363,8 @@ public class FFmpegFrameGrabber extends FrameGrabber {
         }
     }
 
-    @Override public String getFormat() {
+    @Override
+    public String getFormat() {
         if (oc == null) {
             return super.getFormat();
         } else {
@@ -351,19 +372,23 @@ public class FFmpegFrameGrabber extends FrameGrabber {
         }
     }
 
-    @Override public int getImageWidth() {
+    @Override
+    public int getImageWidth() {
         return imageWidth > 0 || video_c == null ? super.getImageWidth() : video_c.width();
     }
 
-    @Override public int getImageHeight() {
+    @Override
+    public int getImageHeight() {
         return imageHeight > 0 || video_c == null ? super.getImageHeight() : video_c.height();
     }
 
-    @Override public int getAudioChannels() {
+    @Override
+    public int getAudioChannels() {
         return audioChannels > 0 || audio_c == null ? super.getAudioChannels() : audio_c.channels();
     }
 
-    @Override public int getPixelFormat() {
+    @Override
+    public int getPixelFormat() {
         if (imageMode == ImageMode.COLOR || imageMode == ImageMode.GRAY) {
             if (pixelFormat == AV_PIX_FMT_NONE) {
                 return imageMode == ImageMode.COLOR ? AV_PIX_FMT_RGB24 : AV_PIX_FMT_GRAY8;
@@ -377,25 +402,29 @@ public class FFmpegFrameGrabber extends FrameGrabber {
         }
     }
 
-    @Override public int getVideoCodec() {
+    @Override
+    public int getVideoCodec() {
         return video_c == null ? super.getVideoCodec() : video_c.codec_id();
     }
 
-    @Override public int getVideoBitrate() {
-        return video_c == null ? super.getVideoBitrate() : (int)video_c.bit_rate();
+    @Override
+    public int getVideoBitrate() {
+        return video_c == null ? super.getVideoBitrate() : (int) video_c.bit_rate();
     }
 
-    @Override public double getAspectRatio() {
+    @Override
+    public double getAspectRatio() {
         if (video_st == null) {
             return super.getAspectRatio();
         } else {
             AVRational r = av_guess_sample_aspect_ratio(oc, video_st, picture);
-            double a = (double)r.num() / r.den();
+            double a = (double) r.num() / r.den();
             return a == 0.0 ? 1.0 : a;
         }
     }
 
-    @Override public double getFrameRate() {
+    @Override
+    public double getFrameRate() {
         if (video_st == null) {
             return super.getFrameRate();
         } else {
@@ -403,19 +432,22 @@ public class FFmpegFrameGrabber extends FrameGrabber {
             if (r.num() == 0 && r.den() == 0) {
                 r = video_st.r_frame_rate();
             }
-            return (double)r.num() / r.den();
+            return (double) r.num() / r.den();
         }
     }
 
-    @Override public int getAudioCodec() {
+    @Override
+    public int getAudioCodec() {
         return audio_c == null ? super.getAudioCodec() : audio_c.codec_id();
     }
 
-    @Override public int getAudioBitrate() {
-        return audio_c == null ? super.getAudioBitrate() : (int)audio_c.bit_rate();
+    @Override
+    public int getAudioBitrate() {
+        return audio_c == null ? super.getAudioBitrate() : (int) audio_c.bit_rate();
     }
 
-    @Override public int getSampleFormat() {
+    @Override
+    public int getSampleFormat() {
         if (sampleMode == SampleMode.SHORT || sampleMode == SampleMode.FLOAT) {
             if (sampleFormat == AV_SAMPLE_FMT_NONE) {
                 return sampleMode == SampleMode.SHORT ? AV_SAMPLE_FMT_S16 : AV_SAMPLE_FMT_FLT;
@@ -429,11 +461,13 @@ public class FFmpegFrameGrabber extends FrameGrabber {
         }
     }
 
-    @Override public int getSampleRate() {
+    @Override
+    public int getSampleRate() {
         return sampleRate > 0 || audio_c == null ? super.getSampleRate() : audio_c.sample_rate();
     }
 
-    @Override public String getMetadata(String key) {
+    @Override
+    public String getMetadata(String key) {
         if (oc == null) {
             return super.getMetadata(key);
         }
@@ -441,7 +475,8 @@ public class FFmpegFrameGrabber extends FrameGrabber {
         return entry == null || entry.value() == null ? null : entry.value().getString();
     }
 
-    @Override public String getVideoMetadata(String key) {
+    @Override
+    public String getVideoMetadata(String key) {
         if (video_st == null) {
             return super.getVideoMetadata(key);
         }
@@ -449,7 +484,8 @@ public class FFmpegFrameGrabber extends FrameGrabber {
         return entry == null || entry.value() == null ? null : entry.value().getString();
     }
 
-    @Override public String getAudioMetadata(String key) {
+    @Override
+    public String getAudioMetadata(String key) {
         if (audio_st == null) {
             return super.getAudioMetadata(key);
         }
@@ -457,12 +493,14 @@ public class FFmpegFrameGrabber extends FrameGrabber {
         return entry == null || entry.value() == null ? null : entry.value().getString();
     }
 
-    @Override public void setFrameNumber(int frameNumber) throws Exception {
+    @Override
+    public void setFrameNumber(int frameNumber) throws Exception {
         // best guess, AVSEEK_FLAG_FRAME has not been implemented in FFmpeg...
         setTimestamp(Math.round(1000000L * frameNumber / getFrameRate()));
     }
 
-    @Override public void setTimestamp(long timestamp) throws Exception {
+    @Override
+    public void setTimestamp(long timestamp) throws Exception {
         int ret;
         if (oc == null) {
             super.setTimestamp(timestamp);
@@ -505,12 +543,17 @@ public class FFmpegFrameGrabber extends FrameGrabber {
         }
     }
 
-    /** Returns {@code getLengthInTime() * getFrameRate() / 1000000L)}, which is an approximation in general. */
-    @Override public int getLengthInFrames() {
+    /**
+     * Returns {@code getLengthInTime() * getFrameRate() / 1000000L)}, which is an approximation in general.
+     */
+    @Override
+    public int getLengthInFrames() {
         // best guess...
-        return (int)(getLengthInTime() * getFrameRate() / 1000000L);
+        return (int) (getLengthInTime() * getFrameRate() / 1000000L);
     }
-    @Override public long getLengthInTime() {
+
+    @Override
+    public long getLengthInTime() {
         return oc.duration() * 1000000L / AV_TIME_BASE;
     }
 
@@ -524,20 +567,21 @@ public class FFmpegFrameGrabber extends FrameGrabber {
         startUnsafe();
         // }
     }
+
     void startUnsafe() throws Exception {
         int ret;
         img_convert_ctx = null;
-        oc              = new AVFormatContext(null);
-        video_c         = null;
-        audio_c         = null;
-        pkt             = new AVPacket();
-        pkt2            = new AVPacket();
-        sizeof_pkt      = pkt.sizeof();
-        got_frame       = new int[1];
-        frameGrabbed    = false;
-        frame           = new Frame();
-        timestamp       = 0;
-        frameNumber     = 0;
+        oc = new AVFormatContext(null);
+        video_c = null;
+        audio_c = null;
+        pkt = new AVPacket();
+        pkt2 = new AVPacket();
+        sizeof_pkt = pkt.sizeof();
+        got_frame = new int[1];
+        frameGrabbed = false;
+        frame = new Frame();
+        timestamp = 0;
+        frameNumber = 0;
 
         pkt2.size(0);
 
@@ -547,6 +591,7 @@ public class FFmpegFrameGrabber extends FrameGrabber {
             if ((f = av_find_input_format(format)) == null) {
                 throw new Exception("av_find_input_format() error: Could not find input format \"" + format + "\".");
             }
+            System.out.println("looked for format: " + f + " got " + format);
         }
         AVDictionary options = new AVDictionary(null);
         if (frameRate > 0) {
@@ -567,7 +612,12 @@ public class FFmpegFrameGrabber extends FrameGrabber {
         if (audioChannels > 0) {
             av_dict_set(options, "channels", "" + audioChannels, 0);
         }
-        for (Entry<String, String> e : this.options.entrySet()) {
+
+        if (inputFormat != null) {
+            av_dict_set(options, "input_format", inputFormat, 0);
+        }
+
+        for (Entry<String, String> e: this.options.entrySet()) {
             av_dict_set(options, e.getKey(), e.getValue(), 0);
         }
         if (inputStream != null) {
@@ -591,7 +641,7 @@ public class FFmpegFrameGrabber extends FrameGrabber {
         av_dict_free(options);
 
         // Retrieve stream information
-        if ((ret = avformat_find_stream_info(oc, (PointerPointer)null)) < 0) {
+        if ((ret = avformat_find_stream_info(oc, (PointerPointer) null)) < 0) {
             throw new Exception("avformat_find_stream_info() error " + ret + ": Could not find stream information.");
         }
 
@@ -640,7 +690,7 @@ public class FFmpegFrameGrabber extends FrameGrabber {
             }
 
             options = new AVDictionary(null);
-            for (Entry<String, String> e : videoOptions.entrySet()) {
+            for (Entry<String, String> e: videoOptions.entrySet()) {
                 av_dict_set(options, e.getKey(), e.getValue(), 0);
             }
             // Open video codec
@@ -684,7 +734,7 @@ public class FFmpegFrameGrabber extends FrameGrabber {
             }
 
             options = new AVDictionary(null);
-            for (Entry<String, String> e : audioOptions.entrySet()) {
+            for (Entry<String, String> e: audioOptions.entrySet()) {
                 av_dict_set(options, e.getKey(), e.getValue(), 0);
             }
             // Open audio codec
@@ -701,7 +751,7 @@ public class FFmpegFrameGrabber extends FrameGrabber {
     }
 
     private void initPictureRGB() {
-        int width  = imageWidth  > 0 ? imageWidth  : video_c.width();
+        int width = imageWidth > 0 ? imageWidth : video_c.width();
         int height = imageHeight > 0 ? imageHeight : video_c.height();
 
         switch (imageMode) {
@@ -719,8 +769,8 @@ public class FFmpegFrameGrabber extends FrameGrabber {
 
                 // Determine required buffer size and allocate buffer
                 int size = av_image_get_buffer_size(fmt, width, height, 1);
-                image_ptr = new BytePointer[] { new BytePointer(av_malloc(size)).capacity(size) };
-                image_buf = new Buffer[] { image_ptr[0].asBuffer() };
+                image_ptr = new BytePointer[]{new BytePointer(av_malloc(size)).capacity(size)};
+                image_buf = new Buffer[]{image_ptr[0].asBuffer()};
 
                 // Assign appropriate parts of buffer to image planes in picture_rgb
                 // Note that picture_rgb is an AVFrame, but AVFrame is a superset of AVPicture
@@ -731,8 +781,8 @@ public class FFmpegFrameGrabber extends FrameGrabber {
                 break;
 
             case RAW:
-                image_ptr = new BytePointer[] { null };
-                image_buf = new Buffer[] { null };
+                image_ptr = new BytePointer[]{null};
+                image_buf = new Buffer[]{null};
                 break;
 
             default:
@@ -752,7 +802,7 @@ public class FFmpegFrameGrabber extends FrameGrabber {
             pkt2.size(0);
             av_packet_unref(pkt);
         }
-        for (int i = 0; i < numBuffers+1; i++) {
+        for (int i = 0; i < numBuffers + 1; i++) {
             if (av_read_frame(oc, pkt) < 0) {
                 return;
             }
@@ -761,7 +811,7 @@ public class FFmpegFrameGrabber extends FrameGrabber {
     }
 
     private void processImage() throws Exception {
-        frame.imageWidth  = imageWidth  > 0 ? imageWidth  : video_c.width();
+        frame.imageWidth = imageWidth > 0 ? imageWidth : video_c.width();
         frame.imageHeight = imageHeight > 0 ? imageHeight : video_c.height();
         frame.imageDepth = Frame.DEPTH_UBYTE;
         switch (imageMode) {
@@ -781,7 +831,7 @@ public class FFmpegFrameGrabber extends FrameGrabber {
                 img_convert_ctx = sws_getCachedContext(img_convert_ctx,
                         video_c.width(), video_c.height(), video_c.pix_fmt(),
                         frame.imageWidth, frame.imageHeight, getPixelFormat(), SWS_BILINEAR,
-                        null, null, (DoublePointer)null);
+                        null, null, (DoublePointer) null);
                 if (img_convert_ctx == null) {
                     throw new Exception("sws_getCachedContext() error: Cannot initialize the conversion context.");
                 }
@@ -814,8 +864,8 @@ public class FFmpegFrameGrabber extends FrameGrabber {
         int ret;
 
         int sample_format = samples_frame.format();
-        int planes = av_sample_fmt_is_planar(sample_format) != 0 ? (int)samples_frame.channels() : 1;
-        int data_size = av_samples_get_buffer_size((IntPointer)null, audio_c.channels(),
+        int planes = av_sample_fmt_is_planar(sample_format) != 0 ? (int) samples_frame.channels() : 1;
+        int data_size = av_samples_get_buffer_size((IntPointer) null, audio_c.channels(),
                 samples_frame.nb_samples(), audio_c.sample_fmt(), 1) / planes;
         if (samples_buf == null || samples_buf.length != planes) {
             samples_ptr = new BytePointer[planes];
@@ -829,19 +879,30 @@ public class FFmpegFrameGrabber extends FrameGrabber {
             BytePointer p = samples_frame.data(i);
             if (!p.equals(samples_ptr[i]) || samples_ptr[i].capacity() < data_size) {
                 samples_ptr[i] = p.capacity(data_size);
-                ByteBuffer b   = p.asBuffer();
+                ByteBuffer b = p.asBuffer();
                 switch (sample_format) {
                     case AV_SAMPLE_FMT_U8:
-                    case AV_SAMPLE_FMT_U8P:  samples_buf[i] = b; break;
+                    case AV_SAMPLE_FMT_U8P:
+                        samples_buf[i] = b;
+                        break;
                     case AV_SAMPLE_FMT_S16:
-                    case AV_SAMPLE_FMT_S16P: samples_buf[i] = b.asShortBuffer();  break;
+                    case AV_SAMPLE_FMT_S16P:
+                        samples_buf[i] = b.asShortBuffer();
+                        break;
                     case AV_SAMPLE_FMT_S32:
-                    case AV_SAMPLE_FMT_S32P: samples_buf[i] = b.asIntBuffer();    break;
+                    case AV_SAMPLE_FMT_S32P:
+                        samples_buf[i] = b.asIntBuffer();
+                        break;
                     case AV_SAMPLE_FMT_FLT:
-                    case AV_SAMPLE_FMT_FLTP: samples_buf[i] = b.asFloatBuffer();  break;
+                    case AV_SAMPLE_FMT_FLTP:
+                        samples_buf[i] = b.asFloatBuffer();
+                        break;
                     case AV_SAMPLE_FMT_DBL:
-                    case AV_SAMPLE_FMT_DBLP: samples_buf[i] = b.asDoubleBuffer(); break;
-                    default: assert false;
+                    case AV_SAMPLE_FMT_DBLP:
+                        samples_buf[i] = b.asDoubleBuffer();
+                        break;
+                    default:
+                        assert false;
                 }
             }
             samples_buf[i].position(0).limit(sample_size);
@@ -862,7 +923,7 @@ public class FFmpegFrameGrabber extends FrameGrabber {
             }
 
             int sample_size_in = samples_frame.nb_samples();
-            int planes_out = av_sample_fmt_is_planar(samples_format) != 0 ? (int)samples_frame.channels() : 1;
+            int planes_out = av_sample_fmt_is_planar(samples_format) != 0 ? (int) samples_frame.channels() : 1;
             int sample_size_out = swr_get_out_samples(samples_convert_ctx, sample_size_in);
             int sample_bytes_out = av_get_bytes_per_sample(samples_format);
             int buffer_size_out = sample_size_out * sample_bytes_out * (planes_out > 1 ? 1 : samples_channels);
@@ -878,16 +939,27 @@ public class FFmpegFrameGrabber extends FrameGrabber {
                     ByteBuffer b = samples_ptr_out[i].asBuffer();
                     switch (samples_format) {
                         case AV_SAMPLE_FMT_U8:
-                        case AV_SAMPLE_FMT_U8P:  samples_buf_out[i] = b; break;
+                        case AV_SAMPLE_FMT_U8P:
+                            samples_buf_out[i] = b;
+                            break;
                         case AV_SAMPLE_FMT_S16:
-                        case AV_SAMPLE_FMT_S16P: samples_buf_out[i] = b.asShortBuffer();  break;
+                        case AV_SAMPLE_FMT_S16P:
+                            samples_buf_out[i] = b.asShortBuffer();
+                            break;
                         case AV_SAMPLE_FMT_S32:
-                        case AV_SAMPLE_FMT_S32P: samples_buf_out[i] = b.asIntBuffer();    break;
+                        case AV_SAMPLE_FMT_S32P:
+                            samples_buf_out[i] = b.asIntBuffer();
+                            break;
                         case AV_SAMPLE_FMT_FLT:
-                        case AV_SAMPLE_FMT_FLTP: samples_buf_out[i] = b.asFloatBuffer();  break;
+                        case AV_SAMPLE_FMT_FLTP:
+                            samples_buf_out[i] = b.asFloatBuffer();
+                            break;
                         case AV_SAMPLE_FMT_DBL:
-                        case AV_SAMPLE_FMT_DBLP: samples_buf_out[i] = b.asDoubleBuffer(); break;
-                        default: assert false;
+                        case AV_SAMPLE_FMT_DBLP:
+                            samples_buf_out[i] = b.asDoubleBuffer();
+                            break;
+                        default:
+                            assert false;
                     }
                 }
             }
@@ -908,15 +980,19 @@ public class FFmpegFrameGrabber extends FrameGrabber {
     public Frame grab() throws Exception {
         return grabFrame(true, true, true, false);
     }
+
     public Frame grabImage() throws Exception {
         return grabFrame(false, true, true, false);
     }
+
     public Frame grabSamples() throws Exception {
         return grabFrame(true, false, true, false);
     }
+
     public Frame grabKeyFrame() throws Exception {
         return grabFrame(false, true, true, true);
     }
+
     public Frame grabFrame(boolean doAudio, boolean doVideo, boolean processImage, boolean keyFrames) throws Exception {
         if (oc == null || oc.isNull()) {
             throw new Exception("Could not grab: No AVFormatContext. (Has start() been called?)");
@@ -973,7 +1049,7 @@ public class FFmpegFrameGrabber extends FrameGrabber {
                     AVRational time_base = video_st.time_base();
                     timestamp = 1000000L * pts * time_base.num() / time_base.den();
                     // best guess, AVCodecContext.frame_number = number of decoded frames...
-                    frameNumber = (int)(timestamp * getFrameRate() / 1000000L);
+                    frameNumber = (int) (timestamp * getFrameRate() / 1000000L);
                     if (processImage) {
                         processImage();
                     }

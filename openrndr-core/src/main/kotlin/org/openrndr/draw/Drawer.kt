@@ -394,7 +394,6 @@ interface RenderTarget {
     val height: Int
     val contentScale: Double
 
-
     val effectiveWidth: Int get() = (width * contentScale).toInt()
     val effectiveHeight: Int get() = (height * contentScale).toInt()
 
@@ -536,7 +535,6 @@ class Drawer(val driver: Driver) {
 
     var drawStyle = DrawStyle()
 
-
     fun withTarget(target: RenderTarget, action: Drawer.() -> Unit) {
         target.bind()
         this.action()
@@ -602,7 +600,6 @@ class Drawer(val driver: Driver) {
         model *= _translate(t)
     }
 
-    //
     fun translate(x: Double, y: Double) {
         translate(x, y, 0.0)
     }
@@ -618,7 +615,6 @@ class Drawer(val driver: Driver) {
     fun rotate(axis: Vector3, rotationInDegrees: Double) {
         model *= _rotate(axis, rotationInDegrees)
     }
-
 
     fun background(color: ColorRGBa) {
         driver.clear(color)
@@ -720,6 +716,10 @@ class Drawer(val driver: Driver) {
         get() = drawStyle.fontMap
 
 
+    fun rectangle(rectangle: Rectangle) {
+        rectangleDrawer.drawRectangle(context, drawStyle, rectangle.x, rectangle.y, rectangle.width, rectangle.height)
+    }
+
     fun rectangle(x: Double, y: Double, width: Double, height: Double) {
         rectangleDrawer.drawRectangle(context, drawStyle, x, y, width, height)
     }
@@ -730,6 +730,10 @@ class Drawer(val driver: Driver) {
 
     fun rectangles(positions: List<Vector2>, dimensions: List<Vector2>) {
         rectangleDrawer.drawRectangles(context, drawStyle, positions, dimensions)
+    }
+
+    fun rectangle(rectangles: List<Rectangle>) {
+        rectangleDrawer.drawRectangles(context, drawStyle, rectangles)
     }
 
     fun circle(position: Vector2, radius: Double) {
@@ -743,7 +747,6 @@ class Drawer(val driver: Driver) {
     fun circles(positions: List<Vector2>, radii: List<Double>) {
         circleDrawer.drawCircles(context, drawStyle, positions, radii)
     }
-
 
     fun shape(shape: Shape) {
         if (RenderTarget.active.hasDepthBuffer) {
@@ -760,9 +763,7 @@ class Drawer(val driver: Driver) {
     }
 
     fun contour(contour: ShapeContour) {
-
         if (RenderTarget.active.hasDepthBuffer) {
-
             if (drawStyle.fill != null && contour.closed) {
                 qualityPolygonDrawer.drawPolygon(context, drawStyle, listOf(contour.adaptivePositions()))
             }
@@ -860,7 +861,6 @@ class Drawer(val driver: Driver) {
 
 
     fun composition(composition: Composition) {
-
         pushStyle()
         fill = ColorRGBa.BLACK
         stroke = null
@@ -892,7 +892,6 @@ class Drawer(val driver: Driver) {
             popModel()
             popStyle()
         }
-
         node(composition.root)
         popStyle()
     }
@@ -948,7 +947,6 @@ fun Drawer.isolated(function: Drawer.() -> Unit) {
  * Pushes style, view- and projection matrix, sets render target, calls function and pops,
  * @param function the function that is called in the isolation
  */
-
 fun Drawer.isolatedWithTarget(target: RenderTarget, function: Drawer.() -> Unit) {
     target.bind()
     isolated(function)

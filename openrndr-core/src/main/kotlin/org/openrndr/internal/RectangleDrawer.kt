@@ -3,26 +3,24 @@ package org.openrndr.internal
 import org.openrndr.draw.*
 import org.openrndr.math.Vector2
 import org.openrndr.math.Vector3
+import org.openrndr.shape.Rectangle
 
 class RectangleDrawer {
 
-    val vertices: VertexBuffer = VertexBuffer.createDynamic(VertexFormat().apply {
+    private val vertices: VertexBuffer = VertexBuffer.createDynamic(VertexFormat().apply {
         position(3)
         normal(3)
         textureCoordinate(2)
     }, 6)
 
-    val instanceAttributes  = VertexBuffer.createDynamic(VertexFormat().apply {
-        attribute("dimensions",2,VertexElementType.FLOAT32)
-        attribute("offset",3,VertexElementType.FLOAT32)
+    private val instanceAttributes = VertexBuffer.createDynamic(VertexFormat().apply {
+        attribute("dimensions", 2, VertexElementType.FLOAT32)
+        attribute("offset", 3, VertexElementType.FLOAT32)
 
     }, 10000)
 
-    val shaderManager: ShadeStyleManager
-
-    init {
-        shaderManager = ShadeStyleManager.fromGenerators(Driver.instance.shaderGenerators::rectangleVertexShader,
-                Driver.instance.shaderGenerators::rectangleFragmentShader)    }
+    private val shaderManager: ShadeStyleManager = ShadeStyleManager.fromGenerators(Driver.instance.shaderGenerators::rectangleVertexShader,
+            Driver.instance.shaderGenerators::rectangleFragmentShader)
 
     init {
         val w = vertices.shadow.writer()
@@ -52,12 +50,9 @@ class RectangleDrawer {
             write(pa); write(n); write(ta)
         }
         vertices.shadow.upload()
-
-
     }
 
-
-    fun drawRectangles(drawContext: DrawContext, drawStyle: DrawStyle, positions:List<Vector2>, dimensions:List<Vector2>)  {
+    fun drawRectangles(drawContext: DrawContext, drawStyle: DrawStyle, positions: List<Vector2>, dimensions: List<Vector2>) {
         instanceAttributes.shadow.writer().apply {
             rewind()
             for (i in 0 until positions.size) {
@@ -66,14 +61,12 @@ class RectangleDrawer {
             }
         }
         instanceAttributes.shadow.uploadElements(0, positions.size)
-
         drawRectangles(drawContext, drawStyle, positions.size)
     }
 
-    fun drawRectangles(drawContext: DrawContext, drawStyle: DrawStyle, positions:List<Vector2>, width:Double, height:Double)  {
+    fun drawRectangles(drawContext: DrawContext, drawStyle: DrawStyle, positions: List<Vector2>, width: Double, height: Double) {
         instanceAttributes.shadow.writer().apply {
             rewind()
-
             positions.forEach {
                 write(width.toFloat())
                 write(height.toFloat())
@@ -81,14 +74,24 @@ class RectangleDrawer {
             }
         }
         instanceAttributes.shadow.uploadElements(0, positions.size)
-
         drawRectangles(drawContext, drawStyle, positions.size)
     }
 
+    fun drawRectangles(drawContext: DrawContext, drawStyle: DrawStyle, rectangles:List<Rectangle>) {
+        instanceAttributes.shadow.writer().apply {
+            rewind()
+            rectangles.forEach {
+                write(it.width.toFloat())
+                write(it.height.toFloat())
+                write(Vector3(it.x, it.y, 0.0))
+            }
+        }
+        instanceAttributes.shadow.uploadElements(0, rectangles.size)
+        drawRectangles(drawContext, drawStyle, rectangles.size)
+    }
 
     fun drawRectangle(drawContext: DrawContext,
-                   drawStyle: DrawStyle, x: Double, y: Double, width:Double, height:Double) {
-
+                      drawStyle: DrawStyle, x: Double, y: Double, width: Double, height: Double) {
         instanceAttributes.shadow.writer().apply {
             rewind()
             write(width.toFloat())
@@ -96,11 +99,10 @@ class RectangleDrawer {
             write(Vector3(x, y, 0.0))
         }
         instanceAttributes.shadow.uploadElements(0, 1)
-
         drawRectangles(drawContext, drawStyle, 1)
     }
 
-    private fun drawRectangles(drawContext: DrawContext, drawStyle: DrawStyle, count:Int) {
+    private fun drawRectangles(drawContext: DrawContext, drawStyle: DrawStyle, count: Int) {
         val shader = shaderManager.shader(drawStyle.shadeStyle, listOf(vertices.vertexFormat), listOf(instanceAttributes.vertexFormat))
         shader.begin()
         drawContext.applyToShader(shader)
