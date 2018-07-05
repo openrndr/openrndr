@@ -15,21 +15,29 @@ uniform float focalLength;
 uniform float aperture;
 uniform float exposure;
 
-#define HASHSCALE 443.8975
-vec2 hash22(vec2 p) {
-	vec3 p3 = fract(vec3(p.xyx) * HASHSCALE);
-    p3 += dot(p3, p3.yzx+19.19);
-    return fract(vec2((p3.x + p3.y)*p3.z, (p3.x+p3.z)*p3.y));
-}
 
-
-void main() {
-    vec2 noise = hash22(v_texCoord0);
-    vec3 color = texture(image, v_texCoord0).rgb;
-    float eyeZ = -texture(position, v_texCoord0).z;
-
+float coc(vec2 uv) {
+    float eyeZ = -texture(position, uv).z;
     float a = aperture;
     float size = a * abs(1.0 - focalPlane/eyeZ);
-    size = clamp(size, minCoc, maxCoc );
+    size = floor(clamp(size, minCoc, maxCoc ));
+    return size;
+}
+
+void main() {
+    vec2 step = 1.0 / textureSize(image, 0);
+
+
+    float size = 0.0;
+    float w = 0.0;
+    for (int j = -1; j <= 1; ++j) {
+        for (int i = -1; i <= 1; ++i) {
+            size += coc(v_texCoord0 + step * vec2(i,j));
+            w += 1.0;
+        }
+    }
+    size = min(coc(v_texCoord0), size/w);
+    vec3 color = texture(image, v_texCoord0).rgb;
+
     o_output = vec4(color*exposure*size, size);
 }

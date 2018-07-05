@@ -13,6 +13,7 @@ class HexDof : Filter(Shader.createFromCode(Filter.filterVertexCode, filterFragm
     private var vertical: ColorBuffer? = null
     private var diagonal: ColorBuffer? = null
 
+    var phase:Double = 0.0
     var samples = 20
 
     class Pass1 : Filter(Shader.createFromCode(Filter.filterVertexCode, filterFragmentCode("screenspace/hex-dof-pass-1.frag"))) {
@@ -54,12 +55,15 @@ class HexDof : Filter(Shader.createFromCode(Filter.filterVertexCode, filterFragm
         diagonal!!.filter(MinifyingFilter.LINEAR, MagnifyingFilter.LINEAR)
 
         pass1.parameters["samples"] = samples
+        pass1.parameters["phase"] = phase
         pass1.parameters["vertical"] = Vector2(Math.cos(Math.PI / 2), Math.sin(Math.PI / 2))
         pass1.parameters["diagonal"] = Vector2(Math.cos(-Math.PI / 6), Math.sin(-Math.PI / 6))
         pass1.apply(source[0], arrayOf(vertical!!, diagonal!!))
         pass2.parameters["samples"]  = samples
+        pass2.parameters["phase"] = phase
         pass2.parameters["direction0"] = Vector2(Math.cos(-Math.PI / 6), Math.sin(-Math.PI / 6))
         pass2.parameters["direction1"] = Vector2(Math.cos(-5 * Math.PI / 6), Math.sin(-5 * Math.PI / 6))
+        source[0].filter(MinifyingFilter.LINEAR, MagnifyingFilter.LINEAR)
         pass2.apply(arrayOf(vertical!!, diagonal!!, source[0]), target)
     }
 }
@@ -137,13 +141,11 @@ class IterativeVelocityBlur: Filter(Shader.createFromCode(Filter.filterVertexCod
 
         val v = source[1]
         step = 0
-        super.apply(arrayOf(source[0], v), arrayOf(intermediate!!))
-        step++
-        super.apply(arrayOf(intermediate!!, v), target)
-        step++
-        super.apply(arrayOf(target[0], v), arrayOf(intermediate!!))
-        step++
-        super.apply(arrayOf(intermediate!!, v), target)
-        step++
+        for (i in 0 .. iterations/2) {
+            super.apply(arrayOf(source[0], v), arrayOf(intermediate!!))
+            step++
+            super.apply(arrayOf(intermediate!!, v), target)
+            step++
+        }
     }
 }
