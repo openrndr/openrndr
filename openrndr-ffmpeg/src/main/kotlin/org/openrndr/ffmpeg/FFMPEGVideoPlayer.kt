@@ -18,11 +18,11 @@ class FFMPEGVideoPlayer private constructor(url: String) {
             return FFMPEGVideoPlayer(File(filename).toURI().toURL().toExternalForm())
         }
 
-        fun listDevices():List<String> {
+        fun listDevices(): List<String> {
             return FFmpegFrameGrabber.getDeviceDescriptions().toList()
         }
 
-        fun defaultDevice():String {
+        fun defaultDevice(): String {
             val osName = System.getProperty("os.name").toLowerCase()
             val device: String
             device = when {
@@ -40,7 +40,7 @@ class FFMPEGVideoPlayer private constructor(url: String) {
             return device
         }
 
-        fun defaultInputFormat():String? {
+        fun defaultInputFormat(): String? {
             val osName = System.getProperty("os.name").toLowerCase()
             val format: String?
             format = when {
@@ -59,7 +59,7 @@ class FFMPEGVideoPlayer private constructor(url: String) {
         }
 
 
-        fun fromDevice(deviceName: String = defaultDevice(), width:Int=-1, height:Int=-1, framerate:Double=-1.0, inputFormat:String? = defaultInputFormat()): FFMPEGVideoPlayer {
+        fun fromDevice(deviceName: String = defaultDevice(), width: Int = -1, height: Int = -1, framerate: Double = -1.0, inputFormat: String? = defaultInputFormat()): FFMPEGVideoPlayer {
             val osName = System.getProperty("os.name").toLowerCase()
             val format: String
             format = when {
@@ -91,6 +91,17 @@ class FFMPEGVideoPlayer private constructor(url: String) {
 
     internal var frameGrabber = FFmpegFrameGrabber(url)
     private var colorBuffer: ColorBuffer? = null
+
+
+    val width: Int
+        get() {
+            return colorBuffer?.width ?: 0
+        }
+
+    val height: Int
+        get() {
+            return colorBuffer?.height ?: 0
+        }
 
     fun start() {
         frameGrabber.start()

@@ -394,7 +394,7 @@ void main(void) {
 
     override fun expansionVertexShader(shadeStructure: ShadeStructure): String = """#version 330
 $drawerUniforms
-
+${shadeStructure.uniforms ?: ""}
 ${shadeStructure.attributes}
 ${shadeStructure.varyingOut ?: ""}
 ${transformVaryingOut}
