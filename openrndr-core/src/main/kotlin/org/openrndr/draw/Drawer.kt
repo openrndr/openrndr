@@ -464,7 +464,7 @@ private var lastView = Matrix44.IDENTITY
 private var lastViewNormal = Matrix44.IDENTITY
 
 @Suppress("MemberVisibilityCanPrivate")
-data class DrawContext(val model: Matrix44, val view: Matrix44, val projection: Matrix44, val width: Int, val height: Int) {
+data class DrawContext(val model: Matrix44, val view: Matrix44, val projection: Matrix44, val width: Int, val height: Int, val contentScale:Double) {
     fun applyToShader(shader: Shader) {
         if (shader.hasUniform("u_viewMatrix")) {
             shader.uniform("u_viewMatrix", view)
@@ -531,7 +531,7 @@ class Drawer(val driver: Driver) {
     var projection: Matrix44 = Matrix44.IDENTITY
 
     val context: DrawContext
-        get() = DrawContext(model, view, projection, width, height)
+        get() = DrawContext(model, view, projection, width, height, RenderTarget.active.contentScale)
 
     var drawStyle = DrawStyle()
 

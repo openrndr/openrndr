@@ -13,6 +13,7 @@ uniform mat4 u_projectionMatrix;
 uniform mat4 u_viewProjectionMatrix; // will be deleted soon
 uniform vec4 u_fill;
 uniform vec4 u_stroke;
+uniform vec2 u_contentScale;
 uniform float u_strokeWeight;
 uniform float[25] u_colorMatrix;
 """
@@ -68,7 +69,7 @@ flat in int v_instance;
 
 
 void main(void) {
-    vec2 c_screenPosition = gl_FragCoord.xy;
+    vec2 c_screenPosition = gl_FragCoord.xy / u_contentScale;
     float c_contourPosition = 0.0;
     vec4 x_fill = u_fill;
     vec4 x_stroke = u_stroke;
@@ -136,7 +137,7 @@ vec4 colorTransform(vec4 color, float[25] matrix) {
 }
 
 void main(void) {
-    vec2 c_screenPosition = gl_FragCoord.xy;
+    vec2 c_screenPosition = gl_FragCoord.xy / u_contentScale;
     float c_contourPosition = 0.0;
     vec4 x_fill = texture(image, va_texCoord0);
     vec4 x_stroke = u_stroke;
@@ -183,7 +184,7 @@ ${transformVaryingIn}
 out vec4 o_color;
 
 void main(void) {
-    vec2 c_screenPosition = gl_FragCoord.xy;
+    vec2 c_screenPosition = gl_FragCoord.xy / u_contentScale;
     float c_contourPosition = 0.0;
     vec4 x_fill = u_fill;
     vec4 x_stroke = u_stroke;
@@ -245,7 +246,7 @@ ${transformVaryingIn}
 out vec4 o_color;
 
 void main(void) {
-    vec2 c_screenPosition = gl_FragCoord.xy;
+    vec2 c_screenPosition = gl_FragCoord.xy / u_contentScale;
     float c_contourPosition = 0.0;
     int instance = v_instance;
     vec3 boundsPosition = vec3(va_bounds.xy, 0.0);
@@ -297,7 +298,7 @@ ${transformVaryingIn}
 out vec4 o_color;
 
 void main(void) {
-    vec2 c_screenPosition = gl_FragCoord.xy;
+    vec2 c_screenPosition = gl_FragCoord.xy / u_contentScale;
     float c_contourPosition = 0.0;
     vec4 x_fill = u_fill;
     vec4 x_stroke = u_stroke;
@@ -368,7 +369,7 @@ float strokeMask() {
 }
 
 void main(void) {
-    vec2 c_screenPosition = gl_FragCoord.xy;
+    vec2 c_screenPosition = gl_FragCoord.xy / u_contentScale;
     vec3 c_boundsPosition = vec3(v_objectPosition.xy - bounds.xy, 0.0) / vec3(bounds.zw,1.0);
     vec3 c_boundsSize = vec3(bounds.zw, 0.0);
 
@@ -432,7 +433,7 @@ $transformVaryingIn
 out vec4 o_color;
 
 void main(void) {
-    vec2 c_screenPosition = gl_FragCoord.xy;
+    vec2 c_screenPosition = gl_FragCoord.xy / u_contentScale;
     float c_contourPosition = 0.0;
     vec4 x_fill = u_fill;
     vec4 x_stroke = u_stroke;
