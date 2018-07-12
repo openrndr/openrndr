@@ -1,5 +1,6 @@
 package org.openrndr.draw
 
+import com.sun.nio.file.SensitivityWatchEventModifier
 import java.io.File
 import java.net.URL
 import java.nio.file.FileSystems
@@ -17,7 +18,7 @@ private val watchService by lazy {
 }
 
 private val watchThread by lazy {
-    thread {
+    thread(isDaemon = true) {
         while (true) {
             val key = watchService.take()
             val path = keyPaths[key]
@@ -68,7 +69,7 @@ class ShaderWatcher private constructor(
 
             listOfNotNull(vsParent, fsParent).forEach {
                 val key = pathKeys.getOrPut(it) {
-                    it.register(watchService, StandardWatchEventKinds.ENTRY_MODIFY)
+                    it.register(watchService, arrayOf(StandardWatchEventKinds.ENTRY_MODIFY), SensitivityWatchEventModifier.HIGH)
                 }
                 keyPaths.getOrPut(key) { it }
             }
