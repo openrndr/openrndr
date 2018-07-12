@@ -221,6 +221,14 @@ open class Program {
         var size = Vector2(0.0, 0.0)
         var scale = Vector2(1.0, 1.0)
 
+        var presentationMode: PresentationMode
+        get() = application.presentationMode
+        set(value) {
+            application.presentationMode = value
+        }
+
+
+        fun requestDraw() = application.requestDraw()
 
         /**
          * Window focused event, triggered when the window receives focus

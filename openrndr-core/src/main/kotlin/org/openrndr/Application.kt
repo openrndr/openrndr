@@ -3,6 +3,11 @@ package org.openrndr
 import org.openrndr.math.Vector2
 import kotlin.concurrent.thread
 
+enum class PresentationMode {
+    AUTOMATIC,
+    MANUAL,
+}
+
 abstract class Application {
     companion object {
 
@@ -23,6 +28,8 @@ abstract class Application {
         }
     }
 
+    abstract fun requestDraw()
+
     abstract fun exit()
     abstract fun setup()
 
@@ -33,6 +40,8 @@ abstract class Application {
     abstract var windowPosition: Vector2
 
     abstract val seconds: Double
+
+    abstract var presentationMode: PresentationMode
 }
 
 fun application(program: Program, configuration: Configuration = Configuration()) {

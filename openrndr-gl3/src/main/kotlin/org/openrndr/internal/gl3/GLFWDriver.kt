@@ -78,6 +78,7 @@ class DriverGL3 : Driver {
     override fun clear(color: ColorRGBa) {
         glClearColor(color.r.toFloat(), color.g.toFloat(), color.b.toFloat(), color.a.toFloat())
         glClearDepth(1.0)
+        glDisable(GL_SCISSOR_TEST)
         glDepthMask(true)
 
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT or GL_STENCIL_BUFFER_BIT)
@@ -287,6 +288,18 @@ class DriverGL3 : Driver {
     }
 
     override fun setState(drawStyle: DrawStyle) {
+        if (drawStyle.clip != null) {
+            drawStyle.clip?.let {
+                val target = RenderTarget.active
+
+
+                glScissor((it.x*target.contentScale).toInt(), (target.height*target.contentScale-it.y*target.contentScale-it.height*target.contentScale).toInt(), (it.width*target.contentScale).toInt(), (it.height*target.contentScale).toInt())
+                glEnable(GL_SCISSOR_TEST)
+            }
+        } else {
+            glDisable(GL_SCISSOR_TEST)
+        }
+
         glColorMask(drawStyle.channelWriteMask.red, drawStyle.channelWriteMask.green, drawStyle.channelWriteMask.blue, drawStyle.channelWriteMask.alpha)
 
         when (drawStyle.depthWrite) {

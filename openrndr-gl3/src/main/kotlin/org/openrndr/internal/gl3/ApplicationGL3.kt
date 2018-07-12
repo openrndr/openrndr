@@ -42,6 +42,8 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
     private var exitRequested = false
     private val fixWindowSize = System.getProperty("os.name").contains("windows", true)
     private var setupCalled = false
+    override var presentationMode: PresentationMode = PresentationMode.AUTOMATIC
+
 
     override var windowPosition: Vector2
         get() {
@@ -292,6 +294,8 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
 
     }
 
+    private var drawRequested = true
+
     override fun loop() {
         //glDebugMessageCallback(::cb, NULL)
         logger.debug { "starting loop" }
@@ -428,24 +432,36 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
 
         startTimeMillis = System.currentTimeMillis()
 
-        glfwSwapInterval(1)
+        glfwSwapInterval(-1)
 
         var exception: Throwable? = null
         while (!exitRequested && !glfwWindowShouldClose(window)) {
 
-            exception = drawFrame()
 
-            if (exception != null) {
-                break
+            if (presentationMode == PresentationMode.AUTOMATIC || drawRequested) {
+
+                exception = drawFrame()
+                if (exception != null) {
+                    break
+                }
+                glfwSwapBuffers(window) // swap the color buffers
+                drawRequested = false
             }
 
-            glfwSwapBuffers(window) // swap the color buffers
 
             if (!windowFocused && configuration.unfocusBehaviour == UnfocusBehaviour.THROTTLE) {
                 Thread.sleep(100)
             }
 
-            glfwPollEvents()
+            if (presentationMode == PresentationMode.AUTOMATIC) {
+                glfwPollEvents()
+            } else {
+                Thread.sleep(1)
+                glfwPollEvents()
+                //glfwWaitEventsTimeout(0.1)
+                deliverEvents()
+            }
+
         }
 
         logger.info { "exiting loop" }
@@ -463,14 +479,7 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
         }
     }
 
-    private fun drawFrame(): Throwable? {
-        setupSizes()
-
-        glBindVertexArray(vaos[0])
-
-        program.drawer.reset()
-        program.drawer.ortho()
-
+    private fun deliverEvents() {
         program.window.drop.deliver()
         program.window.sized.deliver()
         program.keyboard.keyDown.deliver()
@@ -483,6 +492,18 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
         program.mouse.buttonDown.deliver()
         program.mouse.buttonUp.deliver()
         program.mouse.dragged.deliver()
+    }
+
+    private fun drawFrame(): Throwable? {
+        setupSizes()
+
+        glBindVertexArray(vaos[0])
+
+        program.drawer.reset()
+        program.drawer.ortho()
+
+        deliverEvents()
+
 
         try {
             logger.debug { "window: ${program.window.size.x.toInt()}x${program.window.size.y.toInt()} program: ${program.width}x${program.height}" }
@@ -532,5 +553,9 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
 
     override fun exit() {
         exitRequested = true
+    }
+
+    override fun requestDraw() {
+        drawRequested = true
     }
 }

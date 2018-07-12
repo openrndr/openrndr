@@ -2,7 +2,7 @@ package org.openrndr.draw
 
 import org.openrndr.color.ColorRGBa
 import org.openrndr.math.Matrix55
-
+import org.openrndr.shape.Rectangle
 enum class LineJoin {
     BEVEL,
     ROUND
@@ -137,6 +137,8 @@ class ChannelMask(val red: Boolean, val green: Boolean, val blue: Boolean, val a
 
 
 data class DrawStyle(
+
+        var clip:Rectangle? = null,
         var fill: ColorRGBa? = ColorRGBa.WHITE,
         var stroke: ColorRGBa? = ColorRGBa.BLACK,
 
