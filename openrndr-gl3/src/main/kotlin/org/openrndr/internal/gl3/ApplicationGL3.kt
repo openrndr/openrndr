@@ -21,15 +21,16 @@ import org.lwjgl.glfw.GLFW.glfwWindowShouldClose
 import org.lwjgl.glfw.GLFW.GLFW_RELEASE
 import org.lwjgl.glfw.GLFW.glfwSetKeyCallback
 import org.lwjgl.opengl.GL11.*
-import org.lwjgl.opengl.GL30.glBindVertexArray
-import org.lwjgl.opengl.GL30.glGenVertexArrays
 import org.lwjgl.glfw.GLFWErrorCallback
+import org.lwjgl.opengl.GLUtil
 
 import org.openrndr.*
 import org.openrndr.draw.Drawer
 import org.openrndr.internal.Driver
 import org.openrndr.math.Vector2
 import java.util.*
+import org.lwjgl.opengl.GL30.*
+
 
 private val logger = KotlinLogging.logger {}
 internal var primaryWindow: Long = NULL
@@ -43,7 +44,6 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
     private val fixWindowSize = System.getProperty("os.name").contains("windows", true)
     private var setupCalled = false
     override var presentationMode: PresentationMode = PresentationMode.AUTOMATIC
-
 
     override var windowPosition: Vector2
         get() {
@@ -117,8 +117,9 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
 
         println(glfwGetVersionString())
 
-        // should make a configuration flag for this
-        // glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE)
+        if (useDebugContext) {
+            glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE)
+        }
 
         val xscale = FloatArray(1)
         val yscale = FloatArray(1)
@@ -131,7 +132,6 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
 
         logger.debug { "content scale ${xscale[0]} ${yscale[0]}" }
         program.window.scale = Vector2(xscale[0].toDouble(), yscale[0].toDouble())
-
 
         logger.debug { "creating window" }
         window = if (!configuration.fullscreen) {
@@ -200,8 +200,12 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
 
         logger.debug { "making context current" }
         glfwMakeContextCurrent(window)
-        // Enable v-sync
-        glfwSwapInterval(1)
+
+        if (glfwExtensionSupported("GLX_EXT_swap_control_tear") || glfwExtensionSupported("WGL_EXT_swap_control_tear")) {
+            glfwSwapInterval(-1)
+        } else {
+            glfwSwapInterval(1)
+        }
 
         var readyFrames = 0
 
@@ -279,9 +283,11 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
 
     fun preloop() {
         createCapabilities()
-        // check configuration for debug setting
-        //val debugProc = GLUtil.setupDebugMessageCallback();
-        // create default VAO, as per the OpenGL spec a VAO should bound at all times
+
+        if (useDebugContext) {
+            GLUtil.setupDebugMessageCallback()
+        }
+
         glGenVertexArrays(vaos)
         glBindVertexArray(vaos[0])
         driver = DriverGL3()
@@ -297,7 +303,6 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
     private var drawRequested = true
 
     override fun loop() {
-        //glDebugMessageCallback(::cb, NULL)
         logger.debug { "starting loop" }
         preloop()
 
@@ -432,14 +437,15 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
 
         startTimeMillis = System.currentTimeMillis()
 
-        glfwSwapInterval(-1)
+        if (glfwExtensionSupported("GLX_EXT_swap_control_tear") || glfwExtensionSupported("WGL_EXT_swap_control_tear")) {
+            glfwSwapInterval(-1)
+        } else {
+            glfwSwapInterval(1)
+        }
 
         var exception: Throwable? = null
         while (!exitRequested && !glfwWindowShouldClose(window)) {
-
-
             if (presentationMode == PresentationMode.AUTOMATIC || drawRequested) {
-
                 exception = drawFrame()
                 if (exception != null) {
                     break
@@ -447,7 +453,6 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
                 glfwSwapBuffers(window) // swap the color buffers
                 drawRequested = false
             }
-
 
             if (!windowFocused && configuration.unfocusBehaviour == UnfocusBehaviour.THROTTLE) {
                 Thread.sleep(100)
@@ -458,10 +463,8 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
             } else {
                 Thread.sleep(1)
                 glfwPollEvents()
-                //glfwWaitEventsTimeout(0.1)
                 deliverEvents()
             }
-
         }
 
         logger.info { "exiting loop" }

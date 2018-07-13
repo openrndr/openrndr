@@ -13,7 +13,7 @@ uniform mat4 u_projectionMatrix;
 uniform mat4 u_viewProjectionMatrix; // will be deleted soon
 uniform vec4 u_fill;
 uniform vec4 u_stroke;
-uniform vec2 u_contentScale;
+uniform float u_contentScale;
 uniform float u_strokeWeight;
 uniform float[25] u_colorMatrix;
 """

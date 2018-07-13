@@ -139,14 +139,14 @@ class ShaderGL3(val program: Int,
     }
 
     override fun hasUniform(name: String): Boolean {
-        return uniformIndex(name) != -1
+        return uniformIndex(name, true) != -1
     }
 
     override fun uniform(name: String, value: ColorRGBa) {
         val index = uniformIndex(name)
         if (index != -1) {
             glUniform4f(index, value.r.toFloat(), value.g.toFloat(), value.b.toFloat(), value.a.toFloat())
-            debugGLErrors()
+            postUniformCheck(name, index, value)
         }
     }
 
@@ -154,7 +154,7 @@ class ShaderGL3(val program: Int,
         val index = uniformIndex(name)
         if (index != -1) {
             glUniform3f(index, value.x.toFloat(), value.y.toFloat(), value.z.toFloat())
-            debugGLErrors()
+            postUniformCheck(name, index, value)
         }
     }
 
@@ -162,7 +162,7 @@ class ShaderGL3(val program: Int,
         val index = uniformIndex(name)
         if (index != -1) {
             glUniform4f(index, value.x.toFloat(), value.y.toFloat(), value.z.toFloat(), value.w.toFloat())
-            debugGLErrors()
+            postUniformCheck(name, index, value)
         }
     }
 
@@ -170,7 +170,7 @@ class ShaderGL3(val program: Int,
         val index = uniformIndex(name)
         if (index != -1) {
             glUniform1i(index, value)
-            debugGLErrors()
+            postUniformCheck(name, index, value)
         }
 
     }
@@ -179,7 +179,7 @@ class ShaderGL3(val program: Int,
         val index = uniformIndex(name)
         if (index != -1) {
             glUniform2f(index, value.x.toFloat(), value.y.toFloat())
-            debugGLErrors()
+            postUniformCheck(name, index, value)
         }
     }
 
@@ -187,7 +187,7 @@ class ShaderGL3(val program: Int,
         val index = uniformIndex(name)
         if (index != -1) {
             glUniform1f(index, value)
-            debugGLErrors()
+            postUniformCheck(name, index, value)
         }
     }
 
@@ -195,7 +195,7 @@ class ShaderGL3(val program: Int,
         val index = uniformIndex(name)
         if (index != -1) {
             glUniform1f(index, value.toFloat())
-            debugGLErrors()
+            postUniformCheck(name, index, value)
         }
     }
 
@@ -204,14 +204,7 @@ class ShaderGL3(val program: Int,
         if (index != -1) {
             logger.trace { "Setting uniform '$name' to $value" }
             glUniformMatrix4fv(index, false, value.toFloatArray())
-            debugGLErrors() {
-                val currentProgram = glGetInteger(GL_CURRENT_PROGRAM)
-                when (it) {
-
-                    GL_INVALID_OPERATION -> "no current program object ($currentProgram)"
-                    else -> null
-                }
-            }
+            postUniformCheck(name, index, value)
         }
     }
 
@@ -227,13 +220,7 @@ class ShaderGL3(val program: Int,
             }
 
             glUniform2fv(index, floatValues)
-            debugGLErrors {
-                val currentProgram = glGetInteger(GL_CURRENT_PROGRAM)
-                when (it) {
-                    GL_INVALID_OPERATION -> "no current program object ($currentProgram)"
-                    else -> null
-                }
-            }
+            postUniformCheck(name, index, value)
         }
     }
 
@@ -248,15 +235,8 @@ class ShaderGL3(val program: Int,
                 floatValues[i * 3 + 1] = value[i].y.toFloat()
                 floatValues[i * 3 + 2] = value[i].z.toFloat()
             }
-
             glUniform3fv(index, floatValues)
-            debugGLErrors {
-                val currentProgram = glGetInteger(GL_CURRENT_PROGRAM)
-                when (it) {
-                    GL_INVALID_OPERATION -> "no current program object ($currentProgram)"
-                    else -> null
-                }
-            }
+            postUniformCheck(name, index, value)
         }
     }
 
@@ -274,13 +254,7 @@ class ShaderGL3(val program: Int,
             }
 
             glUniform4fv(index, floatValues)
-            debugGLErrors {
-                val currentProgram = glGetInteger(GL_CURRENT_PROGRAM)
-                when (it) {
-                    GL_INVALID_OPERATION -> "no current program object ($currentProgram)"
-                    else -> null
-                }
-            }
+            postUniformCheck(name, index, value)
         }
     }
 
@@ -289,12 +263,34 @@ class ShaderGL3(val program: Int,
         if (index != -1) {
             logger.trace { "Setting uniform '$name' to $value" }
             glUniform1fv(index, value)
-            debugGLErrors {
-                val currentProgram = glGetInteger(GL_CURRENT_PROGRAM)
-                when (it) {
-                    GL_INVALID_OPERATION -> "no current program object ($currentProgram)"
-                    else -> null
+            postUniformCheck(name, index, value)
+        }
+    }
+
+    private fun postUniformCheck(name:String, index:Int, value:Any) {
+        debugGLErrors {
+            val currentProgram = glGetInteger(GL_CURRENT_PROGRAM)
+
+            fun checkUniform():String {
+                if (currentProgram > 0) {
+                    val lengthBuffer = BufferUtils.createIntBuffer(1)
+                    val sizeBuffer = BufferUtils.createIntBuffer(1)
+                    val typeBuffer = BufferUtils.createIntBuffer(1)
+                    val nameBuffer = BufferUtils.createByteBuffer(256)
+
+                    glGetActiveUniform(currentProgram, index, lengthBuffer, sizeBuffer, typeBuffer, nameBuffer)
+                    val nameBytes = ByteArray(lengthBuffer[0])
+                    nameBuffer.rewind()
+                    nameBuffer.get(nameBytes)
+                    val retrievedName = String(nameBytes)
+                    return "($name/$retrievedName): ${sizeBuffer[0]} / ${typeBuffer[0]}}"
                 }
+                return "no program"
+            }
+
+            when (it) {
+                GL_INVALID_OPERATION -> "no current program object ($currentProgram), or uniform type mismatch (${checkUniform()}"
+                else -> null
             }
         }
     }

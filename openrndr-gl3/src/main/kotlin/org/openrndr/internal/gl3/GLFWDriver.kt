@@ -23,6 +23,9 @@ import java.nio.Buffer
 
 private val logger = KotlinLogging.logger {}
 
+
+internal val useDebugContext = System.getProperty("org.openrndr.gl3.debug") != null
+
 class DriverGL3 : Driver {
     override fun createResourceThread(f: () -> Unit): ResourceThread {
         return ResourceThreadGL3.create(f)
@@ -291,8 +294,6 @@ class DriverGL3 : Driver {
         if (drawStyle.clip != null) {
             drawStyle.clip?.let {
                 val target = RenderTarget.active
-
-
                 glScissor((it.x*target.contentScale).toInt(), (target.height*target.contentScale-it.y*target.contentScale-it.height*target.contentScale).toInt(), (it.width*target.contentScale).toInt(), (it.height*target.contentScale).toInt())
                 glEnable(GL_SCISSOR_TEST)
             }

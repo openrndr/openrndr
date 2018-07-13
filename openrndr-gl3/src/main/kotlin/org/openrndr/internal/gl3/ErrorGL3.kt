@@ -22,9 +22,8 @@ fun checkGLErrors(errorFunction: ((Int)->String?)?=null) {
     }
 }
 
-private val gl3Debug = System.getProperty("org.openrndr.gl3.debug") != null
 fun debugGLErrors(errorFunction: ((Int)->String?)?=null) {
-    if (gl3Debug) {
+    if (useDebugContext) {
         checkGLErrors(errorFunction)
     }
 }
