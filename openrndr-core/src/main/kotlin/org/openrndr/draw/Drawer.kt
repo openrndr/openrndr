@@ -497,6 +497,9 @@ data class DrawContext(val model: Matrix44, val view: Matrix44, val projection: 
             }
             shader.uniform("u_viewNormalMatrix", normalMatrix)
         }
+        if (shader.hasUniform("u_contentScale")) {
+            shader.uniform("u_contentScale", contentScale)
+        }
     }
 }
 
