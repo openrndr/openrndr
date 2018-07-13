@@ -11,3 +11,24 @@ interface Extension {
     fun beforeDraw(drawer: Drawer, program:Program) {}
     fun afterDraw(drawer:Drawer, program:Program) {}
 }
+
+/**
+ * Remove this extension from the rendering loop
+ */
+fun Extension.disable() {
+    this.enabled = false
+}
+
+/**
+ * Include this extension in the rendering loop
+ */
+fun Extension.enable() {
+    this.enabled = true
+}
+
+/**
+ * Toggle between enabled and disabled
+ */
+fun Extension.toggle() {
+    this.enabled = !this.enabled
+}

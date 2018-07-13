@@ -56,8 +56,8 @@ private class OrbitalCamera(eye: Vector3, lookAt: Vector3) {
 
         val view = viewMatrix()
 
-        val xColumn = Vector3(view.c0r0, view.c0r1, view.c0r2) * x
-        val yColumn = Vector3(view.c1r0, view.c1r1, view.c1r2) * -y
+        val xColumn = Vector3(view.c0r0, view.c1r0, view.c2r0) * x
+        val yColumn = Vector3(view.c0r1, view.c1r1, view.c2r2) * y
 
         lookAtEnd += xColumn + yColumn
 
@@ -95,13 +95,14 @@ private class OrbitalCamera(eye: Vector3, lookAt: Vector3) {
     }
 
     fun viewMatrix(): Matrix44 {
-        return org.openrndr.math.transforms.lookAt(Vector3.fromSpherical(spherical) + lookAt, lookAt, Vector3.UNIT_Y)
+        return org.openrndr.math.transforms.lookAt(Vector3.fromSpherical(spherical) + lookAt, lookAt)
     }
 
     companion object {
         private const val EPSILON = 0.000001
     }
 }
+
 
 @Suppress("unused")
 class Debug3D(eye: Vector3, lookAt: Vector3 = Vector3.ZERO, private val fov: Double = 90.0) : Extension {
@@ -158,8 +159,6 @@ class Debug3D(eye: Vector3, lookAt: Vector3 = Vector3.ZERO, private val fov: Dou
         lastSeconds = program.seconds
         orbitalCamera.update(delta)
 
-        drawer.background(ColorRGBa.BLACK)
-
         drawer.perspective(fov, windowSize.x / windowSize.y, 0.1, 1000.0)
         drawer.view = orbitalCamera.viewMatrix()
 
@@ -188,9 +187,7 @@ class Debug3D(eye: Vector3, lookAt: Vector3 = Vector3.ZERO, private val fov: Dou
     }
 
     private fun mouseScrolled(event: Program.Mouse.MouseEvent) {
-
-        if ( Math.abs(event.rotation.x) > 0.1) return
-
+        
         when {
             event.rotation.y > 0 -> orbitalCamera.dollyIn()
             event.rotation.y < 0 -> orbitalCamera.dollyOut()
@@ -209,11 +206,10 @@ class Debug3D(eye: Vector3, lookAt: Vector3 = Vector3.ZERO, private val fov: Dou
             val offset = Vector3.fromSpherical(orbitalCamera.spherical) - orbitalCamera.lookAt
 
             // half of the fov is center to top of screen
-            val targetDistance = offset.length * Math.tan((fov / 2) * Math.PI / 180)
+            val targetDistance = offset.length * Math.tan(Math.toRadians(fov / 2))
             val panX = (2 * delta.x * targetDistance / windowSize.x)
-            val panY = (2 * delta.y * targetDistance / windowSize.x)
 
-            orbitalCamera.pan(panX, panY)
+            orbitalCamera.pan(panX, 0.0)
 
         } else {
             val rotX = 2 * Math.PI * delta.x / windowSize.x
