@@ -31,7 +31,6 @@ import org.openrndr.math.Vector2
 import java.util.*
 import org.lwjgl.opengl.GL30.*
 
-
 private val logger = KotlinLogging.logger {}
 internal var primaryWindow: Long = NULL
 
@@ -297,7 +296,6 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
 
         setupSizes()
         program.drawer.ortho()
-
     }
 
     private var drawRequested = true
@@ -446,12 +444,12 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
         var exception: Throwable? = null
         while (!exitRequested && !glfwWindowShouldClose(window)) {
             if (presentationMode == PresentationMode.AUTOMATIC || drawRequested) {
+                drawRequested = false
                 exception = drawFrame()
                 if (exception != null) {
                     break
                 }
-                glfwSwapBuffers(window) // swap the color buffers
-                drawRequested = false
+                glfwSwapBuffers(window)
             }
 
             if (!windowFocused && configuration.unfocusBehaviour == UnfocusBehaviour.THROTTLE) {
@@ -466,7 +464,6 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
                 deliverEvents()
             }
         }
-
         logger.info { "exiting loop" }
 
         glfwFreeCallbacks(window)
@@ -499,15 +496,10 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
 
     private fun drawFrame(): Throwable? {
         setupSizes()
-
         glBindVertexArray(vaos[0])
-
         program.drawer.reset()
         program.drawer.ortho()
-
         deliverEvents()
-
-
         try {
             logger.debug { "window: ${program.window.size.x.toInt()}x${program.window.size.y.toInt()} program: ${program.width}x${program.height}" }
             program.drawImpl()
