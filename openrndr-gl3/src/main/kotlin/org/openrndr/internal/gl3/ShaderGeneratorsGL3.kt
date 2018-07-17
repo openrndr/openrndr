@@ -67,7 +67,6 @@ out vec4 o_color;
 ${shadeStructure.fragmentPreamble ?: ""}
 flat in int v_instance;
 
-
 void main(void) {
     vec2 c_screenPosition = gl_FragCoord.xy / u_contentScale;
     float c_contourPosition = 0.0;
@@ -158,10 +157,7 @@ ${shadeStructure.uniforms ?: ""}
 ${shadeStructure.varyingOut ?: ""}
 ${transformVaryingOut}
 void main() {
-
     ${shadeStructure.varyingBridge ?: ""}
-
-
     ${preTransform}
     vec3 x_normal = a_normal;
     vec3 x_position = a_position;
@@ -186,17 +182,20 @@ out vec4 o_color;
 void main(void) {
     vec2 c_screenPosition = gl_FragCoord.xy / u_contentScale;
     float c_contourPosition = 0.0;
+
+    float smoothFactor = 3.0;
+
     vec4 x_fill = u_fill;
     vec4 x_stroke = u_stroke;
     {
         ${shadeStructure.fragmentTransform ?: ""}
     }
-    float wd = fwidth(length(va_texCoord0 - vec2(0.5)));
+    float wd = fwidth(length(va_texCoord0 - vec2(0.0)));
     float d = length(va_texCoord0 - vec2(0.5)) * 2;
 
-    float or = smoothstep(0, wd * 4.5, 1.0 - d);
+    float or = smoothstep(0, wd * smoothFactor, 1.0 - d);
     float b = u_strokeWeight / vi_radius;
-    float ir = smoothstep(0, wd * 4.5, 1.0 - b - d);
+    float ir = smoothstep(0, wd * smoothFactor, 1.0 - b - d);
 
     o_color.rgb =  x_stroke.rgb;
     o_color.a = or * (1.0 - ir) * x_stroke.a;
@@ -451,7 +450,6 @@ ${shadeStructure.attributes ?: ""}
 ${shadeStructure.uniforms ?: ""}
 
 void main() {
-
     $preTransform
     vec3 x_normal = vec3(0.0, 0.0, 1.0);
     vec3 x_position = a_position;
