@@ -910,7 +910,7 @@ class Drawer(val driver: Driver) {
 
 
     fun image(colorBuffer: ColorBuffer, source: Rectangle, target: Rectangle) {
-        imageDrawer.drawImage(context, drawStyle, colorBuffer, source, target)
+        imageDrawer.drawImage(context, drawStyle, colorBuffer, listOf(source to target))
     }
 
     fun image(colorBuffer: ColorBuffer, x: Double, y: Double) {
@@ -918,6 +918,10 @@ class Drawer(val driver: Driver) {
     }
 
     fun image(colorBuffer: ColorBuffer) = image(colorBuffer, 0.0, 0.0)
+
+    fun image(colorBuffer: ColorBuffer, rectangles: List<Pair<Rectangle, Rectangle>>) {
+        imageDrawer.drawImage(context, drawStyle, colorBuffer, rectangles)
+    }
 
     fun text(text: String, x: Double, y: Double) {
         if (fontMap is FontImageMap) {

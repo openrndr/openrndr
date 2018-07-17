@@ -3,6 +3,7 @@ package org.openrndr.internal
 import org.openrndr.math.Vector2
 import org.openrndr.draw.*
 import org.openrndr.math.Vector3
+import org.openrndr.math.Vector4
 import org.openrndr.shape.Rectangle
 
 class ImageDrawer {
@@ -13,37 +14,35 @@ class ImageDrawer {
         textureCoordinate(2)
     }, 6)
 
+    private val instanceFormat = vertexFormat {
+        attribute("source", 4, VertexElementType.FLOAT32)
+        attribute("target", 4, VertexElementType.FLOAT32)
+    }
+
+    private var instanceAttributes = vertexBuffer(instanceFormat, 10)
+
     private val shaderManager: ShadeStyleManager = ShadeStyleManager.fromGenerators(
             Driver.instance.shaderGenerators::imageVertexShader,
             Driver.instance.shaderGenerators::imageFragmentShader)
 
-    fun drawImage(drawContext: DrawContext, drawStyle: DrawStyle, colorBuffer: ColorBuffer,
-                  source:Rectangle, target:Rectangle) {
-
-        fun flipV(v:Double):Double = if (colorBuffer.flipV) {
-            1.0 - v
-        } else {
-            v
-        }
-
-        val shader = shaderManager.shader(drawStyle.shadeStyle, vertices.vertexFormat)
+    init {
         val w = vertices.shadow.writer()
 
         w.rewind()
-        val pa = Vector3(target.x, target.y, 0.0)
-        val pb = Vector3(target.x + target.width, target.y, 0.0)
-        val pc = Vector3(target.x + target.width, target.y + target.height, 0.0)
-        val pd = Vector3(target.x, target.y + target.height, 0.0)
+        val pa = Vector3(0.0, 0.0, 0.0)
+        val pb = Vector3(1.0, 0.0, 0.0)
+        val pc = Vector3(1.0, 1.0, 0.0)
+        val pd = Vector3(0.0, 1.0, 0.0)
 
-        val u0 = source.x/colorBuffer.width
-        val u1 = (source.x+source.width)/colorBuffer.width
-        val v0 = 1.0 - (source.y+source.height)/colorBuffer.height
-        val v1 = 1.0 - source.y/colorBuffer.height
+        val u0 = 0.0
+        val u1 = 1.0
+        val v0 = 0.0
+        val v1 = 1.0
 
-        val ta = Vector2(u0, flipV(v1))
-        val tb = Vector2(u1, flipV(v1))
-        val tc = Vector2(u1, flipV(v0))
-        val td = Vector2(u0, flipV(v0))
+        val ta = Vector2(u0, v1)
+        val tb = Vector2(u1, v1)
+        val tc = Vector2(u1, v0)
+        val td = Vector2(u0, v0)
 
         val n = Vector3(0.0, 0.0, -1.0)
         w.apply {
@@ -56,56 +55,44 @@ class ImageDrawer {
             write(pa); write(n); write(ta)
         }
         vertices.shadow.upload()
+    }
+
+    private fun assertInstanceSize(size:Int) {
+        if (instanceAttributes.vertexCount < size) {
+            instanceAttributes.destroy()
+            instanceAttributes = vertexBuffer(instanceFormat, size)
+        }
+    }
+
+    fun drawImage(drawContext: DrawContext, drawStyle: DrawStyle, colorBuffer: ColorBuffer,
+                  rectangles: List<Pair<Rectangle, Rectangle>>) {
+
+        assertInstanceSize(rectangles.size)
+
+        val shader = shaderManager.shader(drawStyle.shadeStyle, listOf(vertices.vertexFormat), listOf(instanceAttributes.vertexFormat))
+
+        val iw = instanceAttributes.shadow.writer()
+        iw.rewind()
+
+        rectangles.forEach {
+            val (source, target) = it
+            iw.write(Vector4(source.corner.x / colorBuffer.width, source.corner.y / colorBuffer.height, source.width / colorBuffer.width, source.height / colorBuffer.height))
+            iw.write(Vector4(target.corner.x, target.corner.y, target.width, target.height))
+        }
+        instanceAttributes.shadow.uploadElements(0, rectangles.size)
+
         colorBuffer.bind(0)
         shader.begin()
         drawContext.applyToShader(shader)
+        shader.uniform("u_flipV", if (colorBuffer.flipV) 1 else 0)
         drawStyle.applyToShader(shader)
         Driver.instance.setState(drawStyle)
-        Driver.instance.drawVertexBuffer(shader, listOf(vertices), DrawPrimitive.TRIANGLES, 0, 6)
+        Driver.instance.drawInstances(shader, listOf(vertices),  listOf(instanceAttributes), DrawPrimitive.TRIANGLES, 0, 6, rectangles.size)
         shader.end()
     }
 
     fun drawImage(drawContext: DrawContext,
                   drawStyle: DrawStyle, colorBuffer: ColorBuffer, x: Double, y: Double, width: Double, height: Double) {
-
-        fun flipV(v:Double):Double = if (colorBuffer.flipV) {
-            1.0 - v
-        } else {
-            v
-        }
-
-        val shader = shaderManager.shader(drawStyle.shadeStyle, vertices.vertexFormat)
-        val w = vertices.shadow.writer()
-
-        w.rewind()
-        val pa = Vector3(x, y, 0.0)
-        val pb = Vector3(x + width, y, 0.0)
-        val pc = Vector3(x + width, y + height, 0.0)
-        val pd = Vector3(x, y + height, 0.0)
-
-        val ta = Vector2(0.0, flipV(1.0))
-        val tb = Vector2(1.0, flipV(1.0))
-        val tc = Vector2(1.0, flipV(0.0))
-        val td = Vector2(0.0, flipV(0.0))
-
-        val n = Vector3(0.0, 0.0, -1.0)
-        w.apply {
-            write(pa); write(n); write(ta)
-            write(pd); write(n); write(td)
-            write(pc); write(n); write(tc)
-
-            write(pc); write(n); write(tc)
-            write(pb); write(n); write(tb)
-            write(pa); write(n); write(ta)
-        }
-        vertices.shadow.upload()
-        colorBuffer.bind(0)
-        shader.begin()
-        drawContext.applyToShader(shader)
-        drawStyle.applyToShader(shader)
-        Driver.instance.setState(drawStyle)
-        Driver.instance.drawVertexBuffer(shader, listOf(vertices), DrawPrimitive.TRIANGLES, 0, 6)
-        shader.end()
+        drawImage(drawContext, drawStyle, colorBuffer, listOf( colorBuffer.bounds to Rectangle(x, y, width, height)))
     }
-
 }
