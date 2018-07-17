@@ -3,6 +3,7 @@ package org.openrndr.internal
 import org.openrndr.draw.*
 import org.openrndr.math.Vector2
 import org.openrndr.math.Vector3
+import org.openrndr.shape.Circle
 
 class CircleDrawer {
     val vertices: VertexBuffer = VertexBuffer.createDynamic(VertexFormat().apply {
@@ -11,14 +12,23 @@ class CircleDrawer {
         textureCoordinate(2)
     }, 6)
 
-    private val instanceAttributes = VertexBuffer.createDynamic(VertexFormat().apply {
+
+    private val instanceFormat = VertexFormat().apply {
         attribute("radius", 1, VertexElementType.FLOAT32)
         attribute("offset", 3, VertexElementType.FLOAT32)
+    }
 
-    }, 1024*1024)
+    private var instanceAttributes = VertexBuffer.createDynamic(instanceFormat, 10_000)
 
     private val shaderManager: ShadeStyleManager = ShadeStyleManager.fromGenerators(Driver.instance.shaderGenerators::circleVertexShader,
             Driver.instance.shaderGenerators::circleFragmentShader)
+
+    private fun assertInstanceSize(size: Int) {
+        if (instanceAttributes.vertexCount < size) {
+            instanceAttributes.destroy()
+            instanceAttributes = vertexBuffer(instanceFormat, size)
+        }
+    }
 
     init {
         val w = vertices.shadow.writer()
@@ -51,6 +61,7 @@ class CircleDrawer {
     }
 
     fun drawCircles(drawContext: DrawContext, drawStyle: DrawStyle, positions: List<Vector2>, radii: List<Double>) {
+        assertInstanceSize(positions.size)
         instanceAttributes.shadow.writer().apply {
             rewind()
             for (i in 0 until positions.size) {
@@ -63,6 +74,7 @@ class CircleDrawer {
     }
 
     fun drawCircles(drawContext: DrawContext, drawStyle: DrawStyle, positions: List<Vector2>, radius: Double) {
+        assertInstanceSize(positions.size)
         instanceAttributes.shadow.writer().apply {
             rewind()
             positions.forEach {
@@ -74,8 +86,22 @@ class CircleDrawer {
         drawCircles(drawContext, drawStyle, positions.size)
     }
 
+    fun drawCircles(drawContext: DrawContext, drawStyle: DrawStyle, circles: List<Circle>) {
+        assertInstanceSize(circles.size)
+        instanceAttributes.shadow.writer().apply {
+            rewind()
+            circles.forEach {
+                write(it.radius.toFloat())
+                write(Vector3(it.center.x, it.center.y, 0.0))
+            }
+        }
+        instanceAttributes.shadow.uploadElements(0, circles.size)
+        drawCircles(drawContext, drawStyle, circles.size)
+    }
+
     fun drawCircle(drawContext: DrawContext,
                    drawStyle: DrawStyle, x: Double, y: Double, radius: Double) {
+        assertInstanceSize(1)
         instanceAttributes.shadow.writer().apply {
             rewind()
             write(radius.toFloat())

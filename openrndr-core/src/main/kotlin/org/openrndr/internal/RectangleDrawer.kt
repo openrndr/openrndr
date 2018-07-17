@@ -13,11 +13,11 @@ class RectangleDrawer {
         textureCoordinate(2)
     }, 6)
 
-    private val instanceAttributes = VertexBuffer.createDynamic(VertexFormat().apply {
+    private var instanceFormat = VertexFormat().apply {
         attribute("dimensions", 2, VertexElementType.FLOAT32)
         attribute("offset", 3, VertexElementType.FLOAT32)
-
-    }, 10000)
+    }
+    private var instanceAttributes = VertexBuffer.createDynamic(instanceFormat, 10_000)
 
     private val shaderManager: ShadeStyleManager = ShadeStyleManager.fromGenerators(Driver.instance.shaderGenerators::rectangleVertexShader,
             Driver.instance.shaderGenerators::rectangleFragmentShader)
@@ -52,7 +52,15 @@ class RectangleDrawer {
         vertices.shadow.upload()
     }
 
+    private fun assertInstanceSize(size:Int) {
+        if (instanceAttributes.vertexCount < size) {
+            instanceAttributes.destroy()
+            instanceAttributes = vertexBuffer(instanceFormat, size)
+        }
+    }
+
     fun drawRectangles(drawContext: DrawContext, drawStyle: DrawStyle, positions: List<Vector2>, dimensions: List<Vector2>) {
+        assertInstanceSize(positions.size)
         instanceAttributes.shadow.writer().apply {
             rewind()
             for (i in 0 until positions.size) {
@@ -65,6 +73,7 @@ class RectangleDrawer {
     }
 
     fun drawRectangles(drawContext: DrawContext, drawStyle: DrawStyle, positions: List<Vector2>, width: Double, height: Double) {
+        assertInstanceSize(positions.size)
         instanceAttributes.shadow.writer().apply {
             rewind()
             positions.forEach {
@@ -78,6 +87,7 @@ class RectangleDrawer {
     }
 
     fun drawRectangles(drawContext: DrawContext, drawStyle: DrawStyle, rectangles:List<Rectangle>) {
+        assertInstanceSize(rectangles.size)
         instanceAttributes.shadow.writer().apply {
             rewind()
             rectangles.forEach {
@@ -92,6 +102,7 @@ class RectangleDrawer {
 
     fun drawRectangle(drawContext: DrawContext,
                       drawStyle: DrawStyle, x: Double, y: Double, width: Double, height: Double) {
+        assertInstanceSize(1)
         instanceAttributes.shadow.writer().apply {
             rewind()
             write(width.toFloat())

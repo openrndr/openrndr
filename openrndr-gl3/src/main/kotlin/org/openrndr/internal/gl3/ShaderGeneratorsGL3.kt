@@ -152,6 +152,7 @@ void main(void) {
 #version 330
 
 $drawerUniforms
+uniform int u_flipV;
 ${shadeStructure.attributes ?: ""}
 ${shadeStructure.uniforms ?: ""}
 ${shadeStructure.varyingOut ?: ""}
@@ -161,6 +162,11 @@ void main() {
     ${preTransform}
     vec3 x_normal = a_normal;
     vec3 x_position = a_position;
+    x_position.xy = a_position.xy * i_target.zw + i_target.xy;
+    va_texCoord0.xy = va_texCoord0.xy * i_source.zw + i_source.xy;
+    if (u_flipV == 1) {
+        va_texCoord0.y = 1.0 - va_texCoord0.y;
+    }
     {
         ${shadeStructure.vertexTransform ?: ""}
     }
