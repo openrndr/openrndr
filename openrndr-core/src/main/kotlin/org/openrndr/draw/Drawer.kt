@@ -464,7 +464,7 @@ private var lastView = Matrix44.IDENTITY
 private var lastViewNormal = Matrix44.IDENTITY
 
 @Suppress("MemberVisibilityCanPrivate")
-data class DrawContext(val model: Matrix44, val view: Matrix44, val projection: Matrix44, val width: Int, val height: Int, val contentScale:Double) {
+data class DrawContext(val model: Matrix44, val view: Matrix44, val projection: Matrix44, val width: Int, val height: Int, val contentScale: Double) {
     fun applyToShader(shader: Shader) {
         if (shader.hasUniform("u_viewMatrix")) {
             shader.uniform("u_viewMatrix", view)
@@ -743,12 +743,21 @@ class Drawer(val driver: Driver) {
         circleDrawer.drawCircle(context, drawStyle, position.x, position.y, radius)
     }
 
+
+    fun circle(circle: Circle) {
+        circleDrawer.drawCircle(context, drawStyle, circle.center.x, circle.center.y, circle.radius)
+    }
+
     fun circles(positions: List<Vector2>, radius: Double) {
         circleDrawer.drawCircles(context, drawStyle, positions, radius)
     }
 
     fun circles(positions: List<Vector2>, radii: List<Double>) {
         circleDrawer.drawCircles(context, drawStyle, positions, radii)
+    }
+
+    fun circles(circles: List<Circle>) {
+        circleDrawer.drawCircles(context, drawStyle, circles)
     }
 
     fun shape(shape: Shape) {

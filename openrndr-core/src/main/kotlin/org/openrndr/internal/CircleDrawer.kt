@@ -3,6 +3,7 @@ package org.openrndr.internal
 import org.openrndr.draw.*
 import org.openrndr.math.Vector2
 import org.openrndr.math.Vector3
+import org.openrndr.shape.Circle
 
 class CircleDrawer {
     val vertices: VertexBuffer = VertexBuffer.createDynamic(VertexFormat().apply {
@@ -22,7 +23,7 @@ class CircleDrawer {
     private val shaderManager: ShadeStyleManager = ShadeStyleManager.fromGenerators(Driver.instance.shaderGenerators::circleVertexShader,
             Driver.instance.shaderGenerators::circleFragmentShader)
 
-    private fun assertInstanceSize(size:Int) {
+    private fun assertInstanceSize(size: Int) {
         if (instanceAttributes.vertexCount < size) {
             instanceAttributes.destroy()
             instanceAttributes = vertexBuffer(instanceFormat, size)
@@ -83,6 +84,19 @@ class CircleDrawer {
         }
         instanceAttributes.shadow.uploadElements(0, positions.size)
         drawCircles(drawContext, drawStyle, positions.size)
+    }
+
+    fun drawCircles(drawContext: DrawContext, drawStyle: DrawStyle, circles: List<Circle>) {
+        assertInstanceSize(circles.size)
+        instanceAttributes.shadow.writer().apply {
+            rewind()
+            circles.forEach {
+                write(it.radius.toFloat())
+                write(Vector3(it.center.x, it.center.y, 0.0))
+            }
+        }
+        instanceAttributes.shadow.uploadElements(0, circles.size)
+        drawCircles(drawContext, drawStyle, circles.size)
     }
 
     fun drawCircle(drawContext: DrawContext,
