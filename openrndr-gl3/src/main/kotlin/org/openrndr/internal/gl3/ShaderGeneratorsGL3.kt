@@ -144,7 +144,6 @@ void main(void) {
         ${shadeStructure.fragmentTransform ?: ""}
     }
     x_fill = colorTransform(x_fill, u_colorMatrix);
-
     o_color = x_fill;
 }"""
 
@@ -163,9 +162,10 @@ void main() {
     vec3 x_normal = a_normal;
     vec3 x_position = a_position;
     x_position.xy = a_position.xy * i_target.zw + i_target.xy;
-    va_texCoord0.xy = va_texCoord0.xy * i_source.zw + i_source.xy;
-    if (u_flipV == 1) {
+    va_texCoord0.xy = a_texCoord0.xy * i_source.zw + i_source.xy;
+    if (u_flipV == 0) {
         va_texCoord0.y = 1.0 - va_texCoord0.y;
+
     }
     {
         ${shadeStructure.vertexTransform ?: ""}
