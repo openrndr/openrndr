@@ -522,8 +522,8 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
         glfwGetFramebufferSize(window, fbw, fbh)
 
         glViewport(0, 0, fbw[0], fbh[0])
-        program.width = (fbw[0] / program.window.scale.x).toInt()
-        program.height = (fbh[0] / program.window.scale.y).toInt()
+        program.width = Math.ceil(fbw[0] / program.window.scale.x).toInt()
+        program.height = Math.ceil(fbh[0] / program.window.scale.y).toInt()
         program.window.size = Vector2(program.width.toDouble(), program.height.toDouble())
         program.drawer.width = program.width
         program.drawer.height = program.height
