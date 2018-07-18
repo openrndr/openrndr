@@ -1,9 +1,6 @@
 package org.openrndr.extensions
 
-import org.openrndr.Extension
-import org.openrndr.KeyboardModifier
-import org.openrndr.MouseButton
-import org.openrndr.Program
+import org.openrndr.*
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.DrawPrimitive
 import org.openrndr.draw.Drawer
@@ -14,8 +11,9 @@ import org.openrndr.math.Matrix44
 import org.openrndr.math.Spherical
 import org.openrndr.math.Vector2
 import org.openrndr.math.Vector3
+import org.openrndr.math.transforms.lookAt as lookAt_
 
-private class OrbitalCamera(eye: Vector3, lookAt: Vector3) {
+class OrbitalCamera(eye: Vector3, lookAt: Vector3) {
 
     // current position in spherical coordinates
     var spherical = Spherical.fromVector(eye)
@@ -53,19 +51,14 @@ private class OrbitalCamera(eye: Vector3, lookAt: Vector3) {
     }
 
     fun pan(x: Double, y: Double) {
-
         val view = viewMatrix()
-
         val xColumn = Vector3(view.c0r0, view.c0r1, view.c0r2) * x
         val yColumn = Vector3(view.c1r0, view.c1r1, view.c1r2) * -y
-
         lookAtEnd += xColumn + yColumn
-
         dirty = true
     }
 
     fun update(timeDelta: Double) {
-
         if (!dirty) return
         dirty = false
 
@@ -95,7 +88,7 @@ private class OrbitalCamera(eye: Vector3, lookAt: Vector3) {
     }
 
     fun viewMatrix(): Matrix44 {
-        return org.openrndr.math.transforms.lookAt(Vector3.fromSpherical(spherical) + lookAt, lookAt, Vector3.UNIT_Y)
+        return lookAt_(Vector3.fromSpherical(spherical) + lookAt, lookAt, Vector3.UNIT_Y)
     }
 
     companion object {
@@ -103,93 +96,22 @@ private class OrbitalCamera(eye: Vector3, lookAt: Vector3) {
     }
 }
 
-@Suppress("unused")
-class Debug3D(eye: Vector3, lookAt: Vector3 = Vector3.ZERO, private val fov: Double = 90.0) : Extension {
-
-    override var enabled: Boolean = true
-
-    companion object {
-        enum class STATE {
-            NONE,
-            ROTATE,
-            PAN,
-        }
+class OrbitalControls(val orbitalCamera: OrbitalCamera) {
+    enum class STATE {
+        NONE,
+        ROTATE,
+        PAN,
     }
 
-    private val orbitalCamera = OrbitalCamera(eye, lookAt)
     private var state = STATE.NONE
-    private var lastSeconds: Double = -1.0
+    var fov = 90.0
 
+    private lateinit var program: Program
     private lateinit var lastMousePosition: Vector2
-    private lateinit var windowSize: Vector2
-
-    private val grid = vertexBuffer(
-            vertexFormat {
-                position(3)
-            }
-            , 4 * 21).apply {
-        put {
-            for (x in -10..10) {
-                write(Vector3(x.toDouble(), 0.0, -10.0))
-                write(Vector3(x.toDouble(), 0.0, 10.0))
-
-                write(Vector3(-10.0, 0.0, x.toDouble()))
-                write(Vector3(10.0, 0.0, x.toDouble()))
-            }
-        }
-    }
-
-    override fun setup(program: Program) {
-
-        windowSize = program.window.size
-
-        program.mouse.moved.listen { mouseMoved(it) }
-
-        program.mouse.buttonDown.listen { mouseButtonDown(it) }
-        program.mouse.buttonUp.listen { state = STATE.NONE }
-
-        program.mouse.scrolled.listen { mouseScrolled(it) }
-    }
-
-    override fun beforeDraw(drawer: Drawer, program: Program) {
-
-        if (lastSeconds == -1.0) lastSeconds = program.seconds
-        val delta = program.seconds - lastSeconds
-        lastSeconds = program.seconds
-        orbitalCamera.update(delta)
-
-        drawer.background(ColorRGBa.BLACK)
-
-        drawer.perspective(fov, windowSize.x / windowSize.y, 0.1, 1000.0)
-        drawer.view = orbitalCamera.viewMatrix()
-
-        drawer.isolated {
-            drawer.fill = ColorRGBa.WHITE
-            drawer.stroke = ColorRGBa.WHITE
-            drawer.vertexBuffer(grid, DrawPrimitive.LINES)
-
-            // Axis cross
-            drawer.fill = ColorRGBa.RED
-            drawer.lineSegment(Vector3.ZERO, Vector3.UNIT_X)
-
-            drawer.fill = ColorRGBa.GREEN
-            drawer.lineSegment(Vector3.ZERO, Vector3.UNIT_Y)
-
-            drawer.fill = ColorRGBa.BLUE
-            drawer.lineSegment(Vector3.ZERO, Vector3.UNIT_Z)
-        }
-    }
-
-    override fun afterDraw(drawer: Drawer, program: Program) {
-        drawer.isolated {
-            drawer.view = Matrix44.IDENTITY
-            drawer.ortho()
-        }
-    }
 
     private fun mouseScrolled(event: Program.Mouse.MouseEvent) {
 
-        if ( Math.abs(event.rotation.x) > 0.1) return
+        if (Math.abs(event.rotation.x) > 0.1) return
 
         when {
             event.rotation.y > 0 -> orbitalCamera.dollyIn()
@@ -210,21 +132,20 @@ class Debug3D(eye: Vector3, lookAt: Vector3 = Vector3.ZERO, private val fov: Dou
 
             // half of the fov is center to top of screen
             val targetDistance = offset.length * Math.tan((fov / 2) * Math.PI / 180)
-            val panX = (2 * delta.x * targetDistance / windowSize.x)
-            val panY = (2 * delta.y * targetDistance / windowSize.x)
+            val panX = (2 * delta.x * targetDistance / program.window.size.x)
+            val panY = (2 * delta.y * targetDistance / program.window.size.y)
 
             orbitalCamera.pan(panX, panY)
 
         } else {
-            val rotX = 2 * Math.PI * delta.x / windowSize.x
-            val rotY = 2 * Math.PI * delta.y / windowSize.x
+            val rotX = 2 * Math.PI * delta.x / program.window.size.x
+            val rotY = 2 * Math.PI * delta.y / program.window.size.y
             orbitalCamera.rotateTo(rotX, rotY)
         }
 
     }
 
     private fun mouseButtonDown(event: Program.Mouse.MouseEvent) {
-
         val previousState = state
 
         when (event.button) {
@@ -243,5 +164,96 @@ class Debug3D(eye: Vector3, lookAt: Vector3 = Vector3.ZERO, private val fov: Dou
         if (previousState == STATE.NONE) {
             lastMousePosition = event.position
         }
+    }
+
+    fun keyPressed(keyEvent: KeyEvent) {
+        if (keyEvent.key == KEY_ARROW_RIGHT) {
+            orbitalCamera.pan(1.0, 0.0)
+        }
+        if (keyEvent.key == KEY_ARROW_LEFT) {
+            orbitalCamera.pan(-1.0, 0.0)
+        }
+        if (keyEvent.key == KEY_ARROW_UP) {
+            orbitalCamera.pan(0.0, 1.0)
+        }
+        if (keyEvent.key == KEY_ARROW_DOWN) {
+            orbitalCamera.pan(0.0, -1.0)
+        }
+    }
+
+    fun setup(program: Program) {
+        this.program = program
+        program.mouse.moved.listen { mouseMoved(it) }
+        program.mouse.buttonDown.listen { mouseButtonDown(it) }
+        program.mouse.buttonUp.listen { state = STATE.NONE }
+        program.mouse.scrolled.listen { mouseScrolled(it) }
+        program.keyboard.keyDown.listen { keyPressed(it) }
+        program.keyboard.keyRepeat.listen{ keyPressed(it) }
+    }
+}
+
+@Suppress("unused")
+class Debug3D(eye: Vector3 = Vector3(0.0, 0.0, 10.0), lookAt: Vector3 = Vector3.ZERO, private val fov: Double = 90.0) : Extension {
+
+    override var enabled: Boolean = true
+    var showGrid = false
+    private val orbitalCamera = OrbitalCamera(eye, lookAt)
+    private val orbitalControls = OrbitalControls(orbitalCamera)
+    private var lastSeconds: Double = -1.0
+
+    private val grid = vertexBuffer(
+            vertexFormat {
+                position(3)
+            }
+            , 4 * 21).apply {
+        put {
+            for (x in -10..10) {
+                write(Vector3(x.toDouble(), 0.0, -10.0))
+                write(Vector3(x.toDouble(), 0.0, 10.0))
+                write(Vector3(-10.0, 0.0, x.toDouble()))
+                write(Vector3(10.0, 0.0, x.toDouble()))
+            }
+        }
+   }
+
+    override fun beforeDraw(drawer: Drawer, program: Program) {
+        if (lastSeconds == -1.0) lastSeconds = program.seconds
+
+        val delta = program.seconds - lastSeconds
+        lastSeconds = program.seconds
+        orbitalCamera.update(delta)
+
+        drawer.background(ColorRGBa.BLACK)
+        drawer.perspective(fov, program.window.size.x / program.window.size.y, 0.1, 1000.0)
+        drawer.view = orbitalCamera.viewMatrix()
+
+        if (showGrid) {
+            drawer.isolated {
+                drawer.fill = ColorRGBa.WHITE
+                drawer.stroke = ColorRGBa.WHITE
+                drawer.vertexBuffer(grid, DrawPrimitive.LINES)
+
+                // Axis cross
+                drawer.fill = ColorRGBa.RED
+                drawer.lineSegment(Vector3.ZERO, Vector3.UNIT_X)
+
+                drawer.fill = ColorRGBa.GREEN
+                drawer.lineSegment(Vector3.ZERO, Vector3.UNIT_Y)
+
+                drawer.fill = ColorRGBa.BLUE
+                drawer.lineSegment(Vector3.ZERO, Vector3.UNIT_Z)
+            }
+        }
+    }
+
+    override fun afterDraw(drawer: Drawer, program: Program) {
+        drawer.isolated {
+            drawer.view = Matrix44.IDENTITY
+            drawer.ortho()
+        }
+    }
+
+    override fun setup(program: Program) {
+        orbitalControls.setup(program)
     }
 }
