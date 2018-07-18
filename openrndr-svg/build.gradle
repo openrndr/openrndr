@@ -2,5 +2,5 @@ dependencies {
     compile project(":openrndr-math")
     compile project(":openrndr-color")
     compile project(":openrndr-shape")
-    implementation "org.jsoup:jsoup:1.11.2"
+    implementation "org.jsoup:jsoup:1.11.3"
 }
