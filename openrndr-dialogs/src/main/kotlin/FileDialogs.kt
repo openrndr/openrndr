@@ -12,7 +12,7 @@ private fun getDefaultPathForContext(programName:String, contextID:String):Strin
     val props = Properties()
 
     return try {
-        val f = File(Platform.supportDirectory(programName), "file-dialog.properties")
+        val f = File(Platform.supportDirectory(programName), ".file-dialog.properties")
         if (f.exists()) {
             val `is` = FileInputStream(f)
             props.load(`is`)
@@ -31,7 +31,7 @@ private fun setDefaultPathForContext(programName:String, contextID:String, file:
     val props = Properties()
 
     try {
-        val f = File(Platform.supportDirectory(programName), "file-dialog.properties")
+        val f = File(Platform.supportDirectory(programName), ".file-dialog.properties")
         if (!f.exists()) {
             f.createNewFile()
         }
@@ -77,3 +77,4 @@ fun saveFileDialog(programName:String = "OPENRNDR", contextID:String="global", f
     }
     memFree(out)
 }
+
