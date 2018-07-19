@@ -52,8 +52,8 @@ class OrbitalCamera(eye: Vector3, lookAt: Vector3) {
 
     fun pan(x: Double, y: Double) {
         val view = viewMatrix()
-        val xColumn = Vector3(view.c0r0, view.c0r1, view.c0r2) * x
-        val yColumn = Vector3(view.c1r0, view.c1r1, view.c1r2) * -y
+        val xColumn = Vector3(view.c0r0, view.c1r0, view.c2r0) * x
+        val yColumn = Vector3(view.c0r1, view.c1r1, view.c2r1) * y
         lookAtEnd += xColumn + yColumn
         dirty = true
     }
@@ -135,7 +135,7 @@ class OrbitalControls(val orbitalCamera: OrbitalCamera) {
             val panX = (2 * delta.x * targetDistance / program.window.size.x)
             val panY = (2 * delta.y * targetDistance / program.window.size.y)
 
-            orbitalCamera.pan(panX, panY)
+            orbitalCamera.pan(panX, -panY)
 
         } else {
             val rotX = 2 * Math.PI * delta.x / program.window.size.x
