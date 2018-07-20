@@ -298,7 +298,10 @@ layout(origin_upper_left) in vec4 gl_FragCoord;
 
 $drawerUniforms
 ${shadeStructure.varyingIn ?: ""}
+${shadeStructure.outputs ?: ""}
 ${transformVaryingIn}
+
+${shadeStructure.fragmentPreamble ?: ""}
 
 out vec4 o_color;
 
@@ -334,6 +337,8 @@ ${shadeStructure.attributes ?: ""}
 ${shadeStructure.uniforms ?: ""}
 ${shadeStructure.varyingOut ?: ""}
 ${transformVaryingOut}
+
+${shadeStructure.vertexPreamble ?: ""}
 
 void main() {
     ${shadeStructure.varyingBridge ?: ""}
@@ -451,9 +456,10 @@ void main(void) {
 
     override fun fastLineVertexShader(shadeStructure: ShadeStructure): String = """#version 330
 $drawerUniforms
-
 ${shadeStructure.attributes ?: ""}
 ${shadeStructure.uniforms ?: ""}
+${shadeStructure.varyingOut ?: ""}
+${transformVaryingOut}
 
 void main() {
     $preTransform
