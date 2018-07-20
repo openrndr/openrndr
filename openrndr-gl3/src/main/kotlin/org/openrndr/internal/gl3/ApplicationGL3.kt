@@ -501,7 +501,7 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
         program.drawer.ortho()
         deliverEvents()
         try {
-            logger.debug { "window: ${program.window.size.x.toInt()}x${program.window.size.y.toInt()} program: ${program.width}x${program.height}" }
+            logger.trace { "window: ${program.window.size.x.toInt()}x${program.window.size.y.toInt()} program: ${program.width}x${program.height}" }
             program.drawImpl()
         } catch (e: Throwable) {
             logger.error { "caught exception, breaking animation loop" }

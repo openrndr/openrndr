@@ -66,11 +66,24 @@ class ShaderWatcher private constructor(
                 }
             }
 
+            if (vsFile != null) {
+                logger.debug {
+                    "watching vertex shader ${vsFile.absolutePath}"
+                }
+            }
+
             if (fsUrl != null && fsFile == null) {
                 logger.warn {
                     "not watching fragment shader at: $fsUrl, url does not point to a file"
                 }
             }
+
+            if (fsFile != null) {
+                logger.debug {
+                    "watching fragment shader ${fsFile.absolutePath}"
+                }
+            }
+
 
             val effectiveVsCode = vsCode ?: codeFromURL(vsUrl ?: throw RuntimeException("no code or url for vertex shader"))
             val effectiveFsCode = fsCode ?: codeFromURL(fsUrl ?: throw RuntimeException("no code or url for fragment shader"))
