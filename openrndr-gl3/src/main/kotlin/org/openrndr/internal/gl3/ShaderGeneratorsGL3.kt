@@ -450,7 +450,7 @@ void main(void) {
     {
         ${shadeStructure.fragmentTransform ?: ""}
     }
-    o_color = x_fill;
+    o_color = x_stroke;
 }
         """
 
