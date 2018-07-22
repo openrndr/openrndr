@@ -294,6 +294,9 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
         program.driver = driver
         program.drawer = Drawer(driver)
 
+        val defaultRenderTarget = ProgramRenderTargetGL3(program)
+        defaultRenderTarget.bind()
+
         setupSizes()
         program.drawer.ortho()
     }
@@ -398,8 +401,6 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
             logger.debug { "cursor state changed; inside window = $entered" }
         }
 
-        val defaultRenderTarget = ProgramRenderTargetGL3(program)
-        defaultRenderTarget.bind()
 
         if (configuration.showBeforeSetup) {
             logger.debug { "clearing and displaying pre-setup" }
