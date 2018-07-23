@@ -38,7 +38,7 @@ class ColorBufferProxy(val url: String, val loader: ColorBufferLoader) {
     fun queue() {
         touch()
         if (state == State.NOT_LOADED) {
-            loader.loadQueue.add(this)
+            loader.queue(this)
             state = State.QUEUED
         }
     }
