@@ -104,7 +104,7 @@ class DriverGL3 : Driver {
     }
 
     override fun createShader(vsCode: String, fsCode: String): Shader {
-        logger.debug {
+        logger.trace {
             "creating shader:\n${vsCode}\n${fsCode}"
         }
         val vertexShader = VertexShaderGL3.fromString(vsCode)

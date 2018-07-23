@@ -136,7 +136,7 @@ class FontImageMapManagerGL3 : FontMapManager() {
                     x0 = px0.get(0); y0 = py0.get(0); x1 = px1.get(0); y1 = py1.get(0);
                 }
                 val ascale = scale / contentScale
-                glyphMetrics[it.key] = GlyphMetrics(advanceWidth * ascale.toDouble(), leftBearing * ascale.toDouble(), x0.toDouble(), y0.toDouble())
+                glyphMetrics[it.key] = GlyphMetrics(advanceWidth * ascale, leftBearing * ascale, x0.toDouble(), y0.toDouble())
 
                 (bitmap as Buffer).rewind()
                 (bitmap as Buffer).position((sanding + t.area.y) * packSize + sanding + t.area.x)

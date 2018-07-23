@@ -44,7 +44,7 @@ allprojects {
     }
 
     dependencies {
-        implementation 'io.github.microutils:kotlin-logging:1.4.6'
+        implementation 'io.github.microutils:kotlin-logging:1.5.4'
 
         testImplementation 'org.jetbrains.spek:spek-api:1.1.5'
         testImplementation 'org.amshove.kluent:kluent:1.35'

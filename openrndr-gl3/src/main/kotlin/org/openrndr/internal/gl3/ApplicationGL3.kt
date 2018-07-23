@@ -31,7 +31,6 @@ import org.openrndr.math.Vector2
 import java.util.*
 import org.lwjgl.opengl.GL30.*
 
-
 private val logger = KotlinLogging.logger {}
 internal var primaryWindow: Long = NULL
 
@@ -295,9 +294,11 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
         program.driver = driver
         program.drawer = Drawer(driver)
 
+        val defaultRenderTarget = ProgramRenderTargetGL3(program)
+        defaultRenderTarget.bind()
+
         setupSizes()
         program.drawer.ortho()
-
     }
 
     private var drawRequested = true
@@ -400,8 +401,6 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
             logger.debug { "cursor state changed; inside window = $entered" }
         }
 
-        val defaultRenderTarget = ProgramRenderTargetGL3(program)
-        defaultRenderTarget.bind()
 
         if (configuration.showBeforeSetup) {
             logger.debug { "clearing and displaying pre-setup" }
@@ -446,12 +445,12 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
         var exception: Throwable? = null
         while (!exitRequested && !glfwWindowShouldClose(window)) {
             if (presentationMode == PresentationMode.AUTOMATIC || drawRequested) {
+                drawRequested = false
                 exception = drawFrame()
                 if (exception != null) {
                     break
                 }
-                glfwSwapBuffers(window) // swap the color buffers
-                drawRequested = false
+                glfwSwapBuffers(window)
             }
 
             if (!windowFocused && configuration.unfocusBehaviour == UnfocusBehaviour.THROTTLE) {
@@ -466,7 +465,6 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
                 deliverEvents()
             }
         }
-
         logger.info { "exiting loop" }
 
         glfwFreeCallbacks(window)
@@ -499,17 +497,12 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
 
     private fun drawFrame(): Throwable? {
         setupSizes()
-
         glBindVertexArray(vaos[0])
-
         program.drawer.reset()
         program.drawer.ortho()
-
         deliverEvents()
-
-
         try {
-            logger.debug { "window: ${program.window.size.x.toInt()}x${program.window.size.y.toInt()} program: ${program.width}x${program.height}" }
+            logger.trace { "window: ${program.window.size.x.toInt()}x${program.window.size.y.toInt()} program: ${program.width}x${program.height}" }
             program.drawImpl()
         } catch (e: Throwable) {
             logger.error { "caught exception, breaking animation loop" }
@@ -530,8 +523,8 @@ class ApplicationGL3(private val program: Program, private val configuration: Co
         glfwGetFramebufferSize(window, fbw, fbh)
 
         glViewport(0, 0, fbw[0], fbh[0])
-        program.width = (fbw[0] / program.window.scale.x).toInt()
-        program.height = (fbh[0] / program.window.scale.y).toInt()
+        program.width = Math.ceil(fbw[0] / program.window.scale.x).toInt()
+        program.height = Math.ceil(fbh[0] / program.window.scale.y).toInt()
         program.window.size = Vector2(program.width.toDouble(), program.height.toDouble())
         program.drawer.width = program.width
         program.drawer.height = program.height

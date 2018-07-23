@@ -30,13 +30,13 @@ class ShadeStyle {
     }
 
 
-    fun parameter(name:String, value:Cubemap):ShadeStyle {
+    fun parameter(name: String, value: Cubemap): ShadeStyle {
         parameterValues.put(name, value)
         parameters.put(name, "Cubemap")
         return this
     }
 
-    fun parameter(name:String, value:Int):ShadeStyle {
+    fun parameter(name: String, value: Int): ShadeStyle {
         parameterValues.put(name, value)
         parameters.put(name, "int")
         return this
@@ -93,7 +93,7 @@ class ShadeStyle {
         return this
     }
 
-    fun parameter(name: String, value:BufferTexture): ShadeStyle {
+    fun parameter(name: String, value: BufferTexture): ShadeStyle {
         parameterValues.put(name, value)
         parameters.put(name, "BufferTexture")
         return this
@@ -105,7 +105,7 @@ class ShadeStyle {
         return this
     }
 
-    operator fun plus(other:ShadeStyle) {
+    operator fun plus(other: ShadeStyle): ShadeStyle {
         val s = ShadeStyle()
         s.vertexTransform = concat(vertexTransform, other.vertexTransform)
         s.fragmentTransform = concat(fragmentTransform, other.fragmentTransform)
@@ -127,12 +127,13 @@ class ShadeStyle {
             putAll(outputs)
             putAll(other.outputs)
         }
+        return s
     }
 }
 
-fun shadeStyle(builder:ShadeStyle.()->Unit):ShadeStyle = ShadeStyle().apply(builder)
+fun shadeStyle(builder: ShadeStyle.() -> Unit): ShadeStyle = ShadeStyle().apply(builder)
 
-private fun concat(left:String?, right:String?):String? {
+private fun concat(left: String?, right: String?): String? {
     return if (left == null && right == null) {
         null
     } else if (left == null && right != null) {

@@ -36,8 +36,8 @@ class ImageDrawer {
 
         val u0 = 0.0
         val u1 = 1.0
-        val v0 = 0.0
-        val v1 = 1.0
+        val v0 = 1.0
+        val v1 = 0.0
 
         val ta = Vector2(u0, v1)
         val tb = Vector2(u1, v1)

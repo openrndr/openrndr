@@ -3,6 +3,7 @@ package org.openrndr.draw
 import org.openrndr.color.ColorRGBa
 import org.openrndr.math.Matrix55
 import org.openrndr.shape.Rectangle
+
 enum class LineJoin {
     BEVEL,
     ROUND
@@ -72,7 +73,7 @@ enum class ColorFormat {
             return when (this) {
                 R -> 1
                 RG -> 2
-                BGR,RGB, sRGB -> 3
+                BGR, RGB, sRGB -> 3
                 BGRa, RGBa, sRGBa -> 4
             }
         }
@@ -135,10 +136,8 @@ class ChannelMask(val red: Boolean, val green: Boolean, val blue: Boolean, val a
     }
 }
 
-
 data class DrawStyle(
-
-        var clip:Rectangle? = null,
+        var clip: Rectangle? = null,
         var fill: ColorRGBa? = ColorRGBa.WHITE,
         var stroke: ColorRGBa? = ColorRGBa.BLACK,
 
@@ -164,15 +163,23 @@ data class DrawStyle(
         var backStencil: StencilStyle = stencil,
 
         var colorMatrix: Matrix55 = Matrix55.IDENTITY
-
 ) {
 
     fun applyToShader(shader: Shader) {
-        shader.uniform("u_fill", fill?:ColorRGBa.TRANSPARENT)
-        shader.uniform("u_stroke", stroke?:ColorRGBa.TRANSPARENT)
+        if (shader.hasUniform("u_fill")) {
+            shader.uniform("u_fill", fill ?: ColorRGBa.TRANSPARENT)
+        }
 
-        shader.uniform("u_strokeWeight", if (stroke != null) strokeWeight else 0.0)
-        shader.uniform("u_colorMatrix", colorMatrix.floatArray)
+        if (shader.hasUniform("u_stroke")) {
+            shader.uniform("u_stroke", stroke ?: ColorRGBa.TRANSPARENT)
+        }
+
+        if (shader.hasUniform("u_strokeWeight")) {
+            shader.uniform("u_strokeWeight", if (stroke != null) strokeWeight else 0.0)
+        }
+
+        if (shader.hasUniform("u_colorMatrix")) {
+            shader.uniform("u_colorMatrix", colorMatrix.floatArray)
+        }
     }
-
 }

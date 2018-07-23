@@ -12,6 +12,11 @@ class ColorBufferLoader {
     val loadQueue = mutableListOf<ColorBufferProxy>()
     val unloadQueue = mutableListOf<ColorBufferProxy>()
 
+
+    fun queue(colorBufferProxy: ColorBufferProxy) {
+        synchronized(loadQueue) { loadQueue.add(colorBufferProxy) }
+    }
+
     fun loadFromUrl(url: String): ColorBufferProxy {
         val proxy = ColorBufferProxy(url, this).apply {
             lastTouched = System.currentTimeMillis()
@@ -28,21 +33,23 @@ class ColorBufferLoader {
             val loader = ColorBufferLoader()
             val rf = Driver.instance.createResourceThread {
                 while (true) {
-                    synchronized(loader.loadQueue) {
-                        if (!loader.loadQueue.isEmpty()) {
+
+                    if (!loader.loadQueue.isEmpty()) {
+                        val proxy = synchronized(loader.loadQueue) {
                             loader.loadQueue.sortBy { it.lastTouched }
-                            val proxy = loader.loadQueue.removeAt(0)
-                            val cb = ColorBuffer.fromUrl(proxy.url)
-                            proxy.realColorBuffer = cb
-                            proxy.state = ColorBufferProxy.State.LOADED
-                            if (!proxy.persistent) {
-                                synchronized(loader.unloadQueue) {
-                                    loader.unloadQueue.add(proxy)
-                                }
-                            }
-                            proxy.events.loaded.trigger(ColorBufferProxy.ProxyEvent())
+                            loader.loadQueue.removeAt(0)
                         }
+                        val cb = ColorBuffer.fromUrl(proxy.url)
+                        proxy.realColorBuffer = cb
+                        proxy.state = ColorBufferProxy.State.LOADED
+                        if (!proxy.persistent) {
+                            synchronized(loader.unloadQueue) {
+                                loader.unloadQueue.add(proxy)
+                            }
+                        }
+                        proxy.events.loaded.trigger(ColorBufferProxy.ProxyEvent())
                     }
+
 
                     synchronized(loader.unloadQueue) {
                         if (!loader.unloadQueue.isEmpty()) {
