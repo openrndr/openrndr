@@ -49,14 +49,26 @@ allprojects {
         testImplementation 'org.jetbrains.spek:spek-api:1.1.5'
         testImplementation 'org.amshove.kluent:kluent:1.35'
         testRuntime 'org.jetbrains.spek:spek-junit-platform-engine:1.1.5'
-        testRuntime 'org.junit.jupiter:junit-jupiter-engine:5.1.0'
-        testRuntime 'org.junit.platform:junit-platform-console:1.0.0'
+        testRuntime 'org.junit.jupiter:junit-jupiter-engine:5.2.0'
+        testRuntime 'org.junit.platform:junit-platform-console:1.2.0'
     }
 
     test {
         // enable JUnit Platform (a.k.a. JUnit 5) support
         // works together with the two testRuntime dependencies (spek engine & jupiter engine)
         useJUnitPlatform()
+    }
+
+
+    if (System.getenv('TRAVIS') == null) {
+        task runJupiter(type: JavaExec) {
+            jvmArgs '-XstartOnFirstThread'
+            classpath = project.sourceSets.test.runtimeClasspath
+            main 'org.junit.platform.console.ConsoleLauncher'
+            args '--scan-class-path'
+            args "--reports-dir=$project.testReportDir"
+        }
+        test.dependsOn runJupiter
     }
 
     contacts {
