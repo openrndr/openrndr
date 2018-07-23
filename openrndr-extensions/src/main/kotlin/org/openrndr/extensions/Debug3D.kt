@@ -28,24 +28,35 @@ class OrbitalCamera(eye: Vector3, lookAt: Vector3) {
     var dampingFactor = 0.05
     var zoomSpeed = 1.0
 
-    fun rotateTo(rotX: Double, rotY: Double) {
+    fun rotate(rotX: Double, rotY: Double) {
         sphericalEnd += Spherical(0.0, rotX, rotY)
         sphericalEnd = sphericalEnd.makeSafe()
+        dirty = true
+    }
 
+    fun rotateTo(rotX: Double, rotY: Double) {
+        sphericalEnd = sphericalEnd.copy(theta = rotX, phi = rotY)
+        sphericalEnd = sphericalEnd.makeSafe()
+        dirty = true
+    }
+
+    fun rotateTo(eye: Vector3) {
+        sphericalEnd = Spherical.fromVector(eye)
+        sphericalEnd = sphericalEnd.makeSafe()
         dirty = true
     }
 
     fun dollyIn() {
         val zoomScale = Math.pow(0.95, zoomSpeed)
-        dollyTo(sphericalEnd.radius * zoomScale - sphericalEnd.radius)
+        dolly(sphericalEnd.radius * zoomScale - sphericalEnd.radius)
     }
 
     fun dollyOut() {
         val zoomScale = Math.pow(0.95, zoomSpeed)
-        dollyTo(sphericalEnd.radius / zoomScale - sphericalEnd.radius)
+        dolly(sphericalEnd.radius / zoomScale - sphericalEnd.radius)
     }
 
-    private fun dollyTo(distance: Double) {
+    private fun dolly(distance: Double) {
         sphericalEnd += Spherical(distance, 0.0, 0.0)
         dirty = true
     }
@@ -58,13 +69,22 @@ class OrbitalCamera(eye: Vector3, lookAt: Vector3) {
         dirty = true
     }
 
+    fun panTo(target : Vector3) {
+        lookAtEnd = target
+        dirty = true
+    }
+
+    fun dollyTo(distance: Double) {
+        sphericalEnd = sphericalEnd.copy(radius = distance )
+        dirty = true
+    }
+
     fun update(timeDelta: Double) {
         if (!dirty) return
         dirty = false
 
         val dampingFactor = dampingFactor * timeDelta / 0.0060
         val sphericalDelta = sphericalEnd - spherical
-
         val lookAtDelta = lookAtEnd - lookAt
 
         if (
@@ -122,11 +142,10 @@ class OrbitalControls(val orbitalCamera: OrbitalCamera) {
     private fun mouseMoved(event: Program.Mouse.MouseEvent) {
 
         if (state == STATE.NONE) return
-
         val delta = lastMousePosition - event.position
         lastMousePosition = event.position
 
-        if (KeyboardModifier.SHIFT in event.modifiers) {
+        if (state == STATE.PAN) {
 
             val offset = Vector3.fromSpherical(orbitalCamera.spherical) - orbitalCamera.lookAt
 
@@ -140,7 +159,7 @@ class OrbitalControls(val orbitalCamera: OrbitalCamera) {
         } else {
             val rotX = 2 * Math.PI * delta.x / program.window.size.x
             val rotY = 2 * Math.PI * delta.y / program.window.size.y
-            orbitalCamera.rotateTo(rotX, rotY)
+            orbitalCamera.rotate(rotX, rotY)
         }
 
     }
@@ -197,7 +216,7 @@ class Debug3D(eye: Vector3 = Vector3(0.0, 0.0, 10.0), lookAt: Vector3 = Vector3.
 
     override var enabled: Boolean = true
     var showGrid = false
-    private val orbitalCamera = OrbitalCamera(eye, lookAt)
+    val orbitalCamera = OrbitalCamera(eye, lookAt)
     private val orbitalControls = OrbitalControls(orbitalCamera)
     private var lastSeconds: Double = -1.0
 
@@ -214,7 +233,7 @@ class Debug3D(eye: Vector3 = Vector3(0.0, 0.0, 10.0), lookAt: Vector3 = Vector3.
                 write(Vector3(10.0, 0.0, x.toDouble()))
             }
         }
-   }
+    }
 
     override fun beforeDraw(drawer: Drawer, program: Program) {
         if (lastSeconds == -1.0) lastSeconds = program.seconds
