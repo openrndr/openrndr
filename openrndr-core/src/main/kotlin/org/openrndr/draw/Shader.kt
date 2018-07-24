@@ -27,6 +27,11 @@ interface Shader {
 
     fun hasUniform(name: String): Boolean
 
+    fun createBlock(blockName: String): UniformBlock
+    fun blockLayout(blockName: String): UniformBlockLayout?
+    fun block(blockName: String, block: UniformBlock)
+
+
     fun uniform(name: String, value: Matrix44)
     fun uniform(name: String, value: ColorRGBa)
     fun uniform(name: String, value: Vector4)
