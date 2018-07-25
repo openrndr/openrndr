@@ -19,10 +19,11 @@ import java.nio.ByteBuffer
 private val logger = KotlinLogging.logger {}
 
 private var blockBindings = 0
-class UniformBlockGL3(override val layout: UniformBlockLayout, val blockBinding:Int, val ubo: Int, val shadowBuffer: ByteBuffer) : UniformBlock {
+
+class UniformBlockGL3(override val layout: UniformBlockLayout, val blockBinding: Int, val ubo: Int, val shadowBuffer: ByteBuffer) : UniformBlock {
 
     private val lastValues = mutableMapOf<String, Any>()
-    var realDirty:Boolean = false
+    var realDirty: Boolean = true
     override val dirty: Boolean
         get() = realDirty
 
@@ -36,7 +37,7 @@ class UniformBlockGL3(override val layout: UniformBlockLayout, val blockBinding:
             glBindBufferBase(GL_UNIFORM_BUFFER, blockBindings, ubo)
             blockBindings++
             val buffer = BufferUtils.createByteBuffer(layout.sizeInBytes)
-            return UniformBlockGL3(layout, blockBindings-1, ubo, buffer)
+            return UniformBlockGL3(layout, blockBindings - 1, ubo, buffer)
         }
     }
 
@@ -126,7 +127,7 @@ class UniformBlockGL3(override val layout: UniformBlockLayout, val blockBinding:
                 } else {
                     throw RuntimeException("uniform mismatch")
                 }
-            }  else {
+            } else {
                 throw RuntimeException("uniform not found $name")
             }
             lastValues[name] = value
@@ -344,7 +345,7 @@ class ShaderGL3(val program: Int,
     private var uniforms: MutableMap<String, Int> = hashMapOf()
     private var attributes: MutableMap<String, Int> = hashMapOf()
     private var blockBindings = hashMapOf<String, Int>()
-    private val blocks : MutableMap<String, Int> = hashMapOf()
+    private val blocks: MutableMap<String, Int> = hashMapOf()
 
     companion object {
         fun create(vertexShader: VertexShaderGL3, fragmentShader: FragmentShaderGL3): ShaderGL3 {
@@ -481,13 +482,13 @@ class ShaderGL3(val program: Int,
         if (blockBindings[blockName] != (block as UniformBlockGL3).blockBinding) {
             //checkGLErrors()
             glUniformBlockBinding(program, blockIndex, (block as UniformBlockGL3).blockBinding)
-            blockBindings[blockName] =(block as UniformBlockGL3).blockBinding
+            blockBindings[blockName] = (block as UniformBlockGL3).blockBinding
         }
         //checkGLErrors()
 
     }
 
-    fun blockIndex(block:String):Int {
+    fun blockIndex(block: String): Int {
         return blocks.getOrPut(block) {
             glGetUniformBlockIndex(program, block)
         }
@@ -594,7 +595,6 @@ class ShaderGL3(val program: Int,
             postUniformCheck(name, index, value)
         }
     }
-
 
 
     override fun uniform(name: String, value: Array<Vector2>) {
