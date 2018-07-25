@@ -16,9 +16,7 @@ fun map(beforeLeft: Double, beforeRight: Double, afterLeft: Double, afterRight: 
     return afterLeft + n * (afterRight - afterLeft)
 }
 
-fun linearstep(edge0: Double, edge1: Double, x: Double): Double {
-    return saturate((x - edge0) / (edge1 - edge0))
-}
+fun linearstep(edge0: Double, edge1: Double, x: Double): Double = saturate((x - edge0) / (edge1 - edge0))
 
 /**
  * Smoothstep
@@ -42,7 +40,6 @@ fun smoothstep(edge0: Double, edge1: Double, x: Double): Double {
  * @return a mapped value in the interval [0, 1]
  */
 fun smoothstepIn(edge0: Double, edge1: Double, x: Double): Double {
-
     // Scale, bias and saturate x to 0..1 range
     val u = saturate((x - edge0) / (edge1 - edge0))
     // Evaluate polynomial
@@ -54,7 +51,6 @@ fun smoothstepIn(edge0: Double, edge1: Double, x: Double): Double {
     }
 }
 
-
 /**
  * Smootherstep
  * @param edge0
@@ -63,18 +59,11 @@ fun smoothstepIn(edge0: Double, edge1: Double, x: Double): Double {
  * @return a mapped value in the interval [0, 1]
  */
 fun smootherstep(edge0: Double, edge1: Double, x: Double): Double {
-
     // Scale, bias and saturate x to 0..1 range
     val u = saturate((x - edge0) / (edge1 - edge0))
     // Evaluate polynomial
     return u * u * u * (u * (u * 6 - 15) + 10)
 }
 
-fun saturate(x: Double): Double {
-    return Math.max(0.0, Math.min(1.0, x))
-}
-
-
-fun mix(left: Double, right: Double, x: Double): Double {
-    return left * (1.0 - x) + right * x
-}
+fun saturate(x: Double) = Math.max(0.0, Math.min(1.0, x))
+fun mix(left: Double, right: Double, x: Double) = left * (1.0 - x) + right * x

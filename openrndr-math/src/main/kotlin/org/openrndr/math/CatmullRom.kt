@@ -67,7 +67,7 @@ class CatmullRom2(val p0: Vector2, val p1: Vector2, val p2: Vector2, val p3: Vec
     val t3: Double = calculateT(t2, p2, p3)
 
     fun position(rt: Double): Vector2 {
-        val t = t1 + rt * (t2-t1)
+        val t = t1 + rt * (t2 - t1)
         val a1 = p0 * ((t1 - t) / (t1 - t0)) + p1 * ((t - t0) / (t1 - t0))
         val a2 = p1 * ((t2 - t) / (t2 - t1)) + p2 * ((t - t1) / (t2 - t1))
         val a3 = p2 * ((t3 - t) / (t3 - t2)) + p3 * ((t - t2) / (t3 - t2))
@@ -95,9 +95,9 @@ class CatmullRomChain2(points: List<Vector2>, alpha: Double = 0.5, val loop: Boo
             CatmullRom2(it[0], it[1], it[2], it[3], alpha)
         }
 
-    fun positions(steps:Int = segments.size*4):List<Vector2> {
+    fun positions(steps: Int = segments.size * 4): List<Vector2> {
         return (0..steps).map {
-            position(it.toDouble()/steps)
+            position(it.toDouble() / steps)
         }
     }
 
@@ -116,7 +116,7 @@ class CatmullRom3(val p0: Vector3, val p1: Vector3, val p2: Vector3, val p3: Vec
     val t3: Double = calculateT(t2, p2, p3)
 
     fun position(rt: Double): Vector3 {
-        val t = t1 + rt * (t2-t1)
+        val t = t1 + rt * (t2 - t1)
         val a1 = p0 * ((t1 - t) / (t1 - t0)) + p1 * ((t - t0) / (t1 - t0))
         val a2 = p1 * ((t2 - t) / (t2 - t1)) + p2 * ((t - t1) / (t2 - t1))
         val a3 = p2 * ((t3 - t) / (t3 - t2)) + p3 * ((t - t2) / (t3 - t2))
@@ -144,9 +144,9 @@ class CatmullRomChain3(points: List<Vector3>, alpha: Double = 0.5, val loop: Boo
             CatmullRom3(it[0], it[1], it[2], it[3], alpha)
         }
 
-    fun positions(steps:Int = segments.size*4):List<Vector3> {
+    fun positions(steps: Int = segments.size * 4): List<Vector3> {
         return (0..steps).map {
-            position(it.toDouble()/steps)
+            position(it.toDouble() / steps)
         }
     }
 

@@ -11,13 +11,11 @@ private const val EPS = 0.000001
 
 data class Spherical(val radius: Double, val theta: Double, val phi: Double) {
 
-    fun makeSafe() : Spherical {
-        return Spherical(
-                radius,
-                theta,
-                clamp(phi, EPS, Math.PI - EPS)
-        )
-    }
+    fun makeSafe() = Spherical(
+            radius,
+            theta,
+            clamp(phi, EPS, Math.PI - EPS)
+    )
 
     companion object {
         fun fromVector(vector: Vector3): Spherical {
@@ -29,9 +27,9 @@ data class Spherical(val radius: Double, val theta: Double, val phi: Double) {
         }
     }
 
-    operator fun plus(s: Spherical): Spherical = Spherical(radius + s.radius, theta + s.theta, phi + s.phi)
-    operator fun minus(s: Spherical): Spherical = Spherical(radius - s.radius, theta - s.theta, phi - s.phi)
-    operator fun times(s: Spherical): Spherical = Spherical(radius * s.radius, theta * s.theta, phi * s.phi)
-    operator fun times(s: Double): Spherical = Spherical(radius * s, theta * s, phi * s)
-    operator fun div(s: Double): Spherical = Spherical(radius / s, theta / s, phi / s)
+    operator fun plus(s: Spherical) = Spherical(radius + s.radius, theta + s.theta, phi + s.phi)
+    operator fun minus(s: Spherical) = Spherical(radius - s.radius, theta - s.theta, phi - s.phi)
+    operator fun times(s: Spherical) = Spherical(radius * s.radius, theta * s.theta, phi * s.phi)
+    operator fun times(s: Double) = Spherical(radius * s, theta * s, phi * s)
+    operator fun div(s: Double) = Spherical(radius / s, theta / s, phi / s)
 }

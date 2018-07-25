@@ -10,10 +10,8 @@ fun bezier(x0: Double, c0: Double, x1: Double, t: Double): Double {
 }
 
 fun derivative(x0: Double, c0: Double, x1: Double, t: Double): Double {
-
     val it = 1.0 - t
     return 2.0 * it * (c0 - x0) + 2.0 * t * (x1 - c0)
-
 }
 
 fun derivative(x0: Vector2, c0: Vector2, x1: Vector2, t: Double): Vector2 {
@@ -30,7 +28,6 @@ fun normal(x0: Vector2, c0: Vector2, x1: Vector2, t: Double): Vector2 {
     val (x, y) = derivative(x0, c0, x1, t)
     return Vector2(-y, x).normalized
 }
-
 
 fun bezier(x0: Vector2, c0: Vector2, x1: Vector2, t: Double): Vector2 {
     val it = 1.0 - t

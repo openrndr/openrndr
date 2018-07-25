@@ -2,15 +2,15 @@ package org.openrndr.math
 
 import java.io.Serializable
 
+@Suppress("unused", "MemberVisibilityCanBePrivate")
 data class Quaternion(val x: Double, val y: Double, val z: Double, val w: Double) : Serializable {
 
     companion object {
         val IDENTITY: Quaternion = Quaternion(0.0, 0.0, 0.0, 1.0)
         val ZERO: Quaternion = Quaternion(0.0, 0.0, 0.0, 0.0)
 
-        fun fromAngles(pitch: Double, roll: Double, yaw: Double):Quaternion {
-            return fromAnglesRadian(Math.toRadians(pitch), Math.toRadians(roll), Math.toRadians(yaw))
-        }
+        fun fromAngles(pitch: Double, roll: Double, yaw: Double) =
+                fromAnglesRadian(Math.toRadians(pitch), Math.toRadians(roll), Math.toRadians(yaw))
 
         fun fromAnglesRadian(pitch: Double, roll: Double, yaw: Double): Quaternion {
             val cy = Math.cos(yaw * 0.5)
@@ -54,7 +54,6 @@ data class Quaternion(val x: Double, val y: Double, val z: Double, val w: Double
 
     val normalized: Quaternion
         get() {
-
             val l = length
             return Quaternion(x / l, y / l, z / l, w / l)
         }
@@ -84,7 +83,7 @@ data class Quaternion(val x: Double, val y: Double, val z: Double, val w: Double
             val zw = w * zs
 
             // using s=2/norm (instead of 1/norm) saves 9 multiplications by 2 here
-            return Matrix44( //
+            return Matrix44(
                     1 - (yy + zz), xy - zw, xz + yw, 0.0, //
                     xy + zw, 1 - (xx + zz), yz - xw, 0.0, //
                     xz - yw, yz + xw, 1 - (xx + yy), 0.0, //
@@ -96,6 +95,7 @@ fun dot(q1: Quaternion, q2: Quaternion): Double {
     return q1.w * q2.w + q1.x * q2.x + q1.y * q2.y + q2.z * q2.z
 }
 
+@Suppress("unused")
 fun slerp(q1: Quaternion, q2: Quaternion, x: Double): Quaternion {
     if (q1.x == q2.x && q1.y == q2.y && q1.z == q2.z && q1.w == q2.w) {
         return q1

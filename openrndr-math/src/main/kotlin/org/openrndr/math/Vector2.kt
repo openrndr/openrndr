@@ -9,12 +9,11 @@ data class Vector2(val x: Double, val y: Double) : Serializable {
     val squaredLength: Double
         get() = x * x + y * y
 
-
     val perpendicular: Vector2 get() = Vector2(-y, x)
-
     val normalized: Vector2 get() = this / length
 
     infix fun dot(right: Vector2) = x * right.x + y * right.y
+    infix fun reflect(surfaceNormal: Vector2): Vector2 = this - surfaceNormal * (this dot surfaceNormal) * 2.0
 
     val yx get() = Vector2(y, x)
     val xx get() = Vector2(x, x)
@@ -42,6 +41,8 @@ data class Vector2(val x: Double, val y: Double) : Serializable {
         val INFINITY = Vector2(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY)
     }
 }
+
+operator fun Double.times(v: Vector2) = v * this
 
 fun min(a: Vector2, b: Vector2): Vector2 = Vector2(Math.min(a.x, b.x), Math.min(a.y, b.y))
 fun max(a: Vector2, b: Vector2): Vector2 = Vector2(Math.max(a.x, b.x), Math.max(a.y, b.y))
