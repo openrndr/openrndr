@@ -41,6 +41,7 @@ data class ColorBufferProxy(val url: String, val loader: ColorBufferLoader, val 
         }
 
     internal var lastTouched = 0L
+    internal var lastTouchedShadow = 0L
 
     fun queue() {
         touch()
