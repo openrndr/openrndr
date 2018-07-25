@@ -20,7 +20,7 @@ enum class UniformType(val sizeInBytes: Int) {
     COLOR_BUFFER_SAMPLER(4),
 }
 
-data class UniformDescription(val name: String, val type: UniformType, val size: Int, val offset: Int)
+data class UniformDescription(val name: String, val type: UniformType, val size: Int, val offset: Int, val stride:Int)
 
 interface UniformBlock {
     val dirty:Boolean

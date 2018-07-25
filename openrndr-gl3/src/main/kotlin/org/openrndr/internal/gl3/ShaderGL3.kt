@@ -29,7 +29,6 @@ class UniformBlockGL3(override val layout: UniformBlockLayout, val blockBinding:
     companion object {
         fun create(layout: UniformBlockLayout): UniformBlockGL3 {
             val ubo = glGenBuffers()
-            println("ubo $ubo")
             glBindBuffer(GL_UNIFORM_BUFFER, ubo)
             glBufferData(GL_UNIFORM_BUFFER, layout.sizeInBytes.toLong(), GL_DYNAMIC_DRAW)
             glBindBuffer(GL_UNIFORM_BUFFER, 0)
@@ -180,9 +179,8 @@ class UniformBlockGL3(override val layout: UniformBlockLayout, val blockBinding:
             if (entry != null) {
                 val values = value.floatArray
                 if (entry.type == UniformType.FLOAT32 && entry.size == 25) {
-                    shadowBuffer.safePosition(entry.offset)
                     for (i in 0 until 25) {
-                        shadowBuffer.putFloat(values[i])
+                        shadowBuffer.putFloat(entry.offset + i * entry.stride, values[i])
                     }
                 } else {
                     throw RuntimeException("uniform mismatch")
@@ -200,10 +198,9 @@ class UniformBlockGL3(override val layout: UniformBlockLayout, val blockBinding:
     override fun uniform(name: String, value: Array<Float>) {
         val entry = layout.entries[name]
         if (entry != null) {
-            if (entry.type == UniformType.VECTOR4_FLOAT32 && entry.size == value.size) {
-                shadowBuffer.safePosition(entry.offset)
+            if (entry.type == UniformType.FLOAT32 && entry.size == value.size) {
                 for (i in 0 until value.size) {
-                    shadowBuffer.putFloat(value[i])
+                    shadowBuffer.putFloat(entry.offset + i * entry.stride, value[i])
                 }
             } else {
                 throw RuntimeException("uniform mismatch")
@@ -392,7 +389,6 @@ class ShaderGL3(val program: Int,
     override fun blockLayout(blockName: String): UniformBlockLayout? {
         val blockIndex = glGetUniformBlockIndex(program, blockName)
 
-        println("found block: $blockIndex")
         if (blockIndex == -1) {
             return null
         }
@@ -403,7 +399,6 @@ class ShaderGL3(val program: Int,
             blockSizeBuffer[0]
         }
 
-        println("block size $blockSize")
         if (blockSize != 0) {
             val uniformCount = run {
                 val uniformCountBuffer = BufferUtils.createIntBuffer(1)
@@ -448,6 +443,15 @@ class ShaderGL3(val program: Int,
                 array
             }
 
+            val uniformStrides = run {
+                val buffer = BufferUtils.createIntBuffer(uniformCount)
+                glGetActiveUniformsiv(program, uniformIndicesBuffer, GL_UNIFORM_ARRAY_STRIDE, buffer)
+                (buffer as Buffer).rewind()
+                val array = IntArray(uniformCount)
+                buffer.get(array)
+                array
+            }
+
             val uniformNames = uniformIndices.map {
                 glGetActiveUniformName(program, it, 128)
             }
@@ -455,7 +459,7 @@ class ShaderGL3(val program: Int,
             checkGLErrors()
 
             return UniformBlockLayout(blockSize, (0 until uniformCount).map {
-                UniformDescription(uniformNames[it].replace(Regex("\\[.*\\]"),""), uniformTypes[it].toUniformType(), uniformSizes[it], uniformOffsets[it])
+                UniformDescription(uniformNames[it].replace(Regex("\\[.*\\]"),""), uniformTypes[it].toUniformType(), uniformSizes[it], uniformOffsets[it], uniformStrides[it])
             }.associate { Pair(it.name, it) })
 
 
