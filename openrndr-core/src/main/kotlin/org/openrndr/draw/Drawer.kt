@@ -359,7 +359,6 @@ interface ProgramRenderTarget : RenderTarget {
     override val height get() = program.height
 }
 
-
 @Suppress("unused")
 class RenderTargetBuilder(private val renderTarget: RenderTarget) {
     fun colorBuffer(colorBuffer: ColorBuffer) {
@@ -463,42 +462,80 @@ private var lastModelNormal = Matrix44.IDENTITY
 private var lastView = Matrix44.IDENTITY
 private var lastViewNormal = Matrix44.IDENTITY
 
+private var contextBlock: UniformBlock? = null
+private var useContextBlock = true
 @Suppress("MemberVisibilityCanPrivate")
 data class DrawContext(val model: Matrix44, val view: Matrix44, val projection: Matrix44, val width: Int, val height: Int, val contentScale: Double) {
     fun applyToShader(shader: Shader) {
-        if (shader.hasUniform("u_viewMatrix")) {
-            shader.uniform("u_viewMatrix", view)
+
+        if (contextBlock == null) {
+            contextBlock = shader.createBlock("ContextBlock")
         }
-        if (shader.hasUniform("u_modelMatrix")) {
-            shader.uniform("u_modelMatrix", model)
-        }
-        if (shader.hasUniform("u_projectionMatrix")) {
-            shader.uniform("u_projectionMatrix", projection)
-        }
-        if (shader.hasUniform("u_viewProjectionMatrix")) {
-            shader.uniform("u_viewProjectionMatrix", projection * view)
-        }
-        if (shader.hasUniform("u_viewDimensions")) {
-            shader.uniform("u_viewDimensions", Vector2(width.toDouble(), height.toDouble()))
-        }
-        if (shader.hasUniform("u_modelNormalMatrix")) {
-            val normalMatrix = if (model === lastModel) lastModelNormal else {
-                lastModelNormal = if (model !== Matrix44.IDENTITY) normalMatrix(model) else Matrix44.IDENTITY
-                lastModel = model
-                lastModelNormal
+
+        if (!useContextBlock) {
+            if (shader.hasUniform("u_viewMatrix")) {
+                shader.uniform("u_viewMatrix", view)
             }
-            shader.uniform("u_modelNormalMatrix", normalMatrix)
-        }
-        if (shader.hasUniform("u_viewNormalMatrix")) {
-            val normalMatrix = if (view === lastView) lastViewNormal else {
-                lastViewNormal = if (view !== Matrix44.IDENTITY) normalMatrix(view) else Matrix44.IDENTITY
-                lastView = view
-                lastViewNormal
+            if (shader.hasUniform("u_modelMatrix")) {
+                shader.uniform("u_modelMatrix", model)
             }
-            shader.uniform("u_viewNormalMatrix", normalMatrix)
-        }
-        if (shader.hasUniform("u_contentScale")) {
-            shader.uniform("u_contentScale", contentScale)
+            if (shader.hasUniform("u_projectionMatrix")) {
+                shader.uniform("u_projectionMatrix", projection)
+            }
+            if (shader.hasUniform("u_viewProjectionMatrix")) {
+                shader.uniform("u_viewProjectionMatrix", projection * view)
+            }
+            if (shader.hasUniform("u_viewDimensions")) {
+                shader.uniform("u_viewDimensions", Vector2(width.toDouble(), height.toDouble()))
+            }
+            if (shader.hasUniform("u_modelNormalMatrix")) {
+                val normalMatrix = if (model === lastModel) lastModelNormal else {
+                    lastModelNormal = if (model !== Matrix44.IDENTITY) normalMatrix(model) else Matrix44.IDENTITY
+                    lastModel = model
+                    lastModelNormal
+                }
+                shader.uniform("u_modelNormalMatrix", normalMatrix)
+            }
+            if (shader.hasUniform("u_viewNormalMatrix")) {
+                val normalMatrix = if (view === lastView) lastViewNormal else {
+                    lastViewNormal = if (view !== Matrix44.IDENTITY) normalMatrix(view) else Matrix44.IDENTITY
+                    lastView = view
+                    lastViewNormal
+                }
+                shader.uniform("u_viewNormalMatrix", normalMatrix)
+            }
+            if (shader.hasUniform("u_contentScale")) {
+                shader.uniform("u_contentScale", contentScale)
+            }
+        } else {
+            contextBlock?.apply {
+                uniform("u_viewMatrix", view)
+                uniform("u_modelMatrix", model)
+                uniform("u_projectionMatrix", projection)
+                //uniform("u_viewProjectionMatrix", projection * view)
+                uniform("u_viewDimensions", Vector2(width.toDouble(), height.toDouble()))
+                run {
+                    val normalMatrix = if (model === lastModel) lastModelNormal else {
+                        lastModelNormal = if (model !== Matrix44.IDENTITY) normalMatrix(model) else Matrix44.IDENTITY
+                        lastModel = model
+                        lastModelNormal
+                    }
+                    shader.uniform("u_modelNormalMatrix", normalMatrix)
+                }
+                run {
+                    val normalMatrix = if (view === lastView) lastViewNormal else {
+                        lastViewNormal = if (view !== Matrix44.IDENTITY) normalMatrix(view) else Matrix44.IDENTITY
+                        lastView = view
+                        lastViewNormal
+                    }
+                    shader.uniform("u_viewNormalMatrix", normalMatrix)
+                }
+                shader.uniform("u_contentScale", contentScale)
+                if (dirty) {
+                    upload()
+                }
+                shader.block("ContextBlock", this)
+            }
         }
     }
 }

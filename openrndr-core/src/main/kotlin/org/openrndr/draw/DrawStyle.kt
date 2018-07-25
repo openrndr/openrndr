@@ -135,7 +135,8 @@ class ChannelMask(val red: Boolean, val green: Boolean, val blue: Boolean, val a
         val ALL = ChannelMask(true, true, true, true)
     }
 }
-
+private var styleBlock:UniformBlock? = null
+private var useStyleBlock = true
 data class DrawStyle(
         var clip: Rectangle? = null,
         var fill: ColorRGBa? = ColorRGBa.WHITE,
@@ -166,20 +167,36 @@ data class DrawStyle(
 ) {
 
     fun applyToShader(shader: Shader) {
-        if (shader.hasUniform("u_fill")) {
-            shader.uniform("u_fill", fill ?: ColorRGBa.TRANSPARENT)
-        }
+        if (!useStyleBlock) {
+            if (shader.hasUniform("u_fill")) {
+                shader.uniform("u_fill", fill ?: ColorRGBa.TRANSPARENT)
+            }
 
-        if (shader.hasUniform("u_stroke")) {
-            shader.uniform("u_stroke", stroke ?: ColorRGBa.TRANSPARENT)
-        }
+            if (shader.hasUniform("u_stroke")) {
+                shader.uniform("u_stroke", stroke ?: ColorRGBa.TRANSPARENT)
+            }
 
-        if (shader.hasUniform("u_strokeWeight")) {
-            shader.uniform("u_strokeWeight", if (stroke != null) strokeWeight else 0.0)
-        }
+            if (shader.hasUniform("u_strokeWeight")) {
+                shader.uniform("u_strokeWeight", if (stroke != null) strokeWeight else 0.0)
+            }
 
-        if (shader.hasUniform("u_colorMatrix")) {
-            shader.uniform("u_colorMatrix", colorMatrix.floatArray)
+            if (shader.hasUniform("u_colorMatrix")) {
+                shader.uniform("u_colorMatrix", colorMatrix.floatArray)
+            }
+        } else {
+            if (styleBlock == null) {
+                styleBlock = shader.createBlock("StyleBlock")
+            }
+            styleBlock?.apply {
+                uniform("u_fill", fill ?: ColorRGBa.TRANSPARENT)
+                uniform("u_stroke", stroke ?: ColorRGBa.TRANSPARENT)
+                uniform("u_strokeWeight", strokeWeight.toFloat())
+                uniform("u_colorMatrix", colorMatrix)
+                shader.block("StyleBlock", this)
+                if (dirty) {
+                    upload()
+                }
+            }
         }
     }
 }

@@ -23,12 +23,15 @@ enum class UniformType(val sizeInBytes: Int) {
 data class UniformDescription(val name: String, val type: UniformType, val size: Int, val offset: Int)
 
 interface UniformBlock {
+    val dirty:Boolean
+    val layout:UniformBlockLayout
     fun uniform(name: String, value: Float)
     fun uniform(name: String, value: Vector2)
     fun uniform(name: String, value: Vector3)
     fun uniform(name: String, value: Vector4)
     fun uniform(name: String, value: ColorRGBa)
     fun uniform(name: String, value: Matrix44)
+    fun uniform(name: String, value: Matrix55)
     fun uniform(name: String, value: Array<Float>)
     fun uniform(name: String, value: Array<Vector2>)
     fun uniform(name: String, value: Array<Vector3>)

@@ -18,8 +18,13 @@ import java.nio.ByteBuffer
 
 private val logger = KotlinLogging.logger {}
 
+private var blockBindings = 0
+class UniformBlockGL3(override val layout: UniformBlockLayout, val blockBinding:Int, val ubo: Int, val shadowBuffer: ByteBuffer) : UniformBlock {
 
-class UniformBlockGL3(val layout: UniformBlockLayout, val ubo: Int, val shadowBuffer: ByteBuffer) : UniformBlock {
+    private val lastValues = mutableMapOf<String, Any>()
+    var realDirty:Boolean = false
+    override val dirty: Boolean
+        get() = realDirty
 
     companion object {
         fun create(layout: UniformBlockLayout): UniformBlockGL3 {
@@ -28,104 +33,167 @@ class UniformBlockGL3(val layout: UniformBlockLayout, val ubo: Int, val shadowBu
             glBindBuffer(GL_UNIFORM_BUFFER, ubo)
             glBufferData(GL_UNIFORM_BUFFER, layout.sizeInBytes.toLong(), GL_DYNAMIC_DRAW)
             glBindBuffer(GL_UNIFORM_BUFFER, 0)
+
+            glBindBufferBase(GL_UNIFORM_BUFFER, blockBindings, ubo)
+            blockBindings++
             val buffer = BufferUtils.createByteBuffer(layout.sizeInBytes)
-            return UniformBlockGL3(layout, ubo, buffer)
+            return UniformBlockGL3(layout, blockBindings-1, ubo, buffer)
         }
     }
 
     override fun uniform(name: String, value: Float) {
-        val entry = layout.entries[name]
-        if (entry != null) {
-            if (entry.type == UniformType.FLOAT32 && entry.size == 1) {
-                shadowBuffer.putFloat(entry.offset, value)
+        if (lastValues[name] != value) {
+            val entry = layout.entries[name]
+            if (entry != null) {
+                if (entry.type == UniformType.FLOAT32 && entry.size == 1) {
+                    shadowBuffer.putFloat(entry.offset, value)
+                } else {
+                    throw RuntimeException("uniform mismatch")
+                }
             } else {
-                throw RuntimeException("uniform mismatch")
+                throw RuntimeException("uniform not found $name")
             }
+            lastValues[name] = value
+            realDirty = true
         }
     }
 
     override fun uniform(name: String, value: Vector2) {
-        val entry = layout.entries[name]
-        if (entry != null) {
-            if (entry.type == UniformType.VECTOR2_FLOAT32 && entry.size == 1) {
-                shadowBuffer.putFloat(entry.offset, value.x.toFloat())
-                shadowBuffer.putFloat(entry.offset + 4, value.y.toFloat())
+        if (lastValues[name] != value) {
+            val entry = layout.entries[name]
+            if (entry != null) {
+                if (entry.type == UniformType.VECTOR2_FLOAT32 && entry.size == 1) {
+                    shadowBuffer.putFloat(entry.offset, value.x.toFloat())
+                    shadowBuffer.putFloat(entry.offset + 4, value.y.toFloat())
+                } else {
+                    throw RuntimeException("uniform mismatch")
+                }
             } else {
-                throw RuntimeException("uniform mismatch")
+                throw RuntimeException("uniform not found $name")
             }
+            lastValues[name] = value
+            realDirty = true
         }
     }
 
     override fun uniform(name: String, value: Vector3) {
-        val entry = layout.entries[name]
-        if (entry != null) {
-            if (entry.type == UniformType.VECTOR3_FLOAT32 && entry.size == 1) {
-                shadowBuffer.putFloat(entry.offset, value.x.toFloat())
-                shadowBuffer.putFloat(entry.offset + 4, value.y.toFloat())
-                shadowBuffer.putFloat(entry.offset + 8, value.z.toFloat())
+        if (lastValues[name] != value) {
+            val entry = layout.entries[name]
+            if (entry != null) {
+                if (entry.type == UniformType.VECTOR3_FLOAT32 && entry.size == 1) {
+                    shadowBuffer.putFloat(entry.offset, value.x.toFloat())
+                    shadowBuffer.putFloat(entry.offset + 4, value.y.toFloat())
+                    shadowBuffer.putFloat(entry.offset + 8, value.z.toFloat())
+                } else {
+                    throw RuntimeException("uniform mismatch")
+                }
             } else {
-                throw RuntimeException("uniform mismatch")
+                throw RuntimeException("uniform not found $name")
             }
+            lastValues[name] = value
+            realDirty = true
         }
     }
 
     override fun uniform(name: String, value: ColorRGBa) {
-        val entry = layout.entries[name]
-        if (entry != null) {
-            if (entry.type == UniformType.VECTOR4_FLOAT32 && entry.size == 1) {
-                shadowBuffer.putFloat(entry.offset, value.r.toFloat())
-                shadowBuffer.putFloat(entry.offset + 4, value.g.toFloat())
-                shadowBuffer.putFloat(entry.offset + 8, value.b.toFloat())
-                shadowBuffer.putFloat(entry.offset + 12, value.a.toFloat())
+        if (lastValues[name] != value) {
+            val entry = layout.entries[name]
+            if (entry != null) {
+                if (entry.type == UniformType.VECTOR4_FLOAT32 && entry.size == 1) {
+                    shadowBuffer.putFloat(entry.offset, value.r.toFloat())
+                    shadowBuffer.putFloat(entry.offset + 4, value.g.toFloat())
+                    shadowBuffer.putFloat(entry.offset + 8, value.b.toFloat())
+                    shadowBuffer.putFloat(entry.offset + 12, value.a.toFloat())
+                } else {
+                    throw RuntimeException("uniform mismatch")
+                }
             } else {
-                throw RuntimeException("uniform mismatch")
+                throw RuntimeException("uniform not found $name")
             }
+            lastValues[name] = value
+            realDirty = true
         }
     }
 
     override fun uniform(name: String, value: Vector4) {
-        val entry = layout.entries[name]
-        if (entry != null) {
-            if (entry.type == UniformType.VECTOR4_FLOAT32 && entry.size == 1) {
-                shadowBuffer.putFloat(entry.offset, value.x.toFloat())
-                shadowBuffer.putFloat(entry.offset + 4, value.y.toFloat())
-                shadowBuffer.putFloat(entry.offset + 8, value.z.toFloat())
-                shadowBuffer.putFloat(entry.offset + 12, value.w.toFloat())
-            } else {
-                throw RuntimeException("uniform mismatch")
+        if (lastValues[name] != value) {
+            val entry = layout.entries[name]
+            if (entry != null) {
+                if (entry.type == UniformType.VECTOR4_FLOAT32 && entry.size == 1) {
+                    shadowBuffer.putFloat(entry.offset, value.x.toFloat())
+                    shadowBuffer.putFloat(entry.offset + 4, value.y.toFloat())
+                    shadowBuffer.putFloat(entry.offset + 8, value.z.toFloat())
+                    shadowBuffer.putFloat(entry.offset + 12, value.w.toFloat())
+                } else {
+                    throw RuntimeException("uniform mismatch")
+                }
+            }  else {
+                throw RuntimeException("uniform not found $name")
             }
+            lastValues[name] = value
+            realDirty = true
         }
     }
 
 
     override fun uniform(name: String, value: Matrix44) {
-        val entry = layout.entries[name]
-        if (entry != null) {
-            if (entry.type == UniformType.MATRIX44_FLOAT32 && entry.size == 1) {
-                (shadowBuffer as Buffer).position(entry.offset)
-                shadowBuffer.putFloat(value.c0r0.toFloat())
-                shadowBuffer.putFloat(value.c0r1.toFloat())
-                shadowBuffer.putFloat(value.c0r2.toFloat())
-                shadowBuffer.putFloat(value.c0r3.toFloat())
+        if (lastValues[name] !== value) {
 
-                shadowBuffer.putFloat(value.c1r0.toFloat())
-                shadowBuffer.putFloat(value.c1r1.toFloat())
-                shadowBuffer.putFloat(value.c1r2.toFloat())
-                shadowBuffer.putFloat(value.c1r3.toFloat())
+            val entry = layout.entries[name]
+            if (entry != null) {
+                if (entry.type == UniformType.MATRIX44_FLOAT32 && entry.size == 1) {
+                    (shadowBuffer as Buffer).position(entry.offset)
+                    shadowBuffer.putFloat(value.c0r0.toFloat())
+                    shadowBuffer.putFloat(value.c0r1.toFloat())
+                    shadowBuffer.putFloat(value.c0r2.toFloat())
+                    shadowBuffer.putFloat(value.c0r3.toFloat())
 
-                shadowBuffer.putFloat(value.c2r0.toFloat())
-                shadowBuffer.putFloat(value.c2r1.toFloat())
-                shadowBuffer.putFloat(value.c2r2.toFloat())
-                shadowBuffer.putFloat(value.c2r3.toFloat())
+                    shadowBuffer.putFloat(value.c1r0.toFloat())
+                    shadowBuffer.putFloat(value.c1r1.toFloat())
+                    shadowBuffer.putFloat(value.c1r2.toFloat())
+                    shadowBuffer.putFloat(value.c1r3.toFloat())
 
-                shadowBuffer.putFloat(value.c3r0.toFloat())
-                shadowBuffer.putFloat(value.c3r1.toFloat())
-                shadowBuffer.putFloat(value.c3r2.toFloat())
-                shadowBuffer.putFloat(value.c3r3.toFloat())
+                    shadowBuffer.putFloat(value.c2r0.toFloat())
+                    shadowBuffer.putFloat(value.c2r1.toFloat())
+                    shadowBuffer.putFloat(value.c2r2.toFloat())
+                    shadowBuffer.putFloat(value.c2r3.toFloat())
+
+                    shadowBuffer.putFloat(value.c3r0.toFloat())
+                    shadowBuffer.putFloat(value.c3r1.toFloat())
+                    shadowBuffer.putFloat(value.c3r2.toFloat())
+                    shadowBuffer.putFloat(value.c3r3.toFloat())
+
+                } else {
+                    throw RuntimeException("uniform mismatch")
+                }
+            } else {
+                throw RuntimeException("uniform not found $name")
+            }
+            realDirty = true
+            lastValues[name] = value
+        }
+    }
+
+    override fun uniform(name: String, value: Matrix55) {
+        if (lastValues[name] !== value) {
+            val entry = layout.entries[name]
+            if (entry != null) {
+                val values = value.floatArray
+                if (entry.type == UniformType.FLOAT32 && entry.size == 25) {
+                    shadowBuffer.safePosition(entry.offset)
+                    for (i in 0 until 25) {
+                        shadowBuffer.putFloat(values[i])
+                    }
+                } else {
+                    throw RuntimeException("uniform mismatch")
+                }
+
 
             } else {
-                throw RuntimeException("uniform mismatch")
+                throw RuntimeException("uniform not found $name")
             }
+            realDirty = true
+            lastValues[name] = value
         }
     }
 
@@ -140,7 +208,10 @@ class UniformBlockGL3(val layout: UniformBlockLayout, val ubo: Int, val shadowBu
             } else {
                 throw RuntimeException("uniform mismatch")
             }
+        } else {
+            throw RuntimeException("uniform not found $name")
         }
+        realDirty = true
     }
 
     override fun uniform(name: String, value: Array<Vector2>) {
@@ -155,7 +226,10 @@ class UniformBlockGL3(val layout: UniformBlockLayout, val ubo: Int, val shadowBu
             } else {
                 throw RuntimeException("uniform mismatch")
             }
+        } else {
+            throw RuntimeException("uniform not found $name")
         }
+        realDirty = true
     }
 
     override fun uniform(name: String, value: Array<Vector3>) {
@@ -171,7 +245,10 @@ class UniformBlockGL3(val layout: UniformBlockLayout, val ubo: Int, val shadowBu
             } else {
                 throw RuntimeException("uniform mismatch")
             }
+        } else {
+            throw RuntimeException("uniform not found $name")
         }
+        realDirty = true
     }
 
     override fun uniform(name: String, value: Array<Vector4>) {
@@ -187,10 +264,14 @@ class UniformBlockGL3(val layout: UniformBlockLayout, val ubo: Int, val shadowBu
             } else {
                 throw RuntimeException("uniform mismatch")
             }
+        } else {
+            throw RuntimeException("uniform not found $name")
         }
+        realDirty = true
     }
 
     override fun upload() {
+        realDirty = false
         glBindBuffer(GL_UNIFORM_BUFFER, ubo)
         shadowBuffer.safeRewind()
         glBufferSubData(GL_UNIFORM_BUFFER, 0L, shadowBuffer)
@@ -265,6 +346,7 @@ class ShaderGL3(val program: Int,
     private var running = false
     private var uniforms: MutableMap<String, Int> = hashMapOf()
     private var attributes: MutableMap<String, Int> = hashMapOf()
+    private val blocks : MutableMap<String, Int> = hashMapOf()
 
     companion object {
         fun create(vertexShader: VertexShaderGL3, fragmentShader: FragmentShaderGL3): ShaderGL3 {
@@ -372,7 +454,7 @@ class ShaderGL3(val program: Int,
             checkGLErrors()
 
             return UniformBlockLayout(blockSize, (0 until uniformCount).map {
-                UniformDescription(uniformNames[it], uniformTypes[it].toUniformType(), uniformSizes[it], uniformOffsets[it])
+                UniformDescription(uniformNames[it].replace(Regex("\\[.*\\]"),""), uniformTypes[it].toUniformType(), uniformSizes[it], uniformOffsets[it])
             }.associate { Pair(it.name, it) })
 
 
@@ -383,16 +465,24 @@ class ShaderGL3(val program: Int,
     }
 
     override fun block(blockName: String, block: UniformBlock) {
-        val blockIndex = glGetUniformBlockIndex(program, blockName)
+        if (!running) {
+            throw RuntimeException("use begin() before setting blocks")
+        }
+        val blockIndex = blockIndex(blockName)
         if (blockIndex == -1) {
             throw RuntimeException("block not found $blockName")
         }
 
-        glBindBufferBase(GL_UNIFORM_BUFFER, blockIndex, (block as UniformBlockGL3).ubo)
         checkGLErrors()
-        glUniformBlockBinding(program, blockIndex, blockIndex)
+        glUniformBlockBinding(program, blockIndex, (block as UniformBlockGL3).blockBinding)
         checkGLErrors()
 
+    }
+
+    fun blockIndex(block:String):Int {
+        return blocks.getOrPut(block) {
+            glGetUniformBlockIndex(program, block)
+        }
     }
 
     fun uniformIndex(uniform: String, query: Boolean = false): Int =
@@ -422,7 +512,7 @@ class ShaderGL3(val program: Int,
 
     override fun end() {
         logger.trace { "shader end $name" }
-//        glUseProgram(0)
+        glUseProgram(0)
         debugGLErrors()
         running = false
     }
@@ -496,6 +586,8 @@ class ShaderGL3(val program: Int,
             postUniformCheck(name, index, value)
         }
     }
+
+
 
     override fun uniform(name: String, value: Array<Vector2>) {
         val index = uniformIndex(name)

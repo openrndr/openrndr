@@ -4,18 +4,23 @@ import org.openrndr.draw.ShadeStructure
 import org.openrndr.internal.ShaderGenerators
 
 private const val drawerUniforms = """
-uniform mat4 u_modelNormalMatrix;
-uniform mat4 u_modelMatrix;
-uniform mat4 u_normalMatrix; // will be deleted soon
-uniform mat4 u_viewNormalMatrix;
-uniform mat4 u_viewMatrix;
-uniform mat4 u_projectionMatrix;
-uniform mat4 u_viewProjectionMatrix; // will be deleted soon
-uniform vec4 u_fill;
-uniform vec4 u_stroke;
-uniform float u_contentScale;
-uniform float u_strokeWeight;
-uniform float[25] u_colorMatrix;
+layout(shared) uniform ContextBlock {
+    uniform mat4 u_modelNormalMatrix;
+    uniform mat4 u_modelMatrix;
+    uniform mat4 u_viewNormalMatrix;
+    uniform mat4 u_viewMatrix;
+    uniform mat4 u_projectionMatrix;
+    uniform mat4 u_viewProjectionMatrix; // will be deleted soon
+    uniform float u_contentScale;
+    uniform vec2 u_viewDimensions;
+};
+
+layout(shared) uniform StyleBlock {
+    uniform vec4 u_fill;
+    uniform vec4 u_stroke;
+    uniform float u_strokeWeight;
+    uniform float[25] u_colorMatrix;
+};
 """
 
 private const val transformVaryingOut = """
