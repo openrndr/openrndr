@@ -304,7 +304,11 @@ class ColorBufferGL3(val target: Int,
                     throw RuntimeException("data is null")
                 }
                 data.destroy()
+                glFlush()
+                glFinish()
             }
+
+
         }
 
         fun fromFile(filename: String): ColorBuffer {
@@ -319,7 +323,11 @@ class ColorBufferGL3(val target: Int,
                     throw RuntimeException("data is null")
                 }
                 data.destroy()
+                glFlush()
+                glFinish()
+
             }
+
         }
 
         fun create(width: Int, height: Int, contentScale: Double = 1.0, format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.FLOAT32): ColorBufferGL3 {
@@ -352,7 +360,6 @@ class ColorBufferGL3(val target: Int,
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
-            glFinish()
             checkGLErrors()
             return ColorBufferGL3(GL_TEXTURE_2D, texture, width, height, contentScale, format, type)
         }
