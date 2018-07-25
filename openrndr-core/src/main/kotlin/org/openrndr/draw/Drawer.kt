@@ -482,9 +482,6 @@ data class DrawContext(val model: Matrix44, val view: Matrix44, val projection: 
             if (shader.hasUniform("u_projectionMatrix")) {
                 shader.uniform("u_projectionMatrix", projection)
             }
-            if (shader.hasUniform("u_viewProjectionMatrix")) {
-                shader.uniform("u_viewProjectionMatrix", projection * view)
-            }
             if (shader.hasUniform("u_viewDimensions")) {
                 shader.uniform("u_viewDimensions", Vector2(width.toDouble(), height.toDouble()))
             }
@@ -512,7 +509,6 @@ data class DrawContext(val model: Matrix44, val view: Matrix44, val projection: 
                 uniform("u_viewMatrix", view)
                 uniform("u_modelMatrix", model)
                 uniform("u_projectionMatrix", projection)
-                //uniform("u_viewProjectionMatrix", projection * view)
                 uniform("u_viewDimensions", Vector2(width.toDouble(), height.toDouble()))
                 run {
                     val normalMatrix = if (model === lastModel) lastModelNormal else {

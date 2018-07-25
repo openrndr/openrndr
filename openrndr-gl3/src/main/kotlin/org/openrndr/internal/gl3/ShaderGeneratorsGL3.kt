@@ -10,7 +10,6 @@ layout(shared) uniform ContextBlock {
     uniform mat4 u_viewNormalMatrix;
     uniform mat4 u_viewMatrix;
     uniform mat4 u_projectionMatrix;
-    uniform mat4 u_viewProjectionMatrix; // will be deleted soon
     uniform float u_contentScale;
     uniform vec2 u_viewDimensions;
 };

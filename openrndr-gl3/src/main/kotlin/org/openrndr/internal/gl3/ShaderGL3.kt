@@ -346,6 +346,7 @@ class ShaderGL3(val program: Int,
     private var running = false
     private var uniforms: MutableMap<String, Int> = hashMapOf()
     private var attributes: MutableMap<String, Int> = hashMapOf()
+    private var blockBindings = hashMapOf<String, Int>()
     private val blocks : MutableMap<String, Int> = hashMapOf()
 
     companion object {
@@ -473,9 +474,12 @@ class ShaderGL3(val program: Int,
             throw RuntimeException("block not found $blockName")
         }
 
-        checkGLErrors()
-        glUniformBlockBinding(program, blockIndex, (block as UniformBlockGL3).blockBinding)
-        checkGLErrors()
+        if (blockBindings[blockName] != (block as UniformBlockGL3).blockBinding) {
+            //checkGLErrors()
+            glUniformBlockBinding(program, blockIndex, (block as UniformBlockGL3).blockBinding)
+            blockBindings[blockName] =(block as UniformBlockGL3).blockBinding
+        }
+        //checkGLErrors()
 
     }
 
