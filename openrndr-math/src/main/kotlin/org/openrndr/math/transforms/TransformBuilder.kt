@@ -30,6 +30,10 @@ class TransformBuilder {
         transform *= _scale(scale, scale, scale)
     }
 
+    fun scale(scaleX:Double, scaleY:Double, scaleZ:Double) {
+        transform *= _scale(scaleX, scaleY, scaleZ)
+    }
+
     fun multiply(matrix:Matrix44) {
         transform *= matrix
     }

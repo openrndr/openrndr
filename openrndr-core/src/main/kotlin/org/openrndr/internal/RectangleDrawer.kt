@@ -119,7 +119,7 @@ class RectangleDrawer {
         drawContext.applyToShader(shader)
         drawStyle.applyToShader(shader)
         Driver.instance.setState(drawStyle)
-        Driver.instance.drawInstances(shader, listOf(vertices), listOf(instanceAttributes), DrawPrimitive.TRIANGLES, 0, 6, count)
+        Driver.instance.drawInstances(shader, listOf(vertices), listOf(instanceAttributes) + (drawStyle.shadeStyle?.attributes?: emptyList()), DrawPrimitive.TRIANGLES, 0, 6, count)
         shader.end()
     }
 

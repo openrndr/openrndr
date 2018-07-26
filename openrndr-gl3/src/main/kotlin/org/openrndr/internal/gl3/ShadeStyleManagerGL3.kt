@@ -15,7 +15,9 @@ class ShadeStyleManagerGL3(val vertexShaderGenerator: (ShadeStructure)->String, 
     var defaultShader: Shader? = null
     private val shaders = mutableMapOf<ShadeStructure, Shader>()
 
-    override fun shader(style: ShadeStyle?, vertexFormats: List<VertexFormat>, instanceFormats:List<VertexFormat>):Shader {
+    override fun shader(style: ShadeStyle?, vertexFormats: List<VertexFormat>, inputInstanceFormats:List<VertexFormat>):Shader {
+        val instanceFormats = inputInstanceFormats + (style?.attributes?: emptyList<VertexBuffer>()).map { it.vertexFormat }
+
         if (style == null) {
             if (defaultShader == null) {
                 logger.debug { "creating default shader" }

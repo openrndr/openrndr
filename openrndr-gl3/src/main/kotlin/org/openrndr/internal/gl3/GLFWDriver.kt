@@ -218,7 +218,6 @@ class DriverGL3 : Driver {
         debugGLErrors()
 
         fun setupBuffer(buffer: VertexBuffer, divisor: Int = 0) {
-
             val prefix = if (divisor == 0) "a" else "i"
 
             glBindBuffer(GL_ARRAY_BUFFER, (buffer as VertexBufferGL3).buffer)
@@ -226,7 +225,6 @@ class DriverGL3 : Driver {
             for (item in format.items) {
                 val attributeIndex = shader.attributeIndex("${prefix}_${item.attribute}")
                 if (attributeIndex != -1) {
-
                     if (item.count <= 4) {
                         glEnableVertexAttribArray(attributeIndex)
                         debugGLErrors {

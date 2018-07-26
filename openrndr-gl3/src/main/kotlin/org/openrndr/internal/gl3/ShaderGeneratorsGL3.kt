@@ -348,7 +348,7 @@ void main() {
     ${shadeStructure.varyingBridge ?: ""}
     ${preTransform}
     vec3 x_normal = vec3(0.0, 0.0, 1.0);
-    vec3 x_position = a_position * vec3(i_dimensions,1.0) + i_offset;
+    vec3 x_position = a_position * vec3(i_dimensions, 1.0) + i_offset;
     {
         ${shadeStructure.vertexTransform ?: ""}
     }
