@@ -8,6 +8,7 @@ import org.openrndr.draw.*
 import org.openrndr.internal.gl3.ApplicationGL3
 import org.openrndr.internal.gl3.VertexBufferGL3
 import org.openrndr.math.Vector2
+import org.openrndr.resourceUrl
 
 object TestShadeStylesGL3 : Spek({
     describe("a program") {
@@ -66,6 +67,7 @@ object TestShadeStylesGL3 : Spek({
             it("should be able to do shadestyles") {
                 p.drawer.drawStyle.quality = DrawQuality.PERFORMANCE
                 p.drawer.lineSegment(0.0, 0.0, 100.0, 100.0)
+                p.drawer.drawStyle.quality = DrawQuality.QUALITY
             }
         }
 
@@ -73,12 +75,20 @@ object TestShadeStylesGL3 : Spek({
             it("should be able to do shadestyles") {
                 p.drawer.vertexBuffer(vbgl3, DrawPrimitive.TRIANGLES)
             }
-
         }
+
         describe("image") {
             val cb = colorBuffer(640, 640)
             it("should be able to do shadestyles") {
                 p.drawer.image(cb)
+            }
+        }
+
+        describe("font image maps") {
+            val font = FontImageMap.fromUrl(resourceUrl("/fonts/Roboto-Medium.ttf"), 16.0)
+            p.drawer.fontMap = font
+            it("should be able to do shadestyles") {
+                p.drawer.text("this is a test", 0.0, 0.0)
             }
         }
     }

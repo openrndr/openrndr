@@ -274,7 +274,7 @@ out vec4 o_color;
 
 void main(void) {
     ${fragmentConstants(boundsPosition = "vec3(va_bounds.xy, 0.0)",
-            boundsSize = "vec3(va_bounds.zw, 0.0))")}
+            boundsSize = "vec3(va_bounds.zw, 0.0)")}
 
     float imageMap = texture(image, va_texCoord0).r;
     vec4 x_fill = vec4(u_fill.rgb,u_fill.a * imageMap);
