@@ -209,8 +209,10 @@ ${transformVaryingIn}
 
 out vec4 o_color;
 flat in int v_instance;
+in vec3 v_boundsSize;
 void main(void) {
-    ${fragmentConstants()}
+    ${fragmentConstants(boundsPosition = "vec3(va_texCoord0, 0.0)",
+            boundsSize = "v_boundsSize")}
     float smoothFactor = 3.0;
 
     vec4 x_fill = u_fill;
@@ -242,10 +244,12 @@ ${shadeStructure.uniforms ?: ""}
 ${shadeStructure.varyingOut ?: ""}
 ${transformVaryingOut}
 flat out int v_instance;
+out vec3 v_boundsSize;
 void main() {
     ${vertexConstants()}
     ${shadeStructure.varyingBridge ?: ""}
 
+    v_boundsSize = vec3(i_radius, i_radius, 0.0);
     ${preTransform}
     vec3 x_normal = a_normal;
     vec3 x_position = a_position * i_radius + i_offset;
@@ -328,10 +332,13 @@ ${transformVaryingIn}
 
 ${shadeStructure.fragmentPreamble ?: ""}
 flat in int v_instance;
+in vec3 v_boundsSize;
 out vec4 o_color;
 
 void main(void) {
-    ${fragmentConstants()}
+    ${fragmentConstants(
+            boundsPosition = "vec3(va_texCoord0, 0.0)",
+            boundsSize = "v_boundsSize")}
     vec4 x_fill = u_fill;
     vec4 x_stroke = u_stroke;
     {
@@ -363,12 +370,15 @@ ${transformVaryingOut}
 
 ${shadeStructure.vertexPreamble ?: ""}
 
+out vec3 v_boundsSize;
+
 void main() {
     ${vertexConstants()}
     ${shadeStructure.varyingBridge ?: ""}
     ${preTransform}
     vec3 x_normal = vec3(0.0, 0.0, 1.0);
     vec3 x_position = a_position * vec3(i_dimensions,1.0) + i_offset;
+    v_boundsSize = vec3(i_dimensions, 1.0);
     {
         ${shadeStructure.vertexTransform ?: ""}
     }

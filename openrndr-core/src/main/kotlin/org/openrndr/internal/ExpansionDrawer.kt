@@ -75,7 +75,7 @@ internal class ExpansionDrawer {
         shader.uniform("strokeMult", drawStyle.strokeWeight / 2.0 + 0.65)
         shader.uniform("strokeFillFactor", 0.0)
 
-        //shader.uniform("bounds", Vector4(-1000.0, -1000.0, 2000.0, 2000.0))
+        shader.uniform("bounds", Vector4(-1000.0, -1000.0, 2000.0, 2000.0))
         localStyle.channelWriteMask = ChannelMask(true, true, true, true)
         // -- pre
         shader.uniform("strokeThr", 1.0f - 0.5f / 255.0f)
@@ -146,7 +146,7 @@ internal class ExpansionDrawer {
         shader.uniform("strokeMult", (drawStyle.strokeWeight+fringe)/fringe)
         shader.uniform("strokeFillFactor", 1.0)
         val command = commands[0]
-        //shader.uniform("bounds", Vector4(command.minX, command.minY, command.maxX - command.minX, command.maxY - command.minY))
+        shader.uniform("bounds", Vector4(command.minX, command.minY, command.maxX - command.minX, command.maxY - command.minY))
         localStyle.frontStencil = StencilStyle()
         localStyle.backStencil = StencilStyle()
 
