@@ -1,17 +1,16 @@
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
-import org.lwjgl.BufferUtils
+
 import org.openrndr.Configuration
 import org.openrndr.Program
 import org.openrndr.draw.*
 import org.openrndr.internal.gl3.ApplicationGL3
 import org.openrndr.internal.gl3.VertexBufferGL3
 import org.openrndr.math.Vector2
-import java.nio.ByteBuffer
 
 object TestShadeStylesGL3 : Spek({
-    describe("a vertexbuffer") {
+    describe("a program") {
         val p = Program()
         val app = ApplicationGL3(p, Configuration())
         app.setup()
@@ -21,9 +20,29 @@ object TestShadeStylesGL3 : Spek({
         }, 10)
 
         p.drawer.shadeStyle = shadeStyle {
+            vertexTransform = """
+                |int k = c_element;
+                |if (d_primitive == d_image) {}
+                |if (d_primitive == d_vertex_buffer) {}
+                |if (d_primitive == d_circle) {}
+                |if (d_primitive == d_rectangle) {}
+                |if (d_primitive == d_font_image_map) {}
+                |if (d_primitive == d_fast_line) {}
+                |if (d_primitive == d_expansion) {}
+            """.trimMargin()
+
             fragmentTransform = """x_fill.xy = c_screenPosition.xy;
                 |x_fill.rg = va_position.xy;
                 |x_fill.b = c_contourPosition;
+                |x_stroke.rg = c_boundsPosition.rg;
+                |int k = c_element;
+                |if (d_primitive == d_image) {}
+                |if (d_primitive == d_vertex_buffer) {}
+                |if (d_primitive == d_circle) {}
+                |if (d_primitive == d_rectangle) {}
+                |if (d_primitive == d_font_image_map) {}
+                |if (d_primitive == d_fast_line) {}
+                |if (d_primitive == d_expansion) {}
             """.trimMargin()
         }
 
@@ -38,7 +57,14 @@ object TestShadeStylesGL3 : Spek({
         }
 
         describe("line") {
-            it("hould be able to do shadestyles") {
+            it("should be able to do shadestyles") {
+                p.drawer.lineSegment(0.0, 0.0, 100.0, 100.0)
+            }
+        }
+
+        describe("fast line") {
+            it("should be able to do shadestyles") {
+                p.drawer.drawStyle.quality = DrawQuality.PERFORMANCE
                 p.drawer.lineSegment(0.0, 0.0, 100.0, 100.0)
             }
         }
@@ -47,6 +73,7 @@ object TestShadeStylesGL3 : Spek({
             it("should be able to do shadestyles") {
                 p.drawer.vertexBuffer(vbgl3, DrawPrimitive.TRIANGLES)
             }
+
         }
         describe("image") {
             val cb = colorBuffer(640, 640)
@@ -54,6 +81,5 @@ object TestShadeStylesGL3 : Spek({
                 p.drawer.image(cb)
             }
         }
-
     }
 })
