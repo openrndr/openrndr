@@ -150,6 +150,7 @@ $drawerUniforms
 ${shadeStructure.varyingIn ?: ""}
 ${transformVaryingIn}
 out vec4 o_color;
+in vec3 v_boundsPosition;
 flat in int v_instance;
 vec4 colorTransform(vec4 color, float[25] matrix) {
     float r = color.r * matrix[0] + color.g * matrix[5] + color.b * matrix[10] + color.a * matrix[15] + matrix[20];
@@ -160,7 +161,7 @@ vec4 colorTransform(vec4 color, float[25] matrix) {
 }
 
 void main(void) {
-    ${fragmentConstants()}
+    ${fragmentConstants(boundsPosition = "v_boundsPosition")}
     vec4 x_fill = texture(image, va_texCoord0);
     vec4 x_stroke = u_stroke;
     {
@@ -179,6 +180,8 @@ ${shadeStructure.attributes ?: ""}
 ${shadeStructure.uniforms ?: ""}
 ${shadeStructure.varyingOut ?: ""}
 ${transformVaryingOut}
+
+out vec3 v_boundsPosition;
 void main() {
     ${vertexConstants()}
     ${shadeStructure.varyingBridge ?: ""}
@@ -186,6 +189,7 @@ void main() {
     vec3 x_normal = a_normal;
     vec3 x_position = a_position;
     x_position.xy = a_position.xy * i_target.zw + i_target.xy;
+    v_boundsPosition = vec3(a_texCoord0.xy, 1.0);
     va_texCoord0.xy = a_texCoord0.xy * i_source.zw + i_source.xy;
     if (u_flipV == 0) {
         va_texCoord0.y = 1.0 - va_texCoord0.y;
