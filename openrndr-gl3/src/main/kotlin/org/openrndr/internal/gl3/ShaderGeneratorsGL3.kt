@@ -3,7 +3,7 @@ package org.openrndr.internal.gl3
 import org.openrndr.draw.ShadeStructure
 import org.openrndr.internal.ShaderGenerators
 
-private fun primitiveTypes(type:String) = """
+private fun primitiveTypes(type: String) = """
 #define d_vertex_buffer 0
 #define d_image 1
 #define d_circle 2
@@ -14,19 +14,20 @@ private fun primitiveTypes(type:String) = """
 #define d_primitive $type
 """
 
-fun vertexConstants(element:String = "gl_InstanceID") = """
+fun vertexConstants(instance: String = "gl_InstanceID", element: String = "0") = """
+int c_instance = $instance;
 int c_element = $element;
 """
 
 fun fragmentConstants(
-        element: String = "0",
         instance: String = "v_instance",
+        element: String = "0",
         screenPosition: String = "gl_FragCoord.xy / u_contentScale",
         contourPosition: String = "0",
-        boundsPosition:String = "vec3(0.0)",
-        boundsSize:String = "vec3(0.0)") = """
-int c_element = $element;
+        boundsPosition: String = "vec3(0.0)",
+        boundsSize: String = "vec3(0.0)") = """
 int c_instance = $instance;
+int c_element = $element;
 vec2 c_screenPosition = $screenPosition;
 float c_contourPosition = $contourPosition;
 vec3 c_boundsPosition = $boundsPosition;
@@ -102,7 +103,7 @@ ${shadeStructure.fragmentPreamble ?: ""}
 flat in int v_instance;
 
 void main(void) {
-    ${fragmentConstants(element="v_instance")}
+    ${fragmentConstants(element = "v_instance")}
     vec4 x_fill = u_fill;
     vec4 x_stroke = u_stroke;
     {
