@@ -187,8 +187,11 @@ ${shadeStructure.uniforms ?: ""}
 ${shadeStructure.varyingOut ?: ""}
 ${transformVaryingOut}
 
+flat out int v_instance;
+
 out vec3 v_boundsPosition;
 void main() {
+    v_instance = gl_InstanceID;
     ${vertexConstants()}
     ${shadeStructure.varyingBridge ?: ""}
     ${preTransform}
@@ -256,6 +259,7 @@ ${transformVaryingOut}
 flat out int v_instance;
 out vec3 v_boundsSize;
 void main() {
+    v_instance = gl_InstanceID;
     ${vertexConstants()}
     ${shadeStructure.varyingBridge ?: ""}
 
@@ -269,6 +273,7 @@ void main() {
     va_position = x_position;
     ${postTransform}
     gl_Position = v_clipPosition;
+
 }
     """
 
@@ -383,9 +388,11 @@ ${transformVaryingOut}
 
 ${shadeStructure.vertexPreamble ?: ""}
 
+flat out int v_instance;
 out vec3 v_boundsSize;
 
 void main() {
+    v_instance =  gl_InstanceID;
     ${vertexConstants()}
     ${shadeStructure.varyingBridge ?: ""}
     ${preTransform}
@@ -518,6 +525,7 @@ flat out int v_instance;
 void main() {
     v_instance = gl_InstanceID;
     ${vertexConstants()}
+    ${shadeStructure.varyingBridge ?: ""}
     $preTransform
     vec3 x_normal = vec3(0.0, 0.0, 1.0);
     vec3 x_position = a_position;
