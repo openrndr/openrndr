@@ -768,7 +768,7 @@ class Drawer(val driver: Driver) {
         rectangleDrawer.drawRectangles(context, drawStyle, positions, dimensions)
     }
 
-    fun rectangle(rectangles: List<Rectangle>) {
+    fun rectangles(rectangles: List<Rectangle>) {
         rectangleDrawer.drawRectangles(context, drawStyle, rectangles)
     }
 

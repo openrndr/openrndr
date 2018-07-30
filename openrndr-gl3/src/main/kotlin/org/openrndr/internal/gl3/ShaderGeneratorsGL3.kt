@@ -19,12 +19,14 @@ int c_element = $element;
 """
 
 fun fragmentConstants(
-        element: String = "v_instance",
+        element: String = "0",
+        instance: String = "v_instance",
         screenPosition: String = "gl_FragCoord.xy / u_contentScale",
         contourPosition: String = "0",
         boundsPosition:String = "vec3(0.0)",
         boundsSize:String = "vec3(0.0)") = """
 int c_element = $element;
+int c_instance = $instance;
 vec2 c_screenPosition = $screenPosition;
 float c_contourPosition = $contourPosition;
 vec3 c_boundsPosition = $boundsPosition;
@@ -122,7 +124,7 @@ ${shadeStructure.vertexPreamble ?: ""}
 
 flat out int v_instance;
 void main() {
-    int instance = gl_InstanceID; // this will go use c_element instead
+    int instance = gl_InstanceID; // this will go use c_instance instead
     ${vertexConstants()}
     ${shadeStructure.varyingBridge ?: ""}
     vec3 x_normal = vec3(0.0, 0.0, 0.0);
@@ -284,7 +286,10 @@ ${transformVaryingIn}
 out vec4 o_color;
 
 void main(void) {
-    ${fragmentConstants(boundsPosition = "vec3(va_bounds.xy, 0.0)",
+    ${fragmentConstants(
+            element = "v_instance",
+            instance = "0",
+            boundsPosition = "vec3(va_bounds.xy, 0.0)",
             boundsSize = "vec3(va_bounds.zw, 0.0)")}
 
     float imageMap = texture(image, va_texCoord0).r;
@@ -355,7 +360,7 @@ void main(void) {
     vec2 d = abs((va_texCoord0 - vec2(0.5)) * 2);
 
     float irx = smoothstep(0.0, wd.x * 2.5, 1.0-d.x - u_strokeWeight*2.0/vi_dimensions.x);
-    float iry = smoothstep(0.0, wd.x * 2.5, 1.0-d.y - u_strokeWeight*2.0/vi_dimensions.y);
+    float iry = smoothstep(0.0, wd.y * 2.5, 1.0-d.y - u_strokeWeight*2.0/vi_dimensions.y);
     float ir = irx*iry;
 
     o_color.rgb = x_fill.rgb * x_fill.a;
