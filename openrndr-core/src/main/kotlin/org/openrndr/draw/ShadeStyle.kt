@@ -15,6 +15,7 @@ class ShadeStyle {
     var parameterValues = mutableMapOf<String, Any>()
     var parameters = mutableMapOf<String, String>()
     var outputs = mutableMapOf<String, Int>()
+    var attributes = mutableListOf<VertexBuffer>()
 
     constructor()
 
@@ -28,7 +29,6 @@ class ShadeStyle {
         this.parameters.putAll(other.parameters)
         this.outputs.putAll(other.outputs)
     }
-
 
     fun parameter(name: String, value: Cubemap): ShadeStyle {
         parameterValues.put(name, value)
@@ -48,20 +48,17 @@ class ShadeStyle {
         return this
     }
 
-
     fun parameter(name: String, value: Float): ShadeStyle {
         parameterValues.put(name, value)
         parameters.put(name, "float")
         return this
     }
 
-
     fun parameter(name: String, value: Double): ShadeStyle {
         parameterValues.put(name, value.toFloat())
         parameters.put(name, "float")
         return this
     }
-
 
     fun parameter(name: String, value: Vector2): ShadeStyle {
         parameterValues.put(name, value)
@@ -99,10 +96,13 @@ class ShadeStyle {
         return this
     }
 
-
     fun output(name: String, slot: Int): ShadeStyle {
         outputs.put(name, slot)
         return this
+    }
+
+    fun attributes(attributesBuffer:VertexBuffer) {
+        attributes.add(attributesBuffer)
     }
 
     operator fun plus(other: ShadeStyle): ShadeStyle {
@@ -127,6 +127,12 @@ class ShadeStyle {
             putAll(outputs)
             putAll(other.outputs)
         }
+
+        s.attributes.apply {
+            addAll(attributes)
+            addAll(other.attributes)
+        }
+
         return s
     }
 }

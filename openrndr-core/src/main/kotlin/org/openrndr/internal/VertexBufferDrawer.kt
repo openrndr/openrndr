@@ -23,7 +23,7 @@ class VertexBufferDrawer {
         drawStyle.applyToShader(shader)
         Driver.instance.setState(drawStyle)
         shader.begin()
-        Driver.instance.drawInstances(shader, vertexBuffers, instanceAttributes, primitive, offset, vertexCount, instanceCount)
+        Driver.instance.drawInstances(shader, vertexBuffers, instanceAttributes + (drawStyle.shadeStyle?.attributes?: emptyList()), primitive, offset, vertexCount, instanceCount)
         shader.end()
     }
 }
