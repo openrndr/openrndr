@@ -22,18 +22,15 @@ class ColorBufferLoader {
         synchronized(loadQueue) { loadQueue.add(colorBufferProxy) }
     }
 
-    fun loadFromUrl(url: String, persistent: Boolean = false): ColorBufferProxy {
-        val proxy = urlItems.getOrPut(url) {
-            ColorBufferProxy(url, this, persistent).apply {
-                lastTouched = System.currentTimeMillis()
-                realState = ColorBufferProxy.State.QUEUED
-            }
+    fun loadFromUrl(url: String, persistent: Boolean = false): ColorBufferProxy = urlItems.getOrPut(url) {
+        val proxy = ColorBufferProxy(url, this, persistent).apply {
+            lastTouched = System.currentTimeMillis()
+            realState = ColorBufferProxy.State.QUEUED
         }
-
         synchronized(loadQueue) {
             loadQueue.add(proxy)
         }
-        return proxy
+        proxy
     }
 
     companion object {
