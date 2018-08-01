@@ -63,7 +63,6 @@ class DriverGL3 : Driver {
     }
 
     private var fontImageMapManagerInstance: FontImageMapManagerGL3? = null
-    private var fontVectorMapManagerInstance: FontImageMapManagerGL3? = null
 
     override val fontImageMapManager: FontMapManager
         get() {
