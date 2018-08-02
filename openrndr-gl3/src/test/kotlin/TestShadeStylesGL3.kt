@@ -5,7 +5,7 @@ import org.jetbrains.spek.api.dsl.it
 import org.openrndr.Configuration
 import org.openrndr.Program
 import org.openrndr.draw.*
-import org.openrndr.internal.gl3.ApplicationGL3
+import org.openrndr.internal.gl3.ApplicationGLFWGL3
 import org.openrndr.internal.gl3.VertexBufferGL3
 import org.openrndr.math.Vector2
 import org.openrndr.resourceUrl
@@ -13,7 +13,7 @@ import org.openrndr.resourceUrl
 object TestShadeStylesGL3 : Spek({
     describe("a program") {
         val p = Program()
-        val app = ApplicationGL3(p, Configuration())
+        val app = ApplicationGLFWGL3(p, Configuration())
         app.setup()
         app.preloop()
         val vbgl3 = VertexBufferGL3.createDynamic(vertexFormat {

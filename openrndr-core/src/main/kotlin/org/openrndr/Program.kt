@@ -73,6 +73,11 @@ class Configuration {
 
     var windowResizable:Boolean = false
 
+    /**
+     * Should the application be run in headless mode. 
+     */
+    var headless: Boolean = false
+
 }
 
 /**

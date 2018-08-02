@@ -12,10 +12,9 @@ class CircleDrawer {
         textureCoordinate(2)
     }, 6)
 
-
     private val instanceFormat = VertexFormat().apply {
-        attribute("radius", 1, VertexElementType.FLOAT32)
-        attribute("offset", 3, VertexElementType.FLOAT32)
+        attribute("radius", VertexElementType.FLOAT32)
+        attribute("offset", VertexElementType.VECTOR3_FLOAT32)
     }
 
     private var instanceAttributes = VertexBuffer.createDynamic(instanceFormat, 10_000)

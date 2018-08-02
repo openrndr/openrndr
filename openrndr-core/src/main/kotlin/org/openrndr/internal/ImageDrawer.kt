@@ -15,8 +15,8 @@ class ImageDrawer {
     }, 6)
 
     private val instanceFormat = vertexFormat {
-        attribute("source", 4, VertexElementType.FLOAT32)
-        attribute("target", 4, VertexElementType.FLOAT32)
+        attribute("source", VertexElementType.VECTOR4_FLOAT32)
+        attribute("target", VertexElementType.VECTOR4_FLOAT32)
     }
 
     private var instanceAttributes = vertexBuffer(instanceFormat, 10)

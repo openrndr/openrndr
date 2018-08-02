@@ -33,6 +33,12 @@ class ColorBufferLoader {
         proxy
     }
 
+    fun cancel(proxy: ColorBufferProxy){
+        synchronized(loadQueue){
+            loadQueue.remove(proxy)
+        }
+    }
+
     companion object {
         fun create(): ColorBufferLoader {
             val loader = ColorBufferLoader()

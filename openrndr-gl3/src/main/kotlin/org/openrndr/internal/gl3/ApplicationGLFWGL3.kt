@@ -34,7 +34,7 @@ import org.lwjgl.opengl.GL30.*
 private val logger = KotlinLogging.logger {}
 internal var primaryWindow: Long = NULL
 
-class ApplicationGL3(private val program: Program, private val configuration: Configuration) : Application() {
+class ApplicationGLFWGL3(private val program: Program, private val configuration: Configuration) : Application() {
     private var windowFocused = true
     private var window: Long = NULL
     private var driver: DriverGL3

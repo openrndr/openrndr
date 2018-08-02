@@ -10,8 +10,8 @@ import org.openrndr.math.Vector3
 class PerformanceLineDrawer {
     val vertices: VertexBuffer = VertexBuffer.createDynamic(VertexFormat().apply {
         position(3)
-        attribute("instance", 1, VertexElementType.FLOAT32)
-        attribute("vertexOffset", 1, VertexElementType.FLOAT32)
+        attribute("instance", VertexElementType.FLOAT32)
+        attribute("vertexOffset", VertexElementType.FLOAT32)
     }, 1024 * 1024)
 
     val shaderManager: ShadeStyleManager

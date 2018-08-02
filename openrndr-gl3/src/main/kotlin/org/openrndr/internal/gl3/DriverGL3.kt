@@ -22,8 +22,6 @@ import org.openrndr.math.Matrix44
 import java.nio.Buffer
 
 private val logger = KotlinLogging.logger {}
-
-
 internal val useDebugContext = System.getProperty("org.openrndr.gl3.debug") != null
 
 class DriverGL3 : Driver {
@@ -215,7 +213,6 @@ class DriverGL3 : Driver {
 
     private fun setupFormat(vertexBuffer: List<VertexBuffer>, instanceAttributes: List<VertexBuffer>, shader: ShaderGL3) {
         debugGLErrors()
-
         fun setupBuffer(buffer: VertexBuffer, divisor: Int = 0) {
             val prefix = if (divisor == 0) "a" else "i"
 
@@ -224,40 +221,44 @@ class DriverGL3 : Driver {
             for (item in format.items) {
                 val attributeIndex = shader.attributeIndex("${prefix}_${item.attribute}")
                 if (attributeIndex != -1) {
-                    if (item.count <= 4) {
-                        glEnableVertexAttribArray(attributeIndex)
-                        debugGLErrors {
-                            when (it) {
-                                GL_INVALID_OPERATION -> "no vertex array object is bound"
-                                GL_INVALID_VALUE -> "index ($attributeIndex) is greater than or equal to GL_MAX_VERTEX_ATTRIBS"
-                                else -> null
+                    if (item.type == VertexElementType.FLOAT32 || item.type == VertexElementType.VECTOR2_FLOAT32 || item.type == VertexElementType.VECTOR3_FLOAT32 || item.type == VertexElementType.VECTOR4_FLOAT32) {
+                        for (i in 0 until item.arraySize) {
+                            glEnableVertexAttribArray(attributeIndex)
+                            debugGLErrors {
+                                when (it) {
+                                    GL_INVALID_OPERATION -> "no vertex array object is bound"
+                                    GL_INVALID_VALUE -> "index ($attributeIndex) is greater than or equal to GL_MAX_VERTEX_ATTRIBS"
+                                    else -> null
+                                }
+                            }
+                            glVertexAttribPointer(attributeIndex,
+                                    item.type.componentCount,
+                                    item.type.glType(), false, format.size, item.offset.toLong() + i * item.type.sizeInBytes)
+                            debugGLErrors {
+                                when (it) {
+                                    GL_INVALID_VALUE -> "index ($attributeIndex) is greater than or equal to GL_MAX_VERTEX_ATTRIBS"
+                                    else -> null
+                                }
+                            }
+                            glVertexAttribDivisor(attributeIndex, divisor)
+                        }
+                    } else if (item.type == VertexElementType.MATRIX44_FLOAT32) {
+                        for (i in 0 until item.arraySize) {
+                            for (column in 0 until 4) {
+                                glEnableVertexAttribArray(attributeIndex + column + i * 4)
+                                debugGLErrors()
+
+                                glVertexAttribPointer(attributeIndex + column + i * 4,
+                                        4,
+                                        item.type.glType(), false, format.size, item.offset.toLong() + column * 16 + i * 64)
+                                debugGLErrors()
+
+                                glVertexAttribDivisor(attributeIndex + column + i * 4, 1)
+                                debugGLErrors()
                             }
                         }
-                        glVertexAttribPointer(attributeIndex,
-                                item.count,
-                                item.type.glType(), false, format.size, item.offset.toLong())
-                        debugGLErrors {
-                            when (it) {
-                                GL_INVALID_VALUE -> "index ($attributeIndex) is greater than or equal to GL_MAX_VERTEX_ATTRIBS"
-                                else -> null
-                            }
-                        }
-                        glVertexAttribDivisor(attributeIndex, divisor)
-                    } else if (item.count == 16) {
-                        for (i in 0 until 4) {
-                            glEnableVertexAttribArray(attributeIndex + i)
-                            debugGLErrors()
-                        }
-                        for (i in 0 until 4) {
-                            glVertexAttribPointer(attributeIndex + i,
-                                    4,
-                                    item.type.glType(), false, format.size, item.offset.toLong() + i * 16)
-                            debugGLErrors()
-                        }
-                        for (i in 0 until 4) {
-                            glVertexAttribDivisor(attributeIndex + i, 1)
-                            debugGLErrors()
-                        }
+                    } else {
+                        TODO("implement support for ${item.type}")
                     }
                 }
             }
@@ -439,6 +440,12 @@ private fun DrawPrimitive.glType(): Int {
 
 private fun VertexElementType.glType(): Int = when (this) {
     VertexElementType.FLOAT32 -> GL_FLOAT
+    VertexElementType.MATRIX22_FLOAT32 -> GL_FLOAT
+    VertexElementType.MATRIX33_FLOAT32 -> GL_FLOAT
+    VertexElementType.MATRIX44_FLOAT32 -> GL_FLOAT
+    VertexElementType.VECTOR2_FLOAT32 -> GL_FLOAT
+    VertexElementType.VECTOR3_FLOAT32 -> GL_FLOAT
+    VertexElementType.VECTOR4_FLOAT32 -> GL_FLOAT
 }
 
 internal fun Matrix44.toFloatArray(): FloatArray = floatArrayOf(

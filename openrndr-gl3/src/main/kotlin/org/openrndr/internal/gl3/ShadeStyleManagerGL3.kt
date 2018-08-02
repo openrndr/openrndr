@@ -10,7 +10,6 @@ import org.openrndr.math.Vector4
 
 private val logger = KotlinLogging.logger {}
 
-
 class ShadeStyleManagerGL3(val vertexShaderGenerator: (ShadeStructure)->String, val fragmentShaderGenerator:(ShadeStructure)->String) : ShadeStyleManager() {
     var defaultShader: Shader? = null
     private val shaders = mutableMapOf<ShadeStructure, Shader>()

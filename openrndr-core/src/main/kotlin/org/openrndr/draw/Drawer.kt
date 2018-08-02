@@ -27,7 +27,7 @@ import java.nio.ByteBuffer
 import java.util.*
 
 
-data class VertexElement(val attribute: String, val size: Int, val offset: Int, val type: VertexElementType, val count: Int)
+data class VertexElement(val attribute: String, val offset: Int, val type: VertexElementType, val arraySize: Int)
 
 @Suppress("MemberVisibilityCanPrivate")
 /**
@@ -36,7 +36,7 @@ data class VertexElement(val attribute: String, val size: Int, val offset: Int, 
 class VertexFormat {
 
     var items: MutableList<VertexElement> = mutableListOf()
-    internal var vertexSize = 0
+    private var vertexSize = 0
 
     val size get() = vertexSize
 
@@ -44,27 +44,31 @@ class VertexFormat {
      * Appends a position component to the layout
      * @param dimensions
      */
-    fun position(dimensions: Int): VertexFormat = attribute("position", dimensions, VertexElementType.FLOAT32)
+    fun position(dimensions: Int): VertexFormat = attribute("position", floatTypeFromDimensions(dimensions))
+
+    private fun floatTypeFromDimensions(dimensions: Int): VertexElementType {
+        return when (dimensions) {
+            1 -> VertexElementType.FLOAT32
+            2 -> VertexElementType.VECTOR2_FLOAT32
+            3 -> VertexElementType.VECTOR3_FLOAT32
+            4 -> VertexElementType.VECTOR4_FLOAT32
+            else -> throw IllegalArgumentException("dimensions can only be 1, 2, 3 or 4 (got $dimensions)")
+        }
+    }
 
     /**
      * Appends a normal component to the layout
      * @param dimensions the number of dimensions of the normal vector
      */
-    fun normal(dimensions: Int): VertexFormat = attribute("normal", dimensions, VertexElementType.FLOAT32)
+    fun normal(dimensions: Int): VertexFormat = attribute("normal", floatTypeFromDimensions(dimensions))
 
     /**
      * Appends a color attribute to the layout
      * @param dimensions
      */
-    fun color(dimensions: Int): VertexFormat = attribute("color", dimensions, VertexElementType.FLOAT32)
+    fun color(dimensions: Int): VertexFormat = attribute("color", floatTypeFromDimensions(dimensions))
 
-    fun textureCoordinate(index: Int, dimensions: Int): VertexFormat = attribute("texCoord" + index, dimensions, VertexElementType.FLOAT32)
-
-    /**
-     * Adds a primary texture coordinate attribute to the layout
-     * @param dimensions the dimension the texture coordinates
-     */
-    fun textureCoordinate(dimensions: Int): VertexFormat = textureCoordinate(0, dimensions)
+    fun textureCoordinate(dimensions: Int=2, index: Int=0): VertexFormat = attribute("texCoord$index", floatTypeFromDimensions(dimensions))
 
 
     /**
@@ -77,12 +81,11 @@ class VertexFormat {
      * *
      * @return
      */
-    fun attribute(name: String, dimensions: Int, type: VertexElementType): VertexFormat {
-        val offset = items.sumBy { it.size }
-
-        val item = VertexElement(name, dimensions * size(type), offset, type, dimensions)
+    fun attribute(name: String, type: VertexElementType, arraySize:Int = 1): VertexFormat {
+        val offset = items.sumBy { it.arraySize  * it.type.sizeInBytes }
+        val item = VertexElement(name, offset, type, arraySize)
         items.add(item)
-        vertexSize += item.size
+        vertexSize += type.sizeInBytes * arraySize
         return this
     }
 
@@ -94,14 +97,6 @@ class VertexFormat {
                 '}'
     }
 
-    companion object {
-        internal fun size(type: VertexElementType): Int {
-            when (type) {
-                VertexElementType.FLOAT32 -> return 4
-                else -> throw RuntimeException("unsupported element type: " + type)
-            }
-        }
-    }
 }
 
 fun vertexFormat(builder: VertexFormat.() -> Unit): VertexFormat {
@@ -162,7 +157,7 @@ interface VertexBuffer {
         val w = shadow.writer()
         w.rewind()
         w.putter()
-        if (w.position % vertexFormat.vertexSize != 0) {
+        if (w.position % vertexFormat.size != 0) {
             throw RuntimeException("incomplete vertices written. likely violating the specified vertex format")
         }
         val count = w.positionElements
@@ -464,6 +459,7 @@ private var lastViewNormal = Matrix44.IDENTITY
 
 private var contextBlock: UniformBlock? = null
 private var useContextBlock = true
+
 @Suppress("MemberVisibilityCanPrivate")
 data class DrawContext(val model: Matrix44, val view: Matrix44, val projection: Matrix44, val width: Int, val height: Int, val contentScale: Double) {
     fun applyToShader(shader: Shader) {

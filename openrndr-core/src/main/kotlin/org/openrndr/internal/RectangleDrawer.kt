@@ -14,8 +14,8 @@ class RectangleDrawer {
     }, 6)
 
     private var instanceFormat = VertexFormat().apply {
-        attribute("dimensions", 2, VertexElementType.FLOAT32)
-        attribute("offset", 3, VertexElementType.FLOAT32)
+        attribute("dimensions", VertexElementType.VECTOR2_FLOAT32)
+        attribute("offset", VertexElementType.VECTOR3_FLOAT32)
     }
     private var instanceAttributes = VertexBuffer.createDynamic(instanceFormat, 100)
 
@@ -52,7 +52,7 @@ class RectangleDrawer {
         vertices.shadow.upload()
     }
 
-    private fun assertInstanceSize(size:Int) {
+    private fun assertInstanceSize(size: Int) {
         if (instanceAttributes.vertexCount < size) {
             instanceAttributes.destroy()
             instanceAttributes = vertexBuffer(instanceFormat, size)
@@ -86,7 +86,7 @@ class RectangleDrawer {
         drawRectangles(drawContext, drawStyle, positions.size)
     }
 
-    fun drawRectangles(drawContext: DrawContext, drawStyle: DrawStyle, rectangles:List<Rectangle>) {
+    fun drawRectangles(drawContext: DrawContext, drawStyle: DrawStyle, rectangles: List<Rectangle>) {
         assertInstanceSize(rectangles.size)
         instanceAttributes.shadow.writer().apply {
             rewind()
@@ -119,7 +119,8 @@ class RectangleDrawer {
         drawContext.applyToShader(shader)
         drawStyle.applyToShader(shader)
         Driver.instance.setState(drawStyle)
-        Driver.instance.drawInstances(shader, listOf(vertices), listOf(instanceAttributes) + (drawStyle.shadeStyle?.attributes?: emptyList()), DrawPrimitive.TRIANGLES, 0, 6, count)
+        Driver.instance.drawInstances(shader, listOf(vertices), listOf(instanceAttributes) + (drawStyle.shadeStyle?.attributes
+                ?: emptyList()), DrawPrimitive.TRIANGLES, 0, 6, count)
         shader.end()
     }
 

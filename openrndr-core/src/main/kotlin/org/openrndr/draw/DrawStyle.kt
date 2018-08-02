@@ -15,8 +15,14 @@ enum class LineCap {
     SQUARE
 }
 
-enum class VertexElementType {
-    FLOAT32
+enum class VertexElementType(val componentCount:Int, val sizeInBytes:Int) {
+    FLOAT32(1,4),
+    VECTOR2_FLOAT32(2,8),
+    VECTOR3_FLOAT32(3,12),
+    VECTOR4_FLOAT32(4,16),
+    MATRIX22_FLOAT32(4,4 * 4),
+    MATRIX33_FLOAT32(9,9 * 4),
+    MATRIX44_FLOAT32(16,16 * 4),
 }
 
 enum class DrawPrimitive {

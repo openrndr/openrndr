@@ -11,7 +11,7 @@ class FontImageMapDrawer {
 
     private val vertices = VertexBuffer.createDynamic(VertexFormat().apply {
         textureCoordinate(2)
-        attribute("bounds", 4, VertexElementType.FLOAT32)
+        attribute("bounds", VertexElementType.VECTOR4_FLOAT32)
         position(3)
     }, 6 * 8000)
 
