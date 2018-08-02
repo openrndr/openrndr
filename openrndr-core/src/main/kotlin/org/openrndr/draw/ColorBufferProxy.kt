@@ -43,6 +43,22 @@ data class ColorBufferProxy(val url: String, val loader: ColorBufferLoader, val 
     internal var lastTouched = 0L
     internal var lastTouchedShadow = 0L
 
+
+    fun cancel() {
+        touch()
+        if (realState == State.QUEUED) {
+            loader.cancel(this)
+            realState = State.NOT_LOADED
+            logger.debug {
+                "canceled $this"
+            }
+        } else {
+            logger.warn {
+                "proxy is not queued, so it cannot be canceled: $this"
+            }
+        }
+    }
+
     fun queue() {
         touch()
         if (realState == State.NOT_LOADED) {
