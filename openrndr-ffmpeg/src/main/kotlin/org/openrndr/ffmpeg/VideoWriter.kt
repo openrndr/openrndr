@@ -136,17 +136,6 @@ class VideoWriter {
         return this
     }
 
-    /**
-     * Set the video width, should be set before calling start()
-     *
-     * @param width the width in pixels
-     */
-    @Deprecated("")
-    fun width(width: Int): VideoWriter {
-        this.width = width
-        return this
-    }
-
     fun width(): Int {
         return width
     }
@@ -155,19 +144,11 @@ class VideoWriter {
         return height
     }
 
-    /**
-     * Set the video height, should be set before calling start()
-     *
-     * @param height the height in pixels
-     */
-    @Deprecated("")
-    fun height(height: Int): VideoWriter {
-        this.height = height
-        return this
-    }
-
 
     fun size(width: Int, height: Int): VideoWriter {
+        if (width % 2 != 0 || height % 2 != 0) {
+            throw IllegalArgumentException("width ($width) and height ($height) should be divisible by 2")
+        }
         this.width = width
         this.height = height
         return this
