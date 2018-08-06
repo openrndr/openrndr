@@ -53,8 +53,8 @@ class ShaderWatcher private constructor(
                      vsUrl: String? = null,
                      fsCode: String? = null,
                      fsUrl: String? = null): ShaderWatcher {
-            val vsFile = vsUrl?.let { URL(it).toFileName().let { File(it) } }
-            val fsFile = fsUrl?.let { URL(it).toFileName().let { File(it) } }
+            val vsFile = vsUrl?.let { URL(it).toFileName()?.let { File(it) } }
+            val fsFile = fsUrl?.let { URL(it).toFileName()?.let { File(it) } }
             val vsPath = vsFile?.toPath()
             val fsPath = fsFile?.toPath()
             val vsParent = vsPath?.parent
