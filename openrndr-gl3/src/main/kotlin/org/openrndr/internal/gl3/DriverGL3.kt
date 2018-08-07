@@ -28,9 +28,7 @@ class DriverGL3 : Driver {
     override fun createResourceThread(f: () -> Unit): ResourceThread {
         return ResourceThreadGL3.create(f)
     }
-
     override val shaderGenerators: ShaderGenerators = ShaderGeneratorsGL3()
-
     private val vaos = mutableMapOf<Long, Int>()
     internal var defaultVAO = 1
 
@@ -38,10 +36,10 @@ class DriverGL3 : Driver {
         var hash = 0L
         hash += shader.program
         for (i in 0 until vertexBuffers.size) {
-            hash += (vertexBuffers[i] as VertexBufferGL3).buffer shl (12 + (i * 12))
+            hash += (vertexBuffers[i] as VertexBufferGL3).bufferHash shl (12 + (i * 12))
         }
         for (i in 0 until instanceAttributes.size) {
-            hash += (vertexBuffers[i] as VertexBufferGL3).buffer shl (12 + ((i + vertexBuffers.size) * 12))
+            hash += (instanceAttributes[i] as VertexBufferGL3).bufferHash shl (12 + ((i + vertexBuffers.size) * 12))
         }
         return hash
     }
@@ -159,7 +157,11 @@ class DriverGL3 : Driver {
     override fun drawVertexBuffer(shader: Shader, vertexBuffers: List<VertexBuffer>, drawPrimitive: DrawPrimitive, vertexOffset: Int, vertexCount: Int) {
         shader as ShaderGL3
         // -- find or create a VAO for our shader + vertex buffers combination
-        val vao = vaos.getOrPut(hash(shader, vertexBuffers, emptyList())) {
+        val hash = hash(shader, vertexBuffers, emptyList())
+        val vao = vaos.getOrPut(hash) {
+            logger.debug {
+                "creating new VAO for hash $hash"
+            }
             val arrays = IntArray(1)
             glGenVertexArrays(arrays)
             glBindVertexArray(arrays[0])
@@ -186,7 +188,12 @@ class DriverGL3 : Driver {
     override fun drawInstances(shader: Shader, vertexBuffers: List<VertexBuffer>, instanceAttributes: List<VertexBuffer>, drawPrimitive: DrawPrimitive, vertexOffset: Int, vertexCount: Int, instanceCount: Int) {
 
         // -- find or create a VAO for our shader + vertex buffers + instance buffers combination
-        val vao = vaos.getOrPut(hash(shader as ShaderGL3, vertexBuffers, emptyList())) {
+        val hash = hash(shader as ShaderGL3, vertexBuffers, instanceAttributes)
+
+        val vao = vaos.getOrPut(hash) {
+            logger.debug {
+                "creating new instances VAO for hash $hash"
+            }
             val arrays = IntArray(1)
             glGenVertexArrays(arrays)
             glBindVertexArray(arrays[0])
@@ -292,7 +299,7 @@ class DriverGL3 : Driver {
         if (drawStyle.clip != null) {
             drawStyle.clip?.let {
                 val target = RenderTarget.active
-                glScissor((it.x*target.contentScale).toInt(), (target.height*target.contentScale-it.y*target.contentScale-it.height*target.contentScale).toInt(), (it.width*target.contentScale).toInt(), (it.height*target.contentScale).toInt())
+                glScissor((it.x * target.contentScale).toInt(), (target.height * target.contentScale - it.y * target.contentScale - it.height * target.contentScale).toInt(), (it.width * target.contentScale).toInt(), (it.height * target.contentScale).toInt())
                 glEnable(GL_SCISSOR_TEST)
             }
         } else {

@@ -7,7 +7,6 @@ import org.openrndr.draw.VertexFormat
 
 import mu.KotlinLogging
 import org.lwjgl.BufferUtils
-import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL15.*
 import org.lwjgl.opengl.GL30.GL_VERTEX_ARRAY_BINDING
 import org.lwjgl.system.MemoryUtil.NULL
@@ -15,8 +14,11 @@ import java.nio.Buffer
 
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import java.util.concurrent.atomic.AtomicInteger
 
 private val logger = KotlinLogging.logger {}
+
+private val bufferId = AtomicInteger(0)
 
 class VertexBufferShadowGL3(override val vertexBuffer:VertexBufferGL3): VertexBufferShadow {
     val buffer: ByteBuffer =
@@ -49,11 +51,16 @@ class VertexBufferShadowGL3(override val vertexBuffer:VertexBufferGL3): VertexBu
 
 class VertexBufferGL3(val buffer:Int, override val vertexFormat: VertexFormat, override val vertexCount:Int) : VertexBuffer {
 
+    internal val bufferHash = bufferId.getAndAdd(1)
     internal var realShadow:VertexBufferShadowGL3? = null
+    internal var isDestroyed = false
 
     companion object {
         fun createDynamic(vertexFormat:VertexFormat, vertexCount:Int) : VertexBufferGL3 {
             val buffer = glGenBuffers()
+            logger.debug {
+                "created new vertex buffer with id ${buffer}"
+            }
             glBindBuffer(GL_ARRAY_BUFFER, buffer)
             val sizeInBytes = vertexFormat.size * vertexCount
             nglBufferData(GL_ARRAY_BUFFER, sizeInBytes.toLong(), NULL, GL_DYNAMIC_DRAW)
@@ -64,6 +71,9 @@ class VertexBufferGL3(val buffer:Int, override val vertexFormat: VertexFormat, o
 
     override val shadow: VertexBufferShadow
         get() {
+            if (isDestroyed) {
+                throw IllegalStateException("buffer is destroyed")
+            }
             if (realShadow == null) {
                 realShadow = VertexBufferShadowGL3(this)
             }
@@ -71,6 +81,10 @@ class VertexBufferGL3(val buffer:Int, override val vertexFormat: VertexFormat, o
         }
 
     override fun write(data: ByteBuffer, offset:Int) {
+        if (isDestroyed) {
+            throw IllegalStateException("buffer is destroyed")
+        }
+
         if (data.isDirect) {
             logger.trace { "writing to vertex buffer, ${data.remaining()} bytes" }
             (data as Buffer).rewind()
@@ -101,6 +115,10 @@ class VertexBufferGL3(val buffer:Int, override val vertexFormat: VertexFormat, o
     }
 
     override fun read(data:ByteBuffer, offset:Int) {
+        if (isDestroyed) {
+            throw IllegalStateException("buffer is destroyed")
+        }
+
         if (data.isDirect) {
             bind()
             glGetBufferSubData(GL_ARRAY_BUFFER, offset.toLong(), data)
@@ -113,11 +131,18 @@ class VertexBufferGL3(val buffer:Int, override val vertexFormat: VertexFormat, o
     }
 
     override fun destroy() {
+        logger.debug {
+            "destroying vertex buffer with id ${buffer}"
+        }
+        isDestroyed = true
         glDeleteBuffers(buffer)
         checkGLErrors()
     }
 
     override fun bind() {
+        if (isDestroyed) {
+            throw IllegalStateException("buffer is destroyed")
+        }
         logger.trace { "binding vertex buffer ${buffer}" }
         glBindBuffer(GL_ARRAY_BUFFER, buffer)
         debugGLErrors()

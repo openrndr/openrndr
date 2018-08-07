@@ -17,7 +17,7 @@ class RectangleDrawer {
         attribute("dimensions", VertexElementType.VECTOR2_FLOAT32)
         attribute("offset", VertexElementType.VECTOR3_FLOAT32)
     }
-    private var instanceAttributes = VertexBuffer.createDynamic(instanceFormat, 100)
+    private var instanceAttributes = VertexBuffer.createDynamic(instanceFormat, 10000)
 
     private val shaderManager: ShadeStyleManager = ShadeStyleManager.fromGenerators(Driver.instance.shaderGenerators::rectangleVertexShader,
             Driver.instance.shaderGenerators::rectangleFragmentShader)

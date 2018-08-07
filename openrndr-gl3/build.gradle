@@ -12,6 +12,7 @@ dependencies {
     implementation "org.lwjgl:lwjgl-egl:$lwjglVersion"
     testRuntime project(":openrndr-gl3-natives-windows")
     testRuntime project(":openrndr-gl3-natives-macos")
+    testRuntime 'org.slf4j:slf4j-simple:1.7.5'
 }
 
 test.doFirst {
