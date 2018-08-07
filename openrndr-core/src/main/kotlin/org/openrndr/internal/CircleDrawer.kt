@@ -1,10 +1,12 @@
 package org.openrndr.internal
 
+import mu.KotlinLogging
 import org.openrndr.draw.*
 import org.openrndr.math.Vector2
 import org.openrndr.math.Vector3
 import org.openrndr.shape.Circle
 
+private val logger = KotlinLogging.logger {}
 class CircleDrawer {
     val vertices: VertexBuffer = VertexBuffer.createDynamic(VertexFormat().apply {
         position(3)
@@ -24,6 +26,9 @@ class CircleDrawer {
 
     private fun assertInstanceSize(size: Int) {
         if (instanceAttributes.vertexCount < size) {
+            logger.debug {
+                "resizing buffer from ${instanceAttributes.vertexCount} to $size"
+            }
             instanceAttributes.destroy()
             instanceAttributes = vertexBuffer(instanceFormat, size)
         }

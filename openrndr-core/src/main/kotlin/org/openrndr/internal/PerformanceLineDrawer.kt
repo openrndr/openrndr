@@ -8,18 +8,14 @@ import org.openrndr.math.Vector3
  * Created by voorbeeld on 11/23/17.
  */
 class PerformanceLineDrawer {
-    val vertices: VertexBuffer = VertexBuffer.createDynamic(VertexFormat().apply {
+    private val vertices: VertexBuffer = VertexBuffer.createDynamic(VertexFormat().apply {
         position(3)
         attribute("instance", VertexElementType.FLOAT32)
         attribute("vertexOffset", VertexElementType.FLOAT32)
     }, 1024 * 1024)
 
-    val shaderManager: ShadeStyleManager
-
-    init {
-        shaderManager = ShadeStyleManager.fromGenerators(Driver.instance.shaderGenerators::fastLineVertexShader,
-                Driver.instance.shaderGenerators::fastLineFragmentShader)
-    }
+    private val shaderManager: ShadeStyleManager = ShadeStyleManager.fromGenerators(Driver.instance.shaderGenerators::fastLineVertexShader,
+            Driver.instance.shaderGenerators::fastLineFragmentShader)
 
     fun drawLineSegments3(drawContext: DrawContext,
                           drawStyle: DrawStyle, segments: Iterable<Vector3>) {
