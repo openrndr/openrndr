@@ -230,7 +230,7 @@ class DriverGL3 : Driver {
                 if (attributeIndex != -1) {
                     if (item.type == VertexElementType.FLOAT32 || item.type == VertexElementType.VECTOR2_FLOAT32 || item.type == VertexElementType.VECTOR3_FLOAT32 || item.type == VertexElementType.VECTOR4_FLOAT32) {
                         for (i in 0 until item.arraySize) {
-                            glEnableVertexAttribArray(attributeIndex)
+                            glEnableVertexAttribArray(attributeIndex + i)
                             debugGLErrors {
                                 when (it) {
                                     GL_INVALID_OPERATION -> "no vertex array object is bound"
@@ -238,7 +238,7 @@ class DriverGL3 : Driver {
                                     else -> null
                                 }
                             }
-                            glVertexAttribPointer(attributeIndex,
+                            glVertexAttribPointer(attributeIndex + i,
                                     item.type.componentCount,
                                     item.type.glType(), false, format.size, item.offset.toLong() + i * item.type.sizeInBytes)
                             debugGLErrors {
