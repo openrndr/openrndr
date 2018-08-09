@@ -49,6 +49,7 @@ class ScreenRecorder : Extension {
         frame.unbind()
         videoWriter.frame(frame.colorBuffer(0))
         drawer.isolated {
+            drawer.shadeStyle = null
             drawer.ortho()
             drawer.model = Matrix44.IDENTITY
             drawer.view = Matrix44.IDENTITY
