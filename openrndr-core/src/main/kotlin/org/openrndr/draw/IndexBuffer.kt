@@ -17,7 +17,7 @@ interface IndexBuffer {
     }
 
     val type: IndexType
-    fun write(data: ByteBuffer, offset: Int)
+    fun write(data: ByteBuffer, offset: Int = 0)
     fun destroy()
 }
 
