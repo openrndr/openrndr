@@ -25,7 +25,7 @@ class IndexBufferGL3(val buffer: Int, override val type: IndexType) : IndexBuffe
             nglBufferData(GL_ELEMENT_ARRAY_BUFFER,  sizeInBytes.toLong(), MemoryUtil.NULL, GL_DYNAMIC_DRAW)
             checkGLErrors()
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cb)
-            return IndexBufferGL3(elementCount, type)
+            return IndexBufferGL3(buffer, type)
         }
     }
 
