@@ -16,6 +16,8 @@ interface IndexBuffer {
         //fun createStatic(format: VertexFormat, buffer:Buffer):VertexBuffer
     }
 
+    val indexCount: Int
+
     val type: IndexType
     fun write(data: ByteBuffer, offset: Int = 0)
     fun destroy()

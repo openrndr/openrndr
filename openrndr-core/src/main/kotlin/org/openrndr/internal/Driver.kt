@@ -68,7 +68,7 @@ interface Driver {
 
     fun drawIndexedVertexBuffer(shader: Shader, indexBuffer: IndexBuffer, vertexBuffers: List<VertexBuffer>,
                                 drawPrimitive: DrawPrimitive,
-                                vertexOffset: Int, vertexCount: Int)
+                                indexOffset: Int, indexCount: Int)
 
 
     fun drawInstances(shader: Shader, vertexBuffers: List<VertexBuffer>,
@@ -77,7 +77,7 @@ interface Driver {
 
     fun drawIndexedInstances(shader: Shader, indexBuffer: IndexBuffer, vertexBuffers: List<VertexBuffer>,
                       instanceAttributes: List<VertexBuffer>,
-                      drawPrimitive: DrawPrimitive, vertexOffset: Int, vertexCount: Int, instanceCount: Int)
+                      drawPrimitive: DrawPrimitive, indexOffset: Int, indexCount: Int, instanceCount: Int)
 
     fun setState(drawStyle: DrawStyle)
 

@@ -189,7 +189,7 @@ class DriverGL3 : Driver {
         glBindVertexArray(defaultVAO)
     }
 
-    override fun drawIndexedVertexBuffer(shader: Shader, indexBuffer: IndexBuffer, vertexBuffers: List<VertexBuffer>, drawPrimitive: DrawPrimitive, vertexOffset: Int, vertexCount: Int) {
+    override fun drawIndexedVertexBuffer(shader: Shader, indexBuffer: IndexBuffer, vertexBuffers: List<VertexBuffer>, drawPrimitive: DrawPrimitive, indexOffset: Int, indexCount: Int) {
         shader as ShaderGL3
         indexBuffer as IndexBufferGL3
         // -- find or create a VAO for our shader + vertex buffers combination
@@ -207,14 +207,14 @@ class DriverGL3 : Driver {
         }
         glBindVertexArray(vao)
 
-        logger.trace { "drawing vertex buffer with $drawPrimitive(${drawPrimitive.glType()}) and $vertexCount vertices with vertexOffset $vertexOffset " }
+        logger.trace { "drawing vertex buffer with $drawPrimitive(${drawPrimitive.glType()}) and $indexCount indices with indexOffset $indexOffset " }
         indexBuffer.bind()
-        glDrawElements(drawPrimitive.glType(), vertexCount, indexBuffer.type.glType(), vertexOffset.toLong())
+        glDrawElements(drawPrimitive.glType(), indexCount, indexBuffer.type.glType(), indexOffset.toLong())
 
         debugGLErrors {
             when (it) {
                 GL_INVALID_ENUM -> "mode ($drawPrimitive) is not an accepted value."
-                GL_INVALID_VALUE -> "count ($vertexCount) is negative."
+                GL_INVALID_VALUE -> "count ($indexCount) is negative."
                 GL_INVALID_OPERATION -> "a non-zero buffer object name is bound to an enabled array and the buffer object's data store is currently mapped."
                 else -> null
             }
@@ -256,7 +256,7 @@ class DriverGL3 : Driver {
         glBindVertexArray(defaultVAO)
     }
 
-    override fun drawIndexedInstances(shader: Shader, indexBuffer: IndexBuffer, vertexBuffers: List<VertexBuffer>, instanceAttributes: List<VertexBuffer>, drawPrimitive: DrawPrimitive, vertexOffset: Int, vertexCount: Int, instanceCount: Int) {
+    override fun drawIndexedInstances(shader: Shader, indexBuffer: IndexBuffer, vertexBuffers: List<VertexBuffer>, instanceAttributes: List<VertexBuffer>, drawPrimitive: DrawPrimitive, indexOffset: Int, indexCount: Int, instanceCount: Int) {
 
         // -- find or create a VAO for our shader + vertex buffers + instance buffers combination
         val hash = hash(shader as ShaderGL3, vertexBuffers, instanceAttributes)
@@ -277,12 +277,12 @@ class DriverGL3 : Driver {
         indexBuffer as IndexBufferGL3
         indexBuffer.bind()
 
-        logger.trace { "drawing $instanceCount instances with $drawPrimitive(${drawPrimitive.glType()}) and $vertexCount vertices with vertexOffset $vertexOffset " }
-        glDrawElementsInstanced(drawPrimitive.glType(), vertexCount, indexBuffer.type.glType(), vertexOffset.toLong(), instanceCount)
+        logger.trace { "drawing $instanceCount instances with $drawPrimitive(${drawPrimitive.glType()}) and $indexCount vertices with vertexOffset $indexOffset " }
+        glDrawElementsInstanced(drawPrimitive.glType(), indexCount, indexBuffer.type.glType(), indexOffset.toLong(), instanceCount)
         debugGLErrors {
             when (it) {
                 GL_INVALID_ENUM -> "mode is not one of the accepted values."
-                GL_INVALID_VALUE -> "count ($instanceCount) or primcount ($vertexCount) are negative."
+                GL_INVALID_VALUE -> "count ($instanceCount) or primcount ($indexCount) are negative."
                 GL_INVALID_OPERATION -> "a non-zero buffer object name is bound to an enabled array and the buffer object's data store is currently mapped."
                 else -> null
             }
