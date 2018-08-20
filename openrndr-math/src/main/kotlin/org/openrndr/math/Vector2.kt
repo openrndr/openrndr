@@ -36,6 +36,7 @@ data class Vector2(val x: Double, val y: Double) : Serializable {
 
     companion object {
         val ZERO = Vector2(0.0, 0.0)
+        val ONE = Vector2(1.0, 1.0)
         val UNIT_X = Vector2(1.0, 0.0)
         val UNIT_Y = Vector2(0.0, 1.0)
         val INFINITY = Vector2(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY)

@@ -1,6 +1,7 @@
 package org.openrndr.math.transforms
 
 import org.openrndr.math.Matrix44
+import org.openrndr.math.Quaternion
 import org.openrndr.math.Vector2
 import org.openrndr.math.Vector3
 import org.openrndr.math.transforms.rotate as _rotate
@@ -9,6 +10,10 @@ import org.openrndr.math.transforms.scale as _scale
 
 class TransformBuilder {
     var transform: Matrix44 = Matrix44.IDENTITY
+
+    fun rotate(axis: Quaternion) {
+        transform *= axis.matrix
+    }
 
     fun rotate(axis:Vector3=Vector3.UNIT_Z, degrees:Double) {
         transform *= _rotate(axis, degrees)
@@ -32,6 +37,10 @@ class TransformBuilder {
 
     fun scale(scaleX:Double, scaleY:Double, scaleZ:Double) {
         transform *= _scale(scaleX, scaleY, scaleZ)
+    }
+
+    fun scale(scale:Vector3) {
+        transform *= _scale(scale.x, scale.y, scale.z)
     }
 
     fun multiply(matrix:Matrix44) {
