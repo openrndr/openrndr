@@ -81,7 +81,7 @@ class IndexBufferGL3(val buffer: Int, override val indexCount: Int, override val
     }
 }
 
-private val IndexType.sizeInBytes: Int
+val IndexType.sizeInBytes: Int
     get() {
         return when(this) {
             IndexType.INT16 -> 2
