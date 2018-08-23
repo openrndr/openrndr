@@ -85,15 +85,15 @@ class ColorBufferShadowGL3(override val colorBuffer: ColorBufferGL3) : ColorBuff
         (colorBuffer).destroyShadow()
     }
 
-    override fun write(x: Int, y: Int, color: ColorRGBa) {
+    override fun write(x: Int, y: Int, r: Double, g: Double, b: Double, a: Double) {
         val ay = if (colorBuffer.flipV) y else colorBuffer.effectiveHeight - 1 - y
         val offset = (ay * colorBuffer.effectiveWidth + x) * colorBuffer.format.componentCount * colorBuffer.type.componentSize
         when (colorBuffer.type) {
             ColorType.UINT8 -> {
-                val ir = (color.r * 255).coerceIn(0.0, 255.0).toByte()
-                val ig = (color.g * 255).coerceIn(0.0, 255.0).toByte()
-                val ib = (color.b * 255).coerceIn(0.0, 255.0).toByte()
-                val ia = (color.a * 255).coerceIn(0.0, 255.0).toByte()
+                val ir = (r * 255).coerceIn(0.0, 255.0).toByte()
+                val ig = (g * 255).coerceIn(0.0, 255.0).toByte()
+                val ib = (b * 255).coerceIn(0.0, 255.0).toByte()
+                val ia = (a * 255).coerceIn(0.0, 255.0).toByte()
                 buffer.put(offset, ir)
                 buffer.put(offset + 1, ig)
                 buffer.put(offset + 2, ib)
@@ -102,10 +102,10 @@ class ColorBufferShadowGL3(override val colorBuffer: ColorBufferGL3) : ColorBuff
                 }
             }
             ColorType.UINT16 -> {
-                val ir = (color.r * 65535).coerceIn(0.0, 65535.0).toChar()
-                val ig = (color.g * 65535).coerceIn(0.0, 65535.0).toChar()
-                val ib = (color.b * 65335).coerceIn(0.0, 65535.0).toChar()
-                val ia = (color.a * 65535).coerceIn(0.0, 65535.0).toChar()
+                val ir = (r * 65535).coerceIn(0.0, 65535.0).toChar()
+                val ig = (g * 65535).coerceIn(0.0, 65535.0).toChar()
+                val ib = (b * 65335).coerceIn(0.0, 65535.0).toChar()
+                val ia = (a * 65535).coerceIn(0.0, 65535.0).toChar()
                 buffer.putChar(offset, ir)
                 buffer.putChar(offset + 2, ig)
                 buffer.putChar(offset + 4, ib)
@@ -114,11 +114,11 @@ class ColorBufferShadowGL3(override val colorBuffer: ColorBufferGL3) : ColorBuff
                 }
             }
             ColorType.FLOAT32 -> {
-                buffer.putFloat(offset, color.r.toFloat())
-                buffer.putFloat(offset + 4, color.g.toFloat())
-                buffer.putFloat(offset + 8, color.b.toFloat())
+                buffer.putFloat(offset, r.toFloat())
+                buffer.putFloat(offset + 4, g.toFloat())
+                buffer.putFloat(offset + 8, b.toFloat())
                 if (colorBuffer.format.componentCount > 3) {
-                    buffer.putFloat(offset + 12, color.a.toFloat())
+                    buffer.putFloat(offset + 12, a.toFloat())
                 }
             }
             else -> TODO("support for ${colorBuffer.type}")
@@ -430,7 +430,7 @@ class ColorBufferGL3(val target: Int,
             debugGLErrors()
             logger.trace {
                 "Writing to color buffer in: $format ${format.glFormat()}, $type ${type.glType()}"
-             }
+            }
             (buffer as Buffer).rewind()
             buffer.order(ByteOrder.nativeOrder())
             val currentPack = intArrayOf(0)

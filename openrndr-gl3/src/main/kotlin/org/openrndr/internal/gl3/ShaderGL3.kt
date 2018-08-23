@@ -554,6 +554,27 @@ class ShaderGL3(val program: Int,
         }
     }
 
+    override fun uniform(name: String, x: Float, y: Float, z: Float, w: Float) {
+        val index = uniformIndex(name)
+        if (index != -1) {
+            glUniform4f(index, x, y, z, w)
+        }
+    }
+
+    override fun uniform(name: String, x: Float, y: Float, z: Float) {
+        val index = uniformIndex(name)
+        if (index != -1) {
+            glUniform3f(index, x, y, z)
+        }
+    }
+
+    override fun uniform(name: String, x: Float, y: Float) {
+        val index = uniformIndex(name)
+        if (index != -1) {
+            glUniform2f(index, x, y)
+        }
+    }
+
     override fun uniform(name: String, value: Int) {
         val index = uniformIndex(name)
         if (index != -1) {

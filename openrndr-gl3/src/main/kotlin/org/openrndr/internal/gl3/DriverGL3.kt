@@ -73,8 +73,8 @@ class DriverGL3 : Driver {
             TODO("not implemented")
         }
 
-    override fun clear(color: ColorRGBa) {
-        glClearColor(color.r.toFloat(), color.g.toFloat(), color.b.toFloat(), color.a.toFloat())
+    override fun clear(r: Double, g: Double, b: Double, a: Double) {
+        glClearColor(r.toFloat(), g.toFloat(), b.toFloat(), a.toFloat())
         glClearDepth(1.0)
         glDisable(GL_SCISSOR_TEST)
         glDepthMask(true)

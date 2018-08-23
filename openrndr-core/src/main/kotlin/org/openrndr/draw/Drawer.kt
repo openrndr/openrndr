@@ -26,7 +26,6 @@ import java.net.URL
 import java.nio.ByteBuffer
 import java.util.*
 
-
 data class VertexElement(val attribute: String, val offset: Int, val type: VertexElementType, val arraySize: Int)
 
 @Suppress("MemberVisibilityCanPrivate")
@@ -231,7 +230,13 @@ interface ColorBufferShadow {
     fun destroy()
 
     fun writer(): BufferWriter
-    fun write(x: Int, y: Int, color: ColorRGBa)
+    fun write(x: Int, y: Int, r: Double, g: Double, b: Double, a: Double)
+    fun write(x: Int, y: Int, color: ColorRGBa) {
+        write(x, y, color.r, color.g, color.b, color.a)
+    }
+    fun write(x: Int, y: Int, r: Float, g: Float, b: Float, a: Float) {
+        write(x, y, r.toDouble(), g.toDouble(), b.toDouble(), a.toDouble())
+    }
 
     fun read(x: Int, y: Int): ColorRGBa
 }
@@ -646,6 +651,14 @@ class Drawer(val driver: Driver) {
 
     fun rotate(axis: Vector3, rotationInDegrees: Double) {
         model *= _rotate(axis, rotationInDegrees)
+    }
+
+    fun background(r: Double, g: Double, b: Double, a: Double) {
+        driver.clear(r, g, b, a)
+    }
+
+    fun background(r: Float, g: Float, b: Float, a: Float) {
+        driver.clear(r, g, b, a)
     }
 
     fun background(color: ColorRGBa) {
