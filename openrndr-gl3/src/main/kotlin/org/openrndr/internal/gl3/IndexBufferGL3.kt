@@ -1,6 +1,7 @@
 package org.openrndr.internal.gl3
 
 import mu.KotlinLogging
+import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL15
 import org.lwjgl.opengl.GL15.*
@@ -51,6 +52,23 @@ class IndexBufferGL3(val buffer: Int, override val indexCount: Int, override val
         checkGLErrors()
     }
 
+    override fun read(data: ByteBuffer, offset: Int) {
+        if (isDestroyed) {
+            throw IllegalStateException("buffer is destroyed")
+        }
+
+        if (data.isDirect) {
+            bound {
+                glGetBufferSubData(GL_ELEMENT_ARRAY_BUFFER, offset.toLong(), data)
+            }
+            checkGLErrors()
+        } else {
+            val temp = BufferUtils.createByteBuffer(data.capacity())
+            read(temp, offset)
+            data.put(temp)
+        }
+    }
+
     override fun destroy() {
         glDeleteBuffers(buffer)
         isDestroyed = true
@@ -63,7 +81,7 @@ class IndexBufferGL3(val buffer: Int, override val indexCount: Int, override val
     }
 }
 
-private val IndexType.sizeInBytes: Int
+val IndexType.sizeInBytes: Int
     get() {
         return when(this) {
             IndexType.INT16 -> 2
