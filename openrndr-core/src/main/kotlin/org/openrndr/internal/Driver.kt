@@ -65,14 +65,25 @@ interface Driver {
 
     fun createDynamicVertexBuffer(format: VertexFormat, vertexCount: Int): VertexBuffer
     fun createStaticVertexBuffer(format: VertexFormat, buffer: Buffer): VertexBuffer
+
+    fun createDynamicIndexBuffer(elementCount: Int, type: IndexType): IndexBuffer
+
     fun drawVertexBuffer(shader: Shader, vertexBuffers: List<VertexBuffer>,
                          drawPrimitive: DrawPrimitive,
                          vertexOffset: Int, vertexCount: Int)
 
-    fun drawInstances(shader: Shader, vertexBuffers: List<VertexBuffer>,
+    fun drawIndexedVertexBuffer(shader: Shader, indexBuffer: IndexBuffer, vertexBuffers: List<VertexBuffer>,
+                                drawPrimitive: DrawPrimitive,
+                                indexOffset: Int, indexCount: Int)
 
+
+    fun drawInstances(shader: Shader, vertexBuffers: List<VertexBuffer>,
                       instanceAttributes: List<VertexBuffer>,
                       drawPrimitive: DrawPrimitive, vertexOffset: Int, vertexCount: Int, instanceCount: Int)
+
+    fun drawIndexedInstances(shader: Shader, indexBuffer: IndexBuffer, vertexBuffers: List<VertexBuffer>,
+                      instanceAttributes: List<VertexBuffer>,
+                      drawPrimitive: DrawPrimitive, indexOffset: Int, indexCount: Int, instanceCount: Int)
 
     fun setState(drawStyle: DrawStyle)
 

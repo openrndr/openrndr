@@ -1,14 +1,14 @@
 package org.openrndr.internal.gl3
 
 import mu.KotlinLogging
-import org.lwjgl.opengl.GL11.*
-import org.lwjgl.opengl.GL14.*
+import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER
 import org.lwjgl.opengl.GL15.glBindBuffer
 import org.lwjgl.opengl.GL20.*
 import org.lwjgl.opengl.GL30.glBindVertexArray
 import org.lwjgl.opengl.GL30.glGenVertexArrays
 import org.lwjgl.opengl.GL31.glDrawArraysInstanced
+import org.lwjgl.opengl.GL31.glDrawElementsInstanced
 import org.lwjgl.opengl.GL33.glVertexAttribDivisor
 import org.lwjgl.opengl.GL40.glBlendFunci
 import org.openrndr.color.ColorRGBa
@@ -152,6 +152,10 @@ class DriverGL3 : Driver {
         return DepthBufferGL3.create(width, height, format)
     }
 
+    override fun createDynamicIndexBuffer(elementCount: Int, type: IndexType):IndexBuffer {
+        return IndexBufferGL3.create(elementCount, type)
+    }
+
     override fun createDynamicVertexBuffer(format: VertexFormat, vertexCount: Int): VertexBuffer = VertexBufferGL3.createDynamic(format, vertexCount)
 
     override fun drawVertexBuffer(shader: Shader, vertexBuffers: List<VertexBuffer>, drawPrimitive: DrawPrimitive, vertexOffset: Int, vertexCount: Int) {
@@ -177,6 +181,40 @@ class DriverGL3 : Driver {
             when (it) {
                 GL_INVALID_ENUM -> "mode ($drawPrimitive) is not an accepted value."
                 GL_INVALID_VALUE -> "count ($vertexCount) is negative."
+                GL_INVALID_OPERATION -> "a non-zero buffer object name is bound to an enabled array and the buffer object's data store is currently mapped."
+                else -> null
+            }
+        }
+        // -- restore defaultVAO binding
+        glBindVertexArray(defaultVAO)
+    }
+
+    override fun drawIndexedVertexBuffer(shader: Shader, indexBuffer: IndexBuffer, vertexBuffers: List<VertexBuffer>, drawPrimitive: DrawPrimitive, indexOffset: Int, indexCount: Int) {
+        shader as ShaderGL3
+        indexBuffer as IndexBufferGL3
+        // -- find or create a VAO for our shader + vertex buffers combination
+        val hash = hash(shader, vertexBuffers, emptyList())
+        val vao = vaos.getOrPut(hash) {
+            logger.debug {
+                "creating new VAO for hash $hash"
+            }
+            val arrays = IntArray(1)
+            glGenVertexArrays(arrays)
+            glBindVertexArray(arrays[0])
+            setupFormat(vertexBuffers, emptyList(), shader)
+            glBindVertexArray(defaultVAO)
+            arrays[0]
+        }
+        glBindVertexArray(vao)
+
+        logger.trace { "drawing vertex buffer with $drawPrimitive(${drawPrimitive.glType()}) and $indexCount indices with indexOffset $indexOffset " }
+        indexBuffer.bind()
+        glDrawElements(drawPrimitive.glType(), indexCount, indexBuffer.type.glType(), indexOffset.toLong())
+
+        debugGLErrors {
+            when (it) {
+                GL_INVALID_ENUM -> "mode ($drawPrimitive) is not an accepted value."
+                GL_INVALID_VALUE -> "count ($indexCount) is negative."
                 GL_INVALID_OPERATION -> "a non-zero buffer object name is bound to an enabled array and the buffer object's data store is currently mapped."
                 else -> null
             }
@@ -217,6 +255,42 @@ class DriverGL3 : Driver {
         // -- restore default VAO binding
         glBindVertexArray(defaultVAO)
     }
+
+    override fun drawIndexedInstances(shader: Shader, indexBuffer: IndexBuffer, vertexBuffers: List<VertexBuffer>, instanceAttributes: List<VertexBuffer>, drawPrimitive: DrawPrimitive, indexOffset: Int, indexCount: Int, instanceCount: Int) {
+
+        // -- find or create a VAO for our shader + vertex buffers + instance buffers combination
+        val hash = hash(shader as ShaderGL3, vertexBuffers, instanceAttributes)
+
+        val vao = vaos.getOrPut(hash) {
+            logger.debug {
+                "creating new instances VAO for hash $hash"
+            }
+            val arrays = IntArray(1)
+            glGenVertexArrays(arrays)
+            glBindVertexArray(arrays[0])
+            setupFormat(vertexBuffers, instanceAttributes, shader)
+            glBindVertexArray(defaultVAO)
+            arrays[0]
+        }
+
+        glBindVertexArray(vao)
+        indexBuffer as IndexBufferGL3
+        indexBuffer.bind()
+
+        logger.trace { "drawing $instanceCount instances with $drawPrimitive(${drawPrimitive.glType()}) and $indexCount vertices with vertexOffset $indexOffset " }
+        glDrawElementsInstanced(drawPrimitive.glType(), indexCount, indexBuffer.type.glType(), indexOffset.toLong(), instanceCount)
+        debugGLErrors {
+            when (it) {
+                GL_INVALID_ENUM -> "mode is not one of the accepted values."
+                GL_INVALID_VALUE -> "count ($instanceCount) or primcount ($indexCount) are negative."
+                GL_INVALID_OPERATION -> "a non-zero buffer object name is bound to an enabled array and the buffer object's data store is currently mapped."
+                else -> null
+            }
+        }
+        // -- restore default VAO binding
+        glBindVertexArray(defaultVAO)
+    }
+
 
     private fun setupFormat(vertexBuffer: List<VertexBuffer>, instanceAttributes: List<VertexBuffer>, shader: ShaderGL3) {
         debugGLErrors()
@@ -405,6 +479,13 @@ class DriverGL3 : Driver {
 
     override val activeRenderTarget: RenderTarget
         get() = RenderTargetGL3.activeRenderTarget
+}
+
+private fun IndexType.glType(): Int {
+    return when (this) {
+        IndexType.INT16 -> GL11.GL_UNSIGNED_SHORT
+        IndexType.INT32 -> GL11.GL_UNSIGNED_INT
+    }
 }
 
 internal fun glStencilTest(test: StencilTest): Int {

@@ -6,6 +6,7 @@ data class Vector3(val x: Double, val y: Double, val z: Double) : Serializable {
 
     companion object {
         val ZERO = Vector3(0.0, 0.0, 0.0)
+        val ONE = Vector3(1.0, 1.0, 1.0)
         val UNIT_X = Vector3(1.0, 0.0, 0.0)
         val UNIT_Y = Vector3(0.0, 1.0, 0.0)
         val UNIT_Z = Vector3(0.0, 0.0, 1.0)

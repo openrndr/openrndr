@@ -67,7 +67,7 @@ class VertexFormat {
      */
     fun color(dimensions: Int): VertexFormat = attribute("color", floatTypeFromDimensions(dimensions))
 
-    fun textureCoordinate(dimensions: Int=2, index: Int=0): VertexFormat = attribute("texCoord$index", floatTypeFromDimensions(dimensions))
+    fun textureCoordinate(dimensions: Int = 2, index: Int = 0): VertexFormat = attribute("texCoord$index", floatTypeFromDimensions(dimensions))
 
 
     /**
@@ -80,8 +80,8 @@ class VertexFormat {
      * *
      * @return
      */
-    fun attribute(name: String, type: VertexElementType, arraySize:Int = 1): VertexFormat {
-        val offset = items.sumBy { it.arraySize  * it.type.sizeInBytes }
+    fun attribute(name: String, type: VertexElementType, arraySize: Int = 1): VertexFormat {
+        val offset = items.sumBy { it.arraySize * it.type.sizeInBytes }
         val item = VertexElement(name, offset, type, arraySize)
         items.add(item)
         vertexSize += type.sizeInBytes * arraySize
@@ -148,9 +148,6 @@ interface VertexBuffer {
     fun read(data: ByteBuffer, offset: Int = 0)
 
     fun destroy()
-
-    fun bind()
-    fun unbind()
 
     fun put(putter: BufferWriter.() -> Unit): Int {
         val w = shadow.writer()
@@ -873,7 +870,7 @@ class Drawer(val driver: Driver) {
         }
     }
 
-    fun lineSegments(segments: List<Vector2>, weights:List<Double>) {
+    fun lineSegments(segments: List<Vector2>, weights: List<Double>) {
         when (drawStyle.quality) {
             DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineSegments2(context, drawStyle, segments)
             DrawQuality.QUALITY -> {
@@ -905,7 +902,7 @@ class Drawer(val driver: Driver) {
         }
     }
 
-    fun lineLoops(loops: List<List<Vector2>>, weights:List<Double>) {
+    fun lineLoops(loops: List<List<Vector2>>, weights: List<Double>) {
         when (drawStyle.quality) {
             DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineLoops(context, drawStyle, loops)
             DrawQuality.QUALITY -> qualityLineDrawer.drawLineLoops(context, drawStyle, loops, weights)
@@ -927,7 +924,7 @@ class Drawer(val driver: Driver) {
         }
     }
 
-    fun lineStrips(strips: List<List<Vector2>>, weights:List<Double>) {
+    fun lineStrips(strips: List<List<Vector2>>, weights: List<Double>) {
         when (drawStyle.quality) {
             DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineLoops(context, drawStyle, strips)
             DrawQuality.QUALITY -> qualityLineDrawer.drawLineStrips(context, drawStyle, strips, weights)
@@ -1005,8 +1002,16 @@ class Drawer(val driver: Driver) {
         vertexBufferDrawer.drawVertexBuffer(context, drawStyle, primitive, vertexBuffers, offset, vertexCount)
     }
 
+    fun vertexBuffer(indexBuffer:IndexBuffer, vertexBuffers: List<VertexBuffer>, primitive: DrawPrimitive, offset: Int = 0, indexCount: Int = indexBuffer.indexCount) {
+        vertexBufferDrawer.drawVertexBuffer(context, drawStyle, primitive, indexBuffer, vertexBuffers, offset, indexCount)
+    }
+
     fun vertexBufferInstances(vertexBuffers: List<VertexBuffer>, instanceAttributes: List<VertexBuffer>, primitive: DrawPrimitive, instanceCount: Int, offset: Int = 0, vertexCount: Int = vertexBuffers[0].vertexCount) {
         vertexBufferDrawer.drawVertexBufferInstances(context, drawStyle, primitive, vertexBuffers, instanceAttributes, offset, vertexCount, instanceCount)
+    }
+
+    fun vertexBufferInstances(indexBuffer: IndexBuffer, vertexBuffers: List<VertexBuffer>, instanceAttributes: List<VertexBuffer>, primitive: DrawPrimitive, instanceCount: Int, offset: Int = 0, indexCount: Int = indexBuffer.indexCount) {
+        vertexBufferDrawer.drawVertexBufferInstances(context, drawStyle, primitive, indexBuffer, vertexBuffers, instanceAttributes, offset, indexCount, instanceCount)
     }
 }
 
