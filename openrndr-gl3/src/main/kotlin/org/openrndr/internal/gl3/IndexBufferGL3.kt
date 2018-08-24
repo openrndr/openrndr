@@ -81,11 +81,3 @@ class IndexBufferGL3(val buffer: Int, override val indexCount: Int, override val
     }
 }
 
-val IndexType.sizeInBytes: Int
-    get() {
-        return when(this) {
-            IndexType.INT16 -> 2
-            IndexType.INT32 -> 4
-            else -> throw RuntimeException("unsupported size")
-        }
-    }

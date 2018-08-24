@@ -4,9 +4,9 @@ import org.openrndr.internal.Driver
 import java.nio.ByteBuffer
 
 
-enum class IndexType {
-    INT16,
-    INT32
+enum class IndexType(val sizeInBytes:Int) {
+    INT16(2),
+    INT32(4)
 }
 
 interface IndexBuffer {
