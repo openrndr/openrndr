@@ -650,6 +650,14 @@ class Drawer(val driver: Driver) {
         model *= _rotate(axis, rotationInDegrees)
     }
 
+    fun background(r: Double, g: Double, b: Double, a: Double) {
+        driver.clear(r, g, b, a)
+    }
+
+    fun background(r: Float, g: Float, b: Float, a: Float) {
+        driver.clear(r, g, b, a)
+    }
+
     fun background(color: ColorRGBa) {
         driver.clear(color)
     }
