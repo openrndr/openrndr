@@ -654,10 +654,6 @@ class Drawer(val driver: Driver) {
         driver.clear(r, g, b, a)
     }
 
-    fun background(r: Float, g: Float, b: Float, a: Float) {
-        driver.clear(r, g, b, a)
-    }
-
     fun background(color: ColorRGBa) {
         driver.clear(color)
     }
