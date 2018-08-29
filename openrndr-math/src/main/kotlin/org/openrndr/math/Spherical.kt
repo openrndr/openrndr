@@ -27,6 +27,10 @@ data class Spherical(val radius: Double, val theta: Double, val phi: Double) {
         }
     }
 
+    val cartesian: Vector3 get() {
+        return Vector3.fromSpherical(this)
+    }
+
     operator fun plus(s: Spherical) = Spherical(radius + s.radius, theta + s.theta, phi + s.phi)
     operator fun minus(s: Spherical) = Spherical(radius - s.radius, theta - s.theta, phi - s.phi)
     operator fun times(s: Spherical) = Spherical(radius * s.radius, theta * s.theta, phi * s.phi)
