@@ -234,6 +234,14 @@ interface ColorBufferShadow {
     fun write(x: Int, y: Int, color: ColorRGBa)
 
     fun read(x: Int, y: Int): ColorRGBa
+
+    operator fun get(x: Int, y: Int): ColorRGBa {
+        return read(x, y)
+    }
+
+    operator fun set(x: Int, y: Int, c: ColorRGBa) {
+        write(x, y, c)
+    }
 }
 
 
