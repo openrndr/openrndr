@@ -179,12 +179,61 @@ class Segment {
     }
 
     fun direction(t: Double): Vector2 {
+        return derivative(t).normalized
+    }
+
+    fun extrema(): List<Double> {
+        val dpoints = dpoints()
+        return when {
+            linear -> emptyList()
+            control.size == 1 -> {
+                val xRoots = roots(dpoints[0].map { it.x })
+                val yRoots = roots(dpoints[0].map { it.y })
+                (xRoots + yRoots).distinct().sorted()
+            }
+            control.size == 2 -> {
+                val xRoots = roots(dpoints[0].map { it.x }) + roots(dpoints[1].map { it.x })
+                val yRoots = roots(dpoints[0].map { it.x }) + roots(dpoints[1].map { it.x })
+                (xRoots + yRoots).distinct().sorted()
+            }
+            else -> throw RuntimeException("not supported")
+        }
+    }
+
+    fun extremaPoints(): List<Vector2> = extrema().map { position(it) }
+
+    val bounds: Rectangle get() = vector2Bounds(listOf(start, end) + extremaPoints())
+
+    private fun dpoints(): List<List<Vector2>> {
+        val points = listOf(start, *control, end)
+        var d = points.size
+        var c = d - 1
+        val dpoints = mutableListOf<List<Vector2>>()
+        var p = points
+        while (d > 1) {
+            val list = mutableListOf<Vector2>()
+            for (j in 0 until c) {
+                list.add(Vector2(c * (p[j + 1].x - p[j].x), c * (p[j + 1].y - p[j].y)))
+            }
+            dpoints.add(list)
+            p = list
+            d--
+            c--
+        }
+        return dpoints
+    }
+
+//    fun derivative():Segment {
+//
+//    }
+
+    fun derivative(t: Double): Vector2 {
         return if (linear) {
-            direction()
+            start - end
         } else if (control.size == 1) {
-            derivative(start, control[0], end, t).normalized
+            derivative(start, control[0], end, t)
         } else if (control.size == 2) {
-            derivative(start, control[0], control[1], end, t).normalized
+            derivative(start, control[0], control[1], end, t)
         } else {
             throw RuntimeException("not implemented")
         }
@@ -331,7 +380,7 @@ class Segment {
         return "Segment(start=$start, end=$end, control=${Arrays.toString(control)})"
     }
 
-    fun copy(start:Vector2=this.start, control:Array<Vector2> = this.control, end:Vector2=this.end):Segment {
+    fun copy(start: Vector2 = this.start, control: Array<Vector2> = this.control, end: Vector2 = this.end): Segment {
         return Segment(start, control, end)
     }
 
@@ -554,7 +603,7 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean) {
     val reversed get() = ShapeContour(segments.map { it.reverse }.reversed(), closed)
 
 
-    fun map(closed: Boolean=this.closed, mapper:(Segment)->Segment):ShapeContour {
+    fun map(closed: Boolean = this.closed, mapper: (Segment) -> Segment): ShapeContour {
 
         val segments = segments.map(mapper)
         val fixedSegments = mutableListOf<Segment>()
@@ -607,7 +656,7 @@ class Shape(val contours: List<ShapeContour>) {
     /**
      * Apply a map to the shape. Maps every contour.
      */
-    fun map(mapper:(ShapeContour)->ShapeContour) : Shape {
+    fun map(mapper: (ShapeContour) -> ShapeContour): Shape {
         return Shape(contours.map { mapper(it) })
     }
 }
