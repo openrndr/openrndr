@@ -204,6 +204,7 @@ class Segment {
 
     val bounds: Rectangle get() = vector2Bounds(listOf(start, end) + extremaPoints())
 
+
     private fun dpoints(): List<List<Vector2>> {
         val points = listOf(start, *control, end)
         var d = points.size
@@ -222,6 +223,85 @@ class Segment {
         }
         return dpoints
     }
+
+    private fun angle(o: Vector2, v1: Vector2, v2: Vector2): Double {
+        val dx1 = v1.x - o.x
+        val dy1 = v1.y - o.y,
+        val dx2 = v2.x - o.x,
+        val dy2 = v2.y - o.y,
+        val cross = dx1 * dy2 - dy1 * dx2,
+        val dot = dx1 * dx2 + dy1 * dy2;
+        return Math.atan2(cross, dot)
+    }
+
+    val simple: Boolean
+        get() {
+            if (linear) {
+                return true
+            }
+
+            if (control.size == 2) {
+                val a1 = angle(start, end, control[0])
+                val a2 = angle(start, end, control[1])
+
+                if ((a1 > 0 && a2 < 0) || (a1 < 0 && a2 > 0))
+                    return false
+            }
+            val n1 = normal(0.0)
+            val n2 = normal(1.0)
+            val s = n1 dot n2
+            val angle = Math.abs(Math.acos(s))
+            return angle < Math.PI / 3.0
+        }
+
+    val reduced: List<Segment>
+        get() {
+            val step = 0.01
+            var extrema = extrema()
+
+            if (extrema[0] != 0.0) {
+                extrema = listOf(0.0) + extrema
+            }
+
+            if (extrema.last() != 1.0) {
+                extrema = extrema + listOf(1.0)
+            }
+
+            val pass1 = extrema.zipWithNext().map {
+                sub(it.first, it.second)
+            }
+            val pass1Subs = extrema.zipWithNext()
+            val pass2 = mutableListOf<Segment>()
+
+            (pass1 zip pass1Subs).forEach {
+                val p0 = it.first
+                //val (t0,t1) = it.second
+
+                var t1 = 0.0
+                var t2 = 0.0
+                while (t1 < t2) {
+
+                    while(t2 <= 1.0 + step) {
+                        val segment = p0.sub(t1, t2)
+                        if (!segment.simple) {
+                            t2 -= step
+                            if (Math.abs(t1 - t2) < step) {
+                                return emptyList()
+                            }
+
+                            
+
+                        }
+
+                        t2+=step
+
+                    }
+                }
+
+            }
+
+
+        }
 
 //    fun derivative():Segment {
 //
