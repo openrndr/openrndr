@@ -6,6 +6,7 @@ import org.openrndr.math.*
 import org.openrndr.shape.internal.BezierCubicRenderer
 import org.openrndr.shape.internal.BezierQuadraticSampler
 import java.util.*
+import kotlin.math.sign
 
 class SegmentProjection(val segment: Segment, val projection: Double, val distance: Double, val point: Vector2)
 class ContourProjection(val segmentProjection: SegmentProjection, val projection: Double, val distance: Double, val point: Vector2)
@@ -189,12 +190,12 @@ class Segment {
             control.size == 1 -> {
                 val xRoots = roots(dpoints[0].map { it.x })
                 val yRoots = roots(dpoints[0].map { it.y })
-                (xRoots + yRoots).distinct().sorted()
+                (xRoots + yRoots).distinct().sorted().filter { it in 0.0..1.0 }
             }
             control.size == 2 -> {
                 val xRoots = roots(dpoints[0].map { it.x }) + roots(dpoints[1].map { it.x })
                 val yRoots = roots(dpoints[0].map { it.x }) + roots(dpoints[1].map { it.x })
-                (xRoots + yRoots).distinct().sorted()
+                (xRoots + yRoots).distinct().sorted().filter { it in 0.0..1.0 }
             }
             else -> throw RuntimeException("not supported")
         }
@@ -224,13 +225,22 @@ class Segment {
         return dpoints
     }
 
+    fun offset(distance: Double) : List<Segment> {
+        return if (linear) {
+            val n = normal(0.0)
+            listOf(Segment(start+ distance * n, end + distance * n))
+        } else {
+            reduced.map { it.scale(distance) }
+        }
+    }
+
     private fun angle(o: Vector2, v1: Vector2, v2: Vector2): Double {
         val dx1 = v1.x - o.x
-        val dy1 = v1.y - o.y,
-        val dx2 = v2.x - o.x,
-        val dy2 = v2.y - o.y,
-        val cross = dx1 * dy2 - dy1 * dx2,
-        val dot = dx1 * dx2 + dy1 * dy2;
+        val dy1 = v1.y - o.y
+        val dx2 = v2.x - o.x
+        val dy2 = v2.y - o.y
+        val cross = dx1 * dy2 - dy1 * dx2
+        val dot = dx1 * dx2 + dy1 * dy2
         return Math.atan2(cross, dot)
     }
 
@@ -259,7 +269,7 @@ class Segment {
             val step = 0.01
             var extrema = extrema()
 
-            if (extrema[0] != 0.0) {
+            if (extrema.isEmpty() || extrema[0] != 0.0) {
                 extrema = listOf(0.0) + extrema
             }
 
@@ -270,53 +280,115 @@ class Segment {
             val pass1 = extrema.zipWithNext().map {
                 sub(it.first, it.second)
             }
-            val pass1Subs = extrema.zipWithNext()
-            val pass2 = mutableListOf<Segment>()
+//            val pass2 = mutableListOf<Segment>()
 
-            (pass1 zip pass1Subs).forEach {
-                val p0 = it.first
-                //val (t0,t1) = it.second
-
-                var t1 = 0.0
-                var t2 = 0.0
-                while (t1 < t2) {
-
-                    while(t2 <= 1.0 + step) {
-                        val segment = p0.sub(t1, t2)
-                        if (!segment.simple) {
-                            t2 -= step
-                            if (Math.abs(t1 - t2) < step) {
-                                return emptyList()
-                            }
-
-                            
-
-                        }
-
-                        t2+=step
-
-                    }
-                }
-
-            }
-
-
-        }
-
-//    fun derivative():Segment {
+//            pass1.forEach {
+//                val p0 = it
+//                if (!it.simple) {
+//                    var t1 = 0.0
+//                    var t2 = 0.0
+//                    while (t1 < t2) {
+//                        while (t2 <= 1.0 + step) {
+//                            val segment = p0.sub(t1, t2)
+//                            if (!segment.simple) {
+//                                t2 -= step
+//                                if (Math.abs(t1 - t2) < step) {
+//                                    return emptyList()
+//                                }
+//                                pass2.add(segment.sub(t1, t2))
+//                                t1 = t2
+//                            }
+//                            t2 += step
+//                        }
+//                    }
+//                    if (t1 < 1.0) {
+//                        pass2.add(p0.sub(t1, 1.0))
+//                    }
 //
-//    }
-
-    fun derivative(t: Double): Vector2 {
-        return if (linear) {
-            start - end
-        } else if (control.size == 1) {
-            derivative(start, control[0], end, t)
-        } else if (control.size == 2) {
-            derivative(start, control[0], control[1], end, t)
-        } else {
-            throw RuntimeException("not implemented")
+//                } else {
+//                    pass2.add(it)
+//                }
+//            }
+            val pass2 = pass1.flatMap { it.split(0.5).toList() }.flatMap { it.split(0.5).toList() }
+            return pass2
         }
+
+    fun scale(scale:Double) :Segment {
+        return scale {scale}
+    }
+
+    val clockwise: Boolean get() {
+        var angle = angle(start, end, control[0])
+        return angle > 0
+    }
+
+    fun scale(scale: (Double) -> Double): Segment {
+
+        if (control.size == 1) {
+            return cubic.scale(scale)
+        }
+
+
+        val newStart = start + normal(0.0) * scale(0.0)
+        val newEnd = end + normal(1.0) * scale(1.0)
+
+        val a = LineSegment(start + normal(0.0) * 10.0, start)
+        val b = LineSegment(end + normal(1.0)*10.0, end)
+
+        val o = intersection(a,b, 1000000000.0)
+
+        LineSegment(newStart, newEnd)
+
+        if (o != Vector2.INFINITY) {
+            val newControls = control.mapIndexed { index, it ->
+                val d = it - o
+                val rc = scale((index + 1.0) / 3.0)
+
+                val s = normal(0.0).dot(d).sign
+
+                val nd = d.normalized * s
+                it + rc * nd
+            }
+            return Segment(newStart, newControls.toTypedArray(), newEnd)
+        } else {
+            val newControls = control.mapIndexed { index, it ->
+                val rc = scale((index + 1.0) / 3.0)
+                it + rc * normal(0.0) * if(clockwise) 1.0 else - 1.0
+            }
+            return Segment(newStart, newControls.toTypedArray(), newEnd)
+        }
+    }
+
+    /**
+     * Cubic version of segment
+     */
+    val cubic: Segment
+        get() = when {
+            control.size == 2 -> this
+            control.size == 1 -> {
+                val points = listOf(start, *control, end)
+                val newPoints = mutableListOf<Vector2>()
+
+                val k = points.size
+                for (i in 1 until k) {
+                    val pi = points[i]
+                    val pim = points[i - 1]
+                    newPoints.add(Vector2(
+                            (k - i) / k * pi.x + i / k * pim.x,
+                            (k - i) / k * pi.y + i / k * pim.y
+                    ))
+                }
+                newPoints.add(points[k - 1])
+                Segment(newPoints[0], newPoints[1], newPoints[2], newPoints[3])
+            }
+            else -> throw RuntimeException("cannot convert to cubic segment")
+        }
+
+    fun derivative(t: Double): Vector2 = when {
+        linear -> start - end
+        control.size == 1 -> derivative(start, control[0], end, t)
+        control.size == 2 -> derivative(start, control[0], control[1], end, t)
+        else -> throw RuntimeException("not implemented")
     }
 
     fun normal(ut: Double): Vector2 {
