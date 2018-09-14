@@ -194,7 +194,7 @@ class Segment {
             }
             control.size == 2 -> {
                 val xRoots = roots(dpoints[0].map { it.x }) + roots(dpoints[1].map { it.x })
-                val yRoots = roots(dpoints[0].map { it.x }) + roots(dpoints[1].map { it.x })
+                val yRoots = roots(dpoints[0].map { it.y }) + roots(dpoints[1].map { it.y })
                 (xRoots + yRoots).distinct().sorted().filter { it in 0.0..1.0 }
             }
             else -> throw RuntimeException("not supported")
@@ -225,10 +225,10 @@ class Segment {
         return dpoints
     }
 
-    fun offset(distance: Double) : List<Segment> {
+    fun offset(distance: Double): List<Segment> {
         return if (linear) {
             val n = normal(0.0)
-            listOf(Segment(start+ distance * n, end + distance * n))
+            listOf(Segment(start + distance * n, end + distance * n))
         } else {
             reduced.map { it.scale(distance) }
         }
@@ -260,8 +260,8 @@ class Segment {
             val n1 = normal(0.0)
             val n2 = normal(1.0)
             val s = n1 dot n2
-            val angle = Math.abs(Math.acos(s))
-            return angle < Math.PI / 3.0
+            return s >= 0.9
+
         }
 
     val reduced: List<Segment>
@@ -280,47 +280,41 @@ class Segment {
             val pass1 = extrema.zipWithNext().map {
                 sub(it.first, it.second)
             }
-//            val pass2 = mutableListOf<Segment>()
+            val pass2 = mutableListOf<Segment>()
 
-//            pass1.forEach {
-//                val p0 = it
-//                if (!it.simple) {
-//                    var t1 = 0.0
-//                    var t2 = 0.0
-//                    while (t1 < t2) {
-//                        while (t2 <= 1.0 + step) {
-//                            val segment = p0.sub(t1, t2)
-//                            if (!segment.simple) {
-//                                t2 -= step
-//                                if (Math.abs(t1 - t2) < step) {
-//                                    return emptyList()
-//                                }
-//                                pass2.add(segment.sub(t1, t2))
-//                                t1 = t2
-//                            }
-//                            t2 += step
-//                        }
-//                    }
-//                    if (t1 < 1.0) {
-//                        pass2.add(p0.sub(t1, 1.0))
-//                    }
-//
-//                } else {
-//                    pass2.add(it)
-//                }
-//            }
-            val pass2 = pass1.flatMap { it.split(0.5).toList() }.flatMap { it.split(0.5).toList() }
-            return pass2
+
+            pass1.forEach {
+                var t1 = 0.0
+                var t2 = step
+
+                while (t2 <= 1.0) {
+                    val segment = it.sub(t1, t2)
+                    if (!segment.simple) {
+                        pass2.add(segment)
+                        t1 = t2
+                    }
+                    t2 += step
+                }
+
+                if (t1 < 1.0) {
+                    pass2.add(it.sub(t1, 1.0))
+                } else {
+                    println("huuh $t1")
+                }
+            }
+
+            return pass2.flatMap { it.split(0.5).toList() }
         }
 
-    fun scale(scale:Double) :Segment {
-        return scale {scale}
+    fun scale(scale: Double): Segment {
+        return scale { scale }
     }
 
-    val clockwise: Boolean get() {
-        var angle = angle(start, end, control[0])
-        return angle > 0
-    }
+    val clockwise: Boolean
+        get() {
+            var angle = angle(start, end, control[0])
+            return angle > 0
+        }
 
     fun scale(scale: (Double) -> Double): Segment {
 
@@ -333,9 +327,9 @@ class Segment {
         val newEnd = end + normal(1.0) * scale(1.0)
 
         val a = LineSegment(start + normal(0.0) * 10.0, start)
-        val b = LineSegment(end + normal(1.0)*10.0, end)
+        val b = LineSegment(end + normal(1.0) * 10.0, end)
 
-        val o = intersection(a,b, 1000000000.0)
+        val o = intersection(a, b, 1000000000.0)
 
         LineSegment(newStart, newEnd)
 
@@ -353,7 +347,7 @@ class Segment {
         } else {
             val newControls = control.mapIndexed { index, it ->
                 val rc = scale((index + 1.0) / 3.0)
-                it + rc * normal(0.0) * if(clockwise) 1.0 else - 1.0
+                it + rc * normal(0.0) * if (clockwise) 1.0 else -1.0
             }
             return Segment(newStart, newControls.toTypedArray(), newEnd)
         }
@@ -590,6 +584,12 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean) {
         }
         segments.addAll(other.segments)
         return ShapeContour(segments, false)
+    }
+
+    fun offset(distance: Double): ShapeContour {
+        return ShapeContour(segments.flatMap {
+            it.offset(distance)
+        }, closed)
     }
 
     fun position(ut: Double): Vector2 {
