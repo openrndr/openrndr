@@ -16,4 +16,5 @@ include 'openrndr-core',
         'openrndr-animatable',
         'openrndr-ffmpeg',
         'openrndr-shadestyle-parser',
-		'openrndr-extensions'
+		'openrndr-extensions',
+		'openrndr-adopted-artifex'
