@@ -3,9 +3,17 @@ package org.openrndr.svg
 import org.openrndr.color.ColorRGBa
 import org.openrndr.math.Matrix44
 import org.openrndr.shape.*
+import java.io.File
 
-fun writeSVG(composition:Composition):String {
+fun Composition.saveToFile(file: File) {
+    if (file.extension == "svg") {
+        val svg = writeSVG(this)
+    } else {
+        throw IllegalArgumentException("can only write svg files, the extension '${file.extension}' is not supported")
+    }
+}
 
+fun writeSVG(composition: Composition): String {
     val sb = StringBuilder()
     sb.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n")
     sb.append("<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1 Tiny//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11-tiny.dtd\">\n")
@@ -22,8 +30,12 @@ fun writeSVG(composition:Composition):String {
                     }
                 }
                 is ShapeNode -> {
-                    val fillAttribute = fill.let { if (it is Color) it.color?.let { "fill=\"${it.svg}\"" }?:"fill=\"none\"" else "" }
-                    val strokeAttribute = stroke.let { if (it is Color) it.color?.let { "stroke=\"${it.svg}\"" }?:"stroke=\"none\"" else "" }
+                    val fillAttribute = fill.let {
+                        if (it is Color) it.color?.let { "fill=\"${it.svg}\"" } ?: "fill=\"none\"" else ""
+                    }
+                    val strokeAttribute = stroke.let {
+                        if (it is Color) it.color?.let { "stroke=\"${it.svg}\"" } ?: "stroke=\"none\"" else ""
+                    }
                     val strokeWidthAttribute = "stroke-weight=\"1.0\""
                     val pathAttribute = "d=\"${shape.svg}\""
                     sb.append("<path $fillAttribute $strokeAttribute $strokeWidthAttribute $pathAttribute/>\n")
@@ -43,21 +55,18 @@ fun writeSVG(composition:Composition):String {
 
 private val ColorRGBa.svg: String
     get() {
-        val ir = (r.coerceIn(0.0, 1.0)*255.0).toInt()
-        val ig = (g.coerceIn(0.0, 1.0)*255.0).toInt()
-        val ib = (b.coerceIn(0.0, 1.0)*255.0).toInt()
+        val ir = (r.coerceIn(0.0, 1.0) * 255.0).toInt()
+        val ig = (g.coerceIn(0.0, 1.0) * 255.0).toInt()
+        val ib = (b.coerceIn(0.0, 1.0) * 255.0).toInt()
         return String.format("#%02X%02x%02x", ir, ig, ib)
     }
 
-private val Matrix44.svg: String
-    get() = "matrix(${this.c0r0}, ${this.c0r1}, ${this.c1r0}, ${this.c1r1}, ${this.c3r0}, ${this.c3r1})"
+private val Matrix44.svg get() = "matrix(${this.c0r0}, ${this.c0r1}, ${this.c1r0}, ${this.c1r1}, ${this.c3r0}, ${this.c3r1})"
 
-
-private val Shape.svg:String
+private val Shape.svg: String
     get() {
         val sb = StringBuilder()
         contours.forEach {
-
             it.segments.forEachIndexed { index, segment ->
                 if (index == 0) {
                     sb.append("M ${segment.start.x}, ${segment.start.y}")
@@ -80,12 +89,10 @@ private enum class VisitStage {
     POST
 }
 
-private fun process(compositionNode: CompositionNode, visitor:CompositionNode.(stage:VisitStage)->Unit) {
+private fun process(compositionNode: CompositionNode, visitor: CompositionNode.(stage: VisitStage) -> Unit) {
     compositionNode.visitor(VisitStage.PRE)
     if (compositionNode is GroupNode) {
-        compositionNode.children.forEach {
-            process(it, visitor)
-        }
+        compositionNode.children.forEach { process(it, visitor) }
     }
     compositionNode.visitor(VisitStage.POST)
 }
