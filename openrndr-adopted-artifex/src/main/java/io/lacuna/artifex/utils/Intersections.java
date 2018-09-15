@@ -25,14 +25,14 @@ public class Intersections {
 
   // utilities
 
-  public static final double FAT_LINE_RESOLUTION = 1e-8;
-  public static final double FAT_LINE_WIDTH_EPSILON = 1e-6;
+  public static final double FAT_LINE_PARAMETRIC_RESOLUTION = 1e-7;
+  public static final double FAT_LINE_SPATIAL_EPSILON = 1e-6;
 
   public static final double PARAMETRIC_EPSILON = 1e-6;
   public static final double SPATIAL_EPSILON = 1e-10;
 
   public static final int MAX_CUBIC_CUBIC_INTERSECTIONS = 9;
-
+  
   public static final Box2 PARAMETRIC_BOUNDS = box(vec(0, 0), vec(1, 1));
 
   // utilities
@@ -169,8 +169,8 @@ public class Intersections {
 
   // This is adapted from Sederberg's "Curve Intersection Using Bezier Clipping", but the algorithm as described
   // gets unstable when one curve is clipped small enough, causing it to over-clip the other curve, causing us to miss
-  // intersection points.  To address this, we quantize the curve sub-ranges using FAT_LINE_RESOLUTION, preventing them
-  // from getting too small, and expand the width of our clipping regions by FAT_LINE_WIDTH_EPSILON.
+  // intersection points.  To address this, we quantize the curve sub-ranges using FAT_LINE_PARAMETRIC_RESOLUTION,
+  // preventing them from getting too small, and expand the width of our clipping regions by FAT_LINE_SPATIAL_EPSILON.
 
   public static double signedDistance(Vec2 p, Vec2 a, Vec2 b) {
     Vec2 d = b.sub(a);
@@ -275,8 +275,9 @@ public class Intersections {
   }
 
   public static Interval quantize(Interval t) {
-    double lo = min(1 - FAT_LINE_RESOLUTION, Math.floor(t.lo / FAT_LINE_RESOLUTION) * FAT_LINE_RESOLUTION);
-    double hi = max(lo + FAT_LINE_RESOLUTION, Math.ceil(t.hi / FAT_LINE_RESOLUTION) * FAT_LINE_RESOLUTION);
+    double resolution = FAT_LINE_PARAMETRIC_RESOLUTION;
+    double lo = min(1 - resolution, Math.floor(t.lo / resolution) * resolution);
+    double hi = max(lo + resolution, Math.ceil(t.hi / resolution) * resolution);
 
     return interval(lo, hi);
   }
@@ -302,7 +303,7 @@ public class Intersections {
 
   public static FatLine clip(FatLine subject, FatLine clipper) {
     Vec2[] hull = convexHull(clipper.range.start(), clipper.range.end(), subject.range);
-    Interval normalized = clipHull(clipper.line.expand(FAT_LINE_WIDTH_EPSILON), hull);
+    Interval normalized = clipHull(clipper.line.expand(FAT_LINE_SPATIAL_EPSILON), hull);
     return normalized.isEmpty()
       ? null :
       new FatLine(subject.curve, subject.t.lerp(normalized));
@@ -349,7 +350,7 @@ public class Intersections {
     }
 
     public boolean intersects(FatLine l) {
-      return bounds().expand(SPATIAL_EPSILON).intersects(l.bounds());
+      return bounds().expand(SPATIAL_EPSILON * 10).intersects(l.bounds());
     }
 
     public FatLine[] split() {

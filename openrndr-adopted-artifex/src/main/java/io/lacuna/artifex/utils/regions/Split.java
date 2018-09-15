@@ -7,6 +7,7 @@ import io.lacuna.artifex.utils.SweepQueue;
 import io.lacuna.bifurcan.*;
 
 import java.util.Arrays;
+import java.util.Objects;
 
 import static io.lacuna.artifex.utils.Intersections.PARAMETRIC_EPSILON;
 import static io.lacuna.artifex.utils.Intersections.SPATIAL_EPSILON;
@@ -126,6 +127,7 @@ public class Split {
     return new Region2(
       Arrays.stream(region.rings)
         .map(ring -> split(ring, splits, union))
+        .filter(Objects::nonNull)
         .toArray(Ring2[]::new));
   }
 
@@ -163,7 +165,8 @@ public class Split {
         }
       }
     }
-    return new Ring2(curves);
+
+    return curves.size() == 0 ? null : new Ring2(curves);
   }
 
   private static void add(Region2 region, SweepQueue<Curve2> queue) {

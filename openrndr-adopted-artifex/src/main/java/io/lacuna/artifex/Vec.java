@@ -1,5 +1,6 @@
 package io.lacuna.artifex;
 
+import java.awt.geom.Point2D;
 import java.util.NoSuchElementException;
 import java.util.PrimitiveIterator;
 import java.util.Spliterator;
@@ -21,9 +22,9 @@ public interface Vec<T extends Vec<T>> extends Comparable<T> {
   DoubleBinaryOperator DIV = (a, b) -> a / b;
   DoubleBinaryOperator DELTA = (a, b) -> Math.abs(a - b);
 
-//  static Vec2 from(Point2D p) {
-//    return new Vec2(p.getX(), p.getY());
-//  }
+  static Vec2 from(Point2D p) {
+    return new Vec2(p.getX(), p.getY());
+  }
 
   static Vec1 vec(double x) {
     return new Vec1(x);

@@ -1,5 +1,6 @@
 package io.lacuna.artifex;
-//import java.awt.geom.Rectangle2D;
+
+import java.awt.geom.Rectangle2D;
 import java.util.function.DoublePredicate;
 
 import static io.lacuna.artifex.Interval.interval;
@@ -12,9 +13,9 @@ import static io.lacuna.artifex.utils.Scalars.max;
 @SuppressWarnings("unchecked")
 public abstract class Box<T extends Vec<T>, U extends Box<T, U>> {
 
-//  public static Box2 from(Rectangle2D rect) {
-//    return new Box2(new Vec2(rect.getMinX(), rect.getMinY()), new Vec2(rect.getMaxX(), rect.getMaxY()));
-//  }
+  public static Box2 from(Rectangle2D rect) {
+    return new Box2(new Vec2(rect.getMinX(), rect.getMinY()), new Vec2(rect.getMaxX(), rect.getMaxY()));
+  }
 
   public static Box2 box(Vec2 a, Vec2 b) {
     return new Box2(a, b);

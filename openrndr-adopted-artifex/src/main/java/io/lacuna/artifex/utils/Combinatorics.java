@@ -6,6 +6,7 @@ import io.lacuna.bifurcan.Lists;
 
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.IntStream;
+import java.util.stream.LongStream;
 
 public class Combinatorics {
 
@@ -32,16 +33,14 @@ public class Combinatorics {
 
   public static <V> IList<IList<V>> permutations(IList<V> values) {
 
-    int count = IntStream.range(1, (int) values.size() + 1).reduce(1, (a, b) -> a * b);
-
     // if exhaustive searching is out of the question, put your trust in the RNG
-    if (count > MAX_RESULTS) {
+    if (values.size() > 4) {
       return IntStream.range(0, MAX_RESULTS)
         .mapToObj(i -> shuffle(values))
         .collect(Lists.linearCollector());
     }
 
-    IList<IList<V>> result = new LinearList<>(count);
+    IList<IList<V>> result = new LinearList<>();
 
     Object[] ary = values.toArray();
     int[] c = new int[ary.length];
