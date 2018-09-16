@@ -5,11 +5,15 @@ import org.openrndr.math.Vector2
 class ShapeBuilder {
     internal val contours = mutableListOf<ShapeContour>()
 
+    fun contour(shapeContour: ShapeContour) {
+        contours.add(if (contours.size == 0) shapeContour.counterClockwise else shapeContour.clockwise)
+    }
+
     fun contour(f: ContourBuilder.() -> Unit) {
         val cb = ContourBuilder()
         cb.f()
         val c = ShapeContour(cb.segments, cb.closed)
-        contours.add(c)
+        contours.add(if (contours.size == 0) c.counterClockwise else c.clockwise)
     }
 }
 

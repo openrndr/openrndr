@@ -3,7 +3,6 @@ package org.openrndr.shape
 import io.lacuna.artifex.*
 import org.openrndr.math.Vector2
 
-
 private fun Vector2.toVec2(): Vec2 {
     return Vec2(x, y)
 }
@@ -38,18 +37,22 @@ private fun Region2.toShapes(): List<Shape> {
     if (rings.isNotEmpty()) {
 
         var contours = mutableListOf<ShapeContour>()
-        rings.forEach {
+        rings.forEachIndexed { index, it ->
+            contours.add(it.toShapeContour())
 
-            if (it.isClockwise) {
+            if (!it.isClockwise) {
                 if (contours.isNotEmpty()) {
-                    shapes.add(Shape(contours))
+                    shapes.add(Shape(contours.reversed()))
                 }
                 contours.clear()
             }
-            contours.add(it.toShapeContour())
         }
         if (contours.isNotEmpty()) {
-            shapes.add(Shape(contours))
+            shapes.add(Shape(contours.reversed()))
+        }
+
+        if (rings.size != shapes.sumBy { it.contours.size }) {
+            throw RuntimeException("conversion broken")
         }
     }
     return shapes
@@ -68,22 +71,82 @@ private fun Ring2.toShapeContour(): ShapeContour {
     return ShapeContour(this.curves.map { it.toSegment() }, true)
 }
 
+private fun List<Shape>.toRegion2() : Region2 {
+    return Region2(flatMap {
+        it.contours.map { it.toRing2() }
+    })
+}
+
+
 fun difference(from: ShapeContour, subtract: ShapeContour): List<Shape> {
     val result = from.toRing2().region().difference(subtract.toRing2().region())
     return result.toShapes()
 }
+
+fun difference(from: Shape, subtract: ShapeContour): List<Shape> {
+    val result = from.toRegion2().difference(subtract.toRing2().region())
+    return result.toShapes()
+}
+
+fun difference(from: Shape, subtract: Shape): List<Shape> {
+    val result = from.toRegion2().difference(subtract.toRegion2())
+    return result.toShapes()
+}
+
+fun difference(from: List<Shape>, subtract: ShapeContour): List<Shape> {
+    return from.toRegion2().difference(subtract.toRing2().region()).toShapes()
+}
+
+fun difference(from: List<Shape>, subtract: Shape): List<Shape> {
+    return from.toRegion2().difference(subtract.toRegion2()).toShapes()}
 
 fun union(from: ShapeContour, add: ShapeContour): List<Shape> {
     val result = from.toRing2().region().union(add.toRing2().region())
     return result.toShapes()
 }
 
+fun union(from: Shape, add: ShapeContour): List<Shape> {
+    val result = from.toRegion2().union(add.toRing2().region())
+    return result.toShapes()
+}
 
+fun union(from: Shape, add: Shape): List<Shape> {
+    val result = from.toRegion2().union(add.toRegion2())
+    return result.toShapes()
+}
+
+fun union(from: List<Shape>, add: ShapeContour): List<Shape> {
+    return from.toRegion2().union(add.toRing2().region()).toShapes()
+}
+
+fun union(from: List<Shape>, add: Shape): List<Shape> {
+    return from.toRegion2().union(add.toRegion2()).toShapes()
+}
 
 fun intersection(from: ShapeContour, with: ShapeContour): List<Shape> {
     val result = from.toRing2().region().intersection(with.toRing2().region())
     return result.toShapes()
 }
 
+fun intersection(from: Shape, with: ShapeContour): List<Shape> {
+    val result = from.toRegion2().intersection(with.toRing2().region())
+    return result.toShapes()
+}
 
+fun intersection(from: ShapeContour, with: Shape): List<Shape> {
+    val result = from.toRing2().region().intersection(with.toRegion2())
+    return result.toShapes()
+}
 
+fun intersection(from: Shape, with: Shape): List<Shape> {
+    val result = from.toRegion2().intersection(with.toRegion2())
+    return result.toShapes()
+}
+
+fun intersection(from: List<Shape>, with: ShapeContour): List<Shape> {
+    return from.toRegion2().intersection(with.toRing2().region()).toShapes()
+}
+
+fun intersection(from: List<Shape>, with: Shape): List<Shape> {
+    return from.toRegion2().intersection(with.toRegion2()).toShapes()
+}
