@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package org.openrndr.shape
 
 import io.lacuna.artifex.*
@@ -36,8 +38,8 @@ private fun Region2.toShapes(): List<Shape> {
     val shapes = mutableListOf<Shape>()
     if (rings.isNotEmpty()) {
 
-        var contours = mutableListOf<ShapeContour>()
-        rings.forEachIndexed { index, it ->
+        val contours = mutableListOf<ShapeContour>()
+        rings.forEach { it ->
             contours.add(it.toShapeContour())
 
             if (!it.isClockwise) {
@@ -72,11 +74,10 @@ private fun Ring2.toShapeContour(): ShapeContour {
 }
 
 private fun List<Shape>.toRegion2() : Region2 {
-    return Region2(flatMap {
-        it.contours.map { it.toRing2() }
+    return Region2(flatMap { shape ->
+        shape.contours.map { it.toRing2() }
     })
 }
-
 
 fun difference(from: ShapeContour, subtract: ShapeContour): List<Shape> {
     val result = from.toRing2().region().difference(subtract.toRing2().region())
@@ -98,7 +99,12 @@ fun difference(from: List<Shape>, subtract: ShapeContour): List<Shape> {
 }
 
 fun difference(from: List<Shape>, subtract: Shape): List<Shape> {
-    return from.toRegion2().difference(subtract.toRegion2()).toShapes()}
+    return from.toRegion2().difference(subtract.toRegion2()).toShapes()
+}
+
+fun difference(from: List<Shape>, subtract: List<Shape>): List<Shape> {
+    return from.toRegion2().difference(subtract.toRegion2()).toShapes()
+}
 
 fun union(from: ShapeContour, add: ShapeContour): List<Shape> {
     val result = from.toRing2().region().union(add.toRing2().region())
@@ -120,6 +126,10 @@ fun union(from: List<Shape>, add: ShapeContour): List<Shape> {
 }
 
 fun union(from: List<Shape>, add: Shape): List<Shape> {
+    return from.toRegion2().union(add.toRegion2()).toShapes()
+}
+
+fun union(from: List<Shape>, add: List<Shape>): List<Shape> {
     return from.toRegion2().union(add.toRegion2()).toShapes()
 }
 
@@ -148,5 +158,9 @@ fun intersection(from: List<Shape>, with: ShapeContour): List<Shape> {
 }
 
 fun intersection(from: List<Shape>, with: Shape): List<Shape> {
+    return from.toRegion2().intersection(with.toRegion2()).toShapes()
+}
+
+fun intersection(from: List<Shape>, with: List<Shape>): List<Shape> {
     return from.toRegion2().intersection(with.toRegion2()).toShapes()
 }

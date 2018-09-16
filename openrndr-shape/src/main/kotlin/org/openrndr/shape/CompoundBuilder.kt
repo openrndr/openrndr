@@ -23,9 +23,9 @@ class CompoundBuilder {
             operands.add(this@CompoundBuilder.intersection(f))
         }
 
-        internal val difference:List<Shape> get() = difference(operands[0], operands[1][0])
-        internal val union:List<Shape> get() = union(operands[0], operands[1][0])
-        internal val intersection:List<Shape> get() = intersection(operands[0], operands[1][0])
+        internal val difference:List<Shape> get() = difference(operands[0], operands[1])
+        internal val union:List<Shape> get() = union(operands[0], operands[1])
+        internal val intersection:List<Shape> get() = intersection(operands[0], operands[1])
     }
 
     fun difference(f:CompoundBuilder.OpBuilder.() -> Unit) : List<Shape> {
