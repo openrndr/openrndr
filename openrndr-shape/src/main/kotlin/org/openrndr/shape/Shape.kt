@@ -545,6 +545,11 @@ enum class Winding {
     CLOCKWISE,
     COUNTER_CLOCKWISE
 }
+enum class SegmentJoin {
+    ROUND,
+    MITER,
+    BEVEL
+}
 
 data class ShapeContour(val segments: List<Segment>, val closed: Boolean) {
 
@@ -586,10 +591,45 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean) {
         return ShapeContour(segments, false)
     }
 
-    fun offset(distance: Double): ShapeContour {
-        return ShapeContour(segments.flatMap {
+    fun offset(distance: Double, joinType:SegmentJoin = SegmentJoin.ROUND): ShapeContour {
+        val joins = (segments + if(closed) listOf(segments.first()) else emptyList()).map {
             it.offset(distance)
-        }, closed)
+        }.zipWithNext().flatMap {
+            val end = it.first.last().end
+            val start = it.second.first().start
+
+            when (joinType) {
+                SegmentJoin.ROUND -> {
+                    val d = (end - start).length
+                    val join = contour {
+                        moveTo(end)
+                        arcTo(d, d, 0.0, false, true, start.x, start.y)
+                    }
+                    it.first + join.segments
+                }
+                SegmentJoin.BEVEL -> {
+                    val join = contour {
+                        moveTo(end)
+                        lineTo(start)
+                    }
+                    it.first + join.segments
+                }
+                SegmentJoin.MITER -> {
+                    val endDir = it.first.last().direction(1.0)
+                    val startDir = it.second.first().direction(0.0)
+                    val endLine = LineSegment(end, end+endDir)
+                    val startLine = LineSegment(start, start+startDir)
+                    val i = intersection(endLine, startLine, 10000000.0)
+                    val join = contour {
+                        moveTo(end)
+                        lineTo(i)
+                        lineTo(start)
+                    }
+                    it.first + join.segments
+                }
+            }
+        }
+        return ShapeContour(joins, closed)
     }
 
     fun position(ut: Double): Vector2 {
