@@ -14,7 +14,7 @@ class QualityPolygonDrawer {
         if (drawStyle.fill != null) {
             val path = Path.fromLineStrips(loops.mapIndexed { index, it ->
                 it.let { it.subList(0, it.size - 1) }
-                        .let { if (index == 0) it else it.reversed() }
+                        .let { if (index == 0) it else it }
             })
             val strokeWeight = if (drawStyle.stroke == null) 1.0 else 0.0
             val fillExpansions = path.expandFill(-1.0 / ratio, strokeWeight, drawStyle.lineJoin, 2.4)

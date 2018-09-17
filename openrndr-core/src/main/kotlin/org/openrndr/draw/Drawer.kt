@@ -817,6 +817,12 @@ class Drawer(val driver: Driver) {
         }
     }
 
+    fun shapes(shapes: List<Shape>) {
+        shapes.forEach {
+            shape(it)
+        }
+    }
+
     fun contour(contour: ShapeContour) {
         if (RenderTarget.active.hasDepthBuffer) {
             if (drawStyle.fill != null && contour.closed) {
