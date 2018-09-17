@@ -8,6 +8,7 @@ import java.io.File
 fun Composition.saveToFile(file: File) {
     if (file.extension == "svg") {
         val svg = writeSVG(this)
+        file.writeText(svg)
     } else {
         throw IllegalArgumentException("can only write svg files, the extension '${file.extension}' is not supported")
     }
