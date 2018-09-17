@@ -19,6 +19,37 @@ fun derivative(x0: Vector2, c0: Vector2, x1: Vector2, t: Double): Vector2 {
     return Vector2(2 * it - (c0.x - x0.x) + 2 * t * (x1.x - c0.x), 2 * it - (c0.x - x0.x) + 2 * t * (x1.x - c0.x))
 }
 
+fun roots(p:List<Double>): List<Double> {
+    //https://github.com/Pomax/bezierjs/blob/gh-pages/lib/utils.js
+    if (p.size == 3) {
+        val a = p[0]
+        val b = p[1]
+        val c = p[2]
+        val d = a - 2 * b + c
+        if (d!= 0.0) {
+            val m1 = -Math.sqrt(b*b - a*c)
+            val m2 = -a + b
+            val v1 = -(m1 + m2) / d
+            val v2 = -(-m1+m2) / d
+            return listOf(v1, v2)
+        } else if(b != c && d == 0.0) {
+            return listOf((2*b*c)/(2*(b-c)))
+        }
+        return emptyList()
+    } else if (p.size == 2) {
+        val a = p[0]
+        val b = p[1]
+        return if (a != b) {
+            listOf(a/ (a-b))
+        } else {
+            emptyList()
+        }
+    }
+    return emptyList()
+
+}
+
+
 fun derivative(p0: Vector2, p1: Vector2, p2: Vector2, p3: Vector2, t: Double): Vector2 {
     val it = 1.0 - t
     return p1.minus(p0).times(3.0 * it * it).plus(p2.minus(p1).times(6.0 * it * t)).plus(p3.minus(p2).times(3.0 * t * t))

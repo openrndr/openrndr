@@ -231,6 +231,7 @@ interface ColorBufferShadow {
     fun write(x: Int, y: Int, color: ColorRGBa) {
         write(x, y, color.r, color.g, color.b, color.a)
     }
+
     fun write(x: Int, y: Int, r: Float, g: Float, b: Float, a: Float) {
         write(x, y, r.toDouble(), g.toDouble(), b.toDouble(), a.toDouble())
     }
@@ -836,7 +837,7 @@ class Drawer(val driver: Driver) {
                         false -> fastLineDrawer.drawLineLoops(context, drawStyle, listOf(contour.adaptivePositions()))
                     }
                     DrawQuality.QUALITY -> when (contour.closed) {
-                        true -> qualityLineDrawer.drawLineLoops(context, drawStyle, listOf(contour.adaptivePositions().let { it.subList(0, it.size - 1) }))
+                        true -> qualityLineDrawer.drawLineLoops(context, drawStyle, listOf(contour.adaptivePositions()))
                         false -> qualityLineDrawer.drawLineStrips(context, drawStyle, listOf(contour.adaptivePositions()))
                     }
                 }
@@ -1007,6 +1008,13 @@ class Drawer(val driver: Driver) {
         }
     }
 
+    fun texts(texts: List<String>, positions: List<Vector2>) {
+        if (fontMap is FontImageMap) {
+            fontImageMapDrawer.drawTexts(context, drawStyle, texts, positions)
+        }
+    }
+
+
     fun size(width: Int, height: Int) {
         this.width = width
         this.height = height
@@ -1020,7 +1028,7 @@ class Drawer(val driver: Driver) {
         vertexBufferDrawer.drawVertexBuffer(context, drawStyle, primitive, vertexBuffers, offset, vertexCount)
     }
 
-    fun vertexBuffer(indexBuffer:IndexBuffer, vertexBuffers: List<VertexBuffer>, primitive: DrawPrimitive, offset: Int = 0, indexCount: Int = indexBuffer.indexCount) {
+    fun vertexBuffer(indexBuffer: IndexBuffer, vertexBuffers: List<VertexBuffer>, primitive: DrawPrimitive, offset: Int = 0, indexCount: Int = indexBuffer.indexCount) {
         vertexBufferDrawer.drawVertexBuffer(context, drawStyle, primitive, indexBuffer, vertexBuffers, offset, indexCount)
     }
 

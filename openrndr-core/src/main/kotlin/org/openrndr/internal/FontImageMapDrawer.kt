@@ -1,6 +1,7 @@
 package org.openrndr.internal
 
 import org.openrndr.draw.*
+import org.openrndr.math.Vector2
 
 class CharacterRectangle(val character: Char, val x: Double, val y: Double, val width: Double, val height: Double)
 
@@ -26,8 +27,28 @@ class FontImageMapDrawer {
 
             text.forEach {
                 val metrics = fontMap.glyphMetrics[it] ?: fontMap.glyphMetrics[' ']!!
-                insertCharacterQuad(fontMap, bw, it, x + cursorX + metrics.leftSideBearing , y + cursorY + metrics.yBitmapShift / fontMap.contentScale)
+                insertCharacterQuad(fontMap, bw, it, x + cursorX + metrics.leftSideBearing, y + cursorY + metrics.yBitmapShift / fontMap.contentScale)
                 cursorX += metrics.advanceWidth
+            }
+            flush(context, drawStyle)
+        }
+    }
+
+    fun drawTexts(context: DrawContext, drawStyle: DrawStyle, texts: List<String>, positions: List<Vector2>) {
+        (drawStyle.fontMap as? FontImageMap)?.let { fontMap ->
+
+            for ((text, position) in (texts zip positions)) {
+                var cursorX = 0.0
+                var cursorY = 0.0
+
+                val bw = vertices.shadow.writer()
+                bw.position = vertices.vertexFormat.size * quads * 6
+
+                text.forEach {
+                    val metrics = fontMap.glyphMetrics[it] ?: fontMap.glyphMetrics[' ']!!
+                    insertCharacterQuad(fontMap, bw, it, position.x + cursorX + metrics.leftSideBearing, position.y + cursorY + metrics.yBitmapShift / fontMap.contentScale)
+                    cursorX += metrics.advanceWidth
+                }
             }
             flush(context, drawStyle)
         }
