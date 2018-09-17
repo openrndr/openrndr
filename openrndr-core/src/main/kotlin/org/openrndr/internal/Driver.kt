@@ -55,18 +55,35 @@ interface Driver {
 
     fun createResourceThread(f: () -> Unit): ResourceThread
 
-    fun clear(color: ColorRGBa)
+    fun clear(r: Double, g: Double, b: Double, a: Double)
+    fun clear(r: Float, g: Float, b: Float, a: Float) {
+        clear(r.toDouble(), g.toDouble(), b.toDouble(), a.toDouble())
+    }
+    fun clear(color: ColorRGBa) {
+        clear(color.r, color.g, color.b, color.a)
+    }
 
     fun createDynamicVertexBuffer(format: VertexFormat, vertexCount: Int): VertexBuffer
     fun createStaticVertexBuffer(format: VertexFormat, buffer: Buffer): VertexBuffer
+
+    fun createDynamicIndexBuffer(elementCount: Int, type: IndexType): IndexBuffer
+
     fun drawVertexBuffer(shader: Shader, vertexBuffers: List<VertexBuffer>,
                          drawPrimitive: DrawPrimitive,
                          vertexOffset: Int, vertexCount: Int)
 
-    fun drawInstances(shader: Shader, vertexBuffers: List<VertexBuffer>,
+    fun drawIndexedVertexBuffer(shader: Shader, indexBuffer: IndexBuffer, vertexBuffers: List<VertexBuffer>,
+                                drawPrimitive: DrawPrimitive,
+                                indexOffset: Int, indexCount: Int)
 
+
+    fun drawInstances(shader: Shader, vertexBuffers: List<VertexBuffer>,
                       instanceAttributes: List<VertexBuffer>,
                       drawPrimitive: DrawPrimitive, vertexOffset: Int, vertexCount: Int, instanceCount: Int)
+
+    fun drawIndexedInstances(shader: Shader, indexBuffer: IndexBuffer, vertexBuffers: List<VertexBuffer>,
+                      instanceAttributes: List<VertexBuffer>,
+                      drawPrimitive: DrawPrimitive, indexOffset: Int, indexCount: Int, instanceCount: Int)
 
     fun setState(drawStyle: DrawStyle)
 

@@ -20,17 +20,17 @@ private val logger = KotlinLogging.logger {}
 
 private val bufferId = AtomicInteger(0)
 
-class VertexBufferShadowGL3(override val vertexBuffer:VertexBufferGL3): VertexBufferShadow {
+class VertexBufferShadowGL3(override val vertexBuffer: VertexBufferGL3) : VertexBufferShadow {
     val buffer: ByteBuffer =
             BufferUtils.createByteBuffer(vertexBuffer.vertexCount * vertexBuffer.vertexFormat.size).apply {
                 order(ByteOrder.nativeOrder())
             }
 
-    override fun upload(offset:Int, size:Int) {
+    override fun upload(offset: Int, size: Int) {
         logger.trace { "uploading shadow to vertex buffer" }
         (buffer as Buffer).rewind()
         (buffer as Buffer).position(offset)
-        (buffer as Buffer).limit(offset+size)
+        (buffer as Buffer).limit(offset + size)
         vertexBuffer.write(buffer)
         (buffer as Buffer).limit(buffer.capacity())
     }
@@ -44,19 +44,19 @@ class VertexBufferShadowGL3(override val vertexBuffer:VertexBufferGL3): VertexBu
         vertexBuffer.realShadow = null
     }
 
-    override fun writer():BufferWriter {
+    override fun writer(): BufferWriter {
         return BufferWriterGL3(buffer, vertexBuffer.vertexFormat.size)
     }
 }
 
-class VertexBufferGL3(val buffer:Int, override val vertexFormat: VertexFormat, override val vertexCount:Int) : VertexBuffer {
+class VertexBufferGL3(val buffer: Int, override val vertexFormat: VertexFormat, override val vertexCount: Int) : VertexBuffer {
 
     internal val bufferHash = bufferId.getAndAdd(1)
-    internal var realShadow:VertexBufferShadowGL3? = null
+    internal var realShadow: VertexBufferShadowGL3? = null
     internal var isDestroyed = false
 
     companion object {
-        fun createDynamic(vertexFormat:VertexFormat, vertexCount:Int) : VertexBufferGL3 {
+        fun createDynamic(vertexFormat: VertexFormat, vertexCount: Int): VertexBufferGL3 {
             val buffer = glGenBuffers()
             logger.debug {
                 "created new vertex buffer with id ${buffer}"
@@ -80,7 +80,7 @@ class VertexBufferGL3(val buffer:Int, override val vertexFormat: VertexFormat, o
             return realShadow!!
         }
 
-    override fun write(data: ByteBuffer, offset:Int) {
+    override fun write(data: ByteBuffer, offset: Int) {
         if (isDestroyed) {
             throw IllegalStateException("buffer is destroyed")
         }
@@ -114,7 +114,7 @@ class VertexBufferGL3(val buffer:Int, override val vertexFormat: VertexFormat, o
         }
     }
 
-    override fun read(data:ByteBuffer, offset:Int) {
+    override fun read(data: ByteBuffer, offset: Int) {
         if (isDestroyed) {
             throw IllegalStateException("buffer is destroyed")
         }
@@ -139,7 +139,7 @@ class VertexBufferGL3(val buffer:Int, override val vertexFormat: VertexFormat, o
         checkGLErrors()
     }
 
-    override fun bind() {
+    fun bind() {
         if (isDestroyed) {
             throw IllegalStateException("buffer is destroyed")
         }
@@ -148,7 +148,7 @@ class VertexBufferGL3(val buffer:Int, override val vertexFormat: VertexFormat, o
         debugGLErrors()
     }
 
-    override fun unbind() {
+    fun unbind() {
         logger.trace { "unbinding vertex buffer" }
         glBindBuffer(GL_ARRAY_BUFFER, 0)
         debugGLErrors()

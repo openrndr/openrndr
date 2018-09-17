@@ -6,6 +6,7 @@ data class Vector3(val x: Double, val y: Double, val z: Double) : Serializable {
 
     companion object {
         val ZERO = Vector3(0.0, 0.0, 0.0)
+        val ONE = Vector3(1.0, 1.0, 1.0)
         val UNIT_X = Vector3(1.0, 0.0, 0.0)
         val UNIT_Y = Vector3(0.0, 1.0, 0.0)
         val UNIT_Z = Vector3(0.0, 0.0, 1.0)
@@ -64,6 +65,10 @@ data class Vector3(val x: Double, val y: Double, val z: Double) : Serializable {
     infix fun projectedOn(v: Vector3) = (this dot v) / (v dot v) * v
     val length: Double get() = Math.sqrt(x * x + y * y + z * z)
     fun toDoubleArray() = doubleArrayOf(x, y, z)
+
+    val spherical: Spherical get() {
+        return Spherical.fromVector(this)
+    }
 }
 
 operator fun Double.times(v: Vector3) = v * this
