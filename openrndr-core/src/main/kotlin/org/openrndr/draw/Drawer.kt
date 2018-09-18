@@ -260,7 +260,15 @@ interface ColorBuffer {
     val effectiveHeight: Int get() = (height * contentScale).toInt()
 
 
-    fun saveToFile(file: File, fileFormat: FileFormat = FileFormat.PNG)
+    fun saveToFile(file: File, fileFormat: FileFormat = guessFromExtension(file))
+    private fun guessFromExtension(file: File): FileFormat {
+        return when {
+            file.name.toLowerCase().endsWith("jpg") -> FileFormat.JPG
+            file.name.toLowerCase().endsWith("jpeg") -> FileFormat.JPG
+            else -> FileFormat.PNG
+        }
+    }
+
     fun destroy()
     fun bind(unit: Int)
 
