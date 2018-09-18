@@ -28,6 +28,4 @@ void main() {
     }
 
     o_color = (sum / weight) * gain;
-    o_color.a = 1.0;
-
 }
