@@ -23,6 +23,7 @@ class Screenshots: Extension {
         program.keyboard.keyDown.listen {
             if (it.key == KEY_SPACEBAR) {
                 createScreenshot = true
+                program.window.requestDraw()
             }
         }
     }
@@ -57,7 +58,7 @@ class Screenshots: Extension {
             target?.let {
                 drawer.view = Matrix44.IDENTITY
                 drawer.model = Matrix44.IDENTITY
-                drawer.image(it.colorBuffer(0))
+                drawer.image(it.colorBuffer(0),  it.colorBuffer(0).bounds, drawer.bounds)
                 val dt = LocalDateTime.now()
                 it.colorBuffer(0).saveToFile(File("${program.javaClass.simpleName}-${dt.year.z(4)}-${dt.month.value.z()}-${dt.dayOfMonth.z()}-${dt.hour.z()}.${dt.minute.z()}.${dt.second.z()}.png"))
             }
