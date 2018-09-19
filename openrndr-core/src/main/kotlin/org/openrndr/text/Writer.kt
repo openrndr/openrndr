@@ -96,7 +96,7 @@ class Writer(val drawer: Drawer?) {
             val localCursor = Cursor(cursor)
 
             val spaceWidth = font.glyphMetrics[' ']!!.advanceWidth
-            val verticalSpace = font.height + style.leading + font.leading
+            val verticalSpace = style.leading + font.leading
 
             val renderTokens = mutableListOf<RenderToken>()
 
@@ -107,8 +107,6 @@ class Writer(val drawer: Drawer?) {
                     localCursor.x = box.corner.x
                     localCursor.y += verticalSpace
                 } else {
-
-
                     val tokenWidth = token.sumByDouble {
                         font.glyphMetrics[it]?.advanceWidth ?: 0.0
                     } + style.tracking * token.length
@@ -157,5 +155,4 @@ class Writer(val drawer: Drawer?) {
     private fun emitToken(cursor: Cursor, renderTokens: MutableList<RenderToken>, renderToken: RenderToken) {
         renderTokens.add(renderToken)
     }
-
 }
