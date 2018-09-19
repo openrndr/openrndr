@@ -196,6 +196,14 @@ enum class MagnifyingFilter {
     LINEAR
 }
 
+/**
+ * File format used while saving to file
+ */
+enum class FileFormat {
+    JPG,
+    PNG,
+}
+
 interface BufferWriter {
     fun write(vararg v: Vector3) {
         v.forEach { write(it) }
@@ -261,7 +269,15 @@ interface ColorBuffer {
     val effectiveHeight: Int get() = (height * contentScale).toInt()
 
 
-    fun saveToFile(file: File)
+    fun saveToFile(file: File, fileFormat: FileFormat = guessFromExtension(file))
+    private fun guessFromExtension(file: File): FileFormat {
+        return when {
+            file.name.toLowerCase().endsWith("jpg") -> FileFormat.JPG
+            file.name.toLowerCase().endsWith("jpeg") -> FileFormat.JPG
+            else -> FileFormat.PNG
+        }
+    }
+
     fun destroy()
     fun bind(unit: Int)
 
