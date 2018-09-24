@@ -4,8 +4,10 @@ import org.openrndr.math.Vector2
 
 class Circle(val center: Vector2, val radius: Double) {
 
+    constructor(x: Double, y: Double, radius: Double) : this(Vector2(x, y), radius)
+
     companion object {
-        internal fun fromPoints(a: Vector2, b: Vector2): Circle {
+        fun fromPoints(a: Vector2, b: Vector2): Circle {
             val center = (a + b) * 0.5
             return Circle(center, b.minus(center).length)
         }

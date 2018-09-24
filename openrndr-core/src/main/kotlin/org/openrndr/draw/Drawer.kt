@@ -799,10 +799,13 @@ class Drawer(val driver: Driver) {
         rectangleDrawer.drawRectangles(context, drawStyle, rectangles)
     }
 
+    fun circle(x: Double, y: Double, radius: Double) {
+        circleDrawer.drawCircle(context, drawStyle, x, y, radius)
+    }
+
     fun circle(position: Vector2, radius: Double) {
         circleDrawer.drawCircle(context, drawStyle, position.x, position.y, radius)
     }
-
 
     fun circle(circle: Circle) {
         circleDrawer.drawCircle(context, drawStyle, circle.center.x, circle.center.y, circle.radius)
@@ -918,7 +921,6 @@ class Drawer(val driver: Driver) {
         }
     }
 
-
     fun lineSegments3d(segments: List<Vector3>) {
         fastLineDrawer.drawLineSegments3(context, drawStyle, segments)
     }
@@ -943,7 +945,6 @@ class Drawer(val driver: Driver) {
             DrawQuality.QUALITY -> qualityLineDrawer.drawLineLoops(context, drawStyle, loops, weights)
         }
     }
-
 
     fun lineStrip(points: List<Vector2>) {
         when (drawStyle.quality) {

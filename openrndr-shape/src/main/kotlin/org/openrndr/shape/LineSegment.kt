@@ -8,6 +8,8 @@ import org.openrndr.math.map
 @Suppress("MemberVisibilityCanBePrivate", "unused")
 data class LineSegment(val start: Vector2, val end: Vector2) {
 
+    constructor(x0: Double, y0: Double, x1: Double, y1: Double) : this(Vector2(x0, y0), Vector2(x1, y1))
+
     val direction get() = (end - start)
     val normal get() = (end - start).normalized.perpendicular
 
