@@ -22,7 +22,7 @@ class Circle(val center: Vector2, val radius: Double) {
     fun scaled(scale: Double): Circle = Circle(center, radius * scale)
 
     /** creates new [Circle] with radius set to [fitRadius] */
-    fun scaledTo(fitRadius : Double) = Circle(center, fitRadius)
+    fun scaledTo(fitRadius: Double) = Circle(center, fitRadius)
 
     fun contains(point: Vector2): Boolean = point.minus(center).squaredLength < radius * radius
 
