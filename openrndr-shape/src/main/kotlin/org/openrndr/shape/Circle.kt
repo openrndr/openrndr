@@ -3,7 +3,6 @@ package org.openrndr.shape
 import org.openrndr.math.Vector2
 
 class Circle(val center: Vector2, val radius: Double) {
-
     constructor(x: Double, y: Double, radius: Double) : this(Vector2(x, y), radius)
 
     companion object {
@@ -13,15 +12,24 @@ class Circle(val center: Vector2, val radius: Double) {
         }
     }
 
-    fun contains(point: Vector2): Boolean {
-        return point.minus(center).squaredLength < radius * radius
-    }
+    /** creates new [Circle] with center offset by [offset] */
+    fun moved(offset: Vector2): Circle = Circle(center + offset, radius)
 
-    val shape: Shape
-        get() {
-            return Shape(listOf(contour))
-        }
+    /** creates new [Circle] with center at [position] */
+    fun movedTo(position: Vector2): Circle = Circle(position, radius)
 
+    /** creates new [Circle] with radius scaled by [scale] */
+    fun scaled(scale: Double): Circle = Circle(center, radius * scale)
+
+    /** creates new [Circle] with radius set to [fitRadius] */
+    fun scaledTo(fitRadius : Double) = Circle(center, fitRadius)
+
+    fun contains(point: Vector2): Boolean = point.minus(center).squaredLength < radius * radius
+
+    /** creates [Shape] representation */
+    val shape get() = Shape(listOf(contour))
+
+    /** creates [ShapeContour] representation */
     val contour: ShapeContour
         get() {
             val x = center.x - radius
@@ -45,5 +53,4 @@ class Circle(val center: Vector2, val radius: Double) {
                 close()
             }
         }
-
 }
