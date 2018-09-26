@@ -45,7 +45,7 @@ class VertexFormat {
      * Appends a position component to the layout
      * @param dimensions
      */
-    fun position(dimensions: Int): VertexFormat = attribute("position", floatTypeFromDimensions(dimensions))
+    fun position(dimensions: Int) = attribute("position", floatTypeFromDimensions(dimensions))
 
     private fun floatTypeFromDimensions(dimensions: Int): VertexElementType {
         return when (dimensions) {
@@ -81,12 +81,11 @@ class VertexFormat {
      * *
      * @return
      */
-    fun attribute(name: String, type: VertexElementType, arraySize: Int = 1): VertexFormat {
+    fun attribute(name: String, type: VertexElementType, arraySize: Int = 1) {
         val offset = items.sumBy { it.arraySize * it.type.sizeInBytes }
         val item = VertexElement(name, offset, type, arraySize)
         items.add(item)
         vertexSize += type.sizeInBytes * arraySize
-        return this
     }
 
 
@@ -222,8 +221,8 @@ interface BufferWriter {
     fun write(a: FloatArray, offset: Int = 0, size: Int = a.size)
 
     fun rewind()
-    var position: Int //(position: Int)
-    var positionElements: Int//(element: Int)
+    var position: Int
+    var positionElements: Int
 }
 
 
