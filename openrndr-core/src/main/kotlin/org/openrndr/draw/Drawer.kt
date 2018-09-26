@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package org.openrndr.draw
 
 import org.openrndr.Program
@@ -59,16 +61,15 @@ class VertexFormat {
      * Appends a normal component to the layout
      * @param dimensions the number of dimensions of the normal vector
      */
-    fun normal(dimensions: Int): VertexFormat = attribute("normal", floatTypeFromDimensions(dimensions))
+    fun normal(dimensions: Int) = attribute("normal", floatTypeFromDimensions(dimensions))
 
     /**
      * Appends a color attribute to the layout
      * @param dimensions
      */
-    fun color(dimensions: Int): VertexFormat = attribute("color", floatTypeFromDimensions(dimensions))
+    fun color(dimensions: Int) = attribute("color", floatTypeFromDimensions(dimensions))
 
-    fun textureCoordinate(dimensions: Int = 2, index: Int = 0): VertexFormat = attribute("texCoord$index", floatTypeFromDimensions(dimensions))
-
+    fun textureCoordinate(dimensions: Int = 2, index: Int = 0) = attribute("texCoord$index", floatTypeFromDimensions(dimensions))
 
     /**
      * Adds a custom attribute to the layout
@@ -268,7 +269,6 @@ interface ColorBuffer {
     val effectiveWidth: Int get() = (width * contentScale).toInt()
     val effectiveHeight: Int get() = (height * contentScale).toInt()
 
-
     fun saveToFile(file: File, fileFormat: FileFormat = guessFromExtension(file))
     private fun guessFromExtension(file: File): FileFormat {
         return when {
@@ -301,17 +301,16 @@ interface ColorBuffer {
     }
 
     companion object {
-        fun create(width: Int, height: Int, contentScale: Double = 1.0, format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.UINT8): ColorBuffer {
-            return Driver.instance.createColorBuffer(width, height, contentScale, format, type)
-        }
+        fun create(width: Int, height: Int,
+                   contentScale: Double = 1.0,
+                   format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.UINT8
+        ) = Driver.instance.createColorBuffer(width, height, contentScale, format, type)
 
-        fun fromUrl(url: String): ColorBuffer {
-            return Driver.instance.createColorBufferFromUrl(url)
-        }
+        fun fromUrl(url: String) = Driver.instance.createColorBufferFromUrl(url)
 
-        fun fromFile(filename: String): ColorBuffer {
-            return Driver.instance.createColorBufferFromFile(filename)
-        }
+        fun fromFile(file: File) = Driver.instance.createColorBufferFromFile(file.absolutePath)
+
+        fun fromFile(filename: String) = Driver.instance.createColorBufferFromFile(filename)
     }
 }
 
@@ -1004,7 +1003,6 @@ class Drawer(val driver: Driver) {
         popStyle()
     }
 
-
     fun image(colorBuffer: ColorBuffer, source: Rectangle, target: Rectangle) {
         imageDrawer.drawImage(context, drawStyle, colorBuffer, listOf(source to target))
     }
@@ -1040,7 +1038,6 @@ class Drawer(val driver: Driver) {
             fontImageMapDrawer.drawTexts(context, drawStyle, texts, positions)
         }
     }
-
 
     fun size(width: Int, height: Int) {
         this.width = width
