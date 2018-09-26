@@ -55,7 +55,7 @@ class VertexFormat {
         }
     }
 
-    /**
+    /**b
      * Appends a normal component to the layout
      * @param dimensions the number of dimensions of the normal vector
      */
@@ -1009,14 +1009,24 @@ class Drawer(val driver: Driver) {
         imageDrawer.drawImage(context, drawStyle, colorBuffer, listOf(source to target))
     }
 
-    fun image(colorBuffer: ColorBuffer, x: Double, y: Double) {
-        imageDrawer.drawImage(context, drawStyle, colorBuffer, x, y, colorBuffer.width * 1.0, colorBuffer.height * 1.0)
+    fun image(colorBuffer: ColorBuffer, x: Double, y: Double, width: Double = colorBuffer.width.toDouble(), height: Double = colorBuffer.height.toDouble()) {
+        imageDrawer.drawImage(context, drawStyle, colorBuffer, x, y, width, height)
+    }
+
+    fun image(colorBuffer: ColorBuffer, position: Vector2, width: Double = colorBuffer.width.toDouble(), height: Double = colorBuffer.height.toDouble()) {
+        imageDrawer.drawImage(context, drawStyle, colorBuffer, position.x, position.y, width, height)
     }
 
     fun image(colorBuffer: ColorBuffer) = image(colorBuffer, 0.0, 0.0)
 
     fun image(colorBuffer: ColorBuffer, rectangles: List<Pair<Rectangle, Rectangle>>) {
         imageDrawer.drawImage(context, drawStyle, colorBuffer, rectangles)
+    }
+
+    fun text(text: String, position: Vector2) {
+        if (fontMap is FontImageMap) {
+            fontImageMapDrawer.drawText(context, drawStyle, text, position.x, position.y)
+        }
     }
 
     fun text(text: String, x: Double, y: Double) {
