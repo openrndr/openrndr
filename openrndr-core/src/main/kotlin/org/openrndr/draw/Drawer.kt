@@ -22,7 +22,6 @@ import java.io.File
 import java.io.InputStream
 import java.io.InputStreamReader
 import java.net.URL
-
 import java.nio.ByteBuffer
 import java.util.*
 
@@ -595,9 +594,12 @@ class Drawer(val driver: Driver) {
     var drawStyle = DrawStyle()
 
     fun withTarget(target: RenderTarget, action: Drawer.() -> Unit) {
+        val tmpProjection = projection
+        ortho(target)
         target.bind()
         this.action()
         target.unbind()
+        projection = tmpProjection
     }
 
     fun reset() {
@@ -1074,7 +1076,7 @@ fun Drawer.isolated(function: Drawer.() -> Unit) {
  * @param function the function that is called in the isolation
  */
 fun Drawer.isolatedWithTarget(target: RenderTarget, function: Drawer.() -> Unit) {
-    target.bind()
-    isolated(function)
-    target.unbind()
+    withTarget(target) {
+        isolated(function)
+    }
 }
