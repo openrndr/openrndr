@@ -68,7 +68,7 @@ class VertexFormat {
      */
     fun color(dimensions: Int): VertexFormat = attribute("color", floatTypeFromDimensions(dimensions))
 
-    fun textureCoordinate(dimensions: Int=2, index: Int=0): VertexFormat = attribute("texCoord$index", floatTypeFromDimensions(dimensions))
+    fun textureCoordinate(dimensions: Int = 2, index: Int = 0): VertexFormat = attribute("texCoord$index", floatTypeFromDimensions(dimensions))
 
 
     /**
@@ -81,8 +81,8 @@ class VertexFormat {
      * *
      * @return
      */
-    fun attribute(name: String, type: VertexElementType, arraySize:Int = 1): VertexFormat {
-        val offset = items.sumBy { it.arraySize  * it.type.sizeInBytes }
+    fun attribute(name: String, type: VertexElementType, arraySize: Int = 1): VertexFormat {
+        val offset = items.sumBy { it.arraySize * it.type.sizeInBytes }
         val item = VertexElement(name, offset, type, arraySize)
         items.add(item)
         vertexSize += type.sizeInBytes * arraySize
@@ -234,6 +234,10 @@ interface ColorBufferShadow {
     fun write(x: Int, y: Int, color: ColorRGBa)
 
     fun read(x: Int, y: Int): ColorRGBa
+
+    fun mapBoolean(mapper: (r: Double, g: Double, b: Double, a: Double) -> Boolean): Array<BooleanArray>
+    fun mapDouble(mapper: (r: Double, g: Double, b: Double, a: Double) -> Double): Array<DoubleArray>
+
 }
 
 
@@ -868,7 +872,7 @@ class Drawer(val driver: Driver) {
         }
     }
 
-    fun lineSegments(segments: List<Vector2>, weights:List<Double>) {
+    fun lineSegments(segments: List<Vector2>, weights: List<Double>) {
         when (drawStyle.quality) {
             DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineSegments2(context, drawStyle, segments)
             DrawQuality.QUALITY -> {
@@ -900,7 +904,7 @@ class Drawer(val driver: Driver) {
         }
     }
 
-    fun lineLoops(loops: List<List<Vector2>>, weights:List<Double>) {
+    fun lineLoops(loops: List<List<Vector2>>, weights: List<Double>) {
         when (drawStyle.quality) {
             DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineLoops(context, drawStyle, loops)
             DrawQuality.QUALITY -> qualityLineDrawer.drawLineLoops(context, drawStyle, loops, weights)
@@ -922,7 +926,7 @@ class Drawer(val driver: Driver) {
         }
     }
 
-    fun lineStrips(strips: List<List<Vector2>>, weights:List<Double>) {
+    fun lineStrips(strips: List<List<Vector2>>, weights: List<Double>) {
         when (drawStyle.quality) {
             DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineLoops(context, drawStyle, strips)
             DrawQuality.QUALITY -> qualityLineDrawer.drawLineStrips(context, drawStyle, strips, weights)
