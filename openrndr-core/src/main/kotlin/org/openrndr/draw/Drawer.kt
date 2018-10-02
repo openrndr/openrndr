@@ -1026,7 +1026,7 @@ class Drawer(val driver: Driver) {
         }
     }
 
-    fun text(text: String, x: Double, y: Double) {
+    fun text(text: String, x: Double = 0.0, y: Double = 0.0) {
         if (fontMap is FontImageMap) {
             fontImageMapDrawer.drawText(context, drawStyle, text, x, y)
         }

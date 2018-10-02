@@ -11,8 +11,14 @@ internal class ExpansionDrawer {
     private val shaderManager = ShadeStyleManager.fromGenerators(Driver.instance.shaderGenerators::expansionVertexShader,
     Driver.instance.shaderGenerators::expansionFragmentShader)
 
-    var vertices = VertexBuffer.createDynamic(VertexFormat().position(2).textureCoordinate(2).attribute("vertexOffset",  VertexElementType.FLOAT32), 4 * 1024 * 1024)
-    var quad = VertexBuffer.createDynamic(VertexFormat().position(2).textureCoordinate(2).attribute("vertexOffset", VertexElementType.FLOAT32), 6)
+    val vertexFormat = vertexFormat {
+        position(2)
+        textureCoordinate(2)
+        attribute("vertexOffset",  VertexElementType.FLOAT32)
+    }
+
+    var vertices = VertexBuffer.createDynamic(vertexFormat, 4 * 1024 * 1024)
+    var quad = VertexBuffer.createDynamic(vertexFormat, 6)
 
     fun renderStrokeCommands(drawContext: DrawContext, drawStyle: DrawStyle, commands: List<Command>) {
 
