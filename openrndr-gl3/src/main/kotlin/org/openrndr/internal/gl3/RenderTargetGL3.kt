@@ -39,6 +39,7 @@ open class RenderTargetGL3(val framebuffer: Int, override val width: Int, overri
     private val _colorBuffers = mutableListOf<ColorBufferGL3>()
     private var _depthBuffer: DepthBuffer? = null
 
+
     companion object {
         fun create(width: Int, height: Int, contentScale: Double = 1.0): RenderTargetGL3 {
             val framebuffer = glGenFramebuffers()

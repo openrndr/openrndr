@@ -136,8 +136,8 @@ class ColorBufferShadowGL3(override val colorBuffer: ColorBufferGL3) : ColorBuff
                         val ir = buffer.get().toInt() and 0xff
                         val ig = buffer.get().toInt() and 0xff
                         val ib = buffer.get().toInt() and 0xff
-                        val ia =buffer.get().toInt() and 0xff
-                        result[ay][x] = mapper(ir / 255.0, ig / 255.0, ib / 255.0, ia /255.0)
+                        val ia = buffer.get().toInt() and 0xff
+                        result[ay][x] = mapper(ir / 255.0, ig / 255.0, ib / 255.0, ia / 255.0)
                     }
                 }
             }
@@ -169,8 +169,8 @@ class ColorBufferShadowGL3(override val colorBuffer: ColorBufferGL3) : ColorBuff
                         val ir = buffer.get().toInt() and 0xff
                         val ig = buffer.get().toInt() and 0xff
                         val ib = buffer.get().toInt() and 0xff
-                        val ia =buffer.get().toInt() and 0xff
-                        result[ay][x] = mapper(ir / 255.0, ig / 255.0, ib / 255.0, ia /255.0)
+                        val ia = buffer.get().toInt() and 0xff
+                        result[ay][x] = mapper(ir / 255.0, ig / 255.0, ib / 255.0, ia / 255.0)
                     }
                 }
             }
@@ -182,6 +182,106 @@ class ColorBufferShadowGL3(override val colorBuffer: ColorBufferGL3) : ColorBuff
                         val ig = buffer.get().toInt() and 0xff
                         val ib = buffer.get().toInt() and 0xff
                         result[ay][x] = mapper(ir / 255.0, ig / 255.0, ib / 255.0, 1.0)
+                    }
+                }
+            }
+
+            else -> throw NotImplementedError()
+        }
+        return result
+    }
+
+    override inline fun mapFloat(crossinline mapper: (r: Double, g: Double, b: Double, a: Double) -> Float): Array<FloatArray> {
+        val result = Array(colorBuffer.effectiveHeight) { FloatArray(colorBuffer.effectiveWidth) }
+        buffer.rewind()
+        when (Pair(colorBuffer.type, colorBuffer.format)) {
+            Pair(ColorType.UINT8, ColorFormat.RGBa) -> {
+                for (y in 0 until colorBuffer.effectiveHeight) {
+                    val ay = if (colorBuffer.flipV) y else colorBuffer.effectiveHeight - 1 - y
+                    for (x in 0 until colorBuffer.effectiveWidth) {
+                        val ir = buffer.get().toInt() and 0xff
+                        val ig = buffer.get().toInt() and 0xff
+                        val ib = buffer.get().toInt() and 0xff
+                        val ia = buffer.get().toInt() and 0xff
+                        result[ay][x] = mapper(ir / 255.0, ig / 255.0, ib / 255.0, ia / 255.0)
+                    }
+                }
+            }
+            Pair(ColorType.UINT8, ColorFormat.RGB) -> {
+                for (y in 0 until colorBuffer.effectiveHeight) {
+                    val ay = if (colorBuffer.flipV) y else colorBuffer.effectiveHeight - 1 - y
+                    for (x in 0 until colorBuffer.effectiveWidth) {
+                        val ir = buffer.get().toInt() and 0xff
+                        val ig = buffer.get().toInt() and 0xff
+                        val ib = buffer.get().toInt() and 0xff
+                        result[ay][x] = mapper(ir / 255.0, ig / 255.0, ib / 255.0, 1.0)
+                    }
+                }
+            }
+
+            else -> throw NotImplementedError()
+        }
+        return result
+    }
+
+
+    override inline fun mapInt(crossinline mapper: (r: Double, g: Double, b: Double, a: Double) -> Int): Array<IntArray> {
+        val result = Array(colorBuffer.effectiveHeight) { IntArray(colorBuffer.effectiveWidth) }
+        buffer.rewind()
+        when (Pair(colorBuffer.type, colorBuffer.format)) {
+            Pair(ColorType.UINT8, ColorFormat.RGBa) -> {
+                for (y in 0 until colorBuffer.effectiveHeight) {
+                    val ay = if (colorBuffer.flipV) y else colorBuffer.effectiveHeight - 1 - y
+                    for (x in 0 until colorBuffer.effectiveWidth) {
+                        val ir = buffer.get().toInt() and 0xff
+                        val ig = buffer.get().toInt() and 0xff
+                        val ib = buffer.get().toInt() and 0xff
+                        val ia = buffer.get().toInt() and 0xff
+                        result[ay][x] = mapper(ir / 255.0, ig / 255.0, ib / 255.0, ia / 255.0)
+                    }
+                }
+            }
+            Pair(ColorType.UINT8, ColorFormat.RGB) -> {
+                for (y in 0 until colorBuffer.effectiveHeight) {
+                    val ay = if (colorBuffer.flipV) y else colorBuffer.effectiveHeight - 1 - y
+                    for (x in 0 until colorBuffer.effectiveWidth) {
+                        val ir = buffer.get().toInt() and 0xff
+                        val ig = buffer.get().toInt() and 0xff
+                        val ib = buffer.get().toInt() and 0xff
+                        result[ay][x] = mapper(ir / 255.0, ig / 255.0, ib / 255.0, 1.0)
+                    }
+                }
+            }
+            else -> throw NotImplementedError()
+        }
+        return result
+    }
+
+    override inline fun <T> map(crossinline mapper: (r: Double, g: Double, b: Double, a: Double) -> T): Array<List<T>> {
+        val result: Array<List<T>> = Array(colorBuffer.effectiveHeight) { mutableListOf<T>() }
+        buffer.rewind()
+        when (Pair(colorBuffer.type, colorBuffer.format)) {
+            Pair(ColorType.UINT8, ColorFormat.RGBa) -> {
+                for (y in 0 until colorBuffer.effectiveHeight) {
+                    val ay = if (colorBuffer.flipV) y else colorBuffer.effectiveHeight - 1 - y
+                    //for (x in 0 until colorBuffer.effectiveWidth) {
+                    result[ay] = (0 until colorBuffer.effectiveWidth).map {
+                        val ir = buffer.get().toInt() and 0xff
+                        val ig = buffer.get().toInt() and 0xff
+                        val ib = buffer.get().toInt() and 0xff
+                        val ia = buffer.get().toInt() and 0xff
+                        mapper(ir / 255.0, ig / 255.0, ib / 255.0, ia / 255.0)
+                    }
+                }
+            }
+            Pair(ColorType.UINT8, ColorFormat.RGB) -> {
+                for (y in 0 until colorBuffer.effectiveHeight) {
+                    val ay = if (colorBuffer.flipV) y else colorBuffer.effectiveHeight - 1 - y
+                    result[ay] = (0 until colorBuffer.effectiveWidth).map {
+                        val ir = buffer.get().toInt() and 0xff
+                        val ig = buffer.get().toInt() and 0xff
+                        val ib = buffer.get().toInt() and 0xff
+                        mapper(ir / 255.0, ig / 255.0, ib / 255.0, 1.0)
                     }
                 }
             }
