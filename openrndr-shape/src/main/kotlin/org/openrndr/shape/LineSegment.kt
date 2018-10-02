@@ -14,8 +14,7 @@ data class LineSegment(val start: Vector2, val end: Vector2) {
     val normal get() = (end - start).normalized.perpendicular
 
     fun nearest(query: Vector2): Vector2 {
-        var l2 = end.minus(start).length
-        l2 *= l2
+        val l2 = end.minus(start).squaredLength
         if (l2 == 0.0) return start
 
         var t = ((query.x - start.x) * (end.x - start.x) + (query.y - start.y) * (end.y - start.y)) / l2
@@ -25,8 +24,7 @@ data class LineSegment(val start: Vector2, val end: Vector2) {
     }
 
     fun distance(query: Vector2): Double {
-        var l2 = end.minus(start).length
-        l2 *= l2
+        val l2 = end.minus(start).squaredLength
         if (l2 == 0.0) return query.minus(start).length
 
         var t = ((query.x - start.x) * (end.x - start.x) + (query.y - start.y) * (end.y - start.y)) / l2
@@ -36,30 +34,23 @@ data class LineSegment(val start: Vector2, val end: Vector2) {
     }
 
     fun endingAtY(y: Double): LineSegment {
-
         val dy = end.y - start.y
         val y0 = y - start.y
-
         val t = y0 / dy
         return LineSegment(start, start + (end - start) * t)
     }
 
     fun startingAtY(y: Double): LineSegment {
-
         val dy = end.y - start.y
         val y0 = y - start.y
-
         val t = y0 / dy
         return LineSegment(start + (end - start) * t, end)
     }
 
     fun startingAtX(x: Double): LineSegment {
-
         val dx = end.x - start.x
         val x0 = x - start.x
-
         val t = x0 / dx
-
         return LineSegment(start + (end - start) * t, end)
     }
 
@@ -94,7 +85,6 @@ data class LineSegment(val start: Vector2, val end: Vector2) {
             z1 = t0
             z0 = t1
         }
-
         return when {
             z0 == 0.0 -> split(z1)[0]
             z1 == 1.0 -> split(z0)[1]
@@ -108,17 +98,17 @@ data class LineSegment(val start: Vector2, val end: Vector2) {
         return arrayOf(LineSegment(start, cut), LineSegment(cut, end))
     }
 
+    fun position(t: Double) = start + (end.minus(start) * t)
+
     val contour: ShapeContour
         get() = ShapeContour.fromPoints(listOf(start, end), false)
-
 
     val shape: Shape
         get() = Shape(listOf(contour))
 }
 
-fun intersection(a: LineSegment, b: LineSegment, eps: Double = 0.01): Vector2 {
-    return intersection(a.start, a.end, b.start, b.end, eps)
-}
+fun intersection(a: LineSegment, b: LineSegment, eps: Double = 0.01): Vector2 =
+        intersection(a.start, a.end, b.start, b.end, eps)
 
 fun intersection(a0: Vector2, a1: Vector2, b0: Vector2, b1: Vector2, eps: Double = 0.01): Vector2 {
     val x0 = a0.x
@@ -133,19 +123,19 @@ fun intersection(a0: Vector2, a1: Vector2, b0: Vector2, b1: Vector2, eps: Double
 
     val den = (x0 - x1) * (y2 - y3) - (y0 - y1) * (x2 - x3)
 
-    if (Math.abs(den) > 0.0000001) {
+    return if (Math.abs(den) > 0.0000001) {
         val px = ((x0 * y1 - y0 * x1) * (x2 - x3) - (x0 - x1) * (x2 * y3 - y2 * x3)) / den
         val py = ((x0 * y1 - y0 * x1) * (y2 - y3) - (y0 - y1) * (x2 * y3 - y2 * x3)) / den
 
         val s = (-(y1 - y0) * (x0 - x2) + (x1 - x0) * (y0 - y2)) / den
         val t = ((x3 - x2) * (y0 - y2) - (y3 - y2) * (x0 - x2)) / den
 
-        return if (t >= 0 - eps && t <= 1 + eps && s >= 0 - eps && s <= 1 + eps) {
+        if (t >= 0 - eps && t <= 1 + eps && s >= 0 - eps && s <= 1 + eps) {
             Vector2(px, py)
         } else {
             Vector2.INFINITY
         }
     } else {
-        return Vector2.INFINITY
+        Vector2.INFINITY
     }
 }

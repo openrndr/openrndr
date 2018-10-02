@@ -1,4 +1,4 @@
-@file:Suppress("unused", "MemberVisibilityCanPrivate")
+@file:Suppress("unused", "MemberVisibilityCanPrivate", "MemberVisibilityCanBePrivate")
 
 package org.openrndr.shape
 
@@ -298,30 +298,21 @@ class Segment {
 
                 if (t1 < 1.0) {
                     pass2.add(it.sub(t1, 1.0))
-                } else {
-                    println("huuh $t1")
                 }
             }
 
             return pass2.flatMap { it.split(0.5).toList() }
         }
 
-    fun scale(scale: Double): Segment {
-        return scale { scale }
-    }
+    fun scale(scale: Double) = scale { scale }
 
-    val clockwise: Boolean
-        get() {
-            var angle = angle(start, end, control[0])
-            return angle > 0
-        }
+    val clockwise
+        get() = angle(start, end, control[0]) > 0
 
     fun scale(scale: (Double) -> Double): Segment {
-
         if (control.size == 1) {
             return cubic.scale(scale)
         }
-
 
         val newStart = start + normal(0.0) * scale(0.0)
         val newEnd = end + normal(1.0) * scale(1.0)
@@ -537,7 +528,7 @@ class Segment {
 //    }
 }
 
-private fun sumDifferences(points: List<Vector2>): Double =
+private fun sumDifferences(points: List<Vector2>) =
         (0 until points.size - 1).sumByDouble { (points[it] - points[it + 1]).length }
 
 
@@ -545,6 +536,7 @@ enum class Winding {
     CLOCKWISE,
     COUNTER_CLOCKWISE
 }
+
 enum class SegmentJoin {
     ROUND,
     MITER,
@@ -560,8 +552,7 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean) {
 
     val length get() = segments.sumByDouble { it.length }
 
-    val bounds: Rectangle
-        get() = vector2Bounds(sampleLinear().segments.flatMap { listOf(it.start, it.end) })
+    val bounds get() = vector2Bounds(sampleLinear().segments.flatMap { listOf(it.start, it.end) })
 
     val winding: Winding
         get() {
@@ -581,8 +572,8 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean) {
         get() = segments.map { ShapeContour(listOf(it), false) }
 
 
-    val clockwise: ShapeContour get() = if(winding == Winding.CLOCKWISE) this else this.reversed
-    val counterClockwise: ShapeContour get() = if(winding == Winding.COUNTER_CLOCKWISE) this else this.reversed
+    val clockwise: ShapeContour get() = if (winding == Winding.CLOCKWISE) this else this.reversed
+    val counterClockwise: ShapeContour get() = if (winding == Winding.COUNTER_CLOCKWISE) this else this.reversed
 
     operator fun plus(other: ShapeContour): ShapeContour {
         val epsilon = 0.001
@@ -595,8 +586,8 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean) {
         return ShapeContour(segments, false)
     }
 
-    fun offset(distance: Double, joinType:SegmentJoin = SegmentJoin.ROUND): ShapeContour {
-        val joins = (segments + if(closed) listOf(segments.first()) else emptyList()).map {
+    fun offset(distance: Double, joinType: SegmentJoin = SegmentJoin.ROUND): ShapeContour {
+        val joins = (segments + if (closed) listOf(segments.first()) else emptyList()).map {
             it.offset(distance)
         }.zipWithNext().flatMap {
             val end = it.first.last().end
@@ -621,8 +612,8 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean) {
                 SegmentJoin.MITER -> {
                     val endDir = it.first.last().direction(1.0)
                     val startDir = it.second.first().direction(0.0)
-                    val endLine = LineSegment(end, end+endDir)
-                    val startLine = LineSegment(start, start+startDir)
+                    val endLine = LineSegment(end, end + endDir)
+                    val startLine = LineSegment(start, start + startDir)
                     val i = intersection(endLine, startLine, 10000000.0)
                     val join = contour {
                         moveTo(end)
@@ -684,9 +675,8 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean) {
      * @param distanceTolerance controls the quality of the approximation
      * @return a ShapeContour composed of linear segments
      */
-    fun sampleLinear(distanceTolerance: Double = 0.5): ShapeContour {
-        return fromPoints(adaptivePositions(distanceTolerance), closed)
-    }
+    fun sampleLinear(distanceTolerance: Double = 0.5) =
+            fromPoints(adaptivePositions(distanceTolerance), closed)
 
     /**
      * Sample the shape contour into line segments
@@ -697,12 +687,9 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean) {
         return ShapeContour(segments, closed)
     }
 
-    fun transform(transform: Matrix44): ShapeContour = ShapeContour(segments.map { it.transform(transform) }, closed)
+    fun transform(transform: Matrix44) = ShapeContour(segments.map { it.transform(transform) }, closed)
 
-
-    private fun mod(a: Double, b: Double): Double {
-        return ((a % b) + b) % b
-    }
+    private fun mod(a: Double, b: Double) = ((a % b) + b) % b
 
     /**
      * Sample a sub contour
@@ -760,9 +747,7 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean) {
                 newSegments.add(segments[s])
             }
         }
-        val newContour = ShapeContour(newSegments, false)
-
-        return newContour
+        return ShapeContour(newSegments, false)
     }
 
 
@@ -798,9 +783,7 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean) {
 
     val reversed get() = ShapeContour(segments.map { it.reverse }.reversed(), closed)
 
-
     fun map(closed: Boolean = this.closed, mapper: (Segment) -> Segment): ShapeContour {
-
         val segments = segments.map(mapper)
         val fixedSegments = mutableListOf<Segment>()
 
@@ -811,7 +794,6 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean) {
                 val fixLeft = Segment(left.start, left.control, right.start)
                 fixedSegments.add(fixLeft)
             }
-
             if (closed) {
                 val left = segments.last()
                 val right = segments.first()
@@ -822,17 +804,15 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean) {
         }
 
         return ShapeContour(if (segments.size > 1) fixedSegments else segments, closed)
-
     }
 }
 
-
 class Shape(val contours: List<ShapeContour>) {
-    val linear: Boolean get() = contours.all { it.segments.all { it.linear } }
+    val linear get() = contours.all { it.segments.all { it.linear } }
     fun polygon(distanceTolerance: Double = 0.5) = Shape(contours.map { it.sampleLinear(distanceTolerance) })
 
     /**
-     * The outline of the spape
+     * The outline of the shape
      */
     val outline get() = contours[0]
 
@@ -847,14 +827,12 @@ class Shape(val contours: List<ShapeContour>) {
      * @param transform a Matrix44 that represents the transform
      * @return a transformed shape instance
      */
-    fun transform(transform: Matrix44): Shape = Shape(contours.map { it.transform(transform) })
+    fun transform(transform: Matrix44) = Shape(contours.map { it.transform(transform) })
 
     /**
      * Apply a map to the shape. Maps every contour.
      */
-    fun map(mapper: (ShapeContour) -> ShapeContour): Shape {
-        return Shape(contours.map { mapper(it) })
-    }
+    fun map(mapper: (ShapeContour) -> ShapeContour) = Shape(contours.map { mapper(it) })
 }
 
-class Compound(val shapes:List<Shape>)
+class Compound(val shapes: List<Shape>)
