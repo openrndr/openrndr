@@ -12,25 +12,27 @@ abstract class Application {
     companion object {
 
         fun run(program: Program, configuration: Configuration) {
-
-            val c = if (!configuration.headless)
-                Application::class.java.classLoader.loadClass("org.openrndr.internal.gl3.ApplicationGLFWGL3")
-            else
-                Application::class.java.classLoader.loadClass("org.openrndr.internal.gl3.ApplicationEGLGL3")
-
+            val c = applicationClass(configuration)
             val application = c.declaredConstructors[0].newInstance(program, configuration) as Application
-            println(application)
             application.setup()
             application.loop()
         }
 
         fun runAsync(program: Program, configuration: Configuration) {
-            val c = Application::class.java.classLoader.loadClass("org.openrndr.internal.gl3.ApplicationGLFWGL3")
+            val c = applicationClass(configuration)
             val application = c.declaredConstructors[0].newInstance(program, configuration) as Application
             thread {
                 application.setup()
                 application.loop()
             }
+        }
+
+        fun applicationClass(configuration: Configuration): Class<*> {
+            val c = if (!configuration.headless)
+                Application::class.java.classLoader.loadClass("org.openrndr.internal.gl3.ApplicationGLFWGL3")
+            else
+                Application::class.java.classLoader.loadClass("org.openrndr.internal.gl3.ApplicationEGLGL3")
+            return c
         }
     }
 

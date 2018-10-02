@@ -5,26 +5,19 @@ import org.openrndr.draw.Shader
 import org.openrndr.filter.filterFragmentCode
 
 class GaussianBlur : Filter(Shader.createFromCode(Filter.filterVertexCode,
-        filterFragmentCode("blur/approximate-gaussian-blur.frag"))) {
-    var window: Int = 5
-        set(value) {
-            parameters["window"] = value; field = value
-        }
+        filterFragmentCode("blur/gaussian-blur.frag"))) {
 
-    var spread: Double = 1.0
-        set(value) {
-            parameters["spread"] = value; field = value
-        }
+    var window: Int by parameters
+    var spread: Double by parameters
+    var sigma: Double by parameters
+    var gain: Double by parameters
 
-    var sigma: Double = 1.0
-        set (value) {
-            parameters["sigma"] = value; field = value
-        }
-
-    var gain: Double = 1.0
-        set(value) {
-            parameters["gain"] = value; field = value
-        }
+    init {
+        window = 5
+        spread = 1.0
+        sigma = 1.0
+        gain = 1.0
+    }
 
 
 }

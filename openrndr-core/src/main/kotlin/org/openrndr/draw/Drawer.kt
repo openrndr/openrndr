@@ -26,7 +26,6 @@ import java.net.URL
 import java.nio.ByteBuffer
 import java.util.*
 
-
 data class VertexElement(val attribute: String, val offset: Int, val type: VertexElementType, val arraySize: Int)
 
 @Suppress("MemberVisibilityCanPrivate")
@@ -150,9 +149,6 @@ interface VertexBuffer {
 
     fun destroy()
 
-    fun bind()
-    fun unbind()
-
     fun put(putter: BufferWriter.() -> Unit): Int {
         val w = shadow.writer()
         w.rewind()
@@ -200,6 +196,14 @@ enum class MagnifyingFilter {
     LINEAR
 }
 
+/**
+ * File format used while saving to file
+ */
+enum class FileFormat {
+    JPG,
+    PNG,
+}
+
 interface BufferWriter {
     fun write(vararg v: Vector3) {
         v.forEach { write(it) }
@@ -231,13 +235,27 @@ interface ColorBufferShadow {
     fun destroy()
 
     fun writer(): BufferWriter
-    fun write(x: Int, y: Int, color: ColorRGBa)
+    fun write(x: Int, y: Int, r: Double, g: Double, b: Double, a: Double)
+    fun write(x: Int, y: Int, color: ColorRGBa) {
+        write(x, y, color.r, color.g, color.b, color.a)
+    }
+
+    fun write(x: Int, y: Int, r: Float, g: Float, b: Float, a: Float) {
+        write(x, y, r.toDouble(), g.toDouble(), b.toDouble(), a.toDouble())
+    }
 
     fun read(x: Int, y: Int): ColorRGBa
 
     fun mapBoolean(mapper: (r: Double, g: Double, b: Double, a: Double) -> Boolean): Array<BooleanArray>
     fun mapDouble(mapper: (r: Double, g: Double, b: Double, a: Double) -> Double): Array<DoubleArray>
 
+    operator fun get(x: Int, y: Int): ColorRGBa {
+        return read(x, y)
+    }
+
+    operator fun set(x: Int, y: Int, c: ColorRGBa) {
+        write(x, y, c)
+    }
 }
 
 
@@ -254,7 +272,15 @@ interface ColorBuffer {
     val effectiveHeight: Int get() = (height * contentScale).toInt()
 
 
-    fun saveToFile(file: File)
+    fun saveToFile(file: File, fileFormat: FileFormat = guessFromExtension(file))
+    private fun guessFromExtension(file: File): FileFormat {
+        return when {
+            file.name.toLowerCase().endsWith("jpg") -> FileFormat.JPG
+            file.name.toLowerCase().endsWith("jpeg") -> FileFormat.JPG
+            else -> FileFormat.PNG
+        }
+    }
+
     fun destroy()
     fun bind(unit: Int)
 
@@ -652,6 +678,10 @@ class Drawer(val driver: Driver) {
         model *= _rotate(axis, rotationInDegrees)
     }
 
+    fun background(r: Double, g: Double, b: Double, a: Double) {
+        driver.clear(r, g, b, a)
+    }
+
     fun background(color: ColorRGBa) {
         driver.clear(color)
     }
@@ -807,6 +837,12 @@ class Drawer(val driver: Driver) {
         }
     }
 
+    fun shapes(shapes: List<Shape>) {
+        shapes.forEach {
+            shape(it)
+        }
+    }
+
     fun contour(contour: ShapeContour) {
         if (RenderTarget.active.hasDepthBuffer) {
             if (drawStyle.fill != null && contour.closed) {
@@ -820,7 +856,7 @@ class Drawer(val driver: Driver) {
                         false -> fastLineDrawer.drawLineLoops(context, drawStyle, listOf(contour.adaptivePositions()))
                     }
                     DrawQuality.QUALITY -> when (contour.closed) {
-                        true -> qualityLineDrawer.drawLineLoops(context, drawStyle, listOf(contour.adaptivePositions().let { it.subList(0, it.size - 1) }))
+                        true -> qualityLineDrawer.drawLineLoops(context, drawStyle, listOf(contour.adaptivePositions()))
                         false -> qualityLineDrawer.drawLineStrips(context, drawStyle, listOf(contour.adaptivePositions()))
                     }
                 }
@@ -991,6 +1027,13 @@ class Drawer(val driver: Driver) {
         }
     }
 
+    fun texts(texts: List<String>, positions: List<Vector2>) {
+        if (fontMap is FontImageMap) {
+            fontImageMapDrawer.drawTexts(context, drawStyle, texts, positions)
+        }
+    }
+
+
     fun size(width: Int, height: Int) {
         this.width = width
         this.height = height
@@ -1004,8 +1047,16 @@ class Drawer(val driver: Driver) {
         vertexBufferDrawer.drawVertexBuffer(context, drawStyle, primitive, vertexBuffers, offset, vertexCount)
     }
 
+    fun vertexBuffer(indexBuffer: IndexBuffer, vertexBuffers: List<VertexBuffer>, primitive: DrawPrimitive, offset: Int = 0, indexCount: Int = indexBuffer.indexCount) {
+        vertexBufferDrawer.drawVertexBuffer(context, drawStyle, primitive, indexBuffer, vertexBuffers, offset, indexCount)
+    }
+
     fun vertexBufferInstances(vertexBuffers: List<VertexBuffer>, instanceAttributes: List<VertexBuffer>, primitive: DrawPrimitive, instanceCount: Int, offset: Int = 0, vertexCount: Int = vertexBuffers[0].vertexCount) {
         vertexBufferDrawer.drawVertexBufferInstances(context, drawStyle, primitive, vertexBuffers, instanceAttributes, offset, vertexCount, instanceCount)
+    }
+
+    fun vertexBufferInstances(indexBuffer: IndexBuffer, vertexBuffers: List<VertexBuffer>, instanceAttributes: List<VertexBuffer>, primitive: DrawPrimitive, instanceCount: Int, offset: Int = 0, indexCount: Int = indexBuffer.indexCount) {
+        vertexBufferDrawer.drawVertexBufferInstances(context, drawStyle, primitive, indexBuffer, vertexBuffers, instanceAttributes, offset, indexCount, instanceCount)
     }
 }
 

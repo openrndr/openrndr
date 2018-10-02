@@ -6,6 +6,7 @@ uniform sampler2D tex0;
 uniform int window;
 uniform float sigma;
 uniform float spread;
+uniform float gain;
 
 
 out vec4 o_color;
@@ -27,6 +28,4 @@ void main() {
     }
 
     o_color = (sum / weight) * gain;
-    o_color.a = 1.0;
-
 }
