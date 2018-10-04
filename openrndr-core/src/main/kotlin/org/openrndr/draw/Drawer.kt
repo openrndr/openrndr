@@ -488,15 +488,15 @@ private var lastModelNormal = Matrix44.IDENTITY
 private var lastView = Matrix44.IDENTITY
 private var lastViewNormal = Matrix44.IDENTITY
 
-private var contextBlock: UniformBlock? = null
+private var contextBlocks = mutableMapOf<Long, UniformBlock>()
 private var useContextBlock = true
 
 @Suppress("MemberVisibilityCanPrivate")
 data class DrawContext(val model: Matrix44, val view: Matrix44, val projection: Matrix44, val width: Int, val height: Int, val contentScale: Double) {
     fun applyToShader(shader: Shader) {
 
-        if (contextBlock == null) {
-            contextBlock = shader.createBlock("ContextBlock")
+        val contextBlock = contextBlocks.getOrPut(Driver.driver.contextID) {
+            shader.createBlock("ContextBlock")
         }
 
         if (!useContextBlock) {
