@@ -193,7 +193,10 @@ data class DrawStyle(
                 shader.uniform("u_colorMatrix", colorMatrix.floatArray)
             }
         } else {
-            val styleBlock = styleBlocks.get(Driver.driver.contextID)
+            val styleBlock = styleBlocks.getOrPut(Driver.driver.contextID) {
+                shader.createBlock("StyleBlock")
+            }
+
             styleBlock?.apply {
                 uniform("u_fill", fill ?: ColorRGBa.TRANSPARENT)
                 uniform("u_stroke", stroke ?: ColorRGBa.TRANSPARENT)
