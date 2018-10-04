@@ -246,6 +246,12 @@ interface ColorBufferShadow {
 
     fun read(x: Int, y: Int): ColorRGBa
 
+    fun mapBoolean(mapper: (r: Double, g: Double, b: Double, a: Double) -> Boolean): Array<BooleanArray>
+    fun mapDouble(mapper: (r: Double, g: Double, b: Double, a: Double) -> Double): Array<DoubleArray>
+    fun mapFloat(mapper: (r: Double, g: Double, b: Double, a: Double) -> Float): Array<FloatArray>
+    fun mapInt(mapper: (r: Double, g: Double, b: Double, a: Double) -> Int): Array<IntArray>
+
+    fun <T> map(mapper: (r: Double, g: Double, b: Double, a: Double) -> T): Array<List<T>>
     operator fun get(x: Int, y: Int): ColorRGBa {
         return read(x, y)
     }
