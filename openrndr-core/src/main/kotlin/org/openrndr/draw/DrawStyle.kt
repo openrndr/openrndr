@@ -1,6 +1,7 @@
 package org.openrndr.draw
 
 import org.openrndr.color.ColorRGBa
+import org.openrndr.internal.Driver
 import org.openrndr.math.Matrix55
 import org.openrndr.shape.Rectangle
 
@@ -15,14 +16,14 @@ enum class LineCap {
     SQUARE
 }
 
-enum class VertexElementType(val componentCount:Int, val sizeInBytes:Int) {
-    FLOAT32(1,4),
-    VECTOR2_FLOAT32(2,8),
-    VECTOR3_FLOAT32(3,12),
-    VECTOR4_FLOAT32(4,16),
-    MATRIX22_FLOAT32(4,4 * 4),
-    MATRIX33_FLOAT32(9,9 * 4),
-    MATRIX44_FLOAT32(16,16 * 4),
+enum class VertexElementType(val componentCount: Int, val sizeInBytes: Int) {
+    FLOAT32(1, 4),
+    VECTOR2_FLOAT32(2, 8),
+    VECTOR3_FLOAT32(3, 12),
+    VECTOR4_FLOAT32(4, 16),
+    MATRIX22_FLOAT32(4, 4 * 4),
+    MATRIX33_FLOAT32(9, 9 * 4),
+    MATRIX44_FLOAT32(16, 16 * 4),
 }
 
 enum class DrawPrimitive {
@@ -141,8 +142,10 @@ class ChannelMask(val red: Boolean, val green: Boolean, val blue: Boolean, val a
         val ALL = ChannelMask(true, true, true, true)
     }
 }
-private var styleBlock:UniformBlock? = null
+
+private var styleBlocks = mutableMapOf<Long, UniformBlock>()
 private var useStyleBlock = true
+
 data class DrawStyle(
         var clip: Rectangle? = null,
         var fill: ColorRGBa? = ColorRGBa.WHITE,
@@ -190,9 +193,7 @@ data class DrawStyle(
                 shader.uniform("u_colorMatrix", colorMatrix.floatArray)
             }
         } else {
-            if (styleBlock == null) {
-                styleBlock = shader.createBlock("StyleBlock")
-            }
+            val styleBlock = styleBlocks.get(Driver.driver.contextID)
             styleBlock?.apply {
                 uniform("u_fill", fill ?: ColorRGBa.TRANSPARENT)
                 uniform("u_stroke", stroke ?: ColorRGBa.TRANSPARENT)

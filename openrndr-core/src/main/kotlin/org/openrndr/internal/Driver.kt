@@ -35,6 +35,8 @@ interface ShaderGenerators {
  */
 interface Driver {
 
+    val contextID: Long
+
     fun createShader(vsCode: String, fsCode: String): Shader
 
     fun createShadeStyleManager(vertexShaderGenerator: (ShadeStructure) -> String,

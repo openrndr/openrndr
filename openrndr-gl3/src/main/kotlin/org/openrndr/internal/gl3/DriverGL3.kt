@@ -1,6 +1,7 @@
 package org.openrndr.internal.gl3
 
 import mu.KotlinLogging
+import org.lwjgl.glfw.GLFW
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER
 import org.lwjgl.opengl.GL15.glBindBuffer
@@ -25,6 +26,12 @@ private val logger = KotlinLogging.logger {}
 internal val useDebugContext = System.getProperty("org.openrndr.gl3.debug") != null
 
 class DriverGL3 : Driver {
+
+
+    override val contextID: Long get() {
+        return GLFW.glfwGetCurrentContext()
+    }
+
     override fun createResourceThread(f: () -> Unit): ResourceThread {
         return ResourceThreadGL3.create(f)
     }
