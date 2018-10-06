@@ -152,6 +152,20 @@ class ColorBufferShadowGL3(override val colorBuffer: ColorBufferGL3) : ColorBuff
                     }
                 }
             }
+            Pair(ColorType.FLOAT32, ColorFormat.RGBa) -> {
+                val fr = buffer.getFloat()
+                val fg = buffer.getFloat()
+                val fb = buffer.getFloat()
+                val fa = buffer.getFloat()
+                mapper(fr.toDouble(), fg.toDouble(), fb.toDouble(), fa.toDouble())
+            }
+
+            Pair(ColorType.FLOAT32, ColorFormat.RGB) -> {
+                val fr = buffer.getFloat()
+                val fg = buffer.getFloat()
+                val fb = buffer.getFloat()
+                mapper(fr.toDouble(), fg.toDouble(), fb.toDouble(), 1.0)
+            }
 
             else -> throw NotImplementedError()
         }
@@ -185,6 +199,20 @@ class ColorBufferShadowGL3(override val colorBuffer: ColorBufferGL3) : ColorBuff
                     }
                 }
             }
+            Pair(ColorType.FLOAT32, ColorFormat.RGBa) -> {
+                val fr = buffer.getFloat()
+                val fg = buffer.getFloat()
+                val fb = buffer.getFloat()
+                val fa = buffer.getFloat()
+                mapper(fr.toDouble(), fg.toDouble(), fb.toDouble(), fa.toDouble())
+            }
+
+            Pair(ColorType.FLOAT32, ColorFormat.RGB) -> {
+                val fr = buffer.getFloat()
+                val fg = buffer.getFloat()
+                val fb = buffer.getFloat()
+                mapper(fr.toDouble(), fg.toDouble(), fb.toDouble(), 1.0)
+            }
 
             else -> throw NotImplementedError()
         }
@@ -217,6 +245,20 @@ class ColorBufferShadowGL3(override val colorBuffer: ColorBufferGL3) : ColorBuff
                         result[ay][x] = mapper(ir / 255.0, ig / 255.0, ib / 255.0, 1.0)
                     }
                 }
+            }
+            Pair(ColorType.FLOAT32, ColorFormat.RGBa) -> {
+                val fr = buffer.getFloat()
+                val fg = buffer.getFloat()
+                val fb = buffer.getFloat()
+                val fa = buffer.getFloat()
+                mapper(fr.toDouble(), fg.toDouble(), fb.toDouble(), fa.toDouble())
+            }
+
+            Pair(ColorType.FLOAT32, ColorFormat.RGB) -> {
+                val fr = buffer.getFloat()
+                val fg = buffer.getFloat()
+                val fb = buffer.getFloat()
+                mapper(fr.toDouble(), fg.toDouble(), fb.toDouble(), 1.0)
             }
 
             else -> throw NotImplementedError()
@@ -252,6 +294,22 @@ class ColorBufferShadowGL3(override val colorBuffer: ColorBufferGL3) : ColorBuff
                     }
                 }
             }
+
+            Pair(ColorType.FLOAT32, ColorFormat.RGBa) -> {
+                val fr = buffer.getFloat()
+                val fg = buffer.getFloat()
+                val fb = buffer.getFloat()
+                val fa = buffer.getFloat()
+                mapper(fr.toDouble(), fg.toDouble(), fb.toDouble(), fa.toDouble())
+            }
+
+            Pair(ColorType.FLOAT32, ColorFormat.RGB) -> {
+                val fr = buffer.getFloat()
+                val fg = buffer.getFloat()
+                val fb = buffer.getFloat()
+                mapper(fr.toDouble(), fg.toDouble(), fb.toDouble(), 1.0)
+            }
+
             else -> throw NotImplementedError()
         }
         return result
@@ -345,6 +403,21 @@ class ColorBufferShadowGL3(override val colorBuffer: ColorBufferGL3) : ColorBuff
                         mapper(x, y, ir.toDouble(), ig.toDouble(), ib.toDouble(), ia.toDouble())
                     }
                 }
+            }
+
+            Pair(ColorType.FLOAT32, ColorFormat.RGBa) -> {
+                val fr = buffer.getFloat()
+                val fg = buffer.getFloat()
+                val fb = buffer.getFloat()
+                val fa = buffer.getFloat()
+                mapper(fr.toDouble(), fg.toDouble(), fb.toDouble(), fa.toDouble())
+            }
+
+            Pair(ColorType.FLOAT32, ColorFormat.RGB) -> {
+                val fr = buffer.getFloat()
+                val fg = buffer.getFloat()
+                val fb = buffer.getFloat()
+                mapper(fr.toDouble(), fg.toDouble(), fb.toDouble(), 1.0)
             }
 
             else -> throw NotImplementedError()
