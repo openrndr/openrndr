@@ -251,7 +251,17 @@ interface ColorBufferShadow {
     fun mapFloat(mapper: (r: Double, g: Double, b: Double, a: Double) -> Float): Array<FloatArray>
     fun mapInt(mapper: (r: Double, g: Double, b: Double, a: Double) -> Int): Array<IntArray>
 
-    fun <T> map(mapper: (r: Double, g: Double, b: Double, a: Double) -> T): Array<List<T>>
+    fun <T> mapIndexed(xrange: IntProgression = 0 until this.colorBuffer.effectiveWidth,
+                       yrange: IntProgression = 0 until this.colorBuffer.effectiveHeight,
+                       mapper: (x: Int, y: Int, r: Double, g: Double, b: Double, a: Double) -> T): Array<List<T>>
+
+    fun <T> flatMapIndexed(xrange: IntProgression = 0 until this.colorBuffer.effectiveWidth,
+                           yrange: IntProgression = 0 until this.colorBuffer.effectiveHeight,
+                           mapper: (x: Int, y: Int, r: Double, g: Double, b: Double, a: Double) -> T): List<T> {
+        return mapIndexed(xrange, yrange, mapper).flatMap { it }
+    }
+
+
     operator fun get(x: Int, y: Int): ColorRGBa {
         return read(x, y)
     }
@@ -789,6 +799,10 @@ class Drawer(val driver: Driver) {
 
     fun rectangle(x: Double, y: Double, width: Double, height: Double) {
         rectangleDrawer.drawRectangle(context, drawStyle, x, y, width, height)
+    }
+
+    fun rectangle(corner: Vector2, width: Double, height:Double) {
+        rectangleDrawer.drawRectangle(context, drawStyle, corner.x, corner.y, width, height)
     }
 
     fun rectangles(positions: List<Vector2>, width: Double, height: Double) {
