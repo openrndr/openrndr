@@ -330,9 +330,9 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
             logger.debug { "$count file(s) have been dropped" }
             val pointers = PointerBuffer.create(names, count)
             val files = (0 until count).map {
-                File(pointers.getStringUTF8(0))
+                File(pointers.getStringUTF8(it))
             }
-            program.window.drop.trigger(DropEvent(Vector2(0.0, 0.0), files))
+            program.window.drop.trigger(DropEvent(program.mouse.position, files))
         }
 
         var down = false
