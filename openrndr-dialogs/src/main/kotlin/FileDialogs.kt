@@ -2,13 +2,14 @@ import java.io.File
 
 import org.lwjgl.util.nfd.NativeFileDialog
 import org.lwjgl.system.MemoryUtil.*
-import org.lwjgl.util.nfd.NativeFileDialog.NFD_OKAY
+import org.lwjgl.util.nfd.NFDPathSet
+import org.lwjgl.util.nfd.NativeFileDialog.*
 import org.openrndr.platform.Platform
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.util.*
 
-private fun getDefaultPathForContext(programName:String, contextID:String):String? {
+private fun getDefaultPathForContext(programName: String, contextID: String): String? {
     val props = Properties()
 
     return try {
@@ -27,7 +28,7 @@ private fun getDefaultPathForContext(programName:String, contextID:String):Strin
     }
 }
 
-private fun setDefaultPathForContext(programName:String, contextID:String, file:File) {
+private fun setDefaultPathForContext(programName: String, contextID: String, file: File) {
     val props = Properties()
 
     try {
@@ -47,7 +48,7 @@ private fun setDefaultPathForContext(programName:String, contextID:String, file:
     }
 }
 
-fun openFileDialog(programName: String = "OPENRNDR", contextID:String="global", function: (File) -> Unit) {
+fun openFileDialog(programName: String = "OPENRNDR", contextID: String = "global", function: (File) -> Unit) {
     val filterList: CharSequence? = null
     val defaultPath: CharSequence? = getDefaultPathForContext(programName, contextID)
     val out = memAllocPointer(1)
@@ -63,7 +64,44 @@ fun openFileDialog(programName: String = "OPENRNDR", contextID:String="global", 
     memFree(out)
 }
 
-fun saveFileDialog(programName:String = "OPENRNDR", contextID:String="global", function: (File) -> Unit) {
+fun openFilesDialog(programName: String = "OPENRNDR", contextID: String = "global", function: (List<File>) -> Unit) {
+    val filterList: CharSequence? = null
+    val defaultPath: CharSequence? = getDefaultPathForContext(programName, contextID)
+
+    val pathSet = NFDPathSet.calloc()
+
+    val r = NativeFileDialog.NFD_OpenDialogMultiple(filterList, defaultPath, pathSet)
+    val files = mutableListOf<File>()
+    if (r == NFD_OKAY) {
+        for (i in 0 until NFD_PathSet_GetCount(pathSet)) {
+            val result = NFD_PathSet_GetPath(pathSet, i)
+            if (result != null) {
+                files.add(File(result))
+            }
+        }
+    }
+    NFD_PathSet_Free(pathSet)
+    if (files.isNotEmpty()) {
+        function(files)
+    }
+}
+
+fun openFolderDialog(programName: String = "OPENRNDR", contextID: String = "global", function: (File) -> Unit) {
+    val defaultPath: CharSequence? = getDefaultPathForContext(programName, contextID)
+    val out = memAllocPointer(1)
+
+    val r = NativeFileDialog.NFD_PickFolder(defaultPath, out)
+    if (r == NFD_OKAY) {
+        val ptr = out.get(0)
+        val str = memUTF8(ptr)
+        val f = File(str)
+        setDefaultPathForContext(programName, contextID, f)
+        function(f)
+    }
+    memFree(out)
+}
+
+fun saveFileDialog(programName: String = "OPENRNDR", contextID: String = "global", function: (File) -> Unit) {
     val filterList: CharSequence? = null
     val defaultPath: CharSequence? = getDefaultPathForContext(programName, contextID)
     val out = memAllocPointer(1)
@@ -77,4 +115,3 @@ fun saveFileDialog(programName:String = "OPENRNDR", contextID:String="global", f
     }
     memFree(out)
 }
-
