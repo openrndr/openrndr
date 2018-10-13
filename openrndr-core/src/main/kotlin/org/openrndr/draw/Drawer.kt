@@ -461,8 +461,15 @@ interface RenderTarget {
 }
 
 fun renderTarget(width: Int, height: Int, contentScale: Double = 1.0, builder: RenderTargetBuilder.() -> Unit): RenderTarget {
+    if (width == 0 || height == 0) {
+        throw IllegalArgumentException("unsupported resolution ($width×$height)")
+    }
     val renderTarget = RenderTarget.create(width, height, contentScale)
     RenderTargetBuilder(renderTarget).builder()
+
+    if (renderTarget.colorBuffers.isEmpty() ) {
+        throw IllegalArgumentException("render target has no color attachments")
+    }
     return renderTarget
 }
 
@@ -801,7 +808,7 @@ class Drawer(val driver: Driver) {
         rectangleDrawer.drawRectangle(context, drawStyle, x, y, width, height)
     }
 
-    fun rectangle(corner: Vector2, width: Double, height:Double) {
+    fun rectangle(corner: Vector2, width: Double, height: Double) {
         rectangleDrawer.drawRectangle(context, drawStyle, corner.x, corner.y, width, height)
     }
 
