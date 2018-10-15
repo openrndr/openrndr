@@ -82,6 +82,7 @@ fun openFilesDialog(programName: String = "OPENRNDR", contextID: String = "globa
     }
     NFD_PathSet_Free(pathSet)
     if (files.isNotEmpty()) {
+        setDefaultPathForContext(programName, contextID, files[0])
         function(files)
     }
 }
