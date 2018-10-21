@@ -64,6 +64,29 @@ enum class DepthFormat {
     DEPTH32F_STENCIL8
 }
 
+class StencilStyle {
+    var stencilFailOperation = StencilOperation.KEEP
+    var depthFailOperation = StencilOperation.KEEP
+    var depthPassOperation = StencilOperation.KEEP
+    var stencilTestMask = 0xff
+    var stencilTestReference = 0
+    var stencilWriteMask = 0xff
+    var stencilTest = StencilTest.DISABLED
+
+    fun stencilFunc(stencilTest: StencilTest, ref: Int, mask: Int) {
+        this.stencilTest = stencilTest
+        this.stencilTestReference = ref
+        this.stencilWriteMask = mask
+    }
+
+    fun stencilOp(stencilFail: StencilOperation, depthTestFail: StencilOperation, depthTestPass: StencilOperation) {
+        stencilFailOperation = stencilFail
+        depthFailOperation = depthTestFail
+        depthPassOperation = depthTestPass
+    }
+}
+
+
 @Suppress("EnumEntryName")
 enum class ColorFormat {
     R,

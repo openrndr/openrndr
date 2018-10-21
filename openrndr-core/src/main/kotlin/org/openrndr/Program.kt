@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package org.openrndr
 
 import org.openrndr.color.ColorRGBa
@@ -9,118 +11,6 @@ import org.openrndr.math.Vector2
 
 import java.io.File
 
-/**
- *
- */
-enum class UnfocusBehaviour {
-    NORMAL, /** Continue as usual **/
-    THROTTLE /** Throttle drawing **/
-}
-
-class Configuration {
-
-    /**
-     * The preferred window width
-     */
-    var width: Int = 640
-
-    /**
-     * The preferred window height
-     */
-    var height: Int = 480
-
-    /**
-     * The window title
-     */
-    var title: String = "OPENRNDR"
-
-    /**
-     * Should debug mode be used?
-     */
-    var debug: Boolean = false
-    var trace: Boolean = false
-
-    /**
-     * Should window decorations be hidden?
-     */
-    var hideWindowDecorations = false
-
-    /**
-     * Should the window be made fullscreen?
-     */
-    var fullscreen = false
-
-    /**
-     * Should the window be made visible before calling setup?
-     */
-    var showBeforeSetup = true
-
-    /**
-     * Should the cursor be hidden?
-     */
-    var hideCursor = false
-
-    /**
-     * The window position. The window will be placed in the center of the primary screen when set to null
-     */
-    var position: IntVector2? = null
-
-    /**
-     * The window and drawing behaviour on window unfocus
-     **/
-    var unfocusBehaviour = UnfocusBehaviour.NORMAL
-
-
-    var windowResizable:Boolean = false
-
-    /**
-     * Should the application be run in headless mode. 
-     */
-    var headless: Boolean = false
-
-}
-
-/**
- * Simple configuration builder
- */
-fun configuration(builder:Configuration.()->Unit):Configuration {
-    return Configuration().apply(builder)
-}
-
-enum class KeyboardModifier(val mask: Int) {
-    SHIFT(1),
-    CTRL(2),
-    ALT(4),
-    SUPER(8)
-}
-
-enum class MouseButton {
-    LEFT,
-    RIGHT,
-    CENTER,
-    NONE
-}
-
-enum class MouseEventType {
-    MOVED,
-    DRAGGED,
-    CLICKED,
-    BUTTON_UP,
-    BUTTON_DOWN,
-    SCROLLED,
-}
-
-enum class KeyEventType {
-    KEY_DOWN,
-    KEY_UP,
-    KEY_REPEAT,
-}
-
-class KeyEvent(val type: KeyEventType, val key: Int, val scanCode: Int, val name: String, val modifiers: Set<KeyboardModifier>, var propagationCancelled: Boolean = false) {
-    fun cancelPropagation() {
-        propagationCancelled = true
-    }
-}
 
 enum class WindowEventType {
     MOVED,
@@ -131,49 +21,12 @@ enum class WindowEventType {
 
 class WindowEvent(val type: WindowEventType, val position: Vector2, val size: Vector2, val focused: Boolean)
 
-class DropEvent(val position:Vector2, val files:List<File>)
+class DropEvent(val position: Vector2, val files: List<File>)
 
-val KEY_SPACEBAR = 32
-
-val KEY_ESCAPE = 256
-val KEY_ENTER = 257
-
-val KEY_TAB = 258
-val KEY_BACKSPACE = 259
-val KEY_INSERT = 260
-val KEY_DELETE = 261
-val KEY_ARROW_RIGHT = 262
-val KEY_ARROW_LEFT = 263
-val KEY_ARROW_DOWN = 264
-val KEY_ARROW_UP = 265
-val KEY_PAGE_UP = 266
-val KEY_PAGE_DOWN = 267
-val KEY_HOME = 268
-val KEY_END = 269
-
-val KEY_CAPSLOCK = 280
-val KEY_PRINT_SCREEN = 283
-
-
-val KEY_F1 = 290
-val KEY_F2 = 291
-val KEY_F3 = 292
-val KEY_F4 = 293
-val KEY_F5 = 294
-val KEY_F6 = 295
-val KEY_F7 = 296
-val KEY_F8 = 297
-val KEY_F9 = 298
-val KEY_F10 = 299
-val KEY_F11 = 300
-val KEY_F12 = 301
-
-val KEY_LEFT_SHIFT = 340
-val KEY_RIGHT_SHIFT = 344
 
 /**
-    The Program class, this is where most user implementations start
-**/
+The Program class, this is where most user implementations start
+ **/
 open class Program {
 
     var width = 0
@@ -184,8 +37,11 @@ open class Program {
 
     lateinit var application: Application
 
-    var backgroundColor:ColorRGBa? = ColorRGBa.BLACK
+    var backgroundColor: ColorRGBa? = ColorRGBa.BLACK
 
+    /**
+     * The number of [seconds] since program start
+     */
     val seconds: Double
         get() = application.seconds
 
@@ -195,18 +51,18 @@ open class Program {
                 return application.clipboardContents
             }
             set(value) {
-                application.clipboardContents = contents
+                application.clipboardContents = value
             }
     }
 
     val clipboard = Clipboard()
     private val extensions = mutableListOf<Extension>()
 
+
     /**
-     * Install an extension
-     * @param extension the extension to install
+     * Install an [extension].
      */
-    fun extend(extension: Extension) : Extension{
+    fun extend(extension: Extension): Extension {
         extensions.add(extension)
         extension.setup(this)
         return extension
@@ -227,10 +83,10 @@ open class Program {
         var scale = Vector2(1.0, 1.0)
 
         var presentationMode: PresentationMode
-        get() = application.presentationMode
-        set(value) {
-            application.presentationMode = value
-        }
+            get() = application.presentationMode
+            set(value) {
+                application.presentationMode = value
+            }
 
 
         fun requestDraw() = application.requestDraw()
@@ -249,8 +105,11 @@ open class Program {
          * Window moved event
          */
         val moved = Event<WindowEvent>().postpone(true)
-        val sized = Event<WindowEvent>().postpone(true)
 
+        /**
+         * Window sized event
+         */
+        val sized = Event<WindowEvent>().postpone(true)
 
         /**
          * Drop event, triggered when a file is dropped on the window
@@ -260,16 +119,16 @@ open class Program {
         /**
          * Window position
          */
-        var position:Vector2
+        var position: Vector2
             get() = application.windowPosition
-        set(value) {
-            application.windowPosition = value
-        }
+            set(value) {
+                application.windowPosition = value
+            }
     }
 
     val window = Window()
 
-    class CharacterEvent(val character:Char, val modifiers: Set<KeyboardModifier>, var propagationCancelled: Boolean = false) {
+    class CharacterEvent(val character: Char, val modifiers: Set<KeyboardModifier>, var propagationCancelled: Boolean = false) {
         fun cancelPropagation() {
             propagationCancelled = true
         }
@@ -285,12 +144,15 @@ open class Program {
     val keyboard = Keyboard()
 
     class Mouse {
-        class MouseEvent(val position: Vector2, val rotation: Vector2, val dragDisplacement: Vector2, val type: MouseEventType, val button: MouseButton, val modifiers: Set<KeyboardModifier>, var propagationCancelled:Boolean = false) {
+        class MouseEvent(val position: Vector2, val rotation: Vector2, val dragDisplacement: Vector2, val type: MouseEventType, val button: MouseButton, val modifiers: Set<KeyboardModifier>, var propagationCancelled: Boolean = false) {
             fun cancelPropagation() {
                 propagationCancelled = true
             }
         }
 
+        /**
+         * The current mouse position
+         */
         var position = Vector2(0.0, 0.0)
 
         val buttonDown = Event<MouseEvent>().postpone(true)
@@ -298,7 +160,7 @@ open class Program {
         val dragged = Event<MouseEvent>().postpone(true)
         val moved = Event<MouseEvent>().postpone(true)
         val scrolled = Event<MouseEvent>().postpone(true)
-        val clicked =  Event<MouseEvent>().postpone(true)
+        val clicked = Event<MouseEvent>().postpone(true)
     }
 
     val mouse = Mouse()
@@ -309,9 +171,9 @@ open class Program {
     open fun setup() {}
 
     /**
-    * This is the draw call that is called by Application. It takes care of handling extensions.
-    */
-    fun drawImpl() {
+     * This is the draw call that is called by Application. It takes care of handling extensions.
+     */
+    internal fun drawImpl() {
         backgroundColor?.let {
             drawer.background(it)
         }
@@ -319,9 +181,10 @@ open class Program {
         draw()
         extensions.reversed().filter { it.enabled }.forEach { it.afterDraw(drawer, this) }
     }
+
     /**
-    * This is the user facing draw call. It should be overridden by the user.
-    */
+     * This is the user facing draw call. It should be overridden by the user.
+     */
     open fun draw() {}
 
 }
