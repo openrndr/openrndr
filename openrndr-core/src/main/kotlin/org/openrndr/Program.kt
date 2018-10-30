@@ -39,6 +39,9 @@ open class Program {
 
     var backgroundColor: ColorRGBa? = ColorRGBa.BLACK
 
+
+    val dispatcher = PumpDispatcher()
+
     /**
      * The number of [seconds] since program start
      */
@@ -173,7 +176,7 @@ open class Program {
     /**
      * This is the draw call that is called by Application. It takes care of handling extensions.
      */
-    internal fun drawImpl() {
+    fun drawImpl() {
         backgroundColor?.let {
             drawer.background(it)
         }

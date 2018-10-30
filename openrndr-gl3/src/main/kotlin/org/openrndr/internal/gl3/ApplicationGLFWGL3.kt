@@ -463,6 +463,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
                 Thread.sleep(1)
                 glfwPollEvents()
                 deliverEvents()
+                program.dispatcher.pump()
             }
         }
         logger.info { "exiting loop" }
@@ -501,6 +502,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         program.drawer.reset()
         program.drawer.ortho()
         deliverEvents()
+        program.dispatcher.pump()
         try {
             logger.trace { "window: ${program.window.size.x.toInt()}x${program.window.size.y.toInt()} program: ${program.width}x${program.height}" }
             program.drawImpl()
