@@ -1,11 +1,16 @@
 package org.openrndr
 
-import kotlinx.coroutines.experimental.*
+
+import kotlinx.coroutines.CancellableContinuation
+import kotlinx.coroutines.Delay
+import kotlinx.coroutines.DisposableHandle
+import kotlinx.coroutines.MainCoroutineDispatcher
 import mu.KotlinLogging
-import kotlin.coroutines.experimental.CoroutineContext
+import kotlin.coroutines.CoroutineContext
 
 private val logger = KotlinLogging.logger {}
 
+@kotlinx.coroutines.InternalCoroutinesApi
 class PumpDispatcher : MainCoroutineDispatcher(), Delay {
     private val toRun = mutableListOf<Runnable>()
     private val toRunAfter = mutableListOf<Pair<Long, Runnable>>()
