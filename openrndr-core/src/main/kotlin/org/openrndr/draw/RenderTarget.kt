@@ -40,6 +40,8 @@ interface RenderTarget {
 
 @Suppress("unused")
 class RenderTargetBuilder(private val renderTarget: RenderTarget) {
+
+
     fun colorBuffer(colorBuffer: ColorBuffer) {
         renderTarget.attach(colorBuffer)
     }

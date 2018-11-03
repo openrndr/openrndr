@@ -54,13 +54,10 @@ interface Driver {
     fun createCubemap(width: Int, format: ColorFormat, type: ColorType): Cubemap
     fun createCubemapFromUrls(urls: List<String>): Cubemap
 
-
     fun createResourceThread(f: () -> Unit): ResourceThread
+    fun createDrawThread() : DrawThread
 
     fun clear(r: Double, g: Double, b: Double, a: Double)
-    fun clear(r: Float, g: Float, b: Float, a: Float) {
-        clear(r.toDouble(), g.toDouble(), b.toDouble(), a.toDouble())
-    }
     fun clear(color: ColorRGBa) {
         clear(color.r, color.g, color.b, color.a)
     }
@@ -93,6 +90,12 @@ interface Driver {
     val fontVectorMapManager: FontMapManager
     val shaderGenerators: ShaderGenerators
     val activeRenderTarget: RenderTarget
+
+    /**
+     * waits for all drawing to complete
+     */
+    fun finish()
+
 
     fun internalShaderResource(resourceId: String): String
 

@@ -2,6 +2,7 @@
 
 package org.openrndr
 
+import kotlinx.coroutines.*
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.Drawer
 import org.openrndr.events.Event
@@ -10,6 +11,8 @@ import org.openrndr.math.IntVector2
 import org.openrndr.math.Vector2
 
 import java.io.File
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 
 
 enum class WindowEventType {
@@ -191,3 +194,9 @@ open class Program {
     open fun draw() {}
 
 }
+
+fun Program.launch(
+        context: CoroutineContext = EmptyCoroutineContext,
+        start: CoroutineStart = CoroutineStart.DEFAULT,
+        block: suspend CoroutineScope.() -> Unit
+): Job = GlobalScope.launch(context, start, block)

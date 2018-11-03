@@ -481,8 +481,8 @@ class ShaderGL3(val program: Int,
 
         if (blockBindings[blockName] != (block as UniformBlockGL3).blockBinding) {
             //checkGLErrors()
-            glUniformBlockBinding(program, blockIndex, (block as UniformBlockGL3).blockBinding)
-            blockBindings[blockName] = (block as UniformBlockGL3).blockBinding
+            glUniformBlockBinding(program, blockIndex, block.blockBinding)
+            blockBindings[blockName] = block.blockBinding
         }
         //checkGLErrors()
 

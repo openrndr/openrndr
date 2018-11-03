@@ -48,6 +48,7 @@ class PumpDispatcher : MainCoroutineDispatcher(), Delay {
             val copy = toRun + emptyList()
             toRun.clear()
             copy.forEach {
+//                println("running $it")
                 logger.trace { "running $it" }
                 it.run()
             }

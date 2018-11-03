@@ -14,6 +14,8 @@ import java.util.*
 
 private val active = mutableMapOf<Long, Stack<RenderTargetGL3>>()
 
+class NullRenderTargetGL3 : RenderTargetGL3(0, 640, 480, 1.0)
+
 class ProgramRenderTargetGL3(override val program: Program) : ProgramRenderTarget, RenderTargetGL3(glGetInteger(GL_FRAMEBUFFER_BINDING), 0, 0, 1.0) {
     override val width: Int
         get() = program.window.size.x.toInt()
@@ -28,12 +30,18 @@ class ProgramRenderTargetGL3(override val program: Program) : ProgramRenderTarge
     override val hasDepthBuffer = true
 }
 
-open class RenderTargetGL3(val framebuffer: Int, override val width: Int, override val height: Int, override val contentScale: Double) : RenderTarget {
+open class RenderTargetGL3(val framebuffer: Int,
+                           override val width: Int,
+                           override val height: Int,
+                           override val contentScale: Double,
+                           private val thread: Thread = Thread.currentThread()
+
+) : RenderTarget {
     override val colorBuffers: List<ColorBuffer>
         get() = _colorBuffers.map { it }
 
     override val depthBuffer: DepthBuffer?
-    get() = _depthBuffer
+        get() = _depthBuffer
 
     private val colorBufferIndices = mutableMapOf<String, Int>()
     private val _colorBuffers = mutableListOf<ColorBufferGL3>()
@@ -46,26 +54,27 @@ open class RenderTargetGL3(val framebuffer: Int, override val width: Int, overri
             return RenderTargetGL3(framebuffer, width, height, contentScale)
         }
 
-        val activeRenderTarget:RenderTargetGL3
-        get() {
-            val stack = active.getOrPut(glfwGetCurrentContext()) { Stack() }
-            return stack.peek()
-        }
+        val activeRenderTarget: RenderTargetGL3
+            get() {
+                val stack = active.getOrPut(glfwGetCurrentContext()) { Stack() }
+                return stack.peek()
+            }
     }
+
     private var bound = false
 
-    override val hasColorBuffer:Boolean get() = colorBuffers.isNotEmpty()
-    override val hasDepthBuffer:Boolean get() = depthBuffer != null
+    override val hasColorBuffer: Boolean get() = colorBuffers.isNotEmpty()
+    override val hasDepthBuffer: Boolean get() = depthBuffer != null
 
     override fun colorBuffer(index: Int): ColorBuffer {
         return _colorBuffers[index]
     }
 
-    override fun colorBuffer(name: String):ColorBuffer {
-       return _colorBuffers[colorBufferIndices[name]!!]
+    override fun colorBuffer(name: String): ColorBuffer {
+        return _colorBuffers[colorBufferIndices[name]!!]
     }
 
-    override fun colorBufferIndex(name:String):Int {
+    override fun colorBufferIndex(name: String): Int {
         return colorBufferIndices[name]!!
     }
 
@@ -82,8 +91,12 @@ open class RenderTargetGL3(val framebuffer: Int, override val width: Int, overri
         }
     }
 
-    internal fun bindTarget() {
+    private fun bindTarget() {
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer)
+
+        if (Thread.currentThread() != thread) {
+            throw IllegalStateException("this render target is created by $thread and cannot be bound to ${Thread.currentThread()}")
+        }
 
         debugGLErrors { null }
         if (_colorBuffers.size > 0) {

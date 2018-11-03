@@ -6,13 +6,13 @@ import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER
 import org.lwjgl.opengl.GL15.glBindBuffer
 import org.lwjgl.opengl.GL20.*
+import org.lwjgl.opengl.GL30
 import org.lwjgl.opengl.GL30.glBindVertexArray
 import org.lwjgl.opengl.GL30.glGenVertexArrays
 import org.lwjgl.opengl.GL31.glDrawArraysInstanced
 import org.lwjgl.opengl.GL31.glDrawElementsInstanced
 import org.lwjgl.opengl.GL33.glVertexAttribDivisor
 import org.lwjgl.opengl.GL40.glBlendFunci
-import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
 import org.openrndr.internal.Driver
 import org.openrndr.internal.FontMapManager
@@ -21,11 +21,12 @@ import org.openrndr.internal.ShaderGenerators
 import org.openrndr.math.Matrix44
 
 import java.nio.Buffer
+import java.util.*
 
 private val logger = KotlinLogging.logger {}
 internal val useDebugContext = System.getProperty("org.openrndr.gl3.debug") != null
 
-class DriverGL3 : Driver {
+ class DriverGL3 : Driver {
 
 
     override val contextID: Long get() {
@@ -35,12 +36,23 @@ class DriverGL3 : Driver {
     override fun createResourceThread(f: () -> Unit): ResourceThread {
         return ResourceThreadGL3.create(f)
     }
+
+    override fun createDrawThread() : DrawThread {
+        return DrawThreadGL3.create()
+    }
+
+    private val defaultVAOs = WeakHashMap<Thread, Int>()
+    internal val defaultVAO: Int get() = defaultVAOs.getOrPut(Thread.currentThread()) {
+        val vaos = IntArray(1)
+        GL30.glGenVertexArrays(vaos)
+        vaos[0]
+    }
+
     override val shaderGenerators: ShaderGenerators = ShaderGeneratorsGL3()
     private val vaos = mutableMapOf<Long, Int>()
-    internal var defaultVAO = 1
 
     private fun hash(shader: ShaderGL3, vertexBuffers: List<VertexBuffer>, instanceAttributes: List<VertexBuffer>): Long {
-        var hash = 0L
+        var hash = contextID
         hash += shader.program
         for (i in 0 until vertexBuffers.size) {
             hash += (vertexBuffers[i] as VertexBufferGL3).bufferHash shl (12 + (i * 12))
@@ -486,6 +498,11 @@ class DriverGL3 : Driver {
 
     override val activeRenderTarget: RenderTarget
         get() = RenderTargetGL3.activeRenderTarget
+
+     override fun finish() {
+         GL11.glFlush()
+         GL11.glFinish()
+     }
 }
 
 private fun IndexType.glType(): Int {

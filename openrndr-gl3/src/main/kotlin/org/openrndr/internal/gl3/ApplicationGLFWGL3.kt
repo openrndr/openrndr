@@ -287,10 +287,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
             GLUtil.setupDebugMessageCallback()
         }
 
-        glGenVertexArrays(vaos)
-        glBindVertexArray(vaos[0])
         driver = DriverGL3()
-        driver.defaultVAO = vaos[0]
         program.driver = driver
         program.drawer = Drawer(driver)
 
