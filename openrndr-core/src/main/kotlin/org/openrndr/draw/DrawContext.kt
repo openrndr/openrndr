@@ -1,5 +1,6 @@
 package org.openrndr.draw
 
+import mu.KotlinLogging
 import org.openrndr.internal.Driver
 import org.openrndr.math.Matrix44
 import org.openrndr.math.Vector2
@@ -13,12 +14,15 @@ private var lastViewNormal = Matrix44.IDENTITY
 private var contextBlocks = mutableMapOf<Long, UniformBlock>()
 private var useContextBlock = true
 
+private val logger = KotlinLogging.logger {}
+
 
 @Suppress("MemberVisibilityCanPrivate")
 data class DrawContext(val model: Matrix44, val view: Matrix44, val projection: Matrix44, val width: Int, val height: Int, val contentScale: Double) {
     fun applyToShader(shader: Shader) {
 
         val contextBlock = contextBlocks.getOrPut(Driver.driver.contextID) {
+            logger.debug { "creating context block for ${Driver.driver.contextID}" }
             shader.createBlock("ContextBlock")
         }
 

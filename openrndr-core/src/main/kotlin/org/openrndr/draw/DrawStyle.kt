@@ -1,9 +1,13 @@
 package org.openrndr.draw
 
+import mu.KotlinLogging
 import org.openrndr.color.ColorRGBa
 import org.openrndr.internal.Driver
 import org.openrndr.math.Matrix55
 import org.openrndr.shape.Rectangle
+
+private val logger = KotlinLogging.logger {}
+
 
 enum class LineJoin {
     BEVEL,
@@ -217,16 +221,18 @@ data class DrawStyle(
             }
         } else {
             val styleBlock = styleBlocks.getOrPut(Driver.driver.contextID) {
+                logger.debug { "creating styleblock UBO for ${Driver.driver.contextID}" }
                 shader.createBlock("StyleBlock")
             }
 
-            styleBlock?.apply {
+            styleBlock.apply {
                 uniform("u_fill", fill ?: ColorRGBa.TRANSPARENT)
                 uniform("u_stroke", stroke ?: ColorRGBa.TRANSPARENT)
                 uniform("u_strokeWeight", strokeWeight.toFloat())
                 uniform("u_colorMatrix", colorMatrix)
                 shader.block("StyleBlock", this)
                 if (dirty) {
+                    logger.trace { "styleblock UBO for ${Driver.driver.contextID} is dirty -> upload" }
                     upload()
                 }
             }

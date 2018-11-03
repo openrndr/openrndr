@@ -2,6 +2,7 @@ package org.openrndr.internal.gl3
 
 import mu.KotlinLogging
 import org.lwjgl.BufferUtils
+import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL15.*
 import org.lwjgl.opengl.GL20.*
@@ -10,6 +11,7 @@ import org.lwjgl.opengl.GL30.glBindBufferBase
 import org.lwjgl.opengl.GL31.*
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
+import org.openrndr.internal.Driver
 import org.openrndr.math.*
 import java.io.File
 import java.io.FileWriter
@@ -22,6 +24,7 @@ private var blockBindings = 0
 
 class UniformBlockGL3(override val layout: UniformBlockLayout, val blockBinding: Int, val ubo: Int, val shadowBuffer: ByteBuffer) : UniformBlock {
 
+    internal val thread = Thread.currentThread()
     private val lastValues = mutableMapOf<String, Any>()
     var realDirty: Boolean = true
     override val dirty: Boolean
@@ -29,15 +32,17 @@ class UniformBlockGL3(override val layout: UniformBlockLayout, val blockBinding:
 
     companion object {
         fun create(layout: UniformBlockLayout): UniformBlockGL3 {
-            val ubo = glGenBuffers()
-            glBindBuffer(GL_UNIFORM_BUFFER, ubo)
-            glBufferData(GL_UNIFORM_BUFFER, layout.sizeInBytes.toLong(), GL_DYNAMIC_DRAW)
-            glBindBuffer(GL_UNIFORM_BUFFER, 0)
+            synchronized(Driver.driver) {
+                val ubo = glGenBuffers()
+                glBindBuffer(GL_UNIFORM_BUFFER, ubo)
+                glBufferData(GL_UNIFORM_BUFFER, layout.sizeInBytes.toLong(), GL_DYNAMIC_DRAW)
+                glBindBuffer(GL_UNIFORM_BUFFER, 0)
 
-            glBindBufferBase(GL_UNIFORM_BUFFER, blockBindings, ubo)
-            blockBindings++
-            val buffer = BufferUtils.createByteBuffer(layout.sizeInBytes)
-            return UniformBlockGL3(layout, blockBindings - 1, ubo, buffer)
+                glBindBufferBase(GL_UNIFORM_BUFFER, blockBindings, ubo)
+                blockBindings++
+                val buffer = BufferUtils.createByteBuffer(layout.sizeInBytes)
+                return UniformBlockGL3(layout, blockBindings - 1, ubo, buffer)
+            }
         }
     }
 
@@ -269,6 +274,10 @@ class UniformBlockGL3(override val layout: UniformBlockLayout, val blockBinding:
     }
 
     override fun upload() {
+        if (Thread.currentThread() != thread) {
+            throw IllegalStateException("current thread ${Thread.currentThread()} is not equal to creation thread $thread")
+        }
+
         realDirty = false
         glBindBuffer(GL_UNIFORM_BUFFER, ubo)
         shadowBuffer.safeRewind()
@@ -287,7 +296,7 @@ private fun ByteBuffer.safeRewind() {
     (this as Buffer).rewind()
 }
 
-fun checkShaderInfoLog(`object`: Int, code: String, sourceFile: String) {
+internal fun checkShaderInfoLog(`object`: Int, code: String, sourceFile: String) {
     logger.debug { "getting shader info log" }
     val logLength = IntArray(1)
     glGetShaderiv(`object`, GL_INFO_LOG_LENGTH, logLength)
@@ -350,30 +359,34 @@ class ShaderGL3(val program: Int,
     companion object {
         fun create(vertexShader: VertexShaderGL3, fragmentShader: FragmentShaderGL3): ShaderGL3 {
 
-            debugGLErrors()
-            var name = "${vertexShader.name} / ${fragmentShader.name}"
+            synchronized(Driver.driver) {
+                debugGLErrors()
+                val name = "${vertexShader.name} / ${fragmentShader.name}"
 
-            val program = glCreateProgram()
-            debugGLErrors()
+                val program = glCreateProgram()
+                debugGLErrors()
 
-            glAttachShader(program, vertexShader.shaderObject)
-            debugGLErrors()
+                glAttachShader(program, vertexShader.shaderObject)
+                debugGLErrors()
 
-            glAttachShader(program, fragmentShader.shaderObject)
-            debugGLErrors()
+                glAttachShader(program, fragmentShader.shaderObject)
+                debugGLErrors()
 
-            glLinkProgram(program)
-            debugGLErrors()
+                glLinkProgram(program)
+                debugGLErrors()
 
-            val linkStatus = IntArray(1)
-            glGetProgramiv(program, GL_LINK_STATUS, linkStatus)
-            debugGLErrors()
+                val linkStatus = IntArray(1)
+                glGetProgramiv(program, GL_LINK_STATUS, linkStatus)
+                debugGLErrors()
 
-            if (linkStatus[0] != GL_TRUE) {
-                checkProgramInfoLog(program, "noname")
+                if (linkStatus[0] != GL_TRUE) {
+                    checkProgramInfoLog(program, "noname")
+                }
+
+                GL11.glFinish()
+
+                return ShaderGL3(program, name, vertexShader, fragmentShader)
             }
-
-            return ShaderGL3(program, name, vertexShader, fragmentShader)
         }
     }
 
@@ -471,12 +484,17 @@ class ShaderGL3(val program: Int,
     }
 
     override fun block(blockName: String, block: UniformBlock) {
+
+        if (Thread.currentThread() != (block as UniformBlockGL3).thread) {
+            throw IllegalStateException("block is created on ${block.thread} and is now used on ${Thread.currentThread()}")
+        }
+
         if (!running) {
-            throw RuntimeException("use begin() before setting blocks")
+            throw IllegalStateException("use begin() before setting blocks")
         }
         val blockIndex = blockIndex(blockName)
         if (blockIndex == -1) {
-            throw RuntimeException("block not found $blockName")
+            throw IllegalArgumentException("block not found $blockName")
         }
 
         if (blockBindings[blockName] != (block as UniformBlockGL3).blockBinding) {

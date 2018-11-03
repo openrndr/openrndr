@@ -1,5 +1,6 @@
 package org.openrndr.internal.gl3
 
+import mu.KotlinLogging
 import org.openrndr.draw.ColorBuffer
 import org.openrndr.draw.DepthBuffer
 import org.openrndr.draw.ProgramRenderTarget
@@ -11,6 +12,8 @@ import org.lwjgl.opengl.GL20.glDrawBuffers
 import org.lwjgl.opengl.GL30.*
 import org.openrndr.Program
 import java.util.*
+
+private val logger = KotlinLogging.logger {}
 
 private val active = mutableMapOf<Long, Stack<RenderTargetGL3>>()
 
@@ -50,6 +53,7 @@ open class RenderTargetGL3(val framebuffer: Int,
 
     companion object {
         fun create(width: Int, height: Int, contentScale: Double = 1.0): RenderTargetGL3 {
+            logger.trace { "created new render target ($width*$height) @ ${contentScale}x" }
             val framebuffer = glGenFramebuffers()
             return RenderTargetGL3(framebuffer, width, height, contentScale)
         }
@@ -79,9 +83,6 @@ open class RenderTargetGL3(val framebuffer: Int,
     }
 
     override fun bind() {
-
-        glfwGetCurrentContext()
-
         if (bound) {
             throw RuntimeException("already bound")
         } else {
@@ -119,6 +120,7 @@ open class RenderTargetGL3(val framebuffer: Int,
         val effectiveWidth = (width * contentScale).toInt()
         val effectiveHeight = (height * contentScale).toInt()
 
+        logger.trace { "setting viewport to (0, 0, $effectiveWidth, $effectiveHeight)" }
         glViewport(0, 0, effectiveWidth, effectiveHeight)
         debugGLErrors { null }
     }
@@ -130,8 +132,8 @@ open class RenderTargetGL3(val framebuffer: Int,
                 it.peek()
             }
             previous as RenderTargetGL3
+            logger.trace {"restoring to previous render target $previous" }
             previous.bindTarget()
-
         } else {
             throw RuntimeException("target not bound")
         }

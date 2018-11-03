@@ -19,6 +19,7 @@ import org.openrndr.internal.FontMapManager
 import org.openrndr.internal.ResourceThread
 import org.openrndr.internal.ShaderGenerators
 import org.openrndr.math.Matrix44
+import java.math.BigInteger
 
 import java.nio.Buffer
 import java.util.*
@@ -42,23 +43,26 @@ internal val useDebugContext = System.getProperty("org.openrndr.gl3.debug") != n
     }
 
     private val defaultVAOs = WeakHashMap<Thread, Int>()
-    internal val defaultVAO: Int get() = defaultVAOs.getOrPut(Thread.currentThread()) {
+    private val defaultVAO: Int get() = defaultVAOs.getOrPut(Thread.currentThread()) {
         val vaos = IntArray(1)
-        GL30.glGenVertexArrays(vaos)
+        synchronized(Driver.driver) {
+            GL30.glGenVertexArrays(vaos)
+        }
         vaos[0]
     }
 
     override val shaderGenerators: ShaderGenerators = ShaderGeneratorsGL3()
-    private val vaos = mutableMapOf<Long, Int>()
+    private val vaos = mutableMapOf<BigInteger, Int>()
 
-    private fun hash(shader: ShaderGL3, vertexBuffers: List<VertexBuffer>, instanceAttributes: List<VertexBuffer>): Long {
-        var hash = contextID
-        hash += shader.program
+    private fun hash(shader: ShaderGL3, vertexBuffers: List<VertexBuffer>, instanceAttributes: List<VertexBuffer>): BigInteger {
+        var hash = BigInteger.valueOf(contextID)
+        hash += BigInteger.valueOf(shader.program.toLong())
+
         for (i in 0 until vertexBuffers.size) {
-            hash += (vertexBuffers[i] as VertexBufferGL3).bufferHash shl (12 + (i * 12))
+            hash += BigInteger.valueOf(((vertexBuffers[i] as VertexBufferGL3).bufferHash shl (12 + (i * 12))).toLong())
         }
         for (i in 0 until instanceAttributes.size) {
-            hash += (instanceAttributes[i] as VertexBufferGL3).bufferHash shl (12 + ((i + vertexBuffers.size) * 12))
+            hash += BigInteger.valueOf(((instanceAttributes[i] as VertexBufferGL3).bufferHash shl (12 + ((i + vertexBuffers.size) * 12))).toLong())
         }
         return hash
     }
@@ -123,7 +127,10 @@ internal val useDebugContext = System.getProperty("org.openrndr.gl3.debug") != n
         }
         val vertexShader = VertexShaderGL3.fromString(vsCode)
         val fragmentShader = FragmentShaderGL3.fromString(fsCode)
-        return ShaderGL3.create(vertexShader, fragmentShader)
+
+        synchronized(this) {
+            return ShaderGL3.create(vertexShader, fragmentShader)
+        }
     }
 
     override fun createBufferTexture(elementCount: Int,
@@ -150,12 +157,16 @@ internal val useDebugContext = System.getProperty("org.openrndr.gl3.debug") != n
 
     override fun createRenderTarget(width: Int, height: Int, contentScale: Double): RenderTarget {
         logger.trace { "creating render target $width x $height @ ${contentScale}x" }
-        return RenderTargetGL3.create(width, height, contentScale)
+        synchronized(this) {
+            return RenderTargetGL3.create(width, height, contentScale)
+        }
     }
 
     override fun createColorBuffer(width: Int, height: Int, contentScale: Double, format: ColorFormat, type: ColorType): ColorBuffer {
         logger.trace { "creating color buffer $width x $height @ $format:$type" }
-        return ColorBufferGL3.create(width, height, contentScale, format, type)
+        synchronized(this) {
+            return ColorBufferGL3.create(width, height, contentScale, format, type)
+        }
     }
 
     override fun createColorBufferFromUrl(url: String): ColorBuffer {
@@ -168,14 +179,22 @@ internal val useDebugContext = System.getProperty("org.openrndr.gl3.debug") != n
 
     override fun createDepthBuffer(width: Int, height: Int, format: DepthFormat): DepthBuffer {
         logger.trace { "creating depth buffer $width x $height @ $format" }
-        return DepthBufferGL3.create(width, height, format)
+        synchronized(this) {
+            return DepthBufferGL3.create(width, height, format)
+        }
     }
 
     override fun createDynamicIndexBuffer(elementCount: Int, type: IndexType):IndexBuffer {
-        return IndexBufferGL3.create(elementCount, type)
+        synchronized(this) {
+            return IndexBufferGL3.create(elementCount, type)
+        }
     }
 
-    override fun createDynamicVertexBuffer(format: VertexFormat, vertexCount: Int): VertexBuffer = VertexBufferGL3.createDynamic(format, vertexCount)
+    override fun createDynamicVertexBuffer(format: VertexFormat, vertexCount: Int): VertexBuffer {
+      synchronized(this) {
+          return VertexBufferGL3.createDynamic(format, vertexCount)
+      }
+    }
 
     override fun drawVertexBuffer(shader: Shader, vertexBuffers: List<VertexBuffer>, drawPrimitive: DrawPrimitive, vertexOffset: Int, vertexCount: Int) {
         shader as ShaderGL3
@@ -185,11 +204,14 @@ internal val useDebugContext = System.getProperty("org.openrndr.gl3.debug") != n
             logger.debug {
                 "creating new VAO for hash $hash"
             }
+
             val arrays = IntArray(1)
-            glGenVertexArrays(arrays)
-            glBindVertexArray(arrays[0])
-            setupFormat(vertexBuffers, emptyList(), shader)
-            glBindVertexArray(defaultVAO)
+            synchronized(Driver.driver) {
+                glGenVertexArrays(arrays)
+                glBindVertexArray(arrays[0])
+                setupFormat(vertexBuffers, emptyList(), shader)
+                glBindVertexArray(defaultVAO)
+            }
             arrays[0]
         }
         glBindVertexArray(vao)
@@ -218,10 +240,12 @@ internal val useDebugContext = System.getProperty("org.openrndr.gl3.debug") != n
                 "creating new VAO for hash $hash"
             }
             val arrays = IntArray(1)
-            glGenVertexArrays(arrays)
-            glBindVertexArray(arrays[0])
-            setupFormat(vertexBuffers, emptyList(), shader)
-            glBindVertexArray(defaultVAO)
+            synchronized(Driver.driver) {
+                glGenVertexArrays(arrays)
+                glBindVertexArray(arrays[0])
+                setupFormat(vertexBuffers, emptyList(), shader)
+                glBindVertexArray(defaultVAO)
+            }
             arrays[0]
         }
         glBindVertexArray(vao)
@@ -252,10 +276,12 @@ internal val useDebugContext = System.getProperty("org.openrndr.gl3.debug") != n
                 "creating new instances VAO for hash $hash"
             }
             val arrays = IntArray(1)
-            glGenVertexArrays(arrays)
-            glBindVertexArray(arrays[0])
-            setupFormat(vertexBuffers, instanceAttributes, shader)
-            glBindVertexArray(defaultVAO)
+            synchronized(Driver.driver) {
+                glGenVertexArrays(arrays)
+                glBindVertexArray(arrays[0])
+                setupFormat(vertexBuffers, instanceAttributes, shader)
+                glBindVertexArray(defaultVAO)
+            }
             arrays[0]
         }
 
@@ -285,10 +311,12 @@ internal val useDebugContext = System.getProperty("org.openrndr.gl3.debug") != n
                 "creating new instances VAO for hash $hash"
             }
             val arrays = IntArray(1)
-            glGenVertexArrays(arrays)
-            glBindVertexArray(arrays[0])
-            setupFormat(vertexBuffers, instanceAttributes, shader)
-            glBindVertexArray(defaultVAO)
+            synchronized(Driver.driver) {
+                glGenVertexArrays(arrays)
+                glBindVertexArray(arrays[0])
+                setupFormat(vertexBuffers, instanceAttributes, shader)
+                glBindVertexArray(defaultVAO)
+            }
             arrays[0]
         }
 
