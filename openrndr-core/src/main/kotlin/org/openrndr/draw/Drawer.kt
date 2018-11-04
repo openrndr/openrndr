@@ -60,7 +60,6 @@ enum class DrawQuality {
     PERFORMANCE
 }
 
-
 @Suppress("MemberVisibilityCanPrivate", "unused")
 class Drawer(val driver: Driver) {
 
@@ -289,7 +288,7 @@ class Drawer(val driver: Driver) {
         rectangleDrawer.drawRectangle(context, drawStyle, x, y, width, height)
     }
 
-    fun rectangle(corner: Vector2, width: Double, height:Double) {
+    fun rectangle(corner: Vector2, width: Double, height: Double) {
         rectangleDrawer.drawRectangle(context, drawStyle, corner.x, corner.y, width, height)
     }
 

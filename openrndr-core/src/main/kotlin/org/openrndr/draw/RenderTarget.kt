@@ -1,6 +1,7 @@
 package org.openrndr.draw
 
 import org.openrndr.internal.Driver
+import java.lang.IllegalStateException
 
 interface RenderTarget {
     val width: Int
@@ -41,6 +42,10 @@ interface RenderTarget {
 @Suppress("unused")
 class RenderTargetBuilder(private val renderTarget: RenderTarget) {
 
+    @Deprecated("you should not use this", replaceWith = ReplaceWith("colorBuffer()"), level = DeprecationLevel.ERROR)
+    fun colorBuffer(width: Int, height: Int, contentScale: Double = 1.0, format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.UINT8): Nothing {
+        throw IllegalStateException("use colorBuffer without width and height arguments")
+    }
 
     fun colorBuffer(colorBuffer: ColorBuffer) {
         renderTarget.attach(colorBuffer)
@@ -71,8 +76,11 @@ class RenderTargetBuilder(private val renderTarget: RenderTarget) {
 
 
 fun renderTarget(width: Int, height: Int, contentScale: Double = 1.0, builder: RenderTargetBuilder.() -> Unit): RenderTarget {
+    if (width == 0 || height == 0) {
+        throw IllegalArgumentException("unsupported resolution ($width×$height)")
+    }
+
     val renderTarget = RenderTarget.create(width, height, contentScale)
     RenderTargetBuilder(renderTarget).builder()
     return renderTarget
 }
-
