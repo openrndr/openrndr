@@ -1,10 +1,7 @@
 package org.openrndr
 
 
-import kotlinx.coroutines.CancellableContinuation
-import kotlinx.coroutines.Delay
-import kotlinx.coroutines.DisposableHandle
-import kotlinx.coroutines.MainCoroutineDispatcher
+import kotlinx.coroutines.*
 import mu.KotlinLogging
 import kotlin.coroutines.CoroutineContext
 
@@ -16,16 +13,19 @@ class PumpDispatcher : MainCoroutineDispatcher(), Delay {
     private val toRunAfter = mutableListOf<Pair<Long, Runnable>>()
     private val toContinueAfter = mutableListOf<Pair<Long, CancellableContinuation<Unit>>>()
 
+    @ExperimentalCoroutinesApi
     override fun isDispatchNeeded(context: CoroutineContext): Boolean = true
 
     override fun scheduleResumeAfterDelay(timeMillis: Long, continuation: CancellableContinuation<Unit>) {
         synchronized(toContinueAfter) {
+            logger.trace { "scheduleResume $timeMillis $continuation" }
             toContinueAfter.add(Pair(System.currentTimeMillis() + timeMillis, continuation))
         }
     }
 
     override fun invokeOnTimeout(timeMillis: Long, block: Runnable): DisposableHandle {
         synchronized(toRunAfter) {
+            logger.trace { "invokeOnTimeOut $timeMillis $block" }
             toRunAfter.add(Pair(System.currentTimeMillis() + timeMillis, block))
         }
         return DisposableHandle {
@@ -33,22 +33,23 @@ class PumpDispatcher : MainCoroutineDispatcher(), Delay {
         }
     }
 
+    @ExperimentalCoroutinesApi
     override val immediate: MainCoroutineDispatcher
         get() = this
 
     override fun dispatch(context: CoroutineContext, block: Runnable) {
-        synchronized(toRunAfter) {
+        synchronized(toRun) {
             logger.trace { "dispatching $block" }
             toRun.add(block)
         }
     }
 
+    @ExperimentalCoroutinesApi
     fun pump() {
         synchronized(toRun) {
             val copy = toRun + emptyList()
             toRun.clear()
             copy.forEach {
-//                println("running $it")
                 logger.trace { "running $it" }
                 it.run()
             }
