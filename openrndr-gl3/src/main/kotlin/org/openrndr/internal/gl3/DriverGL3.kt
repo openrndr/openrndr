@@ -2,7 +2,6 @@ package org.openrndr.internal.gl3
 
 import mu.KotlinLogging
 import org.lwjgl.glfw.GLFW
-import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER
 import org.lwjgl.opengl.GL15.glBindBuffer
@@ -28,29 +27,31 @@ import java.util.*
 private val logger = KotlinLogging.logger {}
 internal val useDebugContext = System.getProperty("org.openrndr.gl3.debug") != null
 
- class DriverGL3 : Driver {
+class DriverGL3 : Driver {
 
 
-    override val contextID: Long get() {
-        return GLFW.glfwGetCurrentContext()
-    }
+    override val contextID: Long
+        get() {
+            return GLFW.glfwGetCurrentContext()
+        }
 
     override fun createResourceThread(f: () -> Unit): ResourceThread {
         return ResourceThreadGL3.create(f)
     }
 
-    override fun createDrawThread() : DrawThread {
+    override fun createDrawThread(): DrawThread {
         return DrawThreadGL3.create()
     }
 
     private val defaultVAOs = WeakHashMap<Thread, Int>()
-    private val defaultVAO: Int get() = defaultVAOs.getOrPut(Thread.currentThread()) {
-        val vaos = IntArray(1)
-        synchronized(Driver.driver) {
-            GL30.glGenVertexArrays(vaos)
+    private val defaultVAO: Int
+        get() = defaultVAOs.getOrPut(Thread.currentThread()) {
+            val vaos = IntArray(1)
+            synchronized(Driver.driver) {
+                GL30.glGenVertexArrays(vaos)
+            }
+            vaos[0]
         }
-        vaos[0]
-    }
 
     override val shaderGenerators: ShaderGenerators = ShaderGeneratorsGL3()
     private val vaos = mutableMapOf<BigInteger, Int>()
@@ -174,8 +175,8 @@ internal val useDebugContext = System.getProperty("org.openrndr.gl3.debug") != n
         return ColorBufferGL3.fromUrl(url)
     }
 
-    override fun createColorBufferFromFile(url: String): ColorBuffer {
-        return ColorBufferGL3.fromFile(url)
+    override fun createColorBufferFromFile(filename: String): ColorBuffer {
+        return ColorBufferGL3.fromFile(filename)
     }
 
     override fun createDepthBuffer(width: Int, height: Int, format: DepthFormat): DepthBuffer {
@@ -185,16 +186,16 @@ internal val useDebugContext = System.getProperty("org.openrndr.gl3.debug") != n
         }
     }
 
-    override fun createDynamicIndexBuffer(elementCount: Int, type: IndexType):IndexBuffer {
+    override fun createDynamicIndexBuffer(elementCount: Int, type: IndexType): IndexBuffer {
         synchronized(this) {
             return IndexBufferGL3.create(elementCount, type)
         }
     }
 
     override fun createDynamicVertexBuffer(format: VertexFormat, vertexCount: Int): VertexBuffer {
-      synchronized(this) {
-          return VertexBufferGL3.createDynamic(format, vertexCount)
-      }
+        synchronized(this) {
+            return VertexBufferGL3.createDynamic(format, vertexCount)
+        }
     }
 
     override fun drawVertexBuffer(shader: Shader, vertexBuffers: List<VertexBuffer>, drawPrimitive: DrawPrimitive, vertexOffset: Int, vertexCount: Int) {
@@ -529,10 +530,10 @@ internal val useDebugContext = System.getProperty("org.openrndr.gl3.debug") != n
     override val activeRenderTarget: RenderTarget
         get() = RenderTargetGL3.activeRenderTarget
 
-     override fun finish() {
-         GL11.glFlush()
-         GL11.glFinish()
-     }
+    override fun finish() {
+        GL11.glFlush()
+        GL11.glFinish()
+    }
 }
 
 private fun IndexType.glType(): Int {
