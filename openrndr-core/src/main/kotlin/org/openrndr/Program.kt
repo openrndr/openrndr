@@ -64,15 +64,55 @@ open class Program {
     val clipboard = Clipboard()
     private val extensions = mutableListOf<Extension>()
 
-
     /**
-     * Install an [extension].
+     * Install an [Extension].
      */
     fun extend(extension: Extension): Extension {
         extensions.add(extension)
         extension.setup(this)
         return extension
     }
+
+    /**
+     * Install an [Extension] and configure it
+     */
+    fun <T : Extension> extend(extension: T, configure: T.() -> Unit): Extension {
+        extensions.add(extension)
+        extension.configure()
+        extension.setup(this)
+        return extension
+    }
+
+    /**
+     * Install an extension function for the given [ExtensionStage]
+     */
+    fun extend(stage: ExtensionStage = ExtensionStage.BEFORE_DRAW, draw: () -> Unit) {
+        val functionExtension = when (stage) {
+            ExtensionStage.SETUP ->
+                object : Extension {
+                    override var enabled: Boolean = true
+                    override fun setup(program: Program) {
+                        draw()
+                    }
+                }
+            ExtensionStage.BEFORE_DRAW ->
+                object : Extension {
+                    override var enabled: Boolean = true
+                    override fun beforeDraw(drawer: Drawer, program: Program) {
+                        draw()
+                    }
+                }
+            ExtensionStage.AFTER_DRAW ->
+                object : Extension {
+                    override var enabled: Boolean = true
+                    override fun afterDraw(drawer: Drawer, program: Program) {
+                        draw()
+                    }
+                }
+        }
+        extensions.add(functionExtension)
+    }
+
 
     /**
      * Simplified window interface

@@ -3,6 +3,15 @@ package org.openrndr
 import org.openrndr.draw.Drawer
 
 /**
+ * Indicates the stage in which the extension is
+ */
+enum class ExtensionStage {
+    SETUP,
+    BEFORE_DRAW,
+    AFTER_DRAW
+}
+
+/**
  * Defines a Program extension. This is the interface for developers of OPENRNDR extensions.
  */
 interface Extension {
