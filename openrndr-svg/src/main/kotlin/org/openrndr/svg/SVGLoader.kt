@@ -349,7 +349,7 @@ internal class SVGLoader {
         val doc = Jsoup.parse(svg, "", Parser.xmlParser())
         val root = doc.select("svg").first()
         val version = root.attr("version")
-        val baseProfile = root.attr("tiny")
+        val baseProfile = root.attr("baseProfile")
         val supportedVersions = setOf("1.0", "1.1", "1.2")
 
         if (version !in supportedVersions) {
