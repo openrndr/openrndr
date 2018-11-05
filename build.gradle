@@ -44,7 +44,7 @@ allprojects {
     }
 
     dependencies {
-        implementation 'io.github.microutils:kotlin-logging:1.5.4'
+        implementation 'io.github.microutils:kotlin-logging:1.6.10'
         implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.0.0'
 
         testImplementation 'org.jetbrains.spek:spek-api:1.1.5'
@@ -95,10 +95,8 @@ allprojects {
 }
 
 configure(subprojects)  {
-    
     tasks.withType(org.jetbrains.kotlin.gradle.tasks.AbstractKotlinCompile).all {
         kotlinOptions.freeCompilerArgs += ["-Xuse-experimental=kotlinx.coroutines.InternalCoroutinesApi"]
     }
-    
 }
 
