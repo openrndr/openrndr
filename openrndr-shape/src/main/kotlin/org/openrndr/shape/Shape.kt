@@ -701,12 +701,38 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean) {
         var t0 = u0
         var t1 = u1
 
-        if (closed && t0 < 0.0 || t1 > 1.0 || t1 < 0.0 || t1 > 1.0) {
+        if (closed && (t1 < t0 || t1 > 1.0 || t0 > 1.0 || t0 < 0.0 || t1 < 0.0 )) {
+            val diff = t1 - t0
             t0 = mod(t0, 1.0)
-            t1 = mod(t1, 1.0)
-
-            if (t0 > t1)
-                return sub(t0, 1.0) + sub(0.0, t1)
+            if (Math.abs(diff) < 0.9999999999999998) {
+                return if (diff > 0.0) {
+                    t1 = t0 + diff
+                    if (t1 > 1.0) {
+                        sub(t0, 1.0) + sub(0.0, t1-1.0)
+                    } else {
+                        sub(t0, t1)
+                    }
+                } else {
+                    t1 = t0 + diff
+                    if (t1 < 0) {
+                        sub(t1+1.0, 1.0) + sub(0.0, t0)
+                    } else {
+                        sub(t1, t0)
+                    }
+                }
+            } else {
+                t1 = if (diff < 0.0) {
+                    t0 - 1.0
+                } else {
+                    t0 + 1.0
+                }
+                if (t1 > 1.0) {
+                    return sub(t0, 1.0) + sub(0.0, t1 - 1.0)
+                }
+                if (t1 < 1.0) {
+                    return sub(t0, 1.0) + sub(0.0, t1 + 1.0)
+                }
+            }
         }
 
         t0 = t0.coerceIn(0.0, 1.0)
