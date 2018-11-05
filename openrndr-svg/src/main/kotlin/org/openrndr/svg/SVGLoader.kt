@@ -157,10 +157,8 @@ internal class SVGPath : SVGElement() {
                         for (i in 1 until allPoints.size) {
                             val point = allPoints[i]
                             segments += Segment(cursor, point)
-                            cursor  = point
-
+                            cursor = point
                         }
-
                     }
                     "m" -> {
                         val allPoints = command.vectors()
@@ -171,7 +169,6 @@ internal class SVGPath : SVGElement() {
                             val point = allPoints[i]
                             segments += Segment(cursor, cursor + point)
                             cursor += point
-
                         }
                     }
                     "L" -> {
@@ -192,16 +189,15 @@ internal class SVGPath : SVGElement() {
                         }
                     }
                     "h" -> {
-                        for(i in 0 until command.operands.size) {
+                        for (i in 0 until command.operands.size) {
                             val startCursor = cursor
                             val target = startCursor + Vector2(command.operands[i], 0.0)
                             segments += Segment(cursor, target)
                             cursor = target
                         }
-
                     }
                     "H" -> {
-                        for(i in 0 until command.operands.size) {
+                        for (i in 0 until command.operands.size) {
 
                             val target = Vector2(command.operands[i], cursor.y)
                             segments += Segment(cursor, target)
@@ -209,14 +205,14 @@ internal class SVGPath : SVGElement() {
                         }
                     }
                     "v" -> {
-                        for(i in 0 until command.operands.size) {
+                        for (i in 0 until command.operands.size) {
                             val target = cursor + Vector2(0.0, command.operands[i])
                             segments += Segment(cursor, target)
                             cursor = target
                         }
                     }
                     "V" -> {
-                        for(i in 0 until command.operands.size) {
+                        for (i in 0 until command.operands.size) {
 
                             val target = Vector2(cursor.x, command.operands[i])
                             segments += Segment(cursor, target)
@@ -240,23 +236,21 @@ internal class SVGPath : SVGElement() {
                         if ((allPoints.size) % 2 != 0) {
                             throw RuntimeException("invalid number of operands ${allPoints.size}")
                         }
-                        for (c in 0 until allPoints.size/2) {
-                            val points = allPoints.subList(c*2, c*2+2)
+                        for (c in 0 until allPoints.size / 2) {
+                            val points = allPoints.subList(c * 2, c * 2 + 2)
 
                             segments += Segment(cursor, points[0], points[1])
                             cursor = points[1]
                             relativeControl = points[0] - points[1]
                         }
                     }
-
                     "q" -> {
-
                         val allPoints = command.vectors()
                         if ((allPoints.size) % 2 != 0) {
                             throw RuntimeException("invalid number of operands ${allPoints.size}")
                         }
-                        for (c in 0 until allPoints.size/2) {
-                            val points = allPoints.subList(c*2, c*2+2)
+                        for (c in 0 until allPoints.size / 2) {
+                            val points = allPoints.subList(c * 2, c * 2 + 2)
                             val target = cursor + points[1]
                             segments += Segment(cursor, cursor + points[0], target)
                             relativeControl = (cursor + points[0]) - (cursor + points[1])
@@ -293,14 +287,13 @@ internal class SVGPath : SVGElement() {
                 }
             }
             ShapeContour(segments, closed).let {
-                if (compoundIndex == 0) it else it.reversed
+                if (compoundIndex == 0) it.counterClockwise else it.clockwise
             }
         }
         return Shape(contours)
     }
 
     fun parseDrawAttributes(e: Element) {
-
         if (e.hasAttr("fill")) {
             fill = Color(parseColor(e.attr("fill")))
         }
@@ -314,10 +307,9 @@ internal class SVGPath : SVGElement() {
 
         e.attr("style").split(";").forEach {
             val tokens = it.split(":")
-
             val attribute = tokens[0].toLowerCase().trim()
 
-            fun value():String = if (tokens.size >= 2) {
+            fun value(): String = if (tokens.size >= 2) {
                 tokens[1].trim()
             } else {
                 ""
@@ -346,8 +338,6 @@ internal class SVGDocument(private val root: SVGElement) {
         is SVGImage -> {
             val group = GroupNode()
             group
-
-
         }
     }.apply {
         transform = e.transform
@@ -355,10 +345,21 @@ internal class SVGDocument(private val root: SVGElement) {
 }
 
 internal class SVGLoader {
-
     fun loadSVG(svg: String): SVGDocument {
         val doc = Jsoup.parse(svg, "", Parser.xmlParser())
         val root = doc.select("svg").first()
+        val version = root.attr("version")
+        val baseProfile = root.attr("tiny")
+        val supportedVersions = setOf("1.0", "1.1", "1.2")
+
+        if (version !in supportedVersions) {
+            throw IllegalArgumentException("SVG version `$version` is not supported")
+        }
+
+        if (baseProfile != "tiny") {
+            throw IllegalArgumentException("SVG base-profile `$baseProfile` is not supported")
+        }
+
         val rootGroup = SVGGroup()
         handleGroup(rootGroup, root)
         return SVGDocument(rootGroup)
@@ -378,6 +379,19 @@ internal class SVGLoader {
         group.elements.add(path)
     }
 
+    private fun handlePolyline(group: SVGGroup, e: Element) {
+        val tokens = e.attr("points").split("[ ,\n]+".toRegex()).map { it.trim() }.filter { it.isNotEmpty() }
+        val points = (0 until tokens.size / 2).map { Vector2(tokens[it * 2].toDouble(), tokens[it * 2 + 1].toDouble()) }
+        val path = SVGPath().apply {
+            id = e.id()
+            parseDrawAttributes(e)
+            parseTransform(e)
+            commands.add(Command("M", points[0].x, points[0].y))
+            (1 until points.size).mapTo(commands) { Command("L", points[it].x, points[it].y) }
+        }
+        group.elements.add(path)
+    }
+
     private fun handleGroup(parent: SVGGroup, e: Element) {
         val group = SVGGroup().apply {
             id = e.id()
@@ -393,7 +407,7 @@ internal class SVGLoader {
                 "ellipse" -> handleEllipse(group, c)
                 "circle" -> handleCircle(group, c)
                 "polygon" -> handlePolygon(group, c)
-//                "polyline" -> TODO()
+                "polyline" -> handlePolyline(group, c)
 //                "image" -> TODO()
             }
         }
@@ -479,7 +493,6 @@ internal class SVGLoader {
 //    }
 
     private fun handleRectangle(group: SVGGroup, e: Element) {
-
         val x = e.attr("x").let { if (it.isEmpty()) 0.0 else it.toDouble() }
         val y = e.attr("y").let { if (it.isEmpty()) 0.0 else it.toDouble() }
         val width = e.attr("width").toDouble()
