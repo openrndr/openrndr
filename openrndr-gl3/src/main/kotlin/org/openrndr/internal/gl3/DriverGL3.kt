@@ -2,6 +2,7 @@ package org.openrndr.internal.gl3
 
 import mu.KotlinLogging
 import org.lwjgl.glfw.GLFW
+import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER
 import org.lwjgl.opengl.GL15.glBindBuffer
@@ -475,7 +476,8 @@ internal val useDebugContext = System.getProperty("org.openrndr.gl3.debug") != n
                 TODO("not implemented: subtract blend")
             }
             BlendMode.MULTIPLY -> {
-                TODO("not implemented: multiply blend")
+                glEnable(GL_BLEND)
+                glBlendFunci(0, GL_DST_COLOR, GL_ZERO)
             }
         }
 
