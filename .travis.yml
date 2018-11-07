@@ -12,3 +12,15 @@ before_install:
     fi
 
 script: ./buildViaTravis.sh
+
+
+before_deploy: ./gradlew dokka
+deploy:
+   provider: pages
+   skip-cleanup: true
+   github-token: $GITHUB_TOKEN  # Set in the settings page of your repository, as a secure variable
+   keep-history: true
+   on:
+     branch: master
+   local-dir: build/docs/openrndr
+   target-branch: gh-pages
