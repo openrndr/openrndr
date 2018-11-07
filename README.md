@@ -31,4 +31,4 @@ fun main() = Application.run(Image001(), Configuration())
 ```
 Please have a look at our [application template](https://github.com/openrndr/openrndr-gradle-template) and our [tutorial repository](https://github.com/openrndr/openrndr-tutorials) for more usage examples.
 
-Basics and use are further explained in the [OPENRNDR guide](http://guide.openrndr.org) and more project information can be found on our [website](http://openrndr.org) 
+Basics and use are further explained in the [OPENRNDR guide](https://guide.openrndr.org) and more project information can be found on our [website](https://openrndr.org) 
