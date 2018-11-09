@@ -11,6 +11,7 @@ private fun primitiveTypes(type: String) = """
 #define d_font_image_map 4
 #define d_expansion 5
 #define d_fast_line 6
+#define d_mesh_line 7
 #define d_primitive $type
 """
 
@@ -509,6 +510,7 @@ void main(void) {
         ${shadeStructure.fragmentTransform ?: ""}
     }
     o_color = x_stroke;
+    o_color.rgb *= o_color.a;
 }
 """
 
@@ -536,4 +538,92 @@ void main() {
     gl_Position = v_clipPosition;
 }
 """
+    override fun meshLineFragmentShader(shadeStructure: ShadeStructure): String  = """
+        |#version 330 core
+        |${primitiveTypes("d_mesh_line")}
+        |${shadeStructure.uniforms ?: ""}
+        |layout(origin_upper_left) in vec4 gl_FragCoord;
+        |
+        |uniform sampler2D image;
+        |$drawerUniforms
+        |${shadeStructure.varyingIn ?: ""}
+        |$transformVaryingIn
+        |flat in int v_instance;
+        |out vec4 o_color;
+        |void main(void) {
+        |   ${fragmentConstants()}
+        |   vec4 x_fill = u_fill;
+        |   vec4 x_stroke = u_stroke;
+        |   {
+        |       ${shadeStructure.fragmentTransform ?: ""}
+        |   }
+        |   o_color = x_stroke;
+        |   o_color.rgb *= o_color.a;
+        |}
+        """.trimMargin()
+
+    override fun meshLineVertexShader(shadeStructure: ShadeStructure): String = """
+        |#version 330 core
+        |${primitiveTypes("d_mesh_line")}
+        |$drawerUniforms
+        |${shadeStructure.attributes ?: ""}
+        |${shadeStructure.uniforms ?: ""}
+        |${shadeStructure.varyingOut ?: ""}
+        |$transformVaryingOut
+        |flat out int v_instance;
+        |
+        |vec2 fix( vec4 i, float aspect ) {
+        |   vec2 res = i.xy / i.w;
+        |   res.x *= aspect;
+        |   return res;
+        |}
+        |
+        |void main() {
+        |   v_instance = gl_InstanceID;
+        |   ${vertexConstants()}
+        |   ${shadeStructure.varyingBridge ?: ""}
+        |   $preTransform
+        |   vec3 x_normal = vec3(0.0, 0.0, 1.0);
+        |   vec3 x_position = a_position;
+        |
+        |   float aspect = resolution.x / resolution.y;
+        |   float pixelWidthRatio = 1. / (resolution.x * projectionMatrix[0][0]);
+        |   mat4 m = projectionMatrix * modelViewMatrix;
+        |   vec4 finalPosition = m * vec4( a_position, 1.0 );
+        |   vec4 prevPos = m * vec4( a_previous, 1.0 );
+        |   vec4 nextPos = m * vec4( a_next, 1.0 );
+
+        |   vec2 currentP = fix( finalPosition, aspect );
+        |   vec2 prevP = fix( prevPos, aspect );
+        |   vec2 nextP = fix( nextPos, aspect );
+
+        |   float pixelWidth = finalPosition.w * pixelWidthRatio;
+        |   float w = 1.8 * pixelWidth * lineWidth * width;
+
+        |   if( sizeAttenuation == 1. ) {'
+        |       w = 1.8 * lineWidth * width;'
+        |   }
+
+        |   vec2 dir;
+        |   if (nextP == currentP) dir = normalize(currentP - prevP);
+        |       else if( prevP == currentP ) dir = normalize( nextP - currentP );
+        |   else {
+        |       vec2 dir1 = normalize(currentP - prevP);
+        |       vec2 dir2 = normalize(nextP - currentP);
+        |       dir = normalize(dir1 + dir2);
+        |       vec2 perp = vec2(-dir1.y, dir1.x);'
+        |       vec2 miter = vec2(-dir.y, dir.x);'
+        |   }
+        |   vec2 normal = vec2( -dir.y, dir.x );',
+        |   normal.x /= aspect;',
+        |   normal *= .5 * w;',
+        |   vec4 offset = vec4( normal * side, 0.0, 1.0 );',
+        |   finalPosition.xy += offset.xy;',
+        |   gl_Position = finalPosition;',
+        |   {
+        |   ${shadeStructure.vertexTransform ?: ""}
+        |   }
+        |   $postTransform
+        |}
+        """.trimIndent()
 }

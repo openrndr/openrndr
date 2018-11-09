@@ -4,9 +4,6 @@ import org.openrndr.draw.*
 import org.openrndr.math.Vector2
 import org.openrndr.math.Vector3
 
-/**
- * Created by voorbeeld on 11/23/17.
- */
 class PerformanceLineDrawer {
     private val vertices: VertexBuffer = VertexBuffer.createDynamic(VertexFormat().apply {
         position(3)
@@ -17,8 +14,9 @@ class PerformanceLineDrawer {
     private val shaderManager: ShadeStyleManager = ShadeStyleManager.fromGenerators(Driver.instance.shaderGenerators::fastLineVertexShader,
             Driver.instance.shaderGenerators::fastLineFragmentShader)
 
-    fun drawLineSegments3(drawContext: DrawContext,
-                          drawStyle: DrawStyle, segments: Iterable<Vector3>) {
+    @JvmName("drawLineSegments3d")
+    fun drawLineSegments(drawContext: DrawContext,
+                         drawStyle: DrawStyle, segments: Iterable<Vector3>) {
 
         val shader = shaderManager.shader(drawStyle.shadeStyle, vertices.vertexFormat)
         shader.begin()
@@ -27,22 +25,22 @@ class PerformanceLineDrawer {
         val w = vertices.shadow.writer()
 
         w.rewind()
-        var segmentCount = 0
+        var vertexCount = 0
         segments.forEachIndexed { index, it ->
             w.write(it)
             w.write((index / 2).toFloat())
             w.write((index % 2).toFloat())
-            segmentCount++
+            vertexCount++
         }
-        vertices.shadow.uploadElements(0, segmentCount)
+        vertices.shadow.uploadElements(0, vertexCount)
 
         Driver.instance.setState(drawStyle)
-        Driver.instance.drawVertexBuffer(shader, listOf(vertices), DrawPrimitive.LINES, 0, 6)
+        Driver.instance.drawVertexBuffer(shader, listOf(vertices), DrawPrimitive.LINES, 0, vertexCount)
         shader.end()
     }
 
-    fun drawLineSegments2(drawContext: DrawContext,
-                          drawStyle: DrawStyle, segments: Iterable<Vector2>) {
+    fun drawLineSegments(drawContext: DrawContext,
+                         drawStyle: DrawStyle, segments: Iterable<Vector2>) {
 
         val shader = shaderManager.shader(drawStyle.shadeStyle, vertices.vertexFormat)
         shader.begin()
@@ -52,17 +50,17 @@ class PerformanceLineDrawer {
 
         w.rewind()
 
-        var segmentCount = 0
+        var vertexCount = 0
         segments.forEachIndexed { index, it ->
             w.write(it); w.write(0.0f)
             w.write((index / 2).toFloat())
             w.write((index % 2).toFloat())
-            segmentCount++
+            vertexCount++
         }
-        vertices.shadow.uploadElements(0, segmentCount)
+        vertices.shadow.uploadElements(0, vertexCount)
 
         Driver.instance.setState(drawStyle)
-        Driver.instance.drawVertexBuffer(shader, listOf(vertices), DrawPrimitive.LINES, 0, 6)
+        Driver.instance.drawVertexBuffer(shader, listOf(vertices), DrawPrimitive.LINES, 0, vertexCount)
         shader.end()
     }
 
@@ -96,4 +94,33 @@ class PerformanceLineDrawer {
         Driver.instance.drawVertexBuffer(shader, listOf(vertices), DrawPrimitive.LINES, 0, vertexCount)
         shader.end()
     }
+
+    @JvmName("drawLineLoops3d")
+    fun drawLineLoops(drawContext: DrawContext,
+                      drawStyle: DrawStyle, loops: Iterable<List<Vector3>>) {
+        val shader = shaderManager.shader(drawStyle.shadeStyle, vertices.vertexFormat)
+        shader.begin()
+        drawContext.applyToShader(shader)
+        drawStyle.applyToShader(shader)
+        val w = vertices.shadow.writer()
+        w.rewind()
+        var vertexCount = 0
+
+        loops.forEachIndexed { loopIndex, loop ->
+            for (i in 0 until loop.size - 1) {
+                w.write(loop[i])
+                w.write(loopIndex.toFloat())
+                w.write(1.0f)
+                w.write(loop[i + 1])
+                w.write(loopIndex.toFloat())
+                w.write(1.0f)
+                vertexCount += 2
+            }
+        }
+        vertices.shadow.uploadElements(0, vertexCount)
+        Driver.instance.setState(drawStyle)
+        Driver.instance.drawVertexBuffer(shader, listOf(vertices), DrawPrimitive.LINES, 0, vertexCount)
+        shader.end()
+    }
+
 }
