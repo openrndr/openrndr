@@ -586,9 +586,9 @@ void main() {
         |   vec3 x_normal = vec3(0.0, 0.0, 1.0);
         |   vec3 x_position = a_position;
         |
-        |   float aspect = resolution.x / resolution.y;
-        |   float pixelWidthRatio = 1. / (resolution.x * projectionMatrix[0][0]);
-        |   mat4 m = projectionMatrix * modelViewMatrix;
+        |   float aspect = u_viewDimensions.x / u_viewDimensions.y;
+        |   float pixelWidthRatio = 1. / (u_viewDimensions.x * u_projectionMatrix[0][0]);
+        |   mat4 m = u_projectionMatrix * u_viewMatrix * u_modelMatrix;
         |   vec4 finalPosition = m * vec4( a_position, 1.0 );
         |   vec4 prevPos = m * vec4( a_previous, 1.0 );
         |   vec4 nextPos = m * vec4( a_next, 1.0 );
@@ -598,10 +598,11 @@ void main() {
         |   vec2 nextP = fix( nextPos, aspect );
 
         |   float pixelWidth = finalPosition.w * pixelWidthRatio;
-        |   float w = 1.8 * pixelWidth * lineWidth * width;
-
-        |   if( sizeAttenuation == 1. ) {'
-        |       w = 1.8 * lineWidth * width;'
+        |   float lineWidth = 4.0;
+        |   float w = 1.8 * pixelWidth * lineWidth * a_width;
+            float sizeAttenuation = 0.0;
+        |   if( sizeAttenuation == 1. ) {
+        |       w = 1.8 * lineWidth * a_width;
         |   }
 
         |   vec2 dir;
@@ -611,19 +612,19 @@ void main() {
         |       vec2 dir1 = normalize(currentP - prevP);
         |       vec2 dir2 = normalize(nextP - currentP);
         |       dir = normalize(dir1 + dir2);
-        |       vec2 perp = vec2(-dir1.y, dir1.x);'
-        |       vec2 miter = vec2(-dir.y, dir.x);'
+        |       vec2 perp = vec2(-dir1.y, dir1.x);
+        |       vec2 miter = vec2(-dir.y, dir.x);
         |   }
-        |   vec2 normal = vec2( -dir.y, dir.x );',
-        |   normal.x /= aspect;',
-        |   normal *= .5 * w;',
-        |   vec4 offset = vec4( normal * side, 0.0, 1.0 );',
-        |   finalPosition.xy += offset.xy;',
-        |   gl_Position = finalPosition;',
+        |   vec2 normal = vec2( -dir.y, dir.x );
+        |   normal.x /= aspect;
+        |   normal *= .5 * w;
+        |   vec4 offset = vec4( normal * a_side, 0.0, 1.0 );
+        |   finalPosition.xy += offset.xy;
+        |   gl_Position = finalPosition;
         |   {
         |   ${shadeStructure.vertexTransform ?: ""}
         |   }
         |   $postTransform
         |}
-        """.trimIndent()
+        """.trimMargin()
 }

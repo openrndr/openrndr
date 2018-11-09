@@ -74,6 +74,7 @@ class Drawer(val driver: Driver) {
     private var circleDrawer = CircleDrawer()
     private var imageDrawer = ImageDrawer()
     private var fastLineDrawer = PerformanceLineDrawer()
+    private val meshLineDrawer by lazy { MeshLineDrawer() }
     private var qualityLineDrawer = QualityLineDrawer()
     private var qualityPolygonDrawer = QualityPolygonDrawer()
     internal val fontImageMapDrawer = FontImageMapDrawer()
@@ -505,7 +506,10 @@ class Drawer(val driver: Driver) {
      */
     @JvmName("lineStrip3d")
     fun lineStrip(points: List<Vector3>) {
-        fastLineDrawer.drawLineLoops(context, drawStyle, listOf(points))
+        when (drawStyle.quality) {
+            DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineLoops(context, drawStyle, listOf(points))
+            DrawQuality.QUALITY -> meshLineDrawer.drawLineStrips(context, drawStyle, listOf(points))
+        }
     }
 
     /**

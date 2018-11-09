@@ -20,7 +20,6 @@ import org.lwjgl.glfw.GLFW.glfwSwapBuffers
 import org.lwjgl.glfw.GLFW.glfwWindowShouldClose
 import org.lwjgl.glfw.GLFW.GLFW_RELEASE
 import org.lwjgl.glfw.GLFW.glfwSetKeyCallback
-import org.lwjgl.opengl.GL11.*
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.opengl.GLUtil
 
@@ -30,6 +29,7 @@ import org.openrndr.internal.Driver
 import org.openrndr.math.Vector2
 import java.util.*
 import org.lwjgl.opengl.GL30.*
+import org.openrndr.Multisample.*
 
 private val logger = KotlinLogging.logger {}
 internal var primaryWindow: Long = NULL
@@ -107,6 +107,13 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE)
         glfwWindowHint(GLFW_RESIZABLE, if (configuration.windowResizable) GLFW_TRUE else GLFW_FALSE)
         glfwWindowHint(GLFW_DECORATED, if (configuration.hideWindowDecorations) GLFW_FALSE else GLFW_TRUE)
+
+        when (val c = configuration.multisample) {
+            is SampleCount -> glfwWindowHint(GLFW_SAMPLES, c.count)
+            SystemDefault -> glfwWindowHint(GLFW_SAMPLES, GLFW_DONT_CARE)
+            Disabled -> glfwWindowHint(GLFW_SAMPLES, 0)
+        }
+
 
         glfwWindowHint(GLFW_RED_BITS, 8)
         glfwWindowHint(GLFW_GREEN_BITS, 8)
@@ -211,7 +218,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         glfwSetWindowRefreshCallback(window) {
             if (readyFrames > 0) {
                 if (setupCalled)
-                drawFrame()
+                    drawFrame()
                 glfwSwapBuffers(window)
             }
             readyFrames++
@@ -278,6 +285,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
             primaryWindow = glfwCreateWindow(640, 480, "OPENRNDR primary window", NULL, NULL)
         }
     }
+
     private val vaos = IntArray(1)
 
     fun preloop() {

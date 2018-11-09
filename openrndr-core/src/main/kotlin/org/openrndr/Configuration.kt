@@ -13,6 +13,12 @@ enum class UnfocusBehaviour {
 }
 
 
+sealed class Multisample {
+    object SystemDefault : Multisample()
+    object Disabled : Multisample()
+    data class SampleCount(val count: Int) : Multisample()
+}
+
 class Configuration {
 
     /**
@@ -76,6 +82,8 @@ class Configuration {
      * Should the application be run in headless mode.
      */
     var headless: Boolean = false
+
+    var multisample: Multisample = Multisample.Disabled
 
 }
 
