@@ -580,7 +580,7 @@ void main() {
         |
         |void main() {
         |   v_instance = gl_InstanceID;
-        |   ${vertexConstants()}
+        |   ${vertexConstants(element = "int(a_element)")}
         |   ${shadeStructure.varyingBridge ?: ""}
         |   $preTransform
         |   vec3 x_normal = vec3(0.0, 0.0, 1.0);
@@ -598,31 +598,32 @@ void main() {
         |   vec2 nextP = fix( nextPos, aspect );
 
         |   float pixelWidth = finalPosition.w * pixelWidthRatio;
-        |   float lineWidth = 4.0;
-        |   float w = 1.8 * pixelWidth * lineWidth * a_width;
-            float sizeAttenuation = 0.0;
-        |   if( sizeAttenuation == 1. ) {
-        |       w = 1.8 * lineWidth * a_width;
-        |   }
-
+        |   float w = 1.8 * pixelWidth * u_strokeWeight * a_width;
+        |   //float sizeAttenuation = 0.0;
+        |   //if( sizeAttenuation == 1. ) {
+        |   //    w = 1.8 * u_strokeWeight * a_width;
+        |   //}
         |   vec2 dir;
-        |   if (nextP == currentP) dir = normalize(currentP - prevP);
-        |       else if( prevP == currentP ) dir = normalize( nextP - currentP );
-        |   else {
+        |   if (nextP == currentP) {
+        |       dir = normalize(currentP - prevP);
+        |   } else if( prevP == currentP ) {
+        |       dir = normalize( nextP - currentP );
+        |   } else {
         |       vec2 dir1 = normalize(currentP - prevP);
         |       vec2 dir2 = normalize(nextP - currentP);
         |       dir = normalize(dir1 + dir2);
-        |       vec2 perp = vec2(-dir1.y, dir1.x);
-        |       vec2 miter = vec2(-dir.y, dir.x);
         |   }
+        |
         |   vec2 normal = vec2( -dir.y, dir.x );
         |   normal.x /= aspect;
         |   normal *= .5 * w;
-        |   vec4 offset = vec4( normal * a_side, 0.0, 1.0 );
+        |   vec4 offset = vec4(normal * a_side, 0.0, 1.0);
+        |
         |   finalPosition.xy += offset.xy;
+        |   v_clipPosition = finalPosition;
         |   gl_Position = finalPosition;
         |   {
-        |   ${shadeStructure.vertexTransform ?: ""}
+        |       ${shadeStructure.vertexTransform ?: ""}
         |   }
         |   $postTransform
         |}

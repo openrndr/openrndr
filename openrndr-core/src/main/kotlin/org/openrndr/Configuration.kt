@@ -14,8 +14,11 @@ enum class UnfocusBehaviour {
 
 
 sealed class Multisample {
+    /** Use the system default */
     object SystemDefault : Multisample()
+    /** Disable multisampling */
     object Disabled : Multisample()
+    /** Use the specified sample count */
     data class SampleCount(val count: Int) : Multisample()
 }
 
@@ -72,17 +75,19 @@ class Configuration {
      **/
     var unfocusBehaviour = UnfocusBehaviour.NORMAL
 
-
     /**
      * Should the created window be resizable?
      */
     var windowResizable: Boolean = false
 
     /**
-     * Should the application be run in headless mode.
+     * Should the application be run in headless mode?
      */
     var headless: Boolean = false
 
+    /**
+     * Should the window render target use multisampling?
+     */
     var multisample: Multisample = Multisample.Disabled
 
 }

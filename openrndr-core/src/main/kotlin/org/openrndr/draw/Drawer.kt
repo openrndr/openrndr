@@ -450,8 +450,11 @@ class Drawer(val driver: Driver) {
     }
 
     @JvmName("lineSegments3d")
-    fun lineSegments(segments: Iterable<Vector3>) {
-        fastLineDrawer.drawLineSegments(context, drawStyle, segments)
+    fun lineSegments(segments: List<Vector3>) {
+        when (drawStyle.quality) {
+            DrawQuality.QUALITY -> meshLineDrawer.drawLineSegments(context, drawStyle, segments)
+            DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineSegments(context, drawStyle, segments)
+        }
     }
 
     fun lineLoop(points: List<Vector2>) {
@@ -463,7 +466,10 @@ class Drawer(val driver: Driver) {
 
     @JvmName("lineLoop3d")
     fun lineLoop(points: List<Vector3>) {
-        fastLineDrawer.drawLineLoops(context, drawStyle, listOf(points))
+        when (drawStyle.quality) {
+            DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineLoops(context, drawStyle, listOf(points))
+            DrawQuality.QUALITY -> meshLineDrawer.drawLineLoops(context, drawStyle, listOf(points))
+        }
     }
 
     fun lineLoops(loops: List<List<Vector2>>) {
@@ -475,7 +481,10 @@ class Drawer(val driver: Driver) {
 
     @JvmName("lineLoops3d")
     fun lineLoops(loops: List<List<Vector3>>) {
-        fastLineDrawer.drawLineLoops(context, drawStyle, loops)
+        when (drawStyle.quality) {
+            DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineLoops(context, drawStyle, loops)
+            DrawQuality.QUALITY -> meshLineDrawer.drawLineLoops(context, drawStyle, loops)
+        }
     }
 
     fun lineLoops(loops: List<List<Vector2>>, weights: List<Double>) {
@@ -487,9 +496,11 @@ class Drawer(val driver: Driver) {
 
     @JvmName("lineLoops3d)")
     fun lineLoops(loops: List<List<Vector3>>, weights: List<Double>) {
-        fastLineDrawer.drawLineLoops(context, drawStyle, loops)
+        when (drawStyle.quality) {
+            DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineLoops(context, drawStyle, loops)
+            DrawQuality.QUALITY -> meshLineDrawer.drawLineLoops(context, drawStyle, loops)
+        }
     }
-
 
     /**
      * Draws a line strip with 2d coordinates
@@ -527,7 +538,10 @@ class Drawer(val driver: Driver) {
      */
     @JvmName("lineStrips3d")
     fun lineStrips(strips: List<List<Vector3>>) {
-        fastLineDrawer.drawLineLoops(context, drawStyle, strips)
+        when (drawStyle.quality) {
+            DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineLoops(context, drawStyle, strips)
+            DrawQuality.QUALITY -> meshLineDrawer.drawLineStrips(context, drawStyle, strips)
+        }
     }
 
     /**
@@ -545,7 +559,10 @@ class Drawer(val driver: Driver) {
      */
     @JvmName("lineStrips3d")
     fun lineStrips(strips: List<List<Vector3>>, weights: List<Double>) {
-        fastLineDrawer.drawLineLoops(context, drawStyle, strips)
+        when (drawStyle.quality) {
+            DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineLoops(context, drawStyle, strips)
+            DrawQuality.QUALITY -> meshLineDrawer.drawLineStrips(context, drawStyle, strips)
+        }
     }
 
     /**
