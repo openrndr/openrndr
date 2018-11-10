@@ -41,9 +41,12 @@ dokka {
     outputFormat = "html"
 
     sourceDirs = files(subprojects.collect { p -> new File(p.projectDir, "/src/main/kotlin") })
-    doLast {
-        exec {
-            executable "./dokka/postbuild.sh"
+    if (!System.properties['os.name'].toLowerCase().contains('windows')) {
+
+        doLast {
+            exec {
+                executable "./dokka/postbuild.sh"
+            }
         }
     }
 }
