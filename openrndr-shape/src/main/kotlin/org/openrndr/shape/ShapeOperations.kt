@@ -106,6 +106,16 @@ fun difference(from: List<Shape>, subtract: List<Shape>): List<Shape> {
     return from.toRegion2().difference(subtract.toRegion2()).toShapes()
 }
 
+@JvmName("differenceIterative")
+fun difference(from: List<Shape>, subtract: List<List<Shape>>): List<Shape> {
+    var left = from
+    for (subtractShapes in subtract) {
+        left = difference(left, subtractShapes)
+    }
+    return left
+}
+
+
 fun union(from: ShapeContour, add: ShapeContour): List<Shape> {
     val result = from.toRing2().region().union(add.toRing2().region())
     return result.toShapes()
@@ -132,6 +142,16 @@ fun union(from: List<Shape>, add: Shape): List<Shape> {
 fun union(from: List<Shape>, add: List<Shape>): List<Shape> {
     return from.toRegion2().union(add.toRegion2()).toShapes()
 }
+
+@JvmName("unionIterative")
+fun union(from: List<Shape>, add: List<List<Shape>>): List<Shape> {
+    var left = from
+    for (addShapes in add) {
+        left = union(left, addShapes)
+    }
+    return left
+}
+
 
 fun intersection(from: ShapeContour, with: ShapeContour): List<Shape> {
     val result = from.toRing2().region().intersection(with.toRing2().region())
@@ -163,4 +183,13 @@ fun intersection(from: List<Shape>, with: Shape): List<Shape> {
 
 fun intersection(from: List<Shape>, with: List<Shape>): List<Shape> {
     return from.toRegion2().intersection(with.toRegion2()).toShapes()
+}
+
+@JvmName("intersectionIterative")
+fun intersection(from: List<Shape>, with: List<List<Shape>>): List<Shape> {
+    var left = from
+    for (withShapes in with) {
+        left = intersection(left, withShapes)
+    }
+    return left
 }
