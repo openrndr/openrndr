@@ -85,11 +85,11 @@ object TestShadeStylesGL3 : Spek({
         }
 
         describe("font image maps") {
-            val font = FontImageMap.fromUrl(resourceUrl("/fonts/Roboto-Medium.ttf"), 16.0)
-            p.drawer.fontMap = font
-            it("should be able to do shadestyles") {
-                p.drawer.text("this is a test", 0.0, 0.0)
-            }
+//            val font = FontImageMap.fromUrl(resourceUrl("/fonts/Roboto-Medium.ttf"), 16.0)
+//            p.drawer.fontMap = font
+//            it("should be able to do shadestyles") {
+//                p.drawer.text("this is a test", 0.0, 0.0)
+//            }
         }
     }
 })
