@@ -17,18 +17,6 @@ class ShapeBuilder {
     }
 }
 
-fun shape(f: ShapeBuilder.() -> Unit): Shape {
-    val sb = ShapeBuilder()
-    sb.f()
-    return Shape(sb.contours)
-}
-
-fun contour(f: ContourBuilder.() -> Unit): ShapeContour {
-    val cb = ContourBuilder()
-    cb.f()
-    return ShapeContour(cb.segments, cb.closed)
-}
-
 @Suppress("unused")
 class ContourBuilder {
     var cursor = Vector2.INFINITY
@@ -236,4 +224,15 @@ class ContourBuilder {
 
 }
 
+public fun shape(f: ShapeBuilder.() -> Unit): Shape {
+    val sb = ShapeBuilder()
+    sb.f()
+    return Shape(sb.contours)
+}
+
+public fun contour(f: ContourBuilder.() -> Unit): ShapeContour {
+    val cb = ContourBuilder()
+    cb.f()
+    return ShapeContour(cb.segments, cb.closed)
+}
 
