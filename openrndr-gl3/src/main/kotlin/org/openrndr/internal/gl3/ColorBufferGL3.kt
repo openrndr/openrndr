@@ -35,9 +35,11 @@ fun internalFormat(format: ColorFormat, type: ColorType): Int {
             ConversionEntry(ColorFormat.R, ColorType.FLOAT16, GL_R16F),
             ConversionEntry(ColorFormat.R, ColorType.FLOAT32, GL_R32F),
             ConversionEntry(ColorFormat.RG, ColorType.UINT8, GL_RG8),
+            ConversionEntry(ColorFormat.RG, ColorType.UINT16, GL_RG16),
             ConversionEntry(ColorFormat.RG, ColorType.FLOAT16, GL_RG16F),
             ConversionEntry(ColorFormat.RG, ColorType.FLOAT32, GL_RG32F),
             ConversionEntry(ColorFormat.RGB, ColorType.UINT8, GL_RGB8),
+            ConversionEntry(ColorFormat.RGB, ColorType.UINT16, GL_RGB16),
             ConversionEntry(ColorFormat.RGB, ColorType.FLOAT16, GL_RGB16F),
             ConversionEntry(ColorFormat.RGB, ColorType.FLOAT32, GL_RGB32F),
             ConversionEntry(ColorFormat.BGR, ColorType.UINT8, GL_RGB8),
@@ -342,6 +344,31 @@ class ColorBufferShadowGL3(override val colorBuffer: ColorBufferGL3) : ColorBuff
                     }
                 }
             }
+            Pair(ColorType.UINT8, ColorFormat.RG) -> {
+                for ((iy, y) in yrange.withIndex()) {
+                    val ay = if (colorBuffer.flipV) iy else result.size - 1 - iy
+                    var offset = y * colorBuffer.effectiveWidth * 2 + xrange.first * 3
+                    result[ay] = (xrange).map { x ->
+                        val ir = buffer.get(offset).toInt() and 0xff
+                        val ig = buffer.get(offset + 1).toInt() and 0xff
+                        offset += xrange.step * 2
+                        mapper(x, y, ir / 255.0, ig / 255.0, 0.0, 1.0)
+                    }
+                }
+            }
+
+            Pair(ColorType.UINT8, ColorFormat.R) -> {
+                for ((iy, y) in yrange.withIndex()) {
+                    val ay = if (colorBuffer.flipV) iy else result.size - 1 - iy
+                    var offset = y * colorBuffer.effectiveWidth * 2 + xrange.first * 3
+                    result[ay] = (xrange).map { x ->
+                        val ir = buffer.get(offset).toInt() and 0xff
+                        offset += xrange.step * 1
+                        mapper(x, y, ir / 255.0, 0.0, 0.0, 1.0)
+                    }
+                }
+            }
+
             Pair(ColorType.FLOAT32, ColorFormat.R) -> {
                 for ((iy, y) in yrange.withIndex()) {
                     val ay = if (colorBuffer.flipV) iy else result.size - 1 - iy
@@ -382,7 +409,7 @@ class ColorBufferShadowGL3(override val colorBuffer: ColorBufferGL3) : ColorBuff
                 for ((iy, y) in yrange.withIndex()) {
                     val ay = if (colorBuffer.flipV) iy else result.size - 1 - iy
                     var offset = y * colorBuffer.effectiveWidth * 16 + xrange.first * 16
-                    result[ay] = (xrange).map {x ->
+                    result[ay] = (xrange).map { x ->
                         val ir = buffer.getFloat(offset)
                         val ig = buffer.getFloat(offset + 4)
                         val ib = buffer.getFloat(offset + 8)
@@ -398,21 +425,29 @@ class ColorBufferShadowGL3(override val colorBuffer: ColorBufferGL3) : ColorBuff
     }
 
     override fun read(x: Int, y: Int): ColorRGBa {
+        val componentCount = colorBuffer.format.componentCount
         val ay = if (colorBuffer.flipV) y else colorBuffer.effectiveHeight - 1 - y
         val offset = (ay * colorBuffer.effectiveWidth + x) * colorBuffer.format.componentCount * colorBuffer.type.componentSize
         return when (colorBuffer.type) {
             ColorType.UINT8 -> {
                 val ir = buffer.get(offset).toInt() and 0xff
-                val ig = buffer.get(offset + 1).toInt() and 0xff
-                val ib = buffer.get(offset + 2).toInt() and 0xff
-                val ia = if (colorBuffer.format == ColorFormat.RGBa) (buffer.get(offset + 3).toInt() and 0xff) else 255
+                val ig = if (componentCount >= 2) buffer.get(offset + 1).toInt() and 0xff else 0
+                val ib = if (componentCount >= 3) buffer.get(offset + 2).toInt() and 0xff else 0
+                val ia = if (componentCount >= 4) (buffer.get(offset + 3).toInt() and 0xff) else 255
                 ColorRGBa(ir / 255.0, ig / 255.0, ib / 255.0, ia / 255.0)
+            }
+            ColorType.UINT16 -> {
+                val ir = buffer.get(offset).toInt() and 0xffff
+                val ig = if (componentCount >= 2) buffer.get(offset + 1).toInt() and 0xffff else 0
+                val ib = if (componentCount >= 3) buffer.get(offset + 2).toInt() and 0xffff else 0
+                val ia = if (componentCount >= 4) (buffer.get(offset + 3).toInt() and 0xffff) else 255
+                ColorRGBa(ir / 65535.0, ig / 65535.0, ib / 65535.0, ia / 65535.0)
             }
             ColorType.FLOAT32 -> {
                 val fr = buffer.getFloat(offset)
-                val fg = buffer.getFloat(offset + 4)
-                val fb = buffer.getFloat(offset + 8)
-                val fa = if (colorBuffer.format == ColorFormat.RGBa) (buffer.getFloat(offset + 12)) else 1.0f
+                val fg = if (componentCount >= 2) buffer.getFloat(offset + 4) else 0.0f
+                val fb = if (componentCount >= 3) buffer.getFloat(offset + 8) else 0.0f
+                val fa = if (componentCount >= 4) (buffer.getFloat(offset + 12)) else 1.0f
                 ColorRGBa(fr.toDouble(), fg.toDouble(), fb.toDouble(), fa.toDouble())
             }
             else -> TODO("support for ${colorBuffer.type}")
