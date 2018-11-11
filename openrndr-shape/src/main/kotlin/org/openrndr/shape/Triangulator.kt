@@ -1,240 +1,723 @@
 package org.openrndr.shape
 
 import org.openrndr.math.Vector2
+import java.util.ArrayList
+import java.util.Comparator
+import kotlin.IllegalStateException
 
-
-/** A simple implementation of the ear cutting algorithm to triangulate simple polygons without holes. For more information:
- *
- *  * [http://cgm.cs.mcgill.ca/~godfried/
- * teaching/cg-projects/97/Ian/algorithm2.html](http://cgm.cs.mcgill.ca/~godfried/teaching/cg-projects/97/Ian/algorithm2.html)
- *  * [http://www.geometrictools.com/Documentation
- * /TriangulationByEarClipping.pdf](http://www.geometrictools.com/Documentation/TriangulationByEarClipping.pdf)
- *
- * If the input polygon is not simple (self-intersects), there will be output but it is of unspecified quality (garbage in,
- * garbage out).
- * @author badlogicgames@gmail.com
- * @author Nicolas Gramlich (optimizations, collinear edge support)
- * @author Eric Spitz
- * @author Thomas ten Cate (bugfixes, optimizations)
- * @author Nathan Sweet (rewrite, return indices, no allocation, optimizations)
+/**
+ * triangulates a [Shape] into a list of triangles
+ * @param shape the shape to triangulate
+ * @param distanceTolerance how refined should the shape be, smaller values for higher precision
  */
-class Triangulator {
+fun triangulate(shape: Shape, distanceTolerance: Double = 0.5): List<Vector2> {
+    val positions = shape.contours.map { it.adaptivePositions(distanceTolerance) }
 
-    private var indices: MutableList<Short>? = null
-    private var vertices: List<Float>? = null
-    private var vertexCount: Int = 0
-    private val vertexTypes = mutableListOf<Int>()
-    private val triangles = mutableListOf<Short>()
-
-
-
-    fun triangulate(contour: ShapeContour):List<Vector2> {
-        val vertices = contour.adaptivePositions().let { it.subList(0, it.size-1) }
-        val floats = vertices.flatMap { listOf(it.x.toFloat(), it.y.toFloat()) }
-        val indices = computeTriangles(floats)
-        return indices.map { vertices[it.toInt()] }
+    val holes = if (shape.contours.size > 1) {
+        positions.dropLast(1).map { it.size }.toIntArray()
+    } else {
+        null
     }
 
+    val data = positions.flatMap { it.flatMap { listOf(it.x, it.y) } }.toDoubleArray()
+    val indices = Triangulator.earcut(data, holes, 2)
+
+    val result = mutableListOf<Vector2>()
+    for (i in indices) {
+        result.add(Vector2(data[i * 2], data[i * 2 + 1]))
+    }
+    return result
+}
+
+/**
+ * Indexed triangulation consisting of a list of vertices and triangle indices.
+ */
+class IndexedTriangulation(vertices:List<Vector2>, triangles: List<Int>)
+
+/**
+ * triangulates a [Shape] into a list of indexed triangles
+ * @param shape the shape to triangulate
+ * @param distanceTolerance how refined should the shape be, smaller values for higher precision
+ */
+fun triangulateIndexed(shape: Shape, distanceTolerance: Double = 0.5): IndexedTriangulation {
+    val positions = shape.contours.map { it.adaptivePositions(distanceTolerance) }
+
+    val holes = if (shape.contours.size > 1) {
+        positions.dropLast(1).map { it.size }.toIntArray()
+    } else {
+        null
+    }
+
+    val vertices = positions.flatMap { it }
+    val data = vertices.flatMap { listOf(it.x, it.y) }.toDoubleArray()
+    val indices = Triangulator.earcut(data, holes, 2).toList()
+    return IndexedTriangulation(vertices, indices)
+}
+
+/**
+ * ISC License
+
+Copyright (c) 2016, Mapbox
+
+Permission to use, copy, modify, and/or distribute this software for any purpose
+with or without fee is hereby granted, provided that the above copyright notice
+and this permission notice appear in all copies.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND
+FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
+OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
+THIS SOFTWARE.
 
 
-    /** Triangulates the given (convex or concave) simple polygon to a list of triangle vertices.
-     * @param vertices pairs describing vertices of the polygon, in either clockwise or counterclockwise order.
-     * @return triples of triangle indices in clockwise order. Note the returned array is reused for later calls to the same
-     * method.
+This is a pretty hacky port of
+https://github.com/earcut4j/earcut4j/blob/a5b26b5644940bba9bd529a741491d90f16d1a31/src/main/java/earcut4j/Earcut.java
+ */
+
+internal object Triangulator {
+    /**
+     * Triangulates the given polygon
+     *
+     * @param data is a flat array of vertice coordinates like [x0,y0, x1,y1, x2,y2, ...].
+     * @param holeIndices is an array of hole indices if any (e.g. [5, 8] for a 12-vertice input would mean one hole with vertices 5–7 and another with 8–11).
+     * @param dim  is the number of coordinates per vertice in the input array
+     * @return List containing groups of three vertice indices in the resulting array forms a triangle.
      */
-    fun computeTriangles(vertices: List<Float>, offset: Int = 0, count: Int = vertices.size): List<Short> {
-        this.vertices = vertices
-        this.vertexCount = count / 2
-        val vertexCount = this.vertexCount
-        val vertexOffset = offset / 2
+    internal fun earcut(data: DoubleArray, holeIndices: IntArray? = null, dim: Int = 2): List<Int> {
 
-        //indicesArray.ensureCapacity(vertexCount)
-        //indicesArray.size = vertexCount
-        indices = mutableListOf()
-        for (i in 0 until vertexCount) {
-            indices!!.add(0)
-        }
-        val indices = this.indices
-        if (areVerticesClockwise(vertices, offset, count)) {
-            for (i in 0 until vertexCount)
-                indices!![i] = (vertexOffset + i).toShort()
-        } else {
-            var i = 0
-            val n = vertexCount - 1
-            while (i < vertexCount) {
-                indices!![i] = (vertexOffset + n - i).toShort()
-                i++
-            } // Reversed.
+        val hasHoles = holeIndices != null && holeIndices.size > 0
+        val outerLen = if (hasHoles) holeIndices!![0] * dim else data.size
+
+        var outerNode = linkedList(data, 0, outerLen, dim, true)
+
+        val triangles = ArrayList<Int>()
+
+        if (outerNode == null)
+            return triangles
+
+        var minX = 0.0
+        var minY = 0.0
+        var maxX = 0.0
+        var maxY = 0.0
+        var size = java.lang.Double.MIN_VALUE
+
+        if (hasHoles)
+            outerNode = eliminateHoles(data, holeIndices!!, outerNode, dim)
+
+        // if the shape is not too simple, we'll use z-order curve hash later;
+        // calculate polygon bbox
+        if (data.size > 80 * dim) {
+            maxX = data[0]
+            minX = maxX
+            maxY = data[1]
+            minY = maxY
+
+            var i = dim
+            while (i < outerLen) {
+                val x = data[i]
+                val y = data[i + 1]
+                if (x < minX)
+                    minX = x
+                if (y < minY)
+                    minY = y
+                if (x > maxX)
+                    maxX = x
+                if (y > maxY)
+                    maxY = y
+                i += dim
+            }
+
+            // minX, minY and size are later used to transform coords into
+            // integers for z-order calculation
+            size = Math.max(maxX - minX, maxY - minY)
         }
 
-        val vertexTypes = this.vertexTypes
-        vertexTypes.clear()
-        //vertexTypes.ensureCapacity(vertexCount)
-        var i = 0
-        while (i < vertexCount) {
-            vertexTypes.add(classifyVertex(i))
-            ++i
-        }
+        earcutLinked(outerNode, triangles, dim, minX, minY, size, Integer.MIN_VALUE)
 
-        // A polygon with n vertices has a triangulation of n-2 triangles.
-        val triangles = this.triangles
-        triangles.clear()
-        //triangles.ensureCapacity(Math.max(0, vertexCount - 2) * 3)
-        triangulate()
         return triangles
     }
 
-    private fun triangulate() {
-        val vertexTypes = this.vertexTypes
+    private fun earcutLinked(ear: Node?, triangles: MutableList<Int>, dim: Int, minX: Double, minY: Double, size: Double, pass: Int) {
+        var ear: Node? = ear ?: return
 
-        while (vertexCount > 3) {
-            val earTipIndex = findEarTip()
-            cutEarTip(earTipIndex)
+        // interlink polygon nodes in z-order
+        if (pass == Integer.MIN_VALUE && size != java.lang.Double.MIN_VALUE)
+            indexCurve(ear, minX, minY, size)
 
-            // The type of the two vertices adjacent to the clipped vertex may have changed.
-            val previousIndex = previousIndex(earTipIndex)
-            val nextIndex = if (earTipIndex == vertexCount) 0 else earTipIndex
-            vertexTypes[previousIndex] = classifyVertex(previousIndex)
-            vertexTypes[nextIndex] = classifyVertex(nextIndex)
-        }
+        var stop = ear
 
-        if (vertexCount == 3) {
-            val triangles = this.triangles
-            val indices = this.indices
-            triangles.add(indices!![0])
-            triangles.add(indices[1])
-            triangles.add(indices[2])
-        }
-    }
+        // iterate through ears, slicing them one by one
+        while (ear!!.prev !== ear!!.next) {
+            val prev = ear!!.prev
+            val next = ear.next
 
-    /** @return [.CONCAVE] or [.CONVEX]
-     */
-    private fun classifyVertex(index: Int): Int {
-        val indices = this.indices
-        val previous = indices!![previousIndex(index)] * 2
-        val current = indices[index] * 2
-        val next = indices[nextIndex(index)] * 2
-        val vertices = this.vertices
-        return computeSpannedAreaSign(vertices!![previous], vertices[previous + 1], vertices[current], vertices[current + 1],
-                vertices[next], vertices[next + 1])
-    }
+            if (if (size != java.lang.Double.MIN_VALUE) isEarHashed(ear, minX, minY, size) else isEar(ear)) {
+                // cut off the triangle
+                triangles.add(prev!!.i / dim)
+                triangles.add(ear.i / dim)
+                triangles.add(next!!.i / dim)
 
-    private fun findEarTip(): Int {
-        val vertexCount = this.vertexCount
-        for (i in 0 until vertexCount)
-            if (isEarTip(i)) return i
+                removeNode(ear)
 
-        // Desperate mode: if no vertex is an ear tip, we are dealing with a degenerate polygon (e.g. nearly collinear).
-        // Note that the input was not necessarily degenerate, but we could have made it so by clipping some valid ears.
+                // skipping the next vertice leads to less sliver triangles
+                ear = next.next
+                stop = next.next
 
-        // Idea taken from Martin Held, "FIST: Fast industrial-strength triangulation of polygons", Algorithmica (1998),
-        // http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.115.291
-
-        // Return a convex or tangential vertex if one exists.
-        val vertexTypes = this.vertexTypes
-        for (i in 0 until vertexCount)
-            if (vertexTypes[i] != CONCAVE) return i
-        return 0 // If all vertices are concave, just return the first one.
-    }
-
-    private fun isEarTip(earTipIndex: Int): Boolean {
-        val vertexTypes = this.vertexTypes
-        if (vertexTypes[earTipIndex] == CONCAVE) return false
-
-        val previousIndex = previousIndex(earTipIndex)
-        val nextIndex = nextIndex(earTipIndex)
-        val indices = this.indices
-        val p1 = indices!![previousIndex] * 2
-        val p2 = indices[earTipIndex] * 2
-        val p3 = indices[nextIndex] * 2
-        val vertices = this.vertices
-        val p1x = vertices!![p1]
-        val p1y = vertices[p1 + 1]
-        val p2x = vertices[p2]
-        val p2y = vertices[p2 + 1]
-        val p3x = vertices[p3]
-        val p3y = vertices[p3 + 1]
-
-        // Check if any point is inside the triangle formed by previous, current and next vertices.
-        // Only consider vertices that are not part of this triangle, or else we'll always find one inside.
-        var i = nextIndex(nextIndex)
-        while (i != previousIndex) {
-            // Concave vertices can obviously be inside the candidate ear, but so can tangential vertices
-            // if they coincide with one of the triangle's vertices.
-            if (vertexTypes[i] != CONVEX) {
-                val v = indices[i] * 2
-                val vx = vertices[v]
-                val vy = vertices[v + 1]
-                // Because the polygon has clockwise winding order, the area sign will be positive if the point is strictly inside.
-                // It will be 0 on the edge, which we want to include as well.
-                // note: check the edge defined by p1->p3 first since this fails _far_ more then the other 2 checks.
-                if (computeSpannedAreaSign(p3x, p3y, p1x, p1y, vx, vy) >= 0) {
-                    if (computeSpannedAreaSign(p1x, p1y, p2x, p2y, vx, vy) >= 0) {
-                        if (computeSpannedAreaSign(p2x, p2y, p3x, p3y, vx, vy) >= 0) return false
-                    }
-                }
+                continue
             }
-            i = nextIndex(i)
+
+            ear = next
+
+            // if we looped through the whole remaining polygon and can't find
+            // any more ears
+            if (ear === stop) {
+                // try filtering points and slicing again
+                if (pass == Integer.MIN_VALUE) {
+                    earcutLinked(filterPoints(ear, null), triangles, dim, minX, minY, size, 1)
+
+                    // if this didn't work, try curing all small
+                    // self-intersections locally
+                } else if (pass == 1) {
+                    ear = cureLocalIntersections(ear ?: throw IllegalStateException("ear is null"), triangles, dim)
+                    earcutLinked(ear, triangles, dim, minX, minY, size, 2)
+
+                    // as a last resort, try splitting the remaining polygon
+                    // into two
+                } else if (pass == 2) {
+                    splitEarcut(ear ?: throw IllegalStateException("ear is null"), triangles, dim, minX, minY, size)
+                }
+
+                break
+            }
         }
+    }
+
+    private fun splitEarcut(start: Node, triangles: MutableList<Int>, dim: Int, minX: Double, minY: Double, size: Double) {
+        // look for a valid diagonal that divides the polygon into two
+        var a: Node? = start
+        do {
+            var b = a!!.next!!.next
+            while (b !== a!!.prev) {
+                if (a!!.i != b!!.i && isValidDiagonal(a, b)) {
+                    // split the polygon in two by the diagonal
+                    var c: Node? = splitPolygon(a, b)
+
+                    // filter colinear points around the cuts
+                    a = filterPoints(a, a.next)
+                    c = filterPoints(c, c!!.next)
+
+                    // run earcut on each half
+                    earcutLinked(a, triangles, dim, minX, minY, size, Integer.MIN_VALUE)
+                    earcutLinked(c, triangles, dim, minX, minY, size, Integer.MIN_VALUE)
+                    return
+                }
+                b = b.next
+            }
+            a = a!!.next
+        } while (a !== start)
+    }
+
+    private fun isValidDiagonal(a: Node, b: Node): Boolean {
+        return a.next!!.i != b.i && a.prev!!.i != b.i && !intersectsPolygon(a, b) && locallyInside(a, b) && locallyInside(b, a) && middleInside(a, b)
+    }
+
+    private fun middleInside(a: Node, b: Node): Boolean {
+        var p: Node? = a
+        var inside = false
+        val px = (a.x + b.x) / 2
+        val py = (a.y + b.y) / 2
+        do {
+            if (p!!.y > py != p.next!!.y > py && px < (p.next!!.x - p.x) * (py - p.y) / (p.next!!.y - p.y) + p.x)
+                inside = !inside
+            p = p.next
+        } while (p !== a)
+
+        return inside
+    }
+
+    private fun intersectsPolygon(a: Node, b: Node): Boolean {
+        var p: Node = a
+        do {
+            if (p.i != a.i && p.next!!.i != a.i && p.i != b.i && p.next!!.i != b.i && intersects(p, p.next
+                            ?: throw IllegalStateException("p.next is null"), a, b))
+                return true
+            p = p.next ?: throw IllegalStateException("p.next is null")
+        } while (p !== a)
+
+        return false
+    }
+
+    private fun intersects(p1: Node, q1: Node, p2: Node, q2: Node): Boolean {
+        return if (equals(p1, q1!!) && equals(p2!!, q2) || equals(p1, q2) && equals(p2!!, q1)) true else area(p1, q1, p2!!) > 0 != area(p1, q1, q2) > 0 && area(p2, q2, p1) > 0 != area(p2, q2, q1) > 0
+    }
+
+    private fun cureLocalIntersections(start: Node, triangles: MutableList<Int>, dim: Int): Node {
+        var start = start
+        var p: Node = start
+        do {
+            val a = p.prev!!
+            val b = p.next!!.next!!
+
+            if (!equals(a, b) && intersects(a, p, p.next
+                            ?: throw IllegalStateException("p.next is null"), b) && locallyInside(a, b) && locallyInside(b, a)) {
+
+                triangles.add(a.i / dim)
+                triangles.add(p.i / dim)
+                triangles.add(b.i / dim)
+
+                // remove two nodes involved
+                removeNode(p)
+                removeNode(p.next!!)
+
+                start = b
+                p = start
+            }
+            p = p.next!!
+        } while (p !== start)
+
+        return p
+    }
+
+    private fun isEar(ear: Node): Boolean {
+        val a = ear.prev
+        val c = ear.next
+
+        if (area(a!!, ear, c!!) >= 0)
+            return false // reflex, can't be an ear
+
+        // now make sure we don't have other points inside the potential ear
+        var p = ear.next!!.next
+
+        while (p !== ear.prev) {
+            if (pointInTriangle(a.x, a.y, ear.x, ear.y, c.x, c.y, p!!.x, p.y) && area(p.prev!!, p, p.next!!) >= 0)
+                return false
+            p = p.next
+        }
+
         return true
     }
 
-    private fun cutEarTip(earTipIndex: Int) {
-        val indices = this.indices
-        val triangles = this.triangles
+    private fun isEarHashed(ear: Node, minX: Double, minY: Double, size: Double): Boolean {
+        val a = ear.prev
+        val c = ear.next
 
-        triangles.add(indices!![previousIndex(earTipIndex)])
-        triangles.add(indices[earTipIndex])
-        triangles.add(indices[nextIndex(earTipIndex)])
+        if (area(a!!, ear, c!!) >= 0)
+            return false // reflex, can't be an ear
 
-        indices.removeAt(earTipIndex)
-        vertexTypes.removeAt(earTipIndex)
-        vertexCount--
-    }
+        // triangle bbox; min & max are calculated like this for speed
+        val minTX = if (a.x < ear.x) if (a.x < c.x) a.x else c.x else if (ear.x < c.x) ear.x else c.x
+        val minTY = if (a.y < ear.y) if (a.y < c.y) a.y else c.y else if (ear.y < c.y) ear.y else c.y
+        val maxTX = if (a.x > ear.x) if (a.x > c.x) a.x else c.x else if (ear.x > c.x) ear.x else c.x
+        val maxTY = if (a.y > ear.y) if (a.y > c.y) a.y else c.y else if (ear.y > c.y) ear.y else c.y
 
-    private fun previousIndex(index: Int): Int {
-        return (if (index == 0) vertexCount else index) - 1
-    }
+        // z-order range for the current triangle bbox;
+        val minZ = zOrder(minTX, minTY, minX, minY, size)
+        val maxZ = zOrder(maxTX, maxTY, minX, minY, size)
 
-    private fun nextIndex(index: Int): Int {
-        return (index + 1) % vertexCount
-    }
+        // first look for points inside the triangle in increasing z-order
+        var p = ear.nextZ
 
-    companion object {
-        private val CONCAVE = -1
-        private val CONVEX = 1
-
-        private fun areVerticesClockwise(vertices: List<Float>, offset: Int, count: Int): Boolean {
-            if (count <= 2) return false
-            var area = 0f
-            var p1x: Float
-            var p1y: Float
-            var p2x: Float
-            var p2y: Float
-            var i = offset
-            val n = offset + count - 3
-            while (i < n) {
-                p1x = vertices[i]
-                p1y = vertices[i + 1]
-                p2x = vertices[i + 2]
-                p2y = vertices[i + 3]
-                area += p1x * p2y - p2x * p1y
-                i += 2
-            }
-            p1x = vertices[offset + count - 2]
-            p1y = vertices[offset + count - 1]
-            p2x = vertices[offset]
-            p2y = vertices[offset + 1]
-            return area + p1x * p2y - p2x * p1y < 0
+        while (p != null && p.z <= maxZ) {
+            if (p !== ear.prev && p !== ear.next && pointInTriangle(a.x, a.y, ear.x, ear.y, c.x, c.y, p.x, p.y) && area(p.prev!!, p, p.next!!) >= 0)
+                return false
+            p = p.nextZ
         }
 
-        private fun computeSpannedAreaSign(p1x: Float, p1y: Float, p2x: Float, p2y: Float, p3x: Float, p3y: Float): Int {
-            var area = p1x * (p3y - p2y)
-            area += p2x * (p1y - p3y)
-            area += p3x * (p2y - p1y)
-            return Math.signum(area).toInt()
+        // then look for points in decreasing z-order
+        p = ear.prevZ
+
+        while (p != null && p.z >= minZ) {
+            if (p !== ear.prev && p !== ear.next && pointInTriangle(a.x, a.y, ear.x, ear.y, c.x, c.y, p.x, p.y) && area(p.prev!!, p, p.next!!) >= 0)
+                return false
+            p = p.prevZ
+        }
+
+        return true
+    }
+
+    private fun zOrder(x: Double, y: Double, minX: Double, minY: Double, size: Double): Double {
+        var y = y
+        // coords are transformed into non-negative 15-bit integer range
+        var lx = (32767 * (x - minX) / size).toInt()
+        val ly = (32767 * (y - minY) / size).toInt()
+
+        lx = lx or (lx shl 8) and 0x00FF00FF
+        lx = lx or (lx shl 4) and 0x0F0F0F0F
+        lx = lx or (lx shl 2) and 0x33333333
+        lx = lx or (lx shl 1) and 0x55555555
+
+        y = (ly or (ly shl 8) and 0x00FF00FF).toDouble()
+        y = (ly or (ly shl 4) and 0x0F0F0F0F).toDouble()
+        y = (ly or (ly shl 2) and 0x33333333).toDouble()
+        y = (ly or (ly shl 1) and 0x55555555).toDouble()
+
+        return (lx or (ly shl 1)).toDouble()
+    }
+
+    private fun indexCurve(start: Node?, minX: Double, minY: Double, size: Double) {
+        var p: Node = start ?: return
+        do {
+            if (p.z == java.lang.Double.MIN_VALUE)
+                p.z = zOrder(p.x, p.y, minX, minY, size)
+            p.prevZ = p.prev
+            p.nextZ = p.next
+            p = p.next ?: throw IllegalStateException("p.next is null")
+        } while (p !== start)
+
+        p.prevZ?.nextZ = null
+        p.prevZ = null
+
+        sortLinked(p)
+    }
+
+    private fun sortLinked(list: Node?): Node? {
+        var list = list
+        var inSize = 1
+
+
+        var numMerges: Int
+        do {
+            var p = list
+            list = null
+            var tail: Node? = null
+            numMerges = 0
+
+            while (p != null) {
+                numMerges++
+                var q = p
+                var pSize = 0
+                for (i in 0 until inSize) {
+                    pSize++
+                    q = q!!.nextZ
+                    if (q == null)
+                        break
+                }
+
+                var qSize = inSize
+
+                while (pSize > 0 || qSize > 0 && q != null) {
+                    val e: Node
+                    if (pSize == 0) {
+                        e = q ?: throw IllegalStateException("q is null")
+                        q = q.nextZ
+                        qSize--
+                    } else if (qSize == 0 || q == null) {
+                        e = p ?: throw IllegalStateException("p is null")
+                        p = p.nextZ
+                        pSize--
+                    } else if (p!!.z <= q.z) {
+                        e = p
+                        p = p.nextZ
+                        pSize--
+                    } else {
+                        e = q
+                        q = q.nextZ
+                        qSize--
+                    }
+
+                    if (tail != null)
+                        tail.nextZ = e
+                    else
+                        list = e
+
+                    e.prevZ = tail
+                    tail = e
+                }
+
+                p = q
+            }
+
+            tail!!.nextZ = null
+            inSize *= 2
+
+        } while (numMerges > 1)
+
+        return list
+    }
+
+    private fun eliminateHoles(data: DoubleArray, holeIndices: IntArray, outerNode: Node?, dim: Int): Node? {
+        var outerNode = outerNode
+        val queue = ArrayList<Node>()
+
+        val len = holeIndices.size
+        for (i in 0 until len) {
+            val start = holeIndices[i] * dim
+            val end = if (i < len - 1) holeIndices[i + 1] * dim else data.size
+            val list = linkedList(data, start, end, dim, false) ?: throw IllegalStateException("list is null")
+            if (list === list.next)
+                list.steiner = true
+            queue.add(getLeftmost(list))
+        }
+
+        queue.sortWith(Comparator { o1, o2 ->
+            if (o1.x - o2.x > 0)
+                return@Comparator 1
+            else if (o1.x - o2.x < 0)
+                return@Comparator -2
+            0
+        })
+
+        for (node in queue) {
+            eliminateHole(node, outerNode)
+            outerNode = filterPoints(outerNode, outerNode!!.next)
+        }
+
+        return outerNode
+    }
+
+    private fun filterPoints(start: Node?, end: Node?): Node? {
+        var end = end
+        if (start == null)
+            return start
+        if (end == null)
+            end = start
+
+        var p = start
+        var again: Boolean
+
+        do {
+            again = false
+
+            if (!p!!.steiner && equals(p, p.next!!) || area(p.prev!!, p, p.next!!) == 0.0) {
+                removeNode(p)
+                end = p.prev
+                p = end
+                if (p === p!!.next)
+                    return null
+                again = true
+            } else {
+                p = p.next
+            }
+        } while (again || p !== end)
+
+        return end
+    }
+
+    private fun equals(p1: Node, p2: Node): Boolean {
+        return p1.x == p2.x && p1.y == p2.y
+    }
+
+    private fun area(p: Node, q: Node, r: Node): Double {
+        return (q.y - p.y) * (r.x - q.x) - (q.x - p.x) * (r.y - q.y)
+    }
+
+    private fun eliminateHole(hole: Node, outerNode: Node?) {
+        var outerNode = outerNode
+        outerNode = findHoleBridge(hole, outerNode)
+        if (outerNode != null) {
+            val b = splitPolygon(outerNode, hole)
+            filterPoints(b, b.next)
+        }
+    }
+
+    private fun splitPolygon(a: Node, b: Node): Node {
+        val a2 = Node(a.i, a.x, a.y)
+        val b2 = Node(b.i, b.x, b.y)
+        val an = a.next
+        val bp = b.prev
+
+        a.next = b
+        b.prev = a
+
+        a2.next = an
+        an!!.prev = a2
+
+        b2.next = a2
+        a2.prev = b2
+
+        bp!!.next = b2
+        b2.prev = bp
+
+        return b2
+    }
+
+    // David Eberly's algorithm for finding a bridge between hole and outer
+    // polygon
+    private fun findHoleBridge(hole: Node, outerNode: Node?): Node? {
+        var p = outerNode
+        val hx = hole.x
+        val hy = hole.y
+        var qx = -java.lang.Double.MAX_VALUE
+        var m: Node? = null
+
+        // find a segment intersected by a ray from the hole's leftmost point to
+        // the left;
+        // segment's endpoint with lesser x will be potential connection point
+        do {
+            if (hy <= p!!.y && hy >= p.next!!.y) {
+                val x = p.x + (hy - p.y) * (p.next!!.x - p.x) / (p.next!!.y - p.y)
+                if (x <= hx && x > qx) {
+                    qx = x
+                    if (x == hx) {
+                        if (hy == p.y)
+                            return p
+                        if (hy == p.next!!.y)
+                            return p.next
+                    }
+                    m = if (p.x < p.next!!.x) p else p.next
+                }
+            }
+            p = p.next
+        } while (p !== outerNode)
+
+        if (m == null)
+            return null
+
+        if (hx == qx)
+            return m.prev // hole touches outer segment; pick lower endpoint
+
+        // look for points inside the triangle of hole point, segment
+        // intersection and endpoint;
+        // if there are no points found, we have a valid connection;
+        // otherwise choose the point of the minimum angle with the ray as
+        // connection point
+
+        val stop = m
+        val mx = m.x
+        val my = m.y
+        var tanMin = java.lang.Double.MAX_VALUE
+        var tan: Double
+
+        p = m.next
+
+        while (p !== stop) {
+            if (hx >= p!!.x && p.x >= mx && pointInTriangle(if (hy < my) hx else qx, hy, mx, my, if (hy < my) qx else hx, hy, p.x, p.y)) {
+
+                tan = Math.abs(hy - p.y) / (hx - p.x) // tangential
+
+                if ((tan < tanMin || tan == tanMin && p.x > m!!.x) && locallyInside(p, hole)) {
+                    m = p
+                    tanMin = tan
+                }
+            }
+
+            p = p.next
+        }
+
+        return m
+    }
+
+    private fun locallyInside(a: Node, b: Node): Boolean {
+        return if (area(a.prev!!, a, a.next!!) < 0) area(a, b, a.next!!) >= 0 && area(a, a.prev!!, b) >= 0 else area(a, b, a.prev!!) < 0 || area(a, a.next!!, b) < 0
+    }
+
+    private fun pointInTriangle(ax: Double, ay: Double, bx: Double, by: Double, cx: Double, cy: Double, px: Double, py: Double): Boolean {
+        return ((cx - px) * (ay - py) - (ax - px) * (cy - py) >= 0 && (ax - px) * (by - py) - (bx - px) * (ay - py) >= 0
+                && (bx - px) * (cy - py) - (cx - px) * (by - py) >= 0)
+    }
+
+    private fun getLeftmost(start: Node): Node {
+        var p: Node? = start
+        var leftmost = start
+        do {
+            if (p!!.x < leftmost.x)
+                leftmost = p
+            p = p.next
+        } while (p !== start)
+        return leftmost
+    }
+
+    private fun linkedList(data: DoubleArray, start: Int, end: Int, dim: Int, clockwise: Boolean): Node? {
+        var last: Node? = null
+        if (clockwise == signedArea(data, start, end, dim) > 0) {
+            var i = start
+            while (i < end) {
+                last = insertNode(i, data[i], data[i + 1], last)
+                i += dim
+            }
+        } else {
+            var i = end - dim
+            while (i >= start) {
+                last = insertNode(i, data[i], data[i + 1], last)
+                i -= dim
+            }
+        }
+
+        if (last != null && equals(last, last.next!!)) {
+            removeNode(last)
+            last = last.next
+        }
+        return last
+    }
+
+    private fun removeNode(p: Node) {
+        p.next!!.prev = p.prev
+        p.prev!!.next = p.next
+
+        if (p.prevZ != null) {
+            p.prevZ!!.nextZ = p.nextZ
+        }
+        if (p.nextZ != null) {
+            p.nextZ!!.prevZ = p.prevZ
+        }
+    }
+
+    private fun insertNode(i: Int, x: Double, y: Double, last: Node?): Node {
+        val p = Node(i, x, y)
+
+        if (last == null) {
+            p.prev = p
+            p.next = p
+        } else {
+            p.next = last.next
+            p.prev = last
+            last.next!!.prev = p
+            last.next = p
+        }
+        return p
+    }
+
+    private fun signedArea(data: DoubleArray, start: Int, end: Int, dim: Int): Double {
+        var sum = 0.0
+        var j = end - dim
+        var i = start
+        while (i < end) {
+            sum += (data[j] - data[i]) * (data[i + 1] + data[j + 1])
+            j = i
+            i += dim
+        }
+        return sum
+    }
+
+    private class Node internal constructor(internal var i: Int, internal var x: Double, internal var y: Double) {
+        internal var z: Double = 0.toDouble()
+        internal var steiner: Boolean = false
+
+        internal var prev: Node? = null
+        internal var next: Node? = null
+        internal var prevZ: Node? = null
+        internal var nextZ: Node? = null
+
+        init {
+
+            // previous and next vertice nodes in a polygon ring
+            this.prev = null
+            this.next = null
+
+            // z-order curve value
+            this.z = java.lang.Double.MIN_VALUE
+
+            // previous and next nodes in z-order
+            this.prevZ = null
+            this.nextZ = null
+
+            // indicates whether this is a steiner point
+            this.steiner = false
+        }// vertice index in coordinates array
+        // vertex coordinates
+
+        override fun toString(): String {
+            val sb = StringBuilder()
+            sb.append("{i: ").append(i).append(", x: ").append(x).append(", y: ").append(y).append(", prev: ").append(prev).append(", next: ").append(next)
+            return sb.toString()
         }
     }
 }
-/** @see .computeTriangles
+/**
+ * Triangulates the given polygon
+ *
+ * @param data is a flat array of vertice coordinates like [x0,y0, x1,y1, x2,y2, ...].
+ * @return List containing groups of three vertice indices in the resulting array forms a triangle.
  */
