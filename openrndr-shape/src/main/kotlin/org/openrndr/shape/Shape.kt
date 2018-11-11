@@ -3,7 +3,7 @@
 package org.openrndr.shape
 
 import org.openrndr.math.*
-import org.openrndr.shape.internal.BezierCubicRenderer
+import org.openrndr.shape.internal.BezierCubicSampler
 import org.openrndr.shape.internal.BezierQuadraticSampler
 import java.util.*
 import kotlin.math.sign
@@ -153,10 +153,18 @@ class Segment {
 
     fun sampleAdaptive(distanceTolerance: Double = 0.5): List<Vector2> = when (control.size) {
         0 -> listOf(start, end)
-        1 -> BezierQuadraticSampler().apply { this.distanceTolerance = distanceTolerance }.sample(start, control[0], end)
-        2 -> BezierCubicRenderer().apply { this.distanceTolerance = distanceTolerance }.sample(start, control[0], control[1], end)
+        1 -> BezierQuadraticSampler().apply { this.distanceTolerance = distanceTolerance }.sample(start, control[0], end).first
+        2 -> BezierCubicSampler().apply { this.distanceTolerance = distanceTolerance }.sample(start, control[0], control[1], end).first
         else -> throw RuntimeException("unsupported number of control points")
     }
+
+    fun sampleAdaptiveNormals(distanceTolerance: Double = 0.5): Pair<List<Vector2>, List<Vector2>> = when (control.size) {
+        0 -> Pair(listOf(start, end), listOf(end-start, end-start))
+        1 -> BezierQuadraticSampler().apply { this.distanceTolerance = distanceTolerance }.sample(start, control[0], end)
+        2 -> BezierCubicSampler().apply { this.distanceTolerance = distanceTolerance }.sample(start, control[0], control[1], end)
+        else -> throw RuntimeException("unsupported number of control points")
+    }
+
 
     val length: Double
         get() = when (control.size) {

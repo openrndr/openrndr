@@ -2,23 +2,24 @@ package org.openrndr.shape.internal
 
 import org.openrndr.math.Vector2
 
-internal class BezierCubicRenderer {
+internal class BezierCubicSampler {
 
     private val recursionLimit = 8
     private val points = mutableListOf<Vector2>()
+    private val direction = mutableListOf<Vector2>()
 
     private var distanceToleranceSquare: Double = 0.toDouble()
     private val angleTolerance = 0.0
     private val cuspLimit = 0.0
     var distanceTolerance = 0.5
 
-    fun sample(x1: Vector2, x2: Vector2, x3: Vector2, x4: Vector2): List<Vector2> {
+    fun sample(x1: Vector2, x2: Vector2, x3: Vector2, x4: Vector2): Pair<List<Vector2>, List<Vector2>> {
         distanceToleranceSquare = distanceTolerance * distanceTolerance
         points.clear()
-        points.add(x1)
+        points.add(x1); direction.add(x2-x1)
         sample(x1, x2, x3, x4, 0)
-        points.add(x4)
-        return points
+        points.add(x4); direction.add(x4-x3)
+        return Pair(points, direction)
     }
 
     private fun sample(x1: Vector2, x2: Vector2, x3: Vector2, x4: Vector2, level: Int) {
@@ -99,7 +100,7 @@ internal class BezierCubicRenderer {
                 //----------------------
                 if (d3 * d3 <= distanceToleranceSquare * (dx * dx + dy * dy)) {
                     if (angleTolerance < angleToleranceEpsilon) {
-                        points.add(x23)
+                        points.add(x23); direction.add(x3-x2)
                         return
                     }
 
@@ -109,14 +110,14 @@ internal class BezierCubicRenderer {
                     if (da1 >= Math.PI) da1 = 2 * Math.PI - da1
 
                     if (da1 < angleTolerance) {
-                        points.add(x2)
-                        points.add(x3)
+                        points.add(x2); direction.add(x2-x1)
+                        points.add(x3); direction.add(x4-x3)
                         return
                     }
 
                     if (cuspLimit != 0.0) {
                         if (da1 > cuspLimit) {
-                            points.add(x3)
+                            points.add(x3); direction.add(x4-x3)
                             return
                         }
                     }
@@ -126,7 +127,7 @@ internal class BezierCubicRenderer {
                 //----------------------
                 if (d2 * d2 <= distanceToleranceSquare * (dx * dx + dy * dy)) {
                     if (angleTolerance < angleToleranceEpsilon) {
-                        points.add(x23)
+                        points.add(x23); direction.add(x3-x2)
                         return
                     }
 
@@ -136,14 +137,14 @@ internal class BezierCubicRenderer {
                     if (da1 >= Math.PI) da1 = 2 * Math.PI - da1
 
                     if (da1 < angleTolerance) {
-                        points.add(x2)
-                        points.add(x3)
+                        points.add(x2); direction.add(x2-x1)
+                        points.add(x3); direction.add(x4-x3)
                         return
                     }
 
                     if (cuspLimit != 0.0) {
                         if (da1 > cuspLimit) {
-                            points.add(x2)
+                            points.add(x2); direction.add(x2-x1)
                             return
                         }
                     }
@@ -156,7 +157,7 @@ internal class BezierCubicRenderer {
                     // we tend to finish subdivisions.
                     //----------------------
                     if (angleTolerance < angleToleranceEpsilon) {
-                        points.add(x23)
+                        points.add(x23); direction.add(x3-x2)
                         return
                     }
 
@@ -171,18 +172,18 @@ internal class BezierCubicRenderer {
                     if (da1 + da2 < angleTolerance) {
                         // Finally we can stop the recursion
                         //----------------------
-                        points.add(x23)
+                        points.add(x23); direction.add(x3-x2)
                         return
                     }
 
                     if (cuspLimit != 0.0) {
                         if (da1 > cuspLimit) {
-                            points.add(x2)
+                            points.add(x2); direction.add(x2-x1)
                             return
                         }
 
                         if (da2 > cuspLimit) {
-                            points.add(x3)
+                            points.add(x3); direction.add(x4-x3)
                             return
                         }
                     }

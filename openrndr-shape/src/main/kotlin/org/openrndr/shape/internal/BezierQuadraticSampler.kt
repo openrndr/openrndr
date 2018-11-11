@@ -3,8 +3,6 @@ package org.openrndr.shape.internal
 import org.openrndr.math.Vector2
 
 internal class BezierQuadraticSampler {
-
-
     private val recursionLimit = 8
 
     var distanceTolerance = 0.5
@@ -13,15 +11,16 @@ internal class BezierQuadraticSampler {
     private val angleTolerance = 0.0
 
     internal var points: MutableList<Vector2> = mutableListOf()
+    internal var direction = mutableListOf<Vector2>()
 
     private fun sample(x1: Vector2, x2: Vector2, x3: Vector2, level: Int) {
         if (level > recursionLimit) {
             return
         }
 
-        val x12 = x1.plus(x2).times(0.5)
-        val x23 = x2.plus(x3).times(0.5)
-        val x123 = x12.plus(x23).times(0.5)
+        val x12 = (x1 + x2) * 0.5
+        val x23 = (x2 + x3) * 0.5
+        val x123 = (x12 + x23) * 0.5
 
         val dx = x3.x - x1.x
         val dy = x3.y - x1.y
@@ -36,6 +35,7 @@ internal class BezierQuadraticSampler {
                 // we tend to finish subdivisions.
                 //----------------------
                 if (angleTolerance < angleToleranceEpsilon) {
+                    direction.add(x23-x12)
                     points.add(x123)
                     return
                 }
@@ -48,6 +48,7 @@ internal class BezierQuadraticSampler {
                 if (da < angleTolerance) {
                     // Finally we can stop the recursion
                     //----------------------
+                    direction.add(x23-x12)
                     points.add(x123)
                     return
                 }
@@ -73,6 +74,7 @@ internal class BezierQuadraticSampler {
                     d = squaredDistance(x2.x, x2.y, x1.x + d * dx, x1.y + d * dy)
             }
             if (d < distanceToleranceSquare) {
+                direction.add(x23-x12)
                 points.add(x2)
                 return
             }
@@ -84,13 +86,14 @@ internal class BezierQuadraticSampler {
         sample(x123, x23, x3, level + 1)
     }
 
-    fun sample(x1: Vector2, x2: Vector2, x3: Vector2): List<Vector2> {
+    fun sample(x1: Vector2, x2: Vector2, x3: Vector2): Pair< List<Vector2>, List<Vector2> > {
         distanceToleranceSquare = distanceTolerance * distanceTolerance
         points.clear()
-        points.add(x1)
+        direction.clear()
+        points.add(x1); direction.add(x2-x1)
         sample(x1, x2, x3, 0)
-        points.add(x3)
-        return points
+        points.add(x3); direction.add(x3-x2)
+        return Pair(points, direction)
     }
 
     companion object {
