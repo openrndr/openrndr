@@ -70,7 +70,7 @@ data class DrawContext(val model: Matrix44, val view: Matrix44, val projection: 
                         lastModel = model
                         lastModelNormal
                     }
-                    shader.uniform("u_modelNormalMatrix", normalMatrix)
+                    uniform("u_modelNormalMatrix", normalMatrix)
                 }
                 run {
                     val normalMatrix = if (view === lastView) lastViewNormal else {
@@ -78,9 +78,9 @@ data class DrawContext(val model: Matrix44, val view: Matrix44, val projection: 
                         lastView = view
                         lastViewNormal
                     }
-                    shader.uniform("u_viewNormalMatrix", normalMatrix)
+                    uniform("u_viewNormalMatrix", normalMatrix)
                 }
-                shader.uniform("u_contentScale", contentScale)
+                uniform("u_contentScale", contentScale.toFloat())
                 if (dirty) {
                     upload()
                 }
