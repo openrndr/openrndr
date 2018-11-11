@@ -12,7 +12,7 @@ import org.lwjgl.opengl.GL30.glGenVertexArrays
 import org.lwjgl.opengl.GL31.glDrawArraysInstanced
 import org.lwjgl.opengl.GL31.glDrawElementsInstanced
 import org.lwjgl.opengl.GL33.glVertexAttribDivisor
-import org.lwjgl.opengl.GL40.glBlendFunci
+import org.lwjgl.opengl.GL40.*
 import org.openrndr.draw.*
 import org.openrndr.internal.Driver
 import org.openrndr.internal.FontMapManager
@@ -20,7 +20,6 @@ import org.openrndr.internal.ResourceThread
 import org.openrndr.internal.ShaderGenerators
 import org.openrndr.math.Matrix44
 import java.math.BigInteger
-
 import java.nio.Buffer
 import java.util.*
 
@@ -463,10 +462,12 @@ class DriverGL3 : Driver {
         when (drawStyle.blendMode) {
             BlendMode.OVER -> {
                 glEnable(GL_BLEND)
+                glBlendEquationi(0, GL_FUNC_ADD)
                 glBlendFunci(0, GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
             }
             BlendMode.ADD -> {
                 glEnable(GL_BLEND)
+                glBlendEquationi(0, GL_FUNC_ADD)
                 glBlendFunci(0, GL_ONE, GL_ONE)
             }
 
@@ -474,10 +475,13 @@ class DriverGL3 : Driver {
                 glDisable(GL_BLEND)
             }
             BlendMode.SUBTRACT -> {
-                TODO("not implemented: subtract blend")
+                glEnable(GL_BLEND)
+                glBlendEquationSeparatei(0, GL_FUNC_REVERSE_SUBTRACT, GL_FUNC_ADD)
+                glBlendFuncSeparatei(0, GL_SRC_ALPHA, GL_ONE, GL_ONE, GL_ONE)
             }
             BlendMode.MULTIPLY -> {
                 glEnable(GL_BLEND)
+                glBlendEquationi(0, GL_FUNC_ADD)
                 glBlendFunci(0, GL_DST_COLOR, GL_ZERO)
             }
         }
