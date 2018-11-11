@@ -32,7 +32,6 @@ data class VertexElement(val attribute: String, val offset: Int, val type: Verte
 
 @Suppress("MemberVisibilityCanPrivate")
 
-
 fun codeFromStream(stream: InputStream): String {
     BufferedReader(InputStreamReader(stream)).use {
         return it.readText()
@@ -75,13 +74,14 @@ class Drawer(val driver: Driver) {
     private var circleDrawer = CircleDrawer()
     private var imageDrawer = ImageDrawer()
     private var fastLineDrawer = PerformanceLineDrawer()
+    private val meshLineDrawer by lazy { MeshLineDrawer() }
     private var qualityLineDrawer = QualityLineDrawer()
     private var qualityPolygonDrawer = QualityPolygonDrawer()
     internal val fontImageMapDrawer = FontImageMapDrawer()
 
-    val modelStack = Stack<Matrix44>()
-    val viewStack = Stack<Matrix44>()
-    val projectionStack = Stack<Matrix44>()
+    private val modelStack = Stack<Matrix44>()
+    private val viewStack = Stack<Matrix44>()
+    private val projectionStack = Stack<Matrix44>()
 
     var width: Int = 0
     var height: Int = 0
@@ -116,10 +116,16 @@ class Drawer(val driver: Driver) {
         ortho(0.0, renderTarget.width.toDouble(), renderTarget.height.toDouble(), 0.0, -1.0, 1.0)
     }
 
+    /**
+     * Sets the [projection] matrix to orthogonal using the drawer's current size
+     */
     fun ortho() {
         ortho(0.0, width.toDouble(), height.toDouble(), 0.0, -1.0, 1.0)
     }
 
+    /**
+     * Sets the [projection] matrix to orthogonal using [left], [right], [bottom], [top], [near], [far]
+     */
     fun ortho(left: Double, right: Double, bottom: Double, top: Double, near: Double, far: Double) {
         projection = _ortho(left, right, bottom, top, near, far)
     }
@@ -328,6 +334,9 @@ class Drawer(val driver: Driver) {
         circleDrawer.drawCircles(context, drawStyle, circles)
     }
 
+    /**
+     * Draws a single [Shape] using [fill], [stroke] and [strokeWeight] settings
+     */
     fun shape(shape: Shape) {
         if (RenderTarget.active.hasDepthBuffer) {
             if (shape.contours.size > 1 || shape.contours[0].closed) {
@@ -342,12 +351,18 @@ class Drawer(val driver: Driver) {
         }
     }
 
+    /**
+     * Draws shapes using [fill], [stroke] and [strokeWeight] settings
+     */
     fun shapes(shapes: List<Shape>) {
         shapes.forEach {
             shape(it)
         }
     }
 
+    /**
+     * Draws a single [ShapeContour] using [fill], [stroke] and [strokeWeight] settings
+     */
     fun contour(contour: ShapeContour) {
         if (RenderTarget.active.hasDepthBuffer) {
             if (drawStyle.fill != null && contour.closed) {
@@ -371,6 +386,9 @@ class Drawer(val driver: Driver) {
         }
     }
 
+    /**
+     * Draws contours using [fill], [stroke] and [strokeWeight] settings
+     */
     fun contours(contours: List<ShapeContour>) {
         if (drawStyle.fill != null) {
             qualityPolygonDrawer.drawPolygons(context, drawStyle, contours.map { listOf(it.adaptivePositions()) })
@@ -389,20 +407,26 @@ class Drawer(val driver: Driver) {
         lineSegment(lineSegment.start, lineSegment.end)
     }
 
+    /**
+     * Draws a line segment from [start] to [end] using 2d coordinates
+     */
     fun lineSegment(start: Vector2, end: Vector2) {
         when (drawStyle.quality) {
-            DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineSegments2(context, drawStyle, listOf(start, end))
+            DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineSegments(context, drawStyle, listOf(start, end))
             DrawQuality.QUALITY -> qualityLineDrawer.drawLineStrips(context, drawStyle, listOf(listOf(start, end)))
         }
     }
 
+    /**
+     * Draws a line segment from [start] to [end] using 3d coordinates
+     */
     fun lineSegment(start: Vector3, end: Vector3) {
-        fastLineDrawer.drawLineSegments3(context, drawStyle, listOf(start, end))
+        fastLineDrawer.drawLineSegments(context, drawStyle, listOf(start, end))
     }
 
     fun lineSegments(segments: List<Vector2>) {
         when (drawStyle.quality) {
-            DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineSegments2(context, drawStyle, segments)
+            DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineSegments(context, drawStyle, segments)
             DrawQuality.QUALITY -> {
 
                 val pairs = (0 until segments.size / 2).map {
@@ -415,9 +439,8 @@ class Drawer(val driver: Driver) {
 
     fun lineSegments(segments: List<Vector2>, weights: List<Double>) {
         when (drawStyle.quality) {
-            DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineSegments2(context, drawStyle, segments)
+            DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineSegments(context, drawStyle, segments)
             DrawQuality.QUALITY -> {
-
                 val pairs = (0 until segments.size / 2).map {
                     listOf(segments[it * 2], segments[it * 2 + 1])
                 }
@@ -426,14 +449,26 @@ class Drawer(val driver: Driver) {
         }
     }
 
-    fun lineSegments3d(segments: List<Vector3>) {
-        fastLineDrawer.drawLineSegments3(context, drawStyle, segments)
+    @JvmName("lineSegments3d")
+    fun lineSegments(segments: List<Vector3>) {
+        when (drawStyle.quality) {
+            DrawQuality.QUALITY -> meshLineDrawer.drawLineSegments(context, drawStyle, segments)
+            DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineSegments(context, drawStyle, segments)
+        }
     }
 
     fun lineLoop(points: List<Vector2>) {
         when (drawStyle.quality) {
             DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineLoops(context, drawStyle, listOf(points))
             DrawQuality.QUALITY -> qualityLineDrawer.drawLineLoops(context, drawStyle, listOf(points))
+        }
+    }
+
+    @JvmName("lineLoop3d")
+    fun lineLoop(points: List<Vector3>) {
+        when (drawStyle.quality) {
+            DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineLoops(context, drawStyle, listOf(points))
+            DrawQuality.QUALITY -> meshLineDrawer.drawLineLoops(context, drawStyle, listOf(points))
         }
     }
 
@@ -444,6 +479,14 @@ class Drawer(val driver: Driver) {
         }
     }
 
+    @JvmName("lineLoops3d")
+    fun lineLoops(loops: List<List<Vector3>>) {
+        when (drawStyle.quality) {
+            DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineLoops(context, drawStyle, loops)
+            DrawQuality.QUALITY -> meshLineDrawer.drawLineLoops(context, drawStyle, loops)
+        }
+    }
+
     fun lineLoops(loops: List<List<Vector2>>, weights: List<Double>) {
         when (drawStyle.quality) {
             DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineLoops(context, drawStyle, loops)
@@ -451,6 +494,17 @@ class Drawer(val driver: Driver) {
         }
     }
 
+    @JvmName("lineLoops3d)")
+    fun lineLoops(loops: List<List<Vector3>>, weights: List<Double>) {
+        when (drawStyle.quality) {
+            DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineLoops(context, drawStyle, loops)
+            DrawQuality.QUALITY -> meshLineDrawer.drawLineLoops(context, drawStyle, loops)
+        }
+    }
+
+    /**
+     * Draws a line strip with 2d coordinates
+     */
     fun lineStrip(points: List<Vector2>) {
         when (drawStyle.quality) {
             DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineLoops(context, drawStyle, listOf(points))
@@ -458,6 +512,20 @@ class Drawer(val driver: Driver) {
         }
     }
 
+    /**
+     * Draws a line strip with 3d coordinates
+     */
+    @JvmName("lineStrip3d")
+    fun lineStrip(points: List<Vector3>) {
+        when (drawStyle.quality) {
+            DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineLoops(context, drawStyle, listOf(points))
+            DrawQuality.QUALITY -> meshLineDrawer.drawLineStrips(context, drawStyle, listOf(points))
+        }
+    }
+
+    /**
+     * Draws line strips with 3d coordinates
+     */
     fun lineStrips(strips: List<List<Vector2>>) {
         when (drawStyle.quality) {
             DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineLoops(context, drawStyle, strips)
@@ -465,6 +533,20 @@ class Drawer(val driver: Driver) {
         }
     }
 
+    /**
+     * Draws line strips with 3d coordinates
+     */
+    @JvmName("lineStrips3d")
+    fun lineStrips(strips: List<List<Vector3>>) {
+        when (drawStyle.quality) {
+            DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineLoops(context, drawStyle, strips)
+            DrawQuality.QUALITY -> meshLineDrawer.drawLineStrips(context, drawStyle, strips)
+        }
+    }
+
+    /**
+     * Draws line strips with 2d coordinates and stroke weights per strip
+     */
     fun lineStrips(strips: List<List<Vector2>>, weights: List<Double>) {
         when (drawStyle.quality) {
             DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineLoops(context, drawStyle, strips)
@@ -472,7 +554,20 @@ class Drawer(val driver: Driver) {
         }
     }
 
+    /**
+     * Draws line strips with 3d coordinates and stroke weights per strip
+     */
+    @JvmName("lineStrips3d")
+    fun lineStrips(strips: List<List<Vector3>>, weights: List<Double>) {
+        when (drawStyle.quality) {
+            DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineLoops(context, drawStyle, strips)
+            DrawQuality.QUALITY -> meshLineDrawer.drawLineStrips(context, drawStyle, strips)
+        }
+    }
 
+    /**
+     * Draws a [Composition]
+     */
     fun composition(composition: Composition) {
         pushStyle()
         fill = ColorRGBa.BLACK
@@ -509,36 +604,57 @@ class Drawer(val driver: Driver) {
         popStyle()
     }
 
+    /**
+     * Draws a [source] area of an image ([ColorBuffer]) into a [target] area
+     */
     fun image(colorBuffer: ColorBuffer, source: Rectangle, target: Rectangle) {
         imageDrawer.drawImage(context, drawStyle, colorBuffer, listOf(source to target))
     }
 
+    /**
+     * Draws an image with its top-left corner at ([x], [y]) and dimensions ([width], [height])
+     */
     fun image(colorBuffer: ColorBuffer, x: Double, y: Double, width: Double = colorBuffer.width.toDouble(), height: Double = colorBuffer.height.toDouble()) {
         imageDrawer.drawImage(context, drawStyle, colorBuffer, x, y, width, height)
     }
 
+    /**
+     * Draws an image with its top-left corner at ([position]) and dimensions ([width], [height])
+     */
     fun image(colorBuffer: ColorBuffer, position: Vector2, width: Double = colorBuffer.width.toDouble(), height: Double = colorBuffer.height.toDouble()) {
         imageDrawer.drawImage(context, drawStyle, colorBuffer, position.x, position.y, width, height)
     }
 
+    /**
+     * Draws an image with its top-left corner at (0,0)
+     */
     fun image(colorBuffer: ColorBuffer) = image(colorBuffer, 0.0, 0.0)
 
     fun image(colorBuffer: ColorBuffer, rectangles: List<Pair<Rectangle, Rectangle>>) {
         imageDrawer.drawImage(context, drawStyle, colorBuffer, rectangles)
     }
 
+    /**
+     * Draws [text] at ([position])
+     */
     fun text(text: String, position: Vector2) {
         if (fontMap is FontImageMap) {
             fontImageMapDrawer.drawText(context, drawStyle, text, position.x, position.y)
         }
     }
 
+    /**
+     * Draws [text] at ([x], [y])
+     */
     fun text(text: String, x: Double = 0.0, y: Double = 0.0) {
         if (fontMap is FontImageMap) {
             fontImageMapDrawer.drawText(context, drawStyle, text, x, y)
         }
     }
 
+    /**
+     * Draws [texts] at [positions])
+     */
     fun texts(texts: List<String>, positions: List<Vector2>) {
         if (fontMap is FontImageMap) {
             fontImageMapDrawer.drawTexts(context, drawStyle, texts, positions)
@@ -550,6 +666,9 @@ class Drawer(val driver: Driver) {
         this.height = height
     }
 
+    /**
+     * Draws a [VertexBuffer] using [primitive]
+     */
     fun vertexBuffer(vertexBuffer: VertexBuffer, primitive: DrawPrimitive, vertexOffset: Int = 0, vertexCount: Int = vertexBuffer.vertexCount) {
         vertexBuffer(listOf(vertexBuffer), primitive, vertexOffset, vertexCount)
     }

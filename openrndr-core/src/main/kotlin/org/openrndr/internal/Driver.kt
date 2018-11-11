@@ -28,7 +28,11 @@ interface ShaderGenerators {
 
     fun fastLineFragmentShader(shadeStructure: ShadeStructure): String
     fun fastLineVertexShader(shadeStructure: ShadeStructure): String
+
+    fun meshLineFragmentShader(shadeStructure: ShadeStructure): String
+    fun meshLineVertexShader(shadeStructure: ShadeStructure): String
 }
+
 
 /**
  * Driver interface. This is the internal interface
