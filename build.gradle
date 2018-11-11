@@ -79,9 +79,10 @@ allprojects {
         implementation 'io.github.microutils:kotlin-logging:1.6.10'
         implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.0.0'
 
-        testImplementation 'org.jetbrains.spek:spek-api:1.1.5'
+        testImplementation "org.jetbrains.kotlin:kotlin-reflect:1.3.0"
+        testImplementation 'org.jetbrains.spek:spek-api:1.2.1'
         testImplementation 'org.amshove.kluent:kluent:1.37'
-        testRuntime 'org.jetbrains.spek:spek-junit-platform-engine:1.1.5'
+        testRuntime 'org.jetbrains.spek:spek-junit-platform-engine:1.2.1'
         //testRuntime 'org.junit.jupiter:junit-jupiter-engine:5.2.0'
         testRuntime 'org.junit.platform:junit-platform-console:1.2.0'
     }
@@ -95,7 +96,9 @@ allprojects {
 
     if (System.getenv('TRAVIS') == null) {
         task runJupiter(type: JavaExec) {
-            jvmArgs '-XstartOnFirstThread'
+            if (!System.properties['os.name'].toLowerCase().contains('windows')) {
+               jvmArgs '-XstartOnFirstThread'
+            }
             classpath = project.sourceSets.test.runtimeClasspath
             main 'org.junit.platform.console.ConsoleLauncher'
             args '--scan-class-path'
