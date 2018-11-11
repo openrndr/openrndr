@@ -3,14 +3,25 @@ package org.openrndr
 import org.openrndr.math.Vector2
 import kotlin.concurrent.thread
 
+/**
+ * PresentationMode describes modes of frame presentation
+ */
 enum class PresentationMode {
+    /**
+     * automatic presentation mode, frames are presented at highest rate possible
+     */
     AUTOMATIC,
+    /**
+     * manual presentation mode, presentation only takes place after requesting redraw
+     */
     MANUAL,
 }
 
+/**
+ * Application interface
+ */
 abstract class Application {
     companion object {
-
         fun run(program: Program, configuration: Configuration) {
             val c = applicationClass(configuration)
             val application = c.declaredConstructors[0].newInstance(program, configuration) as Application
@@ -27,12 +38,11 @@ abstract class Application {
             }
         }
 
-        fun applicationClass(configuration: Configuration): Class<*> {
-            val c = if (!configuration.headless)
+        private fun applicationClass(configuration: Configuration): Class<*> {
+            return if (!configuration.headless)
                 Application::class.java.classLoader.loadClass("org.openrndr.internal.gl3.ApplicationGLFWGL3")
             else
                 Application::class.java.classLoader.loadClass("org.openrndr.internal.gl3.ApplicationEGLGL3")
-            return c
         }
     }
 
@@ -52,13 +62,19 @@ abstract class Application {
     abstract var presentationMode: PresentationMode
 }
 
+/**
+ * Runs [program] as an application using [configuration].
+ */
 fun application(program: Program, configuration: Configuration = Configuration()) {
     Application.run(program, configuration)
 }
 
+
+/**
+ * Resolves resource named [name] relative to [class] as a [String] based URL.
+ */
 fun resourceUrl(name: String, `class`: Class<*> = Application::class.java): String {
     val resource = `class`.getResource(name)
-
     if (resource == null) {
         throw RuntimeException("resource $name not found")
     } else {
