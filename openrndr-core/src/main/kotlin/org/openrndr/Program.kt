@@ -41,15 +41,21 @@ open class Program {
     lateinit var application: Application
 
     var backgroundColor: ColorRGBa? = ColorRGBa.BLACK
-
-
     val dispatcher = PumpDispatcher()
 
     /**
-     * The number of [seconds] since program start
+     * clock function. defaults to returning the application time.
+     */
+    var clock = { application.seconds }
+
+    private var frameSeconds = 0.0
+
+    /**
+     * The number of [seconds] since program start, or the time from a custom [clock].
+     * value is updated at the beginning of the frame only.
      */
     val seconds: Double
-        get() = application.seconds
+        get() = frameSeconds
 
     inner class Clipboard {
         var contents: String?
@@ -220,6 +226,7 @@ open class Program {
      * This is the draw call that is called by Application. It takes care of handling extensions.
      */
     fun drawImpl() {
+        frameSeconds = clock()
         backgroundColor?.let {
             drawer.background(it)
         }
