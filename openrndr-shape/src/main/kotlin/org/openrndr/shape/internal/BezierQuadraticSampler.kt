@@ -35,7 +35,7 @@ internal class BezierQuadraticSampler {
                 // we tend to finish subdivisions.
                 //----------------------
                 if (angleTolerance < angleToleranceEpsilon) {
-                    direction.add(x23-x12)
+                    direction.add(x3-x1)
                     points.add(x123)
                     return
                 }
@@ -48,7 +48,7 @@ internal class BezierQuadraticSampler {
                 if (da < angleTolerance) {
                     // Finally we can stop the recursion
                     //----------------------
-                    direction.add(x23-x12)
+                    direction.add(x3-x1)
                     points.add(x123)
                     return
                 }
@@ -74,7 +74,7 @@ internal class BezierQuadraticSampler {
                     d = squaredDistance(x2.x, x2.y, x1.x + d * dx, x1.y + d * dy)
             }
             if (d < distanceToleranceSquare) {
-                direction.add(x23-x12)
+                direction.add(x3-x1)
                 points.add(x2)
                 return
             }
