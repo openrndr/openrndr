@@ -39,7 +39,8 @@ dokka {
     moduleName = "$rootProject.name"
     outputDirectory = "$buildDir/docs"
     outputFormat = "html"
-
+    includes = ['Module.md']
+    
     sourceDirs = files(subprojects.collect { p -> new File(p.projectDir, "/src/main/kotlin") })
     if (!System.properties['os.name'].toLowerCase().contains('windows')) {
 
