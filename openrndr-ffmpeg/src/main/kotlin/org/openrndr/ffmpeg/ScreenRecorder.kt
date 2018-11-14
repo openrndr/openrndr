@@ -6,24 +6,39 @@ import org.openrndr.draw.*
 import org.openrndr.math.Matrix44
 import java.time.LocalDateTime
 
+/**
+ * ScreenRecorder extension can be used to record to contents of a `Program` to a video
+ */
 class ScreenRecorder : Extension {
     override var enabled: Boolean = true
 
     private lateinit var videoWriter: VideoWriter
     private lateinit var frame: RenderTarget
+    private var resolved: ColorBuffer? = null
+    private var frameIndex: Long = 0
 
+    /** the framerate of the output video */
     var frameRate = 30
+
+    /** the profile to use for the output video */
     var profile = MP4Profile()
+
+    /** should a frameclock be installed, if false system clock is used */
     var frameClock = true
-    var multisample:BufferMultisample = BufferMultisample.Disabled
-    var resolved: ColorBuffer? = null
+
+    /** should multisampling be used? */
+    var multisample: BufferMultisample = BufferMultisample.Disabled
+
+    /** the maximum duration in frames */
     var maximumFrames = Long.MAX_VALUE
+
+    /** the maximum duration in seconds **/
     var maximumDuration = Double.POSITIVE_INFINITY
+
+    /** when set to true, `program.application.exit()` will be issued after the maximum duration has been reached **/
     var quitAfterMaximum = true
 
-    private var frameIndex: Long = 0
     override fun setup(program: Program) {
-
         if (frameClock) {
             program.clock = {
                 frameIndex / frameRate.toDouble()
@@ -44,7 +59,6 @@ class ScreenRecorder : Extension {
             depthBuffer()
         }
 
-
         if (multisample != BufferMultisample.Disabled) {
             resolved = colorBuffer(program.width, program.height)
         }
@@ -64,17 +78,14 @@ class ScreenRecorder : Extension {
 
     override fun afterDraw(drawer: Drawer, program: Program) {
         frame.unbind()
-        if (frameIndex < maximumFrames && frameIndex / frameRate.toDouble() < maximumDuration ) {
-
-            val lr = resolved
-            if (lr != null) {
-                frame.colorBuffer(0).resolveTo(lr)
-                videoWriter.frame(lr)
+        if (frameIndex < maximumFrames && frameIndex / frameRate.toDouble() < maximumDuration) {
+            val lresolved = resolved
+            if (lresolved != null) {
+                frame.colorBuffer(0).resolveTo(lresolved)
+                videoWriter.frame(lresolved)
             } else {
                 videoWriter.frame(frame.colorBuffer(0))
             }
-
-
 
             drawer.isolated {
                 drawer.shadeStyle = null
@@ -82,8 +93,8 @@ class ScreenRecorder : Extension {
                 drawer.model = Matrix44.IDENTITY
                 drawer.view = Matrix44.IDENTITY
 
-                if (lr != null) {
-                    drawer.image(lr)
+                if (lresolved != null) {
+                    drawer.image(lresolved)
                 } else {
                     drawer.image(frame.colorBuffer(0))
                 }

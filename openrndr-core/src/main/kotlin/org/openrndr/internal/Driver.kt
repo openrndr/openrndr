@@ -105,6 +105,13 @@ interface Driver {
 
     companion object {
         lateinit var driver: Driver
-        val instance: Driver get() = driver;
+        val instance: Driver get() = driver
     }
+}
+
+/**
+ * Wait for the [Driver] to finish drawing
+ */
+fun finish() {
+    Driver.instance.finish()
 }

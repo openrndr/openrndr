@@ -5,6 +5,7 @@ import org.openrndr.draw.ColorFormat
 import org.openrndr.draw.Drawer
 import org.openrndr.ffmpeg.adopted.FFmpegFrameGrabber
 import org.openrndr.internal.gl3.ColorBufferGL3
+import org.openrndr.draw.colorBuffer as _colorBuffer
 import java.io.File
 import java.nio.ByteBuffer
 
@@ -58,7 +59,6 @@ class FFMPEGVideoPlayer private constructor(url: String) {
             return format
         }
 
-
         fun fromDevice(deviceName: String = defaultDevice(), width: Int = -1, height: Int = -1, framerate: Double = -1.0, inputFormat: String? = defaultInputFormat()): FFMPEGVideoPlayer {
             val osName = System.getProperty("os.name").toLowerCase()
             val format: String
@@ -92,27 +92,21 @@ class FFMPEGVideoPlayer private constructor(url: String) {
     internal var frameGrabber = FFmpegFrameGrabber(url)
     private var colorBuffer: ColorBuffer? = null
 
+    val width
+        get() = colorBuffer?.width ?: 0
 
-    val width: Int
-        get() {
-            return colorBuffer?.width ?: 0
-        }
-
-    val height: Int
-        get() {
-            return colorBuffer?.height ?: 0
-        }
+    val height
+        get() = colorBuffer?.height ?: 0
 
     fun start() {
         frameGrabber.start()
     }
 
-
     fun next() {
         val frame = frameGrabber.grabImage()
         if (frame != null) {
             if (colorBuffer == null && frame.imageWidth > 0 && frame.imageHeight > 0) {
-                colorBuffer = ColorBuffer.create(frame.imageWidth, frame.imageHeight, format = ColorFormat.RGB).apply {
+                colorBuffer = _colorBuffer(frame.imageWidth, frame.imageHeight, format = ColorFormat.RGB).apply {
                     flipV = true
                 }
             }

@@ -45,8 +45,18 @@ enum class MagnifyingFilter {
     LINEAR
 }
 
+/**
+ * Buffer multisample options
+ */
 sealed class BufferMultisample {
+    /**
+     * Disable multisampling
+     */
     object Disabled : BufferMultisample()
+
+    /**
+     * Enable multisampling with a given [sampleCount]
+     */
     data class SampleCount(val sampleCount: Int) : BufferMultisample()
 }
 
@@ -95,12 +105,13 @@ interface ColorBuffer {
     val shadow: ColorBufferShadow
     var flipV: Boolean
 
-
+    /**
+     * sets the [ColorBuffer] filter for minifying and magnification
+     */
     fun filter(filterMin: MinifyingFilter, filterMag: MagnifyingFilter) {
         this.filterMin = filterMin
         this.filterMag = filterMag
     }
-
 
     companion object {
         @Deprecated("use the colorBuffer() builder function instead")

@@ -1,6 +1,7 @@
 package org.openrndr.draw
 
 import kotlinx.coroutines.*
+import org.openrndr.internal.Driver
 import kotlin.coroutines.CoroutineContext
 
 interface DrawThread {
@@ -8,8 +9,18 @@ interface DrawThread {
     val dispatcher: CoroutineDispatcher
 }
 
+/**
+ * launches a coroutine on the [DrawThread]
+ */
 fun DrawThread.launch(
         context: CoroutineContext = this.dispatcher,
         start: CoroutineStart = CoroutineStart.DEFAULT,
         block: suspend CoroutineScope.() -> Unit
 ): Job = GlobalScope.launch(context, start, block)
+
+/**
+ * creates and starts a DrawThread
+ */
+fun drawThread(): DrawThread {
+    return Driver.driver.createDrawThread()
+}
