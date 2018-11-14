@@ -48,7 +48,7 @@ interface Driver {
 
     fun createRenderTarget(width: Int, height: Int, contentScale: Double = 1.0): RenderTarget
 
-    fun createColorBuffer(width: Int, height: Int, contentScale: Double, format: ColorFormat, type: ColorType): ColorBuffer
+    fun createColorBuffer(width: Int, height: Int, contentScale: Double, format: ColorFormat, type: ColorType, multisample: ColorBufferMultisample): ColorBuffer
     fun createColorBufferFromUrl(url: String): ColorBuffer
     fun createColorBufferFromFile(filename: String): ColorBuffer
 

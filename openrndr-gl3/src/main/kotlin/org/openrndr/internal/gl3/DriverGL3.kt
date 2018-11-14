@@ -163,10 +163,10 @@ class DriverGL3 : Driver {
         }
     }
 
-    override fun createColorBuffer(width: Int, height: Int, contentScale: Double, format: ColorFormat, type: ColorType): ColorBuffer {
+    override fun createColorBuffer(width: Int, height: Int, contentScale: Double, format: ColorFormat, type: ColorType, multisample: ColorBufferMultisample): ColorBuffer {
         logger.trace { "creating color buffer $width x $height @ $format:$type" }
         synchronized(this) {
-            return ColorBufferGL3.create(width, height, contentScale, format, type)
+            return ColorBufferGL3.create(width, height, contentScale, format, type, ColorBufferMultisample.DISABLED)
         }
     }
 

@@ -3,15 +3,7 @@ package org.openrndr.internal.gl3
 import mu.KotlinLogging
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.EXTTextureCompressionS3TC.*
-import org.lwjgl.opengl.GL11.*
-import org.lwjgl.opengl.GL12.*
-import org.lwjgl.opengl.GL13.GL_TEXTURE0
-import org.lwjgl.opengl.GL13.glActiveTexture
-import org.lwjgl.opengl.GL14.GL_MIRRORED_REPEAT
-
-import org.lwjgl.opengl.GL21.GL_SRGB8
-import org.lwjgl.opengl.GL21.GL_SRGB8_ALPHA8
-import org.lwjgl.opengl.GL30.*
+import org.lwjgl.opengl.GL33C.*
 import org.lwjgl.stb.STBImage
 import org.lwjgl.stb.STBImageWrite
 import org.openrndr.color.ColorRGBa
@@ -21,6 +13,8 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
 import org.openrndr.draw.*
+import org.openrndr.draw.ColorBufferMultisample.DISABLED
+import org.openrndr.draw.ColorBufferMultisample.SampleCount
 import java.io.File
 import java.nio.Buffer
 
@@ -593,7 +587,8 @@ class ColorBufferGL3(val target: Int,
                      override val height: Int,
                      override val contentScale: Double,
                      override val format: ColorFormat,
-                     override val type: ColorType) : ColorBuffer {
+                     override val type: ColorType,
+                     override val multisample: ColorBufferMultisample) : ColorBuffer {
 
     internal var realFlipV: Boolean = false
     override var flipV: Boolean
@@ -605,7 +600,7 @@ class ColorBufferGL3(val target: Int,
     companion object {
         fun fromUrl(url: String): ColorBuffer {
             val data = ColorBufferDataGL3.fromUrl(url)
-            val cb = create(data.width, data.height, 1.0, data.format, data.type)
+            val cb = create(data.width, data.height, 1.0, data.format, data.type, DISABLED)
             return cb.apply {
                 val d = data.data
                 if (d != null) {
@@ -622,7 +617,7 @@ class ColorBufferGL3(val target: Int,
 
         fun fromFile(filename: String): ColorBuffer {
             val data = ColorBufferDataGL3.fromFile(filename)
-            val cb = create(data.width, data.height, 1.0, data.format, data.type)
+            val cb = create(data.width, data.height, 1.0, data.format, data.type, DISABLED)
             return cb.apply {
                 val d = data.data
                 if (d != null) {
@@ -638,7 +633,12 @@ class ColorBufferGL3(val target: Int,
             }
         }
 
-        fun create(width: Int, height: Int, contentScale: Double = 1.0, format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.FLOAT32): ColorBufferGL3 {
+        fun create(width: Int,
+                   height: Int,
+                   contentScale: Double = 1.0,
+                   format: ColorFormat = ColorFormat.RGBa,
+                   type: ColorType = ColorType.FLOAT32,
+                   multisample: ColorBufferMultisample): ColorBufferGL3 {
             val internalFormat = internalFormat(format, type)
             if (width <= 0 || height <= 0) {
                 throw Exception("cannot create ColorBuffer with dimensions: ${width}x$height")
@@ -649,14 +649,24 @@ class ColorBufferGL3(val target: Int,
             checkGLErrors()
 
             glActiveTexture(GL_TEXTURE0)
-            glBindTexture(GL_TEXTURE_2D, texture)
+
+            when(multisample) {
+                DISABLED -> glBindTexture(GL_TEXTURE_2D, texture)
+                is SampleCount -> glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, texture)
+            }
+
             checkGLErrors()
 
             val effectiveWidth = (width * contentScale).toInt()
             val effectiveHeight = (height * contentScale).toInt()
 
             val nullBB: ByteBuffer? = null
-            glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, effectiveWidth, effectiveHeight, 0, format.glFormat(), type.glType(), nullBB)
+
+            when (multisample) {
+                DISABLED -> glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, effectiveWidth, effectiveHeight, 0, format.glFormat(), type.glType(), nullBB)
+                is SampleCount -> glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, multisample.sampleCount, internalFormat, effectiveWidth, effectiveHeight, false)
+            }
+
             checkGLErrors {
                 when (it) {
                     GL_INVALID_OPERATION -> """format is GL_DEPTH_COMPONENT ${format.glFormat() == GL_DEPTH_COMPONENT} and internalFormat is not GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT16, GL_DEPTH_COMPONENT24, or GL_DEPTH_COMPONENT32F"""
@@ -664,18 +674,30 @@ class ColorBufferGL3(val target: Int,
                     else -> null
                 }
             }
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
-            checkGLErrors()
-            return ColorBufferGL3(GL_TEXTURE_2D, texture, width, height, contentScale, format, type)
+
+            val target = when (multisample) {
+                DISABLED -> GL_TEXTURE_2D
+                is SampleCount -> GL_TEXTURE_2D_MULTISAMPLE
+            }
+
+            if (multisample == DISABLED) {
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
+                checkGLErrors()
+            }
+
+            return ColorBufferGL3(target, texture, width, height, contentScale, format, type, multisample)
         }
     }
 
     fun bound(f: ColorBufferGL3.() -> Unit) {
         glActiveTexture(GL_TEXTURE0)
-        val current = glGetInteger(GL_TEXTURE_BINDING_2D)
+        val current = when(multisample) {
+            DISABLED -> glGetInteger(GL_TEXTURE_BINDING_2D)
+            is SampleCount -> glGetInteger(GL_TEXTURE_BINDING_2D_MULTISAMPLE)
+        }
         glBindTexture(target, texture)
         this.f()
         glBindTexture(target, current)
@@ -686,8 +708,37 @@ class ColorBufferGL3(val target: Int,
     }
 
     override fun generateMipmaps() {
-        bound {
-            glGenerateMipmap(target)
+        if (multisample == DISABLED) {
+            bound {
+                glGenerateMipmap(target)
+            }
+        } else {
+            throw IllegalArgumentException("generating Mipmaps for multisample targets is not possible")
+        }
+    }
+
+    override fun resolveTo(target: ColorBuffer) {
+        if (target.multisample == DISABLED) {
+            val readTarget = renderTarget(width, height, contentScale) {
+                colorBuffer(this@ColorBufferGL3)
+            } as RenderTargetGL3
+
+            val writeTarget = renderTarget(target.width, target.height, target.contentScale) {
+                colorBuffer(target)
+            } as RenderTargetGL3
+
+            writeTarget.bind()
+            glBindFramebuffer(GL_READ_FRAMEBUFFER, readTarget.framebuffer)
+            glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+            writeTarget.unbind()
+
+            writeTarget.detachColorBuffers()
+            writeTarget.destroy()
+
+            readTarget.detachColorBuffers()
+            readTarget.destroy()
+        } else {
+            throw IllegalArgumentException("cannot resolve to multisample target")
         }
     }
 
@@ -725,85 +776,101 @@ class ColorBufferGL3(val target: Int,
 
     override val shadow: ColorBufferShadow
         get() {
-            if (realShadow == null) {
-                realShadow = ColorBufferShadowGL3(this)
+            if (multisample == DISABLED) {
+                if (realShadow == null) {
+                    realShadow = ColorBufferShadowGL3(this)
+                }
+                return realShadow!!
+            } else {
+                throw IllegalArgumentException("multisample targets cannot be shadowed")
             }
-            return realShadow!!
         }
 
     var realShadow: ColorBufferShadow? = null
 
     override fun write(buffer: ByteBuffer) {
-        bound {
-            debugGLErrors()
-            logger.trace {
-                "Writing to color buffer in: $format ${format.glFormat()}, $type ${type.glType()}"
+        if (multisample == DISABLED) {
+            bound {
+                debugGLErrors()
+                logger.trace {
+                    "Writing to color buffer in: $format ${format.glFormat()}, $type ${type.glType()}"
+                }
+                (buffer as Buffer).rewind()
+                buffer.order(ByteOrder.nativeOrder())
+                val currentPack = intArrayOf(0)
+                glGetIntegerv(GL_UNPACK_ALIGNMENT, currentPack)
+                glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
+                glTexSubImage2D(target, 0, 0, 0, width, height, format.glFormat(), type.glType(), buffer)
+                glPixelStorei(GL_UNPACK_ALIGNMENT, currentPack[0])
+                debugGLErrors()
+                (buffer as Buffer).rewind()
             }
-            (buffer as Buffer).rewind()
-            buffer.order(ByteOrder.nativeOrder())
-            val currentPack = intArrayOf(0)
-            glGetIntegerv(GL_UNPACK_ALIGNMENT, currentPack)
-            glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
-            glTexSubImage2D(target, 0, 0, 0, width, height, format.glFormat(), type.glType(), buffer)
-            glPixelStorei(GL_UNPACK_ALIGNMENT, currentPack[0])
-            debugGLErrors()
-            (buffer as Buffer).rewind()
+        } else {
+            throw IllegalArgumentException("multisample targets cannot be written to")
         }
     }
 
     override fun read(buffer: ByteBuffer) {
-        bound {
-            logger.trace {
-                "Reading from color buffer in: $format ${format.glFormat()}, $type ${type.glType()} "
-            }
-            debugGLErrors()
-            glPixelStorei(GL_PACK_ALIGNMENT, 1)
-            debugGLErrors()
+        if (multisample == DISABLED) {
+            bound {
+                logger.trace {
+                    "Reading from color buffer in: $format ${format.glFormat()}, $type ${type.glType()} "
+                }
+                debugGLErrors()
+                glPixelStorei(GL_PACK_ALIGNMENT, 1)
+                debugGLErrors()
 
-            val packAlignment = glGetInteger(GL_PACK_ALIGNMENT)
-            buffer.order(ByteOrder.nativeOrder())
-            (buffer as Buffer).rewind()
-            glGetTexImage(target, 0, format.glFormat(), type.glType(), buffer)
-            debugGLErrors()
-            (buffer as Buffer).rewind()
-            glPixelStorei(GL_PACK_ALIGNMENT, packAlignment)
-            debugGLErrors()
+                val packAlignment = glGetInteger(GL_PACK_ALIGNMENT)
+                buffer.order(ByteOrder.nativeOrder())
+                (buffer as Buffer).rewind()
+                glGetTexImage(target, 0, format.glFormat(), type.glType(), buffer)
+                debugGLErrors()
+                (buffer as Buffer).rewind()
+                glPixelStorei(GL_PACK_ALIGNMENT, packAlignment)
+                debugGLErrors()
+            }
+        } else {
+            throw IllegalArgumentException("multisample targets cannot be read from")
         }
     }
 
     override fun saveToFile(file: File, fileFormat: FileFormat) {
-        if (type == ColorType.UINT8) {
-            var pixels = BufferUtils.createByteBuffer(effectiveWidth * effectiveHeight * format.componentCount)
-            (pixels as Buffer).rewind()
-            read(pixels)
-            (pixels as Buffer).rewind()
+        if (multisample == DISABLED) {
+            if (type == ColorType.UINT8) {
+                var pixels = BufferUtils.createByteBuffer(effectiveWidth * effectiveHeight * format.componentCount)
+                (pixels as Buffer).rewind()
+                read(pixels)
+                (pixels as Buffer).rewind()
 
-            if (!flipV) {
-                val flippedPixels = BufferUtils.createByteBuffer(effectiveWidth * effectiveHeight * format.componentCount)
-                (flippedPixels as Buffer).rewind()
-                val stride = width * format.componentCount
-                val row = ByteArray(stride)
-                for (y in 0 until height) {
-                    (pixels as Buffer).position((height - y - 1) * stride)
-                    pixels.get(row)
-                    flippedPixels.put(row)
+                if (!flipV) {
+                    val flippedPixels = BufferUtils.createByteBuffer(effectiveWidth * effectiveHeight * format.componentCount)
+                    (flippedPixels as Buffer).rewind()
+                    val stride = width * format.componentCount
+                    val row = ByteArray(stride)
+                    for (y in 0 until height) {
+                        (pixels as Buffer).position((height - y - 1) * stride)
+                        pixels.get(row)
+                        flippedPixels.put(row)
+                    }
+                    (flippedPixels as Buffer).rewind()
+                    pixels = flippedPixels
                 }
-                (flippedPixels as Buffer).rewind()
-                pixels = flippedPixels
-            }
 
-            when (fileFormat) {
-                FileFormat.JPG -> STBImageWrite.stbi_write_jpg(
-                        file.absolutePath,
-                        effectiveWidth, effectiveHeight,
-                        format.componentCount, pixels, 90)
-                FileFormat.PNG -> STBImageWrite.stbi_write_png(
-                        file.absolutePath,
-                        effectiveWidth, effectiveHeight,
-                        format.componentCount, pixels, effectiveWidth * format.componentCount)
+                when (fileFormat) {
+                    FileFormat.JPG -> STBImageWrite.stbi_write_jpg(
+                            file.absolutePath,
+                            effectiveWidth, effectiveHeight,
+                            format.componentCount, pixels, 90)
+                    FileFormat.PNG -> STBImageWrite.stbi_write_png(
+                            file.absolutePath,
+                            effectiveWidth, effectiveHeight,
+                            format.componentCount, pixels, effectiveWidth * format.componentCount)
+                }
+            } else {
+                TODO("support non-UINT8 types")
             }
         } else {
-            TODO("support non-UINT8 types")
+            throw IllegalArgumentException("multisample targets cannot be saved to file")
         }
     }
 
@@ -813,8 +880,12 @@ class ColorBufferGL3(val target: Int,
     }
 
     override fun bind(unit: Int) {
-        glActiveTexture(GL_TEXTURE0 + unit)
-        glBindTexture(target, texture)
+        if (multisample == DISABLED) {
+            glActiveTexture(GL_TEXTURE0 + unit)
+            glBindTexture(target, texture)
+        } else {
+            throw IllegalArgumentException("multisample targets cannot be bound as texture")
+        }
     }
 }
 
