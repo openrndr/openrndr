@@ -2,12 +2,7 @@ package org.openrndr.internal.gl3
 
 import mu.KotlinLogging
 import org.lwjgl.BufferUtils
-import org.lwjgl.opengl.GL11.*
-import org.lwjgl.opengl.GL13.GL_TEXTURE0
-import org.lwjgl.opengl.GL13.glActiveTexture
-import org.lwjgl.opengl.GL15.*
-import org.lwjgl.opengl.GL31.GL_TEXTURE_BUFFER
-import org.lwjgl.opengl.GL31.glTexBuffer
+import org.lwjgl.opengl.GL33C.*
 import org.openrndr.draw.*
 import java.nio.Buffer
 import java.nio.ByteBuffer

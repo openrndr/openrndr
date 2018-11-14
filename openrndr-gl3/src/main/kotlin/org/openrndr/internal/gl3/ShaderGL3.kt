@@ -2,13 +2,8 @@ package org.openrndr.internal.gl3
 
 import mu.KotlinLogging
 import org.lwjgl.BufferUtils
-import org.lwjgl.opengl.GL11
-import org.lwjgl.opengl.GL11.*
-import org.lwjgl.opengl.GL15.*
-import org.lwjgl.opengl.GL20.*
-import org.lwjgl.opengl.GL30.glBindBufferBase
 
-import org.lwjgl.opengl.GL31.*
+import org.lwjgl.opengl.GL33C.*
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
 import org.openrndr.internal.Driver
@@ -383,7 +378,7 @@ class ShaderGL3(val program: Int,
                     checkProgramInfoLog(program, "noname")
                 }
 
-                GL11.glFinish()
+                glFinish()
 
                 return ShaderGL3(program, name, vertexShader, fragmentShader)
             }
@@ -484,7 +479,6 @@ class ShaderGL3(val program: Int,
     }
 
     override fun block(blockName: String, block: UniformBlock) {
-
         if (Thread.currentThread() != (block as UniformBlockGL3).thread) {
             throw IllegalStateException("block is created on ${block.thread} and is now used on ${Thread.currentThread()}")
         }
@@ -497,13 +491,12 @@ class ShaderGL3(val program: Int,
             throw IllegalArgumentException("block not found $blockName")
         }
 
-        if (blockBindings[blockName] != (block as UniformBlockGL3).blockBinding) {
+        if (blockBindings[blockName] != block.blockBinding) {
             //checkGLErrors()
             glUniformBlockBinding(program, blockIndex, block.blockBinding)
+            debugGLErrors()
             blockBindings[blockName] = block.blockBinding
         }
-        //checkGLErrors()
-
     }
 
     fun blockIndex(block: String): Int {

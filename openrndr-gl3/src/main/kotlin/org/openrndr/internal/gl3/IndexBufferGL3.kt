@@ -2,9 +2,7 @@ package org.openrndr.internal.gl3
 
 import mu.KotlinLogging
 import org.lwjgl.BufferUtils
-import org.lwjgl.opengl.GL11
-import org.lwjgl.opengl.GL15
-import org.lwjgl.opengl.GL15.*
+import org.lwjgl.opengl.GL33C.*
 import org.lwjgl.system.MemoryUtil
 import org.openrndr.draw.IndexBuffer
 import org.openrndr.draw.IndexType
@@ -18,8 +16,8 @@ class IndexBufferGL3(val buffer: Int, override val indexCount: Int, override val
 
     companion object {
         fun create(elementCount: Int, type: IndexType): IndexBufferGL3 {
-            val cb = GL11.glGetInteger(GL_ELEMENT_ARRAY_BUFFER_BINDING)
-            val buffer = GL15.glGenBuffers()
+            val cb = glGetInteger(GL_ELEMENT_ARRAY_BUFFER_BINDING)
+            val buffer = glGenBuffers()
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer)
             checkGLErrors()
             val sizeInBytes = type.sizeInBytes * elementCount
@@ -76,7 +74,7 @@ class IndexBufferGL3(val buffer: Int, override val indexCount: Int, override val
 
     private fun bound(f:IndexBufferGL3.() -> Unit) {
         bind()
-        f()
+        this.f()
         unbind()
     }
 }

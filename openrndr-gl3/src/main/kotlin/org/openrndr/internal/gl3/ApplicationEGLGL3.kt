@@ -1,13 +1,9 @@
 package org.openrndr.internal.gl3
 
 import org.lwjgl.BufferUtils
-import org.lwjgl.egl.EGL10.*
-import org.lwjgl.egl.EGL12.*
-import org.lwjgl.egl.EGL14.*
 import org.lwjgl.egl.EGL15.*
 import org.lwjgl.opengl.GL
-import org.lwjgl.opengl.GL11
-import org.lwjgl.opengl.GL30
+import org.lwjgl.opengl.GL33C.*
 import org.lwjgl.system.MemoryStack.stackPush
 import org.openrndr.Application
 import org.openrndr.Configuration
@@ -17,6 +13,7 @@ import org.openrndr.draw.Drawer
 import org.openrndr.internal.Driver
 import org.openrndr.math.Vector2
 
+@Suppress("UNUSED_PARAMETER")
 class ApplicationEGLGL3(private val program: Program, private val configuration: Configuration):Application() {
     private var driver: DriverGL3
     private var exitRequested = false
@@ -82,11 +79,11 @@ class ApplicationEGLGL3(private val program: Program, private val configuration:
              println("client api ${eglQueryString(display, EGL_CLIENT_APIS)}" )
              eglMakeCurrent(display, surface, surface, context)
              GL.createCapabilities()
-             println("${GL11.glGetString(GL11.GL_VENDOR)}")
-             println( "opengl version: ${GL11.glGetString(GL11.GL_VERSION)}" )
+             println("${glGetString(GL_VENDOR)}")
+             println( "opengl version: ${glGetString(GL_VERSION)}" )
 
-             GL30.glGenVertexArrays(vaos)
-             GL30.glBindVertexArray(vaos[0])
+             glGenVertexArrays(vaos)
+             glBindVertexArray(vaos[0])
 
              startTime = System.currentTimeMillis()
              val defaultRenderTarget = ProgramRenderTargetGL3(program)
@@ -99,7 +96,7 @@ class ApplicationEGLGL3(private val program: Program, private val configuration:
 
     override fun loop() {
         while (!exitRequested) {
-            GL30.glBindVertexArray(vaos[0])
+            glBindVertexArray(vaos[0])
             program.drawer.reset()
             program.drawer.ortho()
             program.draw()

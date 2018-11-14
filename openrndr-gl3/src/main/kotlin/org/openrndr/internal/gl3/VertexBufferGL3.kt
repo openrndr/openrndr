@@ -7,8 +7,8 @@ import org.openrndr.draw.VertexFormat
 
 import mu.KotlinLogging
 import org.lwjgl.BufferUtils
-import org.lwjgl.opengl.GL15.*
-import org.lwjgl.opengl.GL30.GL_VERTEX_ARRAY_BINDING
+
+import org.lwjgl.opengl.GL33C.*
 import org.lwjgl.system.MemoryUtil.NULL
 import java.nio.Buffer
 

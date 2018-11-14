@@ -2,8 +2,7 @@ package org.openrndr.internal.gl3
 
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.opengl.GL
-import org.lwjgl.opengl.GL11
-import org.lwjgl.opengl.GL30
+import org.lwjgl.opengl.GL33C.*
 import org.lwjgl.system.MemoryUtil
 import org.openrndr.PumpDispatcher
 import org.openrndr.draw.DrawThread
@@ -17,7 +16,7 @@ class DrawThreadGL3(private val contextWindow: Long) : DrawThread {
             GLFW.glfwDefaultWindowHints()
             GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, 3)
             GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, 3)
-            GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_FORWARD_COMPAT, GL11.GL_TRUE)
+            GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE)
             GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_PROFILE, GLFW.GLFW_OPENGL_CORE_PROFILE)
             GLFW.glfwWindowHint(GLFW.GLFW_RED_BITS, 8)
             GLFW.glfwWindowHint(GLFW.GLFW_GREEN_BITS, 8)
@@ -47,8 +46,8 @@ class DrawThreadGL3(private val contextWindow: Long) : DrawThread {
             GL.createCapabilities()
             realDrawer = Drawer(Driver.driver)
             val vaos = IntArray(1)
-            GL30.glGenVertexArrays(vaos)
-            GL30.glBindVertexArray(vaos[0])
+            glGenVertexArrays(vaos)
+            glBindVertexArray(vaos[0])
             val renderTarget = NullRenderTargetGL3()
             renderTarget.bind()
             while (true) {

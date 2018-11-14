@@ -1,8 +1,6 @@
 package org.openrndr.internal.gl3
 
-import org.lwjgl.opengl.GL13.*
-import org.lwjgl.opengl.GL30
-import org.lwjgl.opengl.GL32.GL_TEXTURE_CUBE_MAP_SEAMLESS
+import org.lwjgl.opengl.GL33C.*
 import org.openrndr.draw.*
 import org.openrndr.internal.gl3.dds.loadDDS
 import java.net.URL
@@ -88,7 +86,7 @@ class CubemapGL3(val texture: Int, override val width: Int, val sides: List<Colo
                     checkGLErrors()
                 }
                 if (data.mipmaps == 1) {
-                    GL30.glGenerateMipmap(GL_TEXTURE_CUBE_MAP)
+                    glGenerateMipmap(GL_TEXTURE_CUBE_MAP)
                     checkGLErrors()
                 }
                 return CubemapGL3(textures[0], data.width, sides)
@@ -121,7 +119,7 @@ class CubemapGL3(val texture: Int, override val width: Int, val sides: List<Colo
 
     override fun generateMipmaps() {
         bound {
-            GL30.glGenerateMipmap(GL_TEXTURE_CUBE_MAP)
+            glGenerateMipmap(GL_TEXTURE_CUBE_MAP)
         }
     }
 

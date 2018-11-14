@@ -1,10 +1,7 @@
 package org.openrndr.internal.gl3
 
-import org.lwjgl.opengl.GL32C
 import org.lwjgl.opengl.GL33C.*
-import org.openrndr.draw.BufferMultisample
-import org.openrndr.draw.DepthBuffer
-import org.openrndr.draw.DepthFormat
+import org.openrndr.draw.*
 import java.nio.ByteBuffer
 
 class DepthBufferGL3(val texture: Int,
@@ -16,11 +13,8 @@ class DepthBufferGL3(val texture: Int,
 
     companion object {
         fun create(width: Int, height: Int, format: DepthFormat, multisample: BufferMultisample): DepthBufferGL3 {
-
-
-            println("creating depth buffer $multisample")
             val glTexture = glGenTextures()
-            val target = when(multisample) {
+            val target = when (multisample) {
                 BufferMultisample.DISABLED -> GL_TEXTURE_2D
                 is BufferMultisample.SampleCount -> GL_TEXTURE_2D_MULTISAMPLE
             }
@@ -48,6 +42,32 @@ class DepthBufferGL3(val texture: Int,
             return DepthBufferGL3(glTexture, target, width, height, format, multisample)
         }
     }
+
+    override fun resolveTo(target: DepthBuffer) {
+        if (target.multisample == BufferMultisample.DISABLED) {
+            val readTarget = renderTarget(width, height) {
+                depthBuffer(this@DepthBufferGL3)
+            } as RenderTargetGL3
+
+            val writeTarget = renderTarget(target.width, target.height) {
+                depthBuffer(target)
+            } as RenderTargetGL3
+
+            writeTarget.bind()
+            glBindFramebuffer(GL_READ_FRAMEBUFFER, readTarget.framebuffer)
+            glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_DEPTH_BUFFER_BIT, GL_NEAREST)
+            writeTarget.unbind()
+
+            writeTarget.detachColorBuffers()
+            writeTarget.destroy()
+
+            readTarget.detachColorBuffers()
+            readTarget.destroy()
+        } else {
+            throw IllegalArgumentException("cannot resolve to multisample target")
+        }
+    }
+
 
     override fun destroy() {
         glDeleteTextures(texture)

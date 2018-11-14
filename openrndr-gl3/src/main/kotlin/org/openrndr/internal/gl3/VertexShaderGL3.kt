@@ -1,7 +1,6 @@
 package org.openrndr.internal.gl3
 
-import org.lwjgl.opengl.GL11.GL_TRUE
-import org.lwjgl.opengl.GL20.*
+import org.lwjgl.opengl.GL33C.*
 
 class VertexShaderGL3(val shaderObject:Int, val name:String="<unknown-vertex-shader>") {
     companion object {

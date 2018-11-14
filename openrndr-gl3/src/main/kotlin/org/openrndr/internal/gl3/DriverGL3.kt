@@ -2,16 +2,7 @@ package org.openrndr.internal.gl3
 
 import mu.KotlinLogging
 import org.lwjgl.glfw.GLFW
-import org.lwjgl.opengl.GL11
-import org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER
-import org.lwjgl.opengl.GL15.glBindBuffer
-import org.lwjgl.opengl.GL30
-import org.lwjgl.opengl.GL30.glBindVertexArray
-import org.lwjgl.opengl.GL30.glGenVertexArrays
-import org.lwjgl.opengl.GL31.glDrawArraysInstanced
-import org.lwjgl.opengl.GL31.glDrawElementsInstanced
-import org.lwjgl.opengl.GL33.glVertexAttribDivisor
-import org.lwjgl.opengl.GL40.*
+import org.lwjgl.opengl.GL40C.*
 import org.openrndr.draw.*
 import org.openrndr.internal.Driver
 import org.openrndr.internal.FontMapManager
@@ -46,7 +37,7 @@ class DriverGL3 : Driver {
         get() = defaultVAOs.getOrPut(Thread.currentThread()) {
             val vaos = IntArray(1)
             synchronized(Driver.driver) {
-                GL30.glGenVertexArrays(vaos)
+                glGenVertexArrays(vaos)
             }
             vaos[0]
         }
@@ -540,15 +531,15 @@ class DriverGL3 : Driver {
         get() = RenderTargetGL3.activeRenderTarget
 
     override fun finish() {
-        GL11.glFlush()
-        GL11.glFinish()
+        glFlush()
+        glFinish()
     }
 }
 
 private fun IndexType.glType(): Int {
     return when (this) {
-        IndexType.INT16 -> GL11.GL_UNSIGNED_SHORT
-        IndexType.INT32 -> GL11.GL_UNSIGNED_INT
+        IndexType.INT16 -> GL_UNSIGNED_SHORT
+        IndexType.INT32 -> GL_UNSIGNED_INT
     }
 }
 

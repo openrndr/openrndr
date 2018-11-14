@@ -47,7 +47,7 @@ enum class MagnifyingFilter {
 
 sealed class BufferMultisample {
     object DISABLED : BufferMultisample()
-    class SampleCount(val sampleCount: Int) : BufferMultisample()
+    data class SampleCount(val sampleCount: Int) : BufferMultisample()
 }
 
 
@@ -124,7 +124,7 @@ fun colorBuffer(width: Int, height: Int, contentScale: Double = 1.0, format: Col
 
 fun loadImage(fileOrUrl: String): ColorBuffer {
     return try {
-        val url = URL(fileOrUrl)
+        URL(fileOrUrl)
         ColorBuffer.fromUrl(fileOrUrl)
     } catch (e: MalformedURLException) {
         ColorBuffer.fromFile(fileOrUrl)

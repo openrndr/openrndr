@@ -2,10 +2,7 @@ package org.openrndr.internal.gl3
 
 import mu.KotlinLogging
 import org.lwjgl.glfw.GLFW.glfwGetCurrentContext
-import org.lwjgl.opengl.ARBFramebufferObject.glGenFramebuffers
-import org.lwjgl.opengl.GL11.*
-import org.lwjgl.opengl.GL20.glDrawBuffers
-import org.lwjgl.opengl.GL30.*
+import org.lwjgl.opengl.GL33C.*
 import org.openrndr.Program
 import org.openrndr.draw.*
 import java.util.*
@@ -168,10 +165,14 @@ open class RenderTargetGL3(val framebuffer: Int,
     }
 
     override fun attach(depthBuffer: DepthBuffer) {
+        if (!(depthBuffer.width == effectiveWidth && depthBuffer.height == effectiveHeight)) {
+            throw IllegalArgumentException("buffer dimension mismatch")
+        }
+
+        if (depthBuffer.multisample != multisample) {
+            throw IllegalArgumentException("buffer multisample mismatch")
+        }
         bound {
-            if (!(depthBuffer.width == effectiveWidth && depthBuffer.height == effectiveHeight)) {
-                throw IllegalArgumentException("buffer dimension mismatch")
-            }
 
             depthBuffer as DepthBufferGL3
 
@@ -191,10 +192,11 @@ open class RenderTargetGL3(val framebuffer: Int,
     }
 
     override fun detachDepthBuffer() {
-        if (this._depthBuffer != null) {
+        this._depthBuffer?.let {
+            it as DepthBufferGL3
             bound {
-                glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, 0, 0)
-                glFramebufferTexture2D(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_TEXTURE_2D, 0, 0)
+                glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, it.target, 0, 0)
+                glFramebufferTexture2D(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, it.target, 0, 0)
                 checkGLErrors()
             }
         }
@@ -218,8 +220,8 @@ open class RenderTargetGL3(val framebuffer: Int,
 
     override fun detachColorBuffers() {
         bound {
-            _colorBuffers.forEachIndexed { index, _ ->
-                glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + index, GL_TEXTURE_2D, 0, 0)
+            _colorBuffers.forEachIndexed { index, it ->
+                glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + index, it.target, 0, 0)
             }
         }
         _colorBuffers.clear()

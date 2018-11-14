@@ -17,6 +17,7 @@ interface DepthBuffer {
         fun create(width: Int, height: Int, format: DepthFormat = DepthFormat.DEPTH24_STENCIL8, multisample: BufferMultisample): DepthBuffer = Driver.instance.createDepthBuffer(width, height, format, multisample)
     }
 
+    fun resolveTo(target: DepthBuffer)
     fun destroy()
     fun bind(textureUnit: Int)
 }

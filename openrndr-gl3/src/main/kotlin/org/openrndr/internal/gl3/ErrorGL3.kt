@@ -1,7 +1,6 @@
 package org.openrndr.internal.gl3
 
-import org.lwjgl.opengl.GL11.*
-import org.lwjgl.opengl.GL30.GL_INVALID_FRAMEBUFFER_OPERATION
+import org.lwjgl.opengl.GL33C.*
 
 class GL3Exception(message: String) : Exception(message)
 
