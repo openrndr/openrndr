@@ -13,8 +13,7 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
 import org.openrndr.draw.*
-import org.openrndr.draw.BufferMultisample.DISABLED
-import org.openrndr.draw.BufferMultisample.SampleCount
+import org.openrndr.draw.BufferMultisample.*
 import java.io.File
 import java.nio.Buffer
 
@@ -600,7 +599,7 @@ class ColorBufferGL3(val target: Int,
     companion object {
         fun fromUrl(url: String): ColorBuffer {
             val data = ColorBufferDataGL3.fromUrl(url)
-            val cb = create(data.width, data.height, 1.0, data.format, data.type, DISABLED)
+            val cb = create(data.width, data.height, 1.0, data.format, data.type, Disabled)
             return cb.apply {
                 val d = data.data
                 if (d != null) {
@@ -617,7 +616,7 @@ class ColorBufferGL3(val target: Int,
 
         fun fromFile(filename: String): ColorBuffer {
             val data = ColorBufferDataGL3.fromFile(filename)
-            val cb = create(data.width, data.height, 1.0, data.format, data.type, DISABLED)
+            val cb = create(data.width, data.height, 1.0, data.format, data.type, Disabled)
             return cb.apply {
                 val d = data.data
                 if (d != null) {
@@ -651,7 +650,7 @@ class ColorBufferGL3(val target: Int,
             glActiveTexture(GL_TEXTURE0)
 
             when (multisample) {
-                DISABLED -> glBindTexture(GL_TEXTURE_2D, texture)
+                Disabled -> glBindTexture(GL_TEXTURE_2D, texture)
                 is SampleCount -> glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, texture)
             }
 
@@ -663,7 +662,7 @@ class ColorBufferGL3(val target: Int,
             val nullBB: ByteBuffer? = null
 
             when (multisample) {
-                DISABLED -> glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, effectiveWidth, effectiveHeight, 0, format.glFormat(), type.glType(), nullBB)
+                Disabled -> glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, effectiveWidth, effectiveHeight, 0, format.glFormat(), type.glType(), nullBB)
                 is SampleCount -> glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, multisample.sampleCount.coerceAtMost(glGetInteger(GL_MAX_COLOR_TEXTURE_SAMPLES)), internalFormat, effectiveWidth, effectiveHeight, true)
             }
 
@@ -676,11 +675,11 @@ class ColorBufferGL3(val target: Int,
             }
 
             val target = when (multisample) {
-                DISABLED -> GL_TEXTURE_2D
+                Disabled -> GL_TEXTURE_2D
                 is SampleCount -> GL_TEXTURE_2D_MULTISAMPLE
             }
 
-            if (multisample == DISABLED) {
+            if (multisample == Disabled) {
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
@@ -695,7 +694,7 @@ class ColorBufferGL3(val target: Int,
     fun bound(f: ColorBufferGL3.() -> Unit) {
         glActiveTexture(GL_TEXTURE0)
         val current = when (multisample) {
-            DISABLED -> glGetInteger(GL_TEXTURE_BINDING_2D)
+            Disabled -> glGetInteger(GL_TEXTURE_BINDING_2D)
             is SampleCount -> glGetInteger(GL_TEXTURE_BINDING_2D_MULTISAMPLE)
         }
         glBindTexture(target, texture)
@@ -708,7 +707,7 @@ class ColorBufferGL3(val target: Int,
     }
 
     override fun generateMipmaps() {
-        if (multisample == DISABLED) {
+        if (multisample == Disabled) {
             bound {
                 glGenerateMipmap(target)
             }
@@ -718,7 +717,7 @@ class ColorBufferGL3(val target: Int,
     }
 
     override fun resolveTo(target: ColorBuffer) {
-        if (target.multisample == DISABLED) {
+        if (target.multisample == Disabled) {
             val readTarget = renderTarget(width, height, contentScale) {
                 colorBuffer(this@ColorBufferGL3)
             } as RenderTargetGL3
@@ -776,7 +775,7 @@ class ColorBufferGL3(val target: Int,
 
     override val shadow: ColorBufferShadow
         get() {
-            if (multisample == DISABLED) {
+            if (multisample == Disabled) {
                 if (realShadow == null) {
                     realShadow = ColorBufferShadowGL3(this)
                 }
@@ -789,7 +788,7 @@ class ColorBufferGL3(val target: Int,
     var realShadow: ColorBufferShadow? = null
 
     override fun write(buffer: ByteBuffer) {
-        if (multisample == DISABLED) {
+        if (multisample == Disabled) {
             bound {
                 debugGLErrors()
                 logger.trace {
@@ -811,7 +810,7 @@ class ColorBufferGL3(val target: Int,
     }
 
     override fun read(buffer: ByteBuffer) {
-        if (multisample == DISABLED) {
+        if (multisample == Disabled) {
             bound {
                 logger.trace {
                     "Reading from color buffer in: $format ${format.glFormat()}, $type ${type.glType()} "
@@ -835,7 +834,7 @@ class ColorBufferGL3(val target: Int,
     }
 
     override fun saveToFile(file: File, fileFormat: FileFormat) {
-        if (multisample == DISABLED) {
+        if (multisample == Disabled) {
             if (type == ColorType.UINT8) {
                 var pixels = BufferUtils.createByteBuffer(effectiveWidth * effectiveHeight * format.componentCount)
                 (pixels as Buffer).rewind()
@@ -880,7 +879,7 @@ class ColorBufferGL3(val target: Int,
     }
 
     override fun bind(unit: Int) {
-        if (multisample == DISABLED) {
+        if (multisample == Disabled) {
             glActiveTexture(GL_TEXTURE0 + unit)
             glBindTexture(target, texture)
         } else {

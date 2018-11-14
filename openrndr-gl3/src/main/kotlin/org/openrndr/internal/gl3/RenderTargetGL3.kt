@@ -11,9 +11,9 @@ private val logger = KotlinLogging.logger {}
 
 private val active = mutableMapOf<Long, Stack<RenderTargetGL3>>()
 
-class NullRenderTargetGL3 : RenderTargetGL3(0, 640, 480, 1.0, BufferMultisample.DISABLED)
+class NullRenderTargetGL3 : RenderTargetGL3(0, 640, 480, 1.0, BufferMultisample.Disabled)
 
-class ProgramRenderTargetGL3(override val program: Program) : ProgramRenderTarget, RenderTargetGL3(glGetInteger(GL_FRAMEBUFFER_BINDING), 0, 0, 1.0, BufferMultisample.DISABLED) {
+class ProgramRenderTargetGL3(override val program: Program) : ProgramRenderTarget, RenderTargetGL3(glGetInteger(GL_FRAMEBUFFER_BINDING), 0, 0, 1.0, BufferMultisample.Disabled) {
     override val width: Int
         get() = program.window.size.x.toInt()
 
@@ -47,7 +47,7 @@ open class RenderTargetGL3(val framebuffer: Int,
 
 
     companion object {
-        fun create(width: Int, height: Int, contentScale: Double = 1.0, multisample: BufferMultisample = BufferMultisample.DISABLED): RenderTargetGL3 {
+        fun create(width: Int, height: Int, contentScale: Double = 1.0, multisample: BufferMultisample = BufferMultisample.Disabled): RenderTargetGL3 {
             logger.trace { "created new render target ($width*$height) @ ${contentScale}x $multisample" }
             val framebuffer = glGenFramebuffers()
             return RenderTargetGL3(framebuffer, width, height, contentScale, multisample)

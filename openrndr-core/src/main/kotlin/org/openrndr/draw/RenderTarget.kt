@@ -19,7 +19,7 @@ interface RenderTarget {
 
     companion object {
         @Deprecated("use the renderTarget builder function instead")
-        fun create(width: Int, height: Int, contentScale: Double, multisample: BufferMultisample): RenderTarget = Driver.instance.createRenderTarget(width, height, contentScale)
+        fun create(width: Int, height: Int, contentScale: Double, multisample: BufferMultisample): RenderTarget = Driver.instance.createRenderTarget(width, height, contentScale, multisample)
         val active: RenderTarget
             get() = Driver.instance.activeRenderTarget
     }
@@ -87,7 +87,7 @@ class RenderTargetBuilder(private val renderTarget: RenderTarget) {
 }
 
 
-fun renderTarget(width: Int, height: Int, contentScale: Double = 1.0, multisample: BufferMultisample = BufferMultisample.DISABLED, builder: RenderTargetBuilder.() -> Unit): RenderTarget {
+fun renderTarget(width: Int, height: Int, contentScale: Double = 1.0, multisample: BufferMultisample = BufferMultisample.Disabled, builder: RenderTargetBuilder.() -> Unit): RenderTarget {
     if (width == 0 || height == 0) {
         throw IllegalArgumentException("unsupported resolution ($width×$height)")
     }

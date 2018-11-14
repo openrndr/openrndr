@@ -31,7 +31,7 @@ import org.openrndr.internal.Driver
 import org.openrndr.math.Vector2
 import java.util.*
 import org.lwjgl.opengl.GL30.*
-import org.openrndr.Multisample.*
+import org.openrndr.WindowMultisample.*
 
 private val logger = KotlinLogging.logger {}
 internal var primaryWindow: Long = NULL

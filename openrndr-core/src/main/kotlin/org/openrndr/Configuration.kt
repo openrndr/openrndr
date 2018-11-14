@@ -13,13 +13,13 @@ enum class UnfocusBehaviour {
 }
 
 
-sealed class Multisample {
+sealed class WindowMultisample {
     /** Use the system default */
-    object SystemDefault : Multisample()
+    object SystemDefault : WindowMultisample()
     /** Disable multisampling */
-    object Disabled : Multisample()
+    object Disabled : WindowMultisample()
     /** Use the specified sample count */
-    data class SampleCount(val count: Int) : Multisample()
+    data class SampleCount(val count: Int) : WindowMultisample()
 }
 
 class Configuration {
@@ -88,7 +88,7 @@ class Configuration {
     /**
      * Should the window render target use multisampling?
      */
-    var multisample: Multisample = Multisample.Disabled
+    var multisample: WindowMultisample = WindowMultisample.Disabled
 
 }
 

@@ -15,7 +15,7 @@ class ScreenRecorder : Extension {
     var frameRate = 30
     var profile = MP4Profile()
     var frameClock = true
-    var multisample:BufferMultisample = BufferMultisample.DISABLED
+    var multisample:BufferMultisample = BufferMultisample.Disabled
     var resolved: ColorBuffer? = null
     var maximumFrames = Long.MAX_VALUE
     var maximumDuration = Double.POSITIVE_INFINITY
@@ -44,9 +44,8 @@ class ScreenRecorder : Extension {
             depthBuffer()
         }
 
-        println(frame.colorBuffers.size)
 
-        if (multisample != BufferMultisample.DISABLED) {
+        if (multisample != BufferMultisample.Disabled) {
             resolved = colorBuffer(program.width, program.height)
         }
 

@@ -15,7 +15,7 @@ class DepthBufferGL3(val texture: Int,
         fun create(width: Int, height: Int, format: DepthFormat, multisample: BufferMultisample): DepthBufferGL3 {
             val glTexture = glGenTextures()
             val target = when (multisample) {
-                BufferMultisample.DISABLED -> GL_TEXTURE_2D
+                BufferMultisample.Disabled -> GL_TEXTURE_2D
                 is BufferMultisample.SampleCount -> GL_TEXTURE_2D_MULTISAMPLE
             }
             glBindTexture(target, glTexture)
@@ -23,7 +23,7 @@ class DepthBufferGL3(val texture: Int,
             val nullBuffer: ByteBuffer? = null
 
             when (multisample) {
-                BufferMultisample.DISABLED -> {
+                BufferMultisample.Disabled -> {
                     glTexImage2D(GL_TEXTURE_2D, 0, format.toGLFormat(), width, height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, nullBuffer)
                     checkGLErrors()
                     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
@@ -44,7 +44,7 @@ class DepthBufferGL3(val texture: Int,
     }
 
     override fun resolveTo(target: DepthBuffer) {
-        if (target.multisample == BufferMultisample.DISABLED) {
+        if (target.multisample == BufferMultisample.Disabled) {
             val readTarget = renderTarget(width, height) {
                 depthBuffer(this@DepthBufferGL3)
             } as RenderTargetGL3

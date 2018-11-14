@@ -46,13 +46,13 @@ interface Driver {
     fun createShadeStyleManager(vertexShaderGenerator: (ShadeStructure) -> String,
                                 fragmentShaderGenerator: (ShadeStructure) -> String): ShadeStyleManager
 
-    fun createRenderTarget(width: Int, height: Int, contentScale: Double = 1.0, multisample: BufferMultisample = BufferMultisample.DISABLED): RenderTarget
+    fun createRenderTarget(width: Int, height: Int, contentScale: Double = 1.0, multisample: BufferMultisample = BufferMultisample.Disabled): RenderTarget
 
-    fun createColorBuffer(width: Int, height: Int, contentScale: Double, format: ColorFormat, type: ColorType, multisample: BufferMultisample = BufferMultisample.DISABLED): ColorBuffer
+    fun createColorBuffer(width: Int, height: Int, contentScale: Double, format: ColorFormat, type: ColorType, multisample: BufferMultisample = BufferMultisample.Disabled): ColorBuffer
     fun createColorBufferFromUrl(url: String): ColorBuffer
     fun createColorBufferFromFile(filename: String): ColorBuffer
 
-    fun createDepthBuffer(width: Int, height: Int, format: DepthFormat, multisample: BufferMultisample = BufferMultisample.DISABLED): DepthBuffer
+    fun createDepthBuffer(width: Int, height: Int, format: DepthFormat, multisample: BufferMultisample = BufferMultisample.Disabled): DepthBuffer
     fun createBufferTexture(elementCount: Int, format: ColorFormat, type: ColorType): BufferTexture
 
     fun createCubemap(width: Int, format: ColorFormat, type: ColorType): Cubemap

@@ -46,7 +46,7 @@ enum class MagnifyingFilter {
 }
 
 sealed class BufferMultisample {
-    object DISABLED : BufferMultisample()
+    object Disabled : BufferMultisample()
     data class SampleCount(val sampleCount: Int) : BufferMultisample()
 }
 
@@ -107,7 +107,7 @@ interface ColorBuffer {
         fun create(width: Int, height: Int,
                    contentScale: Double = 1.0,
                    format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.UINT8,
-                   multisample: BufferMultisample = BufferMultisample.DISABLED
+                   multisample: BufferMultisample = BufferMultisample.Disabled
         ) = Driver.instance.createColorBuffer(width, height, contentScale, format, type, multisample)
 
         fun fromUrl(url: String) = Driver.instance.createColorBufferFromUrl(url)
@@ -118,7 +118,7 @@ interface ColorBuffer {
     }
 }
 
-fun colorBuffer(width: Int, height: Int, contentScale: Double = 1.0, format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.UINT8, multisample:BufferMultisample = BufferMultisample.DISABLED): ColorBuffer {
+fun colorBuffer(width: Int, height: Int, contentScale: Double = 1.0, format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.UINT8, multisample:BufferMultisample = BufferMultisample.Disabled): ColorBuffer {
     return Driver.driver.createColorBuffer(width, height, contentScale, format, type, multisample)
 }
 

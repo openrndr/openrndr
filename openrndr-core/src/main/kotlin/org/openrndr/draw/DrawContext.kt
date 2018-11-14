@@ -59,7 +59,7 @@ data class DrawContext(val model: Matrix44, val view: Matrix44, val projection: 
                 shader.uniform("u_contentScale", contentScale)
             }
         } else {
-            contextBlock?.apply {
+            contextBlock.apply {
                 uniform("u_viewMatrix", view)
                 uniform("u_modelMatrix", model)
                 uniform("u_projectionMatrix", projection)

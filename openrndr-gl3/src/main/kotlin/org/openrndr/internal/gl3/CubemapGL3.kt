@@ -23,7 +23,7 @@ class CubemapGL3(val texture: Int, override val width: Int, val sides: List<Colo
             for (i in 0..5) {
                 val nullBB: ByteBuffer? = null
                 glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalFormat, effectiveWidth, effectiveHeight, 0, format.glFormat(), type.glType(), nullBB)
-                sides.add(ColorBufferGL3(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, textures[0], width, width, 1.0, format, type, BufferMultisample.DISABLED))
+                sides.add(ColorBufferGL3(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, textures[0], width, width, 1.0, format, type, BufferMultisample.Disabled))
             }
             return CubemapGL3(textures[0], width, sides)
         }
@@ -40,7 +40,7 @@ class CubemapGL3(val texture: Int, override val width: Int, val sides: List<Colo
                 checkGLErrors()
 
                 val data = loadDDS(URL(url).openStream())
-                val sides = (0..5).map { ColorBufferGL3(GL_TEXTURE_CUBE_MAP_POSITIVE_X + it, textures[0], data.width, data.height, 1.0, ColorFormat.RGB, ColorType.UINT8, BufferMultisample.DISABLED) }
+                val sides = (0..5).map { ColorBufferGL3(GL_TEXTURE_CUBE_MAP_POSITIVE_X + it, textures[0], data.width, data.height, 1.0, ColorFormat.RGB, ColorType.UINT8, BufferMultisample.Disabled) }
                 for (level in 0 until data.mipmaps) {
 
                     val m = Math.pow(2.0, -level * 1.0)
@@ -111,7 +111,7 @@ class CubemapGL3(val texture: Int, override val width: Int, val sides: List<Colo
                 val nullBB: ByteBuffer? = null
 
                 glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + index, 0, internalFormat, data.width, data.height, 0, data.format.glFormat(), data.type.glType(), nullBB)
-                sides.add(ColorBufferGL3(GL_TEXTURE_CUBE_MAP_POSITIVE_X + index, textures[0], data.width, data.width, 1.0, data.format, data.type, BufferMultisample.DISABLED))
+                sides.add(ColorBufferGL3(GL_TEXTURE_CUBE_MAP_POSITIVE_X + index, textures[0], data.width, data.width, 1.0, data.format, data.type, BufferMultisample.Disabled))
             }
             return CubemapGL3(textures[0], sides[0].width, sides)
         }
