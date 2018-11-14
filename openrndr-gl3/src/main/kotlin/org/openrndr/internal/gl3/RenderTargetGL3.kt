@@ -1,25 +1,22 @@
 package org.openrndr.internal.gl3
 
 import mu.KotlinLogging
-import org.openrndr.draw.ColorBuffer
-import org.openrndr.draw.DepthBuffer
-import org.openrndr.draw.ProgramRenderTarget
-import org.openrndr.draw.RenderTarget
 import org.lwjgl.glfw.GLFW.glfwGetCurrentContext
 import org.lwjgl.opengl.ARBFramebufferObject.glGenFramebuffers
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL20.glDrawBuffers
 import org.lwjgl.opengl.GL30.*
 import org.openrndr.Program
+import org.openrndr.draw.*
 import java.util.*
 
 private val logger = KotlinLogging.logger {}
 
 private val active = mutableMapOf<Long, Stack<RenderTargetGL3>>()
 
-class NullRenderTargetGL3 : RenderTargetGL3(0, 640, 480, 1.0)
+class NullRenderTargetGL3 : RenderTargetGL3(0, 640, 480, 1.0, BufferMultisample.DISABLED)
 
-class ProgramRenderTargetGL3(override val program: Program) : ProgramRenderTarget, RenderTargetGL3(glGetInteger(GL_FRAMEBUFFER_BINDING), 0, 0, 1.0) {
+class ProgramRenderTargetGL3(override val program: Program) : ProgramRenderTarget, RenderTargetGL3(glGetInteger(GL_FRAMEBUFFER_BINDING), 0, 0, 1.0, BufferMultisample.DISABLED) {
     override val width: Int
         get() = program.window.size.x.toInt()
 
@@ -37,6 +34,7 @@ open class RenderTargetGL3(val framebuffer: Int,
                            override val width: Int,
                            override val height: Int,
                            override val contentScale: Double,
+                           override val multisample: BufferMultisample,
                            private val thread: Thread = Thread.currentThread()
 
 ) : RenderTarget {
@@ -52,10 +50,10 @@ open class RenderTargetGL3(val framebuffer: Int,
 
 
     companion object {
-        fun create(width: Int, height: Int, contentScale: Double = 1.0): RenderTargetGL3 {
-            logger.trace { "created new render target ($width*$height) @ ${contentScale}x" }
+        fun create(width: Int, height: Int, contentScale: Double = 1.0, multisample: BufferMultisample = BufferMultisample.DISABLED): RenderTargetGL3 {
+            logger.trace { "created new render target ($width*$height) @ ${contentScale}x $multisample" }
             val framebuffer = glGenFramebuffers()
-            return RenderTargetGL3(framebuffer, width, height, contentScale)
+            return RenderTargetGL3(framebuffer, width, height, contentScale, multisample)
         }
 
         val activeRenderTarget: RenderTargetGL3
@@ -176,16 +174,19 @@ open class RenderTargetGL3(val framebuffer: Int,
             }
 
             depthBuffer as DepthBufferGL3
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthBuffer.texture, 0)
+
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthBuffer.target, depthBuffer.texture, 0)
             debugGLErrors { null }
 
             if (depthBuffer.hasStencil) {
-                glFramebufferTexture2D(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_TEXTURE_2D, depthBuffer.texture, 0)
+                glFramebufferTexture2D(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, depthBuffer.target, depthBuffer.texture, 0)
                 debugGLErrors { null }
             }
             checkGLErrors()
 
             this._depthBuffer = depthBuffer
+
+            checkFramebufferStatus()
         }
     }
 

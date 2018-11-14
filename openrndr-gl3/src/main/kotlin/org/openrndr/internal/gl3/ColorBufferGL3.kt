@@ -13,8 +13,8 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
 import org.openrndr.draw.*
-import org.openrndr.draw.ColorBufferMultisample.DISABLED
-import org.openrndr.draw.ColorBufferMultisample.SampleCount
+import org.openrndr.draw.BufferMultisample.DISABLED
+import org.openrndr.draw.BufferMultisample.SampleCount
 import java.io.File
 import java.nio.Buffer
 
@@ -588,7 +588,7 @@ class ColorBufferGL3(val target: Int,
                      override val contentScale: Double,
                      override val format: ColorFormat,
                      override val type: ColorType,
-                     override val multisample: ColorBufferMultisample) : ColorBuffer {
+                     override val multisample: BufferMultisample) : ColorBuffer {
 
     internal var realFlipV: Boolean = false
     override var flipV: Boolean
@@ -638,7 +638,7 @@ class ColorBufferGL3(val target: Int,
                    contentScale: Double = 1.0,
                    format: ColorFormat = ColorFormat.RGBa,
                    type: ColorType = ColorType.FLOAT32,
-                   multisample: ColorBufferMultisample): ColorBufferGL3 {
+                   multisample: BufferMultisample): ColorBufferGL3 {
             val internalFormat = internalFormat(format, type)
             if (width <= 0 || height <= 0) {
                 throw Exception("cannot create ColorBuffer with dimensions: ${width}x$height")
@@ -650,7 +650,7 @@ class ColorBufferGL3(val target: Int,
 
             glActiveTexture(GL_TEXTURE0)
 
-            when(multisample) {
+            when (multisample) {
                 DISABLED -> glBindTexture(GL_TEXTURE_2D, texture)
                 is SampleCount -> glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, texture)
             }
@@ -664,7 +664,7 @@ class ColorBufferGL3(val target: Int,
 
             when (multisample) {
                 DISABLED -> glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, effectiveWidth, effectiveHeight, 0, format.glFormat(), type.glType(), nullBB)
-                is SampleCount -> glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, multisample.sampleCount, internalFormat, effectiveWidth, effectiveHeight, false)
+                is SampleCount -> glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, multisample.sampleCount.coerceAtMost(glGetInteger(GL_MAX_COLOR_TEXTURE_SAMPLES)), internalFormat, effectiveWidth, effectiveHeight, true)
             }
 
             checkGLErrors {
@@ -694,7 +694,7 @@ class ColorBufferGL3(val target: Int,
 
     fun bound(f: ColorBufferGL3.() -> Unit) {
         glActiveTexture(GL_TEXTURE0)
-        val current = when(multisample) {
+        val current = when (multisample) {
             DISABLED -> glGetInteger(GL_TEXTURE_BINDING_2D)
             is SampleCount -> glGetInteger(GL_TEXTURE_BINDING_2D_MULTISAMPLE)
         }
@@ -729,7 +729,7 @@ class ColorBufferGL3(val target: Int,
 
             writeTarget.bind()
             glBindFramebuffer(GL_READ_FRAMEBUFFER, readTarget.framebuffer)
-            glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+            glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_NEAREST)
             writeTarget.unbind()
 
             writeTarget.detachColorBuffers()

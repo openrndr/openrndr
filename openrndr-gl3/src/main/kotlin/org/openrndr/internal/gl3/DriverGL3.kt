@@ -5,7 +5,6 @@ import org.lwjgl.glfw.GLFW
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER
 import org.lwjgl.opengl.GL15.glBindBuffer
-import org.lwjgl.opengl.GL20.*
 import org.lwjgl.opengl.GL30
 import org.lwjgl.opengl.GL30.glBindVertexArray
 import org.lwjgl.opengl.GL30.glGenVertexArrays
@@ -98,19 +97,25 @@ class DriverGL3 : Driver {
         }
 
     override fun clear(r: Double, g: Double, b: Double, a: Double) {
+        debugGLErrors()
+
         glClearColor(r.toFloat(), g.toFloat(), b.toFloat(), a.toFloat())
         glClearDepth(1.0)
         glDisable(GL_SCISSOR_TEST)
+        debugGLErrors()
         glDepthMask(true)
+        debugGLErrors()
 
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT or GL_STENCIL_BUFFER_BIT)
-        glDepthMask(false)
+        debugGLErrors()
+
         debugGLErrors {
             when (it) {
                 GL_INVALID_VALUE -> "any bit other than the three defined bits is set in mask."
                 else -> null
             }
         }
+        glDepthMask(false)
     }
 
     override fun createStaticVertexBuffer(format: VertexFormat, buffer: Buffer): VertexBuffer {
@@ -156,17 +161,17 @@ class DriverGL3 : Driver {
         }
     }
 
-    override fun createRenderTarget(width: Int, height: Int, contentScale: Double): RenderTarget {
-        logger.trace { "creating render target $width x $height @ ${contentScale}x" }
+    override fun createRenderTarget(width: Int, height: Int, contentScale: Double, multisample: BufferMultisample): RenderTarget {
+        logger.trace { "creating render target $width x $height @ ${contentScale}x $multisample" }
         synchronized(this) {
-            return RenderTargetGL3.create(width, height, contentScale)
+            return RenderTargetGL3.create(width, height, contentScale, multisample)
         }
     }
 
-    override fun createColorBuffer(width: Int, height: Int, contentScale: Double, format: ColorFormat, type: ColorType, multisample: ColorBufferMultisample): ColorBuffer {
+    override fun createColorBuffer(width: Int, height: Int, contentScale: Double, format: ColorFormat, type: ColorType, multisample: BufferMultisample): ColorBuffer {
         logger.trace { "creating color buffer $width x $height @ $format:$type" }
         synchronized(this) {
-            return ColorBufferGL3.create(width, height, contentScale, format, type, ColorBufferMultisample.DISABLED)
+            return ColorBufferGL3.create(width, height, contentScale, format, type, multisample)
         }
     }
 
@@ -178,10 +183,10 @@ class DriverGL3 : Driver {
         return ColorBufferGL3.fromFile(filename)
     }
 
-    override fun createDepthBuffer(width: Int, height: Int, format: DepthFormat): DepthBuffer {
+    override fun createDepthBuffer(width: Int, height: Int, format: DepthFormat, multisample: BufferMultisample): DepthBuffer {
         logger.trace { "creating depth buffer $width x $height @ $format" }
         synchronized(this) {
-            return DepthBufferGL3.create(width, height, format)
+            return DepthBufferGL3.create(width, height, format, multisample)
         }
     }
 

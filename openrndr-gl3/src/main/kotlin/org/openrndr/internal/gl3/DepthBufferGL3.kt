@@ -1,32 +1,51 @@
 package org.openrndr.internal.gl3
 
-import org.lwjgl.opengl.GL11.*
-import org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE
-import org.lwjgl.opengl.GL13.GL_TEXTURE0
-import org.lwjgl.opengl.GL13.glActiveTexture
-import org.lwjgl.opengl.GL14.GL_DEPTH_COMPONENT24
-import org.lwjgl.opengl.GL30.*
+import org.lwjgl.opengl.GL32C
+import org.lwjgl.opengl.GL33C.*
+import org.openrndr.draw.BufferMultisample
 import org.openrndr.draw.DepthBuffer
 import org.openrndr.draw.DepthFormat
 import java.nio.ByteBuffer
 
 class DepthBufferGL3(val texture: Int,
+                     val target: Int,
                      override val width: Int,
                      override val height: Int,
-                     override val format: DepthFormat) : DepthBuffer {
+                     override val format: DepthFormat,
+                     override val multisample: BufferMultisample) : DepthBuffer {
 
     companion object {
-        fun create(width: Int, height: Int, format: DepthFormat): DepthBufferGL3 {
-            val glTexture = glGenTextures()
-            glBindTexture(GL_TEXTURE_2D, glTexture)
+        fun create(width: Int, height: Int, format: DepthFormat, multisample: BufferMultisample): DepthBufferGL3 {
 
+
+            println("creating depth buffer $multisample")
+            val glTexture = glGenTextures()
+            val target = when(multisample) {
+                BufferMultisample.DISABLED -> GL_TEXTURE_2D
+                is BufferMultisample.SampleCount -> GL_TEXTURE_2D_MULTISAMPLE
+            }
+            glBindTexture(target, glTexture)
+            checkGLErrors()
             val nullBuffer: ByteBuffer? = null
-            glTexImage2D(GL_TEXTURE_2D, 0, format.toGLFormat(), width, height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, nullBuffer)
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
-            return DepthBufferGL3(glTexture, width, height, format)
+
+            when (multisample) {
+                BufferMultisample.DISABLED -> {
+                    glTexImage2D(GL_TEXTURE_2D, 0, format.toGLFormat(), width, height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, nullBuffer)
+                    checkGLErrors()
+                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
+                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
+                }
+                is BufferMultisample.SampleCount -> {
+                    glTexImage2DMultisample(target, multisample.sampleCount.coerceAtMost(glGetInteger(GL_MAX_DEPTH_TEXTURE_SAMPLES)), format.toGLFormat(), width, height, true)
+                    checkGLErrors()
+                }
+            }
+
+
+
+            return DepthBufferGL3(glTexture, target, width, height, format, multisample)
         }
     }
 
@@ -36,7 +55,7 @@ class DepthBufferGL3(val texture: Int,
 
     override fun bind(textureUnit: Int) {
         glActiveTexture(GL_TEXTURE0 + textureUnit)
-        glBindTexture(GL_TEXTURE_2D, texture)
+        glBindTexture(target, texture)
     }
 }
 

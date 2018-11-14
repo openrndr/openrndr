@@ -45,9 +45,9 @@ enum class MagnifyingFilter {
     LINEAR
 }
 
-sealed class ColorBufferMultisample {
-    object DISABLED : ColorBufferMultisample()
-    class SampleCount(val sampleCount: Int) : ColorBufferMultisample()
+sealed class BufferMultisample {
+    object DISABLED : BufferMultisample()
+    class SampleCount(val sampleCount: Int) : BufferMultisample()
 }
 
 
@@ -57,7 +57,7 @@ interface ColorBuffer {
     val contentScale: Double
     val format: ColorFormat
     val type: ColorType
-    val multisample: ColorBufferMultisample
+    val multisample: BufferMultisample
 
     val bounds: Rectangle get() = Rectangle(Vector2.ZERO, width * 1.0, height * 1.0)
 
@@ -81,6 +81,9 @@ interface ColorBuffer {
     fun read(buffer: ByteBuffer)
     fun generateMipmaps()
 
+    /**
+     * resolves (or copies) to a non-multisampled color buffer
+     */
     fun resolveTo(target: ColorBuffer)
 
     var wrapU: WrapMode
@@ -100,10 +103,11 @@ interface ColorBuffer {
 
 
     companion object {
+        @Deprecated("use the colorBuffer() builder function instead")
         fun create(width: Int, height: Int,
                    contentScale: Double = 1.0,
                    format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.UINT8,
-                   multisample: ColorBufferMultisample = ColorBufferMultisample.DISABLED
+                   multisample: BufferMultisample = BufferMultisample.DISABLED
         ) = Driver.instance.createColorBuffer(width, height, contentScale, format, type, multisample)
 
         fun fromUrl(url: String) = Driver.instance.createColorBufferFromUrl(url)
@@ -114,14 +118,9 @@ interface ColorBuffer {
     }
 }
 
-fun colorBuffer(width: Int, height: Int, contentScale: Double = 1.0, format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.UINT8): ColorBuffer {
-    return ColorBuffer.create(width, height, contentScale, format, type)
+fun colorBuffer(width: Int, height: Int, contentScale: Double = 1.0, format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.UINT8, multisample:BufferMultisample = BufferMultisample.DISABLED): ColorBuffer {
+    return Driver.driver.createColorBuffer(width, height, contentScale, format, type, multisample)
 }
-
-fun colorBuffer(width: Int, height: Int, contentScale: Double = 1.0, format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.UINT8, multisample:ColorBufferMultisample = ColorBufferMultisample.DISABLED): ColorBuffer {
-    return ColorBuffer.create(width, height, contentScale, format, type, multisample)
-}
-
 
 fun loadImage(fileOrUrl: String): ColorBuffer {
     return try {

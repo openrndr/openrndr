@@ -28,7 +28,7 @@ open class Filter(private val shader: Shader? = null, private val watcher: Shade
 
     open fun apply(source: Array<ColorBuffer>, target: Array<ColorBuffer>) {
         val shader = if (this.watcher != null) watcher.shader!! else this.shader!!
-        val renderTarget = RenderTarget.create(target[0].width, target[0].height, 1.0)
+        val renderTarget = renderTarget(target[0].width, target[0].height, 1.0) {}
 
         target.forEach {
             renderTarget.attach(it)

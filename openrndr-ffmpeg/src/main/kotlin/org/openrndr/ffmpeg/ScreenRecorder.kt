@@ -2,15 +2,11 @@ package org.openrndr.ffmpeg
 
 import org.openrndr.Extension
 import org.openrndr.Program
-import org.openrndr.draw.Drawer
-import org.openrndr.draw.RenderTarget
-import org.openrndr.draw.isolated
-import org.openrndr.draw.renderTarget
+import org.openrndr.draw.*
 import org.openrndr.math.Matrix44
 import java.time.LocalDateTime
 
 class ScreenRecorder : Extension {
-
     override var enabled: Boolean = true
 
     private lateinit var videoWriter: VideoWriter
@@ -19,6 +15,11 @@ class ScreenRecorder : Extension {
     var frameRate = 30
     var profile = MP4Profile()
     var frameClock = true
+    var multisample:BufferMultisample = BufferMultisample.DISABLED
+    var resolved: ColorBuffer? = null
+    var maximumFrames = Long.MAX_VALUE
+    var maximumDuration = Double.POSITIVE_INFINITY
+    var quitAfterMaximum = true
 
     private var frameIndex: Long = 0
     override fun setup(program: Program) {
@@ -38,13 +39,19 @@ class ScreenRecorder : Extension {
             return "$prefix$sv"
         }
 
-        frame = renderTarget(program.width, program.height) {
+        frame = renderTarget(program.width, program.height, multisample = multisample) {
             colorBuffer()
             depthBuffer()
         }
-        val dt = LocalDateTime.now()
 
-        val basename = program.javaClass.simpleName.ifBlank { program.window.title }
+        println(frame.colorBuffers.size)
+
+        if (multisample != BufferMultisample.DISABLED) {
+            resolved = colorBuffer(program.width, program.height)
+        }
+
+        val dt = LocalDateTime.now()
+        val basename = program.javaClass.simpleName.ifBlank { program.window.title.ifBlank { "untitled" } }
         val filename = "$basename-${dt.year.z(4)}-${dt.month.value.z()}-${dt.dayOfMonth.z()}-${dt.hour.z()}.${dt.minute.z()}.${dt.second.z()}.mp4"
         videoWriter = VideoWriter().profile(profile).output(filename).size(program.width, program.height).frameRate(frameRate).start()
     }
@@ -58,13 +65,34 @@ class ScreenRecorder : Extension {
 
     override fun afterDraw(drawer: Drawer, program: Program) {
         frame.unbind()
-        videoWriter.frame(frame.colorBuffer(0))
-        drawer.isolated {
-            drawer.shadeStyle = null
-            drawer.ortho()
-            drawer.model = Matrix44.IDENTITY
-            drawer.view = Matrix44.IDENTITY
-            drawer.image(frame.colorBuffer(0))
+        if (frameIndex < maximumFrames && frameIndex / frameRate.toDouble() < maximumDuration ) {
+
+            val lr = resolved
+            if (lr != null) {
+                frame.colorBuffer(0).resolveTo(lr)
+                videoWriter.frame(lr)
+            } else {
+                videoWriter.frame(frame.colorBuffer(0))
+            }
+
+
+
+            drawer.isolated {
+                drawer.shadeStyle = null
+                drawer.ortho()
+                drawer.model = Matrix44.IDENTITY
+                drawer.view = Matrix44.IDENTITY
+
+                if (lr != null) {
+                    drawer.image(lr)
+                } else {
+                    drawer.image(frame.colorBuffer(0))
+                }
+            }
+        } else {
+            if (quitAfterMaximum) {
+                program.application.exit()
+            }
         }
         frameIndex++
     }

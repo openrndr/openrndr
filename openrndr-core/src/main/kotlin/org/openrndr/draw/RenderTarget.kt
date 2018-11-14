@@ -1,5 +1,7 @@
 package org.openrndr.draw
 
+import org.openrndr.draw.colorBuffer as _colorBuffer
+import org.openrndr.draw.depthBuffer as _depthBuffer
 import org.openrndr.internal.Driver
 import java.lang.IllegalStateException
 
@@ -7,6 +9,7 @@ interface RenderTarget {
     val width: Int
     val height: Int
     val contentScale: Double
+    val multisample: BufferMultisample
 
     val effectiveWidth: Int get() = (width * contentScale).toInt()
     val effectiveHeight: Int get() = (height * contentScale).toInt()
@@ -15,7 +18,8 @@ interface RenderTarget {
     val depthBuffer: DepthBuffer?
 
     companion object {
-        fun create(width: Int, height: Int, contentScale: Double): RenderTarget = Driver.instance.createRenderTarget(width, height, contentScale)
+        @Deprecated("use the renderTarget builder function instead")
+        fun create(width: Int, height: Int, contentScale: Double, multisample: BufferMultisample): RenderTarget = Driver.instance.createRenderTarget(width, height, contentScale)
         val active: RenderTarget
             get() = Driver.instance.activeRenderTarget
     }
@@ -43,7 +47,7 @@ interface RenderTarget {
 class RenderTargetBuilder(private val renderTarget: RenderTarget) {
 
     @Deprecated("you should not use this", replaceWith = ReplaceWith("colorBuffer()"), level = DeprecationLevel.ERROR)
-    fun colorBuffer(width: Int, height: Int, contentScale: Double = 1.0, format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.UINT8): Nothing {
+    fun colorBuffer(width: Int, height: Int, contentScale: Double = 1.0, format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.UINT8, multisample: BufferMultisample): Nothing {
         throw IllegalStateException("use colorBuffer without width and height arguments")
     }
 
@@ -52,35 +56,43 @@ class RenderTargetBuilder(private val renderTarget: RenderTarget) {
     }
 
     fun colorBuffer(name: String, colorBuffer: ColorBuffer) {
-        renderTarget.attach(name, colorBuffer)
+        if (colorBuffer.multisample == renderTarget.multisample) {
+            renderTarget.attach(name, colorBuffer)
+        } else {
+            throw IllegalArgumentException("${colorBuffer.multisample} != ${renderTarget.multisample}")
+        }
     }
 
     fun colorBuffer(name: String, format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.UINT8) {
-        val cb = ColorBuffer.create(renderTarget.width, renderTarget.height, renderTarget.contentScale, format, type)
+        val cb = _colorBuffer(renderTarget.width, renderTarget.height, renderTarget.contentScale, format, type, renderTarget.multisample)
         renderTarget.attach(name, cb)
     }
 
     fun colorBuffer(format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.UINT8) {
-        val cb = ColorBuffer.create(renderTarget.width, renderTarget.height, renderTarget.contentScale, format, type)
+        val cb = _colorBuffer(renderTarget.width, renderTarget.height, renderTarget.contentScale, format, type, renderTarget.multisample)
         renderTarget.attach(cb)
     }
 
     fun depthBuffer(format: DepthFormat = DepthFormat.DEPTH24_STENCIL8) {
-        renderTarget.attach(DepthBuffer.create(renderTarget.effectiveWidth, renderTarget.effectiveHeight, format))
+        renderTarget.attach(_depthBuffer(renderTarget.effectiveWidth, renderTarget.effectiveHeight, format, renderTarget.multisample))
     }
 
     fun depthBuffer(depthBuffer: DepthBuffer) {
-        renderTarget.attach(depthBuffer)
+        if (depthBuffer.multisample == renderTarget.multisample) {
+            renderTarget.attach(depthBuffer)
+        } else {
+            throw IllegalArgumentException("${depthBuffer.multisample} != ${renderTarget.multisample}")
+        }
     }
 }
 
 
-fun renderTarget(width: Int, height: Int, contentScale: Double = 1.0, builder: RenderTargetBuilder.() -> Unit): RenderTarget {
+fun renderTarget(width: Int, height: Int, contentScale: Double = 1.0, multisample: BufferMultisample = BufferMultisample.DISABLED, builder: RenderTargetBuilder.() -> Unit): RenderTarget {
     if (width == 0 || height == 0) {
         throw IllegalArgumentException("unsupported resolution ($width×$height)")
     }
 
-    val renderTarget = RenderTarget.create(width, height, contentScale)
+    val renderTarget = Driver.driver.createRenderTarget(width, height, contentScale, multisample)
     RenderTargetBuilder(renderTarget).builder()
     return renderTarget
 }
