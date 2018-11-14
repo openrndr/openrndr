@@ -45,6 +45,11 @@ enum class MagnifyingFilter {
     LINEAR
 }
 
+sealed class ColorBufferMultisample {
+    object DISABLED : ColorBufferMultisample()
+    class SampleCount(val sampleCount: Int) : ColorBufferMultisample()
+}
+
 
 interface ColorBuffer {
     val width: Int
@@ -52,6 +57,7 @@ interface ColorBuffer {
     val contentScale: Double
     val format: ColorFormat
     val type: ColorType
+    val multisample: ColorBufferMultisample
 
     val bounds: Rectangle get() = Rectangle(Vector2.ZERO, width * 1.0, height * 1.0)
 
@@ -75,6 +81,8 @@ interface ColorBuffer {
     fun read(buffer: ByteBuffer)
     fun generateMipmaps()
 
+    fun resolveTo(target: ColorBuffer)
+
     var wrapU: WrapMode
     var wrapV: WrapMode
 
@@ -90,11 +98,13 @@ interface ColorBuffer {
         this.filterMag = filterMag
     }
 
+
     companion object {
         fun create(width: Int, height: Int,
                    contentScale: Double = 1.0,
-                   format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.UINT8
-        ) = Driver.instance.createColorBuffer(width, height, contentScale, format, type)
+                   format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.UINT8,
+                   multisample: ColorBufferMultisample = ColorBufferMultisample.DISABLED
+        ) = Driver.instance.createColorBuffer(width, height, contentScale, format, type, multisample)
 
         fun fromUrl(url: String) = Driver.instance.createColorBufferFromUrl(url)
 
@@ -107,6 +117,11 @@ interface ColorBuffer {
 fun colorBuffer(width: Int, height: Int, contentScale: Double = 1.0, format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.UINT8): ColorBuffer {
     return ColorBuffer.create(width, height, contentScale, format, type)
 }
+
+fun colorBuffer(width: Int, height: Int, contentScale: Double = 1.0, format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.UINT8, multisample:ColorBufferMultisample = ColorBufferMultisample.DISABLED): ColorBuffer {
+    return ColorBuffer.create(width, height, contentScale, format, type, multisample)
+}
+
 
 fun loadImage(fileOrUrl: String): ColorBuffer {
     return try {

@@ -1,6 +1,7 @@
 package org.openrndr.internal.gl3
 
 import mu.KotlinLogging
+import org.lwjgl.BufferUtils
 
 import java.lang.IllegalStateException
 import java.lang.RuntimeException
@@ -22,6 +23,7 @@ import org.lwjgl.glfw.GLFW.GLFW_RELEASE
 import org.lwjgl.glfw.GLFW.glfwSetKeyCallback
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.glfw.GLFWErrorCallback
+import org.lwjgl.glfw.GLFWImage
 import org.lwjgl.opengl.GLUtil
 
 import org.openrndr.*
@@ -30,6 +32,9 @@ import org.openrndr.internal.Driver
 import org.openrndr.math.Vector2
 import java.util.*
 import org.lwjgl.opengl.GL30.*
+import javax.swing.Spring.height
+
+
 
 private val logger = KotlinLogging.logger {}
 internal var primaryWindow: Long = NULL
@@ -161,6 +166,24 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
                     configuration.title, glfwGetPrimaryMonitor(), primaryWindow)
         }
 
+        val buf = BufferUtils.createByteBuffer(128 * 128* 4)
+        buf.rewind()
+        for (y in 0 until 128) {
+            for (x in 0 until 128) {
+                buf.putInt(0xffffc0cb.toInt())
+            }
+        }
+        buf.flip()
+
+        println("setting icon")
+        stackPush().use {
+            glfwSetWindowIcon(window, GLFWImage.mallocStack(1, it)
+                    .width(128)
+                    .height(128)
+                    .pixels(buf)
+            );
+        }
+
         logger.debug { "window created: $window" }
 
         if (window == NULL) {
@@ -211,7 +234,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         glfwSetWindowRefreshCallback(window) {
             if (readyFrames > 0) {
                 if (setupCalled)
-                drawFrame()
+                    drawFrame()
                 glfwSwapBuffers(window)
             }
             readyFrames++
@@ -248,6 +271,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         }
         logger.debug { "glfw version: ${glfwGetVersionString()}" }
         logger.debug { "showing window" }
+
         glfwShowWindow(window)
     }
 
