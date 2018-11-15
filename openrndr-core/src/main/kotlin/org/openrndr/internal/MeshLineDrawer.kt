@@ -18,18 +18,19 @@ class MeshLineDrawer {
         attribute("element", VertexElementType.FLOAT32)
     }, 1024 * 1024)
 
-    fun drawLineSegments(drawContext: DrawContext, drawStyle: DrawStyle, segments: List<Vector3>) {
+    fun drawLineSegments(drawContext: DrawContext, drawStyle: DrawStyle, segments: List<Vector3>, weights: List<Double> = emptyList()) {
 
         val vertexCount = vertices.put {
             for (i in 0 until segments.size step 2) {
+                val width = weights.getOrElse(i) { drawStyle.strokeWeight }.toFloat()
 
-                var element = (i/2).toFloat()
+                var element = (i / 2).toFloat()
 
                 write(segments[i])
                 write(segments[i])
                 write(segments[i + 1])
                 write(-1.0f)
-                write(1.0f)
+                write(width)
                 write(Vector2.ZERO)
                 write(element)
 
@@ -37,7 +38,7 @@ class MeshLineDrawer {
                 write(segments[i])
                 write(segments[i + 1])
                 write(+1.0f)
-                write(1.0f)
+                write(width)
                 write(Vector2.ZERO)
                 write(element)
 
@@ -45,7 +46,7 @@ class MeshLineDrawer {
                 write(segments[i + 1])
                 write(segments[i + 1])
                 write(+1.0f)
-                write(1.0f)
+                write(width)
                 write(Vector2.ZERO)
                 write(element)
 
@@ -55,7 +56,7 @@ class MeshLineDrawer {
                 write(segments[i + 1])
                 write(segments[i + 1])
                 write(+1.0f)
-                write(1.0f)
+                write(width)
                 write(Vector2.ZERO)
                 write(element)
 
@@ -63,7 +64,7 @@ class MeshLineDrawer {
                 write(segments[i + 1])
                 write(segments[i + 1])
                 write(-1.0f)
-                write(1.0f)
+                write(width)
                 write(Vector2.ZERO)
                 write(element)
 
@@ -71,7 +72,7 @@ class MeshLineDrawer {
                 write(segments[i])
                 write(segments[i + 1])
                 write(-1.0f)
-                write(1.0f)
+                write(width)
                 write(Vector2.ZERO)
                 write(element)
             }
@@ -89,11 +90,13 @@ class MeshLineDrawer {
 
     fun drawLineStrips(drawContext: DrawContext,
                        drawStyle: DrawStyle,
-                       strips: List<List<Vector3>>) {
+                       strips: List<List<Vector3>>,
+                       weights: List<Double> = emptyList()) {
 
         val vertexCount = vertices.put {
             for ((element, strip) in strips.withIndex()) {
 
+                val width = weights.getOrElse(element) { drawStyle.strokeWeight }.toFloat()
                 val elementF = element.toFloat()
 
                 var previous = strip[0]
@@ -111,7 +114,7 @@ class MeshLineDrawer {
                     write(current)
                     write(next)
                     write(-1.0f)
-                    write(1.0f)
+                    write(width)
                     write(Vector2.ZERO)
                     write(elementF)
 
@@ -119,7 +122,7 @@ class MeshLineDrawer {
                     write(current)
                     write(next)
                     write(1.0f)
-                    write(1.0f)
+                    write(width)
                     write(Vector2.ZERO)
                     write(elementF)
                     previous = current
@@ -130,7 +133,7 @@ class MeshLineDrawer {
                 write(strip.last())
                 write(strip.last())
                 write(-1.0f)
-                write(1.0f)
+                write(width)
                 write(Vector2.ZERO)
                 write(elementF)
 
@@ -138,7 +141,7 @@ class MeshLineDrawer {
                 write(strip.last())
                 write(strip.last())
                 write(1.0f)
-                write(1.0f)
+                write(width)
                 write(Vector2.ZERO)
                 write(elementF)
 
@@ -147,7 +150,7 @@ class MeshLineDrawer {
                 write(strip.last())
                 write(strip.last())
                 write(1.0f)
-                write(1.0f)
+                write(width)
                 write(Vector2.ZERO)
                 write(elementF)
             }
@@ -165,10 +168,15 @@ class MeshLineDrawer {
 
     fun drawLineLoops(drawContext: DrawContext,
                       drawStyle: DrawStyle,
-                      loops: List<List<Vector3>>) {
+                      loops: List<List<Vector3>>,
+                      weights: List<Double> = emptyList()) {
+
+
 
         val vertexCount = vertices.put {
             for ((element, loop) in loops.withIndex()) {
+
+                val width = weights.getOrElse(element) { drawStyle.strokeWeight }.toFloat()
                 val elementF = element.toFloat()
 
                 var previous = loop.last()
@@ -177,7 +185,7 @@ class MeshLineDrawer {
                 write(loop[0])
                 write(loop[1])
                 write(-1.0f)
-                write(1.0f)
+                write(width)
                 write(Vector2.ZERO)
                 write(elementF)
 
@@ -186,7 +194,7 @@ class MeshLineDrawer {
                     write(current)
                     write(next)
                     write(-1.0f)
-                    write(1.0f)
+                    write(width)
                     write(Vector2.ZERO)
                     write(elementF)
 
@@ -194,7 +202,7 @@ class MeshLineDrawer {
                     write(current)
                     write(next)
                     write(1.0f)
-                    write(1.0f)
+                    write(width)
                     write(Vector2.ZERO)
                     write(elementF)
                     previous = current
@@ -205,7 +213,7 @@ class MeshLineDrawer {
                 write(loop.last())
                 write(loop[0])
                 write(-1.0f)
-                write(1.0f)
+                write(width)
                 write(Vector2.ZERO)
                 write(elementF)
 
@@ -213,7 +221,7 @@ class MeshLineDrawer {
                 write(loop.last())
                 write(loop[0])
                 write(1.0f)
-                write(1.0f)
+                write(width)
                 write(Vector2.ZERO)
                 write(elementF)
 
@@ -222,7 +230,7 @@ class MeshLineDrawer {
                 write(loop[0])
                 write(loop[1])
                 write(-1.0f)
-                write(1.0f)
+                write(width)
                 write(Vector2.ZERO)
                 write(elementF)
 
@@ -230,7 +238,7 @@ class MeshLineDrawer {
                 write(loop[0])
                 write(loop[1])
                 write(1.0f)
-                write(1.0f)
+                write(width)
                 write(Vector2.ZERO)
                 write(elementF)
 
@@ -239,7 +247,7 @@ class MeshLineDrawer {
                 write(loop[0])
                 write(loop[1])
                 write(1.0f)
-                write(1.0f)
+                write(width)
                 write(Vector2.ZERO)
                 write(elementF)
             }

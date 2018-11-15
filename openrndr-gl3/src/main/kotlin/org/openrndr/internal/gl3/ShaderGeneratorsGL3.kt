@@ -572,7 +572,7 @@ void main() {
         |$transformVaryingOut
         |flat out int v_instance;
         |
-        |vec2 fix( vec4 i, float aspect ) {
+        |vec2 fix(vec4 i, float aspect) {
         |   vec2 res = i.xy / i.w;
         |   res.x *= aspect;
         |   return res;
@@ -588,25 +588,22 @@ void main() {
         |
         |   float aspect = u_viewDimensions.x / u_viewDimensions.y;
         |   float pixelWidthRatio = 1. / (u_viewDimensions.x * u_projectionMatrix[0][0]);
-        |   mat4 m = u_projectionMatrix * u_viewMatrix * u_modelMatrix;
-        |   vec4 finalPosition = m * vec4( a_position, 1.0 );
-        |   vec4 prevPos = m * vec4( a_previous, 1.0 );
-        |   vec4 nextPos = m * vec4( a_next, 1.0 );
+        |   mat4 pvm = u_projectionMatrix * u_viewMatrix * u_modelMatrix;
+        |   vec4 finalPosition = pvm * vec4(a_position, 1.0);
+        |   vec4 prevPosition = pvm * vec4(a_previous, 1.0);
+        |   vec4 nextPosition = pvm * vec4(a_next, 1.0);
 
-        |   vec2 currentP = fix( finalPosition, aspect );
-        |   vec2 prevP = fix( prevPos, aspect );
-        |   vec2 nextP = fix( nextPos, aspect );
+        |   vec2 currentP = fix(finalPosition, aspect);
+        |   vec2 prevP = fix(prevPosition, aspect);
+        |   vec2 nextP = fix(nextPosition, aspect);
 
         |   float pixelWidth = finalPosition.w * pixelWidthRatio;
-        |   float w = 1.8 * pixelWidth * u_strokeWeight * a_width;
-        |   //float sizeAttenuation = 0.0;
-        |   //if( sizeAttenuation == 1. ) {
-        |   //    w = 1.8 * u_strokeWeight * a_width;
-        |   //}
+        |   float w = 1.8 * pixelWidth * a_width;
+
         |   vec2 dir;
         |   if (nextP == currentP) {
         |       dir = normalize(currentP - prevP);
-        |   } else if( prevP == currentP ) {
+        |   } else if(prevP == currentP) {
         |       dir = normalize( nextP - currentP );
         |   } else {
         |       vec2 dir1 = normalize(currentP - prevP);
@@ -614,7 +611,7 @@ void main() {
         |       dir = normalize(dir1 + dir2);
         |   }
         |
-        |   vec2 normal = vec2( -dir.y, dir.x );
+        |   vec2 normal = vec2(-dir.y, dir.x);
         |   normal.x /= aspect;
         |   normal *= .5 * w;
         |   vec4 offset = vec4(normal * a_side, 0.0, 1.0);
