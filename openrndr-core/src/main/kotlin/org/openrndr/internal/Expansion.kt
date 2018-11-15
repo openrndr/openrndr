@@ -11,7 +11,8 @@ import org.openrndr.math.Vector2
 internal enum class ExpansionType {
     STROKE,
     FILL,
-    FRINGE
+    FRINGE,
+    SKIP
 }
 
 internal class Expansion(val type: ExpansionType, val fb: FloatArray, val bufferStart: Int) {
@@ -390,237 +391,246 @@ internal class Path {
     }
 
     fun expandStroke(fringeWidth: Double, weight: Double, lineCap: LineCap, lineJoin: LineJoin, miterLimit: Double): Expansion {
-        val points = contours[0]
-        val tessTol = 0.1
-        val capSteps = curveDivs(weight, Math.PI, tessTol)
 
+        if (contours.isNotEmpty()) {
+            val points = contours[0]
+            val tessTol = 0.1
+            val capSteps = curveDivs(weight, Math.PI, tessTol)
 
-        prepare(points)
-        calculateJoins(points, weight, lineJoin, miterLimit)
+            prepare(points)
+            calculateJoins(points, weight, lineJoin, miterLimit)
 
-        var cverts = 0
-        cverts += if (lineJoin == LineJoin.ROUND) {
-            (points.size + nbevel * (capSteps + 2) + 1) * 2; // plus one for loop
-        } else {
-            (points.size + nbevel * 5 + 1) * 2 // plus one for loop
-        }
-
-        if (!closed) {
-            cverts += if (lineCap === LineCap.ROUND) {
-                (capSteps * 2 + 2) * 2
+            var cverts = 0
+            cverts += if (lineJoin == LineJoin.ROUND) {
+                (points.size + nbevel * (capSteps + 2) + 1) * 2; // plus one for loop
             } else {
-                (3 + 3) * 2
-            }
-        }
-
-        val expansion = Expansion(ExpansionType.STROKE, FloatArray(cverts * 5), 0)
-
-        var offset = 0.0
-        val aa = fringeWidth
-
-        var p0 = if (closed) points[points.size - 1] else points[0]
-        var p1 = if (closed) points[0] else points[1]
-        var start = if (closed) 0 else 1
-        var end = if (closed) points.size else points.size - 1
-        var p1ptr = if (closed) 0 else 1
-
-        // -- start, optional cap
-        if (!closed) {
-            var dx = p1.x - p0.x
-            var dy = p1.y - p0.y
-            val length = Math.sqrt(dx * dx + dy * dy)
-
-            if (length > 0) {
-                dx /= length
-                dy /= length
+                (points.size + nbevel * 5 + 1) * 2 // plus one for loop
             }
 
-            when (lineCap) {
-                LineCap.BUTT -> expansion.buttCapStart(p0, dx, dy, weight, -aa * 0.5, aa, offset)
-                LineCap.SQUARE -> expansion.buttCapStart(p0, dx, dy, weight, weight - aa, aa, offset)
-                LineCap.ROUND -> expansion.roundCapStart(p0, dx, dy, weight, capSteps, aa, offset)
-            }
-        }
-
-        // -- middle
-        for (j in start until end) {
-            offset += p0.length
-            if (p1.flags and (PathPoint.BEVEL or PathPoint.INNER_BEVEL) != 0) {
-                if (lineJoin === LineJoin.ROUND) {
-                    expansion.roundJoin(p0, p1, weight, weight, 0.0, 1.0, capSteps, aa, offset)
+            if (!closed) {
+                cverts += if (lineCap === LineCap.ROUND) {
+                    (capSteps * 2 + 2) * 2
                 } else {
-                    expansion.bevelJoin(p0, p1, weight, weight, 0.0, 1.0, aa, offset)
+                    (3 + 3) * 2
                 }
-            } else {
-                expansion.addVertex(p1.x + p1.dmx * weight, p1.y + p1.dmy * weight, 0.0, 1.0, offset)
-                expansion.addVertex(p1.x - p1.dmx * weight, p1.y - p1.dmy * weight, 1.0, 1.0, offset)
             }
-            p0 = p1
-            p1ptr += 1
-            if (p1ptr < points.size) {
-                p1 = points[p1ptr]
-            }
-        }
 
-        if (points.size == 2) {
-            var dx = p1.x - p0.x
-            var dy = p1.y - p0.y
-            val length = Math.sqrt(dx * dx + dy * dy)
-            offset = length
-        }
-        // -- end
-        if (closed) {
-            // Loop it
-            val v0 = expansion.vertex(0)
-            val v1 = expansion.vertex(1)
-            expansion.addVertex(v0.x, v0.y, 0.0, 1.0, offset)
-            expansion.addVertex(v1.x, v1.y, 1.0, 1.0, offset)
-        } else {
-            // Add cap
-            var dx = p1.x - p0.x
-            var dy = p1.y - p0.y
-            val l = Math.sqrt(dx * dx + dy * dy)
-            if (l >0) {
-                dx /= l
-                dy /= l
+            val expansion = Expansion(ExpansionType.STROKE, FloatArray(cverts * 5), 0)
+
+            var offset = 0.0
+            val aa = fringeWidth
+
+            var p0 = if (closed) points[points.size - 1] else points[0]
+            var p1 = if (closed) points[0] else points[1]
+            var start = if (closed) 0 else 1
+            var end = if (closed) points.size else points.size - 1
+            var p1ptr = if (closed) 0 else 1
+
+            // -- start, optional cap
+            if (!closed) {
+                var dx = p1.x - p0.x
+                var dy = p1.y - p0.y
+                val length = Math.sqrt(dx * dx + dy * dy)
+
+                if (length > 0) {
+                    dx /= length
+                    dy /= length
+                }
+
+                when (lineCap) {
+                    LineCap.BUTT -> expansion.buttCapStart(p0, dx, dy, weight, -aa * 0.5, aa, offset)
+                    LineCap.SQUARE -> expansion.buttCapStart(p0, dx, dy, weight, weight - aa, aa, offset)
+                    LineCap.ROUND -> expansion.roundCapStart(p0, dx, dy, weight, capSteps, aa, offset)
+                }
             }
-            when (lineCap) {
-                LineCap.BUTT -> expansion.buttCapEnd(p1, dx, dy, weight, -aa * 0.5, aa, offset)
-                LineCap.SQUARE -> expansion.buttCapEnd(p1, dx, dy, weight, weight - aa, aa, offset)
-                LineCap.ROUND -> expansion.roundCapEnd(p1, dx, dy, weight, capSteps, aa, offset)
+
+            // -- middle
+            for (j in start until end) {
+                offset += p0.length
+                if (p1.flags and (PathPoint.BEVEL or PathPoint.INNER_BEVEL) != 0) {
+                    if (lineJoin === LineJoin.ROUND) {
+                        expansion.roundJoin(p0, p1, weight, weight, 0.0, 1.0, capSteps, aa, offset)
+                    } else {
+                        expansion.bevelJoin(p0, p1, weight, weight, 0.0, 1.0, aa, offset)
+                    }
+                } else {
+                    expansion.addVertex(p1.x + p1.dmx * weight, p1.y + p1.dmy * weight, 0.0, 1.0, offset)
+                    expansion.addVertex(p1.x - p1.dmx * weight, p1.y - p1.dmy * weight, 1.0, 1.0, offset)
+                }
+                p0 = p1
+                p1ptr += 1
+                if (p1ptr < points.size) {
+                    p1 = points[p1ptr]
+                }
             }
+
+            if (points.size == 2) {
+                var dx = p1.x - p0.x
+                var dy = p1.y - p0.y
+                val length = Math.sqrt(dx * dx + dy * dy)
+                offset = length
+            }
+            // -- end
+            if (closed) {
+                // Loop it
+                val v0 = expansion.vertex(0)
+                val v1 = expansion.vertex(1)
+                expansion.addVertex(v0.x, v0.y, 0.0, 1.0, offset)
+                expansion.addVertex(v1.x, v1.y, 1.0, 1.0, offset)
+            } else {
+                // Add cap
+                var dx = p1.x - p0.x
+                var dy = p1.y - p0.y
+                val l = Math.sqrt(dx * dx + dy * dy)
+                if (l > 0) {
+                    dx /= l
+                    dy /= l
+                }
+                when (lineCap) {
+                    LineCap.BUTT -> expansion.buttCapEnd(p1, dx, dy, weight, -aa * 0.5, aa, offset)
+                    LineCap.SQUARE -> expansion.buttCapEnd(p1, dx, dy, weight, weight - aa, aa, offset)
+                    LineCap.ROUND -> expansion.roundCapEnd(p1, dx, dy, weight, capSteps, aa, offset)
+                }
+            }
+            return expansion
         }
-        return expansion
+        else {
+            return Expansion(ExpansionType.SKIP, FloatArray(0), 0)
+        }
     }
 
     fun expandFill(fringeWidth: Double, w: Double, lineJoin: LineJoin, miterLimit: Double): List<Expansion> {
-        val result = mutableListOf<Expansion>()
 
-        contours.forEach { prepare(it) }
-        contours.forEach { calculateJoins(it, w, lineJoin, miterLimit) }
+        if (contours.isNotEmpty()) {
+            val result = mutableListOf<Expansion>()
 
-        if (contours.size > 1) {
-            convex = false
-        }
-        val aa = fringeWidth
-        val woff = 0.5 * aa
-        val generateFringe = w > 0.0
-        var offset = 0.0
+            contours.forEach { prepare(it) }
+            contours.forEach { calculateJoins(it, w, lineJoin, miterLimit) }
 
-
-        contours.forEach { points ->
-            var size = 4
-            points.forEach { point ->
-                size += if ((point.flags and PathPoint.BEVEL) != 0) {
-                    12
-                } else {
-                    4
-                }
+            if (contours.size > 1) {
+                convex = false
             }
+            val aa = fringeWidth
+            val woff = 0.5 * aa
+            val generateFringe = w > 0.0
+            var offset = 0.0
 
-            val fill = Expansion(ExpansionType.FILL, FloatArray(size * 5), 0)
+
+            contours.forEach { points ->
+                var size = 4
+                points.forEach { point ->
+                    size += if ((point.flags and PathPoint.BEVEL) != 0) {
+                        12
+                    } else {
+                        4
+                    }
+                }
+
+                val fill = Expansion(ExpansionType.FILL, FloatArray(size * 5), 0)
 
 
-            if (generateFringe) {
-                var p0 = points[points.size - 1]
-                var p1 = points[0]
-                var p1ptr = 0
+                if (generateFringe) {
+                    var p0 = points[points.size - 1]
+                    var p1 = points[0]
+                    var p1ptr = 0
 
-                for (j in points.indices) {
-                    if (p1.flags and PathPoint.BEVEL != 0) {
-                        if (p1.flags and PathPoint.LEFT != 0) {
-                            fill.addVertex(p1.x + p1.dmx * woff, p1.y + p1.dmy * woff, 0.5, 1.0, offset)
+                    for (j in points.indices) {
+                        if (p1.flags and PathPoint.BEVEL != 0) {
+                            if (p1.flags and PathPoint.LEFT != 0) {
+                                fill.addVertex(p1.x + p1.dmx * woff, p1.y + p1.dmy * woff, 0.5, 1.0, offset)
+                            } else {
+
+                                val dlx0 = p0.dy
+                                val dly0 = -p0.dx
+                                val dlx1 = p1.dy
+                                val dly1 = -p1.dx
+
+                                val lx0 = p1.x + dlx0 * woff
+                                val ly0 = p1.y + dly0 * woff
+                                val lx1 = p1.x + dlx1 * woff
+                                val ly1 = p1.y + dly1 * woff
+
+                                fill.addVertex(lx0, ly0, 0.5, 1.0, offset)
+                                fill.addVertex(lx1, ly1, 0.5, 1.0, offset)
+                            }
                         } else {
-
-                            val dlx0 = p0.dy
-                            val dly0 = -p0.dx
-                            val dlx1 = p1.dy
-                            val dly1 = -p1.dx
-
-                            val lx0 = p1.x + dlx0 * woff
-                            val ly0 = p1.y + dly0 * woff
-                            val lx1 = p1.x + dlx1 * woff
-                            val ly1 = p1.y + dly1 * woff
-
-                            fill.addVertex(lx0, ly0, 0.5, 1.0, offset)
-                            fill.addVertex(lx1, ly1, 0.5, 1.0, offset)
+                            fill.addVertex(p1.x + p1.dmx * woff, p1.y + p1.dmy * woff, 0.5, 1.0, offset)
                         }
-                    } else {
-                        fill.addVertex(p1.x + p1.dmx * woff, p1.y + p1.dmy * woff, 0.5, 1.0, offset)
+                        p0 = p1
+                        p1ptr++
+                        if (p1ptr < points.size) {
+                            p1 = points[p1ptr]
+                        }
                     }
-                    p0 = p1
-                    p1ptr++
-                    if (p1ptr < points.size) {
-                        p1 = points[p1ptr]
-                    }
-                }
 
-            } else {
-                for (j in 0 until points.size) {
-                    fill.addVertex(points[j].x, points[j].y, 0.5, 1.0, offset)
-                }
-            }
-            result.add(fill)
-        }
-
-
-        // Calculate fringe
-        if (generateFringe) {
-            for (points in contours) {
-                var size = 2
-                for (point in points) {
-                    if (point.flags and PathPoint.BEVEL != 0) {
-                        size += 12
-                    } else {
-                        size += 4
+                } else {
+                    for (j in 0 until points.size) {
+                        fill.addVertex(points[j].x, points[j].y, 0.5, 1.0, offset)
                     }
                 }
-                val fringe = Expansion(ExpansionType.FRINGE, FloatArray(size * 5), 0)
-
-                var lw = w + woff
-                val rw = w - woff
-                var lu = 0.0
-                val ru = 1.0
-
-                // Create only half a fringe for convex shapes so that
-                // the shape can be rendered without stenciling.
-                if (convex) {
-                    lw = woff    // This should generate the same vertex as fill inset above.
-                    lu = 0.5    // Set outline fade at middle.
-                }
-
-                // Looping
-                var p0 = points[points.size - 1]
-                var p1 = points[0]
-
-                var p1ptr = 0
-                for (j in points.indices) {
-                    if (p1.flags and (PathPoint.BEVEL or PathPoint.INNER_BEVEL) != 0) {
-                        fringe.bevelJoin(p0, p1, lw, rw, lu, ru, fringeWidth, offset)
-                    } else {
-                        fringe.addVertex(p1.x + (p1.dmx * lw), p1.y + (p1.dmy * lw), lu, 1.0, offset)
-                        fringe.addVertex(p1.x - (p1.dmx * rw), p1.y - (p1.dmy * rw), ru, 1.0, offset)
-                    }
-                    p0 = p1
-                    p1ptr++
-                    if (p1ptr < points.size) {
-                        p1 = points[p1ptr]
-                    }
-                }
-                // Loop it
-                val v0 = fringe.vertex(0)
-                val v1 = fringe.vertex(1)
-
-                fringe.addVertex(v0.x, v0.y, lu,1.0, offset)
-                fringe.addVertex(v1.x, v1.y, ru, 1.0, offset)
-                result.add(fringe)
+                result.add(fill)
             }
 
-        }
-        return result
 
+            // Calculate fringe
+            if (generateFringe) {
+                for (points in contours) {
+                    var size = 2
+                    for (point in points) {
+                        if (point.flags and PathPoint.BEVEL != 0) {
+                            size += 12
+                        } else {
+                            size += 4
+                        }
+                    }
+                    val fringe = Expansion(ExpansionType.FRINGE, FloatArray(size * 5), 0)
+
+                    var lw = w + woff
+                    val rw = w - woff
+                    var lu = 0.0
+                    val ru = 1.0
+
+                    // Create only half a fringe for convex shapes so that
+                    // the shape can be rendered without stenciling.
+                    if (convex) {
+                        lw = woff    // This should generate the same vertex as fill inset above.
+                        lu = 0.5    // Set outline fade at middle.
+                    }
+
+                    // Looping
+                    var p0 = points[points.size - 1]
+                    var p1 = points[0]
+
+                    var p1ptr = 0
+                    for (j in points.indices) {
+                        if (p1.flags and (PathPoint.BEVEL or PathPoint.INNER_BEVEL) != 0) {
+                            fringe.bevelJoin(p0, p1, lw, rw, lu, ru, fringeWidth, offset)
+                        } else {
+                            fringe.addVertex(p1.x + (p1.dmx * lw), p1.y + (p1.dmy * lw), lu, 1.0, offset)
+                            fringe.addVertex(p1.x - (p1.dmx * rw), p1.y - (p1.dmy * rw), ru, 1.0, offset)
+                        }
+                        p0 = p1
+                        p1ptr++
+                        if (p1ptr < points.size) {
+                            p1 = points[p1ptr]
+                        }
+                    }
+                    // Loop it
+                    val v0 = fringe.vertex(0)
+                    val v1 = fringe.vertex(1)
+
+                    fringe.addVertex(v0.x, v0.y, lu, 1.0, offset)
+                    fringe.addVertex(v1.x, v1.y, ru, 1.0, offset)
+                    result.add(fringe)
+                }
+
+            }
+            return result
+
+        } else {
+            return emptyList()
+        }
     }
-
 }
 
 internal class PathPoint {

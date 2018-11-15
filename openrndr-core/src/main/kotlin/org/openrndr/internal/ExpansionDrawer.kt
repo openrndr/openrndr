@@ -69,44 +69,46 @@ internal class ExpansionDrawer {
 
     fun renderStrokeCommandsInterleaved(drawContext: DrawContext, drawStyle: DrawStyle, commands: List<Command>) {
 
-        val shader = shaderManager.shader(drawStyle.shadeStyle, listOf(vertices.vertexFormat))
-        shader.begin()
-        drawContext.applyToShader(shader)
-        drawStyle.applyToShader(shader)
-        Driver.instance.setState(drawStyle)
+        if (commands.isNotEmpty()) {
+            val shader = shaderManager.shader(drawStyle.shadeStyle, listOf(vertices.vertexFormat))
+            shader.begin()
+            drawContext.applyToShader(shader)
+            drawStyle.applyToShader(shader)
+            Driver.instance.setState(drawStyle)
 
-        val localStyle = drawStyle
-        val vertexCount = commands.last().let { it.vertexOffset + it.vertexCount }
+            val localStyle = drawStyle
+            val vertexCount = commands.last().let { it.vertexOffset + it.vertexCount }
 
-        shader.uniform("strokeMult", drawStyle.strokeWeight / 2.0 + 0.65)
-        shader.uniform("strokeFillFactor", 0.0)
+            shader.uniform("strokeMult", drawStyle.strokeWeight / 2.0 + 0.65)
+            shader.uniform("strokeFillFactor", 0.0)
 
-        shader.uniform("bounds", Vector4(-1000.0, -1000.0, 2000.0, 2000.0))
-        localStyle.channelWriteMask = ChannelMask(true, true, true, true)
-        // -- pre
-        shader.uniform("strokeThr", 1.0f - 0.5f / 255.0f)
-        localStyle.stencil.stencilFunc(StencilTest.EQUAL, 0x00, 0xff)
-        localStyle.stencil.stencilOp(StencilOperation.KEEP, StencilOperation.KEEP, StencilOperation.INCREASE)
-        Driver.instance.setState(localStyle)
-        Driver.instance.drawVertexBuffer(shader, listOf(commands[0].vertexBuffer), DrawPrimitive.TRIANGLE_STRIP, commands[0].vertexOffset, vertexCount)
+            shader.uniform("bounds", Vector4(-1000.0, -1000.0, 2000.0, 2000.0))
+            localStyle.channelWriteMask = ChannelMask(true, true, true, true)
+            // -- pre
+            shader.uniform("strokeThr", 1.0f - 0.5f / 255.0f)
+            localStyle.stencil.stencilFunc(StencilTest.EQUAL, 0x00, 0xff)
+            localStyle.stencil.stencilOp(StencilOperation.KEEP, StencilOperation.KEEP, StencilOperation.INCREASE)
+            Driver.instance.setState(localStyle)
+            Driver.instance.drawVertexBuffer(shader, listOf(commands[0].vertexBuffer), DrawPrimitive.TRIANGLE_STRIP, commands[0].vertexOffset, vertexCount)
 
-        // -- anti-aliased
-        shader.uniform("strokeThr", 0.0f)
-        localStyle.stencil.stencilFunc(StencilTest.EQUAL, 0x00, 0xff)
-        localStyle.stencil.stencilOp(StencilOperation.KEEP, StencilOperation.KEEP, StencilOperation.KEEP)
-        Driver.instance.setState(localStyle)
-        Driver.instance.drawVertexBuffer(shader, listOf(commands[0].vertexBuffer), DrawPrimitive.TRIANGLE_STRIP, commands[0].vertexOffset, vertexCount)
+            // -- anti-aliased
+            shader.uniform("strokeThr", 0.0f)
+            localStyle.stencil.stencilFunc(StencilTest.EQUAL, 0x00, 0xff)
+            localStyle.stencil.stencilOp(StencilOperation.KEEP, StencilOperation.KEEP, StencilOperation.KEEP)
+            Driver.instance.setState(localStyle)
+            Driver.instance.drawVertexBuffer(shader, listOf(commands[0].vertexBuffer), DrawPrimitive.TRIANGLE_STRIP, commands[0].vertexOffset, vertexCount)
 
-        // -- reset stencil
-        localStyle.channelWriteMask = ChannelMask(false, false, false, false)
-        localStyle.stencil.stencilFunc(StencilTest.ALWAYS, 0x0, 0xff)
-        localStyle.stencil.stencilOp(StencilOperation.ZERO, StencilOperation.ZERO, StencilOperation.ZERO)
-        Driver.instance.setState(localStyle)
-        Driver.instance.drawVertexBuffer(shader, listOf(commands[0].vertexBuffer), DrawPrimitive.TRIANGLE_STRIP, commands[0].vertexOffset, vertexCount)
+            // -- reset stencil
+            localStyle.channelWriteMask = ChannelMask(false, false, false, false)
+            localStyle.stencil.stencilFunc(StencilTest.ALWAYS, 0x0, 0xff)
+            localStyle.stencil.stencilOp(StencilOperation.ZERO, StencilOperation.ZERO, StencilOperation.ZERO)
+            Driver.instance.setState(localStyle)
+            Driver.instance.drawVertexBuffer(shader, listOf(commands[0].vertexBuffer), DrawPrimitive.TRIANGLE_STRIP, commands[0].vertexOffset, vertexCount)
 
-        localStyle.stencil.stencilTest = StencilTest.DISABLED
-        localStyle.channelWriteMask = ChannelMask(true, true, true, true)
-        Driver.instance.setState(localStyle)
+            localStyle.stencil.stencilTest = StencilTest.DISABLED
+            localStyle.channelWriteMask = ChannelMask(true, true, true, true)
+            Driver.instance.setState(localStyle)
+        }
     }
 
     fun renderConvexFillCommands(drawContext: DrawContext, drawStyle: DrawStyle, commands: List<Command>) {
@@ -219,31 +221,38 @@ internal class ExpansionDrawer {
     }
 
     fun toCommand(vertices: VertexBuffer, expansion: Expansion, vertexOffset: Int): Command {
-        val command = Command(vertices, expansion.type, vertexOffset, expansion.vertexCount + 2,
-                expansion.minx, expansion.miny, expansion.maxx, expansion.maxy)
-        val w = vertices.shadow.writer().apply {
-            positionElements = vertexOffset
+        if (expansion.vertexCount > 0) {
+            val command = Command(vertices, expansion.type, vertexOffset, expansion.vertexCount + 2,
+                    expansion.minx, expansion.miny, expansion.maxx, expansion.maxy)
+            val w = vertices.shadow.writer().apply {
+                positionElements = vertexOffset
+            }
+
+            val vertexSize = (expansion.bufferPosition - expansion.bufferStart) / expansion.vertexCount
+
+            // insert leading degenerate triangles
+            w.write(expansion.fb, expansion.bufferStart, vertexSize)
+
+            w.write(expansion.fb, expansion.bufferStart, expansion.bufferPosition - expansion.bufferStart)
+
+            // insert trailing degenerate triangles
+            w.write(expansion.fb, expansion.bufferStart + vertexSize * (expansion.vertexCount - 1), vertexSize)
+
+            return command
+        } else {
+            return Command(vertices, ExpansionType.SKIP, 0, 0, 0.0, 0.0, 0.0, 0.0)
         }
-
-        val vertexSize = (expansion.bufferPosition - expansion.bufferStart) / expansion.vertexCount
-
-        // insert leading degenerate triangles
-        w.write(expansion.fb, expansion.bufferStart, vertexSize)
-
-        w.write(expansion.fb, expansion.bufferStart, expansion.bufferPosition - expansion.bufferStart)
-
-        // insert trailing degenerate triangles
-        w.write(expansion.fb, expansion.bufferStart + vertexSize * (expansion.vertexCount - 1), vertexSize)
-
-        return command
     }
 
     fun toCommands(vertices: VertexBuffer, expansions: List<Expansion>): List<Command> {
         var vertexOffset = 0
         val commands = mutableListOf<Command>()
         expansions.forEach {
-            commands.add(toCommand(vertices, it, vertexOffset))
-            vertexOffset += it.vertexCount + 2
+            val command = toCommand(vertices, it, vertexOffset)
+            if (command.type != ExpansionType.SKIP) {
+                commands.add(command)
+                vertexOffset += it.vertexCount + 2
+            }
         }
         vertices.shadow.uploadElements(0, vertexOffset)
         return commands
