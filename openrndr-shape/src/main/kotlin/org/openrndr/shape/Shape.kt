@@ -159,7 +159,7 @@ class Segment {
     }
 
     fun sampleAdaptiveNormals(distanceTolerance: Double = 0.5): Pair<List<Vector2>, List<Vector2>> = when (control.size) {
-        0 -> Pair(listOf(start, end), listOf(end-start, end-start))
+        0 -> Pair(listOf(start, end), listOf(end - start, end - start))
         1 -> BezierQuadraticSampler().apply { this.distanceTolerance = distanceTolerance }.sample(start, control[0], end)
         2 -> BezierCubicSampler().apply { this.distanceTolerance = distanceTolerance }.sample(start, control[0], control[1], end)
         else -> throw RuntimeException("unsupported number of control points")
@@ -359,20 +359,7 @@ class Segment {
         get() = when {
             control.size == 2 -> this
             control.size == 1 -> {
-                val points = listOf(start, *control, end)
-                val newPoints = mutableListOf<Vector2>()
-
-                val k = points.size
-                for (i in 1 until k) {
-                    val pi = points[i]
-                    val pim = points[i - 1]
-                    newPoints.add(Vector2(
-                            (k - i) / k * pi.x + i / k * pim.x,
-                            (k - i) / k * pi.y + i / k * pim.y
-                    ))
-                }
-                newPoints.add(points[k - 1])
-                Segment(newPoints[0], newPoints[1], newPoints[2], newPoints[3])
+                Segment(start, start * (1.0 / 3.0) + control[0] * (2.0 / 3.0), control[0] * (2.0 / 3.0) + end * (1.0 / 3.0), end)
             }
             else -> throw RuntimeException("cannot convert to cubic segment")
         }
@@ -595,6 +582,10 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean) {
     }
 
     fun offset(distance: Double, joinType: SegmentJoin = SegmentJoin.ROUND): ShapeContour {
+        if (segments.size == 1) {
+            return ShapeContour(segments[0].offset(distance), closed)
+        }
+
         val joins = (segments + if (closed) listOf(segments.first()) else emptyList()).map {
             it.offset(distance)
         }.zipWithNext().flatMap {
@@ -731,21 +722,21 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean) {
         var t0 = u0
         var t1 = u1
 
-        if (closed && (t1 < t0 || t1 > 1.0 || t0 > 1.0 || t0 < 0.0 || t1 < 0.0 )) {
+        if (closed && (t1 < t0 || t1 > 1.0 || t0 > 1.0 || t0 < 0.0 || t1 < 0.0)) {
             val diff = t1 - t0
             t0 = mod(t0, 1.0)
             if (Math.abs(diff) < 0.9999999999999998) {
                 return if (diff > 0.0) {
                     t1 = t0 + diff
                     if (t1 > 1.0) {
-                        sub(t0, 1.0) + sub(0.0, t1-1.0)
+                        sub(t0, 1.0) + sub(0.0, t1 - 1.0)
                     } else {
                         sub(t0, t1)
                     }
                 } else {
                     t1 = t0 + diff
                     if (t1 < 0) {
-                        sub(t1+1.0, 1.0) + sub(0.0, t0)
+                        sub(t1 + 1.0, 1.0) + sub(0.0, t0)
                     } else {
                         sub(t1, t0)
                     }
