@@ -2,6 +2,8 @@
 
 package org.openrndr.color
 
+import org.openrndr.math.mod
+
 
 /**
  * A color respresentation in HSVa space
@@ -72,12 +74,11 @@ data class ColorHSVa(val h: Double, val s: Double, val v: Double, val a: Double 
     }
 
 
-    fun scaleHue(shift: Double): ColorHSVa = copy(h = (h + shift))
+    fun scaleHue(scale: Double): ColorHSVa = copy(h = (h * scale))
     fun shiftHue(shift: Double): ColorHSVa = copy(h = (h + shift))
 
     fun scaleSaturation(scale: Double): ColorHSVa = copy(s = s * scale)
     fun shiftSaturation(shift: Double): ColorHSVa = copy(s = s + shift)
-
 
     fun shiftValue(shift: Double): ColorHSVa = copy(v = v + shift)
     fun scaleValue(scale: Double): ColorHSVa = copy(v = v * scale)
@@ -97,7 +98,7 @@ data class ColorHSVa(val h: Double, val s: Double, val v: Double, val a: Double 
         val b: Double
         val hsv = this
 
-        val sh = hsv.h / 60            // sector 0 to 5
+        val sh = mod(hsv.h, 360.0) / 60            // sector 0 to 5
         i = Math.floor(sh).toInt()
         f = sh - i            // factorial part of h
         val p = hsv.v * (1 - hsv.s)
