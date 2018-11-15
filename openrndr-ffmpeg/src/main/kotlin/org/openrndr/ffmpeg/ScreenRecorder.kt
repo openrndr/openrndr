@@ -17,6 +17,9 @@ class ScreenRecorder : Extension {
     private var resolved: ColorBuffer? = null
     private var frameIndex: Long = 0
 
+    /** the output file, auto-determined if left null */
+    var outputFile: String? = null
+
     /** the framerate of the output video */
     var frameRate = 30
 
@@ -32,10 +35,10 @@ class ScreenRecorder : Extension {
     /** the maximum duration in frames */
     var maximumFrames = Long.MAX_VALUE
 
-    /** the maximum duration in seconds **/
+    /** the maximum duration in seconds */
     var maximumDuration = Double.POSITIVE_INFINITY
 
-    /** when set to true, `program.application.exit()` will be issued after the maximum duration has been reached **/
+    /** when set to true, `program.application.exit()` will be issued after the maximum duration has been reached */
     var quitAfterMaximum = true
 
     override fun setup(program: Program) {
@@ -65,7 +68,7 @@ class ScreenRecorder : Extension {
 
         val dt = LocalDateTime.now()
         val basename = program.javaClass.simpleName.ifBlank { program.window.title.ifBlank { "untitled" } }
-        val filename = "$basename-${dt.year.z(4)}-${dt.month.value.z()}-${dt.dayOfMonth.z()}-${dt.hour.z()}.${dt.minute.z()}.${dt.second.z()}.mp4"
+        val filename = outputFile?: "$basename-${dt.year.z(4)}-${dt.month.value.z()}-${dt.dayOfMonth.z()}-${dt.hour.z()}.${dt.minute.z()}.${dt.second.z()}.mp4"
         videoWriter = VideoWriter().profile(profile).output(filename).size(program.width, program.height).frameRate(frameRate).start()
     }
 
