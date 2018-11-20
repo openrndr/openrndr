@@ -22,6 +22,8 @@ fun structureFromShadeTyle(shadeStyle: ShadeStyle?, vertexFormats: List<VertexFo
                 instanceAttributeFormats.flatMap { it.items }.joinToString("") { "vi_${it.attribute} = i_${it.attribute};\n" }
         attributes = vertexFormats.flatMap { it.items }.joinToString("") { "in ${it.type.glslType} a_${it.attribute}${array(it)};\n" } +
                 instanceAttributeFormats.flatMap { it.items }.joinToString("") { "in ${it.type.glslType} i_${it.attribute}${array(it)};\n" }
+
+        suppressDefaultOutput = shadeStyle?.suppressDefaultOutput ?: false
     }
 }
 

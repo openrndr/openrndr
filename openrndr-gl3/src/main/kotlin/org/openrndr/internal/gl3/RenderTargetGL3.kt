@@ -25,6 +25,11 @@ class ProgramRenderTargetGL3(override val program: Program) : ProgramRenderTarge
 
     override val hasColorBuffer = true
     override val hasDepthBuffer = true
+
+    override fun colorBufferIndex(name: String): Int {
+        return 0
+    }
+
 }
 
 open class RenderTargetGL3(val framebuffer: Int,

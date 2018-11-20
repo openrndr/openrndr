@@ -98,7 +98,7 @@ ${shadeStructure.varyingIn ?: ""}
 ${shadeStructure.outputs ?: ""}
 ${transformVaryingIn}
 
-out vec4 o_color;
+${if (!shadeStructure.suppressDefaultOutput) "out vec4 o_color;" else ""}
 
 ${shadeStructure.fragmentPreamble ?: ""}
 flat in int v_instance;
@@ -110,8 +110,12 @@ void main(void) {
     {
         ${shadeStructure.fragmentTransform ?: ""}
     }
-    o_color = x_fill;
-    o_color.rgb *= o_color.a;
+
+    ${if (!shadeStructure.suppressDefaultOutput) """
+        o_color = x_fill;
+        o_color.rgb *= o_color.a;
+        """ else ""
+    }
 }
     """.trimMargin()
 

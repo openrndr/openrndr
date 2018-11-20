@@ -17,6 +17,8 @@ class ShadeStyle {
     var outputs = mutableMapOf<String, Int>()
     var attributes = mutableListOf<VertexBuffer>()
 
+    var suppressDefaultOutput = false
+
     constructor()
 
     constructor(other: ShadeStyle) {
