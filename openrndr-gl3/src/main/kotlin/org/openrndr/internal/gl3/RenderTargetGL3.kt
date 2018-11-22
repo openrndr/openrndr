@@ -88,6 +88,7 @@ open class RenderTargetGL3(val framebuffer: Int,
     }
 
     private fun bindTarget() {
+        debugGLErrors { null }
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer)
 
         if (Thread.currentThread() != thread) {
