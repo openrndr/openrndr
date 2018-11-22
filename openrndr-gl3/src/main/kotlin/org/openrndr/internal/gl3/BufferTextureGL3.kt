@@ -20,7 +20,7 @@ class BufferTextureShadowGL3(override val bufferTexture: BufferTextureGL3) : Buf
         logger.trace { "uploading shadow to buffer texture" }
         (buffer as Buffer).rewind()
         (buffer as Buffer).position(offset)
-        (buffer as Buffer).limit(buffer.capacity())
+        (buffer as Buffer).limit(size)
         bufferTexture.write(buffer)
         (buffer as Buffer).limit(buffer.capacity())
     }
