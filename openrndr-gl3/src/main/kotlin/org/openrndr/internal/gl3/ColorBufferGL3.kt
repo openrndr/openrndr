@@ -717,6 +717,15 @@ class ColorBufferGL3(val target: Int,
     }
 
     override fun resolveTo(target: ColorBuffer) {
+
+        if (target.format != format) {
+            throw IllegalArgumentException("cannot resolve to target because its color format differs. got ${target.format}, expected $format.")
+        }
+
+        if (target.type != type) {
+            throw IllegalArgumentException("cannot resolve to target because its color type differs. got ${target.type}, expected $type.")
+        }
+
         if (target.multisample == Disabled) {
             val readTarget = renderTarget(width, height, contentScale) {
                 colorBuffer(this@ColorBufferGL3)
