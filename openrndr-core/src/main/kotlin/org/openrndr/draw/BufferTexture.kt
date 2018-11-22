@@ -24,6 +24,7 @@ interface BufferTexture {
         w.rewind()
         w.putter()
         val count = w.positionElements
+
         shadow.upload(0, w.position)
         w.rewind()
         return count
