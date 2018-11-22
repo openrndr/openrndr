@@ -1,6 +1,8 @@
 package org.openrndr.extensions
 
 import org.openrndr.Extension
+import org.openrndr.Mouse
+import org.openrndr.MouseEvent
 import org.openrndr.Program
 import org.openrndr.draw.Drawer
 import org.openrndr.math.Matrix44
@@ -8,11 +10,11 @@ import org.openrndr.math.transforms.transform
 
 private class Camera2D {
     var view = Matrix44.IDENTITY
-    fun mouseDragged(event: Program.Mouse.MouseEvent) {
+    fun mouseDragged(event: MouseEvent) {
         view *= transform { translate(event.dragDisplacement / view[0].x) }
     }
 
-    fun mouseScrolled(event: Program.Mouse.MouseEvent) {
+    fun mouseScrolled(event: MouseEvent) {
         view *= transform {
             translate(event.position)
             scale(1.0 + event.rotation.y * 0.01)

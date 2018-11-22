@@ -176,6 +176,8 @@ open class Program {
             set(value) {
                 application.windowPosition = value
             }
+
+
     }
 
     val window = Window()
@@ -186,36 +188,8 @@ open class Program {
         }
     }
 
-    class Keyboard {
-        val keyDown = Event<KeyEvent>().postpone(true)
-        val keyUp = Event<KeyEvent>().postpone(true)
-        val keyRepeat = Event<KeyEvent>().postpone(true)
-        val character = Event<CharacterEvent>().postpone(true)
-    }
-
-    val keyboard = Keyboard()
-
-    class Mouse {
-        class MouseEvent(val position: Vector2, val rotation: Vector2, val dragDisplacement: Vector2, val type: MouseEventType, val button: MouseButton, val modifiers: Set<KeyboardModifier>, var propagationCancelled: Boolean = false) {
-            fun cancelPropagation() {
-                propagationCancelled = true
-            }
-        }
-
-        /**
-         * The current mouse position
-         */
-        var position = Vector2(0.0, 0.0)
-
-        val buttonDown = Event<MouseEvent>().postpone(true)
-        val buttonUp = Event<MouseEvent>().postpone(true)
-        val dragged = Event<MouseEvent>().postpone(true)
-        val moved = Event<MouseEvent>().postpone(true)
-        val scrolled = Event<MouseEvent>().postpone(true)
-        val clicked = Event<MouseEvent>().postpone(true)
-    }
-
-    val mouse = Mouse()
+    val keyboard by lazy { Keyboard() }
+    val mouse by lazy { Mouse(application) }
 
     /**
      * This is ran exactly once before the first call to draw()
@@ -226,6 +200,7 @@ open class Program {
      * This is the draw call that is called by Application. It takes care of handling extensions.
      */
     fun drawImpl() {
+
         frameSeconds = clock()
         backgroundColor?.let {
             drawer.background(it)

@@ -8,14 +8,15 @@ import java.lang.RuntimeException
 import java.io.File
 
 import org.lwjgl.PointerBuffer
+import org.lwjgl.system.MemoryUtil.NULL
+
+import org.lwjgl.system.MemoryStack.stackPush
+
 import org.lwjgl.glfw.Callbacks.glfwFreeCallbacks
 import org.lwjgl.glfw.GLFW.*
-import org.lwjgl.system.MemoryUtil.NULL
 import org.lwjgl.glfw.GLFW.glfwSetWindowPos
 import org.lwjgl.glfw.GLFW.glfwGetPrimaryMonitor
 import org.lwjgl.glfw.GLFW.glfwGetVideoMode
-import org.lwjgl.opengl.GL.createCapabilities
-import org.lwjgl.system.MemoryStack.stackPush
 import org.lwjgl.glfw.GLFW.glfwPollEvents
 import org.lwjgl.glfw.GLFW.glfwSwapBuffers
 import org.lwjgl.glfw.GLFW.glfwWindowShouldClose
@@ -24,14 +25,17 @@ import org.lwjgl.glfw.GLFW.glfwSetKeyCallback
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.glfw.GLFWImage
 import org.lwjgl.opengl.GLUtil
+import org.lwjgl.opengl.GL.createCapabilities
+import org.lwjgl.opengl.GL30.*
 
 import org.openrndr.*
 import org.openrndr.draw.Drawer
 import org.openrndr.internal.Driver
 import org.openrndr.math.Vector2
-import java.util.*
-import org.lwjgl.opengl.GL30.*
 import org.openrndr.WindowMultisample.*
+
+import java.util.*
+
 
 private val logger = KotlinLogging.logger {}
 internal var primaryWindow: Long = NULL
@@ -45,6 +49,32 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
     private val fixWindowSize = System.getProperty("os.name").contains("windows", true)
     private var setupCalled = false
     override var presentationMode: PresentationMode = PresentationMode.AUTOMATIC
+
+    private var realCursorPosition = Vector2(0.0, 0.0)
+
+    override var cursorPosition: Vector2
+        get() {
+            return realCursorPosition
+        }
+        set(value) {
+            realCursorPosition = value
+            glfwSetCursorPos(window, value.x, value.y)
+        }
+
+    private var realCursorVisible = true
+    override var cursorVisible: Boolean
+    get() {
+        return realCursorVisible
+    }
+    set(value) {
+        if (value) {
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL)
+        } else {
+            println("calling with GLFW_CURSOR_HIDDEN")
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED)
+        }
+    }
+
 
     override var windowPosition: Vector2
         get() {
@@ -170,7 +200,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
                     configuration.title, glfwGetPrimaryMonitor(), primaryWindow)
         }
 
-        val buf = BufferUtils.createByteBuffer(128 * 128* 4)
+        val buf = BufferUtils.createByteBuffer(128 * 128 * 4)
         buf.rewind()
         for (y in 0 until 128) {
             for (x in 0 until 128) {
@@ -363,7 +393,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
 
         var down = false
         glfwSetScrollCallback(window) { _, xoffset, yoffset ->
-            program.mouse.scrolled.trigger(Program.Mouse.MouseEvent(program.mouse.position, Vector2(xoffset, yoffset), Vector2.ZERO, MouseEventType.SCROLLED, MouseButton.NONE, globalModifiers))
+            program.mouse.scrolled.trigger(MouseEvent(program.mouse.position, Vector2(xoffset, yoffset), Vector2.ZERO, MouseEventType.SCROLLED, MouseButton.NONE, globalModifiers))
         }
 
         glfwSetMouseButtonCallback(window) { _, button, action, mods ->
@@ -394,7 +424,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
                 down = true
                 lastDragPosition = program.mouse.position
                 program.mouse.buttonDown.trigger(
-                        Program.Mouse.MouseEvent(program.mouse.position, Vector2.ZERO, Vector2.ZERO, MouseEventType.BUTTON_DOWN, mouseButton, modifiers)
+                        MouseEvent(program.mouse.position, Vector2.ZERO, Vector2.ZERO, MouseEventType.BUTTON_DOWN, mouseButton, modifiers)
                 )
                 buttonsDown.set(button, true)
             }
@@ -402,12 +432,12 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
             if (action == GLFW_RELEASE) {
                 down = false
                 program.mouse.buttonUp.trigger(
-                        Program.Mouse.MouseEvent(program.mouse.position, Vector2.ZERO, Vector2.ZERO, MouseEventType.BUTTON_UP, mouseButton, modifiers)
+                        MouseEvent(program.mouse.position, Vector2.ZERO, Vector2.ZERO, MouseEventType.BUTTON_UP, mouseButton, modifiers)
                 )
                 buttonsDown.set(button, false)
 
                 program.mouse.clicked.trigger(
-                        Program.Mouse.MouseEvent(program.mouse.position, Vector2.ZERO, Vector2.ZERO, MouseEventType.CLICKED, mouseButton, modifiers)
+                        MouseEvent(program.mouse.position, Vector2.ZERO, Vector2.ZERO, MouseEventType.CLICKED, mouseButton, modifiers)
                 )
             }
         }
@@ -415,10 +445,10 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         glfwSetCursorPosCallback(window) { _, xpos, ypos ->
             val position = if (fixWindowSize) Vector2(xpos, ypos) / program.window.scale else Vector2(xpos, ypos)
             logger.trace { "mouse moved $xpos $ypos -- $position" }
-            program.mouse.position = position
-            program.mouse.moved.trigger(Program.Mouse.MouseEvent(position, Vector2.ZERO, Vector2.ZERO, MouseEventType.MOVED, MouseButton.NONE, globalModifiers))
+            realCursorPosition = position
+            program.mouse.moved.trigger(MouseEvent(position, Vector2.ZERO, Vector2.ZERO, MouseEventType.MOVED, MouseButton.NONE, globalModifiers))
             if (down) {
-                program.mouse.dragged.trigger(Program.Mouse.MouseEvent(position, Vector2.ZERO, position - lastDragPosition, MouseEventType.DRAGGED, MouseButton.NONE, globalModifiers))
+                program.mouse.dragged.trigger(MouseEvent(position, Vector2.ZERO, position - lastDragPosition, MouseEventType.DRAGGED, MouseButton.NONE, globalModifiers))
                 lastDragPosition = position
             }
         }
@@ -453,7 +483,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         println("opengl version: ${glGetString(GL_VERSION)}")
 
         if (configuration.hideCursor) {
-            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN)
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED)
         }
 
         logger.debug { "calling program.setup" }

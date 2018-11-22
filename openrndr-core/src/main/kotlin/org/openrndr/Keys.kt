@@ -1,5 +1,7 @@
 package org.openrndr
 
+import org.openrndr.events.Event
+
 enum class KeyboardModifier(val mask: Int) {
     SHIFT(1),
     CTRL(2),
@@ -72,3 +74,10 @@ const val KEY_F12 = 301
 
 const val KEY_LEFT_SHIFT = 340
 const val KEY_RIGHT_SHIFT = 344
+
+class Keyboard {
+    val keyDown = Event<KeyEvent>().postpone(true)
+    val keyUp = Event<KeyEvent>().postpone(true)
+    val keyRepeat = Event<KeyEvent>().postpone(true)
+    val character = Event<Program.CharacterEvent>().postpone(true)
+}

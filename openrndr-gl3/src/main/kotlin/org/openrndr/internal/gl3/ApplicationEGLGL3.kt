@@ -15,6 +15,13 @@ import org.openrndr.math.Vector2
 
 @Suppress("UNUSED_PARAMETER")
 class ApplicationEGLGL3(private val program: Program, private val configuration: Configuration):Application() {
+
+    override var cursorVisible: Boolean = false
+
+
+    override var cursorPosition: Vector2
+        get() = Vector2(0.0, 0.0)
+        set(value) {}
     private var driver: DriverGL3
     private var exitRequested = false
     private var startTime = System.currentTimeMillis()
