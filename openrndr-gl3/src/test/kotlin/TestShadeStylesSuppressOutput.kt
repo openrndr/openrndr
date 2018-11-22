@@ -11,7 +11,7 @@ import org.openrndr.math.Vector2
 import org.openrndr.math.Vector3
 import org.openrndr.resourceUrl
 
-object TestShadeStylesGL3 : Spek({
+object TestShadeStylesSuppressOutput : Spek({
     describe("a program") {
         val p = Program()
         val app = ApplicationGLFWGL3(p, Configuration())
@@ -22,30 +22,7 @@ object TestShadeStylesGL3 : Spek({
         }, 10)
 
         p.drawer.shadeStyle = shadeStyle {
-            vertexTransform = """
-                |int k = c_element;
-                |if (d_primitive == d_image) {}
-                |if (d_primitive == d_vertex_buffer) {}
-                |if (d_primitive == d_circle) {}
-                |if (d_primitive == d_rectangle) {}
-                |if (d_primitive == d_font_image_map) {}
-                |if (d_primitive == d_fast_line) {}
-                |if (d_primitive == d_expansion) {}
-            """.trimMargin()
-
-            fragmentTransform = """x_fill.xy = c_screenPosition.xy;
-                |x_fill.rg = va_position.xy;
-                |x_fill.b = c_contourPosition;
-                |x_stroke.rg = c_boundsPosition.rg;
-                |int k = c_element;
-                |if (d_primitive == d_image) {}
-                |if (d_primitive == d_vertex_buffer) {}
-                |if (d_primitive == d_circle) {}
-                |if (d_primitive == d_rectangle) {}
-                |if (d_primitive == d_font_image_map) {}
-                |if (d_primitive == d_fast_line) {}
-                |if (d_primitive == d_expansion) {}
-            """.trimMargin()
+            suppressDefaultOutput = true
         }
 
         describe("circle") {
@@ -74,10 +51,9 @@ object TestShadeStylesGL3 : Spek({
 
         describe("mesh line") {
             it("should be able to do shadestyles") {
-                p.drawer.lineSegment(Vector3(0.0, 0.0,0.0),Vector3(100.0, 0.0,0.0))
+                p.drawer.lineSegment(Vector3(0.0, 0.0,0.0), Vector3(100.0, 0.0,0.0))
             }
         }
-
 
         describe("vertex buffer") {
             it("should be able to do shadestyles") {
