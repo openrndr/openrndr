@@ -1,29 +1,28 @@
 package org.openrndr.draw
 
 import org.openrndr.internal.Driver
+import org.openrndr.math.Vector3
 
-enum class CubemapSide {
-    NEGATIVE_X,
-    POSITIVE_X,
-    NEGATIVE_Y,
-    POSITIVE_Y,
-    NEGATIVE_Z,
-    POSITIVE_Z
+enum class CubemapSide(val forward: Vector3, val up: Vector3) {
+    POSITIVE_X(Vector3.UNIT_X, -Vector3.UNIT_Y),
+    NEGATIVE_X(-Vector3.UNIT_X, -Vector3.UNIT_Y),
+    POSITIVE_Y(Vector3.UNIT_Y, Vector3.UNIT_Z),
+    NEGATIVE_Y(-Vector3.UNIT_Y, -Vector3.UNIT_Z),
+    POSITIVE_Z(Vector3.UNIT_Z, -Vector3.UNIT_Y),
+    NEGATIVE_Z(-Vector3.UNIT_Z, -Vector3.UNIT_Y)
 }
 
 interface Cubemap {
-
     companion object {
         fun create(width: Int, format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.UINT8): Cubemap {
             return Driver.instance.createCubemap(width, format, type)
         }
 
-        fun fromUrl(url:String):Cubemap {
+        fun fromUrl(url: String): Cubemap {
             return Driver.instance.createCubemapFromUrls(listOf(url))
         }
 
-
-        fun fromUrls(urls:List<String>):Cubemap {
+        fun fromUrls(urls: List<String>): Cubemap {
             return Driver.instance.createCubemapFromUrls(urls)
         }
     }
