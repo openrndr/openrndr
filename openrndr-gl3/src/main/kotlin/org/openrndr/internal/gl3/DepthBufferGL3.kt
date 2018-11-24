@@ -26,8 +26,8 @@ class DepthBufferGL3(val texture: Int,
                 BufferMultisample.Disabled -> {
                     glTexImage2D(GL_TEXTURE_2D, 0, format.toGLFormat(), width, height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, nullBuffer)
                     checkGLErrors()
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
+                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
                     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
                     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
                 }
@@ -81,6 +81,7 @@ class DepthBufferGL3(val texture: Int,
 
 private fun DepthFormat.toGLFormat(): Int {
     return when (this) {
+        DepthFormat.DEPTH16 -> GL_DEPTH_COMPONENT16
         DepthFormat.DEPTH24_STENCIL8 -> GL_DEPTH24_STENCIL8
         DepthFormat.DEPTH24 -> GL_DEPTH_COMPONENT24
         DepthFormat.DEPTH32F -> GL_DEPTH_COMPONENT32F

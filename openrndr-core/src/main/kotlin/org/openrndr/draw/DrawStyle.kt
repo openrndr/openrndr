@@ -62,6 +62,7 @@ enum class StencilOperation {
 }
 
 enum class DepthFormat {
+    DEPTH16,
     DEPTH24,
     DEPTH32F,
     DEPTH24_STENCIL8,

@@ -92,6 +92,12 @@ class ShadeStyle {
         return this
     }
 
+    fun parameter(name: String, value: DepthBuffer): ShadeStyle {
+        parameterValues.put(name, value)
+        parameters.put(name, "DepthBuffer")
+        return this
+    }
+
     fun parameter(name: String, value: BufferTexture): ShadeStyle {
         parameterValues.put(name, value)
         parameters.put(name, "BufferTexture")

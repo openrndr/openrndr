@@ -4,6 +4,7 @@ import mu.KotlinLogging
 import org.lwjgl.glfw.GLFW.glfwGetCurrentContext
 import org.lwjgl.opengl.GL33C.*
 import org.openrndr.Program
+import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
 import java.util.*
 
@@ -29,7 +30,6 @@ class ProgramRenderTargetGL3(override val program: Program) : ProgramRenderTarge
     override fun colorBufferIndex(name: String): Int {
         return 0
     }
-
 }
 
 open class RenderTargetGL3(val framebuffer: Int,
@@ -169,6 +169,20 @@ open class RenderTargetGL3(val framebuffer: Int,
         unbind()
     }
 
+    override fun clearColor(index: Int, color: ColorRGBa) {
+        bound {
+            val ca = floatArrayOf(color.r.toFloat(), color.g.toFloat(), color.b.toFloat(), color.a.toFloat())
+            glClearBufferfv(GL_COLOR, GL_DRAW_BUFFER0 + index, ca)
+        }
+    }
+
+    override fun clearDepth(depth: Double, stencil:Int) {
+        bound {
+            glClearBufferfi(GL_DEPTH_STENCIL, 0, depth.toFloat(), stencil)
+            checkGLErrors()
+        }
+    }
+
     override fun attach(depthBuffer: DepthBuffer) {
         if (!(depthBuffer.width == effectiveWidth && depthBuffer.height == effectiveHeight)) {
             throw IllegalArgumentException("buffer dimension mismatch")
@@ -210,15 +224,13 @@ open class RenderTargetGL3(val framebuffer: Int,
     internal fun checkFramebufferStatus() {
         val status = glCheckFramebufferStatus(GL_FRAMEBUFFER)
         if (status != GL_FRAMEBUFFER_COMPLETE) {
-
             when (status) {
                 GL_FRAMEBUFFER_UNDEFINED -> throw GL3Exception("Framebuffer undefined")
                 GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT -> throw GL3Exception("Attachment incomplete")
                 GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT -> throw GL3Exception("Attachment missing")
                 GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER -> throw GL3Exception("Incomplete draw buffer")
             }
-
-            throw GL3Exception("error creating framebuffer" + status)
+            throw GL3Exception("error creating framebuffer $status")
         }
         checkGLErrors()
     }

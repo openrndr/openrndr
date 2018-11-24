@@ -1,5 +1,6 @@
 package org.openrndr.draw
 
+import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.colorBuffer as _colorBuffer
 import org.openrndr.draw.depthBuffer as _depthBuffer
 import org.openrndr.internal.Driver
@@ -35,6 +36,9 @@ interface RenderTarget {
     fun colorBuffer(index: Int): ColorBuffer
     fun colorBuffer(name: String): ColorBuffer
     fun colorBufferIndex(name: String): Int
+
+    fun clearColor(index: Int, color: ColorRGBa)
+    fun clearDepth(depth: Double = 1.0, stencil: Int = 0)
 
     fun bind()
     fun unbind()
