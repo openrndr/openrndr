@@ -27,7 +27,7 @@ data class Matrix44(
                 0 -> Vector4(c0r0, c0r1, c0r2, c0r3)
                 1 -> Vector4(c1r0, c1r1, c1r2, c1r3)
                 2 -> Vector4(c2r0, c2r1, c2r2, c2r3)
-                3 -> Vector4(c3r0, c3r1, c3r2, c1r3)
+                3 -> Vector4(c3r0, c3r1, c3r2, c3r3)
                 else -> throw RuntimeException("not implemented")
             }
 
