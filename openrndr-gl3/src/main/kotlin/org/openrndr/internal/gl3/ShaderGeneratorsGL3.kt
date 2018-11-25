@@ -579,6 +579,7 @@ void main() {
             |o_color = x_stroke;
             |o_color.rgb *= o_color.a;
             """.trimMargin() else ""}
+        |}
         """.trimMargin()
 
     override fun meshLineVertexShader(shadeStructure: ShadeStructure): String = """

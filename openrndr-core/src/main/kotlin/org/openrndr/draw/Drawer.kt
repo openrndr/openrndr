@@ -421,7 +421,10 @@ class Drawer(val driver: Driver) {
      * Draws a line segment from [start] to [end] using 3d coordinates
      */
     fun lineSegment(start: Vector3, end: Vector3) {
-        fastLineDrawer.drawLineSegments(context, drawStyle, listOf(start, end))
+        when (drawStyle.quality) {
+            DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineSegments(context, drawStyle, listOf(start, end))
+            DrawQuality.QUALITY -> meshLineDrawer.drawLineSegments(context, drawStyle, listOf(start, end))
+        }
     }
 
     fun lineSegments(segments: List<Vector2>) {
