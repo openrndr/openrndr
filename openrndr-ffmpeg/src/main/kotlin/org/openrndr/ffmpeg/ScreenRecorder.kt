@@ -104,6 +104,7 @@ class ScreenRecorder : Extension {
             }
         } else {
             if (quitAfterMaximum) {
+
                 program.application.exit()
             }
         }

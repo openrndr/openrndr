@@ -112,10 +112,9 @@ void main(void) {
     }
 
     ${if (!shadeStructure.suppressDefaultOutput) """
-        o_color = x_fill;
-        o_color.rgb *= o_color.a;
-        """ else ""
-    }
+    |   o_color = x_fill;
+    |   o_color.rgb *= o_color.a;
+    """.trimMargin() else ""}
 }
     """.trimMargin()
 
@@ -157,7 +156,9 @@ uniform sampler2D image;
 $drawerUniforms
 ${shadeStructure.varyingIn ?: ""}
 ${transformVaryingIn}
-out vec4 o_color;
+
+${if (!shadeStructure.suppressDefaultOutput) "out vec4 o_color;" else ""}
+
 in vec3 v_boundsPosition;
 flat in int v_instance;
 vec4 colorTransform(vec4 color, float[25] matrix) {
@@ -179,7 +180,7 @@ void main(void) {
     x_fill.rgb /= div;
     x_fill = colorTransform(x_fill, u_colorMatrix);
     x_fill.rgb *= x_fill.a;
-    o_color = x_fill;
+    ${if (!shadeStructure.suppressDefaultOutput) "o_color = x_fill;" else ""}
 }"""
 
     override fun imageVertexShader(shadeStructure: ShadeStructure): String = """
@@ -225,7 +226,7 @@ $drawerUniforms
 ${shadeStructure.varyingIn ?: ""}
 ${transformVaryingIn}
 
-out vec4 o_color;
+${if (!shadeStructure.suppressDefaultOutput) "out vec4 o_color;" else ""}
 flat in int v_instance;
 in vec3 v_boundsSize;
 void main(void) {
@@ -245,14 +246,16 @@ void main(void) {
     float b = u_strokeWeight / vi_radius;
     float ir = smoothstep(0, wd * smoothFactor, 1.0 - b - d);
 
-    o_color.rgb =  x_stroke.rgb;
-    o_color.a = or * (1.0 - ir) * x_stroke.a;
-    o_color.rgb *= o_color.a;
+    vec4 final = vec4(0.0);
+    final.rgb =  x_stroke.rgb;
+    final.a = or * (1.0 - ir) * x_stroke.a;
+    final.rgb *= final.a;
 
-    o_color.rgb += x_fill.rgb * ir * x_fill.a;
-    o_color.a += ir * x_fill.a;
+    final.rgb += x_fill.rgb * ir * x_fill.a;
+    final.a += ir * x_fill.a;
+    ${if (!shadeStructure.suppressDefaultOutput) "o_color = final;" else ""}
 }
-        """
+"""
 
     override fun circleVertexShader(shadeStructure: ShadeStructure): String = """#version 330 core
 ${primitiveTypes("d_circle")}
@@ -294,7 +297,7 @@ $drawerUniforms
 ${shadeStructure.varyingIn ?: ""}
 ${transformVaryingIn}
 
-out vec4 o_color;
+${if (!shadeStructure.suppressDefaultOutput) "out vec4 o_color;" else ""}
 
 void main(void) {
     ${fragmentConstants(
@@ -309,8 +312,9 @@ void main(void) {
     {
         ${shadeStructure.fragmentTransform ?: ""}
     }
-    o_color = x_fill;
-    o_color.rgb *= o_color.a;
+    vec4 final = x_fill;
+    final.rgb *= final.a;
+    ${if (!shadeStructure.suppressDefaultOutput) "o_color = final;" else ""}
 }
 """
 
@@ -356,8 +360,7 @@ ${transformVaryingIn}
 ${shadeStructure.fragmentPreamble ?: ""}
 flat in int v_instance;
 in vec3 v_boundsSize;
-out vec4 o_color;
-
+${if (!shadeStructure.suppressDefaultOutput) "out vec4 o_color;" else ""}
 void main(void) {
     ${fragmentConstants(
             boundsPosition = "vec3(va_texCoord0, 0.0)",
@@ -374,14 +377,19 @@ void main(void) {
     float iry = smoothstep(0.0, wd.y * 2.5, 1.0-d.y - u_strokeWeight*2.0/vi_dimensions.y);
     float ir = irx*iry;
 
-    o_color.rgb = x_fill.rgb * x_fill.a;
-    o_color.a = x_fill.a;
+    vec4 final = vec4(1.0);
+    final.rgb = x_fill.rgb * x_fill.a;
+    final.a = x_fill.a;
 
     float sa = (1.0-ir) * x_stroke.a;
-    o_color.rgb = o_color.rgb * (1.0-sa) + x_stroke.rgb * sa;
-    o_color.a = o_color.a * (1.0-sa) + sa;
+    final.rgb = final.rgb * (1.0-sa) + x_stroke.rgb * sa;
+    final.a = final.a * (1.0-sa) + sa;
+
+    ${if (!shadeStructure.suppressDefaultOutput) """
+    |   o_color = final;
+    """.trimMargin() else ""}
 }
-        """
+"""
 
     override fun rectangleVertexShader(shadeStructure: ShadeStructure): String = """#version 330 core
 ${primitiveTypes("d_rectangle")}
@@ -429,7 +437,7 @@ uniform vec4 bounds;
 
 in vec3 v_objectPosition;
 in vec2 v_ftcoord;
-out vec4 o_color;
+${if (!shadeStructure.suppressDefaultOutput) "out vec4 o_color;" else ""}
 
 float strokeMask() {
 	return min(1.0, (1.0-abs(v_ftcoord.x*2.0-1.0))*strokeMult) * min(1.0, v_ftcoord.y);
@@ -440,7 +448,6 @@ void main(void) {
             boundsSize = "vec3(bounds.zw, 0.0)",
             contourPosition = "va_vertexOffset"
     )}
-
 
 	float strokeAlpha = strokeMask();
 
@@ -456,10 +463,12 @@ void main(void) {
 	    discard;
 	}
 
-	o_color = result;
-	o_color.rgb *= o_color.a;
+    vec4 final = result;
+	final = result;
+	final.rgb *= final.a;
+    ${if (!shadeStructure.suppressDefaultOutput) "o_color = final;" else ""}
 }
-        """
+"""
 
     override fun expansionVertexShader(shadeStructure: ShadeStructure): String = """#version 330 core
 ${primitiveTypes("d_expansion")}
@@ -504,7 +513,7 @@ $drawerUniforms
 ${shadeStructure.varyingIn ?: ""}
 $transformVaryingIn
 flat in int v_instance;
-out vec4 o_color;
+${if (!shadeStructure.suppressDefaultOutput) "out vec4 o_color;" else ""}
 
 void main(void) {
     ${fragmentConstants()}
@@ -513,8 +522,12 @@ void main(void) {
     {
         ${shadeStructure.fragmentTransform ?: ""}
     }
-    o_color = x_stroke;
-    o_color.rgb *= o_color.a;
+
+
+    vec4 final = x_stroke;
+    final = x_stroke;
+    final.rgb *= final.a;
+    ${if (!shadeStructure.suppressDefaultOutput) "o_color = final;" else ""}
 }
 """
 
@@ -542,7 +555,8 @@ void main() {
     gl_Position = v_clipPosition;
 }
 """
-    override fun meshLineFragmentShader(shadeStructure: ShadeStructure): String  = """
+
+    override fun meshLineFragmentShader(shadeStructure: ShadeStructure): String = """
         |#version 330 core
         |${primitiveTypes("d_mesh_line")}
         |${shadeStructure.uniforms ?: ""}
@@ -553,7 +567,7 @@ void main() {
         |${shadeStructure.varyingIn ?: ""}
         |$transformVaryingIn
         |flat in int v_instance;
-        |out vec4 o_color;
+        |${if (!shadeStructure.suppressDefaultOutput) "out vec4 o_color;" else ""}
         |void main(void) {
         |   ${fragmentConstants()}
         |   vec4 x_fill = u_fill;
@@ -561,9 +575,10 @@ void main() {
         |   {
         |       ${shadeStructure.fragmentTransform ?: ""}
         |   }
-        |   o_color = x_stroke;
-        |   o_color.rgb *= o_color.a;
-        |}
+        |${if (!shadeStructure.suppressDefaultOutput) """
+            |o_color = x_stroke;
+            |o_color.rgb *= o_color.a;
+            """.trimMargin() else ""}
         """.trimMargin()
 
     override fun meshLineVertexShader(shadeStructure: ShadeStructure): String = """

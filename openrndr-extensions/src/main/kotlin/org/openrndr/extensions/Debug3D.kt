@@ -129,7 +129,7 @@ class OrbitalControls(val orbitalCamera: OrbitalCamera) {
     private lateinit var program: Program
     private lateinit var lastMousePosition: Vector2
 
-    private fun mouseScrolled(event: Program.Mouse.MouseEvent) {
+    private fun mouseScrolled(event: MouseEvent) {
 
         if (Math.abs(event.rotation.x) > 0.1) return
 
@@ -139,7 +139,7 @@ class OrbitalControls(val orbitalCamera: OrbitalCamera) {
         }
     }
 
-    private fun mouseMoved(event: Program.Mouse.MouseEvent) {
+    private fun mouseMoved(event: MouseEvent) {
 
         if (state == STATE.NONE) return
         val delta = lastMousePosition - event.position
@@ -164,7 +164,7 @@ class OrbitalControls(val orbitalCamera: OrbitalCamera) {
 
     }
 
-    private fun mouseButtonDown(event: Program.Mouse.MouseEvent) {
+    private fun mouseButtonDown(event: MouseEvent) {
         val previousState = state
 
         when (event.button) {

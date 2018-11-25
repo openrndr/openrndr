@@ -27,7 +27,7 @@ interface VertexBuffer {
             throw RuntimeException("incomplete vertices written. likely violating the specified vertex format $vertexFormat")
         }
         val count = w.positionElements
-        shadow.upload()
+        shadow.uploadElements(0, count)
         w.rewind()
         return count
     }

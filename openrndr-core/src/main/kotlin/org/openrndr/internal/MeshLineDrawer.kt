@@ -105,7 +105,7 @@ class MeshLineDrawer {
                 write(strip[0])
                 write(strip[1])
                 write(-1.0f)
-                write(1.0f)
+                write(width)
                 write(Vector2.ZERO)
                 write(elementF)
 
