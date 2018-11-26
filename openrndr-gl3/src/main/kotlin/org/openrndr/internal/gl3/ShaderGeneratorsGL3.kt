@@ -16,9 +16,9 @@ private fun primitiveTypes(type: String) = """
 """
 
 fun vertexConstants(instance: String = "gl_InstanceID", element: String = "0") = """
-int c_instance = $instance;
-int c_element = $element;
-"""
+|    int c_instance = $instance;
+|    int c_element = $element;
+""".trimMargin()
 
 fun fragmentConstants(
         instance: String = "v_instance",
@@ -27,13 +27,13 @@ fun fragmentConstants(
         contourPosition: String = "0",
         boundsPosition: String = "vec3(0.0)",
         boundsSize: String = "vec3(0.0)") = """
-int c_instance = $instance;
-int c_element = $element;
-vec2 c_screenPosition = $screenPosition;
-float c_contourPosition = $contourPosition;
-vec3 c_boundsPosition = $boundsPosition;
-vec3 c_boundsSize = $boundsSize;
-"""
+|    int c_instance = $instance;
+|    int c_element = $element;
+|    vec2 c_screenPosition = $screenPosition;
+|    float c_contourPosition = $contourPosition;
+|    vec3 c_boundsPosition = $boundsPosition;
+|    vec3 c_boundsSize = $boundsSize;
+""".trimMargin()
 
 private const val drawerUniforms = """
 layout(shared) uniform ContextBlock {
@@ -71,52 +71,50 @@ in vec4 v_clipPosition;
 """
 
 private const val preTransform = """
-mat4 x_modelMatrix = u_modelMatrix;
-mat4 x_viewMatrix = u_viewMatrix;
-mat4 x_modelNormalMatrix = u_modelNormalMatrix;
-mat4 x_viewNormalMatrix = u_viewNormalMatrix;
-mat4 x_projectionMatrix = u_projectionMatrix;
+    mat4 x_modelMatrix = u_modelMatrix;
+    mat4 x_viewMatrix = u_viewMatrix;
+    mat4 x_modelNormalMatrix = u_modelNormalMatrix;
+    mat4 x_viewNormalMatrix = u_viewNormalMatrix;
+    mat4 x_projectionMatrix = u_projectionMatrix;
 """
 
 private const val postTransform = """
-v_worldNormal = (x_modelNormalMatrix * vec4(x_normal,0.0)).xyz;
-v_viewNormal = (x_viewNormalMatrix * vec4(v_worldNormal,0.0)).xyz;
-v_worldPosition = (x_modelMatrix * vec4(x_position, 1.0)).xyz;
-v_viewPosition = (x_viewMatrix * vec4(v_worldPosition, 1.0)).xyz;
-v_clipPosition = x_projectionMatrix * vec4(v_viewPosition, 1.0);
+    v_worldNormal = (x_modelNormalMatrix * vec4(x_normal,0.0)).xyz;
+    v_viewNormal = (x_viewNormalMatrix * vec4(v_worldNormal,0.0)).xyz;
+    v_worldPosition = (x_modelMatrix * vec4(x_position, 1.0)).xyz;
+    v_viewPosition = (x_viewMatrix * vec4(v_worldPosition, 1.0)).xyz;
+    v_clipPosition = x_projectionMatrix * vec4(v_viewPosition, 1.0);
 """
 
 class ShaderGeneratorsGL3 : ShaderGenerators {
-    override fun vertexBufferFragmentShader(shadeStructure: ShadeStructure): String = """#version 330 core
-${primitiveTypes("d_vertex_buffer")}
-${shadeStructure.uniforms ?: ""}
-layout(origin_upper_left) in vec4 gl_FragCoord;
+    override fun vertexBufferFragmentShader(shadeStructure: ShadeStructure): String = """|#version 330 core
+|${primitiveTypes("d_vertex_buffer")}
+|${shadeStructure.uniforms ?: ""}
+|layout(origin_upper_left) in vec4 gl_FragCoord;
 
-uniform sampler2D image;
-$drawerUniforms
-${shadeStructure.varyingIn ?: ""}
-${shadeStructure.outputs ?: ""}
-${transformVaryingIn}
+|uniform sampler2D image;
+|$drawerUniforms
+|${shadeStructure.varyingIn ?: ""}
+|${shadeStructure.outputs ?: ""}
+|${transformVaryingIn}
 
-${if (!shadeStructure.suppressDefaultOutput) "out vec4 o_color;" else ""}
+|${if (!shadeStructure.suppressDefaultOutput) "out vec4 o_color;" else ""}
 
-${shadeStructure.fragmentPreamble ?: ""}
-flat in int v_instance;
+|${shadeStructure.fragmentPreamble ?: ""}
+|flat in int v_instance;
 
-void main(void) {
-    ${fragmentConstants(element = "v_instance")}
-    vec4 x_fill = u_fill;
-    vec4 x_stroke = u_stroke;
-    {
-        ${shadeStructure.fragmentTransform ?: ""}
-    }
-
-    ${if (!shadeStructure.suppressDefaultOutput) """
-    |   o_color = x_fill;
-    |   o_color.rgb *= o_color.a;
-    """.trimMargin() else ""}
-}
-    """.trimMargin()
+|void main(void) {
+|    ${fragmentConstants(element = "v_instance")}
+|    vec4 x_fill = u_fill;
+|    vec4 x_stroke = u_stroke;
+|    {
+|       ${shadeStructure.fragmentTransform ?: ""}
+|    }
+     ${if (!shadeStructure.suppressDefaultOutput) """
+     |    o_color = x_fill;
+     |    o_color.rgb *= o_color.a;
+     |""".trimMargin() else ""}
+|}""".trimMargin()
 
     override fun vertexBufferVertexShader(shadeStructure: ShadeStructure): String = """#version 330 core
 ${primitiveTypes("d_vertex_buffer")}
@@ -130,8 +128,8 @@ ${shadeStructure.vertexPreamble ?: ""}
 flat out int v_instance;
 void main() {
     int instance = gl_InstanceID; // this will go use c_instance instead
-    ${vertexConstants()}
-    ${shadeStructure.varyingBridge ?: ""}
+${vertexConstants()}
+${shadeStructure.varyingBridge ?: ""}
     vec3 x_normal = vec3(0.0, 0.0, 0.0);
     ${if (shadeStructure.attributes?.contains("vec3 a_normal;") == true) "x_normal = a_normal;" else ""}
     vec3 x_position = a_position;

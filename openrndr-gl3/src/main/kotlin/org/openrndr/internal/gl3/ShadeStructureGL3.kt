@@ -18,7 +18,7 @@ fun structureFromShadeTyle(shadeStyle: ShadeStyle?, vertexFormats: List<VertexFo
                 instanceAttributeFormats.flatMap { it.items }.joinToString("") { "out ${it.type.glslType} vi_${it.attribute}${array(it)};\n" }
         varyingIn = vertexFormats.flatMap { it.items }.joinToString("") { "in ${it.type.glslType} va_${it.attribute}${array(it)};\n" } +
                 instanceAttributeFormats.flatMap { it.items }.joinToString("") { "in ${it.type.glslType} vi_${it.attribute}${array(it)};\n" }
-        varyingBridge = vertexFormats.flatMap { it.items }.joinToString("") { "va_${it.attribute} = a_${it.attribute};\n" } +
+        varyingBridge = vertexFormats.flatMap { it.items }.joinToString("") { "    va_${it.attribute} = a_${it.attribute};\n" } +
                 instanceAttributeFormats.flatMap { it.items }.joinToString("") { "vi_${it.attribute} = i_${it.attribute};\n" }
         attributes = vertexFormats.flatMap { it.items }.joinToString("") { "in ${it.type.glslType} a_${it.attribute}${array(it)};\n" } +
                 instanceAttributeFormats.flatMap { it.items }.joinToString("") { "in ${it.type.glslType} i_${it.attribute}${array(it)};\n" }
