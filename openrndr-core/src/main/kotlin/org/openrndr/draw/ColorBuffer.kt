@@ -41,6 +41,7 @@ enum class MinifyingFilter {
  * Texture filters for magnification
  */
 enum class MagnifyingFilter {
+    /** nearest neighbour, blocky */
     NEAREST,
     LINEAR
 }
@@ -62,18 +63,30 @@ sealed class BufferMultisample {
 
 
 interface ColorBuffer {
+
+    /** the width of the [ColorBuffer] in device units */
     val width: Int
+
+    /** the height of the [ColorBuffer] in device units */
     val height: Int
+
+    /** the content scale of the [ColorBuffer] */
     val contentScale: Double
     val format: ColorFormat
     val type: ColorType
+
+    /** the multisampling method used for this [ColorBuffer] */
     val multisample: BufferMultisample
 
     val bounds: Rectangle get() = Rectangle(Vector2.ZERO, width * 1.0, height * 1.0)
 
+    /** the width of the [ColorBuffer] in pixels */
     val effectiveWidth: Int get() = (width * contentScale).toInt()
+
+    /** the height of the [ColorBuffer] in pixels */
     val effectiveHeight: Int get() = (height * contentScale).toInt()
 
+    /** save the [ColorBuffer] to [File] */
     fun saveToFile(file: File, fileFormat: FileFormat = guessFromExtension(file))
     private fun guessFromExtension(file: File): FileFormat {
         val extension = file.extension.toLowerCase()
@@ -84,11 +97,16 @@ interface ColorBuffer {
         }
     }
 
+    /** destroys the underlying [ColorBuffer] resources */
     fun destroy()
+
+    /** binds the colorbuffer to a texture unit, internal API */
     fun bind(unit: Int)
 
     fun write(buffer: ByteBuffer)
     fun read(buffer: ByteBuffer)
+
+    /** generates mipmaps from the top-level mipmap */
     fun generateMipmaps()
 
     /**
@@ -96,13 +114,23 @@ interface ColorBuffer {
      */
     fun resolveTo(target: ColorBuffer)
 
+    /** the wrapping mode to use in the horizontal direction */
     var wrapU: WrapMode
+
+    /** the wrapping mode to use in the vertical direction */
     var wrapV: WrapMode
 
+    /** the filter to use when displaying at sizes smaller than the original */
     var filterMin: MinifyingFilter
+
+    /** the filter to use when display at sizes larger than the original */
     var filterMag: MagnifyingFilter
 
     val shadow: ColorBufferShadow
+
+    /**
+     * should the v coordinate be flipped because the [ColorBuffer] contents are stored upside-down?
+     */
     var flipV: Boolean
 
     /**
@@ -129,10 +157,22 @@ interface ColorBuffer {
     }
 }
 
+/**
+ * creates a [ColorBuffer]
+ * @param width the width in device units
+ * @param height the height in device units
+ * @param contentScale content scale used for denoting hi-dpi content
+ * @param format the color format
+ * @param type the color type
+ * @param format the color format
+ */
 fun colorBuffer(width: Int, height: Int, contentScale: Double = 1.0, format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.UINT8, multisample:BufferMultisample = BufferMultisample.Disabled): ColorBuffer {
     return Driver.driver.createColorBuffer(width, height, contentScale, format, type, multisample)
 }
 
+/**
+ * loads an image from a file or url encoded as [String]
+ */
 fun loadImage(fileOrUrl: String): ColorBuffer {
     return try {
         URL(fileOrUrl)
@@ -142,10 +182,16 @@ fun loadImage(fileOrUrl: String): ColorBuffer {
     }
 }
 
+/**
+ * loads an image from [file]
+ */
 fun loadImage(file: File): ColorBuffer {
     return ColorBuffer.fromFile(file)
 }
 
+/**
+ * loads an image from an [url]
+ */
 fun loadImage(url: URL): ColorBuffer {
     return ColorBuffer.fromUrl(url.toExternalForm())
 }
