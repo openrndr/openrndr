@@ -69,7 +69,7 @@ class ScreenRecorder : Extension {
 
         val dt = LocalDateTime.now()
         val basename = program.javaClass.simpleName.ifBlank { program.window.title.ifBlank { "untitled" } }
-        val filename = outputFile?: "$basename-${dt.year.z(4)}-${dt.month.value.z()}-${dt.dayOfMonth.z()}-${dt.hour.z()}.${dt.minute.z()}.${dt.second.z()}.mp4"
+        val filename = outputFile?: "video/$basename-${dt.year.z(4)}-${dt.month.value.z()}-${dt.dayOfMonth.z()}-${dt.hour.z()}.${dt.minute.z()}.${dt.second.z()}.mp4"
 
         File(filename).parentFile.let {
             if (it.exists()) {
