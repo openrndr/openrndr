@@ -242,7 +242,6 @@ class Debug3D(eye: Vector3 = Vector3(0.0, 0.0, 10.0), lookAt: Vector3 = Vector3.
         lastSeconds = program.seconds
         orbitalCamera.update(delta)
 
-        drawer.background(ColorRGBa.BLACK)
         drawer.perspective(fov, program.window.size.x / program.window.size.y, 0.1, 1000.0)
         drawer.view = orbitalCamera.viewMatrix()
 
