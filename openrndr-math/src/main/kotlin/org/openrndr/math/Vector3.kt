@@ -64,6 +64,8 @@ data class Vector3(val x: Double, val y: Double, val z: Double) : Serializable {
 
     infix fun projectedOn(v: Vector3) = (this dot v) / (v dot v) * v
     val length: Double get() = Math.sqrt(x * x + y * y + z * z)
+    val squaredLength get() = x * x + y * y + z * z
+
     fun toDoubleArray() = doubleArrayOf(x, y, z)
 
     val spherical: Spherical get() {

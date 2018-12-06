@@ -15,6 +15,8 @@ data class Vector4(val x: Double, val y: Double, val z: Double, val w: Double) :
     val div: Vector3 get() = Vector3(x / w, y / w, z / w)
 
     val length get() = Math.sqrt(x * x + y * y + z * z + w * w)
+    val squaredLength get() = x * x + y * y + z * z + w * w
+
 
     companion object {
         val UNIT_X = Vector4(1.0, 0.0, 0.0, 0.0)
