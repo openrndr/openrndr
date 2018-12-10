@@ -146,7 +146,6 @@ class OrbitalControls(val orbitalCamera: OrbitalCamera) {
         lastMousePosition = event.position
 
         if (state == STATE.PAN) {
-
             val offset = Vector3.fromSpherical(orbitalCamera.spherical) - orbitalCamera.lookAt
 
             // half of the fov is center to top of screen
@@ -212,13 +211,17 @@ class OrbitalControls(val orbitalCamera: OrbitalCamera) {
 }
 
 @Suppress("unused")
-class Debug3D(eye: Vector3 = Vector3(0.0, 0.0, 10.0), lookAt: Vector3 = Vector3.ZERO, private val fov: Double = 90.0) : Extension {
+class Debug3D(eye: Vector3 = Vector3(0.0, 0.0, 10.0), lookAt: Vector3 = Vector3.ZERO) : Extension {
 
     override var enabled: Boolean = true
     var showGrid = false
     val orbitalCamera = OrbitalCamera(eye, lookAt)
     private val orbitalControls = OrbitalControls(orbitalCamera)
     private var lastSeconds: Double = -1.0
+
+    var fov = 90.0
+    var zNear = 0.1
+    var zFar = 1000.0
 
     private val grid = vertexBuffer(
             vertexFormat {
@@ -242,7 +245,7 @@ class Debug3D(eye: Vector3 = Vector3(0.0, 0.0, 10.0), lookAt: Vector3 = Vector3.
         lastSeconds = program.seconds
         orbitalCamera.update(delta)
 
-        drawer.perspective(fov, program.window.size.x / program.window.size.y, 0.1, 1000.0)
+        drawer.perspective(fov, program.window.size.x / program.window.size.y, zNear, zFar)
         drawer.view = orbitalCamera.viewMatrix()
 
         if (showGrid) {
