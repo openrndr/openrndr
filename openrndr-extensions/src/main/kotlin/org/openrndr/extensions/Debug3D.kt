@@ -13,6 +13,7 @@ import org.openrndr.math.Vector2
 import org.openrndr.math.Vector3
 import org.openrndr.math.transforms.lookAt as lookAt_
 
+@Deprecated("superseded by orx-camera")
 class OrbitalCamera(eye: Vector3, lookAt: Vector3) {
 
     // current position in spherical coordinates
@@ -116,6 +117,7 @@ class OrbitalCamera(eye: Vector3, lookAt: Vector3) {
     }
 }
 
+@Deprecated("superseded by orx-camera")
 class OrbitalControls(val orbitalCamera: OrbitalCamera) {
     enum class STATE {
         NONE,
@@ -211,6 +213,7 @@ class OrbitalControls(val orbitalCamera: OrbitalCamera) {
 }
 
 @Suppress("unused")
+@Deprecated("superseded by orx-camera")
 class Debug3D(eye: Vector3 = Vector3(0.0, 0.0, 10.0), lookAt: Vector3 = Vector3.ZERO) : Extension {
 
     override var enabled: Boolean = true
