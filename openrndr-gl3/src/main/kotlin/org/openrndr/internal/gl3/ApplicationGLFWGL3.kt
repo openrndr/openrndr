@@ -204,12 +204,11 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         buf.rewind()
         for (y in 0 until 128) {
             for (x in 0 until 128) {
-                buf.putInt(0xffffc0cb.toInt())
+                buf.putInt(0xffc0cbff.toInt())
             }
         }
         buf.flip()
 
-        println("setting icon")
         stackPush().use {
             glfwSetWindowIcon(window, GLFWImage.mallocStack(1, it)
                     .width(128)
@@ -396,6 +395,14 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
             program.mouse.scrolled.trigger(MouseEvent(program.mouse.position, Vector2(xoffset, yoffset), Vector2.ZERO, MouseEventType.SCROLLED, MouseButton.NONE, globalModifiers))
         }
 
+        glfwSetWindowIconifyCallback(window) { _, iconified ->
+            if (iconified) {
+                program.window.minimized.trigger(WindowEvent(WindowEventType.MINIMIZED, Vector2.ZERO, Vector2.ZERO, false))
+            } else {
+                program.window.restored.trigger(WindowEvent(WindowEventType.RESTORED, Vector2.ZERO, Vector2.ZERO, true))
+            }
+        }
+
         glfwSetMouseButtonCallback(window) { _, button, action, mods ->
             val mouseButton = when (button) {
                 GLFW_MOUSE_BUTTON_LEFT -> MouseButton.LEFT
@@ -540,6 +547,10 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
     private fun deliverEvents() {
         program.window.drop.deliver()
         program.window.sized.deliver()
+        program.window.unfocused.deliver()
+        program.window.focused.deliver()
+        program.window.minimized.deliver()
+        program.window.restored.deliver()
         program.keyboard.keyDown.deliver()
         program.keyboard.keyUp.deliver()
         program.keyboard.keyRepeat.deliver()

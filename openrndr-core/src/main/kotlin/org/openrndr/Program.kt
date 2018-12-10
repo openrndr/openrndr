@@ -20,6 +20,8 @@ enum class WindowEventType {
     RESIZED,
     FOCUSED,
     UNFOCUSED,
+    MINIMIZED,
+    RESTORED,
 }
 
 class WindowEvent(val type: WindowEventType, val position: Vector2, val size: Vector2, val focused: Boolean)
@@ -162,6 +164,18 @@ open class Program {
          * Window sized event
          */
         val sized = Event<WindowEvent>().postpone(true)
+
+
+        /**
+         * Window minimized event
+         */
+        val minimized = Event<WindowEvent>().postpone(true)
+
+
+        /**
+         * Window restored (from minimization) event
+         */
+        val restored = Event<WindowEvent>().postpone(true)
 
         /**
          * Drop event, triggered when a file is dropped on the window
