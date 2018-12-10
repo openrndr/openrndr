@@ -232,7 +232,7 @@ open class Program {
 }
 
 fun Program.launch(
-        context: CoroutineContext = EmptyCoroutineContext,
+        context: CoroutineContext =  dispatcher,
         start: CoroutineStart = CoroutineStart.DEFAULT,
         block: suspend CoroutineScope.() -> Unit
 ): Job = GlobalScope.launch(context, start, block)

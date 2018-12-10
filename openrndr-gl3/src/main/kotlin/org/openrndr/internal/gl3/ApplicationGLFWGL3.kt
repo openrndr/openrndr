@@ -108,9 +108,9 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
             }
         }
 
-    private var startTimeMillis = System.currentTimeMillis()
+
     override val seconds: Double
-        get() = (System.currentTimeMillis() - startTimeMillis) / 1000.0
+        get() = glfwGetTime()
 
     override var windowTitle: String
         get() = realWindowTitle
@@ -497,7 +497,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         program.setup()
         setupCalled = true
 
-        startTimeMillis = System.currentTimeMillis()
+
 
         if (glfwExtensionSupported("GLX_EXT_swap_control_tear") || glfwExtensionSupported("WGL_EXT_swap_control_tear")) {
             glfwSwapInterval(-1)
