@@ -12,6 +12,17 @@ enum class UnfocusBehaviour {
     THROTTLE
 }
 
+/**
+ * Fullscreen mode
+ */
+enum class Fullscreen {
+    /** Do not use fullscreen */
+    DISABLED,
+    /** Use current display mode for fullscreen */
+    CURRENT_DISPLAY_MODE,
+    /** Use given width and height to set a display mode */
+    SET_DISPLAY_MODE
+}
 
 sealed class WindowMultisample {
     /** Use the system default */
@@ -53,7 +64,7 @@ class Configuration {
     /**
      * Should the window be made fullscreen?
      */
-    var fullscreen = false
+    var fullscreen:Fullscreen = Fullscreen.DISABLED
 
     /**
      * Should the window be made visible before calling setup?

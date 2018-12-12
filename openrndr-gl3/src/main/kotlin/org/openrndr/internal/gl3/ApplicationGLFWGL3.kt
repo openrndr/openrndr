@@ -70,11 +70,9 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         if (value) {
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL)
         } else {
-            println("calling with GLFW_CURSOR_HIDDEN")
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED)
         }
     }
-
 
     override var windowPosition: Vector2
         get() {
@@ -163,7 +161,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         val yscale = FloatArray(1)
         glfwGetMonitorContentScale(glfwGetPrimaryMonitor(), xscale, yscale)
 
-        if (configuration.fullscreen) {
+        if (configuration.fullscreen == Fullscreen.SET_DISPLAY_MODE) {
             xscale[0] = 1.0f
             yscale[0] = 1.0f
         }
@@ -172,7 +170,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         program.window.scale = Vector2(xscale[0].toDouble(), yscale[0].toDouble())
 
         logger.debug { "creating window" }
-        window = if (!configuration.fullscreen) {
+        window = if (configuration.fullscreen == Fullscreen.DISABLED) {
             val adjustedWidth = if (fixWindowSize) (xscale[0] * configuration.width).toInt() else configuration.width
             val adjustedHeight = if (fixWindowSize) (yscale[0] * configuration.height).toInt() else configuration.height
 
@@ -185,7 +183,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
             var requestWidth = configuration.width
             var requestHeight = configuration.height
 
-            if (requestWidth == -1 || requestHeight == -1) {
+            if (configuration.fullscreen == Fullscreen.CURRENT_DISPLAY_MODE) {
                 val mode = glfwGetVideoMode(glfwGetPrimaryMonitor())
                 if (mode != null) {
                     requestWidth = mode.width()
@@ -486,8 +484,8 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         logger.debug { "opengl vendor: ${glGetString(GL_VENDOR)}" }
         logger.debug { "opengl version: ${glGetString(GL_VERSION)}" }
 
-        println("opengl vendor: ${glGetString(GL_VENDOR)}")
-        println("opengl version: ${glGetString(GL_VERSION)}")
+        println("OpenGL vendor: ${glGetString(GL_VENDOR)}")
+        println("OpenGL version: ${glGetString(GL_VERSION)}")
 
         if (configuration.hideCursor) {
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED)
@@ -496,8 +494,6 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         logger.debug { "calling program.setup" }
         program.setup()
         setupCalled = true
-
-
 
         if (glfwExtensionSupported("GLX_EXT_swap_control_tear") || glfwExtensionSupported("WGL_EXT_swap_control_tear")) {
             glfwSwapInterval(-1)
