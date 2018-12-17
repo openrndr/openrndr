@@ -46,6 +46,28 @@ class Configuration {
     var height: Int = 480
 
     /**
+     * The minimum window width
+     */
+    var minimumWidth: Int = 128
+
+    /**
+     * The minimum window height
+     */
+    var minimumHeight: Int = 128
+
+
+    /**
+     * The maximum window width
+     */
+    var maximumWidth: Int = Int.MAX_VALUE
+
+    /**
+     * The maximum window height
+     */
+    var maximumHeight: Int = Int.MAX_VALUE
+
+
+    /**
      * The window title
      */
     var title: String = "OPENRNDR"

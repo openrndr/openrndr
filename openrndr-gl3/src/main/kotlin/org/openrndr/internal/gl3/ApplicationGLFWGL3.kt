@@ -303,6 +303,17 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         logger.debug { "glfw version: ${glfwGetVersionString()}" }
         logger.debug { "showing window" }
 
+
+        run {
+            val adjustedMinimumWidth = if (fixWindowSize) (xscale[0] * configuration.minimumWidth).toInt() else configuration.minimumWidth
+            val adjustedMinimumHeight = if (fixWindowSize) (yscale[0] * configuration.minimumHeight).toInt() else configuration.minimumHeight
+
+            val adjustedMaximumWidth = if (fixWindowSize && configuration.maximumWidth != Int.MAX_VALUE) (xscale[0] * configuration.maximumWidth).toInt() else configuration.maximumWidth
+            val adjustedMaximumHeight = if (fixWindowSize  && configuration.maximumHeight != Int.MAX_VALUE) (yscale[0] * configuration.maximumHeight).toInt() else configuration.maximumHeight
+
+            glfwSetWindowSizeLimits(window, adjustedMinimumWidth, adjustedMinimumHeight, adjustedMaximumWidth, adjustedMaximumHeight)
+        }
+
         glfwShowWindow(window)
     }
 
