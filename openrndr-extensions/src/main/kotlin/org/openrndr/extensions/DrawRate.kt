@@ -51,6 +51,7 @@ class DrawRate : Extension {
     private lateinit var drawRateJob: Job
     private lateinit var minRateJob: Job
     private var restoreDrawRate = false
+    private val cs = CoroutineScope(Dispatchers.Default)
 
     /**
      * Initialise the DrawRate() Extension - 3 cases are supported
@@ -61,7 +62,7 @@ class DrawRate : Extension {
     override fun setup(program: Program) {
         // 1.a setup the general drawrate feature
         if (drawRate.isEnable)
-            drawRateJob = GlobalScope.launch {
+            drawRateJob = cs.launch {
                 pulse(program, drawRate)
             }
 
@@ -74,7 +75,7 @@ class DrawRate : Extension {
                             drawRateJob.cancelAndJoin()
                         }
                 } else
-                    drawRateJob = GlobalScope.launch {
+                    drawRateJob = cs.launch {
                         pulse(program, drawRate)
                     }
                 drawRate.isEnable = !drawRate.isEnable
@@ -83,7 +84,6 @@ class DrawRate : Extension {
 
         // 2.a setup special case #1 'MINIMISE'
         program.window.minimized.listen {
-            println("MINIMISED MINIMISED MINIMISED MINIMISED MINIMISED")
             if (minimiseRate.isEnable) {
                 if (::drawRateJob.isInitialized && drawRateJob.isActive) {
                     runBlocking {
@@ -91,7 +91,7 @@ class DrawRate : Extension {
                     }
                     restoreDrawRate = true
                 }
-                minRateJob = GlobalScope.launch {
+                minRateJob = cs.launch {
                     pulse(program, minimiseRate)
                 }
             }
@@ -99,7 +99,6 @@ class DrawRate : Extension {
 
         // 2.b setup special case #1 'MINIMISE' - Restore state prior to 'Minimise'
         program.window.restored.listen {
-            println("RESTORED RESTORED RESTORED RESTORED RESTORED")
             if (minimiseRate.isEnable) {
                 if (::minRateJob.isInitialized && minRateJob.isActive)
                     runBlocking {
@@ -107,7 +106,7 @@ class DrawRate : Extension {
                     }
                 if (restoreDrawRate) {
                     restoreDrawRate = false
-                    drawRateJob = GlobalScope.launch {
+                    drawRateJob = cs.launch {
                         pulse(program, drawRate)
                     }
                 }
@@ -123,7 +122,6 @@ class DrawRate : Extension {
         }
 
         // 4. setup special case #3 'SIZE' - x or y is 0 e.g. from any 'SIZE' events
-
         program.window.sized.listen {
             if (it.size.x == 0.0 || it.size.y == 0.0)
                 println("SIZED: x or y is 0- ${it.size}")
@@ -146,7 +144,7 @@ class DrawRate : Extension {
             while (isActive) {
                 delay(dc.duration)
                 program.window.requestDraw()
-                println("request draw() for ${dc.id} after ${dc.duration}L")
+                //println("request draw() for ${dc.id} after ${dc.duration}L")
             }
         } finally {
             program.window.presentationMode = PresentationMode.AUTOMATIC
