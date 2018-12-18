@@ -3,7 +3,6 @@ package org.openrndr.extensions
 import kotlinx.coroutines.*
 import kotlinx.coroutines.NonCancellable.isActive
 import org.openrndr.*
-import org.openrndr.math.Vector2
 
 /**
  * Special cases of delay duration
@@ -113,22 +112,15 @@ class DrawRate : Extension {
             }
         }
 
-        // 3. setup special case #2  'UNFOCUSED' - only on MacOS? why not Windows10?
+        // 3. setup special case #2  'UNFOCUSED'
+        /* under discussion - deferred to next iteration
         program.window.unfocused.listen {
             println("UNFOCUSED:")
         }
         program.window.focused.listen {
             println("FOCUSED:")
         }
-
-        // 4. setup special case #3 'SIZE' - x or y is 0 e.g. from any 'SIZE' events
-        program.window.sized.listen {
-            if (it.size.x == 0.0 || it.size.y == 0.0)
-                println("SIZED: x or y is 0- ${it.size}")
-            else
-                println("SIZED: restore (undo any if action) - ${it.size}")
-        }
-
+        */
     }
 
     /**
