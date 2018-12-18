@@ -59,12 +59,12 @@ class Configuration {
     /**
      * The maximum window width
      */
-    var maximumWidth: Int = Int.MAX_VALUE
+    var maximumWidth: Int = Int.MAX_VALUE/8
 
     /**
      * The maximum window height
      */
-    var maximumHeight: Int = Int.MAX_VALUE
+    var maximumHeight: Int = Int.MAX_VALUE/8
 
 
     /**
