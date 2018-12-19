@@ -75,6 +75,12 @@ class Configuration {
      **/
     var unfocusBehaviour = UnfocusBehaviour.NORMAL
 
+
+    /**
+     * Should the window be always on top (floating)
+     */
+    var windowAlwaysOnTop: Boolean = false
+
     /**
      * Should the created window be resizable?
      */

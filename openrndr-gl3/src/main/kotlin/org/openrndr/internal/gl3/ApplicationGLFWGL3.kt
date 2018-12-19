@@ -153,6 +153,10 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         glfwWindowHint(GLFW_STENCIL_BITS, 8)
         glfwWindowHint(GLFW_DEPTH_BITS, 24)
 
+        if (configuration.windowAlwaysOnTop) {
+            glfwWindowHint(GLFW_FLOATING, GLFW_TRUE)
+        }
+
         println(glfwGetVersionString())
 
         if (useDebugContext) {
