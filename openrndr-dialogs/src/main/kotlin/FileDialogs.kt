@@ -49,7 +49,12 @@ private fun setDefaultPathForContext(programName: String, contextID: String, fil
 }
 
 fun openFileDialog(programName: String = "OPENRNDR", contextID: String = "global", function: (File) -> Unit) {
-    val filterList: CharSequence? = null
+    openFileDialog(programName, contextID, emptyList(), function)
+}
+
+fun openFileDialog(programName: String = "OPENRNDR", contextID: String = "global", supportedExtensions: List<String>, function: (File) -> Unit) {
+    val filterList: CharSequence? = if (supportedExtensions.isEmpty()) null else supportedExtensions.joinToString(";")
+    println(filterList)
     val defaultPath: CharSequence? = getDefaultPathForContext(programName, contextID)
     val out = memAllocPointer(1)
 
@@ -64,8 +69,8 @@ fun openFileDialog(programName: String = "OPENRNDR", contextID: String = "global
     memFree(out)
 }
 
-fun openFilesDialog(programName: String = "OPENRNDR", contextID: String = "global", function: (List<File>) -> Unit) {
-    val filterList: CharSequence? = null
+fun openFilesDialog(programName: String = "OPENRNDR", contextID: String = "global", supportedExtensions: List<String>, function: (List<File>) -> Unit) {
+    val filterList: CharSequence? = if (supportedExtensions.isEmpty()) null else supportedExtensions.joinToString(";")
     val defaultPath: CharSequence? = getDefaultPathForContext(programName, contextID)
 
     val pathSet = NFDPathSet.calloc()
@@ -87,6 +92,10 @@ fun openFilesDialog(programName: String = "OPENRNDR", contextID: String = "globa
     }
 }
 
+fun openFilesDialog(programName: String = "OPENRNDR", contextID: String = "global", function: (List<File>) -> Unit) {
+    openFilesDialog(programName, contextID, emptyList(), function)
+}
+
 fun openFolderDialog(programName: String = "OPENRNDR", contextID: String = "global", function: (File) -> Unit) {
     val defaultPath: CharSequence? = getDefaultPathForContext(programName, contextID)
     val out = memAllocPointer(1)
@@ -103,7 +112,11 @@ fun openFolderDialog(programName: String = "OPENRNDR", contextID: String = "glob
 }
 
 fun saveFileDialog(programName: String = "OPENRNDR", contextID: String = "global", function: (File) -> Unit) {
-    val filterList: CharSequence? = null
+    saveFileDialog(programName, contextID, emptyList(), function)
+}
+
+fun saveFileDialog(programName: String = "OPENRNDR", contextID: String = "global", supportedExtensions: List<String>, function: (File) -> Unit) {
+    val filterList: CharSequence? = if (supportedExtensions.isEmpty()) null else supportedExtensions.joinToString(";")
     val defaultPath: CharSequence? = getDefaultPathForContext(programName, contextID)
     val out = memAllocPointer(1)
     val r = NativeFileDialog.NFD_SaveDialog(filterList, defaultPath, out)
