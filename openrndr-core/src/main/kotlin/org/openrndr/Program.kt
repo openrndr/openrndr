@@ -141,6 +141,8 @@ open class Program {
             }
 
 
+        fun requestFocus() = application.requestFocus()
+
         fun requestDraw() = application.requestDraw()
 
         /**

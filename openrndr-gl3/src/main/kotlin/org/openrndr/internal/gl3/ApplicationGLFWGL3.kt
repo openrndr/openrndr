@@ -612,4 +612,9 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
     override fun requestDraw() {
         drawRequested = true
     }
+
+    override fun requestFocus() {
+        glfwFocusWindow(window)
+    }
+
 }

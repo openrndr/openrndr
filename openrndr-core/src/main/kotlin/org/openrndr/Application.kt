@@ -47,6 +47,7 @@ abstract class Application {
     }
 
     abstract fun requestDraw()
+    abstract fun requestFocus()
 
     abstract fun exit()
     abstract fun setup()
@@ -69,7 +70,6 @@ abstract class Application {
 fun application(program: Program, configuration: Configuration = Configuration()) {
     Application.run(program, configuration)
 }
-
 
 /**
  * Resolves resource named [name] relative to [class] as a [String] based URL.

@@ -36,6 +36,10 @@ class ApplicationEGLGL3(private val program: Program, private val configuration:
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
+    override fun requestFocus() {
+
+    }
+
     override fun exit() {
         exitRequested = true
     }
