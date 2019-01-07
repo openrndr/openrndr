@@ -12,6 +12,17 @@ enum class UnfocusBehaviour {
     THROTTLE
 }
 
+/**
+ * Fullscreen mode
+ */
+enum class Fullscreen {
+    /** Do not use fullscreen */
+    DISABLED,
+    /** Use current display mode for fullscreen */
+    CURRENT_DISPLAY_MODE,
+    /** Use given width and height to set a display mode */
+    SET_DISPLAY_MODE
+}
 
 sealed class WindowMultisample {
     /** Use the system default */
@@ -35,6 +46,28 @@ class Configuration {
     var height: Int = 480
 
     /**
+     * The minimum window width
+     */
+    var minimumWidth: Int = 128
+
+    /**
+     * The minimum window height
+     */
+    var minimumHeight: Int = 128
+
+
+    /**
+     * The maximum window width
+     */
+    var maximumWidth: Int = Int.MAX_VALUE/8
+
+    /**
+     * The maximum window height
+     */
+    var maximumHeight: Int = Int.MAX_VALUE/8
+
+
+    /**
      * The window title
      */
     var title: String = "OPENRNDR"
@@ -53,7 +86,7 @@ class Configuration {
     /**
      * Should the window be made fullscreen?
      */
-    var fullscreen = false
+    var fullscreen:Fullscreen = Fullscreen.DISABLED
 
     /**
      * Should the window be made visible before calling setup?

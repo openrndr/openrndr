@@ -4,6 +4,7 @@ import org.openrndr.Extension
 import org.openrndr.Program
 import org.openrndr.draw.*
 import org.openrndr.math.Matrix44
+import java.io.File
 import java.time.LocalDateTime
 
 /**
@@ -68,7 +69,14 @@ class ScreenRecorder : Extension {
 
         val dt = LocalDateTime.now()
         val basename = program.javaClass.simpleName.ifBlank { program.window.title.ifBlank { "untitled" } }
-        val filename = outputFile?: "$basename-${dt.year.z(4)}-${dt.month.value.z()}-${dt.dayOfMonth.z()}-${dt.hour.z()}.${dt.minute.z()}.${dt.second.z()}.mp4"
+        val filename = outputFile?: "video/$basename-${dt.year.z(4)}-${dt.month.value.z()}-${dt.dayOfMonth.z()}-${dt.hour.z()}.${dt.minute.z()}.${dt.second.z()}.mp4"
+
+        File(filename).parentFile.let {
+            if (!it.exists()) {
+                it.mkdirs()
+            }
+        }
+
         videoWriter = VideoWriter().profile(profile).output(filename).size(program.width, program.height).frameRate(frameRate).start()
     }
 
@@ -104,7 +112,7 @@ class ScreenRecorder : Extension {
             }
         } else {
             if (quitAfterMaximum) {
-
+                videoWriter.stop()
                 program.application.exit()
             }
         }

@@ -13,6 +13,7 @@ import org.openrndr.math.Vector2
 import org.openrndr.math.Vector3
 import org.openrndr.math.transforms.lookAt as lookAt_
 
+@Deprecated("superseded by orx-camera")
 class OrbitalCamera(eye: Vector3, lookAt: Vector3) {
 
     // current position in spherical coordinates
@@ -116,6 +117,7 @@ class OrbitalCamera(eye: Vector3, lookAt: Vector3) {
     }
 }
 
+@Deprecated("superseded by orx-camera")
 class OrbitalControls(val orbitalCamera: OrbitalCamera) {
     enum class STATE {
         NONE,
@@ -146,7 +148,6 @@ class OrbitalControls(val orbitalCamera: OrbitalCamera) {
         lastMousePosition = event.position
 
         if (state == STATE.PAN) {
-
             val offset = Vector3.fromSpherical(orbitalCamera.spherical) - orbitalCamera.lookAt
 
             // half of the fov is center to top of screen
@@ -212,13 +213,18 @@ class OrbitalControls(val orbitalCamera: OrbitalCamera) {
 }
 
 @Suppress("unused")
-class Debug3D(eye: Vector3 = Vector3(0.0, 0.0, 10.0), lookAt: Vector3 = Vector3.ZERO, private val fov: Double = 90.0) : Extension {
+@Deprecated("superseded by orx-camera")
+class Debug3D(eye: Vector3 = Vector3(0.0, 0.0, 10.0), lookAt: Vector3 = Vector3.ZERO) : Extension {
 
     override var enabled: Boolean = true
     var showGrid = false
     val orbitalCamera = OrbitalCamera(eye, lookAt)
     private val orbitalControls = OrbitalControls(orbitalCamera)
     private var lastSeconds: Double = -1.0
+
+    var fov = 90.0
+    var zNear = 0.1
+    var zFar = 1000.0
 
     private val grid = vertexBuffer(
             vertexFormat {
@@ -242,8 +248,7 @@ class Debug3D(eye: Vector3 = Vector3(0.0, 0.0, 10.0), lookAt: Vector3 = Vector3.
         lastSeconds = program.seconds
         orbitalCamera.update(delta)
 
-        drawer.background(ColorRGBa.BLACK)
-        drawer.perspective(fov, program.window.size.x / program.window.size.y, 0.1, 1000.0)
+        drawer.perspective(fov, program.window.size.x / program.window.size.y, zNear, zFar)
         drawer.view = orbitalCamera.viewMatrix()
 
         if (showGrid) {

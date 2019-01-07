@@ -35,6 +35,9 @@ a simple event library
 # Package org.openrndr.extensions
 a simple Extension interface with which default Program behaviour can be changed.
 
+# Package org.openrndr.extensions.drawrate
+a configurable Extension which supports finer presentation control
+
 # Package org.openrndr.ffmpeg
 code related to optional FFMPEG based video playback
 

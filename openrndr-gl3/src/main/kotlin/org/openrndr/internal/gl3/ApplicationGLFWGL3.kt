@@ -70,11 +70,9 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         if (value) {
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL)
         } else {
-            println("calling with GLFW_CURSOR_HIDDEN")
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED)
         }
     }
-
 
     override var windowPosition: Vector2
         get() {
@@ -108,9 +106,9 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
             }
         }
 
-    private var startTimeMillis = System.currentTimeMillis()
+
     override val seconds: Double
-        get() = (System.currentTimeMillis() - startTimeMillis) / 1000.0
+        get() = glfwGetTime()
 
     override var windowTitle: String
         get() = realWindowTitle
@@ -167,7 +165,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         val yscale = FloatArray(1)
         glfwGetMonitorContentScale(glfwGetPrimaryMonitor(), xscale, yscale)
 
-        if (configuration.fullscreen) {
+        if (configuration.fullscreen == Fullscreen.SET_DISPLAY_MODE) {
             xscale[0] = 1.0f
             yscale[0] = 1.0f
         }
@@ -176,7 +174,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         program.window.scale = Vector2(xscale[0].toDouble(), yscale[0].toDouble())
 
         logger.debug { "creating window" }
-        window = if (!configuration.fullscreen) {
+        window = if (configuration.fullscreen == Fullscreen.DISABLED) {
             val adjustedWidth = if (fixWindowSize) (xscale[0] * configuration.width).toInt() else configuration.width
             val adjustedHeight = if (fixWindowSize) (yscale[0] * configuration.height).toInt() else configuration.height
 
@@ -189,7 +187,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
             var requestWidth = configuration.width
             var requestHeight = configuration.height
 
-            if (requestWidth == -1 || requestHeight == -1) {
+            if (configuration.fullscreen == Fullscreen.CURRENT_DISPLAY_MODE) {
                 val mode = glfwGetVideoMode(glfwGetPrimaryMonitor())
                 if (mode != null) {
                     requestWidth = mode.width()
@@ -208,12 +206,11 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         buf.rewind()
         for (y in 0 until 128) {
             for (x in 0 until 128) {
-                buf.putInt(0xffffc0cb.toInt())
+                buf.putInt(0xffc0cbff.toInt())
             }
         }
         buf.flip()
 
-        println("setting icon")
         stackPush().use {
             glfwSetWindowIcon(window, GLFWImage.mallocStack(1, it)
                     .width(128)
@@ -310,6 +307,17 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         logger.debug { "glfw version: ${glfwGetVersionString()}" }
         logger.debug { "showing window" }
 
+
+        run {
+            val adjustedMinimumWidth = if (fixWindowSize) (xscale[0] * configuration.minimumWidth).toInt() else configuration.minimumWidth
+            val adjustedMinimumHeight = if (fixWindowSize) (yscale[0] * configuration.minimumHeight).toInt() else configuration.minimumHeight
+
+            val adjustedMaximumWidth = if (fixWindowSize && configuration.maximumWidth != Int.MAX_VALUE) (xscale[0] * configuration.maximumWidth).toInt() else configuration.maximumWidth
+            val adjustedMaximumHeight = if (fixWindowSize  && configuration.maximumHeight != Int.MAX_VALUE) (yscale[0] * configuration.maximumHeight).toInt() else configuration.maximumHeight
+
+            glfwSetWindowSizeLimits(window, adjustedMinimumWidth, adjustedMinimumHeight, adjustedMaximumWidth, adjustedMaximumHeight)
+        }
+
         glfwShowWindow(window)
     }
 
@@ -400,6 +408,14 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
             program.mouse.scrolled.trigger(MouseEvent(program.mouse.position, Vector2(xoffset, yoffset), Vector2.ZERO, MouseEventType.SCROLLED, MouseButton.NONE, globalModifiers))
         }
 
+        glfwSetWindowIconifyCallback(window) { _, iconified ->
+            if (iconified) {
+                program.window.minimized.trigger(WindowEvent(WindowEventType.MINIMIZED, Vector2.ZERO, Vector2.ZERO, false))
+            } else {
+                program.window.restored.trigger(WindowEvent(WindowEventType.RESTORED, Vector2.ZERO, Vector2.ZERO, true))
+            }
+        }
+
         glfwSetMouseButtonCallback(window) { _, button, action, mods ->
             val mouseButton = when (button) {
                 GLFW_MOUSE_BUTTON_LEFT -> MouseButton.LEFT
@@ -483,8 +499,8 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         logger.debug { "opengl vendor: ${glGetString(GL_VENDOR)}" }
         logger.debug { "opengl version: ${glGetString(GL_VERSION)}" }
 
-        println("opengl vendor: ${glGetString(GL_VENDOR)}")
-        println("opengl version: ${glGetString(GL_VERSION)}")
+        println("OpenGL vendor: ${glGetString(GL_VENDOR)}")
+        println("OpenGL version: ${glGetString(GL_VERSION)}")
 
         if (configuration.hideCursor) {
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED)
@@ -493,8 +509,6 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         logger.debug { "calling program.setup" }
         program.setup()
         setupCalled = true
-
-        startTimeMillis = System.currentTimeMillis()
 
         if (glfwExtensionSupported("GLX_EXT_swap_control_tear") || glfwExtensionSupported("WGL_EXT_swap_control_tear")) {
             glfwSwapInterval(-1)
@@ -544,6 +558,10 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
     private fun deliverEvents() {
         program.window.drop.deliver()
         program.window.sized.deliver()
+        program.window.unfocused.deliver()
+        program.window.focused.deliver()
+        program.window.minimized.deliver()
+        program.window.restored.deliver()
         program.keyboard.keyDown.deliver()
         program.keyboard.keyUp.deliver()
         program.keyboard.keyRepeat.deliver()
