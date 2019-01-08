@@ -296,12 +296,11 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
             logger.debug { "window focus has changed; focused=$focused" }
             windowFocused = focused
             if (focused) {
-
                 program.window.focused.trigger(
-                        WindowEvent(WindowEventType.FOCUSED, Vector2(0.0, 0.0), Vector2(0.0, 0.0), true))
+                        WindowEvent(WindowEventType.FOCUSED, program.window.position, program.window.size, true))
             } else {
                 program.window.unfocused.trigger(
-                        WindowEvent(WindowEventType.FOCUSED, Vector2(0.0, 0.0), Vector2(0.0, 0.0), false))
+                        WindowEvent(WindowEventType.FOCUSED, program.window.position, program.window.size, false))
             }
         }
         logger.debug { "glfw version: ${glfwGetVersionString()}" }
@@ -412,7 +411,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
             if (iconified) {
                 program.window.minimized.trigger(WindowEvent(WindowEventType.MINIMIZED, Vector2.ZERO, Vector2.ZERO, false))
             } else {
-                program.window.restored.trigger(WindowEvent(WindowEventType.RESTORED, Vector2.ZERO, Vector2.ZERO, true))
+                program.window.restored.trigger(WindowEvent(WindowEventType.RESTORED,  program.window.position, program.window.size, true))
             }
         }
 

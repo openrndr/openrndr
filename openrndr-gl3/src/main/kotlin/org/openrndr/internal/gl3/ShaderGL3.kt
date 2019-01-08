@@ -592,7 +592,14 @@ class ShaderGL3(val program: Int,
             glUniform1i(index, value)
             postUniformCheck(name, index, value)
         }
+    }
 
+    override fun uniform(name: String, value: Boolean) {
+        val index = uniformIndex(name)
+        if (index != -1) {
+            glUniform1i(index, if (value) 1 else 0)
+            postUniformCheck(name, index, value)
+        }
     }
 
     override fun uniform(name: String, value: Vector2) {
@@ -627,7 +634,6 @@ class ShaderGL3(val program: Int,
             postUniformCheck(name, index, value)
         }
     }
-
 
     override fun uniform(name: String, value: Array<Vector2>) {
         val index = uniformIndex(name)
