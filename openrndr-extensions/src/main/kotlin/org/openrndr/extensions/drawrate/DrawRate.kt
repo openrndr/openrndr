@@ -17,13 +17,15 @@ const val MAX_DELAY = Long.MAX_VALUE
  *
  * @isEnable feature is enabled(ON) if true, disabled(OFF) if false
  * @duration ranges from [MIN_DELAY] to [MAX_DELAY]
+ * a 1fps request is 1000ms/1 i.e 1000L
  */
-sealed class DrawRateConfig(var isEnable: Boolean = false, var duration: Long = MIN_DELAY)
+sealed class DrawRateConfig(var isEnable: Boolean = true, var duration: Long = 1000L)
 
 /**
  * default configuration for `DRAWRATE`
+ * a 60fps request is 1000ms/60 = 16.667 i.e. 16L after rounding (or 62.5fps)
  */
-object DrawConfig : DrawRateConfig()
+object DrawConfig : DrawRateConfig(duration = 1000/60)
 
 /**
  * default configuration for `MINIMISE`
