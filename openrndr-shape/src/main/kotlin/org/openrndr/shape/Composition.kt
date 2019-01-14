@@ -9,6 +9,7 @@ sealed class CompositionNode {
     var transform = Matrix44.IDENTITY
     var fill: CompositionColor = InheritColor
     var stroke: CompositionColor = InheritColor
+    var strokeWeight: CompositionStrokeWeight = InheritStrokeWeight
 
     open val bounds: Rectangle
         get() = TODO("can't have it")
@@ -40,6 +41,12 @@ sealed class CompositionColor
 
 object InheritColor : CompositionColor()
 class Color(val color: ColorRGBa?) : CompositionColor()
+
+
+sealed class CompositionStrokeWeight
+object InheritStrokeWeight : CompositionStrokeWeight()
+class StrokeWeight(val weight: Double) : CompositionStrokeWeight()
+
 
 private fun transform(node: CompositionNode): Matrix44 =
         (node.parent?.let { transform(it) } ?: Matrix44.IDENTITY) * node.transform
@@ -84,7 +91,7 @@ class ShapeNode(var shape: Shape) : CompositionNode() {
     }
 }
 
-class TextNode : CompositionNode() {
+class TextNode(var text:String, var contour: ShapeContour?) : CompositionNode() {
 
 }
 

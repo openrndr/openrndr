@@ -20,11 +20,13 @@ fun writeSVG(composition: Composition): String {
     sb.append("<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1 Tiny//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11-tiny.dtd\">\n")
     sb.append("<svg version=\"1.1\" baseProfile=\"tiny\" id=\"Layer_1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"  x=\"0px\" y=\"0px\"\n width=\"2676px\" height=\"2048px\">")
 
+
+    var textPathID = 0
     process(composition.root) {
         if (it == VisitStage.PRE) {
             when (this) {
                 is GroupNode -> {
-                    if (transform != Matrix44.IDENTITY) {
+                    if (transform !== Matrix44.IDENTITY) {
                         sb.append("<g transform=\"${transform.svg}\">\n")
                     } else {
                         sb.append("<g>\n")
@@ -37,9 +39,26 @@ fun writeSVG(composition: Composition): String {
                     val strokeAttribute = stroke.let {
                         if (it is Color) it.color?.let { "stroke=\"${it.svg}\"" } ?: "stroke=\"none\"" else ""
                     }
-                    val strokeWidthAttribute = "stroke-weight=\"1.0\""
+                    val strokeWidthAttribute = strokeWeight.let { if (it is StrokeWeight) "stroke-width=\"${it.weight}\"" else "" }
+
                     val pathAttribute = "d=\"${shape.svg}\""
                     sb.append("<path $fillAttribute $strokeAttribute $strokeWidthAttribute $pathAttribute/>\n")
+                }
+
+                is TextNode -> {
+                    val fillAttribute = fill.let {
+                        if (it is Color) it.color?.let { "fill=\"${it.svg}\"" } ?: "fill=\"none\"" else ""
+                    }
+                    val contour = this.contour
+                    if (contour == null) {
+                        sb.append("<text $fillAttribute>${this.text}</text>")
+                    } else {
+                        sb.append("<defs>")
+                        sb.append("<path id=\"text$textPathID\" d=\"${contour.svg}\"/>")
+                        sb.append("</defs>")
+                        sb.append("<text $fillAttribute><textPath href=\"#text$textPathID\">${this.text}</textPath></text>")
+                        textPathID++
+                    }
                 }
             }
         } else {
@@ -81,6 +100,25 @@ private val Shape.svg: String
             if (it.closed) {
                 sb.append("Z ")
             }
+        }
+        return sb.toString()
+    }
+
+private val ShapeContour.svg: String
+    get() {
+        val sb = StringBuilder()
+        segments.forEachIndexed { index, segment ->
+            if (index == 0) {
+                sb.append("M ${segment.start.x}, ${segment.start.y}")
+            }
+            sb.append(when (segment.control.size) {
+                1 -> "C${segment.control[0].x}, ${segment.control[0].y}, ${segment.end.x}, ${segment.end.y}"
+                2 -> "C${segment.control[0].x}, ${segment.control[0].y}, ${segment.control[1].x}, ${segment.control[1].y}, ${segment.end.x}, ${segment.end.y}"
+                else -> "L${segment.end.x}, ${segment.end.y}"
+            })
+        }
+        if (closed) {
+            sb.append("Z ")
         }
         return sb.toString()
     }

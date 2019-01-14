@@ -4,6 +4,7 @@ import org.openrndr.color.ColorRGBa
 import org.openrndr.math.Matrix44
 import org.openrndr.math.Vector2
 import org.openrndr.math.transforms.rotateZ
+import org.openrndr.math.transforms.transform
 import java.util.*
 
 import org.openrndr.math.transforms.translate as _translate
@@ -25,6 +26,7 @@ class CompositionDrawer {
     var model = Matrix44.IDENTITY
     var fill: ColorRGBa? = null
     var stroke: ColorRGBa? = ColorRGBa.BLACK
+    var strokeWeight = 1.0
 
     fun pushModel() {
         modelStack.push(model)
@@ -64,6 +66,7 @@ class CompositionDrawer {
         shapeNode.transform = model
         shapeNode.fill = Color(fill)
         shapeNode.stroke = Color(stroke)
+        shapeNode.strokeWeight = StrokeWeight(strokeWeight)
         cursor.children.add(shapeNode)
     }
 
@@ -117,5 +120,24 @@ class CompositionDrawer {
 
     fun lineLoop(points: List<Vector2>) {
         contour(ShapeContour.fromPoints(points, true))
+    }
+
+    fun text(text: String, position: Vector2) {
+        val g = GroupNode()
+        g.transform = transform { translate(position.xy0 ) }
+        g.children.add(TextNode(text, null).apply{
+            this.fill = Color(this@CompositionDrawer.fill)
+        })
+        cursor.children.add(g)
+    }
+
+    fun textOnContour(text: String,path: ShapeContour) {
+        cursor.children.add(TextNode(text, path))
+    }
+
+    fun texts(text: List<String>, positions: List<Vector2>) {
+        (text zip positions).forEach {
+            text(it.first, it.second)
+        }
     }
 }
