@@ -9,6 +9,55 @@ data class Quaternion(val x: Double, val y: Double, val z: Double, val w: Double
         val IDENTITY: Quaternion = Quaternion(0.0, 0.0, 0.0, 1.0)
         val ZERO: Quaternion = Quaternion(0.0, 0.0, 0.0, 0.0)
 
+        fun fromLookAt(from: Vector3, to: Vector3, up: Vector3 = Vector3.UNIT_Y): Quaternion {
+            val direction = to - from
+            val z = direction.normalized
+            val y = up.normalized
+            val x = (y cross z).normalized
+            val y2 = (z cross x).normalized
+            return fromAxes(x, y2, z).normalized
+        }
+
+        fun fromAxes(x: Vector3, y: Vector3, z: Vector3): Quaternion {
+            val m = Matrix44.fromColumnVectors(x.xyz0, y.xyz0, z.xyz0, Vector4.UNIT_W)
+            return fromMatrix(m)
+        }
+
+        fun fromMatrix(m: Matrix44): Quaternion {
+            val t = m.trace
+            val x: Double
+            val y: Double
+            val z: Double
+            val w: Double
+            if (t > 0) {
+                val s = 0.5 / Math.sqrt(t)
+                w = 0.25 / s
+                x = (m.c1r2 - m.c2r1) * s
+                y = (m.c2r0 - m.c0r2) * s
+                z = (m.c0r1 - m.c1r0) * s
+            } else if (m.c0r0 > m.c1r1 && m.c0r0 > m.c2r2) {
+                val s = 0.5 / Math.sqrt(1.0 + m.c0r0 - m.c1r1 - m.c2r2) // S=4*qx
+                w = (m.c1r2 - m.c2r1) * s
+                x = 0.25f / s
+                y = (m.c0r1 + m.c1r0) * s
+                z = (m.c2r0 + m.c0r2) * s
+            } else if (m.c1r1 > m.c2r2) {
+                val s = 0.5f / Math.sqrt(1.0 + m.c1r1 - m.c0r0 - m.c2r2) // S=4*qy
+                w = (m.c2r0 - m.c0r2) * s
+                x = (m.c0r2 + m.c1r0) * s
+                y = 0.25f / s
+                z = (m.c1r2 + m.c2r1) * s
+            } else {
+                val s = 0.5f / Math.sqrt(1.0 + m.c2r2 - m.c0r0 - m.c1r1) // S=4*qz
+                w = (m.c0r1 - m.c1r0) * s
+                x = (m.c2r0 + m.c0r2) * s
+                y = (m.c1r2 + m.c2r1) * s
+                z = 0.25f / s
+            }
+            return Quaternion(x, y, z, w)
+
+        }
+
         fun fromAngles(pitch: Double, roll: Double, yaw: Double) =
                 fromAnglesRadian(Math.toRadians(pitch), Math.toRadians(roll), Math.toRadians(yaw))
 
@@ -36,6 +85,26 @@ data class Quaternion(val x: Double, val y: Double, val z: Double, val w: Double
                 -x * q.z + y * q.w + z * q.x + w * q.y,
                 x * q.y - y * q.x + z * q.w + w * q.z,
                 -x * q.x - y * q.y - z * q.z + w * q.w)
+    }
+
+    operator fun times(vec: Vector3): Vector3 {
+        val s = 2.0 / norm
+        val xs = x * s
+        val ys = y * s
+        val zs = z * s
+        val xxs = x * xs
+        val yys = y * ys
+        val zzs = z * zs
+        val xys = x * ys
+        val xzs = x * zs
+        val yzs = y * zs
+        val wxs = w * xs
+        val wys = w * ys
+        val wzs = w * zs
+
+        return Vector3((1 - (yys + zzs)) * vec.x + (xys - wzs) * vec.y + (xzs + wys) * vec.z,
+                (xys + wzs) * vec.x + (1 - (xxs + zzs)) * vec.y + (yzs - wxs) * vec.z,
+                (xzs - wys) * vec.x + (yzs + wxs) * vec.y + (1 - (xxs + yys)) * vec.z)
     }
 
     val negated: Quaternion
