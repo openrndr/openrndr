@@ -43,8 +43,13 @@ open class Filter(private val shader: Shader? = null, private val watcher: Shade
     }
 
     open fun apply(source: Array<ColorBuffer>, target: Array<ColorBuffer>) {
+
+        if (target.isEmpty()) {
+            return
+        }
+
         val shader = if (this.watcher != null) watcher.shader!! else this.shader!!
-        val renderTarget = renderTarget(target[0].width, target[0].height, 1.0) {}
+        val renderTarget = renderTarget(target[0].width, target[0].height, target[0].contentScale) {}
 
         target.forEach {
             renderTarget.attach(it)
@@ -104,6 +109,8 @@ open class Filter(private val shader: Shader? = null, private val watcher: Shade
                     is Vector2 -> shader.uniform(uniform, value as Array<Vector2>)
                     is Vector3 -> shader.uniform(uniform, value as Array<Vector3>)
                     is Vector4 -> shader.uniform(uniform, value as Array<Vector4>)
+                    else -> throw IllegalArgumentException("unsupported array value: ${value[0]!!::class.java}")
+                    //is ColorRGBa -> shader.uniform(uniform, value as Array<ColorRGBa>)
                 }
 
                 is ColorBuffer -> {
