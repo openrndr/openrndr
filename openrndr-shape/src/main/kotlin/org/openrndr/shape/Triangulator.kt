@@ -32,7 +32,7 @@ fun triangulate(shape: Shape, distanceTolerance: Double = 0.5): List<Vector2> {
 /**
  * Indexed triangulation consisting of a list of vertices and triangle indices.
  */
-class IndexedTriangulation(vertices:List<Vector2>, triangles: List<Int>)
+class IndexedTriangulation(val vertices:List<Vector2>, val triangles: List<Int>)
 
 /**
  * triangulates a [Shape] into a list of indexed triangles
@@ -99,9 +99,9 @@ internal object Triangulator {
 
         var minX = 0.0
         var minY = 0.0
-        var maxX = 0.0
-        var maxY = 0.0
-        var size = java.lang.Double.MIN_VALUE
+        var maxX : Double
+        var maxY : Double
+        var size = Double.MIN_VALUE
 
         if (hasHoles)
             outerNode = eliminateHoles(data, holeIndices!!, outerNode, dim)
@@ -250,7 +250,7 @@ internal object Triangulator {
     }
 
     private fun intersects(p1: Node, q1: Node, p2: Node, q2: Node): Boolean {
-        return if (equals(p1, q1!!) && equals(p2!!, q2) || equals(p1, q2) && equals(p2!!, q1)) true else area(p1, q1, p2!!) > 0 != area(p1, q1, q2) > 0 && area(p2, q2, p1) > 0 != area(p2, q2, q1) > 0
+        return if (equals(p1, q1) && equals(p2, q2) || equals(p1, q2) && equals(p2, q1)) true else area(p1, q1, p2) > 0 != area(p1, q1, q2) > 0 && area(p2, q2, p1) > 0 != area(p2, q2, q1) > 0
     }
 
     private fun cureLocalIntersections(start: Node, triangles: MutableList<Int>, dim: Int): Node {
@@ -338,20 +338,20 @@ internal object Triangulator {
     }
 
     private fun zOrder(x: Double, y: Double, minX: Double, minY: Double, size: Double): Double {
-        var y = y
+
         // coords are transformed into non-negative 15-bit integer range
         var lx = (32767 * (x - minX) / size).toInt()
-        val ly = (32767 * (y - minY) / size).toInt()
+        var ly = (32767 * (y - minY) / size).toInt()
 
         lx = lx or (lx shl 8) and 0x00FF00FF
         lx = lx or (lx shl 4) and 0x0F0F0F0F
         lx = lx or (lx shl 2) and 0x33333333
         lx = lx or (lx shl 1) and 0x55555555
 
-        y = (ly or (ly shl 8) and 0x00FF00FF).toDouble()
-        y = (ly or (ly shl 4) and 0x0F0F0F0F).toDouble()
-        y = (ly or (ly shl 2) and 0x33333333).toDouble()
-        y = (ly or (ly shl 1) and 0x55555555).toDouble()
+        ly = ly or (ly shl 8) and 0x00FF00FF
+        ly = ly or (ly shl 4) and 0x0F0F0F0F
+        ly = ly or (ly shl 2) and 0x33333333
+        ly = ly or (ly shl 1) and 0x55555555
 
         return (lx or (ly shl 1)).toDouble()
     }

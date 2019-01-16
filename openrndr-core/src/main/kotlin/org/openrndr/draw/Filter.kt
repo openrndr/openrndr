@@ -4,6 +4,7 @@ import org.openrndr.color.ColorRGBa
 import org.openrndr.internal.Driver
 import org.openrndr.math.*
 import org.openrndr.math.transforms.ortho
+import java.net.URL
 
 private val filterDrawStyle = DrawStyle().apply {
     blendMode = BlendMode.REPLACE
@@ -13,6 +14,21 @@ private val filterDrawStyle = DrawStyle().apply {
 }
 
 private var filterQuad: VertexBuffer? = null
+
+fun filterShaderFromUrl(url: String): Shader {
+    return filterShaderFromCode(URL(url).readText())
+}
+
+fun filterWatcherFromUrl(url: String): ShaderWatcher {
+    return shaderWatcher {
+        vertexShaderCode = Filter.filterVertexCode
+        fragmentShaderUrl = url
+    }
+}
+
+fun filterShaderFromCode(fragmentShaderCode: String): Shader {
+    return Shader.createFromCode(Filter.filterVertexCode, fragmentShaderCode)
+}
 
 open class Filter(private val shader: Shader? = null, private val watcher: ShaderWatcher? = null) {
 
@@ -68,11 +84,11 @@ open class Filter(private val shader: Shader? = null, private val watcher: Shade
         shader.uniform("projectionMatrix", ortho(0.0, target[0].width.toDouble(), target[0].height.toDouble(), 0.0, -1.0, 1.0))
         shader.uniform("targetSize", Vector2(target[0].width.toDouble(), target[0].height.toDouble()))
 
-
         var textureIndex = source.size
         parameters.forEach { (uniform, value) ->
             @Suppress("UNCHECKED_CAST")
             when (value) {
+                is Boolean -> shader.uniform(uniform, value)
                 is Float -> shader.uniform(uniform, value)
                 is Double -> shader.uniform(uniform, value.toFloat())
                 is Matrix44 -> shader.uniform(uniform, value)
@@ -83,7 +99,7 @@ open class Filter(private val shader: Shader? = null, private val watcher: Shade
                 is Int -> shader.uniform(uniform, value)
                 is Matrix55 -> shader.uniform(uniform, value.floatArray)
 
-            // EJ: this is not so nice but I have no other ideas for this
+                // EJ: this is not so nice but I have no other ideas for this
                 is Array<*> -> if (value.size > 0) when (value[0]) {
                     is Vector2 -> shader.uniform(uniform, value as Array<Vector2>)
                     is Vector3 -> shader.uniform(uniform, value as Array<Vector3>)
@@ -95,6 +111,7 @@ open class Filter(private val shader: Shader? = null, private val watcher: Shade
                     value.bind(textureIndex)
                     textureIndex++
                 }
+
                 is Cubemap -> {
                     shader.uniform("$uniform", textureIndex)
                     value.bind(textureIndex)
