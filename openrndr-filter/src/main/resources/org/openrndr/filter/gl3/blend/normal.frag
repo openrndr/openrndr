@@ -10,6 +10,6 @@ void main() {
     vec4 b = texture(tex1, v_texCoord0);
     float alpha = min(1,max(0, b.a));
 
-    o_color = a * (1.0-alpha) + b * alpha;// * b.a;
+    o_color = a * (1.0-alpha) + b;
     o_color.a = 1.0;
 }

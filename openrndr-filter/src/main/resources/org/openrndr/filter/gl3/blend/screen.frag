@@ -9,13 +9,25 @@ void main() {
     vec4 a = texture(tex0, v_texCoord0);
     vec4 b = texture(tex1, v_texCoord0);
 
-    vec4 c = vec4(
-        b.r <= a.r? b.r : a.r,
-        b.g <= a.g? b.g : a.g,
-        b.b <= a.b? b.b : a.b,
-        1.0
-        );
+    vec3 na = a.a == 0.0 ? vec3(0.0): a.rgb / a.a;
+    vec3 nb = b.a == 0.0 ? vec3(0.0): b.rgb / b.a;
 
-    o_color = c;
-    o_color.a = 1.0;
+    float minAlpha = min(a.a, b.a);
+    float maxAlpha = max(a.a, b.a);
+
+    vec3 ka = mix(vec3(0.0), na.rgb, a.a);
+    vec3 kb = mix(na.rgb, nb.rgb, b.a);
+
+    vec4 m = vec4(
+        1.0-((1.0-ka.r)*(1.0-kb.r)),
+        1.0-((1.0-ka.g)*(1.0-kb.g)),
+        1.0-((1.0-ka.b)*(1.0-kb.b)),
+        1.0
+    ) * maxAlpha;
+
+    vec4 l = a;
+    l = l * (1.0 - b.a) + b;
+    l = l * (1.0 - m.a) + m;
+    o_color = l;
+    o_color.a = maxAlpha;
 }
