@@ -707,7 +707,7 @@ class ShaderGL3(val program: Int,
 
                     glGetActiveUniform(currentProgram, index, lengthBuffer, sizeBuffer, typeBuffer, nameBuffer)
                     val nameBytes = ByteArray(lengthBuffer[0])
-                    nameBuffer.rewind()
+                    nameBuffer.safeRewind()
                     nameBuffer.get(nameBytes)
                     val retrievedName = String(nameBytes)
                     return "($name/$retrievedName): ${sizeBuffer[0]} / ${typeBuffer[0]}}"

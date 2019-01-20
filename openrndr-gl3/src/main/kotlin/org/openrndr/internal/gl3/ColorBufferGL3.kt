@@ -122,7 +122,7 @@ class ColorBufferShadowGL3(override val colorBuffer: ColorBufferGL3) : ColorBuff
 
     override inline fun mapBoolean(crossinline mapper: (r: Double, g: Double, b: Double, a: Double) -> Boolean): Array<BooleanArray> {
         val result = Array(colorBuffer.effectiveHeight) { BooleanArray(colorBuffer.effectiveWidth) }
-        buffer.rewind()
+        (buffer as Buffer).rewind()
         when (Pair(colorBuffer.type, colorBuffer.format)) {
             Pair(ColorType.UINT8, ColorFormat.RGBa) -> {
                 for (y in 0 until colorBuffer.effectiveHeight) {
@@ -167,7 +167,7 @@ class ColorBufferShadowGL3(override val colorBuffer: ColorBufferGL3) : ColorBuff
 
     override inline fun mapDouble(crossinline mapper: (r: Double, g: Double, b: Double, a: Double) -> Double): Array<DoubleArray> {
         val result = Array(colorBuffer.effectiveHeight) { DoubleArray(colorBuffer.effectiveWidth) }
-        buffer.rewind()
+        (buffer as Buffer).rewind()
         when (Pair(colorBuffer.type, colorBuffer.format)) {
             Pair(ColorType.UINT8, ColorFormat.RGBa) -> {
                 for (y in 0 until colorBuffer.effectiveHeight) {
@@ -212,7 +212,7 @@ class ColorBufferShadowGL3(override val colorBuffer: ColorBufferGL3) : ColorBuff
 
     override inline fun mapFloat(crossinline mapper: (r: Double, g: Double, b: Double, a: Double) -> Float): Array<FloatArray> {
         val result = Array(colorBuffer.effectiveHeight) { FloatArray(colorBuffer.effectiveWidth) }
-        buffer.rewind()
+        (buffer as Buffer).rewind()
         when (Pair(colorBuffer.type, colorBuffer.format)) {
             Pair(ColorType.UINT8, ColorFormat.RGBa) -> {
                 for (y in 0 until colorBuffer.effectiveHeight) {
@@ -258,7 +258,7 @@ class ColorBufferShadowGL3(override val colorBuffer: ColorBufferGL3) : ColorBuff
 
     override inline fun mapInt(crossinline mapper: (r: Double, g: Double, b: Double, a: Double) -> Int): Array<IntArray> {
         val result = Array(colorBuffer.effectiveHeight) { IntArray(colorBuffer.effectiveWidth) }
-        buffer.rewind()
+        (buffer as Buffer).rewind()
         when (Pair(colorBuffer.type, colorBuffer.format)) {
             Pair(ColorType.UINT8, ColorFormat.RGBa) -> {
                 for (y in 0 until colorBuffer.effectiveHeight) {

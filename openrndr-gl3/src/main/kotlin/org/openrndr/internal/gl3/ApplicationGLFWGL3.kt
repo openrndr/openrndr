@@ -33,6 +33,7 @@ import org.openrndr.draw.Drawer
 import org.openrndr.internal.Driver
 import org.openrndr.math.Vector2
 import org.openrndr.WindowMultisample.*
+import java.nio.ByteBuffer
 
 import java.util.*
 
@@ -203,7 +204,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         }
 
         val buf = BufferUtils.createByteBuffer(128 * 128 * 4)
-        buf.rewind()
+        (buf as ByteBuffer).rewind()
         for (y in 0 until 128) {
             for (x in 0 until 128) {
                 buf.putInt(0xffc0cbff.toInt())
