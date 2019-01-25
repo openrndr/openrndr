@@ -853,10 +853,10 @@ class ColorBufferGL3(val target: Int,
                 if (!flipV) {
                     val flippedPixels = BufferUtils.createByteBuffer(effectiveWidth * effectiveHeight * format.componentCount)
                     (flippedPixels as Buffer).rewind()
-                    val stride = width * format.componentCount
+                    val stride = effectiveWidth * format.componentCount
                     val row = ByteArray(stride)
-                    for (y in 0 until height) {
-                        (pixels as Buffer).position((height - y - 1) * stride)
+                    for (y in 0 until effectiveHeight) {
+                        (pixels as Buffer).position((effectiveHeight - y - 1) * stride)
                         pixels.get(row)
                         flippedPixels.put(row)
                     }
