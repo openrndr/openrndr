@@ -60,6 +60,8 @@ out vec3 v_viewNormal;
 out vec3 v_worldPosition;
 out vec3 v_viewPosition;
 out vec4 v_clipPosition;
+
+flat out mat4 v_modelNormalMatrix;
 """
 
 private const val transformVaryingIn = """
@@ -68,6 +70,7 @@ in vec3 v_viewNormal;
 in vec3 v_worldPosition;
 in vec3 v_viewPosition;
 in vec4 v_clipPosition;
+flat in mat4 v_modelNormalMatrix;
 """
 
 private const val preTransform = """
@@ -84,6 +87,7 @@ private const val postTransform = """
     v_worldPosition = (x_modelMatrix * vec4(x_position, 1.0)).xyz;
     v_viewPosition = (x_viewMatrix * vec4(v_worldPosition, 1.0)).xyz;
     v_clipPosition = x_projectionMatrix * vec4(v_viewPosition, 1.0);
+    v_modelNormalMatrix = x_modelNormalMatrix;
 """
 
 class ShaderGeneratorsGL3 : ShaderGenerators {

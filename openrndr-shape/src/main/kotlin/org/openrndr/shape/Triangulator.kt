@@ -5,6 +5,18 @@ import java.util.ArrayList
 import java.util.Comparator
 import kotlin.IllegalStateException
 
+
+fun List<Int>.cumsum() : List<Int> {
+    val result = mutableListOf<Int>()
+    var sum = 0
+    for (i in this) {
+        sum += i
+        result+=sum
+    }
+    return result
+}
+
+
 /**
  * triangulates a [Shape] into a list of triangles
  * @param shape the shape to triangulate
@@ -14,7 +26,7 @@ fun triangulate(shape: Shape, distanceTolerance: Double = 0.5): List<Vector2> {
     val positions = shape.contours.map { it.adaptivePositions(distanceTolerance) }
 
     val holes = if (shape.contours.size > 1) {
-        positions.dropLast(1).map { it.size }.toIntArray()
+        positions.dropLast(1).map { it.size }.cumsum().toIntArray()
     } else {
         null
     }
@@ -43,11 +55,10 @@ fun triangulateIndexed(shape: Shape, distanceTolerance: Double = 0.5): IndexedTr
     val positions = shape.contours.map { it.adaptivePositions(distanceTolerance) }
 
     val holes = if (shape.contours.size > 1) {
-        positions.dropLast(1).map { it.size }.toIntArray()
+        positions.dropLast(1).map { it.size }.cumsum().toIntArray()
     } else {
         null
     }
-
     val vertices = positions.flatMap { it }
     val data = vertices.flatMap { listOf(it.x, it.y) }.toDoubleArray()
     val indices = Triangulator.earcut(data, holes, 2).toList()
