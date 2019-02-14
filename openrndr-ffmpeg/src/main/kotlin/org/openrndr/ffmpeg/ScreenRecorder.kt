@@ -42,6 +42,8 @@ class ScreenRecorder : Extension {
     /** when set to true, `program.application.exit()` will be issued after the maximum duration has been reached */
     var quitAfterMaximum = true
 
+    var contentScale: Double = 1.0
+
     override fun setup(program: Program) {
         if (frameClock) {
             program.clock = {
@@ -58,7 +60,10 @@ class ScreenRecorder : Extension {
             return "$prefix$sv"
         }
 
-        frame = renderTarget(program.width, program.height, multisample = multisample) {
+        val effectiveWidth = (program.width * contentScale).toInt()
+        val effectiveHeight = (program.height * contentScale).toInt()
+
+        frame = renderTarget(effectiveWidth, effectiveHeight, multisample = multisample) {
             colorBuffer()
             depthBuffer()
         }
@@ -69,7 +74,8 @@ class ScreenRecorder : Extension {
 
         val dt = LocalDateTime.now()
         val basename = program.javaClass.simpleName.ifBlank { program.window.title.ifBlank { "untitled" } }
-        val filename = outputFile?: "video/$basename-${dt.year.z(4)}-${dt.month.value.z()}-${dt.dayOfMonth.z()}-${dt.hour.z()}.${dt.minute.z()}.${dt.second.z()}.mp4"
+        val filename = outputFile
+                ?: "video/$basename-${dt.year.z(4)}-${dt.month.value.z()}-${dt.dayOfMonth.z()}-${dt.hour.z()}.${dt.minute.z()}.${dt.second.z()}.mp4"
 
         File(filename).parentFile.let {
             if (!it.exists()) {
@@ -77,7 +83,7 @@ class ScreenRecorder : Extension {
             }
         }
 
-        videoWriter = VideoWriter().profile(profile).output(filename).size(program.width, program.height).frameRate(frameRate).start()
+        videoWriter = VideoWriter().profile(profile).output(filename).size(effectiveWidth, effectiveHeight).frameRate(frameRate).start()
     }
 
     override fun beforeDraw(drawer: Drawer, program: Program) {
@@ -107,7 +113,7 @@ class ScreenRecorder : Extension {
                 if (lresolved != null) {
                     drawer.image(lresolved)
                 } else {
-                    drawer.image(frame.colorBuffer(0))
+                    drawer.image(frame.colorBuffer(0), 0.0, 0.0, frame.width / contentScale, frame.height / contentScale)
                 }
             }
         } else {
