@@ -1,5 +1,6 @@
 package org.openrndr.internal.gl3
 
+import kotlinx.coroutines.yield
 import mu.KotlinLogging
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.EXTTextureCompressionS3TC.*
@@ -485,6 +486,8 @@ class ColorBufferDataGL3(val width: Int, val height: Int, val format: ColorForma
                 val wa = IntArray(1)
                 val ha = IntArray(1)
                 val ca = IntArray(1)
+
+                println("dimensions $wa x $ha")
                 STBImage.stbi_set_flip_vertically_on_load(true)
                 STBImage.stbi_set_unpremultiply_on_load(false)
                 val data = STBImage.stbi_load_from_memory(buffer, wa, ha, ca, 0)
@@ -538,6 +541,9 @@ class ColorBufferDataGL3(val width: Int, val height: Int, val format: ColorForma
             val wa = IntArray(1)
             val ha = IntArray(1)
             val ca = IntArray(1)
+
+            println("dimensions ${wa[0]} x ${ha[0]}")
+
 
             STBImage.stbi_set_flip_vertically_on_load(true)
             STBImage.stbi_set_unpremultiply_on_load(false)
@@ -630,6 +636,53 @@ class ColorBufferGL3(val target: Int,
                 glFinish()
 
             }
+        }
+
+        suspend fun tilesFromFile(filename: String, tileWidth:Int, tileHeight:Int): List<List<ColorBufferTile>> {
+            val data = ColorBufferDataGL3.fromFile(filename)
+            println("tile data: ${data.height} ${data.width}")
+            val xTiles = Math.ceil(data.width.toDouble() / (tileWidth)).toInt()
+            val yTiles = Math.ceil(data.height.toDouble() / (tileHeight)).toInt()
+
+            val tiles = mutableListOf<MutableList<ColorBufferTile>>()
+
+            for (y in 0 until yTiles) {
+                val row = mutableListOf<ColorBufferTile>()
+                for (x in 0 until xTiles) {
+
+                    val xOff = (x * (tileWidth))
+                    val yOff = (y * (tileHeight))
+                    val width = Math.min(data.width - xOff, tileWidth)
+                    val height = Math.min(data.height - yOff, tileHeight)
+                    val bb = ByteBuffer.allocateDirect(width * height * data.format.componentCount)
+                    bb.rewind()
+                    val cb = colorBuffer(width, height, 1.0, data.format)
+
+                    val components = data.format.componentCount
+
+
+                    val d = data.data!!
+
+                    for (v in 0 until height) {
+                        for (u in 0 until width) {
+                            val offset = ((v+yOff) * data.width + (u+xOff)) * components
+                            for (i in 0 until components) {
+                                bb.put(d.get(offset + i))
+                            }
+                        }
+                    }
+
+                    bb.rewind()
+                    cb.write(bb)
+                    val tile = ColorBufferTile(xOff, yOff, cb)
+                    row.add(tile)
+                    yield()
+                }
+                tiles.add(row)
+            }
+            return tiles
+
+
         }
 
         fun create(width: Int,

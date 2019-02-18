@@ -88,6 +88,7 @@ interface ColorBuffer {
 
     /** save the [ColorBuffer] to [File] */
     fun saveToFile(file: File, fileFormat: FileFormat = guessFromExtension(file))
+
     private fun guessFromExtension(file: File): FileFormat {
         val extension = file.extension.toLowerCase()
         return when (extension) {
@@ -157,6 +158,9 @@ interface ColorBuffer {
     }
 }
 
+
+class ColorBufferTile(val x: Int, val y: Int, val colorBuffer: ColorBuffer)
+
 /**
  * creates a [ColorBuffer]
  * @param width the width in device units
@@ -166,7 +170,7 @@ interface ColorBuffer {
  * @param type the color type
  * @param format the color format
  */
-fun colorBuffer(width: Int, height: Int, contentScale: Double = 1.0, format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.UINT8, multisample:BufferMultisample = BufferMultisample.Disabled): ColorBuffer {
+fun colorBuffer(width: Int, height: Int, contentScale: Double = 1.0, format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.UINT8, multisample: BufferMultisample = BufferMultisample.Disabled): ColorBuffer {
     return Driver.driver.createColorBuffer(width, height, contentScale, format, type, multisample)
 }
 
