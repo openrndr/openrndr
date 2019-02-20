@@ -69,7 +69,7 @@ class ScreenRecorder : Extension {
         }
 
         if (multisample != BufferMultisample.Disabled) {
-            resolved = colorBuffer(program.width, program.height)
+            resolved = colorBuffer(effectiveWidth, effectiveHeight)
         }
 
         val dt = LocalDateTime.now()
