@@ -561,10 +561,12 @@ void main() {
     override fun meshLineFragmentShader(shadeStructure: ShadeStructure): String = """
         |#version 330 core
         |${primitiveTypes("d_mesh_line")}
+        |${shadeStructure.outputs ?: ""}
         |${shadeStructure.uniforms ?: ""}
         |layout(origin_upper_left) in vec4 gl_FragCoord;
         |
         |uniform sampler2D image;
+        |${shadeStructure.fragmentPreamble ?: ""}
         |$drawerUniforms
         |${shadeStructure.varyingIn ?: ""}
         |$transformVaryingIn
@@ -632,7 +634,7 @@ void main() {
         |       vec2 dir2 = normalize(nextP - currentP);
         |       dir = normalize(dir1 + dir2);
         |   }
-        |
+        |   x_normal = ( cross( vec3( dir, 0. ), vec3( 0., 0., 1. ) ) );
         |   vec2 normal = vec2(-dir.y, dir.x);
         |   normal.x /= aspect;
         |   normal *= .5 * w;
