@@ -31,10 +31,10 @@ fun sampleEquidistant(pieces: List<Vector2>, count: Int): List<Vector2> {
         if (pieceLength + runLength < spacing) {
             runLength += pieceLength
         } else {
-            val skip = spacing - runLength
+            val skip = (spacing - runLength).coerceAtLeast(0.0)
 
             if (skip < 0) {
-                throw RuntimeException("skip < 0")
+                throw RuntimeException("skip < 0 - $skip")
             }
 
 
