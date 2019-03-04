@@ -19,6 +19,8 @@ data class FontImageMapDescriptor(val fontUrl: String, val size: Double, val con
 
 private val fontImageMaps: MutableMap<FontImageMapDescriptor, FontImageMap> = mutableMapOf()
 
+data class CharacterPair(val left: Char, val right: Char)
+
 class FontImageMap(val texture: ColorBuffer,
                    val map: Map<Char, IntRectangle>,
                    val glyphMetrics: Map<Char, GlyphMetrics>,
@@ -30,6 +32,10 @@ class FontImageMap(val texture: ColorBuffer,
                    override val leading: Double,
                    override val name: String
 ) : FontMap() {
+
+    val kerningTable = mutableMapOf<CharacterPair, Double>()
+
+
     companion object {
         fun fromUrl(fontUrl: String, size: Double, contentScale: Double = 1.0): FontImageMap =
                 fontImageMaps.getOrPut(FontImageMapDescriptor(fontUrl, size, contentScale)) {
@@ -42,7 +48,7 @@ class FontImageMap(val texture: ColorBuffer,
     }
 
     fun kerning(left: Char, right: Char): Double {
-        return 0.0
+        return kerningTable.getOrDefault(CharacterPair(left, right), 0.0)
     }
 }
 

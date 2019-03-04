@@ -174,6 +174,13 @@ class ChannelMask(val red: Boolean, val green: Boolean, val blue: Boolean, val a
 private var styleBlocks = mutableMapOf<Long, UniformBlock>()
 private var useStyleBlock = true
 
+
+enum class KernMode {
+    DISABLED,
+    METRIC
+
+}
+
 data class DrawStyle(
         var clip: Rectangle? = null,
         var fill: ColorRGBa? = ColorRGBa.WHITE,
@@ -195,6 +202,7 @@ data class DrawStyle(
 
         var shadeStyle: ShadeStyle? = null,
         var fontMap: FontMap? = null,
+        var kerning: KernMode = KernMode.METRIC,
 
         var stencil: StencilStyle = StencilStyle(),
         var frontStencil: StencilStyle = stencil,

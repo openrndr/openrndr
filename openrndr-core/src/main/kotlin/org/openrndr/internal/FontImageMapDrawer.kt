@@ -29,10 +29,16 @@ class FontImageMapDrawer {
             val bw = vertices.shadow.writer()
             bw.position = vertices.vertexFormat.size * quads * 6
 
+            var lastChar:Char? = null
             text.forEach {
-                val metrics = fontMap.glyphMetrics[it] ?: fontMap.glyphMetrics[' ']!!
+                val lc = lastChar
+                val metrics = fontMap.glyphMetrics[it] ?: fontMap.glyphMetrics.getValue(' ')
+                if (drawStyle.kerning == KernMode.METRIC) {
+                    cursorX += if (lc != null) fontMap.kerning(lc, it) else 0.0
+                }
                 insertCharacterQuad(fontMap, bw, it, x + cursorX + metrics.leftSideBearing, y + cursorY + metrics.yBitmapShift / fontMap.contentScale)
                 cursorX += metrics.advanceWidth
+                lastChar = it
             }
             flush(context, drawStyle)
         }
@@ -48,28 +54,40 @@ class FontImageMapDrawer {
                 val bw = vertices.shadow.writer()
                 bw.position = vertices.vertexFormat.size * quads * 6
 
+                var lastChar:Char? = null
                 text.forEach {
-                    val metrics = fontMap.glyphMetrics[it] ?: fontMap.glyphMetrics[' ']!!
+                    val lc = lastChar
+                    if (drawStyle.kerning == KernMode.METRIC) {
+                        cursorX += if (lc != null) fontMap.kerning(lc, it) else 0.0
+                    }
+                    val metrics = fontMap.glyphMetrics[it] ?: fontMap.glyphMetrics.getValue(' ')
                     insertCharacterQuad(fontMap, bw, it, position.x + cursorX + metrics.leftSideBearing, position.y + cursorY + metrics.yBitmapShift / fontMap.contentScale)
                     cursorX += metrics.advanceWidth
+                    lastChar = it
                 }
             }
             flush(context, drawStyle)
         }
     }
 
-    fun queueText(fontMap: FontMap, text: String, x: Double, y: Double, tracking: Double = 0.0) {
+    fun queueText(fontMap: FontMap, text: String, x: Double, y: Double, tracking: Double = 0.0, kerning:KernMode = KernMode.METRIC) {
         val bw = vertices.shadow.writer()
         bw.position = vertices.vertexFormat.size * quads * 6
         fontMap as FontImageMap
 
         var cursorX = 0.0
         var cursorY = 0.0
+        var lastChar:Char? = null
         text.forEach {
+            val lc = lastChar
             val metrics = fontMap.glyphMetrics[it]
             metrics?.let { m ->
+                if (kerning == KernMode.METRIC) {
+                    cursorX += if (lc != null) fontMap.kerning(lc, it) else 0.0
+                }
                 insertCharacterQuad(fontMap, bw, it, x + cursorX + m.leftSideBearing / fontMap.contentScale, y + cursorY + m.yBitmapShift / fontMap.contentScale)
                 cursorX += m.advanceWidth + tracking
+                lastChar = it
             }
         }
     }

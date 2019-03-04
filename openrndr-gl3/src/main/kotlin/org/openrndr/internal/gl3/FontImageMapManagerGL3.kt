@@ -7,10 +7,7 @@ import org.lwjgl.stb.STBTruetype.*
 import org.lwjgl.system.MemoryStack.stackPush
 import org.openrndr.binpack.IntPacker
 import org.openrndr.binpack.PackNode
-import org.openrndr.draw.ColorBuffer
-import org.openrndr.draw.ColorFormat
-import org.openrndr.draw.FontImageMap
-import org.openrndr.draw.GlyphMetrics
+import org.openrndr.draw.*
 import org.openrndr.internal.FontMapManager
 import org.openrndr.math.IntVector2
 import org.openrndr.shape.IntRectangle
@@ -113,7 +110,7 @@ class FontImageMapManagerGL3 : FontMapManager() {
         }
         logger.debug { "final map size ${packSize}x${packSize}" }
 
-        val image = ColorBuffer.create(packSize, packSize, 1.0, ColorFormat.R)
+        val image = colorBuffer(packSize, packSize, 1.0, ColorFormat.R)
         val map = mutableMapOf<Char, IntRectangle>()
 
         val root = PackNode(IntRectangle(0, 0, packSize, packSize))
@@ -167,7 +164,19 @@ class FontImageMapManagerGL3 : FontMapManager() {
         image.write(bitmap)
 
         val leading = ascent - descent + lineGap
-        return FontImageMap(image, map, glyphMetrics, size, contentScale, ascent / contentScale, descent / contentScale, (ascent + descent) / contentScale, leading / contentScale, "test")
+        return FontImageMap(image, map, glyphMetrics, size, contentScale, ascent / contentScale, descent / contentScale, (ascent + descent) / contentScale, leading / contentScale, "test").apply {
+
+            for (outer in standard) {
+                for (inner in standard) {
+                    val outerGlyph = glyphIndices.get(outer)
+                    val innerGlyph = glyphIndices.get(inner)
+                    if (outerGlyph != null && innerGlyph != null) {
+                        val kernInfo = stbtt_GetGlyphKernAdvance(info, outerGlyph, innerGlyph)
+                        kerningTable[CharacterPair(outer, inner)] = kernInfo * scale/contentScale
+                    }
+                }
+            }
+        }
     }
 }
 
