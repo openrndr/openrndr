@@ -119,7 +119,7 @@ internal class ExpansionDrawer {
         Driver.instance.setState(drawStyle)
 
         shader.uniform("strokeThr", -1.0f)
-        shader.uniform("strokeMult", drawStyle.strokeWeight / 2.0 + 0.65)
+        shader.uniform("strokeMult", 0.5 + 0.65)
         shader.uniform("strokeFillFactor", 1.0)
         commands.forEach { command ->
             if (command.type == ExpansionType.FILL) {
