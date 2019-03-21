@@ -1,26 +1,27 @@
 package org.openrndr.ffmpeg
 
+import mu.KotlinLogging
 import org.lwjgl.BufferUtils
 import org.openrndr.draw.ColorBuffer
-import org.openrndr.internal.gl3.ColorBufferGL3
 import java.io.File
 import java.io.IOException
 import java.io.OutputStream
 import java.nio.Buffer
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
-import java.nio.channels.Channel
 import java.nio.channels.Channels
 import java.nio.channels.WritableByteChannel
 import java.util.*
+
+private val logger = KotlinLogging.logger {}
 
 abstract class VideoWriterProfile {
     abstract fun arguments(): Array<String>
 }
 
 class MP4Profile : VideoWriterProfile() {
-    internal var mode = WriterMode.Normal
-    internal var constantRateFactor = 23
+    private var mode = WriterMode.Normal
+    private var constantRateFactor = 23
 
     enum class WriterMode {
         Normal,
@@ -100,7 +101,6 @@ class X265Profile : VideoWriterProfile() {
             }
 
         } else if (mode == WriterMode.Lossless) {
-            println("lossless mode")
             return arrayOf("-pix_fmt", "yuv420p10", // this will produce videos that are playable by quicktime
                     "-an", "-vcodec", "libx265", "-preset", "ultrafast")
         } else {
@@ -115,15 +115,15 @@ class VideoWriter {
 
     internal var ffmpegOutput = File("ffmpegOutput.txt")
 
-    internal var frameRate = 25
-    internal var width = -1
-    internal var height = -1
+    private var frameRate = 25
+    private var width = -1
+    private var height = -1
 
-    internal var filename: String? = "rndr.mp4"
+    private var filename: String? = "rndr.mp4"
 
 
-    internal lateinit var frameBuffer: ByteBuffer
-    internal lateinit var channel: WritableByteChannel
+    private lateinit var frameBuffer: ByteBuffer
+    private lateinit var channel: WritableByteChannel
     private var ffmpeg: Process? = null
     private var movieStream: OutputStream? = null
 
@@ -181,18 +181,18 @@ class VideoWriter {
      * Start writing to the video file
      */
     fun start(): VideoWriter {
+        logger.debug { "starting video writer with $width x $height output using $inputFormat writing to $filename" }
 
         if (filename == null) {
             throw RuntimeException("output not set")
         }
 
         if (width <= 0) {
-            throw RuntimeException("invalid width or width not set")
+            throw RuntimeException("invalid width or width not set $width")
         }
         if (height <= 0) {
-            throw RuntimeException("invalid height or height not set")
+            throw RuntimeException("invalid height or height not set $height")
         }
-
 
         //frameBufferArray = ByteArray(width * height * 4)
         frameBuffer = when (inputFormat) {
@@ -202,16 +202,10 @@ class VideoWriter {
                else -> throw RuntimeException("unsupported format $inputFormat")
         }
 
-
-
-
         val preamble = arrayOf("-y", "-f", "rawvideo", "-vcodec", "rawvideo",
-
                 "-s", String.format("%dx%d", width, height), "-pix_fmt", inputFormat, "-r", "" + frameRate, "-i", "-", "-vf", "vflip")
 
         val codec = profile.arguments()
-
-
         val arguments = ArrayList<String>()
 
         if (System.getProperty("os.name").contains("Windows")) {
@@ -222,9 +216,11 @@ class VideoWriter {
         arguments.addAll(Arrays.asList(*preamble))
         arguments.addAll(Arrays.asList(*codec))
 
-
-
         arguments.add(filename!!)
+
+        logger.debug {
+            "using arguments: ${arguments.joinToString()}"
+        }
 
         val pb = ProcessBuilder().command(*arguments.toTypedArray())
         pb.redirectErrorStream(true)
@@ -232,13 +228,16 @@ class VideoWriter {
 
         try {
             ffmpeg = pb.start()
+            movieStream = ffmpeg!!.outputStream
+            channel = Channels.newChannel(movieStream)
+            return this
         } catch (e: IOException) {
+            System.err.println("system path: ${System.getenv("path")}")
+            System.err.println("command: ${arguments.joinToString(" ")}")
             throw RuntimeException("failed to launch ffmpeg", e)
         }
 
-        movieStream = ffmpeg!!.outputStream
-        channel = Channels.newChannel(movieStream)
-        return this
+
     }
 
     /**
@@ -247,29 +246,21 @@ class VideoWriter {
      * @param frame a ColorBuffer (RGBA, 8bit) holding the image data to be written to the video. The ColorBuffer should have the same resolution as the VideoWriter.
      */
     fun frame(frame: ColorBuffer): VideoWriter {
-
         if (! ((frame.width == width) && frame.height == height)) {
             throw RuntimeException("frame size mismatch")
         } else {
             (frameBuffer as Buffer).rewind()
             frameBuffer.order(ByteOrder.nativeOrder())
-
-            frame as ColorBufferGL3
-
             frame.read(frameBuffer)
             (frameBuffer as Buffer).rewind()
-
             try {
                 channel.write(frameBuffer)
                 movieStream!!.flush()
-
             } catch (e: IOException) {
                 e.printStackTrace()
                 throw RuntimeException("failed to write frame", e)
             }
-
         }
-
         return this
     }
 

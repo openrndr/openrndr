@@ -4,7 +4,6 @@ import org.openrndr.draw.ColorBuffer
 import org.openrndr.draw.ColorFormat
 import org.openrndr.draw.Drawer
 import org.openrndr.ffmpeg.adopted.FFmpegFrameGrabber
-import org.openrndr.internal.gl3.ColorBufferGL3
 import org.openrndr.draw.colorBuffer as _colorBuffer
 import java.io.File
 import java.nio.ByteBuffer
@@ -111,7 +110,7 @@ class FFMPEGVideoPlayer private constructor(url: String) {
                 }
             }
             colorBuffer?.let {
-                val cb = colorBuffer as ColorBufferGL3
+                val cb = it
                 cb.write(frame.image[0] as ByteBuffer)
             }
         }
