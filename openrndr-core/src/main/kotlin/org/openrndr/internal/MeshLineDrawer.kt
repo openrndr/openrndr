@@ -1,3 +1,5 @@
+@file:Suppress("Duplicates")
+
 package org.openrndr.internal
 
 import org.openrndr.draw.*
@@ -23,8 +25,7 @@ class MeshLineDrawer {
         val vertexCount = vertices.put {
             for (i in 0 until segments.size step 2) {
                 val width = weights.getOrElse(i) { drawStyle.strokeWeight }.toFloat()
-
-                var element = (i / 2).toFloat()
+                val element = (i / 2).toFloat()
 
                 write(segments[i])
                 write(segments[i])
@@ -96,63 +97,66 @@ class MeshLineDrawer {
         val vertexCount = vertices.put {
             for ((element, strip) in strips.withIndex()) {
 
-                val width = weights.getOrElse(element) { drawStyle.strokeWeight }.toFloat()
-                val elementF = element.toFloat()
+                if (strip.size >= 2) {
 
-                var previous = strip[0]
-                // leading degenerate
-                write(strip[0])
-                write(strip[0])
-                write(strip[1])
-                write(-1.0f)
-                write(width)
-                write(Vector2.ZERO)
-                write(elementF)
+                    val width = weights.getOrElse(element) { drawStyle.strokeWeight }.toFloat()
+                    val elementF = element.toFloat()
 
-                for ((current, next) in strip.zipWithNext()) {
+                    var previous = strip[0]
+                    // leading degenerate
+                    write(strip[0])
+                    write(strip[0])
+                    write(strip[1])
+                    write(-1.0f)
+                    write(width)
+                    write(Vector2.ZERO)
+                    write(elementF)
+
+                    for ((current, next) in strip.zipWithNext()) {
+                        write(previous)
+                        write(current)
+                        write(next)
+                        write(-1.0f)
+                        write(width)
+                        write(Vector2.ZERO)
+                        write(elementF)
+
+                        write(previous)
+                        write(current)
+                        write(next)
+                        write(1.0f)
+                        write(width)
+                        write(Vector2.ZERO)
+                        write(elementF)
+                        previous = current
+                    }
+
+                    // last point
                     write(previous)
-                    write(current)
-                    write(next)
+                    write(strip.last())
+                    write(strip.last())
                     write(-1.0f)
                     write(width)
                     write(Vector2.ZERO)
                     write(elementF)
 
                     write(previous)
-                    write(current)
-                    write(next)
+                    write(strip.last())
+                    write(strip.last())
                     write(1.0f)
                     write(width)
                     write(Vector2.ZERO)
                     write(elementF)
-                    previous = current
+
+                    // -- degenerate
+                    write(previous)
+                    write(strip.last())
+                    write(strip.last())
+                    write(1.0f)
+                    write(width)
+                    write(Vector2.ZERO)
+                    write(elementF)
                 }
-
-                // last point
-                write(previous)
-                write(strip.last())
-                write(strip.last())
-                write(-1.0f)
-                write(width)
-                write(Vector2.ZERO)
-                write(elementF)
-
-                write(previous)
-                write(strip.last())
-                write(strip.last())
-                write(1.0f)
-                write(width)
-                write(Vector2.ZERO)
-                write(elementF)
-
-                // -- degenerate
-                write(previous)
-                write(strip.last())
-                write(strip.last())
-                write(1.0f)
-                write(width)
-                write(Vector2.ZERO)
-                write(elementF)
             }
         }
 

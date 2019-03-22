@@ -392,7 +392,7 @@ internal class Path {
 
     fun expandStroke(fringeWidth: Double, weight: Double, lineCap: LineCap, lineJoin: LineJoin, miterLimit: Double): Expansion {
 
-        if (contours.isNotEmpty()) {
+        if (contours.isNotEmpty() && contours[0].size >= 2) {
             val points = contours[0]
             val tessTol = 0.1
             val capSteps = curveDivs(weight, Math.PI, tessTol)

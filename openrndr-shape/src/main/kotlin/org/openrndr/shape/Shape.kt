@@ -542,7 +542,11 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean) {
 
     companion object {
         fun fromPoints(points: List<Vector2>, closed: Boolean) =
-                ShapeContour((0 until points.size - 1).map { Segment(points[it], points[it + 1]) }, closed)
+                if (!closed)
+                    ShapeContour((0 until points.size - 1).map { Segment(points[it], points[it + 1]) }, closed)
+                else
+                    ShapeContour((0 until points.size).map { Segment(points[it], points[(it + 1)%points.size]) }, closed)
+
     }
 
     val length get() = segments.sumByDouble { it.length }

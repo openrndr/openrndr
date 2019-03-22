@@ -7,5 +7,4 @@ dependencies {
     runtime "org.bytedeco.javacpp-presets:ffmpeg:$ffmpeg_version:linux-x86_64"
     runtime "org.bytedeco.javacpp-presets:ffmpeg:$ffmpeg_version:macosx-x86_64"
     compile project(":openrndr-core")
-    compile project(":openrndr-gl3")
 }
