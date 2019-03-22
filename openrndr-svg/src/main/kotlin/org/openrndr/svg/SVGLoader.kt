@@ -356,9 +356,9 @@ internal class SVGLoader {
             throw IllegalArgumentException("SVG version `$version` is not supported")
         }
 
-        if (baseProfile != "tiny") {
-            throw IllegalArgumentException("SVG base-profile `$baseProfile` is not supported")
-        }
+//        if (baseProfile != "tiny") {
+//            throw IllegalArgumentException("SVG base-profile `$baseProfile` is not supported")
+//        }
 
         val rootGroup = SVGGroup()
         handleGroup(rootGroup, root)
