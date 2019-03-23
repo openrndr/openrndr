@@ -70,21 +70,36 @@ internal class SVGImage(val url: String) : SVGElement()
 internal class SVGGroup(val elements: MutableList<SVGElement> = mutableListOf()) : SVGElement()
 
 internal fun parseColor(scolor: String): ColorRGBa? {
-
-    return when {
-        scolor.isEmpty() || scolor == "none" -> null
-        scolor.startsWith("#") -> {
-            val v = java.lang.Long.decode(scolor)
-            val vi = v.toInt()
-            val r = vi shr 16 and 0xff
-            val g = vi shr 8 and 0xff
-            val b = vi and 0xff
-            val color = ColorRGBa(r / 255.0, g / 255.0, b / 255.0, 1.0)
-            color
-        }
-        else -> throw RuntimeException("could not parse color: " + scolor)
-    }
+    if (scolor.isEmpty() || scolor == "none") return null
+    val normalisedColor = normalizeColorHex(scolor)
+    val v = java.lang.Long.decode(normalisedColor)
+    val vi = v.toInt()
+    val r = vi shr 16 and 0xff
+    val g = vi shr 8 and 0xff
+    val b = vi and 0xff
+    return ColorRGBa(r / 255.0, g / 255.0, b / 255.0, 1.0)
 }
+
+fun normalizeColorHex(colorHex: String): String {
+    val colorHexRegex = "#?([0-9a-f]{3,6})".toRegex(RegexOption.IGNORE_CASE)
+
+    val matchResult = colorHexRegex.matchEntire(colorHex)
+        ?: throw RuntimeException("The provided colorHex '$colorHex' is not a valid color hex for the SVG spec")
+
+    val hexValue = matchResult.groups[1]!!.value.toLowerCase()
+    val normalizedArgb = when (hexValue.length) {
+        3 -> expandToTwoDigitsPerComponent("f$hexValue")
+        6 -> "$hexValue"
+        else -> throw RuntimeException("The provided colorHex '$colorHex' is not in a supported format")
+    }
+
+    return "#$normalizedArgb"
+}
+
+fun expandToTwoDigitsPerComponent(hexValue: String) =
+    hexValue.asSequence()
+        .map { "$it$it" }
+        .reduce { accumulatedHex, component -> accumulatedHex + component }
 
 internal class SVGPath : SVGElement() {
     val commands = mutableListOf<Command>()
