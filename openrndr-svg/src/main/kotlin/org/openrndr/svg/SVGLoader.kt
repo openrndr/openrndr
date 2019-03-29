@@ -198,7 +198,6 @@ internal class SVGPath : SVGElement() {
                     }
                     "H" -> {
                         for (i in 0 until command.operands.size) {
-
                             val target = Vector2(command.operands[i], cursor.y)
                             segments += Segment(cursor, target)
                             cursor = target
@@ -213,7 +212,6 @@ internal class SVGPath : SVGElement() {
                     }
                     "V" -> {
                         for (i in 0 until command.operands.size) {
-
                             val target = Vector2(cursor.x, command.operands[i])
                             segments += Segment(cursor, target)
                             cursor = target
@@ -287,7 +285,7 @@ internal class SVGPath : SVGElement() {
                 }
             }
             ShapeContour(segments, closed).let {
-                if (compoundIndex == 0) it.counterClockwise else it.clockwise
+                it//if (compoundIndex == 0) it.counterClockwise else it.clockwise
             }
         }
         return Shape(contours)
