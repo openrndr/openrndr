@@ -2,6 +2,9 @@ package org.openrndr.internal.gl3
 
 import mu.KotlinLogging
 import org.lwjgl.glfw.GLFW
+import org.lwjgl.opengl.GL11C
+import org.lwjgl.opengl.GL13C
+import org.lwjgl.opengl.GL33C
 import org.lwjgl.opengl.GL40C.*
 import org.openrndr.draw.*
 import org.openrndr.internal.Driver
@@ -418,6 +421,8 @@ class DriverGL3 : Driver {
     }
 
     override fun setState(drawStyle: DrawStyle) {
+
+
         if (drawStyle.clip != null) {
             drawStyle.clip?.let {
                 val target = RenderTarget.active
@@ -485,6 +490,13 @@ class DriverGL3 : Driver {
                 glBlendFunci(0, GL_DST_COLOR, GL_ZERO)
             }
         }
+        if (drawStyle.alphaToCoverage) {
+            GL33C.glEnable(GL13C.GL_SAMPLE_ALPHA_TO_COVERAGE)
+            GL33C.glDisable(GL11C.GL_BLEND)
+        } else {
+            GL33C.glDisable(GL13C.GL_SAMPLE_ALPHA_TO_COVERAGE)
+        }
+
 
         when (drawStyle.depthTestPass) {
             DepthTestPass.ALWAYS -> {
@@ -528,6 +540,9 @@ class DriverGL3 : Driver {
                 glCullFace(GL_FRONT_AND_BACK)
             }
         }
+
+
+
         debugGLErrors()
     }
 

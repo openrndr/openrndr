@@ -199,6 +199,7 @@ data class DrawStyle(
         var blendMode: BlendMode = BlendMode.OVER,
         var cullTestPass: CullTestPass = CullTestPass.ALWAYS,
         var channelWriteMask: ChannelMask = ChannelMask(true, true, true, true),
+        var alphaToCoverage: Boolean = false,
 
         var shadeStyle: ShadeStyle? = null,
         var fontMap: FontMap? = null,
