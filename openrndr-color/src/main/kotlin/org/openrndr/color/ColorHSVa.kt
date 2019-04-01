@@ -98,46 +98,56 @@ data class ColorHSVa(val h: Double, val s: Double, val v: Double, val a: Double 
         val b: Double
         val hsv = this
 
+
+
+
         val sh = mod(hsv.h, 360.0) / 60            // sector 0 to 5
         i = Math.floor(sh).toInt()
         f = sh - i            // factorial part of h
         val p = hsv.v * (1 - hsv.s)
         val q = hsv.v * (1 - hsv.s * f)
         val t = hsv.v * (1 - hsv.s * (1 - f))
-        when (i) {
-            0 -> {
-                r = hsv.v
-                g = t
-                b = p
+        if (s > 0.00001) {
+            when (i) {
+                0 -> {
+                    r = hsv.v
+                    g = t
+                    b = p
+                }
+                1 -> {
+                    r = q
+                    g = hsv.v
+                    b = p
+                }
+                2 -> {
+                    r = p
+                    g = hsv.v
+                    b = t
+                }
+                3 -> {
+                    r = p
+                    g = q
+                    b = hsv.v
+                }
+                4 -> {
+                    r = t
+                    g = p
+                    b = hsv.v
+                }
+                else        // case 5:
+                -> {
+                    r = hsv.v
+                    g = p
+                    b = q
+                }
             }
-            1 -> {
-                r = q
-                g = hsv.v
-                b = p
-            }
-            2 -> {
-                r = p
-                g = hsv.v
-                b = t
-            }
-            3 -> {
-                r = p
-                g = q
-                b = hsv.v
-            }
-            4 -> {
-                r = t
-                g = p
-                b = hsv.v
-            }
-            else        // case 5:
-            -> {
-                r = hsv.v
-                g = p
-                b = q
-            }
+        } else {
+            r = hsv.v
+            g = hsv.v
+            b = hsv.v
         }
         return ColorRGBa(r, g, b, hsv.a, Linearity.SRGB)
+
     }
 }
 
