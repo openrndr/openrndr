@@ -468,6 +468,14 @@ class Drawer(val driver: Driver) {
         }
     }
 
+    @JvmName("lineSegments3d")
+    fun lineSegments(segments: List<Vector3>, weights: List<Double>, colors: List<ColorRGBa>) {
+        when (drawStyle.quality) {
+            DrawQuality.QUALITY -> meshLineDrawer.drawLineSegments(context, drawStyle, segments, weights, colors)
+            DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineSegments(context, drawStyle, segments)
+        }
+    }
+
     fun lineLoop(points: List<Vector2>) {
         when (drawStyle.quality) {
             DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineLoops(context, drawStyle, listOf(points))
@@ -575,6 +583,18 @@ class Drawer(val driver: Driver) {
             DrawQuality.QUALITY -> meshLineDrawer.drawLineStrips(context, drawStyle, strips, weights)
         }
     }
+
+    /**
+     * Draws line strips with 3d coordinates and stroke weights per strip
+     */
+    @JvmName("lineStrips3d")
+    fun lineStrips(strips: List<List<Vector3>>, weights: List<Double>, colors: List<ColorRGBa>) {
+        when (drawStyle.quality) {
+            DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineLoops(context, drawStyle, strips)
+            DrawQuality.QUALITY -> meshLineDrawer.drawLineStrips(context, drawStyle, strips, weights, colors)
+        }
+    }
+
 
     /**
      * Draws a [Composition]

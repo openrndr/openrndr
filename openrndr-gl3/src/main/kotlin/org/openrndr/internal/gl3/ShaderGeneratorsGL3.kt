@@ -575,7 +575,7 @@ void main() {
         |void main(void) {
         |   ${fragmentConstants()}
         |   vec4 x_fill = u_fill;
-        |   vec4 x_stroke = u_stroke;
+        |   vec4 x_stroke = va_color;
         |   {
         |       ${shadeStructure.fragmentTransform ?: ""}
         |   }

@@ -2,6 +2,7 @@
 
 package org.openrndr.internal
 
+import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
 import org.openrndr.math.Vector2
 import org.openrndr.math.Vector3
@@ -18,14 +19,24 @@ class MeshLineDrawer {
         attribute("width", VertexElementType.FLOAT32)
         attribute("uv", VertexElementType.VECTOR2_FLOAT32)
         attribute("element", VertexElementType.FLOAT32)
+        color(4)
     }, 1024 * 1024)
 
-    fun drawLineSegments(drawContext: DrawContext, drawStyle: DrawStyle, segments: List<Vector3>, weights: List<Double> = emptyList()) {
+    fun drawLineSegments(drawContext: DrawContext, drawStyle: DrawStyle, segments: List<Vector3>,
+                         weights: List<Double> = emptyList(),
+                         colors: List<ColorRGBa> = emptyList()
+    ) {
+
+        val colorCount = colors.size
+        val defaultColor = colors.lastOrNull() ?: drawStyle.stroke ?: ColorRGBa.TRANSPARENT
 
         val vertexCount = vertices.put {
             for (i in 0 until segments.size step 2) {
                 val width = weights.getOrElse(i) { drawStyle.strokeWeight }.toFloat()
                 val element = (i / 2).toFloat()
+
+
+                val color = if (i < colorCount ) colors[i] else defaultColor
 
                 write(segments[i])
                 write(segments[i])
@@ -34,6 +45,7 @@ class MeshLineDrawer {
                 write(width)
                 write(Vector2.ZERO)
                 write(element)
+                write(color)
 
                 write(segments[i])
                 write(segments[i])
@@ -42,6 +54,7 @@ class MeshLineDrawer {
                 write(width)
                 write(Vector2.ZERO)
                 write(element)
+                write(color)
 
                 write(segments[i])
                 write(segments[i + 1])
@@ -50,6 +63,7 @@ class MeshLineDrawer {
                 write(width)
                 write(Vector2.ZERO)
                 write(element)
+                write(color)
 
                 // --
 
@@ -60,6 +74,7 @@ class MeshLineDrawer {
                 write(width)
                 write(Vector2.ZERO)
                 write(element)
+                write(color)
 
                 write(segments[i])
                 write(segments[i + 1])
@@ -68,6 +83,7 @@ class MeshLineDrawer {
                 write(width)
                 write(Vector2.ZERO)
                 write(element)
+                write(color)
 
                 write(segments[i])
                 write(segments[i])
@@ -76,6 +92,7 @@ class MeshLineDrawer {
                 write(width)
                 write(Vector2.ZERO)
                 write(element)
+                write(color)
             }
         }
 
@@ -92,10 +109,17 @@ class MeshLineDrawer {
     fun drawLineStrips(drawContext: DrawContext,
                        drawStyle: DrawStyle,
                        strips: List<List<Vector3>>,
-                       weights: List<Double> = emptyList()) {
+                       weights: List<Double> = emptyList(),
+                       colors: List<ColorRGBa> = emptyList()
+                       ) {
 
+
+        val colorCount = colors.size
+        val defaultColor = colors.lastOrNull() ?: drawStyle.stroke ?: ColorRGBa.TRANSPARENT
         val vertexCount = vertices.put {
             for ((element, strip) in strips.withIndex()) {
+
+                val color = if (element < colorCount ) colors[element] else defaultColor
 
                 if (strip.size >= 2) {
 
@@ -111,6 +135,7 @@ class MeshLineDrawer {
                     write(width)
                     write(Vector2.ZERO)
                     write(elementF)
+                    write(color)
 
                     for ((current, next) in strip.zipWithNext()) {
                         write(previous)
@@ -120,6 +145,7 @@ class MeshLineDrawer {
                         write(width)
                         write(Vector2.ZERO)
                         write(elementF)
+                        write(color)
 
                         write(previous)
                         write(current)
@@ -128,6 +154,7 @@ class MeshLineDrawer {
                         write(width)
                         write(Vector2.ZERO)
                         write(elementF)
+                        write(color)
                         previous = current
                     }
 
@@ -139,6 +166,7 @@ class MeshLineDrawer {
                     write(width)
                     write(Vector2.ZERO)
                     write(elementF)
+                    write(color)
 
                     write(previous)
                     write(strip.last())
@@ -147,6 +175,7 @@ class MeshLineDrawer {
                     write(width)
                     write(Vector2.ZERO)
                     write(elementF)
+                    write(color)
 
                     // -- degenerate
                     write(previous)
@@ -156,6 +185,7 @@ class MeshLineDrawer {
                     write(width)
                     write(Vector2.ZERO)
                     write(elementF)
+                    write(color)
                 }
             }
         }
@@ -174,7 +204,6 @@ class MeshLineDrawer {
                       drawStyle: DrawStyle,
                       loops: List<List<Vector3>>,
                       weights: List<Double> = emptyList()) {
-
 
 
         val vertexCount = vertices.put {
