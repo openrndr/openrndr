@@ -110,7 +110,7 @@ fun rectangleBounds(rectangles: List<Rectangle>): Rectangle {
 
 /** determines of [a] and [b] intersect */
 fun intersects(a: Rectangle, b: Rectangle): Boolean {
-    val above = a.y + a.height < b.height
+    val above = a.y + a.height < b.y
     val below = a.y > b.y + b.height
     val rightOf = a.x > b.x + b.width
     val leftOf = a.x + a.width < b.x
