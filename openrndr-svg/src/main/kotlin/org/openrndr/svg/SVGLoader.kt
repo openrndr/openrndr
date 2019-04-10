@@ -82,6 +82,26 @@ internal fun parseColor(scolor: String): ColorRGBa? {
             val color = ColorRGBa(r / 255.0, g / 255.0, b / 255.0, 1.0)
             color
         }
+        scolor == "white" -> ColorRGBa.WHITE
+
+        scolor == "silver" -> ColorRGBa.fromHex(0xc0c0c0)
+        scolor == "gray" -> ColorRGBa.fromHex(0x808080)
+        scolor == "black" -> ColorRGBa.BLACK
+        scolor == "red" -> ColorRGBa.RED
+        scolor == "maroon" -> ColorRGBa.fromHex(0x800000)
+        scolor == "yellow" -> ColorRGBa.fromHex(0xffff00)
+        scolor == "olive" -> ColorRGBa.fromHex(0x808000)
+        scolor == "lime" -> ColorRGBa.fromHex(0x00ff00)
+        scolor == "green" -> ColorRGBa.fromHex(0x008000)
+        scolor == "aqua" -> ColorRGBa.fromHex(0x00ffff)
+        scolor == "teal" -> ColorRGBa.fromHex(0x008080)
+        scolor == "blue" -> ColorRGBa.fromHex(0x0000ff)
+        scolor == "navy"-> ColorRGBa.fromHex(0x000080)
+        scolor == "fuchsia" -> ColorRGBa.fromHex(0xff00ff)
+        scolor == "purple" -> ColorRGBa.fromHex(0x800080)
+        scolor == "orange" -> ColorRGBa.fromHex(0xffa500)
+
+
         else -> throw RuntimeException("could not parse color: " + scolor)
     }
 }
@@ -218,16 +238,20 @@ internal class SVGPath : SVGElement() {
                         }
                     }
                     "C" -> {
-                        val points = command.vectors()
-                        segments += Segment(cursor, points[0], points[1], points[2])
-                        cursor = points[2]
-                        relativeControl = points[1] - points[2]
+                        val allPoints = command.vectors()
+                        allPoints.windowed(3, 3).forEach {points ->
+                            segments += Segment(cursor, points[0], points[1], points[2])
+                            cursor = points[2]
+                            relativeControl = points[1] - points[2]
+                        }
                     }
                     "c" -> {
-                        val points = command.vectors()
-                        segments += Segment(cursor, cursor + points[0], cursor + points[1], cursor.plus(points[2]))
-                        relativeControl = (cursor + points[1]) - (cursor + points[2])
-                        cursor += points[2]
+                        val allPoints = command.vectors()
+                        allPoints.windowed(3, 3).forEach { points ->
+                            segments += Segment(cursor, cursor + points[0], cursor + points[1], cursor.plus(points[2]))
+                            relativeControl = (cursor + points[1]) - (cursor + points[2])
+                            cursor += points[2]
+                        }
                     }
                     "Q" -> {
                         val allPoints = command.vectors()
