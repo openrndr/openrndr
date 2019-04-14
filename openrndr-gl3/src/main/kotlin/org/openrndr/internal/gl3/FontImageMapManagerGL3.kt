@@ -167,7 +167,7 @@ class FontImageMapManagerGL3 : FontMapManager() {
         image.write(bitmap)
 
         val leading = ascent - descent + lineGap
-        return FontImageMap(image, map, glyphMetrics, size, contentScale, ascent / contentScale, descent / contentScale, (ascent + descent) / contentScale, leading / contentScale, "test")
+        return FontImageMap(image, map, glyphMetrics, size, contentScale, ascent / contentScale, descent / contentScale, (ascent + descent) / contentScale, leading / contentScale, url)
     }
 }
 
