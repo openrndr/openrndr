@@ -20,8 +20,6 @@ private val logger = KotlinLogging.logger {}
 internal val useDebugContext = System.getProperty("org.openrndr.gl3.debug") != null
 
 class DriverGL3 : Driver {
-
-
     override val contextID: Long
         get() {
             return GLFW.glfwGetCurrentContext()

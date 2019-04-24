@@ -5,15 +5,15 @@ import java.time.Instant
 import java.util.ArrayList
 
 class Event<T> {
-    internal var lastTriggered = Instant.ofEpochMilli(0L)
-    internal var triggerCount: Long = 0
-    internal var name = "<nameless-event>"
-    internal var signature: Array<Class<*>> = emptyArray()
+    private var lastTriggered = Instant.ofEpochMilli(0L)
+    private var triggerCount: Long = 0
+    private var name = "<nameless-event>"
+    private var signature: Array<Class<*>> = emptyArray()
 
     private var filter: ((T)->Boolean)? = null
 
     private val messages = ArrayList<Message>()
-    private val listeners = ArrayList< (T)->Unit>()
+    val listeners = ArrayList< (T)->Unit>()
 
     private val oneShotListeners = ArrayList<(T)->Unit>()
 
