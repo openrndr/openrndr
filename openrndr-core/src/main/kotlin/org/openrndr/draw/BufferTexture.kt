@@ -15,7 +15,9 @@ interface BufferTexture {
 
     companion object {
         fun create(elementCount: Int, format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.FLOAT32): BufferTexture {
-            return Driver.instance.createBufferTexture(elementCount, format, type)
+            val bufferTexture = Driver.instance.createBufferTexture(elementCount, format, type)
+            Session.active.track(bufferTexture)
+            return bufferTexture
         }
     }
 

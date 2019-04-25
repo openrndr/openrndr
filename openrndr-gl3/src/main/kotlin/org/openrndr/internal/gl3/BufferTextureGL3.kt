@@ -85,6 +85,7 @@ class BufferTextureGL3(val texture: Int, val buffer: Int, override val elementCo
         if (!destroyed) {
             glDeleteTextures(texture)
             destroyed = true
+            Session.active.untrack(this)
         }
     }
 }

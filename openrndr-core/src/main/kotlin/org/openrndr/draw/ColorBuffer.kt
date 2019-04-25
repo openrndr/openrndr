@@ -150,11 +150,23 @@ interface ColorBuffer {
                    multisample: BufferMultisample = BufferMultisample.Disabled
         ) = Driver.instance.createColorBuffer(width, height, contentScale, format, type, multisample)
 
-        fun fromUrl(url: String) = Driver.instance.createColorBufferFromUrl(url)
+        fun fromUrl(url: String): ColorBuffer {
+            val colorBuffer = Driver.instance.createColorBufferFromUrl(url)
+            Session.active.track(colorBuffer)
+            return colorBuffer
+        }
 
-        fun fromFile(file: File) = Driver.instance.createColorBufferFromFile(file.absolutePath)
+        fun fromFile(file: File): ColorBuffer {
+            val colorBuffer = Driver.instance.createColorBufferFromFile(file.absolutePath)
+            Session.active.track(colorBuffer)
+            return colorBuffer
+        }
 
-        fun fromFile(filename: String) = Driver.instance.createColorBufferFromFile(filename)
+        fun fromFile(filename: String): ColorBuffer {
+            val colorBuffer = Driver.instance.createColorBufferFromFile(filename)
+            Session.active.track(colorBuffer)
+            return colorBuffer
+        }
     }
 }
 
@@ -171,7 +183,9 @@ class ColorBufferTile(val x: Int, val y: Int, val colorBuffer: ColorBuffer)
  * @param format the color format
  */
 fun colorBuffer(width: Int, height: Int, contentScale: Double = 1.0, format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.UINT8, multisample: BufferMultisample = BufferMultisample.Disabled): ColorBuffer {
-    return Driver.driver.createColorBuffer(width, height, contentScale, format, type, multisample)
+    val colorBuffer = Driver.driver.createColorBuffer(width, height, contentScale, format, type, multisample)
+    Session.active.track(colorBuffer)
+    return colorBuffer
 }
 
 /**

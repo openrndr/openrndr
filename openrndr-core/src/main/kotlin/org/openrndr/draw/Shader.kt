@@ -13,11 +13,15 @@ interface Shader {
         fun createFromUrls(vsUrl: String, fsUrl: String): Shader {
             val vsCode = codeFromURL(vsUrl)
             val fsCode = codeFromURL(fsUrl)
-            return Driver.instance.createShader(vsCode, fsCode)
+            val shader = Driver.instance.createShader(vsCode, fsCode)
+            Session.active.track(shader)
+            return shader
         }
 
         fun createFromCode(vsCode: String, fsCode: String): Shader {
-            return Driver.instance.createShader(vsCode, fsCode)
+            val shader = Driver.instance.createShader(vsCode, fsCode)
+            Session.active.track(shader)
+            return shader
         }
     }
 
@@ -47,4 +51,6 @@ interface Shader {
     fun uniform(name: String, value: Array<Vector3>)
     fun uniform(name: String, value: Array<Vector2>)
     fun uniform(name: String, value: FloatArray)
+
+    fun destroy()
 }

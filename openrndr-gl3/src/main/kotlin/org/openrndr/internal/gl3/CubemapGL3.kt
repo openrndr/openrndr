@@ -1,5 +1,6 @@
 package org.openrndr.internal.gl3
 
+import org.lwjgl.opengl.GL11C
 import org.lwjgl.opengl.GL33C.*
 import org.openrndr.draw.*
 import org.openrndr.internal.gl3.dds.loadDDS
@@ -8,6 +9,9 @@ import java.nio.Buffer
 import java.nio.ByteBuffer
 
 class CubemapGL3(val texture: Int, override val width: Int, val sides: List<ColorBuffer>) : Cubemap {
+
+
+    private var destroyed = false
 
     companion object {
         fun create(width: Int, format: ColorFormat, type: ColorType): CubemapGL3 {
@@ -135,12 +139,20 @@ class CubemapGL3(val texture: Int, override val width: Int, val sides: List<Colo
     }
 
     override fun bind(textureUnit: Int) {
-        glActiveTexture(GL_TEXTURE0 + textureUnit)
-        glBindTexture(GL_TEXTURE_CUBE_MAP, texture)
+        if (!destroyed) {
+            glActiveTexture(GL_TEXTURE0 + textureUnit)
+            glBindTexture(GL_TEXTURE_CUBE_MAP, texture)
+        } else {
+            throw IllegalStateException("attempting to bind destroyed cubemap")
+        }
     }
 
     override fun destroy() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        if (!destroyed) {
+            GL11C.glDeleteTextures(texture)
+            Session.active.untrack(this)
+            destroyed = true
+        }
     }
 
     private fun bound(f: CubemapGL3.() -> Unit) {

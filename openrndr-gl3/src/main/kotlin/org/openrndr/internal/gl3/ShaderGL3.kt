@@ -2,6 +2,7 @@ package org.openrndr.internal.gl3
 
 import mu.KotlinLogging
 import org.lwjgl.BufferUtils
+import org.lwjgl.opengl.GL20C
 
 import org.lwjgl.opengl.GL33C.*
 import org.openrndr.color.ColorRGBa
@@ -40,6 +41,7 @@ class UniformBlockGL3(override val layout: UniformBlockLayout, val blockBinding:
             }
         }
     }
+
 
     override fun uniform(name: String, value: Float) {
         if (lastValues[name] != value) {
@@ -281,6 +283,8 @@ class UniformBlockGL3(override val layout: UniformBlockLayout, val blockBinding:
         glBindBuffer(GL_UNIFORM_BUFFER, 0)
     }
 
+
+
 }
 
 private fun ByteBuffer.safePosition(offset: Int) {
@@ -345,6 +349,7 @@ class ShaderGL3(val program: Int,
                 val vertexShader: VertexShaderGL3,
                 val fragmentShader: FragmentShaderGL3) : Shader {
 
+    private var destroyed = false
     private var running = false
     private var uniforms: MutableMap<String, Int> = hashMapOf()
     private var attributes: MutableMap<String, Int> = hashMapOf()
@@ -728,6 +733,15 @@ class ShaderGL3(val program: Int,
                 debugGLErrors()
                 location
             }
+
+    override fun destroy() {
+        if (!destroyed) {
+            glDeleteProgram(program)
+            destroyed = true
+            Session.active.untrack(this)
+        }
+    }
+
 }
 
 private fun Int.toUniformType(): UniformType {

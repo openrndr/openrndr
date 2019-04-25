@@ -36,5 +36,7 @@ interface Cubemap {
 }
 
 fun cubemap(width: Int, format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.UINT8): Cubemap {
-    return Cubemap.create(width, format, type)
+    val cubemap = Cubemap.create(width, format, type)
+    Session.active.track(cubemap)
+    return cubemap
 }

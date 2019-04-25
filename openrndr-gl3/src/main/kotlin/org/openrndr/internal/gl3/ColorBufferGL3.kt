@@ -70,15 +70,15 @@ class ColorBufferShadowGL3(override val colorBuffer: ColorBufferGL3) : ColorBuff
         logger.trace {
             "downloading colorbuffer into shadow"
         }
-        (colorBuffer).read(buffer)
+        colorBuffer.read(buffer)
     }
 
     override fun upload() {
-        (colorBuffer).write(buffer)
+        colorBuffer.write(buffer)
     }
 
     override fun destroy() {
-        (colorBuffer).destroyShadow()
+        colorBuffer.destroyShadow()
     }
 
     override fun write(x: Int, y: Int, r: Double, g: Double, b: Double, a: Double) {
@@ -938,6 +938,7 @@ class ColorBufferGL3(val target: Int,
     override fun destroy() {
         glDeleteTextures(texture)
         checkGLErrors()
+        Session.active.untrack(this)
     }
 
     override fun bind(unit: Int) {

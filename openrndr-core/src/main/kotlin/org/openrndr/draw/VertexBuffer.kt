@@ -34,5 +34,7 @@ interface VertexBuffer {
 }
 
 fun vertexBuffer(vertexFormat: VertexFormat, vertexCount: Int): VertexBuffer {
-    return VertexBuffer.createDynamic(vertexFormat, vertexCount)
+    val vertexBuffer = VertexBuffer.createDynamic(vertexFormat, vertexCount)
+    Session.active.track(vertexBuffer)
+    return vertexBuffer
 }

@@ -1,15 +1,11 @@
 package org.openrndr.internal.gl3
 
-import org.openrndr.draw.BufferWriter
-import org.openrndr.draw.VertexBuffer
-import org.openrndr.draw.VertexBufferShadow
-import org.openrndr.draw.VertexFormat
-
 import mu.KotlinLogging
 import org.lwjgl.BufferUtils
 
 import org.lwjgl.opengl.GL33C.*
 import org.lwjgl.system.MemoryUtil.NULL
+import org.openrndr.draw.*
 import java.nio.Buffer
 
 import java.nio.ByteBuffer
@@ -137,6 +133,7 @@ class VertexBufferGL3(val buffer: Int, override val vertexFormat: VertexFormat, 
         isDestroyed = true
         glDeleteBuffers(buffer)
         checkGLErrors()
+        Session.active.untrack(this)
     }
 
     fun bind() {
