@@ -73,14 +73,14 @@ internal fun parseColor(scolor: String): ColorRGBa? {
 
     return when {
         scolor.isEmpty() || scolor == "none" -> null
-        scolor.startsWith("#") -> {
-            val v = java.lang.Long.decode(scolor)
+        scolor . startsWith ("#") -> {
+            val normalizedColor = normalizeColorHex(scolor)
+            val v = java.lang.Long.decode(normalizedColor)
             val vi = v.toInt()
             val r = vi shr 16 and 0xff
             val g = vi shr 8 and 0xff
             val b = vi and 0xff
-            val color = ColorRGBa(r / 255.0, g / 255.0, b / 255.0, 1.0)
-            color
+            ColorRGBa(r / 255.0, g / 255.0, b / 255.0, 1.0)
         }
         scolor == "white" -> ColorRGBa.WHITE
 
@@ -103,8 +103,30 @@ internal fun parseColor(scolor: String): ColorRGBa? {
 
 
         else -> throw RuntimeException("could not parse color: " + scolor)
+
     }
 }
+
+fun normalizeColorHex(colorHex: String): String {
+    val colorHexRegex = "#?([0-9a-f]{3,6})".toRegex(RegexOption.IGNORE_CASE)
+
+    val matchResult = colorHexRegex.matchEntire(colorHex)
+        ?: throw RuntimeException("The provided colorHex '$colorHex' is not a valid color hex for the SVG spec")
+
+    val hexValue = matchResult.groups[1]!!.value.toLowerCase()
+    val normalizedArgb = when (hexValue.length) {
+        3 -> expandToTwoDigitsPerComponent("f$hexValue")
+        6 -> hexValue
+        else -> throw RuntimeException("The provided colorHex '$colorHex' is not in a supported format")
+    }
+
+    return "#$normalizedArgb"
+}
+
+fun expandToTwoDigitsPerComponent(hexValue: String) =
+    hexValue.asSequence()
+        .map { "$it$it" }
+        .reduce { accumulatedHex, component -> accumulatedHex + component }
 
 internal class SVGPath : SVGElement() {
     val commands = mutableListOf<Command>()
@@ -218,6 +240,7 @@ internal class SVGPath : SVGElement() {
                     }
                     "H" -> {
                         for (i in 0 until command.operands.size) {
+
                             val target = Vector2(command.operands[i], cursor.y)
                             segments += Segment(cursor, target)
                             cursor = target
@@ -232,26 +255,23 @@ internal class SVGPath : SVGElement() {
                     }
                     "V" -> {
                         for (i in 0 until command.operands.size) {
+
                             val target = Vector2(cursor.x, command.operands[i])
                             segments += Segment(cursor, target)
                             cursor = target
                         }
                     }
                     "C" -> {
-                        val allPoints = command.vectors()
-                        allPoints.windowed(3, 3).forEach {points ->
-                            segments += Segment(cursor, points[0], points[1], points[2])
-                            cursor = points[2]
-                            relativeControl = points[1] - points[2]
-                        }
+                        val points = command.vectors()
+                        segments += Segment(cursor, points[0], points[1], points[2])
+                        cursor = points[2]
+                        relativeControl = points[1] - points[2]
                     }
                     "c" -> {
-                        val allPoints = command.vectors()
-                        allPoints.windowed(3, 3).forEach { points ->
-                            segments += Segment(cursor, cursor + points[0], cursor + points[1], cursor.plus(points[2]))
-                            relativeControl = (cursor + points[1]) - (cursor + points[2])
-                            cursor += points[2]
-                        }
+                        val points = command.vectors()
+                        segments += Segment(cursor, cursor + points[0], cursor + points[1], cursor.plus(points[2]))
+                        relativeControl = (cursor + points[1]) - (cursor + points[2])
+                        cursor += points[2]
                     }
                     "Q" -> {
                         val allPoints = command.vectors()
@@ -309,7 +329,7 @@ internal class SVGPath : SVGElement() {
                 }
             }
             ShapeContour(segments, closed).let {
-                it//if (compoundIndex == 0) it.counterClockwise else it.clockwise
+                if (compoundIndex == 0) it.counterClockwise else it.clockwise
             }
         }
         return Shape(contours)
@@ -372,16 +392,20 @@ internal class SVGLoader {
         val root = doc.select("svg").first()
         val version = root.attr("version")
 
-//        val supportedVersions = setOf("1.0", "1.1", "1.2")
-//
-//        if (version !in supportedVersions) {
-//            throw IllegalArgumentException("SVG version `$version` is not supported")
-//        }
+        val supportedVersions = setOf("1.0", "1.1", "1.2")
 
-//        val baseProfile = root.attr("baseProfile")
-//        if (baseProfile != "tiny") {
-//            throw IllegalArgumentException("SVG base-profile `$baseProfile` is not supported")
-//        }
+        if (version !in supportedVersions) {
+            throw IllegalArgumentException("SVG version `$version` is not supported")
+        }
+
+        // a lot of SVG files that don't have profile set still mostly work with the parser.
+        // disabling baseProfile check for now
+        /*
+        val baseProfile = root.attr("baseProfile")
+        if (baseProfile != "tiny") {
+            throw IllegalArgumentException("SVG base-profile `$baseProfile` is not supported")
+        }
+        */
 
         val rootGroup = SVGGroup()
         handleGroup(rootGroup, root)
