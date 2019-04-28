@@ -487,7 +487,6 @@ class ColorBufferDataGL3(val width: Int, val height: Int, val format: ColorForma
                 val ha = IntArray(1)
                 val ca = IntArray(1)
 
-                println("dimensions $wa x $ha")
                 STBImage.stbi_set_flip_vertically_on_load(true)
                 STBImage.stbi_set_unpremultiply_on_load(false)
                 val data = STBImage.stbi_load_from_memory(buffer, wa, ha, ca, 0)
@@ -541,9 +540,6 @@ class ColorBufferDataGL3(val width: Int, val height: Int, val format: ColorForma
             val wa = IntArray(1)
             val ha = IntArray(1)
             val ca = IntArray(1)
-
-            println("dimensions ${wa[0]} x ${ha[0]}")
-
 
             STBImage.stbi_set_flip_vertically_on_load(true)
             STBImage.stbi_set_unpremultiply_on_load(false)
@@ -640,7 +636,6 @@ class ColorBufferGL3(val target: Int,
 
         suspend fun tilesFromFile(filename: String, tileWidth:Int, tileHeight:Int): List<List<ColorBufferTile>> {
             val data = ColorBufferDataGL3.fromFile(filename)
-            println("tile data: ${data.height} ${data.width}")
             val xTiles = Math.ceil(data.width.toDouble() / (tileWidth)).toInt()
             val yTiles = Math.ceil(data.height.toDouble() / (tileHeight)).toInt()
 
