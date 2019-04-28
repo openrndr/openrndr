@@ -574,6 +574,7 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean) {
     val clockwise: ShapeContour get() = if (winding == Winding.CLOCKWISE) this else this.reversed
     val counterClockwise: ShapeContour get() = if (winding == Winding.COUNTER_CLOCKWISE) this else this.reversed
 
+
     operator fun plus(other: ShapeContour): ShapeContour {
         val epsilon = 0.001
         val segments = mutableListOf<Segment>()
@@ -884,6 +885,23 @@ class Shape(val contours: List<ShapeContour>) {
      * Apply a map to the shape. Maps every contour.
      */
     fun map(mapper: (ShapeContour) -> ShapeContour) = Shape(contours.map { mapper(it) })
+
+    /**
+     * Splits a compound shape into separate shapes.
+     */
+    fun splitCompounds(): List<Shape> {
+        return if (contours.isEmpty()) {
+            emptyList()
+        } else {
+            var split = Winding.COUNTER_CLOCKWISE
+            if (contours[0].winding == Winding.CLOCKWISE) {
+                split = Winding.CLOCKWISE
+            }
+            val (ccw, cw) = contours.partition { it.winding == split }
+            ccw.map { Shape(listOf(it.counterClockwise) + cw.map { it.clockwise }) }
+        }
+    }
+
 }
 
 class Compound(val shapes: List<Shape>)

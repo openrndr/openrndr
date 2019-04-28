@@ -262,16 +262,20 @@ internal class SVGPath : SVGElement() {
                         }
                     }
                     "C" -> {
-                        val points = command.vectors()
-                        segments += Segment(cursor, points[0], points[1], points[2])
-                        cursor = points[2]
-                        relativeControl = points[1] - points[2]
+                        val allPoints = command.vectors()
+                        allPoints.windowed(3, 3).forEach {points ->
+                            segments += Segment(cursor, points[0], points[1], points[2])
+                            cursor = points[2]
+                            relativeControl = points[1] - points[2]
+                        }
                     }
                     "c" -> {
-                        val points = command.vectors()
-                        segments += Segment(cursor, cursor + points[0], cursor + points[1], cursor.plus(points[2]))
-                        relativeControl = (cursor + points[1]) - (cursor + points[2])
-                        cursor += points[2]
+                        val allPoints = command.vectors()
+                        allPoints.windowed(3, 3).forEach { points ->
+                            segments += Segment(cursor, cursor + points[0], cursor + points[1], cursor.plus(points[2]))
+                            relativeControl = (cursor + points[1]) - (cursor + points[2])
+                            cursor += points[2]
+                        }
                     }
                     "Q" -> {
                         val allPoints = command.vectors()
@@ -328,9 +332,7 @@ internal class SVGPath : SVGElement() {
                     }
                 }
             }
-            ShapeContour(segments, closed).let {
-                if (compoundIndex == 0) it.counterClockwise else it.clockwise
-            }
+            ShapeContour(segments, closed)
         }
         return Shape(contours)
     }

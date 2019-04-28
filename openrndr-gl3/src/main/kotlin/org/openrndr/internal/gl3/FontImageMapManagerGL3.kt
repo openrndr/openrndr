@@ -110,8 +110,7 @@ class FontImageMapManagerGL3 : FontMapManager() {
         }
         logger.debug { "final map size ${packSize}x${packSize}" }
 
-        val image = colorBuffer(packSize, packSize, 1.0, ColorFormat.R)
-        Session.active.untrack(image)
+        val image = ColorBuffer.create(packSize, packSize, 1.0, ColorFormat.R)
         val map = mutableMapOf<Char, IntRectangle>()
 
         val root = PackNode(IntRectangle(0, 0, packSize, packSize))
@@ -165,7 +164,7 @@ class FontImageMapManagerGL3 : FontMapManager() {
         image.write(bitmap)
 
         val leading = ascent - descent + lineGap
-        return FontImageMap(image, map, glyphMetrics, size, contentScale, ascent / contentScale, descent / contentScale, (ascent + descent) / contentScale, leading / contentScale, "test").apply {
+        return FontImageMap(image, map, glyphMetrics, size, contentScale, ascent / contentScale, descent / contentScale, (ascent + descent) / contentScale, leading / contentScale, url).apply {
 
             for (outer in standard) {
                 for (inner in standard) {
