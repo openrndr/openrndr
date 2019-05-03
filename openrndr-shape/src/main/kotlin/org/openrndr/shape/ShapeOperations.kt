@@ -73,7 +73,7 @@ private fun Ring2.toShapeContour(): ShapeContour {
     return ShapeContour(this.curves.map { it.toSegment() }, true)
 }
 
-private fun List<Shape>.toRegion2() : Region2 {
+private fun List<Shape>.toRegion2(): Region2 {
     return Region2(flatMap { shape ->
         shape.contours.map { it.toRing2() }
     })
@@ -192,4 +192,38 @@ fun intersection(from: List<Shape>, with: List<List<Shape>>): List<Shape> {
         left = intersection(left, withShapes)
     }
     return left
+}
+
+fun split(shape: Shape, line: LineSegment): Pair<List<Shape>, List<Shape>> {
+    val center = (line.end + line.start) / 2.0
+    val direction = (line.end - line.start).normalized
+    val perpendicular = direction.perpendicular
+    val extend = 50000.0
+
+    val splitLine = LineSegment(center - direction * extend, center + direction * extend)
+
+    val leftContour = shape {
+        contour {
+            moveTo(splitLine.start)
+            lineTo(cursor + perpendicular * extend)
+            lineTo(cursor + direction * extend)
+            lineTo(splitLine.end)
+            lineTo(splitLine.start)
+            close()
+        }
+    }
+
+    val rightContour = shape {
+        contour {
+            moveTo(splitLine.start)
+            lineTo(cursor - perpendicular * extend)
+            lineTo(cursor + direction * extend)
+            lineTo(splitLine.end)
+            lineTo(splitLine.start)
+            close()
+        }
+    }
+    val leftShapes = difference(shape, leftContour)
+    val rightShapes = difference(shape, rightContour)
+    return Pair(leftShapes, rightShapes)
 }
