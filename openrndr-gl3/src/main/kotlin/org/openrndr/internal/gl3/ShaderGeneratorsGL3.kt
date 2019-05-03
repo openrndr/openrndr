@@ -161,6 +161,8 @@ ${transformVaryingIn}
 
 ${if (!shadeStructure.suppressDefaultOutput) "out vec4 o_color;" else ""}
 
+${shadeStructure.fragmentPreamble?:""}
+
 in vec3 v_boundsPosition;
 flat in int v_instance;
 vec4 colorTransform(vec4 color, float[25] matrix) {
