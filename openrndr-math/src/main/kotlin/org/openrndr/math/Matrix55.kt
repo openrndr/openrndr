@@ -19,5 +19,37 @@ data class Matrix55(
                 c3r0.toFloat(), c3r1.toFloat(), c3r2.toFloat(), c3r3.toFloat(), c3r4.toFloat(),
                 c4r0.toFloat(), c4r1.toFloat(), c4r2.toFloat(), c4r3.toFloat(), c4r4.toFloat()
         )
+
+    operator fun times(mat: Matrix55) = Matrix55(
+            this.c0r0 * mat.c0r0 + this.c1r0 * mat.c0r1 + this.c2r0 * mat.c0r2 + this.c3r0 * mat.c0r3 + this.c4r0 * mat.c0r4,
+            this.c0r0 * mat.c1r0 + this.c1r0 * mat.c1r1 + this.c2r0 * mat.c1r2 + this.c3r0 * mat.c1r3 + this.c4r0 * mat.c1r4,
+            this.c0r0 * mat.c2r0 + this.c1r0 * mat.c2r1 + this.c2r0 * mat.c2r2 + this.c3r0 * mat.c2r3 + this.c4r0 * mat.c2r4,
+            this.c0r0 * mat.c3r0 + this.c1r0 * mat.c3r1 + this.c2r0 * mat.c3r2 + this.c3r0 * mat.c3r3 + this.c4r0 * mat.c3r4,
+            this.c0r0 * mat.c4r0 + this.c1r0 * mat.c4r1 + this.c2r0 * mat.c4r2 + this.c3r0 * mat.c3r3 + this.c4r0 * mat.c4r4,
+
+            this.c0r1 * mat.c0r0 + this.c1r1 * mat.c0r1 + this.c2r1 * mat.c0r2 + this.c3r1 * mat.c0r3 + this.c4r1 * mat.c0r4,
+            this.c0r1 * mat.c1r0 + this.c1r1 * mat.c1r1 + this.c2r1 * mat.c1r2 + this.c3r1 * mat.c1r3 + this.c4r1 * mat.c1r4,
+            this.c0r1 * mat.c2r0 + this.c1r1 * mat.c2r1 + this.c2r1 * mat.c2r2 + this.c3r1 * mat.c2r3 + this.c4r1 * mat.c2r4,
+            this.c0r1 * mat.c3r0 + this.c1r1 * mat.c3r1 + this.c2r1 * mat.c3r2 + this.c3r1 * mat.c3r3 + this.c4r1 * mat.c3r4,
+            this.c0r1 * mat.c4r0 + this.c1r1 * mat.c4r1 + this.c2r1 * mat.c4r2 + this.c3r1 * mat.c4r3 + this.c4r1 * mat.c4r4,
+
+            this.c0r2 * mat.c0r0 + this.c1r2 * mat.c0r1 + this.c2r2 * mat.c0r2 + this.c3r2 * mat.c0r3 + this.c4r2 * mat.c0r4,
+            this.c0r2 * mat.c1r0 + this.c1r2 * mat.c1r1 + this.c2r2 * mat.c1r2 + this.c3r2 * mat.c1r3 + this.c4r2 * mat.c1r4,
+            this.c0r2 * mat.c2r0 + this.c1r2 * mat.c2r1 + this.c2r2 * mat.c2r2 + this.c3r2 * mat.c2r3 + this.c4r2 * mat.c2r4,
+            this.c0r2 * mat.c3r0 + this.c1r2 * mat.c3r1 + this.c2r2 * mat.c3r2 + this.c3r2 * mat.c3r3 + this.c4r2 * mat.c3r4,
+            this.c0r2 * mat.c4r0 + this.c1r2 * mat.c4r1 + this.c2r2 * mat.c4r2 + this.c3r2 * mat.c4r3 + this.c4r2 * mat.c4r4,
+
+            this.c0r3 * mat.c0r0 + this.c1r3 * mat.c0r1 + this.c2r3 * mat.c0r2 + this.c3r3 * mat.c0r3 + this.c4r3 * mat.c0r4,
+            this.c0r3 * mat.c1r0 + this.c1r3 * mat.c1r1 + this.c2r3 * mat.c1r2 + this.c3r3 * mat.c1r3 + this.c4r3 * mat.c1r4,
+            this.c0r3 * mat.c2r0 + this.c1r3 * mat.c2r1 + this.c2r3 * mat.c2r2 + this.c3r3 * mat.c2r3 + this.c4r3 * mat.c2r4,
+            this.c0r3 * mat.c3r0 + this.c1r3 * mat.c3r1 + this.c2r3 * mat.c3r2 + this.c3r3 * mat.c3r3 + this.c4r3 * mat.c3r4,
+            this.c0r3 * mat.c4r0 + this.c1r3 * mat.c4r1 + this.c2r3 * mat.c4r2 + this.c3r3 * mat.c4r3 + this.c4r3 * mat.c4r4,
+
+            this.c0r4 * mat.c0r0 + this.c1r4 * mat.c0r1 + this.c2r4 * mat.c0r2 + this.c3r4 * mat.c0r3 + this.c4r4 * mat.c0r4,
+            this.c0r4 * mat.c1r0 + this.c1r4 * mat.c1r1 + this.c2r4 * mat.c1r2 + this.c3r4 * mat.c1r3 + this.c4r4 * mat.c1r4,
+            this.c0r4 * mat.c2r0 + this.c1r4 * mat.c2r1 + this.c2r4 * mat.c2r2 + this.c3r4 * mat.c2r3 + this.c4r4 * mat.c2r4,
+            this.c0r4 * mat.c3r0 + this.c1r4 * mat.c3r1 + this.c2r4 * mat.c3r2 + this.c3r4 * mat.c3r3 + this.c4r4 * mat.c3r4,
+            this.c0r4 * mat.c4r0 + this.c1r4 * mat.c4r1 + this.c2r4 * mat.c4r2 + this.c3r4 * mat.c4r3 + this.c4r4 * mat.c4r4
+    )
 }
 
