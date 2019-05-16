@@ -29,11 +29,27 @@ class ContourBuilder {
         anchor = position
     }
 
-    fun moveOrLineTo(position:Vector2) {
+    fun moveOrLineTo(position: Vector2) {
         if (anchor === Vector2.INFINITY) {
             moveTo(position)
         } else {
             lineTo(position)
+        }
+    }
+
+    fun moveOrCurveTo(control: Vector2, position: Vector2) {
+        if (anchor === Vector2.INFINITY) {
+            moveTo(position)
+        } else {
+            curveTo(control, position)
+        }
+    }
+
+    fun moveOrCurveTo(control0: Vector2, control1: Vector2, position: Vector2) {
+        if (anchor === Vector2.INFINITY) {
+            moveTo(position)
+        } else {
+            curveTo(control0, control1, position)
         }
     }
 
@@ -102,7 +118,6 @@ class ContourBuilder {
         val cx1 = coef * (rx * y1 / ry)
         val cy1 = coef * -(ry * x1 / rx)
 
-
         // Step 3 : Compute (cx, cy) from (cx1, cy1)
         val sx2 = (cursor.x + tx) / 2.0
         val sy2 = (cursor.y + ty) / 2.0
@@ -152,7 +167,6 @@ class ContourBuilder {
         val coords = arcToBeziers(angleStart, angleExtent)
 
         for (i in coords.indices) {
-
             val x = coords[i].x
             val y = coords[i].y
 
@@ -170,22 +184,27 @@ class ContourBuilder {
         } else {
             //println("wot$angleStart $angleExtent")
         }
-
         cursor = Vector2(tx, ty)
-
-
     }
 
     fun continueTo(end: Vector2, tangentScale: Double = 1.0) {
-        val last = segments.last()
-        val delta = last.control.last() - last.end
-        curveTo(last.end - delta * tangentScale, end)
+        if (segments.isNotEmpty()) {
+            val last = segments.last()
+            val delta = last.control.last() - last.end
+            curveTo(last.end - delta * tangentScale, end)
+        } else {
+            curveTo(cursor, end)
+        }
     }
 
     fun continueTo(control: Vector2, end: Vector2, tangentScale: Double = 1.0) {
-        val last = segments.last()
-        val delta = last.control.last() - last.end
-        curveTo(last.end - delta * tangentScale, control, end)
+        if (segments.isNotEmpty()) {
+            val last = segments.last()
+            val delta = last.control.last() - last.end
+            curveTo(last.end - delta * tangentScale, control, end)
+        } else {
+            curveTo(cursor, control, end)
+        }
     }
 
     private fun arcToBeziers(angleStart: Double, angleExtent: Double): Array<Vector2> {
@@ -220,17 +239,15 @@ class ContourBuilder {
         }
         return coords
     }
-
-
 }
 
-public fun shape(f: ShapeBuilder.() -> Unit): Shape {
+fun shape(f: ShapeBuilder.() -> Unit): Shape {
     val sb = ShapeBuilder()
     sb.f()
     return Shape(sb.contours)
 }
 
-public fun contour(f: ContourBuilder.() -> Unit): ShapeContour {
+fun contour(f: ContourBuilder.() -> Unit): ShapeContour {
     val cb = ContourBuilder()
     cb.f()
     return ShapeContour(cb.segments, cb.closed)
