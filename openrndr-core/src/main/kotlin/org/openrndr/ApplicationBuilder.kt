@@ -2,7 +2,7 @@ package org.openrndr
 
 class ApplicationBuilder internal constructor(){
     internal val configuration = Configuration()
-    internal var program: Program = Program()
+     var program: Program = Program()
 
     fun configure(init: Configuration.() -> Unit) {
         configuration.init()
@@ -13,6 +13,14 @@ class ApplicationBuilder internal constructor(){
             override fun setup() {
                 init()
             }
+        }
+    }
+
+    @JvmName("initCustom")
+    inline fun <reified P:Program> program(program:P, crossinline init: P.() -> Unit) {
+        this.program = program
+        program.launch {
+            program.init()
         }
     }
 }
