@@ -36,6 +36,18 @@ class CompositionDrawer {
         model = modelStack.pop()
     }
 
+    fun group(builder:CompositionDrawer.()->Unit) {
+
+        val g = GroupNode()
+        val oldCursor = cursor
+
+        cursor.children.add(g)
+        cursor = g
+        builder()
+
+        cursor = oldCursor
+    }
+
     fun translate(x: Double, y: Double) = translate(Vector2(x, y))
 
     fun rotate(rotationInDegrees: Double) {
