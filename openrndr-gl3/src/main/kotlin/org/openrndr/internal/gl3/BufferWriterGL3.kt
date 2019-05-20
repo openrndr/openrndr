@@ -2,10 +2,7 @@ package org.openrndr.internal.gl3
 
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.BufferWriter
-import org.openrndr.math.Matrix44
-import org.openrndr.math.Vector2
-import org.openrndr.math.Vector3
-import org.openrndr.math.Vector4
+import org.openrndr.math.*
 import java.nio.Buffer
 
 import java.nio.ByteBuffer
@@ -38,6 +35,21 @@ class BufferWriterGL3(val buffer: ByteBuffer, val elementSize: Int = 1) : Buffer
         buffer.putFloat(v.y.toFloat())
         buffer.putFloat(v.z.toFloat())
         buffer.putFloat(v.w.toFloat())
+    }
+
+    override fun write(v: Matrix33) {
+        buffer.putFloat(v.c0r0.toFloat())
+        buffer.putFloat(v.c0r1.toFloat())
+        buffer.putFloat(v.c0r2.toFloat())
+
+        buffer.putFloat(v.c1r0.toFloat())
+        buffer.putFloat(v.c1r1.toFloat())
+        buffer.putFloat(v.c1r2.toFloat())
+
+        buffer.putFloat(v.c2r0.toFloat())
+        buffer.putFloat(v.c2r1.toFloat())
+        buffer.putFloat(v.c2r2.toFloat())
+
     }
 
     override fun write(v: Matrix44) {

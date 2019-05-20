@@ -11,6 +11,7 @@ import org.openrndr.internal.Driver
 import org.openrndr.internal.FontMapManager
 import org.openrndr.internal.ResourceThread
 import org.openrndr.internal.ShaderGenerators
+import org.openrndr.math.Matrix33
 import org.openrndr.math.Matrix44
 import java.math.BigInteger
 import java.nio.Buffer
@@ -345,6 +346,7 @@ class DriverGL3 : Driver {
         debugGLErrors()
         fun setupBuffer(buffer: VertexBuffer, divisor: Int = 0) {
             val prefix = if (divisor == 0) "a" else "i"
+            var attributeBindings = 0
 
             glBindBuffer(GL_ARRAY_BUFFER, (buffer as VertexBufferGL3).buffer)
             val format = buffer.vertexFormat
@@ -371,6 +373,7 @@ class DriverGL3 : Driver {
                                 }
                             }
                             glVertexAttribDivisor(attributeIndex, divisor)
+                            attributeBindings++
                         }
                     } else if (item.type == VertexElementType.MATRIX44_FLOAT32) {
                         for (i in 0 until item.arraySize) {
@@ -385,12 +388,33 @@ class DriverGL3 : Driver {
 
                                 glVertexAttribDivisor(attributeIndex + column + i * 4, 1)
                                 debugGLErrors()
+                                attributeBindings++
+                            }
+                        }
+                    } else if (item.type == VertexElementType.MATRIX33_FLOAT32) {
+                        for (i in 0 until item.arraySize) {
+                            for (column in 0 until 3) {
+                                glEnableVertexAttribArray(attributeIndex + column + i * 3)
+                                debugGLErrors()
+
+                                glVertexAttribPointer(attributeIndex + column + i * 3,
+                                        3,
+                                        item.type.glType(), false, format.size, item.offset.toLong() + column * 12 + i * 48)
+                                debugGLErrors()
+
+                                glVertexAttribDivisor(  attributeIndex + column + i * 3, 1)
+                                debugGLErrors()
+                                attributeBindings++
                             }
                         }
                     } else {
                         TODO("implement support for ${item.type}")
                     }
                 }
+            }
+
+            if (attributeBindings > 16) {
+                throw RuntimeException("Maximum vertex attributes exceeded $attributeBindings (limit is 16)")
             }
         }
         vertexBuffer.forEach {
@@ -613,3 +637,9 @@ internal fun Matrix44.toFloatArray(): FloatArray = floatArrayOf(
         c1r0.toFloat(), c1r1.toFloat(), c1r2.toFloat(), c1r3.toFloat(),
         c2r0.toFloat(), c2r1.toFloat(), c2r2.toFloat(), c2r3.toFloat(),
         c3r0.toFloat(), c3r1.toFloat(), c3r2.toFloat(), c3r3.toFloat())
+
+internal fun Matrix33.toFloatArray(): FloatArray = floatArrayOf(
+        c0r0.toFloat(), c0r1.toFloat(), c0r2.toFloat(),
+        c1r0.toFloat(), c1r1.toFloat(), c1r2.toFloat(),
+        c2r0.toFloat(), c2r1.toFloat(), c2r2.toFloat())
+

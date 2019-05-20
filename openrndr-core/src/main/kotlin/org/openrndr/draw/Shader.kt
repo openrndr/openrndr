@@ -2,10 +2,7 @@ package org.openrndr.draw
 
 import org.openrndr.color.ColorRGBa
 import org.openrndr.internal.Driver
-import org.openrndr.math.Matrix44
-import org.openrndr.math.Vector2
-import org.openrndr.math.Vector3
-import org.openrndr.math.Vector4
+import org.openrndr.math.*
 
 interface Shader {
     @Suppress("unused")
@@ -34,7 +31,9 @@ interface Shader {
     fun blockLayout(blockName: String): UniformBlockLayout?
     fun block(blockName: String, block: UniformBlock)
 
+    fun uniform(name: String, value: Matrix33)
     fun uniform(name: String, value: Matrix44)
+
     fun uniform(name: String, value: ColorRGBa)
     fun uniform(name: String, value: Vector4)
     fun uniform(name: String, value: Vector3)

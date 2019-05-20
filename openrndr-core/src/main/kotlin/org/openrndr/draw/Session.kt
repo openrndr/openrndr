@@ -32,7 +32,6 @@ class Session {
     }
 
     fun track(vertexBuffer: VertexBuffer) {
-        println("tracking verteBuffer $vertexBuffer")
         vertexBuffers.add(vertexBuffer)
     }
 

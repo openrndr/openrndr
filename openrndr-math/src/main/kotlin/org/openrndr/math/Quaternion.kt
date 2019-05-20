@@ -19,11 +19,11 @@ data class Quaternion(val x: Double, val y: Double, val z: Double, val w: Double
         }
 
         fun fromAxes(x: Vector3, y: Vector3, z: Vector3): Quaternion {
-            val m = Matrix44.fromColumnVectors(x.xyz0, y.xyz0, z.xyz0, Vector4.UNIT_W)
+            val m = Matrix33.fromColumnVectors(x, y, z)
             return fromMatrix(m)
         }
 
-        fun fromMatrix(m: Matrix44): Quaternion {
+        fun fromMatrix(m: Matrix33): Quaternion {
             val t = m.trace
             val x: Double
             val y: Double
@@ -55,7 +55,6 @@ data class Quaternion(val x: Double, val y: Double, val z: Double, val w: Double
                 z = 0.25f / s
             }
             return Quaternion(x, y, z, w)
-
         }
 
         fun fromAngles(pitch: Double, roll: Double, yaw: Double) =
@@ -129,7 +128,7 @@ data class Quaternion(val x: Double, val y: Double, val z: Double, val w: Double
 
     val norm: Double get() = x * x + y * y + z * z + w * w
 
-    val matrix: Matrix44
+    val matrix: Matrix33
         get() {
             val norm = this.norm
             // we explicitly test norm against one here, saving a division
@@ -152,11 +151,11 @@ data class Quaternion(val x: Double, val y: Double, val z: Double, val w: Double
             val zw = w * zs
 
             // using s=2/norm (instead of 1/norm) saves 9 multiplications by 2 here
-            return Matrix44(
-                    1 - (yy + zz), xy - zw, xz + yw, 0.0, //
-                    xy + zw, 1 - (xx + zz), yz - xw, 0.0, //
-                    xz - yw, yz + xw, 1 - (xx + yy), 0.0, //
-                    0.0, 0.0, 0.0, 1.0)
+            return Matrix33(
+                    1 - (yy + zz), xy - zw, xz + yw,
+                    xy + zw, 1 - (xx + zz), yz - xw,
+                    xz - yw, yz + xw, 1 - (xx + yy))
+
         }
 }
 

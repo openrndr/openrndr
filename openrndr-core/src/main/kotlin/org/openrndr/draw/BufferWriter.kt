@@ -1,10 +1,7 @@
 package org.openrndr.draw
 
 import org.openrndr.color.ColorRGBa
-import org.openrndr.math.Matrix44
-import org.openrndr.math.Vector2
-import org.openrndr.math.Vector3
-import org.openrndr.math.Vector4
+import org.openrndr.math.*
 
 interface BufferWriter {
     fun write(vararg v: Vector3) {
@@ -14,6 +11,7 @@ interface BufferWriter {
     fun write(v: Vector3)
     fun write(v: Vector2)
     fun write(v: Vector4)
+    fun write(v: Matrix33)
     fun write(v: Matrix44)
     fun write(v: Float)
     fun write(x: Float, y: Float)

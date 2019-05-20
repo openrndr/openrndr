@@ -12,7 +12,7 @@ class TransformBuilder {
     var transform: Matrix44 = Matrix44.IDENTITY
 
     fun rotate(axis: Quaternion) {
-        transform *= axis.matrix
+        transform *= axis.matrix.matrix44
     }
 
     fun rotate(axis:Vector3=Vector3.UNIT_Z, degrees:Double) {

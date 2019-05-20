@@ -1,10 +1,7 @@
 package org.openrndr.draw
 
 import org.openrndr.color.ColorRGBa
-import org.openrndr.math.Matrix44
-import org.openrndr.math.Vector2
-import org.openrndr.math.Vector3
-import org.openrndr.math.Vector4
+import org.openrndr.math.*
 
 class ShadeStyle {
     var vertexPreamble: String? = null
@@ -42,6 +39,11 @@ class ShadeStyle {
         parameterValues.put(name, value)
         parameters.put(name, "int")
         return this
+    }
+
+    fun parameter(name: String, value: Matrix33) {
+        parameterValues.put(name, value)
+        parameters.put(name, "Matrix33")
     }
 
     fun parameter(name: String, value: Matrix44): ShadeStyle {

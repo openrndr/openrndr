@@ -30,6 +30,7 @@ fun structureFromShadeTyle(shadeStyle: ShadeStyle?, vertexFormats: List<VertexFo
 private fun mapType(type: String): String {
     return when (type) {
         "Int", "int" -> "int"
+        "Matrix33" -> "mat3"
         "Matrix44" -> "mat4"
         "float" -> "float"
         "Vector2" -> "vec2"
