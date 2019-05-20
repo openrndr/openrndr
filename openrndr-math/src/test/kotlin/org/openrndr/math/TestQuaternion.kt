@@ -20,9 +20,9 @@ object TestQuaternion : Spek({
         }
 
         it ("matrix to quaternion to matrix") {
-            val q0 = Quaternion.fromMatrix(Matrix44.IDENTITY)
+            val q0 = Quaternion.fromMatrix(Matrix33.IDENTITY)
             val m0 = q0.matrix
-            m0 `should equal` Matrix44.IDENTITY
+            m0 `should equal` Matrix33.IDENTITY
         }
 
         it ("quaternion look +Z") {
