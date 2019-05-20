@@ -7,12 +7,13 @@ import org.openrndr.math.*
 
 private val logger = KotlinLogging.logger {}
 
-class ShadeStyleManagerGL3(val vertexShaderGenerator: (ShadeStructure)->String, val fragmentShaderGenerator:(ShadeStructure)->String) : ShadeStyleManager() {
+class ShadeStyleManagerGL3(val vertexShaderGenerator: (ShadeStructure) -> String, val fragmentShaderGenerator: (ShadeStructure) -> String) : ShadeStyleManager() {
     var defaultShader: Shader? = null
     private val shaders = mutableMapOf<ShadeStructure, Shader>()
 
-    override fun shader(style: ShadeStyle?, vertexFormats: List<VertexFormat>, inputInstanceFormats:List<VertexFormat>):Shader {
-        val instanceFormats = inputInstanceFormats + (style?.attributes?: emptyList<VertexBuffer>()).map { it.vertexFormat }
+    override fun shader(style: ShadeStyle?, vertexFormats: List<VertexFormat>, inputInstanceFormats: List<VertexFormat>): Shader {
+        val instanceFormats = inputInstanceFormats + (style?.attributes
+                ?: emptyList<VertexBuffer>()).map { it.vertexFormat }
 
         if (style == null) {
             if (defaultShader == null) {
@@ -29,8 +30,12 @@ class ShadeStyleManagerGL3(val vertexShaderGenerator: (ShadeStructure)->String, 
             val shader = shaders.getOrPut(structure) {
                 try {
                     Shader.createFromCode(vertexShaderGenerator(structure), fragmentShaderGenerator(structure))
-                } catch(e:RuntimeException) {
-                    shader(null, vertexFormats, instanceFormats)
+                } catch (e: Throwable) {
+                    if (System.getProperties().containsKey("org.openrndr.ignoreShadeStyleErrors")) {
+                        shader(null, vertexFormats, instanceFormats)
+                    } else {
+                        throw e
+                    }
                 }
             }
 
@@ -39,7 +44,7 @@ class ShadeStyleManagerGL3(val vertexShaderGenerator: (ShadeStructure)->String, 
             var textureIndex = 2
             style.parameterValues.entries.forEach {
                 val value = it.value
-                when(value) {
+                when (value) {
                     is Int -> shader.uniform("p_${it.key}", value)
                     is Float -> shader.uniform("p_${it.key}", value)
                     is Double -> shader.uniform("p_${it.key}", value)
