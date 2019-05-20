@@ -3,6 +3,7 @@ package org.openrndr.ffmpeg
 import org.openrndr.draw.ColorBuffer
 import org.openrndr.draw.ColorFormat
 import org.openrndr.draw.Drawer
+import org.openrndr.draw.Session
 import org.openrndr.ffmpeg.adopted.FFmpegFrameGrabber
 import org.openrndr.draw.colorBuffer as _colorBuffer
 import java.io.File
@@ -108,6 +109,9 @@ class FFMPEGVideoPlayer private constructor(url: String) {
                 colorBuffer = _colorBuffer(frame.imageWidth, frame.imageHeight, format = ColorFormat.RGB).apply {
                     flipV = true
                 }
+                val cb = colorBuffer
+                if (cb != null)
+                    Session.active.untrack(cb)
             }
             colorBuffer?.let {
                 val cb = it

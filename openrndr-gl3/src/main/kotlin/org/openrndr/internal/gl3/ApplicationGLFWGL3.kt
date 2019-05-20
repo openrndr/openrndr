@@ -33,6 +33,7 @@ import org.openrndr.draw.Drawer
 import org.openrndr.internal.Driver
 import org.openrndr.math.Vector2
 import org.openrndr.WindowMultisample.*
+import java.nio.Buffer
 import java.nio.ByteBuffer
 
 import java.util.*
@@ -204,13 +205,13 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         }
 
         val buf = BufferUtils.createByteBuffer(128 * 128 * 4)
-        (buf as ByteBuffer).rewind()
+        (buf as Buffer).rewind()
         for (y in 0 until 128) {
             for (x in 0 until 128) {
                 buf.putInt(0xffc0cbff.toInt())
             }
         }
-        buf.flip()
+        (buf as Buffer).flip()
 
         stackPush().use {
             glfwSetWindowIcon(window, GLFWImage.mallocStack(1, it)
