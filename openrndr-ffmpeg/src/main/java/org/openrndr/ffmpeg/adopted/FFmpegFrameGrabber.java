@@ -78,13 +78,6 @@ public class FFmpegFrameGrabber extends FrameGrabber {
 
     public String inputFormat;
 
-    public static String[] getDeviceDescriptions() throws Exception {
-        tryLoad();
-        AVInputFormat f = null;
-        List<String> devices = new ArrayList<>();
-        return devices.toArray(new String[0]);
-    }
-
     public static FFmpegFrameGrabber createDefault(File deviceFile) throws Exception {
         return new FFmpegFrameGrabber(deviceFile);
     }
@@ -111,6 +104,7 @@ public class FFmpegFrameGrabber extends FrameGrabber {
                 Loader.load(org.bytedeco.javacpp.swscale.class);
 
                 // Register all formats and codecs
+
                 avcodec_register_all();
                 av_register_all();
                 avformat_network_init();
@@ -118,6 +112,8 @@ public class FFmpegFrameGrabber extends FrameGrabber {
 
                 Loader.load(org.bytedeco.javacpp.avdevice.class);
                 avdevice_register_all();
+
+                av_log_set_level(AV_LOG_ERROR);
             } catch (Throwable t) {
                 if (t instanceof Exception) {
                     throw loadingException = (Exception) t;
@@ -594,6 +590,9 @@ public class FFmpegFrameGrabber extends FrameGrabber {
             System.out.println("looked for format: " + f + " got " + format);
         }
         AVDictionary options = new AVDictionary(null);
+
+        av_dict_set(options, "rtbufsize", (640*480)+"", 0);
+
         if (frameRate > 0) {
             AVRational r = av_d2q(frameRate, 1001000);
             av_dict_set(options, "framerate", r.num() + "/" + r.den(), 0);

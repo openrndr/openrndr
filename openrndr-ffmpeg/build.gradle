@@ -1,4 +1,4 @@
-ext.ffmpeg_version = "3.4.2-1.4.1"
+ext.ffmpeg_version = "4.1-1.4.4"
 
 dependencies {
     implementation "org.lwjgl:lwjgl:$lwjglVersion"

@@ -1,5 +1,6 @@
 package org.openrndr.ffmpeg
 
+import org.bytedeco.javacpp.avutil.*
 import org.openrndr.draw.ColorBuffer
 import org.openrndr.draw.ColorFormat
 import org.openrndr.draw.Drawer
@@ -19,9 +20,6 @@ class FFMPEGVideoPlayer private constructor(url: String) {
             return FFMPEGVideoPlayer(File(filename).toURI().toURL().toExternalForm())
         }
 
-        fun listDevices(): List<String> {
-            return FFmpegFrameGrabber.getDeviceDescriptions().toList()
-        }
 
         fun defaultDevice(): String {
             val osName = System.getProperty("os.name").toLowerCase()
@@ -77,7 +75,10 @@ class FFMPEGVideoPlayer private constructor(url: String) {
 
             val player = FFMPEGVideoPlayer(deviceName)
             player.frameGrabber.inputFormat = inputFormat
+            player.frameGrabber.pixelFormat =  AV_PIX_FMT_NONE
             player.frameGrabber.format = format
+
+            player.frameGrabber.numBuffers = 1
             if (width != -1 && height != -1) {
                 player.frameGrabber.imageWidth = width
                 player.frameGrabber.imageHeight = height
