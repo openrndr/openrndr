@@ -4,6 +4,7 @@ import org.openrndr.internal.Driver
 import org.openrndr.math.Vector2
 import org.openrndr.shape.Rectangle
 import java.io.File
+import java.io.InputStream
 import java.net.MalformedURLException
 import java.net.URL
 import java.nio.ByteBuffer
@@ -165,6 +166,11 @@ interface ColorBuffer {
         fun fromFile(filename: String): ColorBuffer {
             val colorBuffer = Driver.instance.createColorBufferFromFile(filename)
             Session.active.track(colorBuffer)
+            return colorBuffer
+        }
+
+        fun fromStream(stream: InputStream, formatHint:String? = null): ColorBuffer {
+            val colorBuffer = Driver.instance.createColorBufferFromStream(stream)
             return colorBuffer
         }
     }

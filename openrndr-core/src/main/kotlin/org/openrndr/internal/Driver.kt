@@ -2,6 +2,7 @@ package org.openrndr.internal
 
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
+import java.io.InputStream
 import java.nio.Buffer
 
 /**
@@ -52,6 +53,7 @@ interface Driver {
     fun createColorBuffer(width: Int, height: Int, contentScale: Double, format: ColorFormat, type: ColorType, multisample: BufferMultisample = BufferMultisample.Disabled): ColorBuffer
     fun createColorBufferFromUrl(url: String): ColorBuffer
     fun createColorBufferFromFile(filename: String): ColorBuffer
+    fun createColorBufferFromStream(stream: InputStream, name:String? = null, formatHint:String? = null) : ColorBuffer
 
     suspend fun createColorBufferTilesFromFile(filename: String, width: Int, height: Int) : List<List<ColorBufferTile>>
 

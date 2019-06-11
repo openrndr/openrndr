@@ -13,6 +13,7 @@ import org.openrndr.internal.ResourceThread
 import org.openrndr.internal.ShaderGenerators
 import org.openrndr.math.Matrix33
 import org.openrndr.math.Matrix44
+import java.io.InputStream
 import java.math.BigInteger
 import java.nio.Buffer
 import java.util.*
@@ -174,6 +175,10 @@ class DriverGL3 : Driver {
 
     override fun createColorBufferFromFile(filename: String): ColorBuffer {
         return ColorBufferGL3.fromFile(filename)
+    }
+
+    override fun createColorBufferFromStream(stream: InputStream, name:String?, formatHint:String?) : ColorBuffer {
+        return ColorBufferGL3.fromStream(stream, name, formatHint)
     }
 
     override suspend fun createColorBufferTilesFromFile(filename: String, width: Int, height: Int): List<List<ColorBufferTile>> {

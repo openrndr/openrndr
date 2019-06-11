@@ -16,6 +16,7 @@ import java.nio.ByteOrder
 import org.openrndr.draw.*
 import org.openrndr.draw.BufferMultisample.*
 import java.io.File
+import java.io.InputStream
 import java.nio.Buffer
 
 data class ConversionEntry(val format: ColorFormat, val type: ColorType, val glFormat: Int)
@@ -482,61 +483,20 @@ class ColorBufferDataGL3(val width: Int, val height: Int, val format: ColorForma
                 (buffer as Buffer).rewind()
                 buffer.put(byteArray)
                 (buffer as Buffer).rewind()
-
-                val wa = IntArray(1)
-                val ha = IntArray(1)
-                val ca = IntArray(1)
-
-                STBImage.stbi_set_flip_vertically_on_load(true)
-                STBImage.stbi_set_unpremultiply_on_load(false)
-                val data = STBImage.stbi_load_from_memory(buffer, wa, ha, ca, 0)
-
-                if (data != null) {
-                    var offset = 0
-                    if (ca[0] == 4) {
-                        for (y in 0 until ha[0]) {
-                            for (x in 0 until wa[0]) {
-                                val a = (data.get(offset + 3).toInt() and 0xff).toDouble() / 255.0
-                                val r = ((data.get(offset).toInt() and 0xff) * a).toByte()
-                                val g = ((data.get(offset + 1).toInt() and 0xff) * a).toByte()
-                                val b = ((data.get(offset + 2).toInt() and 0xff) * a).toByte()
-
-                                data.put(offset, r)
-                                data.put(offset + 1, g)
-                                data.put(offset + 2, b)
-                                offset += 4
-                            }
-                        }
-                    }
-                }
-
-                if (data != null) {
-                    return ColorBufferDataGL3(wa[0], ha[0],
-                            when (ca[0]) {
-                                1 -> ColorFormat.R
-                                2 -> ColorFormat.RG
-                                3 -> ColorFormat.RGB
-                                4 -> ColorFormat.RGBa
-                                else -> throw Exception("invalid component count ${ca[0]}")
-                            }
-                            , ColorType.UINT8, data)
-                } else {
-                    throw RuntimeException("failed to load image $urlString")
-                }
+                return fromByteBuffer(buffer, urlString)
             }
         }
 
-        fun fromFile(filename: String): ColorBufferDataGL3 {
-            val byteArray = File(filename).readBytes()
-            if (byteArray.isEmpty()) {
-                throw RuntimeException("read 0 bytes from stream $filename")
-            }
+        fun fromStream(stream: InputStream, name: String? = null): ColorBufferDataGL3 {
+            val byteArray = stream.readAllBytes()
             val buffer = BufferUtils.createByteBuffer(byteArray.size)
-
             (buffer as Buffer).rewind()
             buffer.put(byteArray)
             (buffer as Buffer).rewind()
+            return fromByteBuffer(buffer, name)
+        }
 
+        fun fromByteBuffer(buffer: ByteBuffer, name:String? = null) : ColorBufferDataGL3 {
             val wa = IntArray(1)
             val ha = IntArray(1)
             val ca = IntArray(1)
@@ -575,8 +535,22 @@ class ColorBufferDataGL3(val width: Int, val height: Int, val format: ColorForma
                         }
                         , ColorType.UINT8, data)
             } else {
-                throw RuntimeException("failed to load image $filename")
+                throw RuntimeException("failed to load image ${name?:("unknown image")}")
             }
+
+        }
+
+        fun fromFile(filename: String): ColorBufferDataGL3 {
+            val byteArray = File(filename).readBytes()
+            if (byteArray.isEmpty()) {
+                throw RuntimeException("read 0 bytes from stream $filename")
+            }
+            val buffer = BufferUtils.createByteBuffer(byteArray.size)
+            (buffer as Buffer).rewind()
+            buffer.put(byteArray)
+            (buffer as Buffer).rewind()
+            return fromByteBuffer(buffer, filename)
+
         }
     }
 }
@@ -618,6 +592,24 @@ class ColorBufferGL3(val target: Int,
 
         fun fromFile(filename: String): ColorBuffer {
             val data = ColorBufferDataGL3.fromFile(filename)
+            val cb = create(data.width, data.height, 1.0, data.format, data.type, Disabled)
+            return cb.apply {
+                val d = data.data
+                if (d != null) {
+                    cb.write(d)
+                    cb.generateMipmaps()
+                } else {
+                    throw RuntimeException("data is null")
+                }
+                data.destroy()
+                glFlush()
+                glFinish()
+
+            }
+        }
+
+        fun fromStream(stream: InputStream, name:String?, formatHint:String?): ColorBuffer {
+            val data = ColorBufferDataGL3.fromStream(stream, name)
             val cb = create(data.width, data.height, 1.0, data.format, data.type, Disabled)
             return cb.apply {
                 val d = data.data
