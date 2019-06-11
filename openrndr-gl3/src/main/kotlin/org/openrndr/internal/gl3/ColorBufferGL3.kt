@@ -488,7 +488,7 @@ class ColorBufferDataGL3(val width: Int, val height: Int, val format: ColorForma
         }
 
         fun fromStream(stream: InputStream, name: String? = null): ColorBufferDataGL3 {
-            val byteArray = stream.readAllBytes()
+            val byteArray = stream.readBytes()
             val buffer = BufferUtils.createByteBuffer(byteArray.size)
             (buffer as Buffer).rewind()
             buffer.put(byteArray)
