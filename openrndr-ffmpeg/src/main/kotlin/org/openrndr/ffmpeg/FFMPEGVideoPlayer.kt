@@ -34,7 +34,7 @@ class FFMPEGVideoPlayer private constructor(url: String) {
                 "linux" in osName -> {
                     "/dev/video0"
                 }
-                else -> throw RuntimeException("unsupported os: $osName")
+                else -> throw RuntimeException("unsupported video platform")
             }
             return device
         }
