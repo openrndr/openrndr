@@ -1,12 +1,16 @@
 package org.openrndr.ffmpeg
 
-import org.bytedeco.javacpp.avcodec
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import org.bytedeco.javacpp.*
 import org.bytedeco.javacpp.avcodec.avcodec_find_decoder
 import org.bytedeco.javacpp.avcodec.avcodec_open2
-import org.bytedeco.javacpp.avformat
 import org.bytedeco.javacpp.avformat.*
-import org.bytedeco.javacpp.avutil
 import org.bytedeco.javacpp.avutil.*
+import org.openrndr.draw.ColorBuffer
+import org.openrndr.draw.Drawer
+import org.openrndr.draw.colorBuffer
 
 enum class State {
     PLAYING,
@@ -34,55 +38,15 @@ data class Dimensions(val w: Int, val h: Int) {
     operator fun div(b: Int) = Dimensions(w / b, h / b)
 }
 
-data class VideoOutput(val size: Dimensions, val pixelFormat:Int)
-
-private fun VideoOutput.toVideoDecoderOutput(): VideoDecoderOutput? {
-    val avPixelFormat = pixelFormat.toAVPixelFormat() ?: return null
-    return VideoDecoderOutput(size.copy(), avPixelFormat)
-}
-
-
-
-private fun Int.toAVPixelFormat(): Int =
-    AV_PIX_FMT_RGB32
-
-
-
-
-//private fun AudioOutput.toAudioDecoderOutput(): AudioDecoderOutput? {
-//    val avSampleFormat = sampleFormat.toAVSampleFormat() ?: return null
-//    if (channels != 2) return null // only stereo output is supported for now
-//    return AudioDecoderOutput(sampleRate, channels, AV_CH_LAYOUT_STEREO, avSampleFormat)
-//}
-//
-
-enum class SampleFormat {
-    INVALID,
-    S16
-}
-
-data class AudioOutput(val sampleRate: Int, val channels: Int, val sampleFormat: SampleFormat)
-
-
-private fun AudioOutput.toAudioDecoderOutput(): AudioDecoderOutput? {
-    val avSampleFormat = sampleFormat.toAVSampleFormat() ?: return null
-    if (channels != 2) return null // only stereo output is supported for now
-    return AudioDecoderOutput(sampleRate, channels, AV_CH_LAYOUT_STEREO, avSampleFormat)
-}
-
-private fun SampleFormat.toAVSampleFormat() =  when (this) {
-    SampleFormat.S16 -> AV_SAMPLE_FMT_S16.toLong()
-    SampleFormat.INVALID -> null
-}
-
-
 class AVFile(val fileName: String) {
     val context = avformat_alloc_context()
 
     init {
+        println("avformat_open_input)")
         avformat_open_input(context, fileName, null, null).checkAVError()
-        val options = avutil.AVDictionary()
-        avformat_find_stream_info(context, options)
+        val options = avutil.AVDictionary(null)
+        println("avformat_find_stream_info")
+        avformat_find_stream_info(context, null as PointerPointer<*>?)
     }
 
     fun dumpFormat() {
@@ -94,166 +58,136 @@ class AVFile(val fileName: String) {
     }
 }
 
-class VideoPlayerFFMPEG() {
-
+class VideoPlayerFFMPEG(val file: AVFile, val mode: PlayMode = PlayMode.VIDEO) {
 
     companion object {
-        fun fromFile(fileName: String, mode: PlayMode = PlayMode.VIDEO) {
+        fun fromFile(fileName: String, mode: PlayMode = PlayMode.VIDEO): VideoPlayerFFMPEG {
+            println("opening file")
             val file = AVFile(fileName)
 
-            file.dumpFormat()
-            val worker = Worker()
-            val dec = DecoderWorker(worker)
-            val info = dec.initDecode(file.context, mode.useVideo, mode.useAudio)
-            var state = State.PLAYING
+            println("opened filed")
+            return VideoPlayerFFMPEG(file, mode)
+        }
+    }
 
-            val videoOutput = VideoOutput(info?.video?.size?: TODO(), AV_PIX_FMT_RGB32)
-            val audioOutput = AudioOutput(44100, 2, SampleFormat.S16)
+    private var decoder: Decoder? = null
+    private var info: CodecInfo? = null
+    private var state = State.PLAYING
+    private var startTimeMillis = -1L
+    private var colorBuffer: ColorBuffer? = null
+    private var firstFrame = true
+    private var playOffsetSeconds = 0.0
 
-            dec.start(videoOutput, audioOutput)
-            dec.requestDecodeChunk()
+    fun play() {
+        file.dumpFormat()
 
-            println("starting loop")
-            while (state != State.STOPPED) {
+        val (decoder, info) = runBlocking {
+            Decoder.fromContext(file.context, mode.useVideo, mode.useAudio)
+        }
+        this.decoder = decoder
+        this.info = info
 
-                info.video?.let {
-                    val frame = dec.nextVideoFrame()
-                    frame?.let {
 
-                        println("got a frame")
+        this.info?.video?.let {
+            println("allocating video buffer")
+            colorBuffer = org.openrndr.draw.colorBuffer(it.size.w, it.size.h).apply {
+                flipV = true
+            }
+        }
 
-                        it.unref()
+        val videoOutput = VideoOutput(info.video?.size ?: TODO(), AV_PIX_FMT_RGB32)
+        val audioOutput = AudioOutput(44100, 2, SampleFormat.S16)
+
+        GlobalScope.launch {
+            decoder.start(videoOutput.toVideoDecoderOutput(), audioOutput.toAudioDecoderOutput())
+        }
+
+        println("starting loop")
+        startTimeMillis = System.currentTimeMillis()
+
+
+        println("framerate!: ${info.video.fps}")
+    }
+
+    fun draw(drawer: Drawer) {
+        if (state == State.PLAYING) {
+            info?.video.let {
+
+                val playTimeSeconds = (System.currentTimeMillis() - startTimeMillis) / 1000.0 + playOffsetSeconds
+                val peekFrame = decoder?.peekNextVideoFrame()
+                if (firstFrame && peekFrame != null) {
+                    if (peekFrame.timeStamp > playTimeSeconds) {
+                        playOffsetSeconds += peekFrame.timeStamp - playTimeSeconds
+                        println("jumping in time $playOffsetSeconds")
 
                     }
+                    firstFrame = false
+                }
+
+                if (peekFrame == null && !firstFrame) {
+                    println("oh no ran out buffered frames")
+                    firstFrame = true
+                }
+
+                if (playTimeSeconds >= (peekFrame?.timeStamp ?: Double.POSITIVE_INFINITY)) {
+                    val frame = decoder?.nextVideoFrame()
+                    frame?.let {
+                        //println("got a frame ${playTimeSeconds} ${frame.timeStamp} ")
+                        colorBuffer?.write(it.buffer.data().capacity(frame.frameSize.toLong()).asByteBuffer())
+                        it.unref()
+                    }
+                    runBlocking {
+                        if (decoder?.done() == true) {
+                            println("ok bye")
+                        }
+                    }
+                } else {
 
                 }
-                if (state == State.PLAYING) {
 
-                }
-                if (dec.done()) {
-                    println("ok bye")
-                }
-                Thread.sleep(100)
+
             }
-
-
+        }
+        colorBuffer?.let {
+            drawer.image(it)
         }
     }
 }
 
-private fun AVFormatContext.streamAt(index: Int): AVStream? =
+fun AVFormatContext.streamAt(index: Int): AVStream? =
         if (index < 0) null
         else this.streams(index)
 
-private val AVFormatContext.codecs: List<avcodec.AVCodecContext?>
+val AVFormatContext.codecs: List<avcodec.AVCodecContext?>
     //get() = List(nb_streams.toInt()) { streams?.get(it)?.pointed?.codec?.pointed }
     get() = List(nb_streams()) { streams(it).codec() }
 
 
-private fun AVStream.openCodec(tag: String): avcodec.AVCodecContext {
+fun AVStream.openCodec(tag: String): avcodec.AVCodecContext {
     // Get codec context for the video stream.
     val codecContext = this.codec()
     val codec = avcodec_find_decoder(codecContext.codec_id())
     if (codec.isNull)
-    throw Error("Unsupported $tag codec with id ${codecContext.codec_id()}...")
+        throw Error("Unsupported $tag codec with id ${codecContext.codec_id()}...")
     // Open codec.
     if (avcodec_open2(codecContext, codec, null as avutil.AVDictionary?) < 0)
         throw Error("Couldn't open $tag codec with id ${codecContext.codec_id()}")
+
+
+
     return codecContext
 }
 
-
-enum class TransferMode {
-    SAFE
-}
-
-class Future<T>(val result:T) {
-
-}
-
-class Worker {
-
-    fun <T1, T2> execute(mode:TransferMode,producer:()->T1, job:(T1)->T2 ) :Future<T2>{
-        val r = producer()
-        val f = job(r)
-        return Future(f)
-    }
-
-}
-
-
-
-class DecoderWorker(val worker: Worker) {
-
-    private var decoder: Decoder? = null
-
-    fun initDecode(context: AVFormatContext, useVideo: Boolean = true, useAudio: Boolean = true): CodecInfo {
-        // Find the first video/audio streams.
-        val videoStreamIndex =
-                if (useVideo) context.codecs.indexOfFirst { it?.codec_type() == AVMEDIA_TYPE_VIDEO } else -1
-        val audioStreamIndex =
-                if (useAudio) context.codecs.indexOfFirst { it?.codec_type() == AVMEDIA_TYPE_AUDIO } else -1
-
-        val videoStream = context.streamAt(videoStreamIndex)
-        val audioStream = context.streamAt(audioStreamIndex)
-
-        val videoContext = videoStream?.openCodec("video")
-        val audioContext = audioStream?.openCodec("audio")
-
-        // Extract video info.
-        val video = videoContext?.run {
-            VideoInfo(Dimensions(width(), height()), av_q2d(av_stream_get_r_frame_rate(videoStream)))
-        }
-        // Extract audio info.
-        val audio = audioContext?.run {
-            AudioInfo(sample_rate(), channels())
-        }
-
-        // Pack all state and pass it to the worker.
-        worker.execute(TransferMode.SAFE, {
-            Decoder(context,
-                    videoStreamIndex, audioStreamIndex,
-                    videoContext, audioContext)
-        }) { decoder = it }
-        return CodecInfo(video, audio)
-    }
-
-    fun start(videoOutput: VideoOutput, audioOutput: AudioOutput) {
-        worker.execute(TransferMode.SAFE,
-                {
-                    Pair(
-                            videoOutput.toVideoDecoderOutput(),
-                            audioOutput.toAudioDecoderOutput())
-                }) {
-            decoder?.start(it.first, it.second)
-        }
-    }
-
-    fun stop() {
-        worker.execute(TransferMode.SAFE, { null }) {
-            decoder?.run {
-                dispose()
-                decoder = null
-            }
-        }.result
-    }
-
-    fun done(): Boolean =
-            worker.execute(TransferMode.SAFE, { null }) { decoder?.done() ?: true }.result
-
-    fun requestDecodeChunk() =
-            worker.execute(TransferMode.SAFE, { null }) { decoder?.decodeIfNeeded() }.result
-
-    fun nextVideoFrame(): VideoFrame? =
-            worker.execute(TransferMode.SAFE, { null }) { decoder?.nextVideoFrame() }.result
-
-//    fun nextAudioFrame(size: Int): AudioFrame? =
-//            worker.execute(TransferMode.SAFE, { size }) { decoder?.nextAudioFrame(it) }.result
-//
-//    fun audioVideoSynced(): Boolean =
-//            worker.execute(TransferMode.SAFE, { null }) { decoder?.audioVideoSynced() ?: true }.result
-}
-
 fun main() {
-    VideoPlayerFFMPEG.fromFile("/Users/edwin/Desktop/namer-trimmed.mp4")
+    av_register_all()
+    val player = VideoPlayerFFMPEG.fromFile("/Users/edwin/Desktop/namer-trimmed.mp4")
+
+
+    player.play()
+
+    while (true) {
+        Thread.sleep(10)
+    }
+
+    //VideoPlayerFFMPEG.fromFile("https://manifest.googlevideo.com/api/manifest/hls_playlist/expire/1561070996/ei/NLkLXYvmLNfcgAe7sJDYDw/ip/213.124.33.58/id/bp6MTKFNqa4.0/itag/96/source/yt_live_broadcast/requiressl/yes/ratebypass/yes/live/1/goi/160/sgoap/gir%3Dyes%3Bitag%3D140/sgovp/gir%3Dyes%3Bitag%3D137/hls_chunk_host/r2---sn-5hne6n7z.googlevideo.com/playlist_type/DVR/initcwndbps/13770/mm/44/mn/sn-5hne6n7z/ms/lva/mv/m/pl/18/dover/11/keepalive/yes/mt/1561049318/disable_polymer/true/sparams/expire,ei,ip,id,itag,source,requiressl,ratebypass,live,goi,sgoap,sgovp,playlist_type/sig/ALgxI2wwRAIgCtskXa72BZLBBVGIEWXbzZVVyov0cFPQVpk6kabOuvUCIArblznMcV7Uk17qQifd8fl70_cmWestAPBob3jtOC16/lsparams/hls_chunk_host,initcwndbps,mm,mn,ms,mv,pl/lsig/AHylml4wRgIhAP5DwpDrqWp4gPNf-1_RgC_8R1nK5tS6qrebCYy910OiAiEAyVJIUfLusF34FZ2qLEYg2La7bRSCQqTYeP-TTNeQfaU%3D/playlist/index.m3u8").play()
 }
