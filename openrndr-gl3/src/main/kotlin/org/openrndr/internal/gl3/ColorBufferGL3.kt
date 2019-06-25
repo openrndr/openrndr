@@ -4,6 +4,8 @@ import kotlinx.coroutines.yield
 import mu.KotlinLogging
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.EXTTextureCompressionS3TC.*
+import org.lwjgl.opengl.GL11C
+import org.lwjgl.opengl.GL13C
 import org.lwjgl.opengl.GL33C.*
 import org.lwjgl.stb.STBImage
 import org.lwjgl.stb.STBImageWrite
@@ -702,7 +704,12 @@ class ColorBufferGL3(val target: Int,
             val nullBB: ByteBuffer? = null
 
             when (multisample) {
-                Disabled -> glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, effectiveWidth, effectiveHeight, 0, format.glFormat(), type.glType(), nullBB)
+                Disabled ->
+                    //when (type.compressed) {
+                        glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, effectiveWidth, effectiveHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullBB)
+//                        true -> GL13C.glCompressedTexImage2D(GL_TEXTURE_2D, 0, internalFormat, effectiveWidth, effectiveHeight, 0, nullBB)
+//                    }
+
                 is SampleCount -> glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, multisample.sampleCount.coerceAtMost(glGetInteger(GL_MAX_COLOR_TEXTURE_SAMPLES)), internalFormat, effectiveWidth, effectiveHeight, true)
             }
 
@@ -848,9 +855,14 @@ class ColorBufferGL3(val target: Int,
                 val currentPack = intArrayOf(0)
                 glGetIntegerv(GL_UNPACK_ALIGNMENT, currentPack)
                 glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
-                glTexSubImage2D(target, 0, 0, 0, width, height, format.glFormat(), type.glType(), buffer)
+                if (type.compressed) {
+                    glTexSubImage2D(target, 0, 0, 0, width, height, format.glFormat(), GL_UNSIGNED_BYTE, buffer)
+                } else {
+                    glTexSubImage2D(target, 0, 0, 0, width, height, format.glFormat(), type.glType(), buffer)
+                }
                 glPixelStorei(GL_UNPACK_ALIGNMENT, currentPack[0])
-                debugGLErrors()
+                //debugGLErrors()
+                checkGLErrors()
                 (buffer as Buffer).rewind()
             }
         } else {

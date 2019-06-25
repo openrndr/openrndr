@@ -132,6 +132,14 @@ enum class ColorType {
                 DXT1, DXT3, DXT5 -> throw RuntimeException("component size of compressed types cannot be queried")
             }
         }
+
+    val compressed: Boolean
+        get() {
+            return when (this) {
+                DXT1, DXT3, DXT5 -> true
+                else -> false
+            }
+        }
 }
 
 enum class CullTestPass {
