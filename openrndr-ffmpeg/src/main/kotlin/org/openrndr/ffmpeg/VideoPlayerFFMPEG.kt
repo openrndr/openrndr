@@ -11,6 +11,7 @@ import org.bytedeco.javacpp.avutil.*
 import org.openrndr.draw.ColorBuffer
 import org.openrndr.draw.Drawer
 import org.openrndr.draw.colorBuffer
+import org.openrndr.events.Event
 
 enum class State {
     PLAYING,
@@ -58,6 +59,11 @@ class AVFile(val fileName: String) {
     }
 }
 
+
+class FrameEvent(val frame:ColorBuffer, val timeStamp:Double) {
+
+}
+
 class VideoPlayerFFMPEG(val file: AVFile, val mode: PlayMode = PlayMode.VIDEO) {
 
     companion object {
@@ -77,6 +83,8 @@ class VideoPlayerFFMPEG(val file: AVFile, val mode: PlayMode = PlayMode.VIDEO) {
     private var colorBuffer: ColorBuffer? = null
     private var firstFrame = true
     private var playOffsetSeconds = 0.0
+
+    val newFrame = Event<FrameEvent>()
 
     fun play() {
         file.dumpFormat()
@@ -104,12 +112,10 @@ class VideoPlayerFFMPEG(val file: AVFile, val mode: PlayMode = PlayMode.VIDEO) {
 
         println("starting loop")
         startTimeMillis = System.currentTimeMillis()
-
-
         println("framerate!: ${info.video.fps}")
     }
 
-    fun draw(drawer: Drawer) {
+    fun update() {
         if (state == State.PLAYING) {
             info?.video.let {
 
@@ -119,7 +125,6 @@ class VideoPlayerFFMPEG(val file: AVFile, val mode: PlayMode = PlayMode.VIDEO) {
                     if (peekFrame.timeStamp > playTimeSeconds) {
                         playOffsetSeconds += peekFrame.timeStamp - playTimeSeconds
                         println("jumping in time $playOffsetSeconds")
-
                     }
                     firstFrame = false
                 }
@@ -132,22 +137,22 @@ class VideoPlayerFFMPEG(val file: AVFile, val mode: PlayMode = PlayMode.VIDEO) {
                 if (playTimeSeconds >= (peekFrame?.timeStamp ?: Double.POSITIVE_INFINITY)) {
                     val frame = decoder?.nextVideoFrame()
                     frame?.let {
-                        //println("got a frame ${playTimeSeconds} ${frame.timeStamp} ")
                         colorBuffer?.write(it.buffer.data().capacity(frame.frameSize.toLong()).asByteBuffer())
                         it.unref()
+                        newFrame.trigger(FrameEvent(colorBuffer?:throw IllegalStateException("colorBuffer == null"), peekFrame?.timeStamp?:-1.0))
                     }
                     runBlocking {
                         if (decoder?.done() == true) {
-                            println("ok bye")
+                            println("decoder is done")
                         }
                     }
-                } else {
-
                 }
-
-
             }
         }
+    }
+
+    fun draw(drawer: Drawer) {
+        update()
         colorBuffer?.let {
             drawer.image(it)
         }
