@@ -51,5 +51,20 @@ data class Matrix55(
             this.c0r4 * mat.c3r0 + this.c1r4 * mat.c3r1 + this.c2r4 * mat.c3r2 + this.c3r4 * mat.c3r3 + this.c4r4 * mat.c3r4,
             this.c0r4 * mat.c4r0 + this.c1r4 * mat.c4r1 + this.c2r4 * mat.c4r2 + this.c3r4 * mat.c4r3 + this.c4r4 * mat.c4r4
     )
+
+    operator fun plus(mat: Matrix55) = Matrix55(
+            c0r0 + mat.c0r0, c1r0 + mat.c1r0, c2r0 + mat.c2r0, c3r0 + mat.c3r0, c4r0 + mat.c4r0,
+            c0r1 + mat.c0r1, c1r1 + mat.c1r1, c2r1 + mat.c2r1, c3r1 + mat.c3r1, c4r1 + mat.c4r1,
+            c0r2 + mat.c0r2, c1r2 + mat.c1r2, c2r2 + mat.c2r2, c3r2 + mat.c3r2, c4r2 + mat.c4r2,
+            c0r3 + mat.c0r3, c1r3 + mat.c1r3, c2r3 + mat.c2r3, c3r3 + mat.c3r3, c4r3 + mat.c4r3,
+            c0r4 + mat.c0r4, c1r4 + mat.c1r4, c2r4 + mat.c2r4, c3r4 + mat.c3r4, c4r4 + mat.c4r4)
+
+    operator fun times(s: Double) = Matrix55(
+            c0r0 * s, c1r0 * s, c2r0 * s, c3r0 * s, c4r0 * s,
+            c0r1 * s, c1r1 * s, c2r1 * s, c3r1 * s, c4r1 * s,
+            c0r2 * s, c1r2 * s, c2r2 * s, c3r2 * s, c4r2 * s,
+            c0r3 * s, c1r3 * s, c2r3 * s, c3r3 * s, c4r3 * s,
+            c0r4 * s, c1r4 * s, c2r4 * s, c3r4 * s, c4r4 * s)
+
 }
 
