@@ -3,6 +3,7 @@ package org.openrndr.internal.gl3
 import kotlinx.coroutines.yield
 import mu.KotlinLogging
 import org.lwjgl.BufferUtils
+import org.lwjgl.opengl.ARBTextureCompressionBPTC.GL_COMPRESSED_RGBA_BPTC_UNORM_ARB
 import org.lwjgl.opengl.EXTTextureCompressionS3TC.*
 import org.lwjgl.opengl.GL11C
 import org.lwjgl.opengl.GL13C
@@ -52,7 +53,10 @@ fun internalFormat(format: ColorFormat, type: ColorType): Int {
             ConversionEntry(ColorFormat.RGBa, ColorType.DXT1, GL_COMPRESSED_RGBA_S3TC_DXT1_EXT),
             ConversionEntry(ColorFormat.RGBa, ColorType.DXT3, GL_COMPRESSED_RGBA_S3TC_DXT3_EXT),
             ConversionEntry(ColorFormat.RGBa, ColorType.DXT5, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT),
-            ConversionEntry(ColorFormat.RGB, ColorType.DXT1, GL_COMPRESSED_RGB_S3TC_DXT1_EXT))
+            ConversionEntry(ColorFormat.RGB, ColorType.DXT1, GL_COMPRESSED_RGB_S3TC_DXT1_EXT),
+            ConversionEntry(ColorFormat.RGBa, ColorType.BPTC_UNORM, GL_COMPRESSED_RGBA_BPTC_UNORM_ARB)
+    )
+
 
     for (entry in entries) {
         if (entry.format === format && entry.type === type) {
@@ -843,7 +847,7 @@ class ColorBufferGL3(val target: Int,
 
     var realShadow: ColorBufferShadow? = null
 
-    override fun write(buffer: ByteBuffer) {
+    override fun write(buffer: ByteBuffer, sourceFormat: ColorFormat, sourceType: ColorType) {
         if (multisample == Disabled) {
             bound {
                 debugGLErrors()
@@ -855,10 +859,10 @@ class ColorBufferGL3(val target: Int,
                 val currentPack = intArrayOf(0)
                 glGetIntegerv(GL_UNPACK_ALIGNMENT, currentPack)
                 glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
-                if (type.compressed) {
-                    glTexSubImage2D(target, 0, 0, 0, width, height, format.glFormat(), GL_UNSIGNED_BYTE, buffer)
+                if (sourceType.compressed) {
+                    glCompressedTexSubImage2D(target, 0, 0, 0, width, height, sourceType.glCompressedType(),  buffer)
                 } else {
-                    glTexSubImage2D(target, 0, 0, 0, width, height, format.glFormat(), type.glType(), buffer)
+                    glTexSubImage2D(target, 0, 0, 0, width, height, sourceFormat.glFormat(), sourceType.glType(), buffer)
                 }
                 glPixelStorei(GL_UNPACK_ALIGNMENT, currentPack[0])
                 //debugGLErrors()
@@ -995,6 +999,17 @@ internal fun ColorType.glType(): Int {
         ColorType.UINT16 -> GL_UNSIGNED_SHORT
         ColorType.FLOAT16 -> GL_HALF_FLOAT
         ColorType.FLOAT32 -> GL_FLOAT
-        ColorType.DXT1, ColorType.DXT3, ColorType.DXT5 -> throw RuntimeException("gl type of compressed types cannot be queried")
+        ColorType.DXT1, ColorType.DXT3, ColorType.DXT5, ColorType.BPTC_UNORM -> throw RuntimeException("gl type of compressed types cannot be queried")
+    }
+}
+
+internal fun ColorType.glCompressedType(): Int {
+    return when (this) {
+
+        ColorType.DXT1 -> GL_COMPRESSED_RGBA_S3TC_DXT1_EXT
+        ColorType.DXT3 -> GL_COMPRESSED_RGBA_S3TC_DXT3_EXT
+        ColorType.DXT5 -> GL_COMPRESSED_RGBA_S3TC_DXT5_EXT
+        ColorType.BPTC_UNORM -> GL_COMPRESSED_RGBA_BPTC_UNORM_ARB
+        else -> throw RuntimeException("not a compressed type")
     }
 }

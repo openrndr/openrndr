@@ -1,10 +1,10 @@
-ext.ffmpeg_version = "4.1-1.4.4"
+ext.ffmpeg_version = "4.1.3-1.5"
 
 dependencies {
     implementation "org.lwjgl:lwjgl:$lwjglVersion"
-    implementation "org.bytedeco.javacpp-presets:ffmpeg:$ffmpeg_version"
-    runtime "org.bytedeco.javacpp-presets:ffmpeg:$ffmpeg_version:windows-x86_64"
-    runtime "org.bytedeco.javacpp-presets:ffmpeg:$ffmpeg_version:linux-x86_64"
-    runtime "org.bytedeco.javacpp-presets:ffmpeg:$ffmpeg_version:macosx-x86_64"
+    implementation "org.bytedeco:ffmpeg:$ffmpeg_version"
+    runtime "org.bytedeco:ffmpeg:$ffmpeg_version:windows-x86_64"
+    runtime "org.bytedeco:ffmpeg:$ffmpeg_version:linux-x86_64"
+    runtime "org.bytedeco:ffmpeg:$ffmpeg_version:macosx-x86_64"
     compile project(":openrndr-core")
 }

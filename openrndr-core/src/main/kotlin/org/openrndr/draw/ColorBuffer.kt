@@ -105,7 +105,7 @@ interface ColorBuffer {
     /** binds the colorbuffer to a texture unit, internal API */
     fun bind(unit: Int)
 
-    fun write(buffer: ByteBuffer)
+    fun write(buffer: ByteBuffer, sourceFormat:ColorFormat = format, sourceType:ColorType = type)
     fun read(buffer: ByteBuffer)
 
     /** generates mipmaps from the top-level mipmap */
