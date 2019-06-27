@@ -1,9 +1,16 @@
 package org.openrndr.ffmpeg
 
+import org.bytedeco.ffmpeg.avcodec.AVCodecContext
+import org.bytedeco.ffmpeg.avcodec.AVPacket
+import org.bytedeco.ffmpeg.avutil.AVBufferRef
+import org.bytedeco.ffmpeg.avutil.AVFrame
+import org.bytedeco.ffmpeg.global.avcodec.*
+import org.bytedeco.ffmpeg.global.avutil
+import org.bytedeco.ffmpeg.global.avutil.*
+import org.bytedeco.ffmpeg.global.swscale
+import org.bytedeco.ffmpeg.swscale.SwsContext
+import org.bytedeco.ffmpeg.swscale.SwsFilter
 import org.bytedeco.javacpp.*
-import org.bytedeco.javacpp.avcodec.avcodec_receive_frame
-import org.bytedeco.javacpp.avcodec.avcodec_send_packet
-import org.bytedeco.javacpp.avutil.*
 import java.nio.DoubleBuffer
 
 private fun Int.toAVPixelFormat(): Int =
@@ -12,12 +19,12 @@ private fun Int.toAVPixelFormat(): Int =
 internal data class VideoOutput(val size: Dimensions, val pixelFormat: Int)
 
 internal fun VideoOutput.toVideoDecoderOutput(): VideoDecoderOutput? {
-    val avPixelFormat = pixelFormat.toAVPixelFormat() ?: return null
+    val avPixelFormat = pixelFormat.toAVPixelFormat()
     return VideoDecoderOutput(size.copy(), avPixelFormat)
 }
 
 
-internal data class VideoFrame(val buffer: avutil.AVBufferRef, val lineSize: Int, val timeStamp: Double, val frameSize:Int) {
+internal data class VideoFrame(val buffer: AVBufferRef, val lineSize: Int, val timeStamp: Double, val frameSize:Int) {
     fun unref() = avutil.av_buffer_unref(buffer)
 }
 
@@ -38,7 +45,7 @@ private fun Int.pixFmtForHWType():Int {
 internal data class VideoDecoderOutput(val size: Dimensions, val avPixelFormat: Int)
 
 internal class VideoDecoder(
-        private val videoCodecContext: avcodec.AVCodecContext,
+        private val videoCodecContext: AVCodecContext,
         output: VideoDecoderOutput,
         hwType:Int
 ) {
@@ -49,7 +56,7 @@ internal class VideoDecoder(
 
     private val scaledVideoFrame = avutil.av_frame_alloc()
     private val hwPixFmt = hwType.pixFmtForHWType()
-    private var softwareScalingContext: swscale.SwsContext? = null
+    private var softwareScalingContext: SwsContext? = null
 
     private val scaledFrameSize = avutil.av_image_get_buffer_size(avPixelFormat, windowSize.w, windowSize.h, 1)
     private val imagePointer = arrayOf(BytePointer(avutil.av_malloc(scaledFrameSize.toLong())).capacity(scaledFrameSize.toLong()))
@@ -59,7 +66,7 @@ internal class VideoDecoder(
 
 
     init {
-        avutil.av_image_fill_arrays(PointerPointer<avutil.AVFrame>(scaledVideoFrame), scaledVideoFrame.linesize(), imagePointer[0], avPixelFormat, windowSize.w, windowSize.h, 1)
+        avutil.av_image_fill_arrays(PointerPointer<AVFrame>(scaledVideoFrame), scaledVideoFrame.linesize(), imagePointer[0], avPixelFormat, windowSize.w, windowSize.h, 1)
     }
 
     fun dispose() {
@@ -75,27 +82,9 @@ internal class VideoDecoder(
 
     fun nextFrame() = videoQueue.popOrNull()
 
-    fun decodeVideoPacket(packet: avcodec.AVPacket, frameFinished: IntPointer) {
-        // Decode video frame.
-        avcodec.avcodec_decode_video2(videoCodecContext, videoFrame, frameFinished, packet)
-        // Did we get a video frame?
-        if (frameFinished.get() != 0) {
-            // Convert the frame from its movie format to window pixel format.
-            swscale.sws_scale(softwareScalingContext, videoFrame.data(),
-                    videoFrame.linesize(), 0, videoSize.h,
-                    scaledVideoFrame.data(), scaledVideoFrame.linesize())
-            // TODO: reuse buffers!
-            val buffer = avutil.av_buffer_alloc(scaledFrameSize)
-            val packetTimestamp = videoFrame.best_effort_timestamp()// avutil.av_frame_get_best_effort_timestamp(videoFrame)
-
-            val timeStamp = packetTimestamp * avutil.av_q2d(videoCodecContext.time_base())
-            Pointer.memcpy(buffer.data(), scaledVideoFrame.data()[0], scaledFrameSize.toLong())
-            videoQueue.push(VideoFrame(buffer, scaledVideoFrame.linesize()[0], timeStamp, scaledFrameSize))
-        }
-    }
 
     var lowestTimeStamp = Long.MAX_VALUE
-    fun decodeVideoPacket2(packet: avcodec.AVPacket, frameFinished: IntPointer) {
+    fun decodeVideoPacket2(packet: AVPacket, frameFinished: IntPointer) {
         var ret = avcodec_send_packet(videoCodecContext, packet)
 
         if (ret < 0) {
@@ -108,7 +97,7 @@ internal class VideoDecoder(
             val decodedFrame = av_frame_alloc()
             ret = avcodec_receive_frame(videoCodecContext, decodedFrame)
 
-            if (ret == org.bytedeco.javacpp.presets.avutil.AVERROR_EAGAIN()) {
+            if (ret == avutil.AVERROR_EAGAIN()) {
                 av_frame_free(decodedFrame)
                 return
             }
@@ -129,7 +118,7 @@ internal class VideoDecoder(
                         videoSize.w, videoSize.h,
                         resultFrame.format(),
                         windowSize.w, windowSize.h, avPixelFormat,
-                        swscale.SWS_BILINEAR, null as swscale.SwsFilter?, null as swscale.SwsFilter?, null as DoubleBuffer?)
+                        swscale.SWS_BILINEAR, null as SwsFilter?, null as SwsFilter?, null as DoubleBuffer?)
             }
 
             val buffer = avutil.av_buffer_alloc(scaledFrameSize)

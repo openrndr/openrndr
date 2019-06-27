@@ -1,12 +1,20 @@
 package org.openrndr.ffmpeg
 
 import kotlinx.coroutines.*
+import org.bytedeco.ffmpeg.avcodec.AVCodecContext
+import org.bytedeco.ffmpeg.avformat.AVFormatContext
+import org.bytedeco.ffmpeg.avutil.AVBufferRef
+import org.bytedeco.ffmpeg.avutil.AVHWDeviceContext
+import org.bytedeco.ffmpeg.global.avcodec.av_packet_alloc
+import org.bytedeco.ffmpeg.global.avcodec.av_packet_unref
+import org.bytedeco.ffmpeg.global.avformat
+import org.bytedeco.ffmpeg.global.avformat.av_read_frame
+import org.bytedeco.ffmpeg.global.avutil
+import org.bytedeco.ffmpeg.global.avutil.*
 import org.bytedeco.javacpp.*
 import org.bytedeco.javacpp.Pointer.memcpy
-import org.bytedeco.javacpp.avcodec.*
-import org.bytedeco.javacpp.avformat.av_read_frame
-import org.bytedeco.javacpp.avutil.*
-import org.bytedeco.javacpp.swscale.*
+import org.openrndr.platform.Platform
+import org.openrndr.platform.PlatformType
 import java.nio.DoubleBuffer
 
 internal data class CodecInfo(val video: VideoInfo?, val audio: AudioInfo?) {
@@ -22,15 +30,15 @@ fun Int.checkAVError() {
     }
 }
 
-internal class Decoder(val formatContext: avformat.AVFormatContext,
+internal class Decoder(val formatContext: AVFormatContext,
                        val videoStreamIndex: Int,
                        val audioStreamIndex: Int,
-                       val videoCodecContext: avcodec.AVCodecContext?,
-                       val audioCodecContext: avcodec.AVCodecContext?,
+                       val videoCodecContext: AVCodecContext?,
+                       val audioCodecContext: AVCodecContext?,
                        val hwType: Int) {
 
     companion object {
-        fun fromContext(context: avformat.AVFormatContext, useVideo: Boolean = true, useAudio: Boolean = true, useHW:Boolean = true): Pair<Decoder, CodecInfo> {
+        fun fromContext(context: AVFormatContext, useVideo: Boolean = true, useAudio: Boolean = true, useHW: Boolean = true): Pair<Decoder, CodecInfo> {
             // Find the first video/audio streams.
             val videoStreamIndex =
                     if (useVideo) context.codecs.indexOfFirst { it?.codec_type() == AVMEDIA_TYPE_VIDEO } else -1
@@ -47,34 +55,40 @@ internal class Decoder(val formatContext: avformat.AVFormatContext,
             var hwType = AV_HWDEVICE_TYPE_NONE
             if (useHW && videoContext != null) {
 
+                val preferedHW = when (Platform.type) {
+                    PlatformType.WINDOWS -> arrayListOf(AV_HWDEVICE_TYPE_D3D11VA, AV_HWDEVICE_TYPE_DXVA2, AV_HWDEVICE_TYPE_QSV)
+                    PlatformType.MAC -> arrayListOf(AV_HWDEVICE_TYPE_VIDEOTOOLBOX)
+                    PlatformType.GENERIC -> arrayListOf(AV_HWDEVICE_TYPE_VAAPI)
+                }.reversed()
+
+                val foundHW = mutableListOf<Int>()
                 var next = AV_HWDEVICE_TYPE_NONE
                 do {
                     next = av_hwdevice_iterate_types(next)
-                    println("found hwdevice ${next} ${next == AV_HWDEVICE_TYPE_NONE}")
-                    val name = av_hwdevice_get_type_name(next)
                     if (next != 0) {
-                        println((name.getString()))
-                        hwType = next
-                        break
+                        foundHW.add(next)
                     }
                 } while (next != AV_HWDEVICE_TYPE_NONE)
 
+                hwType = (foundHW.map { Pair(it, preferedHW.indexOf(it)) })
+                        .filter { it.second >= 0 }
+                        .maxBy { it.second }
+                        ?.first ?: AV_HWDEVICE_TYPE_NONE
+
+
                 if (hwType != AV_HWDEVICE_TYPE_NONE) {
                     val hwContextPtr = PointerPointer<AVHWDeviceContext>(1)
-                    println("creating hw device context")
-                    val result = av_hwdevice_ctx_create(hwContextPtr, hwType, null, null, 0)
+                    val name = av_hwdevice_get_type_name(hwType).getString()
+                    println("creating hw device context (type: $name)")
+                    av_hwdevice_ctx_create(hwContextPtr, hwType, null, null, 0).checkAVError()
                     val hwContext = AVHWDeviceContext(hwContextPtr[0])
-
-                    println("result of creating $result")
-                    println("testing ${hwContext.type()}")
-                    println("assigning to codeccontext")
                     videoContext.hw_device_ctx(av_buffer_ref(AVBufferRef(hwContext)))
                 }
             }
 
             // Extract video info.
             val video = videoContext?.run {
-                VideoInfo(Dimensions(width(), height()), av_q2d(avformat.av_stream_get_r_frame_rate(videoStream)))
+                VideoInfo(Dimensions(width(), height()), av_q2d((videoStream.r_frame_rate())))
             }
             // Extract audio info.
             val audio = audioContext?.run {
@@ -90,7 +104,6 @@ internal class Decoder(val formatContext: avformat.AVFormatContext,
     private var noMoreFrames = false
 
     suspend fun start(videoOutput: VideoDecoderOutput?, audioOutput: AudioDecoderOutput?) {
-        println("starting decoder")
         videoDecoder = videoCodecContext?.let { ctx ->
             videoOutput?.let { VideoDecoder(ctx, it, hwType) }
         }

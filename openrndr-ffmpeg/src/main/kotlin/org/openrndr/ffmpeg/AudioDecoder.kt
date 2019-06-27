@@ -1,12 +1,15 @@
 package org.openrndr.ffmpeg
 
+import org.bytedeco.ffmpeg.avcodec.AVCodecContext
+import org.bytedeco.ffmpeg.avcodec.AVPacket
+import org.bytedeco.ffmpeg.avutil.AVBufferRef
+import org.bytedeco.ffmpeg.global.avcodec
+import org.bytedeco.ffmpeg.global.avcodec.avcodec_decode_audio4
+import org.bytedeco.ffmpeg.global.avutil
+import org.bytedeco.ffmpeg.global.avutil.*
+import org.bytedeco.ffmpeg.global.swresample.*
 import org.bytedeco.javacpp.IntPointer
 import org.bytedeco.javacpp.Pointer.memcpy
-import org.bytedeco.javacpp.avcodec
-import org.bytedeco.javacpp.avcodec.avcodec_decode_audio4
-import org.bytedeco.javacpp.avutil
-import org.bytedeco.javacpp.avutil.*
-import org.bytedeco.javacpp.swresample.*
 
 
 enum class SampleFormat {
@@ -30,7 +33,7 @@ private fun SampleFormat.toAVSampleFormat() = when (this) {
 
 internal data class AudioInfo(val sampleRate: Int, val channels: Int)
 
-internal class AudioFrame(val buffer: avutil.AVBufferRef, var position: Int, val size: Int, val timeStamp: Double) {
+internal class AudioFrame(val buffer: AVBufferRef, var position: Int, val size: Int, val timeStamp: Double) {
     fun unref() = avutil.av_buffer_unref(buffer)
 }
 
@@ -41,7 +44,7 @@ internal data class AudioDecoderOutput(
         val sampleFormat: Long)
 
 internal class AudioDecoder(
-        private val audioCodecContext: avcodec.AVCodecContext,
+        private val audioCodecContext: AVCodecContext,
         output: AudioDecoderOutput
 ) {
     private val audioFrame = av_frame_alloc()
@@ -97,7 +100,7 @@ internal class AudioDecoder(
         }
     }
 
-    fun decodeAudioPacket(packet: avcodec.AVPacket, frameFinished: IntPointer) {
+    fun decodeAudioPacket(packet: AVPacket, frameFinished: IntPointer) {
         while (packet.size() > 0) {
             val size = avcodec_decode_audio4(audioCodecContext, audioFrame, frameFinished, packet)
             if (frameFinished.get() != 0) {
@@ -106,7 +109,7 @@ internal class AudioDecoder(
                 with(resampledAudioFrame) {
                     val audioFrameSize = av_samples_get_buffer_size(null as IntPointer?, channels(), nb_samples(), format(), 1)
                     val buffer = av_buffer_alloc(audioFrameSize)!!
-                    val ts = av_frame_get_best_effort_timestamp(audioFrame) * av_q2d(audioCodecContext.time_base())
+                    val ts = (audioFrame.best_effort_timestamp()) * av_q2d(audioCodecContext.time_base())
                     memcpy(buffer.data(), data()[0], audioFrameSize.toLong())
                     audioQueue.push(AudioFrame(buffer, 0, audioFrameSize, ts))
                 }

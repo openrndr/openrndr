@@ -3,15 +3,21 @@ package org.openrndr.ffmpeg
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import org.bytedeco.ffmpeg.avcodec.AVCodecContext
+import org.bytedeco.ffmpeg.avformat.AVFormatContext
+import org.bytedeco.ffmpeg.avformat.AVStream
+import org.bytedeco.ffmpeg.avutil.AVDictionary
+import org.bytedeco.ffmpeg.global.avcodec.*
+import org.bytedeco.ffmpeg.global.avformat.*
 import org.bytedeco.javacpp.*
-import org.bytedeco.javacpp.avcodec.avcodec_find_decoder
-import org.bytedeco.javacpp.avcodec.avcodec_open2
-import org.bytedeco.javacpp.avformat.*
-import org.bytedeco.javacpp.avutil.*
 import org.openrndr.draw.ColorBuffer
 import org.openrndr.draw.Drawer
-import org.openrndr.draw.colorBuffer
 import org.openrndr.events.Event
+import org.bytedeco.ffmpeg.global.avcodec.avcodec_find_decoder
+import org.bytedeco.ffmpeg.avcodec.AVCodec
+import org.bytedeco.ffmpeg.avcodec.AVCodecParameters
+import org.bytedeco.ffmpeg.global.avutil.*
+
 
 enum class State {
     PLAYING,
@@ -43,10 +49,7 @@ class AVFile(val fileName: String) {
     val context = avformat_alloc_context()
 
     init {
-        println("avformat_open_input)")
         avformat_open_input(context, fileName, null, null).checkAVError()
-        val options = avutil.AVDictionary(null)
-        println("avformat_find_stream_info")
         avformat_find_stream_info(context, null as PointerPointer<*>?)
     }
 
@@ -59,6 +62,9 @@ class AVFile(val fileName: String) {
     }
 }
 
+class Camera() {
+
+}
 
 class FrameEvent(val frame:ColorBuffer, val timeStamp:Double) {
 
@@ -68,10 +74,8 @@ class VideoPlayerFFMPEG(val file: AVFile, val mode: PlayMode = PlayMode.VIDEO) {
 
     companion object {
         fun fromFile(fileName: String, mode: PlayMode = PlayMode.VIDEO): VideoPlayerFFMPEG {
-            println("opening file")
+            av_log_set_level(AV_LOG_ERROR)
             val file = AVFile(fileName)
-
-            println("opened filed")
             return VideoPlayerFFMPEG(file, mode)
         }
     }
@@ -102,6 +106,7 @@ class VideoPlayerFFMPEG(val file: AVFile, val mode: PlayMode = PlayMode.VIDEO) {
                 flipV = true
             }
         }
+
 
         val videoOutput = VideoOutput(info.video?.size ?: TODO(), AV_PIX_FMT_RGB32)
         val audioOutput = AudioOutput(44100, 2, SampleFormat.S16)
@@ -163,36 +168,23 @@ fun AVFormatContext.streamAt(index: Int): AVStream? =
         if (index < 0) null
         else this.streams(index)
 
-val AVFormatContext.codecs: List<avcodec.AVCodecContext?>
+val AVFormatContext.codecs: List<AVCodecParameters?>
     //get() = List(nb_streams.toInt()) { streams?.get(it)?.pointed?.codec?.pointed }
-    get() = List(nb_streams()) { streams(it).codec() }
+    get() = List(nb_streams()) { streams(it).codecpar() }
 
 
-fun AVStream.openCodec(tag: String): avcodec.AVCodecContext {
+fun AVStream.openCodec(tag: String): AVCodecContext {
     // Get codec context for the video stream.
-    val codecContext = this.codec()
-    val codec = avcodec_find_decoder(codecContext.codec_id())
+    val codecPar = this.codecpar()
+
+    val codec = avcodec_find_decoder(codecPar.codec_id())
     if (codec.isNull)
-        throw Error("Unsupported $tag codec with id ${codecContext.codec_id()}...")
-    // Open codec.
-    if (avcodec_open2(codecContext, codec, null as avutil.AVDictionary?) < 0)
-        throw Error("Couldn't open $tag codec with id ${codecContext.codec_id()}")
+        throw Error("Unsupported $tag codec with id ${codecPar.codec_id()}...")
 
-
+    val codecContext = avcodec_alloc_context3(codec)
+    avcodec_parameters_to_context(codecContext, codecPar)
+    if (avcodec_open2(codecContext, codec, null as AVDictionary?) < 0)
+        throw Error("Couldn't open $tag codec with id ${codecPar.codec_id()}")
 
     return codecContext
-}
-
-fun main() {
-    av_register_all()
-    val player = VideoPlayerFFMPEG.fromFile("/Users/edwin/Desktop/namer-trimmed.mp4")
-
-
-    player.play()
-
-    while (true) {
-        Thread.sleep(10)
-    }
-
-    //VideoPlayerFFMPEG.fromFile("https://manifest.googlevideo.com/api/manifest/hls_playlist/expire/1561070996/ei/NLkLXYvmLNfcgAe7sJDYDw/ip/213.124.33.58/id/bp6MTKFNqa4.0/itag/96/source/yt_live_broadcast/requiressl/yes/ratebypass/yes/live/1/goi/160/sgoap/gir%3Dyes%3Bitag%3D140/sgovp/gir%3Dyes%3Bitag%3D137/hls_chunk_host/r2---sn-5hne6n7z.googlevideo.com/playlist_type/DVR/initcwndbps/13770/mm/44/mn/sn-5hne6n7z/ms/lva/mv/m/pl/18/dover/11/keepalive/yes/mt/1561049318/disable_polymer/true/sparams/expire,ei,ip,id,itag,source,requiressl,ratebypass,live,goi,sgoap,sgovp,playlist_type/sig/ALgxI2wwRAIgCtskXa72BZLBBVGIEWXbzZVVyov0cFPQVpk6kabOuvUCIArblznMcV7Uk17qQifd8fl70_cmWestAPBob3jtOC16/lsparams/hls_chunk_host,initcwndbps,mm,mn,ms,mv,pl/lsig/AHylml4wRgIhAP5DwpDrqWp4gPNf-1_RgC_8R1nK5tS6qrebCYy910OiAiEAyVJIUfLusF34FZ2qLEYg2La7bRSCQqTYeP-TTNeQfaU%3D/playlist/index.m3u8").play()
 }
