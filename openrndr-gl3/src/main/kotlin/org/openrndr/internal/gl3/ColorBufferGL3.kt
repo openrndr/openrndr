@@ -5,8 +5,6 @@ import mu.KotlinLogging
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.ARBTextureCompressionBPTC.GL_COMPRESSED_RGBA_BPTC_UNORM_ARB
 import org.lwjgl.opengl.EXTTextureCompressionS3TC.*
-import org.lwjgl.opengl.GL11C
-import org.lwjgl.opengl.GL13C
 import org.lwjgl.opengl.GL33C.*
 import org.lwjgl.stb.STBImage
 import org.lwjgl.stb.STBImageWrite
@@ -26,7 +24,7 @@ data class ConversionEntry(val format: ColorFormat, val type: ColorType, val glF
 
 private val logger = KotlinLogging.logger {}
 
-fun internalFormat(format: ColorFormat, type: ColorType): Int {
+internal fun internalFormat(format: ColorFormat, type: ColorType): Int {
     val entries = arrayOf(
             ConversionEntry(ColorFormat.R, ColorType.UINT8, GL_R8),
             ConversionEntry(ColorFormat.R, ColorType.UINT16, GL_R16),
@@ -972,7 +970,7 @@ internal fun MagnifyingFilter.toGLFilter(): Int {
     }
 }
 
-private fun WrapMode.glWrap(): Int {
+internal fun WrapMode.glWrap(): Int {
     return when (this) {
         WrapMode.CLAMP_TO_EDGE -> GL_CLAMP_TO_EDGE
         WrapMode.MIRRORED_REPEAT -> GL_MIRRORED_REPEAT

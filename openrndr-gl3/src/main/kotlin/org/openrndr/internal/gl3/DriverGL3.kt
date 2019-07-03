@@ -133,6 +133,11 @@ class DriverGL3 : Driver {
         }
     }
 
+    override fun createArrayTexture(width: Int, height: Int, layers: Int, format: ColorFormat, type: ColorType): ArrayTexture {
+        logger.trace { "creating array texture" }
+        return ArrayTextureGL3.create(width, height, layers, format, type)
+    }
+
     override fun createBufferTexture(elementCount: Int,
                                      format: ColorFormat,
                                      type: ColorType): BufferTexture {

@@ -1,0 +1,4 @@
+dependencies {
+    runtime "org.bytedeco:ffmpeg:$ffmpeg_version:macosx-x86_64"
+
+}

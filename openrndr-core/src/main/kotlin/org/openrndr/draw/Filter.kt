@@ -124,6 +124,12 @@ open class Filter(private val shader: Shader? = null, private val watcher: Shade
                     value.bind(textureIndex)
                     textureIndex++
                 }
+
+                is ArrayTexture -> {
+                    shader.uniform("$uniform", textureIndex)
+                    value.bind(textureIndex)
+                    textureIndex++
+                }
             }
         }
 

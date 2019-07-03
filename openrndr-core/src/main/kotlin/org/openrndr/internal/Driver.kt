@@ -50,12 +50,15 @@ interface Driver {
 
     fun createRenderTarget(width: Int, height: Int, contentScale: Double = 1.0, multisample: BufferMultisample = BufferMultisample.Disabled): RenderTarget
 
+
+    fun createArrayTexture(width: Int, height: Int, layers: Int, format: ColorFormat, type: ColorType) : ArrayTexture
+
     fun createColorBuffer(width: Int, height: Int, contentScale: Double, format: ColorFormat, type: ColorType, multisample: BufferMultisample = BufferMultisample.Disabled): ColorBuffer
     fun createColorBufferFromUrl(url: String): ColorBuffer
     fun createColorBufferFromFile(filename: String): ColorBuffer
-    fun createColorBufferFromStream(stream: InputStream, name:String? = null, formatHint:String? = null) : ColorBuffer
+    fun createColorBufferFromStream(stream: InputStream, name: String? = null, formatHint: String? = null): ColorBuffer
 
-    suspend fun createColorBufferTilesFromFile(filename: String, width: Int, height: Int) : List<List<ColorBufferTile>>
+    suspend fun createColorBufferTilesFromFile(filename: String, width: Int, height: Int): List<List<ColorBufferTile>>
 
 
     fun createDepthBuffer(width: Int, height: Int, format: DepthFormat, multisample: BufferMultisample = BufferMultisample.Disabled): DepthBuffer
@@ -65,7 +68,7 @@ interface Driver {
     fun createCubemapFromUrls(urls: List<String>): Cubemap
 
     fun createResourceThread(f: () -> Unit): ResourceThread
-    fun createDrawThread() : DrawThread
+    fun createDrawThread(): DrawThread
 
     fun clear(r: Double, g: Double, b: Double, a: Double)
     fun clear(color: ColorRGBa) {
@@ -91,8 +94,8 @@ interface Driver {
                       drawPrimitive: DrawPrimitive, vertexOffset: Int, vertexCount: Int, instanceCount: Int)
 
     fun drawIndexedInstances(shader: Shader, indexBuffer: IndexBuffer, vertexBuffers: List<VertexBuffer>,
-                      instanceAttributes: List<VertexBuffer>,
-                      drawPrimitive: DrawPrimitive, indexOffset: Int, indexCount: Int, instanceCount: Int)
+                             instanceAttributes: List<VertexBuffer>,
+                             drawPrimitive: DrawPrimitive, indexOffset: Int, indexCount: Int, instanceCount: Int)
 
     fun setState(drawStyle: DrawStyle)
 

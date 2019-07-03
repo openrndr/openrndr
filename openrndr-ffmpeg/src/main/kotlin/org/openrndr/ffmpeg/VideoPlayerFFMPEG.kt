@@ -16,7 +16,13 @@ import org.openrndr.events.Event
 import org.bytedeco.ffmpeg.global.avcodec.avcodec_find_decoder
 import org.bytedeco.ffmpeg.avcodec.AVCodec
 import org.bytedeco.ffmpeg.avcodec.AVCodecParameters
+import org.bytedeco.ffmpeg.avdevice.AVDeviceInfoList
+import org.bytedeco.ffmpeg.avformat.AVInputFormat
+import org.bytedeco.ffmpeg.avutil.AVHWDeviceContext
+import org.bytedeco.ffmpeg.global.avdevice.*
 import org.bytedeco.ffmpeg.global.avutil.*
+import org.openrndr.platform.Platform
+import org.openrndr.platform.PlatformType
 
 
 enum class State {
@@ -45,12 +51,36 @@ data class Dimensions(val w: Int, val h: Int) {
     operator fun div(b: Int) = Dimensions(w / b, h / b)
 }
 
-class AVFile(val fileName: String) {
+class AVFile(val fileName: String,
+             val formatName:String? = null,
+             val frameRate:Double? = null,
+             val imageWidth:Int? = null,
+             val imageHeight:Int? = null) {
     val context = avformat_alloc_context()
 
     init {
-        avformat_open_input(context, fileName, null, null).checkAVError()
-        avformat_find_stream_info(context, null as PointerPointer<*>?)
+        val options = AVDictionary(null)
+        val format: AVInputFormat?
+        if (formatName != null) {
+            avdevice_register_all()
+            format = av_find_input_format("dshow")
+        } else {
+            format = null
+        }
+
+        if (frameRate != null) {
+            val r = av_d2q(frameRate, 1001000)
+            av_dict_set(options, "framerate", r.num().toString() + "/" + r.den(), 0)
+        }
+
+        if (imageWidth != null && imageHeight != null) {
+            av_dict_set(options, "video_size", "${imageWidth}x$imageHeight",0)
+        }
+
+        avformat_open_input(context, fileName, format, options).checkAVError()
+        avformat_find_stream_info(context, null as PointerPointer<*>?).checkAVError()
+        av_dict_free(options)
+
     }
 
     fun dumpFormat() {
@@ -64,6 +94,49 @@ class AVFile(val fileName: String) {
 
 class Camera() {
 
+    companion object {
+
+
+        fun listDevices() {
+            avdevice_register_all()
+            avcodec_register_all()
+
+            var inputFormat:AVInputFormat? = null
+            do {
+                inputFormat = av_input_video_device_next(inputFormat)
+                if (inputFormat != null) {
+                    println(inputFormat.name().getString())
+                }
+                    val list = PointerPointer<AVDeviceInfoList>(1)
+                    val formatContext = avformat_alloc_context()
+                println(inputFormat?.get_device_list()?.call(formatContext, list))
+
+                val r = avdevice_list_input_sources(inputFormat, null, null, list)
+                if (r >= 0) {
+                    val rl = AVDeviceInfoList(list[0])
+                    println(rl.devices())
+                }
+
+            } while (inputFormat != null)
+
+            val format = av_find_input_format("dshow")
+            println(format.name().getString())
+
+            val list = PointerPointer<AVDeviceInfoList>(1)
+            //av_input_video_device_next()
+            //avdevice_list_input_sources(format, null, null, list).checkAVError()
+
+//            val formatContext = avformat_alloc_context()
+//            avformat_open_input(formatContext, null as String?, format, null).checkAVError()
+//
+//
+//
+
+//            avdevice_list_devices(formatContext, list)
+        }
+
+
+    }
 }
 
 class FrameEvent(val frame:ColorBuffer, val timeStamp:Double) {
@@ -77,6 +150,30 @@ class VideoPlayerFFMPEG(val file: AVFile, val mode: PlayMode = PlayMode.VIDEO) {
             av_log_set_level(AV_LOG_ERROR)
             val file = AVFile(fileName)
             return VideoPlayerFFMPEG(file, mode)
+        }
+
+        fun fromDevice(deviceName:String = defaultDevice(), mode: PlayMode = PlayMode.VIDEO, frameRate:Double?=null, imageWidth: Int?=null, imageHeight: Int?=null) : VideoPlayerFFMPEG {
+            val format = when(Platform.type) {
+                PlatformType.WINDOWS -> "dshow"
+                PlatformType.MAC -> "avfoundation"
+                PlatformType.GENERIC -> "video4linux2"
+            }
+
+            val file = AVFile(deviceName, format, frameRate, imageWidth, imageHeight)
+            return VideoPlayerFFMPEG(file, mode)
+        }
+        fun defaultDevice(): String {
+            return when(Platform.type) {
+                PlatformType.WINDOWS -> {
+                    "video=Integrated Webcam"
+                }
+                PlatformType.MAC  -> {
+                    "0"
+                }
+                PlatformType.GENERIC -> {
+                    "/dev/video0"
+                }
+            }
         }
     }
 
@@ -187,4 +284,7 @@ fun AVStream.openCodec(tag: String): AVCodecContext {
         throw Error("Couldn't open $tag codec with id ${codecPar.codec_id()}")
 
     return codecContext
+}
+fun main() {
+    Camera.listDevices()
 }

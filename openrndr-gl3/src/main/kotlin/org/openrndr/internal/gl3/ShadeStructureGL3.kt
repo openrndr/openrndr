@@ -41,6 +41,7 @@ private fun mapType(type: String): String {
         "ColorBuffer" -> "sampler2D"
         "DepthBuffer" -> "sampler2D"
         "Cubemap" -> "samplerCube"
+        "ArrayTexture" -> "sampler2DArray"
         else -> throw RuntimeException("unsupported type $type")
     }
 }
