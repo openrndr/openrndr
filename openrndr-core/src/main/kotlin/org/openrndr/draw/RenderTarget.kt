@@ -21,6 +21,7 @@ interface RenderTarget {
     companion object {
         @Deprecated("use the renderTarget builder function instead")
         fun create(width: Int, height: Int, contentScale: Double, multisample: BufferMultisample): RenderTarget = Driver.instance.createRenderTarget(width, height, contentScale, multisample)
+
         val active: RenderTarget
             get() = Driver.instance.activeRenderTarget
     }
@@ -29,6 +30,9 @@ interface RenderTarget {
 
     fun attach(colorBuffer: ColorBuffer)
     fun attach(depthBuffer: DepthBuffer)
+    fun attach(name: String, arrayTexture: ArrayTexture, layer: Int)
+    fun attach(arrayTexture: ArrayTexture, layer: Int)
+
     fun detachColorBuffers()
     fun detachDepthBuffer()
     fun destroy()
@@ -76,6 +80,15 @@ class RenderTargetBuilder(private val renderTarget: RenderTarget) {
         val cb = _colorBuffer(renderTarget.width, renderTarget.height, renderTarget.contentScale, format, type, renderTarget.multisample)
         renderTarget.attach(cb)
     }
+
+    fun colorBuffer(name: String, arrayTexture: ArrayTexture, layer: Int) {
+        renderTarget.attach(name, arrayTexture, layer)
+    }
+
+    fun arrayTexture(arrayTexture: ArrayTexture, layer: Int) {
+        renderTarget.attach(arrayTexture, layer)
+    }
+
 
     fun depthBuffer(format: DepthFormat = DepthFormat.DEPTH24_STENCIL8) {
         renderTarget.attach(_depthBuffer(renderTarget.effectiveWidth, renderTarget.effectiveHeight, format, renderTarget.multisample))

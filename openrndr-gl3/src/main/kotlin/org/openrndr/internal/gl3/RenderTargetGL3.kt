@@ -2,6 +2,7 @@ package org.openrndr.internal.gl3
 
 import mu.KotlinLogging
 import org.lwjgl.glfw.GLFW.glfwGetCurrentContext
+import org.lwjgl.opengl.GL30C
 import org.lwjgl.opengl.GL33C.*
 import org.openrndr.Program
 import org.openrndr.color.ColorRGBa
@@ -46,7 +47,13 @@ open class RenderTargetGL3(val framebuffer: Int,
     override val depthBuffer: DepthBuffer?
         get() = _depthBuffer
 
+
+
+    private var attachements = 0
+
     private val colorBufferIndices = mutableMapOf<String, Int>()
+    private val arrayTextureIndices = mutableMapOf<String, Int>()
+    private val _arrayTextures = mutableListOf<ArrayTextureGL3>()
     private val _colorBuffers = mutableListOf<ColorBufferGL3>()
     private var _depthBuffer: DepthBuffer? = null
 
@@ -69,6 +76,8 @@ open class RenderTargetGL3(val framebuffer: Int,
 
     override val hasColorBuffer: Boolean get() = colorBuffers.isNotEmpty()
     override val hasDepthBuffer: Boolean get() = depthBuffer != null
+
+
 
     override fun colorBuffer(index: Int): ColorBuffer {
         return _colorBuffers[index]
@@ -156,13 +165,40 @@ open class RenderTargetGL3(val framebuffer: Int,
             throw IllegalArgumentException("buffer dimension mismatch. expected: ($width x $height @${colorBuffer.contentScale}x, got: (${colorBuffer.width} x ${colorBuffer.height} @${colorBuffer.contentScale}x)")
         }
         colorBuffer as ColorBufferGL3
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + colorBuffers.size, colorBuffer.target, colorBuffer.texture, 0)
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + attachements, colorBuffer.target, colorBuffer.texture, 0)
+        attachements++
         debugGLErrors { null }
         _colorBuffers.add(colorBuffer)
 
         if (active[context]?.peek() != null)
             (active[context]?.peek() as RenderTargetGL3).bindTarget()
     }
+
+    override fun attach(name: String, arrayTexture: ArrayTexture, layer:Int) {
+        arrayTextureIndices[name] = _arrayTextures.size
+        attach(arrayTexture, layer)
+    }
+
+    override fun attach(arrayTexture: ArrayTexture, layer:Int) {
+        val context = glfwGetCurrentContext()
+        bindTarget()
+
+        val effectiveWidth = (width * contentScale).toInt()
+        val effectiveHeight = (height * contentScale).toInt()
+
+        if (!(arrayTexture.width == effectiveWidth && arrayTexture.height == effectiveHeight)) {
+            throw IllegalArgumentException("buffer dimension mismatch. expected: ($effectiveWidth x $effectiveHeight), got: (${arrayTexture.width} x ${arrayTexture.height}")
+        }
+        arrayTexture as ArrayTextureGL3
+        //glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + colorBuffers.size, colorBuffer.target, colorBuffer.texture, 0)
+        glFramebufferTextureLayer(GL30C.GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + attachements, arrayTexture.texture, 0, layer)
+        debugGLErrors { null }
+        attachements++
+
+        if (active[context]?.peek() != null)
+            (active[context]?.peek() as RenderTargetGL3).bindTarget()
+    }
+
 
     private fun bound(function: () -> Unit) {
         bind()
@@ -183,6 +219,7 @@ open class RenderTargetGL3(val framebuffer: Int,
             checkGLErrors()
         }
     }
+
 
     override fun attach(depthBuffer: DepthBuffer) {
         if (!(depthBuffer.width == effectiveWidth && depthBuffer.height == effectiveHeight)) {
