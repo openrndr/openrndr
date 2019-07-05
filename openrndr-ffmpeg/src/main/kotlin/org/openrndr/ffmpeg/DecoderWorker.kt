@@ -9,6 +9,7 @@ import org.bytedeco.ffmpeg.global.avcodec.av_packet_alloc
 import org.bytedeco.ffmpeg.global.avcodec.av_packet_unref
 import org.bytedeco.ffmpeg.global.avformat
 import org.bytedeco.ffmpeg.global.avformat.av_read_frame
+import org.bytedeco.ffmpeg.global.avformat.av_seek_frame
 import org.bytedeco.ffmpeg.global.avutil
 import org.bytedeco.ffmpeg.global.avutil.*
 import org.bytedeco.javacpp.*
@@ -122,6 +123,12 @@ internal class Decoder(val formatContext: AVFormatContext,
         }
     }
 
+    fun restart() {
+        videoDecoder?.flushQueue()
+        audioDecoder?.flushQueue()
+        av_seek_frame(formatContext, -1, formatContext.start_time(), 0)
+    }
+
     fun done() = noMoreFrames && (videoDecoder?.isQueueEmpty() ?: true)
 
     fun dispose() {
@@ -144,20 +151,16 @@ internal class Decoder(val formatContext: AVFormatContext,
             return
         }
 
-//        GlobalScope.launch {
         val packet = av_packet_alloc()
-        val frameFinished = IntPointer(1)
 
         while (needMoreFrames() && av_read_frame(formatContext, packet) >= 0) {
             when (packet.stream_index()) {
-                videoStreamIndex -> videoDecoder?.decodeVideoPacket2(packet, frameFinished)
-                audioStreamIndex -> audioDecoder?.decodeAudioPacket(packet, frameFinished)
+                videoStreamIndex -> videoDecoder?.decodeVideoPacket(packet)
+                audioStreamIndex -> audioDecoder?.decodeAudioPacket(packet)
             }
             av_packet_unref(packet)
         }
         if (needMoreFrames()) noMoreFrames = true
-        frameFinished.deallocate()
-//        }.join()
     }
 
     fun peekNextVideoFrame(): VideoFrame? {

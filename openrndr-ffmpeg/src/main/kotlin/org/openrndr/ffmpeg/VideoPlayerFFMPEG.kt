@@ -143,6 +143,10 @@ class FrameEvent(val frame:ColorBuffer, val timeStamp:Double) {
 
 }
 
+class VideoEvent {
+
+}
+
 class VideoPlayerFFMPEG(val file: AVFile, val mode: PlayMode = PlayMode.VIDEO) {
 
     companion object {
@@ -186,6 +190,7 @@ class VideoPlayerFFMPEG(val file: AVFile, val mode: PlayMode = PlayMode.VIDEO) {
     private var playOffsetSeconds = 0.0
 
     val newFrame = Event<FrameEvent>()
+    val ended = Event<VideoEvent>()
 
     fun play() {
         file.dumpFormat()
@@ -215,6 +220,10 @@ class VideoPlayerFFMPEG(val file: AVFile, val mode: PlayMode = PlayMode.VIDEO) {
         println("starting loop")
         startTimeMillis = System.currentTimeMillis()
         println("framerate!: ${info.video.fps}")
+    }
+
+    fun restart() {
+        decoder?.restart()
     }
 
     fun update() {
@@ -248,6 +257,10 @@ class VideoPlayerFFMPEG(val file: AVFile, val mode: PlayMode = PlayMode.VIDEO) {
                             println("decoder is done")
                         }
                     }
+                }
+                if (peekFrame == null && (decoder?.done() == true)) {
+                    println("video ended")
+                    ended.trigger(VideoEvent())
                 }
             }
         }

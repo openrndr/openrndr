@@ -23,7 +23,6 @@ internal fun VideoOutput.toVideoDecoderOutput(): VideoDecoderOutput? {
     return VideoDecoderOutput(size.copy(), avPixelFormat)
 }
 
-
 internal data class VideoFrame(val buffer: AVBufferRef, val lineSize: Int, val timeStamp: Double, val frameSize:Int) {
     fun unref() = avutil.av_buffer_unref(buffer)
 }
@@ -63,8 +62,6 @@ internal class VideoDecoder(
     private val videoQueue = Queue<VideoFrame>(100)
     private val minVideoFrames =50
 
-
-
     init {
         avutil.av_image_fill_arrays(PointerPointer<AVFrame>(scaledVideoFrame), scaledVideoFrame.linesize(), imagePointer[0], avPixelFormat, windowSize.w, windowSize.h, 1)
     }
@@ -82,16 +79,18 @@ internal class VideoDecoder(
 
     fun nextFrame() = videoQueue.popOrNull()
 
+    fun flushQueue() {
+        while (!videoQueue.isEmpty()) videoQueue.pop().unref()
+    }
 
     var lowestTimeStamp = Long.MAX_VALUE
-    fun decodeVideoPacket2(packet: AVPacket, frameFinished: IntPointer) {
+    fun decodeVideoPacket(packet: AVPacket) {
         var ret = avcodec_send_packet(videoCodecContext, packet)
 
         if (ret < 0) {
             println("error in avcodec_send_packet")
             return
         }
-
 
         while (ret >= 0) {
             val decodedFrame = av_frame_alloc()
@@ -135,7 +134,7 @@ internal class VideoDecoder(
 
             Pointer.memcpy(buffer.data(), scaledVideoFrame.data()[0], scaledFrameSize.toLong())
             videoQueue.push(VideoFrame(buffer, scaledVideoFrame.linesize()[0], timeStamp/1000.0, scaledFrameSize))
-            frameFinished.put(1)
+
             av_frame_free(decodedFrame)
             av_frame_free(transferredFrame)
         }

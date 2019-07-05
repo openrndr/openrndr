@@ -100,22 +100,27 @@ internal class AudioDecoder(
         }
     }
 
-    fun decodeAudioPacket(packet: AVPacket, frameFinished: IntPointer) {
-        while (packet.size() > 0) {
-            val size = avcodec_decode_audio4(audioCodecContext, audioFrame, frameFinished, packet)
-            if (frameFinished.get() != 0) {
-                // Put audio frame to decoder's queue.
-                swr_convert_frame(resampleContext, resampledAudioFrame, audioFrame).checkAVError()
-                with(resampledAudioFrame) {
-                    val audioFrameSize = av_samples_get_buffer_size(null as IntPointer?, channels(), nb_samples(), format(), 1)
-                    val buffer = av_buffer_alloc(audioFrameSize)!!
-                    val ts = (audioFrame.best_effort_timestamp()) * av_q2d(audioCodecContext.time_base())
-                    memcpy(buffer.data(), data()[0], audioFrameSize.toLong())
-                    audioQueue.push(AudioFrame(buffer, 0, audioFrameSize, ts))
-                }
-            }
-            packet.size(packet.size() - size)
-            packet.data(packet.data().position(size.toLong()))
-        }
+    fun flushQueue() {
+        while (!audioQueue.isEmpty()) audioQueue.pop().unref()
+    }
+
+
+    fun decodeAudioPacket(packet: AVPacket) {
+//        while (packet.size() > 0) {
+//            val size = avcodec_decode_audio4(audioCodecContext, audioFrame, frameFinished, packet)
+//            if (frameFinished.get() != 0) {
+//                // Put audio frame to decoder's queue.
+//                swr_convert_frame(resampleContext, resampledAudioFrame, audioFrame).checkAVError()
+//                with(resampledAudioFrame) {
+//                    val audioFrameSize = av_samples_get_buffer_size(null as IntPointer?, channels(), nb_samples(), format(), 1)
+//                    val buffer = av_buffer_alloc(audioFrameSize)!!
+//                    val ts = (audioFrame.best_effort_timestamp()) * av_q2d(audioCodecContext.time_base())
+//                    memcpy(buffer.data(), data()[0], audioFrameSize.toLong())
+//                    audioQueue.push(AudioFrame(buffer, 0, audioFrameSize, ts))
+//                }
+//            }
+//            packet.size(packet.size() - size)
+//            packet.data(packet.data().position(size.toLong()))
+//        }
     }
 }
