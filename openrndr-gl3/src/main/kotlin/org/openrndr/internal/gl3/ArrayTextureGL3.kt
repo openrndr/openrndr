@@ -85,6 +85,7 @@ class ArrayTextureGL3(val target: Int,
             }
         }
 
+    override var flipV: Boolean = false
 
     private fun bound(f: ArrayTextureGL3.() -> Unit) {
         glActiveTexture(GL_TEXTURE0)

@@ -15,6 +15,10 @@ interface ShaderGenerators {
     fun imageFragmentShader(shadeStructure: ShadeStructure): String
     fun imageVertexShader(shadeStructure: ShadeStructure): String
 
+    fun imageArrayTextureFragmentShader(shadeStructure: ShadeStructure): String
+    fun imageArrayTextureVertexShader(shadeStructure: ShadeStructure): String
+
+
     fun circleFragmentShader(shadeStructure: ShadeStructure): String
     fun circleVertexShader(shadeStructure: ShadeStructure): String
 

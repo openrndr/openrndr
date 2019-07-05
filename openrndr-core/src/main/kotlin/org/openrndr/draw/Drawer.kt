@@ -665,6 +665,23 @@ class Drawer(val driver: Driver) {
         imageDrawer.drawImage(context, drawStyle, colorBuffer, rectangles)
     }
 
+
+    /**
+     * Draws an image using an ArrayTexture as source
+     */
+    fun image(arrayTexture: ArrayTexture, layer:Int = 0, x:Double = 0.0, y:Double =0.0,
+              width:Double = arrayTexture.width.toDouble(), height:Double = arrayTexture.height.toDouble()) {
+        imageDrawer.drawImage(context, drawStyle, arrayTexture, layer, x, y, width, height)
+    }
+
+    fun image(arrayTexture: ArrayTexture, layer:Int = 0, source:Rectangle, target:Rectangle) {
+        imageDrawer.drawImage(context, drawStyle, arrayTexture, listOf(layer), listOf(source to target))
+    }
+
+    fun image(arrayTexture: ArrayTexture, layers:List<Int>, rectangles:List<Pair<Rectangle, Rectangle>>) {
+        imageDrawer.drawImage(context, drawStyle, arrayTexture, layers, rectangles)
+    }
+
     /**
      * Draws [text] at ([position])
      */

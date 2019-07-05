@@ -1,6 +1,8 @@
 package org.openrndr.draw
 
 import org.openrndr.internal.Driver
+import org.openrndr.math.Vector2
+import org.openrndr.shape.Rectangle
 import java.nio.ByteBuffer
 
 interface ArrayTexture {
@@ -34,6 +36,11 @@ interface ArrayTexture {
 
     /** the filter to use when displaying at sizes larger than the original */
     var filterMag: MagnifyingFilter
+
+    var flipV: Boolean
+
+    val bounds: Rectangle get() = Rectangle(Vector2.ZERO, width * 1.0, height * 1.0)
+
 }
 
 /**

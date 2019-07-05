@@ -17,6 +17,7 @@ class ImageDrawer {
     private val instanceFormat = vertexFormat {
         attribute("source", VertexElementType.VECTOR4_FLOAT32)
         attribute("target", VertexElementType.VECTOR4_FLOAT32)
+        attribute("layer", VertexElementType.FLOAT32)
     }
 
     private var instanceAttributes = vertexBuffer(instanceFormat, 10)
@@ -24,6 +25,10 @@ class ImageDrawer {
     private val shaderManager: ShadeStyleManager = ShadeStyleManager.fromGenerators(
             Driver.instance.shaderGenerators::imageVertexShader,
             Driver.instance.shaderGenerators::imageFragmentShader)
+
+    private val arrayTextureShaderManager: ShadeStyleManager = ShadeStyleManager.fromGenerators(
+            Driver.instance.shaderGenerators::imageArrayTextureVertexShader,
+            Driver.instance.shaderGenerators::imageArrayTextureFragmentShader)
 
     init {
         val w = vertices.shadow.writer()
@@ -78,6 +83,7 @@ class ImageDrawer {
             val (source, target) = it
             iw.write(Vector4(source.corner.x / colorBuffer.width, source.corner.y / colorBuffer.height, source.width / colorBuffer.width, source.height / colorBuffer.height))
             iw.write(Vector4(target.corner.x, target.corner.y, target.width, target.height))
+            iw.write(0.0f)
         }
         instanceAttributes.shadow.uploadElements(0, rectangles.size)
 
@@ -91,8 +97,40 @@ class ImageDrawer {
         shader.end()
     }
 
+
+    fun drawImage(drawContext: DrawContext, drawStyle: DrawStyle, arrayTexture: ArrayTexture,
+                  layers:List<Int>, rectangles: List<Pair<Rectangle, Rectangle>>) {
+        assertInstanceSize(rectangles.size)
+        val shader = arrayTextureShaderManager.shader(drawStyle.shadeStyle, listOf(vertices.vertexFormat), listOf(instanceAttributes.vertexFormat))
+
+        val iw = instanceAttributes.shadow.writer()
+        iw.rewind()
+
+        rectangles.forEachIndexed { index, it ->
+            val (source, target) = it
+            iw.write(Vector4(source.corner.x / arrayTexture.width, source.corner.y / arrayTexture.height, source.width / arrayTexture.width, source.height / arrayTexture.height))
+            iw.write(Vector4(target.corner.x, target.corner.y, target.width, target.height))
+            iw.write(layers[index].toFloat())
+        }
+        instanceAttributes.shadow.uploadElements(0, rectangles.size)
+
+        arrayTexture.bind(0)
+        shader.begin()
+        drawContext.applyToShader(shader)
+        shader.uniform("u_flipV", if (arrayTexture.flipV) 1 else 0)
+        drawStyle.applyToShader(shader)
+        Driver.instance.setState(drawStyle)
+        Driver.instance.drawInstances(shader, listOf(vertices),  listOf(instanceAttributes) + ( drawStyle.shadeStyle?.attributes?: emptyList() ), DrawPrimitive.TRIANGLES, 0, 6, rectangles.size)
+        shader.end()
+    }
+
     fun drawImage(drawContext: DrawContext,
                   drawStyle: DrawStyle, colorBuffer: ColorBuffer, x: Double, y: Double, width: Double, height: Double) {
         drawImage(drawContext, drawStyle, colorBuffer, listOf( colorBuffer.bounds to Rectangle(x, y, width, height)))
+    }
+
+    fun drawImage(drawContext: DrawContext,
+                  drawStyle: DrawStyle, arrayTexture: ArrayTexture, layer:Int, x: Double, y: Double, width: Double, height: Double) {
+        drawImage(drawContext, drawStyle, arrayTexture, listOf(layer), listOf( arrayTexture.bounds to Rectangle(x, y, width, height)))
     }
 }

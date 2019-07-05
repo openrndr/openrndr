@@ -221,6 +221,82 @@ void main() {
 }
 """
 
+    override fun imageArrayTextureFragmentShader(shadeStructure: ShadeStructure): String = """#version 330
+${primitiveTypes("d_image")}
+${shadeStructure.uniforms ?: ""}
+layout(origin_upper_left) in vec4 gl_FragCoord;
+
+uniform sampler2DArray image;
+$drawerUniforms
+${shadeStructure.varyingIn ?: ""}
+${transformVaryingIn}
+
+${if (!shadeStructure.suppressDefaultOutput) "out vec4 o_color;" else ""}
+
+${shadeStructure.fragmentPreamble?:""}
+
+in vec3 v_boundsPosition;
+flat in int v_instance;
+flat in int v_layer;
+vec4 colorTransform(vec4 color, float[25] matrix) {
+    float r = color.r * matrix[0] + color.g * matrix[5] + color.b * matrix[10] + color.a * matrix[15] + matrix[20];
+    float g = color.r * matrix[1] + color.g * matrix[6] + color.b * matrix[11] + color.a * matrix[16] + matrix[21];
+    float b = color.r * matrix[2] + color.g * matrix[7] + color.b * matrix[12] + color.a * matrix[17] + matrix[22];
+    float a = color.r * matrix[3] + color.g * matrix[8] + color.b * matrix[13] + color.a * matrix[18] + matrix[23];
+    return vec4(r, g, b, a);
+}
+
+void main(void) {
+    ${fragmentConstants(boundsPosition = "v_boundsPosition")}
+    vec4 x_fill = texture(image, vec3(va_texCoord0, v_layer*1.0));
+    vec4 x_stroke = u_stroke;
+    {
+        ${shadeStructure.fragmentTransform ?: ""}
+    }
+    float div = x_fill.a != 0.0 ? x_fill.a : 1.0;
+    x_fill.rgb /= div;
+    x_fill = colorTransform(x_fill, u_colorMatrix);
+    x_fill.rgb *= x_fill.a;
+    ${if (!shadeStructure.suppressDefaultOutput) "o_color = x_fill;" else ""}
+}"""
+
+    override fun imageArrayTextureVertexShader(shadeStructure: ShadeStructure): String = """
+#version 330
+${primitiveTypes("d_image")}
+$drawerUniforms
+uniform int u_flipV;
+${shadeStructure.attributes ?: ""}
+${shadeStructure.uniforms ?: ""}
+${shadeStructure.varyingOut ?: ""}
+${transformVaryingOut}
+
+flat out int v_instance;
+flat out int v_layer;
+
+out vec3 v_boundsPosition;
+void main() {
+    v_instance = gl_InstanceID;
+    ${vertexConstants()}
+    ${shadeStructure.varyingBridge ?: ""}
+    ${preTransform}
+    vec3 x_normal = a_normal;
+    vec3 x_position = a_position;
+    x_position.xy = a_position.xy * i_target.zw + i_target.xy;
+    v_boundsPosition = vec3(a_texCoord0.xy, 1.0);
+    va_texCoord0.xy = a_texCoord0.xy * i_source.zw + i_source.xy;
+    v_layer = int(floor(i_layer+0.5));
+    if (u_flipV == 0) {
+        va_texCoord0.y = 1.0 - va_texCoord0.y;
+    }
+    {
+        ${shadeStructure.vertexTransform ?: ""}
+    }
+    ${postTransform}
+    gl_Position = v_clipPosition;
+}
+"""
+
+
     override fun circleFragmentShader(shadeStructure: ShadeStructure): String = """#version 330 core
 ${primitiveTypes("d_circle")}
 ${shadeStructure.uniforms ?: ""}
