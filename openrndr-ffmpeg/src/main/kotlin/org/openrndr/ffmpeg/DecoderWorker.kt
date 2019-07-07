@@ -19,7 +19,7 @@ internal data class CodecInfo(val video: VideoInfo?, val audio: AudioInfo?) {
     val hasAudio = audio != null
 }
 
-fun Int.checkAVError() {
+internal fun Int.checkAVError() {
     if (this != 0) {
         val buffer = ByteArray(1024)
         avutil.av_strerror(this, buffer, 1024L)
@@ -101,7 +101,7 @@ internal class Decoder(val formatContext: AVFormatContext,
     private var noMoreFrames = false
     private var disposed = false
 
-    suspend fun start(videoOutput: VideoDecoderOutput?, audioOutput: AudioDecoderOutput?) {
+    fun start(videoOutput: VideoDecoderOutput?, audioOutput: AudioDecoderOutput?) {
         videoDecoder = videoCodecContext?.let { ctx ->
             videoOutput?.let { VideoDecoder(ctx, it, hwType) }
         }
@@ -116,7 +116,7 @@ internal class Decoder(val formatContext: AVFormatContext,
 
         while (!disposed) {
             decodeIfNeeded()
-            kotlinx.coroutines.delay(1)
+            Thread.sleep(1)
         }
     }
 
@@ -130,13 +130,15 @@ internal class Decoder(val formatContext: AVFormatContext,
     fun done() = noMoreFrames && (videoDecoder?.isQueueEmpty() ?: true)
 
     fun dispose() {
+        disposed = true
         videoDecoder?.dispose()
+        audioDecoder?.dispose()
     }
 
     fun needMoreFrames(): Boolean =
             (videoDecoder?.needMoreFrames() ?: false)
 
-    suspend fun decodeIfNeeded() {
+    fun decodeIfNeeded() {
         if (!needMoreFrames()) {
 
         }

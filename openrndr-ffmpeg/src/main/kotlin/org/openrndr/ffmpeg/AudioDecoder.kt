@@ -12,7 +12,7 @@ import org.bytedeco.javacpp.IntPointer
 import org.bytedeco.javacpp.Pointer.memcpy
 
 
-enum class SampleFormat {
+internal enum class SampleFormat {
     INVALID,
     S16
 }

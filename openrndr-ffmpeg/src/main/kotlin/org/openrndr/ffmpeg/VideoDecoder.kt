@@ -23,13 +23,13 @@ internal fun VideoOutput.toVideoDecoderOutput(): VideoDecoderOutput? {
     return VideoDecoderOutput(size.copy(), avPixelFormat)
 }
 
-internal data class VideoFrame(val buffer: AVBufferRef, val lineSize: Int, val timeStamp: Double, val frameSize: Int) {
+internal data class VideoFrame(val buffer: AVBufferRef, val lineSize: Int, val timeStamp: Double, val frameSize:Int) {
     fun unref() = avutil.av_buffer_unref(buffer)
 }
 
 internal data class VideoInfo(val size: Dimensions, val fps: Double)
 
-private fun Int.pixFmtForHWType(): Int {
+private fun Int.pixFmtForHWType():Int {
     return when (this) {
         AV_HWDEVICE_TYPE_VAAPI -> AV_PIX_FMT_VAAPI
         AV_HWDEVICE_TYPE_MEDIACODEC -> AV_PIX_FMT_MEDIACODEC
@@ -46,7 +46,7 @@ internal data class VideoDecoderOutput(val size: Dimensions, val avPixelFormat: 
 internal class VideoDecoder(
         private val videoCodecContext: AVCodecContext,
         output: VideoDecoderOutput,
-        hwType: Int
+        hwType:Int
 ) {
     private val windowSize = output.size
     private val avPixelFormat = output.avPixelFormat
@@ -60,7 +60,7 @@ internal class VideoDecoder(
     private val scaledFrameSize = avutil.av_image_get_buffer_size(avPixelFormat, windowSize.w, windowSize.h, 1)
     private val imagePointer = arrayOf(BytePointer(avutil.av_malloc(scaledFrameSize.toLong())).capacity(scaledFrameSize.toLong()))
     private val videoQueue = Queue<VideoFrame>(100)
-    private val minVideoFrames = 50
+    private val minVideoFrames =50
 
     init {
         avutil.av_image_fill_arrays(PointerPointer<AVFrame>(scaledVideoFrame), scaledVideoFrame.linesize(), imagePointer[0], avPixelFormat, windowSize.w, windowSize.h, 1)

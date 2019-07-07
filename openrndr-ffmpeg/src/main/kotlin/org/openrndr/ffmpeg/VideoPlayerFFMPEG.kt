@@ -23,6 +23,7 @@ import org.bytedeco.ffmpeg.global.avdevice.*
 import org.bytedeco.ffmpeg.global.avutil.*
 import org.openrndr.platform.Platform
 import org.openrndr.platform.PlatformType
+import kotlin.concurrent.thread
 
 enum class State {
     PLAYING,
@@ -204,7 +205,7 @@ class VideoPlayerFFMPEG private constructor(private val file: AVFile, val mode: 
         val videoOutput = VideoOutput(info.video?.size ?: TODO(), AV_PIX_FMT_RGB32)
         val audioOutput = AudioOutput(44100, 2, SampleFormat.S16)
 
-        GlobalScope.launch {
+        thread(isDaemon = true)  {
             decoder.start(videoOutput.toVideoDecoderOutput(), audioOutput.toAudioDecoderOutput())
         }
 
