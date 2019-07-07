@@ -3,6 +3,7 @@ package org.openrndr.filter.blur
 import org.openrndr.draw.ColorBuffer
 import org.openrndr.draw.Filter
 import org.openrndr.draw.Shader
+import org.openrndr.draw.colorBuffer
 import org.openrndr.filter.filterFragmentCode
 import org.openrndr.math.Vector2
 
@@ -31,7 +32,7 @@ class ApproximateGaussianBlur : Filter(Shader.createFromCode(Filter.filterVertex
         }
 
         if (intermediate == null) {
-            intermediate = ColorBuffer.create(target[0].width, target[0].height, target[0].contentScale, target[0].format, target[0].type)
+            intermediate = colorBuffer(target[0].width, target[0].height, target[0].contentScale, target[0].format, target[0].type)
         }
 
         intermediate?.let {
