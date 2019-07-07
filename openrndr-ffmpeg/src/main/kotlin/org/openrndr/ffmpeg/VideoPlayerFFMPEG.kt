@@ -24,7 +24,6 @@ import org.bytedeco.ffmpeg.global.avutil.*
 import org.openrndr.platform.Platform
 import org.openrndr.platform.PlatformType
 
-
 enum class State {
     PLAYING,
     STOPPED,
@@ -46,16 +45,17 @@ enum class PlayMode {
     val useAudio: Boolean get() = this != VIDEO
 }
 
-data class Dimensions(val w: Int, val h: Int) {
+internal data class Dimensions(val w: Int, val h: Int) {
     operator fun minus(other: Dimensions) = Dimensions(w - other.w, h - other.h)
     operator fun div(b: Int) = Dimensions(w / b, h / b)
 }
 
-class AVFile(val fileName: String,
-             val formatName:String? = null,
-             val frameRate:Double? = null,
-             val imageWidth:Int? = null,
-             val imageHeight:Int? = null) {
+internal class AVFile(val fileName: String,
+             val playMode: PlayMode,
+             val formatName: String? = null,
+             val frameRate: Double? = null,
+             val imageWidth: Int? = null,
+             val imageHeight: Int? = null) {
     val context = avformat_alloc_context()
 
     init {
@@ -63,7 +63,7 @@ class AVFile(val fileName: String,
         val format: AVInputFormat?
         if (formatName != null) {
             avdevice_register_all()
-            format = av_find_input_format("dshow")
+            format = av_find_input_format(formatName)
         } else {
             format = null
         }
@@ -74,13 +74,19 @@ class AVFile(val fileName: String,
         }
 
         if (imageWidth != null && imageHeight != null) {
-            av_dict_set(options, "video_size", "${imageWidth}x$imageHeight",0)
+            av_dict_set(options, "video_size", "${imageWidth}x$imageHeight", 0)
+        }
+
+        if (fileName.startsWith("rtsp://")) {
+            av_dict_set(options, "max_delay", "0", 0)
+            if (playMode == PlayMode.VIDEO) {
+                av_dict_set(options, "allowed_media_types", "video", 0)
+            }
         }
 
         avformat_open_input(context, fileName, format, options).checkAVError()
         avformat_find_stream_info(context, null as PointerPointer<*>?).checkAVError()
         av_dict_free(options)
-
     }
 
     fun dumpFormat() {
@@ -93,22 +99,19 @@ class AVFile(val fileName: String,
 }
 
 class Camera() {
-
     companion object {
-
-
         fun listDevices() {
             avdevice_register_all()
             avcodec_register_all()
 
-            var inputFormat:AVInputFormat? = null
+            var inputFormat: AVInputFormat? = null
             do {
                 inputFormat = av_input_video_device_next(inputFormat)
                 if (inputFormat != null) {
                     println(inputFormat.name().getString())
                 }
-                    val list = PointerPointer<AVDeviceInfoList>(1)
-                    val formatContext = avformat_alloc_context()
+                val list = PointerPointer<AVDeviceInfoList>(1)
+                val formatContext = avformat_alloc_context()
                 println(inputFormat?.get_device_list()?.call(formatContext, list))
 
                 val r = avdevice_list_input_sources(inputFormat, null, null, list)
@@ -121,25 +124,11 @@ class Camera() {
 
             val format = av_find_input_format("dshow")
             println(format.name().getString())
-
-            val list = PointerPointer<AVDeviceInfoList>(1)
-            //av_input_video_device_next()
-            //avdevice_list_input_sources(format, null, null, list).checkAVError()
-
-//            val formatContext = avformat_alloc_context()
-//            avformat_open_input(formatContext, null as String?, format, null).checkAVError()
-//
-//
-//
-
-//            avdevice_list_devices(formatContext, list)
         }
-
-
     }
 }
 
-class FrameEvent(val frame:ColorBuffer, val timeStamp:Double) {
+class FrameEvent(val frame: ColorBuffer, val timeStamp: Double) {
 
 }
 
@@ -147,31 +136,32 @@ class VideoEvent {
 
 }
 
-class VideoPlayerFFMPEG(val file: AVFile, val mode: PlayMode = PlayMode.VIDEO) {
+class VideoPlayerFFMPEG private constructor(private val file: AVFile, val mode: PlayMode = PlayMode.VIDEO) {
 
     companion object {
         fun fromFile(fileName: String, mode: PlayMode = PlayMode.VIDEO): VideoPlayerFFMPEG {
             av_log_set_level(AV_LOG_ERROR)
-            val file = AVFile(fileName)
+            val file = AVFile(fileName, mode)
             return VideoPlayerFFMPEG(file, mode)
         }
 
-        fun fromDevice(deviceName:String = defaultDevice(), mode: PlayMode = PlayMode.VIDEO, frameRate:Double?=null, imageWidth: Int?=null, imageHeight: Int?=null) : VideoPlayerFFMPEG {
-            val format = when(Platform.type) {
+        fun fromDevice(deviceName: String = defaultDevice(), mode: PlayMode = PlayMode.VIDEO, frameRate: Double? = null, imageWidth: Int? = null, imageHeight: Int? = null): VideoPlayerFFMPEG {
+            val format = when (Platform.type) {
                 PlatformType.WINDOWS -> "dshow"
                 PlatformType.MAC -> "avfoundation"
                 PlatformType.GENERIC -> "video4linux2"
             }
 
-            val file = AVFile(deviceName, format, frameRate, imageWidth, imageHeight)
+            val file = AVFile(deviceName, mode, format, frameRate, imageWidth, imageHeight)
             return VideoPlayerFFMPEG(file, mode)
         }
+
         fun defaultDevice(): String {
-            return when(Platform.type) {
+            return when (Platform.type) {
                 PlatformType.WINDOWS -> {
                     "video=Integrated Webcam"
                 }
-                PlatformType.MAC  -> {
+                PlatformType.MAC -> {
                     "0"
                 }
                 PlatformType.GENERIC -> {
@@ -188,9 +178,12 @@ class VideoPlayerFFMPEG(val file: AVFile, val mode: PlayMode = PlayMode.VIDEO) {
     private var colorBuffer: ColorBuffer? = null
     private var firstFrame = true
     private var playOffsetSeconds = 0.0
+    var ignoreTimeStamps = false
+    var adjustPosition = true
 
     val newFrame = Event<FrameEvent>()
     val ended = Event<VideoEvent>()
+
 
     fun play() {
         file.dumpFormat()
@@ -208,8 +201,6 @@ class VideoPlayerFFMPEG(val file: AVFile, val mode: PlayMode = PlayMode.VIDEO) {
                 flipV = true
             }
         }
-
-
         val videoOutput = VideoOutput(info.video?.size ?: TODO(), AV_PIX_FMT_RGB32)
         val audioOutput = AudioOutput(44100, 2, SampleFormat.S16)
 
@@ -223,11 +214,16 @@ class VideoPlayerFFMPEG(val file: AVFile, val mode: PlayMode = PlayMode.VIDEO) {
     }
 
     fun restart() {
+        playOffsetSeconds = 0.0
+        firstFrame = true
+
         decoder?.restart()
     }
 
     fun update() {
         if (state == State.PLAYING) {
+            val frameRate = (info?.video?.fps) ?: 0.0
+
             info?.video.let {
 
                 val playTimeSeconds = (System.currentTimeMillis() - startTimeMillis) / 1000.0 + playOffsetSeconds
@@ -235,22 +231,29 @@ class VideoPlayerFFMPEG(val file: AVFile, val mode: PlayMode = PlayMode.VIDEO) {
                 if (firstFrame && peekFrame != null) {
                     if (peekFrame.timeStamp > playTimeSeconds) {
                         playOffsetSeconds += peekFrame.timeStamp - playTimeSeconds
-                        println("jumping in time $playOffsetSeconds")
+                        println("first frame and queue is ahead: adjusting time offset: $playOffsetSeconds")
                     }
                     firstFrame = false
                 }
 
+                if (adjustPosition && peekFrame != null && peekFrame.timeStamp - playTimeSeconds > 5.0 / frameRate) {
+                    playOffsetSeconds += peekFrame.timeStamp - playTimeSeconds
+                    println("queue is 5 frames ahead: adjusting time offset: $playOffsetSeconds")
+                }
+
                 if (peekFrame == null && !firstFrame) {
-                    println("oh no ran out buffered frames")
+                    if (!ignoreTimeStamps)
+                        println("oh no ran out buffered frames")
                     firstFrame = true
                 }
 
-                if (playTimeSeconds >= (peekFrame?.timeStamp ?: Double.POSITIVE_INFINITY)) {
+                if (ignoreTimeStamps || playTimeSeconds >= (peekFrame?.timeStamp ?: Double.POSITIVE_INFINITY)) {
                     val frame = decoder?.nextVideoFrame()
                     frame?.let {
                         colorBuffer?.write(it.buffer.data().capacity(frame.frameSize.toLong()).asByteBuffer())
                         it.unref()
-                        newFrame.trigger(FrameEvent(colorBuffer?:throw IllegalStateException("colorBuffer == null"), peekFrame?.timeStamp?:-1.0))
+                        newFrame.trigger(FrameEvent(colorBuffer
+                                ?: throw IllegalStateException("colorBuffer == null"), peekFrame?.timeStamp ?: -1.0))
                     }
                     runBlocking {
                         if (decoder?.done() == true) {
@@ -258,6 +261,7 @@ class VideoPlayerFFMPEG(val file: AVFile, val mode: PlayMode = PlayMode.VIDEO) {
                         }
                     }
                 }
+
                 if (peekFrame == null && (decoder?.done() == true)) {
                     println("video ended")
                     ended.trigger(VideoEvent())
@@ -274,16 +278,14 @@ class VideoPlayerFFMPEG(val file: AVFile, val mode: PlayMode = PlayMode.VIDEO) {
     }
 }
 
-fun AVFormatContext.streamAt(index: Int): AVStream? =
+internal fun AVFormatContext.streamAt(index: Int): AVStream? =
         if (index < 0) null
         else this.streams(index)
 
-val AVFormatContext.codecs: List<AVCodecParameters?>
-    //get() = List(nb_streams.toInt()) { streams?.get(it)?.pointed?.codec?.pointed }
+internal val AVFormatContext.codecs: List<AVCodecParameters?>
     get() = List(nb_streams()) { streams(it).codecpar() }
 
-
-fun AVStream.openCodec(tag: String): AVCodecContext {
+internal fun AVStream.openCodec(tag: String): AVCodecContext {
     // Get codec context for the video stream.
     val codecPar = this.codecpar()
 
@@ -297,7 +299,4 @@ fun AVStream.openCodec(tag: String): AVCodecContext {
         throw Error("Couldn't open $tag codec with id ${codecPar.codec_id()}")
 
     return codecContext
-}
-fun main() {
-    Camera.listDevices()
 }

@@ -1,22 +1,18 @@
 package org.openrndr.ffmpeg
 
-import kotlinx.coroutines.*
 import org.bytedeco.ffmpeg.avcodec.AVCodecContext
 import org.bytedeco.ffmpeg.avformat.AVFormatContext
 import org.bytedeco.ffmpeg.avutil.AVBufferRef
 import org.bytedeco.ffmpeg.avutil.AVHWDeviceContext
 import org.bytedeco.ffmpeg.global.avcodec.av_packet_alloc
 import org.bytedeco.ffmpeg.global.avcodec.av_packet_unref
-import org.bytedeco.ffmpeg.global.avformat
 import org.bytedeco.ffmpeg.global.avformat.av_read_frame
 import org.bytedeco.ffmpeg.global.avformat.av_seek_frame
 import org.bytedeco.ffmpeg.global.avutil
 import org.bytedeco.ffmpeg.global.avutil.*
 import org.bytedeco.javacpp.*
-import org.bytedeco.javacpp.Pointer.memcpy
 import org.openrndr.platform.Platform
 import org.openrndr.platform.PlatformType
-import java.nio.DoubleBuffer
 
 internal data class CodecInfo(val video: VideoInfo?, val audio: AudioInfo?) {
     val hasVideo = video != null
@@ -103,6 +99,7 @@ internal class Decoder(val formatContext: AVFormatContext,
     private var videoDecoder: VideoDecoder? = null
     private var audioDecoder: AudioDecoder? = null
     private var noMoreFrames = false
+    private var disposed = false
 
     suspend fun start(videoOutput: VideoDecoderOutput?, audioOutput: AudioDecoderOutput?) {
         videoDecoder = videoCodecContext?.let { ctx ->
@@ -117,13 +114,14 @@ internal class Decoder(val formatContext: AVFormatContext,
 
         noMoreFrames = false
 
-        while (!done()) {
+        while (!disposed) {
             decodeIfNeeded()
             kotlinx.coroutines.delay(1)
         }
     }
 
     fun restart() {
+        noMoreFrames = false
         videoDecoder?.flushQueue()
         audioDecoder?.flushQueue()
         av_seek_frame(formatContext, -1, formatContext.start_time(), 0)
