@@ -1,12 +1,11 @@
 package org.openrndr.internal.gl3
 
-import kotlinx.coroutines.yield
+import kotlinx.coroutines.*
 import mu.KotlinLogging
 import org.lwjgl.BufferUtils
-import org.lwjgl.opengl.ARBTextureCompressionBPTC.GL_COMPRESSED_RGBA_BPTC_UNORM_ARB
+import org.lwjgl.opengl.ARBTextureCompressionBPTC.*
 import org.lwjgl.opengl.EXTTextureCompressionS3TC.*
-import org.lwjgl.opengl.GL11C
-import org.lwjgl.opengl.GL30C
+import org.lwjgl.opengl.EXTTextureSRGB.*
 import org.lwjgl.opengl.GL33C.*
 import org.lwjgl.stb.STBImage
 import org.lwjgl.stb.STBImageWrite
@@ -54,7 +53,14 @@ internal fun internalFormat(format: ColorFormat, type: ColorType): Int {
             ConversionEntry(ColorFormat.RGBa, ColorType.DXT3, GL_COMPRESSED_RGBA_S3TC_DXT3_EXT),
             ConversionEntry(ColorFormat.RGBa, ColorType.DXT5, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT),
             ConversionEntry(ColorFormat.RGB, ColorType.DXT1, GL_COMPRESSED_RGB_S3TC_DXT1_EXT),
-            ConversionEntry(ColorFormat.RGBa, ColorType.BPTC_UNORM, GL_COMPRESSED_RGBA_BPTC_UNORM_ARB)
+            ConversionEntry(ColorFormat.sRGBa, ColorType.DXT1, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT),
+            ConversionEntry(ColorFormat.sRGBa, ColorType.DXT3, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT),
+            ConversionEntry(ColorFormat.sRGBa, ColorType.DXT5, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT),
+            ConversionEntry(ColorFormat.sRGB, ColorType.DXT1, GL_COMPRESSED_SRGB_S3TC_DXT1_EXT),
+            ConversionEntry(ColorFormat.RGBa, ColorType.BPTC_UNORM, GL_COMPRESSED_RGBA_BPTC_UNORM_ARB),
+            ConversionEntry(ColorFormat.sRGBa, ColorType.BPTC_UNORM, GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM_ARB),
+            ConversionEntry(ColorFormat.RGB, ColorType.BPTC_FLOAT, GL_COMPRESSED_RGB_BPTC_SIGNED_FLOAT_ARB),
+            ConversionEntry(ColorFormat.RGB, ColorType.BPTC_UFLOAT, GL_COMPRESSED_RGB_BPTC_UNSIGNED_FLOAT_ARB)
     )
 
 
@@ -72,6 +78,7 @@ class ColorBufferShadowGL3(override val colorBuffer: ColorBufferGL3) : ColorBuff
     val size = colorBuffer.width * colorBuffer.height
     val elementSize = colorBuffer.format.componentCount * colorBuffer.type.componentSize
     override val buffer: ByteBuffer = BufferUtils.createByteBuffer(elementSize * size)
+
 
     override fun download() {
         logger.trace {
@@ -502,7 +509,7 @@ class ColorBufferDataGL3(val width: Int, val height: Int, val format: ColorForma
             return fromByteBuffer(buffer, name)
         }
 
-        fun fromByteBuffer(buffer: ByteBuffer, name:String? = null) : ColorBufferDataGL3 {
+        fun fromByteBuffer(buffer: ByteBuffer, name: String? = null): ColorBufferDataGL3 {
             val wa = IntArray(1)
             val ha = IntArray(1)
             val ca = IntArray(1)
@@ -541,7 +548,7 @@ class ColorBufferDataGL3(val width: Int, val height: Int, val format: ColorForma
                         }
                         , ColorType.UINT8, data)
             } else {
-                throw RuntimeException("failed to load image ${name?:("unknown image")}")
+                throw RuntimeException("failed to load image ${name ?: ("unknown image")}")
             }
 
         }
@@ -577,6 +584,7 @@ class ColorBufferGL3(val target: Int,
         set(value) {
             realFlipV = value
         }
+
 
     companion object {
         fun fromUrl(url: String): ColorBuffer {
@@ -614,7 +622,7 @@ class ColorBufferGL3(val target: Int,
             }
         }
 
-        fun fromStream(stream: InputStream, name:String?, formatHint:String?): ColorBuffer {
+        fun fromStream(stream: InputStream, name: String?, formatHint: String?): ColorBuffer {
             val data = ColorBufferDataGL3.fromStream(stream, name)
             val cb = create(data.width, data.height, 1.0, data.format, data.type, Disabled)
             return cb.apply {
@@ -632,7 +640,7 @@ class ColorBufferGL3(val target: Int,
             }
         }
 
-        suspend fun tilesFromFile(filename: String, tileWidth:Int, tileHeight:Int): List<List<ColorBufferTile>> {
+        suspend fun tilesFromFile(filename: String, tileWidth: Int, tileHeight: Int): List<List<ColorBufferTile>> {
             val data = ColorBufferDataGL3.fromFile(filename)
             val xTiles = Math.ceil(data.width.toDouble() / (tileWidth)).toInt()
             val yTiles = Math.ceil(data.height.toDouble() / (tileHeight)).toInt()
@@ -658,7 +666,7 @@ class ColorBufferGL3(val target: Int,
 
                     for (v in 0 until height) {
                         for (u in 0 until width) {
-                            val offset = ((v+yOff) * data.width + (u+xOff)) * components
+                            val offset = ((v + yOff) * data.width + (u + xOff)) * components
                             for (i in 0 until components) {
                                 bb.put(d.get(offset + i))
                             }
@@ -710,7 +718,7 @@ class ColorBufferGL3(val target: Int,
             when (multisample) {
                 Disabled ->
                     //when (type.compressed) {
-                        glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, effectiveWidth, effectiveHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullBB)
+                    glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, effectiveWidth, effectiveHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullBB)
 //                        true -> GL13C.glCompressedTexImage2D(GL_TEXTURE_2D, 0, internalFormat, effectiveWidth, effectiveHeight, 0, nullBB)
 //                    }
 
@@ -800,6 +808,7 @@ class ColorBufferGL3(val target: Int,
             throw IllegalArgumentException("cannot resolve to multisample target")
         }
     }
+
     override fun copyTo(target: ColorBuffer) {
         if (target.multisample == Disabled) {
             val readTarget = renderTarget(width, height, contentScale) {
@@ -868,7 +877,14 @@ class ColorBufferGL3(val target: Int,
 
     var realShadow: ColorBufferShadow? = null
 
+
+
+
     override fun write(buffer: ByteBuffer, sourceFormat: ColorFormat, sourceType: ColorType) {
+        if (!buffer.isDirect) {
+            throw IllegalArgumentException("buffer is not a direct buffer.")
+        }
+
         if (multisample == Disabled) {
             bound {
                 debugGLErrors()
@@ -881,13 +897,19 @@ class ColorBufferGL3(val target: Int,
                 glGetIntegerv(GL_UNPACK_ALIGNMENT, currentPack)
                 glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
                 if (sourceType.compressed) {
-                    glCompressedTexSubImage2D(target, 0, 0, 0, width, height, sourceType.glCompressedType(),  buffer)
+                    glCompressedTexSubImage2D(target, 0, 0, 0, width, height, compressedType(sourceFormat, sourceType), buffer)
+                    debugGLErrors {
+                        when (it) {
+                            GL_INVALID_VALUE -> "data size mismatch? ${buffer.remaining()}"
+                            else -> null
+                        }
+                    }
                 } else {
                     glTexSubImage2D(target, 0, 0, 0, width, height, sourceFormat.glFormat(), sourceType.glType(), buffer)
+                    debugGLErrors()
                 }
                 glPixelStorei(GL_UNPACK_ALIGNMENT, currentPack[0])
-                //debugGLErrors()
-                checkGLErrors()
+                debugGLErrors()
                 (buffer as Buffer).rewind()
             }
         } else {
@@ -896,6 +918,9 @@ class ColorBufferGL3(val target: Int,
     }
 
     override fun read(buffer: ByteBuffer) {
+        if (!buffer.isDirect) {
+            throw IllegalArgumentException("buffer is not a direct buffer.")
+        }
         if (multisample == Disabled) {
             bound {
                 logger.trace {
@@ -959,6 +984,7 @@ class ColorBufferGL3(val target: Int,
         }
     }
 
+
     override fun destroy() {
         glDeleteTextures(texture)
         checkGLErrors()
@@ -1020,17 +1046,34 @@ internal fun ColorType.glType(): Int {
         ColorType.UINT16 -> GL_UNSIGNED_SHORT
         ColorType.FLOAT16 -> GL_HALF_FLOAT
         ColorType.FLOAT32 -> GL_FLOAT
-        ColorType.DXT1, ColorType.DXT3, ColorType.DXT5, ColorType.BPTC_UNORM -> throw RuntimeException("gl type of compressed types cannot be queried")
+        ColorType.DXT1, ColorType.DXT3, ColorType.DXT5,
+        ColorType.BPTC_UNORM, ColorType.BPTC_FLOAT, ColorType.BPTC_UFLOAT -> throw RuntimeException("gl type of compressed types cannot be queried")
     }
 }
 
-internal fun ColorType.glCompressedType(): Int {
-    return when (this) {
-
-        ColorType.DXT1 -> GL_COMPRESSED_RGBA_S3TC_DXT1_EXT
-        ColorType.DXT3 -> GL_COMPRESSED_RGBA_S3TC_DXT3_EXT
-        ColorType.DXT5 -> GL_COMPRESSED_RGBA_S3TC_DXT5_EXT
-        ColorType.BPTC_UNORM -> GL_COMPRESSED_RGBA_BPTC_UNORM_ARB
-        else -> throw RuntimeException("not a compressed type")
+internal fun compressedType(format: ColorFormat, type: ColorType): Int {
+    when (format) {
+        ColorFormat.RGBa -> return when (type) {
+            ColorType.DXT1 -> GL_COMPRESSED_RGBA_S3TC_DXT1_EXT
+            ColorType.DXT3 -> GL_COMPRESSED_RGBA_S3TC_DXT3_EXT
+            ColorType.DXT5 -> GL_COMPRESSED_RGBA_S3TC_DXT5_EXT
+            ColorType.BPTC_UNORM -> GL_COMPRESSED_RGBA_BPTC_UNORM_ARB
+            else -> throw IllegalArgumentException()
+        }
+        ColorFormat.sRGBa -> return when (type) {
+            ColorType.DXT1 -> GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT
+            ColorType.DXT3 -> GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT
+            ColorType.DXT5 -> GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT
+            else -> throw IllegalArgumentException()
+        }
+        ColorFormat.RGB -> return when (type) {
+            ColorType.DXT1 -> GL_COMPRESSED_RGB_S3TC_DXT1_EXT
+            else -> throw IllegalArgumentException()
+        }
+        ColorFormat.sRGB -> return when (type) {
+            ColorType.DXT1 -> GL_COMPRESSED_SRGB_S3TC_DXT1_EXT
+            else -> throw IllegalArgumentException()
+        }
+        else -> throw IllegalArgumentException()
     }
 }

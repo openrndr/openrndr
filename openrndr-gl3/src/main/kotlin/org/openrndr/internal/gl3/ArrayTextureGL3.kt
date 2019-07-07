@@ -40,7 +40,7 @@ class ArrayTextureGL3(val target: Int,
     override fun write(layer: Int, buffer: ByteBuffer, sourceFormat: ColorFormat, sourceType: ColorType) {
         bound {
             if (sourceType.compressed) {
-                glCompressedTexSubImage3D(target, 0, 0, 0, layer, width, height, 1, sourceType.glCompressedType(), buffer)
+                glCompressedTexSubImage3D(target, 0, 0, 0, layer, width, height, 1, compressedType(sourceFormat, sourceType), buffer)
             } else {
                 glTexSubImage3D(target, 0, 0, 0, layer, width, height, 1, sourceFormat.glFormat(), sourceType.glType(), buffer)
             }

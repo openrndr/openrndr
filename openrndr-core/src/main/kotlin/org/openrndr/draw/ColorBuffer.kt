@@ -225,3 +225,4 @@ fun loadImage(file: File): ColorBuffer {
 fun loadImage(url: URL): ColorBuffer {
     return ColorBuffer.fromUrl(url.toExternalForm())
 }
+

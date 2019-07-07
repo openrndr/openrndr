@@ -122,8 +122,9 @@ enum class ColorType {
     DXT1,
     DXT3,
     DXT5,
-    BPTC_UNORM;
-
+    BPTC_UNORM,
+    BPTC_FLOAT,
+    BPTC_UFLOAT;
 
     val componentSize: Int
         get() {
@@ -131,14 +132,15 @@ enum class ColorType {
                 UINT8 -> 1
                 UINT16, FLOAT16 -> 2
                 FLOAT32 -> 4
-                DXT1, DXT3, DXT5, BPTC_UNORM -> throw RuntimeException("component size of compressed types cannot be queried")
+                DXT1, DXT3, DXT5,
+                BPTC_UNORM, BPTC_FLOAT, BPTC_UFLOAT -> throw RuntimeException("component size of compressed types cannot be queried")
             }
         }
 
     val compressed: Boolean
         get() {
             return when (this) {
-                DXT1, DXT3, DXT5, BPTC_UNORM -> true
+                DXT1, DXT3, DXT5, BPTC_UNORM, BPTC_FLOAT, BPTC_UFLOAT -> true
                 else -> false
             }
         }
