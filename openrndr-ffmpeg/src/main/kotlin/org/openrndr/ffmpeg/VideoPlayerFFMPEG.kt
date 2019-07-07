@@ -51,11 +51,11 @@ internal data class Dimensions(val w: Int, val h: Int) {
 }
 
 internal class AVFile(val fileName: String,
-             val playMode: PlayMode,
-             val formatName: String? = null,
-             val frameRate: Double? = null,
-             val imageWidth: Int? = null,
-             val imageHeight: Int? = null) {
+                      val playMode: PlayMode,
+                      val formatName: String? = null,
+                      val frameRate: Double? = null,
+                      val imageWidth: Int? = null,
+                      val imageHeight: Int? = null) {
     val context = avformat_alloc_context()
 
     init {
@@ -175,7 +175,7 @@ class VideoPlayerFFMPEG private constructor(private val file: AVFile, val mode: 
     private var info: CodecInfo? = null
     private var state = State.PLAYING
     private var startTimeMillis = -1L
-    private var colorBuffer: ColorBuffer? = null
+    var colorBuffer: ColorBuffer? = null
     private var firstFrame = true
     private var playOffsetSeconds = 0.0
     var ignoreTimeStamps = false
@@ -220,54 +220,71 @@ class VideoPlayerFFMPEG private constructor(private val file: AVFile, val mode: 
         decoder?.restart()
     }
 
-    fun update() {
-        if (state == State.PLAYING) {
-            val frameRate = (info?.video?.fps) ?: 0.0
+    fun update(block: Boolean = false) {
 
-            info?.video.let {
+        var gotFrame = false
 
-                val playTimeSeconds = (System.currentTimeMillis() - startTimeMillis) / 1000.0 + playOffsetSeconds
-                val peekFrame = decoder?.peekNextVideoFrame()
-                if (firstFrame && peekFrame != null) {
-                    if (peekFrame.timeStamp > playTimeSeconds) {
+        do {
+
+            if (state == State.PLAYING) {
+                val frameRate = (info?.video?.fps) ?: 0.0
+
+                info?.video.let {
+
+                    val playTimeSeconds = (System.currentTimeMillis() - startTimeMillis) / 1000.0 + playOffsetSeconds
+                    val peekFrame = decoder?.peekNextVideoFrame()
+                    if (firstFrame && peekFrame != null) {
+                        if (peekFrame.timeStamp > playTimeSeconds) {
+                            playOffsetSeconds += peekFrame.timeStamp - playTimeSeconds
+                            println("first frame and queue is ahead: adjusting time offset: $playOffsetSeconds")
+                        }
+                        firstFrame = false
+                    }
+
+                    if (adjustPosition && peekFrame != null && peekFrame.timeStamp - playTimeSeconds > 5.0 / frameRate) {
                         playOffsetSeconds += peekFrame.timeStamp - playTimeSeconds
-                        println("first frame and queue is ahead: adjusting time offset: $playOffsetSeconds")
+                        println("queue is 5 frames ahead: adjusting time offset: $playOffsetSeconds")
                     }
-                    firstFrame = false
-                }
 
-                if (adjustPosition && peekFrame != null && peekFrame.timeStamp - playTimeSeconds > 5.0 / frameRate) {
-                    playOffsetSeconds += peekFrame.timeStamp - playTimeSeconds
-                    println("queue is 5 frames ahead: adjusting time offset: $playOffsetSeconds")
-                }
-
-                if (peekFrame == null && !firstFrame) {
-                    if (!ignoreTimeStamps)
-                        println("oh no ran out buffered frames")
-                    firstFrame = true
-                }
-
-                if (ignoreTimeStamps || playTimeSeconds >= (peekFrame?.timeStamp ?: Double.POSITIVE_INFINITY)) {
-                    val frame = decoder?.nextVideoFrame()
-                    frame?.let {
-                        colorBuffer?.write(it.buffer.data().capacity(frame.frameSize.toLong()).asByteBuffer())
-                        it.unref()
-                        newFrame.trigger(FrameEvent(colorBuffer
-                                ?: throw IllegalStateException("colorBuffer == null"), peekFrame?.timeStamp ?: -1.0))
+                    if (peekFrame == null && !firstFrame) {
+                        if (!ignoreTimeStamps)
+                            println("oh no ran out buffered frames")
+                        firstFrame = true
                     }
-                    runBlocking {
-                        if (decoder?.done() == true) {
-                            println("decoder is done")
+
+                    if (ignoreTimeStamps || playTimeSeconds >= (peekFrame?.timeStamp ?: Double.POSITIVE_INFINITY)) {
+                        gotFrame = true
+                        val frame = decoder?.nextVideoFrame()
+                        frame?.let {
+                            colorBuffer?.write(it.buffer.data().capacity(frame.frameSize.toLong()).asByteBuffer())
+                            it.unref()
+
+                            newFrame.trigger(FrameEvent(colorBuffer
+                                    ?: throw IllegalStateException("colorBuffer == null"), peekFrame?.timeStamp
+                                    ?: -1.0))
+                        }
+                        runBlocking {
+                            if (decoder?.done() == true) {
+                                println("decoder is done")
+
+                            }
                         }
                     }
-                }
 
-                if (peekFrame == null && (decoder?.done() == true)) {
-                    println("video ended")
-                    ended.trigger(VideoEvent())
+                    if (peekFrame == null && (decoder?.done() == true)) {
+                        println("video ended")
+                        gotFrame = true
+                        ended.trigger(VideoEvent())
+                    }
                 }
+            } else {
+                gotFrame = true
             }
-        }
+
+            if (block) {
+                Thread.sleep(10)
+            }
+        } while (block && !gotFrame)
     }
 
     fun draw(drawer: Drawer) {
