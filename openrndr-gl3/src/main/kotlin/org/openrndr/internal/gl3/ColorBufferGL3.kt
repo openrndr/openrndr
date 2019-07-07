@@ -5,6 +5,8 @@ import mu.KotlinLogging
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.ARBTextureCompressionBPTC.GL_COMPRESSED_RGBA_BPTC_UNORM_ARB
 import org.lwjgl.opengl.EXTTextureCompressionS3TC.*
+import org.lwjgl.opengl.GL11C
+import org.lwjgl.opengl.GL30C
 import org.lwjgl.opengl.GL33C.*
 import org.lwjgl.stb.STBImage
 import org.lwjgl.stb.STBImageWrite
@@ -796,6 +798,27 @@ class ColorBufferGL3(val target: Int,
             readTarget.destroy()
         } else {
             throw IllegalArgumentException("cannot resolve to multisample target")
+        }
+    }
+    override fun copyTo(target: ColorBuffer) {
+        if (target.multisample == Disabled) {
+            val readTarget = renderTarget(width, height, contentScale) {
+                colorBuffer(this@ColorBufferGL3)
+            } as RenderTargetGL3
+
+            target as ColorBufferGL3
+            readTarget.bind()
+            glReadBuffer(GL_COLOR_ATTACHMENT0)
+            target.bound {
+                glCopyTexSubImage2D(target.target, 0, 0, 0, 0, 0, target.width, target.height)
+                debugGLErrors()
+            }
+            readTarget.unbind()
+
+            readTarget.detachColorBuffers()
+            readTarget.destroy()
+        } else {
+            throw IllegalArgumentException("cannot copy to multisample target")
         }
     }
 

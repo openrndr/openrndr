@@ -112,9 +112,15 @@ interface ColorBuffer {
     fun generateMipmaps()
 
     /**
-     * resolves (or copies) to a non-multisampled color buffer
+     * resolves contents to a non-multisampled color buffer
      */
     fun resolveTo(target: ColorBuffer)
+
+    /**
+     * copies contents to a target color buffer
+     */
+    fun copyTo(target: ColorBuffer)
+
 
     /** the wrapping mode to use in the horizontal direction */
     var wrapU: WrapMode
