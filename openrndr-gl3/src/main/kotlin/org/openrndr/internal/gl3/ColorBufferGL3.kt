@@ -831,6 +831,29 @@ class ColorBufferGL3(val target: Int,
         }
     }
 
+    override fun copyTo(target: ArrayTexture, layer:Int) {
+        if (multisample == Disabled) {
+            val readTarget = renderTarget(width, height, contentScale) {
+                colorBuffer(this@ColorBufferGL3)
+            } as RenderTargetGL3
+
+            target as ArrayTextureGL3
+            readTarget.bind()
+            glReadBuffer(GL_COLOR_ATTACHMENT0)
+            target.bound {
+                glCopyTexSubImage3D(target.target, 0, 0, 0, layer, 0, 0, target.width, target.height)
+                debugGLErrors()
+            }
+            readTarget.unbind()
+
+            readTarget.detachColorBuffers()
+            readTarget.destroy()
+        } else {
+            throw IllegalArgumentException("cannot copy from multisample texture")
+        }
+    }
+
+
     override var wrapU: WrapMode
         get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
         set(value) {

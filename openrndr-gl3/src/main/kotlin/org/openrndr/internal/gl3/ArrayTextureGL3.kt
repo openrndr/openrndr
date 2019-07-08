@@ -22,6 +22,8 @@ class ArrayTextureGL3(val target: Int,
             glBindTexture(GL_TEXTURE_2D_ARRAY, texture)
             checkGLErrors()
             glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, internalFormat(format, type), width, height, layers, 0, GL_RGB, GL_UNSIGNED_BYTE, null as ByteBuffer?)
+            glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, MinifyingFilter.LINEAR.toGLFilter())
+            glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, MagnifyingFilter.LINEAR.toGLFilter())
             checkGLErrors()
             return ArrayTextureGL3(GL_TEXTURE_2D_ARRAY, texture, width, height, layers, format, type)
         }
@@ -87,7 +89,7 @@ class ArrayTextureGL3(val target: Int,
 
     override var flipV: Boolean = false
 
-    private fun bound(f: ArrayTextureGL3.() -> Unit) {
+    internal fun bound(f: ArrayTextureGL3.() -> Unit) {
         glActiveTexture(GL_TEXTURE0)
         val current = glGetInteger(GL_TEXTURE_BINDING_2D_ARRAY)
         glBindTexture(target, texture)

@@ -121,6 +121,7 @@ interface ColorBuffer {
      */
     fun copyTo(target: ColorBuffer)
 
+    fun copyTo(target: ArrayTexture, layer:Int)
 
     /** the wrapping mode to use in the horizontal direction */
     var wrapU: WrapMode
