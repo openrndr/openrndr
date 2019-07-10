@@ -3,6 +3,7 @@ package org.openrndr.ffmpeg
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import mu.KotlinLogging
 import org.bytedeco.ffmpeg.avcodec.AVCodecContext
 import org.bytedeco.ffmpeg.avformat.AVFormatContext
 import org.bytedeco.ffmpeg.avformat.AVStream
@@ -24,6 +25,8 @@ import org.bytedeco.ffmpeg.global.avutil.*
 import org.openrndr.platform.Platform
 import org.openrndr.platform.PlatformType
 import kotlin.concurrent.thread
+
+private val logger = KotlinLogging.logger {}
 
 enum class State {
     PLAYING,
@@ -206,7 +209,6 @@ class VideoPlayerFFMPEG private constructor(private val file: AVFile, val mode: 
 
 
         this.info?.video?.let {
-            println("allocating video buffer")
             colorBuffer = org.openrndr.draw.colorBuffer(it.size.w, it.size.h).apply {
                 flipV = true
             }
@@ -218,9 +220,7 @@ class VideoPlayerFFMPEG private constructor(private val file: AVFile, val mode: 
             decoder.start(videoOutput.toVideoDecoderOutput(), audioOutput.toAudioDecoderOutput())
         }
 
-        println("starting loop")
         startTimeMillis = System.currentTimeMillis()
-        println("framerate!: ${info.video.fps}")
     }
 
     fun restart() {
@@ -247,24 +247,24 @@ class VideoPlayerFFMPEG private constructor(private val file: AVFile, val mode: 
                     if (firstFrame && peekFrame != null) {
                         if (peekFrame.timeStamp > playTimeSeconds) {
                             playOffsetSeconds += peekFrame.timeStamp - playTimeSeconds
-                            println("first frame and queue is ahead: adjusting time offset: $playOffsetSeconds")
+                            logger.debug {"first frame and queue is ahead: adjusting time offset: $playOffsetSeconds" }
                         }
                         firstFrame = false
                     }
 
                     if (adjustPosition && peekFrame != null && peekFrame.timeStamp - playTimeSeconds > 5.0 / frameRate) {
                         playOffsetSeconds += peekFrame.timeStamp - playTimeSeconds
-                        println("queue is 5 frames ahead: adjusting time offset: $playOffsetSeconds")
+                        logger.debug {"queue is 5 frames ahead: adjusting time offset: $playOffsetSeconds"}
                     }
 
                     if (peekFrame == null && !firstFrame) {
                         if (!ignoreTimeStamps)
-                            println("oh no ran out buffered frames")
+                            logger.debug { "oh no ran out buffered frames" }
                         firstFrame = true
                     }
 
-                    if (peekFrame != null && playTimeSeconds > peekFrame.timeStamp + 1.0/frameRate) {
-                        println("ahead of queue.. $playTimeSeconds ${peekFrame.timeStamp}")
+                    if (peekFrame != null && playTimeSeconds > peekFrame.timeStamp + 5.0/frameRate) {
+                        logger.debug { "ahead of queue.. $playTimeSeconds ${peekFrame.timeStamp}" }
                         playOffsetSeconds += peekFrame.timeStamp - playTimeSeconds
                     }
 
@@ -285,16 +285,16 @@ class VideoPlayerFFMPEG private constructor(private val file: AVFile, val mode: 
                         }
                         runBlocking {
                             if (decoder?.done() == true) {
-                                println("decoder is done")
+                                logger.debug { "decoder is done" }
 
                             }
                         }
                     } else {
-                        println("waiting a bit more")
+                        logger.debug { "waiting a bit more" }
                     }
 
                     if (peekFrame == null && (decoder?.done() == true)) {
-                        println("video ended")
+                        logger.debug { "video ended" }
                         gotFrame = true
                         ended.trigger(VideoEvent())
                     }
