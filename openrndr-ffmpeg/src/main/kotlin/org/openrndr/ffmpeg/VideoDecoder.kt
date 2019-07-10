@@ -44,6 +44,7 @@ private fun Int.pixFmtForHWType():Int {
 internal data class VideoDecoderOutput(val size: Dimensions, val avPixelFormat: Int)
 
 internal class VideoDecoder(
+        val statistics: VideoStatistics,
         private val videoCodecContext: AVCodecContext,
         output: VideoDecoderOutput,
         hwType:Int
@@ -61,6 +62,9 @@ internal class VideoDecoder(
     private val imagePointer = arrayOf(BytePointer(avutil.av_malloc(scaledFrameSize.toLong())).capacity(scaledFrameSize.toLong()))
     private val videoQueue = Queue<VideoFrame>(100)
     private val minVideoFrames =50
+
+
+    private var videoTime = 0.0
 
     init {
         avutil.av_image_fill_arrays(PointerPointer<AVFrame>(scaledVideoFrame), scaledVideoFrame.linesize(), imagePointer[0], avPixelFormat, windowSize.w, windowSize.h, 1)
@@ -85,7 +89,10 @@ internal class VideoDecoder(
 
     var lowestTimeStamp = Long.MAX_VALUE
     fun decodeVideoPacket(packet: AVPacket) {
+        val framerate = av_q2d(videoCodecContext.framerate())
         var ret = avcodec_send_packet(videoCodecContext, packet)
+
+        statistics.videoBytesReceived += packet.size()
 
         if (ret < 0) {
             println("error in avcodec_send_packet")
@@ -95,6 +102,7 @@ internal class VideoDecoder(
         while (ret >= 0) {
             val decodedFrame = av_frame_alloc()
             ret = avcodec_receive_frame(videoCodecContext, decodedFrame)
+            decodedFrame.pts(decodedFrame.best_effort_timestamp())
 
             if (ret == avutil.AVERROR_EAGAIN()) {
                 av_frame_free(decodedFrame)
@@ -128,18 +136,30 @@ internal class VideoDecoder(
                         resultFrame.linesize(), 0, resultFrame.height(),
                         scaledVideoFrame.data(), scaledVideoFrame.linesize())
 
-                lowestTimeStamp = Math.min(lowestTimeStamp, decodedFrame.best_effort_timestamp())
+                lowestTimeStamp = Math.min(lowestTimeStamp, decodedFrame.pts())
                 val packetTimestamp = decodedFrame.best_effort_timestamp()// avutil.av_frame_get_best_effort_timestamp(videoFrame)
-                val timeStamp = (packetTimestamp - lowestTimeStamp) * avutil.av_q2d(videoCodecContext.time_base())
 
+
+
+
+//                println("packets pts: ${packet.pts()}")
+//                println("frame pts: ${decodedFrame.pts()} ${decodedFrame.best_effort_timestamp()} ${videoCodecContext.ticks_per_frame()}")
+
+//                println(packetTimestamp-lowestTimeStamp)
+                val timeStamp = (packetTimestamp - lowestTimeStamp) *  avutil.av_q2d(videoCodecContext.time_base())
+
+//                println("timebase: ${avutil.av_q2d(videoCodecContext.time_base())}")
                 //println("timestamps: $timeStamp $lowestTimeStamp $packetTimestamp")
 
                 Pointer.memcpy(buffer.data(), scaledVideoFrame.data()[0], scaledFrameSize.toLong())
-                videoQueue.push(VideoFrame(buffer, scaledVideoFrame.linesize()[0], timeStamp / 1000.0, scaledFrameSize))
+                videoQueue.push(VideoFrame(buffer, scaledVideoFrame.linesize()[0], videoTime, scaledFrameSize))
+                videoTime += 1.0/framerate
 
-
-
+                statistics.videoQueueSize = videoQueue.size()
                 av_frame_free(transferredFrame)
+                statistics.videoFramesDecoded += 1
+            } else {
+                statistics.videoFrameErrors += 1
             }
             av_frame_free(decodedFrame)
         }

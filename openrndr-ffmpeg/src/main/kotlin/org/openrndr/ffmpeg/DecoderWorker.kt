@@ -27,7 +27,8 @@ internal fun Int.checkAVError() {
     }
 }
 
-internal class Decoder(val formatContext: AVFormatContext,
+internal class Decoder(val statistics: VideoStatistics,
+                       val formatContext: AVFormatContext,
                        val videoStreamIndex: Int,
                        val audioStreamIndex: Int,
                        val videoCodecContext: AVCodecContext?,
@@ -35,7 +36,7 @@ internal class Decoder(val formatContext: AVFormatContext,
                        val hwType: Int) {
 
     companion object {
-        fun fromContext(context: AVFormatContext, useVideo: Boolean = true, useAudio: Boolean = true, useHW: Boolean = true): Pair<Decoder, CodecInfo> {
+        fun fromContext(statistics: VideoStatistics, context: AVFormatContext, useVideo: Boolean = true, useAudio: Boolean = true, useHW: Boolean = true): Pair<Decoder, CodecInfo> {
             // Find the first video/audio streams.
             val videoStreamIndex =
                     if (useVideo) context.codecs.indexOfFirst { it?.codec_type() == AVMEDIA_TYPE_VIDEO } else -1
@@ -92,7 +93,7 @@ internal class Decoder(val formatContext: AVFormatContext,
                 AudioInfo(sample_rate(), channels())
             }
 
-            return Pair(Decoder(context, videoStreamIndex, audioStreamIndex, videoContext, audioContext, hwType), CodecInfo(video, audio))
+            return Pair(Decoder(statistics, context, videoStreamIndex, audioStreamIndex, videoContext, audioContext, hwType), CodecInfo(video, audio))
         }
     }
 
@@ -103,7 +104,7 @@ internal class Decoder(val formatContext: AVFormatContext,
 
     fun start(videoOutput: VideoDecoderOutput?, audioOutput: AudioDecoderOutput?) {
         videoDecoder = videoCodecContext?.let { ctx ->
-            videoOutput?.let { VideoDecoder(ctx, it, hwType) }
+            videoOutput?.let { VideoDecoder(statistics, ctx, it, hwType) }
         }
 
         audioDecoder = audioCodecContext?.let { ctx ->

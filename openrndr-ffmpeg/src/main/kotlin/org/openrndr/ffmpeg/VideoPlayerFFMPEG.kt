@@ -137,6 +137,13 @@ class VideoEvent {
 
 }
 
+class VideoStatistics {
+    var videoFramesDecoded = 0L
+    var videoFrameErrors = 0L
+    var videoQueueSize = 0
+    var videoBytesReceived = 0L
+}
+
 class VideoPlayerFFMPEG private constructor(private val file: AVFile, val mode: PlayMode = PlayMode.VIDEO) {
 
     companion object {
@@ -172,6 +179,7 @@ class VideoPlayerFFMPEG private constructor(private val file: AVFile, val mode: 
         }
     }
 
+    val statistics = VideoStatistics()
     private var decoder: Decoder? = null
     private var info: CodecInfo? = null
     private var state = State.PLAYING
@@ -181,6 +189,7 @@ class VideoPlayerFFMPEG private constructor(private val file: AVFile, val mode: 
     private var playOffsetSeconds = 0.0
     var ignoreTimeStamps = false
     var adjustPosition = true
+    var lastTimeStamp = -1.0
 
     val newFrame = Event<FrameEvent>()
     val ended = Event<VideoEvent>()
@@ -190,7 +199,7 @@ class VideoPlayerFFMPEG private constructor(private val file: AVFile, val mode: 
         file.dumpFormat()
 
         val (decoder, info) = runBlocking {
-            Decoder.fromContext(file.context, mode.useVideo, mode.useAudio)
+            Decoder.fromContext(statistics, file.context, mode.useVideo, mode.useAudio)
         }
         this.decoder = decoder
         this.info = info
@@ -221,6 +230,7 @@ class VideoPlayerFFMPEG private constructor(private val file: AVFile, val mode: 
         decoder?.restart()
     }
 
+    var lastTry = System.currentTimeMillis()
     fun update(block: Boolean = false) {
 
         var gotFrame = false
@@ -253,10 +263,19 @@ class VideoPlayerFFMPEG private constructor(private val file: AVFile, val mode: 
                         firstFrame = true
                     }
 
+                    if (peekFrame != null && playTimeSeconds > peekFrame.timeStamp + 1.0/frameRate) {
+                        println("ahead of queue.. $playTimeSeconds ${peekFrame.timeStamp}")
+                        playOffsetSeconds += peekFrame.timeStamp - playTimeSeconds
+                    }
+
+
                     if (ignoreTimeStamps || playTimeSeconds >= (peekFrame?.timeStamp ?: Double.POSITIVE_INFINITY)) {
                         gotFrame = true
                         val frame = decoder?.nextVideoFrame()
                         frame?.let {
+                            val delta = frame.timeStamp - lastTimeStamp
+
+                            lastTimeStamp = frame.timeStamp
                             colorBuffer?.write(it.buffer.data().capacity(frame.frameSize.toLong()).asByteBuffer())
                             it.unref()
 
@@ -270,6 +289,8 @@ class VideoPlayerFFMPEG private constructor(private val file: AVFile, val mode: 
 
                             }
                         }
+                    } else {
+                        println("waiting a bit more")
                     }
 
                     if (peekFrame == null && (decoder?.done() == true)) {
