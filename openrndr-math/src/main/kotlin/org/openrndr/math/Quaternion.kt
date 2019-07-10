@@ -1,6 +1,7 @@
 package org.openrndr.math
 
 import java.io.Serializable
+import kotlin.math.sqrt
 
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 data class Quaternion(val x: Double, val y: Double, val z: Double, val w: Double) : Serializable {
@@ -24,31 +25,31 @@ data class Quaternion(val x: Double, val y: Double, val z: Double, val w: Double
         }
 
         fun fromMatrix(m: Matrix33): Quaternion {
-            val t = m.trace
+            val t = m.trace + 1.0
             val x: Double
             val y: Double
             val z: Double
             val w: Double
             if (t > 0) {
-                val s = 0.5 / Math.sqrt(t)
+                val s = 0.5 / sqrt(t)
                 w = 0.25 / s
                 x = (m.c1r2 - m.c2r1) * s
                 y = (m.c2r0 - m.c0r2) * s
                 z = (m.c0r1 - m.c1r0) * s
             } else if (m.c0r0 > m.c1r1 && m.c0r0 > m.c2r2) {
-                val s = 0.5 / Math.sqrt(1.0 + m.c0r0 - m.c1r1 - m.c2r2) // S=4*qx
+                val s = 0.5 / sqrt(1.0 + m.c0r0 - m.c1r1 - m.c2r2) // S=4*qx
                 w = (m.c1r2 - m.c2r1) * s
                 x = 0.25f / s
                 y = (m.c0r1 + m.c1r0) * s
                 z = (m.c2r0 + m.c0r2) * s
             } else if (m.c1r1 > m.c2r2) {
-                val s = 0.5f / Math.sqrt(1.0 + m.c1r1 - m.c0r0 - m.c2r2) // S=4*qy
+                val s = 0.5f / sqrt(1.0 + m.c1r1 - m.c0r0 - m.c2r2) // S=4*qy
                 w = (m.c2r0 - m.c0r2) * s
                 x = (m.c0r2 + m.c1r0) * s
                 y = 0.25f / s
                 z = (m.c1r2 + m.c2r1) * s
             } else {
-                val s = 0.5f / Math.sqrt(1.0 + m.c2r2 - m.c0r0 - m.c1r1) // S=4*qz
+                val s = 0.5f / sqrt(1.0 + m.c2r2 - m.c0r0 - m.c1r1) // S=4*qz
                 w = (m.c0r1 - m.c1r0) * s
                 x = (m.c2r0 + m.c0r2) * s
                 y = (m.c1r2 + m.c2r1) * s

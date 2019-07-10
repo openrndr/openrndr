@@ -6,7 +6,6 @@ data class Matrix33(
         val c0r1: Double = 0.0, val c1r1: Double = 0.0, val c2r1: Double = 0.0,
         val c0r2: Double = 0.0, val c1r2: Double = 0.0, val c2r2: Double = 0.0) {
 
-
     companion object {
         val IDENTITY = Matrix33(c0r0 = 1.0, c1r1 = 1.0, c2r2 = 1.0)
         val ZERO = Matrix33()
@@ -55,8 +54,6 @@ data class Matrix33(
                      c0r1, c1r1, c2r1, 0.0,
                      c0r2, c1r2, c2r2, 0.0,
                      0.0, 0.0, 0.0, 1.0)
-
-
 
     operator fun times(v: Vector3) = Vector3(
             v.x * c0r0 + v.y * c1r0 + v.z * c2r0,
