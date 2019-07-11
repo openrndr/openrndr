@@ -145,6 +145,7 @@ class VideoStatistics {
     var videoFrameErrors = 0L
     var videoQueueSize = 0
     var videoBytesReceived = 0L
+    var videoDecodeDuration = 0L
 }
 
 class VideoPlayerFFMPEG private constructor(private val file: AVFile, val mode: PlayMode = PlayMode.VIDEO) {

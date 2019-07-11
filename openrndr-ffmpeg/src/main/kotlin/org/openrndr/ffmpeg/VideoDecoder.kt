@@ -89,6 +89,7 @@ internal class VideoDecoder(
 
     var lowestTimeStamp = Long.MAX_VALUE
     fun decodeVideoPacket(packet: AVPacket) {
+        val start = System.currentTimeMillis()
         val framerate = av_q2d(videoCodecContext.framerate())
         var ret = avcodec_send_packet(videoCodecContext, packet)
 
@@ -163,5 +164,7 @@ internal class VideoDecoder(
             }
             av_frame_free(decodedFrame)
         }
+        val end = System.currentTimeMillis()
+        statistics.videoDecodeDuration += (end-start)
     }
 }
