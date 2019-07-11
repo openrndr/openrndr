@@ -146,6 +146,8 @@ class VideoStatistics {
     var videoQueueSize = 0
     var videoBytesReceived = 0L
     var videoDecodeDuration = 0L
+    var videoLastFrame = System.currentTimeMillis()
+    var playPositionAdjustments = 0L
 }
 
 class VideoPlayerFFMPEG private constructor(private val file: AVFile, val mode: PlayMode = PlayMode.VIDEO) {
@@ -267,11 +269,13 @@ class VideoPlayerFFMPEG private constructor(private val file: AVFile, val mode: 
                     if (peekFrame != null && playTimeSeconds > peekFrame.timeStamp + 5.0/frameRate) {
                         logger.debug { "ahead of queue.. $playTimeSeconds ${peekFrame.timeStamp}" }
                         playOffsetSeconds += peekFrame.timeStamp - playTimeSeconds
+                        statistics.playPositionAdjustments++
                     }
 
 
                     if (ignoreTimeStamps || playTimeSeconds >= (peekFrame?.timeStamp ?: Double.POSITIVE_INFINITY)) {
                         gotFrame = true
+                        statistics.videoLastFrame = System.currentTimeMillis()
                         val frame = decoder?.nextVideoFrame()
                         frame?.let {
                             val delta = frame.timeStamp - lastTimeStamp
