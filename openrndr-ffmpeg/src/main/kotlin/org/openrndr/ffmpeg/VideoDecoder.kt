@@ -1,5 +1,6 @@
 package org.openrndr.ffmpeg
 
+import mu.KotlinLogging
 import org.bytedeco.ffmpeg.avcodec.AVCodecContext
 import org.bytedeco.ffmpeg.avcodec.AVPacket
 import org.bytedeco.ffmpeg.avutil.AVBufferRef
@@ -12,6 +13,7 @@ import org.bytedeco.ffmpeg.swscale.SwsContext
 import org.bytedeco.ffmpeg.swscale.SwsFilter
 import org.bytedeco.javacpp.*
 import java.nio.DoubleBuffer
+private val logger = KotlinLogging.logger {}
 
 private fun Int.toAVPixelFormat(): Int =
         avutil.AV_PIX_FMT_BGR32
@@ -90,7 +92,9 @@ internal class VideoDecoder(
     var lowestTimeStamp = Long.MAX_VALUE
     fun decodeVideoPacket(packet: AVPacket) {
         val start = System.currentTimeMillis()
-        val framerate = av_q2d(videoCodecContext.framerate())
+        val framerate = av_q2d(videoCodecContext.framerate()).let {
+            if (it == 0.0) 30.0 else it
+        }
         var ret = avcodec_send_packet(videoCodecContext, packet)
 
         statistics.videoBytesReceived += packet.size()

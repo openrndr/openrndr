@@ -256,6 +256,7 @@ class VideoPlayerFFMPEG private constructor(private val file: AVFile, val mode: 
                     }
 
                     if (adjustPosition && peekFrame != null && peekFrame.timeStamp - playTimeSeconds > 5.0 / frameRate) {
+                        logger.debug {"${peekFrame.timeStamp}  ${playTimeSeconds}"}
                         playOffsetSeconds += peekFrame.timeStamp - playTimeSeconds
                         logger.debug {"queue is 5 frames ahead: adjusting time offset: $playOffsetSeconds"}
                     }
