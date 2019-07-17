@@ -1,6 +1,7 @@
 package org.openrndr.ffmpeg
 
 import org.bytedeco.ffmpeg.avcodec.AVCodecContext
+import org.bytedeco.ffmpeg.avcodec.AVPacket
 import org.bytedeco.ffmpeg.avformat.AVFormatContext
 import org.bytedeco.ffmpeg.avutil.AVBufferRef
 import org.bytedeco.ffmpeg.avutil.AVHWDeviceContext
@@ -13,6 +14,7 @@ import org.bytedeco.ffmpeg.global.avutil.*
 import org.bytedeco.javacpp.*
 import org.openrndr.platform.Platform
 import org.openrndr.platform.PlatformType
+import kotlin.concurrent.thread
 
 internal data class CodecInfo(val video: VideoInfo?, val audio: AudioInfo?) {
     val hasVideo = video != null
@@ -101,6 +103,7 @@ internal class Decoder(val statistics: VideoStatistics,
     private var audioDecoder: AudioDecoder? = null
     private var noMoreFrames = false
     private var disposed = false
+    private var packetReader: PacketReader? = null
 
     fun start(videoOutput: VideoDecoderOutput?, audioOutput: AudioDecoderOutput?) {
         videoDecoder = videoCodecContext?.let { ctx ->
@@ -115,6 +118,12 @@ internal class Decoder(val statistics: VideoStatistics,
 
         noMoreFrames = false
 
+        packetReader = PacketReader(formatContext, statistics)
+
+        thread(isDaemon=true) {
+            packetReader?.start()
+        }
+
         while (!disposed) {
             decodeIfNeeded()
             Thread.sleep(1)
@@ -125,6 +134,7 @@ internal class Decoder(val statistics: VideoStatistics,
         noMoreFrames = false
         videoDecoder?.flushQueue()
         audioDecoder?.flushQueue()
+        packetReader?.flushQueue()
         av_seek_frame(formatContext, -1, formatContext.start_time(), 0)
     }
 
@@ -134,15 +144,13 @@ internal class Decoder(val statistics: VideoStatistics,
         disposed = true
         videoDecoder?.dispose()
         audioDecoder?.dispose()
+        packetReader?.dispose()
     }
 
     fun needMoreFrames(): Boolean =
             (videoDecoder?.needMoreFrames() ?: false)
 
     fun decodeIfNeeded() {
-        if (!needMoreFrames()) {
-
-        }
         if (videoDecoder?.isQueueAlmostFull() == true) {
             println("video queue is almost full")
             return
@@ -152,14 +160,17 @@ internal class Decoder(val statistics: VideoStatistics,
             return
         }
 
-        val packet = av_packet_alloc()
+        //val packet = av_packet_alloc()
 
-        while (needMoreFrames() && av_read_frame(formatContext, packet) >= 0) {
-            when (packet.stream_index()) {
-                videoStreamIndex -> videoDecoder?.decodeVideoPacket(packet)
-                audioStreamIndex -> audioDecoder?.decodeAudioPacket(packet)
+        while (needMoreFrames()) {
+            val packet = packetReader?.nextPacket()
+            if (packet != null) {
+                when (packet.stream_index()) {
+                    videoStreamIndex -> videoDecoder?.decodeVideoPacket(packet)
+                    audioStreamIndex -> audioDecoder?.decodeAudioPacket(packet)
+                }
+                av_packet_unref(packet)
             }
-            av_packet_unref(packet)
         }
         if (needMoreFrames()) noMoreFrames = true
     }

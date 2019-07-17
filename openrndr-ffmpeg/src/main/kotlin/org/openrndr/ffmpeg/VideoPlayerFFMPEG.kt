@@ -1,27 +1,22 @@
 package org.openrndr.ffmpeg
 
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import org.bytedeco.ffmpeg.avcodec.AVCodecContext
+import org.bytedeco.ffmpeg.avcodec.AVCodecParameters
+import org.bytedeco.ffmpeg.avdevice.AVDeviceInfoList
 import org.bytedeco.ffmpeg.avformat.AVFormatContext
+import org.bytedeco.ffmpeg.avformat.AVInputFormat
 import org.bytedeco.ffmpeg.avformat.AVStream
 import org.bytedeco.ffmpeg.avutil.AVDictionary
 import org.bytedeco.ffmpeg.global.avcodec.*
+import org.bytedeco.ffmpeg.global.avdevice.*
 import org.bytedeco.ffmpeg.global.avformat.*
-import org.bytedeco.javacpp.*
+import org.bytedeco.ffmpeg.global.avutil.*
+import org.bytedeco.javacpp.PointerPointer
 import org.openrndr.draw.ColorBuffer
 import org.openrndr.draw.Drawer
 import org.openrndr.events.Event
-import org.bytedeco.ffmpeg.global.avcodec.avcodec_find_decoder
-import org.bytedeco.ffmpeg.avcodec.AVCodec
-import org.bytedeco.ffmpeg.avcodec.AVCodecParameters
-import org.bytedeco.ffmpeg.avdevice.AVDeviceInfoList
-import org.bytedeco.ffmpeg.avformat.AVInputFormat
-import org.bytedeco.ffmpeg.avutil.AVHWDeviceContext
-import org.bytedeco.ffmpeg.global.avdevice.*
-import org.bytedeco.ffmpeg.global.avutil.*
 import org.openrndr.platform.Platform
 import org.openrndr.platform.PlatformType
 import kotlin.concurrent.thread
@@ -88,6 +83,9 @@ internal class AVFile(val fileName: String,
             }
         }
 
+        av_dict_set(options, "user_agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36", 0)
+//        av_dict_set(options, "http_persistent", "1", 0)
+//        av_dict_set(options, "http_multiple", "1", 0)
         avformat_open_input(context, fileName, format, options).checkAVError()
         avformat_find_stream_info(context, null as PointerPointer<*>?).checkAVError()
         av_dict_free(options)
@@ -144,6 +142,7 @@ class VideoStatistics {
     var videoFramesDecoded = 0L
     var videoFrameErrors = 0L
     var videoQueueSize = 0
+    var packetQueueSize = 0
     var videoBytesReceived = 0L
     var videoDecodeDuration = 0L
     var videoLastFrame = System.currentTimeMillis()
@@ -219,7 +218,7 @@ class VideoPlayerFFMPEG private constructor(private val file: AVFile, val mode: 
         val videoOutput = VideoOutput(info.video?.size ?: TODO(), AV_PIX_FMT_RGB32)
         val audioOutput = AudioOutput(44100, 2, SampleFormat.S16)
 
-        thread(isDaemon = true)  {
+        thread(isDaemon = true) {
             decoder.start(videoOutput.toVideoDecoderOutput(), audioOutput.toAudioDecoderOutput())
         }
 
@@ -233,54 +232,62 @@ class VideoPlayerFFMPEG private constructor(private val file: AVFile, val mode: 
         decoder?.restart()
     }
 
-    var lastTry = System.currentTimeMillis()
+    var originalMode = false
+    var lastFrame = System.currentTimeMillis()
     fun update(block: Boolean = false) {
 
         var gotFrame = false
 
+        var count = 0
         do {
 
             if (state == State.PLAYING) {
-                val frameRate = (info?.video?.fps) ?: 0.0
+                val frameRate = (info?.video?.fps) ?: 30.0
 
+                val frameDelta = 1000 / frameRate
                 info?.video.let {
 
                     val playTimeSeconds = (System.currentTimeMillis() - startTimeMillis) / 1000.0 + playOffsetSeconds
                     val peekFrame = decoder?.peekNextVideoFrame()
-                    if (firstFrame && peekFrame != null) {
-                        if (peekFrame.timeStamp > playTimeSeconds) {
-                            playOffsetSeconds += peekFrame.timeStamp - playTimeSeconds
-                            logger.debug {"first frame and queue is ahead: adjusting time offset: $playOffsetSeconds" }
+
+                    if (originalMode) {
+                        if (firstFrame && peekFrame != null) {
+                            if (peekFrame.timeStamp > playTimeSeconds) {
+                                playOffsetSeconds += peekFrame.timeStamp - playTimeSeconds
+                                logger.debug { "first frame and queue is ahead: adjusting time offset: $playOffsetSeconds" }
+                            }
+                            firstFrame = false
                         }
-                        firstFrame = false
+
+                        if (adjustPosition && peekFrame != null && peekFrame.timeStamp - playTimeSeconds > 5.0 / frameRate) {
+                            logger.debug { "${peekFrame.timeStamp}  ${playTimeSeconds}" }
+                            playOffsetSeconds += peekFrame.timeStamp - playTimeSeconds
+                            logger.debug { "queue is 5 frames ahead: adjusting time offset: $playOffsetSeconds" }
+                        }
+
+                        if (peekFrame == null && !firstFrame) {
+                            if (!ignoreTimeStamps)
+                                logger.debug { "oh no ran out buffered frames" }
+                            firstFrame = true
+                        }
+
+                        if (peekFrame != null && playTimeSeconds > peekFrame.timeStamp + 5.0 / frameRate) {
+                            logger.debug { "ahead of queue.. $playTimeSeconds ${peekFrame.timeStamp}" }
+                            playOffsetSeconds += peekFrame.timeStamp - playTimeSeconds
+                            statistics.playPositionAdjustments++
+                        }
                     }
 
-                    if (adjustPosition && peekFrame != null && peekFrame.timeStamp - playTimeSeconds > 5.0 / frameRate) {
-                        logger.debug {"${peekFrame.timeStamp}  ${playTimeSeconds}"}
-                        playOffsetSeconds += peekFrame.timeStamp - playTimeSeconds
-                        logger.debug {"queue is 5 frames ahead: adjusting time offset: $playOffsetSeconds"}
-                    }
-
-                    if (peekFrame == null && !firstFrame) {
-                        if (!ignoreTimeStamps)
-                            logger.debug { "oh no ran out buffered frames" }
-                        firstFrame = true
-                    }
-
-                    if (peekFrame != null && playTimeSeconds > peekFrame.timeStamp + 5.0/frameRate) {
-                        logger.debug { "ahead of queue.. $playTimeSeconds ${peekFrame.timeStamp}" }
-                        playOffsetSeconds += peekFrame.timeStamp - playTimeSeconds
-                        statistics.playPositionAdjustments++
-                    }
-
-
-                    if (ignoreTimeStamps || playTimeSeconds >= (peekFrame?.timeStamp ?: Double.POSITIVE_INFINITY)) {
+                    val delta = System.currentTimeMillis() - lastFrame
+                    if (peekFrame != null && (ignoreTimeStamps || (!originalMode && delta > frameDelta) || (originalMode && playTimeSeconds >= (peekFrame?.timeStamp
+                                    ?: Double.POSITIVE_INFINITY)))) {
+                        lastFrame = System.currentTimeMillis()
                         gotFrame = true
                         statistics.videoLastFrame = System.currentTimeMillis()
+                        statistics.videoQueueSize = decoder?.videoQueueSize() ?: 0
                         val frame = decoder?.nextVideoFrame()
                         frame?.let {
                             val delta = frame.timeStamp - lastTimeStamp
-
                             lastTimeStamp = frame.timeStamp
                             colorBuffer?.write(it.buffer.data().capacity(frame.frameSize.toLong()).asByteBuffer())
                             it.unref()
