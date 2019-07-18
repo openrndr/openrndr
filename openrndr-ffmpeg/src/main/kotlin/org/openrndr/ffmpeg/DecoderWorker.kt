@@ -101,7 +101,6 @@ internal class Decoder(val statistics: VideoStatistics,
 
     private var videoDecoder: VideoDecoder? = null
     private var audioDecoder: AudioDecoder? = null
-    private var noMoreFrames = false
     private var disposed = false
     private var packetReader: PacketReader? = null
 
@@ -116,7 +115,6 @@ internal class Decoder(val statistics: VideoStatistics,
             }
         }
 
-        noMoreFrames = false
 
         packetReader = PacketReader(formatContext, statistics)
 
@@ -131,14 +129,14 @@ internal class Decoder(val statistics: VideoStatistics,
     }
 
     fun restart() {
-        noMoreFrames = false
         videoDecoder?.flushQueue()
         audioDecoder?.flushQueue()
         packetReader?.flushQueue()
+        println("seeking to frame 0")
         av_seek_frame(formatContext, -1, formatContext.start_time(), 0)
     }
 
-    fun done() = noMoreFrames && (videoDecoder?.isQueueEmpty() ?: true)
+    fun done() = (packetReader?.endOfFile == true) && (packetReader?.isQueueEmpty() == true)  && (videoDecoder?.isQueueEmpty() ?: true)
 
     fun dispose() {
         disposed = true
@@ -169,10 +167,18 @@ internal class Decoder(val statistics: VideoStatistics,
                     videoStreamIndex -> videoDecoder?.decodeVideoPacket(packet)
                     audioStreamIndex -> audioDecoder?.decodeAudioPacket(packet)
                 }
+                //println("got frame ${videoQueueSize()}")
                 av_packet_unref(packet)
+            } else {
+                if (packetReader?.endOfFile == true) {
+                    //println("end of file")
+                    Thread.sleep(10)
+                }else {
+                    Thread.sleep(5)
+                    //println("I need more frames but got none")
+                }
             }
         }
-        if (needMoreFrames()) noMoreFrames = true
     }
 
     fun peekNextVideoFrame(): VideoFrame? {

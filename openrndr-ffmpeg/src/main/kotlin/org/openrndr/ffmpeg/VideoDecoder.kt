@@ -104,6 +104,7 @@ internal class VideoDecoder(
             return
         }
 
+
         while (ret >= 0) {
             val decodedFrame = av_frame_alloc()
             ret = avcodec_receive_frame(videoCodecContext, decodedFrame)
