@@ -186,9 +186,6 @@ class DriverGL3 : Driver {
         return ColorBufferGL3.fromStream(stream, name, formatHint)
     }
 
-    override suspend fun createColorBufferTilesFromFile(filename: String, width: Int, height: Int): List<List<ColorBufferTile>> {
-        return ColorBufferGL3.tilesFromFile(filename, width, height)
-    }
 
     override fun createDepthBuffer(width: Int, height: Int, format: DepthFormat, multisample: BufferMultisample): DepthBuffer {
         logger.trace { "creating depth buffer $width x $height @ $format" }

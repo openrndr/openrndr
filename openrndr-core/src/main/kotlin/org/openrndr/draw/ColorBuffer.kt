@@ -184,8 +184,6 @@ interface ColorBuffer {
 }
 
 
-class ColorBufferTile(val x: Int, val y: Int, val colorBuffer: ColorBuffer)
-
 /**
  * creates a [ColorBuffer]
  * @param width the width in device units

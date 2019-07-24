@@ -1,6 +1,5 @@
 package org.openrndr.internal.gl3
 
-import kotlinx.coroutines.*
 import mu.KotlinLogging
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.ARBTextureCompressionBPTC.*
@@ -10,18 +9,17 @@ import org.lwjgl.opengl.GL33C.*
 import org.lwjgl.stb.STBImage
 import org.lwjgl.stb.STBImageWrite
 import org.openrndr.color.ColorRGBa
-import org.openrndr.draw.MinifyingFilter
+import org.openrndr.draw.*
+import org.openrndr.draw.BufferMultisample.Disabled
+import org.openrndr.draw.BufferMultisample.SampleCount
+import java.io.File
+import java.io.InputStream
 import java.net.URL
+import java.nio.Buffer
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
-import org.openrndr.draw.*
-import org.openrndr.draw.BufferMultisample.*
-import java.io.File
-import java.io.InputStream
-import java.nio.Buffer
-
-data class ConversionEntry(val format: ColorFormat, val type: ColorType, val glFormat: Int)
+internal data class ConversionEntry(val format: ColorFormat, val type: ColorType, val glFormat: Int)
 
 private val logger = KotlinLogging.logger {}
 
@@ -78,7 +76,6 @@ class ColorBufferShadowGL3(override val colorBuffer: ColorBufferGL3) : ColorBuff
     val size = colorBuffer.width * colorBuffer.height
     val elementSize = colorBuffer.format.componentCount * colorBuffer.type.componentSize
     override val buffer: ByteBuffer = BufferUtils.createByteBuffer(elementSize * size)
-
 
     override fun download() {
         logger.trace {
@@ -578,6 +575,7 @@ class ColorBufferGL3(val target: Int,
                      override val type: ColorType,
                      override val multisample: BufferMultisample) : ColorBuffer {
 
+    private var destroyed = false
     internal var realFlipV: Boolean = false
     override var flipV: Boolean
         get() = realFlipV
@@ -638,52 +636,6 @@ class ColorBufferGL3(val target: Int,
                 glFinish()
 
             }
-        }
-
-        suspend fun tilesFromFile(filename: String, tileWidth: Int, tileHeight: Int): List<List<ColorBufferTile>> {
-            val data = ColorBufferDataGL3.fromFile(filename)
-            val xTiles = Math.ceil(data.width.toDouble() / (tileWidth)).toInt()
-            val yTiles = Math.ceil(data.height.toDouble() / (tileHeight)).toInt()
-
-            val tiles = mutableListOf<MutableList<ColorBufferTile>>()
-
-            for (y in 0 until yTiles) {
-                val row = mutableListOf<ColorBufferTile>()
-                for (x in 0 until xTiles) {
-
-                    val xOff = (x * (tileWidth))
-                    val yOff = (y * (tileHeight))
-                    val width = Math.min(data.width - xOff, tileWidth)
-                    val height = Math.min(data.height - yOff, tileHeight)
-                    val bb = ByteBuffer.allocateDirect(width * height * data.format.componentCount)
-                    bb.rewind()
-                    val cb = colorBuffer(width, height, 1.0, data.format)
-
-                    val components = data.format.componentCount
-
-
-                    val d = data.data!!
-
-                    for (v in 0 until height) {
-                        for (u in 0 until width) {
-                            val offset = ((v + yOff) * data.width + (u + xOff)) * components
-                            for (i in 0 until components) {
-                                bb.put(d.get(offset + i))
-                            }
-                        }
-                    }
-
-                    bb.rewind()
-                    cb.write(bb)
-                    val tile = ColorBufferTile(xOff, yOff, cb)
-                    row.add(tile)
-                    yield()
-                }
-                tiles.add(row)
-            }
-            return tiles
-
-
         }
 
         fun create(width: Int,
@@ -751,6 +703,7 @@ class ColorBufferGL3(val target: Int,
     }
 
     fun bound(f: ColorBufferGL3.() -> Unit) {
+        checkDestroyed()
         glActiveTexture(GL_TEXTURE0)
         val current = when (multisample) {
             Disabled -> glGetInteger(GL_TEXTURE_BINDING_2D)
@@ -766,6 +719,7 @@ class ColorBufferGL3(val target: Int,
     }
 
     override fun generateMipmaps() {
+        checkDestroyed()
         if (multisample == Disabled) {
             bound {
                 glGenerateMipmap(target)
@@ -776,7 +730,7 @@ class ColorBufferGL3(val target: Int,
     }
 
     override fun resolveTo(target: ColorBuffer) {
-
+        checkDestroyed()
         if (target.format != format) {
             throw IllegalArgumentException("cannot resolve to target because its color format differs. got ${target.format}, expected $format.")
         }
@@ -810,6 +764,7 @@ class ColorBufferGL3(val target: Int,
     }
 
     override fun copyTo(target: ColorBuffer) {
+        checkDestroyed()
         if (target.multisample == Disabled) {
             val readTarget = renderTarget(width, height, contentScale) {
                 colorBuffer(this@ColorBufferGL3)
@@ -832,6 +787,7 @@ class ColorBufferGL3(val target: Int,
     }
 
     override fun copyTo(target: ArrayTexture, layer:Int) {
+        checkDestroyed()
         if (multisample == Disabled) {
             val readTarget = renderTarget(width, height, contentScale) {
                 colorBuffer(this@ColorBufferGL3)
@@ -904,6 +860,7 @@ class ColorBufferGL3(val target: Int,
 
 
     override fun write(buffer: ByteBuffer, sourceFormat: ColorFormat, sourceType: ColorType) {
+        checkDestroyed()
         if (!buffer.isDirect) {
             throw IllegalArgumentException("buffer is not a direct buffer.")
         }
@@ -941,6 +898,7 @@ class ColorBufferGL3(val target: Int,
     }
 
     override fun read(buffer: ByteBuffer) {
+        checkDestroyed()
         if (!buffer.isDirect) {
             throw IllegalArgumentException("buffer is not a direct buffer.")
         }
@@ -968,6 +926,7 @@ class ColorBufferGL3(val target: Int,
     }
 
     override fun saveToFile(file: File, fileFormat: FileFormat) {
+        checkDestroyed()
         if (multisample == Disabled) {
             if (type == ColorType.UINT8) {
                 var pixels = BufferUtils.createByteBuffer(effectiveWidth * effectiveHeight * format.componentCount)
@@ -1010,16 +969,24 @@ class ColorBufferGL3(val target: Int,
 
     override fun destroy() {
         glDeleteTextures(texture)
+        destroyed = true
         checkGLErrors()
         Session.active.untrack(this)
     }
 
     override fun bind(unit: Int) {
+        checkDestroyed()
         if (multisample == Disabled) {
             glActiveTexture(GL_TEXTURE0 + unit)
             glBindTexture(target, texture)
         } else {
             throw IllegalArgumentException("multisample targets cannot be bound as texture")
+        }
+    }
+
+    private fun checkDestroyed() {
+        if (destroyed) {
+            throw IllegalStateException("colorbuffer is destroyed")
         }
     }
 }

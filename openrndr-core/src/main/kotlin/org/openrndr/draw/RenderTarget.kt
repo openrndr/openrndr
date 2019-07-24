@@ -105,7 +105,7 @@ class RenderTargetBuilder(private val renderTarget: RenderTarget) {
 
 
 fun renderTarget(width: Int, height: Int, contentScale: Double = 1.0, multisample: BufferMultisample = BufferMultisample.Disabled, builder: RenderTargetBuilder.() -> Unit): RenderTarget {
-    if (width == 0 || height == 0) {
+    if (width <= 0 || height <= 0) {
         throw IllegalArgumentException("unsupported resolution ($width×$height)")
     }
 

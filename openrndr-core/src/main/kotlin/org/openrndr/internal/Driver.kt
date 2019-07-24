@@ -62,9 +62,6 @@ interface Driver {
     fun createColorBufferFromFile(filename: String): ColorBuffer
     fun createColorBufferFromStream(stream: InputStream, name: String? = null, formatHint: String? = null): ColorBuffer
 
-    suspend fun createColorBufferTilesFromFile(filename: String, width: Int, height: Int): List<List<ColorBufferTile>>
-
-
     fun createDepthBuffer(width: Int, height: Int, format: DepthFormat, multisample: BufferMultisample = BufferMultisample.Disabled): DepthBuffer
     fun createBufferTexture(elementCount: Int, format: ColorFormat, type: ColorType): BufferTexture
 

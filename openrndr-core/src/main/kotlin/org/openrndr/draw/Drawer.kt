@@ -9,15 +9,11 @@ import org.openrndr.math.Matrix44
 import org.openrndr.math.Vector2
 import org.openrndr.math.Vector3
 import org.openrndr.math.Vector4
+import org.openrndr.math.transforms.*
 import org.openrndr.shape.*
-import org.openrndr.math.transforms.normalMatrix
 import org.openrndr.math.transforms.perspective as _perspective
 import org.openrndr.math.transforms.lookAt as _lookAt
-import org.openrndr.math.transforms.rotateZ
 import org.openrndr.math.transforms.ortho as _ortho
-import org.openrndr.math.transforms.translate as _translate
-import org.openrndr.math.transforms.rotate as _rotate
-import org.openrndr.math.transforms.scale as _scale
 
 import java.io.BufferedReader
 import java.io.File
@@ -147,23 +143,23 @@ class Drawer(val driver: Driver) {
     }
 
     fun scale(s: Double) {
-        model *= _scale(s, s, s)
+        model *= Matrix44.scale(s, s, s)
     }
 
     fun scale(x: Double, y: Double) {
-        model *= _scale(x, y, 1.0)
+        model *= Matrix44.scale(x, y, 1.0)
     }
 
     fun scale(x: Double, y: Double, z: Double) {
-        model *= _scale(x, y, z)
+        model *= Matrix44.scale(x, y, z)
     }
 
     fun translate(t: Vector2) {
-        model *= _translate(t.vector3())
+        model *= Matrix44.translate(t.vector3())
     }
 
     fun translate(t: Vector3) {
-        model *= _translate(t)
+        model *= Matrix44.translate(t)
     }
 
     fun translate(x: Double, y: Double) {
@@ -171,15 +167,15 @@ class Drawer(val driver: Driver) {
     }
 
     fun translate(x: Double, y: Double, z: Double) {
-        model *= _translate(Vector3(x, y, z))
+        model *= Matrix44.translate(Vector3(x, y, z))
     }
 
     fun rotate(rotationInDegrees: Double) {
-        model *= rotateZ(rotationInDegrees)
+        model *= Matrix44.rotateZ(rotationInDegrees)
     }
 
     fun rotate(axis: Vector3, rotationInDegrees: Double) {
-        model *= _rotate(axis, rotationInDegrees)
+        model *= Matrix44.rotate(axis, rotationInDegrees)
     }
 
     fun background(r: Double, g: Double, b: Double, a: Double) {
