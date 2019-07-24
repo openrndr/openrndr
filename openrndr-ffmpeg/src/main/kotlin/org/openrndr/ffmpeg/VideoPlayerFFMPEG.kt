@@ -4,13 +4,12 @@ import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import org.bytedeco.ffmpeg.avcodec.AVCodecContext
 import org.bytedeco.ffmpeg.avcodec.AVCodecParameters
-import org.bytedeco.ffmpeg.avdevice.AVDeviceInfoList
 import org.bytedeco.ffmpeg.avformat.AVFormatContext
 import org.bytedeco.ffmpeg.avformat.AVInputFormat
 import org.bytedeco.ffmpeg.avformat.AVStream
 import org.bytedeco.ffmpeg.avutil.AVDictionary
 import org.bytedeco.ffmpeg.global.avcodec.*
-import org.bytedeco.ffmpeg.global.avdevice.*
+import org.bytedeco.ffmpeg.global.avdevice.avdevice_register_all
 import org.bytedeco.ffmpeg.global.avformat.*
 import org.bytedeco.ffmpeg.global.avutil.*
 import org.bytedeco.javacpp.PointerPointer
@@ -82,10 +81,7 @@ internal class AVFile(val fileName: String,
                 av_dict_set(options, "allowed_media_types", "video", 0)
             }
         }
-
         av_dict_set(options, "user_agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36", 0)
-//        av_dict_set(options, "http_persistent", "1", 0)
-//        av_dict_set(options, "http_multiple", "1", 0)
         avformat_open_input(context, fileName, format, options).checkAVError()
         avformat_find_stream_info(context, null as PointerPointer<*>?).checkAVError()
         av_dict_free(options)
@@ -100,43 +96,10 @@ internal class AVFile(val fileName: String,
     }
 }
 
-class Camera() {
-    companion object {
-        fun listDevices() {
-            avdevice_register_all()
-            avcodec_register_all()
 
-            var inputFormat: AVInputFormat? = null
-            do {
-                inputFormat = av_input_video_device_next(inputFormat)
-                if (inputFormat != null) {
-                    println(inputFormat.name().getString())
-                }
-                val list = PointerPointer<AVDeviceInfoList>(1)
-                val formatContext = avformat_alloc_context()
-                println(inputFormat?.get_device_list()?.call(formatContext, list))
+class FrameEvent(val frame: ColorBuffer, val timeStamp: Double)
 
-                val r = avdevice_list_input_sources(inputFormat, null, null, list)
-                if (r >= 0) {
-                    val rl = AVDeviceInfoList(list[0])
-                    println(rl.devices())
-                }
-
-            } while (inputFormat != null)
-
-            val format = av_find_input_format("dshow")
-            println(format.name().getString())
-        }
-    }
-}
-
-class FrameEvent(val frame: ColorBuffer, val timeStamp: Double) {
-
-}
-
-class VideoEvent {
-
-}
+class VideoEvent
 
 class VideoStatistics {
     var videoFramesDecoded = 0L
@@ -149,16 +112,23 @@ class VideoStatistics {
     var playPositionAdjustments = 0L
 }
 
-class VideoPlayerFFMPEG private constructor(private val file: AVFile, val mode: PlayMode = PlayMode.VIDEO) {
+class VideoPlayerConfiguration {
+    var videoFrameQueueSize = 50
+    var packetQueueSize = 2500
+    var useHardwareDecoding = true
+}
+
+class VideoPlayerFFMPEG private constructor(private val file: AVFile, val mode: PlayMode = PlayMode.VIDEO, val configuration: VideoPlayerConfiguration) {
 
     companion object {
-        fun fromFile(fileName: String, mode: PlayMode = PlayMode.VIDEO): VideoPlayerFFMPEG {
+        fun fromFile(fileName: String, mode: PlayMode = PlayMode.VIDEO, configuration: VideoPlayerConfiguration = VideoPlayerConfiguration()): VideoPlayerFFMPEG {
             av_log_set_level(AV_LOG_ERROR)
             val file = AVFile(fileName, mode)
-            return VideoPlayerFFMPEG(file, mode)
+            return VideoPlayerFFMPEG(file, mode, configuration)
         }
 
-        fun fromDevice(deviceName: String = defaultDevice(), mode: PlayMode = PlayMode.VIDEO, frameRate: Double? = null, imageWidth: Int? = null, imageHeight: Int? = null): VideoPlayerFFMPEG {
+        fun fromDevice(deviceName: String = defaultDevice(), mode: PlayMode = PlayMode.VIDEO, frameRate: Double? = null, imageWidth: Int? = null, imageHeight: Int? = null, configuration: VideoPlayerConfiguration = VideoPlayerConfiguration()): VideoPlayerFFMPEG {
+            av_log_set_level(AV_LOG_QUIET)
             val format = when (Platform.type) {
                 PlatformType.WINDOWS -> "dshow"
                 PlatformType.MAC -> "avfoundation"
@@ -166,7 +136,7 @@ class VideoPlayerFFMPEG private constructor(private val file: AVFile, val mode: 
             }
 
             val file = AVFile(deviceName, mode, format, frameRate, imageWidth, imageHeight)
-            return VideoPlayerFFMPEG(file, mode)
+            return VideoPlayerFFMPEG(file, mode, configuration)
         }
 
         fun defaultDevice(): String {
@@ -199,16 +169,14 @@ class VideoPlayerFFMPEG private constructor(private val file: AVFile, val mode: 
     val newFrame = Event<FrameEvent>()
     val ended = Event<VideoEvent>()
 
-
     fun play() {
         file.dumpFormat()
 
         val (decoder, info) = runBlocking {
-            Decoder.fromContext(statistics, file.context, mode.useVideo, mode.useAudio)
+            Decoder.fromContext(statistics, configuration, file.context, mode.useVideo, mode.useAudio)
         }
         this.decoder = decoder
         this.info = info
-
 
         this.info?.video?.let {
             colorBuffer = org.openrndr.draw.colorBuffer(it.size.w, it.size.h).apply {
@@ -228,7 +196,6 @@ class VideoPlayerFFMPEG private constructor(private val file: AVFile, val mode: 
     fun restart() {
         playOffsetSeconds = 0.0
         firstFrame = true
-
         decoder?.restart()
     }
 

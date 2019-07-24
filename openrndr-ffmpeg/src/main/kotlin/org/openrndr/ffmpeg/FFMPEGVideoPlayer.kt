@@ -10,6 +10,7 @@ import org.openrndr.draw.colorBuffer as _colorBuffer
 import java.io.File
 import java.nio.ByteBuffer
 
+@Deprecated("use VideoPlayerFFMPEG instead")
 class FFMPEGVideoPlayer private constructor(url: String) {
     companion object {
         fun fromURL(url: String): FFMPEGVideoPlayer {

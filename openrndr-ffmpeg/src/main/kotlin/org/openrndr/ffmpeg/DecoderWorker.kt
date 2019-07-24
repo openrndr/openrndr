@@ -1,5 +1,6 @@
 package org.openrndr.ffmpeg
 
+import mu.KotlinLogging
 import org.bytedeco.ffmpeg.avcodec.AVCodecContext
 import org.bytedeco.ffmpeg.avcodec.AVPacket
 import org.bytedeco.ffmpeg.avformat.AVFormatContext
@@ -16,6 +17,9 @@ import org.openrndr.platform.Platform
 import org.openrndr.platform.PlatformType
 import kotlin.concurrent.thread
 
+private val logger = KotlinLogging.logger {}
+
+
 internal data class CodecInfo(val video: VideoInfo?, val audio: AudioInfo?) {
     val hasVideo = video != null
     val hasAudio = audio != null
@@ -30,15 +34,17 @@ internal fun Int.checkAVError() {
 }
 
 internal class Decoder(val statistics: VideoStatistics,
+                       val configuration: VideoPlayerConfiguration,
                        val formatContext: AVFormatContext,
                        val videoStreamIndex: Int,
                        val audioStreamIndex: Int,
                        val videoCodecContext: AVCodecContext?,
                        val audioCodecContext: AVCodecContext?,
-                       val hwType: Int) {
+                       val hwType: Int
+                       ) {
 
     companion object {
-        fun fromContext(statistics: VideoStatistics, context: AVFormatContext, useVideo: Boolean = true, useAudio: Boolean = true, useHW: Boolean = true): Pair<Decoder, CodecInfo> {
+        fun fromContext(statistics: VideoStatistics, configuration: VideoPlayerConfiguration, context: AVFormatContext, useVideo: Boolean = true, useAudio: Boolean = true): Pair<Decoder, CodecInfo> {
             // Find the first video/audio streams.
             val videoStreamIndex =
                     if (useVideo) context.codecs.indexOfFirst { it?.codec_type() == AVMEDIA_TYPE_VIDEO } else -1
@@ -53,7 +59,7 @@ internal class Decoder(val statistics: VideoStatistics,
 
 
             var hwType = AV_HWDEVICE_TYPE_NONE
-            if (useHW && videoContext != null) {
+            if (configuration.useHardwareDecoding && videoContext != null) {
 
                 val preferedHW = when (Platform.type) {
                     PlatformType.WINDOWS -> arrayListOf(AV_HWDEVICE_TYPE_D3D11VA, AV_HWDEVICE_TYPE_DXVA2, AV_HWDEVICE_TYPE_QSV)
@@ -95,7 +101,7 @@ internal class Decoder(val statistics: VideoStatistics,
                 AudioInfo(sample_rate(), channels())
             }
 
-            return Pair(Decoder(statistics, context, videoStreamIndex, audioStreamIndex, videoContext, audioContext, hwType), CodecInfo(video, audio))
+            return Pair(Decoder(statistics, configuration, context, videoStreamIndex, audioStreamIndex, videoContext, audioContext, hwType), CodecInfo(video, audio))
         }
     }
 
@@ -106,7 +112,7 @@ internal class Decoder(val statistics: VideoStatistics,
 
     fun start(videoOutput: VideoDecoderOutput?, audioOutput: AudioDecoderOutput?) {
         videoDecoder = videoCodecContext?.let { ctx ->
-            videoOutput?.let { VideoDecoder(statistics, ctx, it, hwType) }
+            videoOutput?.let { VideoDecoder(statistics, configuration, ctx, it, hwType) }
         }
 
         audioDecoder = audioCodecContext?.let { ctx ->
@@ -115,8 +121,7 @@ internal class Decoder(val statistics: VideoStatistics,
             }
         }
 
-
-        packetReader = PacketReader(formatContext, statistics)
+        packetReader = PacketReader(configuration, formatContext, statistics)
 
         thread(isDaemon=true) {
             packetReader?.start()
@@ -132,7 +137,9 @@ internal class Decoder(val statistics: VideoStatistics,
         videoDecoder?.flushQueue()
         audioDecoder?.flushQueue()
         packetReader?.flushQueue()
-        println("seeking to frame 0")
+        logger.debug {
+            "seeking to frame 0"
+        }
         av_seek_frame(formatContext, -1, formatContext.start_time(), 0)
     }
 

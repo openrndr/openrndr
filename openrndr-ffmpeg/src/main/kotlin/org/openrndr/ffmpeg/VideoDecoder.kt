@@ -47,6 +47,7 @@ internal data class VideoDecoderOutput(val size: Dimensions, val avPixelFormat: 
 
 internal class VideoDecoder(
         val statistics: VideoStatistics,
+        val configuration: VideoPlayerConfiguration,
         private val videoCodecContext: AVCodecContext,
         output: VideoDecoderOutput,
         hwType:Int
@@ -62,9 +63,8 @@ internal class VideoDecoder(
 
     private val scaledFrameSize = avutil.av_image_get_buffer_size(avPixelFormat, windowSize.w, windowSize.h, 1)
     private val imagePointer = arrayOf(BytePointer(avutil.av_malloc(scaledFrameSize.toLong())).capacity(scaledFrameSize.toLong()))
-    private val videoQueue = Queue<VideoFrame>(100)
-    private val minVideoFrames = 50
-
+    private val videoQueue = Queue<VideoFrame>(configuration.videoFrameQueueSize * 2)
+    private val minVideoFrames = configuration.videoFrameQueueSize
 
     private var videoTime = 0.0
 
@@ -115,7 +115,6 @@ internal class VideoDecoder(
                 break
             }
 
-
             if (ret == 0) {
                 val transferredFrame = av_frame_alloc()
                 val resultFrame: AVFrame
@@ -143,19 +142,6 @@ internal class VideoDecoder(
                         scaledVideoFrame.data(), scaledVideoFrame.linesize())
 
                 lowestTimeStamp = Math.min(lowestTimeStamp, decodedFrame.pts())
-                val packetTimestamp = decodedFrame.best_effort_timestamp()// avutil.av_frame_get_best_effort_timestamp(videoFrame)
-
-
-
-
-//                println("packets pts: ${packet.pts()}")
-//                println("frame pts: ${decodedFrame.pts()} ${decodedFrame.best_effort_timestamp()} ${videoCodecContext.ticks_per_frame()}")
-
-//                println(packetTimestamp-lowestTimeStamp)
-                val timeStamp = (packetTimestamp - lowestTimeStamp) *  avutil.av_q2d(videoCodecContext.time_base())
-
-//                println("timebase: ${avutil.av_q2d(videoCodecContext.time_base())}")
-                //println("timestamps: $timeStamp $lowestTimeStamp $packetTimestamp")
 
                 Pointer.memcpy(buffer.data(), scaledVideoFrame.data()[0], scaledFrameSize.toLong())
                 videoQueue.push(VideoFrame(buffer, scaledVideoFrame.linesize()[0], videoTime, scaledFrameSize))

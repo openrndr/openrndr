@@ -6,9 +6,9 @@ import org.bytedeco.ffmpeg.global.avcodec
 import org.bytedeco.ffmpeg.global.avformat
 import org.bytedeco.ffmpeg.global.avutil.AVERROR_EOF
 
-internal class PacketReader(val formatContext: AVFormatContext, val statistics: VideoStatistics) {
+internal class PacketReader(val configuration: VideoPlayerConfiguration, val formatContext: AVFormatContext, val statistics: VideoStatistics) {
 
-    val queue = Queue<AVPacket>(2500)
+    val queue = Queue<AVPacket>(configuration.packetQueueSize * 2)
     var disposed = false
 
     var endOfFile = false
@@ -18,25 +18,13 @@ internal class PacketReader(val formatContext: AVFormatContext, val statistics: 
     }
 
     fun start() {
-//        println("sleeping..")
-//        Thread.sleep(5000)
-//        println("go")
         while (!disposed) {
-
-            if (queue.size() > 500) {
-                ready = true
-            }
-
-            if (queue.size() < 2400) {
-
+            if (queue.size() < configuration.packetQueueSize) {
                 if (!endOfFile) {
                     val packet = avcodec.av_packet_alloc()
-                    //println("reading packet")
                     val res = avformat.av_read_frame(formatContext, packet)
-                    //println("done")
 
                     if (res == 0) {
-                        //println("got packet ${queue.size()}")
                         queue.push(packet)
                         statistics.packetQueueSize = queue.size()
                     } else {
@@ -72,7 +60,6 @@ internal class PacketReader(val formatContext: AVFormatContext, val statistics: 
     }
 
     fun flushQueue() {
-
         while (!queue.isEmpty())  {
             val packet = queue.pop()
             avcodec.av_packet_unref(packet)
