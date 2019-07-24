@@ -23,7 +23,23 @@ interface ArrayTexture {
      * @param sourceType the type of the data in buffer
      */
     fun write(layer: Int, buffer: ByteBuffer, sourceFormat: ColorFormat = format, sourceType: ColorType = type)
+
     fun read(layer: Int, buffer: ByteBuffer)
+
+    /**
+     * Copy contents in layer to target ColorBuffer
+     * @param layer the layer to copy contents from
+     * @param target the target to copy contents to
+     */
+    fun copyTo(layer: Int, target: ColorBuffer)
+
+    /**
+     * Copy contents in layer to target ColorBuffer
+     * @param layer the layer to copy contents from
+     * @param target the layer array texture to copy contents to
+     * @param targetLayer the layer of the target array texture to copy contents to
+     */
+    fun copyTo(layer: Int, target: ArrayTexture, targetLayer: Int)
 
     /** the wrapping mode to use in the horizontal direction */
     var wrapU: WrapMode

@@ -14,7 +14,7 @@ class ArrayTextureGL3(val target: Int,
 
     companion object {
         fun create(width: Int, height: Int, layers: Int, format: ColorFormat, type: ColorType): ArrayTextureGL3 {
-            val maximumLayers =  glGetInteger(GL_MAX_ARRAY_TEXTURE_LAYERS)
+            val maximumLayers = glGetInteger(GL_MAX_ARRAY_TEXTURE_LAYERS)
             if (layers > maximumLayers) {
                 throw IllegalArgumentException("layers ($layers) exceeds maximum of $maximumLayers")
             }
@@ -22,6 +22,7 @@ class ArrayTextureGL3(val target: Int,
             glBindTexture(GL_TEXTURE_2D_ARRAY, texture)
             checkGLErrors()
             glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, internalFormat(format, type), width, height, layers, 0, GL_RGB, GL_UNSIGNED_BYTE, null as ByteBuffer?)
+            checkGLErrors()
             glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, MinifyingFilter.LINEAR.toGLFilter())
             glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, MagnifyingFilter.LINEAR.toGLFilter())
             checkGLErrors()
@@ -43,11 +44,53 @@ class ArrayTextureGL3(val target: Int,
         bound {
             if (sourceType.compressed) {
                 glCompressedTexSubImage3D(target, 0, 0, 0, layer, width, height, 1, compressedType(sourceFormat, sourceType), buffer)
+                debugGLErrors()
             } else {
                 glTexSubImage3D(target, 0, 0, 0, layer, width, height, 1, sourceFormat.glFormat(), sourceType.glType(), buffer)
+                debugGLErrors()
             }
             debugGLErrors()
         }
+    }
+
+    override fun copyTo(layer: Int, target: ColorBuffer) {
+        if (target.multisample == BufferMultisample.Disabled) {
+            val readTarget = renderTarget(width, height) {
+                arrayTexture(this@ArrayTextureGL3, layer)
+            } as RenderTargetGL3
+
+            target as ColorBufferGL3
+            readTarget.bind()
+            glReadBuffer(GL_COLOR_ATTACHMENT0)
+            target.bound {
+                glCopyTexSubImage2D(target.target, 0, 0, 0, 0, 0, target.width, target.height)
+                debugGLErrors()
+            }
+            readTarget.unbind()
+
+            readTarget.detachColorBuffers()
+            readTarget.destroy()
+        } else {
+            throw IllegalArgumentException("cannot copy to multisample target")
+        }
+    }
+
+    override fun copyTo(layer: Int, target: ArrayTexture, targetLayer: Int) {
+        val readTarget = renderTarget(width, height) {
+            arrayTexture(this@ArrayTextureGL3, layer)
+        } as RenderTargetGL3
+
+        target as ArrayTextureGL3
+        readTarget.bind()
+        glReadBuffer(GL_COLOR_ATTACHMENT0)
+        target.bound {
+            glCopyTexSubImage3D(target.target, 0, 0, 0, targetLayer, 0, 0, target.width, target.height)
+            debugGLErrors()
+        }
+        readTarget.unbind()
+
+        readTarget.detachColorBuffers()
+        readTarget.destroy()
     }
 
 
