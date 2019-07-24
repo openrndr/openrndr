@@ -1,6 +1,9 @@
 package org.openrndr.math
 
 import java.io.Serializable
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.sqrt
 
 data class Vector4(val x: Double, val y: Double, val z: Double, val w: Double) : Serializable {
 
@@ -14,7 +17,7 @@ data class Vector4(val x: Double, val y: Double, val z: Double, val w: Double) :
     val xyz: Vector3 get() = Vector3(x, y, z)
     val div: Vector3 get() = Vector3(x / w, y / w, z / w)
 
-    val length get() = Math.sqrt(x * x + y * y + z * z + w * w)
+    val length get() = sqrt(x * x + y * y + z * z + w * w)
     val squaredLength get() = x * x + y * y + z * z + w * w
 
 
@@ -58,5 +61,5 @@ data class Vector4(val x: Double, val y: Double, val z: Double, val w: Double) :
 
 operator fun Double.times(v: Vector4) = v * this
 
-fun min(a: Vector4, b: Vector4): Vector4 = Vector4(Math.min(a.x, b.x), Math.min(a.y, b.y), Math.min(a.z, b.z), Math.min(a.w, b.w))
-fun max(a: Vector4, b: Vector4): Vector4 = Vector4(Math.max(a.x, b.x), Math.max(a.y, b.y), Math.max(a.z, b.z), Math.max(a.w, b.w))
+fun min(a: Vector4, b: Vector4): Vector4 = Vector4(min(a.x, b.x), min(a.y, b.y), min(a.z, b.z), min(a.w, b.w))
+fun max(a: Vector4, b: Vector4): Vector4 = Vector4(max(a.x, b.x), max(a.y, b.y), max(a.z, b.z), max(a.w, b.w))

@@ -1,6 +1,9 @@
 package org.openrndr.math
 
 import java.io.Serializable
+import kotlin.math.acos
+import kotlin.math.cos
+import kotlin.math.sin
 import kotlin.math.sqrt
 
 @Suppress("unused", "MemberVisibilityCanBePrivate")
@@ -62,12 +65,12 @@ data class Quaternion(val x: Double, val y: Double, val z: Double, val w: Double
                 fromAnglesRadian(Math.toRadians(pitch), Math.toRadians(roll), Math.toRadians(yaw))
 
         fun fromAnglesRadian(pitch: Double, roll: Double, yaw: Double): Quaternion {
-            val cy = Math.cos(yaw * 0.5)
-            val sy = Math.sin(yaw * 0.5)
-            val cr = Math.cos(roll * 0.5)
-            val sr = Math.sin(roll * 0.5)
-            val cp = Math.cos(pitch * 0.5)
-            val sp = Math.sin(pitch * 0.5)
+            val cy = cos(yaw * 0.5)
+            val sy = sin(yaw * 0.5)
+            val cr = cos(roll * 0.5)
+            val sr = sin(roll * 0.5)
+            val cp = cos(pitch * 0.5)
+            val sp = sin(pitch * 0.5)
 
             return Quaternion(
                     cy * sr * cp - sy * cr * sp,
@@ -185,13 +188,13 @@ fun slerp(q1: Quaternion, q2: Quaternion, x: Double): Quaternion {
     if (1 - result > 0.1) {
         // Get the angle between the 2 quaternions, and then store the sin()
         // of that angle
-        val theta = Math.acos(result)
-        val invSinTheta = 1.0 / Math.sin(theta)
+        val theta = acos(result)
+        val invSinTheta = 1.0 / sin(theta)
 
         // Calculate the scale for q1 and q2, according to the angle and
         // it's sine value
-        scale0 = Math.sin((1 - x) * theta) * invSinTheta
-        scale1 = Math.sin(x * theta) * invSinTheta
+        scale0 = sin((1 - x) * theta) * invSinTheta
+        scale1 = sin(x * theta) * invSinTheta
     }
 
     return Quaternion(

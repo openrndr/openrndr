@@ -1,6 +1,7 @@
 package org.openrndr.math
 
 import java.io.Serializable
+import kotlin.math.sqrt
 
 @Suppress("unused")
 data class IntVector4(val x: Int, val y: Int, val z: Int, val w: Int) : Serializable {
@@ -12,7 +13,7 @@ data class IntVector4(val x: Int, val y: Int, val z: Int, val w: Int) : Serializ
         val UNIT_W = IntVector4(0, 0, 0, 1)
     }
 
-    val length get() = Math.sqrt(1.0 * x * x + y * y + z * z + w * w)
+    val length get() = sqrt(1.0 * x * x + y * y + z * z + w * w)
     val squaredLength get() = x * x + y * y + z * z + w * w
     infix fun dot(right: IntVector4) = x * right.x + y * right.y + z * right.z + w * right.w
     val xy get() = IntVector2(x, y)

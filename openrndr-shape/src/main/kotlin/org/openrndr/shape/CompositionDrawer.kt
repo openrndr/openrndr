@@ -4,12 +4,11 @@ import org.openrndr.color.ColorRGBa
 import org.openrndr.math.Matrix44
 import org.openrndr.math.Vector2
 import org.openrndr.math.transforms.rotateZ
+import org.openrndr.math.transforms.scale
 import org.openrndr.math.transforms.transform
+import org.openrndr.math.transforms.translate
 import java.util.*
 
-import org.openrndr.math.transforms.translate as _translate
-import org.openrndr.math.transforms.rotate as _rotate
-import org.openrndr.math.transforms.scale as _scale
 
 /**
  * A Drawer-like interface for the creation of Compositions
@@ -51,19 +50,19 @@ class CompositionDrawer {
     fun translate(x: Double, y: Double) = translate(Vector2(x, y))
 
     fun rotate(rotationInDegrees: Double) {
-        model *= rotateZ(rotationInDegrees)
+        model *= Matrix44.rotateZ(rotationInDegrees)
     }
 
     fun scale(s: Double) {
-        model *= _scale(s, s, s)
+        model *= Matrix44.scale(s, s, s)
     }
 
     fun scale(x: Double, y: Double) {
-        model *= _scale(x, y, 1.0)
+        model *= Matrix44.scale(x, y, 1.0)
     }
 
     fun translate(t: Vector2) {
-        model *= _translate(t.vector3())
+        model *= Matrix44.translate(t.vector3())
     }
 
     fun contour(contour: ShapeContour) {

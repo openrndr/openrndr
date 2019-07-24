@@ -2,6 +2,9 @@
 
 package org.openrndr.math
 
+import kotlin.math.max
+import kotlin.math.min
+
 /**
  * Linearly maps a value, which is given in the before domain to a value in the after domain
  * @param beforeLeft the left value of the before domain
@@ -65,5 +68,5 @@ fun smootherstep(edge0: Double, edge1: Double, x: Double): Double {
     return u * u * u * (u * (u * 6 - 15) + 10)
 }
 
-fun saturate(x: Double) = Math.max(0.0, Math.min(1.0, x))
+fun saturate(x: Double) = max(0.0, min(1.0, x))
 fun mix(left: Double, right: Double, x: Double) = left * (1.0 - x) + right * x

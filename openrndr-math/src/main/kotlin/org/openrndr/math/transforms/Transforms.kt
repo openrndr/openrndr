@@ -174,7 +174,7 @@ fun lookAt(eye: Vector3, target: Vector3, up: Vector3 = Vector3.UNIT_Y): Matrix4
  * [axis] the axis to rotate around
  * [angle] the angle in degrees
  */
-fun rotate(axis: Vector3, angle: Double): Matrix44 {
+fun Matrix44.Companion.rotate(axis: Vector3, angle: Double): Matrix44 {
 
     val r = Math.toRadians(angle)
     val cosa = Math.cos(r)
@@ -210,7 +210,7 @@ fun rotate(axis: Vector3, angle: Double): Matrix44 {
  *
  * [angle] the angle in degrees
  */
-fun rotateX(angle: Double): Matrix44 {
+fun Matrix44.Companion.rotateX(angle: Double): Matrix44 {
     val r = Math.toRadians(angle)
 
     val cr = Math.cos(r)
@@ -228,7 +228,7 @@ fun rotateX(angle: Double): Matrix44 {
  *
  * [angle] the angle in degrees
  */
-fun rotateY(angle: Double): Matrix44 {
+fun Matrix44.Companion.rotateY(angle: Double): Matrix44 {
     val r = Math.toRadians(angle)
 
     val cr = Math.cos(r)
@@ -245,7 +245,7 @@ fun rotateY(angle: Double): Matrix44 {
  *
  * [angle] the angle in degrees
  */
-fun rotateZ(angle: Double): Matrix44 {
+fun Matrix44.Companion.rotateZ(angle: Double): Matrix44 {
     val r = Math.toRadians(angle)
     val cr = Math.cos(r)
     val sr = Math.sin(r)
@@ -261,7 +261,7 @@ fun rotateZ(angle: Double): Matrix44 {
  *
  * [scale] scale vector
  */
-fun translate(translation: Vector3): Matrix44 {
+fun Matrix44.Companion.translate(translation: Vector3): Matrix44 {
     return translate(translation.x, translation.y, translation.z)
 }
 
@@ -272,7 +272,7 @@ fun translate(translation: Vector3): Matrix44 {
  * [y] translate direction
  * [z] translate direction
  */
-fun translate(x: Double, y: Double, z: Double): Matrix44 {
+fun Matrix44.Companion.translate(x: Double, y: Double, z: Double): Matrix44 {
     return Matrix44.fromColumnVectors(
             Vector4.UNIT_X,
             Vector4.UNIT_Y,
@@ -285,7 +285,7 @@ fun translate(x: Double, y: Double, z: Double): Matrix44 {
  *
  * [scale] scale vector
  */
-fun scale(scale: Vector3): Matrix44 {
+fun Matrix44.Companion.scale(scale: Vector3): Matrix44 {
     return scale(scale.x, scale.y, scale.z)
 }
 
@@ -296,7 +296,7 @@ fun scale(scale: Vector3): Matrix44 {
  * [y] direction scale factor
  * [z] direction scale factor
  */
-fun scale(x: Double, y: Double, z: Double): Matrix44 {
+fun Matrix44.Companion.scale(x: Double, y: Double, z: Double): Matrix44 {
     return Matrix44(
             x, 0.0, 0.0, 0.0,
             0.0, y, 0.0, 0.0,

@@ -178,11 +178,11 @@ object TestTransforms : Spek({
                     0.0, 0.0, 1.0, 3.0,
                     0.0, 0.0, 0.0, 1.0)
 
-            translate(Vector3(1.0, 2.0, 3.0)).closeTo(expected, maxError)
+            Matrix44.translate(Vector3(1.0, 2.0, 3.0)).closeTo(expected, maxError)
         }
 
         it("should create a translate matrix with a vector") {
-            translate(Vector3(1.0, 2.0, 3.0)).closeTo(translate(1.0, 2.0, 3.0), maxError)
+            Matrix44.translate(Vector3(1.0, 2.0, 3.0)).closeTo(Matrix44.translate(1.0, 2.0, 3.0), maxError)
         }
     }
 
@@ -196,11 +196,11 @@ object TestTransforms : Spek({
                     0.0, 0.0, 3.0, 0.0,
                     0.0, 0.0, 0.0, 1.0)
 
-            scale(Vector3(1.0, 2.0, 3.0)).closeTo(expected, maxError)
+            Matrix44.scale(Vector3(1.0, 2.0, 3.0)).closeTo(expected, maxError)
         }
 
         it("should create a scale matrix with a vector") {
-            scale(Vector3(1.0, 2.0, 3.0)).closeTo(scale(1.0, 2.0, 3.0), maxError)
+            Matrix44.scale(Vector3(1.0, 2.0, 3.0)).closeTo(Matrix44.scale(1.0, 2.0, 3.0), maxError)
         }
     }
 
@@ -214,7 +214,7 @@ object TestTransforms : Spek({
                     0.0, 1.0, 0.0, 0.0,
                     0.0, 0.0, 0.0, 1.0)
 
-            rotateX(90.0).closeTo(expected, maxError)
+            Matrix44.rotateX(90.0).closeTo(expected, maxError)
         }
 
         it("should create a rotation matrix for Y") {
@@ -225,7 +225,7 @@ object TestTransforms : Spek({
                     -1.0, 0.0, 0.0, 0.0,
                     0.0, 0.0, 0.0, 1.0)
 
-            rotateY(90.0).closeTo(expected, maxError)
+            Matrix44.rotateY(90.0).closeTo(expected, maxError)
         }
 
         it("should create a rotation matrix for Z") {
@@ -236,13 +236,13 @@ object TestTransforms : Spek({
                     0.0, 0.0, 1.0, 0.0,
                     0.0, 0.0, 0.0, 1.0)
 
-            rotateZ(90.0).closeTo(expected, maxError)
+            Matrix44.rotateZ(90.0).closeTo(expected, maxError)
         }
 
         it("should create a rotation matrix for arbitrary axis") {
-            rotate(Vector3.UNIT_X, 90.0).closeTo(rotateX(90.0), maxError)
-            rotate(Vector3.UNIT_Y, 90.0).closeTo(rotateY(90.0), maxError)
-            rotate(Vector3.UNIT_Z, 90.0).closeTo(rotateZ(90.0), maxError)
+            Matrix44.rotate(Vector3.UNIT_X, 90.0).closeTo(Matrix44.rotateX(90.0), maxError)
+            Matrix44.rotate(Vector3.UNIT_Y, 90.0).closeTo(Matrix44.rotateY(90.0), maxError)
+            Matrix44.rotate(Vector3.UNIT_Z, 90.0).closeTo(Matrix44.rotateZ(90.0), maxError)
 
             val expected = Matrix44(
                     0.3333333, -0.2440169, 0.9106836, 0.0,
@@ -250,7 +250,7 @@ object TestTransforms : Spek({
                     -0.2440169, 0.9106836, 0.3333333, 0.0,
                     0.0, 0.0, 0.0, 1.0)
 
-            rotate(Vector3(1.0, 1.0, 1.0), 90.0).closeTo(expected, maxError)
+            Matrix44.rotate(Vector3(1.0, 1.0, 1.0), 90.0).closeTo(expected, maxError)
         }
     }
 

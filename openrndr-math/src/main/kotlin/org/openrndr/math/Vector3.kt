@@ -1,6 +1,8 @@
 package org.openrndr.math
 
 import java.io.Serializable
+import kotlin.math.max
+import kotlin.math.min
 
 data class Vector3(val x: Double, val y: Double, val z: Double) : Serializable {
 
@@ -69,12 +71,13 @@ data class Vector3(val x: Double, val y: Double, val z: Double) : Serializable {
 
     fun toDoubleArray() = doubleArrayOf(x, y, z)
 
-    val spherical: Spherical get() {
-        return Spherical.fromVector(this)
-    }
+    val spherical: Spherical
+        get() {
+            return Spherical.fromVector(this)
+        }
 }
 
 operator fun Double.times(v: Vector3) = v * this
 
-fun min(a: Vector3, b: Vector3) = Vector3(Math.min(a.x, b.x), Math.min(a.y, b.y), Math.min(a.z, b.z))
-fun max(a: Vector3, b: Vector3) = Vector3(Math.max(a.x, b.x), Math.max(a.y, b.y), Math.max(a.z, b.z))
+fun min(a: Vector3, b: Vector3) = Vector3(min(a.x, b.x), min(a.y, b.y), min(a.z, b.z))
+fun max(a: Vector3, b: Vector3) = Vector3(max(a.x, b.x), max(a.y, b.y), max(a.z, b.z))

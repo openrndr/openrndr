@@ -1,6 +1,8 @@
 package org.openrndr.math
 
 import java.io.Serializable
+import kotlin.math.max
+import kotlin.math.min
 
 data class Vector2(val x: Double, val y: Double) : Serializable {
     val length: Double
@@ -45,5 +47,5 @@ data class Vector2(val x: Double, val y: Double) : Serializable {
 
 operator fun Double.times(v: Vector2) = v * this
 
-fun min(a: Vector2, b: Vector2): Vector2 = Vector2(Math.min(a.x, b.x), Math.min(a.y, b.y))
-fun max(a: Vector2, b: Vector2): Vector2 = Vector2(Math.max(a.x, b.x), Math.max(a.y, b.y))
+fun min(a: Vector2, b: Vector2): Vector2 = Vector2(min(a.x, b.x), min(a.y, b.y))
+fun max(a: Vector2, b: Vector2): Vector2 = Vector2(max(a.x, b.x), max(a.y, b.y))

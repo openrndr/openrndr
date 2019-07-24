@@ -1,5 +1,9 @@
 package org.openrndr.math
 
+import kotlin.math.PI
+import kotlin.math.acos
+import kotlin.math.atan2
+
 /**
  * Ref: https://en.wikipedia.org/wiki/Spherical_coordinate_system
  *
@@ -14,7 +18,7 @@ data class Spherical(val radius: Double, val theta: Double, val phi: Double) {
     fun makeSafe() = Spherical(
             radius,
             theta,
-            clamp(phi, EPS, Math.PI - EPS)
+            clamp(phi, EPS, PI - EPS)
     )
 
     companion object {
@@ -22,8 +26,8 @@ data class Spherical(val radius: Double, val theta: Double, val phi: Double) {
             val r = vector.length
             return Spherical(
                     r,
-                    if (r == 0.0) 0.0 else Math.atan2(vector.x, vector.z),
-                    if (r == 0.0) 0.0 else Math.acos(clamp(vector.y / r, -1.0, 1.0)))
+                    if (r == 0.0) 0.0 else atan2(vector.x, vector.z),
+                    if (r == 0.0) 0.0 else acos(clamp(vector.y / r, -1.0, 1.0)))
         }
     }
 
