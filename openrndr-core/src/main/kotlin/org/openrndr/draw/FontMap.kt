@@ -1,7 +1,10 @@
 package org.openrndr.draw
 
+import org.openrndr.Program
 import org.openrndr.internal.Driver
 import org.openrndr.shape.IntRectangle
+import java.net.MalformedURLException
+import java.net.URL
 
 abstract class FontMap {
     abstract val size: Double
@@ -13,7 +16,6 @@ abstract class FontMap {
 }
 
 class GlyphMetrics(val advanceWidth: Double, val leftSideBearing: Double, val xBitmapShift: Double, val yBitmapShift: Double)
-
 
 data class FontImageMapDescriptor(val fontUrl: String, val size: Double, val contentScale: Double)
 
@@ -32,14 +34,17 @@ class FontImageMap(val texture: ColorBuffer,
                    override val leading: Double,
                    override val name: String
 ) : FontMap() {
-
     val kerningTable = mutableMapOf<CharacterPair, Double>()
-
 
     companion object {
         fun fromUrl(fontUrl: String, size: Double, contentScale: Double = 1.0): FontImageMap =
                 fontImageMaps.getOrPut(FontImageMapDescriptor(fontUrl, size, contentScale)) {
                     Driver.instance.fontImageMapManager.fontMapFromUrl(fontUrl, size, contentScale)
+                }
+
+        fun fromFile(file: String, size: Double, contentScale: Double = 1.0): FontImageMap =
+                fontImageMaps.getOrPut(FontImageMapDescriptor("file:$file", size, contentScale)) {
+                    Driver.instance.fontImageMapManager.fontMapFromUrl("file:$file", size, contentScale)
                 }
     }
 
@@ -49,6 +54,24 @@ class FontImageMap(val texture: ColorBuffer,
 
     fun kerning(left: Char, right: Char): Double {
         return kerningTable.getOrDefault(CharacterPair(left, right), 0.0)
+    }
+}
+
+fun Program.loadFont(fileOrUrl: String, size: Double, contentScale: Double = this.drawer.context.contentScale): FontImageMap {
+    return try {
+        URL(fileOrUrl)
+        FontImageMap.fromUrl(fileOrUrl, size, contentScale)
+    } catch (e: MalformedURLException) {
+        FontImageMap.fromFile(fileOrUrl, size, contentScale)
+    }
+}
+
+fun loadFont(fileOrUrl: String, size: Double, contentScale: Double = 1.0): FontImageMap {
+    return try {
+        URL(fileOrUrl)
+        FontImageMap.fromUrl(fileOrUrl, size, contentScale)
+    } catch (e: MalformedURLException) {
+        FontImageMap.fromFile(fileOrUrl, size, contentScale)
     }
 }
 
