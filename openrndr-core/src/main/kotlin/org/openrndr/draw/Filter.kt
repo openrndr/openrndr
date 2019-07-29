@@ -33,6 +33,7 @@ fun filterShaderFromCode(fragmentShaderCode: String): Shader {
 open class Filter(private val shader: Shader? = null, private val watcher: ShaderWatcher? = null) {
 
     val parameters = mutableMapOf<String, Any>()
+    var padding = 0
 
     companion object {
         val filterVertexCode: String get() = Driver.instance.internalShaderResource("filter.vert")
@@ -88,6 +89,7 @@ open class Filter(private val shader: Shader? = null, private val watcher: Shade
 
         shader.uniform("projectionMatrix", ortho(0.0, target[0].width.toDouble(), target[0].height.toDouble(), 0.0, -1.0, 1.0))
         shader.uniform("targetSize", Vector2(target[0].width.toDouble(), target[0].height.toDouble()))
+        shader.uniform("padding", Vector2(padding.toDouble(), padding.toDouble()))
 
         var textureIndex = source.size
         parameters.forEach { (uniform, value) ->
@@ -103,6 +105,7 @@ open class Filter(private val shader: Shader? = null, private val watcher: Shade
                 is ColorRGBa -> shader.uniform(uniform, value)
                 is Int -> shader.uniform(uniform, value)
                 is Matrix55 -> shader.uniform(uniform, value.floatArray)
+                is FloatArray -> shader.uniform(uniform, value)
 
                 // EJ: this is not so nice but I have no other ideas for this
                 is Array<*> -> if (value.size > 0) when (value[0]) {
