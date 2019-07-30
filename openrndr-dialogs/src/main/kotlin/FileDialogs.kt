@@ -1,3 +1,5 @@
+package org.openrndr.dialogs
+
 import java.io.File
 
 import org.lwjgl.util.nfd.NativeFileDialog
