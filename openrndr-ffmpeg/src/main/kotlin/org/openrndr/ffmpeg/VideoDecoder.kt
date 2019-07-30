@@ -100,7 +100,7 @@ internal class VideoDecoder(
         statistics.videoBytesReceived += packet.size()
 
         if (ret < 0) {
-            println("error in avcodec_send_packet")
+            logger.debug { "error in avcodec_send_packet" }
             return
         }
 

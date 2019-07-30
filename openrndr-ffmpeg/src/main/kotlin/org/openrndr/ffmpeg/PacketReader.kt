@@ -1,10 +1,13 @@
 package org.openrndr.ffmpeg
 
+import mu.KotlinLogging
 import org.bytedeco.ffmpeg.avcodec.AVPacket
 import org.bytedeco.ffmpeg.avformat.AVFormatContext
 import org.bytedeco.ffmpeg.global.avcodec
 import org.bytedeco.ffmpeg.global.avformat
 import org.bytedeco.ffmpeg.global.avutil.AVERROR_EOF
+
+private val logger = KotlinLogging.logger {  }
 
 internal class PacketReader(val configuration: VideoPlayerConfiguration, val formatContext: AVFormatContext, val statistics: VideoStatistics) {
 
@@ -28,9 +31,9 @@ internal class PacketReader(val configuration: VideoPlayerConfiguration, val for
                         queue.push(packet)
                         statistics.packetQueueSize = queue.size()
                     } else {
-                        println("no packet (error)  ${queue.size()}")
+                        logger.info { "no packet (error)  ${queue.size()}" }
                         if (res == AVERROR_EOF) {
-                            println("packet reader; end of file")
+                            logger.info  { "packet reader; end of file" }
                             endOfFile = true
                         }
                     }
@@ -38,11 +41,11 @@ internal class PacketReader(val configuration: VideoPlayerConfiguration, val for
                     Thread.sleep(100)
                 }
             } else {
-                println("queue full")
+                logger.warn { "queue full" }
                 Thread.sleep(500)
             }
         }
-        println("packet reader ended for some reason?")
+        logger.warn { "packet reader ended" }
     }
 
     fun nextPacket(): AVPacket? {
@@ -65,7 +68,7 @@ internal class PacketReader(val configuration: VideoPlayerConfiguration, val for
             avcodec.av_packet_unref(packet)
         }
         endOfFile = false
-        println("flushed packet reader queue")
+        logger.debug { "flushed reader queue" }
     }
 
 }

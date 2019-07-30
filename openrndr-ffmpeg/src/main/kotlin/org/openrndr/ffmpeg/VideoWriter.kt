@@ -48,7 +48,6 @@ class MP4Profile : VideoWriterProfile() {
             WriterMode.Normal -> arrayOf("-pix_fmt", "yuv420p", // this will produce videos that are playable by quicktime
                     "-an", "-vcodec", "libx264", "-crf", "" + constantRateFactor)
             WriterMode.Lossless -> {
-                println("lossless mode")
                 arrayOf("-pix_fmt", "yuv420p", // this will produce videos that are playable by quicktime
                         "-an", "-vcodec", "libx264", "-preset", "ultrafast")
             }

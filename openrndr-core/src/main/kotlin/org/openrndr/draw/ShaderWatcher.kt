@@ -30,7 +30,7 @@ private val watchThread by lazy {
                 val contextPath = it.context() as Path
                 val fullPath = path?.resolve(contextPath)
                 watching[fullPath]?.forEach {
-                    println("informing $it of change in $fullPath")
+                    logger.info { "informing $it of change in $fullPath" }
                     it.changed = true
                 }
             }
