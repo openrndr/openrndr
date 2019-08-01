@@ -14,6 +14,7 @@ enum class ExtensionStage {
 /**
  * Defines a Program extension. This is the interface for developers of OPENRNDR extensions.
  */
+@ApplicationDslMarker
 interface Extension {
     var enabled: Boolean
     fun setup(program: Program) {}

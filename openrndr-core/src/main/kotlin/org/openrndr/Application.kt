@@ -17,9 +17,13 @@ enum class PresentationMode {
     MANUAL,
 }
 
+@DslMarker
+annotation class ApplicationDslMarker
+
 /**
  * Application interface
  */
+@ApplicationDslMarker
 abstract class Application {
     companion object {
         fun run(program: Program, configuration: Configuration) {

@@ -1,5 +1,6 @@
 package org.openrndr
 
+@ApplicationDslMarker
 class ApplicationBuilder internal constructor(){
     internal val configuration = Configuration()
      var program: Program = Program()

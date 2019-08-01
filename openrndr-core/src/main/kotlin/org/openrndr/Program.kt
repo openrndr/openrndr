@@ -7,12 +7,10 @@ import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.Drawer
 import org.openrndr.events.Event
 import org.openrndr.internal.Driver
-import org.openrndr.math.IntVector2
 import org.openrndr.math.Vector2
 
 import java.io.File
 import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.EmptyCoroutineContext
 
 
 enum class WindowEventType {
@@ -32,6 +30,7 @@ class DropEvent(val position: Vector2, val files: List<File>)
 /**
 The Program class, this is where most user implementations start
  **/
+@ApplicationDslMarker
 open class Program {
 
     var width = 0
