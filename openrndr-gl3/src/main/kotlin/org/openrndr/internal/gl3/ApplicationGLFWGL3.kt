@@ -260,7 +260,8 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         logger.debug { "making context current" }
         glfwMakeContextCurrent(window)
 
-        if (glfwExtensionSupported("GLX_EXT_swap_control_tear") || glfwExtensionSupported("WGL_EXT_swap_control_tear")) {
+        val enableTearControl = false
+        if (enableTearControl && (glfwExtensionSupported("GLX_EXT_swap_control_tear") || glfwExtensionSupported("WGL_EXT_swap_control_tear"))) {
             glfwSwapInterval(-1)
         } else {
             glfwSwapInterval(1)
