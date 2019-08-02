@@ -199,7 +199,6 @@ open class RenderTargetGL3(val framebuffer: Int,
             (active[context]?.peek() as RenderTargetGL3).bindTarget()
     }
 
-
     private fun bound(function: () -> Unit) {
         bind()
         function()
@@ -209,7 +208,7 @@ open class RenderTargetGL3(val framebuffer: Int,
     override fun clearColor(index: Int, color: ColorRGBa) {
         bound {
             val ca = floatArrayOf(color.r.toFloat(), color.g.toFloat(), color.b.toFloat(), color.a.toFloat())
-            glClearBufferfv(GL_COLOR, GL_DRAW_BUFFER0 + index, ca)
+            glClearBufferfv(GL_COLOR, index, ca)
         }
     }
 
@@ -219,7 +218,6 @@ open class RenderTargetGL3(val framebuffer: Int,
             checkGLErrors()
         }
     }
-
 
     override fun attach(depthBuffer: DepthBuffer) {
         if (!(depthBuffer.width == effectiveWidth && depthBuffer.height == effectiveHeight)) {

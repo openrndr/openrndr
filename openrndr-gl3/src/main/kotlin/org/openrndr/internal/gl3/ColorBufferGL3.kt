@@ -809,6 +809,21 @@ class ColorBufferGL3(val target: Int,
         }
     }
 
+    override fun fill(color: ColorRGBa) {
+        checkDestroyed()
+            val writeTarget = renderTarget(width, height, contentScale) {
+                colorBuffer(this@ColorBufferGL3)
+            } as RenderTargetGL3
+
+            writeTarget.bind()
+            glClearBufferfv(GL_COLOR, 0, floatArrayOf(color.r.toFloat(), color.g.toFloat(), color.b.toFloat(), color.a.toFloat()))
+            debugGLErrors()
+            writeTarget.unbind()
+
+            writeTarget.detachColorBuffers()
+            writeTarget.destroy()
+    }
+
 
     override var wrapU: WrapMode
         get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.

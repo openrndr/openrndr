@@ -1,5 +1,6 @@
 package org.openrndr.draw
 
+import org.openrndr.color.ColorRGBa
 import org.openrndr.internal.Driver
 import org.openrndr.math.Vector2
 import org.openrndr.shape.Rectangle
@@ -122,6 +123,8 @@ interface ColorBuffer {
     fun copyTo(target: ColorBuffer)
 
     fun copyTo(target: ArrayTexture, layer:Int)
+
+    fun fill(color: ColorRGBa)
 
     /** the wrapping mode to use in the horizontal direction */
     var wrapU: WrapMode
