@@ -3,6 +3,10 @@ package org.openrndr.draw
 import org.openrndr.color.ColorRGBa
 import org.openrndr.math.Matrix55
 
+fun constant(color: ColorRGBa, ignoreAlpha: Boolean = true): Matrix55 {
+    return Matrix55.IDENTITY.copy(c4r0 = color.r, c4r1 = color.g, c4r2 = color.b, c4r3 = if (ignoreAlpha) 0.0 else color.a)
+}
+
 fun tint(color: ColorRGBa): Matrix55 {
     return Matrix55(c0r0 = color.r, c1r1 = color.g, c2r2 = color.b, c3r3 = color.a, c4r4 = 1.0)
 }
