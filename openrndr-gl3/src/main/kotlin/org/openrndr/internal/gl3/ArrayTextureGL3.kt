@@ -132,6 +132,12 @@ class ArrayTextureGL3(val target: Int,
 
     override var flipV: Boolean = false
 
+    override fun generateMipmaps() {
+        bound {
+            glGenerateMipmap(target)
+        }
+    }
+
     internal fun bound(f: ArrayTextureGL3.() -> Unit) {
         glActiveTexture(GL_TEXTURE0)
         val current = glGetInteger(GL_TEXTURE_BINDING_2D_ARRAY)
