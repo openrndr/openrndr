@@ -41,6 +41,10 @@ interface ArrayTexture {
      */
     fun copyTo(layer: Int, target: ArrayTexture, targetLayer: Int)
 
+
+    /** generates mipmaps from the top-level mipmap */
+    fun generateMipmaps()
+
     /** the wrapping mode to use in the horizontal direction */
     var wrapU: WrapMode
 
