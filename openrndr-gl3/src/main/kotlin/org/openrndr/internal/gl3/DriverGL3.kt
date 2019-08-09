@@ -21,7 +21,15 @@ import java.util.*
 private val logger = KotlinLogging.logger {}
 internal val useDebugContext = System.getProperty("org.openrndr.gl3.debug") != null
 
-class DriverGL3 : Driver {
+
+enum class DriverVersionGL {
+    VERSION_3_3,
+    VERSION_4_3
+}
+
+class DriverGL3(val version: DriverVersionGL) : Driver {
+
+
     override val contextID: Long
         get() {
             return GLFW.glfwGetCurrentContext()
@@ -132,6 +140,15 @@ class DriverGL3 : Driver {
             return ShaderGL3.create(vertexShader, fragmentShader)
         }
     }
+
+    override fun createComputeShader(code: String): ComputeShader {
+        if (version == DriverVersionGL.VERSION_4_3) {
+            return ComputeShaderGL43.createFromCode(code)
+        } else {
+            throw IllegalArgumentException("compute shaders are not supported by this configuration")
+        }
+    }
+
 
     override fun createArrayTexture(width: Int, height: Int, layers: Int, format: ColorFormat, type: ColorType): ArrayTexture {
         logger.trace { "creating array texture" }

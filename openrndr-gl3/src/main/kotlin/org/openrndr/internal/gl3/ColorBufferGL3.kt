@@ -462,6 +462,9 @@ class ColorBufferShadowGL3(override val colorBuffer: ColorBufferGL3) : ColorBuff
     override fun writer(): BufferWriter {
         return BufferWriterGL3(buffer)
     }
+
+
+
 }
 
 private val IntProgression.size: Int
@@ -583,6 +586,9 @@ class ColorBufferGL3(val target: Int,
             realFlipV = value
         }
 
+    internal fun format() : Int {
+        return internalFormat(format, type)
+    }
 
     companion object {
         fun fromUrl(url: String): ColorBuffer {

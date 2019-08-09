@@ -3,8 +3,6 @@ package org.openrndr.internal.gl3
 import mu.KotlinLogging
 import org.lwjgl.BufferUtils
 
-import java.lang.IllegalStateException
-import java.lang.RuntimeException
 import java.io.File
 
 import org.lwjgl.PointerBuffer
@@ -37,6 +35,7 @@ import java.nio.Buffer
 import java.nio.ByteBuffer
 
 import java.util.*
+import kotlin.IllegalStateException
 
 
 private val logger = KotlinLogging.logger {}
@@ -45,7 +44,6 @@ internal var primaryWindow: Long = NULL
 class ApplicationGLFWGL3(private val program: Program, private val configuration: Configuration) : Application() {
     private var windowFocused = true
     private var window: Long = NULL
-    private var driver: DriverGL3
     private var realWindowTitle = configuration.title
     private var exitRequested = false
     private val fixWindowSize = System.getProperty("os.name").contains("windows", true)
@@ -123,16 +121,12 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         logger.debug { "debug output enabled" }
         logger.trace { "trace level enabled" }
 
-        driver = DriverGL3()
-        Driver.driver = driver
         program.application = this
         createPrimaryWindow()
     }
 
     override fun setup() {
         glfwDefaultWindowHints()
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3)
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3)
         glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE)
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE)
 
@@ -145,7 +139,6 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
             SystemDefault -> glfwWindowHint(GLFW_SAMPLES, GLFW_DONT_CARE)
             Disabled -> glfwWindowHint(GLFW_SAMPLES, 0)
         }
-
 
         glfwWindowHint(GLFW_RED_BITS, 8)
         glfwWindowHint(GLFW_GREEN_BITS, 8)
@@ -176,32 +169,46 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         program.window.scale = Vector2(xscale[0].toDouble(), yscale[0].toDouble())
 
         logger.debug { "creating window" }
-        window = if (configuration.fullscreen == Fullscreen.DISABLED) {
-            val adjustedWidth = if (fixWindowSize) (xscale[0] * configuration.width).toInt() else configuration.width
-            val adjustedHeight = if (fixWindowSize) (yscale[0] * configuration.height).toInt() else configuration.height
 
-            glfwCreateWindow(adjustedWidth,
-                    adjustedHeight,
-                    configuration.title, NULL, primaryWindow)
-        } else {
-            logger.info { "creating fullscreen window" }
 
-            var requestWidth = configuration.width
-            var requestHeight = configuration.height
+        val versions = listOf( Pair(4,3), Pair(3,3))
+        var versionIndex = 0
+        while (window == NULL && versionIndex < versions.size) {
 
-            if (configuration.fullscreen == Fullscreen.CURRENT_DISPLAY_MODE) {
-                val mode = glfwGetVideoMode(glfwGetPrimaryMonitor())
-                if (mode != null) {
-                    requestWidth = mode.width()
-                    requestHeight = mode.height()
-                } else {
-                    throw RuntimeException("failed to determine current video mode")
+            glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, versions[versionIndex].first)
+            glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, versions[versionIndex].second)
+
+
+            window = if (configuration.fullscreen == Fullscreen.DISABLED) {
+                val adjustedWidth = if (fixWindowSize) (xscale[0] * configuration.width).toInt() else configuration.width
+                val adjustedHeight = if (fixWindowSize) (yscale[0] * configuration.height).toInt() else configuration.height
+
+                glfwCreateWindow(adjustedWidth,
+                        adjustedHeight,
+                        configuration.title, NULL, primaryWindow)
+            } else {
+                logger.info { "creating fullscreen window" }
+
+                var requestWidth = configuration.width
+                var requestHeight = configuration.height
+
+                if (configuration.fullscreen == Fullscreen.CURRENT_DISPLAY_MODE) {
+                    val mode = glfwGetVideoMode(glfwGetPrimaryMonitor())
+                    if (mode != null) {
+                        requestWidth = mode.width()
+                        requestHeight = mode.height()
+                    } else {
+                        throw RuntimeException("failed to determine current video mode")
+                    }
                 }
+                glfwCreateWindow(requestWidth,
+                        requestHeight,
+                        configuration.title, glfwGetPrimaryMonitor(), primaryWindow)
             }
-
-            glfwCreateWindow(requestWidth,
-                    requestHeight,
-                    configuration.title, glfwGetPrimaryMonitor(), primaryWindow)
+            versionIndex ++
+        }
+        if (window == NULL) {
+            throw IllegalStateException("Window creation failed")
         }
 
         val buf = BufferUtils.createByteBuffer(128 * 128 * 4)
@@ -223,9 +230,6 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
 
         logger.debug { "window created: $window" }
 
-        if (window == NULL) {
-            throw RuntimeException("Failed to create the GLFW window")
-        }
 
         // Get the thread stack and push a new frame
         stackPush().let { stack ->
@@ -336,8 +340,12 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
                 throw IllegalStateException("Unable to initialize GLFW")
             }
 
+            val title = "OPENRNDR primary window"
+
+
+            var version = DriverVersionGL.VERSION_4_3
             glfwDefaultWindowHints()
-            glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3)
+            glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4)
             glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3)
             glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE)
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE)
@@ -347,7 +355,21 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
             glfwWindowHint(GLFW_STENCIL_BITS, 8)
             glfwWindowHint(GLFW_DEPTH_BITS, 24)
             glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE)
-            primaryWindow = glfwCreateWindow(640, 480, "OPENRNDR primary window", NULL, NULL)
+            primaryWindow = glfwCreateWindow(640, 480, title, NULL, NULL)
+
+            if (primaryWindow == 0L) {
+                version = DriverVersionGL.VERSION_3_3
+                logger.info { "falling back to OpenGL 3.3" }
+                glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3)
+                glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3)
+                primaryWindow = glfwCreateWindow(640, 480, title, NULL, NULL)
+            }
+
+            if (primaryWindow == 0L) {
+                throw IllegalStateException("primary window could not be created")
+            }
+            Driver.driver = DriverGL3(version)
+
         }
     }
 
@@ -360,9 +382,9 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
             GLUtil.setupDebugMessageCallback()
         }
 
-        driver = DriverGL3()
-        program.driver = driver
-        program.drawer = Drawer(driver)
+
+        program.driver = Driver.driver
+        program.drawer = Drawer(Driver.driver)
 
         val defaultRenderTarget = ProgramRenderTargetGL3(program)
         defaultRenderTarget.bind()

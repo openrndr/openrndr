@@ -49,13 +49,15 @@ interface Driver {
 
     fun createShader(vsCode: String, fsCode: String): Shader
 
+    fun createComputeShader(code: String): ComputeShader
+
     fun createShadeStyleManager(vertexShaderGenerator: (ShadeStructure) -> String,
                                 fragmentShaderGenerator: (ShadeStructure) -> String): ShadeStyleManager
 
     fun createRenderTarget(width: Int, height: Int, contentScale: Double = 1.0, multisample: BufferMultisample = BufferMultisample.Disabled): RenderTarget
 
 
-    fun createArrayTexture(width: Int, height: Int, layers: Int, format: ColorFormat, type: ColorType) : ArrayTexture
+    fun createArrayTexture(width: Int, height: Int, layers: Int, format: ColorFormat, type: ColorType): ArrayTexture
 
     fun createColorBuffer(width: Int, height: Int, contentScale: Double, format: ColorFormat, type: ColorType, multisample: BufferMultisample = BufferMultisample.Disabled): ColorBuffer
     fun createColorBufferFromUrl(url: String): ColorBuffer

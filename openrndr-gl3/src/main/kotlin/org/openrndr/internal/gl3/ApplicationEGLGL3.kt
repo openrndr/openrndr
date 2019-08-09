@@ -28,7 +28,7 @@ class ApplicationEGLGL3(private val program: Program, private val configuration:
     private val vaos = IntArray(1)
 
     init {
-        driver = DriverGL3()
+        driver = DriverGL3(DriverVersionGL.VERSION_3_3)
         Driver.driver = driver
     }
 
