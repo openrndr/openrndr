@@ -2,8 +2,6 @@ package org.openrndr.internal.gl3
 
 import mu.KotlinLogging
 import org.lwjgl.BufferUtils
-import org.lwjgl.opengl.GL20C
-
 import org.lwjgl.opengl.GL33C.*
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
@@ -41,7 +39,6 @@ class UniformBlockGL3(override val layout: UniformBlockLayout, val blockBinding:
             }
         }
     }
-
 
     override fun uniform(name: String, value: Float) {
         if (lastValues[name] != value) {
