@@ -330,6 +330,10 @@ class Drawer(val driver: Driver) {
         circleDrawer.drawCircles(context, drawStyle, circles)
     }
 
+    fun circles(vertexBuffer: VertexBuffer, count:Int = vertexBuffer.vertexCount) {
+        circleDrawer.drawCircles(context, drawStyle, vertexBuffer, count)
+    }
+
     /**
      * Draws a single [Shape] using [fill], [stroke] and [strokeWeight] settings
      */

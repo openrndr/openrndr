@@ -33,7 +33,7 @@ interface ComputeShader {
     fun outputImage(name: String, image: Int, colorBuffer: ColorBuffer)
 
     fun buffer(name:String, vertexBuffer: VertexBuffer)
-
+    fun counters(bindingIndex: Int, counterBuffer: AtomicCounterBuffer)
 
         /**
      * Bind an input/output (read+write) image

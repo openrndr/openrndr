@@ -58,6 +58,7 @@ interface Driver {
 
 
     fun createArrayTexture(width: Int, height: Int, layers: Int, format: ColorFormat, type: ColorType): ArrayTexture
+    fun createAtomicCounterBuffer(counterCount : Int) : AtomicCounterBuffer
 
     fun createColorBuffer(width: Int, height: Int, contentScale: Double, format: ColorFormat, type: ColorType, multisample: BufferMultisample = BufferMultisample.Disabled): ColorBuffer
     fun createColorBufferFromUrl(url: String): ColorBuffer

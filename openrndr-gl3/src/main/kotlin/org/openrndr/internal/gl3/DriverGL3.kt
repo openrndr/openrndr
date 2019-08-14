@@ -149,6 +149,14 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         }
     }
 
+    override fun createAtomicCounterBuffer(counterCount: Int): AtomicCounterBuffer {
+        if (version == DriverVersionGL.VERSION_4_3) {
+            return AtomicCounterBufferGL43.create(counterCount)
+        } else {
+            throw IllegalArgumentException("atomic counter buffers are not supported by this configuration ($version)")
+        }
+    }
+
 
     override fun createArrayTexture(width: Int, height: Int, layers: Int, format: ColorFormat, type: ColorType): ArrayTexture {
         logger.trace { "creating array texture" }

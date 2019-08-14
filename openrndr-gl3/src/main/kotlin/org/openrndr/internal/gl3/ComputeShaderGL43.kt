@@ -3,13 +3,10 @@ package org.openrndr.internal.gl3
 import mu.KotlinLogging
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL15C
-import org.lwjgl.opengl.GL30C
 import org.lwjgl.opengl.GL42C
 import org.lwjgl.opengl.GL43C.*
 import org.openrndr.color.ColorRGBa
-import org.openrndr.draw.ColorBuffer
-import org.openrndr.draw.ComputeShader
-import org.openrndr.draw.VertexBuffer
+import org.openrndr.draw.*
 import org.openrndr.math.*
 import java.nio.Buffer
 
@@ -32,6 +29,9 @@ class ComputeShaderGL43(val programObject: Int, val name: String = "compute_shad
             }
 
     override fun execute(width: Int, height: Int, depth: Int) {
+
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo)
+        checkGLErrors()
         glUseProgram(programObject)
         checkGLErrors()
         glDispatchCompute(width, height, depth)
@@ -121,13 +121,32 @@ level(=0) or layer(=0) is less than zero
     }
 
     private val ssbo = glGenBuffers()
+    private val storageIndex = mutableMapOf<String, Int>()
+
     override fun buffer(name:String, vertexBuffer: VertexBuffer) {
+        val index = storageIndex.getOrPut(name) { storageIndex.size + 8 }
         vertexBuffer as VertexBufferGL3
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
         checkGLErrors()
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0 , vertexBuffer.buffer)
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, index , vertexBuffer.buffer)
         checkGLErrors()
 
+        val blockIndex = glGetProgramResourceIndex(programObject, GL_SHADER_STORAGE_BLOCK, name)
+        if (blockIndex >= 0) {
+            glShaderStorageBlockBinding(programObject, blockIndex, index)
+        } else {
+            logger.warn { "no such program resource: $name" }
+        }
+
+
+    }
+
+    override fun counters(bindingIndex:Int, counterBuffer: AtomicCounterBuffer) {
+        counterBuffer as AtomicCounterBufferGL43
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo)
+        checkGLErrors()
+        glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, bindingIndex, counterBuffer.buffer)
+        checkGLErrors()
     }
 
     override fun uniform(name: String, value: ColorRGBa) {
