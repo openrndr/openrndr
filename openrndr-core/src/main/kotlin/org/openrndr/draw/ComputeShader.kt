@@ -5,6 +5,12 @@ import org.openrndr.internal.Driver
 import org.openrndr.math.*
 import java.io.File
 
+enum class ImageAccess {
+    READ,
+    WRITE,
+    READ_WRITE
+}
+
 interface ComputeShader {
 
     companion object {
@@ -23,22 +29,30 @@ interface ComputeShader {
     }
 
     /**
-     * Bind an input (read only) image
+     * Bind a colorbuffer as to image
      */
-    fun inputImage(name: String, image: Int, colorBuffer: ColorBuffer)
+    fun image(name: String, image: Int, colorBuffer: ColorBuffer, access: ImageAccess = ImageAccess.READ)
 
     /**
-     * Bind an output (write only) image
+     * Bind an array texture to image
      */
-    fun outputImage(name: String, image: Int, colorBuffer: ColorBuffer)
+    fun image(name: String, image: Int, arrayTexture: ArrayTexture, layer:Int, access: ImageAccess = ImageAccess.READ)
+
+    /**
+     * Bind an array texture layer to image
+     */
+    fun image(name: String, image: Int, arrayTexture: ArrayTexture, access: ImageAccess = ImageAccess.READ)
+
+    /**
+     * Bind a cubemap texture side to image
+     */
+    fun image(name: String, image: Int, cubemap: Cubemap, access: ImageAccess = ImageAccess.READ)
+
+
 
     fun buffer(name:String, vertexBuffer: VertexBuffer)
     fun counters(bindingIndex: Int, counterBuffer: AtomicCounterBuffer)
 
-        /**
-     * Bind an input/output (read+write) image
-     */
-    fun inputOutputImage(name: String, image: Int, colorBuffer: ColorBuffer)
 
     fun uniform(name: String, value: Matrix33)
     fun uniform(name: String, value: Matrix44)

@@ -30,6 +30,10 @@ class ArrayTextureGL3(val target: Int,
         }
     }
 
+    internal fun format() : Int {
+        return internalFormat(format, type)
+    }
+
     override fun destroy() {
         glDeleteTextures(texture)
         checkGLErrors()

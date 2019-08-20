@@ -12,6 +12,14 @@ import java.nio.Buffer
 
 private val logger = KotlinLogging.logger {}
 
+fun ImageAccess.gl(): Int {
+    return when (this) {
+        ImageAccess.READ -> GL_READ_ONLY
+        ImageAccess.WRITE -> GL_WRITE_ONLY
+        ImageAccess.READ_WRITE -> GL_READ_WRITE
+    }
+}
+
 class ComputeShaderGL43(val programObject: Int, val name: String = "compute_shader") : ComputeShader {
 
     private var destroyed = false
@@ -47,8 +55,7 @@ class ComputeShaderGL43(val programObject: Int, val name: String = "compute_shad
 
     }
 
-    override fun inputImage(name: String, image: Int, colorBuffer: ColorBuffer) {
-
+    override fun image(name: String, image: Int, colorBuffer: ColorBuffer, access: ImageAccess) {
         if (colorBuffer.format.componentCount != 3) {
             colorBuffer as ColorBufferGL3
             glUseProgram(programObject)
@@ -58,7 +65,7 @@ class ComputeShaderGL43(val programObject: Int, val name: String = "compute_shad
                     else -> null
                 }
             }
-            glBindImageTexture(image, colorBuffer.texture, 0, false, 0, GL_READ_ONLY, colorBuffer.format())
+            glBindImageTexture(image, colorBuffer.texture, 0, false, 0, access.gl(), colorBuffer.format())
             checkGLErrors() {
                 val maxImageUnits = glGetInteger(GL_MAX_IMAGE_UNITS)
                 colorBuffer as ColorBufferGL3
@@ -79,10 +86,9 @@ level(=0) or layer(=0) is less than zero
         }
     }
 
-    override fun outputImage(name: String, image: Int, colorBuffer: ColorBuffer) {
-        if (colorBuffer.format.componentCount != 3) {
-
-            colorBuffer as ColorBufferGL3
+    override fun image(name: String, image: Int, arrayTexture: ArrayTexture, layer:Int, access: ImageAccess) {
+        if (arrayTexture.format.componentCount != 3) {
+            arrayTexture as ArrayTextureGL3
             glUseProgram(programObject)
             checkGLErrors {
                 when (it) {
@@ -90,19 +96,31 @@ level(=0) or layer(=0) is less than zero
                     else -> null
                 }
             }
-            glBindImageTexture(image, colorBuffer.texture, 0, false, 0, GL_WRITE_ONLY, colorBuffer.format())
-            checkGLErrors()
+            glBindImageTexture(image, arrayTexture.texture, 0, false, 0, access.gl(), arrayTexture.format())
+            checkGLErrors() {
+                val maxImageUnits = glGetInteger(GL_MAX_IMAGE_UNITS)
+                arrayTexture as ColorBufferGL3
+                when (it) {
+                    GL_INVALID_VALUE ->
+                        """unit(=$image) greater than or equal to the value of GL_MAX_IMAGE_UNITS(=$maxImageUnits)
+texture(=${arrayTexture.texture}) is not the name of an existing texture object
+level(=0) or layer(=0) is less than zero                                        
+                """.trimIndent()
+                    else -> null
+                }
+            }
             val index = uniformIndex(name)
             glUniform1i(index, image)
             checkGLErrors()
         } else {
-            throw IllegalArgumentException("color buffer has unsupported format (${colorBuffer.format}), only formats with 1, 2 or 4 components are supported")
+            throw IllegalArgumentException("color buffer has unsupported format (${arrayTexture.format}), only formats with 1, 2 or 4 components are supported")
         }
     }
 
-    override fun inputOutputImage(name: String, image: Int, colorBuffer: ColorBuffer) {
-        if (colorBuffer.format.componentCount != 3) {
-            colorBuffer as ColorBufferGL3
+
+    override fun image(name: String, image: Int, arrayTexture: ArrayTexture, access: ImageAccess) {
+        if (arrayTexture.format.componentCount != 3) {
+            arrayTexture as ArrayTextureGL3
             glUseProgram(programObject)
             checkGLErrors {
                 when (it) {
@@ -110,25 +128,69 @@ level(=0) or layer(=0) is less than zero
                     else -> null
                 }
             }
-            glBindImageTexture(image, colorBuffer.texture, 0, false, 0, GL_READ_WRITE, colorBuffer.format())
-            checkGLErrors()
+            glBindImageTexture(image, arrayTexture.texture, 0, true, 0, access.gl(), arrayTexture.format())
+            checkGLErrors() {
+                val maxImageUnits = glGetInteger(GL_MAX_IMAGE_UNITS)
+                arrayTexture as ColorBufferGL3
+                when (it) {
+                    GL_INVALID_VALUE ->
+                        """unit(=$image) greater than or equal to the value of GL_MAX_IMAGE_UNITS(=$maxImageUnits)
+texture(=${arrayTexture.texture}) is not the name of an existing texture object
+level(=0) or layer(=0) is less than zero                                        
+                """.trimIndent()
+                    else -> null
+                }
+            }
             val index = uniformIndex(name)
             glUniform1i(index, image)
             checkGLErrors()
         } else {
-            throw IllegalArgumentException("color buffer has unsupported format (${colorBuffer.format}), only formats with 1, 2 or 4 components are supported")
+            throw IllegalArgumentException("color buffer has unsupported format (${arrayTexture.format}), only formats with 1, 2 or 4 components are supported")
         }
     }
+
+    override fun image(name: String, image: Int, cubemap: Cubemap, access: ImageAccess) {
+        if (cubemap.format.componentCount != 3) {
+            cubemap as CubemapGL3
+            glUseProgram(programObject)
+            checkGLErrors {
+                when (it) {
+                    GL_INVALID_OPERATION -> " program ($programObject) is not a program object / program could not be made part of current state / transform feedback mode is active"
+                    else -> null
+                }
+            }
+            glBindImageTexture(image, cubemap.texture, 0, true, 0, access.gl(), cubemap.format())
+            checkGLErrors() {
+                val maxImageUnits = glGetInteger(GL_MAX_IMAGE_UNITS)
+                cubemap as ColorBufferGL3
+                when (it) {
+                    GL_INVALID_VALUE ->
+                        """unit(=$image) greater than or equal to the value of GL_MAX_IMAGE_UNITS(=$maxImageUnits)
+texture(=${cubemap.texture}) is not the name of an existing texture object
+level(=0) or layer(=0) is less than zero                                        
+                """.trimIndent()
+                    else -> null
+                }
+            }
+            val index = uniformIndex(name)
+            glUniform1i(index, image)
+            checkGLErrors()
+        } else {
+            throw IllegalArgumentException("color buffer has unsupported format (${cubemap.format}), only formats with 1, 2 or 4 components are supported")
+        }
+    }
+
+
 
     private val ssbo = glGenBuffers()
     private val storageIndex = mutableMapOf<String, Int>()
 
-    override fun buffer(name:String, vertexBuffer: VertexBuffer) {
+    override fun buffer(name: String, vertexBuffer: VertexBuffer) {
         val index = storageIndex.getOrPut(name) { storageIndex.size + 8 }
         vertexBuffer as VertexBufferGL3
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
         checkGLErrors()
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, index , vertexBuffer.buffer)
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, index, vertexBuffer.buffer)
         checkGLErrors()
 
         val blockIndex = glGetProgramResourceIndex(programObject, GL_SHADER_STORAGE_BLOCK, name)
@@ -141,7 +203,7 @@ level(=0) or layer(=0) is less than zero
 
     }
 
-    override fun counters(bindingIndex:Int, counterBuffer: AtomicCounterBuffer) {
+    override fun counters(bindingIndex: Int, counterBuffer: AtomicCounterBuffer) {
         counterBuffer as AtomicCounterBufferGL43
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo)
         checkGLErrors()

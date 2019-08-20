@@ -28,6 +28,9 @@ interface Cubemap {
     }
 
     val width: Int
+    val format: ColorFormat
+    val type: ColorType
+
     fun filter(min: MinifyingFilter, mag: MagnifyingFilter)
     fun side(side: CubemapSide): ColorBuffer
     fun bind(textureUnit: Int = 0)

@@ -8,7 +8,7 @@ import java.net.URL
 import java.nio.Buffer
 import java.nio.ByteBuffer
 
-class CubemapGL3(val texture: Int, override val width: Int, val sides: List<ColorBuffer>) : Cubemap {
+class CubemapGL3(val texture: Int, override val width: Int, val sides: List<ColorBuffer>, override val type: ColorType, override val format: ColorFormat) : Cubemap {
 
 
     private var destroyed = false
@@ -29,7 +29,7 @@ class CubemapGL3(val texture: Int, override val width: Int, val sides: List<Colo
                 glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalFormat, effectiveWidth, effectiveHeight, 0, format.glFormat(), type.glType(), nullBB)
                 sides.add(ColorBufferGL3(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, textures[0], width, width, 1.0, format, type, BufferMultisample.Disabled))
             }
-            return CubemapGL3(textures[0], width, sides)
+            return CubemapGL3(textures[0], width, sides, type, format)
         }
 
         fun fromUrl(url: String): CubemapGL3 {
@@ -93,7 +93,7 @@ class CubemapGL3(val texture: Int, override val width: Int, val sides: List<Colo
                     glGenerateMipmap(GL_TEXTURE_CUBE_MAP)
                     checkGLErrors()
                 }
-                return CubemapGL3(textures[0], data.width, sides)
+                return CubemapGL3(textures[0], data.width, sides, data.type, data.format)
             } else {
                 throw RuntimeException("only dds files can be loaded through a single url")
             }
@@ -117,8 +117,12 @@ class CubemapGL3(val texture: Int, override val width: Int, val sides: List<Colo
                 glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + index, 0, internalFormat, data.width, data.height, 0, data.format.glFormat(), data.type.glType(), nullBB)
                 sides.add(ColorBufferGL3(GL_TEXTURE_CUBE_MAP_POSITIVE_X + index, textures[0], data.width, data.width, 1.0, data.format, data.type, BufferMultisample.Disabled))
             }
-            return CubemapGL3(textures[0], sides[0].width, sides)
+            return CubemapGL3(textures[0], sides[0].width, sides, sides[0].type, sides[0].format )
         }
+    }
+
+    internal fun format() : Int {
+        return internalFormat(format, type)
     }
 
     override fun generateMipmaps() {
