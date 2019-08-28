@@ -121,12 +121,13 @@ internal class Decoder(val statistics: VideoStatistics,
             }
         }
 
-        packetReader = PacketReader(configuration, formatContext, statistics)
+        if (configuration.usePacketReaderThread) {
+            packetReader = PacketReader(configuration, formatContext, statistics)
 
-        thread(isDaemon=true) {
-            packetReader?.start()
+            thread(isDaemon = true) {
+                packetReader?.start()
+            }
         }
-
         while (!disposed) {
             decodeIfNeeded()
             Thread.sleep(1)
@@ -168,7 +169,10 @@ internal class Decoder(val statistics: VideoStatistics,
         //val packet = av_packet_alloc()
 
         while (needMoreFrames()) {
-            val packet = packetReader?.nextPacket()
+            val packet = if (packetReader != null) packetReader?.nextPacket() else av_packet_alloc()
+
+            av_read_frame(formatContext, packet)
+
             if (packet != null) {
                 when (packet.stream_index()) {
                     videoStreamIndex -> videoDecoder?.decodeVideoPacket(packet)

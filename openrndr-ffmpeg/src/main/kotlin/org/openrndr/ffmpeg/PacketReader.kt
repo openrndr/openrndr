@@ -9,7 +9,9 @@ import org.bytedeco.ffmpeg.global.avutil.AVERROR_EOF
 
 private val logger = KotlinLogging.logger {  }
 
-internal class PacketReader(val configuration: VideoPlayerConfiguration, val formatContext: AVFormatContext, val statistics: VideoStatistics) {
+internal class PacketReader(private val configuration: VideoPlayerConfiguration,
+                            private val formatContext: AVFormatContext,
+                            private val statistics: VideoStatistics) {
 
     val queue = Queue<AVPacket>(configuration.packetQueueSize * 2)
     var disposed = false
@@ -54,7 +56,6 @@ internal class PacketReader(val configuration: VideoPlayerConfiguration, val for
         else {
             statistics.packetQueueSize = 0
         }
-
         return if (ready) queue.popOrNull() else null
     }
 
@@ -70,5 +71,4 @@ internal class PacketReader(val configuration: VideoPlayerConfiguration, val for
         endOfFile = false
         logger.debug { "flushed reader queue" }
     }
-
 }

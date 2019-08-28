@@ -48,7 +48,8 @@ internal data class Dimensions(val w: Int, val h: Int) {
     operator fun div(b: Int) = Dimensions(w / b, h / b)
 }
 
-internal class AVFile(val fileName: String,
+internal class AVFile(val configuration: VideoPlayerConfiguration,
+                      val fileName: String,
                       val playMode: PlayMode,
                       val formatName: String? = null,
                       val frameRate: Double? = null,
@@ -64,6 +65,10 @@ internal class AVFile(val fileName: String,
             format = av_find_input_format(formatName)
         } else {
             format = null
+        }
+
+        if (configuration.realtimeBufferSize != -1L) {
+            av_dict_set(options, "rtbufsize", "${configuration.realtimeBufferSize}", 0)
         }
 
         if (frameRate != null) {
@@ -116,6 +121,8 @@ class VideoPlayerConfiguration {
     var videoFrameQueueSize = 50
     var packetQueueSize = 2500
     var useHardwareDecoding = true
+    var usePacketReaderThread = true
+    var realtimeBufferSize = -1L
 }
 
 class VideoPlayerFFMPEG private constructor(private val file: AVFile, val mode: PlayMode = PlayMode.VIDEO, val configuration: VideoPlayerConfiguration) {
@@ -123,7 +130,7 @@ class VideoPlayerFFMPEG private constructor(private val file: AVFile, val mode: 
     companion object {
         fun fromFile(fileName: String, mode: PlayMode = PlayMode.VIDEO, configuration: VideoPlayerConfiguration = VideoPlayerConfiguration()): VideoPlayerFFMPEG {
             av_log_set_level(AV_LOG_ERROR)
-            val file = AVFile(fileName, mode)
+            val file = AVFile(configuration, fileName, mode)
             return VideoPlayerFFMPEG(file, mode, configuration)
         }
 
@@ -135,7 +142,7 @@ class VideoPlayerFFMPEG private constructor(private val file: AVFile, val mode: 
                 PlatformType.GENERIC -> "video4linux2"
             }
 
-            val file = AVFile(deviceName, mode, format, frameRate, imageWidth, imageHeight)
+            val file = AVFile(configuration, deviceName, mode, format, frameRate, imageWidth, imageHeight)
             return VideoPlayerFFMPEG(file, mode, configuration)
         }
 
