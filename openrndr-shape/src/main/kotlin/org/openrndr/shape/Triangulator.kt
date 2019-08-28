@@ -1,17 +1,16 @@
 package org.openrndr.shape
 
 import org.openrndr.math.Vector2
-import java.util.ArrayList
-import java.util.Comparator
-import kotlin.IllegalStateException
+import org.openrndr.math.Vector3
+import java.util.*
 
 
-fun List<Int>.cumsum() : List<Int> {
+fun List<Int>.cumsum(): List<Int> {
     val result = mutableListOf<Int>()
     var sum = 0
     for (i in this) {
         sum += i
-        result+=sum
+        result += sum
     }
     return result
 }
@@ -44,14 +43,14 @@ fun triangulate(shape: Shape, distanceTolerance: Double = 0.5): List<Vector2> {
 /**
  * Indexed triangulation consisting of a list of vertices and triangle indices.
  */
-class IndexedTriangulation(val vertices:List<Vector2>, val triangles: List<Int>)
+class IndexedTriangulation<T>(val vertices: List<T>, val triangles: List<Int>)
 
 /**
  * triangulates a [Shape] into a list of indexed triangles
  * @param shape the shape to triangulate
  * @param distanceTolerance how refined should the shape be, smaller values for higher precision
  */
-fun triangulateIndexed(shape: Shape, distanceTolerance: Double = 0.5): IndexedTriangulation {
+fun triangulateIndexed(shape: Shape, distanceTolerance: Double = 0.5): IndexedTriangulation<Vector2> {
     val positions = shape.contours.map { it.adaptivePositions(distanceTolerance) }
 
     val holes = if (shape.contours.size > 1) {
@@ -64,6 +63,27 @@ fun triangulateIndexed(shape: Shape, distanceTolerance: Double = 0.5): IndexedTr
     val indices = Triangulator.earcut(data, holes, 2).toList()
     return IndexedTriangulation(vertices, indices)
 }
+
+/**
+ * Triangulate the polygon formed by `vertices`, this polygon has no holes
+ */
+@JvmName("triangulateIndexed3")
+fun triangulateIndexed(vertices: List<Vector3>): IndexedTriangulation<Vector3> {
+    val data = vertices.flatMap { listOf(it.x, it.y, it.z) }.toDoubleArray()
+    val indices = Triangulator.earcut(data, null, 3).toList()
+    return IndexedTriangulation(vertices, indices)
+}
+
+/**
+ * Triangulate the polygon formed by `vertices`, this polygon has no holes
+ */
+@JvmName("triangulateIndexed2")
+fun triangulateIndexed(vertices: List<Vector2>): IndexedTriangulation<Vector2> {
+    val data = vertices.flatMap { listOf(it.x, it.y) }.toDoubleArray()
+    val indices = Triangulator.earcut(data, null, 3).toList()
+    return IndexedTriangulation(vertices, indices)
+}
+
 
 /**
  * ISC License
@@ -110,8 +130,8 @@ internal object Triangulator {
 
         var minX = 0.0
         var minY = 0.0
-        var maxX : Double
-        var maxY : Double
+        var maxX: Double
+        var maxY: Double
         var size = Double.MIN_VALUE
 
         if (hasHoles)
