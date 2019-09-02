@@ -28,7 +28,7 @@ plugins {
 apply plugin: 'org.jetbrains.dokka'
 
 project.ext {
-    lwjglVersion = '3.2.2'
+    lwjglVersion = '3.2.3'
     ffmpeg_version = '4.1.3-1.5.1'
 }
 
