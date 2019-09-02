@@ -1,8 +1,8 @@
 
-import org.jetbrains.spek.api.Spek
-import org.jetbrains.spek.api.dsl.describe
 import org.openrndr.math.Vector2
 import org.openrndr.shape.Segment
+import org.spekframework.spek2.Spek
+import org.spekframework.spek2.style.specification.describe
 
 object TestCircleDrawerGL3 : Spek({
 

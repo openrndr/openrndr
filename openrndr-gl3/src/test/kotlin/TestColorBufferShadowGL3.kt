@@ -1,16 +1,12 @@
-
 import org.amshove.kluent.`should equal`
-import org.jetbrains.spek.api.Spek
-import org.jetbrains.spek.api.dsl.describe
-import org.jetbrains.spek.api.dsl.it
-import org.lwjgl.BufferUtils
 import org.openrndr.Configuration
 import org.openrndr.Program
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
 import org.openrndr.internal.gl3.ApplicationGLFWGL3
-import org.openrndr.internal.gl3.VertexBufferGL3
-import java.nio.ByteBuffer
+import org.spekframework.spek2.Spek
+import org.spekframework.spek2.style.specification.describe
+
 
 object TestColorBufferShadowGL3 : Spek({
 

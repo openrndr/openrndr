@@ -1,10 +1,8 @@
 package org.openrndr.math
 
 import org.amshove.kluent.`should be in range`
-import org.jetbrains.spek.api.Spek
-import org.jetbrains.spek.api.dsl.describe
-import org.jetbrains.spek.api.dsl.it
-import org.openrndr.math.Matrix33
+import org.spekframework.spek2.Spek
+import org.spekframework.spek2.style.specification.describe
 
 object TestMatrix33 : Spek({
 

@@ -1,11 +1,8 @@
-import org.jetbrains.spek.api.Spek
-import org.jetbrains.spek.api.dsl.describe
-import org.jetbrains.spek.api.dsl.it
 import org.openrndr.Configuration
 import org.openrndr.Program
 import org.openrndr.internal.gl3.ApplicationGLFWGL3
-import org.openrndr.internal.gl3.CubemapGL3
-import org.openrndr.resourceUrl
+import org.spekframework.spek2.Spek
+import org.spekframework.spek2.style.specification.describe
 
 object TestCubemapsGL3 : Spek({
     describe("a program") {

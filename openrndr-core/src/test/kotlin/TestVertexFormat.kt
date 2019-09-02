@@ -1,10 +1,8 @@
 import org.amshove.kluent.`should equal`
-import org.jetbrains.spek.api.Spek
-import org.jetbrains.spek.api.dsl.describe
-import org.jetbrains.spek.api.dsl.it
 import org.openrndr.draw.VertexElementType
 import org.openrndr.draw.vertexFormat
-
+import org.spekframework.spek2.Spek
+import org.spekframework.spek2.style.specification.describe
 object TestVertexFormat : Spek({
 
     describe("a vertex format") {

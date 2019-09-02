@@ -1,7 +1,3 @@
-import org.jetbrains.spek.api.Spek
-import org.jetbrains.spek.api.dsl.describe
-import org.jetbrains.spek.api.dsl.it
-
 import org.openrndr.Configuration
 import org.openrndr.Program
 import org.openrndr.draw.*
@@ -9,7 +5,8 @@ import org.openrndr.internal.gl3.ApplicationGLFWGL3
 import org.openrndr.internal.gl3.VertexBufferGL3
 import org.openrndr.math.Vector2
 import org.openrndr.math.Vector3
-import org.openrndr.resourceUrl
+import org.spekframework.spek2.Spek
+import org.spekframework.spek2.style.specification.describe
 
 object TestShadeStylesSuppressOutput : Spek({
     describe("a program") {
