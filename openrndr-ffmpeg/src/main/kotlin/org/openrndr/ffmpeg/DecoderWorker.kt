@@ -32,6 +32,10 @@ internal fun Int.checkAVError() {
         throw Error("AVError: ${String(buffer)}")
     }
 }
+internal val flushPacket = AVPacket().apply {
+    data(BytePointer("FLUSH"))
+}
+
 
 internal class Decoder(val statistics: VideoStatistics,
                        val configuration: VideoPlayerConfiguration,
@@ -141,8 +145,20 @@ internal class Decoder(val statistics: VideoStatistics,
         logger.debug {
             "seeking to frame 0"
         }
+
+
+
+
         av_seek_frame(formatContext, -1, formatContext.start_time(), 0)
     }
+    private var needFlush = false
+    private var seekRequested = true
+    private var seekPosition:Double = 0.0
+    fun seek(positionInSeconds:Double) {
+        seekPosition = positionInSeconds
+        seekRequested = true
+    }
+
 
     fun done() = (packetReader?.endOfFile == true) && (packetReader?.isQueueEmpty() == true)  && (videoDecoder?.isQueueEmpty() ?: true)
 
@@ -157,6 +173,22 @@ internal class Decoder(val statistics: VideoStatistics,
             (videoDecoder?.needMoreFrames() ?: false)
 
     fun decodeIfNeeded() {
+
+        if (seekRequested) {
+            videoDecoder?.flushQueue()
+            audioDecoder?.flushQueue()
+            packetReader?.flushQueue()
+            logger.debug {
+                "seeking to frame 0"
+            }
+
+            av_seek_frame(formatContext, -1, (seekPosition * AV_TIME_BASE).toLong(), 0)
+            needFlush = true
+            seekRequested = false
+            Thread.sleep(5)
+        }
+
+
         if (videoDecoder?.isQueueAlmostFull() == true) {
             println("video queue is almost full")
             return
@@ -168,10 +200,17 @@ internal class Decoder(val statistics: VideoStatistics,
 
         //val packet = av_packet_alloc()
 
-        while (needMoreFrames()) {
-            val packet = if (packetReader != null) packetReader?.nextPacket() else av_packet_alloc()
+        if (needFlush) {
+            needFlush = false
+            videoDecoder?.flushBuffers()
+        }
 
+
+        while (needMoreFrames()) {
+
+            val packet = if (packetReader != null) packetReader?.nextPacket() else av_packet_alloc()
             av_read_frame(formatContext, packet)
+            if (packet != null )
 
             if (packet != null) {
                 when (packet.stream_index()) {
@@ -185,7 +224,7 @@ internal class Decoder(val statistics: VideoStatistics,
                     //println("end of file")
                     Thread.sleep(10)
                 }else {
-                    Thread.sleep(5)
+                    Thread.sleep(1)
                     //println("I need more frames but got none")
                 }
             }

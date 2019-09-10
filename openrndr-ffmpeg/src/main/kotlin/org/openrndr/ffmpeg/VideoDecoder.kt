@@ -66,6 +66,8 @@ internal class VideoDecoder(
     private val videoQueue = Queue<VideoFrame>(configuration.videoFrameQueueSize * 2)
     private val minVideoFrames = configuration.videoFrameQueueSize
 
+
+
     private var videoTime = 0.0
 
     init {
@@ -87,10 +89,18 @@ internal class VideoDecoder(
 
     fun flushQueue() {
         while (!videoQueue.isEmpty()) videoQueue.pop().unref()
+
+    }
+
+    fun flushBuffers() {
+        avcodec_flush_buffers(videoCodecContext)
     }
 
     var lowestTimeStamp = Long.MAX_VALUE
     fun decodeVideoPacket(packet: AVPacket) {
+
+
+
         val start = System.currentTimeMillis()
         val framerate = av_q2d(videoCodecContext.framerate()).let {
             if (it == 0.0) 30.0 else it

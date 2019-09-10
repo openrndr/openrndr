@@ -101,7 +101,6 @@ internal class AVFile(val configuration: VideoPlayerConfiguration,
     }
 }
 
-
 class FrameEvent(val frame: ColorBuffer, val timeStamp: Double)
 
 class VideoEvent
@@ -177,6 +176,7 @@ class VideoPlayerFFMPEG private constructor(private val file: AVFile, val mode: 
     val ended = Event<VideoEvent>()
 
     fun play() {
+        logger.debug { "start play" }
         file.dumpFormat()
 
         val (decoder, info) = runBlocking {
@@ -206,10 +206,16 @@ class VideoPlayerFFMPEG private constructor(private val file: AVFile, val mode: 
         decoder?.restart()
     }
 
+    fun seek(positionInSeconds:Double) {
+        playOffsetSeconds = 0.0
+        firstFrame = true
+        decoder?.seek(positionInSeconds)
+    }
+
     var originalMode = false
     var lastFrame = System.currentTimeMillis()
     fun update(block: Boolean = false) {
-
+        logger.debug { "update" }
         var gotFrame = false
 
         var count = 0
@@ -273,13 +279,9 @@ class VideoPlayerFFMPEG private constructor(private val file: AVFile, val mode: 
                         runBlocking {
                             if (decoder?.done() == true) {
                                 logger.debug { "decoder is done" }
-
-                            }
+    }
                         }
-                    } else {
-                        logger.debug { "waiting a bit more" }
                     }
-
                     if (peekFrame == null && (decoder?.done() == true)) {
                         logger.debug { "video ended" }
                         gotFrame = true

@@ -6,6 +6,7 @@ import org.bytedeco.ffmpeg.avformat.AVFormatContext
 import org.bytedeco.ffmpeg.global.avcodec
 import org.bytedeco.ffmpeg.global.avformat
 import org.bytedeco.ffmpeg.global.avutil.AVERROR_EOF
+import org.bytedeco.javacpp.BytePointer
 
 private val logger = KotlinLogging.logger {  }
 
@@ -15,6 +16,7 @@ internal class PacketReader(private val configuration: VideoPlayerConfiguration,
 
     val queue = Queue<AVPacket>(configuration.packetQueueSize * 2)
     var disposed = false
+
 
     var endOfFile = false
     var ready = true
@@ -68,7 +70,9 @@ internal class PacketReader(private val configuration: VideoPlayerConfiguration,
             val packet = queue.pop()
             avcodec.av_packet_unref(packet)
         }
+        queue.push(flushPacket)
         endOfFile = false
+
         logger.debug { "flushed reader queue" }
     }
 }
