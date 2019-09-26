@@ -9,7 +9,7 @@ import org.openrndr.shape.Circle
 private val logger = KotlinLogging.logger {}
 
 class CircleDrawer {
-    val vertices: VertexBuffer = VertexBuffer.createDynamic(VertexFormat().apply {
+    private val vertices: VertexBuffer = VertexBuffer.createDynamic(VertexFormat().apply {
         position(3)
         normal(3)
         textureCoordinate(2)
@@ -69,7 +69,7 @@ class CircleDrawer {
         assertInstanceSize(positions.size)
         instanceAttributes.shadow.writer().apply {
             rewind()
-            for (i in 0 until positions.size) {
+            for (i in positions.indices) {
                 write(radii[i].toFloat())
                 write(Vector3(positions[i].x, positions[i].y, 0.0))
             }
@@ -83,8 +83,8 @@ class CircleDrawer {
         instanceAttributes.shadow.writer().apply {
             rewind()
             positions.forEach {
-                write(radius.toFloat())
                 write(Vector3(it.x, it.y, 0.0))
+                write(radius.toFloat())
             }
         }
         instanceAttributes.shadow.uploadElements(0, positions.size)
@@ -96,8 +96,8 @@ class CircleDrawer {
         instanceAttributes.shadow.writer().apply {
             rewind()
             circles.forEach {
-                write(it.radius.toFloat())
                 write(Vector3(it.center.x, it.center.y, 0.0))
+                write(it.radius.toFloat())
             }
         }
         instanceAttributes.shadow.uploadElements(0, circles.size)
@@ -109,8 +109,8 @@ class CircleDrawer {
         assertInstanceSize(1)
         instanceAttributes.shadow.writer().apply {
             rewind()
-            write(radius.toFloat())
             write(Vector3(x, y, 0.0))
+            write(radius.toFloat())
         }
         instanceAttributes.shadow.uploadElements(0, 1)
         drawCircles(drawContext, drawStyle, 1)
