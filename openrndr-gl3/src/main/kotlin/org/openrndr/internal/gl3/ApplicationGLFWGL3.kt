@@ -524,6 +524,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         logger.debug { "opengl version: ${glGetString(GL_VERSION)}" }
 
         println("OpenGL vendor: ${glGetString(GL_VENDOR)}")
+        println("OpenGL renderer: ${glGetString(GL_RENDERER)}")
         println("OpenGL version: ${glGetString(GL_VERSION)}")
 
         if (configuration.hideCursor) {
