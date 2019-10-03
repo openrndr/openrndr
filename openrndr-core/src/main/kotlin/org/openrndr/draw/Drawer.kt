@@ -68,6 +68,7 @@ class Drawer(val driver: Driver) {
     private var rectangleDrawer = RectangleDrawer()
     private var vertexBufferDrawer = VertexBufferDrawer()
     private var circleDrawer = CircleDrawer()
+    private var pointDrawer = PointDrawer()
     private var imageDrawer = ImageDrawer()
     private var fastLineDrawer = PerformanceLineDrawer()
     private val meshLineDrawer by lazy { MeshLineDrawer() }
@@ -304,6 +305,11 @@ class Drawer(val driver: Driver) {
 
     fun rectangles(rectangles: List<Rectangle>) {
         rectangleDrawer.drawRectangles(context, drawStyle, rectangles)
+    }
+
+
+    fun point(x:Double, y:Double, z:Double = 0.0) {
+        pointDrawer.drawPoint(context, drawStyle, x, y, z)
     }
 
     fun circle(x: Double, y: Double, radius: Double) {

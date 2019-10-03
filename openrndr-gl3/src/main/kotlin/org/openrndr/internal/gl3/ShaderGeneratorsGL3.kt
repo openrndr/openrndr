@@ -12,6 +12,7 @@ private fun primitiveTypes(type: String) = """
 #define d_expansion 5
 #define d_fast_line 6
 #define d_mesh_line 7
+#define d_point 8
 #define d_primitive $type
 """
 
@@ -296,8 +297,63 @@ void main() {
 }
 """
 
+    override fun pointFragmentShader(shadeStructure: ShadeStructure): String = """#version 330 core
+${primitiveTypes("d_circle")}
+${shadeStructure.uniforms ?: ""}
+layout(origin_upper_left) in vec4 gl_FragCoord;
 
-    override fun circleFragmentShader(shadeStructure: ShadeStructure): String = """#version 330 core
+$drawerUniforms
+${shadeStructure.varyingIn ?: ""}
+${transformVaryingIn}
+
+${if (!shadeStructure.suppressDefaultOutput) "out vec4 o_color;" else ""}
+flat in int v_instance;
+in vec3 v_boundsSize;
+void main(void) {
+    ${fragmentConstants(boundsPosition = "vec3(0.0, 0.0, 0.0)",
+            boundsSize = "v_boundsSize")}
+
+    vec4 x_fill = u_fill;
+    vec4 x_stroke = u_stroke;
+    {
+        ${shadeStructure.fragmentTransform ?: ""}
+    }
+    ${if (!shadeStructure.suppressDefaultOutput) "o_color = x_fill;" else ""}
+}
+
+    """.trimMargin()
+
+    override fun pointVertexShader(shadeStructure: ShadeStructure): String = """#version 330 core
+${primitiveTypes("d_point")}
+$drawerUniforms
+${shadeStructure.attributes ?: ""}
+${shadeStructure.uniforms ?: ""}
+${shadeStructure.varyingOut ?: ""}
+${transformVaryingOut}
+flat out int v_instance;
+out vec3 v_boundsSize;
+void main() {
+    v_instance = gl_InstanceID;
+    ${vertexConstants()}
+    ${shadeStructure.varyingBridge ?: ""}
+
+    v_boundsSize = vec3(0, 0.0, 0.0);
+    ${preTransform}
+    vec3 x_normal = vec3(0.0, 0.0, 1.0);
+    vec3 x_position = a_position  + i_offset;
+    {
+        ${shadeStructure.vertexTransform ?: ""}
+    }
+    va_position = x_position;
+    ${postTransform}
+    gl_Position = v_clipPosition;
+}
+    """
+
+
+
+
+override fun circleFragmentShader(shadeStructure: ShadeStructure): String = """#version 330 core
 ${primitiveTypes("d_circle")}
 ${shadeStructure.uniforms ?: ""}
 layout(origin_upper_left) in vec4 gl_FragCoord;
