@@ -19,7 +19,6 @@ import kotlin.concurrent.thread
 
 private val logger = KotlinLogging.logger {}
 
-
 internal data class CodecInfo(val video: VideoInfo?, val audio: AudioInfo?) {
     val hasVideo = video != null
     val hasAudio = audio != null
@@ -35,7 +34,6 @@ internal fun Int.checkAVError() {
 internal val flushPacket = AVPacket().apply {
     data(BytePointer("FLUSH"))
 }
-
 
 internal class Decoder(val statistics: VideoStatistics,
                        val configuration: VideoPlayerConfiguration,
@@ -60,11 +58,8 @@ internal class Decoder(val statistics: VideoStatistics,
 
             val videoContext = videoStream?.openCodec("videoDecoder")
             val audioContext = audioStream?.openCodec("audio")
-
-
             var hwType = AV_HWDEVICE_TYPE_NONE
             if (configuration.useHardwareDecoding && videoContext != null) {
-
                 val preferedHW = when (Platform.type) {
                     PlatformType.WINDOWS -> arrayListOf(AV_HWDEVICE_TYPE_D3D11VA, AV_HWDEVICE_TYPE_DXVA2, AV_HWDEVICE_TYPE_QSV)
                     PlatformType.MAC -> arrayListOf(AV_HWDEVICE_TYPE_VIDEOTOOLBOX)
@@ -85,11 +80,10 @@ internal class Decoder(val statistics: VideoStatistics,
                         .maxBy { it.second }
                         ?.first ?: AV_HWDEVICE_TYPE_NONE
 
-
                 if (hwType != AV_HWDEVICE_TYPE_NONE) {
                     val hwContextPtr = PointerPointer<AVHWDeviceContext>(1)
                     val name = av_hwdevice_get_type_name(hwType).getString()
-                    println("creating hw device context (type: $name)")
+                    logger.debug { "creating hw device context (type: $name)" }
                     av_hwdevice_ctx_create(hwContextPtr, hwType, null, null, 0).checkAVError()
                     val hwContext = AVHWDeviceContext(hwContextPtr[0])
                     videoContext.hw_device_ctx(av_buffer_ref(AVBufferRef(hwContext)))
@@ -104,7 +98,6 @@ internal class Decoder(val statistics: VideoStatistics,
             val audio = audioContext?.run {
                 AudioInfo(sample_rate(), channels())
             }
-
             return Pair(Decoder(statistics, configuration, context, videoStreamIndex, audioStreamIndex, videoContext, audioContext, hwType), CodecInfo(video, audio))
         }
     }
@@ -142,15 +135,10 @@ internal class Decoder(val statistics: VideoStatistics,
         videoDecoder?.flushQueue()
         audioDecoder?.flushQueue()
         packetReader?.flushQueue()
-        logger.debug {
-            "seeking to frame 0"
-        }
-
-
-
-
+        logger.debug {"seeking to frame 0" }
         av_seek_frame(formatContext, -1, formatContext.start_time(), 0)
     }
+
     private var needFlush = false
     private var seekRequested = true
     private var seekPosition:Double = 0.0
@@ -158,7 +146,6 @@ internal class Decoder(val statistics: VideoStatistics,
         seekPosition = positionInSeconds
         seekRequested = true
     }
-
 
     fun done() = (packetReader?.endOfFile == true) && (packetReader?.isQueueEmpty() == true)  && (videoDecoder?.isQueueEmpty() ?: true)
 
@@ -173,11 +160,11 @@ internal class Decoder(val statistics: VideoStatistics,
             (videoDecoder?.needMoreFrames() ?: false)
 
     fun decodeIfNeeded() {
-
         if (seekRequested) {
             videoDecoder?.flushQueue()
             audioDecoder?.flushQueue()
             packetReader?.flushQueue()
+
             logger.debug {
                 "seeking to frame 0"
             }
@@ -187,7 +174,6 @@ internal class Decoder(val statistics: VideoStatistics,
             seekRequested = false
             Thread.sleep(5)
         }
-
 
         if (videoDecoder?.isQueueAlmostFull() == true) {
             println("video queue is almost full")
