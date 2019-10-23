@@ -124,13 +124,18 @@ class VideoPlayerConfiguration {
     var realtimeBufferSize = -1L
 }
 
-class VideoPlayerFFMPEG private constructor(private val file: AVFile, val mode: PlayMode = PlayMode.VIDEO, val configuration: VideoPlayerConfiguration) {
+class VideoPlayerFFMPEG private constructor(
+        private val file: AVFile,
+        private val mode: PlayMode = PlayMode.VIDEO,
+        private val audioOut: AudioQueueSource? = null,
+        private val configuration: VideoPlayerConfiguration) {
 
     companion object {
         fun fromFile(fileName: String, mode: PlayMode = PlayMode.VIDEO, configuration: VideoPlayerConfiguration = VideoPlayerConfiguration()): VideoPlayerFFMPEG {
             av_log_set_level(AV_LOG_ERROR)
             val file = AVFile(configuration, fileName, mode)
-            return VideoPlayerFFMPEG(file, mode, configuration)
+            val audioOut = if (mode.useAudio) AudioSystem.createQueueSource() else null
+            return VideoPlayerFFMPEG(file, mode, audioOut, configuration)
         }
 
         fun fromDevice(deviceName: String = defaultDevice(), mode: PlayMode = PlayMode.VIDEO, frameRate: Double? = null, imageWidth: Int? = null, imageHeight: Int? = null, configuration: VideoPlayerConfiguration = VideoPlayerConfiguration()): VideoPlayerFFMPEG {
@@ -140,9 +145,8 @@ class VideoPlayerFFMPEG private constructor(private val file: AVFile, val mode: 
                 PlatformType.MAC -> "avfoundation"
                 PlatformType.GENERIC -> "video4linux2"
             }
-
             val file = AVFile(configuration, deviceName, mode, format, frameRate, imageWidth, imageHeight)
-            return VideoPlayerFFMPEG(file, mode, configuration)
+            return VideoPlayerFFMPEG(file, mode, null, configuration)
         }
 
         fun defaultDevice(): String {
@@ -171,6 +175,7 @@ class VideoPlayerFFMPEG private constructor(private val file: AVFile, val mode: 
     var ignoreTimeStamps = false
     var adjustPosition = true
     var lastTimeStamp = -1.0
+
 
     val newFrame = Event<FrameEvent>()
     val ended = Event<VideoEvent>()
@@ -204,16 +209,19 @@ class VideoPlayerFFMPEG private constructor(private val file: AVFile, val mode: 
         playOffsetSeconds = 0.0
         firstFrame = true
         decoder?.restart()
+        audioOut?.flush()
     }
 
-    fun seek(positionInSeconds:Double) {
+    fun seek(positionInSeconds: Double) {
         playOffsetSeconds = 0.0
         firstFrame = true
+        audioOut?.flush()
         decoder?.seek(positionInSeconds)
     }
 
     var originalMode = false
     var lastFrame = System.currentTimeMillis()
+
     fun update(block: Boolean = false) {
         logger.debug { "update" }
         var gotFrame = false
@@ -226,7 +234,6 @@ class VideoPlayerFFMPEG private constructor(private val file: AVFile, val mode: 
 
                 val frameDelta = 1000 / frameRate
                 info?.video.let {
-
                     val playTimeSeconds = (System.currentTimeMillis() - startTimeMillis) / 1000.0 + playOffsetSeconds
                     val peekFrame = decoder?.peekNextVideoFrame()
 
@@ -279,7 +286,7 @@ class VideoPlayerFFMPEG private constructor(private val file: AVFile, val mode: 
                         runBlocking {
                             if (decoder?.done() == true) {
                                 logger.debug { "decoder is done" }
-    }
+                            }
                         }
                     }
                     if (peekFrame == null && (decoder?.done() == true)) {
@@ -291,7 +298,6 @@ class VideoPlayerFFMPEG private constructor(private val file: AVFile, val mode: 
             } else {
                 gotFrame = true
             }
-
             if (block) {
                 Thread.sleep(10)
             }
