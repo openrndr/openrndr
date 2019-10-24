@@ -18,6 +18,7 @@ import org.openrndr.draw.Drawer
 import org.openrndr.events.Event
 import org.openrndr.platform.Platform
 import org.openrndr.platform.PlatformType
+import java.nio.ByteBuffer
 import kotlin.concurrent.thread
 
 private val logger = KotlinLogging.logger {}
@@ -113,7 +114,6 @@ class VideoStatistics {
     var videoBytesReceived = 0L
     var videoDecodeDuration = 0L
     var videoLastFrame = System.currentTimeMillis()
-    var playPositionAdjustments = 0L
 }
 
 class VideoPlayerConfiguration {
@@ -127,15 +127,13 @@ class VideoPlayerConfiguration {
 class VideoPlayerFFMPEG private constructor(
         private val file: AVFile,
         private val mode: PlayMode = PlayMode.VIDEO,
-        private val audioOut: AudioQueueSource? = null,
         private val configuration: VideoPlayerConfiguration) {
 
     companion object {
-        fun fromFile(fileName: String, mode: PlayMode = PlayMode.VIDEO, configuration: VideoPlayerConfiguration = VideoPlayerConfiguration()): VideoPlayerFFMPEG {
+        fun fromFile(fileName: String, mode: PlayMode = PlayMode.BOTH, configuration: VideoPlayerConfiguration = VideoPlayerConfiguration()): VideoPlayerFFMPEG {
             av_log_set_level(AV_LOG_ERROR)
             val file = AVFile(configuration, fileName, mode)
-            val audioOut = if (mode.useAudio) AudioSystem.createQueueSource() else null
-            return VideoPlayerFFMPEG(file, mode, audioOut, configuration)
+            return VideoPlayerFFMPEG(file, mode, configuration)
         }
 
         fun fromDevice(deviceName: String = defaultDevice(), mode: PlayMode = PlayMode.VIDEO, frameRate: Double? = null, imageWidth: Int? = null, imageHeight: Int? = null, configuration: VideoPlayerConfiguration = VideoPlayerConfiguration()): VideoPlayerFFMPEG {
@@ -146,7 +144,7 @@ class VideoPlayerFFMPEG private constructor(
                 PlatformType.GENERIC -> "video4linux2"
             }
             val file = AVFile(configuration, deviceName, mode, format, frameRate, imageWidth, imageHeight)
-            return VideoPlayerFFMPEG(file, mode, null, configuration)
+            return VideoPlayerFFMPEG(file, mode, configuration)
         }
 
         fun defaultDevice(): String {
@@ -173,13 +171,11 @@ class VideoPlayerFFMPEG private constructor(
     private var firstFrame = true
     private var playOffsetSeconds = 0.0
     var ignoreTimeStamps = false
-    var adjustPosition = true
     var lastTimeStamp = -1.0
-
 
     val newFrame = Event<FrameEvent>()
     val ended = Event<VideoEvent>()
-
+    private var audioOut: AudioQueueSource? = null
     fun play() {
         logger.debug { "start play" }
         file.dumpFormat()
@@ -198,10 +194,28 @@ class VideoPlayerFFMPEG private constructor(
         val videoOutput = VideoOutput(info.video?.size ?: TODO(), AV_PIX_FMT_RGB32)
         val audioOutput = AudioOutput(44100, 2, SampleFormat.S16)
 
+        if (mode.useAudio) {
+            audioOut = AudioSystem.createQueueSource {
+                val frame = decoder.nextAudioFrame()
+                if (frame != null) {
+                    val data = frame.buffer.data()
+                    data.capacity(frame.size.toLong())
+                    val bb = ByteBuffer.allocateDirect(frame.size)
+                    bb.put(data.asByteBuffer())
+                    bb.rewind()
+                    val ad = AudioData(buffer=bb)
+                    frame.unref()
+                    ad
+                } else {
+                    null
+                }
+            }
+            audioOut?.play()
+        }
+
         thread(isDaemon = true) {
             decoder.start(videoOutput.toVideoDecoderOutput(), audioOutput.toAudioDecoderOutput())
         }
-
         startTimeMillis = System.currentTimeMillis()
     }
 
@@ -219,55 +233,19 @@ class VideoPlayerFFMPEG private constructor(
         decoder?.seek(positionInSeconds)
     }
 
-    var originalMode = false
     var lastFrame = System.currentTimeMillis()
 
     fun update(block: Boolean = false) {
-        logger.debug { "update" }
         var gotFrame = false
-
         var count = 0
         do {
-
             if (state == State.PLAYING) {
                 val frameRate = (info?.video?.fps) ?: 30.0
-
                 val frameDelta = 1000 / frameRate
                 info?.video.let {
-                    val playTimeSeconds = (System.currentTimeMillis() - startTimeMillis) / 1000.0 + playOffsetSeconds
                     val peekFrame = decoder?.peekNextVideoFrame()
-
-                    if (originalMode) {
-                        if (firstFrame && peekFrame != null) {
-                            if (peekFrame.timeStamp > playTimeSeconds) {
-                                playOffsetSeconds += peekFrame.timeStamp - playTimeSeconds
-                                logger.debug { "first frame and queue is ahead: adjusting time offset: $playOffsetSeconds" }
-                            }
-                            firstFrame = false
-                        }
-
-                        if (adjustPosition && peekFrame != null && peekFrame.timeStamp - playTimeSeconds > 5.0 / frameRate) {
-                            logger.debug { "${peekFrame.timeStamp}  ${playTimeSeconds}" }
-                            playOffsetSeconds += peekFrame.timeStamp - playTimeSeconds
-                            logger.debug { "queue is 5 frames ahead: adjusting time offset: $playOffsetSeconds" }
-                        }
-
-                        if (peekFrame == null && !firstFrame) {
-                            if (!ignoreTimeStamps)
-                                logger.debug { "oh no ran out buffered frames" }
-                            firstFrame = true
-                        }
-
-                        if (peekFrame != null && playTimeSeconds > peekFrame.timeStamp + 5.0 / frameRate) {
-                            logger.debug { "ahead of queue.. $playTimeSeconds ${peekFrame.timeStamp}" }
-                            playOffsetSeconds += peekFrame.timeStamp - playTimeSeconds
-                            statistics.playPositionAdjustments++
-                        }
-                    }
-
                     val delta = System.currentTimeMillis() - lastFrame
-                    if (peekFrame != null && (ignoreTimeStamps || (!originalMode && delta > frameDelta) || (originalMode && playTimeSeconds >= (peekFrame?.timeStamp
-                                    ?: Double.POSITIVE_INFINITY)))) {
+                    if (peekFrame != null && (ignoreTimeStamps || (delta >= frameDelta))) {
                         lastFrame = System.currentTimeMillis()
                         gotFrame = true
                         statistics.videoLastFrame = System.currentTimeMillis()
@@ -303,7 +281,6 @@ class VideoPlayerFFMPEG private constructor(
             }
         } while (block && !gotFrame)
     }
-
     fun draw(drawer: Drawer) {
         update()
         colorBuffer?.let {

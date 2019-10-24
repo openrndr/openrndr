@@ -11,7 +11,6 @@ import org.bytedeco.ffmpeg.global.swresample.*
 import org.bytedeco.javacpp.IntPointer
 import org.bytedeco.javacpp.Pointer.memcpy
 
-
 internal enum class SampleFormat {
     INVALID,
     S16
@@ -51,7 +50,7 @@ internal class AudioDecoder(
     private val resampledAudioFrame = av_frame_alloc()
     private val resampleContext = swr_alloc()
 
-    private val audioQueue = Queue<AudioFrame>(100)
+    private val audioQueue = Queue<AudioFrame>(400)
 
     private val minAudioFrames = 2
     private val maxAudioFrames = 5
@@ -72,6 +71,7 @@ internal class AudioDecoder(
             setResampleOpt("in_sample_fmt", sample_fmt().toLong())
             setResampleOpt("out_sample_fmt", output.sampleFormat)
         }
+        println("rates: ${audioCodecContext.sample_rate()}  ${output.sampleRate.toLong()}")
         swr_init(resampleContext)
     }
 
@@ -98,6 +98,12 @@ internal class AudioDecoder(
             frame.position += realSize
             result
         }
+    }
+
+    fun nextFrame(): AudioFrame? {
+        println("audio queue size: ${audioQueue.size()}")
+
+        return audioQueue.popOrNull()
     }
 
     fun flushQueue() {

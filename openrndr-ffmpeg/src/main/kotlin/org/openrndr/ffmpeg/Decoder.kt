@@ -157,7 +157,7 @@ internal class Decoder(val statistics: VideoStatistics,
     }
 
     fun needMoreFrames(): Boolean =
-            (videoDecoder?.needMoreFrames() ?: false)
+            (videoDecoder?.needMoreFrames() ?: false) || (audioDecoder?.needMoreFrames()?:false)
 
     fun decodeIfNeeded() {
         if (seekRequested) {
@@ -191,12 +191,9 @@ internal class Decoder(val statistics: VideoStatistics,
             videoDecoder?.flushBuffers()
         }
 
-
         while (needMoreFrames()) {
-
             val packet = if (packetReader != null) packetReader?.nextPacket() else av_packet_alloc()
             av_read_frame(formatContext, packet)
-            if (packet != null )
 
             if (packet != null) {
                 when (packet.stream_index()) {
@@ -223,6 +220,10 @@ internal class Decoder(val statistics: VideoStatistics,
 
     fun nextVideoFrame(): VideoFrame? {
         return videoDecoder?.nextFrame()
+    }
+
+    fun nextAudioFrame(): AudioFrame? {
+        return audioDecoder?.nextFrame()
     }
 
     fun videoQueueSize(): Int {

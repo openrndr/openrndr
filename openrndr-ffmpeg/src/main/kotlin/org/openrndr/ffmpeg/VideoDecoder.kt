@@ -16,7 +16,7 @@ import java.nio.DoubleBuffer
 private val logger = KotlinLogging.logger {}
 
 private fun Int.toAVPixelFormat(): Int =
-        avutil.AV_PIX_FMT_BGR32
+        AV_PIX_FMT_BGR32
 
 internal data class VideoOutput(val size: Dimensions, val pixelFormat: Int)
 
@@ -61,17 +61,15 @@ internal class VideoDecoder(
     private val hwPixFmt = hwType.pixFmtForHWType()
     private var softwareScalingContext: SwsContext? = null
 
-    private val scaledFrameSize = avutil.av_image_get_buffer_size(avPixelFormat, windowSize.w, windowSize.h, 1)
-    private val imagePointer = arrayOf(BytePointer(avutil.av_malloc(scaledFrameSize.toLong())).capacity(scaledFrameSize.toLong()))
+    private val scaledFrameSize = av_image_get_buffer_size(avPixelFormat, windowSize.w, windowSize.h, 1)
+    private val imagePointer = arrayOf(BytePointer(av_malloc(scaledFrameSize.toLong())).capacity(scaledFrameSize.toLong()))
     private val videoQueue = Queue<VideoFrame>(configuration.videoFrameQueueSize * 2)
     private val minVideoFrames = configuration.videoFrameQueueSize
-
-
 
     private var videoTime = 0.0
 
     init {
-        avutil.av_image_fill_arrays(PointerPointer<AVFrame>(scaledVideoFrame), scaledVideoFrame.linesize(), imagePointer[0], avPixelFormat, windowSize.w, windowSize.h, 1)
+        av_image_fill_arrays(PointerPointer<AVFrame>(scaledVideoFrame), scaledVideoFrame.linesize(), imagePointer[0], avPixelFormat, windowSize.w, windowSize.h, 1)
     }
 
     fun dispose() {
@@ -82,25 +80,18 @@ internal class VideoDecoder(
     fun isQueueEmpty() = videoQueue.isEmpty()
     fun isQueueAlmostFull() = videoQueue.size() > videoQueue.maxSize - 2
     fun needMoreFrames() = videoQueue.size() < minVideoFrames
-
     fun peekNextFrame() = videoQueue.peek()
-
     fun nextFrame() = videoQueue.popOrNull()
 
     fun flushQueue() {
         while (!videoQueue.isEmpty()) videoQueue.pop().unref()
-
     }
 
     fun flushBuffers() {
         avcodec_flush_buffers(videoCodecContext)
     }
 
-    var lowestTimeStamp = Long.MAX_VALUE
     fun decodeVideoPacket(packet: AVPacket) {
-
-
-
         val start = System.currentTimeMillis()
         val framerate = av_q2d(videoCodecContext.framerate()).let {
             if (it == 0.0) 30.0 else it
@@ -114,13 +105,12 @@ internal class VideoDecoder(
             return
         }
 
-
         while (ret >= 0) {
             val decodedFrame = av_frame_alloc()
             ret = avcodec_receive_frame(videoCodecContext, decodedFrame)
             decodedFrame.pts(decodedFrame.best_effort_timestamp())
 
-            if (ret == avutil.AVERROR_EAGAIN()) {
+            if (ret == AVERROR_EAGAIN()) {
                 av_frame_free(decodedFrame)
                 break
             }
@@ -128,7 +118,6 @@ internal class VideoDecoder(
             if (ret == 0) {
                 val transferredFrame = av_frame_alloc()
                 val resultFrame: AVFrame
-
                 if (decodedFrame.format() == hwPixFmt) {
                     ret = av_hwframe_transfer_data(transferredFrame, decodedFrame, 0)
                     ret.checkAVError()
@@ -145,20 +134,17 @@ internal class VideoDecoder(
                             swscale.SWS_BILINEAR, null as SwsFilter?, null as SwsFilter?, null as DoubleBuffer?)
                 }
 
-                val buffer = avutil.av_buffer_alloc(scaledFrameSize)
+                val buffer = av_buffer_alloc(scaledFrameSize)
 
                 swscale.sws_scale(softwareScalingContext, resultFrame.data(),
                         resultFrame.linesize(), 0, resultFrame.height(),
                         scaledVideoFrame.data(), scaledVideoFrame.linesize())
 
-                lowestTimeStamp = Math.min(lowestTimeStamp, decodedFrame.pts())
-
                 Pointer.memcpy(buffer.data(), scaledVideoFrame.data()[0], scaledFrameSize.toLong())
                 videoQueue.push(VideoFrame(buffer, scaledVideoFrame.linesize()[0], videoTime, scaledFrameSize))
                 videoTime += 1.0/framerate
-
-                statistics.videoQueueSize = videoQueue.size()
                 av_frame_free(transferredFrame)
+                statistics.videoQueueSize = videoQueue.size()
                 statistics.videoFramesDecoded += 1
             } else {
                 statistics.videoFrameErrors += 1

@@ -55,7 +55,7 @@ class AudioData(val format: Int = AL11.AL_FORMAT_STEREO16, val rate: Int = 44100
 }
 
 class AudioQueueSource(val source: Int, val bufferCount: Int = 4, val pullFunction: (() -> AudioData?)? = null) {
-    internal val inputQueue = Queue<AudioData>(2)
+    internal val inputQueue = Queue<AudioData>(20)
     internal var queued = 0
     internal var outputQueue = mutableListOf<Pair<Int, Int>>()
 
@@ -112,6 +112,10 @@ class AudioQueueSource(val source: Int, val bufferCount: Int = 4, val pullFuncti
                     outputQueue.add(Pair(buffer.buffer, data.buffer.capacity() / 4))
                     AL11.alSourceQueueBuffers(source, buffer.buffer)
                     queued++
+                }
+
+                if (queued == 0 && inputQueue.size() == 0) {
+                    println("no audio data to play")
                 }
 
                 if (!playing && queued > 0) {
