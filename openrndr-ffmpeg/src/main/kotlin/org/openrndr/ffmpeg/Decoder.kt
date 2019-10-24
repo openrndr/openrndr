@@ -120,14 +120,13 @@ internal class Decoder(val statistics: VideoStatistics,
 
         if (configuration.usePacketReaderThread) {
             packetReader = PacketReader(configuration, formatContext, statistics)
-
             thread(isDaemon = true) {
                 packetReader?.start()
             }
         }
         while (!disposed) {
             decodeIfNeeded()
-            Thread.sleep(1)
+            Thread.sleep(0)
         }
     }
 
@@ -189,26 +188,24 @@ internal class Decoder(val statistics: VideoStatistics,
         if (needFlush) {
             needFlush = false
             videoDecoder?.flushBuffers()
+            audioDecoder?.flushBuffers()
         }
 
         while (needMoreFrames()) {
             val packet = if (packetReader != null) packetReader?.nextPacket() else av_packet_alloc()
             av_read_frame(formatContext, packet)
-
             if (packet != null) {
                 when (packet.stream_index()) {
                     videoStreamIndex -> videoDecoder?.decodeVideoPacket(packet)
                     audioStreamIndex -> audioDecoder?.decodeAudioPacket(packet)
                 }
-                //println("got frame ${videoQueueSize()}")
                 av_packet_unref(packet)
             } else {
                 if (packetReader?.endOfFile == true) {
-                    //println("end of file")
                     Thread.sleep(10)
-                }else {
+                } else {
+                    logger.debug { "more frames are needed but none are received" }
                     Thread.sleep(1)
-                    //println("I need more frames but got none")
                 }
             }
         }
@@ -229,4 +226,11 @@ internal class Decoder(val statistics: VideoStatistics,
     fun videoQueueSize(): Int {
         return videoDecoder?.queueCount() ?: 0
     }
+
+    fun audioQueueSize(): Int {
+        return audioDecoder?.queueCount() ?: 0
+    }
+
+
+    fun audioVideoSynced() = (audioDecoder?.isSynced() ?: true) || done()
 }

@@ -63,8 +63,8 @@ internal class VideoDecoder(
 
     private val scaledFrameSize = av_image_get_buffer_size(avPixelFormat, windowSize.w, windowSize.h, 1)
     private val imagePointer = arrayOf(BytePointer(av_malloc(scaledFrameSize.toLong())).capacity(scaledFrameSize.toLong()))
-    private val videoQueue = Queue<VideoFrame>(configuration.videoFrameQueueSize * 2)
-    private val minVideoFrames = configuration.videoFrameQueueSize
+    private val videoQueue = Queue<VideoFrame>(100)
+    private val minVideoFrames = 5 //configuration.videoFrameQueueSize
 
     private var videoTime = 0.0
 
@@ -78,7 +78,7 @@ internal class VideoDecoder(
 
     fun queueCount() = videoQueue.size()
     fun isQueueEmpty() = videoQueue.isEmpty()
-    fun isQueueAlmostFull() = videoQueue.size() > videoQueue.maxSize - 2
+    fun isQueueAlmostFull() = videoQueue.size() > videoQueue.maxSize - 20
     fun needMoreFrames() = videoQueue.size() < minVideoFrames
     fun peekNextFrame() = videoQueue.peek()
     fun nextFrame() = videoQueue.popOrNull()
@@ -101,7 +101,8 @@ internal class VideoDecoder(
         statistics.videoBytesReceived += packet.size()
 
         if (ret < 0) {
-            logger.debug { "error in avcodec_send_packet" }
+            if (ret != AVERROR_EOF)
+            logger.debug { "error in avcodec_send_packet: $ret" }
             return
         }
 

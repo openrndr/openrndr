@@ -52,8 +52,8 @@ internal class AudioDecoder(
 
     private val audioQueue = Queue<AudioFrame>(400)
 
-    private val minAudioFrames = 2
-    private val maxAudioFrames = 5
+    private val minAudioFrames = 3
+    private val maxAudioFrames = 90
 
     init {
         with(resampledAudioFrame) {
@@ -101,13 +101,17 @@ internal class AudioDecoder(
     }
 
     fun nextFrame(): AudioFrame? {
-        println("audio queue size: ${audioQueue.size()}")
-
         return audioQueue.popOrNull()
     }
 
+    fun queueCount() = audioQueue.size()
+
     fun flushQueue() {
         while (!audioQueue.isEmpty()) audioQueue.pop().unref()
+    }
+
+    fun flushBuffers() {
+        avcodec.avcodec_flush_buffers(audioCodecContext)
     }
 
     fun decodeAudioPacket(packet: AVPacket) {

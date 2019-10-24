@@ -120,7 +120,7 @@ class VideoPlayerConfiguration {
     var videoFrameQueueSize = 50
     var packetQueueSize = 2500
     var useHardwareDecoding = true
-    var usePacketReaderThread = true
+    var usePacketReaderThread = false
     var realtimeBufferSize = -1L
 }
 
@@ -128,6 +128,13 @@ class VideoPlayerFFMPEG private constructor(
         private val file: AVFile,
         private val mode: PlayMode = PlayMode.VIDEO,
         private val configuration: VideoPlayerConfiguration) {
+
+
+    var lastFrameTime = 0.0
+
+    fun getTime(): Double {
+        return System.currentTimeMillis() / 1000.0
+    }
 
     companion object {
         fun fromFile(fileName: String, mode: PlayMode = PlayMode.BOTH, configuration: VideoPlayerConfiguration = VideoPlayerConfiguration()): VideoPlayerFFMPEG {
@@ -171,7 +178,6 @@ class VideoPlayerFFMPEG private constructor(
     private var firstFrame = true
     private var playOffsetSeconds = 0.0
     var ignoreTimeStamps = false
-    var lastTimeStamp = -1.0
 
     val newFrame = Event<FrameEvent>()
     val ended = Event<VideoEvent>()
@@ -192,10 +198,11 @@ class VideoPlayerFFMPEG private constructor(
             }
         }
         val videoOutput = VideoOutput(info.video?.size ?: TODO(), AV_PIX_FMT_RGB32)
-        val audioOutput = AudioOutput(44100, 2, SampleFormat.S16)
+        val audioOutput = AudioOutput(48000, 2, SampleFormat.S16)
 
         if (mode.useAudio) {
             audioOut = AudioSystem.createQueueSource {
+//                logger.debug { "vq: ${decoder?.videoQueueSize()}, aq: ${decoder?.audioQueueSize()}" }
                 val frame = decoder.nextAudioFrame()
                 if (frame != null) {
                     val data = frame.buffer.data()
@@ -203,7 +210,7 @@ class VideoPlayerFFMPEG private constructor(
                     val bb = ByteBuffer.allocateDirect(frame.size)
                     bb.put(data.asByteBuffer())
                     bb.rewind()
-                    val ad = AudioData(buffer=bb)
+                    val ad = AudioData(buffer = bb)
                     frame.unref()
                     ad
                 } else {
@@ -233,44 +240,53 @@ class VideoPlayerFFMPEG private constructor(
         decoder?.seek(positionInSeconds)
     }
 
-    var lastFrame = System.currentTimeMillis()
 
     fun update(block: Boolean = false) {
+        val now = getTime()
+
+        //logger.debug { "vq:${decoder?.videoQueueSize()}, aq:${decoder?.audioQueueSize()}" }
+
+        require(info != null)
+        require(info?.video != null)
         var gotFrame = false
         var count = 0
         do {
             if (state == State.PLAYING) {
-                val frameRate = (info?.video?.fps) ?: 30.0
-                val frameDelta = 1000 / frameRate
-                info?.video.let {
-                    val peekFrame = decoder?.peekNextVideoFrame()
-                    val delta = System.currentTimeMillis() - lastFrame
-                    if (peekFrame != null && (ignoreTimeStamps || (delta >= frameDelta))) {
-                        lastFrame = System.currentTimeMillis()
-                        gotFrame = true
-                        statistics.videoLastFrame = System.currentTimeMillis()
-                        statistics.videoQueueSize = decoder?.videoQueueSize() ?: 0
-                        val frame = decoder?.nextVideoFrame()
-                        frame?.let {
-                            val delta = frame.timeStamp - lastTimeStamp
-                            lastTimeStamp = frame.timeStamp
-                            colorBuffer?.write(it.buffer.data().capacity(frame.frameSize.toLong()).asByteBuffer())
-                            it.unref()
+                val frameDuration = 1.0 / 60.0// (info?.video?.fps ?: 30.0)
 
-                            newFrame.trigger(FrameEvent(colorBuffer
-                                    ?: throw IllegalStateException("colorBuffer == null"), peekFrame?.timeStamp
-                                    ?: -1.0))
-                        }
-                        runBlocking {
+                info?.video.let {
+                    if (lastFrameTime == 0.0) {
+                        lastFrameTime = now
+                    }
+
+                    val passedTime = now - lastFrameTime
+                    val frames = Math.round(passedTime/frameDuration).toInt()
+
+                    for (f in 0 until frames) {
+                        val peekFrame = decoder?.peekNextVideoFrame()
+                        if (decoder?.audioVideoSynced()==true && peekFrame != null && (passedTime >= frameDuration)) {
+                            lastFrameTime = now
+                            gotFrame = true
+                            statistics.videoLastFrame = System.currentTimeMillis()
+                            statistics.videoQueueSize = decoder?.videoQueueSize() ?: 0
+                            val frame = decoder?.nextVideoFrame()
+                            frame?.let {
+                                colorBuffer?.write(it.buffer.data().capacity(frame.frameSize.toLong()).asByteBuffer())
+                                it.unref()
+                                newFrame.trigger(FrameEvent(colorBuffer
+                                        ?: throw IllegalStateException("colorBuffer == null"), peekFrame.timeStamp))
+                            }
                             if (decoder?.done() == true) {
                                 logger.debug { "decoder is done" }
                             }
                         }
-                    }
-                    if (peekFrame == null && (decoder?.done() == true)) {
-                        logger.debug { "video ended" }
-                        gotFrame = true
-                        ended.trigger(VideoEvent())
+
+
+                        if (peekFrame == null && (decoder?.done() == true)) {
+                            logger.debug { "video ended" }
+                            gotFrame = true
+                            ended.trigger(VideoEvent())
+                        }
                     }
                 }
             } else {
@@ -288,7 +304,6 @@ class VideoPlayerFFMPEG private constructor(
         }
     }
 }
-
 internal fun AVFormatContext.streamAt(index: Int): AVStream? =
         if (index < 0) null
         else this.streams(index)
@@ -299,7 +314,6 @@ internal val AVFormatContext.codecs: List<AVCodecParameters?>
 internal fun AVStream.openCodec(tag: String): AVCodecContext {
     // Get codec context for the video stream.
     val codecPar = this.codecpar()
-
     val codec = avcodec_find_decoder(codecPar.codec_id())
     if (codec.isNull)
         throw Error("Unsupported $tag codec with id ${codecPar.codec_id()}...")
