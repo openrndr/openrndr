@@ -2,6 +2,7 @@ package org.openrndr.ffmpeg
 
 import mu.KotlinLogging
 import org.lwjgl.openal.AL
+import org.lwjgl.openal.AL10.AL_GAIN
 import org.lwjgl.openal.AL10.AL_PITCH
 import org.lwjgl.openal.AL11
 import org.lwjgl.openal.ALC
@@ -69,6 +70,12 @@ class AudioQueueSource(val source: Int, val bufferCount: Int = 2, val pullFuncti
 
     val sampleOffset: Long
         get() = bufferOffset + AL11.alGetSourcei(source, AL11.AL_SAMPLE_OFFSET)
+
+    var gain: Double = 1.0
+        set(value: Double) {
+            AL11.alSourcef(source, AL_GAIN, value.toFloat())
+            field = value
+        }
 
     fun play() {
         val startBufferCount = min(bufferCount, inputQueue.size())

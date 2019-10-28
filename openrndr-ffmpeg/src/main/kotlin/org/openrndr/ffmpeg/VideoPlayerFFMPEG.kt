@@ -129,12 +129,12 @@ class VideoPlayerFFMPEG private constructor(
         private val mode: PlayMode = PlayMode.VIDEO,
         private val configuration: VideoPlayerConfiguration) {
 
-
     var lastFrameTime = 0.0
-
     fun getTime(): Double {
         return System.currentTimeMillis() / 1000.0
     }
+
+    private val displayQueue = Queue<VideoFrame>(100)
 
     companion object {
         fun fromFile(fileName: String, mode: PlayMode = PlayMode.BOTH, configuration: VideoPlayerConfiguration = VideoPlayerConfiguration()): VideoPlayerFFMPEG {
@@ -175,13 +175,21 @@ class VideoPlayerFFMPEG private constructor(
     private var state = State.PLAYING
     private var startTimeMillis = -1L
     var colorBuffer: ColorBuffer? = null
-    private var firstFrame = true
-    private var playOffsetSeconds = 0.0
-    var ignoreTimeStamps = false
 
     val newFrame = Event<FrameEvent>()
     val ended = Event<VideoEvent>()
     private var audioOut: AudioQueueSource? = null
+
+    var audioGain: Double
+        set(value: Double) {
+            audioOut?.let {
+                it.gain = value
+            }
+        }
+        get() {
+            return audioOut?.gain ?: 1.0
+        }
+
     fun play() {
         logger.debug { "start play" }
         file.dumpFormat()
@@ -197,12 +205,11 @@ class VideoPlayerFFMPEG private constructor(
                 flipV = true
             }
         }
-        val videoOutput = VideoOutput(info.video?.size ?: TODO(), AV_PIX_FMT_RGB32)
+        val videoOutput = VideoOutput(info.video?.size ?: Dimensions(0,0), AV_PIX_FMT_RGB32)
         val audioOutput = AudioOutput(48000, 2, SampleFormat.S16)
 
         if (mode.useAudio) {
             audioOut = AudioSystem.createQueueSource {
-//                logger.debug { "vq: ${decoder?.videoQueueSize()}, aq: ${decoder?.audioQueueSize()}" }
                 val frame = decoder.nextAudioFrame()
                 if (frame != null) {
                     val data = frame.buffer.data()
@@ -224,86 +231,60 @@ class VideoPlayerFFMPEG private constructor(
             decoder.start(videoOutput.toVideoDecoderOutput(), audioOutput.toAudioDecoderOutput())
         }
         startTimeMillis = System.currentTimeMillis()
+
+        if (mode.useVideo) {
+            thread(isDaemon = false) {
+                var nextFrame = 0.0
+                while (true) {
+                    val duration = (info.video?.fps ?: 1.0)
+
+                    val now = getTime()
+                    if (now - nextFrame > duration * 2) {
+                        nextFrame = now
+                    }
+                    if (now >= nextFrame) {
+                        val frame = decoder.nextVideoFrame()
+                        if (frame != null) {
+                            nextFrame += 1.0 / duration
+                            displayQueue.push(frame)
+                        }
+                    }
+                    Thread.sleep(3)
+                }
+            }
+        }
     }
 
     fun restart() {
-        playOffsetSeconds = 0.0
-        firstFrame = true
+        while (!displayQueue.isEmpty()) {
+            displayQueue.pop().unref()
+        }
         decoder?.restart()
         audioOut?.flush()
     }
 
     fun seek(positionInSeconds: Double) {
-        playOffsetSeconds = 0.0
-        firstFrame = true
+        while (!displayQueue.isEmpty()) {
+            displayQueue.pop().unref()
+        }
         audioOut?.flush()
         decoder?.seek(positionInSeconds)
     }
 
-
-    fun update(block: Boolean = false) {
-        val now = getTime()
-
-        //logger.debug { "vq:${decoder?.videoQueueSize()}, aq:${decoder?.audioQueueSize()}" }
-
-        require(info != null)
-        require(info?.video != null)
-        var gotFrame = false
-        var count = 0
-        do {
-            if (state == State.PLAYING) {
-                val frameDuration = 1.0 / 60.0// (info?.video?.fps ?: 30.0)
-
-                info?.video.let {
-                    if (lastFrameTime == 0.0) {
-                        lastFrameTime = now
-                    }
-
-                    val passedTime = now - lastFrameTime
-                    val frames = Math.round(passedTime/frameDuration).toInt()
-
-                    for (f in 0 until frames) {
-                        val peekFrame = decoder?.peekNextVideoFrame()
-                        if (decoder?.audioVideoSynced()==true && peekFrame != null && (passedTime >= frameDuration)) {
-                            lastFrameTime = now
-                            gotFrame = true
-                            statistics.videoLastFrame = System.currentTimeMillis()
-                            statistics.videoQueueSize = decoder?.videoQueueSize() ?: 0
-                            val frame = decoder?.nextVideoFrame()
-                            frame?.let {
-                                colorBuffer?.write(it.buffer.data().capacity(frame.frameSize.toLong()).asByteBuffer())
-                                it.unref()
-                                newFrame.trigger(FrameEvent(colorBuffer
-                                        ?: throw IllegalStateException("colorBuffer == null"), peekFrame.timeStamp))
-                            }
-                            if (decoder?.done() == true) {
-                                logger.debug { "decoder is done" }
-                            }
-                        }
-
-
-                        if (peekFrame == null && (decoder?.done() == true)) {
-                            logger.debug { "video ended" }
-                            gotFrame = true
-                            ended.trigger(VideoEvent())
-                        }
-                    }
-                }
-            } else {
-                gotFrame = true
-            }
-            if (block) {
-                Thread.sleep(10)
-            }
-        } while (block && !gotFrame)
-    }
     fun draw(drawer: Drawer) {
-        update()
+        val frame = displayQueue.peek()
+        if (frame != null) {
+            displayQueue.pop()
+            colorBuffer?.write(frame.buffer.data().capacity(frame.frameSize.toLong()).asByteBuffer())
+            frame.unref()
+        }
+
         colorBuffer?.let {
             drawer.image(it)
         }
     }
 }
+
 internal fun AVFormatContext.streamAt(index: Int): AVStream? =
         if (index < 0) null
         else this.streams(index)
