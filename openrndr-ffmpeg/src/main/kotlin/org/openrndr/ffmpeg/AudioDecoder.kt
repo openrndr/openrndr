@@ -1,15 +1,24 @@
 package org.openrndr.ffmpeg
 
+import mu.KotlinLogging
 import org.bytedeco.ffmpeg.avcodec.AVCodecContext
 import org.bytedeco.ffmpeg.avcodec.AVPacket
 import org.bytedeco.ffmpeg.avutil.AVBufferRef
+import org.bytedeco.ffmpeg.avutil.AVFrame
 import org.bytedeco.ffmpeg.global.avcodec
 import org.bytedeco.ffmpeg.global.avcodec.avcodec_decode_audio4
 import org.bytedeco.ffmpeg.global.avutil
 import org.bytedeco.ffmpeg.global.avutil.*
 import org.bytedeco.ffmpeg.global.swresample.*
+import org.bytedeco.ffmpeg.global.swscale
+import org.bytedeco.ffmpeg.swresample.SwrContext
+import org.bytedeco.ffmpeg.swscale.SwsFilter
 import org.bytedeco.javacpp.IntPointer
+import org.bytedeco.javacpp.Pointer
 import org.bytedeco.javacpp.Pointer.memcpy
+import java.nio.DoubleBuffer
+
+private val logger = KotlinLogging.logger {}
 
 internal enum class SampleFormat {
     INVALID,
@@ -21,7 +30,6 @@ internal data class AudioOutput(val sampleRate: Int, val channels: Int, val samp
 
 internal fun AudioOutput.toAudioDecoderOutput(): AudioDecoderOutput? {
     val avSampleFormat = sampleFormat.toAVSampleFormat() ?: return null
-    if (channels != 2) return null // only stereo output is supported for now
     return AudioDecoderOutput(sampleRate, channels, AV_CH_LAYOUT_STEREO, avSampleFormat)
 }
 
@@ -47,8 +55,8 @@ internal class AudioDecoder(
         output: AudioDecoderOutput
 ) {
     private val audioFrame = av_frame_alloc()
-    private val resampledAudioFrame = av_frame_alloc()
-    private val resampleContext = swr_alloc()
+
+    private val resampleContext: SwrContext
 
     private val audioQueue = Queue<AudioFrame>(400)
 
@@ -56,27 +64,42 @@ internal class AudioDecoder(
     private val maxAudioFrames = 90
 
     init {
-        with(resampledAudioFrame) {
-            channels(output.channels)
-            sample_rate(output.sampleRate)
-            format(output.sampleFormat.toInt())
-            channel_layout(output.channelLayout)
-        }
+//        with(resampledAudioFrame) {
+//            channels(output.channels)
+//            sample_rate(output.sampleRate)
+//            format(output.sampleFormat.toInt())
+//            channel_layout(output.channelLayout)
+//        }
 
-        with(audioCodecContext) {
-            setResampleOpt("in_channel_layout", channel_layout())
-            setResampleOpt("out_channel_layout", output.channelLayout)
-            setResampleOpt("in_sample_rate", sample_rate().toLong())
-            setResampleOpt("out_sample_rate", output.sampleRate.toLong())
-            setResampleOpt("in_sample_fmt", sample_fmt().toLong())
-            setResampleOpt("out_sample_fmt", output.sampleFormat)
-        }
-        println("rates: ${audioCodecContext.sample_rate()}  ${output.sampleRate.toLong()}")
-        swr_init(resampleContext)
+//        val fmt = AV_SAMPLE_FMT_S32
+//
+//        println("channel layout: ${audioCodecContext.channel_layout()}")
+//        println("channels: ${audioCodecContext.channels()}")
+//        println("sample format: ${audioCodecContext.sample_fmt()}")
+//        println("sample rate: ${audioCodecContext.sample_rate()}")
+//
+//        with(audioCodecContext) {
+//            setResampleOpt("in_channel_count", audioCodecContext.channels().toLong())
+//            setResampleOpt("out_channel_count", output.channels.toLong())
+//            setResampleOpt("in_sample_rate", sample_rate().toLong())
+//            setResampleOpt("out_sample_rate", output.sampleRate.toLong())
+//            setResampleFmt("in_sample_fmt", sample_fmt())
+//            setResampleFmt("out_sample_fmt", output.sampleFormat.toInt())
+//        }
+//        println("rates: ${audioCodecContext.sample_rate()}  ${output.sampleRate.toLong()}")
+
+        resampleContext = swr_alloc_set_opts(null, AV_CH_LAYOUT_STEREO, AV_SAMPLE_FMT_S16, 48000,
+                AV_CH_LAYOUT_STEREO, audioCodecContext.sample_fmt(), audioCodecContext.sample_rate(), 0, null)
+
+        swr_init(resampleContext).checkAVError()
     }
 
     private fun setResampleOpt(name: String, value: Long) =
             av_opt_set_int(resampleContext, name, value, 0)
+
+    private fun setResampleFmt(name: String, value: Int) =
+            av_opt_set_sample_fmt(resampleContext, name, value, 0)
+
 
     fun dispose() {
         while (!audioQueue.isEmpty()) audioQueue.pop().unref()
@@ -114,13 +137,76 @@ internal class AudioDecoder(
         avcodec.avcodec_flush_buffers(audioCodecContext)
     }
 
+    var first = 0
     fun decodeAudioPacket(packet: AVPacket) {
         val frameFinished = IntArray(1)
         while (packet.size() > 0) {
             val size = avcodec_decode_audio4(audioCodecContext, audioFrame, frameFinished, packet)
+//
+//            var ret = avcodec.avcodec_send_packet(audioCodecContext, packet)
+//
+//            if (ret < 0) {
+//                if (ret != AVERROR_EOF)
+//                    logger.debug { "error in avcodec_send_packet: $ret" }
+//                return
+//            }
+//
+//            while (ret >= 0) {
+//                val decodedFrame = av_frame_alloc()
+//                ret = avcodec.avcodec_receive_frame(audioCodecContext, decodedFrame)
+//                decodedFrame.pts(decodedFrame.best_effort_timestamp())
+//
+//                if (ret == AVERROR_EAGAIN()) {
+//                    av_frame_free(decodedFrame)
+//                    break
+//                }
+//
+//                if (ret == 0) {
+//                    println("channel layout ${decodedFrame.channel_layout()}")
+//                    println("channels ${decodedFrame.channels()}")
+//                    println("format ${decodedFrame.format()}")
+//                    println("rate ${decodedFrame.sample_rate()}")
+//
+////                    resampledAudioFrame.sample_rate(48000)
+////                    resampledAudioFrame.format(2)
+////                    resampledAudioFrame.channels(2)
+//
+//                    swr_config_frame(resampleContext, resampledAudioFrame, decodedFrame)
+//                    val result = swr_convert_frame(resampleContext, resampledAudioFrame, decodedFrame)
+//                    if (result == 0) {
+//                        with(resampledAudioFrame) {
+//                            val audioFrameSize = av_samples_get_buffer_size(null as IntPointer?, channels(), nb_samples(), format(), 1)
+//                            val buffer = av_buffer_alloc(audioFrameSize)!!
+//                            val ts = (audioFrame.best_effort_timestamp()) * av_q2d(audioCodecContext.time_base())
+//                            memcpy(buffer.data(), data()[0], audioFrameSize.toLong())
+//                            audioQueue.push(AudioFrame(buffer, 0, audioFrameSize, ts))
+//                        }
+//                    } else println("there was an error: $result")
+//                    result.checkAVError()
+//
+//                }
+//                av_frame_free(decodedFrame)
+//            }
+
+
             if (frameFinished[0] != 0) {
                 // Put audio frame to decoder's queue.
-                swr_convert_frame(resampleContext, resampledAudioFrame, audioFrame).checkAVError()
+
+                val resampledAudioFrame = av_frame_alloc()
+                with(resampledAudioFrame) {
+                                channels(2)
+            sample_rate(48000)
+            format(AV_SAMPLE_FMT_S16)
+            channel_layout(AV_CH_LAYOUT_STEREO)
+        }
+
+
+
+                    swr_config_frame(resampleContext, resampledAudioFrame, audioFrame)
+
+
+                swr_convert_frame(resampleContext, resampledAudioFrame, audioFrame)
+
                 with(resampledAudioFrame) {
                     val audioFrameSize = av_samples_get_buffer_size(null as IntPointer?, channels(), nb_samples(), format(), 1)
                     val buffer = av_buffer_alloc(audioFrameSize)!!
@@ -128,9 +214,13 @@ internal class AudioDecoder(
                     memcpy(buffer.data(), data()[0], audioFrameSize.toLong())
                     audioQueue.push(AudioFrame(buffer, 0, audioFrameSize, ts))
                 }
+                av_frame_free(resampledAudioFrame)
+
             }
             packet.size(packet.size() - size)
             packet.data(packet.data().position(size.toLong()))
+
+
         }
     }
 }
