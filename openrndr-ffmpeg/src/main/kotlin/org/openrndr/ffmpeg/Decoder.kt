@@ -183,8 +183,6 @@ internal class Decoder(val statistics: VideoStatistics,
             return
         }
 
-        //val packet = av_packet_alloc()
-
         if (needFlush) {
             needFlush = false
             videoDecoder?.flushBuffers()

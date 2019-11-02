@@ -83,9 +83,11 @@ class AudioQueueSource(val source: Int, val bufferCount: Int = 2, val pullFuncti
             val data = inputQueue.pop()
             val buffer = data.createBuffer()
             AL11.alSourcef(source, AL_PITCH, 1.0f)
-            AL11.alSourceQueueBuffers(source, buffer.buffer)
-            outputQueue.add(Pair(buffer.buffer, data.buffer.capacity() / 4))
-            queued++
+            synchronized(outputQueue) {
+                AL11.alSourceQueueBuffers(source, buffer.buffer)
+                outputQueue.add(Pair(buffer.buffer, data.buffer.capacity() / 4))
+                queued++
+            }
         }
 
         AL11.alSourcePlay(source)
@@ -108,11 +110,13 @@ class AudioQueueSource(val source: Int, val bufferCount: Int = 2, val pullFuncti
                 queued = queued.coerceAtLeast(0)
                 for (i in 0 until buffersProcessed) {
                     val unqueue = AL11.alSourceUnqueueBuffers(source)
-                    if (outputQueue.isNotEmpty()) {
-                        AL11.alDeleteBuffers(unqueue)
-                        if (unqueue == outputQueue[0].first) {
-                            bufferOffset += outputQueue[0].second
-                            outputQueue.removeAt(0)
+                    synchronized(outputQueue) {
+                        if (outputQueue.isNotEmpty()) {
+                            AL11.alDeleteBuffers(unqueue)
+                            if (unqueue == outputQueue[0].first) {
+                                bufferOffset += outputQueue[0].second
+                                outputQueue.removeAt(0)
+                            }
                         }
                     }
                 }
@@ -121,9 +125,11 @@ class AudioQueueSource(val source: Int, val bufferCount: Int = 2, val pullFuncti
                     //logger.debug { "filling buffers: ${queued}" }
                     val data = inputQueue.pop()
                     val buffer = data.createBuffer()
-                    outputQueue.add(Pair(buffer.buffer, data.buffer.capacity() / 4))
-                    AL11.alSourceQueueBuffers(source, buffer.buffer)
-                    queued++
+                    synchronized(outputQueue) {
+                        outputQueue.add(Pair(buffer.buffer, data.buffer.capacity() / 4))
+                        AL11.alSourceQueueBuffers(source, buffer.buffer)
+                        queued++
+                    }
                 }
 
 //                if (queued == 0 && inputQueue.size() == 0) {
@@ -142,13 +148,17 @@ class AudioQueueSource(val source: Int, val bufferCount: Int = 2, val pullFuncti
     fun flush() {
         while (!inputQueue.isEmpty()) inputQueue.pop()
         AL11.alSourceStop(source)
-        AL11.alSourcePlay(source)
-        for (i in outputQueue) {
-            AL11.alDeleteBuffers(i.first)
+
+        synchronized(outputQueue) {
+            for (i in outputQueue) {
+                AL11.alDeleteBuffers(i.first)
+            }
+
+            outputQueue.clear()
         }
-        outputQueue.clear()
         bufferOffset = 0
         queued = 0
+        AL11.alSourcePlay(source)
     }
 }
 
