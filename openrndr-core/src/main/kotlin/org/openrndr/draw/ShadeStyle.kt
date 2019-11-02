@@ -29,96 +29,90 @@ class ShadeStyle {
         this.outputs.putAll(other.outputs)
     }
 
-    fun parameter(name: String, value: Cubemap): ShadeStyle {
-        parameterValues.put(name, value)
-        parameters.put(name, "Cubemap")
-        return this
+    fun parameter(name: String, value: Cubemap) {
+        parameterValues[name] = value
+        parameters[name] = "Cubemap"
     }
 
-    fun parameter(name: String, value: Int): ShadeStyle {
-        parameterValues.put(name, value)
-        parameters.put(name, "int")
-        return this
+    fun parameter(name: String, value: Int) {
+        parameterValues[name] = value
+        parameters[name] = "int"
     }
 
     fun parameter(name: String, value: Matrix33) {
-        parameterValues.put(name, value)
-        parameters.put(name, "Matrix33")
+        parameterValues[name] = value
+        parameters[name] = "Matrix33"
     }
 
-    fun parameter(name: String, value: Matrix44): ShadeStyle {
-        parameterValues.put(name, value)
-        parameters.put(name, "Matrix44")
-        return this
+    fun parameter(name: String, value: Matrix44) {
+        parameterValues[name] = value
+        parameters[name] = "Matrix44"
     }
 
-    fun parameter(name: String, value: Float): ShadeStyle {
-        parameterValues.put(name, value)
-        parameters.put(name, "float")
-        return this
+    fun parameter(name: String, value: Float) {
+        parameterValues[name] = value
+        parameters[name] = "float"
     }
 
-    fun parameter(name: String, value: Double): ShadeStyle {
-        parameterValues.put(name, value.toFloat())
-        parameters.put(name, "float")
-        return this
+    fun parameter(name: String, value: Double) {
+        parameterValues[name] = value.toFloat()
+        parameters[name] = "float"
     }
 
-    fun parameter(name: String, value: Vector2): ShadeStyle {
-        parameterValues.put(name, value)
-        parameters.put(name, "Vector2")
-        return this
+    fun parameter(name: String, value: Vector2) {
+        parameterValues[name] = value
+        parameters[name] = "Vector2"
     }
 
-    fun parameter(name: String, value: Vector3): ShadeStyle {
-        parameterValues.put(name, value)
-        parameters.put(name, "Vector3")
-        return this
+    fun parameter(name: String, value: Vector3) {
+        parameterValues[name] = value
+        parameters[name] = "Vector3"
     }
 
-    fun parameter(name: String, value: Vector4): ShadeStyle {
-        parameterValues.put(name, value)
-        parameters.put(name, "Vector4")
-        return this
+    fun parameter(name: String, value: Vector4) {
+        parameterValues[name] = value
+        parameters[name] = "Vector4"
     }
 
-    fun parameter(name: String, value: ColorRGBa): ShadeStyle {
-        parameterValues.put(name, value)
-        parameters.put(name, "ColorRGBa")
-        return this
+    fun parameter(name: String, value: ColorRGBa) {
+        parameterValues[name] = value
+        parameters[name] = "ColorRGBa"
     }
 
-    fun parameter(name: String, value: ColorBuffer): ShadeStyle {
-        parameterValues.put(name, value)
-        parameters.put(name, "ColorBuffer")
-        return this
+    fun parameter(name: String, value: ColorBuffer) {
+        parameterValues[name] = value
+        parameters[name] = when (value.type.colorSampling) {
+            ColorSampling.UNSIGNED_INTEGER -> "ColorBuffer_UINT"
+            ColorSampling.SIGNED_INTEGER -> "ColorBuffer_SINT"
+            else -> "ColorBuffer"
+        }
     }
 
-    fun parameter(name: String, value: DepthBuffer): ShadeStyle {
-        parameterValues.put(name, value)
-        parameters.put(name, "DepthBuffer")
-        return this
+    fun parameter(name: String, value: DepthBuffer) {
+        parameterValues[name] = value
+        parameters[name] = "DepthBuffer"
     }
 
-    fun parameter(name: String, value: ArrayTexture): ShadeStyle {
-        parameterValues.put(name, value)
-        parameters.put(name, "ArrayTexture")
-        return this
+    fun parameter(name: String, value: ArrayTexture) {
+        parameterValues[name] = value
+        parameters[name] = when (value.type.colorSampling) {
+            ColorSampling.UNSIGNED_INTEGER -> "ArrayTexture_UINT"
+            ColorSampling.SIGNED_INTEGER -> "ArrayTexture_SINT"
+            else -> "ArrayTexture"
+        }
     }
 
 
-    fun parameter(name: String, value: BufferTexture): ShadeStyle {
-        parameterValues.put(name, value)
-        parameters.put(name, "BufferTexture")
-        return this
+    fun parameter(name: String, value: BufferTexture) {
+        parameterValues[name] = value
+        parameters[name] = "BufferTexture"
     }
 
-    fun output(name: String, slot: Int): ShadeStyle {
-        outputs.put(name, slot)
-        return this
+    fun output(name: String, slot: Int) {
+        outputs[name] = slot
     }
 
-    fun attributes(attributesBuffer:VertexBuffer) {
+    fun attributes(attributesBuffer: VertexBuffer) {
         attributes.add(attributesBuffer)
     }
 

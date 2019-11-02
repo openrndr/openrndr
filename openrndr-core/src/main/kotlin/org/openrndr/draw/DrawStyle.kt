@@ -114,9 +114,19 @@ enum class ColorFormat {
         }
 }
 
+enum class ColorSampling {
+    NORMALIZED,
+    UNSIGNED_INTEGER,
+    SIGNED_INTEGER
+}
+
 enum class ColorType {
     UINT8,
     UINT16,
+    UINT8_INT,
+    UINT16_INT,
+    SINT8_INT,
+    SINT16_INT,
     FLOAT16,
     FLOAT32,
     DXT1,
@@ -126,11 +136,19 @@ enum class ColorType {
     BPTC_FLOAT,
     BPTC_UFLOAT;
 
+    val colorSampling: ColorSampling
+        get() {
+            return when (this) {
+                UINT8_INT, UINT16_INT -> ColorSampling.UNSIGNED_INTEGER
+                else -> ColorSampling.NORMALIZED
+            }
+        }
+
     val componentSize: Int
         get() {
             return when (this) {
-                UINT8 -> 1
-                UINT16, FLOAT16 -> 2
+                UINT8, UINT8_INT, SINT8_INT -> 1
+                UINT16, UINT16_INT, SINT16_INT, FLOAT16 -> 2
                 FLOAT32 -> 4
                 DXT1, DXT3, DXT5,
                 BPTC_UNORM, BPTC_FLOAT, BPTC_UFLOAT -> throw RuntimeException("component size of compressed types cannot be queried")

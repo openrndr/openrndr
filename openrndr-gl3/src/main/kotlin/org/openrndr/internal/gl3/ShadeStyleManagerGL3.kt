@@ -18,7 +18,7 @@ class ShadeStyleManagerGL3(val vertexShaderGenerator: (ShadeStructure) -> String
         if (style == null) {
             if (defaultShader == null) {
                 logger.debug { "creating default shader" }
-                val structure = structureFromShadeTyle(style, vertexFormats, instanceFormats)
+                val structure = structureFromShadeStyle(style, vertexFormats, instanceFormats)
                 defaultShader = Shader.createFromCode(vertexShaderGenerator(structure), fragmentShaderGenerator(structure))
                 Session.active.untrack(defaultShader!!)
             }
@@ -26,7 +26,7 @@ class ShadeStyleManagerGL3(val vertexShaderGenerator: (ShadeStructure) -> String
             return defaultShader!!
 
         } else {
-            val structure = structureFromShadeTyle(style, vertexFormats, instanceFormats)
+            val structure = structureFromShadeStyle(style, vertexFormats, instanceFormats)
             val shader = shaders.getOrPut(structure) {
                 try {
                     Shader.createFromCode(vertexShaderGenerator(structure), fragmentShaderGenerator(structure))
