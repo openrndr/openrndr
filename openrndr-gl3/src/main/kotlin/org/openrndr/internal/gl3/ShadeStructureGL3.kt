@@ -4,7 +4,7 @@ import org.openrndr.draw.*
 
 fun array(item: VertexElement): String = if (item.arraySize == 1) "" else "[${item.arraySize}]"
 
-fun structureFromShadeTyle(shadeStyle: ShadeStyle?, vertexFormats: List<VertexFormat>, instanceAttributeFormats: List<VertexFormat>): ShadeStructure {
+fun structureFromShadeStyle(shadeStyle: ShadeStyle?, vertexFormats: List<VertexFormat>, instanceAttributeFormats: List<VertexFormat>): ShadeStructure {
     return ShadeStructure().apply {
         if (shadeStyle != null) {
             vertexTransform = shadeStyle.vertexTransform
@@ -39,9 +39,13 @@ private fun mapType(type: String): String {
         "ColorRGBa" -> "vec4"
         "BufferTexture" -> "samplerBuffer"
         "ColorBuffer" -> "sampler2D"
+        "ColorBuffer_UINT" -> "usampler2D"
+        "ColorBuffer_SINT" -> "isampler2D"
         "DepthBuffer" -> "sampler2D"
         "Cubemap" -> "samplerCube"
         "ArrayTexture" -> "sampler2DArray"
+        "ArrayTexture_UINT" -> "usampler2DArray"
+        "ArrayTexture_SINT" -> "isampler2DArray"
         else -> throw RuntimeException("unsupported type $type")
     }
 }

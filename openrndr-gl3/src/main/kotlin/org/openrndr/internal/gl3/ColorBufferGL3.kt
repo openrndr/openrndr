@@ -26,23 +26,37 @@ private val logger = KotlinLogging.logger {}
 internal fun internalFormat(format: ColorFormat, type: ColorType): Int {
     val entries = arrayOf(
             ConversionEntry(ColorFormat.R, ColorType.UINT8, GL_R8),
+            ConversionEntry(ColorFormat.R, ColorType.UINT8_INT, GL_R8UI),
+            ConversionEntry(ColorFormat.R, ColorType.SINT8_INT, GL_R8I),
             ConversionEntry(ColorFormat.R, ColorType.UINT16, GL_R16),
+            ConversionEntry(ColorFormat.R, ColorType.UINT16_INT, GL_R16UI),
+            ConversionEntry(ColorFormat.R, ColorType.SINT16_INT, GL_RG16I),
             ConversionEntry(ColorFormat.R, ColorType.FLOAT16, GL_R16F),
             ConversionEntry(ColorFormat.R, ColorType.FLOAT32, GL_R32F),
             ConversionEntry(ColorFormat.RG, ColorType.UINT8, GL_RG8),
+            ConversionEntry(ColorFormat.RG, ColorType.UINT8_INT, GL_RG8UI),
+            ConversionEntry(ColorFormat.RG, ColorType.SINT16_INT, GL_RG16I),
             ConversionEntry(ColorFormat.RG, ColorType.UINT16, GL_RG16),
+            ConversionEntry(ColorFormat.RG, ColorType.UINT16_INT, GL_RG16UI),
             ConversionEntry(ColorFormat.RG, ColorType.FLOAT16, GL_RG16F),
             ConversionEntry(ColorFormat.RG, ColorType.FLOAT32, GL_RG32F),
             ConversionEntry(ColorFormat.RGB, ColorType.UINT8, GL_RGB8),
+            ConversionEntry(ColorFormat.RGB, ColorType.UINT8, GL_RGB8UI),
             ConversionEntry(ColorFormat.RGB, ColorType.UINT16, GL_RGB16),
+            ConversionEntry(ColorFormat.RGB, ColorType.UINT16_INT, GL_RGB16UI),
+            ConversionEntry(ColorFormat.RGB, ColorType.SINT16_INT, GL_RGB16I),
             ConversionEntry(ColorFormat.RGB, ColorType.FLOAT16, GL_RGB16F),
             ConversionEntry(ColorFormat.RGB, ColorType.FLOAT32, GL_RGB32F),
             ConversionEntry(ColorFormat.BGR, ColorType.UINT8, GL_RGB8),
             ConversionEntry(ColorFormat.RGBa, ColorType.UINT8, GL_RGBA8),
+            ConversionEntry(ColorFormat.RGBa, ColorType.UINT8_INT, GL_RGBA8UI),
             ConversionEntry(ColorFormat.RGBa, ColorType.UINT16, GL_RGBA16),
+            ConversionEntry(ColorFormat.RGBa, ColorType.UINT16_INT, GL_RGBA16UI),
+            ConversionEntry(ColorFormat.RGBa, ColorType.SINT16_INT, GL_RGBA16I),
             ConversionEntry(ColorFormat.RGBa, ColorType.FLOAT16, GL_RGBA16F),
             ConversionEntry(ColorFormat.RGBa, ColorType.FLOAT32, GL_RGBA32F),
             ConversionEntry(ColorFormat.R, ColorType.UINT8, GL_R8),
+            ConversionEntry(ColorFormat.R, ColorType.FLOAT16, GL_R16F),
             ConversionEntry(ColorFormat.R, ColorType.FLOAT16, GL_R16F),
             ConversionEntry(ColorFormat.R, ColorType.FLOAT32, GL_R32F),
             ConversionEntry(ColorFormat.sRGB, ColorType.UINT8, GL_SRGB8),
@@ -60,14 +74,11 @@ internal fun internalFormat(format: ColorFormat, type: ColorType): Int {
             ConversionEntry(ColorFormat.RGB, ColorType.BPTC_FLOAT, GL_COMPRESSED_RGB_BPTC_SIGNED_FLOAT_ARB),
             ConversionEntry(ColorFormat.RGB, ColorType.BPTC_UFLOAT, GL_COMPRESSED_RGB_BPTC_UNSIGNED_FLOAT_ARB)
     )
-
-
     for (entry in entries) {
         if (entry.format === format && entry.type === type) {
             return entry.glFormat
         }
     }
-
     throw Exception("no conversion entry for $format/$type")
 }
 
@@ -462,9 +473,6 @@ class ColorBufferShadowGL3(override val colorBuffer: ColorBufferGL3) : ColorBuff
     override fun writer(): BufferWriter {
         return BufferWriterGL3(buffer)
     }
-
-
-
 }
 
 private val IntProgression.size: Int
@@ -472,9 +480,7 @@ private val IntProgression.size: Int
         return 1 + (this.last - this.first) / this.step
     }
 
-
 class ColorBufferDataGL3(val width: Int, val height: Int, val format: ColorFormat, val type: ColorType, var data: ByteBuffer?) {
-
     fun destroy() {
         val localData = data
         if (localData != null) {
@@ -563,7 +569,6 @@ class ColorBufferDataGL3(val width: Int, val height: Int, val format: ColorForma
             buffer.put(byteArray)
             (buffer as Buffer).rewind()
             return fromByteBuffer(buffer, filename)
-
         }
     }
 }
@@ -579,12 +584,7 @@ class ColorBufferGL3(val target: Int,
                      override val multisample: BufferMultisample) : ColorBuffer {
 
     private var destroyed = false
-    internal var realFlipV: Boolean = false
-    override var flipV: Boolean
-        get() = realFlipV
-        set(value) {
-            realFlipV = value
-        }
+    override var flipV: Boolean = false
 
     internal fun format() : Int {
         return internalFormat(format, type)
@@ -640,7 +640,6 @@ class ColorBufferGL3(val target: Int,
                 data.destroy()
                 glFlush()
                 glFinish()
-
             }
         }
 
@@ -675,11 +674,7 @@ class ColorBufferGL3(val target: Int,
 
             when (multisample) {
                 Disabled ->
-                    //when (type.compressed) {
                     glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, effectiveWidth, effectiveHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullBB)
-//                        true -> GL13C.glCompressedTexImage2D(GL_TEXTURE_2D, 0, internalFormat, effectiveWidth, effectiveHeight, 0, nullBB)
-//                    }
-
                 is SampleCount -> glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, multisample.sampleCount.coerceAtMost(glGetInteger(GL_MAX_COLOR_TEXTURE_SAMPLES)), internalFormat, effectiveWidth, effectiveHeight, true)
             }
 
@@ -877,9 +872,6 @@ class ColorBufferGL3(val target: Int,
 
     var realShadow: ColorBufferShadow? = null
 
-
-
-
     override fun write(buffer: ByteBuffer, sourceFormat: ColorFormat, sourceType: ColorType) {
         checkDestroyed()
         if (!buffer.isDirect) {
@@ -987,7 +979,6 @@ class ColorBufferGL3(val target: Int,
         }
     }
 
-
     override fun destroy() {
         glDeleteTextures(texture)
         destroyed = true
@@ -1053,8 +1044,10 @@ internal fun ColorFormat.glFormat(): Int {
 
 internal fun ColorType.glType(): Int {
     return when (this) {
-        ColorType.UINT8 -> GL_UNSIGNED_BYTE
-        ColorType.UINT16 -> GL_UNSIGNED_SHORT
+        ColorType.UINT8, ColorType.UINT8_INT -> GL_UNSIGNED_BYTE
+        ColorType.SINT8_INT -> GL_BYTE
+        ColorType.UINT16, ColorType.UINT16_INT -> GL_UNSIGNED_SHORT
+        ColorType.SINT16_INT -> GL_SHORT
         ColorType.FLOAT16 -> GL_HALF_FLOAT
         ColorType.FLOAT32 -> GL_FLOAT
         ColorType.DXT1, ColorType.DXT3, ColorType.DXT5,
