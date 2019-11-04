@@ -8,10 +8,10 @@ class Delinearize : Filter(Shader.createFromCode(Filter.filterVertexCode, filter
 class ColorMix : Filter(Shader.createFromCode(Filter.filterVertexCode, filterFragmentCode("color/color-mix.frag")))
 class HybridLogGamma : Filter(Shader.createFromCode(Filter.filterVertexCode, filterFragmentCode("color/hybrid-log-gamma.frag")))
 
-class ColorLookup(lookup:ColorBuffer) : Filter(Shader.createFromCode(Filter.filterVertexCode, filterFragmentCode("color/color-lookup.frag"))) {
-    var lookup:ColorBuffer by parameters
-    var noiseGain:Double by parameters
-    var seed:Double by parameters
+class ColorLookup(lookup: ColorBuffer) : Filter(Shader.createFromCode(Filter.filterVertexCode, filterFragmentCode("color/color-lookup.frag"))) {
+    var lookup: ColorBuffer by parameters
+    var noiseGain: Double by parameters
+    var seed: Double by parameters
 
     init {
         this.lookup = lookup
@@ -25,6 +25,6 @@ class ColorLookup(lookup:ColorBuffer) : Filter(Shader.createFromCode(Filter.filt
     }
 }
 
-val hybridLogGamma by lazy { HybridLogGamma() }
-val delinearize by lazy { Delinearize() }
-val linearize by lazy { Linearize() }
+val hybridLogGamma by lazy { HybridLogGamma().apply { untrack() } }
+val delinearize by lazy { Delinearize().apply { untrack() } }
+val linearize by lazy { Linearize().apply { untrack() } }

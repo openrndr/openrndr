@@ -16,11 +16,11 @@ class Screen : Filter(Shader.createFromCode(Filter.filterVertexCode, filterFragm
 
 class MultiplyContrast : Filter(Shader.createFromCode(Filter.filterVertexCode, filterFragmentCode("blend/multiply-contrast.frag")))
 
-class Passthrough: Filter(Shader.createFromCode(Filter.filterVertexCode, filterFragmentCode("blend/passthrough.frag")))
-class Add: Filter(Shader.createFromCode(Filter.filterVertexCode, filterFragmentCode("blend/add.frag")))
-class Subtract: Filter(Shader.createFromCode(Filter.filterVertexCode, filterFragmentCode("blend/subtract.frag")))
+class Passthrough : Filter(Shader.createFromCode(Filter.filterVertexCode, filterFragmentCode("blend/passthrough.frag")))
+class Add : Filter(Shader.createFromCode(Filter.filterVertexCode, filterFragmentCode("blend/add.frag")))
+class Subtract : Filter(Shader.createFromCode(Filter.filterVertexCode, filterFragmentCode("blend/subtract.frag")))
 
-val multiply: Filter by lazy { Multiply() }
-val passthrough: Passthrough by lazy { Passthrough() }
-val add:Add by lazy { Add() }
-val subtract:Subtract by lazy { Subtract() }
+val multiply: Multiply by lazy { Multiply().apply { untrack() } }
+val passthrough: Passthrough by lazy { Passthrough().apply { untrack() } }
+val add: Add by lazy { Add().apply { untrack() } }
+val subtract: Subtract by lazy { Subtract().apply { untrack() } }

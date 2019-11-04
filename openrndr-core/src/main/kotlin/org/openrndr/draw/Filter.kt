@@ -146,4 +146,8 @@ open class Filter(private val shader: Shader? = null, private val watcher: Shade
     fun apply(source: ColorBuffer, target: ColorBuffer) = apply(arrayOf(source), arrayOf(target))
     fun apply(source: ColorBuffer, target: Array<ColorBuffer>) = apply(arrayOf(source), target)
     fun apply(source: Array<ColorBuffer>, target: ColorBuffer) = apply(source, arrayOf(target))
+
+    fun untrack() {
+        shader?.let { Session.active.untrack(shader) }
+    }
 }
