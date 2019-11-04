@@ -6,7 +6,6 @@ import org.bytedeco.ffmpeg.avformat.AVFormatContext
 import org.bytedeco.ffmpeg.global.avcodec
 import org.bytedeco.ffmpeg.global.avformat
 import org.bytedeco.ffmpeg.global.avutil.AVERROR_EOF
-import org.bytedeco.javacpp.BytePointer
 
 private val logger = KotlinLogging.logger {  }
 

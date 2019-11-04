@@ -31,6 +31,7 @@ internal fun Int.checkAVError() {
         throw Error("AVError: ${String(buffer)}")
     }
 }
+
 internal val flushPacket = AVPacket().apply {
     data(BytePointer("FLUSH"))
 }
@@ -43,7 +44,7 @@ internal class Decoder(val statistics: VideoStatistics,
                        val videoCodecContext: AVCodecContext?,
                        val audioCodecContext: AVCodecContext?,
                        val hwType: Int
-                       ) {
+) {
 
     companion object {
         fun fromContext(statistics: VideoStatistics, configuration: VideoPlayerConfiguration, context: AVFormatContext, useVideo: Boolean = true, useAudio: Boolean = true): Pair<Decoder, CodecInfo> {
@@ -131,22 +132,24 @@ internal class Decoder(val statistics: VideoStatistics,
     }
 
     fun restart() {
+        logger.debug { "restart requested" }
         videoDecoder?.flushQueue()
         audioDecoder?.flushQueue()
         packetReader?.flushQueue()
-        logger.debug {"seeking to frame 0" }
+        logger.debug { "seeking to frame 0" }
         av_seek_frame(formatContext, -1, formatContext.start_time(), 0)
     }
 
     private var needFlush = false
     private var seekRequested = true
-    private var seekPosition:Double = 0.0
-    fun seek(positionInSeconds:Double) {
+    private var seekPosition: Double = 0.0
+    fun seek(positionInSeconds: Double) {
         seekPosition = positionInSeconds
         seekRequested = true
     }
 
-    fun done() = (packetReader?.endOfFile == true) && (packetReader?.isQueueEmpty() == true)  && (videoDecoder?.isQueueEmpty() ?: true)
+    fun done() = (packetReader?.endOfFile == true) && (packetReader?.isQueueEmpty() == true) && (videoDecoder?.isQueueEmpty()
+            ?: true)
 
     fun dispose() {
         disposed = true
@@ -156,7 +159,7 @@ internal class Decoder(val statistics: VideoStatistics,
     }
 
     fun needMoreFrames(): Boolean =
-            (videoDecoder?.needMoreFrames() ?: false) || (audioDecoder?.needMoreFrames()?:false)
+            (videoDecoder?.needMoreFrames() ?: false) || (audioDecoder?.needMoreFrames() ?: false)
 
     fun decodeIfNeeded() {
         if (seekRequested) {
@@ -165,7 +168,7 @@ internal class Decoder(val statistics: VideoStatistics,
             packetReader?.flushQueue()
 
             logger.debug {
-                "seeking to frame 0"
+                "seeking to frame ${(seekPosition * AV_TIME_BASE).toLong()}"
             }
 
             av_seek_frame(formatContext, -1, (seekPosition * AV_TIME_BASE).toLong(), 0)
@@ -175,11 +178,11 @@ internal class Decoder(val statistics: VideoStatistics,
         }
 
         if (videoDecoder?.isQueueAlmostFull() == true) {
-            println("video queue is almost full")
+            logger.warn { "video queue is almost full ${videoDecoder?.queueCount()} ${audioDecoder?.queueCount()}" }
             return
         }
         if (audioDecoder?.isQueueAlmostFull() == true) {
-            println("audio queue is almost full")
+            logger.warn { "audio queue is almost full ${videoDecoder?.queueCount()} ${audioDecoder?.queueCount()}" }
             return
         }
 

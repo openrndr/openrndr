@@ -240,6 +240,9 @@ class VideoPlayerFFMPEG private constructor(
 
                     val now = getTime()
                     if (now - nextFrame > duration * 2) {
+                        logger.debug {
+                            "resetting nextframe time"
+                        }
                         nextFrame = now
                     }
                     if (now >= nextFrame) {
@@ -256,6 +259,7 @@ class VideoPlayerFFMPEG private constructor(
     }
 
     fun restart() {
+        logger.debug { "video player restart requested" }
         while (!displayQueue.isEmpty()) {
             displayQueue.pop().unref()
         }
@@ -264,23 +268,29 @@ class VideoPlayerFFMPEG private constructor(
     }
 
     fun seek(positionInSeconds: Double) {
+        logger.debug { "video player seek requested" }
         while (!displayQueue.isEmpty()) {
             displayQueue.pop().unref()
         }
         audioOut?.flush()
         decoder?.seek(positionInSeconds)
+        audioOut?.resume()
     }
 
-    fun draw(drawer: Drawer) {
+    fun draw(drawer: Drawer, blind:Boolean = false) {
+        if (displayQueue.size() > 10) {
+            println("display queue ${displayQueue.size()}")
+        }
         val frame = displayQueue.peek()
         if (frame != null) {
             displayQueue.pop()
             colorBuffer?.write(frame.buffer.data().capacity(frame.frameSize.toLong()).asByteBuffer())
             frame.unref()
         }
-
         colorBuffer?.let {
-            drawer.image(it)
+            if (!blind) {
+                drawer.image(it)
+            }
         }
     }
 }

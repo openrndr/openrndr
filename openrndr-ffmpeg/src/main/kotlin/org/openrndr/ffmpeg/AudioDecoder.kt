@@ -130,7 +130,11 @@ internal class AudioDecoder(
     fun queueCount() = audioQueue.size()
 
     fun flushQueue() {
-        while (!audioQueue.isEmpty()) audioQueue.pop().unref()
+        try {
+            while (!audioQueue.isEmpty()) audioQueue.popOrNull()?.unref()
+        } catch (e:Throwable) {
+            logger.error { "audio Queue race condition fail" }
+        }
     }
 
     fun flushBuffers() {

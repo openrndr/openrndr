@@ -153,13 +153,17 @@ class AudioQueueSource(val source: Int, val bufferCount: Int = 2, val pullFuncti
             for (i in outputQueue) {
                 AL11.alDeleteBuffers(i.first)
             }
-
             outputQueue.clear()
         }
         bufferOffset = 0
         queued = 0
+
+    }
+
+    fun resume() {
         AL11.alSourcePlay(source)
     }
+
 }
 
 class AudioSource(val source: Int) {
