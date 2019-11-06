@@ -8,8 +8,7 @@ import org.bytedeco.ffmpeg.avutil.AVBufferRef
 import org.bytedeco.ffmpeg.avutil.AVHWDeviceContext
 import org.bytedeco.ffmpeg.global.avcodec.av_packet_alloc
 import org.bytedeco.ffmpeg.global.avcodec.av_packet_unref
-import org.bytedeco.ffmpeg.global.avformat.av_read_frame
-import org.bytedeco.ffmpeg.global.avformat.av_seek_frame
+import org.bytedeco.ffmpeg.global.avformat.*
 import org.bytedeco.ffmpeg.global.avutil
 import org.bytedeco.ffmpeg.global.avutil.*
 import org.bytedeco.javacpp.*
@@ -45,7 +44,6 @@ internal class Decoder(val statistics: VideoStatistics,
                        val audioCodecContext: AVCodecContext?,
                        val hwType: Int
 ) {
-
     companion object {
         fun fromContext(statistics: VideoStatistics, configuration: VideoPlayerConfiguration, context: AVFormatContext, useVideo: Boolean = true, useAudio: Boolean = true): Pair<Decoder, CodecInfo> {
             // Find the first video/audio streams.
@@ -137,7 +135,7 @@ internal class Decoder(val statistics: VideoStatistics,
         audioDecoder?.flushQueue()
         packetReader?.flushQueue()
         logger.debug { "seeking to frame 0" }
-        av_seek_frame(formatContext, -1, formatContext.start_time(), 0)
+        av_seek_frame(formatContext, -1, formatContext.start_time(), AVSEEK_FLAG_FRAME or AVSEEK_FLAG_ANY)
     }
 
     private var needFlush = false
@@ -159,19 +157,23 @@ internal class Decoder(val statistics: VideoStatistics,
     }
 
     fun needMoreFrames(): Boolean =
-            (videoDecoder?.needMoreFrames() ?: false) || (audioDecoder?.needMoreFrames() ?: false)
+            !seekRequested && ((videoDecoder?.needMoreFrames() ?: false) || (audioDecoder?.needMoreFrames() ?: false))
 
     fun decodeIfNeeded() {
+        val hasSeeked = seekRequested
+
         if (seekRequested) {
             videoDecoder?.flushQueue()
             audioDecoder?.flushQueue()
             packetReader?.flushQueue()
 
-            logger.debug {
-                "seeking to frame ${(seekPosition * AV_TIME_BASE).toLong()}"
+            logger.debug { "seeking to $seekPosition" }
+            val seekTS = (seekPosition * AV_TIME_BASE).toLong()
+            val seekMinTS = ((seekPosition-4.0) * AV_TIME_BASE).toLong()
+            val seekResult = avformat_seek_file(formatContext, -1, seekMinTS, seekTS, seekTS, AVSEEK_FLAG_ANY )
+            if (seekResult != 0) {
+                logger.error { "seek failed" }
             }
-
-            av_seek_frame(formatContext, -1, (seekPosition * AV_TIME_BASE).toLong(), 0)
             needFlush = true
             seekRequested = false
             Thread.sleep(5)
@@ -192,10 +194,16 @@ internal class Decoder(val statistics: VideoStatistics,
             audioDecoder?.flushBuffers()
         }
 
+        var packetsReceived = 0
         while (needMoreFrames()) {
             val packet = if (packetReader != null) packetReader?.nextPacket() else av_packet_alloc()
             av_read_frame(formatContext, packet)
             if (packet != null) {
+                packetsReceived++
+                if (hasSeeked && packetsReceived == 2) {
+                    val packetTime = packet.dts() / 1000.0
+                    logger.debug { "seek error: ${packetTime-seekPosition}" }
+                }
                 when (packet.stream_index()) {
                     videoStreamIndex -> videoDecoder?.decodeVideoPacket(packet)
                     audioStreamIndex -> audioDecoder?.decodeAudioPacket(packet)
@@ -231,7 +239,6 @@ internal class Decoder(val statistics: VideoStatistics,
     fun audioQueueSize(): Int {
         return audioDecoder?.queueCount() ?: 0
     }
-
 
     fun audioVideoSynced() = (audioDecoder?.isSynced() ?: true) || done()
 }
