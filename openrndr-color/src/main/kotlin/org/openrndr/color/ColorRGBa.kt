@@ -37,6 +37,24 @@ data class ColorRGBa(val r: Double, val g: Double, val b: Double, val a: Double 
             return ColorRGBa(r / 255.0, g / 255.0, b / 255.0, 1.0, Linearity.SRGB)
         }
 
+        fun fromHex(hex: String): ColorRGBa {
+            val parsedHex = hex.replace("#", "")
+            val len = parsedHex.length
+            val mult = len / 3
+
+            val colors = (0..2).map { idx ->
+                var c = parsedHex.substring(idx * mult, (idx + 1) * mult)
+
+                c = if (len == 3) c + c else c
+
+                Integer.valueOf(c, 16)
+            }
+
+            val (r, g, b) = colors
+
+            return ColorRGBa(r / 255.0, g / 255.0, b / 255.0, 1.0, Linearity.SRGB)
+        }
+
         val PINK = fromHex(0xffc0cb)
         val BLACK = ColorRGBa(0.0, 0.0, 0.0, 1.0)
         val WHITE = ColorRGBa(1.0, 1.0, 1.0, 1.0)
