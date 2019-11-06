@@ -14,6 +14,12 @@ class Normal : Filter(Shader.createFromCode(Filter.filterVertexCode, filterFragm
 class Overlay : Filter(Shader.createFromCode(Filter.filterVertexCode, filterFragmentCode("blend/overlay.frag")))
 class Screen : Filter(Shader.createFromCode(Filter.filterVertexCode, filterFragmentCode("blend/screen.frag")))
 
+class SourceIn : Filter(Shader.createFromCode(Filter.filterVertexCode, filterFragmentCode("blend/source-in.frag")))
+class SourceOut : Filter(Shader.createFromCode(Filter.filterVertexCode, filterFragmentCode("blend/source-out.frag")))
+class DestinationIn : Filter(Shader.createFromCode(Filter.filterVertexCode, filterFragmentCode("blend/destination-in.frag")))
+class DestinationOut : Filter(Shader.createFromCode(Filter.filterVertexCode, filterFragmentCode("blend/destination-out.frag")))
+class Xor : Filter(Shader.createFromCode(Filter.filterVertexCode, filterFragmentCode("blend/xor.frag")))
+
 class MultiplyContrast : Filter(Shader.createFromCode(Filter.filterVertexCode, filterFragmentCode("blend/multiply-contrast.frag")))
 
 class Passthrough : Filter(Shader.createFromCode(Filter.filterVertexCode, filterFragmentCode("blend/passthrough.frag")))
