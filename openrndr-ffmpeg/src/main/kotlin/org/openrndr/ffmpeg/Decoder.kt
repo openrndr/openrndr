@@ -11,7 +11,8 @@ import org.bytedeco.ffmpeg.global.avcodec.av_packet_unref
 import org.bytedeco.ffmpeg.global.avformat.*
 import org.bytedeco.ffmpeg.global.avutil
 import org.bytedeco.ffmpeg.global.avutil.*
-import org.bytedeco.javacpp.*
+import org.bytedeco.javacpp.BytePointer
+import org.bytedeco.javacpp.PointerPointer
 import org.openrndr.platform.Platform
 import org.openrndr.platform.PlatformType
 import kotlin.concurrent.thread
@@ -106,6 +107,11 @@ internal class Decoder(val statistics: VideoStatistics,
     private var disposed = false
     private var packetReader: PacketReader? = null
 
+    var displayQueueFull: () -> Boolean = { false }
+    var audioOutQueueFull: () -> Boolean = { false }
+    var seekCompleted: () -> Unit = { }
+
+
     fun start(videoOutput: VideoDecoderOutput?, audioOutput: AudioDecoderOutput?) {
         videoDecoder = videoCodecContext?.let { ctx ->
             videoOutput?.let { VideoDecoder(statistics, configuration, ctx, it, hwType) }
@@ -158,6 +164,7 @@ internal class Decoder(val statistics: VideoStatistics,
 
     fun needMoreFrames(): Boolean =
             !seekRequested && ((videoDecoder?.needMoreFrames() ?: false) || (audioDecoder?.needMoreFrames() ?: false))
+                    && !audioOutQueueFull() && !displayQueueFull()
 
     fun decodeIfNeeded() {
         val hasSeeked = seekRequested
@@ -169,8 +176,8 @@ internal class Decoder(val statistics: VideoStatistics,
 
             logger.debug { "seeking to $seekPosition" }
             val seekTS = (seekPosition * AV_TIME_BASE).toLong()
-            val seekMinTS = ((seekPosition-4.0) * AV_TIME_BASE).toLong()
-            val seekResult = avformat_seek_file(formatContext, -1, seekMinTS, seekTS, seekTS, AVSEEK_FLAG_ANY )
+            val seekMinTS = ((seekPosition - 4.0) * AV_TIME_BASE).toLong()
+            val seekResult = avformat_seek_file(formatContext, -1, seekMinTS, seekTS, seekTS, AVSEEK_FLAG_ANY)
             if (seekResult != 0) {
                 logger.error { "seek failed" }
             }
@@ -200,9 +207,14 @@ internal class Decoder(val statistics: VideoStatistics,
             av_read_frame(formatContext, packet)
             if (packet != null) {
                 packetsReceived++
+                if (hasSeeked && packetsReceived == 1) {
+                    logger.debug { "seek completed"}
+                    seekCompleted()
+                }
+
                 if (hasSeeked && packetsReceived == 2) {
                     val packetTime = packet.dts() / 1000.0
-                    logger.debug { "seek error: ${packetTime-seekPosition}" }
+                    logger.debug { "seek error: ${packetTime - seekPosition}" }
                 }
                 when (packet.stream_index()) {
                     videoStreamIndex -> videoDecoder?.decodeVideoPacket(packet)

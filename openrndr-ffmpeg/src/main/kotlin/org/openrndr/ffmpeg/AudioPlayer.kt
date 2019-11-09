@@ -35,9 +35,9 @@ object AudioSystem {
         return AudioSource(source)
     }
 
-    fun createQueueSource(bufferCount: Int = 2, bufferSize: Int = 8192, pullFunction: (() -> AudioData?)? = null): AudioQueueSource {
+    fun createQueueSource(bufferCount: Int = 2, bufferSize: Int = 8192, queueSize: Int = 20, pullFunction: (() -> AudioData?)? = null): AudioQueueSource {
         val source = AL11.alGenSources()
-        return AudioQueueSource(source, bufferCount, pullFunction)
+        return AudioQueueSource(source, bufferCount, queueSize, pullFunction)
     }
 
     fun destroy() {
@@ -56,8 +56,8 @@ class AudioData(val format: Int = AL11.AL_FORMAT_STEREO16, val rate: Int = 48000
     }
 }
 
-class AudioQueueSource(val source: Int, val bufferCount: Int = 2, val pullFunction: (() -> AudioData?)? = null) {
-    internal val inputQueue = Queue<AudioData>(20)
+class AudioQueueSource(val source: Int, val bufferCount: Int = 2, val queueSize: Int = 20, val pullFunction: (() -> AudioData?)? = null) {
+    internal val inputQueue = Queue<AudioData>(queueSize)
     internal var queued = 0
     internal var outputQueue = mutableListOf<Pair<Int, Int>>()
 

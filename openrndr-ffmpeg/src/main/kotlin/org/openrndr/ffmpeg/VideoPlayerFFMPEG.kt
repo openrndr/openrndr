@@ -134,7 +134,7 @@ class VideoPlayerFFMPEG private constructor(
         return System.currentTimeMillis() / 1000.0
     }
 
-    private val displayQueue = Queue<VideoFrame>(100)
+    private val displayQueue = Queue<VideoFrame>(20)
 
     companion object {
         fun fromFile(fileName: String, mode: PlayMode = PlayMode.BOTH, configuration: VideoPlayerConfiguration = VideoPlayerConfiguration()): VideoPlayerFFMPEG {
@@ -197,6 +197,7 @@ class VideoPlayerFFMPEG private constructor(
         val (decoder, info) = runBlocking {
             Decoder.fromContext(statistics, configuration, file.context, mode.useVideo, mode.useAudio)
         }
+
         this.decoder = decoder
         this.info = info
 
@@ -225,7 +226,13 @@ class VideoPlayerFFMPEG private constructor(
                 }
             }
             audioOut?.play()
+
+            audioOut?.let { ao ->
+                decoder.audioOutQueueFull = { ao.outputQueue.size >= ao.queueSize-1 }
+            }
         }
+
+        decoder.displayQueueFull = { displayQueue.size() >= displayQueue.maxSize-1 }
 
         thread(isDaemon = true) {
             decoder.start(videoOutput.toVideoDecoderOutput(), audioOutput.toAudioDecoderOutput())
@@ -233,15 +240,32 @@ class VideoPlayerFFMPEG private constructor(
         startTimeMillis = System.currentTimeMillis()
 
         if (mode.useVideo) {
-            thread(isDaemon = false) {
+            thread(isDaemon = true) {
                 var nextFrame = 0.0
+
+
+                decoder.seekCompleted = {
+                    nextFrame = 0.0
+                }
+
                 while (true) {
+
+                    if (seekRequested) {
+                        while (!displayQueue.isEmpty()) {
+                            displayQueue.pop().unref()
+                        }
+                        audioOut?.flush()
+                        decoder.seek(seekPosition)
+                        audioOut?.resume()
+                        seekRequested = false
+                    }
+
                     val duration = (info.video?.fps ?: 1.0)
 
                     val now = getTime()
                     if (now - nextFrame > duration * 2) {
                         logger.debug {
-                            "resetting nextframe time"
+                            "resetting next frame time"
                         }
                         nextFrame = now
                     }
@@ -249,6 +273,13 @@ class VideoPlayerFFMPEG private constructor(
                         val frame = decoder.nextVideoFrame()
                         if (frame != null) {
                             nextFrame += 1.0 / duration
+
+                            while (displayQueue.size() >= displayQueue.maxSize - 1) {
+                                logger.debug {
+                                    "display queue is full (${displayQueue.size()} / ${displayQueue.maxSize})"
+                                }
+                                Thread.sleep(10)
+                            }
                             displayQueue.push(frame)
                         }
                     }
@@ -267,20 +298,17 @@ class VideoPlayerFFMPEG private constructor(
         audioOut?.flush()
     }
 
+    private var seekRequested = false
+    private var seekPosition = -1.0
+
     fun seek(positionInSeconds: Double) {
         logger.debug { "video player seek requested" }
-        while (!displayQueue.isEmpty()) {
-            displayQueue.pop().unref()
-        }
-        audioOut?.flush()
-        decoder?.seek(positionInSeconds)
-        audioOut?.resume()
+        seekRequested = true
+        seekPosition = positionInSeconds
     }
 
     fun draw(drawer: Drawer, blind:Boolean = false) {
-        if (displayQueue.size() > 10) {
-            println("display queue ${displayQueue.size()}")
-        }
+
         val frame = displayQueue.peek()
         if (frame != null) {
             displayQueue.pop()

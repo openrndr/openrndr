@@ -84,7 +84,12 @@ internal class VideoDecoder(
     fun nextFrame() = videoQueue.popOrNull()
 
     fun flushQueue() {
-        while (!videoQueue.isEmpty()) videoQueue.pop().unref()
+        while (!videoQueue.isEmpty())  {
+            val a = videoQueue.popOrNull()
+            if (a != null) {
+                a.unref()
+            }
+        }
     }
 
     fun flushBuffers() {
