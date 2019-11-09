@@ -2,11 +2,11 @@ package org.openrndr.ffmpeg
 
 import mu.KotlinLogging
 import org.lwjgl.openal.AL
-import org.lwjgl.openal.AL10.AL_GAIN
-import org.lwjgl.openal.AL10.AL_PITCH
+import org.lwjgl.openal.AL10.*
 import org.lwjgl.openal.AL11
 import org.lwjgl.openal.ALC
 import org.lwjgl.openal.ALC11
+import org.openrndr.math.Vector3
 import java.nio.ByteBuffer
 import kotlin.concurrent.thread
 import kotlin.math.min
@@ -30,11 +30,6 @@ object AudioSystem {
         }
     }
 
-    fun createSource(): AudioSource {
-        val source = AL11.alGenSources()
-        return AudioSource(source)
-    }
-
     fun createQueueSource(bufferCount: Int = 2, bufferSize: Int = 8192, queueSize: Int = 20, pullFunction: (() -> AudioData?)? = null): AudioQueueSource {
         val source = AL11.alGenSources()
         return AudioQueueSource(source, bufferCount, queueSize, pullFunction)
@@ -48,15 +43,47 @@ object AudioSystem {
 
 class AudioBuffer(val buffer: Int)
 
-class AudioData(val format: Int = AL11.AL_FORMAT_STEREO16, val rate: Int = 48000, val buffer: ByteBuffer) {
+enum class AudioFormat(val alFormat:Int) {
+    MONO_16(AL_FORMAT_MONO16),
+    STEREO_16(AL_FORMAT_STEREO16)
+}
+
+
+class AudioData(val format: AudioFormat = AudioFormat.STEREO_16, val rate: Int = 48000, val buffer: ByteBuffer) {
     fun createBuffer(): AudioBuffer {
         val buffer = AL11.alGenBuffers()
-        AL11.alBufferData(buffer, format, this.buffer, rate)
+        AL11.alBufferData(buffer, format.alFormat, this.buffer, rate)
         return AudioBuffer(buffer)
     }
 }
 
-class AudioQueueSource(val source: Int, val bufferCount: Int = 2, val queueSize: Int = 20, val pullFunction: (() -> AudioData?)? = null) {
+open class AudioSource(protected val source: Int) {
+    var gain: Double = 1.0
+        set(value: Double) {
+            AL11.alSourcef(source, AL_GAIN, value.toFloat())
+            field = value
+        }
+
+    var position: Vector3 = Vector3(0.0, 0.0, 0.0)
+        set(value: Vector3) {
+            AL11.alSource3f(source, AL_POSITION, value.x.toFloat(), value.y.toFloat(), value.z.toFloat())
+            field = value
+        }
+
+    var velocity: Vector3 = Vector3(0.0, 0.0, 0.0)
+        set(value: Vector3) {
+            AL11.alSource3f(source, AL_VELOCITY, value.x.toFloat(), value.y.toFloat(), value.z.toFloat())
+            field = value
+        }
+
+    var direction: Vector3 = Vector3(0.0, 0.0, 0.0)
+        set(value: Vector3) {
+            AL11.alSource3f(source, AL_DIRECTION, value.x.toFloat(), value.y.toFloat(), value.z.toFloat())
+            field = value
+        }
+}
+
+class AudioQueueSource(source: Int, val bufferCount: Int = 2, val queueSize: Int = 20, val pullFunction: (() -> AudioData?)? = null) : AudioSource(source) {
     internal val inputQueue = Queue<AudioData>(queueSize)
     internal var queued = 0
     internal var outputQueue = mutableListOf<Pair<Int, Int>>()
@@ -71,11 +98,6 @@ class AudioQueueSource(val source: Int, val bufferCount: Int = 2, val queueSize:
     val sampleOffset: Long
         get() = bufferOffset + AL11.alGetSourcei(source, AL11.AL_SAMPLE_OFFSET)
 
-    var gain: Double = 1.0
-        set(value: Double) {
-            AL11.alSourcef(source, AL_GAIN, value.toFloat())
-            field = value
-        }
 
     fun play() {
         val startBufferCount = min(bufferCount, inputQueue.size())
@@ -122,7 +144,6 @@ class AudioQueueSource(val source: Int, val bufferCount: Int = 2, val queueSize:
                 }
 
                 while (queued <= bufferCount && !inputQueue.isEmpty()) {
-                    //logger.debug { "filling buffers: ${queued}" }
                     val data = inputQueue.pop()
                     val buffer = data.createBuffer()
                     synchronized(outputQueue) {
@@ -131,10 +152,6 @@ class AudioQueueSource(val source: Int, val bufferCount: Int = 2, val queueSize:
                         queued++
                     }
                 }
-
-//                if (queued == 0 && inputQueue.size() == 0) {
-//                    println("no audio data to play")
-//                }
 
                 if (!playing && queued > 0) {
                     logger.debug { "restarting play" }
@@ -157,17 +174,9 @@ class AudioQueueSource(val source: Int, val bufferCount: Int = 2, val queueSize:
         }
         bufferOffset = 0
         queued = 0
-
     }
 
     fun resume() {
         AL11.alSourcePlay(source)
-    }
-
-}
-
-class AudioSource(val source: Int) {
-    fun playBuffer(buffer: AudioBuffer) {
-        AL11.alSourcePlay(buffer.buffer)
     }
 }
