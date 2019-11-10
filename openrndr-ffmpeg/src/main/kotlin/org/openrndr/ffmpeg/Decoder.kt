@@ -180,10 +180,12 @@ internal class Decoder(val statistics: VideoStatistics,
             val seekResult = avformat_seek_file(formatContext, -1, seekMinTS, seekTS, seekTS, AVSEEK_FLAG_ANY)
             if (seekResult != 0) {
                 logger.error { "seek failed" }
+            } else {
+                logger.debug { "seek returned"}
             }
             needFlush = true
             seekRequested = false
-            Thread.sleep(5)
+//            Thread.sleep(5)
         }
 
         if (videoDecoder?.isQueueAlmostFull() == true) {

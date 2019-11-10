@@ -235,24 +235,27 @@ class VideoPlayerFFMPEG private constructor(
         decoder.displayQueueFull = { displayQueue.size() >= displayQueue.maxSize-1 }
 
         thread(isDaemon = true) {
+            Thread.currentThread().name += "(decoder)"
             decoder.start(videoOutput.toVideoDecoderOutput(), audioOutput.toAudioDecoderOutput())
         }
         startTimeMillis = System.currentTimeMillis()
 
         if (mode.useVideo) {
             thread(isDaemon = true) {
+                Thread.currentThread().name += "(display)"
                 var nextFrame = 0.0
-
 
                 decoder.seekCompleted = {
                     nextFrame = 0.0
                 }
 
                 while (true) {
-
                     if (seekRequested) {
-                        while (!displayQueue.isEmpty()) {
-                            displayQueue.pop().unref()
+                        logger.debug { "performing seek" }
+                        synchronized(displayQueue) {
+                            while (!displayQueue.isEmpty()) {
+                                displayQueue.pop().unref()
+                            }
                         }
                         audioOut?.flush()
                         decoder.seek(seekPosition)
@@ -291,8 +294,10 @@ class VideoPlayerFFMPEG private constructor(
 
     fun restart() {
         logger.debug { "video player restart requested" }
-        while (!displayQueue.isEmpty()) {
-            displayQueue.pop().unref()
+        synchronized(displayQueue) {
+            while (!displayQueue.isEmpty()) {
+                displayQueue.pop().unref()
+            }
         }
         decoder?.restart()
         audioOut?.flush()
@@ -309,15 +314,19 @@ class VideoPlayerFFMPEG private constructor(
 
     fun draw(drawer: Drawer, blind:Boolean = false) {
 
-        val frame = displayQueue.peek()
-        if (frame != null) {
-            displayQueue.pop()
-            colorBuffer?.write(frame.buffer.data().capacity(frame.frameSize.toLong()).asByteBuffer())
-            frame.unref()
-        }
-        colorBuffer?.let {
-            if (!blind) {
-                drawer.image(it)
+        synchronized(displayQueue) {
+            val frame = displayQueue.peek()
+            if (frame != null) {
+                displayQueue.pop()
+                frame.buffer.address()
+
+                colorBuffer?.write(frame.buffer.data().capacity(frame.frameSize.toLong()).asByteBuffer())
+                frame.unref()
+            }
+            colorBuffer?.let {
+                if (!blind) {
+                    drawer.image(it)
+                }
             }
         }
     }
