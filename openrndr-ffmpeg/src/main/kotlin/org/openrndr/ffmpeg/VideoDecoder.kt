@@ -78,7 +78,7 @@ internal class VideoDecoder(
 
     fun queueCount() = videoQueue.size()
     fun isQueueEmpty() = videoQueue.isEmpty()
-    fun isQueueAlmostFull() = videoQueue.size() > videoQueue.maxSize - 20
+    fun isQueueAlmostFull() = videoQueue.size() > videoQueue.maxSize - 2
     fun needMoreFrames() = videoQueue.size() < minVideoFrames
     fun peekNextFrame() = videoQueue.peek()
     fun nextFrame() = videoQueue.popOrNull()

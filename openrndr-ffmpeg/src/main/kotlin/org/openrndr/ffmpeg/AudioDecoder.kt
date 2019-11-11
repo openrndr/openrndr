@@ -108,7 +108,7 @@ internal class AudioDecoder(
     fun isSynced(): Boolean = audioQueue.size() < maxAudioFrames
 
     fun isQueueEmpty() = audioQueue.isEmpty()
-    fun isQueueAlmostFull() = audioQueue.size() > audioQueue.maxSize - 20
+    fun isQueueAlmostFull() = audioQueue.size() > audioQueue.maxSize - 2
     fun needMoreFrames() = audioQueue.size() < minAudioFrames
 
     fun nextFrame(size: Int): AudioFrame? {

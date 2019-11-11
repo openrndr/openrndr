@@ -188,14 +188,7 @@ internal class Decoder(val statistics: VideoStatistics,
 //            Thread.sleep(5)
         }
 
-        if (videoDecoder?.isQueueAlmostFull() == true) {
-            logger.warn { "video queue is almost full ${videoDecoder?.queueCount()} ${audioDecoder?.queueCount()}" }
-            return
-        }
-        if (audioDecoder?.isQueueAlmostFull() == true) {
-            logger.warn { "audio queue is almost full ${videoDecoder?.queueCount()} ${audioDecoder?.queueCount()}" }
-            return
-        }
+
 
         if (needFlush) {
             needFlush = false
@@ -205,6 +198,17 @@ internal class Decoder(val statistics: VideoStatistics,
 
         var packetsReceived = 0
         while (needMoreFrames()) {
+            if (videoDecoder?.isQueueAlmostFull() == true) {
+                logger.warn { "video queue is almost full ${videoDecoder?.queueCount()} ${audioDecoder?.queueCount()}" }
+                Thread.sleep(200)
+                return
+            }
+            if (audioDecoder?.isQueueAlmostFull() == true) {
+                logger.warn { "audio queue is almost full ${videoDecoder?.queueCount()} ${audioDecoder?.queueCount()}" }
+                Thread.sleep(200)
+                return
+            }
+
             val packet = if (packetReader != null) packetReader?.nextPacket() else av_packet_alloc()
             av_read_frame(formatContext, packet)
             if (packet != null) {

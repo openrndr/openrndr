@@ -122,6 +122,7 @@ class VideoPlayerConfiguration {
     var useHardwareDecoding = true
     var usePacketReaderThread = false
     var realtimeBufferSize = -1L
+    var allowFrameSkipping = false
 }
 
 class VideoPlayerFFMPEG private constructor(
@@ -315,18 +316,28 @@ class VideoPlayerFFMPEG private constructor(
     fun draw(drawer: Drawer, blind:Boolean = false) {
 
         synchronized(displayQueue) {
-            val frame = displayQueue.peek()
-            if (frame != null) {
-                displayQueue.pop()
-                frame.buffer.address()
-
-                colorBuffer?.write(frame.buffer.data().capacity(frame.frameSize.toLong()).asByteBuffer())
-                frame.unref()
-            }
-            colorBuffer?.let {
-                if (!blind) {
-                    drawer.image(it)
+            if (!configuration.allowFrameSkipping) {
+                val frame = displayQueue.peek()
+                if (frame != null) {
+                    displayQueue.pop()
+                    colorBuffer?.write(frame.buffer.data().capacity(frame.frameSize.toLong()).asByteBuffer())
+                    frame.unref()
                 }
+
+            } else {
+                var frame: VideoFrame? = null
+                while (!displayQueue.isEmpty()) {
+                    frame = displayQueue.pop()
+                    if (displayQueue.isEmpty()) {
+                        colorBuffer?.write(frame.buffer.data().capacity(frame.frameSize.toLong()).asByteBuffer())
+                    }
+                    frame.unref()
+                }
+            }
+        }
+        colorBuffer?.let {
+            if (!blind) {
+                drawer.image(it)
             }
         }
     }
