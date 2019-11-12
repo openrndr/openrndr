@@ -122,7 +122,7 @@ class VideoPlayerConfiguration {
     var useHardwareDecoding = true
     var usePacketReaderThread = false
     var realtimeBufferSize = -1L
-    var allowFrameSkipping = false
+    var allowFrameSkipping = true
 }
 
 class VideoPlayerFFMPEG private constructor(
