@@ -8,21 +8,19 @@ import org.openrndr.internal.*
 import org.openrndr.math.Matrix44
 import org.openrndr.math.Vector2
 import org.openrndr.math.Vector3
-import org.openrndr.math.Vector4
-import org.openrndr.math.transforms.*
+import org.openrndr.math.transforms.rotate
+import org.openrndr.math.transforms.rotateZ
+import org.openrndr.math.transforms.scale
+import org.openrndr.math.transforms.translate
 import org.openrndr.shape.*
-import org.openrndr.math.transforms.perspective as _perspective
-import org.openrndr.math.transforms.lookAt as _lookAt
-import org.openrndr.math.transforms.ortho as _ortho
-
 import java.io.BufferedReader
-import java.io.File
 import java.io.InputStream
 import java.io.InputStreamReader
 import java.net.URL
-
-import java.nio.ByteBuffer
 import java.util.*
+import org.openrndr.math.transforms.lookAt as _lookAt
+import org.openrndr.math.transforms.ortho as _ortho
+import org.openrndr.math.transforms.perspective as _perspective
 
 data class VertexElement(val attribute: String, val offset: Int, val type: VertexElementType, val arraySize: Int)
 
@@ -599,6 +597,22 @@ class Drawer(val driver: Driver) {
             DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineLoops(context, drawStyle, strips)
             DrawQuality.QUALITY -> meshLineDrawer.drawLineStrips(context, drawStyle, strips, weights, colors)
         }
+    }
+
+    fun segment(segment: Segment3D) {
+        lineStrip(segment.sampleAdaptive())
+    }
+
+    fun segments(segments: List<Segment3D>) {
+        lineStrips(segments.map{ it.sampleAdaptive() })
+    }
+
+    fun segments(segments: List<Segment3D>, weights: List<Double>, colors: List<ColorRGBa>) {
+        lineStrips(segments.map{ it.sampleAdaptive() }, weights, colors)
+    }
+
+    fun path(path:Path3D) {
+        lineStrip(path.adaptivePositions(0.03))
     }
 
 

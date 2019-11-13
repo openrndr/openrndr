@@ -1,14 +1,15 @@
 package org.openrndr.shape.internal
 
 import org.openrndr.math.Vector2
+import kotlin.math.abs
+import kotlin.math.atan2
 
-internal class BezierCubicSampler {
-
+internal class BezierCubicSampler2D {
     private val recursionLimit = 8
     private val points = mutableListOf<Vector2>()
     private val direction = mutableListOf<Vector2>()
 
-    private var distanceToleranceSquare: Double = 0.toDouble()
+    private var distanceToleranceSquare = 0.0
     private val angleTolerance = 0.0
     private val cuspLimit = 0.0
     var distanceTolerance = 0.5
@@ -17,9 +18,9 @@ internal class BezierCubicSampler {
         distanceToleranceSquare = distanceTolerance * distanceTolerance
         points.clear()
         direction.clear()
-        points.add(x1); direction.add(x2-x1)
+        points.add(x1); direction.add(x2 - x1)
         sample(x1, x2, x3, x4, 0)
-        points.add(x4); direction.add(x4-x3)
+        points.add(x4); direction.add(x4 - x3)
         return Pair(points, direction)
     }
 
@@ -41,8 +42,8 @@ internal class BezierCubicSampler {
         val dx = x4.x - x1.x
         val dy = x4.y - x1.y
 
-        var d2 = Math.abs((x2.x - x4.x) * dy - (x2.y - x4.y) * dx)
-        var d3 = Math.abs((x3.x - x4.x) * dy - (x3.y - x4.y) * dx)
+        var d2 = abs((x2.x - x4.x) * dy - (x2.y - x4.y) * dx)
+        var d3 = abs((x3.x - x4.x) * dy - (x3.y - x4.y) * dx)
 
         val p1 = d2 > colinearityEpsilon
         val p0 = d3 > colinearityEpsilon
@@ -86,12 +87,12 @@ internal class BezierCubicSampler {
                 }
                 if (d2 > d3) {
                     if (d2 < distanceToleranceSquare) {
-                        points.add(Vector2(x2.x, x2.y)); direction.add(x4-x1)
+                        points.add(Vector2(x2.x, x2.y)); direction.add(x4 - x1)
                         return
                     }
                 } else {
                     if (d3 < distanceToleranceSquare) {
-                        points.add(Vector2(x3.x, x3.y)); direction.add(x4-x1)
+                        points.add(Vector2(x3.x, x3.y)); direction.add(x4 - x1)
                         return
                     }
                 }
@@ -101,24 +102,24 @@ internal class BezierCubicSampler {
                 //----------------------
                 if (d3 * d3 <= distanceToleranceSquare * (dx * dx + dy * dy)) {
                     if (angleTolerance < angleToleranceEpsilon) {
-                        points.add(x23); direction.add(x4-x1)
+                        points.add(x23); direction.add(x4 - x1)
                         return
                     }
 
                     // Angle Condition
                     //----------------------
-                    da1 = Math.abs(Math.atan2(x4.y - x3.y, x4.x - x3.x) - Math.atan2(x3.y - x2.y, x3.x - x2.x))
+                    da1 = abs(atan2(x4.y - x3.y, x4.x - x3.x) - atan2(x3.y - x2.y, x3.x - x2.x))
                     if (da1 >= Math.PI) da1 = 2 * Math.PI - da1
 
                     if (da1 < angleTolerance) {
-                        points.add(x2); direction.add(x4-x1)
-                        points.add(x3); direction.add(x4-x1)
+                        points.add(x2); direction.add(x4 - x1)
+                        points.add(x3); direction.add(x4 - x1)
                         return
                     }
 
                     if (cuspLimit != 0.0) {
                         if (da1 > cuspLimit) {
-                            points.add(x3); direction.add(x4-x1)
+                            points.add(x3); direction.add(x4 - x1)
                             return
                         }
                     }
@@ -128,24 +129,24 @@ internal class BezierCubicSampler {
                 //----------------------
                 if (d2 * d2 <= distanceToleranceSquare * (dx * dx + dy * dy)) {
                     if (angleTolerance < angleToleranceEpsilon) {
-                        points.add(x23); direction.add(x4-x1)
+                        points.add(x23); direction.add(x4 - x1)
                         return
                     }
 
                     // Angle Condition
                     //----------------------
-                    da1 = Math.abs(Math.atan2(x3.y - x2.y, x3.x - x2.x) - Math.atan2(x2.y - x1.y, x2.x - x1.x))
+                    da1 = abs(atan2(x3.y - x2.y, x3.x - x2.x) - atan2(x2.y - x1.y, x2.x - x1.x))
                     if (da1 >= Math.PI) da1 = 2 * Math.PI - da1
 
                     if (da1 < angleTolerance) {
-                        points.add(x2); direction.add(x4-x1)
-                        points.add(x3); direction.add(x4-x1)
+                        points.add(x2); direction.add(x4 - x1)
+                        points.add(x3); direction.add(x4 - x1)
                         return
                     }
 
                     if (cuspLimit != 0.0) {
                         if (da1 > cuspLimit) {
-                            points.add(x2); direction.add(x4-x1)
+                            points.add(x2); direction.add(x4 - x1)
                             return
                         }
                     }
@@ -158,33 +159,33 @@ internal class BezierCubicSampler {
                     // we tend to finish subdivisions.
                     //----------------------
                     if (angleTolerance < angleToleranceEpsilon) {
-                        points.add(x23); direction.add(x4-x1)
+                        points.add(x23); direction.add(x4 - x1)
                         return
                     }
 
                     // Angle & Cusp Condition
                     //----------------------
-                    k = Math.atan2(x3.y - x2.y, x3.x - x2.x)
-                    da1 = Math.abs(k - Math.atan2(x2.y - x1.y, x2.x - x1.x))
-                    da2 = Math.abs(Math.atan2(x4.y - x3.y, x4.x - x3.x) - k)
+                    k = atan2(x3.y - x2.y, x3.x - x2.x)
+                    da1 = abs(k - atan2(x2.y - x1.y, x2.x - x1.x))
+                    da2 = abs(atan2(x4.y - x3.y, x4.x - x3.x) - k)
                     if (da1 >= Math.PI) da1 = 2 * Math.PI - da1
                     if (da2 >= Math.PI) da2 = 2 * Math.PI - da2
 
                     if (da1 + da2 < angleTolerance) {
                         // Finally we can stop the recursion
                         //----------------------
-                        points.add(x23); direction.add(x4-x1)
+                        points.add(x23); direction.add(x4 - x1)
                         return
                     }
 
                     if (cuspLimit != 0.0) {
                         if (da1 > cuspLimit) {
-                            points.add(x2); direction.add(x4-x1)
+                            points.add(x2); direction.add(x4 - x1)
                             return
                         }
 
                         if (da2 > cuspLimit) {
-                            points.add(x3); direction.add(x4-x1)
+                            points.add(x3); direction.add(x4 - x1)
                             return
                         }
                     }
@@ -204,6 +205,4 @@ internal class BezierCubicSampler {
             return dx * dx + dy * dy
         }
     }
-
-
 }

@@ -12,6 +12,7 @@ data class Vector3(val x: Double, val y: Double, val z: Double) : Serializable {
         val UNIT_X = Vector3(1.0, 0.0, 0.0)
         val UNIT_Y = Vector3(0.0, 1.0, 0.0)
         val UNIT_Z = Vector3(0.0, 0.0, 1.0)
+        val INFINITY = Vector3(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY)
 
         fun fromSpherical(s: Spherical): Vector3 {
             val sinPhiRadius = Math.sin(s.phi) * s.radius

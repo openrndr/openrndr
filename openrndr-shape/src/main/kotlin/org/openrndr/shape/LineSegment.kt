@@ -4,9 +4,11 @@ package org.openrndr.shape
 
 import org.openrndr.math.Vector2
 import org.openrndr.math.map
+import kotlin.math.max
+import kotlin.math.min
 
 @Suppress("MemberVisibilityCanBePrivate", "unused")
-data class LineSegment(val start: Vector2, val end: Vector2) {
+class LineSegment(val start: Vector2, val end: Vector2) {
 
     constructor(x0: Double, y0: Double, x1: Double, y1: Double) : this(Vector2(x0, y0), Vector2(x1, y1))
 
@@ -18,7 +20,7 @@ data class LineSegment(val start: Vector2, val end: Vector2) {
         if (l2 == 0.0) return start
 
         var t = ((query.x - start.x) * (end.x - start.x) + (query.y - start.y) * (end.y - start.y)) / l2
-        t = Math.max(0.0, Math.min(1.0, t))
+        t = max(0.0, min(1.0, t))
         return Vector2(start.x + t * (end.x - start.x),
                 start.y + t * (end.y - start.y))
     }
@@ -28,8 +30,8 @@ data class LineSegment(val start: Vector2, val end: Vector2) {
         if (l2 == 0.0) return query.minus(start).length
 
         var t = ((query.x - start.x) * (end.x - start.x) + (query.y - start.y) * (end.y - start.y)) / l2
-        t = Math.max(0.0, Math.min(1.0, t))
-        return query.minus(Vector2(start.x + t * (end.x - start.x),
+        t = max(0.0, min(1.0, t))
+        return (query - Vector2(start.x + t * (end.x - start.x),
                 start.y + t * (end.y - start.y))).length
     }
 

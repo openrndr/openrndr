@@ -1,12 +1,14 @@
 package org.openrndr.shape.internal
 
 import org.openrndr.math.Vector2
+import kotlin.math.abs
+import kotlin.math.atan2
 
-internal class BezierQuadraticSampler {
+internal class BezierQuadraticSampler2D {
     private val recursionLimit = 8
 
     var distanceTolerance = 0.5
-    private var distanceToleranceSquare: Double = 0.toDouble()
+    private var distanceToleranceSquare = 0.0
     private val angleToleranceEpsilon = 0.01
     private val angleTolerance = 0.0
 
@@ -24,13 +26,13 @@ internal class BezierQuadraticSampler {
 
         val dx = x3.x - x1.x
         val dy = x3.y - x1.y
-        var d = Math.abs((x2.x - x3.x) * dy - (x2.y - x3.y) * dx)
+        var d = abs((x2.x - x3.x) * dy - (x2.y - x3.y) * dx)
         var da: Double
 
         if (d > colinearityEpsilon) {
             // Regular case
             //-----------------
-            if (d * d <= distanceToleranceSquare * (dx * dx + dy * dy)) {
+            if (d  <= distanceToleranceSquare * (dx * dx + dy * dy)) {
                 // If the curvature doesn't exceed the distance_tolerance value
                 // we tend to finish subdivisions.
                 //----------------------
@@ -42,7 +44,7 @@ internal class BezierQuadraticSampler {
 
                 // Angle & Cusp Condition
                 //----------------------
-                da = Math.abs(Math.atan2(x3.y - x2.y, x3.x - x2.x) - Math.atan2(x2.y - x1.y, x2.x - x1.x))
+                da = abs(atan2(x3.y - x2.y, x3.x - x2.x) - atan2(x2.y - x1.y, x2.x - x1.x))
                 if (da >= Math.PI) da = 2 * Math.PI - da
 
                 if (da < angleTolerance) {
