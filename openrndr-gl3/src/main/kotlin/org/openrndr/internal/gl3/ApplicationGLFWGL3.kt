@@ -291,16 +291,15 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
             }
 
             readyFrames++
-            logger.debug { "all ok" }
         }
 
         glfwSetWindowPosCallback(window) { _, x, y ->
-            logger.debug { "window has moved to $x $y" }
+            logger.trace { "window has moved to $x $y" }
             program.window.moved.trigger(WindowEvent(WindowEventType.MOVED, Vector2(x.toDouble(), y.toDouble()), Vector2(0.0, 0.0), true))
         }
 
         glfwSetWindowFocusCallback(window) { _, focused ->
-            logger.debug { "window focus has changed; focused=$focused" }
+            logger.trace { "window focus has changed; focused=$focused" }
             windowFocused = focused
             if (focused) {
                 program.window.focused.trigger(
@@ -498,7 +497,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         }
 
         glfwSetCursorEnterCallback(window) { window, entered ->
-            logger.debug { "cursor state changed; inside window = $entered" }
+            logger.trace { "cursor state changed; inside window = $entered" }
         }
 
 
@@ -520,12 +519,9 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
 
             glfwPollEvents()
         }
-        logger.debug { "opengl vendor: ${glGetString(GL_VENDOR)}" }
-        logger.debug { "opengl version: ${glGetString(GL_VERSION)}" }
-
-        println("OpenGL vendor: ${glGetString(GL_VENDOR)}")
-        println("OpenGL renderer: ${glGetString(GL_RENDERER)}")
-        println("OpenGL version: ${glGetString(GL_VERSION)}")
+        logger.info { "OpenGL vendor: ${glGetString(GL_VENDOR)}" }
+        logger.info { "OpenGL renderer: ${glGetString(GL_RENDERER)}" }
+        logger.info { "OpenGL version: ${glGetString(GL_VERSION)}" }
 
         if (configuration.hideCursor) {
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED)
