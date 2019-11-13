@@ -177,7 +177,9 @@ internal class Decoder(val statistics: VideoStatistics,
             logger.debug { "seeking to $seekPosition" }
             val seekTS = (seekPosition * AV_TIME_BASE).toLong()
             val seekMinTS = ((seekPosition - 4.0) * AV_TIME_BASE).toLong()
+            var seekStarted = System.currentTimeMillis()
             val seekResult = avformat_seek_file(formatContext, -1, seekMinTS, seekTS, seekTS, AVSEEK_FLAG_ANY)
+            logger.debug { "seek completed in ${System.currentTimeMillis()-seekStarted}ms"}
             if (seekResult != 0) {
                 logger.error { "seek failed" }
             } else {
@@ -248,6 +250,10 @@ internal class Decoder(val statistics: VideoStatistics,
 
     fun nextAudioFrame(): AudioFrame? {
         return audioDecoder?.nextFrame()
+    }
+
+    fun audioQueue(): Queue<AudioFrame>? {
+        return audioDecoder?.audioQueue
     }
 
     fun videoQueueSize(): Int {

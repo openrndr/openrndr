@@ -60,34 +60,10 @@ internal class AudioDecoder(
     private val minAudioFrames = 3
     private val maxAudioFrames = 90
 
-    private val audioQueue = Queue<AudioFrame>(maxAudioFrames)
+    internal val audioQueue = Queue<AudioFrame>(maxAudioFrames)
 
 
     init {
-//        with(resampledAudioFrame) {
-//            channels(output.channels)
-//            sample_rate(output.sampleRate)
-//            format(output.sampleFormat.toInt())
-//            channel_layout(output.channelLayout)
-//        }
-
-//        val fmt = AV_SAMPLE_FMT_S32
-//
-//        println("channel layout: ${audioCodecContext.channel_layout()}")
-//        println("channels: ${audioCodecContext.channels()}")
-//        println("sample format: ${audioCodecContext.sample_fmt()}")
-//        println("sample rate: ${audioCodecContext.sample_rate()}")
-//
-//        with(audioCodecContext) {
-//            setResampleOpt("in_channel_count", audioCodecContext.channels().toLong())
-//            setResampleOpt("out_channel_count", output.channels.toLong())
-//            setResampleOpt("in_sample_rate", sample_rate().toLong())
-//            setResampleOpt("out_sample_rate", output.sampleRate.toLong())
-//            setResampleFmt("in_sample_fmt", sample_fmt())
-//            setResampleFmt("out_sample_fmt", output.sampleFormat.toInt())
-//        }
-//        println("rates: ${audioCodecContext.sample_rate()}  ${output.sampleRate.toLong()}")
-
         resampleContext = swr_alloc_set_opts(null, AV_CH_LAYOUT_STEREO, AV_SAMPLE_FMT_S16, 48000,
                 AV_CH_LAYOUT_STEREO, audioCodecContext.sample_fmt(), audioCodecContext.sample_rate(), 0, null)
 
@@ -102,7 +78,9 @@ internal class AudioDecoder(
 
 
     fun dispose() {
-        while (!audioQueue.isEmpty()) audioQueue.pop().unref()
+        synchronized(audioQueue) {
+            while (!audioQueue.isEmpty()) audioQueue.pop().unref()
+        }
     }
 
     fun isSynced(): Boolean = audioQueue.size() < maxAudioFrames
@@ -216,7 +194,9 @@ internal class AudioDecoder(
                     val buffer = av_buffer_alloc(audioFrameSize)!!
                     val ts = (audioFrame.best_effort_timestamp()) * av_q2d(audioCodecContext.time_base())
                     memcpy(buffer.data(), data()[0], audioFrameSize.toLong())
-                    audioQueue.push(AudioFrame(buffer, 0, audioFrameSize, ts))
+                    synchronized(audioQueue) {
+                        audioQueue.push(AudioFrame(buffer, 0, audioFrameSize, ts))
+                    }
                 }
                 av_frame_free(resampledAudioFrame)
 
