@@ -122,7 +122,7 @@ class VideoPlayerConfiguration {
     var useHardwareDecoding = true
     var usePacketReaderThread = false
     var realtimeBufferSize = -1L
-    var allowFrameSkipping = false
+    var allowFrameSkipping = true
 }
 
 class VideoPlayerFFMPEG private constructor(
@@ -212,16 +212,22 @@ class VideoPlayerFFMPEG private constructor(
 
         if (mode.useAudio) {
             audioOut = AudioSystem.createQueueSource {
-                val frame = decoder.nextAudioFrame()
-                if (frame != null) {
-                    val data = frame.buffer.data()
-                    data.capacity(frame.size.toLong())
-                    val bb = ByteBuffer.allocateDirect(frame.size)
-                    bb.put(data.asByteBuffer())
-                    bb.rewind()
-                    val ad = AudioData(buffer = bb)
-                    frame.unref()
-                    ad
+                if (decoder.audioQueue() != null) {
+                    synchronized(decoder.audioQueue() ?: error("no queue")) {
+                        val frame = decoder.nextAudioFrame()
+                        if (frame != null) {
+                            val data = frame.buffer.data()
+                            data.capacity(frame.size.toLong())
+                            val bb = ByteBuffer.allocateDirect(frame.size)
+                            bb.put(data.asByteBuffer())
+                            bb.rewind()
+                            val ad = AudioData(buffer = bb)
+                            frame.unref()
+                            ad
+                        } else {
+                            null
+                        }
+                    }
                 } else {
                     null
                 }
