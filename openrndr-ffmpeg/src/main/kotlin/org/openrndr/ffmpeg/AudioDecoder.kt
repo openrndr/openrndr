@@ -27,7 +27,6 @@ internal enum class SampleFormat {
 
 internal data class AudioOutput(val sampleRate: Int, val channels: Int, val sampleFormat: SampleFormat)
 
-
 internal fun AudioOutput.toAudioDecoderOutput(): AudioDecoderOutput? {
     val avSampleFormat = sampleFormat.toAVSampleFormat() ?: return null
     return AudioDecoderOutput(sampleRate, channels, AV_CH_LAYOUT_STEREO, avSampleFormat)
@@ -109,8 +108,10 @@ internal class AudioDecoder(
 
     fun flushQueue() {
         try {
-            while (!audioQueue.isEmpty()) audioQueue.popOrNull()?.unref()
-        } catch (e:Throwable) {
+            synchronized(audioQueue) {
+                while (!audioQueue.isEmpty()) audioQueue.popOrNull()?.unref()
+            }
+        } catch (e: Throwable) {
             logger.error { "audio Queue race condition fail" }
         }
     }
@@ -172,21 +173,14 @@ internal class AudioDecoder(
 
 
             if (frameFinished[0] != 0) {
-                // Put audio frame to decoder's queue.
-
                 val resampledAudioFrame = av_frame_alloc()
                 with(resampledAudioFrame) {
-                                channels(2)
-            sample_rate(48000)
-            format(AV_SAMPLE_FMT_S16)
-            channel_layout(AV_CH_LAYOUT_STEREO)
-        }
-
-
-
-                    swr_config_frame(resampleContext, resampledAudioFrame, audioFrame)
-
-
+                    channels(2)
+                    sample_rate(48000)
+                    format(AV_SAMPLE_FMT_S16)
+                    channel_layout(AV_CH_LAYOUT_STEREO)
+                }
+                swr_config_frame(resampleContext, resampledAudioFrame, audioFrame)
                 swr_convert_frame(resampleContext, resampledAudioFrame, audioFrame)
 
                 with(resampledAudioFrame) {
@@ -199,12 +193,9 @@ internal class AudioDecoder(
                     }
                 }
                 av_frame_free(resampledAudioFrame)
-
             }
             packet.size(packet.size() - size)
             packet.data(packet.data().position(size.toLong()))
-
-
         }
     }
 }
