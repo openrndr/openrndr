@@ -290,7 +290,14 @@ class VideoPlayerFFMPEG private constructor(
                                 }
                                 Thread.sleep(10)
                             }
-                            displayQueue.push(frame)
+                            synchronized(displayQueue) {
+                                if (!frame.buffer.isNull) {
+                                    displayQueue.push(frame)
+                                } else {
+                                    logger.warn { "encountered frame with null buffer in play()" }
+                                    frame.unref()
+                                }
+                            }
                         }
                     }
                     Thread.sleep(3)
@@ -326,7 +333,13 @@ class VideoPlayerFFMPEG private constructor(
                 val frame = displayQueue.peek()
                 if (frame != null) {
                     displayQueue.pop()
-                    colorBuffer?.write(frame.buffer.data().capacity(frame.frameSize.toLong()).asByteBuffer())
+                    if (!frame.buffer.isNull) {
+                        colorBuffer?.write(frame.buffer.data().capacity(frame.frameSize.toLong()).asByteBuffer())
+                    } else {
+                        logger.error {
+                            "encountered frame with null buffer"
+                        }
+                    }
                     frame.unref()
                 }
 
