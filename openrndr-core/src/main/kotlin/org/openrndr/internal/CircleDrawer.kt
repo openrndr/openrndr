@@ -70,8 +70,8 @@ class CircleDrawer {
         instanceAttributes.shadow.writer().apply {
             rewind()
             for (i in positions.indices) {
-                write(radii[i].toFloat())
                 write(Vector3(positions[i].x, positions[i].y, 0.0))
+                write(radii[i].toFloat())
             }
         }
         instanceAttributes.shadow.uploadElements(0, positions.size)
