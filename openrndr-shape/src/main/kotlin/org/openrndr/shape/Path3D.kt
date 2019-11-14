@@ -1,6 +1,7 @@
 package org.openrndr.shape
 
 import org.openrndr.math.Matrix44
+import org.openrndr.math.Vector2
 import org.openrndr.math.Vector3
 
 
@@ -56,6 +57,31 @@ class Path3D(val segments: List<Segment3D>, val closed: Boolean) {
         }
         return adaptivePoints
     }
+
+    /**
+     *
+     */
+    fun equidistantPositions(pointCount: Int): List<Vector3> {
+        return sampleEquidistant(adaptivePositions(), pointCount)
+    }
+
+    /**
+     * Adaptively sample the contour into line segments while still approximating the original contour
+     * @param distanceTolerance controls the quality of the approximation
+     * @return a ShapeContour composed of linear segments
+     */
+    fun sampleLinear(distanceTolerance: Double = 0.5) =
+            Path3D.fromPoints(adaptivePositions(distanceTolerance), closed)
+
+    /**
+     * Sample the shape contour into line segments
+     */
+    fun sampleEquidistant(pointCount: Int): Path3D {
+        val points = equidistantPositions(pointCount)
+        val segments = (0 until points.size - 1).map { Segment3D(points[it], points[it + 1]) }
+        return Path3D(segments, closed)
+    }
+
 
     fun transform(transform: Matrix44) = Path3D(segments.map { it.transform(transform) }, closed)
 
