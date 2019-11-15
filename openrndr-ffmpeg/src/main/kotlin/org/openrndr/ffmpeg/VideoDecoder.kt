@@ -86,9 +86,7 @@ internal class VideoDecoder(
     fun flushQueue() {
         while (!videoQueue.isEmpty())  {
             val a = videoQueue.popOrNull()
-            if (a != null) {
-                a.unref()
-            }
+            a?.unref()
         }
     }
 

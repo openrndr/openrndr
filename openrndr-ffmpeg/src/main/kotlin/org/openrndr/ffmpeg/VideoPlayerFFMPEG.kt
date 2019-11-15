@@ -8,10 +8,14 @@ import org.bytedeco.ffmpeg.avformat.AVFormatContext
 import org.bytedeco.ffmpeg.avformat.AVInputFormat
 import org.bytedeco.ffmpeg.avformat.AVStream
 import org.bytedeco.ffmpeg.avutil.AVDictionary
+import org.bytedeco.ffmpeg.avutil.Callback_Pointer_int_String_Pointer
 import org.bytedeco.ffmpeg.global.avcodec.*
 import org.bytedeco.ffmpeg.global.avdevice.avdevice_register_all
 import org.bytedeco.ffmpeg.global.avformat.*
 import org.bytedeco.ffmpeg.global.avutil.*
+import org.bytedeco.javacpp.BytePointer
+import org.bytedeco.javacpp.IntPointer
+import org.bytedeco.javacpp.Pointer
 import org.bytedeco.javacpp.PointerPointer
 import org.openrndr.draw.ColorBuffer
 import org.openrndr.draw.Drawer
@@ -125,6 +129,10 @@ class VideoPlayerConfiguration {
     var allowFrameSkipping = true
 }
 
+private object defaultLogger {
+
+}
+
 class VideoPlayerFFMPEG private constructor(
         private val file: AVFile,
         private val mode: PlayMode = PlayMode.VIDEO,
@@ -138,6 +146,51 @@ class VideoPlayerFFMPEG private constructor(
     private val displayQueue = Queue<VideoFrame>(20)
 
     companion object {
+        fun getDeviceNames() : List<String> {
+            val result = mutableListOf<String>()
+
+            /*
+            FFMPEG 4.1 still does not have any working interface to query devices.
+            This mess is necessary because we parse the devices from the log output.
+             */
+
+            if (Platform.type != PlatformType.WINDOWS) TODO("missing implementation for macOS and linux")
+
+            val texts = mutableListOf<String>()
+            val callback = object : Callback_Pointer_int_String_Pointer() {
+                override fun call(source: Pointer?, level: Int, formatStr: String?, params: Pointer?) {
+                    val bp = BytePointer(1024)
+                    val ip = IntPointer(1)
+                    av_log_format_line(source, level, formatStr, params, bp, 1024, ip);
+                    val text = bp.string.split("\n")[0]
+                    texts.add(text)
+                }
+            }
+            avdevice_register_all()
+            av_log_set_callback(callback)
+            val context = avformat_alloc_context();
+            val options = AVDictionary()
+            av_dict_set(options, "list_devices", "true", 0);
+            val format = av_find_input_format("dshow");
+            avformat_open_input(context, "video=dummy", format, options)
+
+            var lineIndex = 0
+            all@while (true) {
+                if (texts[lineIndex].contains("DirectShow video devices")) {
+                    lineIndex ++
+                    while (true) {
+                        if (lineIndex >= texts.size || texts[lineIndex].contains("DirectShow audio devices")) {
+                            break@all
+                        }
+                        val deviceNamePattern = Regex("\\[dshow @ [0-9a-f]*]\\s+\"(.*)\"")
+                        result.add(deviceNamePattern.matchEntire(texts[lineIndex])!!.groupValues[1])
+                        lineIndex+=2
+                    }
+                }
+            }
+            return result
+        }
+
         fun fromFile(fileName: String, mode: PlayMode = PlayMode.BOTH, configuration: VideoPlayerConfiguration = VideoPlayerConfiguration()): VideoPlayerFFMPEG {
             av_log_set_level(AV_LOG_ERROR)
             val file = AVFile(configuration, fileName, mode)
