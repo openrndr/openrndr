@@ -428,17 +428,18 @@ layout(origin_upper_left) in vec4 gl_FragCoord;
 
 uniform sampler2D image;
 flat in int v_instance;
+flat in int v_element;
 
 $drawerUniforms
 ${shadeStructure.varyingIn ?: ""}
 ${transformVaryingIn}
-
+${shadeStructure.fragmentPreamble ?: ""}
 ${if (!shadeStructure.suppressDefaultOutput) "out vec4 o_color;" else ""}
 
 void main(void) {
     ${fragmentConstants(
-            element = "v_instance",
-            instance = "0",
+            element = "v_element",
+            instance = "v_instance",
             boundsPosition = "vec3(va_bounds.xy, 0.0)",
             boundsSize = "vec3(va_bounds.zw, 0.0)")}
 
@@ -463,12 +464,15 @@ ${shadeStructure.attributes ?: ""}
 ${shadeStructure.uniforms ?: ""}
 ${shadeStructure.varyingOut ?: ""}
 ${transformVaryingOut}
+${shadeStructure.vertexPreamble ?: ""}
 flat out int v_instance;
+flat out int v_element;
 
 void main() {
     ${vertexConstants("int(a_position.z)")}
     vec3 decodedPosition = vec3(a_position.xy, 0.0);
-    v_instance = int(a_position.z);
+    v_element = int(a_position.z);
+    v_instance = int(a_instance);
 
     ${shadeStructure.varyingBridge ?: ""}
     ${preTransform}

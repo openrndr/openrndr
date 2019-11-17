@@ -16,9 +16,8 @@ class FontImageMapDrawer {
         textureCoordinate(2)
         attribute("bounds", VertexElementType.VECTOR4_FLOAT32)
         position(3)
+        attribute("instance", VertexElementType.FLOAT32)
     }, 6 * maxQuads)
-
-
 
     private var quads = 0
     fun drawText(context: DrawContext, drawStyle: DrawStyle, text: String, x: Double, y: Double) {
@@ -36,7 +35,7 @@ class FontImageMapDrawer {
                 if (drawStyle.kerning == KernMode.METRIC) {
                     cursorX += if (lc != null) fontMap.kerning(lc, it) else 0.0
                 }
-                insertCharacterQuad(fontMap, bw, it, x + cursorX + metrics.leftSideBearing, y + cursorY + metrics.yBitmapShift / fontMap.contentScale)
+                insertCharacterQuad(fontMap, bw, it, x + cursorX + metrics.leftSideBearing, y + cursorY + metrics.yBitmapShift / fontMap.contentScale, 0)
                 cursorX += metrics.advanceWidth
                 lastChar = it
             }
@@ -44,8 +43,12 @@ class FontImageMapDrawer {
         }
     }
 
+
+
     fun drawTexts(context: DrawContext, drawStyle: DrawStyle, texts: List<String>, positions: List<Vector2>) {
         (drawStyle.fontMap as? FontImageMap)?.let { fontMap ->
+
+            var instance = 0
 
             for ((text, position) in (texts zip positions)) {
                 var cursorX = 0.0
@@ -61,15 +64,17 @@ class FontImageMapDrawer {
                         cursorX += if (lc != null) fontMap.kerning(lc, it) else 0.0
                     }
                     val metrics = fontMap.glyphMetrics[it] ?: fontMap.glyphMetrics.getValue(' ')
-                    insertCharacterQuad(fontMap, bw, it, position.x + cursorX + metrics.leftSideBearing, position.y + cursorY + metrics.yBitmapShift / fontMap.contentScale)
+                    insertCharacterQuad(fontMap, bw, it, position.x + cursorX + metrics.leftSideBearing, position.y + cursorY + metrics.yBitmapShift / fontMap.contentScale, instance)
                     cursorX += metrics.advanceWidth
                     lastChar = it
                 }
+                instance++
             }
             flush(context, drawStyle)
         }
     }
 
+    var queuedInstances = 0
     fun queueText(fontMap: FontMap, text: String, x: Double, y: Double, tracking: Double = 0.0, kerning:KernMode = KernMode.METRIC) {
         val bw = vertices.shadow.writer()
         bw.position = vertices.vertexFormat.size * quads * 6
@@ -85,11 +90,12 @@ class FontImageMapDrawer {
                 if (kerning == KernMode.METRIC) {
                     cursorX += if (lc != null) fontMap.kerning(lc, it) else 0.0
                 }
-                insertCharacterQuad(fontMap, bw, it, x + cursorX + m.leftSideBearing / fontMap.contentScale, y + cursorY + m.yBitmapShift / fontMap.contentScale)
+                insertCharacterQuad(fontMap, bw, it, x + cursorX + m.leftSideBearing / fontMap.contentScale, y + cursorY + m.yBitmapShift / fontMap.contentScale, queuedInstances)
                 cursorX += m.advanceWidth + tracking
                 lastChar = it
             }
         }
+        queuedInstances++
     }
 
 
@@ -107,9 +113,10 @@ class FontImageMapDrawer {
             shader.end()
             quads = 0
         }
+        queuedInstances = 0
     }
 
-    private fun insertCharacterQuad(fontMap: FontImageMap, bw: BufferWriter, character: Char, x: Double, y: Double) {
+    private fun insertCharacterQuad(fontMap: FontImageMap, bw: BufferWriter, character: Char, x: Double, y: Double, instance:Int) {
         val rectangle = fontMap.map[character] ?: fontMap.map[' ']
 
         if (rectangle != null) {
@@ -137,15 +144,17 @@ class FontImageMapDrawer {
 
             val z = quads.toFloat()
 
+            val floatInstance = instance.toFloat()
+
             if (quads < maxQuads) {
                 bw.apply {
-                    write(u0, v0); write(s0, t0, w, h); write(x0, y0, z)
-                    write(u1, v0); write(s1, t0, w, h); write(x1, y0, z)
-                    write(u1, v1); write(s1, t1, w, h); write(x1, y1, z)
+                    write(u0, v0); write(s0, t0, w, h); write(x0, y0, z); write(floatInstance)
+                    write(u1, v0); write(s1, t0, w, h); write(x1, y0, z); write(floatInstance)
+                    write(u1, v1); write(s1, t1, w, h); write(x1, y1, z); write(floatInstance)
 
-                    write(u0, v0); write(s0, t0, w, h); write(x0, y0, z)
-                    write(u0, v1); write(s0, t1, w, h); write(x0, y1, z)
-                    write(u1, v1); write(s1, t1, w, h); write(x1, y1, z)
+                    write(u0, v0); write(s0, t0, w, h); write(x0, y0, z); write(floatInstance)
+                    write(u0, v1); write(s0, t1, w, h); write(x0, y1, z); write(floatInstance)
+                    write(u1, v1); write(s1, t1, w, h); write(x1, y1, z); write(floatInstance)
                 }
                 quads++
             }
