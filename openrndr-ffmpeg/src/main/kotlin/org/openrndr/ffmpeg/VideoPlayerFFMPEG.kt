@@ -401,7 +401,13 @@ class VideoPlayerFFMPEG private constructor(
                 while (!displayQueue.isEmpty()) {
                     frame = displayQueue.pop()
                     if (displayQueue.isEmpty()) {
-                        colorBuffer?.write(frame.buffer.data().capacity(frame.frameSize.toLong()).asByteBuffer())
+                        if (!frame.buffer.isNull) {
+                            colorBuffer?.write(frame.buffer.data().capacity(frame.frameSize.toLong()).asByteBuffer())
+                        } else {
+                            logger.error {
+                                "encountered frame with null buffer"
+                            }
+                        }
                     }
                     frame.unref()
                 }

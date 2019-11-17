@@ -145,7 +145,7 @@ internal class Decoder(val statistics: VideoStatistics,
     }
 
     private var needFlush = false
-    private var seekRequested = true
+    private var seekRequested = false
     private var seekPosition: Double = 0.0
     fun seek(positionInSeconds: Double) {
         seekPosition = positionInSeconds
