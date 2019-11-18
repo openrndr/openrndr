@@ -6,6 +6,7 @@ import kotlin.math.min
 import kotlin.math.sqrt
 
 data class Vector4(val x: Double, val y: Double, val z: Double, val w: Double) : Serializable {
+    constructor(x: Double) : this(x, x, x, x)
 
     val xy: Vector2 get() = Vector2(x, y)
     val yx: Vector2 get() = Vector2(y, x)
@@ -20,6 +21,9 @@ data class Vector4(val x: Double, val y: Double, val z: Double, val w: Double) :
     val length get() = sqrt(x * x + y * y + z * z + w * w)
     val squaredLength get() = x * x + y * y + z * z + w * w
 
+    operator fun invoke(x: Double = this.x, y: Double = this.y, z: Double = this.z, w: Double = this.w): Vector4 {
+        return Vector4(x, y, z, w)
+    }
 
     companion object {
         val UNIT_X = Vector4(1.0, 0.0, 0.0, 0.0)

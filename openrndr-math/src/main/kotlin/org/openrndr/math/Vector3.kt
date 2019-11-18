@@ -5,6 +5,7 @@ import kotlin.math.max
 import kotlin.math.min
 
 data class Vector3(val x: Double, val y: Double, val z: Double) : Serializable {
+    constructor(x: Double) : this(x, x, x)
 
     companion object {
         val ZERO = Vector3(0.0, 0.0, 0.0)
@@ -49,6 +50,10 @@ data class Vector3(val x: Double, val y: Double, val z: Double) : Serializable {
             2 -> z
             else -> throw RuntimeException("unsupported index")
         }
+    }
+
+    operator fun invoke(x: Double = this.x, y: Double = this.y, z: Double = this.z): Vector3 {
+        return Vector3(x, y, z)
     }
 
     operator fun unaryMinus() = Vector3(-x, -y, -z)

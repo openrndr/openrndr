@@ -285,8 +285,8 @@ fun Matrix44.Companion.translate(x: Double, y: Double, z: Double): Matrix44 {
  *
  * [scale] scale vector
  */
-fun Matrix44.Companion.scale(scale: Vector3): Matrix44 {
-    return scale(scale.x, scale.y, scale.z)
+fun Matrix44.Companion.scale(scalar: Vector3): Matrix44 {
+    return scale(scalar.x, scalar.y, scalar.z)
 }
 
 /**

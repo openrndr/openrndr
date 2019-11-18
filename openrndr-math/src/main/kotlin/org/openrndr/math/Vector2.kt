@@ -5,6 +5,8 @@ import kotlin.math.max
 import kotlin.math.min
 
 data class Vector2(val x: Double, val y: Double) : Serializable {
+    constructor(x: Double) : this(x, x)
+
     val length: Double
         get() = Math.sqrt(x * x + y * y)
 
@@ -25,6 +27,10 @@ data class Vector2(val x: Double, val y: Double) : Serializable {
 
     fun vector3(x: Double = this.x, y: Double = this.y, z: Double = 0.0): Vector3 {
         return Vector3(x, y, z)
+    }
+
+    operator fun invoke(x: Double = this.x, y: Double = this.y): Vector2 {
+        return Vector2(x, y)
     }
 
     operator fun unaryMinus() = Vector2(-x, -y)

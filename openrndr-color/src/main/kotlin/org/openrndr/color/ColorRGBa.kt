@@ -28,6 +28,10 @@ data class ColorRGBa(val r: Double, val g: Double, val b: Double, val a: Double 
         a
     }
 
+    operator fun invoke(r: Double = this.r, g: Double = this.g, b: Double = this.b, a: Double = this.a): ColorRGBa {
+        return ColorRGBa(r, g, b, a)
+    }
+
     companion object {
 
         fun fromHex(hex: Int): ColorRGBa {
