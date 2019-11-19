@@ -7,8 +7,8 @@ import kotlin.coroutines.CoroutineContext
 
 private val logger = KotlinLogging.logger {}
 
-@kotlinx.coroutines.InternalCoroutinesApi
-class PumpDispatcher : MainCoroutineDispatcher(), Delay {
+
+class Dispatcher : MainCoroutineDispatcher(), Delay {
     private val toRun = mutableListOf<Runnable>()
     private val toRunAfter = mutableListOf<Pair<Long, Runnable>>()
     private val toContinueAfter = mutableListOf<Pair<Long, CancellableContinuation<Unit>>>()
@@ -44,8 +44,8 @@ class PumpDispatcher : MainCoroutineDispatcher(), Delay {
         }
     }
 
-    @ExperimentalCoroutinesApi
-    fun pump() {
+
+    fun execute() {
         synchronized(toRun) {
             val copy = toRun + emptyList()
             toRun.clear()
@@ -69,7 +69,7 @@ class PumpDispatcher : MainCoroutineDispatcher(), Delay {
 
         synchronized(toContinueAfter) {
             val toDo = toContinueAfter.filter { it.first <= time }
-            if (!toDo.isEmpty()) {
+            if (toDo.isNotEmpty()) {
                 toContinueAfter.removeAll { it.first <= time }
             }
             for ((_, continuation) in toDo) {
@@ -81,3 +81,7 @@ class PumpDispatcher : MainCoroutineDispatcher(), Delay {
         }
     }
 }
+fun Dispatcher.launch(start: CoroutineStart = CoroutineStart.DEFAULT,
+        block: suspend CoroutineScope.() -> Unit
+): Job = GlobalScope.launch(this, start, block)
+

@@ -4,7 +4,7 @@ import org.lwjgl.glfw.GLFW
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL33C.*
 import org.lwjgl.system.MemoryUtil
-import org.openrndr.PumpDispatcher
+import org.openrndr.Dispatcher
 import org.openrndr.draw.DrawThread
 import org.openrndr.draw.Drawer
 import org.openrndr.internal.Driver
@@ -32,7 +32,7 @@ class DrawThreadGL3(private val contextWindow: Long) : DrawThread {
     }
 
     private lateinit var realDrawer: Drawer
-    private lateinit var realDispatcher: PumpDispatcher
+    private lateinit var realDispatcher: Dispatcher
 
     override val dispatcher get() = realDispatcher
 
@@ -41,7 +41,7 @@ class DrawThreadGL3(private val contextWindow: Long) : DrawThread {
 
     init {
         thread(isDaemon = true, name = "DrawThreadGL3") {
-            realDispatcher = PumpDispatcher()
+            realDispatcher = Dispatcher()
             GLFW.glfwMakeContextCurrent(contextWindow)
             GL.createCapabilities()
             realDrawer = Drawer(Driver.driver)
@@ -51,7 +51,7 @@ class DrawThreadGL3(private val contextWindow: Long) : DrawThread {
             val renderTarget = NullRenderTargetGL3()
             renderTarget.bind()
             while (true) {
-                dispatcher.pump()
+                dispatcher.execute()
                 Thread.sleep(1)
             }
         }

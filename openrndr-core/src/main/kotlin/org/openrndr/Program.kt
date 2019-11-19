@@ -42,7 +42,7 @@ open class Program {
     lateinit var application: Application
 
     var backgroundColor: ColorRGBa? = ColorRGBa.BLACK
-    val dispatcher = PumpDispatcher()
+    val dispatcher = Dispatcher()
 
     /**
      * clock function. defaults to returning the application time.
@@ -233,7 +233,7 @@ open class Program {
 }
 
 fun Program.launch(
-        context: CoroutineContext =  dispatcher,
+        context: CoroutineContext = dispatcher,
         start: CoroutineStart = CoroutineStart.DEFAULT,
         block: suspend CoroutineScope.() -> Unit
 ): Job = GlobalScope.launch(context, start, block)
