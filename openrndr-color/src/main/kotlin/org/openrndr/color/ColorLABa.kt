@@ -1,5 +1,6 @@
 package org.openrndr.color
 
+import kotlin.math.pow
 
 class ColorLABa(val l: Double, val a: Double, val b: Double, val alpha: Double = 1.0, val ref: ColorXYZa = ColorXYZa.NEUTRAL) {
 
@@ -38,7 +39,7 @@ class ColorLABa(val l: Double, val a: Double, val b: Double, val alpha: Double =
         }
 
         y = if (lab.l > 903.3 * 0.008856) {
-            Math.pow((lab.l + 16) / 116.0, 3.0)
+            ((lab.l + 16) / 116.0).pow(3.0)
         } else {
             lab.l / 903.3
         }
@@ -66,7 +67,7 @@ class ColorLABa(val l: Double, val a: Double, val b: Double, val alpha: Double =
 
 private fun f(t: Double): Double {
     return if (t > 0.008856) {
-        Math.pow(t, 1.0 / 3.0)
+        t.pow(1.0 / 3.0)
     } else {
         (903.3 * t + 16.0) / 116.0
     }

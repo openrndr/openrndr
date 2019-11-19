@@ -16,6 +16,9 @@ import org.openrndr.math.mod
 @Suppress("unused")
 data class ColorHSVa(val h: Double, val s: Double, val v: Double, val a: Double = 1.0) {
 
+    operator fun invoke(h: Double = this.h, s: Double = this.s, v: Double = this.v, a: Double = this.a) =
+            ColorHSVa(h, s, v, a)
+
     companion object {
         fun fromRGBa(rgb: ColorRGBa): ColorHSVa {
             var min = Double.POSITIVE_INFINITY
@@ -97,8 +100,6 @@ data class ColorHSVa(val h: Double, val s: Double, val v: Double, val a: Double 
         val g: Double
         val b: Double
         val hsv = this
-
-
 
 
         val sh = mod(hsv.h, 360.0) / 60            // sector 0 to 5

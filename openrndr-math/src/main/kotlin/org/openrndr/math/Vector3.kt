@@ -6,6 +6,8 @@ import kotlin.math.min
 
 data class Vector3(val x: Double, val y: Double, val z: Double) : Serializable {
 
+    operator fun invoke(x: Double = this.x, y: Double = this.y, z: Double = this.z) = Vector3(x, y, z)
+
     companion object {
         val ZERO = Vector3(0.0, 0.0, 0.0)
         val ONE = Vector3(1.0, 1.0, 1.0)

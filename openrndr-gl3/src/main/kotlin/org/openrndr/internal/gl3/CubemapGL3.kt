@@ -7,6 +7,7 @@ import org.openrndr.internal.gl3.dds.loadDDS
 import java.net.URL
 import java.nio.Buffer
 import java.nio.ByteBuffer
+import kotlin.math.pow
 
 class CubemapGL3(val texture: Int, override val width: Int, val sides: List<ColorBuffer>, override val type: ColorType, override val format: ColorFormat) : Cubemap {
 
@@ -47,7 +48,7 @@ class CubemapGL3(val texture: Int, override val width: Int, val sides: List<Colo
                 val sides = (0..5).map { ColorBufferGL3(GL_TEXTURE_CUBE_MAP_POSITIVE_X + it, textures[0], data.width, data.height, 1.0, ColorFormat.RGB, ColorType.UINT8, BufferMultisample.Disabled) }
                 for (level in 0 until data.mipmaps) {
 
-                    val m = Math.pow(2.0, -level * 1.0)
+                    val m = 2.0.pow(-level * 1.0)
                     val width = (data.width * m).toInt()
                     val height = (data.height * m).toInt()
 

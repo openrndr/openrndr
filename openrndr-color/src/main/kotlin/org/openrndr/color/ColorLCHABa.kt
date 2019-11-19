@@ -1,8 +1,11 @@
 package org.openrndr.color
 
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.sin
+import kotlin.math.sqrt
 
 data class ColorLCHABa(val l: Double, val c: Double, val h: Double, val alpha: Double = 1.0, val ref: ColorXYZa = ColorXYZa.NEUTRAL) {
-
     companion object {
         fun findMaxChroma(l: Double, h: Double, ref: ColorXYZa): Double {
             var left = 0.0
@@ -16,16 +19,16 @@ data class ColorLCHABa(val l: Double, val c: Double, val h: Double, val alpha: D
 
                 val leftTry = ColorLCHABa(l, left, h, 1.0, ref)
                 val rightTry = ColorLCHABa(l, right, h, 1.0, ref)
-                var middle = (left + right) / 2
-                var middleTry = ColorLCHABa(l, middle, h, 1.0, ref)
+                val middle = (left + right) / 2
+                val middleTry = ColorLCHABa(l, middle, h, 1.0, ref)
 
                 val leftValid = leftTry.toRGBa().let { it.minValue >= 0 && it.maxValue <= 1.0 }
                 val rightValid = rightTry.toRGBa().let { it.minValue >= 0 && it.maxValue <= 1.0 }
                 val middleValid = middleTry.toRGBa().let { it.minValue >= 0 && it.maxValue <= 1.0 }
 
                 if (leftValid && middleValid && !rightValid) {
-                    var newLeft = middle
-                    var newRight = right
+                    val newLeft = middle
+                    val newRight = right
                     bestGuess = middle
                     left = newLeft
                     right = newRight
@@ -33,7 +36,7 @@ data class ColorLCHABa(val l: Double, val c: Double, val h: Double, val alpha: D
 
                 if (leftValid && !middleValid && !rightValid) {
                     val newLeft = left
-                    var newRight = middle
+                    val newRight = middle
                     left = newLeft
                     right = newRight
                 }
@@ -47,8 +50,8 @@ data class ColorLCHABa(val l: Double, val c: Double, val h: Double, val alpha: D
 
         fun fromLABa(laba: ColorLABa): ColorLCHABa {
             val l = laba.l
-            val c = Math.sqrt(laba.a * laba.a + laba.b * laba.b)
-            var h = Math.atan2(laba.b, laba.a)
+            val c = sqrt(laba.a * laba.a + laba.b * laba.b)
+            var h = atan2(laba.b, laba.a)
 
             if (h < 0) {
                 h += Math.PI * 2
@@ -71,8 +74,8 @@ data class ColorLCHABa(val l: Double, val c: Double, val h: Double, val alpha: D
 
 
     fun toLABa(): ColorLABa {
-        val a = c * Math.cos(Math.toRadians(h))
-        val b = c * Math.sin(Math.toRadians(h))
+        val a = c * cos(Math.toRadians(h))
+        val b = c * sin(Math.toRadians(h))
         return ColorLABa(l, a, b, alpha, ref)
     }
 
@@ -81,10 +84,4 @@ data class ColorLCHABa(val l: Double, val c: Double, val h: Double, val alpha: D
     fun toRGBa(): ColorRGBa = toLABa().toXYZa().toRGBa()
 
     fun toLSHABa() = ColorLSHABa.fromLCHABa(this)
-}
-
-fun main(args: Array<String>) {
-    val c = ColorLCHABa.findMaxChroma(60.3, 2.0, ColorXYZa.NEUTRAL)
-    println(ColorLCHABa(60.3, c, 2.0, 1.0, ColorXYZa.NEUTRAL).toRGBa())
-
 }

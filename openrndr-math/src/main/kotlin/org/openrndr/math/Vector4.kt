@@ -7,6 +7,8 @@ import kotlin.math.sqrt
 
 data class Vector4(val x: Double, val y: Double, val z: Double, val w: Double) : Serializable {
 
+    operator fun invoke(x: Double = this.x, y: Double = this.y, z: Double = this.z, w: Double = this.w) = Vector4(x, y, z, w)
+
     val xy: Vector2 get() = Vector2(x, y)
     val yx: Vector2 get() = Vector2(y, x)
     val xz: Vector2 get() = Vector2(x, z)

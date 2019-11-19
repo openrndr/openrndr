@@ -3,10 +3,14 @@ package org.openrndr.math
 import java.io.Serializable
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.sqrt
 
 data class Vector2(val x: Double, val y: Double) : Serializable {
+
+    operator fun invoke(x: Double = this.x, y: Double = this.y) = Vector2(x, y)
+
     val length: Double
-        get() = Math.sqrt(x * x + y * y)
+        get() = sqrt(x * x + y * y)
 
     val squaredLength: Double
         get() = x * x + y * y

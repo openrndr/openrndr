@@ -1,6 +1,7 @@
 package org.openrndr.ffmpeg
 
 import mu.KotlinLogging
+import org.bytedeco.ffmpeg.avcodec.AVCodec
 import org.bytedeco.ffmpeg.avcodec.AVCodecContext
 import org.bytedeco.ffmpeg.avcodec.AVPacket
 import org.bytedeco.ffmpeg.avformat.AVFormatContext
@@ -47,11 +48,18 @@ internal class Decoder(val statistics: VideoStatistics,
 ) {
     companion object {
         fun fromContext(statistics: VideoStatistics, configuration: VideoPlayerConfiguration, context: AVFormatContext, useVideo: Boolean = true, useAudio: Boolean = true): Pair<Decoder, CodecInfo> {
-            // Find the first video/audio streams.
             val videoStreamIndex =
-                    if (useVideo) context.codecs.indexOfFirst { it?.codec_type() == AVMEDIA_TYPE_VIDEO } else -1
+                    if (configuration.legacyStreamOpen) {
+                        if (useVideo) context.codecs.indexOfFirst { it?.codec_type() == AVMEDIA_TYPE_VIDEO } else -1
+                    } else {
+                        av_find_best_stream(context, AVMEDIA_TYPE_VIDEO, -1, -1, null as AVCodec?, 0)
+                    }
             val audioStreamIndex =
-                    if (useAudio) context.codecs.indexOfFirst { it?.codec_type() == AVMEDIA_TYPE_AUDIO } else -1
+                    if (configuration.legacyStreamOpen) {
+                        if (useAudio) context.codecs.indexOfFirst { it?.codec_type() == AVMEDIA_TYPE_AUDIO } else -1
+                    } else {
+                        av_find_best_stream(context, AVMEDIA_TYPE_AUDIO, -1, -1, null as AVCodec?, 0)
+                    }
 
             val videoStream = context.streamAt(videoStreamIndex)
             val audioStream = context.streamAt(audioStreamIndex)
@@ -60,7 +68,7 @@ internal class Decoder(val statistics: VideoStatistics,
             val audioContext = audioStream?.openCodec("audio")
             var hwType = AV_HWDEVICE_TYPE_NONE
             if (configuration.useHardwareDecoding && videoContext != null) {
-                val preferedHW = when (Platform.type) {
+                val preferredHW = when (Platform.type) {
                     PlatformType.WINDOWS -> arrayListOf(AV_HWDEVICE_TYPE_D3D11VA, AV_HWDEVICE_TYPE_DXVA2, AV_HWDEVICE_TYPE_QSV)
                     PlatformType.MAC -> arrayListOf(AV_HWDEVICE_TYPE_VIDEOTOOLBOX)
                     PlatformType.GENERIC -> arrayListOf(AV_HWDEVICE_TYPE_VAAPI)
@@ -75,7 +83,7 @@ internal class Decoder(val statistics: VideoStatistics,
                     }
                 } while (next != AV_HWDEVICE_TYPE_NONE)
 
-                hwType = (foundHW.map { Pair(it, preferedHW.indexOf(it)) })
+                hwType = (foundHW.map { Pair(it, preferredHW.indexOf(it)) })
                         .filter { it.second >= 0 }
                         .maxBy { it.second }
                         ?.first ?: AV_HWDEVICE_TYPE_NONE
@@ -178,7 +186,7 @@ internal class Decoder(val statistics: VideoStatistics,
             val seekTS = (seekPosition * AV_TIME_BASE).toLong()
             val seekMinTS = ((seekPosition - 4.0) * AV_TIME_BASE).toLong()
             var seekStarted = System.currentTimeMillis()
-            val seekResult = avformat_seek_file(formatContext, -1, seekMinTS, seekTS, seekTS, AVSEEK_FLAG_ANY)
+            val seekResult = avformat_seek_file(formatContext, -1, seekMinTS, seekTS, seekTS, if (configuration.allowArbitrarySeek) AVSEEK_FLAG_ANY else 0)
             logger.debug { "seek completed in ${System.currentTimeMillis()-seekStarted}ms"}
             if (seekResult != 0) {
                 logger.error { "seek failed" }
@@ -187,10 +195,7 @@ internal class Decoder(val statistics: VideoStatistics,
             }
             needFlush = true
             seekRequested = false
-//            Thread.sleep(5)
         }
-
-
 
         if (needFlush) {
             needFlush = false

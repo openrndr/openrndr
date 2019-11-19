@@ -502,6 +502,9 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
 
 
         if (configuration.showBeforeSetup) {
+
+
+
             logger.debug { "clearing and displaying pre-setup" }
 
             // clear the front buffer

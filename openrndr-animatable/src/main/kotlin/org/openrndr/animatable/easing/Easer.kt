@@ -1,5 +1,10 @@
 package org.openrndr.animatable.easing
 
+import kotlin.math.cos
+import kotlin.math.ln
+import kotlin.math.pow
+import kotlin.math.sin
+
 interface Easer {
     fun velocity(t: Double, b: Double, c: Double, d: Double): Double
     fun ease(t: Double, b: Double, c: Double, d: Double): Double
@@ -45,27 +50,27 @@ class ExpoIn : Easer {
         return if (t == 0.0) {
             0.0
         } else {
-            c * Math.log(32.0) * Math.pow(2.0, 10 * t / d - 9) / d
+            c * ln(32.0) * 2.0.pow(10 * t / d - 9) / d
         }
     }
 
     override fun ease(t: Double, b: Double, c: Double, d: Double): Double =
-            if (t == 0.0) b else c * Math.pow(2.0, 10 * (t / d - 1)) + b
+            if (t == 0.0) b else c * 2.0.pow(10 * (t / d - 1)) + b
 }
 
 class SineOut : Easer {
-    override fun velocity(t: Double, b: Double, c: Double, d: Double): Double = Math.PI * c * Math.cos(Math.PI * t) / (2 * d) / (2 * d)
-    override fun ease(t: Double, b: Double, c: Double, d: Double): Double = c * Math.sin(t / d * (Math.PI / 2)) + b
+    override fun velocity(t: Double, b: Double, c: Double, d: Double): Double = Math.PI * c * cos(Math.PI * t) / (2 * d) / (2 * d)
+    override fun ease(t: Double, b: Double, c: Double, d: Double): Double = c * sin(t / d * (Math.PI / 2)) + b
 }
 
 class SineIn : Easer {
-    override fun velocity(t: Double, b: Double, c: Double, d: Double): Double = -Math.PI * c * Math.sin(Math.PI * t / (2 * d)) / (2 * d)
-    override fun ease(t: Double, b: Double, c: Double, d: Double): Double = -c * Math.cos(t / d * (Math.PI / 2)) + c + b
+    override fun velocity(t: Double, b: Double, c: Double, d: Double): Double = -Math.PI * c * sin(Math.PI * t / (2 * d)) / (2 * d)
+    override fun ease(t: Double, b: Double, c: Double, d: Double): Double = -c * cos(t / d * (Math.PI / 2)) + c + b
 }
 
 class SineInOut : Easer {
-    override fun velocity(t: Double, b: Double, c: Double, d: Double): Double = Math.PI * c * Math.sin(Math.PI * t) / d / (2 * d)
-    override fun ease(t: Double, b: Double, c: Double, d: Double): Double = -c / 2 * (Math.cos(Math.PI * t / d) - 1) + b
+    override fun velocity(t: Double, b: Double, c: Double, d: Double): Double = Math.PI * c * sin(Math.PI * t) / d / (2 * d)
+    override fun ease(t: Double, b: Double, c: Double, d: Double): Double = -c / 2 * (cos(Math.PI * t / d) - 1) + b
 }
 
 class CubicIn: Easer {

@@ -692,7 +692,7 @@ open class Animatable {
          * @return this
          */
         fun clock(): Clock {
-            return Animatable.clock
+            return clock
         }
 
         fun array(variable: String, index: Int): String {

@@ -1,12 +1,14 @@
 package org.openrndr.color
 
+import kotlin.math.pow
+
 @Suppress("unused", "UNUSED_PARAMETER")
 data class ColorLUVa(val l: Double, val u: Double, val v: Double, val alpha: Double = 1.0, val ref: ColorXYZa) {
     companion object {
         fun fromXYZa(xyz: ColorXYZa, ref: ColorXYZa): ColorLUVa {
             val y = xyz.y / ref.y
-            val l = if (y <= Math.pow(6.0 / 29.0, 3.0)) Math.pow(29.0 / 3.0, 3.0) * y else
-                116.0 * Math.pow(y, 1.0 / 3.0) - 16.0
+            val l = if (y <= (6.0 / 29.0).pow(3.0)) (29.0 / 3.0).pow(3.0) * y else
+                116.0 * y.pow(1.0 / 3.0) - 16.0
 
 
             val up = (xyz.x * 4.0) / (xyz.x + xyz.y * 15.0 + xyz.z * 3.0)
@@ -35,7 +37,7 @@ data class ColorLUVa(val l: Double, val u: Double, val v: Double, val alpha: Dou
         val up = u / (13 * l) + ur
         val vp = v / (13 * l) + vr
 
-        val y = if (l <= 8) ref.y * l * Math.pow(3.0 / 29.0, 3.0) else ref.y * Math.pow((l + 16) / 116.0, 3.0)
+        val y = if (l <= 8) ref.y * l * (3.0 / 29.0).pow(3.0) else ref.y * ((l + 16) / 116.0).pow(3.0)
         val x = y * ((9 * up) / (4 * vp))
         val z = y * ((12 - 3 * up - 20 * vp) / (4 * vp))
         return ColorXYZa(x, y, z, alpha)
