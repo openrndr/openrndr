@@ -22,6 +22,7 @@ import org.openrndr.draw.Drawer
 import org.openrndr.events.Event
 import org.openrndr.platform.Platform
 import org.openrndr.platform.PlatformType
+import java.io.File
 import java.nio.ByteBuffer
 import kotlin.concurrent.thread
 
@@ -127,10 +128,16 @@ class VideoPlayerConfiguration {
     var usePacketReaderThread = false
     var realtimeBufferSize = -1L
     var allowFrameSkipping = true
+    var legacyStreamOpen = false
+    var allowArbitrarySeek = false
 }
 
-private object defaultLogger {
+private object defaultLogger : Callback_Pointer_int_String_Pointer() {
+    override fun call(source: Pointer?, level: Int, formatStr: String?, params: Pointer?) {
+        av_log_default_callback(source, level, formatStr, params)
+    }
 
+    fun install() = av_log_set_callback(this)
 }
 
 class VideoPlayerFFMPEG private constructor(
@@ -139,23 +146,20 @@ class VideoPlayerFFMPEG private constructor(
         private val configuration: VideoPlayerConfiguration) {
 
     var lastFrameTime = 0.0
-    fun getTime(): Double {
+    private fun getTime(): Double {
         return System.currentTimeMillis() / 1000.0
     }
 
     private val displayQueue = Queue<VideoFrame>(20)
 
     companion object {
-        fun getDeviceNames() : List<String> {
+        fun listDeviceNames() : List<String> {
             val result = mutableListOf<String>()
 
             /*
             FFMPEG 4.1 still does not have any working interface to query devices.
-            This mess is necessary because we parse the devices from the log output.
+            This mess is necessary because we need to parse the devices from the log output.
              */
-
-            if (Platform.type != PlatformType.WINDOWS) TODO("missing implementation for macOS and linux")
-
             val texts = mutableListOf<String>()
             val callback = object : Callback_Pointer_int_String_Pointer() {
                 override fun call(source: Pointer?, level: Int, formatStr: String?, params: Pointer?) {
@@ -169,25 +173,53 @@ class VideoPlayerFFMPEG private constructor(
             avdevice_register_all()
             av_log_set_callback(callback)
             val context = avformat_alloc_context();
-            val options = AVDictionary()
-            av_dict_set(options, "list_devices", "true", 0);
-            val format = av_find_input_format("dshow");
-            avformat_open_input(context, "video=dummy", format, options)
 
-            var lineIndex = 0
-            all@while (true) {
-                if (texts[lineIndex].contains("DirectShow video devices")) {
-                    lineIndex ++
-                    while (true) {
-                        if (lineIndex >= texts.size || texts[lineIndex].contains("DirectShow audio devices")) {
-                            break@all
+            if (Platform.type == PlatformType.WINDOWS) {
+                val options = AVDictionary()
+                av_dict_set(options, "list_devices", "true", 0);
+                val format = av_find_input_format("dshow");
+                avformat_open_input(context, "video=dummy", format, options)
+                var lineIndex = 0
+                all@ while (true) {
+                    if (texts[lineIndex].contains("DirectShow video devices")) {
+                        lineIndex++
+                        while (true) {
+                            if (lineIndex >= texts.size || texts[lineIndex].contains("DirectShow audio devices")) {
+                                break@all
+                            }
+                            val deviceNamePattern = Regex("\\[dshow @ [0-9a-f]*]\\s+\"(.*)\"")
+                            result.add(deviceNamePattern.matchEntire(texts[lineIndex])!!.groupValues[1])
+                            lineIndex += 2
                         }
-                        val deviceNamePattern = Regex("\\[dshow @ [0-9a-f]*]\\s+\"(.*)\"")
-                        result.add(deviceNamePattern.matchEntire(texts[lineIndex])!!.groupValues[1])
-                        lineIndex+=2
+                    }
+                }
+                avformat_close_input(context)
+            }
+
+            if (Platform.type == PlatformType.MAC) {
+                TODO("macOS implementation is missing")
+            }
+
+            /**
+             * On linux this is even more of a mess, the advice is to use v4l2-ctl for enumeration, but guess what,
+             * that software is likely not installed by the User. Best we can do is scan for /dev/video<N> files.
+             */
+            if (Platform.type == PlatformType.GENERIC) {
+                var index = 0
+                while (true) {
+                    val f = File("/dev/video$index")
+                    if (f.exists()) {
+                        result.add("/dev/video$index")
+                        index++
+                    } else {
+                        break
                     }
                 }
             }
+            avformat_free_context(context)
+
+            // -- switch back to the default logger
+            defaultLogger.install()
             return result
         }
 
@@ -199,19 +231,19 @@ class VideoPlayerFFMPEG private constructor(
 
         fun fromDevice(deviceName: String = defaultDevice(), mode: PlayMode = PlayMode.VIDEO, frameRate: Double? = null, imageWidth: Int? = null, imageHeight: Int? = null, configuration: VideoPlayerConfiguration = VideoPlayerConfiguration()): VideoPlayerFFMPEG {
             av_log_set_level(AV_LOG_QUIET)
-            val format = when (Platform.type) {
-                PlatformType.WINDOWS -> "dshow"
-                PlatformType.MAC -> "avfoundation"
-                PlatformType.GENERIC -> "video4linux2"
+            val (format, properDeviceName) = when (Platform.type) {
+                PlatformType.WINDOWS -> ("dshow" to "video=$deviceName")
+                PlatformType.MAC -> ("avfoundation" to deviceName)
+                PlatformType.GENERIC -> ("video4linux2" to deviceName)
             }
-            val file = AVFile(configuration, deviceName, mode, format, frameRate, imageWidth, imageHeight)
+            val file = AVFile(configuration, properDeviceName, mode, format, frameRate, imageWidth, imageHeight)
             return VideoPlayerFFMPEG(file, mode, configuration)
         }
 
         fun defaultDevice(): String {
             return when (Platform.type) {
                 PlatformType.WINDOWS -> {
-                    "video=Integrated Webcam"
+                    "Integrated Webcam"
                 }
                 PlatformType.MAC -> {
                     "0"
@@ -380,7 +412,6 @@ class VideoPlayerFFMPEG private constructor(
     }
 
     fun draw(drawer: Drawer, blind:Boolean = false) {
-
         synchronized(displayQueue) {
             if (!configuration.allowFrameSkipping) {
                 val frame = displayQueue.peek()
