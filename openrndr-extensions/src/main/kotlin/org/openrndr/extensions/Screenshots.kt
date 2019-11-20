@@ -24,6 +24,8 @@ internal sealed class CreateScreenshot {
 class SingleScreenshot : Screenshots() {
     init {
         quitAfterScreenshot = true
+        async = false
+        folder = null
     }
 
     /**
@@ -48,9 +50,14 @@ open class Screenshots : Extension {
     var scale = 1.0
 
     /**
+     * should saving be performed asynchronously?
+     */
+    var async: Boolean = true
+
+    /**
      * multisample settings
      */
-    var multisample:BufferMultisample = BufferMultisample.Disabled
+    var multisample: BufferMultisample = BufferMultisample.Disabled
 
     /**
      * should the program quit after taking a screenshot?
@@ -63,9 +70,10 @@ open class Screenshots : Extension {
     var key: Int = KEY_SPACEBAR
 
     /**
-     * the folder where the screenshot will be saved to
+     * the folder where the screenshot will be saved to. Default value is "screenshots", saves in current working
+     * directory when set to null.
      */
-    var folder: String = "screenshots"
+    var folder: String? = "screenshots"
 
     internal var createScreenshot: CreateScreenshot = None
 
@@ -90,7 +98,7 @@ open class Screenshots : Extension {
                 colorBuffer()
                 depthBuffer()
             }
-            resolved = when(multisample) {
+            resolved = when (multisample) {
                 BufferMultisample.Disabled -> null
                 is BufferMultisample.SampleCount -> colorBuffer(targetWidth, targetHeight)
             }
@@ -128,7 +136,7 @@ open class Screenshots : Extension {
 
                 val filename = when (createScreenshot) {
                     None -> throw IllegalStateException("")
-                    AutoNamed -> "$folder/$basename-${dt.year.z(4)}-${dt.month.value.z()}-${dt.dayOfMonth.z()}-${dt.hour.z()}.${dt.minute.z()}.${dt.second.z()}.png"
+                    AutoNamed -> "${if(folder==null)"" else "$folder/"}$basename-${dt.year.z(4)}-${dt.month.value.z()}-${dt.dayOfMonth.z()}-${dt.hour.z()}.${dt.minute.z()}.${dt.second.z()}.png"
                     is Named -> createScreenshot.name
                 }
 

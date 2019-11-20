@@ -941,7 +941,7 @@ class ColorBufferGL3(val target: Int,
         }
     }
 
-    override fun saveToFile(file: File, fileFormat: FileFormat) {
+    override fun saveToFile(file: File, fileFormat: FileFormat, async:Boolean) {
         checkDestroyed()
         if (multisample == Disabled) {
             if (type == ColorType.UINT8) {
@@ -951,7 +951,7 @@ class ColorBufferGL3(val target: Int,
                 (pixels as Buffer).rewind()
 
                 runBlocking {
-                    GlobalScope.launch {
+                    val job = GlobalScope.launch {
                         if (!flipV) {
                             val flippedPixels = BufferUtils.createByteBuffer(effectiveWidth * effectiveHeight * format.componentCount)
                             (flippedPixels as Buffer).rewind()
@@ -978,6 +978,9 @@ class ColorBufferGL3(val target: Int,
                                     effectiveWidth, effectiveHeight,
                                     format.componentCount, pixels, effectiveWidth * format.componentCount)
                         }
+                    }
+                    if (!async) {
+                        job.join()
                     }
                 }
             } else {
