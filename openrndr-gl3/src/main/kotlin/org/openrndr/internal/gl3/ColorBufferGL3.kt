@@ -1,5 +1,8 @@
 package org.openrndr.internal.gl3
 
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.ARBTextureCompressionBPTC.*
@@ -947,29 +950,35 @@ class ColorBufferGL3(val target: Int,
                 read(pixels)
                 (pixels as Buffer).rewind()
 
-                if (!flipV) {
-                    val flippedPixels = BufferUtils.createByteBuffer(effectiveWidth * effectiveHeight * format.componentCount)
-                    (flippedPixels as Buffer).rewind()
-                    val stride = effectiveWidth * format.componentCount
-                    val row = ByteArray(stride)
-                    for (y in 0 until effectiveHeight) {
-                        (pixels as Buffer).position((effectiveHeight - y - 1) * stride)
-                        pixels.get(row)
-                        flippedPixels.put(row)
-                    }
-                    (flippedPixels as Buffer).rewind()
-                    pixels = flippedPixels
-                }
+                runBlocking {
+                    GlobalScope.launch {
+                        if (!flipV) {
+                            val flippedPixels = BufferUtils.createByteBuffer(effectiveWidth * effectiveHeight * format.componentCount)
+                            (flippedPixels as Buffer).rewind()
+                            val stride = effectiveWidth * format.componentCount
+                            val row = ByteArray(stride)
 
-                when (fileFormat) {
-                    FileFormat.JPG -> STBImageWrite.stbi_write_jpg(
-                            file.absolutePath,
-                            effectiveWidth, effectiveHeight,
-                            format.componentCount, pixels, 90)
-                    FileFormat.PNG -> STBImageWrite.stbi_write_png(
-                            file.absolutePath,
-                            effectiveWidth, effectiveHeight,
-                            format.componentCount, pixels, effectiveWidth * format.componentCount)
+                            for (y in 0 until effectiveHeight) {
+                                (pixels as Buffer).position((effectiveHeight - y - 1) * stride)
+                                pixels.get(row)
+                                flippedPixels.put(row)
+                            }
+
+                            (flippedPixels as Buffer).rewind()
+                            pixels = flippedPixels
+                        }
+
+                        when (fileFormat) {
+                            FileFormat.JPG -> STBImageWrite.stbi_write_jpg(
+                                    file.absolutePath,
+                                    effectiveWidth, effectiveHeight,
+                                    format.componentCount, pixels, 90)
+                            FileFormat.PNG -> STBImageWrite.stbi_write_png(
+                                    file.absolutePath,
+                                    effectiveWidth, effectiveHeight,
+                                    format.componentCount, pixels, effectiveWidth * format.componentCount)
+                        }
+                    }
                 }
             } else {
                 TODO("support non-UINT8 types")
