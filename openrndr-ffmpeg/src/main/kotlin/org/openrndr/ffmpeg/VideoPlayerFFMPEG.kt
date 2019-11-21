@@ -28,18 +28,6 @@ import kotlin.concurrent.thread
 
 private val logger = KotlinLogging.logger {}
 
-enum class State {
-    PLAYING,
-    STOPPED,
-    PAUSED;
-
-    inline fun transition(from: State, to: State, block: () -> Unit): State =
-            if (this == from) {
-                block()
-                to
-            } else this
-}
-
 enum class PlayMode {
     VIDEO,
     AUDIO,
@@ -65,12 +53,11 @@ internal class AVFile(val configuration: VideoPlayerConfiguration,
 
     init {
         val options = AVDictionary(null)
-        val format: AVInputFormat?
-        if (formatName != null) {
+        val format: AVInputFormat? = if (formatName != null) {
             avdevice_register_all()
-            format = av_find_input_format(formatName)
+            av_find_input_format(formatName)
         } else {
-            format = null
+            null
         }
 
         if (configuration.realtimeBufferSize != -1L) {
@@ -258,7 +245,6 @@ class VideoPlayerFFMPEG private constructor(
     val statistics = VideoStatistics()
     private var decoder: Decoder? = null
     private var info: CodecInfo? = null
-    private var state = State.PLAYING
     private var startTimeMillis = -1L
     var colorBuffer: ColorBuffer? = null
 
