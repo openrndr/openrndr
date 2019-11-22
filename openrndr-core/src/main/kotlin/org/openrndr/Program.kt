@@ -50,6 +50,8 @@ open class Program {
     var clock = { application.seconds }
 
     private var frameSeconds = 0.0
+    private var deltaSeconds: Double = 0.0
+    private var lastSeconds: Double = -1.0
 
     /**
      * The number of [seconds] since program start, or the time from a custom [clock].
@@ -57,6 +59,12 @@ open class Program {
      */
     val seconds: Double
         get() = frameSeconds
+
+    /**
+     * The elapsed time since the last draw loop
+     */
+    val deltaTime: Double
+        get() = deltaSeconds
 
     inner class Clipboard {
         var contents: String?
@@ -215,8 +223,13 @@ open class Program {
      * This is the draw call that is called by Application. It takes care of handling extensions.
      */
     fun drawImpl() {
-
         frameSeconds = clock()
+
+        if (lastSeconds == -1.0) lastSeconds = seconds
+
+        deltaSeconds = frameSeconds - lastSeconds
+        lastSeconds = frameSeconds
+
         backgroundColor?.let {
             drawer.background(it)
         }
