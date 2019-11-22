@@ -1,11 +1,11 @@
 package org.openrndr.math
 
 import java.io.Serializable
-import kotlin.math.max
-import kotlin.math.min
-import kotlin.math.sqrt
+import java.lang.Math.toRadians
+import kotlin.math.*
 
 data class Vector2(val x: Double, val y: Double) : Serializable {
+    constructor(x: Double) : this(x, x)
 
     operator fun invoke(x: Double = this.x, y: Double = this.y) = Vector2(x, y)
 
@@ -46,6 +46,14 @@ data class Vector2(val x: Double, val y: Double) : Serializable {
         val UNIT_X = Vector2(1.0, 0.0)
         val UNIT_Y = Vector2(0.0, 1.0)
         val INFINITY = Vector2(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY)
+
+        fun fromPolar(polar: Polar): Vector2 {
+            val theta = toRadians(polar.theta)
+            val x = cos(theta)
+            val y = sin(theta)
+
+            return Vector2(x, y) * polar.radius
+        }
     }
 }
 
