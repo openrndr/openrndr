@@ -53,6 +53,9 @@ open class Program {
     private var deltaSeconds: Double = 0.0
     private var lastSeconds: Double = -1.0
 
+    var frameCount = 0
+        private set
+
     /**
      * The number of [seconds] since program start, or the time from a custom [clock].
      * value is updated at the beginning of the frame only.
@@ -229,6 +232,8 @@ open class Program {
 
         deltaSeconds = frameSeconds - lastSeconds
         lastSeconds = frameSeconds
+
+        frameCount++
 
         backgroundColor?.let {
             drawer.background(it)
