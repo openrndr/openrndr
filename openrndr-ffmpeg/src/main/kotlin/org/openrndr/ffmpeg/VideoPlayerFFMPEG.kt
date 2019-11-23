@@ -66,6 +66,8 @@ internal class AVFile(val configuration: VideoPlayerConfiguration,
     init {
         val options = AVDictionary(null)
         val format: AVInputFormat?
+        val isDevice = formatName != null
+
         if (formatName != null) {
             avdevice_register_all()
             format = av_find_input_format(formatName)
@@ -93,7 +95,37 @@ internal class AVFile(val configuration: VideoPlayerConfiguration,
             }
         }
         av_dict_set(options, "user_agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36", 0)
-        avformat_open_input(context, fileName, format, options).checkAVError()
+
+        if (isDevice && frameRate == null) {
+            val result = avformat_open_input(context, fileName, format, options)
+
+            if (result != 0) {
+                logger.info { "opening device with default frame rate failed." }
+                logger.debug { result.toAVError() }
+                val frameRates = listOf(60.0, 30.0, 29.97, 25.0, 24.0, 15.0, 10.0)
+                var found = false
+                for (frameRate in frameRates) {
+                    val r = av_d2q(frameRate, 1001000)
+                    av_dict_set(options, "framerate", r.num().toString() + "/" + r.den(), 0)
+
+                    val retryResult = avformat_open_input(context, fileName, format, options)
+                    if (retryResult != 0) {
+                        logger.warn { retryResult.toAVError() }
+                    }
+                    if (retryResult == 0) {
+                        found = true
+                        logger.info { "fall-back to $frameRate"}
+                        break
+                    }
+                }
+                require(found) {
+                    "failed to open device at any frame rate."
+                }
+            }
+        } else {
+            avformat_open_input(context, fileName, format, options).checkAVError()
+        }
+
         avformat_find_stream_info(context, null as PointerPointer<*>?).checkAVError()
         av_dict_free(options)
     }
@@ -224,7 +256,7 @@ class VideoPlayerFFMPEG private constructor(
         }
 
         fun fromFile(fileName: String, mode: PlayMode = PlayMode.BOTH, configuration: VideoPlayerConfiguration = VideoPlayerConfiguration()): VideoPlayerFFMPEG {
-            av_log_set_level(AV_LOG_ERROR)
+            av_log_set_level(AV_LOG_TRACE)
             val file = AVFile(configuration, fileName, mode)
             return VideoPlayerFFMPEG(file, mode, configuration)
         }
@@ -279,6 +311,7 @@ class VideoPlayerFFMPEG private constructor(
     fun play() {
         logger.debug { "start play" }
         file.dumpFormat()
+        av_format_inject_global_side_data(file.context);
 
         val (decoder, info) = runBlocking {
             Decoder.fromContext(statistics, configuration, file.context, mode.useVideo, mode.useAudio)
@@ -294,6 +327,7 @@ class VideoPlayerFFMPEG private constructor(
         }
         val videoOutput = VideoOutput(info.video?.size ?: Dimensions(0,0), AV_PIX_FMT_RGB32)
         val audioOutput = AudioOutput(48000, 2, SampleFormat.S16)
+        av_format_inject_global_side_data(file.context);
 
         if (mode.useAudio) {
             audioOut = AudioSystem.createQueueSource {
@@ -459,17 +493,23 @@ internal fun AVFormatContext.streamAt(index: Int): AVStream? =
 internal val AVFormatContext.codecs: List<AVCodecParameters?>
     get() = List(nb_streams()) { streams(it).codecpar() }
 
-internal fun AVStream.openCodec(tag: String): AVCodecContext {
+internal fun AVStream.openCodec(): AVCodecContext {
     // Get codec context for the video stream.
     val codecPar = this.codecpar()
     val codec = avcodec_find_decoder(codecPar.codec_id())
     if (codec.isNull)
-        throw Error("Unsupported $tag codec with id ${codecPar.codec_id()}...")
+        throw Error("Unsupported codec with id ${codecPar.codec_id()}...")
+
+    val dictionary = AVDictionary()
+
+    av_dict_set(dictionary, "threads", "auto", 0)
+    //av_dict_set(dictionary, "refcounted_frames", "1", 0);
 
     val codecContext = avcodec_alloc_context3(codec)
     avcodec_parameters_to_context(codecContext, codecPar)
-    if (avcodec_open2(codecContext, codec, null as AVDictionary?) < 0)
-        throw Error("Couldn't open $tag codec with id ${codecPar.codec_id()}")
+    if (avcodec_open2(codecContext, codec, dictionary) < 0)
+        throw Error("Couldn't open codec with id ${codecPar.codec_id()}")
 
+    av_dict_free(dictionary)
     return codecContext
 }

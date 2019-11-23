@@ -27,11 +27,21 @@ internal data class CodecInfo(val video: VideoInfo?, val audio: AudioInfo?) {
 
 internal fun Int.checkAVError() {
     if (this != 0) {
-        val buffer = ByteArray(1024)
-        avutil.av_strerror(this, buffer, 1024L)
-        throw Error("AVError: ${String(buffer)}")
+        throw Error("AVError $this: ${toAVError()}")
     }
 }
+
+internal fun Int.toAVError() : String {
+    return if (this != 0) {
+        val buffer = BytePointer(1024L)
+        av_strerror(this, buffer, 1024L)
+        val errorLength = BytePointer.strlen(buffer).toInt()
+        buffer.string.substring(0, errorLength)
+    } else {
+        ""
+    }
+}
+
 
 internal val flushPacket = AVPacket().apply {
     data(BytePointer("FLUSH"))
@@ -64,8 +74,8 @@ internal class Decoder(val statistics: VideoStatistics,
             val videoStream = context.streamAt(videoStreamIndex)
             val audioStream = context.streamAt(audioStreamIndex)
 
-            val videoContext = videoStream?.openCodec("videoDecoder")
-            val audioContext = audioStream?.openCodec("audio")
+            val videoContext = videoStream?.openCodec()
+            val audioContext = audioStream?.openCodec()
             var hwType = AV_HWDEVICE_TYPE_NONE
             if (configuration.useHardwareDecoding && videoContext != null) {
                 val preferredHW = when (Platform.type) {
@@ -184,14 +194,13 @@ internal class Decoder(val statistics: VideoStatistics,
 
             logger.debug { "seeking to $seekPosition" }
             val seekTS = (seekPosition * AV_TIME_BASE).toLong()
-            val seekMinTS = ((seekPosition - 4.0) * AV_TIME_BASE).toLong()
-            var seekStarted = System.currentTimeMillis()
-            val seekResult = avformat_seek_file(formatContext, -1, seekMinTS, seekTS, seekTS, if (configuration.allowArbitrarySeek) AVSEEK_FLAG_ANY else 0)
+            val seekMinTS = ((seekPosition - 2.0) * AV_TIME_BASE).toLong()
+            val seekMaxTS = seekTS //((seekPosition + 4.0) * AV_TIME_BASE).toLong()
+            val seekStarted = System.currentTimeMillis()
+            val seekResult = avformat_seek_file(formatContext, -1, seekMinTS, seekTS, seekMaxTS, if (configuration.allowArbitrarySeek) AVSEEK_FLAG_ANY else 0)
             logger.debug { "seek completed in ${System.currentTimeMillis()-seekStarted}ms"}
             if (seekResult != 0) {
                 logger.error { "seek failed" }
-            } else {
-                logger.debug { "seek returned"}
             }
             needFlush = true
             seekRequested = false
