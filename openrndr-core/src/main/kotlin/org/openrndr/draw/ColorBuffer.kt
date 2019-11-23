@@ -89,7 +89,7 @@ interface ColorBuffer {
     val effectiveHeight: Int get() = (height * contentScale).toInt()
 
     /** save the [ColorBuffer] to [File] */
-    fun saveToFile(file: File, fileFormat: FileFormat = guessFromExtension(file))
+    fun saveToFile(file: File, fileFormat: FileFormat = guessFromExtension(file), async: Boolean = true)
 
     private fun guessFromExtension(file: File): FileFormat {
         val extension = file.extension.toLowerCase()
