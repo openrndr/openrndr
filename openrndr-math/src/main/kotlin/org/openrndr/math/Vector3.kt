@@ -1,10 +1,13 @@
 package org.openrndr.math
 
 import java.io.Serializable
+import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.sin
 
 data class Vector3(val x: Double, val y: Double, val z: Double) : Serializable {
+    constructor(x: Double) : this(x, x, x)
 
     operator fun invoke(x: Double = this.x, y: Double = this.y, z: Double = this.z) = Vector3(x, y, z)
 
@@ -17,11 +20,11 @@ data class Vector3(val x: Double, val y: Double, val z: Double) : Serializable {
         val INFINITY = Vector3(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY)
 
         fun fromSpherical(s: Spherical): Vector3 {
-            val sinPhiRadius = Math.sin(s.phi) * s.radius
+            val sinPhiRadius = sin(s.phi) * s.radius
             return Vector3(
-                    sinPhiRadius * Math.sin(s.theta),
-                    Math.cos(s.phi) * s.radius,
-                    sinPhiRadius * Math.cos(s.theta))
+                    sinPhiRadius * sin(s.theta),
+                    cos(s.phi) * s.radius,
+                    sinPhiRadius * cos(s.theta))
         }
     }
 
