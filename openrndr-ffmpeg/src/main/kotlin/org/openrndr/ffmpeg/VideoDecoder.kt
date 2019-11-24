@@ -63,7 +63,7 @@ internal class VideoDecoder(
 
     private val scaledFrameSize = av_image_get_buffer_size(avPixelFormat, windowSize.w, windowSize.h, 1)
     private val imagePointer = arrayOf(BytePointer(av_malloc(scaledFrameSize.toLong())).capacity(scaledFrameSize.toLong()))
-    private val videoQueue = Queue<VideoFrame>(100)
+    private val videoQueue = Queue<VideoFrame>(configuration.videoFrameQueueSize)
     private val minVideoFrames = 5 //configuration.videoFrameQueueSize
 
     private var videoTime = 0.0

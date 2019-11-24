@@ -54,14 +54,15 @@ internal data class Dimensions(val w: Int, val h: Int) {
     operator fun div(b: Int) = Dimensions(w / b, h / b)
 }
 
-internal class AVFile(val configuration: VideoPlayerConfiguration,
-                      val fileName: String,
-                      val playMode: PlayMode,
+internal class AVFile(configuration: VideoPlayerConfiguration,
+                      private val fileName: String,
+                      playMode: PlayMode,
                       val formatName: String? = null,
-                      val frameRate: Double? = null,
-                      val imageWidth: Int? = null,
-                      val imageHeight: Int? = null) {
-    val context = avformat_alloc_context()
+                      private val frameRate: Double? = null,
+                      private val imageWidth: Int? = null,
+                      private val imageHeight: Int? = null) {
+
+    val context: AVFormatContext = avformat_alloc_context()
 
     init {
         val options = AVDictionary(null)
@@ -114,7 +115,7 @@ internal class AVFile(val configuration: VideoPlayerConfiguration,
                     }
                     if (retryResult == 0) {
                         found = true
-                        logger.info { "fall-back to $frameRate"}
+                        logger.info { "fall-back to $frameRate" }
                         break
                     }
                 }
@@ -154,8 +155,9 @@ class VideoStatistics {
 }
 
 class VideoPlayerConfiguration {
-    var videoFrameQueueSize = 50
+    var videoFrameQueueSize = 100
     var packetQueueSize = 2500
+    var displayQueueSize = 20
     var useHardwareDecoding = true
     var usePacketReaderThread = false
     var realtimeBufferSize = -1L
@@ -172,6 +174,9 @@ private object defaultLogger : Callback_Pointer_int_String_Pointer() {
     fun install() = av_log_set_callback(this)
 }
 
+/**
+ * Video player based on FFMPEG
+ */
 class VideoPlayerFFMPEG private constructor(
         private val file: AVFile,
         private val mode: PlayMode = PlayMode.VIDEO,
@@ -182,10 +187,13 @@ class VideoPlayerFFMPEG private constructor(
         return System.currentTimeMillis() / 1000.0
     }
 
-    private val displayQueue = Queue<VideoFrame>(20)
+    private val displayQueue = Queue<VideoFrame>(configuration.displayQueueSize)
 
     companion object {
-        fun listDeviceNames() : List<String> {
+        /**
+         * Lists the available machine-specific device names
+         */
+        fun listDeviceNames(): List<String> {
             val result = mutableListOf<String>()
 
             /*
@@ -255,13 +263,35 @@ class VideoPlayerFFMPEG private constructor(
             return result
         }
 
-        fun fromFile(fileName: String, mode: PlayMode = PlayMode.BOTH, configuration: VideoPlayerConfiguration = VideoPlayerConfiguration()): VideoPlayerFFMPEG {
-            av_log_set_level(AV_LOG_TRACE)
+        /**
+         * Opens a video from file or url
+         * @return a ready-to-play video player on success
+         */
+        fun fromFile(fileName: String,
+                     mode: PlayMode = PlayMode.BOTH,
+                     configuration: VideoPlayerConfiguration = VideoPlayerConfiguration()): VideoPlayerFFMPEG {
+            av_log_set_level(AV_LOG_QUIET)
             val file = AVFile(configuration, fileName, mode)
             return VideoPlayerFFMPEG(file, mode, configuration)
         }
 
-        fun fromDevice(deviceName: String = defaultDevice(), mode: PlayMode = PlayMode.VIDEO, frameRate: Double? = null, imageWidth: Int? = null, imageHeight: Int? = null, configuration: VideoPlayerConfiguration = VideoPlayerConfiguration()): VideoPlayerFFMPEG {
+        /**
+         * Opens a webcam or video device
+         * @param deviceName a machine-specific device name
+         * @param mode which streams should be opened and played
+         * @param frameRate optional frame rate (in Hz)
+         * @param imageWidth optional image width
+         * @param imageHeight optional image height
+         * @param configuration optional video player configuration
+         * @return a ready-to-play video player on success
+         */
+        fun fromDevice(deviceName: String = defaultDevice(),
+                       mode: PlayMode = PlayMode.VIDEO,
+                       frameRate: Double? = null,
+                       imageWidth: Int? = null,
+                       imageHeight: Int? = null,
+                       configuration: VideoPlayerConfiguration = VideoPlayerConfiguration())
+                : VideoPlayerFFMPEG {
             av_log_set_level(AV_LOG_QUIET)
             val (format, properDeviceName) = when (Platform.type) {
                 PlatformType.WINDOWS -> ("dshow" to "video=$deviceName")
@@ -272,6 +302,9 @@ class VideoPlayerFFMPEG private constructor(
             return VideoPlayerFFMPEG(file, mode, configuration)
         }
 
+        /**
+         * Returns machine-specific default device
+         */
         fun defaultDevice(): String {
             return when (Platform.type) {
                 PlatformType.WINDOWS -> {
@@ -298,6 +331,9 @@ class VideoPlayerFFMPEG private constructor(
     val ended = Event<VideoEvent>()
     private var audioOut: AudioQueueSource? = null
 
+    /**
+     * Controls the gain of the audio
+     */
     var audioGain: Double
         set(value: Double) {
             audioOut?.let {
@@ -308,10 +344,13 @@ class VideoPlayerFFMPEG private constructor(
             return audioOut?.gain ?: 1.0
         }
 
+    /**
+     * Start playing the stream
+     */
     fun play() {
         logger.debug { "start play" }
         file.dumpFormat()
-        av_format_inject_global_side_data(file.context);
+        av_format_inject_global_side_data(file.context)
 
         val (decoder, info) = runBlocking {
             Decoder.fromContext(statistics, configuration, file.context, mode.useVideo, mode.useAudio)
@@ -325,7 +364,7 @@ class VideoPlayerFFMPEG private constructor(
                 flipV = true
             }
         }
-        val videoOutput = VideoOutput(info.video?.size ?: Dimensions(0,0), AV_PIX_FMT_RGB32)
+        val videoOutput = VideoOutput(info.video?.size ?: Dimensions(0, 0), AV_PIX_FMT_RGB32)
         val audioOutput = AudioOutput(48000, 2, SampleFormat.S16)
         av_format_inject_global_side_data(file.context);
 
@@ -354,11 +393,11 @@ class VideoPlayerFFMPEG private constructor(
             audioOut?.play()
 
             audioOut?.let { ao ->
-                decoder.audioOutQueueFull = { ao.outputQueue.size >= ao.queueSize-1 }
+                decoder.audioOutQueueFull = { ao.outputQueue.size >= ao.queueSize - 1 }
             }
         }
 
-        decoder.displayQueueFull = { displayQueue.size() >= displayQueue.maxSize-1 }
+        decoder.displayQueueFull = { displayQueue.size() >= displayQueue.maxSize - 1 }
 
         thread(isDaemon = true) {
             Thread.currentThread().name += "(decoder)"
@@ -439,33 +478,28 @@ class VideoPlayerFFMPEG private constructor(
     private var seekRequested = false
     private var seekPosition = -1.0
 
+    /**
+     * Seek in the video
+     * @param positionInSeconds the desired seeking time in seconds
+     */
     fun seek(positionInSeconds: Double) {
         logger.debug { "video player seek requested" }
         seekRequested = true
         seekPosition = positionInSeconds
     }
 
-    fun draw(drawer: Drawer, blind:Boolean = false) {
-        synchronized(displayQueue) {
-            if (!configuration.allowFrameSkipping) {
-                val frame = displayQueue.peek()
-                if (frame != null) {
-                    displayQueue.pop()
-                    if (!frame.buffer.isNull) {
-                        colorBuffer?.write(frame.buffer.data().capacity(frame.frameSize.toLong()).asByteBuffer())
-                    } else {
-                        logger.error {
-                            "encountered frame with null buffer"
-                        }
-                    }
-                    frame.unref()
-                }
-
-            } else {
-                var frame: VideoFrame? = null
-                while (!displayQueue.isEmpty()) {
-                    frame = displayQueue.pop()
-                    if (displayQueue.isEmpty()) {
+    /**
+     * Draw the current frame
+     * @param blind only updates the frame data when true
+     * @param update does not update the frame data when false
+     */
+    fun draw(drawer: Drawer, blind: Boolean = false, update: Boolean = true) {
+        if (update) {
+            synchronized(displayQueue) {
+                if (!configuration.allowFrameSkipping) {
+                    val frame = displayQueue.peek()
+                    if (frame != null) {
+                        displayQueue.pop()
                         if (!frame.buffer.isNull) {
                             colorBuffer?.write(frame.buffer.data().capacity(frame.frameSize.toLong()).asByteBuffer())
                         } else {
@@ -473,8 +507,24 @@ class VideoPlayerFFMPEG private constructor(
                                 "encountered frame with null buffer"
                             }
                         }
+                        frame.unref()
                     }
-                    frame.unref()
+
+                } else {
+                    var frame: VideoFrame?
+                    while (!displayQueue.isEmpty()) {
+                        frame = displayQueue.pop()
+                        if (displayQueue.isEmpty()) {
+                            if (!frame.buffer.isNull) {
+                                colorBuffer?.write(frame.buffer.data().capacity(frame.frameSize.toLong()).asByteBuffer())
+                            } else {
+                                logger.error {
+                                    "encountered frame with null buffer"
+                                }
+                            }
+                        }
+                        frame.unref()
+                    }
                 }
             }
         }
@@ -494,7 +544,6 @@ internal val AVFormatContext.codecs: List<AVCodecParameters?>
     get() = List(nb_streams()) { streams(it).codecpar() }
 
 internal fun AVStream.openCodec(): AVCodecContext {
-    // Get codec context for the video stream.
     val codecPar = this.codecpar()
     val codec = avcodec_find_decoder(codecPar.codec_id())
     if (codec.isNull)
@@ -503,7 +552,6 @@ internal fun AVStream.openCodec(): AVCodecContext {
     val dictionary = AVDictionary()
 
     av_dict_set(dictionary, "threads", "auto", 0)
-    //av_dict_set(dictionary, "refcounted_frames", "1", 0);
 
     val codecContext = avcodec_alloc_context3(codec)
     avcodec_parameters_to_context(codecContext, codecPar)

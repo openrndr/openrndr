@@ -1,6 +1,5 @@
 package org.openrndr.ffmpeg
 
-
 import org.bytedeco.ffmpeg.global.avutil.AV_PIX_FMT_NONE
 import org.openrndr.draw.ColorBuffer
 import org.openrndr.draw.ColorFormat
@@ -21,7 +20,6 @@ class FFMPEGVideoPlayer private constructor(url: String) {
         fun fromFile(filename: String): FFMPEGVideoPlayer {
             return FFMPEGVideoPlayer(File(filename).toURI().toURL().toExternalForm())
         }
-
 
         fun defaultDevice(): String {
             val osName = System.getProperty("os.name").toLowerCase()
