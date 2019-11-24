@@ -22,6 +22,7 @@ import org.openrndr.draw.Drawer
 import org.openrndr.events.Event
 import org.openrndr.platform.Platform
 import org.openrndr.platform.PlatformType
+import org.openrndr.shape.Rectangle
 import java.io.File
 import java.nio.ByteBuffer
 import kotlin.concurrent.thread
@@ -327,6 +328,9 @@ class VideoPlayerFFMPEG private constructor(
     private var startTimeMillis = -1L
     var colorBuffer: ColorBuffer? = null
 
+    val width: Int get() = colorBuffer?.width ?: 0
+    val height: Int get() = colorBuffer?.height ?: 0
+
     val newFrame = Event<FrameEvent>()
     val ended = Event<VideoEvent>()
     private var audioOut: AudioQueueSource? = null
@@ -503,20 +507,31 @@ class VideoPlayerFFMPEG private constructor(
         seekPosition = positionInSeconds
     }
 
-    /**
-     * Draw the current frame
-     * @param blind only updates the frame data when true
-     * @param update does not update the frame data when false
-     */
-    fun draw(drawer: Drawer, blind: Boolean = false, update: Boolean = true) {
-        require(!disposed)
 
-        if (update) {
-            synchronized(displayQueue) {
-                if (!configuration.allowFrameSkipping) {
-                    val frame = displayQueue.peek()
-                    if (frame != null) {
-                        displayQueue.pop()
+    private fun update() {
+        synchronized(displayQueue) {
+            if (!configuration.allowFrameSkipping) {
+                val frame = displayQueue.peek()
+                if (frame != null) {
+                    displayQueue.pop()
+                    if (!frame.buffer.isNull) {
+                        colorBuffer?.write(frame.buffer.data().capacity(frame.frameSize.toLong()).asByteBuffer())
+                        colorBuffer?.let { lc ->
+                            newFrame.trigger(FrameEvent(lc, 0.0))
+                        }
+                    } else {
+                        logger.error {
+                            "encountered frame with null buffer"
+                        }
+                    }
+                    frame.unref()
+                }
+
+            } else {
+                var frame: VideoFrame?
+                while (!displayQueue.isEmpty()) {
+                    frame = displayQueue.pop()
+                    if (displayQueue.isEmpty()) {
                         if (!frame.buffer.isNull) {
                             colorBuffer?.write(frame.buffer.data().capacity(frame.frameSize.toLong()).asByteBuffer())
                             colorBuffer?.let { lc ->
@@ -527,32 +542,25 @@ class VideoPlayerFFMPEG private constructor(
                                 "encountered frame with null buffer"
                             }
                         }
-                        frame.unref()
                     }
-
-                } else {
-                    var frame: VideoFrame?
-                    while (!displayQueue.isEmpty()) {
-                        frame = displayQueue.pop()
-                        if (displayQueue.isEmpty()) {
-                            if (!frame.buffer.isNull) {
-                                colorBuffer?.write(frame.buffer.data().capacity(frame.frameSize.toLong()).asByteBuffer())
-                                colorBuffer?.let { lc ->
-                                    newFrame.trigger(FrameEvent(lc, 0.0))
-                                }
-                            } else {
-                                logger.error {
-                                    "encountered frame with null buffer"
-                                }
-                            }
-                        }
-                        frame.unref()
-                    }
+                    frame.unref()
                 }
             }
         }
-        if (endOfFileReached && displayQueue.isEmpty() && (decoder?.videoQueueSize()?:0)==0) {
+        if (endOfFileReached && displayQueue.isEmpty() && (decoder?.videoQueueSize() ?: 0) == 0) {
             ended.trigger(VideoEvent())
+        }
+    }
+
+    /**
+     * Draw the current frame
+     * @param blind only updates the frame data when true
+     * @param update does not update the frame data when false
+     */
+    fun draw(drawer: Drawer, blind: Boolean = false, update: Boolean = true) {
+        require(!disposed)
+        if (update) {
+            update()
         }
         colorBuffer?.let {
             if (!blind) {
@@ -560,6 +568,51 @@ class VideoPlayerFFMPEG private constructor(
             }
         }
     }
+
+    /**
+     * Draw the current frame at given position and size
+     * @param blind only updates the frame data when true
+     * @param update does not update the frame data when false
+     */
+    fun draw(drawer: Drawer,
+             x: Double = 0.0,
+             y: Double = 0.0,
+             width: Double = this.width.toDouble(),
+             height: Double = this.height.toDouble(),
+             blind: Boolean = false, update: Boolean = true) {
+        require(!disposed)
+        if (update) {
+            update()
+        }
+        colorBuffer?.let {
+            if (!blind) {
+                drawer.image(it, x, y, width, height)
+            }
+        }
+    }
+
+    /**
+     * Draw the current frame using source and target rectangles
+     * @param source the source rectangle
+     * @param target the target rectangle
+     * @param blind only updates the frame data when true
+     * @param update does not update the frame data when false
+     */
+    fun draw(drawer: Drawer,
+             source: Rectangle,
+             target: Rectangle,
+             blind: Boolean = false, update: Boolean = true) {
+        require(!disposed)
+        if (update) {
+            update()
+        }
+        colorBuffer?.let {
+            if (!blind) {
+                drawer.image(it, source, target)
+            }
+        }
+    }
+
     fun dispose() {
         require(!disposed)
 
