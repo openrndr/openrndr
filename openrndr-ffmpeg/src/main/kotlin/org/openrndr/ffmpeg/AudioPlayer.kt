@@ -14,6 +14,15 @@ import kotlin.math.min
 private val logger = KotlinLogging.logger {}
 
 object AudioSystem {
+
+    init {
+        Runtime.getRuntime().addShutdownHook(object:Thread() {
+            override fun run() {
+                ALC11.alcDestroyContext(context)
+                ALC11.alcCloseDevice(device)
+            }
+        })
+    }
     private val defaultDevice = ALC11.alcGetString(0, ALC11.ALC_DEFAULT_DEVICE_SPECIFIER).apply {
         logger.debug { this }
     }
@@ -47,7 +56,6 @@ enum class AudioFormat(val alFormat:Int) {
     MONO_16(AL_FORMAT_MONO16),
     STEREO_16(AL_FORMAT_STEREO16)
 }
-
 
 class AudioData(val format: AudioFormat = AudioFormat.STEREO_16, val rate: Int = 48000, val buffer: ByteBuffer) {
     fun createBuffer(): AudioBuffer {
@@ -97,7 +105,6 @@ class AudioQueueSource(source: Int, val bufferCount: Int = 2, val queueSize: Int
 
     val sampleOffset: Long
         get() = bufferOffset + AL11.alGetSourcei(source, AL11.AL_SAMPLE_OFFSET)
-
 
     fun play() {
         val startBufferCount = min(bufferCount, inputQueue.size())
@@ -162,6 +169,10 @@ class AudioQueueSource(source: Int, val bufferCount: Int = 2, val queueSize: Int
         }
     }
 
+    fun stop() {
+        flush()
+    }
+
     fun flush() {
         while (!inputQueue.isEmpty()) inputQueue.pop()
         AL11.alSourceStop(source)
@@ -178,5 +189,10 @@ class AudioQueueSource(source: Int, val bufferCount: Int = 2, val queueSize: Int
 
     fun resume() {
         AL11.alSourcePlay(source)
+    }
+
+    fun dispose() {
+        flush()
+        AL11.alDeleteSources(source)
     }
 }

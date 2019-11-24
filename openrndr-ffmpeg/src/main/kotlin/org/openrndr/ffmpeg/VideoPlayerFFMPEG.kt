@@ -331,6 +331,10 @@ class VideoPlayerFFMPEG private constructor(
     val ended = Event<VideoEvent>()
     private var audioOut: AudioQueueSource? = null
 
+    private var endOfFileReached = false
+
+    private var disposed = false
+
     /**
      * Controls the gain of the audio
      */
@@ -348,6 +352,8 @@ class VideoPlayerFFMPEG private constructor(
      * Start playing the stream
      */
     fun play() {
+        require(!disposed)
+
         logger.debug { "start play" }
         file.dumpFormat()
         av_format_inject_global_side_data(file.context)
@@ -404,6 +410,10 @@ class VideoPlayerFFMPEG private constructor(
             decoder.start(videoOutput.toVideoDecoderOutput(), audioOutput.toAudioDecoderOutput())
         }
         startTimeMillis = System.currentTimeMillis()
+
+        decoder.reachedEndOfFile = {
+            endOfFileReached = true
+        }
 
         if (mode.useVideo) {
             thread(isDaemon = true) {
@@ -465,6 +475,8 @@ class VideoPlayerFFMPEG private constructor(
     }
 
     fun restart() {
+        require(!disposed)
+        endOfFileReached = false
         logger.debug { "video player restart requested" }
         synchronized(displayQueue) {
             while (!displayQueue.isEmpty()) {
@@ -483,8 +495,11 @@ class VideoPlayerFFMPEG private constructor(
      * @param positionInSeconds the desired seeking time in seconds
      */
     fun seek(positionInSeconds: Double) {
+        require(!disposed)
+
         logger.debug { "video player seek requested" }
         seekRequested = true
+        endOfFileReached = false
         seekPosition = positionInSeconds
     }
 
@@ -494,6 +509,8 @@ class VideoPlayerFFMPEG private constructor(
      * @param update does not update the frame data when false
      */
     fun draw(drawer: Drawer, blind: Boolean = false, update: Boolean = true) {
+        require(!disposed)
+
         if (update) {
             synchronized(displayQueue) {
                 if (!configuration.allowFrameSkipping) {
@@ -502,6 +519,9 @@ class VideoPlayerFFMPEG private constructor(
                         displayQueue.pop()
                         if (!frame.buffer.isNull) {
                             colorBuffer?.write(frame.buffer.data().capacity(frame.frameSize.toLong()).asByteBuffer())
+                            colorBuffer?.let { lc ->
+                                newFrame.trigger(FrameEvent(lc, 0.0))
+                            }
                         } else {
                             logger.error {
                                 "encountered frame with null buffer"
@@ -517,6 +537,9 @@ class VideoPlayerFFMPEG private constructor(
                         if (displayQueue.isEmpty()) {
                             if (!frame.buffer.isNull) {
                                 colorBuffer?.write(frame.buffer.data().capacity(frame.frameSize.toLong()).asByteBuffer())
+                                colorBuffer?.let { lc ->
+                                    newFrame.trigger(FrameEvent(lc, 0.0))
+                                }
                             } else {
                                 logger.error {
                                     "encountered frame with null buffer"
@@ -528,11 +551,26 @@ class VideoPlayerFFMPEG private constructor(
                 }
             }
         }
+        if (endOfFileReached && displayQueue.isEmpty() && (decoder?.videoQueueSize()?:0)==0) {
+            ended.trigger(VideoEvent())
+        }
         colorBuffer?.let {
             if (!blind) {
                 drawer.image(it)
             }
         }
+    }
+    fun dispose() {
+        require(!disposed)
+
+        audioOut?.dispose()
+        decoder?.dispose()
+        while (!displayQueue.isEmpty()) {
+            val buffer = displayQueue.pop()
+            buffer.unref()
+        }
+
+        disposed = true
     }
 }
 

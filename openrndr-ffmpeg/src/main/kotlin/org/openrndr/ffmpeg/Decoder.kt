@@ -10,7 +10,6 @@ import org.bytedeco.ffmpeg.avutil.AVHWDeviceContext
 import org.bytedeco.ffmpeg.global.avcodec.av_packet_alloc
 import org.bytedeco.ffmpeg.global.avcodec.av_packet_unref
 import org.bytedeco.ffmpeg.global.avformat.*
-import org.bytedeco.ffmpeg.global.avutil
 import org.bytedeco.ffmpeg.global.avutil.*
 import org.bytedeco.javacpp.BytePointer
 import org.bytedeco.javacpp.PointerPointer
@@ -41,7 +40,6 @@ internal fun Int.toAVError() : String {
         ""
     }
 }
-
 
 internal val flushPacket = AVPacket().apply {
     data(BytePointer("FLUSH"))
@@ -128,7 +126,7 @@ internal class Decoder(val statistics: VideoStatistics,
     var displayQueueFull: () -> Boolean = { false }
     var audioOutQueueFull: () -> Boolean = { false }
     var seekCompleted: () -> Unit = { }
-
+    var reachedEndOfFile: () -> Unit = { }
 
     fun start(videoOutput: VideoDecoderOutput?, audioOutput: AudioDecoderOutput?) {
         videoDecoder = videoCodecContext?.let { ctx ->
@@ -154,12 +152,7 @@ internal class Decoder(val statistics: VideoStatistics,
     }
 
     fun restart() {
-        logger.debug { "restart requested" }
-        videoDecoder?.flushQueue()
-        audioDecoder?.flushQueue()
-        packetReader?.flushQueue()
-        logger.debug { "seeking to frame 0" }
-        av_seek_frame(formatContext, -1, formatContext.start_time(), AVSEEK_FLAG_FRAME or AVSEEK_FLAG_ANY)
+        seek(0.0)
     }
 
     private var needFlush = false
@@ -226,7 +219,13 @@ internal class Decoder(val statistics: VideoStatistics,
             }
 
             val packet = if (packetReader != null) packetReader?.nextPacket() else av_packet_alloc()
-            av_read_frame(formatContext, packet)
+            val packetResult = av_read_frame(formatContext, packet)
+
+            if (packetResult == AVERROR_EOF) {
+                reachedEndOfFile()
+                Thread.sleep(50)
+            }
+
             if (packet != null) {
                 packetsReceived++
                 if (hasSeeked && packetsReceived == 1) {
@@ -245,7 +244,9 @@ internal class Decoder(val statistics: VideoStatistics,
                 av_packet_unref(packet)
             } else {
                 if (packetReader?.endOfFile == true) {
+
                     Thread.sleep(10)
+
                 } else {
                     logger.debug { "more frames are needed but none are received" }
                     Thread.sleep(1)

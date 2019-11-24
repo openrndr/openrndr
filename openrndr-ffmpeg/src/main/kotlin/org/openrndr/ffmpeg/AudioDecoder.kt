@@ -64,7 +64,7 @@ internal class AudioDecoder(
 
     init {
         resampleContext = swr_alloc_set_opts(null, AV_CH_LAYOUT_STEREO, AV_SAMPLE_FMT_S16, 48000,
-                AV_CH_LAYOUT_STEREO, audioCodecContext.sample_fmt(), audioCodecContext.sample_rate(), 0, null)
+                audioCodecContext.channel_layout(), audioCodecContext.sample_fmt(), audioCodecContext.sample_rate(), 0, null)
 
         swr_init(resampleContext).checkAVError()
     }
