@@ -307,6 +307,12 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
                         WindowEvent(WindowEventType.FOCUSED, program.window.position, program.window.size, false))
             }
         }
+
+        glfwSetWindowCloseCallback(window) {window ->
+            logger.debug { "window closed" }
+            exitRequested = true
+        }
+
         logger.debug { "showing window" }
 
         run {
@@ -377,6 +383,15 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
             GLUtil.setupDebugMessageCallback()
         }
 
+        Runtime.getRuntime().addShutdownHook(object:Thread() {
+            override fun run() {
+                logger.debug { "shutting down extensions from shutdown hook" }
+                for (extension in program.extensions) {
+                    extension.shutdown(program)
+                }
+                program.extensions.clear()
+            }
+        })
 
         program.driver = Driver.driver
         program.drawer = Drawer(Driver.driver)
@@ -557,6 +572,12 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
             }
         }
         logger.debug { "exiting loop" }
+
+        logger.debug { "shutting down extensions" }
+        for (extension in program.extensions) {
+            extension.shutdown(program)
+        }
+        program.extensions.clear()
 
         glfwFreeCallbacks(window)
         glfwDestroyWindow(window)

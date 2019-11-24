@@ -20,4 +20,9 @@ interface Extension {
     fun setup(program: Program) {}
     fun beforeDraw(drawer: Drawer, program: Program) {}
     fun afterDraw(drawer: Drawer, program: Program) {}
+
+    /**
+     * Shutdown is called when the host application is quit
+     */
+    fun shutdown(program: Program) {}
 }
