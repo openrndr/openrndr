@@ -24,7 +24,7 @@ import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.glfw.GLFWImage
 import org.lwjgl.opengl.GLUtil
 import org.lwjgl.opengl.GL.createCapabilities
-import org.lwjgl.opengl.GL30.*
+import org.lwjgl.opengl.GL33C.*
 
 import org.openrndr.*
 import org.openrndr.draw.Drawer
@@ -35,7 +35,7 @@ import java.nio.Buffer
 
 import java.util.*
 import kotlin.IllegalStateException
-
+import kotlin.math.ceil
 
 private val logger = KotlinLogging.logger {}
 internal var primaryWindow: Long = NULL
@@ -105,7 +105,6 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
             }
         }
 
-
     override val seconds: Double
         get() = glfwGetTime()
 
@@ -149,7 +148,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
             glfwWindowHint(GLFW_FLOATING, GLFW_TRUE)
         }
 
-        println(glfwGetVersionString())
+        logger.info { glfwGetVersionString() }
 
         if (useDebugContext) {
             glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE)
@@ -224,7 +223,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
                     .width(128)
                     .height(128)
                     .pixels(buf)
-            );
+            )
         }
 
         logger.debug { "window created: $window" }
@@ -282,7 +281,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         }
 
         glfwSetFramebufferSizeCallback(window) { window, width, height ->
-            logger.debug { "resizing window to ${width}x${height} " }
+            logger.trace { "resizing window ($window) to ${width}x$height " }
 
             if (readyFrames > 0) {
                 setupSizes()
@@ -293,12 +292,12 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         }
 
         glfwSetWindowPosCallback(window) { _, x, y ->
-            logger.trace { "window has moved to $x $y" }
+            logger.trace { "window ($window) has moved to $x $y" }
             program.window.moved.trigger(WindowEvent(WindowEventType.MOVED, Vector2(x.toDouble(), y.toDouble()), Vector2(0.0, 0.0), true))
         }
 
         glfwSetWindowFocusCallback(window) { _, focused ->
-            logger.trace { "window focus has changed; focused=$focused" }
+            logger.trace { "window ($window) focus has changed; focused=$focused" }
             windowFocused = focused
             if (focused) {
                 program.window.focused.trigger(
@@ -308,9 +307,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
                         WindowEvent(WindowEventType.FOCUSED, program.window.position, program.window.size, false))
             }
         }
-        logger.debug { "glfw version: ${glfwGetVersionString()}" }
         logger.debug { "showing window" }
-
 
         run {
             val adjustedMinimumWidth = if (fixWindowSize) (xscale[0] * configuration.minimumWidth).toInt() else configuration.minimumWidth
@@ -412,7 +409,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
             }
         }
 
-        glfwSetCharCallback(window) { window, codepoint ->
+        glfwSetCharCallback(window) { _, codepoint ->
             program.keyboard.character.trigger(Program.CharacterEvent(codepoint.toChar(), emptySet()))
         }
 
@@ -496,14 +493,10 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         }
 
         glfwSetCursorEnterCallback(window) { window, entered ->
-            logger.trace { "cursor state changed; inside window = $entered" }
+            logger.trace { "cursor state changed; inside window ($window) = $entered" }
         }
 
-
         if (configuration.showBeforeSetup) {
-
-
-
             logger.debug { "clearing and displaying pre-setup" }
 
             // clear the front buffer
@@ -563,7 +556,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
                 program.dispatcher.execute()
             }
         }
-        logger.info { "exiting loop" }
+        logger.debug { "exiting loop" }
 
         glfwFreeCallbacks(window)
         glfwDestroyWindow(window)
@@ -571,7 +564,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         // TODO: take care of these when all windows are closed
         //glfwTerminate()
         //glfwSetErrorCallback(null)?.free()
-        logger.info { "done" }
+        logger.debug { "done" }
 
         exception?.let {
             throw it
@@ -626,8 +619,8 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         glfwGetFramebufferSize(window, fbw, fbh)
 
         glViewport(0, 0, fbw[0], fbh[0])
-        program.width = Math.ceil(fbw[0] / program.window.scale.x).toInt()
-        program.height = Math.ceil(fbh[0] / program.window.scale.y).toInt()
+        program.width = ceil(fbw[0] / program.window.scale.x).toInt()
+        program.height = ceil(fbh[0] / program.window.scale.y).toInt()
         program.window.size = Vector2(program.width.toDouble(), program.height.toDouble())
         program.drawer.width = program.width
         program.drawer.height = program.height
@@ -661,5 +654,4 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
     override fun requestFocus() {
         glfwFocusWindow(window)
     }
-
 }
