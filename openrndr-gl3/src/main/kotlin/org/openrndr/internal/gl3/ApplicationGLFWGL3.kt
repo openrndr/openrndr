@@ -331,7 +331,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
     private fun createPrimaryWindow() {
         if (primaryWindow == NULL) {
             glfwSetErrorCallback(GLFWErrorCallback.create { error, description ->
-                logger.error(
+                logger.debug(
                         "LWJGL Error - Code: {}, Description: {}",
                         Integer.toHexString(error),
                         GLFWErrorCallback.getDescription(description)
@@ -358,9 +358,10 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
             glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE)
             primaryWindow = glfwCreateWindow(640, 480, title, NULL, NULL)
 
+
             if (primaryWindow == 0L) {
                 version = DriverVersionGL.VERSION_3_3
-                logger.info { "falling back to OpenGL 3.3" }
+                logger.debug { "falling back to OpenGL 3.3" }
                 glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3)
                 glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3)
                 primaryWindow = glfwCreateWindow(640, 480, title, NULL, NULL)
