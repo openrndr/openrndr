@@ -20,11 +20,15 @@ data class Vector3(val x: Double, val y: Double, val z: Double) : Serializable {
         val INFINITY = Vector3(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY)
 
         fun fromSpherical(s: Spherical): Vector3 {
-            val sinPhiRadius = sin(s.phi) * s.radius
+
+            val phi = Math.toRadians(s.phi)
+            val theta = Math.toRadians(s.theta)
+
+            val sinPhiRadius = sin(phi) * s.radius
             return Vector3(
-                    sinPhiRadius * sin(s.theta),
-                    cos(s.phi) * s.radius,
-                    sinPhiRadius * cos(s.theta))
+                    sinPhiRadius * sin(theta),
+                    cos(phi) * s.radius,
+                    sinPhiRadius * cos(theta))
         }
     }
 
