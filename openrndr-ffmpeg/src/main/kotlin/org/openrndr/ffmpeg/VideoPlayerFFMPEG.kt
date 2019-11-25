@@ -206,8 +206,8 @@ class VideoPlayerFFMPEG private constructor(
                 override fun call(source: Pointer?, level: Int, formatStr: String?, params: Pointer?) {
                     val bp = BytePointer(1024)
                     val ip = IntPointer(1)
-                    av_log_format_line(source, level, formatStr, params, bp, 1024, ip);
-                    val text = bp.string.split("\n")[0]
+                    val length = av_log_format_line2(source, level, formatStr, params, bp, 1024, ip);
+                    val text = bp.string.substring(0, length).trimEnd()
                     texts.add(text)
                 }
             }
@@ -234,11 +234,38 @@ class VideoPlayerFFMPEG private constructor(
                         }
                     }
                 }
+                av_dict_free(options)
                 avformat_close_input(context)
             }
 
             if (Platform.type == PlatformType.MAC) {
-                TODO("macOS implementation is missing")
+                /**
+                 * We are dealing with a JavaCPP/FFMPEG bug here.
+                 * The problem is that av_log_format_line2 appears to produce incorrectly formatted strings
+                 * on macOS machines. As such we can only count the devices and assume those are printed
+                 * in sequence.
+                 */
+                val options = AVDictionary()
+                av_dict_set(options, "list_devices", "true", 0);
+                val format = av_find_input_format("avfoundation");
+                avformat_open_input(context, "", format, options)
+                var lineIndex = 0
+                var deviceIndex = 0
+                all@ while (true) {
+                    if (texts[lineIndex].contains("AVFoundation video devices")) {
+                        lineIndex++
+                        while (true) {
+                            if (lineIndex >= texts.size || texts[lineIndex].contains("AVFoundation audio devices")) {
+                                break@all
+                            }
+                            result.add("$deviceIndex")
+                            lineIndex += 1
+                            deviceIndex++
+                        }
+                    }
+                }
+                av_dict_free(options)
+                avformat_close_input(context)
             }
 
             /**
