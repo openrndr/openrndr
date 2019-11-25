@@ -30,7 +30,7 @@ class DropEvent(val position: Vector2, val files: List<File>)
 /**
 The Program class, this is where most user implementations start
  **/
-@ApplicationDslMarker
+//@ApplicationDslMarker
 open class Program {
 
     var width = 0
