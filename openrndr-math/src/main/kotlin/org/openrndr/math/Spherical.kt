@@ -16,9 +16,9 @@ private const val EPS = 0.000001
 data class Spherical(val theta: Double, val phi: Double, val radius: Double) {
 
     fun makeSafe() = Spherical(
-            radius,
             theta,
-            clamp(phi, EPS, 180 - EPS)
+            clamp(phi, EPS, 180 - EPS),
+            radius
     )
 
     companion object {
@@ -36,9 +36,9 @@ data class Spherical(val theta: Double, val phi: Double, val radius: Double) {
             return Vector3.fromSpherical(this)
         }
 
-    operator fun plus(s: Spherical) = Spherical(radius + s.radius, theta + s.theta, phi + s.phi)
-    operator fun minus(s: Spherical) = Spherical(radius - s.radius, theta - s.theta, phi - s.phi)
-    operator fun times(s: Spherical) = Spherical(radius * s.radius, theta * s.theta, phi * s.phi)
-    operator fun times(s: Double) = Spherical(radius * s, theta * s, phi * s)
-    operator fun div(s: Double) = Spherical(radius / s, theta / s, phi / s)
+    operator fun plus(s: Spherical) = Spherical(theta + s.theta, phi + s.phi, radius + s.radius)
+    operator fun minus(s: Spherical) = Spherical(theta - s.theta, phi - s.phi, radius - s.radius)
+    operator fun times(s: Spherical) = Spherical(theta * s.theta, phi * s.phi, radius * s.radius)
+    operator fun times(s: Double) = Spherical(theta * s, phi * s, radius * s)
+    operator fun div(s: Double) = Spherical(theta / s, phi / s, radius / s)
 }
