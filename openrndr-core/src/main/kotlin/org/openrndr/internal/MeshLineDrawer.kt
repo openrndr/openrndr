@@ -20,7 +20,9 @@ class MeshLineDrawer {
         attribute("uv", VertexElementType.VECTOR2_FLOAT32)
         attribute("element", VertexElementType.FLOAT32)
         color(4)
-    }, 1024 * 1024)
+    }, 1024 * 1024).apply {
+        Session.active.untrack(this)
+    }
 
     fun drawLineSegments(drawContext: DrawContext, drawStyle: DrawStyle, segments: List<Vector3>,
                          weights: List<Double> = emptyList(),

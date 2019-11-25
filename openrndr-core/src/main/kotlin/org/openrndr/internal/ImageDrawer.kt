@@ -20,7 +20,9 @@ class ImageDrawer {
         attribute("layer", VertexElementType.FLOAT32)
     }
 
-    private var instanceAttributes = vertexBuffer(instanceFormat, 10)
+    private var instanceAttributes = vertexBuffer(instanceFormat, 10).apply {
+        Session.active.untrack(this)
+    }
 
     private val shaderManager: ShadeStyleManager = ShadeStyleManager.fromGenerators(
             Driver.instance.shaderGenerators::imageVertexShader,
@@ -65,7 +67,9 @@ class ImageDrawer {
     private fun assertInstanceSize(size:Int) {
         if (instanceAttributes.vertexCount < size) {
             instanceAttributes.destroy()
-            instanceAttributes = vertexBuffer(instanceFormat, size)
+            instanceAttributes = vertexBuffer(instanceFormat, size).apply {
+                Session.active.untrack(this)
+            }
         }
     }
 

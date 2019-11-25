@@ -29,7 +29,9 @@ class PointDrawer {
                 "resizing buffer from ${instanceAttributes.vertexCount} to $size"
             }
             instanceAttributes.destroy()
-            instanceAttributes = vertexBuffer(instanceFormat, size)
+            instanceAttributes = vertexBuffer(instanceFormat, size).apply {
+                Session.active.untrack(this)
+            }
         }
     }
 
