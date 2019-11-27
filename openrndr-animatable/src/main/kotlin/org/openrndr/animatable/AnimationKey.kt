@@ -67,6 +67,7 @@ internal class AnimationKey(val variable: String, val target: Double, val durati
         completionCallbacks.add(callback)
     }
 
+    val durationSeconds get() = duration / 1E6
 
 }
 

@@ -5,7 +5,6 @@ import org.openrndr.animatable.easing.Easing
 import java.lang.reflect.Field
 import java.util.*
 import kotlin.reflect.KMutableProperty0
-import kotlin.reflect.KProperty
 
 /*
 Copyright (c) 2012, Edwin Jakobs
@@ -47,7 +46,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 open class Animatable {
 
 
-    internal var createAtTime: Long = clock.time //System.currentTimeMillis();
+    internal var createAtTime: Long = clock.timeNanos
     internal var lastTime = createAtTime
 
     private var animationKeys: MutableList<AnimationKey>? = mutableListOf()
@@ -93,61 +92,60 @@ open class Animatable {
 
     /**
      * Wait for a given time before cueing the next animation.
-     * @param duration the delay in milliseconds
+     * @param durationMillis the delay in milliseconds
      * @return `this` for easy animation chaining
      */
-    fun delay(duration: Long) {
-        createAtTime += duration
+    fun delay(durationMillis: Long, durationNanos:Long = 0) {
+        createAtTime += durationMillis * 1_000 + durationNanos
     }
 
     /**
-     * Wait until a the given time
-     * @param time the time in milliseconds
+     * Wait until a the given timeMillis
+     * @param timeMillis the timeMillis in milliseconds
      * @return `this` for easy animation chaining
      */
-    fun waitUntil(time: Long) {
-        createAtTime = time
-
+    fun waitUntil(timeMillis: Long, timeNanos:Long = 0) {
+        createAtTime = timeMillis * 1_000 + timeNanos
     }
 
-
-    /**
-     * Animates a single variable.
-     * @param variable the name of the variable to animate
-     * @param target the target value
-     * @param duration the duration of the animation in milliseconds
-     * @return `this` for easy animation chaining
-     */
-    fun animate(variable: String, target: Double, duration: Long) {
-        return animate(variable, target, duration, Easing.None)
-    }
 
     /**
      * Animates a single variable.
      * @param variable the name of the variable to animate
      * @param target the target value
-     * @param duration the duration of the animation in milliseconds
+     * @param durationMillis the durationMillis of the animation in milliseconds
+     * @return `this` for easy animation chaining
+     */
+    fun animate(variable: String, target: Double, durationMillis: Long) {
+        return animate(variable, target, durationMillis, Easing.None)
+    }
+
+    /**
+     * Animates a single variable.
+     * @param variable the name of the variable to animate
+     * @param target the target value
+     * @param durationMillis the durationMillis of the animation in milliseconds
      * @param easing the easing to use during the animation
      * @return `this` for easy animation chaining
      * Also arrays of floats or doubles can be animated
      * <pre>animatable.animate("x[0]", 100, 1000).complete().animate("x[0]", 0, 1000);</pre>
      */
-    fun animate(variable: String, target: Double, duration: Long, easing: Easing) {
-        return animate(variable, target, duration, easing.easer)
+    fun animate(variable: String, target: Double, durationMillis: Long, easing: Easing) {
+        return animate(variable, target, durationMillis, easing.easer)
     }
 
     /**
      * Animates a single variable.
      * @param variable the name of the variable to animate
      * @param target the target value
-     * @param duration the duration of the animation in milliseconds
+     * @param durationMillis the durationMillis of the animation in milliseconds
      * @param easer the easing to use during the animation
      * @return `this` for easy animation chaining
      * Also arrays of floats or doubles can be animated
      * <pre>animatable.animate("x[0]", 100, 1000).complete().animate("x[0]", 0, 1000);</pre>
      */
-    fun animate(variable: String, target: Double, duration: Long, easer: Easer) {
-        val key = AnimationKey(variable, target, duration, createAtTime)
+    fun animate(variable: String, target: Double, durationMillis: Long, easer: Easer) {
+        val key = AnimationKey(variable, target, durationMillis * 1000, createAtTime)
         key.easing = easer
         if (animationKeys == null) {
             animationKeys = mutableListOf()
@@ -192,7 +190,7 @@ open class Animatable {
      * Cues an additive animation for a single variable using a given easing mode.
      * @param variable the target animation
      * @param target the target value
-     * @param duration the duration of the animation in milliseconds
+     * @param durationMillis the durationMillis of the animation in milliseconds
      * @param easing the easing to use for this animation
      * @return `this` for easy animation chaining
      *
@@ -204,12 +202,12 @@ open class Animatable {
     </pre> *
      */
 
-    fun add(variable: String, target: Double, duration: Long, easing: Easing) {
-        add(variable, target, duration, easing.easer)
+    fun add(variable: String, target: Double, durationMillis: Long, easing: Easing) {
+        add(variable, target, durationMillis*1000, easing.easer)
     }
 
-    fun add(variable: String, target: Double, duration: Long, easer: Easer) {
-        val key = AnimationKey(variable, target, duration, createAtTime)
+    fun add(variable: String, target: Double, durationMillis: Long, easer: Easer) {
+        val key = AnimationKey(variable, target, durationMillis * 1000, createAtTime)
         key.animationMode = AnimationKey.AnimationMode.Additive
         key.easing = easer
         animationKeys!!.add(key)
@@ -287,10 +285,10 @@ open class Animatable {
             if (key.start <= lastTime && key.variable.equals(variable)) {
 
                 val delta = key.target - key.from
-                val dt = lastTime - key.start
-                //dt /= key.duration;
+                val dt = (lastTime - key.start) / 1E6
 
-                return key.easing.velocity(dt / 1000.0, key.from, delta, key.duration / 1000.0)
+
+                return key.easing.velocity(dt, key.from, delta, key.durationSeconds)
 
             }
         }
@@ -587,7 +585,7 @@ open class Animatable {
      * @param time the time to use for updating the animation state
      */
     @JvmOverloads
-    fun updateAnimation(time: Long = clock.time) {
+    fun updateAnimation(time: Long = clock.timeNanos) {
 
         val toRemove = mutableListOf<AnimationKey>()
         val calls = mutableListOf<Pair<(Animatable) -> Unit, Animatable>>()
@@ -700,7 +698,8 @@ open class Animatable {
         }
     }
 
-    fun animate(variable: KMutableProperty0<*>, target: Double, duration: Long, easing: Easing = Easing.None) {
-        animate(variable.name, target, duration, easing)
+    fun animate(variable: KMutableProperty0<*>, target: Double, durationMillis: Long,
+                easing: Easing = Easing.None) {
+        animate(variable.name, target, durationMillis, easing)
     }
 }
