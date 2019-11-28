@@ -16,7 +16,7 @@ out vec4 o_color;
 
 //-------------------------------------------------------------------------------------------
 // Use last part of hash function to generate new random radius and angle...
-vec2 sample(inout vec2 r) {
+vec2 circularSampling(inout vec2 r) {
     r = fract(r * vec2(33.3983, 43.4427));
     //return r-.5;
     return sqrt(r.x+.001) * vec2(sin(r.y * TAU), cos(r.y * TAU))*.5; // <<=== circular sampling.
@@ -37,7 +37,7 @@ vec4 blur(vec2 uv, float radius) {
 
 	vec4 acc = vec4(0.0);
 	for (int i = 0; i < samples; i++) {
-		acc += texture(tex0, uv + circle * sample(random));
+		acc += texture(tex0, uv + circle * circularSampling(random));
     }
 	return acc / float(samples);
 }

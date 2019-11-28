@@ -4,7 +4,7 @@ import org.openrndr.draw.Filter
 import org.openrndr.draw.Shader
 import org.openrndr.filter.filterFragmentCode
 
-class GaussianBlur : Filter(Shader.createFromCode(Filter.filterVertexCode,
+class GaussianBlur : Filter(Shader.createFromCode(Filter.filterTriangleVertexCode,
         filterFragmentCode("blur/gaussian-blur.frag"))) {
 
     var window: Int by parameters
@@ -18,6 +18,4 @@ class GaussianBlur : Filter(Shader.createFromCode(Filter.filterVertexCode,
         sigma = 1.0
         gain = 1.0
     }
-
-
 }

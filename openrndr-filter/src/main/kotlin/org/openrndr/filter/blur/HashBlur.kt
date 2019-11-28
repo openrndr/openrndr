@@ -4,7 +4,7 @@ import org.openrndr.draw.Filter
 import org.openrndr.draw.Shader
 import org.openrndr.filter.filterFragmentCode
 
-class HashBlur : Filter(Shader.createFromCode(Filter.filterVertexCode,
+class HashBlur : Filter(Shader.createFromCode(Filter.filterTriangleVertexCode,
         filterFragmentCode("blur/hash-blur.frag"))) {
 
     var radius:Double by parameters

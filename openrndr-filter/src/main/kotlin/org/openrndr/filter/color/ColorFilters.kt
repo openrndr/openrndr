@@ -3,12 +3,12 @@ package org.openrndr.filter.color
 import org.openrndr.draw.*
 import org.openrndr.filter.filterFragmentCode
 
-class Linearize : Filter(Shader.createFromCode(Filter.filterVertexCode, filterFragmentCode("color/linearize.frag")))
-class Delinearize : Filter(Shader.createFromCode(Filter.filterVertexCode, filterFragmentCode("color/delinearize.frag")))
-class ColorMix : Filter(Shader.createFromCode(Filter.filterVertexCode, filterFragmentCode("color/color-mix.frag")))
-class HybridLogGamma : Filter(Shader.createFromCode(Filter.filterVertexCode, filterFragmentCode("color/hybrid-log-gamma.frag")))
+class Linearize : Filter(Shader.createFromCode(Filter.filterTriangleVertexCode, filterFragmentCode("color/linearize.frag")))
+class Delinearize : Filter(Shader.createFromCode(Filter.filterTriangleVertexCode, filterFragmentCode("color/delinearize.frag")))
+class ColorMix : Filter(Shader.createFromCode(Filter.filterTriangleVertexCode, filterFragmentCode("color/color-mix.frag")))
+class HybridLogGamma : Filter(Shader.createFromCode(Filter.filterTriangleVertexCode, filterFragmentCode("color/hybrid-log-gamma.frag")))
 
-class ColorLookup(lookup: ColorBuffer) : Filter(Shader.createFromCode(Filter.filterVertexCode, filterFragmentCode("color/color-lookup.frag"))) {
+class ColorLookup(lookup: ColorBuffer) : Filter(Shader.createFromCode(Filter.filterTriangleVertexCode, filterFragmentCode("color/color-lookup.frag"))) {
     var lookup: ColorBuffer by parameters
     var noiseGain: Double by parameters
     var seed: Double by parameters

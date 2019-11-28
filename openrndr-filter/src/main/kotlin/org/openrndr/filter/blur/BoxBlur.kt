@@ -7,7 +7,7 @@ import org.openrndr.draw.colorBuffer
 import org.openrndr.filter.filterFragmentCode
 import org.openrndr.math.Vector2
 
-class BoxBlur : Filter(Shader.createFromCode(Filter.filterVertexCode,
+class BoxBlur : Filter(Shader.createFromCode(Filter.filterTriangleVertexCode,
         filterFragmentCode("blur/box-blur.frag"))) {
 
     var window: Int by parameters

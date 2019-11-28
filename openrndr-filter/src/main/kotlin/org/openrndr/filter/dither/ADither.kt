@@ -4,7 +4,7 @@ import org.openrndr.draw.Filter
 import org.openrndr.draw.Shader
 import org.openrndr.filter.filterFragmentCode
 
-class ADither: Filter(Shader.createFromCode(Filter.filterVertexCode, filterFragmentCode("dither/a-dither.frag"))) {
+class ADither: Filter(Shader.createFromCode(Filter.filterTriangleVertexCode, filterFragmentCode("dither/a-dither.frag"))) {
     var pattern: Int
         set(value) {
             parameters["pattern"] = value

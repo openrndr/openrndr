@@ -1,4 +1,4 @@
-// openrndr - gl3 - filter.vert
+// openrndr - gl3 - filter-quad.vert
 
 #version 330
 

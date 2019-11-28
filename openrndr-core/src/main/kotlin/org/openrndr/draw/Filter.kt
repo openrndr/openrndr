@@ -13,30 +13,47 @@ private val filterDrawStyle = DrawStyle().apply {
     stencil.stencilTest = StencilTest.DISABLED
 }
 
-private var filterQuad: VertexBuffer? = null
+private var filterVertex: VertexBuffer? = null
 
 fun filterShaderFromUrl(url: String): Shader {
     return filterShaderFromCode(URL(url).readText())
 }
 
-fun filterWatcherFromUrl(url: String): ShaderWatcher {
+fun filterWatcherFromUrl(url: String, geometry: FilterGeometry = FilterGeometry.TRIANGLE): ShaderWatcher {
+    var vertexCode = Filter.filterTriangleVertexCode
+
+    if (geometry == FilterGeometry.QUAD) {
+        vertexCode = Filter.filterQuadVertexCode
+    }
+
     return shaderWatcher {
-        vertexShaderCode = Filter.filterVertexCode
+        vertexShaderCode = vertexCode
         fragmentShaderUrl = url
     }
 }
 
-fun filterShaderFromCode(fragmentShaderCode: String): Shader {
-    return Shader.createFromCode(Filter.filterVertexCode, fragmentShaderCode)
+fun filterShaderFromCode(fragmentShaderCode: String, geometry: FilterGeometry = FilterGeometry.TRIANGLE): Shader {
+    var vertexCode = Filter.filterTriangleVertexCode
+
+    if (geometry == FilterGeometry.QUAD) {
+        vertexCode = Filter.filterQuadVertexCode
+    }
+
+    return Shader.createFromCode(vertexCode, fragmentShaderCode)
 }
 
-open class Filter(private val shader: Shader? = null, private val watcher: ShaderWatcher? = null) {
+enum class FilterGeometry {
+    QUAD, TRIANGLE
+}
+
+open class Filter(private val shader: Shader? = null, private val watcher: ShaderWatcher? = null, private val geometry: FilterGeometry = FilterGeometry.TRIANGLE) {
 
     val parameters = mutableMapOf<String, Any>()
     var padding = 0
 
     companion object {
-        val filterVertexCode: String get() = Driver.instance.internalShaderResource("filter.vert")
+        val filterQuadVertexCode: String get() = Driver.instance.internalShaderResource("filter-quad.vert")
+        val filterTriangleVertexCode: String get() = Driver.instance.internalShaderResource("filter-triangle.vert")
     }
 
     fun apply(source: RenderTarget, target: RenderTarget) {
@@ -48,7 +65,6 @@ open class Filter(private val shader: Shader? = null, private val watcher: Shade
         if (target.isEmpty()) {
             return
         }
-
         val shader = if (this.watcher != null) watcher.shader!! else this.shader!!
         val renderTarget = renderTarget(target[0].width, target[0].height, target[0].contentScale) {}
 
@@ -58,24 +74,42 @@ open class Filter(private val shader: Shader? = null, private val watcher: Shade
 
         renderTarget.bind()
 
-        if (filterQuad == null) {
-            val fq = VertexBuffer.createDynamic(VertexFormat().apply {
-                position(2)
-                textureCoordinate(2)
-            }, 6)
+        if (filterVertex == null) {
+            if (geometry == FilterGeometry.TRIANGLE) {
+                val ft = VertexBuffer.createDynamic(VertexFormat().apply {
+                    position(2)
+                }, 3)
 
-            fq.shadow.writer().apply {
-                write(Vector2(0.0, 1.0)); write(Vector2(0.0, 0.0))
-                write(Vector2(0.0, 0.0)); write(Vector2(0.0, 1.0))
-                write(Vector2(1.0, 0.0)); write(Vector2(1.0, 1.0))
+                ft.shadow.writer().apply {
+                    write(Vector2(-1.0, -1.0))
+                    write(Vector2(-1.0, 3.0))
+                    write(Vector2(3.0, -1.0))
+                }
 
-                write(Vector2(0.0, 1.0)); write(Vector2(0.0, 0.0))
-                write(Vector2(1.0, 1.0)); write(Vector2(1.0, 0.0))
-                write(Vector2(1.0, 0.0)); write(Vector2(1.0, 1.0))
+                ft.shadow.upload()
+                ft.shadow.destroy()
+
+                filterVertex = ft
+            } else if (geometry == FilterGeometry.QUAD) {
+                val fq = VertexBuffer.createDynamic(VertexFormat().apply {
+                    position(2)
+                    textureCoordinate(2)
+                }, 6)
+
+                fq.shadow.writer().apply {
+                    write(Vector2(0.0, 1.0)); write(Vector2(0.0, 0.0))
+                    write(Vector2(0.0, 0.0)); write(Vector2(0.0, 1.0))
+                    write(Vector2(1.0, 0.0)); write(Vector2(1.0, 1.0))
+
+                    write(Vector2(0.0, 1.0)); write(Vector2(0.0, 0.0))
+                    write(Vector2(1.0, 1.0)); write(Vector2(1.0, 0.0))
+                    write(Vector2(1.0, 0.0)); write(Vector2(1.0, 1.0))
+                }
+                fq.shadow.upload()
+                fq.shadow.destroy()
+
+                filterVertex = fq
             }
-            fq.shadow.upload()
-            fq.shadow.destroy()
-            filterQuad = fq
         }
 
         shader.begin()
@@ -87,9 +121,11 @@ open class Filter(private val shader: Shader? = null, private val watcher: Shade
 
         Driver.instance.setState(filterDrawStyle)
 
-        shader.uniform("projectionMatrix", ortho(0.0, target[0].width.toDouble(), target[0].height.toDouble(), 0.0, -1.0, 1.0))
-        shader.uniform("targetSize", Vector2(target[0].width.toDouble(), target[0].height.toDouble()))
-        shader.uniform("padding", Vector2(padding.toDouble(), padding.toDouble()))
+        if (geometry == FilterGeometry.QUAD) {
+            shader.uniform("projectionMatrix", ortho(0.0, target[0].width.toDouble(), target[0].height.toDouble(), 0.0, -1.0, 1.0))
+            shader.uniform("targetSize", Vector2(target[0].width.toDouble(), target[0].height.toDouble()))
+            shader.uniform("padding", Vector2(padding.toDouble(), padding.toDouble()))
+        }
 
         var textureIndex = source.size
         parameters.forEach { (uniform, value) ->
@@ -136,7 +172,7 @@ open class Filter(private val shader: Shader? = null, private val watcher: Shade
             }
         }
 
-        Driver.instance.drawVertexBuffer(shader, listOf(filterQuad!!), DrawPrimitive.TRIANGLES, 0, 6)
+        Driver.instance.drawVertexBuffer(shader, listOf(filterVertex!!), DrawPrimitive.TRIANGLES, 0, filterVertex!!.vertexCount)
         shader.end()
         renderTarget.unbind()
         renderTarget.detachColorBuffers()

@@ -4,7 +4,7 @@ import org.openrndr.draw.Filter
 import org.openrndr.draw.Shader
 import org.openrndr.filter.filterFragmentCode
 
-class FXAA : Filter(Shader.createFromCode(Filter.filterVertexCode, filterFragmentCode("antialias/fxaa.frag"))) {
+class FXAA : Filter(Shader.createFromCode(Filter.filterTriangleVertexCode, filterFragmentCode("antialias/fxaa.frag"))) {
 
     var lumaThreshold: Double by parameters
     var maxSpan: Double by parameters

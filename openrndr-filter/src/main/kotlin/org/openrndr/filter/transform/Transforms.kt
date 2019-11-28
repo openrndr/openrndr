@@ -4,6 +4,6 @@ import org.openrndr.draw.Filter
 import org.openrndr.draw.Shader
 import org.openrndr.filter.filterFragmentCode
 
-class FlipVertically : Filter(Shader.createFromCode(Filter.filterVertexCode, filterFragmentCode("transform/flip-vertically.frag")))
+class FlipVertically : Filter(Shader.createFromCode(Filter.filterTriangleVertexCode, filterFragmentCode("transform/flip-vertically.frag")))
 
 val flipVertically: FlipVertically by lazy { FlipVertically().apply { untrack() } }

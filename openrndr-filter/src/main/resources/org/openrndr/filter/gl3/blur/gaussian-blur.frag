@@ -1,4 +1,4 @@
-#version 150
+#version 330
 
 in vec2 v_texCoord0;
 uniform sampler2D tex0;
