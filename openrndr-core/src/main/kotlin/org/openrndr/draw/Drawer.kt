@@ -96,13 +96,24 @@ class Drawer(val driver: Driver) {
         target.unbind()
     }
 
+    /**
+     *  Resets state stacks and load default values for draw style and transformations.
+     *  This destroys the state stacks, consider using defaults() instead of reset()
+     */
     fun reset() {
         viewStack.clear()
         modelStack.clear()
         projectionStack.clear()
         drawStyles.clear()
-        ortho()
+        defaults()
+    }
+
+    /**
+     * Loads default values for draw style and transformations
+     */
+    fun defaults() {
         drawStyle = DrawStyle()
+        ortho()
         view = Matrix44.IDENTITY
         model = Matrix44.IDENTITY
     }
