@@ -4,4 +4,5 @@ dependencies {
     implementation "org.lwjgl:lwjgl-openal:$lwjglVersion"
     implementation "org.bytedeco:ffmpeg:$ffmpeg_version"
     compile project(":openrndr-core")
+    compile project(":openrndr-openal")
 }

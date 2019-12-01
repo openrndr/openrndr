@@ -4,19 +4,14 @@ import mu.KotlinLogging
 import org.bytedeco.ffmpeg.avcodec.AVCodecContext
 import org.bytedeco.ffmpeg.avcodec.AVPacket
 import org.bytedeco.ffmpeg.avutil.AVBufferRef
-import org.bytedeco.ffmpeg.avutil.AVFrame
 import org.bytedeco.ffmpeg.global.avcodec
 import org.bytedeco.ffmpeg.global.avcodec.avcodec_decode_audio4
 import org.bytedeco.ffmpeg.global.avutil
 import org.bytedeco.ffmpeg.global.avutil.*
 import org.bytedeco.ffmpeg.global.swresample.*
-import org.bytedeco.ffmpeg.global.swscale
 import org.bytedeco.ffmpeg.swresample.SwrContext
-import org.bytedeco.ffmpeg.swscale.SwsFilter
 import org.bytedeco.javacpp.IntPointer
-import org.bytedeco.javacpp.Pointer
 import org.bytedeco.javacpp.Pointer.memcpy
-import java.nio.DoubleBuffer
 
 private val logger = KotlinLogging.logger {}
 
@@ -130,7 +125,7 @@ internal class AudioDecoder(
 //
 //            if (ret < 0) {
 //                if (ret != AVERROR_EOF)
-//                    logger.debug { "error in avcodec_send_packet: $ret" }
+//                    org.openrndr.ffmpeg.logger.debug { "error in avcodec_send_packet: $ret" }
 //                return
 //            }
 //
@@ -162,7 +157,7 @@ internal class AudioDecoder(
 //                            val buffer = av_buffer_alloc(audioFrameSize)!!
 //                            val ts = (audioFrame.best_effort_timestamp()) * av_q2d(audioCodecContext.time_base())
 //                            memcpy(buffer.data(), data()[0], audioFrameSize.toLong())
-//                            audioQueue.push(AudioFrame(buffer, 0, audioFrameSize, ts))
+//                            audioQueue.push(org.openrndr.ffmpeg.AudioFrame(buffer, 0, audioFrameSize, ts))
 //                        }
 //                    } else println("there was an error: $result")
 //                    result.checkAVError()

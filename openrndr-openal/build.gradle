@@ -1,0 +1,18 @@
+dependencies {
+    compile project(":openrndr-core")
+
+    implementation "org.lwjgl:lwjgl:$lwjglVersion"
+    implementation "org.lwjgl:lwjgl-openal:$lwjglVersion"
+
+    testRuntime project(":openrndr-openal-natives-windows")
+    testRuntime project(":openrndr-openal-natives-macos")
+    testRuntime project(":openrndr-openal-natives-linux-x64")
+    testRuntime 'org.slf4j:slf4j-simple:1.7.5'
+}
+
+test {
+    if (System.getenv('TRAVIS') != null) {
+        println("Excluding OpenGL test cases for Travis CI build")
+        exclude '**/*.class'
+    }
+}

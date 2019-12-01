@@ -20,6 +20,9 @@ import org.bytedeco.javacpp.PointerPointer
 import org.openrndr.draw.ColorBuffer
 import org.openrndr.draw.Drawer
 import org.openrndr.events.Event
+import org.openrndr.openal.AudioData
+import org.openrndr.openal.AudioQueueSource
+import org.openrndr.openal.AudioSystem
 import org.openrndr.platform.Platform
 import org.openrndr.platform.PlatformType
 import org.openrndr.shape.Rectangle
@@ -360,6 +363,7 @@ class VideoPlayerFFMPEG private constructor(
 
     val newFrame = Event<FrameEvent>()
     val ended = Event<VideoEvent>()
+
     private var audioOut: AudioQueueSource? = null
 
     private var endOfFileReached = false
@@ -430,7 +434,7 @@ class VideoPlayerFFMPEG private constructor(
             audioOut?.play()
 
             audioOut?.let { ao ->
-                decoder.audioOutQueueFull = { ao.outputQueue.size >= ao.queueSize - 1 }
+                decoder.audioOutQueueFull = { ao.outputQueueFull }
             }
         }
 
