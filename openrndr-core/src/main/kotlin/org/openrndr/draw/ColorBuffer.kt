@@ -13,9 +13,9 @@ import java.nio.ByteBuffer
 /**
  * File format used while saving to file
  */
-enum class FileFormat {
-    JPG,
-    PNG,
+enum class FileFormat(val mimeType: String, val extensions: List<String>) {
+    JPG("image/jpeg", listOf("jpg", "jpeg")),
+    PNG("image/png", listOf("png")),
 }
 
 /**
@@ -91,6 +91,9 @@ interface ColorBuffer {
     /** save the [ColorBuffer] to [File] */
     fun saveToFile(file: File, fileFormat: FileFormat = guessFromExtension(file), async: Boolean = true)
 
+    /** returns a base64 data url representation */
+    fun toDataUrl(fileFormat: FileFormat = FileFormat.JPG): String
+
     private fun guessFromExtension(file: File): FileFormat {
         val extension = file.extension.toLowerCase()
         return when (extension) {
@@ -106,7 +109,7 @@ interface ColorBuffer {
     /** binds the colorbuffer to a texture unit, internal API */
     fun bind(unit: Int)
 
-    fun write(buffer: ByteBuffer, sourceFormat:ColorFormat = format, sourceType:ColorType = type)
+    fun write(buffer: ByteBuffer, sourceFormat: ColorFormat = format, sourceType: ColorType = type)
     fun read(buffer: ByteBuffer)
 
     /** generates mipmaps from the top-level mipmap */
@@ -122,7 +125,7 @@ interface ColorBuffer {
      */
     fun copyTo(target: ColorBuffer)
 
-    fun copyTo(target: ArrayTexture, layer:Int)
+    fun copyTo(target: ArrayTexture, layer: Int)
 
     fun fill(color: ColorRGBa)
 
@@ -179,7 +182,7 @@ interface ColorBuffer {
             return colorBuffer
         }
 
-        fun fromStream(stream: InputStream, formatHint:String? = null): ColorBuffer {
+        fun fromStream(stream: InputStream, formatHint: String? = null): ColorBuffer {
             val colorBuffer = Driver.instance.createColorBufferFromStream(stream)
             return colorBuffer
         }
@@ -203,11 +206,13 @@ fun colorBuffer(width: Int, height: Int, contentScale: Double = 1.0, format: Col
 }
 
 /**
- * loads an image from a file or url encoded as [String]
+ * loads an image from a file or url encoded as [String], also accepts base64 encoded dat urls
  */
 fun loadImage(fileOrUrl: String): ColorBuffer {
     return try {
-        URL(fileOrUrl)
+        if (!fileOrUrl.startsWith("data:")) {
+            URL(fileOrUrl)
+        }
         ColorBuffer.fromUrl(fileOrUrl)
     } catch (e: MalformedURLException) {
         ColorBuffer.fromFile(fileOrUrl)

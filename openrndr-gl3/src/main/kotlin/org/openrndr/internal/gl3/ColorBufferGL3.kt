@@ -9,8 +9,10 @@ import org.lwjgl.opengl.ARBTextureCompressionBPTC.*
 import org.lwjgl.opengl.EXTTextureCompressionS3TC.*
 import org.lwjgl.opengl.EXTTextureSRGB.*
 import org.lwjgl.opengl.GL33C.*
+import org.lwjgl.stb.STBIWriteCallback
 import org.lwjgl.stb.STBImage
 import org.lwjgl.stb.STBImageWrite
+import org.lwjgl.system.MemoryUtil
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
 import org.openrndr.draw.BufferMultisample.Disabled
@@ -21,6 +23,7 @@ import java.net.URL
 import java.nio.Buffer
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import java.util.*
 
 internal data class ConversionEntry(val format: ColorFormat, val type: ColorType, val glFormat: Int)
 
@@ -494,18 +497,30 @@ class ColorBufferDataGL3(val width: Int, val height: Int, val format: ColorForma
 
     companion object {
         fun fromUrl(urlString: String): ColorBufferDataGL3 {
-            val url = URL(urlString)
-            url.openStream().use {
-                val byteArray = url.readBytes()
-                if (byteArray.isEmpty()) {
-                    throw RuntimeException("read 0 bytes from stream $urlString")
-                }
-                val buffer = BufferUtils.createByteBuffer(byteArray.size)
+            if (urlString.startsWith("data:")) {
+                val decoder = Base64.getDecoder()
+                val commaIndex = urlString.indexOf(",")
+                val base64Data = urlString.drop(commaIndex+1)
+                println(base64Data)
+                val decoded = decoder.decode(base64Data)
+                val buffer = ByteBuffer.allocateDirect(decoded.size)
+                buffer.put(decoded)
+                (buffer as Buffer).rewind()
+                return fromByteBuffer(buffer, "data-url")
+            } else {
+                val url = URL(urlString)
+                url.openStream().use {
+                    val byteArray = url.readBytes()
+                    if (byteArray.isEmpty()) {
+                        throw RuntimeException("read 0 bytes from stream $urlString")
+                    }
+                    val buffer = BufferUtils.createByteBuffer(byteArray.size)
 
-                (buffer as Buffer).rewind()
-                buffer.put(byteArray)
-                (buffer as Buffer).rewind()
-                return fromByteBuffer(buffer, urlString)
+                    (buffer as Buffer).rewind()
+                    buffer.put(byteArray)
+                    (buffer as Buffer).rewind()
+                    return fromByteBuffer(buffer, urlString)
+                }
             }
         }
 
@@ -589,13 +604,14 @@ class ColorBufferGL3(val target: Int,
     private var destroyed = false
     override var flipV: Boolean = false
 
-    internal fun format() : Int {
+    internal fun format(): Int {
         return internalFormat(format, type)
     }
 
     companion object {
         fun fromUrl(url: String): ColorBuffer {
             val data = ColorBufferDataGL3.fromUrl(url)
+
             val cb = create(data.width, data.height, 1.0, data.format, data.type, Disabled)
             return cb.apply {
                 val d = data.data
@@ -790,7 +806,7 @@ class ColorBufferGL3(val target: Int,
         }
     }
 
-    override fun copyTo(target: ArrayTexture, layer:Int) {
+    override fun copyTo(target: ArrayTexture, layer: Int) {
         checkDestroyed()
         if (multisample == Disabled) {
             val readTarget = renderTarget(width, height, contentScale) {
@@ -815,17 +831,17 @@ class ColorBufferGL3(val target: Int,
 
     override fun fill(color: ColorRGBa) {
         checkDestroyed()
-            val writeTarget = renderTarget(width, height, contentScale) {
-                colorBuffer(this@ColorBufferGL3)
-            } as RenderTargetGL3
+        val writeTarget = renderTarget(width, height, contentScale) {
+            colorBuffer(this@ColorBufferGL3)
+        } as RenderTargetGL3
 
-            writeTarget.bind()
-            glClearBufferfv(GL_COLOR, 0, floatArrayOf(color.r.toFloat(), color.g.toFloat(), color.b.toFloat(), color.a.toFloat()))
-            debugGLErrors()
-            writeTarget.unbind()
+        writeTarget.bind()
+        glClearBufferfv(GL_COLOR, 0, floatArrayOf(color.r.toFloat(), color.g.toFloat(), color.b.toFloat(), color.a.toFloat()))
+        debugGLErrors()
+        writeTarget.unbind()
 
-            writeTarget.detachColorBuffers()
-            writeTarget.destroy()
+        writeTarget.detachColorBuffers()
+        writeTarget.destroy()
     }
 
 
@@ -941,7 +957,7 @@ class ColorBufferGL3(val target: Int,
         }
     }
 
-    override fun saveToFile(file: File, fileFormat: FileFormat, async:Boolean) {
+    override fun saveToFile(file: File, fileFormat: FileFormat, async: Boolean) {
         checkDestroyed()
         if (multisample == Disabled) {
             if (type == ColorType.UINT8) {
@@ -989,6 +1005,59 @@ class ColorBufferGL3(val target: Int,
         } else {
             throw IllegalArgumentException("multisample targets cannot be saved to file")
         }
+    }
+
+    override fun toDataUrl(fileFormat: FileFormat): String {
+        checkDestroyed()
+
+        require(multisample == Disabled)
+        require(type == ColorType.UINT8)
+
+        val saveBuffer = ByteBuffer.allocate(1_024 * 1_024 * 2)
+        val writeFunc = object : STBIWriteCallback() {
+            override fun invoke(context: Long, data: Long, size: Int) {
+                val sourceBuffer = MemoryUtil.memByteBuffer(data, size)
+                saveBuffer?.put(sourceBuffer)
+            }
+        }
+
+        var pixels = BufferUtils.createByteBuffer(effectiveWidth * effectiveHeight * format.componentCount)
+        (pixels as Buffer).rewind()
+        read(pixels)
+        (pixels as Buffer).rewind()
+        if (!flipV) {
+            val flippedPixels = BufferUtils.createByteBuffer(effectiveWidth * effectiveHeight * format.componentCount)
+            (flippedPixels as Buffer).rewind()
+            val stride = effectiveWidth * format.componentCount
+            val row = ByteArray(stride)
+
+            for (y in 0 until effectiveHeight) {
+                (pixels as Buffer).position((effectiveHeight - y - 1) * stride)
+                pixels.get(row)
+                flippedPixels.put(row)
+            }
+
+            (flippedPixels as Buffer).rewind()
+            pixels = flippedPixels
+        }
+
+        when (fileFormat) {
+            FileFormat.JPG -> STBImageWrite.stbi_write_jpg_to_func(
+                    writeFunc, 0L,
+                    effectiveWidth, effectiveHeight,
+                    format.componentCount, pixels, 90)
+            FileFormat.PNG -> STBImageWrite.stbi_write_png_to_func(
+                    writeFunc, 0L,
+                    effectiveWidth, effectiveHeight,
+                    format.componentCount, pixels, effectiveWidth * format.componentCount)
+        }
+
+        val byteArray = ByteArray(saveBuffer.position())
+        (saveBuffer as Buffer).rewind()
+        saveBuffer.get(byteArray)
+        val base64Data = Base64.getEncoder().encodeToString(byteArray)
+
+        return "data:${fileFormat.mimeType};base64,$base64Data"
     }
 
     override fun destroy() {
