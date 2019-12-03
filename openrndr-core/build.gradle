@@ -3,4 +3,5 @@ dependencies {
     compile project(":openrndr-math")
     compile project(":openrndr-shape")
     compile project(":openrndr-event")
+    compile project(":openrndr-animatable")
 }

@@ -31,6 +31,8 @@ import org.openrndr.draw.Drawer
 import org.openrndr.internal.Driver
 import org.openrndr.math.Vector2
 import org.openrndr.WindowMultisample.*
+import org.openrndr.animatable.Animatable
+import org.openrndr.animatable.Clock
 import java.nio.Buffer
 
 import java.util.*
@@ -309,7 +311,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         }
 
         glfwSetWindowCloseCallback(window) {window ->
-            logger.debug { "window closed" }
+            logger.debug { "window ($window) closed" }
             exitRequested = true
         }
 
@@ -324,6 +326,13 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
 
             glfwSetWindowSizeLimits(window, adjustedMinimumWidth, adjustedMinimumHeight, adjustedMaximumWidth, adjustedMaximumHeight)
         }
+
+        Animatable.clock(object : Clock {
+            override val time: Long
+                get() = (program.seconds * 1E3).toLong()
+            override val timeNanos: Long
+                get() = (program.seconds * 1E6).toLong()
+        })
 
         glfwShowWindow(window)
     }
