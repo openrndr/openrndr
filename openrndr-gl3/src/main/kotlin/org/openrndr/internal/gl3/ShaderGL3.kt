@@ -2,6 +2,7 @@ package org.openrndr.internal.gl3
 
 import mu.KotlinLogging
 import org.lwjgl.BufferUtils
+import org.lwjgl.opengl.GL11C
 import org.lwjgl.opengl.GL33C.*
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
@@ -271,7 +272,6 @@ class UniformBlockGL3(override val layout: UniformBlockLayout, val blockBinding:
         if (Thread.currentThread() != thread) {
             throw IllegalStateException("current thread ${Thread.currentThread()} is not equal to creation thread $thread")
         }
-
         realDirty = false
         glBindBuffer(GL_UNIFORM_BUFFER, ubo)
         shadowBuffer.safeRewind()
@@ -279,9 +279,6 @@ class UniformBlockGL3(override val layout: UniformBlockLayout, val blockBinding:
         checkGLErrors()
         glBindBuffer(GL_UNIFORM_BUFFER, 0)
     }
-
-
-
 }
 
 private fun ByteBuffer.safePosition(offset: Int) {
@@ -304,12 +301,9 @@ internal fun checkShaderInfoLog(`object`: Int, code: String, sourceFile: String)
         (infoLog as Buffer).rewind()
         glGetShaderInfoLog(`object`, logLength, infoLog)
 
-        // logger.warn {
         val infoBytes = ByteArray(logLength[0])
         infoLog.get(infoBytes)
         println("GLSL compilation problems in\n ${String(infoBytes)}")
-        //   "GLSL compilation problems in\n ${String(infoBytes)}"
-        // }
 
         val temp = File("ShaderError.txt")
         FileWriter(temp).use {
@@ -317,7 +311,7 @@ internal fun checkShaderInfoLog(`object`: Int, code: String, sourceFile: String)
         }
         System.err.println("click.to.see.shader.code(ShaderError.txt:1)")
         logger.error { "GLSL shader compilation failed for $sourceFile" }
-        throw Exception("Shader error: " + sourceFile)
+        throw Exception("Shader error: $sourceFile")
     }
 }
 
@@ -337,7 +331,7 @@ fun checkProgramInfoLog(`object`: Int, sourceFile: String) {
             infoLog.get(infoBytes)
             "GLSL link problems in\n ${String(infoBytes)}"
         }
-        throw Exception("Shader error: " + sourceFile)
+        throw Exception("Shader error: $sourceFile")
     }
 }
 
@@ -352,6 +346,11 @@ class ShaderGL3(val program: Int,
     private var attributes: MutableMap<String, Int> = hashMapOf()
     private var blockBindings = hashMapOf<String, Int>()
     private val blocks: MutableMap<String, Int> = hashMapOf()
+
+    /**
+     * Is this a shader created by the user, i.e. should we perform extra checking on the inputs
+     */
+    internal var userShader = true
 
     companion object {
         fun create(vertexShader: VertexShaderGL3, fragmentShader: FragmentShaderGL3): ShaderGL3 {
@@ -470,8 +469,8 @@ class ShaderGL3(val program: Int,
             checkGLErrors()
 
             return UniformBlockLayout(blockSize, (0 until uniformCount).map {
-                UniformDescription(uniformNames[it].replace(Regex("\\[.*\\]"),""), uniformTypes[it].toUniformType(), uniformSizes[it], uniformOffsets[it], uniformStrides[it])
-            }.associate { Pair(it.name, it) })
+                UniformDescription(uniformNames[it].replace(Regex("\\[.*\\]"), ""), uniformTypes[it].toUniformType(), uniformSizes[it], uniformOffsets[it], uniformStrides[it])
+            }.associateBy { it.name })
 
 
         } else {
@@ -707,7 +706,7 @@ class ShaderGL3(val program: Int,
     }
 
     private fun postUniformCheck(name: String, index: Int, value: Any) {
-        debugGLErrors {
+        val errorCheck = { it: Int ->
             val currentProgram = glGetInteger(GL_CURRENT_PROGRAM)
 
             fun checkUniform(): String {
@@ -731,6 +730,12 @@ class ShaderGL3(val program: Int,
                 GL_INVALID_OPERATION -> "no current program object ($currentProgram), or uniform type mismatch (${checkUniform()}"
                 else -> null
             }
+        }
+
+        if (userShader) {
+            checkGLErrors(errorCheck)
+        } else {
+            debugGLErrors(errorCheck)
         }
     }
 

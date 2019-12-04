@@ -20,6 +20,7 @@ class ShadeStyleManagerGL3(val vertexShaderGenerator: (ShadeStructure) -> String
                 logger.debug { "creating default shader" }
                 val structure = structureFromShadeStyle(style, vertexFormats, instanceFormats)
                 defaultShader = Shader.createFromCode(vertexShaderGenerator(structure), fragmentShaderGenerator(structure))
+                (defaultShader as ShaderGL3).userShader = false
                 Session.active.untrack(defaultShader!!)
             }
 
@@ -38,13 +39,13 @@ class ShadeStyleManagerGL3(val vertexShaderGenerator: (ShadeStructure) -> String
                     }
                 }
             }
+            (shader as ShaderGL3).userShader = false
 
             Session.active.untrack(shader)
             shader.begin()
             var textureIndex = 2
             style.parameterValues.entries.forEach {
-                val value = it.value
-                when (value) {
+                when (val value = it.value) {
                     is Int -> shader.uniform("p_${it.key}", value)
                     is Float -> shader.uniform("p_${it.key}", value)
                     is Double -> shader.uniform("p_${it.key}", value)
