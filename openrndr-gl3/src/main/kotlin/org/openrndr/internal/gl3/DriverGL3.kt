@@ -16,6 +16,7 @@ import org.openrndr.math.Matrix44
 import java.io.InputStream
 import java.math.BigInteger
 import java.nio.Buffer
+import java.nio.ByteBuffer
 import java.util.*
 
 private val logger = KotlinLogging.logger {}
@@ -211,6 +212,13 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         return ColorBufferGL3.fromStream(stream, name, formatHint)
     }
 
+    override fun createColorBufferFromArray(array: ByteArray, offset: Int, length: Int, name: String?, formatHint: String?): ColorBuffer {
+        return ColorBufferGL3.fromArray(array, offset, length, name, formatHint)
+    }
+
+    override fun createColorBufferFromBuffer(buffer:ByteBuffer, name:String?, formatHint:String?) : ColorBuffer {
+        return ColorBufferGL3.fromBuffer(buffer, name, formatHint)
+    }
 
     override fun createDepthBuffer(width: Int, height: Int, format: DepthFormat, multisample: BufferMultisample): DepthBuffer {
         logger.trace { "creating depth buffer $width x $height @ $format" }
@@ -475,8 +483,6 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
     }
 
     override fun setState(drawStyle: DrawStyle) {
-
-
         if (drawStyle.clip != null) {
             drawStyle.clip?.let {
                 val target = RenderTarget.active

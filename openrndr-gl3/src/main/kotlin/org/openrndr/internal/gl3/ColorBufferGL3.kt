@@ -500,7 +500,7 @@ class ColorBufferDataGL3(val width: Int, val height: Int, val format: ColorForma
             if (urlString.startsWith("data:")) {
                 val decoder = Base64.getDecoder()
                 val commaIndex = urlString.indexOf(",")
-                val base64Data = urlString.drop(commaIndex+1)
+                val base64Data = urlString.drop(commaIndex + 1)
                 println(base64Data)
                 val decoded = decoder.decode(base64Data)
                 val buffer = ByteBuffer.allocateDirect(decoded.size)
@@ -524,7 +524,7 @@ class ColorBufferDataGL3(val width: Int, val height: Int, val format: ColorForma
             }
         }
 
-        fun fromStream(stream: InputStream, name: String? = null): ColorBufferDataGL3 {
+        fun fromStream(stream: InputStream, name: String? = null, formatHint:String? = null): ColorBufferDataGL3 {
             val byteArray = stream.readBytes()
             val buffer = BufferUtils.createByteBuffer(byteArray.size)
             (buffer as Buffer).rewind()
@@ -533,7 +533,13 @@ class ColorBufferDataGL3(val width: Int, val height: Int, val format: ColorForma
             return fromByteBuffer(buffer, name)
         }
 
-        fun fromByteBuffer(buffer: ByteBuffer, name: String? = null): ColorBufferDataGL3 {
+        fun fromArray(bytes: ByteArray, offset: Int = 0, length: Int = bytes.size, name: String? = null, formatHint: String? = null): ColorBufferDataGL3 {
+            val buffer = ByteBuffer.allocateDirect(length)
+            buffer.put(bytes, offset, length)
+            return fromByteBuffer(buffer, name)
+        }
+
+        fun fromByteBuffer(buffer: ByteBuffer, name: String? = null, formatHint:String? = null): ColorBufferDataGL3 {
             val wa = IntArray(1)
             val ha = IntArray(1)
             val ca = IntArray(1)
@@ -609,9 +615,8 @@ class ColorBufferGL3(val target: Int,
     }
 
     companion object {
-        fun fromUrl(url: String): ColorBuffer {
-            val data = ColorBufferDataGL3.fromUrl(url)
 
+        fun fromColorBufferData(data: ColorBufferDataGL3): ColorBuffer {
             val cb = create(data.width, data.height, 1.0, data.format, data.type, Disabled)
             return cb.apply {
                 val d = data.data
@@ -625,41 +630,31 @@ class ColorBufferGL3(val target: Int,
                 glFlush()
                 glFinish()
             }
+        }
+
+        fun fromUrl(url: String): ColorBuffer {
+            val data = ColorBufferDataGL3.fromUrl(url)
+            return fromColorBufferData(data)
         }
 
         fun fromFile(filename: String): ColorBuffer {
             val data = ColorBufferDataGL3.fromFile(filename)
-            val cb = create(data.width, data.height, 1.0, data.format, data.type, Disabled)
-            return cb.apply {
-                val d = data.data
-                if (d != null) {
-                    cb.write(d)
-                    cb.generateMipmaps()
-                } else {
-                    throw RuntimeException("data is null")
-                }
-                data.destroy()
-                glFlush()
-                glFinish()
-
-            }
+            return fromColorBufferData(data)
         }
 
         fun fromStream(stream: InputStream, name: String?, formatHint: String?): ColorBuffer {
             val data = ColorBufferDataGL3.fromStream(stream, name)
-            val cb = create(data.width, data.height, 1.0, data.format, data.type, Disabled)
-            return cb.apply {
-                val d = data.data
-                if (d != null) {
-                    cb.write(d)
-                    cb.generateMipmaps()
-                } else {
-                    throw RuntimeException("data is null")
-                }
-                data.destroy()
-                glFlush()
-                glFinish()
-            }
+            return fromColorBufferData(data)
+        }
+
+        fun fromArray(array: ByteArray, offset: Int = 0, length: Int = array.size, name: String?, formatHint: String?) : ColorBuffer {
+            val data = ColorBufferDataGL3.fromArray(array, offset, length, name, formatHint)
+            return fromColorBufferData(data)
+        }
+
+        fun fromBuffer(buffer: ByteBuffer, name: String?, formatHint: String?) : ColorBuffer {
+            val data = ColorBufferDataGL3.fromByteBuffer(buffer, name, formatHint)
+            return fromColorBufferData(data)
         }
 
         fun create(width: Int,
@@ -843,7 +838,6 @@ class ColorBufferGL3(val target: Int,
         writeTarget.detachColorBuffers()
         writeTarget.destroy()
     }
-
 
     override var wrapU: WrapMode
         get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.

@@ -176,13 +176,17 @@ interface ColorBuffer {
         }
 
         fun fromStream(stream: InputStream, formatHint: String? = null): ColorBuffer {
-            val colorBuffer = Driver.instance.createColorBufferFromStream(stream)
-            return colorBuffer
+            return Driver.instance.createColorBufferFromStream(stream)
         }
 
-        fun fromBytes() {
-
+        fun fromArray(bytes: ByteArray, offset: Int = 0, length: Int = bytes.size) : ColorBuffer{
+            return Driver.instance.createColorBufferFromArray(bytes)
         }
+
+        fun fromBuffer(bytes: ByteBuffer) : ColorBuffer {
+            return Driver.instance.createColorBufferFromBuffer(bytes)
+        }
+
     }
 }
 

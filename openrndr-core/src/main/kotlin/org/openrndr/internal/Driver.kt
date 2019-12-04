@@ -4,6 +4,7 @@ import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
 import java.io.InputStream
 import java.nio.Buffer
+import java.nio.ByteBuffer
 
 /**
  *  built-in shader generators
@@ -18,8 +19,8 @@ interface ShaderGenerators {
     fun imageArrayTextureFragmentShader(shadeStructure: ShadeStructure): String
     fun imageArrayTextureVertexShader(shadeStructure: ShadeStructure): String
 
-    fun pointFragmentShader(shadeStructure: ShadeStructure) : String
-    fun pointVertexShader(shadeStructure: ShadeStructure) : String
+    fun pointFragmentShader(shadeStructure: ShadeStructure): String
+    fun pointVertexShader(shadeStructure: ShadeStructure): String
 
     fun circleFragmentShader(shadeStructure: ShadeStructure): String
     fun circleVertexShader(shadeStructure: ShadeStructure): String
@@ -39,8 +40,8 @@ interface ShaderGenerators {
     fun meshLineFragmentShader(shadeStructure: ShadeStructure): String
     fun meshLineVertexShader(shadeStructure: ShadeStructure): String
 
-    fun filterVertexShader(shadeStructure: ShadeStructure) : String
-    fun filterFragmentShader(shadeStructure: ShadeStructure) : String
+    fun filterVertexShader(shadeStructure: ShadeStructure): String
+    fun filterFragmentShader(shadeStructure: ShadeStructure): String
 }
 
 
@@ -63,12 +64,14 @@ interface Driver {
 
 
     fun createArrayTexture(width: Int, height: Int, layers: Int, format: ColorFormat, type: ColorType): ArrayTexture
-    fun createAtomicCounterBuffer(counterCount : Int) : AtomicCounterBuffer
+    fun createAtomicCounterBuffer(counterCount: Int): AtomicCounterBuffer
 
     fun createColorBuffer(width: Int, height: Int, contentScale: Double, format: ColorFormat, type: ColorType, multisample: BufferMultisample = BufferMultisample.Disabled): ColorBuffer
     fun createColorBufferFromUrl(url: String): ColorBuffer
     fun createColorBufferFromFile(filename: String): ColorBuffer
     fun createColorBufferFromStream(stream: InputStream, name: String? = null, formatHint: String? = null): ColorBuffer
+    fun createColorBufferFromArray(array: ByteArray, offset: Int = 0, length: Int = 0, name: String? = null, formatHint: String? = null): ColorBuffer
+    fun createColorBufferFromBuffer(buffer: ByteBuffer, name: String? = null, formatHint: String? = null): ColorBuffer
 
     fun createDepthBuffer(width: Int, height: Int, format: DepthFormat, multisample: BufferMultisample = BufferMultisample.Disabled): DepthBuffer
     fun createBufferTexture(elementCount: Int, format: ColorFormat, type: ColorType): BufferTexture
