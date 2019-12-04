@@ -418,7 +418,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
                                         item.type.glType(), false, format.size, item.offset.toLong() + column * 16 + i * 64)
                                 debugGLErrors()
 
-                                glVertexAttribDivisor(attributeIndex + column + i * 4, 1)
+                                glVertexAttribDivisor(attributeIndex + column + i * 4, divisor)
                                 debugGLErrors()
                                 attributeBindings++
                             }
