@@ -157,13 +157,6 @@ interface ColorBuffer {
     }
 
     companion object {
-        @Deprecated("use the colorBuffer() builder function instead")
-        fun create(width: Int, height: Int,
-                   contentScale: Double = 1.0,
-                   format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.UINT8,
-                   multisample: BufferMultisample = BufferMultisample.Disabled
-        ) = Driver.instance.createColorBuffer(width, height, contentScale, format, type, multisample)
-
         fun fromUrl(url: String): ColorBuffer {
             val colorBuffer = Driver.instance.createColorBufferFromUrl(url)
             Session.active.track(colorBuffer)
@@ -185,6 +178,10 @@ interface ColorBuffer {
         fun fromStream(stream: InputStream, formatHint: String? = null): ColorBuffer {
             val colorBuffer = Driver.instance.createColorBufferFromStream(stream)
             return colorBuffer
+        }
+
+        fun fromBytes() {
+
         }
     }
 }
