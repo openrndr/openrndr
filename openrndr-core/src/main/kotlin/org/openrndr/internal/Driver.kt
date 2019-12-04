@@ -18,7 +18,6 @@ interface ShaderGenerators {
     fun imageArrayTextureFragmentShader(shadeStructure: ShadeStructure): String
     fun imageArrayTextureVertexShader(shadeStructure: ShadeStructure): String
 
-
     fun pointFragmentShader(shadeStructure: ShadeStructure) : String
     fun pointVertexShader(shadeStructure: ShadeStructure) : String
 
@@ -39,6 +38,9 @@ interface ShaderGenerators {
 
     fun meshLineFragmentShader(shadeStructure: ShadeStructure): String
     fun meshLineVertexShader(shadeStructure: ShadeStructure): String
+
+    fun filterVertexShader(shadeStructure: ShadeStructure) : String
+    fun filterFragmentShader(shadeStructure: ShadeStructure) : String
 }
 
 

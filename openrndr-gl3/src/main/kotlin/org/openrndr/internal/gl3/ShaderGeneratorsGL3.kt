@@ -162,7 +162,7 @@ ${transformVaryingIn}
 
 ${if (!shadeStructure.suppressDefaultOutput) "out vec4 o_color;" else ""}
 
-${shadeStructure.fragmentPreamble?:""}
+${shadeStructure.fragmentPreamble ?: ""}
 
 in vec3 v_boundsPosition;
 flat in int v_instance;
@@ -234,7 +234,7 @@ ${transformVaryingIn}
 
 ${if (!shadeStructure.suppressDefaultOutput) "out vec4 o_color;" else ""}
 
-${shadeStructure.fragmentPreamble?:""}
+${shadeStructure.fragmentPreamble ?: ""}
 
 in vec3 v_boundsPosition;
 flat in int v_instance;
@@ -351,9 +351,7 @@ void main() {
     """
 
 
-
-
-override fun circleFragmentShader(shadeStructure: ShadeStructure): String = """#version 330 core
+    override fun circleFragmentShader(shadeStructure: ShadeStructure): String = """#version 330 core
 ${primitiveTypes("d_circle")}
 ${shadeStructure.uniforms ?: ""}
 layout(origin_upper_left) in vec4 gl_FragCoord;
@@ -787,4 +785,48 @@ void main() {
         |   $postTransform
         |}
         """.trimMargin()
+
+    override fun filterVertexShader(shadeStructure: ShadeStructure): String = """
+        |#version 330
+
+        |in vec2 a_texCoord0;
+        |in vec2 a_position;
+        |${shadeStructure.vertexPreamble ?: ""}
+        |uniform vec2 targetSize;
+        |uniform vec2 padding;
+        |uniform mat4 projectionMatrix;
+        
+        |out vec2 v_texCoord0;
+
+        |void main() {
+        |   v_texCoord0 = a_texCoord0;
+        |   vec2 transformed = a_position * (targetSize - 2*padding) + padding;
+        |   gl_Position = projectionMatrix * vec4(transformed, 0.0, 1.0);
+        |   ${shadeStructure.vertexTransform ?: ""}
+        |}
+    """.trimMargin()
+
+    override fun filterFragmentShader(shadeStructure: ShadeStructure): String = """
+        |#version 330 core
+        |in vec2 v_texCoord0;
+        |${if (!shadeStructure.suppressDefaultOutput) "out vec4 o_color;" else ""}
+        |${shadeStructure.uniforms ?: ""}
+        |${shadeStructure.fragmentPreamble ?: ""}
+        |void main() {
+        |   ${fragmentConstants(instance = "0", screenPosition = "v_texCoord0")}
+        |   vec4 x_fill = p_fill;
+        |   vec4 x_stroke = vec4(0.0);
+        |   {
+        |       ${shadeStructure.fragmentTransform ?: ""}
+        |   }
+        |${if (!shadeStructure.suppressDefaultOutput) """
+            |o_color = x_fill;
+            |o_color.rgb *= o_color.a;
+            """.trimMargin() else ""}
+        |}
+        |
+        
+    """.trimMargin()
+
+
 }

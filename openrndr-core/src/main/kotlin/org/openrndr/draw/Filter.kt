@@ -14,6 +14,10 @@ private val filterDrawStyle = DrawStyle().apply {
 }
 
 private var filterQuad: VertexBuffer? = null
+private var filterQuadFormat = vertexFormat {
+    position(2)
+    textureCoordinate(2)
+}
 
 fun filterShaderFromUrl(url: String): Shader {
     return filterShaderFromCode(URL(url).readText())
@@ -30,8 +34,14 @@ fun filterShaderFromCode(fragmentShaderCode: String): Shader {
     return Shader.createFromCode(Filter.filterVertexCode, fragmentShaderCode)
 }
 
+/**
+ * Filter base class. Renders "full-screen" quads.
+ */
 open class Filter(private val shader: Shader? = null, private val watcher: ShaderWatcher? = null) {
 
+    /**
+     * parameter map
+     */
     val parameters = mutableMapOf<String, Any>()
     var padding = 0
 
@@ -44,7 +54,6 @@ open class Filter(private val shader: Shader? = null, private val watcher: Shade
     }
 
     open fun apply(source: Array<ColorBuffer>, target: Array<ColorBuffer>) {
-
         if (target.isEmpty()) {
             return
         }
@@ -59,10 +68,7 @@ open class Filter(private val shader: Shader? = null, private val watcher: Shade
         renderTarget.bind()
 
         if (filterQuad == null) {
-            val fq = VertexBuffer.createDynamic(VertexFormat().apply {
-                position(2)
-                textureCoordinate(2)
-            }, 6)
+            val fq = VertexBuffer.createDynamic(filterQuadFormat, 6)
 
             fq.shadow.writer().apply {
                 write(Vector2(0.0, 1.0)); write(Vector2(0.0, 0.0))
@@ -150,4 +156,6 @@ open class Filter(private val shader: Shader? = null, private val watcher: Shade
     fun untrack() {
         shader?.let { Session.active.untrack(shader) }
     }
+
+    protected val format get() = filterQuadFormat
 }
