@@ -48,7 +48,7 @@ data class Vector4(val x: Double, val y: Double, val z: Double, val w: Double) :
     operator fun div(v: Vector4) = Vector4(x / v.x, y / v.y, z / v.z, w / v.w)
     operator fun div(s: Double) = Vector4(x / s, y / s, z / s, w / s)
 
-    private operator fun get(i: Int): Double {
+    operator fun get(i: Int): Double {
         return when (i) {
             0 -> x
             1 -> y

@@ -51,7 +51,7 @@ data class Vector3(val x: Double, val y: Double, val z: Double) : Serializable {
 
     infix fun reflect(surfaceNormal: Vector3) = this - surfaceNormal * (this dot surfaceNormal) * 2.0
 
-    private operator fun get(i: Int): Double {
+    operator fun get(i: Int): Double {
         return when (i) {
             0 -> x
             1 -> y

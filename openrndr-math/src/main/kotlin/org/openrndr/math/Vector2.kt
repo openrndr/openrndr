@@ -31,6 +31,14 @@ data class Vector2(val x: Double, val y: Double) : Serializable {
         return Vector3(x, y, z)
     }
 
+    operator fun get(i: Int): Double {
+        return when (i) {
+            0 -> x
+            1 -> y
+            else -> throw RuntimeException("unsupported index")
+        }
+    }
+
     operator fun unaryMinus() = Vector2(-x, -y)
     operator fun plus(vector2: Vector2) = Vector2(x + vector2.x, y + vector2.y)
     operator fun minus(vector2: Vector2) = Vector2(x - vector2.x, y - vector2.y)
