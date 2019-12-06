@@ -100,6 +100,7 @@ class Drawer(val driver: Driver) {
      *  Resets state stacks and load default values for draw style and transformations.
      *  This destroys the state stacks, consider using defaults() instead of reset()
      */
+    @Deprecated("reset is considered harmful, use defaults()")
     fun reset() {
         viewStack.clear()
         modelStack.clear()
