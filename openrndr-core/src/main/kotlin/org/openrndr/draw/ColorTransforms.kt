@@ -20,5 +20,6 @@ fun grayscale(r: Double = 0.33, g: Double = 0.33, b: Double = 0.33): Matrix55 {
             c0r0 = r, c1r0 = g, c2r0 = b,
             c0r1 = r, c1r1 = g, c2r1 = b,
             c0r2 = r, c1r2 = g, c2r2 = b,
-            c3r3 = 1.0)
+            c3r3 = 1.0,
+            c4r4 = 1.0)
 }
