@@ -203,7 +203,7 @@ open class Animatable {
      */
 
     fun add(variable: String, target: Double, durationMillis: Long, easing: Easing) {
-        add(variable, target, durationMillis*1000, easing.easer)
+        add(variable, target, durationMillis, easing.easer)
     }
 
     fun add(variable: String, target: Double, durationMillis: Long, easer: Easer) {
@@ -333,10 +333,8 @@ open class Animatable {
      * @return `this` for easy animation chaining
      */
     fun cancel() {
-        if (animationKeys != null) {
-            animationKeys!!.clear()
-        }
-        createAtTime = clock.time
+        animationKeys?.clear()
+        createAtTime = clock.timeNanos
     }
 
     /**
@@ -359,14 +357,13 @@ open class Animatable {
      * @return `this` for easy animation chaining
      */
     fun end() {
-
         for (key in animationKeys!!) {
             if (key.animationState == AnimationKey.AnimationState.Playing) {
                 setFieldValue(key.variable, key.target)
             }
         }
 
-        animationKeys!!.clear()
+        animationKeys?.clear()
         createAtTime = lastTime
     }
 
@@ -392,7 +389,7 @@ open class Animatable {
             }
         }
 
-        animationKeys!!.removeAll(toRemove)
+        animationKeys?.removeAll(toRemove)
 
 
         //animationKeys.clear();
@@ -407,7 +404,7 @@ open class Animatable {
             if (animatable == null) {
                 animatable = this
             }
-            var `class`: Class<*>? = animatable!!.javaClass
+            var `class`: Class<*>? = animatable?.javaClass
 
             while (`class` != null) {
                 try {
