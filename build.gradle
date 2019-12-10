@@ -9,16 +9,16 @@ buildscript {
 }
 
 plugins {
-  // plugin dependencies, load without applying them
-  id 'nebula.kotlin' version '1.3.61' apply false
+    // plugin dependencies, load without applying them
+    id 'nebula.kotlin' version '1.3.61' apply false
 //  id 'com.jfrog.artifactory' version '4.11.0' apply false
 
-  id 'nebula.contacts' version '5.1.0' apply false
-  id 'nebula.info' version '5.2.0' apply false
-  id 'nebula.dependency-lock' version '8.3.0' apply false
+    id 'nebula.contacts' version '5.1.0' apply false
+    id 'nebula.info' version '5.2.0' apply false
+    id 'nebula.dependency-lock' version '8.3.0' apply false
 
-  id 'nebula.maven-publish' version '14.1.1' apply false
-  id 'nebula.nebula-bintray' version '7.5.0' apply false
+    id 'nebula.maven-publish' version '14.1.1' apply false
+    id 'nebula.nebula-bintray' version '7.5.0' apply false
     id 'nebula.release' version '13.2.0' apply false
 
     id 'nebula.source-jar' version '14.1.1' apply false
@@ -39,7 +39,7 @@ dokka {
     outputDirectory = "$buildDir/docs"
     outputFormat = "html"
     includes = ['Module.md']
-    
+
     sourceDirs = files(subprojects.collect { p -> new File(p.projectDir, "/src/main/kotlin") })
     if (!System.properties['os.name'].toLowerCase().contains('windows')) {
         doLast {
@@ -116,22 +116,22 @@ allprojects {
     }
 
     bintray {
-            userOrg = 'openrndr'
-            repo = 'openrndr'
-            pkgName = 'openrndr'
+        userOrg = 'openrndr'
+        repo = 'openrndr'
+        pkgName = 'openrndr'
 
 //        pkg {
-            //pkgDesc = project.description
-            licenses = ['BSD-2-Clause']
-            vcsUrl = 'https://github.com/openrndr/openrndr.git'
-            websiteUrl = 'https://www.openrndr.org'
-            issueTrackerUrl = 'https://github.com/openrndr/openrndr/issues'
-            labels = ['creative-coding', 'realtime-rendering', 'opengl']
+        //pkgDesc = project.description
+        licenses = ['BSD-2-Clause']
+        vcsUrl = 'https://github.com/openrndr/openrndr.git'
+        websiteUrl = 'https://www.openrndr.org'
+        issueTrackerUrl = 'https://github.com/openrndr/openrndr/issues'
+        labels = ['creative-coding', 'realtime-rendering', 'opengl']
 //        }
     }
 }
 
-configure(subprojects)  {
+configure(subprojects) {
     tasks.withType(org.jetbrains.kotlin.gradle.tasks.AbstractKotlinCompile).all {
         kotlinOptions.freeCompilerArgs += ["-Xuse-experimental=kotlinx.coroutines.InternalCoroutinesApi"]
     }
