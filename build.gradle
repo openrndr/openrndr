@@ -19,7 +19,7 @@ plugins {
 
   id 'nebula.maven-publish' version '14.1.1' apply false
   id 'nebula.nebula-bintray' version '7.5.0' apply false
-    id 'nebula.release' version '13.0.0' apply false
+    id 'nebula.release' version '12.1.0' apply false
 
     id 'nebula.source-jar' version '14.1.1' apply false
 
