@@ -117,12 +117,14 @@ allprojects {
             repo = 'openrndr'
             pkgName = 'openrndr'
 
-            //pkgDesc = project.description
-            licenses = ['BSD-2-Clause']
-            vcsUrl = 'https://github.com/openrndr/openrndr.git'
-            websiteUrl = 'https://www.openrndr.org'
-            issueTrackerUrl = 'https://github.com/openrndr/openrndr/issues'
-            labels = ['creative-coding', 'realtime-rendering', 'opengl']
+//        pkg {
+//            //pkgDesc = project.description
+//            licenses = ['BSD-2-Clause']
+//            vcsUrl = 'https://github.com/openrndr/openrndr.git'
+//            websiteUrl = 'https://www.openrndr.org'
+//            issueTrackerUrl = 'https://github.com/openrndr/openrndr/issues'
+//            labels = ['creative-coding', 'realtime-rendering', 'opengl']
+//        }
     }
 }
 
