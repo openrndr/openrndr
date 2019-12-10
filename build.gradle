@@ -57,11 +57,13 @@ allprojects {
     apply plugin: 'nebula.contacts'
     apply plugin: 'nebula.info'
     apply plugin: 'nebula.dependency-lock'
-    // selectively apply only the bintray plugin, snapshots are not published
-    // nebula-bintray needs to happened after nebula-release since version isn't lazy in the bintray extension
-    apply plugin: 'nebula.nebula-bintray-publishing'
 
     apply plugin: 'nebula.release'
+    // selectively apply only the bintray plugin, snapshots are not published
+    // nebula-bintray needs to happened after nebula-release since version isn't lazy in the bintray extension
+
+    apply plugin: 'nebula.nebula-bintray-publishing'
+
     apply plugin: 'nebula.maven-publish'
 
     apply plugin: 'nebula.source-jar'
