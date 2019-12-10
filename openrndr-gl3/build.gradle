@@ -17,8 +17,8 @@ dependencies {
 }
 
 test {
-    if (System.getenv('TRAVIS') != null) {
+//    if (System.getenv('TRAVIS') != null) {
         println("Excluding OpenGL test cases for Travis CI build")
         exclude '**/*.class'
-    }
+//    }
 }
