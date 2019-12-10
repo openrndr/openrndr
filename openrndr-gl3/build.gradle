@@ -1,6 +1,6 @@
 dependencies {
-    compile project(":openrndr-core")
-    compile project(":openrndr-binpack")
+    implementation project(":openrndr-core")
+    implementation project(":openrndr-binpack")
 
     implementation "org.lwjgl:lwjgl:$lwjglVersion"
     implementation "org.lwjgl:lwjgl-glfw:$lwjglVersion"
@@ -10,10 +10,10 @@ dependencies {
     implementation "org.lwjgl:lwjgl-stb:$lwjglVersion"
 
     implementation "org.lwjgl:lwjgl-egl:$lwjglVersion"
-    testRuntime project(":openrndr-gl3-natives-windows")
-    testRuntime project(":openrndr-gl3-natives-macos")
-    testRuntime project(":openrndr-gl3-natives-linux-x64")
-    testRuntime 'org.slf4j:slf4j-simple:1.7.5'
+    testRuntimeOnly project(":openrndr-gl3-natives-windows")
+    testRuntimeOnly project(":openrndr-gl3-natives-macos")
+    testRuntimeOnly project(":openrndr-gl3-natives-linux-x64")
+    testRuntimeOnly 'org.slf4j:slf4j-simple:1.7.5'
 }
 
 test {

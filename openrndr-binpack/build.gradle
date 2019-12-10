@@ -1,4 +1,4 @@
 dependencies {
-    compile project(":openrndr-shape")
-    compile project(":openrndr-math")
+    implementation project(":openrndr-shape")
+    implementation project(":openrndr-math")
 }

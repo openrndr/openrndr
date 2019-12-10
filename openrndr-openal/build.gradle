@@ -1,13 +1,14 @@
 dependencies {
-    compile project(":openrndr-core")
+    implementation project(":openrndr-core")
+    implementation project(":openrndr-math")
 
     implementation "org.lwjgl:lwjgl:$lwjglVersion"
     implementation "org.lwjgl:lwjgl-openal:$lwjglVersion"
 
-    testRuntime project(":openrndr-openal-natives-windows")
-    testRuntime project(":openrndr-openal-natives-macos")
-    testRuntime project(":openrndr-openal-natives-linux-x64")
-    testRuntime 'org.slf4j:slf4j-simple:1.7.5'
+    testRuntimeOnly project(":openrndr-openal-natives-windows")
+    testRuntimeOnly project(":openrndr-openal-natives-macos")
+    testRuntimeOnly project(":openrndr-openal-natives-linux-x64")
+    testRuntimeOnly 'org.slf4j:slf4j-simple:1.7.5'
 }
 
 test {

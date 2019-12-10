@@ -1,5 +1,5 @@
 dependencies {
-    compile project(":openrndr-math")
-    compile project(":openrndr-color")
+    implementation project(":openrndr-math")
+    implementation project(":openrndr-color")
     implementation project(":openrndr-adopted-artifex")
 }

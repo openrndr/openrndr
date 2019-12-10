@@ -1,7 +1,7 @@
 dependencies {
-    compile project(":openrndr-color")
-    compile project(":openrndr-math")
-    compile project(":openrndr-shape")
-    compile project(":openrndr-event")
-    compile project(":openrndr-animatable")
+    api project(":openrndr-color")
+    api project(":openrndr-math")
+    api project(":openrndr-shape")
+    api project(":openrndr-event")
+    api project(":openrndr-animatable")
 }

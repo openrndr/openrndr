@@ -1,10 +1,10 @@
 project.ext.lwjglNatives = "natives-windows"
 
 dependencies {
-    runtime "org.lwjgl:lwjgl:$lwjglVersion:$lwjglNatives"
-    runtime "org.lwjgl:lwjgl-glfw:$lwjglVersion:$lwjglNatives"
-    runtime "org.lwjgl:lwjgl-jemalloc:$lwjglVersion:$lwjglNatives"
-    runtime "org.lwjgl:lwjgl-openal:$lwjglVersion:$lwjglNatives"
-    runtime "org.lwjgl:lwjgl-opengl:$lwjglVersion:$lwjglNatives"
-    runtime "org.lwjgl:lwjgl-stb:$lwjglVersion:$lwjglNatives"
+    runtimeOnly "org.lwjgl:lwjgl:$lwjglVersion:$lwjglNatives"
+    runtimeOnly "org.lwjgl:lwjgl-glfw:$lwjglVersion:$lwjglNatives"
+    runtimeOnly "org.lwjgl:lwjgl-jemalloc:$lwjglVersion:$lwjglNatives"
+    runtimeOnly "org.lwjgl:lwjgl-openal:$lwjglVersion:$lwjglNatives"
+    runtimeOnly "org.lwjgl:lwjgl-opengl:$lwjglVersion:$lwjglNatives"
+    runtimeOnly "org.lwjgl:lwjgl-stb:$lwjglVersion:$lwjglNatives"
 }

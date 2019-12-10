@@ -1,7 +1,7 @@
 apply plugin: 'antlr'
 
 configurations {
-    generatedCompile
+    generatedImplementation
 }
 
 sourceSets {
@@ -12,11 +12,11 @@ sourceSets {
 
 dependencies {
     antlr "org.antlr:antlr4:4.5.1"
-    compile "org.antlr:antlr4-runtime:4.5.1"
-    compile sourceSets.generated.output
-    compile "org.jetbrains.kotlin:kotlin-reflect"
+    implementation "org.antlr:antlr4-runtime:4.5.1"
+    implementation sourceSets.generated.output
+    implementation "org.jetbrains.kotlin:kotlin-reflect"
 
-    generatedCompile "org.antlr:antlr4-runtime:4.5.1"
+    generatedImplementation "org.antlr:antlr4-runtime:4.5.1"
 }
 
 generateGrammarSource {
