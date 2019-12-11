@@ -22,6 +22,6 @@ include 'openrndr-core',
 		'openrndr-ffmpeg-natives-windows',
 		'openrndr-ffmpeg-natives-macos',
 		'openrndr-ffmpeg-natives-linux-x64',
-        'openrndr-shadestyle-parser',
+//        'openrndr-shadestyle-parser',
 		'openrndr-extensions',
 		'openrndr-adopted-artifex'

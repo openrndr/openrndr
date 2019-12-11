@@ -5,23 +5,27 @@ buildscript {
 
     dependencies {
         classpath "org.jetbrains.dokka:dokka-gradle-plugin:0.9.17"
+        classpath "com.netflix.nebula:nebula-kotlin-plugin:1.3.61"
+        classpath "com.netflix.nebula:nebula-publishing-plugin:14.1.1"
+        classpath "com.netflix.nebula:nebula-release-plugin:13.2.0"
+        classpath "com.netflix.nebula:nebula-bintray-plugin:7.5.0"
     }
 }
 
 plugins {
     // plugin dependencies, load without applying them
-    id 'nebula.kotlin' version '1.3.61' apply false
-//  id 'com.jfrog.artifactory' version '4.11.0' apply false
 
-    id 'nebula.contacts' version '5.1.0' apply false
-    id 'nebula.info' version '5.2.0' apply false
-    id 'nebula.dependency-lock' version '8.3.0' apply false
-
-    id 'nebula.maven-publish' version '14.1.1' apply false
-    id 'nebula.nebula-bintray' version '7.5.0' apply false
-    id 'nebula.release' version '13.2.0' apply false
-
-    id 'nebula.source-jar' version '14.1.1' apply false
+//    id 'com.jfrog.artifactory' version '4.11.0' apply false
+//
+//    id 'nebula.contacts' version '5.1.0' apply false
+//    id 'nebula.info' version '5.2.0' apply false
+//    id 'nebula.dependency-lock' version '8.3.0' apply false
+//
+//    id 'nebula.maven-publish' version '14.1.1' apply false
+//    id 'nebula.nebula-bintray' version '7.5.0' apply false
+//    id 'nebula.release' version '13.2.0' apply false
+//
+//    id 'nebula.source-jar' version '14.1.1' apply false
 
 }
 
@@ -56,17 +60,17 @@ allprojects {
     apply plugin: 'nebula.kotlin'
     apply plugin: 'nebula.contacts'
     apply plugin: 'nebula.info'
-    apply plugin: 'nebula.dependency-lock'
+//    apply plugin: 'nebula.dependency-lock'
 
     apply plugin: 'nebula.release'
     // selectively apply only the bintray plugin, snapshots are not published
     // nebula-bintray needs to happened after nebula-release since version isn't lazy in the bintray extension
 
+    apply plugin: 'nebula.source-jar'
+    apply plugin: 'nebula.maven-publish'
     apply plugin: 'nebula.nebula-bintray-publishing'
 
-    apply plugin: 'nebula.maven-publish'
 
-    apply plugin: 'nebula.source-jar'
 
     group 'org.openrndr'
 
@@ -118,18 +122,18 @@ allprojects {
     }
 
     bintray {
+        user = findProperty('bintrayUser') ?: System.getenv('BINTRAY_USER')
+        apiKey = findProperty('bintrayKey') ?: System.getenv('BINTRAY_KEY')
         userOrg = 'openrndr'
         repo = 'openrndr'
         pkgName = 'openrndr'
-
-//        pkg {
-        //pkgDesc = project.description
+        gppSign = false
+        syncToMavenCentral = false
         licenses = ['BSD-2-Clause']
         vcsUrl = 'https://github.com/openrndr/openrndr.git'
         websiteUrl = 'https://www.openrndr.org'
         issueTrackerUrl = 'https://github.com/openrndr/openrndr/issues'
         labels = ['creative-coding', 'realtime-rendering', 'opengl']
-//        }
     }
 }
 
