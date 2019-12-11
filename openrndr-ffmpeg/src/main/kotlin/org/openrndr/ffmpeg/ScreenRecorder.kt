@@ -25,7 +25,7 @@ class ScreenRecorder : Extension {
     var frameRate = 30
 
     /** the profile to use for the output video */
-    var profile = MP4Profile()
+    var profile: VideoWriterProfile = MP4Profile()
 
     /** should a frameclock be installed, if false system clock is used */
     var frameClock = true
