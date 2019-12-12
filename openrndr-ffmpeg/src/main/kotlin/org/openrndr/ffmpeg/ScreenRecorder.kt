@@ -24,6 +24,11 @@ class ScreenRecorder : Extension {
     /** the framerate of the output video */
     var frameRate = 30
 
+    /**
+     * what time the video recorder should start recording at
+     */
+    var timeOffset = 0.0
+
     /** the profile to use for the output video */
     var profile: VideoWriterProfile = MP4Profile()
 
@@ -47,7 +52,7 @@ class ScreenRecorder : Extension {
     override fun setup(program: Program) {
         if (frameClock) {
             program.clock = {
-                frameIndex / frameRate.toDouble()
+                frameIndex / frameRate.toDouble() + timeOffset
             }
         }
 

@@ -184,12 +184,10 @@ private object defaultLogger : Callback_Pointer_int_String_Pointer() {
 class VideoPlayerFFMPEG private constructor(
         private val file: AVFile,
         private val mode: PlayMode = PlayMode.VIDEO,
-        private val configuration: VideoPlayerConfiguration) {
+        private val configuration: VideoPlayerConfiguration,
+        private val clock: () -> Double = { System.currentTimeMillis() / 1000.0 }) {
 
     var lastFrameTime = 0.0
-    private fun getTime(): Double {
-        return System.currentTimeMillis() / 1000.0
-    }
 
     private val displayQueue = Queue<VideoFrame>(configuration.displayQueueSize)
 
@@ -300,10 +298,11 @@ class VideoPlayerFFMPEG private constructor(
          */
         fun fromFile(fileName: String,
                      mode: PlayMode = PlayMode.BOTH,
-                     configuration: VideoPlayerConfiguration = VideoPlayerConfiguration()): VideoPlayerFFMPEG {
+                     configuration: VideoPlayerConfiguration = VideoPlayerConfiguration(),
+                     clock: ()->Double = { System.currentTimeMillis() / 1000.0 }): VideoPlayerFFMPEG {
             av_log_set_level(AV_LOG_QUIET)
             val file = AVFile(configuration, fileName, mode)
-            return VideoPlayerFFMPEG(file, mode, configuration)
+            return VideoPlayerFFMPEG(file, mode, configuration, clock)
         }
 
         /**
@@ -475,7 +474,7 @@ class VideoPlayerFFMPEG private constructor(
 
                     val duration = (info.video?.fps ?: 1.0)
 
-                    val now = getTime()
+                    val now = clock()
                     if (now - nextFrame > duration * 2) {
                         logger.debug {
                             "resetting next frame time"
