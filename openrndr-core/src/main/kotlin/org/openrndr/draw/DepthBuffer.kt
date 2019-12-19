@@ -18,6 +18,7 @@ interface DepthBuffer {
     }
 
     fun resolveTo(target: DepthBuffer)
+    fun copyTo(target: DepthBuffer)
     fun destroy()
     fun bind(textureUnit: Int)
 }

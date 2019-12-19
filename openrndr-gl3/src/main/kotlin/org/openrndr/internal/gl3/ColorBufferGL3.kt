@@ -754,12 +754,12 @@ class ColorBufferGL3(val target: Int,
             throw IllegalArgumentException("cannot resolve to target because its color type differs. got ${target.type}, expected $type.")
         }
 
-        if (target.multisample == Disabled) {
-            val readTarget = renderTarget(width, height, contentScale) {
+//        if (target.multisample == Disabled) {
+            val readTarget = renderTarget(width, height, contentScale, multisample=multisample) {
                 colorBuffer(this@ColorBufferGL3)
             } as RenderTargetGL3
 
-            val writeTarget = renderTarget(target.width, target.height, target.contentScale) {
+            val writeTarget = renderTarget(target.width, target.height, target.contentScale, multisample = target.multisample) {
                 colorBuffer(target)
             } as RenderTargetGL3
 
@@ -773,14 +773,14 @@ class ColorBufferGL3(val target: Int,
 
             readTarget.detachColorBuffers()
             readTarget.destroy()
-        } else {
-            throw IllegalArgumentException("cannot resolve to multisample target")
-        }
+//        } else {
+//            throw IllegalArgumentException("cannot resolve to multisample target")
+//        }
     }
 
     override fun copyTo(target: ColorBuffer) {
         checkDestroyed()
-        if (target.multisample == Disabled) {
+//        if (target.multisample == Disabled) {
             val readTarget = renderTarget(width, height, contentScale) {
                 colorBuffer(this@ColorBufferGL3)
             } as RenderTargetGL3
@@ -796,14 +796,14 @@ class ColorBufferGL3(val target: Int,
 
             readTarget.detachColorBuffers()
             readTarget.destroy()
-        } else {
-            throw IllegalArgumentException("cannot copy to multisample target")
-        }
+//        } else {
+//            throw IllegalArgumentException("cannot copy to multisample target")
+//        }
     }
 
     override fun copyTo(target: ArrayTexture, layer: Int) {
         checkDestroyed()
-        if (multisample == Disabled) {
+        //if (multisample == Disabled) {
             val readTarget = renderTarget(width, height, contentScale) {
                 colorBuffer(this@ColorBufferGL3)
             } as RenderTargetGL3
@@ -819,9 +819,9 @@ class ColorBufferGL3(val target: Int,
 
             readTarget.detachColorBuffers()
             readTarget.destroy()
-        } else {
-            throw IllegalArgumentException("cannot copy from multisample texture")
-        }
+//        } else {
+//            throw IllegalArgumentException("cannot copy from multisample texture")
+//        }
     }
 
     override fun fill(color: ColorRGBa) {

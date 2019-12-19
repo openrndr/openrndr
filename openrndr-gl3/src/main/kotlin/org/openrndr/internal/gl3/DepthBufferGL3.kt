@@ -11,6 +11,8 @@ class DepthBufferGL3(val texture: Int,
                      override val format: DepthFormat,
                      override val multisample: BufferMultisample) : DepthBuffer {
 
+    private var destroyed = false
+
     companion object {
         fun create(width: Int, height: Int, format: DepthFormat, multisample: BufferMultisample): DepthBufferGL3 {
             val glTexture = glGenTextures()
@@ -36,44 +38,71 @@ class DepthBufferGL3(val texture: Int,
                     checkGLErrors()
                 }
             }
-
-
-
             return DepthBufferGL3(glTexture, target, width, height, format, multisample)
         }
     }
 
     override fun resolveTo(target: DepthBuffer) {
-        if (target.multisample == BufferMultisample.Disabled) {
-            val readTarget = renderTarget(width, height) {
-                depthBuffer(this@DepthBufferGL3)
-            } as RenderTargetGL3
+        val readTarget = renderTarget(width, height, multisample = multisample) {
+            depthBuffer(this@DepthBufferGL3)
+        } as RenderTargetGL3
 
-            val writeTarget = renderTarget(target.width, target.height) {
-                depthBuffer(target)
-            } as RenderTargetGL3
+        val writeTarget = renderTarget(target.width, target.height, multisample = target.multisample) {
+            depthBuffer(target)
+        } as RenderTargetGL3
 
-            writeTarget.bind()
-            glBindFramebuffer(GL_READ_FRAMEBUFFER, readTarget.framebuffer)
-            glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_DEPTH_BUFFER_BIT, GL_NEAREST)
-            writeTarget.unbind()
+        writeTarget.bind()
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, readTarget.framebuffer)
+        glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_DEPTH_BUFFER_BIT, GL_NEAREST)
+        writeTarget.unbind()
 
-            writeTarget.detachColorBuffers()
-            writeTarget.destroy()
+        writeTarget.detachColorBuffers()
+        writeTarget.destroy()
 
-            readTarget.detachColorBuffers()
-            readTarget.destroy()
-        } else {
-            throw IllegalArgumentException("cannot resolve to multisample target")
+        readTarget.detachColorBuffers()
+        readTarget.destroy()
+
+    }
+
+    override fun copyTo(target: DepthBuffer) {
+        require(!destroyed)
+        val readTarget = renderTarget(width, height) {
+            depthBuffer(this@DepthBufferGL3)
+        } as RenderTargetGL3
+
+        target as DepthBufferGL3
+        readTarget.bind()
+        glReadBuffer(GL_COLOR_ATTACHMENT0)
+        target.bound {
+            glCopyTexSubImage2D(target.target, 0, 0, 0, 0, 0, target.width, target.height)
+            debugGLErrors()
+        }
+        readTarget.unbind()
+        readTarget.detachDepthBuffer()
+        readTarget.destroy()
+    }
+
+    fun bound(f: DepthBufferGL3.() -> Unit) {
+        require(!destroyed)
+        glActiveTexture(GL_TEXTURE0)
+        val current = when (multisample) {
+            BufferMultisample.Disabled -> glGetInteger(GL_TEXTURE_BINDING_2D)
+            is BufferMultisample.SampleCount -> glGetInteger(GL_TEXTURE_BINDING_2D_MULTISAMPLE)
+        }
+        glBindTexture(target, texture)
+        this.f()
+        glBindTexture(target, current)
+    }
+
+    override fun destroy() {
+        if (!destroyed) {
+            destroyed = true
+            glDeleteTextures(texture)
         }
     }
 
-
-    override fun destroy() {
-        glDeleteTextures(texture)
-    }
-
     override fun bind(textureUnit: Int) {
+        require(!destroyed)
         glActiveTexture(GL_TEXTURE0 + textureUnit)
         glBindTexture(target, texture)
     }
