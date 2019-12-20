@@ -17,6 +17,7 @@ import org.bytedeco.javacpp.BytePointer
 import org.bytedeco.javacpp.IntPointer
 import org.bytedeco.javacpp.Pointer
 import org.bytedeco.javacpp.PointerPointer
+import org.openrndr.Program
 import org.openrndr.draw.ColorBuffer
 import org.openrndr.draw.Drawer
 import org.openrndr.events.Event
@@ -178,6 +179,14 @@ private object defaultLogger : Callback_Pointer_int_String_Pointer() {
     fun install() = av_log_set_callback(this)
 }
 
+fun Program.loadVideo(fileOrUrl: String, mode: PlayMode = PlayMode.BOTH): VideoPlayerFFMPEG {
+    return VideoPlayerFFMPEG.fromFile(fileOrUrl, clock = { seconds })
+}
+
+fun loadVideoDevice(deviceName: String = VideoPlayerFFMPEG.defaultDevice(), mode: PlayMode = PlayMode.VIDEO, width: Int? = null, height: Int? = null, frameRate: Double? = null): VideoPlayerFFMPEG {
+    return VideoPlayerFFMPEG.fromDevice(deviceName, mode = mode, imageWidth = width, imageHeight = height, frameRate = frameRate)
+}
+
 /**
  * Video player based on FFMPEG
  */
@@ -299,7 +308,7 @@ class VideoPlayerFFMPEG private constructor(
         fun fromFile(fileName: String,
                      mode: PlayMode = PlayMode.BOTH,
                      configuration: VideoPlayerConfiguration = VideoPlayerConfiguration(),
-                     clock: ()->Double = { System.currentTimeMillis() / 1000.0 }): VideoPlayerFFMPEG {
+                     clock: () -> Double = { System.currentTimeMillis() / 1000.0 }): VideoPlayerFFMPEG {
             av_log_set_level(AV_LOG_QUIET)
             val file = AVFile(configuration, fileName, mode)
             return VideoPlayerFFMPEG(file, mode, configuration, clock)
@@ -682,3 +691,4 @@ internal fun AVStream.openCodec(): AVCodecContext {
     av_dict_free(dictionary)
     return codecContext
 }
+
