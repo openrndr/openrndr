@@ -49,6 +49,18 @@ interface RenderTarget {
 
     val hasDepthBuffer: Boolean
     val hasColorBuffer: Boolean
+
+    fun resolveTo(to: RenderTarget) {
+        require(this.width == to.width && this.height == to.height)
+        require(colorBuffers.size == to.colorBuffers.size)
+        require((to.depthBuffer == null) == (depthBuffer == null))
+
+        for (i in colorBuffers.indices) {
+            colorBuffers[i].resolveTo(to.colorBuffers[i])
+        }
+
+        depthBuffer?.resolveTo((to.depthBuffer!!))
+    }
 }
 
 @Suppress("unused")
@@ -101,6 +113,7 @@ class RenderTargetBuilder(private val renderTarget: RenderTarget) {
             throw IllegalArgumentException("${depthBuffer.multisample} != ${renderTarget.multisample}")
         }
     }
+
 }
 
 
@@ -113,3 +126,5 @@ fun renderTarget(width: Int, height: Int, contentScale: Double = 1.0, multisampl
     RenderTargetBuilder(renderTarget).builder()
     return renderTarget
 }
+
+
