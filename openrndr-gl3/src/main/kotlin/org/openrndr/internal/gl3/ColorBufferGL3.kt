@@ -7,6 +7,7 @@ import mu.KotlinLogging
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.ARBTextureCompressionBPTC.*
 import org.lwjgl.opengl.EXTTextureCompressionS3TC.*
+import org.lwjgl.opengl.EXTTextureFilterAnisotropic.GL_TEXTURE_MAX_ANISOTROPY_EXT
 import org.lwjgl.opengl.EXTTextureSRGB.*
 import org.lwjgl.opengl.GL33C.*
 import org.lwjgl.stb.STBIWriteCallback
@@ -524,7 +525,7 @@ class ColorBufferDataGL3(val width: Int, val height: Int, val format: ColorForma
             }
         }
 
-        fun fromStream(stream: InputStream, name: String? = null, formatHint:String? = null): ColorBufferDataGL3 {
+        fun fromStream(stream: InputStream, name: String? = null, formatHint: String? = null): ColorBufferDataGL3 {
             val byteArray = stream.readBytes()
             val buffer = BufferUtils.createByteBuffer(byteArray.size)
             (buffer as Buffer).rewind()
@@ -539,7 +540,7 @@ class ColorBufferDataGL3(val width: Int, val height: Int, val format: ColorForma
             return fromByteBuffer(buffer, name)
         }
 
-        fun fromByteBuffer(buffer: ByteBuffer, name: String? = null, formatHint:String? = null): ColorBufferDataGL3 {
+        fun fromByteBuffer(buffer: ByteBuffer, name: String? = null, formatHint: String? = null): ColorBufferDataGL3 {
             val wa = IntArray(1)
             val ha = IntArray(1)
             val ca = IntArray(1)
@@ -647,12 +648,12 @@ class ColorBufferGL3(val target: Int,
             return fromColorBufferData(data)
         }
 
-        fun fromArray(array: ByteArray, offset: Int = 0, length: Int = array.size, name: String?, formatHint: String?) : ColorBuffer {
+        fun fromArray(array: ByteArray, offset: Int = 0, length: Int = array.size, name: String?, formatHint: String?): ColorBuffer {
             val data = ColorBufferDataGL3.fromArray(array, offset, length, name, formatHint)
             return fromColorBufferData(data)
         }
 
-        fun fromBuffer(buffer: ByteBuffer, name: String?, formatHint: String?) : ColorBuffer {
+        fun fromBuffer(buffer: ByteBuffer, name: String?, formatHint: String?): ColorBuffer {
             val data = ColorBufferDataGL3.fromByteBuffer(buffer, name, formatHint)
             return fromColorBufferData(data)
         }
@@ -755,24 +756,24 @@ class ColorBufferGL3(val target: Int,
         }
 
 //        if (target.multisample == Disabled) {
-            val readTarget = renderTarget(width, height, contentScale, multisample=multisample) {
-                colorBuffer(this@ColorBufferGL3)
-            } as RenderTargetGL3
+        val readTarget = renderTarget(width, height, contentScale, multisample = multisample) {
+            colorBuffer(this@ColorBufferGL3)
+        } as RenderTargetGL3
 
-            val writeTarget = renderTarget(target.width, target.height, target.contentScale, multisample = target.multisample) {
-                colorBuffer(target)
-            } as RenderTargetGL3
+        val writeTarget = renderTarget(target.width, target.height, target.contentScale, multisample = target.multisample) {
+            colorBuffer(target)
+        } as RenderTargetGL3
 
-            writeTarget.bind()
-            glBindFramebuffer(GL_READ_FRAMEBUFFER, readTarget.framebuffer)
-            glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_NEAREST)
-            writeTarget.unbind()
+        writeTarget.bind()
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, readTarget.framebuffer)
+        glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_NEAREST)
+        writeTarget.unbind()
 
-            writeTarget.detachColorBuffers()
-            writeTarget.destroy()
+        writeTarget.detachColorBuffers()
+        writeTarget.destroy()
 
-            readTarget.detachColorBuffers()
-            readTarget.destroy()
+        readTarget.detachColorBuffers()
+        readTarget.destroy()
 //        } else {
 //            throw IllegalArgumentException("cannot resolve to multisample target")
 //        }
@@ -781,21 +782,21 @@ class ColorBufferGL3(val target: Int,
     override fun copyTo(target: ColorBuffer) {
         checkDestroyed()
 //        if (target.multisample == Disabled) {
-            val readTarget = renderTarget(width, height, contentScale) {
-                colorBuffer(this@ColorBufferGL3)
-            } as RenderTargetGL3
+        val readTarget = renderTarget(width, height, contentScale) {
+            colorBuffer(this@ColorBufferGL3)
+        } as RenderTargetGL3
 
-            target as ColorBufferGL3
-            readTarget.bind()
-            glReadBuffer(GL_COLOR_ATTACHMENT0)
-            target.bound {
-                glCopyTexSubImage2D(target.target, 0, 0, 0, 0, 0, target.width, target.height)
-                debugGLErrors()
-            }
-            readTarget.unbind()
+        target as ColorBufferGL3
+        readTarget.bind()
+        glReadBuffer(GL_COLOR_ATTACHMENT0)
+        target.bound {
+            glCopyTexSubImage2D(target.target, 0, 0, 0, 0, 0, target.width, target.height)
+            debugGLErrors()
+        }
+        readTarget.unbind()
 
-            readTarget.detachColorBuffers()
-            readTarget.destroy()
+        readTarget.detachColorBuffers()
+        readTarget.destroy()
 //        } else {
 //            throw IllegalArgumentException("cannot copy to multisample target")
 //        }
@@ -804,21 +805,21 @@ class ColorBufferGL3(val target: Int,
     override fun copyTo(target: ArrayTexture, layer: Int) {
         checkDestroyed()
         //if (multisample == Disabled) {
-            val readTarget = renderTarget(width, height, contentScale) {
-                colorBuffer(this@ColorBufferGL3)
-            } as RenderTargetGL3
+        val readTarget = renderTarget(width, height, contentScale) {
+            colorBuffer(this@ColorBufferGL3)
+        } as RenderTargetGL3
 
-            target as ArrayTextureGL3
-            readTarget.bind()
-            glReadBuffer(GL_COLOR_ATTACHMENT0)
-            target.bound {
-                glCopyTexSubImage3D(target.target, 0, 0, 0, layer, 0, 0, target.width, target.height)
-                debugGLErrors()
-            }
-            readTarget.unbind()
+        target as ArrayTextureGL3
+        readTarget.bind()
+        glReadBuffer(GL_COLOR_ATTACHMENT0)
+        target.bound {
+            glCopyTexSubImage3D(target.target, 0, 0, 0, layer, 0, 0, target.width, target.height)
+            debugGLErrors()
+        }
+        readTarget.unbind()
 
-            readTarget.detachColorBuffers()
-            readTarget.destroy()
+        readTarget.detachColorBuffers()
+        readTarget.destroy()
 //        } else {
 //            throw IllegalArgumentException("cannot copy from multisample texture")
 //        }
@@ -840,7 +841,7 @@ class ColorBufferGL3(val target: Int,
     }
 
     override var wrapU: WrapMode
-        get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
+        get() = TODO("not implemented")
         set(value) {
             bound {
                 glTexParameteri(target, GL_TEXTURE_WRAP_S, value.glWrap())
@@ -848,7 +849,7 @@ class ColorBufferGL3(val target: Int,
         }
 
     override var wrapV: WrapMode
-        get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
+        get() = TODO("not implemented")
         set(value) {
             bound {
                 glTexParameteri(target, GL_TEXTURE_WRAP_T, value.glWrap())
@@ -868,6 +869,14 @@ class ColorBufferGL3(val target: Int,
         set(value) {
             bound {
                 glTexParameteri(target, GL_TEXTURE_MAG_FILTER, value.toGLFilter())
+            }
+        }
+
+    override var anisotropy: Double
+        get() = TODO("not implemented")
+        set(value) {
+            bound {
+                glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, value.toFloat())
             }
         }
 

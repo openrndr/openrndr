@@ -143,6 +143,9 @@ interface ColorBuffer {
 
     val shadow: ColorBufferShadow
 
+    /** the (unitless?) degree of anisotropy to be used in filtering */
+    var anisotropy: Double
+
     /**
      * should the v coordinate be flipped because the [ColorBuffer] contents are stored upside-down?
      */
@@ -179,11 +182,11 @@ interface ColorBuffer {
             return Driver.instance.createColorBufferFromStream(stream)
         }
 
-        fun fromArray(bytes: ByteArray, offset: Int = 0, length: Int = bytes.size) : ColorBuffer{
+        fun fromArray(bytes: ByteArray, offset: Int = 0, length: Int = bytes.size): ColorBuffer {
             return Driver.instance.createColorBufferFromArray(bytes)
         }
 
-        fun fromBuffer(bytes: ByteBuffer) : ColorBuffer {
+        fun fromBuffer(bytes: ByteBuffer): ColorBuffer {
             return Driver.instance.createColorBufferFromBuffer(bytes)
         }
 
