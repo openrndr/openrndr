@@ -2,7 +2,6 @@ package org.openrndr.internal.gl3
 
 import mu.KotlinLogging
 import org.lwjgl.glfw.GLFW.glfwGetCurrentContext
-import org.lwjgl.opengl.GL30C
 import org.lwjgl.opengl.GL33C.*
 import org.openrndr.Program
 import org.openrndr.color.ColorRGBa
@@ -41,12 +40,13 @@ open class RenderTargetGL3(val framebuffer: Int,
                            private val thread: Thread = Thread.currentThread()
 
 ) : RenderTarget {
+    var destroyed = false
+
     override val colorBuffers: List<ColorBuffer>
         get() = _colorBuffers.map { it }
 
     override val depthBuffer: DepthBuffer?
         get() = _depthBuffer
-
 
 
     private var attachements = 0
@@ -78,12 +78,13 @@ open class RenderTargetGL3(val framebuffer: Int,
     override val hasDepthBuffer: Boolean get() = depthBuffer != null
 
 
-
     override fun colorBuffer(index: Int): ColorBuffer {
+        require(!destroyed)
         return _colorBuffers[index]
     }
 
     override fun colorBuffer(name: String): ColorBuffer {
+        require(!destroyed)
         return _colorBuffers[colorBufferIndices[name]!!]
     }
 
@@ -92,6 +93,7 @@ open class RenderTargetGL3(val framebuffer: Int,
     }
 
     override fun bind() {
+        require(!destroyed)
         if (bound) {
             throw RuntimeException("already bound")
         } else {
@@ -142,7 +144,7 @@ open class RenderTargetGL3(val framebuffer: Int,
                 it.peek()
             }
             previous as RenderTargetGL3
-            logger.trace {"restoring to previous render target $previous" }
+            logger.trace { "restoring to previous render target $previous" }
             previous.bindTarget()
         } else {
             throw RuntimeException("target not bound")
@@ -150,11 +152,13 @@ open class RenderTargetGL3(val framebuffer: Int,
     }
 
     override fun attach(name: String, colorBuffer: ColorBuffer) {
+        require(!destroyed)
         colorBufferIndices[name] = _colorBuffers.size
         attach(colorBuffer)
     }
 
     override fun attach(colorBuffer: ColorBuffer) {
+        require(!destroyed)
         val context = glfwGetCurrentContext()
         bindTarget()
 
@@ -174,12 +178,14 @@ open class RenderTargetGL3(val framebuffer: Int,
             (active[context]?.peek() as RenderTargetGL3).bindTarget()
     }
 
-    override fun attach(name: String, arrayTexture: ArrayTexture, layer:Int) {
+    override fun attach(name: String, arrayTexture: ArrayTexture, layer: Int) {
+        require(!destroyed)
         arrayTextureIndices[name] = _arrayTextures.size
         attach(arrayTexture, layer)
     }
 
-    override fun attach(arrayTexture: ArrayTexture, layer:Int) {
+    override fun attach(arrayTexture: ArrayTexture, layer: Int) {
+        require(!destroyed)
         val context = glfwGetCurrentContext()
         bindTarget()
 
@@ -191,7 +197,7 @@ open class RenderTargetGL3(val framebuffer: Int,
         }
         arrayTexture as ArrayTextureGL3
         //glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + colorBuffers.size, colorBuffer.target, colorBuffer.texture, 0)
-        glFramebufferTextureLayer(GL30C.GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + attachements, arrayTexture.texture, 0, layer)
+        glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + attachements, arrayTexture.texture, 0, layer)
         debugGLErrors { null }
         attachements++
 
@@ -206,13 +212,15 @@ open class RenderTargetGL3(val framebuffer: Int,
     }
 
     override fun clearColor(index: Int, color: ColorRGBa) {
+        require(!destroyed)
         bound {
             val ca = floatArrayOf(color.r.toFloat(), color.g.toFloat(), color.b.toFloat(), color.a.toFloat())
             glClearBufferfv(GL_COLOR, index, ca)
         }
     }
 
-    override fun clearDepth(depth: Double, stencil:Int) {
+    override fun clearDepth(depth: Double, stencil: Int) {
+        require(!destroyed)
         bound {
             glClearBufferfi(GL_DEPTH_STENCIL, 0, depth.toFloat(), stencil)
             checkGLErrors()
@@ -220,6 +228,7 @@ open class RenderTargetGL3(val framebuffer: Int,
     }
 
     override fun attach(depthBuffer: DepthBuffer) {
+        require(!destroyed)
         if (!(depthBuffer.width == effectiveWidth && depthBuffer.height == effectiveHeight)) {
             throw IllegalArgumentException("buffer dimension mismatch")
         }
@@ -247,6 +256,7 @@ open class RenderTargetGL3(val framebuffer: Int,
     }
 
     override fun detachDepthBuffer() {
+        require(!destroyed)
         this._depthBuffer?.let {
             it as DepthBufferGL3
             bound {
@@ -272,6 +282,7 @@ open class RenderTargetGL3(val framebuffer: Int,
     }
 
     override fun detachColorBuffers() {
+        require(!destroyed)
         bound {
             _colorBuffers.forEachIndexed { index, it ->
                 glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + index, it.target, 0, 0)
@@ -281,6 +292,7 @@ open class RenderTargetGL3(val framebuffer: Int,
     }
 
     override fun destroy() {
+        destroyed = true
         glDeleteFramebuffers(framebuffer)
     }
 }
