@@ -45,6 +45,8 @@ open class Filter(private val shader: Shader? = null, private val watcher: Shade
     val parameters = mutableMapOf<String, Any>()
     var padding = 0
 
+    var depthBufferOut: DepthBuffer? = null
+
     companion object {
         val filterVertexCode: String get() = Driver.instance.internalShaderResource("filter.vert")
     }
@@ -62,6 +64,10 @@ open class Filter(private val shader: Shader? = null, private val watcher: Shade
         val renderTarget = renderTarget(target[0].width, target[0].height, target[0].contentScale) {}
 
         target.forEach {
+            renderTarget.attach(it)
+        }
+
+        depthBufferOut?.let {
             renderTarget.attach(it)
         }
 
@@ -145,6 +151,9 @@ open class Filter(private val shader: Shader? = null, private val watcher: Shade
         Driver.instance.drawVertexBuffer(shader, listOf(filterQuad!!), DrawPrimitive.TRIANGLES, 0, 6)
         shader.end()
         renderTarget.unbind()
+        if (depthBufferOut != null) {
+            renderTarget.detachDepthBuffer()
+        }
         renderTarget.detachColorBuffers()
         renderTarget.destroy()
     }
