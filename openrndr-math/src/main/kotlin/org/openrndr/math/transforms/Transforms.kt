@@ -88,7 +88,7 @@ fun perspectiveHorizontal(fovY: Double, aspectRatio: Double, zNear: Double, zFar
  * Creates frustum matrix with the given bounds
  *
  * [left] Left bound of the frustum
- * [righ] Right bound of the frustum
+ * [right] Right bound of the frustum
  * [bottom] Bottom bound of the frustum
  * [top] Top bound of the frustum
  * [zNear] Near bound of the frustum
