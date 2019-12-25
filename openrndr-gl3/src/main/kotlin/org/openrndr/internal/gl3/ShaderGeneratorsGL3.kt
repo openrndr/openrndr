@@ -1,9 +1,12 @@
+@file:Suppress("RemoveCurlyBracesFromTemplate")
+
 package org.openrndr.internal.gl3
 
 import org.openrndr.draw.ShadeStructure
 import org.openrndr.internal.ShaderGenerators
 
 private fun primitiveTypes(type: String) = """
+// -- primitiveTypes
 #define d_vertex_buffer 0
 #define d_image 1
 #define d_circle 2
@@ -28,6 +31,7 @@ fun fragmentConstants(
         contourPosition: String = "0",
         boundsPosition: String = "vec3(0.0)",
         boundsSize: String = "vec3(0.0)") = """
+|    // -- fragmentConstants
 |    int c_instance = $instance;
 |    int c_element = $element;
 |    vec2 c_screenPosition = $screenPosition;
@@ -37,6 +41,7 @@ fun fragmentConstants(
 """.trimMargin()
 
 private const val drawerUniforms = """
+// -- drawerUniforms    
 layout(shared) uniform ContextBlock {
     uniform mat4 u_modelNormalMatrix;
     uniform mat4 u_modelMatrix;
@@ -56,6 +61,7 @@ layout(shared) uniform StyleBlock {
 """
 
 private const val transformVaryingOut = """
+// -- transformVaryingOut    
 out vec3 v_worldNormal;
 out vec3 v_viewNormal;
 out vec3 v_worldPosition;
@@ -66,6 +72,7 @@ flat out mat4 v_modelNormalMatrix;
 """
 
 private const val transformVaryingIn = """
+// -- transformVaryingIn
 in vec3 v_worldNormal;
 in vec3 v_viewNormal;
 in vec3 v_worldPosition;
@@ -75,6 +82,7 @@ flat in mat4 v_modelNormalMatrix;
 """
 
 private const val preTransform = """
+    // -- preTransform
     mat4 x_modelMatrix = u_modelMatrix;
     mat4 x_viewMatrix = u_viewMatrix;
     mat4 x_modelNormalMatrix = u_modelNormalMatrix;
@@ -83,6 +91,7 @@ private const val preTransform = """
 """
 
 private const val postTransform = """
+    // -- postTransform
     v_worldNormal = (x_modelNormalMatrix * vec4(x_normal,0.0)).xyz;
     v_viewNormal = (x_viewNormalMatrix * vec4(v_worldNormal,0.0)).xyz;
     v_worldPosition = (x_modelMatrix * vec4(x_position, 1.0)).xyz;
@@ -787,17 +796,16 @@ void main() {
         """.trimMargin()
 
     override fun filterVertexShader(shadeStructure: ShadeStructure): String = """
-        |#version 330
-
+        |// -- ShaderGeneratorsGL3.filterVertexShader
+        |#version 330 core
         |in vec2 a_texCoord0;
         |in vec2 a_position;
+        |// -- vertexPreamble
         |${shadeStructure.vertexPreamble ?: ""}
         |uniform vec2 targetSize;
         |uniform vec2 padding;
         |uniform mat4 projectionMatrix;
-        
         |out vec2 v_texCoord0;
-
         |void main() {
         |   v_texCoord0 = a_texCoord0;
         |   vec2 transformed = a_position * (targetSize - 2*padding) + padding;
@@ -807,16 +815,24 @@ void main() {
     """.trimMargin()
 
     override fun filterFragmentShader(shadeStructure: ShadeStructure): String = """
+        |// -- ShaderGeneratorsGL3.filterFragmentShader
         |#version 330 core
         |in vec2 v_texCoord0;
+        |// -- drawerUniforms
+        |${drawerUniforms}
+        |// -- shadeStructure.outputs
+        |${shadeStructure.outputs ?: ""}
         |${if (!shadeStructure.suppressDefaultOutput) "out vec4 o_color;" else ""}
+        |// -- shadeStructure.uniforms
         |${shadeStructure.uniforms ?: ""}
+        |// -- shadeStructure.fragmentPreamble
         |${shadeStructure.fragmentPreamble ?: ""}
         |void main() {
         |   ${fragmentConstants(instance = "0", screenPosition = "v_texCoord0")}
         |   vec4 x_fill = p_fill;
         |   vec4 x_stroke = vec4(0.0);
         |   {
+        |       // -- shadeStructure.fragmentTransform
         |       ${shadeStructure.fragmentTransform ?: ""}
         |   }
         |${if (!shadeStructure.suppressDefaultOutput) """
