@@ -16,7 +16,6 @@ private var useContextBlock = true
 
 private val logger = KotlinLogging.logger {}
 
-
 @Suppress("MemberVisibilityCanPrivate")
 data class DrawContext(val model: Matrix44, val view: Matrix44, val projection: Matrix44, val width: Int, val height: Int, val contentScale: Double) {
     fun applyToShader(shader: Shader) {

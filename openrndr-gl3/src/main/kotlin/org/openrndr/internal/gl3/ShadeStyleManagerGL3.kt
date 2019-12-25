@@ -7,8 +7,11 @@ import org.openrndr.math.*
 
 private val logger = KotlinLogging.logger {}
 
-class ShadeStyleManagerGL3(val vertexShaderGenerator: (ShadeStructure) -> String, val fragmentShaderGenerator: (ShadeStructure) -> String) : ShadeStyleManager() {
-    var defaultShader: Shader? = null
+class ShadeStyleManagerGL3(
+        val vertexShaderGenerator: (ShadeStructure) -> String,
+        val fragmentShaderGenerator: (ShadeStructure) -> String) : ShadeStyleManager() {
+
+    private var defaultShader: Shader? = null
     private val shaders = mutableMapOf<ShadeStructure, Shader>()
 
     override fun shader(style: ShadeStyle?, vertexFormats: List<VertexFormat>, inputInstanceFormats: List<VertexFormat>): Shader {
@@ -23,9 +26,7 @@ class ShadeStyleManagerGL3(val vertexShaderGenerator: (ShadeStructure) -> String
                 (defaultShader as ShaderGL3).userShader = false
                 Session.active.untrack(defaultShader!!)
             }
-
             return defaultShader!!
-
         } else {
             val structure = structureFromShadeStyle(style, vertexFormats, instanceFormats)
             val shader = shaders.getOrPut(structure) {
