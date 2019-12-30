@@ -123,9 +123,9 @@ interface ColorBuffer {
     /**
      * copies contents to a target color buffer
      */
-    fun copyTo(target: ColorBuffer)
+    fun copyTo(target: ColorBuffer, fromLevel:Int = 0, toLevel:Int = 0)
 
-    fun copyTo(target: ArrayTexture, layer: Int)
+    fun copyTo(target: ArrayTexture, layer: Int, fromLevel:Int = 0, toLevel: Int = 0)
 
     fun fill(color: ColorRGBa)
 
@@ -202,9 +202,10 @@ interface ColorBuffer {
  * @param format the color format
  * @param type the color type
  * @param format the color format
+ * @param levels the number of mip-map levels
  */
-fun colorBuffer(width: Int, height: Int, contentScale: Double = 1.0, format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.UINT8, multisample: BufferMultisample = BufferMultisample.Disabled): ColorBuffer {
-    val colorBuffer = Driver.driver.createColorBuffer(width, height, contentScale, format, type, multisample)
+fun colorBuffer(width: Int, height: Int, contentScale: Double = 1.0, format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.UINT8, multisample: BufferMultisample = BufferMultisample.Disabled, levels:Int = 1): ColorBuffer {
+    val colorBuffer = Driver.driver.createColorBuffer(width, height, contentScale, format, type, multisample, levels)
     Session.active.track(colorBuffer)
     return colorBuffer
 }

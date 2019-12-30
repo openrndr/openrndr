@@ -151,13 +151,13 @@ open class RenderTargetGL3(val framebuffer: Int,
         }
     }
 
-    override fun attach(name: String, colorBuffer: ColorBuffer) {
+    override fun attach(name: String, colorBuffer: ColorBuffer, level: Int) {
         require(!destroyed)
         colorBufferIndices[name] = _colorBuffers.size
         attach(colorBuffer)
     }
 
-    override fun attach(colorBuffer: ColorBuffer) {
+    override fun attach(colorBuffer: ColorBuffer, level: Int) {
         require(!destroyed)
         val context = glfwGetCurrentContext()
         bindTarget()
@@ -178,13 +178,13 @@ open class RenderTargetGL3(val framebuffer: Int,
             (active[context]?.peek() as RenderTargetGL3).bindTarget()
     }
 
-    override fun attach(name: String, arrayTexture: ArrayTexture, layer: Int) {
+    override fun attach(name: String, arrayTexture: ArrayTexture, layer: Int, level: Int) {
         require(!destroyed)
         arrayTextureIndices[name] = _arrayTextures.size
         attach(arrayTexture, layer)
     }
 
-    override fun attach(arrayTexture: ArrayTexture, layer: Int) {
+    override fun attach(arrayTexture: ArrayTexture, layer: Int, level: Int) {
         require(!destroyed)
         val context = glfwGetCurrentContext()
         bindTarget()

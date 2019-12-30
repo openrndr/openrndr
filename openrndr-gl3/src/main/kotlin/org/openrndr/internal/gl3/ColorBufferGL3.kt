@@ -9,6 +9,8 @@ import org.lwjgl.opengl.ARBTextureCompressionBPTC.*
 import org.lwjgl.opengl.EXTTextureCompressionS3TC.*
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic.GL_TEXTURE_MAX_ANISOTROPY_EXT
 import org.lwjgl.opengl.EXTTextureSRGB.*
+import org.lwjgl.opengl.GL11C
+import org.lwjgl.opengl.GL31C
 import org.lwjgl.opengl.GL33C.*
 import org.lwjgl.stb.STBIWriteCallback
 import org.lwjgl.stb.STBImage
@@ -618,7 +620,7 @@ class ColorBufferGL3(val target: Int,
     companion object {
 
         fun fromColorBufferData(data: ColorBufferDataGL3): ColorBuffer {
-            val cb = create(data.width, data.height, 1.0, data.format, data.type, Disabled)
+            val cb = create(data.width, data.height, 1.0, data.format, data.type, Disabled, 1)
             return cb.apply {
                 val d = data.data
                 if (d != null) {
@@ -663,7 +665,8 @@ class ColorBufferGL3(val target: Int,
                    contentScale: Double = 1.0,
                    format: ColorFormat = ColorFormat.RGBa,
                    type: ColorType = ColorType.FLOAT32,
-                   multisample: BufferMultisample): ColorBufferGL3 {
+                   multisample: BufferMultisample,
+                   levels: Int): ColorBufferGL3 {
             val internalFormat = internalFormat(format, type)
             if (width <= 0 || height <= 0) {
                 throw Exception("cannot create ColorBuffer with dimensions: ${width}x$height")
@@ -687,12 +690,14 @@ class ColorBufferGL3(val target: Int,
 
             val nullBB: ByteBuffer? = null
 
-            when (multisample) {
-                Disabled ->
-                    glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, effectiveWidth, effectiveHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullBB)
-                is SampleCount -> glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, multisample.sampleCount.coerceAtMost(glGetInteger(GL_MAX_COLOR_TEXTURE_SAMPLES)), internalFormat, effectiveWidth, effectiveHeight, true)
+            for (level in 0 until levels) {
+                val div = 1 shl level
+                when (multisample) {
+                    Disabled ->
+                        glTexImage2D(GL_TEXTURE_2D, level, internalFormat, effectiveWidth / div, effectiveHeight / div, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullBB)
+                    is SampleCount -> glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, multisample.sampleCount.coerceAtMost(glGetInteger(GL_MAX_COLOR_TEXTURE_SAMPLES)), internalFormat, effectiveWidth / div, effectiveHeight / div, true)
+                }
             }
-
             checkGLErrors {
                 when (it) {
                     GL_INVALID_OPERATION -> """format is GL_DEPTH_COMPONENT ${format.glFormat() == GL_DEPTH_COMPONENT} and internalFormat is not GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT16, GL_DEPTH_COMPONENT24, or GL_DEPTH_COMPONENT32F"""
@@ -775,18 +780,26 @@ class ColorBufferGL3(val target: Int,
         readTarget.destroy()
     }
 
-    override fun copyTo(target: ColorBuffer) {
+    override fun copyTo(target: ColorBuffer, fromLevel: Int, toLevel: Int) {
         checkDestroyed()
         val readTarget = renderTarget(width, height, contentScale) {
-            colorBuffer(this@ColorBufferGL3)
+            colorBuffer(this@ColorBufferGL3, fromLevel)
         } as RenderTargetGL3
 
         target as ColorBufferGL3
         readTarget.bind()
         glReadBuffer(GL_COLOR_ATTACHMENT0)
+        debugGLErrors()
+        val div = 1 shl toLevel
         target.bound {
-            glCopyTexSubImage2D(target.target, 0, 0, 0, 0, 0, target.width, target.height)
-            debugGLErrors()
+            glCopyTexSubImage2D(target.target, toLevel, 0, 0, 0, 0, target.width/div, target.height/div)
+            debugGLErrors() {
+                when(it) {
+                    GL11C.GL_INVALID_VALUE -> "level ($toLevel) less than 0, effective target is GL_TEXTURE_RECTANGLE (${target.target == GL31C.GL_TEXTURE_RECTANGLE} and level is not 0"
+
+                        else -> null
+                }
+            }
         }
         readTarget.unbind()
 
@@ -794,7 +807,7 @@ class ColorBufferGL3(val target: Int,
         readTarget.destroy()
     }
 
-    override fun copyTo(target: ArrayTexture, layer: Int) {
+    override fun copyTo(target: ArrayTexture, layer: Int, fromLevel: Int, toLevel: Int) {
         checkDestroyed()
         val readTarget = renderTarget(width, height, contentScale) {
             colorBuffer(this@ColorBufferGL3)

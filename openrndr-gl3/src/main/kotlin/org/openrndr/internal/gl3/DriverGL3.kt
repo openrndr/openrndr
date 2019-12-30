@@ -29,8 +29,6 @@ enum class DriverVersionGL {
 }
 
 class DriverGL3(val version: DriverVersionGL) : Driver {
-
-
     override val contextID: Long
         get() {
             return GLFW.glfwGetCurrentContext()
@@ -193,10 +191,10 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         }
     }
 
-    override fun createColorBuffer(width: Int, height: Int, contentScale: Double, format: ColorFormat, type: ColorType, multisample: BufferMultisample): ColorBuffer {
+    override fun createColorBuffer(width: Int, height: Int, contentScale: Double, format: ColorFormat, type: ColorType, multisample: BufferMultisample, levels:Int): ColorBuffer {
         logger.trace { "creating color buffer $width x $height @ $format:$type" }
         synchronized(this) {
-            return ColorBufferGL3.create(width, height, contentScale, format, type, multisample)
+            return ColorBufferGL3.create(width, height, contentScale, format, type, multisample, levels)
         }
     }
 

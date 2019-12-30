@@ -1,10 +1,9 @@
 package org.openrndr.draw
 
 import org.openrndr.color.ColorRGBa
+import org.openrndr.internal.Driver
 import org.openrndr.draw.colorBuffer as _colorBuffer
 import org.openrndr.draw.depthBuffer as _depthBuffer
-import org.openrndr.internal.Driver
-import java.lang.IllegalStateException
 
 interface RenderTarget {
     val width: Int
@@ -26,12 +25,12 @@ interface RenderTarget {
             get() = Driver.instance.activeRenderTarget
     }
 
-    fun attach(name: String, colorBuffer: ColorBuffer)
+    fun attach(name: String, colorBuffer: ColorBuffer, level: Int = 0)
 
-    fun attach(colorBuffer: ColorBuffer)
+    fun attach(colorBuffer: ColorBuffer, level: Int = 0)
     fun attach(depthBuffer: DepthBuffer)
-    fun attach(name: String, arrayTexture: ArrayTexture, layer: Int)
-    fun attach(arrayTexture: ArrayTexture, layer: Int)
+    fun attach(name: String, arrayTexture: ArrayTexture, layer: Int, level: Int = 0)
+    fun attach(arrayTexture: ArrayTexture, layer: Int, level: Int = 0)
 
     fun detachColorBuffers()
     fun detachDepthBuffer()
@@ -71,13 +70,13 @@ class RenderTargetBuilder(private val renderTarget: RenderTarget) {
         throw IllegalStateException("use colorBuffer without width and height arguments")
     }
 
-    fun colorBuffer(colorBuffer: ColorBuffer) {
-        renderTarget.attach(colorBuffer)
+    fun colorBuffer(colorBuffer: ColorBuffer, level: Int = 0) {
+        renderTarget.attach(colorBuffer, level)
     }
 
-    fun colorBuffer(name: String, colorBuffer: ColorBuffer) {
+    fun colorBuffer(name: String, colorBuffer: ColorBuffer, level: Int = 0) {
         if (colorBuffer.multisample == renderTarget.multisample) {
-            renderTarget.attach(name, colorBuffer)
+            renderTarget.attach(name, colorBuffer, level)
         } else {
             throw IllegalArgumentException("${colorBuffer.multisample} != ${renderTarget.multisample}")
         }
@@ -93,12 +92,12 @@ class RenderTargetBuilder(private val renderTarget: RenderTarget) {
         renderTarget.attach(cb)
     }
 
-    fun colorBuffer(name: String, arrayTexture: ArrayTexture, layer: Int) {
-        renderTarget.attach(name, arrayTexture, layer)
+    fun colorBuffer(name: String, arrayTexture: ArrayTexture, layer: Int, level: Int = 0) {
+        renderTarget.attach(name, arrayTexture, layer, level)
     }
 
-    fun arrayTexture(arrayTexture: ArrayTexture, layer: Int) {
-        renderTarget.attach(arrayTexture, layer)
+    fun arrayTexture(arrayTexture: ArrayTexture, layer: Int, level: Int = 0) {
+        renderTarget.attach(arrayTexture, layer, level)
     }
 
 
