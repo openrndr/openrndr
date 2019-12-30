@@ -895,7 +895,7 @@ class ColorBufferGL3(val target: Int,
 
     var realShadow: ColorBufferShadow? = null
 
-    override fun write(buffer: ByteBuffer, sourceFormat: ColorFormat, sourceType: ColorType) {
+    override fun write(buffer: ByteBuffer, sourceFormat: ColorFormat, sourceType: ColorType, level:Int) {
         checkDestroyed()
         if (!buffer.isDirect) {
             throw IllegalArgumentException("buffer is not a direct buffer.")
@@ -912,8 +912,9 @@ class ColorBufferGL3(val target: Int,
                 val currentPack = intArrayOf(0)
                 glGetIntegerv(GL_UNPACK_ALIGNMENT, currentPack)
                 glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
+                val div = 1 shl level
                 if (sourceType.compressed) {
-                    glCompressedTexSubImage2D(target, 0, 0, 0, width, height, compressedType(sourceFormat, sourceType), buffer)
+                    glCompressedTexSubImage2D(target, level, 0, 0, width/div, height/div, compressedType(sourceFormat, sourceType), buffer)
                     debugGLErrors {
                         when (it) {
                             GL_INVALID_VALUE -> "data size mismatch? ${buffer.remaining()}"
@@ -921,7 +922,7 @@ class ColorBufferGL3(val target: Int,
                         }
                     }
                 } else {
-                    glTexSubImage2D(target, 0, 0, 0, width, height, sourceFormat.glFormat(), sourceType.glType(), buffer)
+                    glTexSubImage2D(target, level, 0, 0, width/div, height/div, sourceFormat.glFormat(), sourceType.glType(), buffer)
                     debugGLErrors()
                 }
                 glPixelStorei(GL_UNPACK_ALIGNMENT, currentPack[0])
@@ -933,7 +934,7 @@ class ColorBufferGL3(val target: Int,
         }
     }
 
-    override fun read(buffer: ByteBuffer) {
+    override fun read(buffer: ByteBuffer, level: Int) {
         checkDestroyed()
         if (!buffer.isDirect) {
             throw IllegalArgumentException("buffer is not a direct buffer.")
@@ -946,7 +947,6 @@ class ColorBufferGL3(val target: Int,
                 debugGLErrors()
                 glPixelStorei(GL_PACK_ALIGNMENT, 1)
                 debugGLErrors()
-
                 val packAlignment = glGetInteger(GL_PACK_ALIGNMENT)
                 buffer.order(ByteOrder.nativeOrder())
                 (buffer as Buffer).rewind()
