@@ -689,7 +689,7 @@ class ColorBufferGL3(val target: Int,
             val nullBB: ByteBuffer? = null
 
             if (levels > 1) {
-                GL11C.glTexParameteri(GL_TEXTURE_2D, GL12C.GL_TEXTURE_MAX_LEVEL, levels-1)
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, levels - 1)
             }
 
             for (level in 0 until levels) {
@@ -795,12 +795,11 @@ class ColorBufferGL3(val target: Int,
         debugGLErrors()
         val div = 1 shl toLevel
         target.bound {
-            glCopyTexSubImage2D(target.target, toLevel, 0, 0, 0, 0, target.width/div, target.height/div)
+            glCopyTexSubImage2D(target.target, toLevel, 0, 0, 0, 0, target.width / div, target.height / div)
             debugGLErrors() {
-                when(it) {
-                    GL11C.GL_INVALID_VALUE -> "level ($toLevel) less than 0, effective target is GL_TEXTURE_RECTANGLE (${target.target == GL31C.GL_TEXTURE_RECTANGLE} and level is not 0"
-
-                        else -> null
+                when (it) {
+                    GL_INVALID_VALUE -> "level ($toLevel) less than 0, effective target is GL_TEXTURE_RECTANGLE (${target.target == GL_TEXTURE_RECTANGLE} and level is not 0"
+                    else -> null
                 }
             }
         }
@@ -898,7 +897,7 @@ class ColorBufferGL3(val target: Int,
 
     var realShadow: ColorBufferShadow? = null
 
-    override fun write(buffer: ByteBuffer, sourceFormat: ColorFormat, sourceType: ColorType, level:Int) {
+    override fun write(buffer: ByteBuffer, sourceFormat: ColorFormat, sourceType: ColorType, level: Int) {
         checkDestroyed()
         if (!buffer.isDirect) {
             throw IllegalArgumentException("buffer is not a direct buffer.")
@@ -917,7 +916,7 @@ class ColorBufferGL3(val target: Int,
                 glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
                 val div = 1 shl level
                 if (sourceType.compressed) {
-                    glCompressedTexSubImage2D(target, level, 0, 0, width/div, height/div, compressedType(sourceFormat, sourceType), buffer)
+                    glCompressedTexSubImage2D(target, level, 0, 0, width / div, height / div, compressedType(sourceFormat, sourceType), buffer)
                     debugGLErrors {
                         when (it) {
                             GL_INVALID_VALUE -> "data size mismatch? ${buffer.remaining()}"
@@ -925,7 +924,7 @@ class ColorBufferGL3(val target: Int,
                         }
                     }
                 } else {
-                    glTexSubImage2D(target, level, 0, 0, width/div, height/div, sourceFormat.glFormat(), sourceType.glType(), buffer)
+                    glTexSubImage2D(target, level, 0, 0, width / div, height / div, sourceFormat.glFormat(), sourceType.glType(), buffer)
                     debugGLErrors()
                 }
                 glPixelStorei(GL_UNPACK_ALIGNMENT, currentPack[0])

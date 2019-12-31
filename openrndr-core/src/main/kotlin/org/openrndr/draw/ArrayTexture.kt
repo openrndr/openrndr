@@ -22,16 +22,16 @@ interface ArrayTexture {
      * @param sourceFormat the format of the data in buffer
      * @param sourceType the type of the data in buffer
      */
-    fun write(layer: Int, buffer: ByteBuffer, sourceFormat: ColorFormat = format, sourceType: ColorType = type)
+    fun write(layer: Int, buffer: ByteBuffer, sourceFormat: ColorFormat = format, sourceType: ColorType = type, level: Int = 0)
 
-    fun read(layer: Int, buffer: ByteBuffer)
+    fun read(layer: Int, buffer: ByteBuffer, level: Int = 0)
 
     /**
      * Copy contents in layer to target ColorBuffer
      * @param layer the layer to copy contents from
      * @param target the target to copy contents to
      */
-    fun copyTo(layer: Int, target: ColorBuffer)
+    fun copyTo(layer: Int, target: ColorBuffer, fromLevel: Int = 0, toLevel: Int = 0)
 
     /**
      * Copy contents in layer to target ColorBuffer
@@ -39,7 +39,7 @@ interface ArrayTexture {
      * @param target the layer array texture to copy contents to
      * @param targetLayer the layer of the target array texture to copy contents to
      */
-    fun copyTo(layer: Int, target: ArrayTexture, targetLayer: Int)
+    fun copyTo(layer: Int, target: ArrayTexture, targetLayer: Int, fromLevel: Int = 0, toLevel: Int = 0)
 
 
     /** generates mipmaps from the top-level mipmap */
@@ -71,6 +71,6 @@ interface ArrayTexture {
  * @param format the color format (ColorFormat) to be used in each layer
  * @param type the color type to be used in each layer
  */
-fun arrayTexture(width: Int, height: Int, layers: Int, format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.UINT8): ArrayTexture {
-    return Driver.instance.createArrayTexture(width, height, layers, format, type)
+fun arrayTexture(width: Int, height: Int, layers: Int, format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.UINT8, levels: Int = 1): ArrayTexture {
+    return Driver.instance.createArrayTexture(width, height, layers, format, type, levels)
 }

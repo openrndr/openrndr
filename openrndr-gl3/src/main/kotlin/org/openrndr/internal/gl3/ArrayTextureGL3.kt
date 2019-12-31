@@ -13,7 +13,7 @@ class ArrayTextureGL3(val target: Int,
                       override val type: ColorType) : ArrayTexture {
 
     companion object {
-        fun create(width: Int, height: Int, layers: Int, format: ColorFormat, type: ColorType): ArrayTextureGL3 {
+        fun create(width: Int, height: Int, layers: Int, format: ColorFormat, type: ColorType, levels: Int): ArrayTextureGL3 {
             val maximumLayers = glGetInteger(GL_MAX_ARRAY_TEXTURE_LAYERS)
             if (layers > maximumLayers) {
                 throw IllegalArgumentException("layers ($layers) exceeds maximum of $maximumLayers")
@@ -21,8 +21,19 @@ class ArrayTextureGL3(val target: Int,
             val texture = glGenTextures()
             glBindTexture(GL_TEXTURE_2D_ARRAY, texture)
             checkGLErrors()
-            glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, internalFormat(format, type), width, height, layers, 0, GL_RGB, GL_UNSIGNED_BYTE, null as ByteBuffer?)
-            checkGLErrors()
+            for (level in 0 until levels) {
+                val div = 1 shr level
+                glTexImage3D(GL_TEXTURE_2D_ARRAY,
+                        level, internalFormat(format, type),
+                        width / div, height / div, layers,
+                        0, GL_RGB, GL_UNSIGNED_BYTE, null as ByteBuffer?)
+                checkGLErrors()
+            }
+            if (levels > 1) {
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, levels-1)
+                checkGLErrors()
+            }
+
             glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, MinifyingFilter.LINEAR.toGLFilter())
             glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, MagnifyingFilter.LINEAR.toGLFilter())
             checkGLErrors()
@@ -30,7 +41,7 @@ class ArrayTextureGL3(val target: Int,
         }
     }
 
-    internal fun format() : Int {
+    internal fun format(): Int {
         return internalFormat(format, type)
     }
 
@@ -44,30 +55,32 @@ class ArrayTextureGL3(val target: Int,
         glBindTexture(target, texture)
     }
 
-    override fun write(layer: Int, buffer: ByteBuffer, sourceFormat: ColorFormat, sourceType: ColorType) {
+    override fun write(layer: Int, buffer: ByteBuffer, sourceFormat: ColorFormat, sourceType: ColorType, level: Int) {
         bound {
+            val div = 1 shl level
             if (sourceType.compressed) {
-                glCompressedTexSubImage3D(target, 0, 0, 0, layer, width, height, 1, compressedType(sourceFormat, sourceType), buffer)
+                glCompressedTexSubImage3D(target, level, 0, 0, layer, width / div, height / div, 1, compressedType(sourceFormat, sourceType), buffer)
                 debugGLErrors()
             } else {
-                glTexSubImage3D(target, 0, 0, 0, layer, width, height, 1, sourceFormat.glFormat(), sourceType.glType(), buffer)
+                glTexSubImage3D(target, level, 0, 0, layer, width / div, height / div, 1, sourceFormat.glFormat(), sourceType.glType(), buffer)
                 debugGLErrors()
             }
             debugGLErrors()
         }
     }
 
-    override fun copyTo(layer: Int, target: ColorBuffer) {
+    override fun copyTo(layer: Int, target: ColorBuffer, fromLevel: Int, toLevel: Int) {
         if (target.multisample == BufferMultisample.Disabled) {
+            val div = 1 shl toLevel
             val readTarget = renderTarget(width, height) {
-                arrayTexture(this@ArrayTextureGL3, layer)
+                arrayTexture(this@ArrayTextureGL3, layer, fromLevel)
             } as RenderTargetGL3
 
             target as ColorBufferGL3
             readTarget.bind()
             glReadBuffer(GL_COLOR_ATTACHMENT0)
             target.bound {
-                glCopyTexSubImage2D(target.target, 0, 0, 0, 0, 0, target.width, target.height)
+                glCopyTexSubImage2D(target.target, toLevel, 0, 0, 0, 0, target.width / div, target.height / div)
                 debugGLErrors()
             }
             readTarget.unbind()
@@ -79,16 +92,17 @@ class ArrayTextureGL3(val target: Int,
         }
     }
 
-    override fun copyTo(layer: Int, target: ArrayTexture, targetLayer: Int) {
+    override fun copyTo(layer: Int, target: ArrayTexture, targetLayer: Int, fromLevel: Int, toLevel: Int) {
+        val div = 1 shl toLevel
         val readTarget = renderTarget(width, height) {
-            arrayTexture(this@ArrayTextureGL3, layer)
+            arrayTexture(this@ArrayTextureGL3, layer, fromLevel)
         } as RenderTargetGL3
 
         target as ArrayTextureGL3
         readTarget.bind()
         glReadBuffer(GL_COLOR_ATTACHMENT0)
         target.bound {
-            glCopyTexSubImage3D(target.target, 0, 0, 0, targetLayer, 0, 0, target.width, target.height)
+            glCopyTexSubImage3D(target.target, 0, 0, 0, targetLayer, 0, 0, target.width / div, target.height / div)
             debugGLErrors()
         }
         readTarget.unbind()
@@ -98,7 +112,7 @@ class ArrayTextureGL3(val target: Int,
     }
 
 
-    override fun read(layer: Int, buffer: ByteBuffer) {
+    override fun read(layer: Int, buffer: ByteBuffer, level: Int) {
         TODO()
     }
 

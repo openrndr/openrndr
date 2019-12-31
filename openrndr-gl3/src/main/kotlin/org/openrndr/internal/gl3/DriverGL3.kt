@@ -59,10 +59,10 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         var hash = BigInteger.valueOf(contextID)
         hash += BigInteger.valueOf(shader.program.toLong())
 
-        for (i in 0 until vertexBuffers.size) {
+        for (i in vertexBuffers.indices) {
             hash += BigInteger.valueOf(((vertexBuffers[i] as VertexBufferGL3).bufferHash shl (12 + (i * 12))).toLong())
         }
-        for (i in 0 until instanceAttributes.size) {
+        for (i in instanceAttributes.indices) {
             hash += BigInteger.valueOf(((instanceAttributes[i] as VertexBufferGL3).bufferHash shl (12 + ((i + vertexBuffers.size) * 12))).toLong())
         }
         return hash
@@ -157,9 +157,9 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
     }
 
 
-    override fun createArrayTexture(width: Int, height: Int, layers: Int, format: ColorFormat, type: ColorType): ArrayTexture {
+    override fun createArrayTexture(width: Int, height: Int, layers: Int, format: ColorFormat, type: ColorType, levels:Int): ArrayTexture {
         logger.trace { "creating array texture" }
-        return ArrayTextureGL3.create(width, height, layers, format, type)
+        return ArrayTextureGL3.create(width, height, layers, format, type, levels)
     }
 
     override fun createBufferTexture(elementCount: Int,
@@ -175,11 +175,10 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
     }
 
     override fun createCubemapFromUrls(urls: List<String>): Cubemap {
-
         logger.trace { "creating cubemap from urls $urls" }
-        return when {
-            urls.size == 1 -> CubemapGL3.fromUrl(urls[0])
-            urls.size == 6 -> CubemapGL3.fromUrls(urls)
+        return when (urls.size) {
+            1 -> CubemapGL3.fromUrl(urls[0])
+            6 -> CubemapGL3.fromUrls(urls)
             else -> throw RuntimeException("expected 1 or 6 urls")
         }
     }

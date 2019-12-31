@@ -63,7 +63,7 @@ interface Driver {
     fun createRenderTarget(width: Int, height: Int, contentScale: Double = 1.0, multisample: BufferMultisample = BufferMultisample.Disabled): RenderTarget
 
 
-    fun createArrayTexture(width: Int, height: Int, layers: Int, format: ColorFormat, type: ColorType): ArrayTexture
+    fun createArrayTexture(width: Int, height: Int, layers: Int, format: ColorFormat, type: ColorType, levels:Int = 1): ArrayTexture
     fun createAtomicCounterBuffer(counterCount: Int): AtomicCounterBuffer
 
     fun createColorBuffer(width: Int, height: Int, contentScale: Double, format: ColorFormat, type: ColorType, multisample: BufferMultisample = BufferMultisample.Disabled, levels: Int = 1): ColorBuffer
