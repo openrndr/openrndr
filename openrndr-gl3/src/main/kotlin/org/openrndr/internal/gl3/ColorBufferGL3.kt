@@ -9,8 +9,6 @@ import org.lwjgl.opengl.ARBTextureCompressionBPTC.*
 import org.lwjgl.opengl.EXTTextureCompressionS3TC.*
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic.GL_TEXTURE_MAX_ANISOTROPY_EXT
 import org.lwjgl.opengl.EXTTextureSRGB.*
-import org.lwjgl.opengl.GL11C
-import org.lwjgl.opengl.GL31C
 import org.lwjgl.opengl.GL33C.*
 import org.lwjgl.stb.STBIWriteCallback
 import org.lwjgl.stb.STBImage
@@ -690,6 +688,10 @@ class ColorBufferGL3(val target: Int,
 
             val nullBB: ByteBuffer? = null
 
+            if (levels > 1) {
+                GL11C.glTexParameteri(GL_TEXTURE_2D, GL12C.GL_TEXTURE_MAX_LEVEL, levels-1)
+            }
+
             for (level in 0 until levels) {
                 val div = 1 shl level
                 when (multisample) {
@@ -743,6 +745,7 @@ class ColorBufferGL3(val target: Int,
         checkDestroyed()
         if (multisample == Disabled) {
             bound {
+
                 glGenerateMipmap(target)
             }
         } else {

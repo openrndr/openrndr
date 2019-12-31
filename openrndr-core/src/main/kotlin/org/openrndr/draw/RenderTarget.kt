@@ -43,6 +43,8 @@ interface RenderTarget {
     fun clearColor(index: Int, color: ColorRGBa)
     fun clearDepth(depth: Double = 1.0, stencil: Int = 0)
 
+    fun blendMode(index: Int, blendMode: BlendMode)
+
     fun bind()
     fun unbind()
 

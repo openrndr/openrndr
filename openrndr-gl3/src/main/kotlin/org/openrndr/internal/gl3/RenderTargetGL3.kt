@@ -3,6 +3,8 @@ package org.openrndr.internal.gl3
 import mu.KotlinLogging
 import org.lwjgl.glfw.GLFW.glfwGetCurrentContext
 import org.lwjgl.opengl.GL33C.*
+import org.lwjgl.opengl.GL40C.glBlendEquationi
+import org.lwjgl.opengl.GL40C.glBlendFunci
 import org.openrndr.Program
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
@@ -203,6 +205,21 @@ open class RenderTargetGL3(val framebuffer: Int,
 
         if (active[context]?.peek() != null)
             (active[context]?.peek() as RenderTargetGL3).bindTarget()
+    }
+
+    override fun blendMode(index: Int, blendMode: BlendMode) {
+        when(blendMode) {
+            BlendMode.OVER -> {
+                glEnable(GL_BLEND)
+                glBlendEquationi(index, GL_FUNC_ADD)
+                glBlendFunci(index, GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
+            }
+            BlendMode.REPLACE -> {
+                glEnable(GL_BLEND)
+                glBlendEquationi(index, GL_FUNC_ADD)
+                glBlendFunci(index, GL_ONE, GL_ZERO)
+            }
+        }
     }
 
     private fun bound(function: () -> Unit) {
