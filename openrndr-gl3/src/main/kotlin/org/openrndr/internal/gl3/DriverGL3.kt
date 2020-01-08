@@ -653,6 +653,7 @@ private fun DrawPrimitive.glType(): Int {
         DrawPrimitive.TRIANGLE_FAN -> GL_TRIANGLE_FAN
         DrawPrimitive.POINTS -> GL_POINTS
         DrawPrimitive.LINES -> GL_LINES
+        DrawPrimitive.LINE_STRIP -> GL_LINE_STRIP
         DrawPrimitive.TRIANGLE_STRIP -> GL_TRIANGLE_STRIP
     }
 }
