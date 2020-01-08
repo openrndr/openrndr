@@ -30,12 +30,14 @@ enum class VertexElementType(val componentCount: Int, val sizeInBytes: Int) {
     MATRIX44_FLOAT32(16, 16 * 4),
 }
 
-enum class DrawPrimitive {
+enum class
+DrawPrimitive {
     TRIANGLES,
     TRIANGLE_STRIP,
     TRIANGLE_FAN,
     POINTS,
-    LINES
+    LINES,
+    LINE_STRIP
 }
 
 enum class StencilTest {
