@@ -12,23 +12,6 @@ buildscript {
     }
 }
 
-plugins {
-    // plugin dependencies, load without applying them
-
-//    id 'com.jfrog.artifactory' version '4.11.0' apply false
-//
-//    id 'nebula.contacts' version '5.1.0' apply false
-//    id 'nebula.info' version '5.2.0' apply false
-//    id 'nebula.dependency-lock' version '8.3.0' apply false
-//
-//    id 'nebula.maven-publish' version '14.1.1' apply false
-//    id 'nebula.nebula-bintray' version '7.5.0' apply false
-//    id 'nebula.release' version '13.2.0' apply false
-//
-//    id 'nebula.source-jar' version '14.1.1' apply false
-
-}
-
 apply plugin: 'org.jetbrains.dokka'
 
 project.ext {
@@ -66,8 +49,9 @@ allprojects {
     // selectively apply only the bintray plugin, snapshots are not published
     // nebula-bintray needs to happened after nebula-release since version isn't lazy in the bintray extension
 
-    apply plugin: 'nebula.source-jar'
     apply plugin: 'nebula.maven-publish'
+    apply plugin: 'nebula.source-jar'
+    apply plugin: 'nebula.javadoc-jar'
     apply plugin: 'nebula.nebula-bintray-publishing'
 
 

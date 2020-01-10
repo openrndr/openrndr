@@ -11,10 +11,10 @@ elif [ "$TRAVIS_PULL_REQUEST" == "false" ] && [ "$TRAVIS_TAG" != "" ]; then
   echo -e 'Build Branch for Release => Branch ['$TRAVIS_BRANCH']  Tag ['$TRAVIS_TAG']'
   case "$TRAVIS_TAG" in
   *-rc\.*)
-    ./gradlew -Prelease.travisci=true -Prelease.useLastTag=true candidate publishMavenPublicationToBintrayRepository --info
+    ./gradlew -Prelease.travisci=true -Prelease.useLastTag=true candidate publishNebulaPublicationToBintrayRepository --info
     ;;
   *)
-    ./gradlew -Prelease.travisci=true -Prelease.useLastTag=true final publishMavenPublicationToBintrayRepository --info
+    ./gradlew -Prelease.travisci=true -Prelease.useLastTag=true final publishNebulaPublicationToBintrayRepository --info
     ;;
   esac
 else
