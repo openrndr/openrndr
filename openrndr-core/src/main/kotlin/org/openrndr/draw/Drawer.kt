@@ -655,6 +655,13 @@ class Drawer(val driver: Driver) {
                             stroke = it.color
                         }
                     }
+
+                    compositionNode.strokeWeight.let {
+                        if (it is StrokeWeight) {
+                            strokeWeight = it.weight
+                        }
+                    }
+
                     shape(compositionNode.shape)
                 }
                 is TextNode -> TODO()
