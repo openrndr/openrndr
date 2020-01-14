@@ -754,10 +754,13 @@ void main() {
         |   $preTransform
         |   vec3 x_normal = vec3(0.0, 0.0, 1.0);
         |   vec3 x_position = a_position;
-        |
+        |   {
+        |       ${shadeStructure.vertexTransform ?: ""}
+        |   }
+        |   $postTransform
         |   float aspect = u_viewDimensions.x / u_viewDimensions.y;
-        |   float pixelWidthRatio = 1. / (u_viewDimensions.x * u_projectionMatrix[0][0]);
-        |   mat4 pvm = u_projectionMatrix * u_viewMatrix * u_modelMatrix;
+        |   float pixelWidthRatio = 1. / (u_viewDimensions.x * x_projectionMatrix[0][0]);
+        |   mat4 pvm = x_projectionMatrix * x_viewMatrix * x_modelMatrix;
         |   vec4 finalPosition = pvm * vec4(a_position, 1.0);
         |   vec4 prevPosition = pvm * vec4(a_previous, 1.0);
         |   vec4 nextPosition = pvm * vec4(a_next, 1.0);
@@ -788,10 +791,6 @@ void main() {
         |   finalPosition.xy += offset.xy;
         |   v_clipPosition = finalPosition;
         |   gl_Position = finalPosition;
-        |   {
-        |       ${shadeStructure.vertexTransform ?: ""}
-        |   }
-        |   $postTransform
         |}
         """.trimMargin()
 
