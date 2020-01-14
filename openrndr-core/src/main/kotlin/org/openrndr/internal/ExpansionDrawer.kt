@@ -17,8 +17,8 @@ internal class ExpansionDrawer {
         attribute("vertexOffset",  VertexElementType.FLOAT32)
     }
 
-    var vertices = VertexBuffer.createDynamic(vertexFormat, 4 * 1024 * 1024)
-    var quad = VertexBuffer.createDynamic(vertexFormat, 6)
+    var vertices = VertexBuffer.createDynamic(vertexFormat, 4 * 1024 * 1024, Session.root)
+    var quad = VertexBuffer.createDynamic(vertexFormat, 6, Session.root)
 
     fun renderStrokeCommands(drawContext: DrawContext, drawStyle: DrawStyle, commands: List<Command>) {
 
@@ -38,7 +38,7 @@ internal class ExpansionDrawer {
         commands.forEach { command ->
 
             //shader.uniform("bounds", Vector4(command.minX, command.minY, command.maxX - command.minX, command.maxY - command.minY))
-            localStyle.channelWriteMask = ChannelMask(true, true, true, true)
+            localStyle.channelWriteMask = ChannelMask(red = true, green = true, blue = true, alpha = true)
             // -- pre
             shader.uniform("strokeThr", 1.0f - 0.5f / 255.0f)
             localStyle.stencil.stencilFunc(StencilTest.EQUAL, 0x00, 0xff)
@@ -54,14 +54,14 @@ internal class ExpansionDrawer {
             Driver.instance.drawVertexBuffer(shader, listOf(command.vertexBuffer), DrawPrimitive.TRIANGLE_STRIP, command.vertexOffset, command.vertexCount)
 
             // -- reset stencil
-            localStyle.channelWriteMask = ChannelMask(false, false, false, false)
+            localStyle.channelWriteMask = ChannelMask(red = false, green = false, blue = false, alpha = false)
             localStyle.stencil.stencilFunc(StencilTest.ALWAYS, 0x0, 0xff)
             localStyle.stencil.stencilOp(StencilOperation.ZERO, StencilOperation.ZERO, StencilOperation.ZERO)
             Driver.instance.setState(localStyle)
             Driver.instance.drawVertexBuffer(shader, listOf(command.vertexBuffer), DrawPrimitive.TRIANGLE_STRIP, command.vertexOffset, command.vertexCount)
 
             localStyle.stencil.stencilTest = StencilTest.DISABLED
-            localStyle.channelWriteMask = ChannelMask(true, true, true, true)
+            localStyle.channelWriteMask = ChannelMask(red = true, green = true, blue = true, alpha = true)
             Driver.instance.setState(localStyle)
         }
         shader.end()

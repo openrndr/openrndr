@@ -15,4 +15,6 @@ interface AtomicCounterBuffer {
      */
     fun reset()
 
+    fun destroy()
+
 }

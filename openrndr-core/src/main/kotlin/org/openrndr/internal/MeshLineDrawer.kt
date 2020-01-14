@@ -20,9 +20,7 @@ class MeshLineDrawer {
         attribute("uv", VertexElementType.VECTOR2_FLOAT32)
         attribute("element", VertexElementType.FLOAT32)
         color(4)
-    }, 1024 * 1024).apply {
-        Session.active.untrack(this)
-    }
+    }, 1024 * 1024, Session.root)
 
     fun drawLineSegments(drawContext: DrawContext, drawStyle: DrawStyle, segments: List<Vector3>,
                          weights: List<Double> = emptyList(),
@@ -36,7 +34,6 @@ class MeshLineDrawer {
             for (i in 0 until segments.size step 2) {
                 val width = weights.getOrElse(i) { drawStyle.strokeWeight }.toFloat()
                 val element = (i / 2).toFloat()
-
 
                 val color = if (i < colorCount ) colors[i] else defaultColor
 
@@ -68,7 +65,6 @@ class MeshLineDrawer {
                 write(color)
 
                 // --
-
                 write(segments[i])
                 write(segments[i + 1])
                 write(segments[i + 1])

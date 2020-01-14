@@ -45,14 +45,14 @@ class VertexBufferShadowGL3(override val vertexBuffer: VertexBufferGL3) : Vertex
     }
 }
 
-class VertexBufferGL3(val buffer: Int, override val vertexFormat: VertexFormat, override val vertexCount: Int) : VertexBuffer {
+class VertexBufferGL3(val buffer: Int, override val vertexFormat: VertexFormat, override val vertexCount: Int, override val session: Session?) : VertexBuffer {
 
     internal val bufferHash = bufferId.getAndAdd(1)
     internal var realShadow: VertexBufferShadowGL3? = null
     internal var isDestroyed = false
 
     companion object {
-        fun createDynamic(vertexFormat: VertexFormat, vertexCount: Int): VertexBufferGL3 {
+        fun createDynamic(vertexFormat: VertexFormat, vertexCount: Int, session: Session?): VertexBufferGL3 {
             val buffer = glGenBuffers()
             logger.debug {
                 "created new vertex buffer with id ${buffer}"
@@ -61,7 +61,7 @@ class VertexBufferGL3(val buffer: Int, override val vertexFormat: VertexFormat, 
             val sizeInBytes = vertexFormat.size * vertexCount
             nglBufferData(GL_ARRAY_BUFFER, sizeInBytes.toLong(), NULL, GL_DYNAMIC_DRAW)
             checkGLErrors()
-            return VertexBufferGL3(buffer, vertexFormat, vertexCount)
+            return VertexBufferGL3(buffer, vertexFormat, vertexCount, session)
         }
     }
 
@@ -130,6 +130,7 @@ class VertexBufferGL3(val buffer: Int, override val vertexFormat: VertexFormat, 
         logger.debug {
             "destroying vertex buffer with id ${buffer}"
         }
+        session?.untrack(this)
         isDestroyed = true
         glDeleteBuffers(buffer)
         checkGLErrors()

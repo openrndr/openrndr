@@ -13,19 +13,25 @@ enum class CubemapSide(val forward: Vector3, val up: Vector3) {
 }
 
 interface Cubemap {
+
     companion object {
-        fun create(width: Int, format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.UINT8): Cubemap {
-            return Driver.instance.createCubemap(width, format, type)
+        fun create(width: Int, format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.UINT8, session: Session? = Session.active): Cubemap {
+            val cubemap = Driver.instance.createCubemap(width, format, type)
+            session?.track(cubemap)
+            return cubemap
         }
 
-        fun fromUrl(url: String): Cubemap {
-            return Driver.instance.createCubemapFromUrls(listOf(url))
+        fun fromUrl(url: String, session: Session?): Cubemap {
+            val cubemap = Driver.instance.createCubemapFromUrls(listOf(url))
+            session?.track(cubemap)
+            return cubemap
         }
 
-        fun fromUrls(urls: List<String>): Cubemap {
+        fun fromUrls(urls: List<String>, session: Session?): Cubemap {
             return Driver.instance.createCubemapFromUrls(urls)
         }
     }
+    val session: Session?
 
     val width: Int
     val format: ColorFormat
@@ -38,8 +44,8 @@ interface Cubemap {
     fun destroy()
 }
 
-fun cubemap(width: Int, format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.UINT8): Cubemap {
+fun cubemap(width: Int, format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.UINT8, session: Session?): Cubemap {
     val cubemap = Cubemap.create(width, format, type)
-    Session.active.track(cubemap)
+    session?.track(cubemap)
     return cubemap
 }

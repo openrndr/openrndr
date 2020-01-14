@@ -34,11 +34,11 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
             return GLFW.glfwGetCurrentContext()
         }
 
-    override fun createResourceThread(f: () -> Unit): ResourceThread {
+    override fun createResourceThread(session: Session?, f: () -> Unit): ResourceThread {
         return ResourceThreadGL3.create(f)
     }
 
-    override fun createDrawThread(): DrawThread {
+    override fun createDrawThread(session: Session?): DrawThread {
         return DrawThreadGL3.create()
     }
 
@@ -119,16 +119,15 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         glDepthMask(false)
     }
 
-    override fun createStaticVertexBuffer(format: VertexFormat, buffer: Buffer): VertexBuffer {
+    override fun createStaticVertexBuffer(format: VertexFormat, buffer: Buffer, session: Session?): VertexBuffer {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
-    override fun createShadeStyleManager(vertexShaderGenerator: (ShadeStructure) -> String,
-                                         fragmentShaderGenerator: (ShadeStructure) -> String): ShadeStyleManager {
+    override fun createShadeStyleManager(vertexShaderGenerator: (ShadeStructure) -> String, fragmentShaderGenerator: (ShadeStructure) -> String, session: Session?): ShadeStyleManager {
         return ShadeStyleManagerGL3(vertexShaderGenerator, fragmentShaderGenerator)
     }
 
-    override fun createShader(vsCode: String, fsCode: String): Shader {
+    override fun createShader(vsCode: String, fsCode: String, session: Session?): Shader {
         logger.trace {
             "creating shader:\n${vsCode}\n${fsCode}"
         }
@@ -136,11 +135,11 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         val fragmentShader = FragmentShaderGL3.fromString(fsCode)
 
         synchronized(this) {
-            return ShaderGL3.create(vertexShader, fragmentShader)
+            return ShaderGL3.create(vertexShader, fragmentShader, session)
         }
     }
 
-    override fun createComputeShader(code: String): ComputeShader {
+    override fun createComputeShader(code: String, session: Session?): ComputeShader {
         if (version == DriverVersionGL.VERSION_4_3) {
             return ComputeShaderGL43.createFromCode(code)
         } else {
@@ -148,91 +147,118 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         }
     }
 
-    override fun createAtomicCounterBuffer(counterCount: Int): AtomicCounterBuffer {
+    override fun createAtomicCounterBuffer(counterCount: Int, session: Session?): AtomicCounterBuffer {
         if (version == DriverVersionGL.VERSION_4_3) {
-            return AtomicCounterBufferGL43.create(counterCount)
+            val atomicCounterBuffer = AtomicCounterBufferGL43.create(counterCount)
+            session?.track(atomicCounterBuffer)
+            return atomicCounterBuffer
         } else {
             throw IllegalArgumentException("atomic counter buffers are not supported by this configuration ($version)")
         }
     }
 
-
-    override fun createArrayTexture(width: Int, height: Int, layers: Int, format: ColorFormat, type: ColorType, levels:Int): ArrayTexture {
+    override fun createArrayTexture(width: Int, height: Int, layers: Int, format: ColorFormat, type: ColorType, levels: Int, session: Session?): ArrayTexture {
         logger.trace { "creating array texture" }
-        return ArrayTextureGL3.create(width, height, layers, format, type, levels)
+        val arrayTexture = ArrayTextureGL3.create(width, height, layers, format, type, levels, session)
+        session?.track(arrayTexture)
+        return arrayTexture
     }
 
-    override fun createBufferTexture(elementCount: Int,
-                                     format: ColorFormat,
-                                     type: ColorType): BufferTexture {
+    override fun createBufferTexture(elementCount: Int, format: ColorFormat, type: ColorType, session: Session?): BufferTexture {
         logger.trace { "creating buffer texture" }
-        return BufferTextureGL3.create(elementCount, format, type)
+        val bufferTexture= BufferTextureGL3.create(elementCount, format, type, session)
+        session?.track(bufferTexture)
+        return bufferTexture
     }
 
-    override fun createCubemap(width: Int, format: ColorFormat, type: ColorType): Cubemap {
+    override fun createCubemap(width: Int, format: ColorFormat, type: ColorType, session: Session?): Cubemap {
         logger.trace { "creating cubemap $width" }
-        return CubemapGL3.create(width, format, type)
+        val cubemap = CubemapGL3.create(width, format, type, session)
+        session?.track(cubemap)
+        return cubemap
     }
 
-    override fun createCubemapFromUrls(urls: List<String>): Cubemap {
+    override fun createCubemapFromUrls(urls: List<String>, session: Session?): Cubemap {
         logger.trace { "creating cubemap from urls $urls" }
-        return when (urls.size) {
-            1 -> CubemapGL3.fromUrl(urls[0])
-            6 -> CubemapGL3.fromUrls(urls)
+        val cubemap = when (urls.size) {
+            1 -> CubemapGL3.fromUrl(urls[0], session)
+            6 -> CubemapGL3.fromUrls(urls, session)
             else -> throw RuntimeException("expected 1 or 6 urls")
         }
+        session?.track(cubemap)
+        return cubemap
     }
 
-    override fun createRenderTarget(width: Int, height: Int, contentScale: Double, multisample: BufferMultisample): RenderTarget {
+    override fun createRenderTarget(width: Int, height: Int, contentScale: Double, multisample: BufferMultisample, session: Session?): RenderTarget {
         logger.trace { "creating render target $width x $height @ ${contentScale}x $multisample" }
         synchronized(this) {
-            return RenderTargetGL3.create(width, height, contentScale, multisample)
+            val renderTarget = RenderTargetGL3.create(width, height, contentScale, multisample, session)
+            session?.track(renderTarget)
+            return renderTarget
         }
     }
 
-    override fun createColorBuffer(width: Int, height: Int, contentScale: Double, format: ColorFormat, type: ColorType, multisample: BufferMultisample, levels:Int): ColorBuffer {
+    override fun createColorBuffer(width: Int, height: Int, contentScale: Double, format: ColorFormat, type: ColorType, multisample: BufferMultisample, levels: Int, session: Session?): ColorBuffer {
         logger.trace { "creating color buffer $width x $height @ $format:$type" }
         synchronized(this) {
-            return ColorBufferGL3.create(width, height, contentScale, format, type, multisample, levels)
+            val colorBuffer = ColorBufferGL3.create(width, height, contentScale, format, type, multisample, levels, session)
+            session?.track(colorBuffer)
+            return colorBuffer
         }
     }
 
-    override fun createColorBufferFromUrl(url: String): ColorBuffer {
-        return ColorBufferGL3.fromUrl(url)
+    override fun createColorBufferFromUrl(url: String, session: Session?): ColorBuffer {
+        val colorBuffer = ColorBufferGL3.fromUrl(url, session)
+        session?.track(colorBuffer)
+        return colorBuffer
     }
 
-    override fun createColorBufferFromFile(filename: String): ColorBuffer {
-        return ColorBufferGL3.fromFile(filename)
+    override fun createColorBufferFromFile(filename: String, session: Session?): ColorBuffer {
+        val colorBuffer = ColorBufferGL3.fromFile(filename, session)
+        session?.track(colorBuffer)
+        return colorBuffer
     }
 
-    override fun createColorBufferFromStream(stream: InputStream, name:String?, formatHint:String?) : ColorBuffer {
-        return ColorBufferGL3.fromStream(stream, name, formatHint)
+    override fun createColorBufferFromStream(stream: InputStream, name: String?, formatHint: String?, session: Session?): ColorBuffer {
+        val colorBuffer = ColorBufferGL3.fromStream(stream, name, formatHint, session)
+        session?.track(colorBuffer)
+        return colorBuffer
     }
 
-    override fun createColorBufferFromArray(array: ByteArray, offset: Int, length: Int, name: String?, formatHint: String?): ColorBuffer {
-        return ColorBufferGL3.fromArray(array, offset, length, name, formatHint)
+    override fun createColorBufferFromArray(array: ByteArray, offset: Int, length: Int, name: String?, formatHint: String?, session: Session?): ColorBuffer {
+        val colorBuffer = ColorBufferGL3.fromArray(array, offset, length, name, formatHint, session)
+        session?.track(colorBuffer)
+        return colorBuffer
     }
 
-    override fun createColorBufferFromBuffer(buffer:ByteBuffer, name:String?, formatHint:String?) : ColorBuffer {
-        return ColorBufferGL3.fromBuffer(buffer, name, formatHint)
+    override fun createColorBufferFromBuffer(buffer: ByteBuffer, name: String?, formatHint: String?, session: Session?): ColorBuffer {
+        val colorBuffer =  ColorBufferGL3.fromBuffer(buffer, name, formatHint, session)
+        session?.track(colorBuffer)
+        return colorBuffer
     }
 
-    override fun createDepthBuffer(width: Int, height: Int, format: DepthFormat, multisample: BufferMultisample): DepthBuffer {
+    override fun createDepthBuffer(width: Int, height: Int, format: DepthFormat, multisample: BufferMultisample, session: Session?): DepthBuffer {
         logger.trace { "creating depth buffer $width x $height @ $format" }
         synchronized(this) {
-            return DepthBufferGL3.create(width, height, format, multisample)
+            val depthBuffer = DepthBufferGL3.create(width, height, format, multisample, session)
+            session?.track(depthBuffer)
+            return depthBuffer
         }
     }
 
-    override fun createDynamicIndexBuffer(elementCount: Int, type: IndexType): IndexBuffer {
+    override fun createDynamicIndexBuffer(elementCount: Int, type: IndexType, session: Session?): IndexBuffer {
         synchronized(this) {
-            return IndexBufferGL3.create(elementCount, type)
+            val indexBuffer = IndexBufferGL3.create(elementCount, type)
+            session?.track(indexBuffer)
+            return indexBuffer
         }
     }
 
-    override fun createDynamicVertexBuffer(format: VertexFormat, vertexCount: Int): VertexBuffer {
+    override fun createDynamicVertexBuffer(format: VertexFormat, vertexCount: Int, session: Session?): VertexBuffer {
         synchronized(this) {
-            return VertexBufferGL3.createDynamic(format, vertexCount)
+            val vertexBuffer = VertexBufferGL3.createDynamic(format, vertexCount, session)
+            session?.track(vertexBuffer)
+            return vertexBuffer
         }
     }
 

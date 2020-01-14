@@ -9,13 +9,13 @@ import java.nio.Buffer
 import java.nio.ByteBuffer
 import kotlin.math.pow
 
-class CubemapGL3(val texture: Int, override val width: Int, val sides: List<ColorBuffer>, override val type: ColorType, override val format: ColorFormat) : Cubemap {
+class CubemapGL3(val texture: Int, override val width: Int, val sides: List<ColorBuffer>, override val type: ColorType, override val format: ColorFormat, override val session: Session?) : Cubemap {
 
 
     private var destroyed = false
 
     companion object {
-        fun create(width: Int, format: ColorFormat, type: ColorType): CubemapGL3 {
+        fun create(width: Int, format: ColorFormat, type: ColorType, session: Session?): CubemapGL3 {
             val textures = IntArray(1)
             glGenTextures(textures)
             glActiveTexture(GL_TEXTURE0)
@@ -28,12 +28,12 @@ class CubemapGL3(val texture: Int, override val width: Int, val sides: List<Colo
             for (i in 0..5) {
                 val nullBB: ByteBuffer? = null
                 glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalFormat, effectiveWidth, effectiveHeight, 0, format.glFormat(), type.glType(), nullBB)
-                sides.add(ColorBufferGL3(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, textures[0], width, width, 1.0, format, type, BufferMultisample.Disabled))
+                sides.add(ColorBufferGL3(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, textures[0], width, width, 1.0, format, type, BufferMultisample.Disabled, session))
             }
-            return CubemapGL3(textures[0], width, sides, type, format)
+            return CubemapGL3(textures[0], width, sides, type, format, session)
         }
 
-        fun fromUrl(url: String): CubemapGL3 {
+        fun fromUrl(url: String, session: Session?): CubemapGL3 {
             glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS)
             if (url.endsWith(".dds")) {
                 val textures = IntArray(1)
@@ -45,7 +45,7 @@ class CubemapGL3(val texture: Int, override val width: Int, val sides: List<Colo
                 checkGLErrors()
 
                 val data = loadDDS(URL(url).openStream())
-                val sides = (0..5).map { ColorBufferGL3(GL_TEXTURE_CUBE_MAP_POSITIVE_X + it, textures[0], data.width, data.height, 1.0, ColorFormat.RGB, ColorType.UINT8, BufferMultisample.Disabled) }
+                val sides = (0..5).map { ColorBufferGL3(GL_TEXTURE_CUBE_MAP_POSITIVE_X + it, textures[0], data.width, data.height, 1.0, ColorFormat.RGB, ColorType.UINT8, BufferMultisample.Disabled, session) }
                 for (level in 0 until data.mipmaps) {
 
                     val m = 2.0.pow(-level * 1.0)
@@ -94,13 +94,13 @@ class CubemapGL3(val texture: Int, override val width: Int, val sides: List<Colo
                     glGenerateMipmap(GL_TEXTURE_CUBE_MAP)
                     checkGLErrors()
                 }
-                return CubemapGL3(textures[0], data.width, sides, data.type, data.format)
+                return CubemapGL3(textures[0], data.width, sides, data.type, data.format, session)
             } else {
                 throw RuntimeException("only dds files can be loaded through a single url")
             }
         }
 
-        fun fromUrls(urls: List<String>): CubemapGL3 {
+        fun fromUrls(urls: List<String>, session: Session?): CubemapGL3 {
             if (urls.size != 6) {
                 throw RuntimeException("6 urls are needed for a cubemap")
             }
@@ -116,9 +116,9 @@ class CubemapGL3(val texture: Int, override val width: Int, val sides: List<Colo
                 val nullBB: ByteBuffer? = null
 
                 glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + index, 0, internalFormat, data.width, data.height, 0, data.format.glFormat(), data.type.glType(), nullBB)
-                sides.add(ColorBufferGL3(GL_TEXTURE_CUBE_MAP_POSITIVE_X + index, textures[0], data.width, data.width, 1.0, data.format, data.type, BufferMultisample.Disabled))
+                sides.add(ColorBufferGL3(GL_TEXTURE_CUBE_MAP_POSITIVE_X + index, textures[0], data.width, data.width, 1.0, data.format, data.type, BufferMultisample.Disabled, session))
             }
-            return CubemapGL3(textures[0], sides[0].width, sides, sides[0].type, sides[0].format )
+            return CubemapGL3(textures[0], sides[0].width, sides, sides[0].type, sides[0].format, session)
         }
     }
 

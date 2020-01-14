@@ -606,7 +606,8 @@ class ColorBufferGL3(val target: Int,
                      override val contentScale: Double,
                      override val format: ColorFormat,
                      override val type: ColorType,
-                     override val multisample: BufferMultisample) : ColorBuffer {
+                     override val multisample: BufferMultisample,
+                     override val session: Session?) : ColorBuffer {
 
     private var destroyed = false
     override var flipV: Boolean = false
@@ -617,8 +618,8 @@ class ColorBufferGL3(val target: Int,
 
     companion object {
 
-        fun fromColorBufferData(data: ColorBufferDataGL3): ColorBuffer {
-            val cb = create(data.width, data.height, 1.0, data.format, data.type, Disabled, 1)
+        fun fromColorBufferData(data: ColorBufferDataGL3, session: Session?): ColorBuffer {
+            val cb = create(data.width, data.height, 1.0, data.format, data.type, Disabled, 1, session)
             return cb.apply {
                 val d = data.data
                 if (d != null) {
@@ -633,29 +634,29 @@ class ColorBufferGL3(val target: Int,
             }
         }
 
-        fun fromUrl(url: String): ColorBuffer {
+        fun fromUrl(url: String, session: Session?): ColorBuffer {
             val data = ColorBufferDataGL3.fromUrl(url)
-            return fromColorBufferData(data)
+            return fromColorBufferData(data, session)
         }
 
-        fun fromFile(filename: String): ColorBuffer {
+        fun fromFile(filename: String, session: Session?): ColorBuffer {
             val data = ColorBufferDataGL3.fromFile(filename)
-            return fromColorBufferData(data)
+            return fromColorBufferData(data, session)
         }
 
-        fun fromStream(stream: InputStream, name: String?, formatHint: String?): ColorBuffer {
+        fun fromStream(stream: InputStream, name: String?, formatHint: String?, session: Session?): ColorBuffer {
             val data = ColorBufferDataGL3.fromStream(stream, name)
-            return fromColorBufferData(data)
+            return fromColorBufferData(data, session)
         }
 
-        fun fromArray(array: ByteArray, offset: Int = 0, length: Int = array.size, name: String?, formatHint: String?): ColorBuffer {
+        fun fromArray(array: ByteArray, offset: Int = 0, length: Int = array.size, name: String?, formatHint: String?, session: Session?): ColorBuffer {
             val data = ColorBufferDataGL3.fromArray(array, offset, length, name, formatHint)
-            return fromColorBufferData(data)
+            return fromColorBufferData(data, session)
         }
 
-        fun fromBuffer(buffer: ByteBuffer, name: String?, formatHint: String?): ColorBuffer {
+        fun fromBuffer(buffer: ByteBuffer, name: String?, formatHint: String?, session: Session?): ColorBuffer {
             val data = ColorBufferDataGL3.fromByteBuffer(buffer, name, formatHint)
-            return fromColorBufferData(data)
+            return fromColorBufferData(data, session)
         }
 
         fun create(width: Int,
@@ -664,7 +665,8 @@ class ColorBufferGL3(val target: Int,
                    format: ColorFormat = ColorFormat.RGBa,
                    type: ColorType = ColorType.FLOAT32,
                    multisample: BufferMultisample,
-                   levels: Int): ColorBufferGL3 {
+                   levels: Int,
+                   session: Session?): ColorBufferGL3 {
             val internalFormat = internalFormat(format, type)
             if (width <= 0 || height <= 0) {
                 throw Exception("cannot create ColorBuffer with dimensions: ${width}x$height")
@@ -721,7 +723,7 @@ class ColorBufferGL3(val target: Int,
                 checkGLErrors()
             }
 
-            return ColorBufferGL3(target, texture, width, height, contentScale, format, type, multisample)
+            return ColorBufferGL3(target, texture, width, height, contentScale, format, type, multisample, session)
         }
     }
 
@@ -1067,10 +1069,10 @@ class ColorBufferGL3(val target: Int,
     }
 
     override fun destroy() {
+        session?.untrack(this)
         glDeleteTextures(texture)
         destroyed = true
         checkGLErrors()
-        Session.active.untrack(this)
     }
 
     override fun bind(unit: Int) {

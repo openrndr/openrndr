@@ -10,10 +10,11 @@ class ArrayTextureGL3(val target: Int,
                       override val height: Int,
                       override val layers: Int,
                       override val format: ColorFormat,
-                      override val type: ColorType) : ArrayTexture {
+                      override val type: ColorType,
+                      override val session: Session?) : ArrayTexture {
 
     companion object {
-        fun create(width: Int, height: Int, layers: Int, format: ColorFormat, type: ColorType, levels: Int): ArrayTextureGL3 {
+        fun create(width: Int, height: Int, layers: Int, format: ColorFormat, type: ColorType, levels: Int, session: Session?): ArrayTextureGL3 {
             val maximumLayers = glGetInteger(GL_MAX_ARRAY_TEXTURE_LAYERS)
             if (layers > maximumLayers) {
                 throw IllegalArgumentException("layers ($layers) exceeds maximum of $maximumLayers")
@@ -37,7 +38,7 @@ class ArrayTextureGL3(val target: Int,
             glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, MinifyingFilter.LINEAR.toGLFilter())
             glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, MagnifyingFilter.LINEAR.toGLFilter())
             checkGLErrors()
-            return ArrayTextureGL3(GL_TEXTURE_2D_ARRAY, texture, width, height, layers, format, type)
+            return ArrayTextureGL3(GL_TEXTURE_2D_ARRAY, texture, width, height, layers, format, type, session)
         }
     }
 
@@ -46,6 +47,7 @@ class ArrayTextureGL3(val target: Int,
     }
 
     override fun destroy() {
+        session?.untrack(this)
         glDeleteTextures(texture)
         checkGLErrors()
     }

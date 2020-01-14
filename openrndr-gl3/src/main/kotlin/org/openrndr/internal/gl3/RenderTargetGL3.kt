@@ -14,9 +14,9 @@ private val logger = KotlinLogging.logger {}
 
 private val active = mutableMapOf<Long, Stack<RenderTargetGL3>>()
 
-class NullRenderTargetGL3 : RenderTargetGL3(0, 640, 480, 1.0, BufferMultisample.Disabled)
+class NullRenderTargetGL3 : RenderTargetGL3(0, 640, 480, 1.0, BufferMultisample.Disabled, Session.root)
 
-class ProgramRenderTargetGL3(override val program: Program) : ProgramRenderTarget, RenderTargetGL3(glGetInteger(GL_FRAMEBUFFER_BINDING), 0, 0, 1.0, BufferMultisample.Disabled) {
+class ProgramRenderTargetGL3(override val program: Program) : ProgramRenderTarget, RenderTargetGL3(glGetInteger(GL_FRAMEBUFFER_BINDING), 0, 0, 1.0, BufferMultisample.Disabled, Session.root) {
     override val width: Int
         get() = program.window.size.x.toInt()
 
@@ -39,7 +39,9 @@ open class RenderTargetGL3(val framebuffer: Int,
                            override val height: Int,
                            override val contentScale: Double,
                            override val multisample: BufferMultisample,
+                           override val session: Session?,
                            private val thread: Thread = Thread.currentThread()
+
 
 ) : RenderTarget {
     var destroyed = false
@@ -61,10 +63,10 @@ open class RenderTargetGL3(val framebuffer: Int,
 
 
     companion object {
-        fun create(width: Int, height: Int, contentScale: Double = 1.0, multisample: BufferMultisample = BufferMultisample.Disabled): RenderTargetGL3 {
+        fun create(width: Int, height: Int, contentScale: Double = 1.0, multisample: BufferMultisample = BufferMultisample.Disabled, session: Session?): RenderTargetGL3 {
             logger.trace { "created new render target ($width*$height) @ ${contentScale}x $multisample" }
             val framebuffer = glGenFramebuffers()
-            return RenderTargetGL3(framebuffer, width, height, contentScale, multisample)
+            return RenderTargetGL3(framebuffer, width, height, contentScale, multisample, session)
         }
 
         val activeRenderTarget: RenderTargetGL3
@@ -208,7 +210,7 @@ open class RenderTargetGL3(val framebuffer: Int,
     }
 
     override fun blendMode(index: Int, blendMode: BlendMode) {
-        when(blendMode) {
+        when (blendMode) {
             BlendMode.OVER -> {
                 glEnable(GL_BLEND)
                 glBlendEquationi(index, GL_FUNC_ADD)
@@ -309,6 +311,7 @@ open class RenderTargetGL3(val framebuffer: Int,
     }
 
     override fun destroy() {
+        session?.untrack(this)
         destroyed = true
         glDeleteFramebuffers(framebuffer)
     }

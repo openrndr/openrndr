@@ -38,9 +38,9 @@ class BufferTextureShadowGL3(override val bufferTexture: BufferTextureGL3) : Buf
     }
 }
 
-class BufferTextureGL3(val texture: Int, val buffer: Int, override val elementCount: Int, override val format: ColorFormat, override val type: ColorType) : BufferTexture {
+class BufferTextureGL3(val texture: Int, val buffer: Int, override val elementCount: Int, override val format: ColorFormat, override val type: ColorType, override val session: Session?) : BufferTexture {
     companion object {
-        fun create(elementCount: Int, format: ColorFormat, type: ColorType): BufferTextureGL3 {
+        fun create(elementCount: Int, format: ColorFormat, type: ColorType, session: Session?): BufferTextureGL3 {
             val sizeInBytes = format.componentCount * type.componentSize * elementCount
             val buffers = IntArray(1)
             glGenBuffers(buffers)
@@ -54,7 +54,7 @@ class BufferTextureGL3(val texture: Int, val buffer: Int, override val elementCo
 
             glBindBuffer(GL_TEXTURE_BUFFER, 0)
 
-            return BufferTextureGL3(textures[0], buffers[0], elementCount, format, type)
+            return BufferTextureGL3(textures[0], buffers[0], elementCount, format, type, session)
         }
     }
 
@@ -83,9 +83,10 @@ class BufferTextureGL3(val texture: Int, val buffer: Int, override val elementCo
     internal var destroyed = false
     override fun destroy() {
         if (!destroyed) {
+            session?.untrack(this)
             glDeleteTextures(texture)
             destroyed = true
-            Session.active.untrack(this)
+
         }
     }
 }

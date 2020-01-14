@@ -22,16 +22,15 @@ class ShadeStyleManagerGL3(
             if (defaultShader == null) {
                 logger.debug { "creating default shader" }
                 val structure = structureFromShadeStyle(style, vertexFormats, instanceFormats)
-                defaultShader = Shader.createFromCode(vertexShaderGenerator(structure), fragmentShaderGenerator(structure))
+                defaultShader = Shader.createFromCode(vertexShaderGenerator(structure), fragmentShaderGenerator(structure), Session.root)
                 (defaultShader as ShaderGL3).userShader = false
-                Session.active.untrack(defaultShader!!)
             }
             return defaultShader!!
         } else {
             val structure = structureFromShadeStyle(style, vertexFormats, instanceFormats)
             val shader = shaders.getOrPut(structure) {
                 try {
-                    Shader.createFromCode(vertexShaderGenerator(structure), fragmentShaderGenerator(structure))
+                    Shader.createFromCode(vertexShaderGenerator(structure), fragmentShaderGenerator(structure), Session.root)
                 } catch (e: Throwable) {
                     if (System.getProperties().containsKey("org.openrndr.ignoreShadeStyleErrors")) {
                         shader(null, vertexFormats, instanceFormats)
@@ -42,7 +41,6 @@ class ShadeStyleManagerGL3(
             }
             (shader as ShaderGL3).userShader = false
 
-            Session.active.untrack(shader)
             shader.begin()
             var textureIndex = 2
             style.parameterValues.entries.forEach {

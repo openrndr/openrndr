@@ -3,7 +3,7 @@ package org.openrndr.draw
 import org.openrndr.internal.Driver
 
 interface DepthBuffer {
-
+    val session: Session?
     val width: Int
     val height: Int
     val format: DepthFormat

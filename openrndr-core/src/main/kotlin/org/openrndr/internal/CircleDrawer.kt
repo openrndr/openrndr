@@ -13,9 +13,7 @@ class CircleDrawer {
         position(3)
         normal(3)
         textureCoordinate(2)
-    }, 6).apply {
-        Session.active.untrack(this)
-    }
+    }, 6, Session.root)
 
     private val instanceFormat = VertexFormat().apply {
         attribute("offset", VertexElementType.VECTOR3_FLOAT32)
@@ -32,10 +30,9 @@ class CircleDrawer {
             logger.debug {
                 "resizing buffer from ${instanceAttributes.vertexCount} to $size"
             }
+            Session.root.untrack(instanceAttributes)
             instanceAttributes.destroy()
-            instanceAttributes = vertexBuffer(instanceFormat, size).apply {
-                Session.active.untrack(this)
-            }
+            instanceAttributes = vertexBuffer(instanceFormat, size, session = Session.root)
         }
     }
 

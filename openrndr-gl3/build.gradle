@@ -8,7 +8,6 @@ dependencies {
     implementation "org.lwjgl:lwjgl-openal:$lwjglVersion"
     implementation "org.lwjgl:lwjgl-opengl:$lwjglVersion"
     implementation "org.lwjgl:lwjgl-stb:$lwjglVersion"
-
     implementation "org.lwjgl:lwjgl-egl:$lwjglVersion"
     testRuntimeOnly project(":openrndr-gl3-natives-windows")
     testRuntimeOnly project(":openrndr-gl3-natives-macos")

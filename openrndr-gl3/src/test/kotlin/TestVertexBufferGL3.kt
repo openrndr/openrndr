@@ -21,7 +21,7 @@ object TestVertexBufferGL3 : Spek({
         describe("a vertex buffer") {
             val vbgl3 = VertexBufferGL3.createDynamic(vertexFormat {
                 position(3)
-            }, 10)
+            }, 10, null)
 
             it("should be able to write a non-direct byte buffer") {
                 val nonDirectByteBuffer = ByteBuffer.allocate(vbgl3.vertexFormat.size * vbgl3.vertexCount)
@@ -48,7 +48,7 @@ object TestVertexBufferGL3 : Spek({
             val vbgl3 = VertexBufferGL3.createDynamic(vertexFormat {
                 position(3)
                 attribute("someArrayAttribute", VertexElementType.FLOAT32, 2)
-            }, 10)
+            }, 10, null)
             program.drawer.vertexBuffer(vbgl3, DrawPrimitive.TRIANGLES)
 
         }

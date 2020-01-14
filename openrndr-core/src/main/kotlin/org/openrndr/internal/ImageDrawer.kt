@@ -7,12 +7,11 @@ import org.openrndr.math.Vector4
 import org.openrndr.shape.Rectangle
 
 class ImageDrawer {
-
     private val vertices: VertexBuffer = VertexBuffer.createDynamic(VertexFormat().apply {
         position(3)
         normal(3)
         textureCoordinate(2)
-    }, 6)
+    }, 6, Session.root)
 
     private val instanceFormat = vertexFormat {
         attribute("source", VertexElementType.VECTOR4_FLOAT32)
@@ -20,9 +19,7 @@ class ImageDrawer {
         attribute("layer", VertexElementType.FLOAT32)
     }
 
-    private var instanceAttributes = vertexBuffer(instanceFormat, 10).apply {
-        Session.active.untrack(this)
-    }
+    private var instanceAttributes = vertexBuffer(instanceFormat, 10, Session.root)
 
     private val shaderManager: ShadeStyleManager = ShadeStyleManager.fromGenerators(
             Driver.instance.shaderGenerators::imageVertexShader,
@@ -66,10 +63,9 @@ class ImageDrawer {
 
     private fun assertInstanceSize(size:Int) {
         if (instanceAttributes.vertexCount < size) {
+            Session.root.untrack(instanceAttributes)
             instanceAttributes.destroy()
-            instanceAttributes = vertexBuffer(instanceFormat, size).apply {
-                Session.active.untrack(this)
-            }
+            instanceAttributes = vertexBuffer(instanceFormat, size, Session.root)
         }
     }
 
@@ -100,7 +96,6 @@ class ImageDrawer {
         Driver.instance.drawInstances(shader, listOf(vertices),  listOf(instanceAttributes) + ( drawStyle.shadeStyle?.attributes?: emptyList() ), DrawPrimitive.TRIANGLES, 0, 6, rectangles.size)
         shader.end()
     }
-
 
     fun drawImage(drawContext: DrawContext, drawStyle: DrawStyle, arrayTexture: ArrayTexture,
                   layers:List<Int>, rectangles: List<Pair<Rectangle, Rectangle>>) {

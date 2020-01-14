@@ -53,44 +53,45 @@ interface Driver {
     val contextID: Long
 
 
-    fun createShader(vsCode: String, fsCode: String): Shader
+    fun createShader(vsCode: String, fsCode: String, session: Session? = Session.active): Shader
 
-    fun createComputeShader(code: String): ComputeShader
+    fun createComputeShader(code: String, session: Session? = Session.active): ComputeShader
 
     fun createShadeStyleManager(vertexShaderGenerator: (ShadeStructure) -> String,
-                                fragmentShaderGenerator: (ShadeStructure) -> String): ShadeStyleManager
+                                fragmentShaderGenerator: (ShadeStructure) -> String,
+                                session: Session? = Session.root): ShadeStyleManager
 
-    fun createRenderTarget(width: Int, height: Int, contentScale: Double = 1.0, multisample: BufferMultisample = BufferMultisample.Disabled): RenderTarget
+    fun createRenderTarget(width: Int, height: Int, contentScale: Double = 1.0, multisample: BufferMultisample = BufferMultisample.Disabled, session: Session? = Session.active): RenderTarget
 
 
-    fun createArrayTexture(width: Int, height: Int, layers: Int, format: ColorFormat, type: ColorType, levels:Int = 1): ArrayTexture
-    fun createAtomicCounterBuffer(counterCount: Int): AtomicCounterBuffer
+    fun createArrayTexture(width: Int, height: Int, layers: Int, format: ColorFormat, type: ColorType, levels: Int = 1, session: Session? = Session.active): ArrayTexture
+    fun createAtomicCounterBuffer(counterCount: Int, session: Session? = Session.active): AtomicCounterBuffer
 
-    fun createColorBuffer(width: Int, height: Int, contentScale: Double, format: ColorFormat, type: ColorType, multisample: BufferMultisample = BufferMultisample.Disabled, levels: Int = 1): ColorBuffer
-    fun createColorBufferFromUrl(url: String): ColorBuffer
-    fun createColorBufferFromFile(filename: String): ColorBuffer
-    fun createColorBufferFromStream(stream: InputStream, name: String? = null, formatHint: String? = null): ColorBuffer
-    fun createColorBufferFromArray(array: ByteArray, offset: Int = 0, length: Int = 0, name: String? = null, formatHint: String? = null): ColorBuffer
-    fun createColorBufferFromBuffer(buffer: ByteBuffer, name: String? = null, formatHint: String? = null): ColorBuffer
+    fun createColorBuffer(width: Int, height: Int, contentScale: Double, format: ColorFormat, type: ColorType, multisample: BufferMultisample = BufferMultisample.Disabled, levels: Int = 1, session: Session? = Session.active): ColorBuffer
+    fun createColorBufferFromUrl(url: String, session: Session? = Session.active): ColorBuffer
+    fun createColorBufferFromFile(filename: String, session: Session? = Session.active): ColorBuffer
+    fun createColorBufferFromStream(stream: InputStream, name: String? = null, formatHint: String? = null, session: Session? = Session.active): ColorBuffer
+    fun createColorBufferFromArray(array: ByteArray, offset: Int = 0, length: Int = 0, name: String? = null, formatHint: String? = null, session: Session? = Session.active): ColorBuffer
+    fun createColorBufferFromBuffer(buffer: ByteBuffer, name: String? = null, formatHint: String? = null, session: Session? = Session.active): ColorBuffer
 
-    fun createDepthBuffer(width: Int, height: Int, format: DepthFormat, multisample: BufferMultisample = BufferMultisample.Disabled): DepthBuffer
-    fun createBufferTexture(elementCount: Int, format: ColorFormat, type: ColorType): BufferTexture
+    fun createDepthBuffer(width: Int, height: Int, format: DepthFormat, multisample: BufferMultisample = BufferMultisample.Disabled, session: Session? = Session.active): DepthBuffer
+    fun createBufferTexture(elementCount: Int, format: ColorFormat, type: ColorType, session: Session? = Session.active): BufferTexture
 
-    fun createCubemap(width: Int, format: ColorFormat, type: ColorType): Cubemap
-    fun createCubemapFromUrls(urls: List<String>): Cubemap
+    fun createCubemap(width: Int, format: ColorFormat, type: ColorType, session: Session? = Session.active): Cubemap
+    fun createCubemapFromUrls(urls: List<String>, session: Session? = Session.active): Cubemap
 
-    fun createResourceThread(f: () -> Unit): ResourceThread
-    fun createDrawThread(): DrawThread
+    fun createResourceThread(session: Session? = Session.active, f: () -> Unit): ResourceThread
+    fun createDrawThread(session: Session? = Session.active): DrawThread
 
     fun clear(r: Double, g: Double, b: Double, a: Double)
     fun clear(color: ColorRGBa) {
         clear(color.r, color.g, color.b, color.a)
     }
 
-    fun createDynamicVertexBuffer(format: VertexFormat, vertexCount: Int): VertexBuffer
-    fun createStaticVertexBuffer(format: VertexFormat, buffer: Buffer): VertexBuffer
+    fun createDynamicVertexBuffer(format: VertexFormat, vertexCount: Int, session: Session? = Session.active): VertexBuffer
+    fun createStaticVertexBuffer(format: VertexFormat, buffer: Buffer, session: Session? = Session.active): VertexBuffer
 
-    fun createDynamicIndexBuffer(elementCount: Int, type: IndexType): IndexBuffer
+    fun createDynamicIndexBuffer(elementCount: Int, type: IndexType, session: Session? = Session.active): IndexBuffer
 
     fun drawVertexBuffer(shader: Shader, vertexBuffers: List<VertexBuffer>,
                          drawPrimitive: DrawPrimitive,

@@ -4,10 +4,16 @@ import org.openrndr.internal.Driver
 import java.nio.ByteBuffer
 
 interface VertexBuffer {
-    companion object {
-        fun createDynamic(format: VertexFormat, vertexCount: Int): VertexBuffer = Driver.instance.createDynamicVertexBuffer(format, vertexCount)
+    val session: Session?
 
-        fun createFromFloats(format: VertexFormat, data: FloatArray): VertexBuffer {
+    companion object {
+        fun createDynamic(format: VertexFormat, vertexCount: Int, session: Session? = Session.active): VertexBuffer {
+            val vertexBuffer = Driver.instance.createDynamicVertexBuffer(format, vertexCount)
+            session?.track(vertexBuffer)
+            return vertexBuffer
+        }
+
+        fun createFromFloats(format: VertexFormat, data: FloatArray, session: Session?): VertexBuffer {
             require((data.size * 4) % format.size == 0) {
                 "supplied data size doesn't match format size"
             }
@@ -16,7 +22,7 @@ interface VertexBuffer {
             vertexBuffer.put {
                 write(data)
             }
-            Session.active.track(vertexBuffer)
+            session?.track(vertexBuffer)
             return vertexBuffer
         }
     }
@@ -56,8 +62,8 @@ interface VertexBuffer {
  * @param vertexFormat a VertexFormat object that describes the vertex layout
  * @param vertexCount the number of vertices the vertex buffer should hold
  */
-fun vertexBuffer(vertexFormat: VertexFormat, vertexCount: Int): VertexBuffer {
+fun vertexBuffer(vertexFormat: VertexFormat, vertexCount: Int, session: Session? = Session.active): VertexBuffer {
     val vertexBuffer = VertexBuffer.createDynamic(vertexFormat, vertexCount)
-    Session.active.track(vertexBuffer)
+    session?.track(vertexBuffer)
     return vertexBuffer
 }

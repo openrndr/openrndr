@@ -338,7 +338,8 @@ fun checkProgramInfoLog(`object`: Int, sourceFile: String) {
 class ShaderGL3(val program: Int,
                 val name: String,
                 val vertexShader: VertexShaderGL3,
-                val fragmentShader: FragmentShaderGL3) : Shader {
+                val fragmentShader: FragmentShaderGL3,
+                override val session: Session?) : Shader {
 
     private var destroyed = false
     private var running = false
@@ -353,7 +354,7 @@ class ShaderGL3(val program: Int,
     internal var userShader = true
 
     companion object {
-        fun create(vertexShader: VertexShaderGL3, fragmentShader: FragmentShaderGL3): ShaderGL3 {
+        fun create(vertexShader: VertexShaderGL3, fragmentShader: FragmentShaderGL3, session: Session?): ShaderGL3 {
 
             synchronized(Driver.driver) {
                 debugGLErrors()
@@ -381,7 +382,7 @@ class ShaderGL3(val program: Int,
 
                 glFinish()
 
-                return ShaderGL3(program, name, vertexShader, fragmentShader)
+                return ShaderGL3(program, name, vertexShader, fragmentShader, session)
             }
         }
     }
@@ -748,6 +749,7 @@ class ShaderGL3(val program: Int,
 
     override fun destroy() {
         if (!destroyed) {
+            session?.untrack(this)
             glDeleteProgram(program)
             destroyed = true
             Session.active.untrack(this)

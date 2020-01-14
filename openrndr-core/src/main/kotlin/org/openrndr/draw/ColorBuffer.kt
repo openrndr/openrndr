@@ -66,6 +66,8 @@ sealed class BufferMultisample {
 
 interface ColorBuffer {
 
+    val session: Session?
+
     /** the width of the [ColorBuffer] in device units */
     val width: Int
 
@@ -160,36 +162,35 @@ interface ColorBuffer {
     }
 
     companion object {
-        fun fromUrl(url: String): ColorBuffer {
+        fun fromUrl(url: String, session: Session? = Session.active): ColorBuffer {
             val colorBuffer = Driver.instance.createColorBufferFromUrl(url)
-            Session.active.track(colorBuffer)
             return colorBuffer
         }
 
-        fun fromFile(file: File): ColorBuffer {
+        fun fromFile(file: File, session: Session? = Session.active): ColorBuffer {
             val colorBuffer = Driver.instance.createColorBufferFromFile(file.absolutePath)
-            Session.active.track(colorBuffer)
             return colorBuffer
         }
 
-        fun fromFile(filename: String): ColorBuffer {
+        fun fromFile(filename: String, session: Session? = Session.active): ColorBuffer {
             val colorBuffer = Driver.instance.createColorBufferFromFile(filename)
-            Session.active.track(colorBuffer)
             return colorBuffer
         }
 
-        fun fromStream(stream: InputStream, formatHint: String? = null): ColorBuffer {
-            return Driver.instance.createColorBufferFromStream(stream)
+        fun fromStream(stream: InputStream, formatHint: String? = null, session: Session? = Session.active): ColorBuffer {
+            val colorBuffer = Driver.instance.createColorBufferFromStream(stream)
+            return colorBuffer
         }
 
-        fun fromArray(bytes: ByteArray, offset: Int = 0, length: Int = bytes.size): ColorBuffer {
-            return Driver.instance.createColorBufferFromArray(bytes)
+        fun fromArray(bytes: ByteArray, offset: Int = 0, length: Int = bytes.size, session: Session? = Session.active): ColorBuffer {
+            val colorBuffer = Driver.instance.createColorBufferFromArray(bytes)
+            return colorBuffer
         }
 
-        fun fromBuffer(bytes: ByteBuffer): ColorBuffer {
-            return Driver.instance.createColorBufferFromBuffer(bytes)
+        fun fromBuffer(bytes: ByteBuffer, session: Session? = Session.active): ColorBuffer {
+            val colorBuffer = Driver.instance.createColorBufferFromBuffer(bytes)
+            return colorBuffer
         }
-
     }
 }
 
@@ -204,16 +205,15 @@ interface ColorBuffer {
  * @param format the color format
  * @param levels the number of mip-map levels
  */
-fun colorBuffer(width: Int, height: Int, contentScale: Double = 1.0, format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.UINT8, multisample: BufferMultisample = BufferMultisample.Disabled, levels:Int = 1): ColorBuffer {
-    val colorBuffer = Driver.driver.createColorBuffer(width, height, contentScale, format, type, multisample, levels)
-    Session.active.track(colorBuffer)
+fun colorBuffer(width: Int, height: Int, contentScale: Double = 1.0, format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.UINT8, multisample: BufferMultisample = BufferMultisample.Disabled, levels:Int = 1, session: Session? = Session.active): ColorBuffer {
+    val colorBuffer = Driver.driver.createColorBuffer(width, height, contentScale, format, type, multisample, levels, session)
     return colorBuffer
 }
 
 /**
  * loads an image from a file or url encoded as [String], also accepts base64 encoded dat urls
  */
-fun loadImage(fileOrUrl: String): ColorBuffer {
+fun loadImage(fileOrUrl: String, session: Session? = Session.active): ColorBuffer {
     return try {
         if (!fileOrUrl.startsWith("data:")) {
             URL(fileOrUrl)
@@ -227,14 +227,14 @@ fun loadImage(fileOrUrl: String): ColorBuffer {
 /**
  * loads an image from [file]
  */
-fun loadImage(file: File): ColorBuffer {
-    return ColorBuffer.fromFile(file)
+fun loadImage(file: File, session: Session? = Session.active): ColorBuffer {
+    return ColorBuffer.fromFile(file, session)
 }
 
 /**
  * loads an image from an [url]
  */
-fun loadImage(url: URL): ColorBuffer {
-    return ColorBuffer.fromUrl(url.toExternalForm())
+fun loadImage(url: URL, session: Session? = Session.active): ColorBuffer {
+    return ColorBuffer.fromUrl(url.toExternalForm(), session)
 }
 

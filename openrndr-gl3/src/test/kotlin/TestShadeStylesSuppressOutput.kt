@@ -16,7 +16,7 @@ object TestShadeStylesSuppressOutput : Spek({
         app.preloop()
         val vbgl3 = VertexBufferGL3.createDynamic(vertexFormat {
             position(3)
-        }, 10)
+        }, 10, null)
 
         p.drawer.shadeStyle = shadeStyle {
             suppressDefaultOutput = true

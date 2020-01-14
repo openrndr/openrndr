@@ -9,7 +9,7 @@ class PerformanceLineDrawer {
         position(3)
         attribute("instance", VertexElementType.FLOAT32)
         attribute("vertexOffset", VertexElementType.FLOAT32)
-    }, 1024 * 1024)
+    }, 1024 * 1024, Session.root)
 
     private val shaderManager: ShadeStyleManager = ShadeStyleManager.fromGenerators(Driver.instance.shaderGenerators::fastLineVertexShader,
             Driver.instance.shaderGenerators::fastLineFragmentShader)

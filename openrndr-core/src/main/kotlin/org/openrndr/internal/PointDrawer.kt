@@ -18,7 +18,7 @@ class PointDrawer {
         attribute("offset", VertexElementType.VECTOR3_FLOAT32)
     }
 
-    private var instanceAttributes = VertexBuffer.createDynamic(instanceFormat, 10_000)
+    private var instanceAttributes = VertexBuffer.createDynamic(instanceFormat, 10_000, session = Session.root)
 
     private val shaderManager: ShadeStyleManager = ShadeStyleManager.fromGenerators(Driver.instance.shaderGenerators::pointVertexShader,
             Driver.instance.shaderGenerators::pointFragmentShader)
@@ -29,9 +29,7 @@ class PointDrawer {
                 "resizing buffer from ${instanceAttributes.vertexCount} to $size"
             }
             instanceAttributes.destroy()
-            instanceAttributes = vertexBuffer(instanceFormat, size).apply {
-                Session.active.untrack(this)
-            }
+            instanceAttributes = vertexBuffer(instanceFormat, size, session = Session.root)
         }
     }
 

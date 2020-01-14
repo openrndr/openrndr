@@ -110,7 +110,7 @@ class FontImageMapManagerGL3 : FontMapManager() {
         }
         logger.debug { "final map size ${packSize}x${packSize}" }
 
-        val image = colorBuffer(packSize, packSize, 1.0, ColorFormat.R)
+        val image = colorBuffer(packSize, packSize, 1.0, ColorFormat.R, session = Session.root)
         val map = mutableMapOf<Char, IntRectangle>()
 
         val root = PackNode(IntRectangle(0, 0, packSize, packSize))

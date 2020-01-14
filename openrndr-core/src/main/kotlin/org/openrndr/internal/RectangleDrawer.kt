@@ -6,18 +6,17 @@ import org.openrndr.math.Vector3
 import org.openrndr.shape.Rectangle
 
 class RectangleDrawer {
-
     private val vertices: VertexBuffer = VertexBuffer.createDynamic(VertexFormat().apply {
         position(3)
         normal(3)
         textureCoordinate(2)
-    }, 6)
+    }, 6, Session.root)
 
     private var instanceFormat = VertexFormat().apply {
         attribute("dimensions", VertexElementType.VECTOR2_FLOAT32)
         attribute("offset", VertexElementType.VECTOR3_FLOAT32)
     }
-    private var instanceAttributes = VertexBuffer.createDynamic(instanceFormat, 10000)
+    private var instanceAttributes = VertexBuffer.createDynamic(instanceFormat, 10000, Session.root)
 
     private val shaderManager: ShadeStyleManager = ShadeStyleManager.fromGenerators(Driver.instance.shaderGenerators::rectangleVertexShader,
             Driver.instance.shaderGenerators::rectangleFragmentShader)
@@ -54,10 +53,9 @@ class RectangleDrawer {
 
     private fun assertInstanceSize(size: Int) {
         if (instanceAttributes.vertexCount < size) {
+            Session.root.untrack(instanceAttributes)
             instanceAttributes.destroy()
-            instanceAttributes = vertexBuffer(instanceFormat, size).apply {
-                Session.active.untrack(this)
-            }
+            instanceAttributes = vertexBuffer(instanceFormat, size, Session.root)
         }
     }
 
@@ -125,5 +123,4 @@ class RectangleDrawer {
                 ?: emptyList()), DrawPrimitive.TRIANGLES, 0, 6, count)
         shader.end()
     }
-
 }

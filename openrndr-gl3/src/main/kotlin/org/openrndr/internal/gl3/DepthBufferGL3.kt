@@ -9,12 +9,13 @@ class DepthBufferGL3(val texture: Int,
                      override val width: Int,
                      override val height: Int,
                      override val format: DepthFormat,
-                     override val multisample: BufferMultisample) : DepthBuffer {
+                     override val multisample: BufferMultisample,
+                     override val session: Session?) : DepthBuffer {
 
     private var destroyed = false
 
     companion object {
-        fun create(width: Int, height: Int, format: DepthFormat, multisample: BufferMultisample): DepthBufferGL3 {
+        fun create(width: Int, height: Int, format: DepthFormat, multisample: BufferMultisample, session: Session?): DepthBufferGL3 {
             val glTexture = glGenTextures()
             val target = when (multisample) {
                 BufferMultisample.Disabled -> GL_TEXTURE_2D
@@ -38,7 +39,7 @@ class DepthBufferGL3(val texture: Int,
                     checkGLErrors()
                 }
             }
-            return DepthBufferGL3(glTexture, target, width, height, format, multisample)
+            return DepthBufferGL3(glTexture, target, width, height, format, multisample, session)
         }
     }
 
