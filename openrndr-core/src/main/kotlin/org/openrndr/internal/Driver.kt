@@ -70,9 +70,9 @@ interface Driver {
     fun createColorBuffer(width: Int, height: Int, contentScale: Double, format: ColorFormat, type: ColorType, multisample: BufferMultisample = BufferMultisample.Disabled, levels: Int = 1, session: Session? = Session.active): ColorBuffer
     fun createColorBufferFromUrl(url: String, session: Session? = Session.active): ColorBuffer
     fun createColorBufferFromFile(filename: String, session: Session? = Session.active): ColorBuffer
-    fun createColorBufferFromStream(stream: InputStream, name: String? = null, formatHint: String? = null, session: Session? = Session.active): ColorBuffer
-    fun createColorBufferFromArray(array: ByteArray, offset: Int = 0, length: Int = 0, name: String? = null, formatHint: String? = null, session: Session? = Session.active): ColorBuffer
-    fun createColorBufferFromBuffer(buffer: ByteBuffer, name: String? = null, formatHint: String? = null, session: Session? = Session.active): ColorBuffer
+    fun createColorBufferFromStream(stream: InputStream, name: String? = null, formatHint: ImageFileFormat? = null, session: Session? = Session.active): ColorBuffer
+    fun createColorBufferFromArray(array: ByteArray, offset: Int = 0, length: Int = 0, name: String? = null, formatHint: ImageFileFormat? = null, session: Session? = Session.active): ColorBuffer
+    fun createColorBufferFromBuffer(buffer: ByteBuffer, name: String? = null, formatHint: ImageFileFormat? = null, session: Session? = Session.active): ColorBuffer
 
     fun createDepthBuffer(width: Int, height: Int, format: DepthFormat, multisample: BufferMultisample = BufferMultisample.Disabled, session: Session? = Session.active): DepthBuffer
     fun createBufferTexture(elementCount: Int, format: ColorFormat, type: ColorType, session: Session? = Session.active): BufferTexture

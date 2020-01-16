@@ -13,9 +13,22 @@ import java.nio.ByteBuffer
 /**
  * File format used while saving to file
  */
-enum class FileFormat(val mimeType: String, val extensions: List<String>) {
+enum class ImageFileFormat(val mimeType: String, val extensions: List<String>) {
     JPG("image/jpeg", listOf("jpg", "jpeg")),
     PNG("image/png", listOf("png")),
+    EXR("image/x-exr", listOf("exr"));
+
+    companion object {
+        fun guessFromExtension(file: File): ImageFileFormat {
+            val extension = file.extension.toLowerCase()
+            return when (extension) {
+                "jpg", "jpeg" -> ImageFileFormat.JPG
+                "png" -> ImageFileFormat.PNG
+                "exr" -> ImageFileFormat.EXR
+                else -> throw IllegalArgumentException("unsupported format: \"$extension\"")
+            }
+        }
+    }
 }
 
 /**
@@ -91,19 +104,12 @@ interface ColorBuffer {
     val effectiveHeight: Int get() = (height * contentScale).toInt()
 
     /** save the [ColorBuffer] to [File] */
-    fun saveToFile(file: File, fileFormat: FileFormat = guessFromExtension(file), async: Boolean = true)
+    fun saveToFile(file: File, imageFileFormat: ImageFileFormat = ImageFileFormat.guessFromExtension(file), async: Boolean = true)
 
     /** returns a base64 data url representation */
-    fun toDataUrl(fileFormat: FileFormat = FileFormat.JPG): String
+    fun toDataUrl(imageFileFormat: ImageFileFormat = ImageFileFormat.JPG): String
 
-    private fun guessFromExtension(file: File): FileFormat {
-        val extension = file.extension.toLowerCase()
-        return when (extension) {
-            "jpg", "jpeg" -> FileFormat.JPG
-            "png" -> FileFormat.PNG
-            else -> throw IllegalArgumentException("unsupported format: \"$extension\"")
-        }
-    }
+
 
     /** destroys the underlying [ColorBuffer] resources */
     fun destroy()
@@ -112,7 +118,7 @@ interface ColorBuffer {
     fun bind(unit: Int)
 
     fun write(buffer: ByteBuffer, sourceFormat: ColorFormat = format, sourceType: ColorType = type, level: Int = 0)
-    fun read(buffer: ByteBuffer, level:Int = 0)
+    fun read(buffer: ByteBuffer, targetFormat: ColorFormat = format, targetType: ColorType = type, level: Int = 0)
 
     /** generates mipmaps from the top-level mipmap */
     fun generateMipmaps()
@@ -125,9 +131,9 @@ interface ColorBuffer {
     /**
      * copies contents to a target color buffer
      */
-    fun copyTo(target: ColorBuffer, fromLevel:Int = 0, toLevel:Int = 0)
+    fun copyTo(target: ColorBuffer, fromLevel: Int = 0, toLevel: Int = 0)
 
-    fun copyTo(target: ArrayTexture, layer: Int, fromLevel:Int = 0, toLevel: Int = 0)
+    fun copyTo(target: ArrayTexture, layer: Int, fromLevel: Int = 0, toLevel: Int = 0)
 
     fun fill(color: ColorRGBa)
 
@@ -205,7 +211,7 @@ interface ColorBuffer {
  * @param format the color format
  * @param levels the number of mip-map levels
  */
-fun colorBuffer(width: Int, height: Int, contentScale: Double = 1.0, format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.UINT8, multisample: BufferMultisample = BufferMultisample.Disabled, levels:Int = 1, session: Session? = Session.active): ColorBuffer {
+fun colorBuffer(width: Int, height: Int, contentScale: Double = 1.0, format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.UINT8, multisample: BufferMultisample = BufferMultisample.Disabled, levels: Int = 1, session: Session? = Session.active): ColorBuffer {
     val colorBuffer = Driver.driver.createColorBuffer(width, height, contentScale, format, type, multisample, levels, session)
     return colorBuffer
 }

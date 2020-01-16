@@ -219,19 +219,19 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         return colorBuffer
     }
 
-    override fun createColorBufferFromStream(stream: InputStream, name: String?, formatHint: String?, session: Session?): ColorBuffer {
+    override fun createColorBufferFromStream(stream: InputStream, name: String?, formatHint: ImageFileFormat?, session: Session?): ColorBuffer {
         val colorBuffer = ColorBufferGL3.fromStream(stream, name, formatHint, session)
         session?.track(colorBuffer)
         return colorBuffer
     }
 
-    override fun createColorBufferFromArray(array: ByteArray, offset: Int, length: Int, name: String?, formatHint: String?, session: Session?): ColorBuffer {
+    override fun createColorBufferFromArray(array: ByteArray, offset: Int, length: Int, name: String?, formatHint: ImageFileFormat?, session: Session?): ColorBuffer {
         val colorBuffer = ColorBufferGL3.fromArray(array, offset, length, name, formatHint, session)
         session?.track(colorBuffer)
         return colorBuffer
     }
 
-    override fun createColorBufferFromBuffer(buffer: ByteBuffer, name: String?, formatHint: String?, session: Session?): ColorBuffer {
+    override fun createColorBufferFromBuffer(buffer: ByteBuffer, name: String?, formatHint: ImageFileFormat?, session: Session?): ColorBuffer {
         val colorBuffer =  ColorBufferGL3.fromBuffer(buffer, name, formatHint, session)
         session?.track(colorBuffer)
         return colorBuffer
