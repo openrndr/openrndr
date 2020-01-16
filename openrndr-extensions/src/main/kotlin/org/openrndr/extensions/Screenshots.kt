@@ -127,9 +127,7 @@ open class Screenshots : Extension {
             target?.unbind()
 
             target?.let {
-                drawer.ortho()
-                drawer.view = Matrix44.IDENTITY
-                drawer.model = Matrix44.IDENTITY
+                drawer.defaults()
 
                 val dt = LocalDateTime.now()
                 val basename = program.javaClass.simpleName.ifBlank { program.window.title.ifBlank { "untitled" } }

@@ -110,10 +110,7 @@ class ScreenRecorder : Extension {
             }
 
             drawer.isolated {
-                drawer.shadeStyle = null
-                drawer.ortho()
-                drawer.model = Matrix44.IDENTITY
-                drawer.view = Matrix44.IDENTITY
+                drawer.defaults()
 
                 if (lresolved != null) {
                     drawer.image(lresolved)
