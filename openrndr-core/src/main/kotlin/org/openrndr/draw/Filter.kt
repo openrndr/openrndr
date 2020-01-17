@@ -74,7 +74,7 @@ open class Filter(private val shader: Shader? = null, private val watcher: Shade
         renderTarget.bind()
 
         if (filterQuad == null) {
-            val fq = VertexBuffer.createDynamic(filterQuadFormat, 6)
+            val fq = VertexBuffer.createDynamic(filterQuadFormat, 6, Session.root)
 
             fq.shadow.writer().apply {
                 write(Vector2(0.0, 1.0)); write(Vector2(0.0, 0.0))
