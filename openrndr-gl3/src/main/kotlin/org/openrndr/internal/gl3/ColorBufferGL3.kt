@@ -598,7 +598,7 @@ class ColorBufferDataGL3(val width: Int, val height: Int, val format: ColorForma
                 val exrHeader = EXRHeader.create()
                 val exrVersion = EXRVersion.create()
                 val versionResult = ParseEXRVersionFromMemory(exrVersion, buffer)
-                buffer.rewind()
+                (buffer as Buffer).rewind()
 
                 if (versionResult != TINYEXR_SUCCESS) {
                     error("failed to get version")
@@ -654,7 +654,7 @@ class ColorBufferDataGL3(val width: Int, val height: Int, val format: ColorForma
                 require(order.none { it == -1 }) { "some channels are not found" }
 
                 val orderedImages = order.map { channelImages[it] }
-                orderedImages.forEach { it.rewind() }
+                orderedImages.forEach { (it as Buffer).rewind() }
 
                 for (y in 0 until exrImage.height()) {
                     val offset = (height - 1 - y) * format.componentCount * type.componentSize * width
@@ -1119,16 +1119,16 @@ class ColorBufferGL3(val target: Int,
                 exrHeader.num_channels(3)
 
                 val exrChannels = EXRChannelInfo.calloc(3)
-                exrChannels[0].name(ByteBuffer.allocateDirect(2).put('B'.toByte()).put(0.toByte()).rewind())
-                exrChannels[1].name(ByteBuffer.allocateDirect(2).put('G'.toByte()).put(0.toByte()).rewind())
-                exrChannels[2].name(ByteBuffer.allocateDirect(2).put('R'.toByte()).put(0.toByte()).rewind())
+                exrChannels[0].name(ByteBuffer.allocateDirect(2).apply { put('B'.toByte()); put(0.toByte()); (this as Buffer).rewind() })
+                exrChannels[1].name(ByteBuffer.allocateDirect(2).apply { put('G'.toByte()); put(0.toByte()); (this as Buffer).rewind() })
+                exrChannels[2].name(ByteBuffer.allocateDirect(2).apply { put('R'.toByte()); put(0.toByte()); (this as Buffer).rewind() })
 
                 exrHeader.channels(exrChannels)
 
                 val data = ByteBuffer.allocateDirect(type.componentSize * 3 * effectiveWidth * effectiveHeight).order(ByteOrder.nativeOrder())
-                data.rewind()
+                (data as Buffer).rewind()
                 read(data, targetFormat = ColorFormat.RGB)
-                data.rewind()
+                (data as Buffer).rewind()
                 val bBuffer = ByteBuffer.allocateDirect(effectiveWidth * effectiveHeight * 4).order(ByteOrder.nativeOrder())
                 val gBuffer = ByteBuffer.allocateDirect(effectiveWidth * effectiveHeight * 4).order(ByteOrder.nativeOrder())
                 val rBuffer = ByteBuffer.allocateDirect(effectiveWidth * effectiveHeight * 4).order(ByteOrder.nativeOrder())
@@ -1138,7 +1138,7 @@ class ColorBufferGL3(val target: Int,
                     val row = if (!flipV) effectiveHeight - 1 - y else y
                     var offset = row * effectiveWidth * type.componentSize * 3
 
-                    data.position(offset)
+                    (data as Buffer).position(offset)
 
                     for (x in 0 until effectiveWidth) {
                         for (i in 0 until type.componentSize) {
@@ -1156,14 +1156,17 @@ class ColorBufferGL3(val target: Int,
                     }
                 }
 
-                bBuffer.rewind()
-                gBuffer.rewind()
-                rBuffer.rewind()
+                (bBuffer as Buffer).rewind()
+                (gBuffer as Buffer).rewind()
+                (rBuffer as Buffer).rewind()
 
-                val pixelTypes = ByteBuffer.allocateDirect(4 * 3).order(ByteOrder.nativeOrder()).putInt(exrType).putInt(exrType).putInt(exrType).rewind()
-                exrHeader.pixel_types(pixelTypes.asIntBuffer())
-                pixelTypes.rewind()
-                exrHeader.requested_pixel_types(pixelTypes.asIntBuffer())
+
+                val pixelTypes = BufferUtils.createIntBuffer(4 * 3).apply {
+                    put(exrType); put(exrType); put(exrType); (this as Buffer).rewind()
+                }
+                exrHeader.pixel_types(pixelTypes)
+                (pixelTypes as Buffer).rewind()
+                exrHeader.requested_pixel_types(pixelTypes)
 
                 exrImage.width(width)
                 exrImage.height(height)
@@ -1173,7 +1176,7 @@ class ColorBufferGL3(val target: Int,
                 images.put(0, bBuffer)
                 images.put(1, gBuffer)
                 images.put(2, rBuffer)
-                images.rewind()
+                (images as Buffer).rewind()
 
                 exrImage.images(images)
 
@@ -1186,6 +1189,7 @@ class ColorBufferGL3(val target: Int,
                 //FreeEXRHeader(exrHeader)
                 FreeEXRImage(exrImage)
             }
+
         } else {
             throw IllegalArgumentException("multisample targets cannot be saved to file")
         }
@@ -1236,7 +1240,7 @@ class ColorBufferGL3(val target: Int,
                     format.componentCount, pixels, effectiveWidth * format.componentCount)
         }
 
-        val byteArray = ByteArray(saveBuffer.position())
+        val byteArray = ByteArray((saveBuffer as Buffer).position())
         (saveBuffer as Buffer).rewind()
         saveBuffer.get(byteArray)
         val base64Data = Base64.getEncoder().encodeToString(byteArray)
