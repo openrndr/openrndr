@@ -30,7 +30,7 @@ internal fun Int.checkAVError() {
     }
 }
 
-internal fun Int.toAVError() : String {
+internal fun Int.toAVError(): String {
     return if (this != 0) {
         val buffer = BytePointer(1024L)
         av_strerror(this, buffer, 1024L)
@@ -45,17 +45,17 @@ internal val flushPacket = AVPacket().apply {
     data(BytePointer("FLUSH"))
 }
 
-internal class Decoder(val statistics: VideoStatistics,
-                       val configuration: VideoPlayerConfiguration,
-                       val formatContext: AVFormatContext,
-                       val videoStreamIndex: Int,
-                       val audioStreamIndex: Int,
-                       val videoCodecContext: AVCodecContext?,
-                       val audioCodecContext: AVCodecContext?,
-                       val hwType: Int
+internal class Decoder(private val statistics: VideoStatistics,
+                       private val configuration: VideoPlayerConfiguration,
+                       private val formatContext: AVFormatContext,
+                       private val videoStreamIndex: Int,
+                       private val audioStreamIndex: Int,
+                       private val videoCodecContext: AVCodecContext?,
+                       private val audioCodecContext: AVCodecContext?,
+                       private val hwType: Int
 ) {
     companion object {
-        fun fromContext(statistics: VideoStatistics, configuration: VideoPlayerConfiguration, context: AVFormatContext, useVideo: Boolean = true, useAudio: Boolean = true): Pair<Decoder, CodecInfo> {
+        fun fromContext(statistics: VideoStatistics, configuration: VideoPlayerConfiguration, context: AVFormatContext, useVideo: Boolean, useAudio: Boolean): Pair<Decoder, CodecInfo> {
             val videoStreamIndex =
                     if (configuration.legacyStreamOpen) {
                         if (useVideo) context.codecs.indexOfFirst { it?.codec_type() == AVMEDIA_TYPE_VIDEO } else -1
@@ -70,7 +70,7 @@ internal class Decoder(val statistics: VideoStatistics,
                     }
 
             val videoStream = context.streamAt(videoStreamIndex)
-            val audioStream = context.streamAt(audioStreamIndex)
+            val audioStream = if (useAudio) context.streamAt(audioStreamIndex) else null
 
             val videoContext = videoStream?.openCodec()
             val audioContext = audioStream?.openCodec()
@@ -173,11 +173,11 @@ internal class Decoder(val statistics: VideoStatistics,
         packetReader?.dispose()
     }
 
-    fun needMoreFrames(): Boolean =
+    private fun needMoreFrames(): Boolean =
             !seekRequested && ((videoDecoder?.needMoreFrames() ?: false) || (audioDecoder?.needMoreFrames() ?: false))
                     && !audioOutQueueFull() && !displayQueueFull()
 
-    fun decodeIfNeeded() {
+    private fun decodeIfNeeded() {
         val hasSeeked = seekRequested
 
         if (seekRequested) {
@@ -187,11 +187,11 @@ internal class Decoder(val statistics: VideoStatistics,
 
             logger.debug { "seeking to $seekPosition" }
             val seekTS = (seekPosition * AV_TIME_BASE).toLong()
-            val seekMinTS = ((seekPosition - 2.0) * AV_TIME_BASE).toLong()
-            val seekMaxTS = seekTS //((seekPosition + 4.0) * AV_TIME_BASE).toLong()
+            val seekMinTS = ((seekPosition + configuration.minimumSeekOffset) * AV_TIME_BASE).toLong()
+            val seekMaxTS = ((seekPosition + configuration.maximumSeekOffset) * AV_TIME_BASE).toLong()
             val seekStarted = System.currentTimeMillis()
             val seekResult = avformat_seek_file(formatContext, -1, seekMinTS, seekTS, seekMaxTS, if (configuration.allowArbitrarySeek) AVSEEK_FLAG_ANY else 0)
-            logger.debug { "seek completed in ${System.currentTimeMillis()-seekStarted}ms"}
+            logger.debug { "seek completed in ${System.currentTimeMillis() - seekStarted}ms" }
             if (seekResult != 0) {
                 logger.error { "seek failed" }
             }
@@ -208,13 +208,14 @@ internal class Decoder(val statistics: VideoStatistics,
         var packetsReceived = 0
         while (needMoreFrames()) {
             if (videoDecoder?.isQueueAlmostFull() == true) {
-                logger.warn { "video queue is almost full ${videoDecoder?.queueCount()} ${audioDecoder?.queueCount()}" }
-                Thread.sleep(200)
+                logger.warn { "video queue is almost full. [video queue: ${videoDecoder?.queueCount()}, audio queue: ${audioDecoder?.queueCount()}]" }
+                Thread.sleep(100)
                 return
             }
+
             if (audioDecoder?.isQueueAlmostFull() == true) {
-                logger.warn { "audio queue is almost full ${videoDecoder?.queueCount()} ${audioDecoder?.queueCount()}" }
-                Thread.sleep(200)
+                logger.warn { "audio queue is almost full. [video queue: ${videoDecoder?.queueCount()}, audio queue: ${audioDecoder?.queueCount()}]" }
+                Thread.sleep(100)
                 return
             }
 
@@ -229,7 +230,7 @@ internal class Decoder(val statistics: VideoStatistics,
             if (packet != null) {
                 packetsReceived++
                 if (hasSeeked && packetsReceived == 1) {
-                    logger.debug { "seek completed"}
+                    logger.debug { "seek completed" }
                     seekCompleted()
                 }
 
@@ -237,6 +238,8 @@ internal class Decoder(val statistics: VideoStatistics,
                     val packetTime = packet.dts() / 1000.0
                     logger.debug { "seek error: ${packetTime - seekPosition}" }
                 }
+
+
                 when (packet.stream_index()) {
                     videoStreamIndex -> videoDecoder?.decodeVideoPacket(packet)
                     audioStreamIndex -> audioDecoder?.decodeAudioPacket(packet)
@@ -244,12 +247,10 @@ internal class Decoder(val statistics: VideoStatistics,
                 av_packet_unref(packet)
             } else {
                 if (packetReader?.endOfFile == true) {
-
-                    Thread.sleep(10)
-
+                    Thread.sleep(100)
                 } else {
                     logger.debug { "more frames are needed but none are received" }
-                    Thread.sleep(1)
+                    Thread.sleep(10)
                 }
             }
         }

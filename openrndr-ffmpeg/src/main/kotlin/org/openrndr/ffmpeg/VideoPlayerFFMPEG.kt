@@ -34,12 +34,21 @@ import kotlin.concurrent.thread
 private val logger = KotlinLogging.logger {}
 
 enum class State {
+    INITIALIZE,
     PLAYING,
     STOPPED,
-    PAUSED;
+    PAUSED,
+    DISPOSED
+    ;
 
     inline fun transition(from: State, to: State, block: () -> Unit): State =
             if (this == from) {
+                block()
+                to
+            } else this
+
+    inline fun transition(from: Set<State>, to: State, block: () -> Unit): State =
+            if (this in from) {
                 block()
                 to
             } else this
@@ -62,23 +71,22 @@ internal data class Dimensions(val w: Int, val h: Int) {
 internal class AVFile(configuration: VideoPlayerConfiguration,
                       private val fileName: String,
                       playMode: PlayMode,
-                      val formatName: String? = null,
-                      private val frameRate: Double? = null,
-                      private val imageWidth: Int? = null,
-                      private val imageHeight: Int? = null) {
+                      formatName: String? = null,
+                      frameRate: Double? = null,
+                      imageWidth: Int? = null,
+                      imageHeight: Int? = null) {
 
     val context: AVFormatContext = avformat_alloc_context()
 
     init {
         val options = AVDictionary(null)
-        val format: AVInputFormat?
         val isDevice = formatName != null
 
-        if (formatName != null) {
+        val format = if (formatName != null) {
             avdevice_register_all()
-            format = av_find_input_format(formatName)
+            av_find_input_format(formatName)
         } else {
-            format = null
+            null
         }
 
         if (configuration.realtimeBufferSize != -1L) {
@@ -110,8 +118,8 @@ internal class AVFile(configuration: VideoPlayerConfiguration,
                 logger.debug { result.toAVError() }
                 val frameRates = listOf(60.0, 30.0, 29.97, 25.0, 24.0, 15.0, 10.0)
                 var found = false
-                for (frameRate in frameRates) {
-                    val r = av_d2q(frameRate, 1001000)
+                for (candidate in frameRates) {
+                    val r = av_d2q(candidate, 1001000)
                     av_dict_set(options, "framerate", r.num().toString() + "/" + r.den(), 0)
 
                     val retryResult = avformat_open_input(context, fileName, format, options)
@@ -120,12 +128,12 @@ internal class AVFile(configuration: VideoPlayerConfiguration,
                     }
                     if (retryResult == 0) {
                         found = true
-                        logger.info { "fall-back to $frameRate" }
+                        logger.info { "fall-back to $candidate" }
                         break
                     }
                 }
                 require(found) {
-                    "failed to open device at any frame rate."
+                    "failed to open device ($formatName) at any frame rate."
                 }
             }
         } else {
@@ -167,6 +175,8 @@ class VideoPlayerConfiguration {
     var usePacketReaderThread = false
     var realtimeBufferSize = -1L
     var allowFrameSkipping = true
+    var minimumSeekOffset = -2.0
+    var maximumSeekOffset = 0.0
     var legacyStreamOpen = false
     var allowArbitrarySeek = false
 }
@@ -179,12 +189,17 @@ private object defaultLogger : Callback_Pointer_int_String_Pointer() {
     fun install() = av_log_set_callback(this)
 }
 
-fun Program.loadVideo(fileOrUrl: String, mode: PlayMode = PlayMode.BOTH): VideoPlayerFFMPEG {
-    return VideoPlayerFFMPEG.fromFile(fileOrUrl, clock = { seconds })
+/**
+ * Load a video
+ * @param fileOrUrl a file name or an url to open
+ * @param mode the play mode to use, determines if video and/or audio should be played
+ */
+fun Program.loadVideo(fileOrUrl: String, mode: PlayMode = PlayMode.BOTH, configuration: VideoPlayerConfiguration = VideoPlayerConfiguration()): VideoPlayerFFMPEG {
+    return VideoPlayerFFMPEG.fromFile(fileOrUrl, clock = { seconds }, mode = mode, configuration = configuration)
 }
 
-fun loadVideoDevice(deviceName: String = VideoPlayerFFMPEG.defaultDevice(), mode: PlayMode = PlayMode.VIDEO, width: Int? = null, height: Int? = null, frameRate: Double? = null): VideoPlayerFFMPEG {
-    return VideoPlayerFFMPEG.fromDevice(deviceName, mode = mode, imageWidth = width, imageHeight = height, frameRate = frameRate)
+fun loadVideoDevice(deviceName: String = VideoPlayerFFMPEG.defaultDevice(), mode: PlayMode = PlayMode.VIDEO, width: Int? = null, height: Int? = null, frameRate: Double? = null, configuration: VideoPlayerConfiguration = VideoPlayerConfiguration()): VideoPlayerFFMPEG {
+    return VideoPlayerFFMPEG.fromDevice(deviceName, mode = mode, imageWidth = width, imageHeight = height, frameRate = frameRate, configuration = configuration)
 }
 
 /**
@@ -196,14 +211,13 @@ class VideoPlayerFFMPEG private constructor(
         private val configuration: VideoPlayerConfiguration,
         private val clock: () -> Double = { System.currentTimeMillis() / 1000.0 }) {
 
-    var lastFrameTime = 0.0
-
     private val displayQueue = Queue<VideoFrame>(configuration.displayQueueSize)
 
     companion object {
         /**
          * Lists the available machine-specific device names
          */
+        @Suppress("unused")
         fun listDeviceNames(): List<String> {
             val result = mutableListOf<String>()
 
@@ -216,19 +230,19 @@ class VideoPlayerFFMPEG private constructor(
                 override fun call(source: Pointer?, level: Int, formatStr: String?, params: Pointer?) {
                     val bp = BytePointer(1024)
                     val ip = IntPointer(1)
-                    val length = av_log_format_line2(source, level, formatStr, params, bp, 1024, ip);
+                    val length = av_log_format_line2(source, level, formatStr, params, bp, 1024, ip)
                     val text = bp.string.substring(0, length).trimEnd()
                     texts.add(text)
                 }
             }
             avdevice_register_all()
             av_log_set_callback(callback)
-            val context = avformat_alloc_context();
+            val context = avformat_alloc_context()
 
             if (Platform.type == PlatformType.WINDOWS) {
                 val options = AVDictionary()
-                av_dict_set(options, "list_devices", "true", 0);
-                val format = av_find_input_format("dshow");
+                av_dict_set(options, "list_devices", "true", 0)
+                val format = av_find_input_format("dshow")
                 avformat_open_input(context, "video=dummy", format, options)
                 var lineIndex = 0
                 all@ while (true) {
@@ -256,8 +270,8 @@ class VideoPlayerFFMPEG private constructor(
                  * in sequence.
                  */
                 val options = AVDictionary()
-                av_dict_set(options, "list_devices", "true", 0);
-                val format = av_find_input_format("avfoundation");
+                av_dict_set(options, "list_devices", "true", 0)
+                val format = av_find_input_format("avfoundation")
                 avformat_open_input(context, "", format, options)
                 var lineIndex = 0
                 var deviceIndex = 0
@@ -362,14 +376,21 @@ class VideoPlayerFFMPEG private constructor(
     val statistics = VideoStatistics()
     private var decoder: Decoder? = null
     private var info: CodecInfo? = null
-    private var state = State.PLAYING
+    private var state = State.INITIALIZE
     private var startTimeMillis = -1L
     var colorBuffer: ColorBuffer? = null
 
     val width: Int get() = colorBuffer?.width ?: 0
     val height: Int get() = colorBuffer?.height ?: 0
 
+    /**
+     * Listenable event, emitted when a new frame arrived
+     */
     val newFrame = Event<FrameEvent>()
+
+    /**
+     * Listenable event, emitted when video ended
+     */
     val ended = Event<VideoEvent>()
 
     private var audioOut: AudioQueueSource? = null
@@ -381,8 +402,9 @@ class VideoPlayerFFMPEG private constructor(
     /**
      * Controls the gain of the audio
      */
+    @Suppress("unused")
     var audioGain: Double
-        set(value: Double) {
+        set(value) {
             audioOut?.let {
                 it.gain = value
             }
@@ -394,12 +416,17 @@ class VideoPlayerFFMPEG private constructor(
     /**
      * Start playing the stream
      */
+    @Suppress("unused")
     fun play() {
         require(!disposed)
+        require(state == State.INITIALIZE)
 
         logger.debug { "start play" }
         file.dumpFormat()
         av_format_inject_global_side_data(file.context)
+
+        println("-- use video ${mode.useVideo}")
+        println("-- use audio ${mode.useAudio}")
 
         val (decoder, info) = runBlocking {
             Decoder.fromContext(statistics, configuration, file.context, mode.useVideo, mode.useAudio)
@@ -414,8 +441,8 @@ class VideoPlayerFFMPEG private constructor(
             }
         }
         val videoOutput = VideoOutput(info.video?.size ?: Dimensions(0, 0), AV_PIX_FMT_RGB32)
-        val audioOutput = AudioOutput(48000, 2, SampleFormat.S16)
-        av_format_inject_global_side_data(file.context);
+        val audioOutput = if (mode.useAudio) AudioOutput(441000, 2, SampleFormat.S16) else null
+        av_format_inject_global_side_data(file.context)
 
         if (mode.useAudio) {
             audioOut = AudioSystem.createQueueSource {
@@ -432,6 +459,7 @@ class VideoPlayerFFMPEG private constructor(
                             frame.unref()
                             ad
                         } else {
+                            //logger.debug { "no audio packets from upstream: [audio queue size: ${decoder.audioQueueSize()}]" }
                             null
                         }
                     }
@@ -450,7 +478,7 @@ class VideoPlayerFFMPEG private constructor(
 
         thread(isDaemon = true) {
             Thread.currentThread().name += "(decoder)"
-            decoder.start(videoOutput.toVideoDecoderOutput(), audioOutput.toAudioDecoderOutput())
+            decoder.start(videoOutput.toVideoDecoderOutput(), audioOutput?.toAudioDecoderOutput())
         }
         startTimeMillis = System.currentTimeMillis()
 
@@ -484,6 +512,13 @@ class VideoPlayerFFMPEG private constructor(
                     val duration = (info.video?.fps ?: 1.0)
 
                     val now = clock()
+
+
+                    if (state == State.PAUSED) {
+                        nextFrame = now+0.001
+                    }
+
+
                     if (now - nextFrame > duration * 2) {
                         logger.debug {
                             "resetting next frame time"
@@ -515,8 +550,24 @@ class VideoPlayerFFMPEG private constructor(
                 }
             }
         }
+        state = State.PLAYING
     }
 
+    @Suppress("unused")
+    fun pause() {
+        state = state.transition(State.PLAYING, State.PAUSED) {
+            audioOut?.pause()
+        }
+    }
+
+    @Suppress("unused")
+    fun resume() {
+        state = state.transition(State.PAUSED, State.PLAYING) {
+            audioOut?.resume()
+        }
+    }
+
+    @Suppress("unused")
     fun restart() {
         require(!disposed)
         endOfFileReached = false
@@ -537,6 +588,7 @@ class VideoPlayerFFMPEG private constructor(
      * Seek in the video
      * @param positionInSeconds the desired seeking time in seconds
      */
+    @Suppress("unused")
     fun seek(positionInSeconds: Double) {
         require(!disposed)
 
@@ -546,31 +598,13 @@ class VideoPlayerFFMPEG private constructor(
         seekPosition = positionInSeconds
     }
 
-
     private fun update() {
-        synchronized(displayQueue) {
-            if (!configuration.allowFrameSkipping) {
-                val frame = displayQueue.peek()
-                if (frame != null) {
-                    displayQueue.pop()
-                    if (!frame.buffer.isNull) {
-                        colorBuffer?.write(frame.buffer.data().capacity(frame.frameSize.toLong()).asByteBuffer())
-                        colorBuffer?.let { lc ->
-                            newFrame.trigger(FrameEvent(lc, 0.0))
-                        }
-                    } else {
-                        logger.error {
-                            "encountered frame with null buffer"
-                        }
-                    }
-                    frame.unref()
-                }
-
-            } else {
-                var frame: VideoFrame?
-                while (!displayQueue.isEmpty()) {
-                    frame = displayQueue.pop()
-                    if (displayQueue.isEmpty()) {
+        if (state == State.PLAYING) {
+            synchronized(displayQueue) {
+                if (!configuration.allowFrameSkipping) {
+                    val frame = displayQueue.peek()
+                    if (frame != null) {
+                        displayQueue.pop()
                         if (!frame.buffer.isNull) {
                             colorBuffer?.write(frame.buffer.data().capacity(frame.frameSize.toLong()).asByteBuffer())
                             colorBuffer?.let { lc ->
@@ -581,8 +615,26 @@ class VideoPlayerFFMPEG private constructor(
                                 "encountered frame with null buffer"
                             }
                         }
+                        frame.unref()
                     }
-                    frame.unref()
+                } else {
+                    var frame: VideoFrame?
+                    while (!displayQueue.isEmpty()) {
+                        frame = displayQueue.pop()
+                        if (displayQueue.isEmpty()) {
+                            if (!frame.buffer.isNull) {
+                                colorBuffer?.write(frame.buffer.data().capacity(frame.frameSize.toLong()).asByteBuffer())
+                                colorBuffer?.let { lc ->
+                                    newFrame.trigger(FrameEvent(lc, 0.0))
+                                }
+                            } else {
+                                logger.error {
+                                    "encountered frame with null buffer"
+                                }
+                            }
+                        }
+                        frame.unref()
+                    }
                 }
             }
         }
@@ -596,6 +648,7 @@ class VideoPlayerFFMPEG private constructor(
      * @param blind only updates the frame data when true
      * @param update does not update the frame data when false
      */
+    @Suppress("unused")
     fun draw(drawer: Drawer, blind: Boolean = false, update: Boolean = true) {
         require(!disposed)
         if (update) {
@@ -613,6 +666,7 @@ class VideoPlayerFFMPEG private constructor(
      * @param blind only updates the frame data when true
      * @param update does not update the frame data when false
      */
+    @Suppress("unused")
     fun draw(drawer: Drawer,
              x: Double = 0.0,
              y: Double = 0.0,
@@ -637,6 +691,7 @@ class VideoPlayerFFMPEG private constructor(
      * @param blind only updates the frame data when true
      * @param update does not update the frame data when false
      */
+    @Suppress("unused")
     fun draw(drawer: Drawer,
              source: Rectangle,
              target: Rectangle,
@@ -652,6 +707,10 @@ class VideoPlayerFFMPEG private constructor(
         }
     }
 
+    /**
+     * Destroy the video player, this releases all allocated resources
+     */
+    @Suppress("unused")
     fun dispose() {
         require(!disposed)
 
@@ -661,7 +720,6 @@ class VideoPlayerFFMPEG private constructor(
             val buffer = displayQueue.pop()
             buffer.unref()
         }
-
         disposed = true
     }
 }

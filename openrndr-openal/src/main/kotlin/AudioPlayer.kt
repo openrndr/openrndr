@@ -136,6 +136,7 @@ class AudioQueueSource(source: Int, private val bufferCount: Int = 2, val queueS
 
         AL11.alSourcePlay(source)
         thread(isDaemon = true) {
+            var playing = true
             while (true) {
                 if (inputQueue.size() < inputQueue.maxSize - 1) {
                     val data = pullFunction?.invoke()
@@ -144,10 +145,17 @@ class AudioQueueSource(source: Int, private val bufferCount: Int = 2, val queueS
                     }
                 }
 
-                var playing = true
+
                 if (queued == 0) {
-                    playing = AL11.alGetSourcei(source, AL11.AL_SOURCE_STATE) == AL11.AL_PLAYING
+
+                    val observation = AL11.alGetSourcei(source, AL11.AL_SOURCE_STATE) == AL11.AL_PLAYING
+                    if (!observation && playing) {
+                        logger.debug { "audio buffer underrun detected" }
+                        playing = false
+                    }
                 }
+
+
 
                 val buffersProcessed = AL11.alGetSourcei(source, AL11.AL_BUFFERS_PROCESSED)
                 queued -= buffersProcessed
@@ -177,7 +185,9 @@ class AudioQueueSource(source: Int, private val bufferCount: Int = 2, val queueS
 
                 if (!playing && queued > 0) {
                     logger.debug { "restarting play" }
+                    playing = true
                     AL11.alSourcePlay(source)
+
                 }
                 Thread.sleep(0)
             }
@@ -186,6 +196,10 @@ class AudioQueueSource(source: Int, private val bufferCount: Int = 2, val queueS
 
     fun stop() {
         flush()
+    }
+
+    fun pause() {
+        AL11.alSourcePause(source)
     }
 
     fun flush() {
