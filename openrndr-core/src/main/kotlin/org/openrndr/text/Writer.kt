@@ -1,6 +1,6 @@
 package org.openrndr.text
 
-import org.openrndr.color.ColorRGBa
+import org.openrndr.Program
 import org.openrndr.draw.DrawStyle
 import org.openrndr.draw.Drawer
 import org.openrndr.draw.FontImageMap
@@ -16,10 +16,6 @@ class Cursor(var x: Double = 0.0, var y: Double = 0.0) {
 class RenderToken(val token: String, val x: Double, val y: Double, val width: Double, val tracking: Double)
 
 class WriteStyle {
-
-    var fill = ColorRGBa.BLACK
-    var stroke: ColorRGBa? = null
-
     var leading = 0.0
     var tracking = 0.0
     var ellipsis: String? = "…"
@@ -39,6 +35,26 @@ class Writer(val drawer: Drawer?) {
 
     var style = WriteStyle()
     val styleStack = Stack<WriteStyle>()
+
+
+    var leading
+        get() = style.leading
+        set(value) {
+            style.leading = value
+        }
+
+    var tracking
+        get() = style.tracking
+        set(value) {
+            style.tracking = value
+        }
+
+    var ellipsis
+        get() = style.ellipsis
+        set(value) {
+            style.ellipsis = value
+        }
+
 
     var drawStyle: DrawStyle = DrawStyle()
         get() {
@@ -66,9 +82,9 @@ class Writer(val drawer: Drawer?) {
 
     fun textWidth(text: String): Double =
             text.sumByDouble { (drawStyle.fontMap as FontImageMap).glyphMetrics[it]?.advanceWidth ?: 0.0 } +
-                    (text.length-1).coerceAtLeast(0) * style.tracking
+                    (text.length - 1).coerceAtLeast(0) * style.tracking
 
-    fun text(text: String, visible:Boolean = true) {
+    fun text(text: String, visible: Boolean = true) {
         val renderTokens = makeRenderTokens(text, false)
 
 
@@ -155,4 +171,18 @@ class Writer(val drawer: Drawer?) {
     private fun emitToken(cursor: Cursor, renderTokens: MutableList<RenderToken>, renderToken: RenderToken) {
         renderTokens.add(renderToken)
     }
+}
+
+fun writer(drawer: Drawer, f: Writer.() -> Unit) {
+    val writer = Writer(drawer)
+    writer.f()
+}
+
+fun Program.writer(f: Writer.() -> Unit) {
+    writer(drawer, f)
+}
+
+@JvmName("drawerWriter")
+fun Drawer.writer(f: Writer.() -> Unit) {
+    writer(this, f)
 }
