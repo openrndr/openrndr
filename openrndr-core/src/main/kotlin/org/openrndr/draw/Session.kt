@@ -113,6 +113,7 @@ class Session(val parent: Session?) {
             """
                 session ended for context [id=${context}]
                 destroying ${renderTargets.size} render targets
+                destroying ${shaders.size} shaders
                 destroying ${colorBuffers.size} color buffers
                 destroying ${depthBuffers.size} depth buffers
                 destroying ${vertexBuffers.size} vertex buffers

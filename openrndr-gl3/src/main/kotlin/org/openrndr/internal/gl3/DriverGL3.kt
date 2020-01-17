@@ -481,6 +481,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
             }
         }
         vertexBuffer.forEach {
+            require(!(it as VertexBufferGL3).isDestroyed)
             setupBuffer(it, 0)
         }
 

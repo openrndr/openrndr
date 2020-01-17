@@ -8,21 +8,17 @@ interface VertexBuffer {
 
     companion object {
         fun createDynamic(format: VertexFormat, vertexCount: Int, session: Session? = Session.active): VertexBuffer {
-            val vertexBuffer = Driver.instance.createDynamicVertexBuffer(format, vertexCount)
-            session?.track(vertexBuffer)
-            return vertexBuffer
+            return Driver.instance.createDynamicVertexBuffer(format, vertexCount, session)
         }
 
         fun createFromFloats(format: VertexFormat, data: FloatArray, session: Session?): VertexBuffer {
             require((data.size * 4) % format.size == 0) {
                 "supplied data size doesn't match format size"
             }
-            val vertexBuffer = createDynamic(format, (data.size * 4) / format.size)
-
+            val vertexBuffer = createDynamic(format, (data.size * 4) / format.size, session)
             vertexBuffer.put {
                 write(data)
             }
-            session?.track(vertexBuffer)
             return vertexBuffer
         }
     }
