@@ -1176,7 +1176,7 @@ class ColorBufferGL3(val target: Int,
                 images.put(0, bBuffer)
                 images.put(1, gBuffer)
                 images.put(2, rBuffer)
-                (images as Buffer).rewind()
+                images.rewind()
 
                 exrImage.images(images)
 
