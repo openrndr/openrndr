@@ -51,27 +51,36 @@ open class Filter(private val shader: Shader? = null, private val watcher: Shade
         val filterVertexCode: String get() = Driver.instance.internalShaderResource("filter.vert")
     }
 
+
     fun apply(source: RenderTarget, target: RenderTarget) {
-        apply(source.colorBuffers.toTypedArray(), target.colorBuffers.toTypedArray())
+        apply(source.colorBuffers.toTypedArray(), target)
     }
 
     open fun apply(source: Array<ColorBuffer>, target: Array<ColorBuffer>) {
         if (target.isEmpty()) {
             return
         }
-
-        val shader = if (this.watcher != null) watcher.shader!! else this.shader!!
         val renderTarget = renderTarget(target[0].width, target[0].height, target[0].contentScale) {}
 
         target.forEach {
             renderTarget.attach(it)
         }
 
+        apply(source, renderTarget)
         depthBufferOut?.let {
             renderTarget.attach(it)
         }
 
-        renderTarget.bind()
+        if (depthBufferOut != null) {
+            renderTarget.detachDepthBuffer()
+        }
+        renderTarget.detachColorBuffers()
+        renderTarget.destroy()
+    }
+
+    fun apply(source: Array<ColorBuffer>, target: RenderTarget) {
+        val shader = if (this.watcher != null) watcher.shader!! else this.shader!!
+        target.bind()
 
         if (filterQuad == null) {
             val fq = VertexBuffer.createDynamic(filterQuadFormat, 6, Session.root)
@@ -99,8 +108,8 @@ open class Filter(private val shader: Shader? = null, private val watcher: Shade
 
         Driver.instance.setState(filterDrawStyle)
 
-        shader.uniform("projectionMatrix", ortho(0.0, target[0].width.toDouble(), target[0].height.toDouble(), 0.0, -1.0, 1.0))
-        shader.uniform("targetSize", Vector2(target[0].width.toDouble(), target[0].height.toDouble()))
+        shader.uniform("projectionMatrix", ortho(0.0, target.width.toDouble(), target.height.toDouble(), 0.0, -1.0, 1.0))
+        shader.uniform("targetSize", Vector2(target.width.toDouble(), target.height.toDouble()))
         shader.uniform("padding", Vector2(padding.toDouble(), padding.toDouble()))
 
         var textureIndex = source.size
@@ -150,12 +159,7 @@ open class Filter(private val shader: Shader? = null, private val watcher: Shade
 
         Driver.instance.drawVertexBuffer(shader, listOf(filterQuad!!), DrawPrimitive.TRIANGLES, 0, 6)
         shader.end()
-        renderTarget.unbind()
-        if (depthBufferOut != null) {
-            renderTarget.detachDepthBuffer()
-        }
-        renderTarget.detachColorBuffers()
-        renderTarget.destroy()
+        target.unbind()
     }
 
     fun apply(source: ColorBuffer, target: ColorBuffer) = apply(arrayOf(source), arrayOf(target))

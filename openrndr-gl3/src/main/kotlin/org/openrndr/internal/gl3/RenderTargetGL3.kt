@@ -166,10 +166,11 @@ open class RenderTargetGL3(val framebuffer: Int,
         val context = glfwGetCurrentContext()
         bindTarget()
 
+        val div = 1 shl level
         val effectiveWidth = (width * contentScale).toInt()
         val effectiveHeight = (height * contentScale).toInt()
 
-        if (!(colorBuffer.effectiveWidth == effectiveWidth && colorBuffer.effectiveHeight == effectiveHeight)) {
+        if (!(colorBuffer.effectiveWidth / div == effectiveWidth && colorBuffer.effectiveHeight / div == effectiveHeight)) {
             throw IllegalArgumentException("buffer dimension mismatch. expected: ($width x $height @${colorBuffer.contentScale}x, got: (${colorBuffer.width} x ${colorBuffer.height} @${colorBuffer.contentScale}x)")
         }
         colorBuffer as ColorBufferGL3
