@@ -6,6 +6,9 @@ import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.sqrt
 
+/**
+ * Quaternion class for representing orientations in 3D space
+ */
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 data class Quaternion(val x: Double, val y: Double, val z: Double, val w: Double) : Serializable {
 
@@ -13,6 +16,9 @@ data class Quaternion(val x: Double, val y: Double, val z: Double, val w: Double
         val IDENTITY: Quaternion = Quaternion(0.0, 0.0, 0.0, 1.0)
         val ZERO: Quaternion = Quaternion(0.0, 0.0, 0.0, 0.0)
 
+        /**
+         * Construct [Quaternion] using from, to and up vectors
+         */
         fun fromLookAt(from: Vector3, to: Vector3, up: Vector3 = Vector3.UNIT_Y): Quaternion {
             val direction = to - from
             val z = direction.normalized
@@ -22,11 +28,18 @@ data class Quaternion(val x: Double, val y: Double, val z: Double, val w: Double
             return fromAxes(x, y2, z).normalized
         }
 
+        /**
+         * Construct [Quaternion] from axes
+         */
         fun fromAxes(x: Vector3, y: Vector3, z: Vector3): Quaternion {
             val m = Matrix33.fromColumnVectors(x, y, z)
             return fromMatrix(m)
         }
 
+        /**
+         * Construct [Quaternion] from [Matrix33]
+         * @param m a [Matrix33] that describes an ortho-normal basis
+         */
         fun fromMatrix(m: Matrix33): Quaternion {
             val t = m.trace + 1.0
             val x: Double
@@ -61,9 +74,15 @@ data class Quaternion(val x: Double, val y: Double, val z: Double, val w: Double
             return Quaternion(x, y, z, w)
         }
 
+        /**
+         * Construct [Quaternion] from a set of degrees
+         */
         fun fromAngles(pitch: Double, roll: Double, yaw: Double) =
                 fromAnglesRadian(Math.toRadians(pitch), Math.toRadians(roll), Math.toRadians(yaw))
 
+        /**
+         * Construct [Quaternion] from a set of arc lengths
+         */
         fun fromAnglesRadian(pitch: Double, roll: Double, yaw: Double): Quaternion {
             val cy = cos(yaw * 0.5)
             val sy = sin(yaw * 0.5)
@@ -80,7 +99,7 @@ data class Quaternion(val x: Double, val y: Double, val z: Double, val w: Double
         }
     }
 
-    val length: Double get() = Math.sqrt(x * x + y * y + z * z + w * w)
+    val length: Double get() = sqrt(x * x + y * y + z * z + w * w)
 
     operator fun times(q: Quaternion): Quaternion {
         return Quaternion(
@@ -120,7 +139,7 @@ data class Quaternion(val x: Double, val y: Double, val z: Double, val w: Double
                 val invNorm = 1.0 / n
                 return Quaternion(-x * invNorm, -y * invNorm, -z * invNorm, w * invNorm)
             } else {
-                throw RuntimeException("norm <= 0 => quaternion is not invertible")
+                error("norm <= 0 => quaternion is not invertible")
             }
         }
 
@@ -132,6 +151,9 @@ data class Quaternion(val x: Double, val y: Double, val z: Double, val w: Double
 
     val norm: Double get() = x * x + y * y + z * z + w * w
 
+    /**
+     * An orthonormal basis for the orientation described by the quaternion
+     */
     val matrix: Matrix33
         get() {
             val norm = this.norm
@@ -163,6 +185,7 @@ data class Quaternion(val x: Double, val y: Double, val z: Double, val w: Double
         }
 }
 
+@Suppress("unused")
 fun dot(q1: Quaternion, q2: Quaternion): Double {
     return q1.w * q2.w + q1.x * q2.x + q1.y * q2.y + q2.z * q2.z
 }
