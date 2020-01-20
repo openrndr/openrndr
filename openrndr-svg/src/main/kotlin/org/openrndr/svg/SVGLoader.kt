@@ -7,11 +7,28 @@ import org.openrndr.color.ColorRGBa
 import org.openrndr.math.Matrix44
 import org.openrndr.math.Vector2
 import org.openrndr.shape.*
+import java.io.File
 import java.util.regex.Pattern
 
-fun loadSVG(svgString: String): Composition {
-    val doc = SVGLoader().loadSVG(svgString)
-    return doc.composition()
+/**
+ * Load a [Composition] from a file, url or svg string
+ * @param fileOrUrlOrSvg a filename, a url or an svg document
+ */
+fun loadSVG(fileOrUrlOrSvg: String): Composition {
+    if (fileOrUrlOrSvg.endsWith(".svg")) {
+        return parseSVG(File(fileOrUrlOrSvg).readText())
+    } else {
+        return parseSVG(fileOrUrlOrSvg)
+    }
+}
+
+/**
+ * Parses an svg document and creates a [Composition]
+ * @param svgString xml-like svg document
+ */
+fun parseSVG(svgString: String): Composition {
+    val document = SVGLoader().loadSVG(svgString)
+    return document.composition()
 }
 
 internal class Command(val op: String, vararg val operands: Double) {
@@ -33,7 +50,7 @@ internal sealed class SVGElement {
         val m = p.matcher(e.attr("transform"))
 
         fun getTransformOperands(token: String): List<Double> {
-            val number = Pattern.compile("-?[0-9\\.eE\\-]+")
+            val number = Pattern.compile("-?[0-9.eE\\-]+")
             val nm = number.matcher(token)
             val operands = mutableListOf<Double>()
             while (nm.find()) {
@@ -73,9 +90,9 @@ internal fun parseColor(scolor: String): ColorRGBa? {
 
     return when {
         scolor.isEmpty() || scolor == "none" -> null
-        scolor . startsWith ("#") -> {
-            val normalizedColor = normalizeColorHex(scolor)
-            val v = java.lang.Long.decode(normalizedColor)
+        scolor.startsWith("#") -> {
+            val normalizedColor = normalizeColorHex(scolor).replace("#","")
+            val v = normalizedColor.toLong(radix = 16)
             val vi = v.toInt()
             val r = vi shr 16 and 0xff
             val g = vi shr 8 and 0xff
@@ -96,14 +113,11 @@ internal fun parseColor(scolor: String): ColorRGBa? {
         scolor == "aqua" -> ColorRGBa.fromHex(0x00ffff)
         scolor == "teal" -> ColorRGBa.fromHex(0x008080)
         scolor == "blue" -> ColorRGBa.fromHex(0x0000ff)
-        scolor == "navy"-> ColorRGBa.fromHex(0x000080)
+        scolor == "navy" -> ColorRGBa.fromHex(0x000080)
         scolor == "fuchsia" -> ColorRGBa.fromHex(0xff00ff)
         scolor == "purple" -> ColorRGBa.fromHex(0x800080)
         scolor == "orange" -> ColorRGBa.fromHex(0xffa500)
-
-
-        else -> throw RuntimeException("could not parse color: " + scolor)
-
+        else -> error("could not parse color: $scolor")
     }
 }
 
@@ -111,22 +125,22 @@ fun normalizeColorHex(colorHex: String): String {
     val colorHexRegex = "#?([0-9a-f]{3,6})".toRegex(RegexOption.IGNORE_CASE)
 
     val matchResult = colorHexRegex.matchEntire(colorHex)
-        ?: throw RuntimeException("The provided colorHex '$colorHex' is not a valid color hex for the SVG spec")
+            ?: error("The provided colorHex '$colorHex' is not a valid color hex for the SVG spec")
 
     val hexValue = matchResult.groups[1]!!.value.toLowerCase()
     val normalizedArgb = when (hexValue.length) {
         3 -> expandToTwoDigitsPerComponent("f$hexValue")
         6 -> hexValue
-        else -> throw RuntimeException("The provided colorHex '$colorHex' is not in a supported format")
+        else -> error("The provided colorHex '$colorHex' is not in a supported format")
     }
 
     return "#$normalizedArgb"
 }
 
 fun expandToTwoDigitsPerComponent(hexValue: String) =
-    hexValue.asSequence()
-        .map { "$it$it" }
-        .reduce { accumulatedHex, component -> accumulatedHex + component }
+        hexValue.asSequence()
+                .map { "$it$it" }
+                .reduce { accumulatedHex, component -> accumulatedHex + component }
 
 internal class SVGPath : SVGElement() {
     val commands = mutableListOf<Command>()
@@ -137,7 +151,7 @@ internal class SVGPath : SVGElement() {
     companion object {
         fun fromSVGPathString(svgPath: String): SVGPath {
             val path = SVGPath()
-            val rawCommands = svgPath.split("(?=[MmZzLlHhVvCcSsQqTtAa])".toRegex()).dropLastWhile({ it.isEmpty() })
+            val rawCommands = svgPath.split("(?=[MmZzLlHhVvCcSsQqTtAa])".toRegex()).dropLastWhile { it.isEmpty() }
             val numbers = Pattern.compile("[-+]?[0-9]*[.]?[0-9]+(?:[eE][-+]?[0-9]+)?")
 
             for (rawCommand in rawCommands) {
@@ -154,7 +168,7 @@ internal class SVGPath : SVGElement() {
         }
     }
 
-    fun compounds(): List<SVGPath> {
+    private fun compounds(): List<SVGPath> {
         val compounds = mutableListOf<SVGPath>()
         val compoundIndices = mutableListOf<Int>()
 
@@ -184,11 +198,10 @@ internal class SVGPath : SVGElement() {
         var anchor = cursor.copy()
         var relativeControl = Vector2(0.0, 0.0)
 
-        val contours = compounds().mapIndexed { compoundIndex, compound ->
+        val contours = compounds().map { compound ->
             val segments = mutableListOf<Segment>()
             var closed = false
             compound.commands.forEach { command ->
-
                 when (command.op) {
                     "M" -> {
                         cursor = command.vector(0, 1)
@@ -231,39 +244,37 @@ internal class SVGPath : SVGElement() {
                         }
                     }
                     "h" -> {
-                        for (i in 0 until command.operands.size) {
+                        for (operand in command.operands) {
                             val startCursor = cursor
-                            val target = startCursor + Vector2(command.operands[i], 0.0)
+                            val target = startCursor + Vector2(operand, 0.0)
                             segments += Segment(cursor, target)
                             cursor = target
                         }
                     }
                     "H" -> {
-                        for (i in 0 until command.operands.size) {
-
-                            val target = Vector2(command.operands[i], cursor.y)
+                        for (operand in command.operands) {
+                            val target = Vector2(operand, cursor.y)
                             segments += Segment(cursor, target)
                             cursor = target
                         }
                     }
                     "v" -> {
-                        for (i in 0 until command.operands.size) {
-                            val target = cursor + Vector2(0.0, command.operands[i])
+                        for (operand in command.operands) {
+                            val target = cursor + Vector2(0.0, operand)
                             segments += Segment(cursor, target)
                             cursor = target
                         }
                     }
                     "V" -> {
-                        for (i in 0 until command.operands.size) {
-
-                            val target = Vector2(cursor.x, command.operands[i])
+                        for (operand in command.operands) {
+                            val target = Vector2(cursor.x, operand)
                             segments += Segment(cursor, target)
                             cursor = target
                         }
                     }
                     "C" -> {
                         val allPoints = command.vectors()
-                        allPoints.windowed(3, 3).forEach {points ->
+                        allPoints.windowed(3, 3).forEach { points ->
                             segments += Segment(cursor, points[0], points[1], points[2])
                             cursor = points[2]
                             relativeControl = points[1] - points[2]
@@ -280,11 +291,10 @@ internal class SVGPath : SVGElement() {
                     "Q" -> {
                         val allPoints = command.vectors()
                         if ((allPoints.size) % 2 != 0) {
-                            throw RuntimeException("invalid number of operands ${allPoints.size}")
+                            error("invalid number of operands for Q-op (operands=${allPoints.size})")
                         }
                         for (c in 0 until allPoints.size / 2) {
                             val points = allPoints.subList(c * 2, c * 2 + 2)
-
                             segments += Segment(cursor, points[0], points[1])
                             cursor = points[1]
                             relativeControl = points[0] - points[1]
@@ -293,7 +303,7 @@ internal class SVGPath : SVGElement() {
                     "q" -> {
                         val allPoints = command.vectors()
                         if ((allPoints.size) % 2 != 0) {
-                            throw RuntimeException("invalid number of operands ${allPoints.size}")
+                            error("invalid number of operands for q-op (operands=${allPoints.size})")
                         }
                         for (c in 0 until allPoints.size / 2) {
                             val points = allPoints.subList(c * 2, c * 2 + 2)
@@ -328,7 +338,7 @@ internal class SVGPath : SVGElement() {
                         closed = true
                     }
                     else -> {
-                        throw RuntimeException("unsupported op: ${command.op}")
+                        error("unsupported op: ${command.op}, is this a TinySVG 1.x document?")
                     }
                 }
             }
@@ -372,7 +382,7 @@ internal class SVGDocument(private val root: SVGElement) {
     fun composition(): Composition = Composition(convertElement(root))
 
     private fun convertElement(e: SVGElement): CompositionNode = when (e) {
-        is SVGGroup -> GroupNode().apply { e.elements.mapTo(children) { convertElement(it).also { it.parent = this@apply } } }
+        is SVGGroup -> GroupNode().apply { e.elements.mapTo(children) { convertElement(it).also { x -> x.parent = this@apply } } }
         is SVGPath -> {
             ShapeNode(e.shape()).apply {
                 fill = e.fill
@@ -392,13 +402,13 @@ internal class SVGLoader {
     fun loadSVG(svg: String): SVGDocument {
         val doc = Jsoup.parse(svg, "", Parser.xmlParser())
         val root = doc.select("svg").first()
-        val version = root.attr("version")
+//        val version = root.attr("version")
 
-        val supportedVersions = setOf("1.0", "1.1", "1.2")
+//        val supportedVersions = setOf("1.0", "1.1", "1.2")
 
-        if (version !in supportedVersions) {
-            throw IllegalArgumentException("SVG version `$version` is not supported")
-        }
+//        if (version !in supportedVersions) {
+//            error("SVG version `$version` is not supported")
+//        }
 
         // a lot of SVG files that don't have profile set still mostly work with the parser.
         // disabling baseProfile check for now
@@ -457,7 +467,6 @@ internal class SVGLoader {
                 "circle" -> handleCircle(group, c)
                 "polygon" -> handlePolygon(group, c)
                 "polyline" -> handlePolyline(group, c)
-//                "image" -> TODO()
             }
         }
     }
