@@ -817,6 +817,11 @@ void main() {
         |// -- ShaderGeneratorsGL3.filterFragmentShader
         |#version 330 core
         |in vec2 v_texCoord0;
+        |uniform sampler2D tex0;
+        |uniform sampler2D tex1;
+        |uniform sampler2D tex2;
+        |uniform sampler2D tex3;
+        |uniform sampler2D tex4;
         |// -- drawerUniforms
         |${drawerUniforms}
         |// -- shadeStructure.outputs
@@ -828,7 +833,7 @@ void main() {
         |${shadeStructure.fragmentPreamble ?: ""}
         |void main() {
         |   ${fragmentConstants(instance = "0", screenPosition = "v_texCoord0")}
-        |   vec4 x_fill = p_fill;
+        |   vec4 x_fill = texture(tex0, v_texCoord0);
         |   vec4 x_stroke = vec4(0.0);
         |   {
         |       // -- shadeStructure.fragmentTransform
