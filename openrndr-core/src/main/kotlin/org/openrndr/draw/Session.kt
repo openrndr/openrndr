@@ -8,23 +8,25 @@ import java.util.*
 private val logger = KotlinLogging.logger {}
 private val sessionStack = mutableMapOf<Long, Stack<Session>>()
 
-class SessionStatistics(val renderTargets: Int, val colorBuffers: Int, val depthBuffers: Int, val bufferTextures: Int, val indexBuffers: Int, val vertexBuffers: Int, val shaders: Int, val cubemaps: Int, val arrayTextures: Int, val computeShaders:Int, val atomicCounterBuffers: Int)
+class SessionStatistics(val renderTargets: Int, val colorBuffers: Int, val depthBuffers: Int, val bufferTextures: Int, val indexBuffers: Int, val vertexBuffers: Int, val shaders: Int, val cubemaps: Int, val arrayTextures: Int, val computeShaders: Int, val atomicCounterBuffers: Int)
 
 class Session(val parent: Session?) {
     val context = Driver.instance.contextID
 
     companion object {
+        val stack: Stack<Session>
+            get() = sessionStack.getOrPut(Driver.instance.contextID) { Stack<Session>().apply { push(Session(null)) } }
+
         val active: Session
-            get() = sessionStack.getOrPut(Driver.instance.contextID) { Stack<Session>().apply { push(Session(null)) } }.peek()
+            get() = stack.peek()
 
         val root: Session
-            get() = sessionStack.getOrPut(Driver.instance.contextID) { Stack<Session>().apply { push(Session(null)) } }.first()
+            get() = stack.first()
 
         fun endActive() {
             val session = sessionStack.getValue(Driver.instance.contextID).pop()
             session.end()
         }
-
     }
 
     private val children = mutableListOf<Session>()
@@ -86,7 +88,6 @@ class Session(val parent: Session?) {
 
     fun track(arrayTexture: ArrayTexture) = arrayTextures.add(arrayTexture)
     fun untrack(arrayTexture: ArrayTexture) = arrayTextures.remove(arrayTexture)
-
 
     fun track(atomicCounterBuffer: AtomicCounterBuffer) = atomicCounterBuffers.add(atomicCounterBuffer)
     fun untrack(atomicCounterBuffer: AtomicCounterBuffer) = atomicCounterBuffers.remove(atomicCounterBuffer)
@@ -172,7 +173,6 @@ class Session(val parent: Session?) {
         }
         computeShaders.clear()
 
-
         arrayTextures.map { it }.forEach {
             it.destroy()
         }
@@ -184,4 +184,10 @@ fun session(code: () -> Unit) {
     val s = Session.active.fork()
     code()
     s.end()
+}
+
+fun <T> persistent(builder: () -> T): T {
+    Session.stack.push(Session.root)
+    return builder()
+    Session.stack.pop()
 }
