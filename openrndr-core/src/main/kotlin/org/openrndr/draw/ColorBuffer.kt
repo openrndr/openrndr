@@ -169,32 +169,32 @@ interface ColorBuffer {
 
     companion object {
         fun fromUrl(url: String, session: Session? = Session.active): ColorBuffer {
-            val colorBuffer = Driver.instance.createColorBufferFromUrl(url)
+            val colorBuffer = Driver.instance.createColorBufferFromUrl(url, session)
             return colorBuffer
         }
 
         fun fromFile(file: File, session: Session? = Session.active): ColorBuffer {
-            val colorBuffer = Driver.instance.createColorBufferFromFile(file.absolutePath)
+            val colorBuffer = Driver.instance.createColorBufferFromFile(file.absolutePath, session)
             return colorBuffer
         }
 
         fun fromFile(filename: String, session: Session? = Session.active): ColorBuffer {
-            val colorBuffer = Driver.instance.createColorBufferFromFile(filename)
+            val colorBuffer = Driver.instance.createColorBufferFromFile(filename, session)
             return colorBuffer
         }
 
         fun fromStream(stream: InputStream, formatHint: String? = null, session: Session? = Session.active): ColorBuffer {
-            val colorBuffer = Driver.instance.createColorBufferFromStream(stream)
+            val colorBuffer = Driver.instance.createColorBufferFromStream(stream, session = session)
             return colorBuffer
         }
 
         fun fromArray(bytes: ByteArray, offset: Int = 0, length: Int = bytes.size, session: Session? = Session.active): ColorBuffer {
-            val colorBuffer = Driver.instance.createColorBufferFromArray(bytes)
+            val colorBuffer = Driver.instance.createColorBufferFromArray(bytes, session = session)
             return colorBuffer
         }
 
         fun fromBuffer(bytes: ByteBuffer, session: Session? = Session.active): ColorBuffer {
-            val colorBuffer = Driver.instance.createColorBufferFromBuffer(bytes)
+            val colorBuffer = Driver.instance.createColorBufferFromBuffer(bytes, session = session)
             return colorBuffer
         }
     }
@@ -212,8 +212,7 @@ interface ColorBuffer {
  * @param levels the number of mip-map levels
  */
 fun colorBuffer(width: Int, height: Int, contentScale: Double = 1.0, format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.UINT8, multisample: BufferMultisample = BufferMultisample.Disabled, levels: Int = 1, session: Session? = Session.active): ColorBuffer {
-    val colorBuffer = Driver.driver.createColorBuffer(width, height, contentScale, format, type, multisample, levels, session)
-    return colorBuffer
+    return Driver.driver.createColorBuffer(width, height, contentScale, format, type, multisample, levels, session)
 }
 
 /**
@@ -224,9 +223,9 @@ fun loadImage(fileOrUrl: String, session: Session? = Session.active): ColorBuffe
         if (!fileOrUrl.startsWith("data:")) {
             URL(fileOrUrl)
         }
-        ColorBuffer.fromUrl(fileOrUrl)
+        ColorBuffer.fromUrl(fileOrUrl, session)
     } catch (e: MalformedURLException) {
-        ColorBuffer.fromFile(fileOrUrl)
+        ColorBuffer.fromFile(fileOrUrl, session)
     }
 }
 
