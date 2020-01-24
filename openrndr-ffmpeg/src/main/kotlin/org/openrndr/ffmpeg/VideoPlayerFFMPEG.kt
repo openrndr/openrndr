@@ -179,6 +179,10 @@ class VideoPlayerConfiguration {
     var maximumSeekOffset = 0.0
     var legacyStreamOpen = false
     var allowArbitrarySeek = false
+    /**
+     * Maximum time in seconds it may take before a new packet is received
+     */
+    var packetTimeout = 60.0
 }
 
 private object defaultLogger : Callback_Pointer_int_String_Pointer() {
@@ -600,6 +604,19 @@ class VideoPlayerFFMPEG private constructor(
 
     private fun update() {
         if (state == State.PLAYING) {
+
+            decoder?.let {
+                if (it.videoQueueSize() == 0 && displayQueue.size() == 0 && !endOfFileReached) {
+                    if (configuration.packetTimeout > 0) {
+                        if (it.lastPacketReceived != 0L) {
+                            if ((System.currentTimeMillis() - it.lastPacketReceived) / 1000.0 > configuration.packetTimeout) {
+                                error("packet receive timeout")
+                            }
+                        }
+                    }
+                }
+            }
+
             synchronized(displayQueue) {
                 if (!configuration.allowFrameSkipping) {
                     val frame = displayQueue.peek()

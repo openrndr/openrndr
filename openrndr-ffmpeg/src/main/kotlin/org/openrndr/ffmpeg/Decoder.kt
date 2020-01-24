@@ -127,6 +127,7 @@ internal class Decoder(private val statistics: VideoStatistics,
     var audioOutQueueFull: () -> Boolean = { false }
     var seekCompleted: () -> Unit = { }
     var reachedEndOfFile: () -> Unit = { }
+    var lastPacketReceived = 0L
 
     fun start(videoOutput: VideoDecoderOutput?, audioOutput: AudioDecoderOutput?) {
         videoDecoder = videoCodecContext?.let { ctx ->
@@ -158,6 +159,9 @@ internal class Decoder(private val statistics: VideoStatistics,
     private var needFlush = false
     private var seekRequested = false
     private var seekPosition: Double = 0.0
+
+    var seekTimedOut = false
+
     fun seek(positionInSeconds: Double) {
         seekPosition = positionInSeconds
         seekRequested = true
@@ -228,6 +232,7 @@ internal class Decoder(private val statistics: VideoStatistics,
             }
 
             if (packet != null) {
+                lastPacketReceived = System.currentTimeMillis()
                 packetsReceived++
                 if (hasSeeked && packetsReceived == 1) {
                     logger.debug { "seek completed" }
