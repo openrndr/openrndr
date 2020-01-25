@@ -137,6 +137,12 @@ open class Filter(private val shader: Shader? = null, private val watcher: Shade
                     //is ColorRGBa -> shader.uniform(uniform, value as Array<ColorRGBa>)
                 }
 
+                is DepthBuffer -> {
+                    shader.uniform("$uniform", textureIndex)
+                    value.bind(textureIndex)
+                    textureIndex++
+                }
+
                 is ColorBuffer -> {
                     shader.uniform("$uniform", textureIndex)
                     value.bind(textureIndex)
