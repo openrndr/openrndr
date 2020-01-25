@@ -158,7 +158,7 @@ open class RenderTargetGL3(val framebuffer: Int,
     override fun attach(name: String, colorBuffer: ColorBuffer, level: Int) {
         require(!destroyed)
         colorBufferIndices[name] = _colorBuffers.size
-        attach(colorBuffer)
+        attach(colorBuffer, level)
     }
 
     override fun attach(colorBuffer: ColorBuffer, level: Int) {
@@ -174,7 +174,7 @@ open class RenderTargetGL3(val framebuffer: Int,
             throw IllegalArgumentException("buffer dimension mismatch. expected: ($width x $height @${colorBuffer.contentScale}x, got: (${colorBuffer.width} x ${colorBuffer.height} @${colorBuffer.contentScale}x)")
         }
         colorBuffer as ColorBufferGL3
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + attachements, colorBuffer.target, colorBuffer.texture, 0)
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + attachements, colorBuffer.target, colorBuffer.texture, level)
         attachements++
         debugGLErrors { null }
         _colorBuffers.add(colorBuffer)
@@ -186,7 +186,7 @@ open class RenderTargetGL3(val framebuffer: Int,
     override fun attach(name: String, arrayTexture: ArrayTexture, layer: Int, level: Int) {
         require(!destroyed)
         arrayTextureIndices[name] = _arrayTextures.size
-        attach(arrayTexture, layer)
+        attach(arrayTexture, layer, level)
     }
 
     override fun attach(arrayTexture: ArrayTexture, layer: Int, level: Int) {
@@ -202,7 +202,7 @@ open class RenderTargetGL3(val framebuffer: Int,
         }
         arrayTexture as ArrayTextureGL3
         //glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + colorBuffers.size, colorBuffer.target, colorBuffer.texture, 0)
-        glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + attachements, arrayTexture.texture, 0, layer)
+        glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + attachements, arrayTexture.texture, level, layer)
         debugGLErrors { null }
         attachements++
 
