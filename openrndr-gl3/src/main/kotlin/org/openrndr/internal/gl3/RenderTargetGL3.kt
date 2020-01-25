@@ -171,7 +171,7 @@ open class RenderTargetGL3(val framebuffer: Int,
         val effectiveHeight = (height * contentScale).toInt()
 
         if (!(colorBuffer.effectiveWidth / div == effectiveWidth && colorBuffer.effectiveHeight / div == effectiveHeight)) {
-            throw IllegalArgumentException("buffer dimension mismatch. expected: ($width x $height @${colorBuffer.contentScale}x, got: (${colorBuffer.width} x ${colorBuffer.height} @${colorBuffer.contentScale}x)")
+            throw IllegalArgumentException("buffer dimension mismatch. expected: ($width x $height @${colorBuffer.contentScale}x, got: (${colorBuffer.width/div} x ${colorBuffer.height/div} @${colorBuffer.contentScale}x level:${level})")
         }
         colorBuffer as ColorBufferGL3
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + attachements, colorBuffer.target, colorBuffer.texture, level)

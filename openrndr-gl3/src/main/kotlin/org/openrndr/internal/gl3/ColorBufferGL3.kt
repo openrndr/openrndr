@@ -882,7 +882,10 @@ class ColorBufferGL3(val target: Int,
 
     override fun copyTo(target: ColorBuffer, fromLevel: Int, toLevel: Int) {
         checkDestroyed()
-        val readTarget = renderTarget(width, height, contentScale) {
+        val fromDiv = 1 shl fromLevel
+        val toDiv = 1 shl toLevel
+
+        val readTarget = renderTarget(width / fromDiv, height / fromDiv, contentScale) {
             colorBuffer(this@ColorBufferGL3, fromLevel)
         } as RenderTargetGL3
 
@@ -890,9 +893,8 @@ class ColorBufferGL3(val target: Int,
         readTarget.bind()
         glReadBuffer(GL_COLOR_ATTACHMENT0)
         debugGLErrors()
-        val div = 1 shl toLevel
         target.bound {
-            glCopyTexSubImage2D(target.target, toLevel, 0, 0, 0, 0, target.width / div, target.height / div)
+            glCopyTexSubImage2D(target.target, toLevel, 0, 0, 0, 0, target.width / toDiv, target.height / toDiv)
             debugGLErrors() {
                 when (it) {
                     GL_INVALID_VALUE -> "level ($toLevel) less than 0, effective target is GL_TEXTURE_RECTANGLE (${target.target == GL_TEXTURE_RECTANGLE} and level is not 0"
@@ -908,15 +910,17 @@ class ColorBufferGL3(val target: Int,
 
     override fun copyTo(target: ArrayTexture, layer: Int, fromLevel: Int, toLevel: Int) {
         checkDestroyed()
-        val readTarget = renderTarget(width, height, contentScale) {
-            colorBuffer(this@ColorBufferGL3)
+        val fromDiv = 1 shl fromLevel
+        val toDiv = 1 shl toLevel
+        val readTarget = renderTarget(width / fromDiv, height / fromDiv, contentScale) {
+            colorBuffer(this@ColorBufferGL3, fromLevel)
         } as RenderTargetGL3
 
         target as ArrayTextureGL3
         readTarget.bind()
         glReadBuffer(GL_COLOR_ATTACHMENT0)
         target.bound {
-            glCopyTexSubImage3D(target.target, 0, 0, 0, layer, 0, 0, target.width, target.height)
+            glCopyTexSubImage3D(target.target, toLevel, 0, 0, layer, 0, 0, target.width / toDiv, target.height / toDiv)
             debugGLErrors()
         }
         readTarget.unbind()
