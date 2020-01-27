@@ -8,30 +8,47 @@ import org.openrndr.shape.Rectangle
 
 private val logger = KotlinLogging.logger {}
 
-
+/**
+ * Line join enumeration
+ */
 enum class LineJoin {
     BEVEL,
     ROUND
 }
 
+/**
+ * Line cap enumeration
+ */
 enum class LineCap {
     ROUND,
     BUTT,
     SQUARE
 }
 
+/**
+ * Vertex element type enumeration
+ */
 enum class VertexElementType(val componentCount: Int, val sizeInBytes: Int) {
+    /** 32 bit float, or single precision float scalar */
     FLOAT32(1, 4),
+    /** 32 bit float, or single precision float 2-component vector */
     VECTOR2_FLOAT32(2, 8),
+    /** 32 bit float, or single precision float 3-component vector */
     VECTOR3_FLOAT32(3, 12),
+    /** 32 bit float, or single precision float 4-component vector */
     VECTOR4_FLOAT32(4, 16),
+    /** 32 bit float, or single precision float 2x2 matrix */
     MATRIX22_FLOAT32(4, 4 * 4),
+    /** 32 bit float, or single precision float 3x3 matrix */
     MATRIX33_FLOAT32(9, 9 * 4),
+    /** 32 bit float, or single precision float 4x4 matrix */
     MATRIX44_FLOAT32(16, 16 * 4),
 }
 
-enum class
-DrawPrimitive {
+/**
+ * Draw primitive type enumeration
+ */
+enum class DrawPrimitive {
     TRIANGLES,
     TRIANGLE_STRIP,
     TRIANGLE_FAN,
@@ -63,11 +80,19 @@ enum class StencilOperation {
     INVERT
 }
 
+/**
+ * Depth format enumeration
+ */
 enum class DepthFormat {
+    /** 16 bit integer depth */
     DEPTH16,
+    /** 24 bit integer depth */
     DEPTH24,
+    /** 32 bit floating point depth */
     DEPTH32F,
+    /** 24 bit integer depth plus 8 bit integer stencil */
     DEPTH24_STENCIL8,
+    /** 32 bit float depth plus 8 bit integer stencil */
     DEPTH32F_STENCIL8
 }
 
@@ -93,18 +118,32 @@ class StencilStyle {
     }
 }
 
-
+/**
+ * Color format enumeration
+ */
 @Suppress("EnumEntryName")
 enum class ColorFormat {
+
+    /** Format with a single component (red)*/
     R,
+    /** Format with two components (red, green)*/
     RG,
+    /** Format with three components (red, green, blue)*/
     RGB,
+    /** Format with three components in reverse order (blue, green, red)*/
     BGR,
+    /** Format with four components (red, green, blue, alpha)*/
     RGBa,
+    /** Format with four components in reverse order (blue, green, red, alpha)*/
     BGRa,
+    /** Format with three components (red, green, blue) in sRGB space*/
     sRGB,
+    /** Format with four components (red, green, blue, alpha) in sRGB space*/
     sRGBa;
 
+    /**
+     * The number of (color) components in the format
+     */
     val componentCount: Int
         get() {
             return when (this) {
@@ -116,28 +155,52 @@ enum class ColorFormat {
         }
 }
 
+/**
+ * Color sampling enumeration
+ */
 enum class ColorSampling {
+    /** Normalized between 0 and 1 */
     NORMALIZED,
     UNSIGNED_INTEGER,
     SIGNED_INTEGER
 }
 
+/**
+ * Color type enumeration
+ */
 enum class ColorType {
+    /** unsigned 8 bit integer type */
     UINT8,
+    /** unsigned 16 bit integer type */
     UINT16,
+    /** unsigned 8 bit integer type, with integer sampler */
     UINT8_INT,
+    /** unsigned 16 bit integer type, with integer sampler */
     UINT16_INT,
+    /** signed 8 bit integer type, with integer sampler */
     SINT8_INT,
+    /** signed 16 bit integer type, with integer sampler */
     SINT16_INT,
+    /** 16 bit float type, or half precision float type */
     FLOAT16,
+    /** 32 bit float type, or single precision float type */
     FLOAT32,
+    /** Compressed in DXT1 format */
     DXT1,
+    /** Compressed in DXT3 format */
     DXT3,
+    /** Compressed in DXT5 format */
     DXT5,
+    /** Compressed in unsigned normalized BPTC format */
     BPTC_UNORM,
+    /** Compressed in floating point BPTC format */
     BPTC_FLOAT,
+    /** Compressed in unsigned floating point BPTC format */
     BPTC_UFLOAT;
 
+    /**
+     * The type of color sampler to use for this color type
+     */
     val colorSampling: ColorSampling
         get() {
             return when (this) {
@@ -146,6 +209,9 @@ enum class ColorType {
             }
         }
 
+    /**
+     * The size (in bytes) for this color type
+     */
     val componentSize: Int
         get() {
             return when (this) {
@@ -157,6 +223,9 @@ enum class ColorType {
             }
         }
 
+    /**
+     * Specifies if this is a compressed format
+     */
     val compressed: Boolean
         get() {
             return when (this) {
@@ -166,20 +235,34 @@ enum class ColorType {
         }
 }
 
+/**
+ * Cull test pass condition enumeration
+ */
 enum class CullTestPass {
+    /** Cull test should always pass */
     ALWAYS,
     FRONT,
     BACK,
     NEVER
 }
 
+/**
+ * Depth test pass condition enumeration
+ */
 enum class DepthTestPass {
+    /** Depth test should always pass */
     ALWAYS,
+    /** Depth test will only pass when the test value is less than the target value */
     LESS,
+    /** Depth test will only pass when the test value is less than or equal to the target value */
     LESS_OR_EQUAL,
+    /** Depth test will only pass when the test value is equal to the target value */
     EQUAL,
+    /** Depth test will only pass when the test value is greater than the target value */
     GREATER,
+    /** Depth test will only pass when the test value is greater than or equal to the the target value */
     GREATER_OR_EQUAL,
+    /** Depth test will never pass, thus always fail */
     NEVER
 }
 
@@ -206,16 +289,19 @@ class ChannelMask(val red: Boolean, val green: Boolean, val blue: Boolean, val a
 private var styleBlocks = mutableMapOf<Long, UniformBlock>()
 private var useStyleBlock = true
 
-
 enum class KernMode {
     DISABLED,
     METRIC
-
 }
 
 data class DrawStyle(
+        /** Clipping rectangle, set to null for no clipping */
         var clip: Rectangle? = null,
+
+        /** Fill color, set to null for no fill */
         var fill: ColorRGBa? = ColorRGBa.WHITE,
+
+        /** Stroke color, set to null for no stroke */
         var stroke: ColorRGBa? = ColorRGBa.BLACK,
 
         var lineCap: LineCap = LineCap.BUTT,
@@ -230,7 +316,9 @@ data class DrawStyle(
         var depthWrite: Boolean = false,
         var blendMode: BlendMode = BlendMode.OVER,
         var cullTestPass: CullTestPass = CullTestPass.ALWAYS,
-        var channelWriteMask: ChannelMask = ChannelMask(true, true, true, true),
+        var channelWriteMask: ChannelMask = ChannelMask(red = true, green = true, blue = true, alpha = true),
+
+        /** Use alpha to coverage in rendering, used in multi-sampling modes */
         var alphaToCoverage: Boolean = false,
 
         var shadeStyle: ShadeStyle? = null,

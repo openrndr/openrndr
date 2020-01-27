@@ -8,21 +8,39 @@ import java.util.*
 private val logger = KotlinLogging.logger {}
 private val sessionStack = mutableMapOf<Long, Stack<Session>>()
 
+/**
+ * Session statistics
+ */
 class SessionStatistics(val renderTargets: Int, val colorBuffers: Int, val depthBuffers: Int, val bufferTextures: Int, val indexBuffers: Int, val vertexBuffers: Int, val shaders: Int, val cubemaps: Int, val arrayTextures: Int, val computeShaders: Int, val atomicCounterBuffers: Int)
 
+/**
+ * Session
+ */
 class Session(val parent: Session?) {
     val context = Driver.instance.contextID
 
     companion object {
+        /**
+         * The session stack (on the active context)
+         */
         val stack: Stack<Session>
             get() = sessionStack.getOrPut(Driver.instance.contextID) { Stack<Session>().apply { push(Session(null)) } }
 
+        /**
+         * The active session (on the active context)
+         */
         val active: Session
             get() = stack.peek()
 
+        /**
+         * The root session (on the active context)
+         */
         val root: Session
             get() = stack.first()
 
+        /**
+         * Ends the active session and pops it off the session stack (on the active context)
+         */
         fun endActive() {
             val session = sessionStack.getValue(Driver.instance.contextID).pop()
             session.end()
@@ -44,6 +62,7 @@ class Session(val parent: Session?) {
 
     private val atomicCounterBuffers = mutableSetOf<AtomicCounterBuffer>()
 
+    /** Session statistics */
     val statistics
         get() =
             SessionStatistics(renderTargets = renderTargets.size,
@@ -73,7 +92,6 @@ class Session(val parent: Session?) {
     fun track(indexBuffer: IndexBuffer) = indexBuffers.add(indexBuffer)
     fun untrack(indexBuffer: IndexBuffer) = indexBuffers.remove(indexBuffer)
 
-
     fun track(shader: Shader) = shaders.add(shader)
     fun untrack(shader: Shader) = shaders.remove(shader)
 
@@ -92,6 +110,9 @@ class Session(val parent: Session?) {
     fun track(atomicCounterBuffer: AtomicCounterBuffer) = atomicCounterBuffers.add(atomicCounterBuffer)
     fun untrack(atomicCounterBuffer: AtomicCounterBuffer) = atomicCounterBuffers.remove(atomicCounterBuffer)
 
+    /**
+     * Fork the session
+     */
     fun fork(): Session {
         logger.debug { "starting new session for context [id=${context}]" }
         val child = Session(this)
@@ -100,6 +121,9 @@ class Session(val parent: Session?) {
         return child
     }
 
+    /**
+     * Ends the session, destroys any GPU resources in use by the session
+     */
     fun end() {
         val stack = sessionStack.getValue(Driver.instance.contextID)
 
@@ -180,12 +204,16 @@ class Session(val parent: Session?) {
     }
 }
 
+/** Runs code inside a (short-lived) session */
 fun session(code: () -> Unit) {
     val s = Session.active.fork()
     code()
     s.end()
 }
 
+/**
+ * Mark a GPU resource or code that uses GPU resources as persistent
+ */
 fun <T> persistent(builder: () -> T): T {
     Session.stack.push(Session.root)
     return builder()

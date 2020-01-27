@@ -76,9 +76,10 @@ sealed class BufferMultisample {
     data class SampleCount(val sampleCount: Int) : BufferMultisample()
 }
 
-
+/**
+ * Color Buffer, a GPU resource
+ */
 interface ColorBuffer {
-
     val session: Session?
 
     /** the width of the [ColorBuffer] in device units */
@@ -109,8 +110,6 @@ interface ColorBuffer {
     /** returns a base64 data url representation */
     fun toDataUrl(imageFileFormat: ImageFileFormat = ImageFileFormat.JPG): String
 
-
-
     /** destroys the underlying [ColorBuffer] resources */
     fun destroy()
 
@@ -130,11 +129,25 @@ interface ColorBuffer {
 
     /**
      * copies contents to a target color buffer
+     * @param target the color buffer to which contents will be copied
+     * @param fromLevel the mip-map level from which will be copied
+     * @param toLevel the mip-map level of [target] to which will be copied
      */
     fun copyTo(target: ColorBuffer, fromLevel: Int = 0, toLevel: Int = 0)
 
+    /**
+     * copies contents to a target array texture
+     * @param target the color buffer to which contents will be copied
+     * @param layer the array layer from which will be copied
+     * @param fromLevel the mip-map level from which will be copied
+     * @param toLevel the mip-map level of [target] to which will be copied
+     */
     fun copyTo(target: ArrayTexture, layer: Int, fromLevel: Int = 0, toLevel: Int = 0)
 
+    /**
+     * sets every pixel in the color buffer to [color]
+     * @param color the color used for filling
+     */
     fun fill(color: ColorRGBa)
 
     /** the wrapping mode to use in the horizontal direction */
@@ -210,6 +223,7 @@ interface ColorBuffer {
  * @param type the color type
  * @param format the color format
  * @param levels the number of mip-map levels
+ * @param session the [Session] that should track this color buffer
  */
 fun colorBuffer(width: Int, height: Int, contentScale: Double = 1.0, format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.UINT8, multisample: BufferMultisample = BufferMultisample.Disabled, levels: Int = 1, session: Session? = Session.active): ColorBuffer {
     return Driver.driver.createColorBuffer(width, height, contentScale, format, type, multisample, levels, session)
