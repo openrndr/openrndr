@@ -128,7 +128,7 @@ interface ColorBuffer {
     /**
      * resolves contents to a non-multisampled color buffer
      */
-    fun resolveTo(target: ColorBuffer)
+    fun resolveTo(target: ColorBuffer, fromLevel: Int = 0, toLevel: Int = 0)
 
     /**
      * copies contents to a target color buffer

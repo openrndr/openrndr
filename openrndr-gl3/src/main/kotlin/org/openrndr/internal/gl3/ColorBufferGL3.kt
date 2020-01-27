@@ -851,8 +851,11 @@ class ColorBufferGL3(val target: Int,
         }
     }
 
-    override fun resolveTo(target: ColorBuffer) {
+    override fun resolveTo(target: ColorBuffer, fromLevel: Int, toLevel: Int) {
         checkDestroyed()
+        val fromDiv = 1 shl fromLevel
+        val toDiv = 1 shl toLevel
+
         if (target.format != format) {
             throw IllegalArgumentException("cannot resolve to target because its color format differs. got ${target.format}, expected $format.")
         }
@@ -861,17 +864,17 @@ class ColorBufferGL3(val target: Int,
             throw IllegalArgumentException("cannot resolve to target because its color type differs. got ${target.type}, expected $type.")
         }
 
-        val readTarget = renderTarget(width, height, contentScale, multisample = multisample) {
-            colorBuffer(this@ColorBufferGL3)
+        val readTarget = renderTarget(width / fromDiv, height / fromDiv, contentScale, multisample = multisample) {
+            colorBuffer(this@ColorBufferGL3, fromLevel)
         } as RenderTargetGL3
 
-        val writeTarget = renderTarget(target.width, target.height, target.contentScale, multisample = target.multisample) {
-            colorBuffer(target)
+        val writeTarget = renderTarget(target.width / toDiv, target.height / toDiv, target.contentScale, multisample = target.multisample) {
+            colorBuffer(target, toLevel)
         } as RenderTargetGL3
 
         writeTarget.bind()
         glBindFramebuffer(GL_READ_FRAMEBUFFER, readTarget.framebuffer)
-        glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_NEAREST)
+        glBlitFramebuffer(0, 0, effectiveWidth / fromDiv, effectiveHeight / fromDiv, 0, 0, target.effectiveWidth / toDiv, target.effectiveHeight / toDiv, GL_COLOR_BUFFER_BIT, GL_NEAREST)
         writeTarget.unbind()
 
         writeTarget.detachColorBuffers()
@@ -895,7 +898,7 @@ class ColorBufferGL3(val target: Int,
         glReadBuffer(GL_COLOR_ATTACHMENT0)
         debugGLErrors()
         target.bound {
-            glCopyTexSubImage2D(target.target, toLevel, 0, 0, 0, 0, target.width / toDiv, target.height / toDiv)
+            glCopyTexSubImage2D(target.target, toLevel, 0, 0, 0, 0, target.effectiveWidth / toDiv, target.effectiveHeight / toDiv)
             debugGLErrors() {
                 when (it) {
                     GL_INVALID_VALUE -> "level ($toLevel) less than 0, effective target is GL_TEXTURE_RECTANGLE (${target.target == GL_TEXTURE_RECTANGLE} and level is not 0"
