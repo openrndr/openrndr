@@ -3,6 +3,10 @@ package org.openrndr.math
 import java.io.Serializable
 import kotlin.math.sqrt
 
+
+/**
+ * Integer vector 4
+ */
 @Suppress("unused")
 data class IntVector4(val x: Int, val y: Int, val z: Int, val w: Int) : Serializable {
     companion object {

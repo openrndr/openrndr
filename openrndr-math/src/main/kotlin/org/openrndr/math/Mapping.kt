@@ -19,6 +19,7 @@ fun map(beforeLeft: Double, beforeRight: Double, afterLeft: Double, afterRight: 
     return afterLeft + n * (afterRight - afterLeft)
 }
 
+
 fun linearstep(edge0: Double, edge1: Double, x: Double): Double = saturate((x - edge0) / (edge1 - edge0))
 
 /**

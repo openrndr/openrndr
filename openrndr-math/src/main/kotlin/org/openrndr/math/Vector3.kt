@@ -6,6 +6,9 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sin
 
+/**
+ * Double precision vector 3
+ */
 data class Vector3(val x: Double, val y: Double, val z: Double) : Serializable {
     constructor(x: Double) : this(x, x, x)
 

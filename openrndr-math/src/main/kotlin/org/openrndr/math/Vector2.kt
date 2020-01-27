@@ -4,6 +4,9 @@ import java.io.Serializable
 import java.lang.Math.toRadians
 import kotlin.math.*
 
+/**
+ * Double precision vector 2
+ */
 data class Vector2(val x: Double, val y: Double) : Serializable {
     constructor(x: Double) : this(x, x)
 
