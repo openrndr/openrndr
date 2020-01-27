@@ -702,6 +702,7 @@ class ColorBufferGL3(val target: Int,
                      override val contentScale: Double,
                      override val format: ColorFormat,
                      override val type: ColorType,
+                     override val levels: Int,
                      override val multisample: BufferMultisample,
                      override val session: Session?) : ColorBuffer {
 
@@ -818,7 +819,7 @@ class ColorBufferGL3(val target: Int,
                 checkGLErrors()
             }
 
-            return ColorBufferGL3(target, texture, width, height, contentScale, format, type, multisample, session)
+            return ColorBufferGL3(target, texture, width, height, contentScale, format, type, levels, multisample, session)
         }
     }
 

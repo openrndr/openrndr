@@ -93,6 +93,9 @@ interface ColorBuffer {
     val format: ColorFormat
     val type: ColorType
 
+    /** the number of mipmap levels */
+    val levels: Int
+
     /** the multisampling method used for this [ColorBuffer] */
     val multisample: BufferMultisample
 

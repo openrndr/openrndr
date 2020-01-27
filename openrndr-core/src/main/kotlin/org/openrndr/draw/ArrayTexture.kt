@@ -13,6 +13,7 @@ interface ArrayTexture {
     val layers: Int
     val format: ColorFormat
     val type: ColorType
+    val levels: Int
     fun destroy()
 
     fun bind(unit: Int)
