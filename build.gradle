@@ -51,7 +51,7 @@ allprojects {
     apply plugin: 'nebula.contacts'
 
     // -- work-around for problem with nebula.info on arm64, which is currently not used a build host platform
-    def arch = new DefaultNativePlatform("current").architecture
+    def arch = new DefaultNativePlatform("current").architecture.name
     if (arch != 'arm64') {
         apply plugin: 'nebula.info'
     }
