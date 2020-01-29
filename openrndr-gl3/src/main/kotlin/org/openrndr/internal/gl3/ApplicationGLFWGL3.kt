@@ -44,10 +44,6 @@ internal var primaryWindow: Long = NULL
 
 class ApplicationGLFWGL3(private val program: Program, private val configuration: Configuration) : Application() {
 
-
-    val bla = System.getProperty("os.name").apply {
-        println(this)
-    }
     private var windowFocused = true
 
     private var window: Long = NULL
