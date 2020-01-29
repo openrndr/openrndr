@@ -1,0 +1,3 @@
+dependencies {
+    runtimeOnly "org.bytedeco:ffmpeg:$ffmpeg_version:linux-arm64"
+}

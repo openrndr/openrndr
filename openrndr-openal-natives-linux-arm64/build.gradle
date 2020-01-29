@@ -1,0 +1,6 @@
+project.ext.lwjglNatives = "natives-linux-arm64"
+
+dependencies {
+    runtimeOnly "org.lwjgl:lwjgl:$lwjglVersion:$lwjglNatives"
+    runtimeOnly "org.lwjgl:lwjgl-openal:$lwjglVersion:$lwjglNatives"
+}

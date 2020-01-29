@@ -1,3 +1,5 @@
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
+
 buildscript {
     repositories {
         jcenter()
@@ -11,6 +13,7 @@ buildscript {
         classpath "com.netflix.nebula:nebula-bintray-plugin:7.5.0"
     }
 }
+
 
 apply plugin: 'org.jetbrains.dokka'
 
@@ -29,6 +32,8 @@ dokka {
     outputFormat = "html"
     includes = ['Module.md']
 
+
+
     sourceDirs = files(subprojects.collect { p -> new File(p.projectDir, "/src/main/kotlin") })
     if (!System.properties['os.name'].toLowerCase().contains('windows')) {
         doLast {
@@ -44,7 +49,12 @@ allprojects {
     apply plugin: 'java'
     apply plugin: 'nebula.kotlin'
     apply plugin: 'nebula.contacts'
-    apply plugin: 'nebula.info'
+
+    // -- work-around for problem with nebula.info on arm64, which is currently not used a build host platform
+    def arch = new DefaultNativePlatform("current").architecture
+    if (arch != 'arm64') {
+        apply plugin: 'nebula.info'
+    }
 //    apply plugin: 'nebula.dependency-lock'
 
     apply plugin: 'nebula.release'
@@ -55,7 +65,6 @@ allprojects {
     apply plugin: 'nebula.source-jar'
     apply plugin: 'nebula.javadoc-jar'
     apply plugin: 'nebula.nebula-bintray-publishing'
-
 
     group 'org.openrndr'
 
