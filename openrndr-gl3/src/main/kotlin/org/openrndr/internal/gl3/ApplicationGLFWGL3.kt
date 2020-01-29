@@ -43,11 +43,18 @@ private val logger = KotlinLogging.logger {}
 internal var primaryWindow: Long = NULL
 
 class ApplicationGLFWGL3(private val program: Program, private val configuration: Configuration) : Application() {
+
+
+    val bla = System.getProperty("os.name").apply {
+        println(this)
+    }
     private var windowFocused = true
+
     private var window: Long = NULL
     private var realWindowTitle = configuration.title
     private var exitRequested = false
-    private val fixWindowSize = System.getProperty("os.name").contains("windows", true)
+    private val fixWindowSize = System.getProperty("os.name").contains("windows", true) ||
+            System.getProperty("os.name").contains("linux", true)
     private var setupCalled = false
     override var presentationMode: PresentationMode = PresentationMode.AUTOMATIC
 
