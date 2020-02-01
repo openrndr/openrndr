@@ -423,17 +423,20 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         preloop()
 
         var lastDragPosition = Vector2.ZERO
-        var globalModifiers = setOf<KeyboardModifier>()
+        var globalModifiers = setOf<KeyModifier>()
 
         glfwSetKeyCallback(window) { _, key, scancode, action, mods ->
             val modifiers = modifierSet(mods)
             val name = glfwGetKeyName(key, scancode) ?: "<null>"
 
+
+            println("key: E: ${GLFW_KEY_E}, scanCode: ${glfwGetKeyScancode(GLFW_KEY_E)}")
+
             globalModifiers = modifiers
             when (action) {
-                GLFW_PRESS -> program.keyboard.keyDown.trigger(KeyEvent(KeyEventType.KEY_DOWN, key, scancode, name, modifiers))
-                GLFW_RELEASE -> program.keyboard.keyUp.trigger(KeyEvent(KeyEventType.KEY_UP, key, scancode, name, modifiers))
-                GLFW_REPEAT -> program.keyboard.keyRepeat.trigger(KeyEvent(KeyEventType.KEY_REPEAT, key, scancode, name, modifiers))
+                GLFW_PRESS -> program.keyboard.keyDown.trigger(KeyEvent(KeyEventType.KEY_DOWN, key, name, modifiers))
+                GLFW_RELEASE -> program.keyboard.keyUp.trigger(KeyEvent(KeyEventType.KEY_UP, key, name, modifiers))
+                GLFW_REPEAT -> program.keyboard.keyRepeat.trigger(KeyEvent(KeyEventType.KEY_REPEAT, key, name, modifiers))
             }
         }
 
@@ -471,20 +474,20 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
                 else -> MouseButton.NONE
             }
 
-            val modifiers = mutableSetOf<KeyboardModifier>()
+            val modifiers = mutableSetOf<KeyModifier>()
             val buttonsDown = BitSet()
 
             if (mods and GLFW_MOD_SHIFT != 0) {
-                modifiers.add(KeyboardModifier.SHIFT)
+                modifiers.add(KeyModifier.SHIFT)
             }
             if (mods and GLFW_MOD_ALT != 0) {
-                modifiers.add(KeyboardModifier.ALT)
+                modifiers.add(KeyModifier.ALT)
             }
             if (mods and GLFW_MOD_CONTROL != 0) {
-                modifiers.add(KeyboardModifier.CTRL)
+                modifiers.add(KeyModifier.CTRL)
             }
             if (mods and GLFW_MOD_SUPER != 0) {
-                modifiers.add(KeyboardModifier.SUPER)
+                modifiers.add(KeyModifier.SUPER)
             }
 
             if (action == GLFW_PRESS) {
@@ -660,19 +663,19 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         program.drawer.height = program.height
     }
 
-    private fun modifierSet(mods: Int): Set<KeyboardModifier> {
-        val modifiers = mutableSetOf<KeyboardModifier>()
+    private fun modifierSet(mods: Int): Set<KeyModifier> {
+        val modifiers = mutableSetOf<KeyModifier>()
         if (mods and GLFW_MOD_SHIFT != 0) {
-            modifiers.add(KeyboardModifier.SHIFT)
+            modifiers.add(KeyModifier.SHIFT)
         }
         if (mods and GLFW_MOD_ALT != 0) {
-            modifiers.add(KeyboardModifier.ALT)
+            modifiers.add(KeyModifier.ALT)
         }
         if (mods and GLFW_MOD_CONTROL != 0) {
-            modifiers.add(KeyboardModifier.CTRL)
+            modifiers.add(KeyModifier.CTRL)
         }
         if (mods and GLFW_MOD_SUPER != 0) {
-            modifiers.add(KeyboardModifier.SUPER)
+            modifiers.add(KeyModifier.SUPER)
         }
         return modifiers
     }

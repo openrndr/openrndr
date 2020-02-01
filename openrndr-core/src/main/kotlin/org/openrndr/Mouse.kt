@@ -3,7 +3,7 @@ package org.openrndr
 import org.openrndr.events.Event
 import org.openrndr.math.Vector2
 
-class MouseEvent(val position: Vector2, val rotation: Vector2, val dragDisplacement: Vector2, val type: MouseEventType, val button: MouseButton, val modifiers: Set<KeyboardModifier>, var propagationCancelled: Boolean = false) {
+class MouseEvent(val position: Vector2, val rotation: Vector2, val dragDisplacement: Vector2, val type: MouseEventType, val button: MouseButton, val modifiers: Set<KeyModifier>, var propagationCancelled: Boolean = false) {
     fun cancelPropagation() {
         propagationCancelled = true
     }

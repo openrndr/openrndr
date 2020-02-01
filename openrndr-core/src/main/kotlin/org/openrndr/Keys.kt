@@ -2,13 +2,19 @@ package org.openrndr
 
 import org.openrndr.events.Event
 
-enum class KeyboardModifier(val mask: Int) {
+/**
+ * Key modifier enumeration
+ */
+enum class KeyModifier(val mask: Int) {
     SHIFT(1),
     CTRL(2),
     ALT(4),
     SUPER(8)
 }
 
+/**
+ * Mouse button enumeration
+ */
 enum class MouseButton {
     LEFT,
     RIGHT,
@@ -16,6 +22,9 @@ enum class MouseButton {
     NONE
 }
 
+/**
+ * Mouse event type enumeration
+ */
 enum class MouseEventType {
     MOVED,
     DRAGGED,
@@ -25,13 +34,30 @@ enum class MouseEventType {
     SCROLLED,
 }
 
+/**
+ * Key event type enumeration
+ */
 enum class KeyEventType {
     KEY_DOWN,
     KEY_UP,
     KEY_REPEAT,
 }
 
-class KeyEvent(val type: KeyEventType, val key: Int, val scanCode: Int, val name: String, val modifiers: Set<KeyboardModifier>, var propagationCancelled: Boolean = false) {
+/**
+ * Key event describes key events.
+ * @property type the type of event
+ * @property key physical key identifier, don't use this for layout-sensitive queries
+ * @property name the layout-sensitive name of the key
+ * @property modifiers a set of key modifiers that are active/pressed
+ * @property propagationCancelled a flag that can be set to indicate that this event is handled and should not
+ * be processed further
+ */
+class KeyEvent(
+        val type: KeyEventType,
+        val key: Int,
+        val name: String,
+        val modifiers: Set<KeyModifier>,
+        var propagationCancelled: Boolean = false) {
     fun cancelPropagation() {
         propagationCancelled = true
     }
@@ -75,6 +101,9 @@ const val KEY_F12 = 301
 const val KEY_LEFT_SHIFT = 340
 const val KEY_RIGHT_SHIFT = 344
 
+/**
+ * Keyboard events in a single class
+ */
 class Keyboard {
     val keyDown = Event<KeyEvent>().postpone(true)
     val keyUp = Event<KeyEvent>().postpone(true)

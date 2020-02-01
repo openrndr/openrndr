@@ -208,7 +208,7 @@ open class Program {
 
     val window = Window()
 
-    class CharacterEvent(val character: Char, val modifiers: Set<KeyboardModifier>, var propagationCancelled: Boolean = false) {
+    class CharacterEvent(val character: Char, val modifiers: Set<KeyModifier>, var propagationCancelled: Boolean = false) {
         fun cancelPropagation() {
             propagationCancelled = true
         }

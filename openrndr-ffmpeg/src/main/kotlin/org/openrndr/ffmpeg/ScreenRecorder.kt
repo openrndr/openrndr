@@ -3,7 +3,6 @@ package org.openrndr.ffmpeg
 import org.openrndr.Extension
 import org.openrndr.Program
 import org.openrndr.draw.*
-import org.openrndr.math.Matrix44
 import java.io.File
 import java.time.LocalDateTime
 
