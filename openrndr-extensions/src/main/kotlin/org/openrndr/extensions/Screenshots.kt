@@ -67,7 +67,7 @@ open class Screenshots : Extension {
     /**
      * the key that should be pressed to take a screenshot
      */
-    var key: Int = KEY_SPACEBAR
+    var key: String = "space"
 
     /**
      * the folder where the screenshot will be saved to. Default value is "screenshots", saves in current working
@@ -82,7 +82,7 @@ open class Screenshots : Extension {
 
     override fun setup(program: Program) {
         program.keyboard.keyDown.listen {
-            if (it.key == key) {
+            if (it.name == key) {
                 createScreenshot = AutoNamed
                 program.window.requestDraw()
             }
