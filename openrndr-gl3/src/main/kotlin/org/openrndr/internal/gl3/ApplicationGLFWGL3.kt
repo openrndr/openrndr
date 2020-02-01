@@ -2,41 +2,26 @@ package org.openrndr.internal.gl3
 
 import mu.KotlinLogging
 import org.lwjgl.BufferUtils
-
-import java.io.File
-
 import org.lwjgl.PointerBuffer
-import org.lwjgl.system.MemoryUtil.NULL
-
-import org.lwjgl.system.MemoryStack.stackPush
-
 import org.lwjgl.glfw.Callbacks.glfwFreeCallbacks
 import org.lwjgl.glfw.GLFW.*
-import org.lwjgl.glfw.GLFW.glfwSetWindowPos
-import org.lwjgl.glfw.GLFW.glfwGetPrimaryMonitor
-import org.lwjgl.glfw.GLFW.glfwGetVideoMode
-import org.lwjgl.glfw.GLFW.glfwPollEvents
-import org.lwjgl.glfw.GLFW.glfwSwapBuffers
-import org.lwjgl.glfw.GLFW.glfwWindowShouldClose
-import org.lwjgl.glfw.GLFW.GLFW_RELEASE
-import org.lwjgl.glfw.GLFW.glfwSetKeyCallback
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.glfw.GLFWImage
-import org.lwjgl.opengl.GLUtil
 import org.lwjgl.opengl.GL.createCapabilities
 import org.lwjgl.opengl.GL33C.*
-
+import org.lwjgl.opengl.GLUtil
+import org.lwjgl.system.MemoryStack.stackPush
+import org.lwjgl.system.MemoryUtil.NULL
 import org.openrndr.*
-import org.openrndr.draw.Drawer
-import org.openrndr.internal.Driver
-import org.openrndr.math.Vector2
 import org.openrndr.WindowMultisample.*
 import org.openrndr.animatable.Animatable
 import org.openrndr.animatable.Clock
+import org.openrndr.draw.Drawer
+import org.openrndr.internal.Driver
+import org.openrndr.math.Vector2
+import java.io.File
 import java.nio.Buffer
-
 import java.util.*
-import kotlin.IllegalStateException
 import kotlin.math.ceil
 
 private val logger = KotlinLogging.logger {}
@@ -67,16 +52,16 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
 
     private var realCursorVisible = true
     override var cursorVisible: Boolean
-    get() {
-        return realCursorVisible
-    }
-    set(value) {
-        if (value) {
-            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL)
-        } else {
-            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED)
+        get() {
+            return realCursorVisible
         }
-    }
+        set(value) {
+            if (value) {
+                glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL)
+            } else {
+                glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED)
+            }
+        }
 
     override var windowPosition: Vector2
         get() {
@@ -174,7 +159,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         logger.debug { "creating window" }
 
 
-        val versions = listOf( Pair(4,3), Pair(3,3))
+        val versions = listOf(Pair(4, 3), Pair(3, 3))
         var versionIndex = 0
         while (window == NULL && versionIndex < versions.size) {
 
@@ -208,7 +193,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
                         requestHeight,
                         configuration.title, glfwGetPrimaryMonitor(), primaryWindow)
             }
-            versionIndex ++
+            versionIndex++
         }
         if (window == NULL) {
             throw IllegalStateException("Window creation failed")
@@ -313,7 +298,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
             }
         }
 
-        glfwSetWindowCloseCallback(window) {window ->
+        glfwSetWindowCloseCallback(window) { window ->
             logger.debug { "window ($window) closed" }
             exitRequested = true
         }
@@ -325,7 +310,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
             val adjustedMinimumHeight = if (fixWindowSize) (yscale[0] * configuration.minimumHeight).toInt() else configuration.minimumHeight
 
             val adjustedMaximumWidth = if (fixWindowSize && configuration.maximumWidth != Int.MAX_VALUE) (xscale[0] * configuration.maximumWidth).toInt() else configuration.maximumWidth
-            val adjustedMaximumHeight = if (fixWindowSize  && configuration.maximumHeight != Int.MAX_VALUE) (yscale[0] * configuration.maximumHeight).toInt() else configuration.maximumHeight
+            val adjustedMaximumHeight = if (fixWindowSize && configuration.maximumHeight != Int.MAX_VALUE) (yscale[0] * configuration.maximumHeight).toInt() else configuration.maximumHeight
 
             glfwSetWindowSizeLimits(window, adjustedMinimumWidth, adjustedMinimumHeight, adjustedMaximumWidth, adjustedMaximumHeight)
         }
@@ -396,7 +381,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
             GLUtil.setupDebugMessageCallback()
         }
 
-        Runtime.getRuntime().addShutdownHook(object:Thread() {
+        Runtime.getRuntime().addShutdownHook(object : Thread() {
             override fun run() {
                 logger.debug { "shutting down extensions from shutdown hook" }
                 for (extension in program.extensions) {
@@ -427,11 +412,46 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
 
         glfwSetKeyCallback(window) { _, key, scancode, action, mods ->
             val modifiers = modifierSet(mods)
-            val name = glfwGetKeyName(key, scancode) ?: "<null>"
-
-
-            println("key: E: ${GLFW_KEY_E}, scanCode: ${glfwGetKeyScancode(GLFW_KEY_E)}")
-
+            val name = when (key) {
+                GLFW_KEY_SPACE -> "space"
+                GLFW_KEY_ENTER -> "enter"
+                GLFW_KEY_TAB -> "tab"
+                GLFW_KEY_ESCAPE -> "escape"
+                GLFW_KEY_UP -> "arrow-up"
+                GLFW_KEY_DOWN -> "arrow-down"
+                GLFW_KEY_LEFT -> "arrow-left"
+                GLFW_KEY_RIGHT -> "arrow-right"
+                GLFW_KEY_PRINT_SCREEN -> "print-screen"
+                GLFW_KEY_PAGE_DOWN -> "page-down"
+                GLFW_KEY_PAGE_UP -> "page-up"
+                GLFW_KEY_HOME -> "home"
+                GLFW_KEY_END -> "end"
+                GLFW_KEY_BACKSPACE -> "backspace"
+                GLFW_KEY_LEFT_ALT -> "left-alt"
+                GLFW_KEY_RIGHT_ALT -> "right-alt"
+                GLFW_KEY_LEFT_CONTROL -> "left-control"
+                GLFW_KEY_RIGHT_CONTROL -> "right-control"
+                GLFW_KEY_INSERT -> "insert"
+                GLFW_KEY_DELETE -> "delete"
+                GLFW_KEY_LEFT_SHIFT-> "left-shift"
+                GLFW_KEY_RIGHT_SHIFT-> "right-shift"
+                GLFW_KEY_LEFT_SUPER-> "left-super"
+                GLFW_KEY_RIGHT_SUPER-> "right-super"
+                GLFW_KEY_F1 -> "f1"
+                GLFW_KEY_F2 -> "f2"
+                GLFW_KEY_F3 -> "f3"
+                GLFW_KEY_F4 -> "f4"
+                GLFW_KEY_F5 -> "f5"
+                GLFW_KEY_F6 -> "f6"
+                GLFW_KEY_F7 -> "f7"
+                GLFW_KEY_F8 -> "f8"
+                GLFW_KEY_F9 -> "f9"
+                GLFW_KEY_F10 -> "f10"
+                GLFW_KEY_F11 -> "f11"
+                GLFW_KEY_F12 -> "f12"
+                GLFW_KEY_CAPS_LOCK -> "caps-lock"
+                else -> glfwGetKeyName(key, scancode) ?: "<null>"
+            }
             globalModifiers = modifiers
             when (action) {
                 GLFW_PRESS -> program.keyboard.keyDown.trigger(KeyEvent(KeyEventType.KEY_DOWN, key, name, modifiers))
@@ -462,7 +482,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
             if (iconified) {
                 program.window.minimized.trigger(WindowEvent(WindowEventType.MINIMIZED, Vector2.ZERO, Vector2.ZERO, false))
             } else {
-                program.window.restored.trigger(WindowEvent(WindowEventType.RESTORED,  program.window.position, program.window.size, true))
+                program.window.restored.trigger(WindowEvent(WindowEventType.RESTORED, program.window.position, program.window.size, true))
             }
         }
 
