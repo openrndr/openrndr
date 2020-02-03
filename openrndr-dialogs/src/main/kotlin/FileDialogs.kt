@@ -56,7 +56,6 @@ fun openFileDialog(programName: String = "OPENRNDR", contextID: String = "global
 
 fun openFileDialog(programName: String = "OPENRNDR", contextID: String = "global", supportedExtensions: List<String>, function: (File) -> Unit) {
     val filterList: CharSequence? = if (supportedExtensions.isEmpty()) null else supportedExtensions.joinToString(";")
-    println(filterList)
     val defaultPath: CharSequence? = getDefaultPathForContext(programName, contextID)
     val out = memAllocPointer(1)
 

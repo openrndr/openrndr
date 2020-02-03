@@ -429,9 +429,6 @@ class VideoPlayerFFMPEG private constructor(
         file.dumpFormat()
         av_format_inject_global_side_data(file.context)
 
-        println("-- use video ${mode.useVideo}")
-        println("-- use audio ${mode.useAudio}")
-
         val (decoder, info) = runBlocking {
             Decoder.fromContext(statistics, configuration, file.context, mode.useVideo, mode.useAudio)
         }
