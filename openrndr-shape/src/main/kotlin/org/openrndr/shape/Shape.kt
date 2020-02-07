@@ -544,9 +544,11 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean) {
         fun fromPoints(points: List<Vector2>, closed: Boolean) =
                 if (!closed)
                     ShapeContour((0 until points.size - 1).map { Segment(points[it], points[it + 1]) }, closed)
-                else
-                    ShapeContour((0 until points.size).map { Segment(points[it], points[(it + 1)%points.size]) }, closed)
-
+                else {
+                    val d = (points.last() - points.first()).squaredLength
+                    val usePoints = if (d > 0.001) points else points.dropLast(1)
+                    ShapeContour((0 until usePoints.size).map { Segment(usePoints[it], usePoints[(it + 1) % usePoints.size]) }, true)
+                }
     }
 
     val length get() = segments.sumByDouble { it.length }
@@ -574,7 +576,6 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean) {
     val clockwise: ShapeContour get() = if (winding == Winding.CLOCKWISE) this else this.reversed
     val counterClockwise: ShapeContour get() = if (winding == Winding.COUNTER_CLOCKWISE) this else this.reversed
 
-
     operator fun plus(other: ShapeContour): ShapeContour {
         val epsilon = 0.001
         val segments = mutableListOf<Segment>()
@@ -588,7 +589,7 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean) {
 
     fun offset(distance: Double, joinType: SegmentJoin = SegmentJoin.ROUND): ShapeContour {
         if (segments.size == 1) {
-            return ShapeContour(segments[0].offset(distance), closed)
+            return ShapeContour(segments[0].offset(distance), false)
         }
 
         val joins = (segments + if (closed) listOf(segments.first()) else emptyList()).map {
@@ -627,7 +628,7 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean) {
                     it.first + join.segments
                 }
             }
-        }
+        } + if (!closed) { segments.last().offset(distance) } else emptyList()
         return ShapeContour(joins, closed)
     }
 
