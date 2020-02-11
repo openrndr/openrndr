@@ -85,7 +85,7 @@ open class Program {
     /**
      * Install an [Extension].
      */
-    fun extend(extension: Extension): Extension {
+    fun <T : Extension> extend(extension: T): T {
         extensions.add(extension)
         extension.setup(this)
         return extension
@@ -94,7 +94,7 @@ open class Program {
     /**
      * Install an [Extension] and configure it
      */
-    fun <T : Extension> extend(extension: T, configure: T.() -> Unit): Extension {
+    fun <T : Extension> extend(extension: T, configure: T.() -> Unit): T {
         extensions.add(extension)
         extension.configure()
         extension.setup(this)
