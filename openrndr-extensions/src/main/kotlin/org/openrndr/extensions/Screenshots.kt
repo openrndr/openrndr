@@ -147,7 +147,7 @@ open class Screenshots : Extension {
                 val resolved = resolved
 
                 if (resolved == null) {
-                    it.colorBuffer(0).saveToFile(File(filename))
+                    it.colorBuffer(0).saveToFile(File(filename), async = async)
 
                     drawer.image(it.colorBuffer(0), it.colorBuffer(0).bounds, drawer.bounds)
                 } else {
