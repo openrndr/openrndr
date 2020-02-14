@@ -82,9 +82,11 @@ open class Screenshots : Extension {
 
     override fun setup(program: Program) {
         program.keyboard.keyDown.listen {
-            if (it.name == key) {
-                createScreenshot = AutoNamed
-                program.window.requestDraw()
+            if (!it.propagationCancelled) {
+                if (it.name == key) {
+                    createScreenshot = AutoNamed
+                    program.window.requestDraw()
+                }
             }
         }
     }
