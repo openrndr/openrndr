@@ -32,7 +32,7 @@ internal class BezierQuadraticSampler2D {
         if (d > colinearityEpsilon) {
             // Regular case
             //-----------------
-            if (d  <= distanceToleranceSquare * (dx * dx + dy * dy)) {
+            if (d * d <= distanceToleranceSquare * (dx * dx + dy * dy)) {
                 // If the curvature doesn't exceed the distance_tolerance value
                 // we tend to finish subdivisions.
                 //----------------------
