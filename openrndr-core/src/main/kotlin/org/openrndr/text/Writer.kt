@@ -22,7 +22,7 @@ class WriteStyle {
 }
 
 @Suppress("unused", "UNUSED_PARAMETER")
-class Writer(val drawer: Drawer?) {
+class Writer(private val drawer: Drawer?) {
 
     var cursor = Cursor()
     var box = Rectangle(Vector2.ZERO, drawer?.width?.toDouble() ?: Double.POSITIVE_INFINITY, drawer?.height?.toDouble()
