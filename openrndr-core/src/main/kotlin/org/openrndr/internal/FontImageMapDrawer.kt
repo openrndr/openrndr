@@ -64,7 +64,7 @@ class FontImageMapDrawer {
                         cursorX += if (lc != null) fontMap.kerning(lc, it) else 0.0
                     }
                     val metrics = fontMap.glyphMetrics[it] ?: fontMap.glyphMetrics.getValue(' ')
-                    insertCharacterQuad(fontMap, bw, it, position.x + cursorX + metrics.leftSideBearing, position.y + cursorY + metrics.yBitmapShift / fontMap.contentScale, instance)
+                    insertCharacterQuad(fontMap, bw, it, position.x + cursorX + metrics.xBitmapShift / fontMap.contentScale, position.y + cursorY + metrics.yBitmapShift / fontMap.contentScale, instance)
                     cursorX += metrics.advanceWidth
                     lastChar = it
                 }

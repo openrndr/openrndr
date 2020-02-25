@@ -125,7 +125,7 @@ class FontImageMapManagerGL3 : FontMapManager() {
             val target = packer.insert(root, IntRectangle(0, 0, it.value.x + 2 * sanding, it.value.y + 2 * sanding))
 
             target?.let { t ->
-                map[it.key] = IntRectangle(t.area.x + sanding - 1, t.area.y + sanding - 1, t.area.width - 2 * sanding + 2, t.area.height - 2 * sanding + 2)
+                map[it.key] = IntRectangle(t.area.x + sanding, t.area.y + sanding, t.area.width - 2 * sanding , t.area.height - 2 * sanding)
 
                 val glyphIndex = glyphIndices[it.key]!!
                 var advanceWidth = 0
@@ -165,17 +165,18 @@ class FontImageMapManagerGL3 : FontMapManager() {
 
         val leading = ascent - descent + lineGap
         return FontImageMap(image, map, glyphMetrics, size, contentScale, ascent / contentScale, descent / contentScale, (ascent + descent) / contentScale, leading / contentScale, url).apply {
-
             for (outer in standard) {
                 for (inner in standard) {
                     val outerGlyph = glyphIndices.get(outer)
                     val innerGlyph = glyphIndices.get(inner)
                     if (outerGlyph != null && innerGlyph != null) {
                         val kernInfo = stbtt_GetGlyphKernAdvance(info, outerGlyph, innerGlyph)
-                        kerningTable[CharacterPair(outer, inner)] = kernInfo * scale/contentScale
+                        kerningTable[CharacterPair(outer, inner)] = kernInfo * (scale/contentScale)
                     }
                 }
             }
+            // -- make sure the byte buffer containing font info is not garbage collected
+            (bb as Buffer).rewind()
         }
     }
 }
