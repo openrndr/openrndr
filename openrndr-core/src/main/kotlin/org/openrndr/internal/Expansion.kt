@@ -7,6 +7,10 @@ import org.openrndr.internal.PathPoint.Companion.CORNER
 import org.openrndr.internal.PathPoint.Companion.INNER_BEVEL
 import org.openrndr.internal.PathPoint.Companion.LEFT
 import org.openrndr.math.Vector2
+import kotlin.math.ceil
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.sqrt
 
 internal enum class ExpansionType {
     STROKE,
@@ -149,7 +153,7 @@ internal class Expansion(val type: ExpansionType, val fb: FloatArray, val buffer
             addVertex(lx0, ly0, lu, 1.0, offset)
             addVertex(p1.x - dlx0 * rw, p1.y - dly0 * rw, ru, 1.0, offset)
 
-            val n = ncap.coerceIn(Math.ceil((a0 - a1) / Math.PI * ncap).toInt(), 2)
+            val n = ncap.coerceAtMost(ceil((a0 - a1) / Math.PI * ncap).toInt()).coerceAtLeast(2)
             for (i in 0 until n) {
                 val u = i / (n - 1.0)
                 val a = a0 + u * (a1 - a0)
@@ -177,7 +181,8 @@ internal class Expansion(val type: ExpansionType, val fb: FloatArray, val buffer
             addVertex(p1.x + dlx0 * rw, p1.y + dly0 * rw, lu, 1.0, offset)
             addVertex(rx0, ry0, ru, 1.0, offset)
 
-            val n = ncap.coerceIn(Math.ceil((a1 - a0) / Math.PI * ncap).toInt(), 2)
+            val n = ncap.coerceAtMost(ceil((a1 - a0) / Math.PI * ncap).toInt()).coerceAtLeast(2)
+
             for (i in 0 until n) {
                 val a = a0 + i.toDouble() / (n - 1.0) * (a1 - a0)
                 addVertex(p1.x + Math.cos(a) * lw, p1.y + Math.sin(a) * lw, lu, 1.0, offset)
@@ -276,10 +281,11 @@ internal class Path {
     var nbevel: Int = 0
     val contours = mutableListOf<List<PathPoint>>()
 
+
     companion object {
         fun fromLineStrip(segments: Iterable<Vector2>, closed: Boolean): Path {
             val sp = Path()
-            val path = segments.map { PathPoint().apply { x = it.x; y = it.y; flags = CORNER } }
+            val path = segments.map { PathPoint().apply { x = it.x; y = it.y; flags = CORNER} }.dropLast(if (closed) 1 else 0 )
 
             if (path.isNotEmpty()) {
                 if (!closed) {
@@ -305,10 +311,10 @@ internal class Path {
         }
     }
 
-    fun calculateJoins(points: List<PathPoint>, w: Double, lineJoin: LineJoin, miterLimit: Double) {
+    private fun calculateJoins(points: List<PathPoint>, w: Double, lineJoin: LineJoin, miterLimit: Double) {
         nbevel = 0
 
-        var iw = if (w > 0.0) 1.0 / w else 0.0
+        val iw = if (w > 0.0) 1.0 / w else 0.0
         var nleft = 0
 
         var p0 = points[points.size - 1]
@@ -340,7 +346,7 @@ internal class Path {
             }
 
             // Calculate if we should use bevel or miter for inner join.
-            val limit = Math.max(1.01, Math.min(p0.length, p1.length) * iw)
+            val limit = max(1.01, min(p0.length, p1.length) * iw)
             if (dmr2 * limit * limit < 1.0f) {
                 p1.flags = p1.flags or INNER_BEVEL
             }
@@ -373,7 +379,7 @@ internal class Path {
             // Calculate segment direction and length
             p0.dx = p1.x - p0.x
             p0.dy = p1.y - p0.y
-            p0.length = Math.sqrt(p0.dx * p0.dx + p0.dy * p0.dy)
+            p0.length = sqrt(p0.dx * p0.dx + p0.dy * p0.dy)
             if (p0.length > 0) {
                 p0.dx /= p0.length
                 p0.dy /= p0.length
@@ -398,6 +404,7 @@ internal class Path {
             val capSteps = curveDivs(weight, Math.PI, tessTol)
 
             prepare(points)
+
             calculateJoins(points, weight, lineJoin, miterLimit)
 
             var cverts = 0
@@ -443,6 +450,7 @@ internal class Path {
                     LineCap.ROUND -> expansion.roundCapStart(p0, dx, dy, weight, capSteps, aa, offset)
                 }
             }
+
 
             // -- middle
             for (j in start until end) {

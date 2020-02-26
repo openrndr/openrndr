@@ -13,7 +13,7 @@ class QualityPolygonDrawer {
         val ratio = 1.0
         if (drawStyle.fill != null) {
             val path = Path.fromLineStrips(loops.mapIndexed { index, it ->
-                it.let { it.subList(0, it.size - 1) }
+                it.let { it.subList(0, it.size) }
                         .let { if (index == 0) it else it }
             })
             val strokeWeight = if (drawStyle.stroke == null) 1.0 else 0.0
@@ -22,7 +22,7 @@ class QualityPolygonDrawer {
         }
         if (drawStyle.stroke != null) {
             loops.forEach {
-                val path = Path.fromLineStrip(it.subList(0, it.size - 1), true)
+                val path = Path.fromLineStrip(it, true)
                 val strokeExpansion = path.expandStroke(1.0 / ratio, drawStyle.strokeWeight, drawStyle.lineCap, drawStyle.lineJoin, 2.4)
                 expansionDrawer.renderStroke(drawContext, drawStyle, strokeExpansion)
             }

@@ -12,6 +12,7 @@ private val logger = KotlinLogging.logger {}
  * Line join enumeration
  */
 enum class LineJoin {
+    MITER,
     BEVEL,
     ROUND
 }
@@ -305,7 +306,7 @@ data class DrawStyle(
         var stroke: ColorRGBa? = ColorRGBa.BLACK,
 
         var lineCap: LineCap = LineCap.BUTT,
-        var lineJoin: LineJoin = LineJoin.BEVEL,
+        var lineJoin: LineJoin = LineJoin.MITER,
 
         var strokeWeight: Double = 1.0,
         var smooth: Boolean = true,
