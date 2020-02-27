@@ -2,8 +2,10 @@ package org.openrndr.draw
 
 import org.openrndr.color.ColorRGBa
 import org.openrndr.math.*
+import kotlin.properties.ReadWriteProperty
+import kotlin.reflect.KProperty
 
-class ShadeStyle {
+open class ShadeStyle {
     var vertexPreamble: String? = null
     var fragmentPreamble: String? = null
     var vertexTransform: String? = null
@@ -145,6 +147,41 @@ class ShadeStyle {
         }
 
         return s
+    }
+
+    inner class Parameter<R : Any>: ReadWriteProperty<ShadeStyle, R> {
+
+        override fun getValue(thisRef: ShadeStyle, property: KProperty<*>): R {
+            return parameterValues[property.name] as R
+        }
+
+        override fun setValue(thisRef: ShadeStyle, property: KProperty<*>, value: R) {
+            parameterValues[property.name] = value
+            parameters[property.name] = when (value) {
+                is Int -> "int"
+                is Double -> "float"
+                is Float -> "float"
+                is Vector2 -> "Vector2"
+                is Vector3 -> "Vector3"
+                is Vector4 -> "Vector4"
+                is Matrix33 -> "Matrix33"
+                is Matrix44 -> "Matrix44"
+                is ColorRGBa -> "ColorRGBa"
+                is BufferTexture -> "BufferTexture"
+                is DepthBuffer -> "DepthBuffer"
+                is ArrayTexture -> when (value.type.colorSampling) {
+                    ColorSampling.UNSIGNED_INTEGER -> "ArrayTexture_UINT"
+                    ColorSampling.SIGNED_INTEGER -> "ArrayTexture_SINT"
+                    else -> "ArrayTexture"
+                }
+                is ColorBuffer -> when (value.type.colorSampling) {
+                    ColorSampling.UNSIGNED_INTEGER -> "ColorBuffer_UINT"
+                    ColorSampling.SIGNED_INTEGER -> "ColorBuffer_SINT"
+                    else -> "ColorBuffer"
+                }
+                else -> error("unsupported type ${value::class}")
+            }
+        }
     }
 }
 
