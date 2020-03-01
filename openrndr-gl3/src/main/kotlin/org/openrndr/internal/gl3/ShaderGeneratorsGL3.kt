@@ -207,6 +207,8 @@ ${shadeStructure.uniforms ?: ""}
 ${shadeStructure.varyingOut ?: ""}
 ${transformVaryingOut}
 
+${shadeStructure.vertexPreamble ?: ""}
+
 flat out int v_instance;
 
 out vec3 v_boundsPosition;
@@ -280,6 +282,8 @@ ${shadeStructure.uniforms ?: ""}
 ${shadeStructure.varyingOut ?: ""}
 ${transformVaryingOut}
 
+${shadeStructure.vertexPreamble ?: ""}
+
 flat out int v_instance;
 flat out int v_layer;
 
@@ -316,6 +320,9 @@ ${shadeStructure.varyingIn ?: ""}
 ${transformVaryingIn}
 
 ${if (!shadeStructure.suppressDefaultOutput) "out vec4 o_color;" else ""}
+
+${shadeStructure.fragmentPreamble ?: ""}
+
 flat in int v_instance;
 in vec3 v_boundsSize;
 void main(void) {
@@ -339,6 +346,9 @@ ${shadeStructure.attributes ?: ""}
 ${shadeStructure.uniforms ?: ""}
 ${shadeStructure.varyingOut ?: ""}
 ${transformVaryingOut}
+
+${shadeStructure.vertexPreamble ?: ""}
+
 flat out int v_instance;
 out vec3 v_boundsSize;
 void main() {
@@ -370,6 +380,9 @@ ${shadeStructure.varyingIn ?: ""}
 ${transformVaryingIn}
 
 ${if (!shadeStructure.suppressDefaultOutput) "out vec4 o_color;" else ""}
+
+${shadeStructure.fragmentPreamble ?: ""}
+
 flat in int v_instance;
 in vec3 v_boundsSize;
 void main(void) {
@@ -407,6 +420,9 @@ ${shadeStructure.attributes ?: ""}
 ${shadeStructure.uniforms ?: ""}
 ${shadeStructure.varyingOut ?: ""}
 ${transformVaryingOut}
+
+${shadeStructure.vertexPreamble ?: ""}
+
 flat out int v_instance;
 out vec3 v_boundsSize;
 void main() {
@@ -440,8 +456,10 @@ flat in int v_element;
 $drawerUniforms
 ${shadeStructure.varyingIn ?: ""}
 ${transformVaryingIn}
-${shadeStructure.fragmentPreamble ?: ""}
+
 ${if (!shadeStructure.suppressDefaultOutput) "out vec4 o_color;" else ""}
+
+${shadeStructure.fragmentPreamble ?: ""}
 
 void main(void) {
     ${fragmentConstants(
@@ -504,10 +522,12 @@ ${shadeStructure.varyingIn ?: ""}
 ${shadeStructure.outputs ?: ""}
 ${transformVaryingIn}
 
+${if (!shadeStructure.suppressDefaultOutput) "out vec4 o_color;" else ""}
+
 ${shadeStructure.fragmentPreamble ?: ""}
 flat in int v_instance;
 in vec3 v_boundsSize;
-${if (!shadeStructure.suppressDefaultOutput) "out vec4 o_color;" else ""}
+
 void main(void) {
     ${fragmentConstants(
             boundsPosition = "vec3(va_texCoord0, 0.0)",
@@ -586,6 +606,8 @@ in vec3 v_objectPosition;
 in vec2 v_ftcoord;
 ${if (!shadeStructure.suppressDefaultOutput) "out vec4 o_color;" else ""}
 
+${shadeStructure.fragmentPreamble ?: ""}
+
 float strokeMask() {
 	return min(1.0, (1.0-abs(v_ftcoord.x*2.0-1.0))*strokeMult) * min(1.0, v_ftcoord.y);
 }
@@ -625,6 +647,8 @@ ${shadeStructure.attributes}
 ${shadeStructure.varyingOut ?: ""}
 ${transformVaryingOut}
 
+${shadeStructure.vertexPreamble ?: ""}
+
 out vec2 v_ftcoord;
 out float v_offset;
 
@@ -662,6 +686,8 @@ $transformVaryingIn
 flat in int v_instance;
 ${if (!shadeStructure.suppressDefaultOutput) "out vec4 o_color;" else ""}
 
+${shadeStructure.fragmentPreamble ?: ""}
+
 void main(void) {
     ${fragmentConstants()}
     vec4 x_fill = u_fill;
@@ -686,6 +712,9 @@ ${shadeStructure.attributes ?: ""}
 ${shadeStructure.uniforms ?: ""}
 ${shadeStructure.varyingOut ?: ""}
 ${transformVaryingOut}
+
+${shadeStructure.vertexPreamble ?: ""}
+
 flat out int v_instance;
 
 void main() {
@@ -739,6 +768,7 @@ void main() {
         |${shadeStructure.uniforms ?: ""}
         |${shadeStructure.varyingOut ?: ""}
         |$transformVaryingOut
+        |${shadeStructure.vertexPreamble ?: ""}
         |flat out int v_instance;
         |
         |vec2 fix(vec4 i, float aspect) {
