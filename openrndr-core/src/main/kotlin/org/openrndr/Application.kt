@@ -61,6 +61,7 @@ abstract class Application {
     abstract var windowTitle: String
 
     abstract var windowPosition: Vector2
+    abstract var windowSize: Vector2
     abstract var cursorPosition: Vector2
     abstract var cursorVisible: Boolean
     abstract val seconds: Double

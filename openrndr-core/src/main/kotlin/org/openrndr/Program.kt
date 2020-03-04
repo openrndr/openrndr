@@ -143,7 +143,12 @@ open class Program {
                 application.windowTitle = value
             }
 
-        var size = Vector2(0.0, 0.0)
+        var size
+            get() = application.windowSize
+            set(value) {
+                application.windowSize = value
+            }
+
         var scale = Vector2(1.0, 1.0)
 
         var presentationMode: PresentationMode

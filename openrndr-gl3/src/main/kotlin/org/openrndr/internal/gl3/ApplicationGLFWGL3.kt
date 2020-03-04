@@ -63,6 +63,23 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
             }
         }
 
+    override var windowSize: Vector2
+        get() {
+            val w = IntArray(1)
+            val h = IntArray(1)
+            glfwGetWindowSize(window, w, h)
+            return Vector2(
+                    if (fixWindowSize) (w[0].toDouble() / program.window.scale.x) else w[0].toDouble(),
+                    if (fixWindowSize) (h[0].toDouble() / program.window.scale.y) else h[0].toDouble())
+        }
+        set(value) {
+            glfwSetWindowSize(window,
+                    if (fixWindowSize) (value.x * program.window.scale.x).toInt() else value.x.toInt(),
+                    if (fixWindowSize) (value.y * program.window.scale.y).toInt() else value.y.toInt())
+
+        }
+
+
     override var windowPosition: Vector2
         get() {
             val x = IntArray(1)
@@ -678,7 +695,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         glViewport(0, 0, fbw[0], fbh[0])
         program.width = ceil(fbw[0] / program.window.scale.x).toInt()
         program.height = ceil(fbh[0] / program.window.scale.y).toInt()
-        program.window.size = Vector2(program.width.toDouble(), program.height.toDouble())
+        //program.window.size = Vector2(program.width.toDouble(), program.height.toDouble())
         program.drawer.width = program.width
         program.drawer.height = program.height
     }

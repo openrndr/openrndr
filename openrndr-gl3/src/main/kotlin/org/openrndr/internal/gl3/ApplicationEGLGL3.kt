@@ -123,6 +123,9 @@ class ApplicationEGLGL3(private val program: Program, private val configuration:
     override var windowPosition: Vector2
         get() = Vector2.ZERO
         set(value) {}
+    override var windowSize: Vector2
+        get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
+        set(value) {}
     override val seconds: Double
         get() = (System.currentTimeMillis()-startTime)/1000.0
     override var presentationMode: PresentationMode
