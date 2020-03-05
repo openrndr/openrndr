@@ -101,6 +101,13 @@ class CompositionDrawer {
         Rectangle(it.first, it.second.x, it.second.y)
     })
 
+
+    fun roundedRectangle(x: Double, y: Double, width: Double, height: Double, radius: Double) = contour(RoundedRectangle(x, y, width, height, radius).contour)
+
+    fun roundedRectangle(position: Vector2, width: Double, height: Double, radius: Double) = contour(RoundedRectangle(position, width, height, radius).contour)
+
+    fun roundedRectangle(roundedRectangle: RoundedRectangle) = contour(roundedRectangle.contour)
+
     fun circle(position: Vector2, radius: Double) = circle(Circle(position, radius))
 
     fun circle(circle: Circle) = contour(circle.contour)

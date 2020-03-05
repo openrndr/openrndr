@@ -317,6 +317,15 @@ class Drawer(val driver: Driver) {
         rectangleDrawer.drawRectangles(context, drawStyle, rectangles)
     }
 
+    fun roundedRectangle(x: Double, y: Double, width: Double, height: Double, radius: Double) =
+        contour(RoundedRectangle(x, y, width, height, radius).contour)
+
+    fun roundedRectangle(position: Vector2, width: Double, height: Double, radius: Double) =
+        contour(RoundedRectangle(position, width, height, radius).contour)
+
+    fun roundedRectangle(roundedRectangle: RoundedRectangle) =
+        contour(roundedRectangle.contour)
+
 
     fun point(x:Double, y:Double, z:Double = 0.0) {
         pointDrawer.drawPoint(context, drawStyle, x, y, z)
