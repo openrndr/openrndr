@@ -513,7 +513,7 @@ class ShaderGL3(val program: Int,
                 debugGLErrors()
                 if (location == -1 && !query) {
                     logger.warn {
-                        "shader ${name} does not have uniform $uniform"
+                        "shader ${name} does not have a uniform called '$uniform'"
                     }
                 }
                 location
