@@ -590,8 +590,22 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED)
         }
 
+        try {
+            doLoop()
+        } finally {
+            glfwFreeCallbacks(window)
+            glfwDestroyWindow(window)
+
+            // TODO: take care of these when all windows are closed
+            //glfwTerminate()
+            //glfwSetErrorCallback(null)?.free()
+        }
+    }
+
+    private fun doLoop() {
         logger.debug { "calling program.setup" }
         program.setup()
+
         setupCalled = true
 
         if (glfwExtensionSupported("GLX_EXT_swap_control_tear") || glfwExtensionSupported("WGL_EXT_swap_control_tear")) {
@@ -632,12 +646,6 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         }
         program.extensions.clear()
 
-        glfwFreeCallbacks(window)
-        glfwDestroyWindow(window)
-
-        // TODO: take care of these when all windows are closed
-        //glfwTerminate()
-        //glfwSetErrorCallback(null)?.free()
         logger.debug { "done" }
 
         exception?.let {
