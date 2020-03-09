@@ -318,8 +318,18 @@ class Drawer(val driver: Driver) {
     }
 
 
-    fun point(x:Double, y:Double, z:Double = 0.0) {
+    fun point(x: Double, y: Double, z: Double = 0.0) {
         pointDrawer.drawPoint(context, drawStyle, x, y, z)
+    }
+
+    @JvmName("points2D")
+    fun points(points: List<Vector2>) {
+        pointDrawer.drawPoints(context, drawStyle, points)
+    }
+
+    @JvmName("points3D")
+    fun points(points: List<Vector3>) {
+        pointDrawer.drawPoints(context, drawStyle, points)
     }
 
     fun circle(x: Double, y: Double, radius: Double) {
@@ -346,7 +356,7 @@ class Drawer(val driver: Driver) {
         circleDrawer.drawCircles(context, drawStyle, circles)
     }
 
-    fun circles(vertexBuffer: VertexBuffer, count:Int = vertexBuffer.vertexCount) {
+    fun circles(vertexBuffer: VertexBuffer, count: Int = vertexBuffer.vertexCount) {
         circleDrawer.drawCircles(context, drawStyle, vertexBuffer, count)
     }
 
@@ -616,14 +626,14 @@ class Drawer(val driver: Driver) {
     }
 
     fun segments(segments: List<Segment3D>) {
-        lineStrips(segments.map{ it.sampleAdaptive() })
+        lineStrips(segments.map { it.sampleAdaptive() })
     }
 
     fun segments(segments: List<Segment3D>, weights: List<Double>, colors: List<ColorRGBa>) {
-        lineStrips(segments.map{ it.sampleAdaptive() }, weights, colors)
+        lineStrips(segments.map { it.sampleAdaptive() }, weights, colors)
     }
 
-    fun path(path:Path3D) {
+    fun path(path: Path3D) {
         lineStrip(path.adaptivePositions(0.03))
     }
 
@@ -708,16 +718,16 @@ class Drawer(val driver: Driver) {
     /**
      * Draws an image using an ArrayTexture as source
      */
-    fun image(arrayTexture: ArrayTexture, layer:Int = 0, x:Double = 0.0, y:Double =0.0,
-              width:Double = arrayTexture.width.toDouble(), height:Double = arrayTexture.height.toDouble()) {
+    fun image(arrayTexture: ArrayTexture, layer: Int = 0, x: Double = 0.0, y: Double = 0.0,
+              width: Double = arrayTexture.width.toDouble(), height: Double = arrayTexture.height.toDouble()) {
         imageDrawer.drawImage(context, drawStyle, arrayTexture, layer, x, y, width, height)
     }
 
-    fun image(arrayTexture: ArrayTexture, layer:Int = 0, source:Rectangle, target:Rectangle) {
+    fun image(arrayTexture: ArrayTexture, layer: Int = 0, source: Rectangle, target: Rectangle) {
         imageDrawer.drawImage(context, drawStyle, arrayTexture, listOf(layer), listOf(source to target))
     }
 
-    fun image(arrayTexture: ArrayTexture, layers:List<Int>, rectangles:List<Pair<Rectangle, Rectangle>>) {
+    fun image(arrayTexture: ArrayTexture, layers: List<Int>, rectangles: List<Pair<Rectangle, Rectangle>>) {
         imageDrawer.drawImage(context, drawStyle, arrayTexture, layers, rectangles)
     }
 

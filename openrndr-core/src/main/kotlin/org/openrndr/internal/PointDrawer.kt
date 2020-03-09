@@ -49,11 +49,12 @@ class PointDrawer {
         vertices.shadow.upload()
     }
 
+    @JvmName("drawPoints2D")
     fun drawPoints(drawContext: DrawContext, drawStyle: DrawStyle, positions: List<Vector2>) {
         assertInstanceSize(positions.size)
         instanceAttributes.shadow.writer().apply {
             rewind()
-            for (i in 0 until positions.size) {
+            for (i in positions.indices) {
                 write(Vector3(positions[i].x, positions[i].y, 0.0))
             }
         }
@@ -61,6 +62,19 @@ class PointDrawer {
         drawPoints(drawContext, drawStyle, positions.size)
     }
 
+
+    @JvmName("drawPoints3D")
+    fun drawPoints(drawContext: DrawContext, drawStyle: DrawStyle, positions: List<Vector3>) {
+        assertInstanceSize(positions.size)
+        instanceAttributes.shadow.writer().apply {
+            rewind()
+            for (i in positions.indices) {
+                write(Vector3(positions[i].x, positions[i].y, positions[i].z))
+            }
+        }
+        instanceAttributes.shadow.uploadElements(0, positions.size)
+        drawPoints(drawContext, drawStyle, positions.size)
+    }
 
     fun drawPoint(drawContext: DrawContext,
                   drawStyle: DrawStyle, x: Double, y: Double, z: Double) {
