@@ -66,6 +66,10 @@ open class Filter(private val shader: Shader? = null, private val watcher: Shade
             renderTarget.attach(it)
         }
 
+        for (i in 1 until target.size) {
+            renderTarget.blendMode(i, BlendMode.REPLACE)
+        }
+
         apply(source, renderTarget)
         depthBufferOut?.let {
             renderTarget.attach(it)
