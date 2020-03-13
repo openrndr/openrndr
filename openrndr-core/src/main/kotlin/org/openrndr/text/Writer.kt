@@ -22,10 +22,10 @@ class WriteStyle {
 }
 
 @Suppress("unused", "UNUSED_PARAMETER")
-class Writer(private val drawer: Drawer?) {
+class Writer(val drawerRef: Drawer?) {
 
     var cursor = Cursor()
-    var box = Rectangle(Vector2.ZERO, drawer?.width?.toDouble() ?: Double.POSITIVE_INFINITY, drawer?.height?.toDouble()
+    var box = Rectangle(Vector2.ZERO, drawerRef?.width?.toDouble() ?: Double.POSITIVE_INFINITY, drawerRef?.height?.toDouble()
             ?: Double.POSITIVE_INFINITY)
         set(value) {
             field = value
@@ -58,7 +58,7 @@ class Writer(private val drawer: Drawer?) {
 
     var drawStyle: DrawStyle = DrawStyle()
         get() {
-            return drawer?.drawStyle ?: field
+            return drawerRef?.drawStyle ?: field
         }
         set(value: DrawStyle) {
             field = drawStyle
@@ -89,7 +89,7 @@ class Writer(private val drawer: Drawer?) {
 
 
         if (visible) {
-            drawer?.let { d ->
+            drawerRef?.let { d ->
                 val renderer = d.fontImageMapDrawer
                 renderTokens.forEach { renderer.queueText(d.drawStyle.fontMap!!, it.token, it.x, it.y, style.tracking) }
                 renderer.flush(d.context, d.drawStyle)
