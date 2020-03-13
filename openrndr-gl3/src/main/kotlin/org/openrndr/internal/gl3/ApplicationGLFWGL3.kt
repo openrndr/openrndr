@@ -471,9 +471,18 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
             }
             globalModifiers = modifiers
             when (action) {
-                GLFW_PRESS -> program.keyboard.keyDown.trigger(KeyEvent(KeyEventType.KEY_DOWN, key, name, modifiers))
-                GLFW_RELEASE -> program.keyboard.keyUp.trigger(KeyEvent(KeyEventType.KEY_UP, key, name, modifiers))
-                GLFW_REPEAT -> program.keyboard.keyRepeat.trigger(KeyEvent(KeyEventType.KEY_REPEAT, key, name, modifiers))
+                GLFW_PRESS -> {
+                    program.keyboard.keyDown.trigger(KeyEvent(KeyEventType.KEY_DOWN, key, name, modifiers))
+                    program.keyboard.pressedKeys.add(name)
+                }
+
+                GLFW_RELEASE -> {
+                    program.keyboard.keyUp.trigger(KeyEvent(KeyEventType.KEY_UP, key, name, modifiers))
+                    program.keyboard.pressedKeys.remove(name)
+                }
+
+                GLFW_REPEAT ->
+                    program.keyboard.keyRepeat.trigger(KeyEvent(KeyEventType.KEY_REPEAT, key, name, modifiers))
             }
         }
 
