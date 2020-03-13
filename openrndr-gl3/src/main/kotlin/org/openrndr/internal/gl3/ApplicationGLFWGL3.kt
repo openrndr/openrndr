@@ -450,10 +450,10 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
                 GLFW_KEY_RIGHT_CONTROL -> "right-control"
                 GLFW_KEY_INSERT -> "insert"
                 GLFW_KEY_DELETE -> "delete"
-                GLFW_KEY_LEFT_SHIFT-> "left-shift"
-                GLFW_KEY_RIGHT_SHIFT-> "right-shift"
-                GLFW_KEY_LEFT_SUPER-> "left-super"
-                GLFW_KEY_RIGHT_SUPER-> "right-super"
+                GLFW_KEY_LEFT_SHIFT -> "left-shift"
+                GLFW_KEY_RIGHT_SHIFT -> "right-shift"
+                GLFW_KEY_LEFT_SUPER -> "left-super"
+                GLFW_KEY_RIGHT_SUPER -> "right-super"
                 GLFW_KEY_F1 -> "f1"
                 GLFW_KEY_F2 -> "f2"
                 GLFW_KEY_F3 -> "f3"
@@ -500,6 +500,14 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
                 program.window.minimized.trigger(WindowEvent(WindowEventType.MINIMIZED, Vector2.ZERO, Vector2.ZERO, false))
             } else {
                 program.window.restored.trigger(WindowEvent(WindowEventType.RESTORED, program.window.position, program.window.size, true))
+            }
+        }
+
+        glfwSetCursorEnterCallback(window) { _, entered ->
+            if (entered) {
+                program.mouse.entered.trigger(MouseEvent(program.mouse.position, Vector2.ZERO, Vector2.ZERO, MouseEventType.ENTERED, MouseButton.NONE, emptySet()))
+            } else {
+                program.mouse.left.trigger(MouseEvent(program.mouse.position, Vector2.ZERO, Vector2.ZERO, MouseEventType.LEFT, MouseButton.NONE, emptySet()))
             }
         }
 
@@ -558,10 +566,6 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
                 program.mouse.dragged.trigger(MouseEvent(position, Vector2.ZERO, position - lastDragPosition, MouseEventType.DRAGGED, MouseButton.NONE, globalModifiers))
                 lastDragPosition = position
             }
-        }
-
-        glfwSetCursorEnterCallback(window) { window, entered ->
-            logger.trace { "cursor state changed; inside window ($window) = $entered" }
         }
 
         if (configuration.showBeforeSetup) {
@@ -662,6 +666,8 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         program.mouse.buttonDown.deliver()
         program.mouse.buttonUp.deliver()
         program.mouse.dragged.deliver()
+        program.mouse.entered.deliver()
+        program.mouse.left.deliver()
     }
 
     private fun drawFrame(): Throwable? {
