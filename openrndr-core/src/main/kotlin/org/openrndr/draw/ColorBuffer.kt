@@ -183,6 +183,37 @@ interface ColorBuffer {
         this.filterMag = filterMag
     }
 
+    /**
+     * Checks if this [ColorBuffer] is equivalent to [other]
+     * @param other the [ColorBuffer] to check against
+     * @param ignoreLevels ignores [levels] in check when true
+     * @param ignoreMultisample ignores [multisample] in check when true
+     */
+    fun isEquivalentTo(other: ColorBuffer,
+                       ignoreMultisample: Boolean = false,
+                       ignoreLevels: Boolean = false): Boolean {
+        return width == other.width &&
+                height == other.height &&
+                format == other.format &&
+                type == other.type &&
+                contentScale == other.contentScale &&
+                (ignoreMultisample || multisample == other.multisample) &&
+                (ignoreLevels || levels == other.levels)
+    }
+
+    /**
+     * Create an equivalent [ColorBuffer], with the option to override attributes
+     */
+    fun createEquivalent(width: Int = this.width,
+                         height: Int = this.height,
+                         contentScale: Double = this.contentScale,
+                         format: ColorFormat = this.format,
+                         type: ColorType = this.type,
+                         multisample: BufferMultisample = this.multisample,
+                         levels: Int = this.levels): ColorBuffer {
+        return colorBuffer(width, height, contentScale, format, type, multisample, levels)
+    }
+
     companion object {
         fun fromUrl(url: String, session: Session? = Session.active): ColorBuffer {
             val colorBuffer = Driver.instance.createColorBufferFromUrl(url, session)
