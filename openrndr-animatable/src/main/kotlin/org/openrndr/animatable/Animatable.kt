@@ -45,6 +45,11 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 open class Animatable {
 
+    @JvmName("animateProp")
+    fun KMutableProperty0<Double>.animate(target: Double, duration: Long, easing: Easing) {
+        animate(this, target, duration, easing)
+    }
+
 
     internal var createAtTime: Long = clock.timeNanos
     internal var lastTime = createAtTime
