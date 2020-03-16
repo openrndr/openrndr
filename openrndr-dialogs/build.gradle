@@ -2,8 +2,4 @@ dependencies {
     implementation project(":openrndr-event")
     implementation project(":openrndr-core")
     implementation "org.lwjgl:lwjgl-nfd:$lwjglVersion"
-    runtimeOnly "org.lwjgl:lwjgl-nfd:$lwjglVersion:natives-windows"
-    runtimeOnly "org.lwjgl:lwjgl-nfd:$lwjglVersion:natives-linux"
-    runtimeOnly "org.lwjgl:lwjgl-nfd:$lwjglVersion:natives-macos"
-
 }
