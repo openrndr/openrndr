@@ -152,6 +152,9 @@ data class ColorHSVa(val h: Double, val s: Double, val v: Double, val a: Double 
     }
 }
 
+fun hsv(h: Double, s: Double, v: Double) = ColorHSVa(h, s, v)
+fun hsva(h: Double, s: Double, v: Double, a: Double) = ColorHSVa(h, s, v, a)
+
 /**
  * Mixes two colors in HSVa space
  * @param left the left hand ColorHSVa color

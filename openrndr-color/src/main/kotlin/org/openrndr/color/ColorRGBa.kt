@@ -131,9 +131,31 @@ fun mix(left: ColorRGBa, right: ColorRGBa, x: Double): ColorRGBa {
             (1.0 - sx) * left.a + sx * right.a)
 }
 
+/**
+ * Color in RGBa space
+ *
+ * @param r red in [0,1]
+ * @param g green in [0,1]
+ * @param b blue in [0,1]
+ */
+fun rgb(r: Double, g: Double, b: Double) = ColorRGBa(r, g, b)
+
+/**
+ * Color in RGBa space
+ *
+ * @param r red in [0,1]
+ * @param g green in [0,1]
+ * @param b blue in [0,1]
+ * @param a alpha in [0,1]
+ */
+fun rgba(r: Double, g: Double, b: Double, a: Double) = ColorRGBa(r, g, b, a)
+
+fun rgb(hex: String) = ColorRGBa.fromHex(hex)
+
 fun main() {
     val c = ColorRGBa.WHITE
     val b = c(r = 0.4)
     val d = ColorRGBa(0.4, 0.2, 0.4).let { it(r = it.r * 0.3) }
+    val e = rgb(1.0, 0.0, 1.0)
     println(b)
 }
