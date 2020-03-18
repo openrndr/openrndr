@@ -265,7 +265,7 @@ class ContourBuilder {
             val delta = last.control.last() - last.end
             curveTo(last.end - delta * tangentScale, end)
         } else {
-            curveTo(cursor, end)
+            curveTo(cursor + (end-cursor) / 2.0, end)
         }
     }
 
@@ -277,7 +277,7 @@ class ContourBuilder {
             val delta = last.control.last() - last.end
             curveTo(last.end - delta * tangentScale, control, end)
         } else {
-            curveTo(cursor, control, end)
+            curveTo(cursor + (end-cursor)/3.0, control, end)
         }
     }
 
