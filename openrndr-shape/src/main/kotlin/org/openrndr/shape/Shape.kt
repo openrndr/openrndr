@@ -37,6 +37,12 @@ class Segment {
         this.start = start
         this.end = end
         this.control = emptyArray()
+
+        val d = end - start
+
+        require(d.squaredLength > 0.0) {
+            "L end/start overlap $start $end"
+        }
     }
 
     /**
@@ -49,6 +55,12 @@ class Segment {
         this.start = start
         this.control = arrayOf(c0)
         this.end = end
+
+        val dc0s = c0 - start
+        val dc0e = c0 - end
+
+        require(dc0s.squaredLength > 0.0) { "Q start/c0 overlap $start $c0" }
+        require(dc0e.squaredLength > 0.0) { "Q end/c0 overlap $end $c0" }
     }
 
     /**
@@ -62,13 +74,39 @@ class Segment {
         this.start = start
         this.control = arrayOf(c0, c1)
         this.end = end
+
+        val dc0s = c0 - start
+        val dc1e = c1 - end
+
+        require(dc0s.squaredLength > 0.0) { "C start/c0 overlap $start $c0" }
+        require(dc1e.squaredLength > 0.0) { "C end/c1 overlap $end $c1" }
     }
 
     constructor(start: Vector2, control: Array<Vector2>, end: Vector2) {
         this.start = start
         this.control = control
         this.end = end
+
+        if (control.size == 1) {
+            val c0 = control[0]
+            val dc0s = c0 - start
+            val dc0e = c0 - end
+
+            require(dc0s.squaredLength > 0.0) { "Q start/c0 overlap $start $c0" }
+            require(dc0e.squaredLength > 0.0) { "Q end/c0 overlap $end $c0" }
+        }
+        if (control.size == 2) {
+            val c0 = control[0]
+            val c1 = control[1]
+            val dc0s = c0 - start
+            val dc1e = c1 - end
+
+            require(dc0s.squaredLength > 0.0) { "C start/c0 overlap $start $c0" }
+            require(dc1e.squaredLength > 0.0) { "C end/c1 overlap $end $c1" }
+
+        }
     }
+
 
     fun lut(size: Int = 100): List<Vector2> {
         if (lut == null || lut!!.size != size) {
@@ -233,12 +271,12 @@ class Segment {
         return dpoints
     }
 
-    fun offset(distance: Double): List<Segment> {
+    fun offset(distance: Double, stepSize: Double = 0.1): List<Segment> {
         return if (linear) {
             val n = normal(0.0)
             listOf(Segment(start + distance * n, end + distance * n))
         } else {
-            reduced.map { it.scale(distance) }
+            reduced(stepSize).map { it.scale(distance) }
         }
     }
 
@@ -272,45 +310,48 @@ class Segment {
 
         }
 
-    val reduced: List<Segment>
-        get() {
-            val step = 0.01
-            var extrema = extrema()
+    fun reduced(stepSize: Double = 0.1): List<Segment> {
 
-            if (extrema.isEmpty() || extrema[0] != 0.0) {
-                extrema = listOf(0.0) + extrema
-            }
-
-            if (extrema.last() != 1.0) {
-                extrema = extrema + listOf(1.0)
-            }
-
-            val pass1 = extrema.zipWithNext().map {
-                sub(it.first, it.second)
-            }
-            val pass2 = mutableListOf<Segment>()
-
-
-            pass1.forEach {
-                var t1 = 0.0
-                var t2 = step
-
-                while (t2 <= 1.0) {
-                    val segment = it.sub(t1, t2)
-                    if (!segment.simple) {
-                        pass2.add(segment)
-                        t1 = t2
-                    }
-                    t2 += step
-                }
-
-                if (t1 < 1.0) {
-                    pass2.add(it.sub(t1, 1.0))
-                }
-            }
-
-            return pass2.flatMap { it.split(0.5).toList() }
+        if (simple) {
+            return listOf(this)
         }
+
+        var extrema = extrema()
+
+        if (extrema.isEmpty() || extrema[0] != 0.0) {
+            extrema = listOf(0.0) + extrema
+        }
+
+        if (extrema.last() != 1.0) {
+            extrema = extrema + listOf(1.0)
+        }
+
+        val pass1 = extrema.zipWithNext().map {
+            sub(it.first, it.second)
+        }
+        val pass2 = mutableListOf<Segment>()
+
+
+        pass1.forEach {
+            var t1 = 0.0
+            var t2 = stepSize
+
+            while (t2 <= 1.0) {
+                val segment = it.sub(t1, t2)
+                if (!segment.simple) {
+                    pass2.add(segment)
+                    t1 = t2
+                }
+                t2 += stepSize
+            }
+
+            if (t1 < 1.0) {
+                pass2.add(it.sub(t1, 1.0))
+            }
+        }
+
+        return pass1.flatMap { it.split(0.5).toList() }
+    }
 
     fun scale(scale: Double) = scale { scale }
 
@@ -325,20 +366,16 @@ class Segment {
         val newStart = start + normal(0.0) * scale(0.0)
         val newEnd = end + normal(1.0) * scale(1.0)
 
-        val a = LineSegment(start + normal(0.0) * 10.0, start)
-        val b = LineSegment(end + normal(1.0) * 10.0, end)
+        val a = LineSegment(start + normal(0.0) * scale(0.0), start)
+        val b = LineSegment(end + normal(1.0) * scale(1.0), end)
 
         val o = intersection(a, b, 1000000000.0)
-
-        LineSegment(newStart, newEnd)
 
         if (o != Vector2.INFINITY) {
             val newControls = control.mapIndexed { index, it ->
                 val d = it - o
                 val rc = scale((index + 1.0) / 3.0)
-
                 val s = normal(0.0).dot(d).sign
-
                 val nd = d.normalized * s
                 it + rc * nd
             }
@@ -346,7 +383,7 @@ class Segment {
         } else {
             val newControls = control.mapIndexed { index, it ->
                 val rc = scale((index + 1.0) / 3.0)
-                it + rc * normal(0.0) * if (clockwise) 1.0 else -1.0
+                it + rc * normal(0.0)
             }
             return Segment(newStart, newControls.toTypedArray(), newEnd)
         }
@@ -361,8 +398,23 @@ class Segment {
             control.size == 1 -> {
                 Segment(start, start * (1.0 / 3.0) + control[0] * (2.0 / 3.0), control[0] * (2.0 / 3.0) + end * (1.0 / 3.0), end)
             }
+            linear -> {
+                val delta = end - start
+                Segment(start, start + delta * (1.0 / 3.0), start + delta * (2.0 / 3.0), end)
+            }
             else -> throw RuntimeException("cannot convert to cubic segment")
         }
+
+    val quadratic: Segment
+        get() = when {
+            control.size == 1 -> this
+            linear -> {
+                val delta = end - start
+                Segment(start, start + delta * (1.0 / 2.0), end)
+            }
+            else -> throw RuntimeException("cannot convert to cubic segment")
+        }
+
 
     fun derivative(t: Double): Vector2 = when {
         linear -> start - end
@@ -385,7 +437,6 @@ class Segment {
             }
         }
 
-
     fun sub(t0: Double, t1: Double): Segment {
         // ftp://ftp.fu-berlin.de/tex/CTAN/dviware/dvisvgm/src/Bezier.cpp
         var z0 = t0
@@ -398,8 +449,8 @@ class Segment {
 
         return when {
             z0 == 0.0 -> split(z1)[0]
-            z1 == 1.0 -> split(z0)[1]
-            else -> split(z0)[1].split(map(z0, 1.0, 0.0, 1.0, z1))[0]
+            z1 == 1.0 -> split(z0).last()
+            else -> split(z0).last().split(map(z0, 1.0, 0.0, 1.0, z1))[0]
         }
     }
 
@@ -409,7 +460,12 @@ class Segment {
      * @return array of parts, depending on the split point this is one or two entries long
      */
     fun split(t: Double): Array<Segment> {
-        val u = t.coerceIn(0.0, 1.0)
+        val u = t.clamp(0.0, 1.0)
+        val splitSigma = 0.0001
+
+        if (u <= splitSigma || u >= 1.0 - splitSigma) {
+            return arrayOf(this)
+        }
 
         if (linear) {
             val cut = start + (end.minus(start) * u)
@@ -494,6 +550,20 @@ class Segment {
 
                     val prx = rsm * px
                     val pry = rsm * py
+
+                    val rdx0 = prx.y - prx.x
+                    val rdy0 = pry.y - pry.x
+
+                    val rdx1 = prx.z - prx.y
+                    val rdy1 = pry.z - pry.y
+
+
+                    require(rdx0 * rdx0 + rdy0 * rdy0 > 0.0) {
+                        "Q start/c0 overlap after split on $t $this"
+                    }
+                    require(rdx1 * rdx1 + rdy1 * rdy1 > 0.0) {
+                        "Q end/c0 overlap after split on $t $this"
+                    }
 
                     val right = Segment(
                             Vector2(prx.x, pry.x),
@@ -598,45 +668,57 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean) {
             val end = it.first.last().end
             val start = it.second.first().start
 
-            when (joinType) {
-                SegmentJoin.ROUND -> {
-                    val d = (end - start).length
-                    val join = contour {
-                        moveTo(end)
-                        arcTo(d, d, 0.0, false, true, start.x, start.y)
+            if ( (end - start).squaredLength > 0.0) {
+                when (joinType) {
+                    SegmentJoin.ROUND -> {
+                        val d = (end - start).length
+                        val join = contour {
+                            moveTo(end)
+                            arcTo(d, d, 0.0, false, false, start.x, start.y)
+                        }
+                        it.first + join.segments
                     }
-                    it.first + join.segments
-                }
-                SegmentJoin.BEVEL -> {
-                    val join = contour {
-                        moveTo(end)
-                        lineTo(start)
+                    SegmentJoin.BEVEL -> {
+                        val join = contour {
+                            moveTo(end)
+                            lineTo(start)
+                        }
+                        it.first + join.segments
                     }
-                    it.first + join.segments
-                }
-                SegmentJoin.MITER -> {
-                    val endDir = it.first.last().direction(1.0)
-                    val startDir = it.second.first().direction(0.0)
-                    val endLine = LineSegment(end, end + endDir)
-                    val startLine = LineSegment(start, start + startDir)
-                    val i = intersection(endLine, startLine, 10000000.0)
-                    val join = contour {
-                        moveTo(end)
-                        lineTo(i)
-                        lineTo(start)
+                    SegmentJoin.MITER -> {
+                        val endDir = it.first.last().direction(1.0)
+                        val startDir = it.second.first().direction(0.0)
+                        val endLine = LineSegment(end, end + endDir)
+                        val startLine = LineSegment(start, start + startDir)
+                        val i = intersection(endLine, startLine, 10000000.0)
+                        val join = contour {
+                            moveTo(end)
+                            lineTo(i)
+                            lineTo(start)
+                        }
+                        it.first + join.segments
                     }
-                    it.first + join.segments
                 }
+            } else {
+                it.first
             }
-        } + if (!closed) { segments.last().offset(distance) } else emptyList()
+        } + if (!closed) {
+            segments.last().offset(distance)
+        } else emptyList()
         return ShapeContour(joins, closed)
     }
 
     fun position(ut: Double): Vector2 {
-        val t = ut.coerceIn(0.0, 1.0)
-        val segment = (t * segments.size).toInt()
-        val segmentOffset = (t * segments.size) - segment
-        return segments[Math.min(segments.size - 1, segment)].position(segmentOffset)
+        val t = ut.clamp(0.0, 1.0)
+        return when (t) {
+            0.0 -> segments[0].start
+            1.0 -> segments.last().end
+            else -> {
+                val segment = (t * segments.size).toInt()
+                val segmentOffset = (t * segments.size) - segment
+                segments[Math.min(segments.size - 1, segment)].position(segmentOffset)
+            }
+        }
     }
 
     /**
@@ -644,9 +726,15 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean) {
      */
     fun normal(ut: Double): Vector2 {
         val t = ut.coerceIn(0.0, 1.0)
-        val segment = (t * segments.size).toInt()
-        val segmentOffset = (t * segments.size) - segment
-        return segments[Math.min(segments.size - 1, segment)].normal(segmentOffset)
+        return when(t) {
+            0.0 -> segments[0].normal(0.0)
+            1.0 -> segments.last().normal(1.0)
+            else -> {
+                val segment = (t * segments.size).toInt()
+                val segmentOffset = (t * segments.size) - segment
+                segments[Math.min(segments.size - 1, segment)].normal(segmentOffset)
+            }
+        }
     }
 
     fun adaptivePositions(distanceTolerance: Double = 0.5): List<Vector2> {

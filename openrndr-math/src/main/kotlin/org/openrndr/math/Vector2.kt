@@ -8,6 +8,12 @@ import kotlin.math.*
  * Double precision vector 2
  */
 data class Vector2(val x: Double, val y: Double) : Serializable {
+
+    init {
+        require(x == x)
+        require(y == y)
+    }
+
     constructor(x: Double) : this(x, x)
 
     operator fun invoke(x: Double = this.x, y: Double = this.y) = Vector2(x, y)

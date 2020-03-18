@@ -43,7 +43,7 @@ class ContourBuilder {
      * @param x the x-coordinate
      * @param y the y-coordinate
      */
-    fun moveTo(x: Double, y:Double) = moveTo(Vector2(x, y))
+    fun moveTo(x: Double, y: Double) = moveTo(Vector2(x, y))
 
     /**
      * Move the pen or draw a line to the given coordinates.
@@ -85,16 +85,21 @@ class ContourBuilder {
         }
     }
 
-    fun moveOrCurveTo(c0x: Double, c0y: Double, c1x: Double, c1y: Double, x: Double, y: Double) = moveOrCurveTo(Vector2(c0x, c0y), Vector2(c1x, c1y), Vector2(x, y))
-
+    fun moveOrCurveTo(c0x: Double, c0y: Double, c1x: Double, c1y: Double, x: Double, y: Double) =
+        moveOrCurveTo(Vector2(c0x, c0y), Vector2(c1x, c1y), Vector2(x, y))
 
     /**
      * Line to
      */
     fun lineTo(position: Vector2) {
-        val segment = Segment(cursor, position)
-        segments.add(segment)
-        cursor = position
+        require(cursor !== Vector2.INFINITY) {
+            "use moveTo first"
+        }
+        if ((position - cursor).length > 0.0) {
+            val segment = Segment(cursor, position)
+            segments.add(segment)
+            cursor = position
+        }
     }
 
     /**
@@ -106,9 +111,14 @@ class ContourBuilder {
      * Quadratic curve to
      */
     fun curveTo(control: Vector2, position: Vector2) {
-        val segment = Segment(cursor, control, position)
-        segments.add(segment)
-        cursor = position
+        require(cursor !== Vector2.INFINITY) {
+            "use moveTo first"
+        }
+        if ((position - cursor).squaredLength > 0.0) {
+            val segment = Segment(cursor, control, position)
+            segments.add(segment)
+            cursor = position
+        }
     }
 
     /**
@@ -120,16 +130,21 @@ class ContourBuilder {
      * Cubic curve to
      */
     fun curveTo(control0: Vector2, control1: Vector2, position: Vector2) {
-        val segment = Segment(cursor, control0, control1, position)
-        segments.add(segment)
-        cursor = position
+        require(cursor !== Vector2.INFINITY) {
+            "use moveTo first"
+        }
+        if ((position - cursor).squaredLength > 0.0) {
+            val segment = Segment(cursor, control0, control1, position)
+            segments.add(segment)
+            cursor = position
+        }
     }
 
     /**
      * Cubic curve to
      */
-    fun curveTo(c0x: Double, c0y: Double, c1x: Double, c1y: Double, x: Double, y: Double)
-            = curveTo(Vector2(c0x, c0y), Vector2(c1x, c1y), Vector2(x, y))
+    fun curveTo(c0x: Double, c0y: Double, c1x: Double, c1y: Double, x: Double, y: Double) =
+        curveTo(Vector2(c0x, c0y), Vector2(c1x, c1y), Vector2(x, y))
 
     /**
      * Closes the contour, adds a line segment to `anchor` when needed
@@ -151,9 +166,30 @@ class ContourBuilder {
         segments.reverse()
     }
 
-    fun arcTo(crx: Double, cry: Double, angle: Double, largeArcFlag: Boolean, sweepFlag: Boolean, tx: Double, ty: Double) {
-        if (crx == 0.0 || cry == 0.0) {
+    fun arcTo(
+        crx: Double,
+        cry: Double,
+        angle: Double,
+        largeArcFlag: Boolean,
+        sweepFlag: Boolean,
+        tx: Double,
+        ty: Double
+    ) {
+        require(cursor !== Vector2.INFINITY) {
+            "use moveTo first"
+        }
+
+        val tdx = anchor.x - tx
+        val tdy = anchor.y - ty
+
+        if (tdx * tdx + tdy * tdy == 0.0) {
+            return
+        }
+        val radiiEpsilon = 0.0001
+
+        if (crx <= radiiEpsilon || cry == radiiEpsilon) {
             lineTo(Vector2(tx, ty))
+            return
         }
 
         var rx = abs(crx)
@@ -215,12 +251,10 @@ class ContourBuilder {
         n = sqrt((ux * ux + uy * uy) * (vx * vx + vy * vy))
         p = ux * vx + uy * vy
 
-
         val ratio = if (n > 0.0) p / n else 0.0
 
         sign = if (ux * vy - uy * vx < 0) -1.0 else 1.0
         var angleExtent = if (ratio >= 0.0) Math.toDegrees(sign * acos(p / n)) else 180.0
-
 
         if (!sweepFlag && angleExtent > 0) {
             angleExtent -= 360.0
@@ -238,16 +272,21 @@ class ContourBuilder {
         for (i in coords.indices) {
             val x = coords[i].x
             val y = coords[i].y
-
-            coords[i] = Vector2(cosAngle * rx * x + -sinAngle * ry * y + cx,
-                    sinAngle * rx * x + cosAngle * ry * y + cy)
+            coords[i] = Vector2(
+                cosAngle * rx * x + -sinAngle * ry * y + cx,
+                sinAngle * rx * x + cosAngle * ry * y + cy
+            )
         }
 
         if (coords.isNotEmpty()) {
             coords[coords.size - 1] = Vector2(tx, ty)
             var i = 0
             while (i < coords.size) {
-                curveTo(coords[i], coords[i + 1], coords[i + 2])
+                try {
+                    curveTo(coords[i], coords[i + 1], coords[i + 2])
+                } catch (e: IllegalArgumentException) {
+                    error("radii: $crx $cry, deltas: $tdx $tdy [$i] ${coords[i]}, ${coords[i + 1]}, ${coords[i + 2]}")
+                }
                 i += 3
             }
         } else {
@@ -257,19 +296,21 @@ class ContourBuilder {
     }
 
     fun arcTo(crx: Double, cry: Double, angle: Double, largeArcFlag: Boolean, sweepFlag: Boolean, end: Vector2) =
-            arcTo(crx, cry, angle, largeArcFlag, sweepFlag, end.x, end.y)
+        arcTo(crx, cry, angle, largeArcFlag, sweepFlag, end.x, end.y)
 
     fun continueTo(end: Vector2, tangentScale: Double = 1.0) {
-        if (segments.isNotEmpty()) {
-            val last = segments.last()
-            val delta = last.control.last() - last.end
-            curveTo(last.end - delta * tangentScale, end)
-        } else {
-            curveTo(cursor + (end-cursor) / 2.0, end)
+        if ((cursor - end).squaredLength > 0.0) {
+            if (segments.isNotEmpty()) {
+                val last = segments.last()
+                val delta = last.control.last() - last.end
+                curveTo(last.end - delta * tangentScale, end)
+            } else {
+                curveTo(cursor + (end - cursor) / 2.0, end)
+            }
         }
     }
 
-    fun continueTo(x:Double, y:Double, tangentScale: Double = 1.0) = continueTo(Vector2(x,y), tangentScale)
+    fun continueTo(x: Double, y: Double, tangentScale: Double = 1.0) = continueTo(Vector2(x, y), tangentScale)
 
     fun continueTo(control: Vector2, end: Vector2, tangentScale: Double = 1.0) {
         if (segments.isNotEmpty()) {
@@ -277,11 +318,12 @@ class ContourBuilder {
             val delta = last.control.last() - last.end
             curveTo(last.end - delta * tangentScale, control, end)
         } else {
-            curveTo(cursor + (end-cursor)/3.0, control, end)
+            curveTo(cursor + (end - cursor) / 3.0, control, end)
         }
     }
 
-    fun continueTo(cx:Double, cy:Double, x:Double, y:Double, tangentScale: Double = 1.0) = continueTo(Vector2(cx, cy), Vector2(x, y), tangentScale)
+    fun continueTo(cx: Double, cy: Double, x: Double, y: Double, tangentScale: Double = 1.0) =
+        continueTo(Vector2(cx, cy), Vector2(x, y), tangentScale)
 
     private fun arcToBeziers(angleStart: Double, angleExtent: Double): Array<Vector2> {
         val numSegments = ceil(abs(angleExtent) / 90.0).toInt()

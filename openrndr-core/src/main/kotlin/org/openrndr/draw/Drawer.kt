@@ -386,6 +386,10 @@ class Drawer(val driver: Driver) {
         }
     }
 
+    fun segment(segment: Segment) {
+        contour(ShapeContour(listOf(segment), false))
+    }
+
     /**
      * Draws a single [ShapeContour] using [fill], [stroke] and [strokeWeight] settings
      */
