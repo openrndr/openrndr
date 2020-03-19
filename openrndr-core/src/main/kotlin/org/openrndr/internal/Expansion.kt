@@ -285,7 +285,7 @@ internal class Path {
     companion object {
         fun fromLineStrip(segments: Iterable<Vector2>, closed: Boolean): Path {
             val sp = Path()
-            val path = segments.map { PathPoint().apply { x = it.x; y = it.y; flags = CORNER} }.dropLast(if (closed) 1 else 0 )
+            val path = segments.map { PathPoint().apply { x = it.x; y = it.y; flags = CORNER } }.dropLast(if (closed) 1 else 0)
 
             if (path.isNotEmpty()) {
                 if (!closed) {
@@ -298,12 +298,10 @@ internal class Path {
             return sp
         }
 
-        fun fromLineStrips(contours: Iterable<Iterable<Vector2>>): Path {
+        fun fromLineLoops(contours: Iterable<Iterable<Vector2>>): Path {
             val sp = Path()
             contours.forEach { contour ->
-                val path = contour.map { PathPoint().apply { x = it.x; y = it.y; flags = CORNER } }
-                //path[0].flags = 0
-                //path[path.size - 1].flags = 0
+                val path = contour.map { PathPoint().apply { x = it.x; y = it.y; flags = CORNER } }.dropLast(1)
                 sp.contours.add(path)
             }
             sp.closed = true
@@ -379,7 +377,12 @@ internal class Path {
             // Calculate segment direction and length
             p0.dx = p1.x - p0.x
             p0.dy = p1.y - p0.y
-            p0.length = sqrt(p0.dx * p0.dx + p0.dy * p0.dy)
+
+            val distanceSquared = p0.dx * p0.dx + p0.dy * p0.dy
+
+            require(distanceSquared > 0.0 || (i == 0 && !closed)) { "consecutive point duplication in input geometry at ($i and ${i+1}) (${p0.x},${p0.y})" }
+
+            p0.length = sqrt(distanceSquared)
             if (p0.length > 0) {
                 p0.dx /= p0.length
                 p0.dy /= p0.length
@@ -501,8 +504,7 @@ internal class Path {
                 }
             }
             return expansion
-        }
-        else {
+        } else {
             return Expansion(ExpansionType.SKIP, FloatArray(0), 0)
         }
     }
@@ -538,7 +540,7 @@ internal class Path {
 
 
                 if (generateFringe) {
-                    var p0 = points[points.size - 1]
+                    var p0 = points.last()
                     var p1 = points[0]
                     var p1ptr = 0
 
@@ -572,7 +574,7 @@ internal class Path {
                     }
 
                 } else {
-                    for (j in 0 until points.size) {
+                    for (j in points.indices) {
                         fill.addVertex(points[j].x, points[j].y, 0.5, 1.0, offset)
                     }
                 }

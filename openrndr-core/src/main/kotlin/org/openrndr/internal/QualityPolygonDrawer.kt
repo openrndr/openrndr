@@ -12,7 +12,7 @@ class QualityPolygonDrawer {
 
         val ratio = 1.0
         if (drawStyle.fill != null) {
-            val path = Path.fromLineStrips(loops.mapIndexed { index, it ->
+            val path = Path.fromLineLoops(loops.mapIndexed { index, it ->
                 it.let { it.subList(0, it.size) }
                         .let { if (index == 0) it else it }
             })
@@ -36,7 +36,7 @@ class QualityPolygonDrawer {
         if (drawStyle.fill != null) {
             val paths =
                     loops.map { loop ->
-                        Path.fromLineStrips(loop.mapIndexed { index, it ->
+                        Path.fromLineLoops(loop.mapIndexed { index, it ->
                             it.let { it.subList(0, it.size - 1) }
                                     .let { if (index == 0) it else it.reversed() }
                         })

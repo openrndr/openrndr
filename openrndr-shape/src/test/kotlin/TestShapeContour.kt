@@ -1,4 +1,5 @@
 import org.amshove.kluent.`should be equal to`
+import org.amshove.kluent.`should match all with`
 import org.openrndr.math.Vector2
 import org.openrndr.shape.SegmentJoin
 import org.openrndr.shape.contour
@@ -112,7 +113,16 @@ object TestShapeContour : Spek({
             continueTo(Vector2(60.0, 200.0))
             close()
         }
+
+        val positions = curve.adaptivePositions()
+        positions.zipWithNext().`should match all with` { (it.second - it.first).squaredLength > 0.0 }
+
         val offset0 = curve.offset(20.0, SegmentJoin.MITER)
+        val positions0 = offset0.adaptivePositions()
+        positions0.zipWithNext().`should match all with` { (it.second - it.first).squaredLength > 0.0 }
+
         val offset1 = offset0.offset(20.0, SegmentJoin.MITER)
+        val positions1 = offset1.adaptivePositions()
+        positions1.zipWithNext().`should match all with` { (it.second - it.first).squaredLength > 0.0 }
     }
 })
