@@ -311,12 +311,11 @@ class Segment {
         }
 
     fun reduced(stepSize: Double = 0.1): List<Segment> {
+        var extrema = extrema()
 
-        if (simple) {
+        if (simple && extrema.isEmpty()) {
             return listOf(this)
         }
-
-        var extrema = extrema()
 
         if (extrema.isEmpty() || extrema[0] != 0.0) {
             extrema = listOf(0.0) + extrema
@@ -328,26 +327,6 @@ class Segment {
 
         val pass1 = extrema.zipWithNext().map {
             sub(it.first, it.second)
-        }
-        val pass2 = mutableListOf<Segment>()
-
-
-        pass1.forEach {
-            var t1 = 0.0
-            var t2 = stepSize
-
-            while (t2 <= 1.0) {
-                val segment = it.sub(t1, t2)
-                if (!segment.simple) {
-                    pass2.add(segment)
-                    t1 = t2
-                }
-                t2 += stepSize
-            }
-
-            if (t1 < 1.0) {
-                pass2.add(it.sub(t1, 1.0))
-            }
         }
 
         return pass1.flatMap { it.split(0.5).toList() }
