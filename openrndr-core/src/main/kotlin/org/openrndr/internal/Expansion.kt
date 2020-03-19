@@ -7,10 +7,7 @@ import org.openrndr.internal.PathPoint.Companion.CORNER
 import org.openrndr.internal.PathPoint.Companion.INNER_BEVEL
 import org.openrndr.internal.PathPoint.Companion.LEFT
 import org.openrndr.math.Vector2
-import kotlin.math.ceil
-import kotlin.math.max
-import kotlin.math.min
-import kotlin.math.sqrt
+import kotlin.math.*
 
 internal enum class ExpansionType {
     STROKE,
@@ -27,7 +24,7 @@ internal class Expansion(val type: ExpansionType, val fb: FloatArray, val buffer
     var maxy = Double.NEGATIVE_INFINITY
     var bufferPosition = bufferStart
 
-    fun chooseBevel(bevel: Boolean, p0: PathPoint, p1: PathPoint, w: Double): DoubleArray {
+    private fun chooseBevel(bevel: Boolean, p0: PathPoint, p1: PathPoint, w: Double): DoubleArray {
         val x0: Double
         val y0: Double
         val x1: Double
@@ -141,24 +138,24 @@ internal class Expansion(val type: ExpansionType, val fb: FloatArray, val buffer
             val lx1 = r[2]
             val ly1 = r[3]
 
-            var a0 = Math.atan2(-dly0, -dlx0)
-            var a1 = Math.atan2(-dly1, -dlx1)
-            if (a1 > a0) a0 += Math.PI * 2
+            var a0 = atan2(-dly0, -dlx0)
+            var a1 = atan2(-dly1, -dlx1)
+            if (a1 > a0) a0 += PI * 2
 
             if (a0 < 0 || a1 < 0) {
-                a0 += Math.PI * 2
-                a1 += Math.PI * 2
+                a0 += PI * 2
+                a1 += PI * 2
             }
 
             addVertex(lx0, ly0, lu, 1.0, offset)
             addVertex(p1.x - dlx0 * rw, p1.y - dly0 * rw, ru, 1.0, offset)
 
-            val n = ncap.coerceAtMost(ceil((a0 - a1) / Math.PI * ncap).toInt()).coerceAtLeast(2)
+            val n = ncap.coerceAtMost(ceil((a0 - a1) / PI * ncap).toInt()).coerceAtLeast(2)
             for (i in 0 until n) {
                 val u = i / (n - 1.0)
                 val a = a0 + u * (a1 - a0)
-                val rx = p1.x + Math.cos(a) * rw
-                val ry = p1.y + Math.sin(a) * rw
+                val rx = p1.x + cos(a) * rw
+                val ry = p1.y + sin(a) * rw
                 addVertex(p1.x, p1.y, 0.5, 1.0, offset)
                 addVertex(rx, ry, ru, 1.0, offset)
             }
@@ -173,19 +170,19 @@ internal class Expansion(val type: ExpansionType, val fb: FloatArray, val buffer
             val rx1 = r[2]
             val ry1 = r[3]
 
-            val a0 = Math.atan2(dly0, dlx0)
-            var a1 = Math.atan2(dly1, dlx1)
+            val a0 = atan2(dly0, dlx0)
+            var a1 = atan2(dly1, dlx1)
             if (a1 < a0) {
-                a1 += Math.PI * 2
+                a1 += PI * 2
             }
             addVertex(p1.x + dlx0 * rw, p1.y + dly0 * rw, lu, 1.0, offset)
             addVertex(rx0, ry0, ru, 1.0, offset)
 
-            val n = ncap.coerceAtMost(ceil((a1 - a0) / Math.PI * ncap).toInt()).coerceAtLeast(2)
+            val n = ncap.coerceAtMost(ceil((a1 - a0) / PI * ncap).toInt()).coerceAtLeast(2)
 
             for (i in 0 until n) {
                 val a = a0 + i.toDouble() / (n - 1.0) * (a1 - a0)
-                addVertex(p1.x + Math.cos(a) * lw, p1.y + Math.sin(a) * lw, lu, 1.0, offset)
+                addVertex(p1.x + cos(a) * lw, p1.y + sin(a) * lw, lu, 1.0, offset)
                 addVertex(p1.x, p1.y, 0.5, 1.0, offset)
             }
             addVertex(p1.x + dlx1 * rw, p1.y + dly1 * rw, lu, 1.0, offset)
@@ -223,9 +220,9 @@ internal class Expansion(val type: ExpansionType, val fb: FloatArray, val buffer
         val dly = -dx
 
         for (i in 0 until ncap) {
-            val a = i / (ncap - 1.0) * Math.PI
-            val ax = Math.cos(a) * w
-            val ay = Math.sin(a) * w
+            val a = i / (ncap - 1.0) * PI
+            val ax = cos(a) * w
+            val ay = sin(a) * w
             addVertex(px - dy * ax - dx * ay, py - dly * ax - dy * ay, 0.0, 1.0, offset)
             addVertex(px, py, 0.5, 1.0, offset)
         }
@@ -242,9 +239,9 @@ internal class Expansion(val type: ExpansionType, val fb: FloatArray, val buffer
         addVertex(px + dy * w, py + dly * w, 0.0, 1.0, offset)
         addVertex(px - dy * w, py - dly * w, 1.0, 1.0, offset)
         for (i in 0 until ncap) {
-            val a = i / (ncap - 1).toDouble() * Math.PI
-            val ax = Math.cos(a) * w
-            val ay = Math.sin(a) * w
+            val a = i / (ncap - 1).toDouble() * PI
+            val ax = cos(a) * w
+            val ay = sin(a) * w
             addVertex(px, py, 0.5, 1.0, offset)
             addVertex(px - dy * ax + dx * ay, py - dly * ax + dy * ay, 0.0, 1.0, offset)
         }
@@ -259,10 +256,10 @@ internal class Expansion(val type: ExpansionType, val fb: FloatArray, val buffer
             throw RuntimeException("$x $y $u $v")
         }
 
-        minx = Math.min(minx, x)
-        maxx = Math.max(maxx, x)
-        miny = Math.min(miny, y)
-        maxy = Math.max(maxy, y)
+        minx = min(minx, x)
+        maxx = max(maxx, x)
+        miny = min(miny, y)
+        maxy = max(maxy, y)
 
         fb[bufferPosition++] = x.toFloat()
         fb[bufferPosition++] = y.toFloat()
@@ -380,7 +377,7 @@ internal class Path {
 
             val distanceSquared = p0.dx * p0.dx + p0.dy * p0.dy
 
-            require(distanceSquared > 0.0 || (i == 0 && !closed)) { "consecutive point duplication in input geometry at ($i and ${i+1}) (${p0.x},${p0.y})" }
+            require(distanceSquared > 0.0 || (i == 0 && !closed)) { "consecutive point duplication in input geometry at ($i and ${i + 1}) (${p0.x},${p0.y})" }
 
             p0.length = sqrt(distanceSquared)
             if (p0.length > 0) {
@@ -404,7 +401,7 @@ internal class Path {
         if (contours.isNotEmpty() && contours[0].size >= 2) {
             val points = contours[0]
             val tessTol = 0.1
-            val capSteps = curveDivs(weight, Math.PI, tessTol)
+            val capSteps = curveDivs(weight, PI, tessTol)
 
             prepare(points)
 
@@ -412,7 +409,7 @@ internal class Path {
 
             var cverts = 0
             cverts += if (lineJoin == LineJoin.ROUND) {
-                (points.size + nbevel * (capSteps + 2) + 1) * 2; // plus one for loop
+                (points.size + nbevel * (capSteps + 2) + 1) * 2 // plus one for loop
             } else {
                 (points.size + nbevel * 5 + 1) * 2 // plus one for loop
             }
@@ -432,15 +429,15 @@ internal class Path {
 
             var p0 = if (closed) points[points.size - 1] else points[0]
             var p1 = if (closed) points[0] else points[1]
-            var start = if (closed) 0 else 1
-            var end = if (closed) points.size else points.size - 1
+            val start = if (closed) 0 else 1
+            val end = if (closed) points.size else points.size - 1
             var p1ptr = if (closed) 0 else 1
 
             // -- start, optional cap
             if (!closed) {
                 var dx = p1.x - p0.x
                 var dy = p1.y - p0.y
-                val length = Math.sqrt(dx * dx + dy * dy)
+                val length = sqrt(dx * dx + dy * dy)
 
                 if (length > 0) {
                     dx /= length
@@ -458,7 +455,7 @@ internal class Path {
             // -- middle
             for (j in start until end) {
                 offset += p0.length
-                if (p1.flags and (PathPoint.BEVEL or PathPoint.INNER_BEVEL) != 0) {
+                if (p1.flags and (BEVEL or INNER_BEVEL) != 0) {
                     if (lineJoin === LineJoin.ROUND) {
                         expansion.roundJoin(p0, p1, weight, weight, 0.0, 1.0, capSteps, aa, offset)
                     } else {
@@ -476,9 +473,9 @@ internal class Path {
             }
 
             if (points.size == 2) {
-                var dx = p1.x - p0.x
-                var dy = p1.y - p0.y
-                val length = Math.sqrt(dx * dx + dy * dy)
+                val dx = p1.x - p0.x
+                val dy = p1.y - p0.y
+                val length = sqrt(dx * dx + dy * dy)
                 offset = length
             }
             // -- end
@@ -492,7 +489,7 @@ internal class Path {
                 // Add cap
                 var dx = p1.x - p0.x
                 var dy = p1.y - p0.y
-                val l = Math.sqrt(dx * dx + dy * dy)
+                val l = sqrt(dx * dx + dy * dy)
                 if (l > 0) {
                     dx /= l
                     dy /= l
@@ -523,13 +520,13 @@ internal class Path {
             val aa = fringeWidth
             val woff = 0.5 * aa
             val generateFringe = w > 0.0
-            var offset = 0.0
+            val offset = 0.0
 
 
             contours.forEach { points ->
                 var size = 4
                 points.forEach { point ->
-                    size += if ((point.flags and PathPoint.BEVEL) != 0) {
+                    size += if ((point.flags and BEVEL) != 0) {
                         12
                     } else {
                         4
@@ -545,8 +542,8 @@ internal class Path {
                     var p1ptr = 0
 
                     for (j in points.indices) {
-                        if (p1.flags and PathPoint.BEVEL != 0) {
-                            if (p1.flags and PathPoint.LEFT != 0) {
+                        if (p1.flags and BEVEL != 0) {
+                            if (p1.flags and LEFT != 0) {
                                 fill.addVertex(p1.x + p1.dmx * woff, p1.y + p1.dmy * woff, 0.5, 1.0, offset)
                             } else {
 
@@ -587,10 +584,10 @@ internal class Path {
                 for (points in contours) {
                     var size = 2
                     for (point in points) {
-                        if (point.flags and PathPoint.BEVEL != 0) {
-                            size += 12
+                        size += if (point.flags and BEVEL != 0) {
+                            12
                         } else {
-                            size += 4
+                            4
                         }
                     }
                     val fringe = Expansion(ExpansionType.FRINGE, FloatArray(size * 5), 0)
@@ -613,7 +610,7 @@ internal class Path {
 
                     var p1ptr = 0
                     for (j in points.indices) {
-                        if (p1.flags and (PathPoint.BEVEL or PathPoint.INNER_BEVEL) != 0) {
+                        if (p1.flags and (BEVEL or INNER_BEVEL) != 0) {
                             fringe.bevelJoin(p0, p1, lw, rw, lu, ru, fringeWidth, offset)
                         } else {
                             fringe.addVertex(p1.x + (p1.dmx * lw), p1.y + (p1.dmy * lw), lu, 1.0, offset)
@@ -654,10 +651,10 @@ internal class PathPoint {
     var flags: Int = 0
 
     companion object {
-        val CORNER = 0x01
-        val LEFT = 0x02
-        val BEVEL = 0x04
-        val INNER_BEVEL = 0x08
+        const val CORNER = 0x01
+        const val LEFT = 0x02
+        const val BEVEL = 0x04
+        const val INNER_BEVEL = 0x08
     }
 
     override fun toString(): String {
@@ -666,6 +663,6 @@ internal class PathPoint {
 }
 
 internal fun curveDivs(r: Double, arc: Double, tol: Double): Int {
-    val da = Math.acos(r / (r + tol)) * 2.0
-    return Math.max(2, Math.ceil(arc / da).toInt())
+    val da = acos(r / (r + tol)) * 2.0
+    return max(2, ceil(arc / da).toInt())
 }
