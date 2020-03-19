@@ -274,7 +274,7 @@ class Segment {
     fun offset(distance: Double, stepSize: Double = 0.1): List<Segment> {
         return if (linear) {
             val n = normal(0.0)
-            listOf(Segment(start + distance * n, end + distance * n))
+            listOf(Segment(start - distance * n, end - distance * n))
         } else {
             reduced(stepSize).map { it.scale(distance) }
         }
@@ -288,6 +288,33 @@ class Segment {
         val cross = dx1 * dy2 - dy1 * dx2
         val dot = dx1 * dx2 + dy1 * dy2
         return Math.atan2(cross, dot)
+    }
+
+
+    fun isStraight(epsilon:Double = 0.01) : Boolean {
+        return when (control.size) {
+            2 -> {
+                val dl = (end-start).normalized
+                val d0 = (control[0] - start).normalized
+                val d1 = (end - control[0]).normalized
+
+                val dp0 = dl.dot(d0)
+                val dp1 = (-dl).dot(d1)
+
+                dp0*dp0 + dp1*dp1 > (2.0 - 2 * epsilon)
+            }
+            1 -> {
+                val dl = (end-start).normalized
+                val d0 = (control[0] - start).normalized
+
+                val dp0 = dl.dot(d0)
+                dp0*dp0  > (1.0 - epsilon)
+            }
+            else -> {
+                true
+            }
+        }
+
     }
 
     val simple: Boolean
@@ -311,25 +338,37 @@ class Segment {
         }
 
     fun reduced(stepSize: Double = 0.1): List<Segment> {
-        var extrema = extrema()
+        var extrema = extrema().toMutableList()
+
+        if (isStraight(0.05)) {
+            return listOf(this)
+        }
 
         if (simple && extrema.isEmpty()) {
             return listOf(this)
         }
 
-        if (extrema.isEmpty() || extrema[0] != 0.0) {
-            extrema = listOf(0.0) + extrema
+
+        if (extrema.isEmpty()) {
+            return listOf(this)
+        }
+        if (extrema[0] <= 0.01) {
+            extrema[0] = 0.0
+        } else {
+            extrema = (mutableListOf(0.0) + extrema).toMutableList()
         }
 
-        if (extrema.last() != 1.0) {
-            extrema = extrema + listOf(1.0)
+        if (extrema.last() < 0.99) {
+            extrema = (extrema + listOf(1.0)).toMutableList()
+        } else if (extrema.last() >= 0.99) {
+            extrema[extrema.lastIndex] = 1.0
         }
 
         val pass1 = extrema.zipWithNext().map {
             sub(it.first, it.second)
         }
 
-        return pass1.flatMap { it.split(0.5).toList() }
+        return pass1
     }
 
     fun scale(scale: Double) = scale { scale }
@@ -362,7 +401,7 @@ class Segment {
         } else {
             val newControls = control.mapIndexed { index, it ->
                 val rc = scale((index + 1.0) / 3.0)
-                it + rc * normal(0.0)
+                it + rc * normal((index+1.0))
             }
             return Segment(newStart, newControls.toTypedArray(), newEnd)
         }
@@ -647,7 +686,7 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean) {
             val end = it.first.last().end
             val start = it.second.first().start
 
-            if ( (end - start).squaredLength > 0.0) {
+            if ( (end - start).squaredLength > 0.001) {
                 when (joinType) {
                     SegmentJoin.ROUND -> {
                         val d = (end - start).length
