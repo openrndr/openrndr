@@ -15,11 +15,13 @@ fun sampleEquidistant(pieces: List<Vector2>, count: Int): List<Vector2> {
         totalLength += pieces[i].minus(pieces[i + 1]).length
     }
 
-    val spacing = totalLength / count
+    val spacing = totalLength / (count - 1.0)
 
     var runLength = 0.0
     var cursor: Vector2
-    result.add(Vector2(pieces[0].x, pieces[0].y))
+    if (count > 0) {
+        result.add(Vector2(pieces[0].x, pieces[0].y))
+    }
 
     for (i in 0 until pieces.size - 1) {
         val piece = pieces[i].minus(pieces[i + 1])
@@ -50,7 +52,6 @@ fun sampleEquidistant(pieces: List<Vector2>, count: Int): List<Vector2> {
             runLength = pieceLength - skip - newPieces * spacing
         }
     }
-    result.add(pieces[pieces.size - 1])
 
     return result
 }

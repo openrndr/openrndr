@@ -691,10 +691,17 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean) {
                         val endLine = LineSegment(end, end + endDir)
                         val startLine = LineSegment(start, start + startDir)
                         val i = intersection(endLine, startLine, 10000000.0)
-                        val join = contour {
-                            moveTo(end)
-                            lineTo(i)
-                            lineTo(start)
+                        val join = if (i !== Vector2.INFINITY) {
+                            contour {
+                                moveTo(end)
+                                lineTo(i)
+                                lineTo(start)
+                            }
+                        } else {
+                            contour {
+                                moveTo(end)
+                                lineTo(start)
+                            }
                         }
                         it.first + join.segments
                     }
@@ -797,7 +804,7 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean) {
      * Sample the shape contour into line segments
      */
     fun sampleEquidistant(pointCount: Int): ShapeContour {
-        val points = equidistantPositions(pointCount)
+        val points = equidistantPositions(pointCount.coerceAtLeast(2))
         val segments = (0 until points.size - 1).map { Segment(points[it], points[it + 1]) }
         return ShapeContour(segments, closed)
     }
@@ -990,7 +997,6 @@ class Shape(val contours: List<ShapeContour>) {
             ccw.map { Shape(listOf(it.counterClockwise) + cw.map { it.clockwise }) }
         }
     }
-
 }
 
 class Compound(val shapes: List<Shape>)
