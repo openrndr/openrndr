@@ -119,7 +119,6 @@ internal class Expansion(val type: ExpansionType, val fb: FloatArray, val buffer
             addVertex(p1.x + dlx1 * lw, p1.y + dly1 * lw, lu, 1.0, offset)
             addVertex(rx1, ry1, ru, 1.0, offset)
         }
-
     }
 
     fun roundJoin(p0: PathPoint, p1: PathPoint,
@@ -584,8 +583,8 @@ internal class Path {
                 for (points in contours) {
                     var size = 2
                     for (point in points) {
-                        size += if (point.flags and BEVEL != 0) {
-                            12
+                        size += if (point.flags and (BEVEL or INNER_BEVEL) != 0) {
+                            10
                         } else {
                             4
                         }
