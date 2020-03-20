@@ -55,12 +55,6 @@ class Segment {
         this.start = start
         this.control = arrayOf(c0)
         this.end = end
-
-        val dc0s = c0 - start
-        val dc0e = c0 - end
-
-        require(dc0s.squaredLength > 0.0) { "Q start/c0 overlap $start $c0" }
-        require(dc0e.squaredLength > 0.0) { "Q end/c0 overlap $end $c0" }
     }
 
     /**
@@ -74,12 +68,6 @@ class Segment {
         this.start = start
         this.control = arrayOf(c0, c1)
         this.end = end
-
-        val dc0s = c0 - start
-        val dc1e = c1 - end
-
-        require(dc0s.squaredLength > 0.0) { "C start/c0 overlap $start $c0" }
-        require(dc1e.squaredLength > 0.0) { "C end/c1 overlap $end $c1" }
     }
 
     constructor(start: Vector2, control: Array<Vector2>, end: Vector2) {
@@ -91,22 +79,12 @@ class Segment {
             val c0 = control[0]
             val dc0s = c0 - start
             val dc0e = c0 - end
-
-            require(dc0s.squaredLength > 0.0) { "Q start/c0 overlap $start $c0" }
-            require(dc0e.squaredLength > 0.0) { "Q end/c0 overlap $end $c0" }
         }
         if (control.size == 2) {
             val c0 = control[0]
             val c1 = control[1]
-            val dc0s = c0 - start
-            val dc1e = c1 - end
-
-            require(dc0s.squaredLength > 0.0) { "C start/c0 overlap $start $c0" }
-            require(dc1e.squaredLength > 0.0) { "C end/c1 overlap $end $c1" }
-
         }
     }
-
 
     fun lut(size: Int = 100): List<Vector2> {
         if (lut == null || lut!!.size != size) {
@@ -291,24 +269,24 @@ class Segment {
     }
 
 
-    fun isStraight(epsilon:Double = 0.01) : Boolean {
+    fun isStraight(epsilon: Double = 0.01): Boolean {
         return when (control.size) {
             2 -> {
-                val dl = (end-start).normalized
+                val dl = (end - start).normalized
                 val d0 = (control[0] - start).normalized
                 val d1 = (end - control[0]).normalized
 
                 val dp0 = dl.dot(d0)
                 val dp1 = (-dl).dot(d1)
 
-                dp0*dp0 + dp1*dp1 > (2.0 - 2 * epsilon)
+                dp0 * dp0 + dp1 * dp1 > (2.0 - 2 * epsilon)
             }
             1 -> {
-                val dl = (end-start).normalized
+                val dl = (end - start).normalized
                 val d0 = (control[0] - start).normalized
 
                 val dp0 = dl.dot(d0)
-                dp0*dp0  > (1.0 - epsilon)
+                dp0 * dp0 > (1.0 - epsilon)
             }
             else -> {
                 true
@@ -401,7 +379,7 @@ class Segment {
         } else {
             val newControls = control.mapIndexed { index, it ->
                 val rc = scale((index + 1.0) / 3.0)
-                it + rc * normal((index+1.0))
+                it + rc * normal((index + 1.0))
             }
             return Segment(newStart, newControls.toTypedArray(), newEnd)
         }
@@ -437,7 +415,7 @@ class Segment {
     fun derivative(t: Double): Vector2 = when {
         linear -> start - end
         control.size == 1 -> derivative(start, control[0], end, t)
-        control.size == 2 -> derivative(start, control[0], control[1], end, t)
+        control.size == 2 -> safeDerivative(start, control[0], control[1], end, t)
         else -> throw RuntimeException("not implemented")
     }
 
@@ -686,7 +664,7 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean) {
             val end = it.first.last().end
             val start = it.second.first().start
 
-            if ( (end - start).squaredLength > 0.001) {
+            if ((end - start).squaredLength > 0.001) {
                 when (joinType) {
                     SegmentJoin.ROUND -> {
                         val d = (end - start).length
@@ -751,7 +729,7 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean) {
      */
     fun normal(ut: Double): Vector2 {
         val t = ut.coerceIn(0.0, 1.0)
-        return when(t) {
+        return when (t) {
             0.0 -> segments[0].normal(0.0)
             1.0 -> segments.last().normal(1.0)
             else -> {

@@ -1,4 +1,5 @@
 import org.amshove.kluent.`should be equal to`
+import org.amshove.kluent.`should be greater than`
 import org.amshove.kluent.`should be`
 import org.amshove.kluent.shouldBeInRange
 import org.openrndr.math.Vector2
@@ -8,8 +9,8 @@ import org.spekframework.spek2.style.specification.describe
 import java.lang.Math.sqrt
 
 infix fun Vector2.`should be near`(other: Vector2) {
-    x shouldBeInRange (other.x - 0.00001 .. other.x + 0.00001)
-    y shouldBeInRange (other.y - 0.00001 .. other.y + 0.00001)
+    x shouldBeInRange (other.x - 0.00001..other.x + 0.00001)
+    y shouldBeInRange (other.y - 0.00001..other.y + 0.00001)
 }
 
 object TestSegment : Spek({
@@ -81,6 +82,137 @@ object TestSegment : Spek({
             cubic.position(1.0) `should be near` segment.position(1.0)
         }
     }
+
+    describe("a quadratic segment with co-inciding p0/c0") {
+        val segment = Segment(Vector2(10.0, 10.0), Vector2(10.0, 10.0), Vector2(100.0, 100.0))
+
+        it("has a non-zero derivative at t=0") {
+            segment.derivative(0.0).squaredLength `should be greater than` 0.0
+        }
+
+        it("has a non-zero derivative at t=0.5") {
+            segment.derivative(0.5).squaredLength `should be greater than` 0.0
+        }
+        it("has a non-zero derivative at t=1") {
+            segment.derivative(1.0).squaredLength `should be greater than` 0.0
+        }
+    }
+
+    describe("a quadratic segment with co-inciding p1/c0") {
+        val segment = Segment(Vector2.ZERO, Vector2(100.0, 100.0), Vector2(100.0, 100.0))
+
+        it("has a non-zero derivative at t=0") {
+            segment.derivative(0.0).squaredLength `should be greater than` 0.0
+        }
+
+        it("has a non-zero derivative at t=0.5") {
+            segment.derivative(0.5).squaredLength `should be greater than` 0.0
+        }
+        it("has a non-zero derivative at t=1") {
+            segment.derivative(1.0).squaredLength `should be greater than` 0.0
+        }
+    }
+
+    describe("a cubic segment with co-inciding p0/c0") {
+        val segment = Segment(Vector2(10.0, 10.0), Vector2(10.0, 10.0), Vector2(50.0, 50.0), Vector2(100.0, 100.0))
+
+        it("has a non-zero derivative at t=0") {
+            segment.derivative(0.0).squaredLength `should be greater than` 0.0
+        }
+
+        it("has a non-zero derivative at t=epsilon") {
+            segment.derivative(0.00001).squaredLength `should be greater than` 0.0
+        }
+
+        it("has a non-zero derivative at t=1/3") {
+            segment.derivative(1.0 / 3.0).squaredLength `should be greater than` 0.0
+        }
+        it("has a non-zero derivative at t=2/3") {
+            segment.derivative(2.0 / 3.0).squaredLength `should be greater than` 0.0
+        }
+        it("has a non-zero derivative at t=1") {
+            segment.derivative(1.0).squaredLength `should be greater than` 0.0
+        }
+    }
+
+    describe("a cubic segment with co-inciding p1/c1") {
+        val segment = Segment(Vector2(10.0, 10.0), Vector2(50.0, 50.0), Vector2(100.0, 100.0), Vector2(100.0, 100.0))
+
+        it("has a non-zero derivative at t=0") {
+            segment.derivative(0.0).squaredLength `should be greater than` 0.0
+        }
+
+        it("has a non-zero derivative at t=epsilon") {
+            segment.derivative(0.00001).squaredLength `should be greater than` 0.0
+        }
+
+        it("has a non-zero derivative at t=1/3") {
+            segment.derivative(1.0 / 3.0).squaredLength `should be greater than` 0.0
+        }
+        it("has a non-zero derivative at t=2/3") {
+            segment.derivative(2.0 / 3.0).squaredLength `should be greater than` 0.0
+        }
+        it("has a non-zero derivative at t=1") {
+            segment.derivative(1.0).squaredLength `should be greater than` 0.0
+        }
+    }
+
+
+    describe("a cubic segment with co-inciding p0/c0 and p1/c1") {
+        val segment = Segment(Vector2(10.0, 10.0), Vector2(10.0, 10.0), Vector2(100.0, 100.0), Vector2(100.0, 100.0))
+
+        it("has a non-zero derivative at t=0") {
+            segment.derivative(0.0).squaredLength `should be greater than` 0.0
+        }
+
+        it("has a non-zero derivative at t=epsilon") {
+            segment.derivative(0.00001).squaredLength `should be greater than` 0.0
+        }
+
+        it("has a non-zero derivative at t=1/3") {
+            segment.derivative(1.0 / 3.0).squaredLength `should be greater than` 0.0
+        }
+
+        it("has a non-zero derivative at t=1/2") {
+            segment.derivative(1.0 / 2.0).squaredLength `should be greater than` 0.0
+        }
+
+        it("has a non-zero derivative at t=2/3") {
+            segment.derivative(2.0 / 3.0).squaredLength `should be greater than` 0.0
+        }
+        it("has a non-zero derivative at t=1") {
+            segment.derivative(1.0).squaredLength `should be greater than` 0.0
+        }
+    }
+
+
+    describe("a cubic segment with co-inciding c0/c1") {
+        val segment = Segment(Vector2(10.0, 10.0), Vector2(50.0, 50.0), Vector2(50.0, 50.0), Vector2(100.0, 100.0))
+
+        it("has a non-zero derivative at t=0") {
+            segment.derivative(0.0).squaredLength `should be greater than` 0.0
+        }
+
+        it("has a non-zero derivative at t=epsilon") {
+            segment.derivative(0.00001).squaredLength `should be greater than` 0.0
+        }
+
+        it("has a non-zero derivative at t=1/3") {
+            segment.derivative(1.0 / 3.0).squaredLength `should be greater than` 0.0
+        }
+
+        it("has a non-zero derivative at t=1/2") {
+            segment.derivative(1.0 / 2.0).squaredLength `should be greater than` 0.0
+        }
+
+        it("has a non-zero derivative at t=2/3") {
+            segment.derivative(2.0 / 3.0).squaredLength `should be greater than` 0.0
+        }
+        it("has a non-zero derivative at t=1") {
+            segment.derivative(1.0).squaredLength `should be greater than` 0.0
+        }
+    }
+
 
     describe("a cubic segment") {
         val segment = Segment(Vector2(0.0, 0.0), Vector2(100.0, 100.0), Vector2(50.0, 100.0), Vector2(0.0, 100.0))

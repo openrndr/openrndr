@@ -69,6 +69,28 @@ fun derivative(p0: Vector2, p1: Vector2, p2: Vector2, p3: Vector2, t: Double): V
     return p1.minus(p0).times(3.0 * it * it).plus(p2.minus(p1).times(6.0 * it * t)).plus(p3.minus(p2).times(3.0 * t * t))
 }
 
+/**
+ * like [derivative] but handles cases in which p0/p1 or p2/p3 coincide
+ */
+fun safeDerivative(p0: Vector2, p1: Vector2, p2: Vector2, p3: Vector2, t: Double): Vector2 {
+    val epsilon = 10E-6
+    var u = t
+
+    val d10 = p1 - p0
+    val d32 = p3 - p2
+
+    if (u < epsilon && d10.squaredLength < epsilon ) {
+        u = epsilon
+    }
+
+    if (u > (1.0 - epsilon) && d32.squaredLength < epsilon) {
+        u = 1.0 - epsilon
+    }
+
+    val iu = 1.0 - u
+    return ((d10 * (3.0 * iu * iu)) + (p2 - p1) * (6.0 * iu * u)) + d32 * (3.0 * u * u)
+}
+
 fun normal(x0: Vector2, c0: Vector2, x1: Vector2, t: Double): Vector2 {
     val (x, y) = derivative(x0, c0, x1, t)
     return Vector2(-y, x).normalized
