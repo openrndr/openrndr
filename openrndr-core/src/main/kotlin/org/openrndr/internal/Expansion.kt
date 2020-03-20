@@ -9,6 +9,17 @@ import org.openrndr.internal.PathPoint.Companion.LEFT
 import org.openrndr.math.Vector2
 import kotlin.math.*
 
+private val List<PathPoint>.renderable: Boolean
+    get() = when (size) {
+        0, 1 -> false
+        2 -> {
+            val dx = this[1].x - this[0].x
+            val dy = this[1].y - this[0].y
+            dx * dx + dy * dy > 10E-6
+        }
+        else -> true
+    }
+
 internal enum class ExpansionType {
     STROKE,
     FILL,
@@ -396,9 +407,9 @@ internal class Path {
     }
 
     fun expandStroke(fringeWidth: Double, weight: Double, lineCap: LineCap, lineJoin: LineJoin, miterLimit: Double): Expansion {
-
-        if (contours.isNotEmpty() && contours[0].size >= 2) {
+        if (contours.isNotEmpty() && contours[0].renderable ) {
             val points = contours[0]
+
             val tessTol = 0.1
             val capSteps = curveDivs(weight, PI, tessTol)
 
