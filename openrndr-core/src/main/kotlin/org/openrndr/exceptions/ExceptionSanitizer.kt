@@ -3,7 +3,7 @@ package org.openrndr.exceptions
 import mu.KotlinLogging
 import java.lang.Thread.UncaughtExceptionHandler
 
-private val logger = KotlinLogging.logger(name = "─".repeat(30))
+private val logger = KotlinLogging.logger(name = "")
 
 
 private class SanitizingUncaughtExceptionHandler : UncaughtExceptionHandler {
@@ -13,54 +13,97 @@ private class SanitizingUncaughtExceptionHandler : UncaughtExceptionHandler {
 }
 
 fun installUncaughtExceptionHandler() {
+    System.err.print(color(0x7f, 0x7f, 0x7f))
     if (System.getProperty("org.openrndr.exceptions") != "JVM") {
         Thread.setDefaultUncaughtExceptionHandler(SanitizingUncaughtExceptionHandler());
     }
 }
 
 
-private fun color(r: Int, g:Int, b:Int):String {
-    return String.format("\u001b[38;2;%d;%d;%dm", r,g,b)
+private fun color(r: Int, g: Int, b: Int): String {
+    return String.format("\u001b[38;2;%d;%d;%dm", r, g, b)
 }
 
 private fun colorReset(): String {
     return "\u001b[0m"
 }
 
+private fun cleanClassName(name: String): String {
+    return name.replace(("Kt$"), ".").replace(Regex("\\$[0-9]+"), ".{ }").replace("$", ".")
+}
+
+private fun cleanMethodName(name: String): String {
+    return if (name == "invoke") {
+        ".{ }"
+    } else {
+        ".$name"
+    }
+}
+
 fun findUserCause(throwable: Throwable) {
-
-
-    logger.error(throwable) { "${throwable::class.simpleName}: ${throwable.message}"}
-    logger.info("Set -Dorg.openrndr.exceptions=JVM for convential exception-handling")
+    logger.info("Set -Dorg.openrndr.exceptions=JVM for conventional exception-handling")
 
     val bestSolution = throwable.stackTrace.reversed().indexOfLast { !(it.className.contains("org.openrndr")) }
 
     System.err.println()
     System.err.println()
-    System.err.println("${color(0x7f,0x7f,0x7f)}╭ Attempting to find user cause: ${colorReset()}")
-    System.err.println("${color(0x7f,0x7f,0x7f)}│${colorReset()}")
     throwable.stackTrace.reversed().forEachIndexed { index, it ->
-        if (!it.className.contains("org.openrndr") && (it.lineNumber>=0)) {
+        throwable.stackTrace
+        val parts = it.className.split("$")
+
+        //println("--- decomposing ${it.className}")
+        var query = parts[0]
+        val lambdaReceiverTypes = mutableListOf<String>()
+
+        for ((index, part) in parts.drop(1).withIndex()) {
+            query += "$$part"
+            try {
+                val cl = Class.forName(query)
+                if (cl != null) {
+                    if (cl.superclass.typeName == "kotlin.jvm.internal.Lambda") {
+                        val lcl = cl as Class<kotlin.jvm.internal.Lambda<Any>>
+                        val annotation = cl.getAnnotation(kotlin.Metadata::class.java)
+                        if (annotation != null) {
+                            val types = annotation.data2[2].split(";").filter { it.isNotBlank() }.map {
+                                it.split("/").last()
+                            }.joinToString(", ")
+
+                            lambdaReceiverTypes.add(types)
+                        }
+                    }
+                } else {
+                    //println("no class for $query")
+                }
+            } catch (e: ClassNotFoundException) {
+                //println("no such class $query")
+            }
+        }
+
+        var filledName = cleanClassName(it.className)
+        for (receiver in lambdaReceiverTypes) {
+            filledName = filledName.replaceFirst("{ }", "{ :$receiver }")
+        }
+
+        val cleanName = "${filledName}${cleanMethodName(it.methodName)}"
+        if (!it.className.contains("org.openrndr") && (it.lineNumber >= 0)) {
             if (index == bestSolution) {
-                System.err.println("${color(0x7f, 0x7f, 0x7f)}├─ ${color(0xff, 0xc0, 0xcb)}${it.className.replace("$",".")}.${it.methodName}(${it.fileName}:${it.lineNumber})${colorReset()}")
+                System.err.println("${color(0x7f, 0x7f, 0x7f)}├─ ${color(0xff, 0xc0, 0xcb)}${cleanName}(${it.fileName}:${it.lineNumber})${colorReset()}")
             } else {
-                System.err.println("${color(0x7f, 0x7f, 0x7f)}├─ ${color(0x7f, 0x7f, 0x7f)}${it.className.replace("$",".")}.${it.methodName}(${it.fileName}:${it.lineNumber})${colorReset()}")
+                System.err.println("${color(0x7f, 0x7f, 0x7f)}├─ ${color(0x7f, 0x7f, 0x7f)}${cleanName}(${it.fileName}:${it.lineNumber})${colorReset()}")
             }
         } else {
-            System.err.println("${color(0x7f, 0x7f,0x7f)}│  ${color(0x4f,0x4f,0x4f)}${it.className}.${it.methodName}(${it.fileName}:${it.lineNumber})${colorReset()}")
+            System.err.println("${color(0x7f, 0x7f, 0x7f)}│  ${color(0x4f, 0x4f, 0x4f)}${cleanName}(${it.fileName}:${it.lineNumber})${colorReset()}")
         }
     }
-    System.err.println("${color(0x7f,0x7f,0x7f)}│${colorReset()}")
-    System.err.println("${color(0x7f, 0x7f, 0x7f)}↑ ${throwable.localizedMessage}${colorReset()}")
+    System.err.println("${color(0x7f, 0x7f, 0x7f)}│${colorReset()}")
+    System.err.println("${color(0x7f, 0x7f, 0x7f)}↑ ${color(0x7f, 0x7f, 0x7f)}${throwable.message} (${throwable::class.simpleName})${colorReset()} ")
 
-    if (throwable is NoSuchMethodError || throwable is ClassNotFoundException)  {
+    if (throwable is NoSuchMethodError || throwable is ClassNotFoundException) {
         if (throwable.message?.contains("org.openrndr") == true) {
             System.err.println()
             logger.error {
                 "You are likely using incompatible versions of OPENRNDR, ORX and Panel. Fix imports and make sure to clean and rebuild your project."
             }
-            System.err.println()
-            System.err.println()
         }
     }
 }
