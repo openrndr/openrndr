@@ -273,7 +273,7 @@ fun loadImage(fileOrUrl: String, session: Session? = Session.active): ColorBuffe
         }
         ColorBuffer.fromUrl(fileOrUrl, session)
     } catch (e: MalformedURLException) {
-        ColorBuffer.fromFile(fileOrUrl, session)
+        loadImage(File(fileOrUrl), session)
     }
 }
 
@@ -281,6 +281,9 @@ fun loadImage(fileOrUrl: String, session: Session? = Session.active): ColorBuffe
  * loads an image from [file]
  */
 fun loadImage(file: File, session: Session? = Session.active): ColorBuffer {
+    require(file.exists()) {
+        "failed to load image: file '${file.absolutePath}' does not exist."
+    }
     return ColorBuffer.fromFile(file, session)
 }
 

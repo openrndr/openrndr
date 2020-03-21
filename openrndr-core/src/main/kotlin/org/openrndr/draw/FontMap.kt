@@ -3,6 +3,7 @@ package org.openrndr.draw
 import org.openrndr.Program
 import org.openrndr.internal.Driver
 import org.openrndr.shape.IntRectangle
+import java.io.File
 import java.net.MalformedURLException
 import java.net.URL
 
@@ -62,6 +63,13 @@ fun Program.loadFont(fileOrUrl: String, size: Double, contentScale: Double = thi
         URL(fileOrUrl)
         FontImageMap.fromUrl(fileOrUrl, size, contentScale)
     } catch (e: MalformedURLException) {
+        val file = File(fileOrUrl)
+        require(file.exists()) {
+            "failed to load font: file '${file.absolutePath}' does not exist."
+        }
+        require(file.extension.toLowerCase() in setOf("ttf", "otf")) {
+            "failed to load font: file '${file.absolutePath}' is not a .ttf or .otf file"
+        }
         FontImageMap.fromFile(fileOrUrl, size, contentScale)
     }
 }
@@ -71,6 +79,13 @@ fun loadFont(fileOrUrl: String, size: Double, contentScale: Double = 1.0): FontI
         URL(fileOrUrl)
         FontImageMap.fromUrl(fileOrUrl, size, contentScale)
     } catch (e: MalformedURLException) {
+        val file = File(fileOrUrl)
+        require(file.exists()) {
+            "failed to load font: file '${file.absolutePath}' does not exist."
+        }
+        require(file.extension.toLowerCase() in setOf("ttf", "otf")) {
+            "failed to load font: file '${file.absolutePath}' is not a .ttf or .otf file"
+        }
         FontImageMap.fromFile(fileOrUrl, size, contentScale)
     }
 }
