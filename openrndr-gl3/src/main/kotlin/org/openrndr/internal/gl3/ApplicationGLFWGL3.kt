@@ -17,6 +17,7 @@ import org.openrndr.WindowMultisample.*
 import org.openrndr.animatable.Animatable
 import org.openrndr.animatable.Clock
 import org.openrndr.draw.Drawer
+import org.openrndr.exceptions.installUncaughtExceptionHandler
 import org.openrndr.internal.Driver
 import org.openrndr.math.Vector2
 import java.io.File
@@ -123,6 +124,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         }
 
     init {
+        installUncaughtExceptionHandler()
         logger.debug { "debug output enabled" }
         logger.trace { "trace level enabled" }
 
@@ -424,6 +426,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         logger.debug { "starting loop" }
         preloop()
 
+
         var lastDragPosition = Vector2.ZERO
         var globalModifiers = setOf<KeyModifier>()
 
@@ -603,15 +606,30 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED)
         }
 
-        logger.debug { "calling program.setup" }
-        program.setup()
-        setupCalled = true
-
         if (glfwExtensionSupported("GLX_EXT_swap_control_tear") || glfwExtensionSupported("WGL_EXT_swap_control_tear")) {
             glfwSwapInterval(-1)
         } else {
             glfwSwapInterval(1)
         }
+
+
+        logger.debug { "calling program.setup" }
+        var setupException: Throwable? = null
+        try {
+            program.setup()
+        } catch(t : Throwable) {
+            setupException = t
+        }
+
+        setupException?.let {
+            logger.error { "An error occurred inside the program setup" }
+            throw(it)
+        }
+
+        setupCalled = true
+
+
+
 
         var exception: Throwable? = null
         while (!exitRequested && !glfwWindowShouldClose(window)) {
@@ -619,6 +637,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
                 drawRequested = false
                 exception = drawFrame()
                 if (exception != null) {
+                    logger.error { "An exception was thrown inside the OPENRNDR program" }
                     break
                 }
                 glfwSwapBuffers(window)
@@ -654,6 +673,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         logger.debug { "done" }
 
         exception?.let {
+            logger.info { "OPENRNDR program ended with exceptions" }
             throw it
         }
     }
