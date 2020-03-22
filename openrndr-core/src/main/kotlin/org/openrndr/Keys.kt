@@ -107,10 +107,10 @@ const val KEY_RIGHT_SHIFT = 344
  * Keyboard events in a single class
  */
 class Keyboard {
-    val keyDown = Event<KeyEvent>().postpone(true)
-    val keyUp = Event<KeyEvent>().postpone(true)
-    val keyRepeat = Event<KeyEvent>().postpone(true)
-    val character = Event<Program.CharacterEvent>().postpone(true)
+    val keyDown = Event<KeyEvent>("keyboard-key-down").postpone(true)
+    val keyUp = Event<KeyEvent>("keyboard-key-up").postpone(true)
+    val keyRepeat = Event<KeyEvent>("keyboard-key-repeat").postpone(true)
+    val character = Event<Program.CharacterEvent>("keyboard-character").postpone(true)
 
     var pressedKeys = mutableSetOf<String>()
 }

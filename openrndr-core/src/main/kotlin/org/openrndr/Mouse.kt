@@ -30,12 +30,12 @@ class Mouse(val application: Application) {
             application.cursorVisible = value
         }
 
-    val buttonDown = Event<MouseEvent>().postpone(true)
-    val buttonUp = Event<MouseEvent>().postpone(true)
-    val dragged = Event<MouseEvent>().postpone(true)
-    val moved = Event<MouseEvent>().postpone(true)
-    val scrolled = Event<MouseEvent>().postpone(true)
-    val clicked = Event<MouseEvent>().postpone(true)
-    val entered = Event<MouseEvent>().postpone(true)
-    val left = Event<MouseEvent>().postpone(true)
+    val buttonDown = Event<MouseEvent>("mouse-button-down").postpone(true)
+    val buttonUp = Event<MouseEvent>("mouse-button-up").postpone(true)
+    val dragged = Event<MouseEvent>("mouse-dragged").postpone(true)
+    val moved = Event<MouseEvent>("mouse-moved").postpone(true)
+    val scrolled = Event<MouseEvent>("mouse-scrolled").postpone(true)
+    val clicked = Event<MouseEvent>("mouse-clicked").postpone(true)
+    val entered = Event<MouseEvent>("mouse-entered").postpone(true)
+    val left = Event<MouseEvent>("mouse-left").postpone(true)
 }

@@ -390,12 +390,12 @@ class VideoPlayerFFMPEG private constructor(
     /**
      * Listenable event, emitted when a new frame arrived
      */
-    val newFrame = Event<FrameEvent>()
+    val newFrame = Event<FrameEvent>("videoplayer-new-frame")
 
     /**
      * Listenable event, emitted when video ended
      */
-    val ended = Event<VideoEvent>()
+    val ended = Event<VideoEvent>("videoplayer-ended")
 
     private var audioOut: AudioQueueSource? = null
 

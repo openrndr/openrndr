@@ -165,39 +165,39 @@ open class Program {
         /**
          * Window focused event, triggered when the window receives focus
          */
-        val focused = Event<WindowEvent>().postpone(true)
+        val focused = Event<WindowEvent>("window-focused").postpone(true)
 
         /**
          * Window focused event, triggered when the window loses focus
          */
-        val unfocused = Event<WindowEvent>().postpone(true)
+        val unfocused = Event<WindowEvent>("window-unfocused").postpone(true)
 
         /**
          * Window moved event
          */
-        val moved = Event<WindowEvent>().postpone(true)
+        val moved = Event<WindowEvent>("window-moved").postpone(true)
 
         /**
          * Window sized event
          */
-        val sized = Event<WindowEvent>().postpone(true)
+        val sized = Event<WindowEvent>("window-sized").postpone(true)
 
 
         /**
          * Window minimized event
          */
-        val minimized = Event<WindowEvent>().postpone(true)
+        val minimized = Event<WindowEvent>("window-minimized").postpone(true)
 
 
         /**
          * Window restored (from minimization) event
          */
-        val restored = Event<WindowEvent>().postpone(true)
+        val restored = Event<WindowEvent>("window-restored").postpone(true)
 
         /**
          * Drop event, triggered when a file is dropped on the window
          */
-        val drop = Event<DropEvent>().postpone(true)
+        val drop = Event<DropEvent>("window-drop").postpone(true)
 
         /**
          * Window position
