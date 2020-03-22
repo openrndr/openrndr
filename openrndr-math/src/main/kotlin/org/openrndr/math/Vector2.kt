@@ -9,11 +9,6 @@ import kotlin.math.*
  */
 data class Vector2(val x: Double, val y: Double) : Serializable {
 
-    init {
-        require(x == x)
-        require(y == y)
-    }
-
     constructor(x: Double) : this(x, x)
 
     operator fun invoke(x: Double = this.x, y: Double = this.y) = Vector2(x, y)
@@ -25,7 +20,15 @@ data class Vector2(val x: Double, val y: Double) : Serializable {
         get() = x * x + y * y
 
     val perpendicular: Vector2 get() = Vector2(-y, x)
-    val normalized: Vector2 get() = this / length
+
+    val normalized: Vector2 get() {
+        val localLength = length
+        return if (localLength > 0.0) {
+            this / length
+        } else {
+            Vector2.ZERO
+        }
+    }
 
     infix fun dot(right: Vector2) = x * right.x + y * right.y
     infix fun reflect(surfaceNormal: Vector2): Vector2 = this - surfaceNormal * (this dot surfaceNormal) * 2.0
