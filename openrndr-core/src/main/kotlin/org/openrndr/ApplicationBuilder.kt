@@ -1,5 +1,6 @@
 package org.openrndr
 
+import org.openrndr.exceptions.installUncaughtExceptionHandler
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.util.ArrayList
@@ -104,6 +105,7 @@ class ApplicationBuilder internal constructor(){
  */
 fun application(build: ApplicationBuilder.() -> Unit) {
     if (!restartJVM()) {
+        installUncaughtExceptionHandler()
         val applicationBuilder = ApplicationBuilder().apply { build() }
         application(applicationBuilder.program, applicationBuilder.configuration)
     }

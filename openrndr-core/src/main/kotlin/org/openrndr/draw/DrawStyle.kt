@@ -351,8 +351,8 @@ data class DrawStyle(
                 shader.uniform("u_colorMatrix", colorMatrix.floatArray)
             }
         } else {
-            val styleBlock = styleBlocks.getOrPut(Driver.driver.contextID) {
-                logger.debug { "creating styleblock UBO for ${Driver.driver.contextID}" }
+            val styleBlock = styleBlocks.getOrPut(Driver.instance.contextID) {
+                logger.debug { "creating styleblock UBO for ${Driver.instance.contextID}" }
                 shader.createBlock("StyleBlock")
             }
 
@@ -363,7 +363,7 @@ data class DrawStyle(
                 uniform("u_colorMatrix", colorMatrix)
                 shader.block("StyleBlock", this)
                 if (dirty) {
-                    logger.trace { "styleblock UBO for ${Driver.driver.contextID} is dirty -> upload" }
+                    logger.trace { "styleblock UBO for ${Driver.instance.contextID} is dirty -> upload" }
                     upload()
                 }
             }

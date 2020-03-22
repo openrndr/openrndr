@@ -126,8 +126,8 @@ interface Driver {
     fun internalShaderResource(resourceId: String): String
 
     companion object {
-        lateinit var driver: Driver
-        val instance: Driver get() = driver
+        var driver: Driver? = null
+        val instance: Driver get() = driver ?: error("No graphical context has been set up yet.")
     }
 }
 

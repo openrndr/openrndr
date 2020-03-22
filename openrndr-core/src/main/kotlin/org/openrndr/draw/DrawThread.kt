@@ -22,5 +22,5 @@ fun DrawThread.launch(
  * creates and starts a DrawThread
  */
 fun drawThread(): DrawThread {
-    return Driver.driver.createDrawThread()
+    return Driver.instance.createDrawThread()
 }

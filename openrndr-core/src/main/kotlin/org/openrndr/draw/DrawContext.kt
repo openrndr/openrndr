@@ -20,8 +20,8 @@ private val logger = KotlinLogging.logger {}
 data class DrawContext(val model: Matrix44, val view: Matrix44, val projection: Matrix44, val width: Int, val height: Int, val contentScale: Double) {
     fun applyToShader(shader: Shader) {
 
-        val contextBlock = contextBlocks.getOrPut(Driver.driver.contextID) {
-            logger.debug { "creating context block for ${Driver.driver.contextID}" }
+        val contextBlock = contextBlocks.getOrPut(Driver.instance.contextID) {
+            logger.debug { "creating context block for ${Driver.instance.contextID}" }
             shader.createBlock("ContextBlock")
         }
 

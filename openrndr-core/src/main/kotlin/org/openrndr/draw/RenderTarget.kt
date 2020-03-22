@@ -124,7 +124,7 @@ fun renderTarget(width: Int, height: Int,
         throw IllegalArgumentException("unsupported resolution ($width×$height)")
     }
 
-    val renderTarget = Driver.driver.createRenderTarget(width, height, contentScale, multisample, session)
+    val renderTarget = Driver.instance.createRenderTarget(width, height, contentScale, multisample, session)
     RenderTargetBuilder(renderTarget).builder()
     return renderTarget
 }

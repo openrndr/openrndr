@@ -124,7 +124,6 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         }
 
     init {
-        installUncaughtExceptionHandler()
         logger.debug { "debug output enabled" }
         logger.trace { "trace level enabled" }
 
@@ -410,8 +409,8 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
             }
         })
 
-        program.driver = Driver.driver
-        program.drawer = Drawer(Driver.driver)
+        program.driver = Driver.instance
+        program.drawer = Drawer(Driver.instance)
 
         val defaultRenderTarget = ProgramRenderTargetGL3(program)
         defaultRenderTarget.bind()
@@ -710,8 +709,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
             logger.trace { "window: ${program.window.size.x.toInt()}x${program.window.size.y.toInt()} program: ${program.width}x${program.height}" }
             program.drawImpl()
         } catch (e: Throwable) {
-            logger.error { "caught exception, breaking animation loop" }
-            e.printStackTrace()
+            logger.error { "Caught exception inside program the program loop" }
             return e
         }
         return null

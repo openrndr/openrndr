@@ -44,7 +44,7 @@ class DrawThreadGL3(private val contextWindow: Long) : DrawThread {
             realDispatcher = Dispatcher()
             GLFW.glfwMakeContextCurrent(contextWindow)
             GL.createCapabilities()
-            realDrawer = Drawer(Driver.driver)
+            realDrawer = Drawer(Driver.instance)
             val vaos = IntArray(1)
             glGenVertexArrays(vaos)
             glBindVertexArray(vaos[0])

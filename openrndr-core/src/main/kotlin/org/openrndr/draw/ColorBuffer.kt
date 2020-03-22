@@ -260,7 +260,7 @@ interface ColorBuffer {
  * @param session the [Session] that should track this color buffer
  */
 fun colorBuffer(width: Int, height: Int, contentScale: Double = 1.0, format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.UINT8, multisample: BufferMultisample = BufferMultisample.Disabled, levels: Int = 1, session: Session? = Session.active): ColorBuffer {
-    return Driver.driver.createColorBuffer(width, height, contentScale, format, type, multisample, levels, session)
+    return Driver.instance.createColorBuffer(width, height, contentScale, format, type, multisample, levels, session)
 }
 
 /**

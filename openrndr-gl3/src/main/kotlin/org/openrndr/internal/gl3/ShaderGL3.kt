@@ -27,7 +27,7 @@ class UniformBlockGL3(override val layout: UniformBlockLayout, val blockBinding:
 
     companion object {
         fun create(layout: UniformBlockLayout): UniformBlockGL3 {
-            synchronized(Driver.driver) {
+            synchronized(Driver.instance) {
                 val ubo = glGenBuffers()
                 glBindBuffer(GL_UNIFORM_BUFFER, ubo)
                 glBufferData(GL_UNIFORM_BUFFER, layout.sizeInBytes.toLong(), GL_DYNAMIC_DRAW)
@@ -356,7 +356,7 @@ class ShaderGL3(val program: Int,
     companion object {
         fun create(vertexShader: VertexShaderGL3, fragmentShader: FragmentShaderGL3, session: Session?): ShaderGL3 {
 
-            synchronized(Driver.driver) {
+            synchronized(Driver.instance) {
                 debugGLErrors()
                 val name = "${vertexShader.name} / ${fragmentShader.name}"
 

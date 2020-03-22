@@ -46,7 +46,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
     private val defaultVAO: Int
         get() = defaultVAOs.getOrPut(Thread.currentThread()) {
             val vaos = IntArray(1)
-            synchronized(Driver.driver) {
+            synchronized(Driver.instance) {
                 glGenVertexArrays(vaos)
             }
             vaos[0]
@@ -272,7 +272,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
             }
 
             val arrays = IntArray(1)
-            synchronized(Driver.driver) {
+            synchronized(Driver.instance) {
                 glGenVertexArrays(arrays)
                 glBindVertexArray(arrays[0])
                 setupFormat(vertexBuffers, emptyList(), shader)
@@ -306,7 +306,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
                 "creating new VAO for hash $hash"
             }
             val arrays = IntArray(1)
-            synchronized(Driver.driver) {
+            synchronized(Driver.instance) {
                 glGenVertexArrays(arrays)
                 glBindVertexArray(arrays[0])
                 setupFormat(vertexBuffers, emptyList(), shader)
@@ -342,7 +342,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
                 "creating new instances VAO for hash $hash"
             }
             val arrays = IntArray(1)
-            synchronized(Driver.driver) {
+            synchronized(Driver.instance) {
                 glGenVertexArrays(arrays)
                 glBindVertexArray(arrays[0])
                 setupFormat(vertexBuffers, instanceAttributes, shader)
@@ -377,7 +377,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
                 "creating new instances VAO for hash $hash"
             }
             val arrays = IntArray(1)
-            synchronized(Driver.driver) {
+            synchronized(Driver.instance) {
                 glGenVertexArrays(arrays)
                 glBindVertexArray(arrays[0])
                 setupFormat(vertexBuffers, instanceAttributes, shader)
