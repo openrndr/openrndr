@@ -2,6 +2,7 @@ package org.openrndr.color
 
 import org.openrndr.math.Vector3
 import org.openrndr.math.Vector4
+import java.lang.NumberFormatException
 import kotlin.math.pow
 
 enum class Linearity {
@@ -50,7 +51,11 @@ data class ColorRGBa(val r: Double, val g: Double, val b: Double, val a: Double 
 
                 c = if (len == 3) c + c else c
 
-                Integer.valueOf(c, 16)
+                try {
+                    c.toInt(16)
+                } catch(e : NumberFormatException) {
+                    throw IllegalArgumentException("Cannot convert input '$hex' to an RGBa color value.")
+                }
             }
 
             val (r, g, b) = colors
