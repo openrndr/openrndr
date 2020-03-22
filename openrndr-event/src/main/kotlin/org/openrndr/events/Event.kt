@@ -1,8 +1,14 @@
 package org.openrndr.events
 
+import mu.KotlinLogging
 import java.time.Duration
 import java.time.Instant
-import java.util.ArrayList
+import java.util.concurrent.CopyOnWriteArrayList
+
+private val logger = KotlinLogging.logger {}
+
+private const val ignoreExceptionProperty = "org.openrndr.events.ignoreExceptions"
+private val ignoreExceptions by lazy { System.getProperties().containsKey(ignoreExceptionProperty) }
 
 class Event<T> {
     private var lastTriggered = Instant.ofEpochMilli(0L)
@@ -10,12 +16,13 @@ class Event<T> {
     private var name = "<nameless-event>"
     private var signature: Array<Class<*>> = emptyArray()
 
-    private var filter: ((T)->Boolean)? = null
+    private var filter: ((T) -> Boolean)? = null
 
-    private val messages = ArrayList<Message>()
-    val listeners = ArrayList< (T)->Unit>()
 
-    private val oneShotListeners = ArrayList<(T)->Unit>()
+    private val messages = mutableListOf<Message>()
+    val listeners: MutableList<(T) -> Unit> = CopyOnWriteArrayList<(T) -> Unit>()
+
+    private val oneShotListeners = CopyOnWriteArrayList<(T) -> Unit>()
 
     private var postpone = false
 
@@ -73,16 +80,29 @@ class Event<T> {
         internalTrigger()
 
         if (filter == null || filter!!.invoke(v1)) {
-
-            //logger.trace("event {} triggered with values ({}), {} receivers", name, v1, this.listeners.size)
-
             if (!postpone) {
-                this.listeners.forEach { l -> l(v1) }
+                this.listeners.forEach { l ->
+                    try {
+                        l(v1)
+                    } catch(e : Throwable) {
+                        logger.error { "Exception thrown in listener ('${name}'): ${e.javaClass.simpleName}; '${e.message}'" }
+                        if (!ignoreExceptions)
+                            throw e
+                        else {
+                            e.printStackTrace()
+                        }
+                    }
+                }
                 this.oneShotListeners.forEach { l ->
                     try {
                         l(v1)
-                    } catch (e: Exception) {
-                        e.printStackTrace()
+                    } catch (e: Throwable) {
+                        logger.error { "Exception thrown in one-shot listener ('${name}'): ${e.javaClass.simpleName}; '${e.message}'" }
+                        if (!ignoreExceptions)
+                            throw e
+                        else {
+                            e.printStackTrace()
+                        }
                     }
                 }
                 this.oneShotListeners.clear()
@@ -111,26 +131,34 @@ class Event<T> {
                             try {
                                 l(m.v1)
                             } catch (e: Exception) {
-                                e.printStackTrace()
+                                logger.error { "Exception thrown in listener ('${name}'): ${e.javaClass.simpleName}; '${e.message}'" }
+                                if (!ignoreExceptions)
+                                    throw e
+                                else {
+                                    e.printStackTrace()
+                                }
                             }
                         }
                         this.oneShotListeners.forEach { l ->
                             try {
                                 l(m.v1)
                             } catch (e: Exception) {
-                                e.printStackTrace()
+                                logger.error { "Exception thrown in one-shot listener ('${name}'): ${e.javaClass.simpleName}; '${e.message}'" }
+                                if (!ignoreExceptions)
+                                    throw e
+                                else {
+                                    e.printStackTrace()
+                                }
                             }
                         }
-
                         this.oneShotListeners.clear()
                     }
                 }
             }
         }
-
     }
 
-    fun filter(filter: (T)->Boolean): Event<T> {
+    fun filter(filter: (T) -> Boolean): Event<T> {
         val filtered = Event<T>()
         filtered.filter = filter
 
@@ -138,24 +166,38 @@ class Event<T> {
         return filtered
     }
 
-    fun listen(listener: (T)->Unit): Event<T> {
+
+    @Deprecated("Switching away from JavaRX", replaceWith = ReplaceWith("listen"))
+    fun subscribe(listener: (T) -> Unit): (T) -> Unit = listen(listener)
+
+
+    @Deprecated("Switching away from JavaRX", replaceWith = ReplaceWith("listen"))
+    fun onNext(event : T) {
+        trigger(event)
+    }
+
+
+    fun listen(listener: (T) -> Unit): (T) -> Unit {
         listeners.add(listener)
-        return this
+        return listener
     }
 
-    fun listen(listener: Event<T>): Event<T> {
-        listeners.add({ m -> listener.trigger(m) })
-        return this
+    fun listen(listener: Event<T>): (T) -> Unit {
+        val listenFunction = { m: T -> listener.trigger(m); Unit }
+        listeners.add(listenFunction)
+        return listenFunction
     }
 
-    fun listenOnce(listener: (T)->Unit): Event<T> {
+    fun cancel(listener: (T) -> Unit) {
+        listeners.remove(listener)
+    }
+
+    fun listenOnce(listener: (T) -> Unit) {
         oneShotListeners.add(listener)
-        return this
     }
 
-    fun listenOnce(listener: Event<T>): Event<T> {
+    fun listenOnce(listener: Event<T>) {
         oneShotListeners.add({ v1 -> listener.trigger(v1) })
-        return this
     }
 
     fun signature(t1: Class<T>): Event<T> {
