@@ -179,15 +179,15 @@ class ContourBuilder {
             "use moveTo first"
         }
 
-        val tdx = anchor.x - tx
-        val tdy = anchor.y - ty
+        val tdx = cursor.x - tx
+        val tdy = cursor.y - ty
 
         if (tdx * tdx + tdy * tdy == 0.0) {
             return
         }
         val radiiEpsilon = 0.0001
 
-        if (crx <= radiiEpsilon || cry == radiiEpsilon) {
+        if (abs(crx) <= radiiEpsilon || abs(cry) <= radiiEpsilon) {
             lineTo(Vector2(tx, ty))
             return
         }
