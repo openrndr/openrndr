@@ -1,6 +1,7 @@
 package org.openrndr.shape
 
 import org.openrndr.math.Vector2
+import org.openrndr.math.mod_
 import kotlin.math.*
 
 /**
@@ -86,7 +87,7 @@ class ContourBuilder {
     }
 
     fun moveOrCurveTo(c0x: Double, c0y: Double, c1x: Double, c1y: Double, x: Double, y: Double) =
-        moveOrCurveTo(Vector2(c0x, c0y), Vector2(c1x, c1y), Vector2(x, y))
+            moveOrCurveTo(Vector2(c0x, c0y), Vector2(c1x, c1y), Vector2(x, y))
 
     /**
      * Line to
@@ -144,7 +145,7 @@ class ContourBuilder {
      * Cubic curve to
      */
     fun curveTo(c0x: Double, c0y: Double, c1x: Double, c1y: Double, x: Double, y: Double) =
-        curveTo(Vector2(c0x, c0y), Vector2(c1x, c1y), Vector2(x, y))
+            curveTo(Vector2(c0x, c0y), Vector2(c1x, c1y), Vector2(x, y))
 
     /**
      * Closes the contour, adds a line segment to `anchor` when needed
@@ -167,17 +168,21 @@ class ContourBuilder {
     }
 
     fun arcTo(
-        crx: Double,
-        cry: Double,
-        angle: Double,
-        largeArcFlag: Boolean,
-        sweepFlag: Boolean,
-        tx: Double,
-        ty: Double
+            crx: Double,
+            cry: Double,
+            angle: Double,
+            largeArcFlag: Boolean,
+            sweepFlag: Boolean,
+            tx: Double,
+            ty: Double
     ) {
+        // based on https://github.com/BigBadaboom/androidsvg/blob/master/androidsvg/src/main/java/com/caverock/androidsvg/SVGAndroidRenderer.java
+
         require(cursor !== Vector2.INFINITY) {
             "use moveTo first"
         }
+
+        val angleRad = Math.toRadians(angle.mod_(360.0))
 
         val tdx = cursor.x - tx
         val tdy = cursor.y - ty
@@ -185,7 +190,7 @@ class ContourBuilder {
         if (tdx * tdx + tdy * tdy == 0.0) {
             return
         }
-        val radiiEpsilon = 0.0001
+        val radiiEpsilon = 10E-6
 
         if (abs(crx) <= radiiEpsilon || abs(cry) <= radiiEpsilon) {
             lineTo(Vector2(tx, ty))
@@ -194,15 +199,21 @@ class ContourBuilder {
 
         var rx = abs(crx)
         var ry = abs(cry)
-        val angleRad = Math.toRadians(angle % 360.0)
+
+        val cosAngle = cos(angleRad)
+        val sinAngle = sin(angleRad)
 
         val dx2 = (cursor.x - tx) / 2.0
         val dy2 = (cursor.y - ty) / 2.0
 
-        val cosAngle = cos(angleRad)
-        val sinAngle = sin(angleRad)
         val x1 = cosAngle * dx2 + sinAngle * dy2
         val y1 = -sinAngle * dx2 + cosAngle * dy2
+
+        val rx_sq = rx * rx
+        val ry_sq = ry * ry
+
+        val y1_sq = y1 * y1
+        val x1_sq = x1 * x1
 
         val radiiCheck = ((x1 * x1) / (rx * rx)) + ((y1 * y1) / (ry * ry))
         if (radiiCheck > 1) {
@@ -210,16 +221,11 @@ class ContourBuilder {
             ry *= sqrt(radiiCheck)
         }
 
-        val rx_sq = rx * rx
-        val ry_sq = ry * ry
-
-        val y1_sq = y1 * y1
-        val x1_sq = x1 * x1
         // Step 2 : Compute (cx1, cy1) - the transformed centre point
-        var sign = if (largeArcFlag == sweepFlag) -1.0 else 1.0
+        val sign0 = if (largeArcFlag == sweepFlag) -1.0 else 1.0
         var sq = (rx_sq * ry_sq - rx_sq * y1_sq - ry_sq * x1_sq) / (rx_sq * y1_sq + ry_sq * x1_sq)
         sq = if (sq < 0) 0.0 else sq
-        val coef = sign * sqrt(sq)
+        val coef = sign0 * sqrt(sq)
         val cx1 = coef * (rx * y1 / ry)
         val cy1 = coef * -(ry * x1 / rx)
 
@@ -234,69 +240,71 @@ class ContourBuilder {
         val uy = (y1 - cy1) / ry
         val vx = (-x1 - cx1) / rx
         val vy = (-y1 - cy1) / ry
-        var p: Double
-        var n: Double
 
         // Compute the angle start
-        n = sqrt(ux * ux + uy * uy)
-        if (n == 0.0) {
-            n = 0.000001
-        }
-
-        p = ux // (1 * ux) + (0 * uy)
-        sign = if (uy < 0) -1.0 else 1.0
-        var angleStart = Math.toDegrees(sign * acos(p / n))
+        val n0 = sqrt(ux * ux + uy * uy)
+        val p0 = ux // (1 * ux) + (0 * uy)
+        val sign1 = if (uy < 0) -1.0 else 1.0
+        var angleStart = sign1 * acos(p0 / n0)
 
         // Compute the angle extent
-        n = sqrt((ux * ux + uy * uy) * (vx * vx + vy * vy))
-        p = ux * vx + uy * vy
+        val n1 = sqrt((ux * ux + uy * uy) * (vx * vx + vy * vy))
+        val p1 = ux * vx + uy * vy
+        val sign2 = if (ux * vy - uy * vx < 0) -1.0 else 1.0
 
-        val ratio = if (n > 0.0) p / n else 0.0
+        fun checkedAcos(v: Double): Double {
+            return when {
+                v < -1.0 -> Math.PI
+                v > 1.0 -> 0.0
+                else -> acos(v)
+            }
+        }
 
-        sign = if (ux * vy - uy * vx < 0) -1.0 else 1.0
-        var angleExtent = if (ratio >= 0.0) Math.toDegrees(sign * acos(p / n)) else 180.0
+        var angleExtent = sign2 * checkedAcos(p1 / n1)
+
+        if (angleExtent == 0.0) {
+            lineTo(tx, ty)
+            return
+        }
 
         if (!sweepFlag && angleExtent > 0) {
-            angleExtent -= 360.0
+            angleExtent -= PI * 2
         } else if (sweepFlag && angleExtent < 0) {
-            angleExtent += 360.0
+            angleExtent += PI * 2
         }
-        angleExtent %= 360.0
-        angleStart %= 360.0
+        angleExtent %= PI * 2
+        angleStart %= PI * 2
 
-        //angleExtent = Functions.mod(angleExtent, 360.0);
-        //angleStart = Functions.mod(angleStart, 360.0);
+        val bezierPoints = arcToBeziers(angleStart, angleExtent)
+        bezierPoints[bezierPoints.lastIndex] = Vector2(tx, ty)
 
-        val coords = arcToBeziers(angleStart, angleExtent)
-
-        for (i in coords.indices) {
-            val x = coords[i].x
-            val y = coords[i].y
-            coords[i] = Vector2(
-                cosAngle * rx * x + -sinAngle * ry * y + cx,
-                sinAngle * rx * x + cosAngle * ry * y + cy
+        for (i in bezierPoints.indices) {
+            val x = bezierPoints[i].x
+            val y = bezierPoints[i].y
+            bezierPoints[i] = Vector2(
+                    cosAngle * rx * x + -sinAngle * ry * y + cx,
+                    sinAngle * rx * x + cosAngle * ry * y + cy
             )
         }
 
-        if (coords.isNotEmpty()) {
-            coords[coords.size - 1] = Vector2(tx, ty)
+        if (bezierPoints.isNotEmpty()) {
+            bezierPoints[bezierPoints.size - 1] = Vector2(tx, ty)
             var i = 0
-            while (i < coords.size) {
+            while (i < bezierPoints.size) {
                 try {
-                    curveTo(coords[i], coords[i + 1], coords[i + 2])
+                    curveTo(bezierPoints[i], bezierPoints[i + 1], bezierPoints[i + 2])
                 } catch (e: IllegalArgumentException) {
-                    error("radii: $crx $cry, deltas: $tdx $tdy [$i] ${coords[i]}, ${coords[i + 1]}, ${coords[i + 2]}")
+                    error("radii: $crx $cry, deltas: $tdx $tdy [$i] ${bezierPoints[i]}, ${bezierPoints[i + 1]}, ${bezierPoints[i + 2]}")
                 }
                 i += 3
             }
-        } else {
-            //println("wot$angleStart $angleExtent")
         }
+
         cursor = Vector2(tx, ty)
     }
 
     fun arcTo(crx: Double, cry: Double, angle: Double, largeArcFlag: Boolean, sweepFlag: Boolean, end: Vector2) =
-        arcTo(crx, cry, angle, largeArcFlag, sweepFlag, end.x, end.y)
+            arcTo(crx, cry, angle, largeArcFlag, sweepFlag, end.x, end.y)
 
     fun continueTo(end: Vector2, tangentScale: Double = 1.0) {
         if ((cursor - end).squaredLength > 0.0) {
@@ -323,22 +331,20 @@ class ContourBuilder {
     }
 
     fun continueTo(cx: Double, cy: Double, x: Double, y: Double, tangentScale: Double = 1.0) =
-        continueTo(Vector2(cx, cy), Vector2(x, y), tangentScale)
+            continueTo(Vector2(cx, cy), Vector2(x, y), tangentScale)
 
     private fun arcToBeziers(angleStart: Double, angleExtent: Double): Array<Vector2> {
-        val numSegments = ceil(abs(angleExtent) / 90.0).toInt()
-        val angleStartRadians = Math.toRadians(angleStart)
-        val angleExtentRadians = Math.toRadians(angleExtent)
-        val angleIncrementRadians = (angleExtentRadians / numSegments)
+        val numSegments = ceil(abs(angleExtent) * 2.0 /  PI).toInt()
+        val angleIncrement = (angleExtent / numSegments)
 
         // The length of each control point vector is given by the following formula.
-        val controlLength = 4.0 / 3.0 * sin(angleIncrementRadians / 2.0) / (1.0 + cos(angleIncrementRadians / 2.0))
+        val controlLength = 4.0 / 3.0 * sin(angleIncrement / 2.0) / (1.0 + cos(angleIncrement / 2.0))
 
         val coords = Array(numSegments * 3) { Vector2.ZERO }
         var pos = 0
 
         for (i in 0 until numSegments) {
-            var angle = angleStartRadians + i * angleIncrementRadians
+            var angle = angleStart + i * angleIncrement
             // Calculate the control vector at this angle
             var dx = cos(angle)
             var dy = sin(angle)
@@ -346,7 +352,7 @@ class ContourBuilder {
             coords[pos] = Vector2(dx - controlLength * dy, dy + controlLength * dx)
             pos++
             // Second control point
-            angle += angleIncrementRadians
+            angle += angleIncrement
             dx = cos(angle)
             dy = sin(angle)
             coords[pos] = Vector2(dx + controlLength * dy, dy - controlLength * dx)
@@ -376,4 +382,3 @@ fun contour(f: ContourBuilder.() -> Unit): ShapeContour {
     cb.f()
     return ShapeContour(cb.segments, cb.closed)
 }
-
