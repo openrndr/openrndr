@@ -161,16 +161,16 @@ internal class ExpansionDrawer {
         localStyle.frontStencil.stencilWriteMask = 0xff
         localStyle.backStencil.stencilWriteMask = 0xff
 
-        localStyle.frontStencil.stencilOp(StencilOperation.KEEP, StencilOperation.KEEP, StencilOperation.INCREASE_WRAP)
-        localStyle.backStencil.stencilOp(StencilOperation.KEEP, StencilOperation.KEEP, StencilOperation.DECREASE_WRAP)
-        localStyle.frontStencil.stencilFunc(StencilTest.ALWAYS, 0, 0xff)
-        localStyle.backStencil.stencilFunc(StencilTest.ALWAYS, 0, 0xff)
+        localStyle.frontStencil.stencilOp(onStencilTestFail = StencilOperation.KEEP, onDepthTestFail = StencilOperation.KEEP, onDepthTestPass = StencilOperation.INCREASE_WRAP)
+        localStyle.backStencil.stencilOp(onStencilTestFail = StencilOperation.KEEP, onDepthTestFail = StencilOperation.KEEP, onDepthTestPass = StencilOperation.DECREASE_WRAP)
+        localStyle.frontStencil.stencilFunc(stencilTest = StencilTest.ALWAYS, testReference = 0, writeMask = 0xff)
+        localStyle.backStencil.stencilFunc(stencilTest = StencilTest.ALWAYS, testReference= 0, writeMask = 0xff)
 
         localStyle.channelWriteMask = ChannelMask.NONE
         localStyle.cullTestPass = CullTestPass.ALWAYS
         Driver.instance.setState(localStyle)
 
-        commands.forEach { c ->
+        for (c in commands) {
             if (c.type == ExpansionType.FILL) {
                 Driver.instance.drawVertexBuffer(shader, listOf(c.vertexBuffer), DrawPrimitive.TRIANGLE_FAN, c.vertexOffset, c.vertexCount)
             }
@@ -182,10 +182,10 @@ internal class ExpansionDrawer {
         // -- pass 2: draw anti-aliased fringes
         localStyle.channelWriteMask = ChannelMask.ALL
         shader.uniform("strokeThr", 0.0f)
-        localStyle.stencil.stencilFunc(StencilTest.EQUAL, 0x00, 0xff)
-        localStyle.stencil.stencilOp(StencilOperation.KEEP, StencilOperation.KEEP, StencilOperation.KEEP)
+        localStyle.stencil.stencilFunc(stencilTest = StencilTest.EQUAL, testReference = 0x00, writeMask = 0xff)
+        localStyle.stencil.stencilOp(onStencilTestFail = StencilOperation.KEEP, onDepthTestFail = StencilOperation.KEEP, onDepthTestPass = StencilOperation.KEEP)
         Driver.instance.setState(localStyle)
-        commands.forEach { c ->
+        for (c in commands) {
             if (c.type == ExpansionType.FRINGE) {
                 Driver.instance.drawVertexBuffer(shader, listOf(c.vertexBuffer), DrawPrimitive.TRIANGLE_STRIP, c.vertexOffset, c.vertexCount)
             }
@@ -193,8 +193,9 @@ internal class ExpansionDrawer {
 
         // -- pass 3: fill in stencilled area in pass 1
         shader.uniform("strokeThr", -1.0f)
-        localStyle.stencil.stencilFunc(StencilTest.NOT_EQUAL, 0x0, 0xff)
-        localStyle.stencil.stencilOp(StencilOperation.ZERO, StencilOperation.ZERO, StencilOperation.ZERO)
+        localStyle.stencil.stencilFunc(stencilTest = StencilTest.NOT_EQUAL, testReference = 0x0, writeMask = 0xff)
+        localStyle.stencil.stencilTestMask = 0x1
+        localStyle.stencil.stencilOp(onStencilTestFail = StencilOperation.ZERO, onDepthTestFail = StencilOperation.ZERO, onDepthTestPass = StencilOperation.ZERO)
         localStyle.channelWriteMask = ChannelMask.ALL
         localStyle.cullTestPass = CullTestPass.ALWAYS
 

@@ -106,16 +106,16 @@ class StencilStyle {
     var stencilWriteMask = 0xff
     var stencilTest = StencilTest.DISABLED
 
-    fun stencilFunc(stencilTest: StencilTest, ref: Int, mask: Int) {
+    fun stencilFunc(stencilTest: StencilTest, testReference: Int, writeMask: Int) {
         this.stencilTest = stencilTest
-        this.stencilTestReference = ref
-        this.stencilWriteMask = mask
+        this.stencilTestReference = testReference
+        this.stencilWriteMask = writeMask
     }
 
-    fun stencilOp(stencilFail: StencilOperation, depthTestFail: StencilOperation, depthTestPass: StencilOperation) {
-        stencilFailOperation = stencilFail
-        depthFailOperation = depthTestFail
-        depthPassOperation = depthTestPass
+    fun stencilOp(onStencilTestFail: StencilOperation, onDepthTestFail: StencilOperation, onDepthTestPass: StencilOperation) {
+        stencilFailOperation = onStencilTestFail
+        depthFailOperation = onDepthTestFail
+        depthPassOperation = onDepthTestPass
     }
 }
 
