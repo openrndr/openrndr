@@ -96,13 +96,13 @@ fun findUserCause(throwable: Throwable) {
         }
     }
     System.err.println("${color(0x7f, 0x7f, 0x7f)}│${colorReset()}")
-    System.err.println("${color(0x7f, 0x7f, 0x7f)}↑ ${color(0x7f, 0x7f, 0x7f)}${throwable.message} (${throwable::class.simpleName})${colorReset()} ")
+    System.err.println("${color(0x7f, 0x7f, 0x7f)}↑ ${color(0xff, 0xc0, 0xcb)}${throwable.message} (${throwable::class.simpleName})${colorReset()} ")
 
     if (throwable is NoSuchMethodError || throwable is ClassNotFoundException) {
         if (throwable.message?.contains("org.openrndr") == true) {
             System.err.println()
             logger.error {
-                "You are likely using incompatible versions of OPENRNDR, ORX and Panel. Fix imports and make sure to clean and rebuild your project."
+                "You are likely using incompatible versions of OPENRNDR and ORX. Fix imports and make sure to clean and rebuild your project."
             }
         }
     }
