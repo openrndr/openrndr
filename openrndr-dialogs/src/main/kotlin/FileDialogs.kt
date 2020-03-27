@@ -1,26 +1,34 @@
 package org.openrndr.dialogs
 
+import mu.KotlinLogging
 import java.io.File
 
 import org.lwjgl.util.nfd.NativeFileDialog
 import org.lwjgl.system.MemoryUtil.*
 import org.lwjgl.util.nfd.NFDPathSet
 import org.lwjgl.util.nfd.NativeFileDialog.*
+import org.openrndr.exceptions.stackRootClassName
 import org.openrndr.platform.Platform
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.util.*
 
-private fun getDefaultPathForContext(programName: String, contextID: String): String? {
-    val props = Properties()
 
+private val logger = KotlinLogging.logger {}
+
+fun getDefaultPathForContext(programName: String = stackRootClassName(), contextID: String = "global"): String? {
+    val props = Properties()
     return try {
         val f = File(Platform.supportDirectory(programName), ".file-dialog.properties")
         if (f.exists()) {
             val `is` = FileInputStream(f)
             props.load(`is`)
             `is`.close()
-            props.getProperty(contextID, null)
+            val path = props.getProperty("$programName.$contextID", null)
+            logger.debug {
+                "Resolved default path for '$programName::$contextID' to '$path'"
+            }
+            path
         } else {
             null
         }
@@ -30,17 +38,22 @@ private fun getDefaultPathForContext(programName: String, contextID: String): St
     }
 }
 
-private fun setDefaultPathForContext(programName: String, contextID: String, file: File) {
+fun setDefaultPathForContext(programName: String = stackRootClassName(), contextID: String = "global", file: File) {
+    logger.debug {
+        "Setting default path for '$programName::$contextID' to '${file.absolutePath}'"
+    }
     val props = Properties()
+    val defaultPath = file.let { if (it.isDirectory) it.absolutePath else it.parentFile.absolutePath }
 
     try {
         val f = File(Platform.supportDirectory(programName), ".file-dialog.properties")
+
         if (!f.exists()) {
             f.createNewFile()
         }
         val `is` = FileInputStream(f)
         props.load(`is`)
-        props.setProperty(contextID, file.let { if (it.isDirectory) it.absolutePath else it.parentFile.absolutePath })
+        props.setProperty("$programName.$contextID", defaultPath)
         `is`.close()
         val os = FileOutputStream(f)
         props.store(os, "File dialog properties for $programName")
@@ -50,11 +63,11 @@ private fun setDefaultPathForContext(programName: String, contextID: String, fil
     }
 }
 
-fun openFileDialog(programName: String = "OPENRNDR", contextID: String = "global", function: (File) -> Unit) {
+fun openFileDialog(programName: String = stackRootClassName(), contextID: String = "global", function: (File) -> Unit) {
     openFileDialog(programName, contextID, emptyList(), function)
 }
 
-fun openFileDialog(programName: String = "OPENRNDR", contextID: String = "global", supportedExtensions: List<String>, function: (File) -> Unit) {
+fun openFileDialog(programName: String = stackRootClassName(), contextID: String = "global", supportedExtensions: List<String>, function: (File) -> Unit) {
     val filterList: CharSequence? = if (supportedExtensions.isEmpty()) null else supportedExtensions.joinToString(";")
     val defaultPath: CharSequence? = getDefaultPathForContext(programName, contextID)
     val out = memAllocPointer(1)
@@ -70,7 +83,7 @@ fun openFileDialog(programName: String = "OPENRNDR", contextID: String = "global
     memFree(out)
 }
 
-fun openFilesDialog(programName: String = "OPENRNDR", contextID: String = "global", supportedExtensions: List<String>, function: (List<File>) -> Unit) {
+fun openFilesDialog(programName: String = stackRootClassName(), contextID: String = "global", supportedExtensions: List<String>, function: (List<File>) -> Unit) {
     val filterList: CharSequence? = if (supportedExtensions.isEmpty()) null else supportedExtensions.joinToString(";")
     val defaultPath: CharSequence? = getDefaultPathForContext(programName, contextID)
 
@@ -93,11 +106,11 @@ fun openFilesDialog(programName: String = "OPENRNDR", contextID: String = "globa
     }
 }
 
-fun openFilesDialog(programName: String = "OPENRNDR", contextID: String = "global", function: (List<File>) -> Unit) {
+fun openFilesDialog(programName: String = stackRootClassName(), contextID: String = "global", function: (List<File>) -> Unit) {
     openFilesDialog(programName, contextID, emptyList(), function)
 }
 
-fun openFolderDialog(programName: String = "OPENRNDR", contextID: String = "global", function: (File) -> Unit) {
+fun openFolderDialog(programName: String = stackRootClassName(), contextID: String = "global", function: (File) -> Unit) {
     val defaultPath: CharSequence? = getDefaultPathForContext(programName, contextID)
     val out = memAllocPointer(1)
 
@@ -112,21 +125,43 @@ fun openFolderDialog(programName: String = "OPENRNDR", contextID: String = "glob
     memFree(out)
 }
 
-fun saveFileDialog(programName: String = "OPENRNDR", contextID: String = "global", function: (File) -> Unit) {
-    saveFileDialog(programName, contextID, emptyList(), function)
-}
-
-fun saveFileDialog(programName: String = "OPENRNDR", contextID: String = "global", supportedExtensions: List<String>, function: (File) -> Unit) {
+fun saveFileDialog(
+        programName: String = stackRootClassName(),
+        contextID: String = "global",
+        suggestedFilename: String? = null,
+        supportedExtensions: List<String> = emptyList(),
+        function: (File) -> Unit
+) {
     val filterList: CharSequence? = if (supportedExtensions.isEmpty()) null else supportedExtensions.joinToString(";")
-    val defaultPath: CharSequence? = getDefaultPathForContext(programName, contextID)
+    val defaultPathBase: CharSequence? = getDefaultPathForContext(programName, contextID)
+
+    val defaultPath = if (suggestedFilename == null) defaultPathBase else "${(defaultPathBase
+            ?: ".")}/$suggestedFilename"
+    logger.debug { "Default path is $defaultPath" }
+
     val out = memAllocPointer(1)
-    val r = NativeFileDialog.NFD_SaveDialog(filterList, defaultPath, out)
+    val r = NFD_SaveDialog(filterList, defaultPath, out)
     if (r == NFD_OKAY) {
         val ptr = out.get(0)
-        val str = memUTF8(ptr)
-        val f = File(str)
-        setDefaultPathForContext(programName, contextID, f)
-        function(f)
+        val pickedFilename = memUTF8(ptr)
+        val pickedFile = File(pickedFilename)
+
+        val finalFile = if (supportedExtensions.isNotEmpty() && pickedFile.extension !in supportedExtensions) {
+            val fixedFilename = pickedFilename + ".${supportedExtensions.first()}"
+            logger.warn { "User has picked either no or an unsupported extension, fixed filename to '$fixedFilename'" }
+            File(fixedFilename)
+        } else {
+            pickedFile
+        }
+        try {
+            function(finalFile)
+        } catch (e: Throwable) {
+            logger.error { "Caught exception while saving to file '${finalFile.absolutePath}" }
+            throw e
+        }
+        setDefaultPathForContext(programName, contextID, finalFile)
+    } else if (r == NFD_ERROR) {
+        logger.error { "error NFD_SaveDialog returned NFD_ERROR" }
     }
     memFree(out)
 }
