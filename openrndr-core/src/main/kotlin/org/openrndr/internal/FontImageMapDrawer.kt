@@ -7,7 +7,7 @@ class CharacterRectangle(val character: Char, val x: Double, val y: Double, val 
 
 class FontImageMapDrawer {
 
-    private val shaderManager: ShadeStyleManager = ShadeStyleManager.fromGenerators(Driver.instance.shaderGenerators::fontImageMapVertexShader,
+    private val shaderManager: ShadeStyleManager = ShadeStyleManager.fromGenerators("font-image-map", Driver.instance.shaderGenerators::fontImageMapVertexShader,
             Driver.instance.shaderGenerators::fontImageMapFragmentShader)
 
     private val maxQuads = 20000

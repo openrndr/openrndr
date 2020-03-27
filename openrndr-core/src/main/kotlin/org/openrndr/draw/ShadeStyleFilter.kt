@@ -4,7 +4,7 @@ import org.openrndr.color.ColorRGBa
 import org.openrndr.internal.Driver
 
 private val shadeStyleManager by lazy {
-    ShadeStyleManager.fromGenerators(
+    ShadeStyleManager.fromGenerators("shade-style-filter",
             Driver.instance.shaderGenerators::filterVertexShader,
             Driver.instance.shaderGenerators::filterFragmentShader
     )

@@ -20,7 +20,7 @@ class PointDrawer {
 
     private var instanceAttributes = VertexBuffer.createDynamic(instanceFormat, 10_000, session = Session.root)
 
-    private val shaderManager: ShadeStyleManager = ShadeStyleManager.fromGenerators(Driver.instance.shaderGenerators::pointVertexShader,
+    private val shaderManager: ShadeStyleManager = ShadeStyleManager.fromGenerators("point", Driver.instance.shaderGenerators::pointVertexShader,
             Driver.instance.shaderGenerators::pointFragmentShader)
 
     private fun assertInstanceSize(size: Int) {

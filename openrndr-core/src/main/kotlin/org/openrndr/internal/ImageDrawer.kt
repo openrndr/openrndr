@@ -21,11 +21,11 @@ class ImageDrawer {
 
     private var instanceAttributes = vertexBuffer(instanceFormat, 10, Session.root)
 
-    private val shaderManager: ShadeStyleManager = ShadeStyleManager.fromGenerators(
+    private val shaderManager: ShadeStyleManager = ShadeStyleManager.fromGenerators("image",
             Driver.instance.shaderGenerators::imageVertexShader,
             Driver.instance.shaderGenerators::imageFragmentShader)
 
-    private val arrayTextureShaderManager: ShadeStyleManager = ShadeStyleManager.fromGenerators(
+    private val arrayTextureShaderManager: ShadeStyleManager = ShadeStyleManager.fromGenerators("array-texture",
             Driver.instance.shaderGenerators::imageArrayTextureVertexShader,
             Driver.instance.shaderGenerators::imageArrayTextureFragmentShader)
 

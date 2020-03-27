@@ -30,7 +30,7 @@ class ComputeShaderGL43(val programObject: Int, val name: String = "compute_shad
                 debugGLErrors()
                 if (location == -1 && !query) {
                     logger.warn {
-                        "shader ${name} does not have a uniform called '$uniform'"
+                        "Shader '${name}' does not have a uniform called '$uniform'"
                     }
                 }
                 location

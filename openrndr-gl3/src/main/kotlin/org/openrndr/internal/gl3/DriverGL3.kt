@@ -34,6 +34,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
             return GLFW.glfwGetCurrentContext()
         }
 
+
     override fun createResourceThread(session: Session?, f: () -> Unit): ResourceThread {
         return ResourceThreadGL3.create(f)
     }
@@ -123,19 +124,19 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
-    override fun createShadeStyleManager(vertexShaderGenerator: (ShadeStructure) -> String, fragmentShaderGenerator: (ShadeStructure) -> String, session: Session?): ShadeStyleManager {
-        return ShadeStyleManagerGL3(vertexShaderGenerator, fragmentShaderGenerator)
+    override fun createShadeStyleManager(name: String, vertexShaderGenerator: (ShadeStructure) -> String, fragmentShaderGenerator: (ShadeStructure) -> String, session: Session?): ShadeStyleManager {
+        return ShadeStyleManagerGL3(name, vertexShaderGenerator, fragmentShaderGenerator)
     }
 
-    override fun createShader(vsCode: String, fsCode: String, session: Session?): Shader {
+    override fun createShader(vsCode: String, fsCode: String, name: String, session: Session?): Shader {
         logger.trace {
             "creating shader:\n${vsCode}\n${fsCode}"
         }
-        val vertexShader = VertexShaderGL3.fromString(vsCode)
-        val fragmentShader = FragmentShaderGL3.fromString(fsCode)
+        val vertexShader = VertexShaderGL3.fromString(vsCode, name)
+        val fragmentShader = FragmentShaderGL3.fromString(fsCode, name)
 
         synchronized(this) {
-            return ShaderGL3.create(vertexShader, fragmentShader, session)
+            return ShaderGL3.create(vertexShader, fragmentShader, name, session)
         }
     }
 

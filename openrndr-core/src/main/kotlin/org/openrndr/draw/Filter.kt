@@ -20,7 +20,7 @@ private var filterQuadFormat = vertexFormat {
 }
 
 fun filterShaderFromUrl(url: String): Shader {
-    return filterShaderFromCode(URL(url).readText())
+    return filterShaderFromCode(URL(url).readText(), "filter-shader: $url")
 }
 
 fun filterWatcherFromUrl(url: String): ShaderWatcher {
@@ -30,8 +30,8 @@ fun filterWatcherFromUrl(url: String): ShaderWatcher {
     }
 }
 
-fun filterShaderFromCode(fragmentShaderCode: String): Shader {
-    return Shader.createFromCode(Filter.filterVertexCode, fragmentShaderCode)
+fun filterShaderFromCode(fragmentShaderCode: String, name: String): Shader {
+    return Shader.createFromCode(Filter.filterVertexCode, fragmentShaderCode, name)
 }
 
 /**

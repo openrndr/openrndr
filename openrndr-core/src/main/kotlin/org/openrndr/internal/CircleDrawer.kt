@@ -22,7 +22,7 @@ class CircleDrawer {
 
     private var instanceAttributes = VertexBuffer.createDynamic(instanceFormat, 10_000)
 
-    private val shaderManager: ShadeStyleManager = ShadeStyleManager.fromGenerators(Driver.instance.shaderGenerators::circleVertexShader,
+    private val shaderManager: ShadeStyleManager = ShadeStyleManager.fromGenerators("circle", Driver.instance.shaderGenerators::circleVertexShader,
             Driver.instance.shaderGenerators::circleFragmentShader)
 
     private fun assertInstanceSize(size: Int) {

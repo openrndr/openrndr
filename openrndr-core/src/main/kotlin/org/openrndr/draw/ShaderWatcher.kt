@@ -84,10 +84,9 @@ class ShaderWatcher private constructor(
                 }
             }
 
-
             val effectiveVsCode = vsCode ?: codeFromURL(vsUrl ?: throw RuntimeException("no code or url for vertex shader"))
             val effectiveFsCode = fsCode ?: codeFromURL(fsUrl ?: throw RuntimeException("no code or url for fragment shader"))
-            val shader = Shader.createFromCode(effectiveVsCode, effectiveFsCode)
+            val shader = Shader.createFromCode(effectiveVsCode, effectiveFsCode, "shader-watcher: ${vsUrl?:"<unknown>"} / ${fsUrl?:"<unknown>"}")
 
             val watcher = ShaderWatcher(
                     vsCode = vsCode,
@@ -120,7 +119,7 @@ class ShaderWatcher private constructor(
                 try {
                     val effectiveVsCode = vsCode ?: codeFromURL(vsUrl ?: throw RuntimeException("no code or url for vertex shader"))
                     val effectiveFsCode = fsCode ?: codeFromURL(fsUrl ?: throw RuntimeException("no code or url for fragment shader"))
-                    currentShader = Shader.createFromCode(effectiveVsCode, effectiveFsCode)
+                    currentShader = Shader.createFromCode(effectiveVsCode, effectiveFsCode, "shader-watcher: ${vsUrl?:"<unknown>"} / ${fsUrl?:"<unknown>"}")
                 } catch (exception: Throwable) {
                     exception.printStackTrace()
                 }

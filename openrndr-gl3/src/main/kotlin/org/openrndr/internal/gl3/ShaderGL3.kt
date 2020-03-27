@@ -354,11 +354,10 @@ class ShaderGL3(val program: Int,
     internal var userShader = true
 
     companion object {
-        fun create(vertexShader: VertexShaderGL3, fragmentShader: FragmentShaderGL3, session: Session?): ShaderGL3 {
+        fun create(vertexShader: VertexShaderGL3, fragmentShader: FragmentShaderGL3, name: String, session: Session?): ShaderGL3 {
 
             synchronized(Driver.instance) {
                 debugGLErrors()
-                val name = "${vertexShader.name} / ${fragmentShader.name}"
 
                 val program = glCreateProgram()
                 debugGLErrors()
@@ -379,9 +378,7 @@ class ShaderGL3(val program: Int,
                 if (linkStatus[0] != GL_TRUE) {
                     checkProgramInfoLog(program, "noname")
                 }
-
                 glFinish()
-
                 return ShaderGL3(program, name, vertexShader, fragmentShader, session)
             }
         }
@@ -513,7 +510,7 @@ class ShaderGL3(val program: Int,
                 debugGLErrors()
                 if (location == -1 && !query) {
                     logger.warn {
-                        "shader ${name} does not have a uniform called '$uniform'"
+                        "Shader '${name}' does not have a uniform called '$uniform'"
                     }
                 }
                 location

@@ -15,11 +15,10 @@ data class ShadeStructure(var uniforms: String? = null,
                           var suppressDefaultOutput: Boolean = false
 )
 
-abstract class ShadeStyleManager {
-
+abstract class ShadeStyleManager(val name: String) {
     companion object {
-        fun fromGenerators(vertexShaderGenerator: (ShadeStructure) -> String, fragmentShaderGenerator: (ShadeStructure) -> String): ShadeStyleManager {
-            return Driver.instance.createShadeStyleManager(vertexShaderGenerator, fragmentShaderGenerator)
+        fun fromGenerators(name: String, vertexShaderGenerator: (ShadeStructure) -> String, fragmentShaderGenerator: (ShadeStructure) -> String): ShadeStyleManager {
+            return Driver.instance.createShadeStyleManager(name, vertexShaderGenerator, fragmentShaderGenerator)
         }
     }
 

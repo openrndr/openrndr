@@ -53,11 +53,11 @@ interface Driver {
     val contextID: Long
 
 
-    fun createShader(vsCode: String, fsCode: String, session: Session? = Session.active): Shader
+    fun createShader(vsCode: String, fsCode: String, name: String, session: Session? = Session.active): Shader
 
     fun createComputeShader(code: String, session: Session? = Session.active): ComputeShader
 
-    fun createShadeStyleManager(vertexShaderGenerator: (ShadeStructure) -> String,
+    fun createShadeStyleManager(name: String, vertexShaderGenerator: (ShadeStructure) -> String,
                                 fragmentShaderGenerator: (ShadeStructure) -> String,
                                 session: Session? = Session.root): ShadeStyleManager
 

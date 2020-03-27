@@ -7,9 +7,9 @@ import org.openrndr.math.*
 
 private val logger = KotlinLogging.logger {}
 
-class ShadeStyleManagerGL3(
-        val vertexShaderGenerator: (ShadeStructure) -> String,
-        val fragmentShaderGenerator: (ShadeStructure) -> String) : ShadeStyleManager() {
+class ShadeStyleManagerGL3(name: String,
+                           val vertexShaderGenerator: (ShadeStructure) -> String,
+                           val fragmentShaderGenerator: (ShadeStructure) -> String) : ShadeStyleManager(name) {
 
     private var defaultShader: Shader? = null
     private val shaders = mutableMapOf<ShadeStructure, Shader>()
@@ -22,7 +22,7 @@ class ShadeStyleManagerGL3(
             if (defaultShader == null) {
                 logger.debug { "creating default shader" }
                 val structure = structureFromShadeStyle(style, vertexFormats, instanceFormats)
-                defaultShader = Shader.createFromCode(vertexShaderGenerator(structure), fragmentShaderGenerator(structure), Session.root)
+                defaultShader = Shader.createFromCode(vertexShaderGenerator(structure), fragmentShaderGenerator(structure), "shade-style-default:$name", Session.root)
                 (defaultShader as ShaderGL3).userShader = false
             }
             return defaultShader!!
@@ -30,7 +30,7 @@ class ShadeStyleManagerGL3(
             val structure = structureFromShadeStyle(style, vertexFormats, instanceFormats)
             val shader = shaders.getOrPut(structure) {
                 try {
-                    Shader.createFromCode(vertexShaderGenerator(structure), fragmentShaderGenerator(structure), Session.root)
+                    Shader.createFromCode(vertexShaderGenerator(structure), fragmentShaderGenerator(structure), "shade-style-custom:$name-${structure.hashCode()}", Session.root)
                 } catch (e: Throwable) {
                     if (System.getProperties().containsKey("org.openrndr.ignoreShadeStyleErrors")) {
                         shader(null, vertexFormats, instanceFormats)

@@ -8,7 +8,7 @@ import org.openrndr.math.Vector2
 import org.openrndr.math.Vector3
 
 class MeshLineDrawer {
-    private val shaderManager: ShadeStyleManager = ShadeStyleManager.fromGenerators(Driver.instance.shaderGenerators::meshLineVertexShader,
+    private val shaderManager: ShadeStyleManager = ShadeStyleManager.fromGenerators("mesh-line", Driver.instance.shaderGenerators::meshLineVertexShader,
             Driver.instance.shaderGenerators::meshLineFragmentShader)
 
     private val vertices: VertexBuffer = vertexBuffer(VertexFormat().apply {

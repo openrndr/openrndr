@@ -12,13 +12,13 @@ interface Shader {
         fun createFromUrls(vsUrl: String, fsUrl: String, session: Session? = Session.active): Shader {
             val vsCode = codeFromURL(vsUrl)
             val fsCode = codeFromURL(fsUrl)
-            val shader = Driver.instance.createShader(vsCode, fsCode)
+            val shader = Driver.instance.createShader(vsCode, fsCode, "$vsUrl / $fsUrl", session)
             session?.track(shader)
             return shader
         }
 
-        fun createFromCode(vsCode: String, fsCode: String, session: Session? = Session.active): Shader {
-            val shader = Driver.instance.createShader(vsCode, fsCode)
+        fun createFromCode(vsCode: String, fsCode: String, name: String, session: Session? = Session.active): Shader {
+            val shader = Driver.instance.createShader(vsCode, fsCode, name, session)
             session?.track(shader)
             return shader
         }
