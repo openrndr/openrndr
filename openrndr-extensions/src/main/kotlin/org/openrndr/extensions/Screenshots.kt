@@ -132,11 +132,11 @@ open class Screenshots : Extension {
                 drawer.defaults()
 
                 val dt = LocalDateTime.now()
-                val basename = program.javaClass.simpleName.ifBlank { program.window.title.ifBlank { "untitled" } }
+                val basename = program.name.ifBlank { program.window.title.ifBlank { "untitled" } }
 
                 val filename = when (createScreenshot) {
                     None -> throw IllegalStateException("")
-                    AutoNamed -> "${if(folder==null)"" else "$folder/"}$basename-${dt.year.z(4)}-${dt.month.value.z()}-${dt.dayOfMonth.z()}-${dt.hour.z()}.${dt.minute.z()}.${dt.second.z()}.png"
+                    AutoNamed -> "${if (folder == null) "" else "$folder/"}$basename-${dt.year.z(4)}-${dt.month.value.z()}-${dt.dayOfMonth.z()}-${dt.hour.z()}.${dt.minute.z()}.${dt.second.z()}.png"
                     is Named -> createScreenshot.name
                 }
 
@@ -155,9 +155,7 @@ open class Screenshots : Extension {
                 } else {
                     target?.let { rt ->
                         rt.colorBuffer(0).resolveTo(resolved)
-
                         resolved.saveToFile(File(filename))
-
                         drawer.image(resolved, resolved.bounds, drawer.bounds)
                     }
                 }

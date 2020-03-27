@@ -6,6 +6,7 @@ import kotlinx.coroutines.*
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.Drawer
 import org.openrndr.events.Event
+import org.openrndr.exceptions.stackRootClassName
 import org.openrndr.internal.Driver
 import org.openrndr.math.Vector2
 
@@ -35,6 +36,9 @@ open class Program {
 
     var width = 0
     var height = 0
+
+    var name = stackRootClassName()
+
 
     lateinit var drawer: Drawer
     lateinit var driver: Driver
