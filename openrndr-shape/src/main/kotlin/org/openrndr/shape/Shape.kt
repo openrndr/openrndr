@@ -167,25 +167,32 @@ class Segment {
     }
 
 
-    fun sampleAdaptive(distanceTolerance: Double = 0.5): List<Vector2> = when (control.size) {
+    fun adaptivePositions(distanceTolerance: Double = 0.5): List<Vector2> = when (control.size) {
         0 -> listOf(start, end)
         1 -> BezierQuadraticSampler2D().apply { this.distanceTolerance = distanceTolerance }.sample(start, control[0], end).first
         2 -> BezierCubicSampler2D().apply { this.distanceTolerance = distanceTolerance }.sample(start, control[0], control[1], end).first
         else -> throw RuntimeException("unsupported number of control points")
     }
 
-    fun sampleAdaptiveNormals(distanceTolerance: Double = 0.5): Pair<List<Vector2>, List<Vector2>> = when (control.size) {
+    fun adaptivePositionsAndNormals(distanceTolerance: Double = 0.5): Pair<List<Vector2>, List<Vector2>> = when (control.size) {
         0 -> Pair(listOf(start, end), listOf(end - start, end - start))
         1 -> BezierQuadraticSampler2D().apply { this.distanceTolerance = distanceTolerance }.sample(start, control[0], end)
         2 -> BezierCubicSampler2D().apply { this.distanceTolerance = distanceTolerance }.sample(start, control[0], control[1], end)
         else -> throw RuntimeException("unsupported number of control points")
     }
 
+    /**
+     * Sample [pointCount] points on the segment
+     * @param pointCount the number of points to sample on the segment
+     */
+    fun equidistantPositions(pointCount: Int) : List<Vector2> {
+        return sampleEquidistant(adaptivePositions(), pointCount)
+    }
 
     val length: Double
         get() = when (control.size) {
             0 -> (end - start).length
-            1, 2 -> sumDifferences(sampleAdaptive())
+            1, 2 -> sumDifferences(adaptivePositions())
             else -> throw RuntimeException("unsupported number of control points")
         }
 
@@ -582,6 +589,7 @@ class Segment {
         return Segment(start, control, end)
     }
 
+
 //    fun intersect(other: Segment) {
 //        if (control.size == 0 && other.control.size == 0) {
 //            // line line intersection
@@ -744,7 +752,7 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean) {
         val adaptivePoints = mutableListOf<Vector2>()
         var last: Vector2? = null
         for (segment in this.segments) {
-            val samples = segment.sampleAdaptive(distanceTolerance)
+            val samples = segment.adaptivePositions(distanceTolerance)
             if (samples.isNotEmpty()) {
                 val r = samples[0]
                 if (last == null || last.minus(r).length > 0.01) {
@@ -764,7 +772,7 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean) {
         val adaptiveNormals = mutableListOf<Vector2>()
         var last: Vector2? = null
         for (segment in this.segments) {
-            val samples = segment.sampleAdaptiveNormals(distanceTolerance)
+            val samples = segment.adaptivePositionsAndNormals(distanceTolerance)
             if (samples.first.isNotEmpty()) {
                 val r = samples.first[0]
                 if (last == null || last.minus(r).length > 0.01) {

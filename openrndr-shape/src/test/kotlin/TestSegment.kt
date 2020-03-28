@@ -81,6 +81,15 @@ object TestSegment : Spek({
             cubic.position(0.75) `should be near` segment.position(0.75)
             cubic.position(1.0) `should be near` segment.position(1.0)
         }
+
+        it("it can sample equidistant points") {
+            for (i in 2 until 100) {
+                val points = segment.equidistantPositions(i)
+                points.size `should be equal to` i
+                points.first() `should be near` segment.position(0.0)
+                points.last() `should be near`  segment.position(1.0)
+            }
+        }
     }
 
     describe("a quadratic segment with co-inciding p0/c0") {
@@ -96,6 +105,15 @@ object TestSegment : Spek({
         it("has a non-zero derivative at t=1") {
             segment.derivative(1.0).squaredLength `should be greater than` 0.0
         }
+        it("it can sample equidistant points") {
+            for (i in 2 until 100) {
+                val points = segment.equidistantPositions(i)
+                points.size `should be equal to` i
+                points.first() `should be near` segment.position(0.0)
+                points.last() `should be near`  segment.position(1.0)
+
+            }
+        }
     }
 
     describe("a quadratic segment with co-inciding p1/c0") {
@@ -110,6 +128,14 @@ object TestSegment : Spek({
         }
         it("has a non-zero derivative at t=1") {
             segment.derivative(1.0).squaredLength `should be greater than` 0.0
+        }
+        it("it can sample equidistant points") {
+            for (i in 2 until 100) {
+                val points = segment.equidistantPositions(i)
+                points.size `should be equal to` i
+                points.first() `should be near` segment.position(0.0)
+                points.last() `should be near`  segment.position(1.0)
+            }
         }
     }
 
@@ -133,6 +159,14 @@ object TestSegment : Spek({
         it("has a non-zero derivative at t=1") {
             segment.derivative(1.0).squaredLength `should be greater than` 0.0
         }
+        it("it can sample equidistant points") {
+            for (i in 2 until 100) {
+                val points = segment.equidistantPositions(i)
+                points.size `should be equal to` i
+                points.first() `should be near` segment.position(0.0)
+                points.last() `should be near`  segment.position(1.0)
+            }
+        }
     }
 
     describe("a cubic segment with co-inciding p1/c1") {
@@ -154,6 +188,14 @@ object TestSegment : Spek({
         }
         it("has a non-zero derivative at t=1") {
             segment.derivative(1.0).squaredLength `should be greater than` 0.0
+        }
+        it("it can sample equidistant points") {
+            for (i in 2 until 100) {
+                val points = segment.equidistantPositions(i)
+                points.size `should be equal to` i
+                points.first() `should be near` segment.position(0.0)
+                points.last() `should be near`  segment.position(1.0)
+            }
         }
     }
 
@@ -183,6 +225,14 @@ object TestSegment : Spek({
         it("has a non-zero derivative at t=1") {
             segment.derivative(1.0).squaredLength `should be greater than` 0.0
         }
+        it("it can sample equidistant points") {
+            for (i in 2 until 100) {
+                val points = segment.equidistantPositions(i)
+                points.size `should be equal to` i
+                points.first() `should be near` segment.position(0.0)
+                points.last() `should be near`  segment.position(1.0)
+            }
+        }
     }
 
 
@@ -210,6 +260,14 @@ object TestSegment : Spek({
         }
         it("has a non-zero derivative at t=1") {
             segment.derivative(1.0).squaredLength `should be greater than` 0.0
+        }
+        it("it can sample equidistant points") {
+            for (i in 2 until 100) {
+                val points = segment.equidistantPositions(i)
+                points.size `should be equal to` i
+                points.first() `should be near` segment.position(0.0)
+                points.last() `should be near`  segment.position(1.0)
+            }
         }
     }
 
@@ -261,6 +319,14 @@ object TestSegment : Spek({
         it("can be subbed from 0.5 to 1.0") {
             val sub = segment.sub(0.5, 1.0)
             (sub.end - segment.end).squaredLength `should be equal to` 0.0
+        }
+        it("it can sample equidistant points") {
+            for (i in 2 until 100) {
+                val points = segment.equidistantPositions(i)
+                points.size `should be equal to` i
+                points.first() `should be near` segment.position(0.0)
+                points.last() `should be near`  segment.position(1.0)
+            }
         }
     }
 })

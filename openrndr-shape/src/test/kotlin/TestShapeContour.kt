@@ -1,6 +1,8 @@
 import org.amshove.kluent.`should be equal to`
 import org.amshove.kluent.`should match all with`
 import org.openrndr.math.Vector2
+import org.openrndr.shape.Circle
+import org.openrndr.shape.Rectangle
 import org.openrndr.shape.SegmentJoin
 import org.openrndr.shape.contour
 import org.spekframework.spek2.Spek
@@ -50,6 +52,38 @@ object TestShapeContour : Spek({
         }
     }
 
+    describe("a two line contour") {
+        val curve = contour {
+            moveTo(0.0, 0.0)
+            lineTo(100.0, 100.0)
+            lineTo(200.0, 100.0)
+        }
+        it("can be sampled adaptively") {
+            val resampled = curve.sampleLinear()
+            resampled.closed `should be equal to` false
+            resampled.position(0.0) `should be near` curve.position(0.0)
+            resampled.position(1.0) `should be near` curve.position(1.0)
+        }
+        it("can be sampled for equidistant points") {
+            for (i in 4 until 100) {
+                val points = curve.equidistantPositions(i)
+                points.size `should be equal to` i
+
+            }
+        }
+
+        it("can be sampled for equidistant linear segments") {
+            for (i in 4 until 100) {
+                val resampled = curve.sampleEquidistant(i)
+                resampled.position(0.0) `should be near` curve.position(0.0)
+                resampled.position(1.0) `should be near` curve.position(1.0)
+                resampled.closed `should be equal to` false
+            }
+        }
+
+    }
+
+
     describe("a simple contour") {
         val width = 640
         val height = 480
@@ -96,7 +130,7 @@ object TestShapeContour : Spek({
         }
 
         it("can be sampled for equidistant linear segments") {
-            for (i in 1 until 100) {
+            for (i in 4 until 100) {
                 val resampled = curve.sampleEquidistant(i)
                 resampled.position(0.0) `should be near` curve.position(0.0)
                 resampled.position(1.0) `should be near` curve.position(1.0)
@@ -124,5 +158,52 @@ object TestShapeContour : Spek({
         val offset1 = offset0.offset(20.0, SegmentJoin.MITER)
         val positions1 = offset1.adaptivePositions()
         positions1.zipWithNext().`should match all with` { (it.second - it.first).squaredLength > 0.0 }
+
+
+        it("can be sampled adaptively") {
+            val resampled = curve.sampleLinear()
+            resampled.closed `should be equal to` true
+            resampled.position(0.0) `should be near` curve.position(0.0)
+            resampled.position(1.0) `should be near` curve.position(1.0)
+        }
+
     }
+
+    describe("a circle contour") {
+        val curve = Circle(100.0, 100.0, 200.0).contour
+        it("can be sampled adaptively") {
+            val resampled = curve.sampleLinear()
+            resampled.closed `should be equal to` true
+            resampled.position(0.0) `should be near` curve.position(0.0)
+            resampled.position(1.0) `should be near` curve.position(1.0)
+        }
+        it("can be sampled for equidistant linear segments") {
+            for (i in 4 until 100) {
+                val resampled = curve.sampleEquidistant(i)
+                resampled.position(0.0) `should be near` curve.position(0.0)
+                resampled.closed `should be equal to` true
+            }
+        }
+    }
+    describe("a rectangle contour") {
+        val curve = Rectangle(100.0, 100.0, 200.0, 200.0).contour
+
+        it("can be sampled adaptively") {
+            val resampled = curve.sampleLinear()
+            resampled.closed `should be equal to` true
+            resampled.position(0.0) `should be near` curve.position(0.0)
+            resampled.position(1.0) `should be near` curve.position(1.0)
+        }
+
+        it("can be sampled for equidistant linear segments") {
+            for (i in 4 until 100) {
+                val resampled = curve.sampleEquidistant(i)
+                resampled.position(0.0) `should be near` curve.position(0.0)
+                resampled.position(1.0) `should be near` curve.position(1.0)
+                resampled.closed `should be equal to` true
+            }
+        }
+    }
+
+
 })
