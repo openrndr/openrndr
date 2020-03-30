@@ -139,6 +139,13 @@ fun mix(left: ColorRGBa, right: ColorRGBa, x: Double): ColorRGBa {
 /**
  * Color in RGBa space
  *
+ * @param gray gray value in [0,1]
+ */
+fun rgb(gray: Double) = ColorRGBa(gray, gray, gray)
+
+/**
+ * Color in RGBa space
+ *
  * @param r red in [0,1]
  * @param g green in [0,1]
  * @param b blue in [0,1]
