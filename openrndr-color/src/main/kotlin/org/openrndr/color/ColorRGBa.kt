@@ -137,13 +137,12 @@ fun mix(left: ColorRGBa, right: ColorRGBa, x: Double): ColorRGBa {
 }
 
 /**
- * Color in RGBa space
- *
+ * Color in RGBa space. Specify one value only to obtain a shade of gray.
  * @param r red in [0,1]
  * @param g green in [0,1]
  * @param b blue in [0,1]
  */
-fun rgb(r: Double, g: Double, b: Double) = ColorRGBa(r, g, b)
+fun rgb(r: Double, g: Double = r, b: Double = r) = ColorRGBa(r, g, b)
 
 /**
  * Color in RGBa space
