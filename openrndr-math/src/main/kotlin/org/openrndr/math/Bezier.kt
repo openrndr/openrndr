@@ -16,7 +16,7 @@ fun derivative(x0: Double, c0: Double, x1: Double, t: Double): Double {
 
 fun derivative(x0: Vector2, c0: Vector2, x1: Vector2, t: Double): Vector2 {
     val it = 1.0 - t
-    return Vector2(2 * it - (c0.x - x0.x) + 2 * t * (x1.x - c0.x), 2 * it - (c0.y - x0.y) + 2 * t * (x1.y - c0.y))
+    return Vector2(2 * it * (c0.x - x0.x) + 2 * t * (x1.x - c0.x), 2 * it * (c0.y - x0.y) + 2 * t * (x1.y - c0.y))
 }
 
 fun derivative(x0: Vector3, c0: Vector3, x1: Vector3, t: Double): Vector3 {
