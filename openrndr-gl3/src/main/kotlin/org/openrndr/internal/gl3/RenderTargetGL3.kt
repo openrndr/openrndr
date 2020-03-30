@@ -217,6 +217,11 @@ open class RenderTargetGL3(val framebuffer: Int,
                 glBlendEquationi(index, GL_FUNC_ADD)
                 glBlendFunci(index, GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
             }
+            BlendMode.BLEND -> {
+                glEnable(GL_BLEND)
+                glBlendEquationi(0, GL_FUNC_ADD)
+                glBlendFunci(0, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+            }
             BlendMode.REPLACE -> {
                 glEnable(GL_BLEND)
                 glBlendEquationi(index, GL_FUNC_ADD)

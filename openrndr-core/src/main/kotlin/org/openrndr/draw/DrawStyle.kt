@@ -269,6 +269,7 @@ enum class DepthTestPass {
 
 enum class BlendMode {
     OVER,
+    BLEND,
     ADD,
     SUBTRACT,
     MULTIPLY,
