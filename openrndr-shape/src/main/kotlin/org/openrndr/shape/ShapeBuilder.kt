@@ -367,7 +367,9 @@ class ContourBuilder {
 
     fun segment(segment: Segment) {
         if (cursor !== Vector2.INFINITY) {
-            require((segment.start - cursor).length < 10E-6) { "segment is disconnected" }
+            require((segment.start - cursor).length < 10E-3) { "" +
+                    "segment is disconnected: cursor: ${cursor}, segment.start: ${segment.start}, distance: ${(cursor - segment.start).length}"
+            }
         }
         if (cursor === Vector2.INFINITY) {
             moveTo(segment.start)

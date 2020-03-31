@@ -6,6 +6,7 @@ import org.openrndr.math.*
 import org.openrndr.shape.internal.BezierCubicSampler2D
 import org.openrndr.shape.internal.BezierQuadraticSampler2D
 import java.util.*
+import kotlin.math.abs
 import kotlin.math.sign
 import kotlin.math.sqrt
 
@@ -131,7 +132,7 @@ class Segment {
         var closestValue = points[0]
 
         var closestDistance = Double.POSITIVE_INFINITY
-        for (i in 0 until points.size) {
+        for (i in points.indices) {
             val distance = (points[i] - query).squaredLength
             if (distance < closestDistance) {
                 closestIndex = i
@@ -174,6 +175,7 @@ class Segment {
             return SegmentProjection(this, ft, closestDistance, p)
         }
     }
+
 
     fun transform(transform: Matrix44): Segment {
         val tstart = (transform * (start.xy01)).div.xy
@@ -276,7 +278,7 @@ class Segment {
         return dpoints
     }
 
-    fun offset(distance: Double, stepSize: Double = 0.1, yPolarity: YPolarity = YPolarity.CW_NEGATIVE_Y): List<Segment> {
+    fun offset(distance: Double, stepSize: Double = 0.01, yPolarity: YPolarity = YPolarity.CW_NEGATIVE_Y): List<Segment> {
         return if (linear) {
             val n = normal(0.0, yPolarity)
             if (distance > 0.0) {
@@ -353,10 +355,9 @@ class Segment {
             val n2 = normal(1.0, YPolarity.CW_NEGATIVE_Y)
             val s = n1 dot n2
             return s >= 0.9
-
         }
 
-    fun reduced(stepSize: Double = 0.1): List<Segment> {
+    private fun splitOnExtrema(): List<Segment> {
         var extrema = extrema().toMutableList()
 
         if (isStraight(0.05)) {
@@ -366,7 +367,6 @@ class Segment {
         if (simple && extrema.isEmpty()) {
             return listOf(this)
         }
-
 
         if (extrema.isEmpty()) {
             return listOf(this)
@@ -383,11 +383,49 @@ class Segment {
             extrema[extrema.lastIndex] = 1.0
         }
 
-        val pass1 = extrema.zipWithNext().map {
+        return extrema.zipWithNext().map {
             sub(it.first, it.second)
         }
+    }
 
-        return pass1
+    private fun splitToSimple(step: Double): List<Segment> {
+        var t1 = 0.0
+        var t2 = 0.0
+        val result = mutableListOf<Segment>()
+        while (t2 <= 1.0) {
+            t2 = t1 + step
+            while (t2 <= 1.0 + step) {
+                val segment = sub(t1, t2)
+                if (!segment.simple) {
+
+                    t2 -= step
+                    println("t1: $t1 t2:$t2")
+                    if (abs(t1 - t2) < step) {
+                        return listOf(this)
+                    }
+                    val segment2 = sub(t1, t2)
+                    result.add(segment2)
+                    t1 = t2
+                    break
+                }
+                t2 += step
+            }
+
+        }
+        if (t1 < 1.0) {
+            result.add(sub(t1, 1.0))
+        }
+        if (result.isEmpty()) {
+            result.add(this)
+        }
+        println("---")
+        return result
+    }
+
+    fun reduced(stepSize: Double = 0.01): List<Segment> {
+        val pass1 = splitOnExtrema()
+        //return pass1
+        return pass1.flatMap { it.splitToSimple(stepSize) }
     }
 
     fun scale(scale: Double, polarity: YPolarity) = scale(polarity) { scale }
@@ -737,7 +775,7 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
                 if (mOffset.isNotEmpty()) {
                     val delta = (mOffset.first().start - cursor)
                     val joinDistance = delta.length
-                    if (joinDistance > 0.0) {
+                    if (joinDistance > 10E-6) {
                         when (joinType) {
                             SegmentJoin.BEVEL -> lineTo(mOffset.first().start)
                             SegmentJoin.ROUND -> arcTo(
