@@ -12,6 +12,12 @@ import kotlin.math.sqrt
 class SegmentProjection(val segment: Segment, val projection: Double, val distance: Double, val point: Vector2)
 class ContourProjection(val segmentProjection: SegmentProjection, val projection: Double, val distance: Double, val point: Vector2)
 
+enum class SegmentType {
+    LINEAR,
+    QUADRATIC,
+    CUBIC
+}
+
 
 /**
  * Segment describes a linear or bezier path between two points
@@ -27,6 +33,19 @@ class Segment {
 
     val linear: Boolean get() = control.isEmpty()
 
+    val type: SegmentType
+        get() {
+            return if (linear) {
+                SegmentType.LINEAR
+            } else {
+                if (control.size == 1) {
+                    SegmentType.QUADRATIC
+                } else {
+                    SegmentType.CUBIC
+                }
+            }
+        }
+
     private var lut: List<Vector2>? = null
 
     /**
@@ -41,9 +60,9 @@ class Segment {
 
         val d = end - start
 
-        require(d.squaredLength > 0.0) {
-            "L end/start overlap $start $end"
-        }
+//        require(d.squaredLength > 0.0) {
+//            "L end/start overlap $start $end"
+//        }
     }
 
     /**
@@ -260,7 +279,21 @@ class Segment {
     fun offset(distance: Double, stepSize: Double = 0.1, yPolarity: YPolarity = YPolarity.CW_NEGATIVE_Y): List<Segment> {
         return if (linear) {
             val n = normal(0.0, yPolarity)
-            listOf(Segment(start + distance * n, end + distance * n))
+            if (distance > 0.0) {
+                listOf(Segment(start + distance * n, end + distance * n))
+            } else {
+                val d = direction()
+                val s = distance.coerceAtMost(length / 2.0)
+
+
+                val candidate = Segment(start - s * d + distance * n, end + s * d + distance * n)
+                if (candidate.length > 0.0) {
+                    listOf(candidate)
+                } else {
+                    emptyList()
+                }
+
+            }
         } else {
             reduced(stepSize).map { it.scale(distance, yPolarity) }
         }
@@ -362,7 +395,7 @@ class Segment {
     val clockwise
         get() = angle(start, end, control[0]) > 0
 
-    fun scale( polarity: YPolarity, scale: (Double) -> Double): Segment {
+    fun scale(polarity: YPolarity, scale: (Double) -> Double): Segment {
         if (control.size == 1) {
             return cubic.scale(polarity, scale)
         }
@@ -637,7 +670,7 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
                 val after = segments[mod(i + 1, segments.size)].start
                 sum += (after.x - v.start.x) * (after.y + v.start.y)
             }
-            return when(polarity) {
+            return when (polarity) {
                 YPolarity.CCW_POSITIVE_Y -> if (sum < 0) {
                     Winding.COUNTER_CLOCKWISE
                 } else {
@@ -677,57 +710,64 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
             return ShapeContour(segments[0].offset(distance, yPolarity = polarity), false, polarity)
         }
 
-        val joins = (segments + if (closed) listOf(segments.first()) else emptyList()).map {
-            it.offset(distance, yPolarity = polarity)
-        }.zipWithNext().flatMap {
-            val end = it.first.last().end
-            val start = it.second.first().start
+        val offsets = segments.map { it.offset(distance, yPolarity = polarity) }.filter { it.isNotEmpty() }
 
-            if ((end - start).squaredLength > 0.001) {
-                when (joinType) {
-                    SegmentJoin.ROUND -> {
-                        val d = (end - start).length * 0.5 * sqrt(2.0)
-                        val join = contour {
-                            moveTo(end)
-                            arcTo(d, d, 0.0, false, true, start.x, start.y)
+        if (offsets.isEmpty()) {
+            return ShapeContour(emptyList(), false)
+        }
+
+        val startPoint = if (closed) offsets.last().last().end else offsets.first().first().start
+
+        return contour {
+            moveTo(startPoint)
+            for (offset in offsets) {
+                val mOffset = offset.toMutableList()
+                lastSegment?.let { ls ->
+                    val fs = offset.first()
+                    if (ls.type == SegmentType.LINEAR && fs.type == SegmentType.LINEAR) {
+                        val i = intersection(ls.start, ls.end, offset.first().start, offset.first().end)
+                        if (i != Vector2.INFINITY && (i - ls.end).squaredLength > 10E-6) {
+                            undo()
+                            lineTo(i)
+                            lineTo(fs.end)
+                            mOffset.removeAt(0)
                         }
-                        it.first + join.segments
-                    }
-                    SegmentJoin.BEVEL -> {
-                        val join = contour {
-                            moveTo(end)
-                            lineTo(start)
-                        }
-                        it.first + join.segments
-                    }
-                    SegmentJoin.MITER -> {
-                        val endDir = it.first.last().direction(1.0)
-                        val startDir = it.second.first().direction(0.0)
-                        val endLine = LineSegment(end, end + endDir)
-                        val startLine = LineSegment(start, start + startDir)
-                        val i = intersection(endLine, startLine, 10000000.0)
-                        val join = if (i !== Vector2.INFINITY) {
-                            contour {
-                                moveTo(end)
-                                lineTo(i)
-                                lineTo(start)
-                            }
-                        } else {
-                            contour {
-                                moveTo(end)
-                                lineTo(start)
-                            }
-                        }
-                        it.first + join.segments
                     }
                 }
-            } else {
-                it.first
+                if (mOffset.isNotEmpty()) {
+                    val delta = (mOffset.first().start - cursor)
+                    val joinDistance = delta.length
+                    if (joinDistance > 0.0) {
+                        when (joinType) {
+                            SegmentJoin.BEVEL -> lineTo(mOffset.first().start)
+                            SegmentJoin.ROUND -> arcTo(
+                                    crx = joinDistance * 0.5 * sqrt(2.0),
+                                    cry = joinDistance * 0.5 * sqrt(2.0),
+                                    angle = 90.0,
+                                    largeArcFlag = false,
+                                    sweepFlag = true,
+                                    end = mOffset.first().start
+                            )
+                            SegmentJoin.MITER -> {
+                                val ls = lastSegment ?: offsets.last().last()
+                                val fs = mOffset.first()
+                                val i = intersection(ls.end, ls.end + ls.direction(1.0), fs.start, fs.start - fs.direction(0.0), eps = 10E8)
+                                if (i !== Vector2.INFINITY) {
+                                    lineTo(i)
+                                    lineTo(fs.start)
+                                } else {
+                                    lineTo(fs.start)
+                                }
+                            }
+                        }
+                    }
+                    for (segment in mOffset) {
+                        segment(segment)
+                    }
+                }
             }
-        } + if (!closed) {
-            segments.last().offset(distance, yPolarity = polarity)
-        } else emptyList()
-        return ShapeContour(joins, closed, polarity)
+            close()
+        }
     }
 
     fun position(ut: Double): Vector2 {

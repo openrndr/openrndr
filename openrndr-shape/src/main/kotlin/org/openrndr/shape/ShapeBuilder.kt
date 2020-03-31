@@ -335,7 +335,7 @@ class ContourBuilder {
             continueTo(Vector2(cx, cy), Vector2(x, y), tangentScale)
 
     private fun arcToBeziers(angleStart: Double, angleExtent: Double): Array<Vector2> {
-        val numSegments = ceil(abs(angleExtent) * 2.0 /  PI).toInt()
+        val numSegments = ceil(abs(angleExtent) * 2.0 / PI).toInt()
         val angleIncrement = (angleExtent / numSegments)
 
         // The length of each control point vector is given by the following formula.
@@ -364,6 +364,39 @@ class ContourBuilder {
         }
         return coords
     }
+
+    fun segment(segment: Segment) {
+        if (cursor !== Vector2.INFINITY) {
+            require((segment.start - cursor).length < 10E-6) { "segment is disconnected" }
+        }
+        if (cursor === Vector2.INFINITY) {
+            moveTo(segment.start)
+        }
+
+        if (segment.linear) {
+            lineTo(segment.end)
+        } else {
+            if (segment.control.size == 1) {
+                curveTo(segment.control[0], segment.end)
+            } else {
+                curveTo(segment.control[0], segment.control[1], segment.end)
+            }
+        }
+    }
+
+    fun undo(): Segment? {
+        return if (segments.isNotEmpty()) {
+            val r = segments.removeAt(segments.lastIndex)
+            cursor = r.start
+            r
+        } else {
+            null
+        }
+    }
+
+    val lastSegment: Segment?
+        get() = segments.lastOrNull()
+
 }
 
 /**
