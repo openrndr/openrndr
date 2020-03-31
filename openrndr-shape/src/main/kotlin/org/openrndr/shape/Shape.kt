@@ -616,7 +616,7 @@ enum class SegmentJoin {
 data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val polarity: YPolarity = YPolarity.CW_NEGATIVE_Y) {
 
     companion object {
-        fun fromPoints(points: List<Vector2>, closed: Boolean, polarity: YPolarity) =
+        fun fromPoints(points: List<Vector2>, closed: Boolean, polarity: YPolarity = YPolarity.CW_NEGATIVE_Y) =
                 if (!closed)
                     ShapeContour((0 until points.size - 1).map { Segment(points[it], points[it + 1]) }, closed, polarity)
                 else {
