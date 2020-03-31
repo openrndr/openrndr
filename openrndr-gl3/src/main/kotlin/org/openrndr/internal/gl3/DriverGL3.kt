@@ -555,6 +555,11 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
                 glBlendEquationi(0, GL_FUNC_ADD)
                 glBlendFunci(0, GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
             }
+            BlendMode.BLEND -> {
+                glEnable(GL_BLEND)
+                glBlendEquationi(0, GL_FUNC_ADD)
+                glBlendFunci(0, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+            }
             BlendMode.ADD -> {
                 glEnable(GL_BLEND)
                 glBlendEquationi(0, GL_FUNC_ADD)
