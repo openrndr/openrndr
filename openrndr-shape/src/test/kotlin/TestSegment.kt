@@ -1,7 +1,4 @@
-import org.amshove.kluent.`should be equal to`
-import org.amshove.kluent.`should be greater than`
-import org.amshove.kluent.`should be`
-import org.amshove.kluent.shouldBeInRange
+import org.amshove.kluent.*
 import org.openrndr.math.Vector2
 import org.openrndr.shape.Segment
 import org.spekframework.spek2.Spek
@@ -14,6 +11,12 @@ infix fun Vector2.`should be near`(other: Vector2) {
 }
 
 object TestSegment : Spek({
+
+    describe("a horizontal segment") {
+        val segment = Segment(Vector2(0.0, 100.0), Vector2(100.0, 100.0))
+        segment.normal(0.0) `should be near` Vector2(0.0, -1.0)
+    }
+
     describe("a linear segment") {
         val segment = Segment(Vector2(0.0, 0.0), Vector2(100.0, 100.0))
         it("has evaluable and correct bounds") {
@@ -22,6 +25,12 @@ object TestSegment : Spek({
             bounds.y `should be equal to` segment.start.y
             bounds.width `should be equal to` 100.0
             bounds.height `should be equal to` 100.0
+        }
+
+        it("it has an evaluable normal at t = 0.0") {
+            val normal = segment.normal(0.0)
+            normal.length.shouldBeNear(1.0, 10E-6)
+            println(normal)
         }
 
         it("can be split in half") {
@@ -71,6 +80,13 @@ object TestSegment : Spek({
             quadratic.position(0.5) `should be equal to` segment.position(0.5)
             quadratic.position(0.75) `should be equal to` segment.position(0.75)
             quadratic.position(1.0) `should be equal to` segment.position(1.0)
+
+            quadratic.normal(0.0) `should be near` segment.normal(0.0)
+            quadratic.normal(0.25) `should be near` segment.normal(0.25)
+            quadratic.normal(0.5) `should be near` segment.normal(0.5)
+            quadratic.normal(0.75) `should be near` segment.normal(0.75)
+            quadratic.normal(1.0) `should be near` segment.normal(1.0)
+
         }
 
         it("can be promoted to a cubic segment") {

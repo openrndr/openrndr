@@ -3,6 +3,7 @@ package org.openrndr.shape
 import org.openrndr.color.ColorRGBa
 import org.openrndr.math.Matrix44
 import org.openrndr.math.Vector2
+import org.openrndr.math.YPolarity
 import org.openrndr.math.transforms.rotateZ
 import org.openrndr.math.transforms.scale
 import org.openrndr.math.transforms.transform
@@ -126,11 +127,11 @@ class CompositionDrawer {
     }
 
     fun lineStrip(points: List<Vector2>) {
-        contour(ShapeContour.fromPoints(points, false))
+        contour(ShapeContour.fromPoints(points, false, YPolarity.CW_NEGATIVE_Y))
     }
 
     fun lineLoop(points: List<Vector2>) {
-        contour(ShapeContour.fromPoints(points, true))
+        contour(ShapeContour.fromPoints(points, true, YPolarity.CW_NEGATIVE_Y))
     }
 
     fun text(text: String, position: Vector2) {

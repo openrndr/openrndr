@@ -8,6 +8,7 @@ import org.openrndr.internal.*
 import org.openrndr.math.Matrix44
 import org.openrndr.math.Vector2
 import org.openrndr.math.Vector3
+import org.openrndr.math.YPolarity
 import org.openrndr.math.transforms.rotate
 import org.openrndr.math.transforms.rotateZ
 import org.openrndr.math.transforms.scale
@@ -387,7 +388,7 @@ class Drawer(val driver: Driver) {
     }
 
     fun segment(segment: Segment) {
-        contour(ShapeContour(listOf(segment), false))
+        contour(ShapeContour(listOf(segment), false, YPolarity.CW_NEGATIVE_Y))
     }
 
     /**

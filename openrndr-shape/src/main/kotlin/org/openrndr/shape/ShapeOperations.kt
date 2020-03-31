@@ -4,6 +4,7 @@ package org.openrndr.shape
 
 import io.lacuna.artifex.*
 import org.openrndr.math.Vector2
+import org.openrndr.math.YPolarity
 
 private fun Vector2.toVec2(): Vec2 {
     return Vec2(x, y)
@@ -70,7 +71,7 @@ private fun Curve2.toSegment(): Segment {
 }
 
 private fun Ring2.toShapeContour(): ShapeContour {
-    return ShapeContour(this.curves.map { it.toSegment() }, true)
+    return ShapeContour(this.curves.map { it.toSegment() }, true, YPolarity.CW_NEGATIVE_Y)
 }
 
 private fun List<Shape>.toRegion2(): Region2 {
@@ -197,7 +198,7 @@ fun intersection(from: List<Shape>, with: List<List<Shape>>): List<Shape> {
 fun split(shape: Shape, line: LineSegment): Pair<List<Shape>, List<Shape>> {
     val center = (line.end + line.start) / 2.0
     val direction = (line.end - line.start).normalized
-    val perpendicular = direction.perpendicular
+    val perpendicular = direction.perpendicular(shape.contours.first().polarity)
     val extend = 50000.0
 
     val splitLine = LineSegment(center - direction * extend, center + direction * extend)

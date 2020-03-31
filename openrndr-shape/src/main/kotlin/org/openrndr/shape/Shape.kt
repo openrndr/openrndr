@@ -7,6 +7,7 @@ import org.openrndr.shape.internal.BezierCubicSampler2D
 import org.openrndr.shape.internal.BezierQuadraticSampler2D
 import java.util.*
 import kotlin.math.sign
+import kotlin.math.sqrt
 
 class SegmentProjection(val segment: Segment, val projection: Double, val distance: Double, val point: Vector2)
 class ContourProjection(val segmentProjection: SegmentProjection, val projection: Double, val distance: Double, val point: Vector2)
@@ -185,7 +186,7 @@ class Segment {
      * Sample [pointCount] points on the segment
      * @param pointCount the number of points to sample on the segment
      */
-    fun equidistantPositions(pointCount: Int) : List<Vector2> {
+    fun equidistantPositions(pointCount: Int): List<Vector2> {
         return sampleEquidistant(adaptivePositions(), pointCount)
     }
 
@@ -207,7 +208,7 @@ class Segment {
     }
 
     fun direction(): Vector2 {
-        return (start - end).normalized
+        return (end - start).normalized
     }
 
     fun direction(t: Double): Vector2 {
@@ -256,12 +257,12 @@ class Segment {
         return dpoints
     }
 
-    fun offset(distance: Double, stepSize: Double = 0.1): List<Segment> {
+    fun offset(distance: Double, stepSize: Double = 0.1, yPolarity: YPolarity = YPolarity.CW_NEGATIVE_Y): List<Segment> {
         return if (linear) {
-            val n = normal(0.0)
-            listOf(Segment(start - distance * n, end - distance * n))
+            val n = normal(0.0, yPolarity)
+            listOf(Segment(start + distance * n, end + distance * n))
         } else {
-            reduced(stepSize).map { it.scale(distance) }
+            reduced(stepSize).map { it.scale(distance, yPolarity) }
         }
     }
 
@@ -315,8 +316,8 @@ class Segment {
                 if ((a1 > 0 && a2 < 0) || (a1 < 0 && a2 > 0))
                     return false
             }
-            val n1 = normal(0.0)
-            val n2 = normal(1.0)
+            val n1 = normal(0.0, YPolarity.CW_NEGATIVE_Y)
+            val n2 = normal(1.0, YPolarity.CW_NEGATIVE_Y)
             val s = n1 dot n2
             return s >= 0.9
 
@@ -356,21 +357,21 @@ class Segment {
         return pass1
     }
 
-    fun scale(scale: Double) = scale { scale }
+    fun scale(scale: Double, polarity: YPolarity) = scale(polarity) { scale }
 
     val clockwise
         get() = angle(start, end, control[0]) > 0
 
-    fun scale(scale: (Double) -> Double): Segment {
+    fun scale( polarity: YPolarity, scale: (Double) -> Double): Segment {
         if (control.size == 1) {
-            return cubic.scale(scale)
+            return cubic.scale(polarity, scale)
         }
 
-        val newStart = start + normal(0.0) * scale(0.0)
-        val newEnd = end + normal(1.0) * scale(1.0)
+        val newStart = start + normal(0.0, polarity) * scale(0.0)
+        val newEnd = end + normal(1.0, polarity) * scale(1.0)
 
-        val a = LineSegment(start + normal(0.0) * scale(0.0), start)
-        val b = LineSegment(end + normal(1.0) * scale(1.0), end)
+        val a = LineSegment(start + normal(0.0, polarity) * scale(0.0), start)
+        val b = LineSegment(end + normal(1.0, polarity) * scale(1.0), end)
 
         val o = intersection(a, b, 1000000000.0)
 
@@ -378,7 +379,7 @@ class Segment {
             val newControls = control.mapIndexed { index, it ->
                 val d = it - o
                 val rc = scale((index + 1.0) / 3.0)
-                val s = normal(0.0).dot(d).sign
+                val s = normal(0.0, polarity).dot(d).sign
                 val nd = d.normalized * s
                 it + rc * nd
             }
@@ -386,7 +387,7 @@ class Segment {
         } else {
             val newControls = control.mapIndexed { index, it ->
                 val rc = scale((index + 1.0) / 3.0)
-                it + rc * normal((index + 1.0))
+                it + rc * normal((index + 1.0), polarity)
             }
             return Segment(newStart, newControls.toTypedArray(), newEnd)
         }
@@ -420,14 +421,14 @@ class Segment {
 
 
     fun derivative(t: Double): Vector2 = when {
-        linear -> start - end
-        control.size == 1 -> derivative(start, control[0], end, t)
+        linear -> end - start
+        control.size == 1 -> safeDerivative(start, control[0], end, t)
         control.size == 2 -> safeDerivative(start, control[0], control[1], end, t)
         else -> throw RuntimeException("not implemented")
     }
 
-    fun normal(ut: Double): Vector2 {
-        return direction(ut).let { it.copy(it.y * -1.0, it.x) }
+    fun normal(ut: Double, polarity: YPolarity = YPolarity.CW_NEGATIVE_Y): Vector2 {
+        return direction(ut).let { it.perpendicular(polarity) }
     }
 
     val reverse: Segment
@@ -612,16 +613,16 @@ enum class SegmentJoin {
     BEVEL
 }
 
-data class ShapeContour(val segments: List<Segment>, val closed: Boolean) {
+data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val polarity: YPolarity = YPolarity.CW_NEGATIVE_Y) {
 
     companion object {
-        fun fromPoints(points: List<Vector2>, closed: Boolean) =
+        fun fromPoints(points: List<Vector2>, closed: Boolean, polarity: YPolarity) =
                 if (!closed)
-                    ShapeContour((0 until points.size - 1).map { Segment(points[it], points[it + 1]) }, closed)
+                    ShapeContour((0 until points.size - 1).map { Segment(points[it], points[it + 1]) }, closed, polarity)
                 else {
                     val d = (points.last() - points.first()).squaredLength
                     val usePoints = if (d > 0.001) points else points.dropLast(1)
-                    ShapeContour((0 until usePoints.size).map { Segment(usePoints[it], usePoints[(it + 1) % usePoints.size]) }, true)
+                    ShapeContour((0 until usePoints.size).map { Segment(usePoints[it], usePoints[(it + 1) % usePoints.size]) }, true, polarity)
                 }
     }
 
@@ -636,21 +637,31 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean) {
                 val after = segments[mod(i + 1, segments.size)].start
                 sum += (after.x - v.start.x) * (after.y + v.start.y)
             }
-            return if (sum < 0) {
-                Winding.COUNTER_CLOCKWISE
-            } else {
-                Winding.CLOCKWISE
+            return when(polarity) {
+                YPolarity.CCW_POSITIVE_Y -> if (sum < 0) {
+                    Winding.COUNTER_CLOCKWISE
+                } else {
+                    Winding.CLOCKWISE
+                }
+                YPolarity.CW_NEGATIVE_Y -> if (sum < 0) {
+                    Winding.CLOCKWISE
+                } else {
+                    Winding.COUNTER_CLOCKWISE
+                }
             }
         }
-
     val exploded: List<ShapeContour>
-        get() = segments.map { ShapeContour(listOf(it), false) }
-
+        get() = segments.map { ShapeContour(listOf(it), false, polarity) }
 
     val clockwise: ShapeContour get() = if (winding == Winding.CLOCKWISE) this else this.reversed
     val counterClockwise: ShapeContour get() = if (winding == Winding.COUNTER_CLOCKWISE) this else this.reversed
 
     operator fun plus(other: ShapeContour): ShapeContour {
+
+        require(polarity == other.polarity) {
+            """shapes have mixed polarities"""
+        }
+
         val epsilon = 0.001
         val segments = mutableListOf<Segment>()
         segments.addAll(this.segments)
@@ -658,16 +669,16 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean) {
             segments.add(Segment(this.segments[this.segments.size - 1].end, other.segments[0].start))
         }
         segments.addAll(other.segments)
-        return ShapeContour(segments, false)
+        return ShapeContour(segments, false, polarity)
     }
 
     fun offset(distance: Double, joinType: SegmentJoin = SegmentJoin.ROUND): ShapeContour {
         if (segments.size == 1) {
-            return ShapeContour(segments[0].offset(distance), false)
+            return ShapeContour(segments[0].offset(distance, yPolarity = polarity), false, polarity)
         }
 
         val joins = (segments + if (closed) listOf(segments.first()) else emptyList()).map {
-            it.offset(distance)
+            it.offset(distance, yPolarity = polarity)
         }.zipWithNext().flatMap {
             val end = it.first.last().end
             val start = it.second.first().start
@@ -675,10 +686,10 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean) {
             if ((end - start).squaredLength > 0.001) {
                 when (joinType) {
                     SegmentJoin.ROUND -> {
-                        val d = (end - start).length
+                        val d = (end - start).length * 0.5 * sqrt(2.0)
                         val join = contour {
                             moveTo(end)
-                            arcTo(d, d, 0.0, false, false, start.x, start.y)
+                            arcTo(d, d, 0.0, false, true, start.x, start.y)
                         }
                         it.first + join.segments
                     }
@@ -714,9 +725,9 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean) {
                 it.first
             }
         } + if (!closed) {
-            segments.last().offset(distance)
+            segments.last().offset(distance, yPolarity = polarity)
         } else emptyList()
-        return ShapeContour(joins, closed)
+        return ShapeContour(joins, closed, polarity)
     }
 
     fun position(ut: Double): Vector2 {
@@ -738,12 +749,12 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean) {
     fun normal(ut: Double): Vector2 {
         val t = ut.coerceIn(0.0, 1.0)
         return when (t) {
-            0.0 -> segments[0].normal(0.0)
-            1.0 -> segments.last().normal(1.0)
+            0.0 -> segments[0].normal(0.0, polarity)
+            1.0 -> segments.last().normal(1.0, polarity)
             else -> {
                 val segment = (t * segments.size).toInt()
                 val segmentOffset = (t * segments.size) - segment
-                segments[Math.min(segments.size - 1, segment)].normal(segmentOffset)
+                segments[Math.min(segments.size - 1, segment)].normal(segmentOffset, polarity)
             }
         }
     }
@@ -802,7 +813,7 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean) {
      * @return a ShapeContour composed of linear segments
      */
     fun sampleLinear(distanceTolerance: Double = 0.5) =
-            fromPoints(adaptivePositions(distanceTolerance), closed)
+            fromPoints(adaptivePositions(distanceTolerance), closed, polarity)
 
     /**
      * Sample the shape contour into line segments
@@ -810,10 +821,10 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean) {
     fun sampleEquidistant(pointCount: Int): ShapeContour {
         val points = equidistantPositions(pointCount.coerceAtLeast(2))
         val segments = (0 until points.size - 1).map { Segment(points[it], points[it + 1]) }
-        return ShapeContour(segments, closed)
+        return ShapeContour(segments, closed, polarity)
     }
 
-    fun transform(transform: Matrix44) = ShapeContour(segments.map { it.transform(transform) }, closed)
+    fun transform(transform: Matrix44) = ShapeContour(segments.map { it.transform(transform) }, closed, polarity)
 
     private fun mod(a: Double, b: Double) = ((a % b) + b) % b
 
@@ -899,7 +910,7 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean) {
                 newSegments.add(segments[s])
             }
         }
-        return ShapeContour(newSegments, false)
+        return ShapeContour(newSegments, false, polarity)
     }
 
 
@@ -933,7 +944,7 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean) {
 
     }
 
-    val reversed get() = ShapeContour(segments.map { it.reverse }.reversed(), closed)
+    val reversed get() = ShapeContour(segments.map { it.reverse }.reversed(), closed, polarity)
 
     fun map(closed: Boolean = this.closed, mapper: (Segment) -> Segment): ShapeContour {
         val segments = segments.map(mapper)
@@ -955,7 +966,7 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean) {
             }
         }
 
-        return ShapeContour(if (segments.size > 1) fixedSegments else segments, closed)
+        return ShapeContour(if (segments.size > 1) fixedSegments else segments, closed, polarity)
     }
 }
 
@@ -993,10 +1004,7 @@ class Shape(val contours: List<ShapeContour>) {
         return if (contours.isEmpty()) {
             emptyList()
         } else {
-            var split = Winding.COUNTER_CLOCKWISE
-            if (contours[0].winding == Winding.CLOCKWISE) {
-                split = Winding.CLOCKWISE
-            }
+            val split = contours[0].winding
             val (ccw, cw) = contours.partition { it.winding == split }
             ccw.map { Shape(listOf(it.counterClockwise) + cw.map { it.clockwise }) }
         }

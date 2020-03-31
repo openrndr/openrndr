@@ -6,8 +6,11 @@ import org.jsoup.parser.Parser
 import org.openrndr.color.ColorRGBa
 import org.openrndr.math.Matrix44
 import org.openrndr.math.Vector2
+import org.openrndr.math.YPolarity
 import org.openrndr.shape.*
 import java.io.File
+import java.net.MalformedURLException
+import java.net.URL
 import java.util.regex.Pattern
 
 /**
@@ -16,7 +19,16 @@ import java.util.regex.Pattern
  */
 fun loadSVG(fileOrUrlOrSvg: String): Composition {
     if (fileOrUrlOrSvg.endsWith(".svg")) {
-        return parseSVG(File(fileOrUrlOrSvg).readText())
+
+        try {
+            val url = URL(fileOrUrlOrSvg)
+            return parseSVG(url.readText())
+        } catch (e: MalformedURLException) {
+
+            return parseSVG(File(fileOrUrlOrSvg).readText())
+        }
+
+
     } else {
         return parseSVG(fileOrUrlOrSvg)
     }
@@ -342,7 +354,7 @@ internal class SVGPath : SVGElement() {
                     }
                 }
             }
-            ShapeContour(segments, closed)
+            ShapeContour(segments, closed, YPolarity.CW_NEGATIVE_Y)
         }
         return Shape(contours)
     }

@@ -3,6 +3,7 @@
 package org.openrndr.shape
 
 import org.openrndr.math.Vector2
+import org.openrndr.math.YPolarity
 
 data class Rectangle(val corner: Vector2, val width: Double, val height: Double) {
 
@@ -32,7 +33,7 @@ data class Rectangle(val corner: Vector2, val width: Double, val height: Double)
         get() =
             ShapeContour.fromPoints(listOf(corner, corner + Vector2(width, 0.0),
                     corner + Vector2(width, height),
-                    corner + Vector2(0.0, height)), true)
+                    corner + Vector2(0.0, height)), true, YPolarity.CW_NEGATIVE_Y)
 
     /** create a new [Rectangle] instance with offset edges */
     fun offsetEdges(offset: Double, offsetY: Double = offset): Rectangle {

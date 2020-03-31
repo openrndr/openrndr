@@ -1,6 +1,7 @@
 package org.openrndr.shape
 
 import org.openrndr.math.Vector2
+import org.openrndr.math.YPolarity
 import org.openrndr.math.mod_
 import kotlin.math.*
 
@@ -11,14 +12,14 @@ class ShapeBuilder {
     internal val contours = mutableListOf<ShapeContour>()
 
     fun contour(shapeContour: ShapeContour) {
-        contours.add(if (contours.size == 0) shapeContour.counterClockwise else shapeContour.clockwise)
+        contours.add(if (contours.size == 0) shapeContour.clockwise else shapeContour.counterClockwise)
     }
 
     fun contour(f: ContourBuilder.() -> Unit) {
         val cb = ContourBuilder()
         cb.f()
-        val c = ShapeContour(cb.segments, cb.closed)
-        contours.add(if (contours.size == 0) c.counterClockwise else c.clockwise)
+        val c = ShapeContour(cb.segments, cb.closed, YPolarity.CW_NEGATIVE_Y)
+        contours.add(if (contours.size == 0) c.clockwise else c.counterClockwise)
     }
 }
 
@@ -380,5 +381,5 @@ fun shape(f: ShapeBuilder.() -> Unit): Shape {
 fun contour(f: ContourBuilder.() -> Unit): ShapeContour {
     val cb = ContourBuilder()
     cb.f()
-    return ShapeContour(cb.segments, cb.closed)
+    return ShapeContour(cb.segments, cb.closed, YPolarity.CW_NEGATIVE_Y)
 }

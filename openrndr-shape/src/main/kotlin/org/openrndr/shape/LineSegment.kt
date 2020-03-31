@@ -3,6 +3,7 @@
 package org.openrndr.shape
 
 import org.openrndr.math.Vector2
+import org.openrndr.math.YPolarity
 import org.openrndr.math.map
 import kotlin.math.max
 import kotlin.math.min
@@ -13,7 +14,7 @@ class LineSegment(val start: Vector2, val end: Vector2) {
     constructor(x0: Double, y0: Double, x1: Double, y1: Double) : this(Vector2(x0, y0), Vector2(x1, y1))
 
     val direction get() = (end - start)
-    val normal get() = (end - start).normalized.perpendicular
+    val normal get() = (end - start).normalized.perpendicular(YPolarity.CW_NEGATIVE_Y)
 
     fun nearest(query: Vector2): Vector2 {
         val l2 = end.minus(start).squaredLength
@@ -103,7 +104,7 @@ class LineSegment(val start: Vector2, val end: Vector2) {
     fun position(t: Double) = start + (end.minus(start) * t)
 
     val contour: ShapeContour
-        get() = ShapeContour.fromPoints(listOf(start, end), false)
+        get() = ShapeContour.fromPoints(listOf(start, end), false, YPolarity.CW_NEGATIVE_Y)
 
     val shape: Shape
         get() = Shape(listOf(contour))

@@ -19,6 +19,28 @@ fun derivative(x0: Vector2, c0: Vector2, x1: Vector2, t: Double): Vector2 {
     return Vector2(2 * it * (c0.x - x0.x) + 2 * t * (x1.x - c0.x), 2 * it * (c0.y - x0.y) + 2 * t * (x1.y - c0.y))
 }
 
+/**
+ * like [derivative] but handles cases in which p0/p1 or p2/p3 coincide
+ */
+fun safeDerivative(p0: Vector2, c0 : Vector2, p1: Vector2, t: Double): Vector2 {
+    val epsilon = 10E-6
+    var u = t
+
+    val d10 = c0 - p0
+    val d21 = c0 - p1
+
+    if (u < epsilon && d10.squaredLength < epsilon ) {
+        u = epsilon
+    }
+
+    if (u > (1.0 - epsilon) && d21.squaredLength < epsilon) {
+        u = 1.0 - epsilon
+    }
+
+    val iu = 1.0 - u
+    return Vector2(2 * iu * (c0.x - p0.x) + 2 * u * (p1.x - c0.x), 2 * iu * (c0.y - p0.y) + 2 * u * (p1.y - c0.y))
+}
+
 fun derivative(x0: Vector3, c0: Vector3, x1: Vector3, t: Double): Vector3 {
     val it = 1.0 - t
     return Vector3(2 * it * (c0.x - x0.x) + 2 * t * (x1.x - c0.x),

@@ -1,10 +1,7 @@
 import org.amshove.kluent.`should be equal to`
 import org.amshove.kluent.`should match all with`
 import org.openrndr.math.Vector2
-import org.openrndr.shape.Circle
-import org.openrndr.shape.Rectangle
-import org.openrndr.shape.SegmentJoin
-import org.openrndr.shape.contour
+import org.openrndr.shape.*
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 
@@ -158,6 +155,10 @@ object TestShapeContour : Spek({
         val offset1 = offset0.offset(20.0, SegmentJoin.MITER)
         val positions1 = offset1.adaptivePositions()
         positions1.zipWithNext().`should match all with` { (it.second - it.first).squaredLength > 0.0 }
+
+        it("has CCW winding") {
+            curve.winding `should be equal to` Winding.COUNTER_CLOCKWISE
+        }
 
 
         it("can be sampled adaptively") {

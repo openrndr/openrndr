@@ -4,6 +4,11 @@ import java.io.Serializable
 import java.lang.Math.toRadians
 import kotlin.math.*
 
+enum class YPolarity {
+    CCW_POSITIVE_Y,
+    CW_NEGATIVE_Y
+}
+
 /**
  * Double precision vector 2
  */
@@ -19,16 +24,21 @@ data class Vector2(val x: Double, val y: Double) : Serializable {
     val squaredLength: Double
         get() = x * x + y * y
 
-    val perpendicular: Vector2 get() = Vector2(-y, x)
 
-    val normalized: Vector2 get() {
-        val localLength = length
-        return if (localLength > 0.0) {
-            this / length
-        } else {
-            Vector2.ZERO
-        }
+    fun perpendicular(polarity: YPolarity = YPolarity.CW_NEGATIVE_Y): Vector2 = when (polarity) {
+        YPolarity.CCW_POSITIVE_Y -> Vector2(-y, x)
+        YPolarity.CW_NEGATIVE_Y -> Vector2(y, -x)
     }
+
+    val normalized: Vector2
+        get() {
+            val localLength = length
+            return if (localLength > 0.0) {
+                this / length
+            } else {
+                Vector2.ZERO
+            }
+        }
 
     infix fun dot(right: Vector2) = x * right.x + y * right.y
     infix fun reflect(surfaceNormal: Vector2): Vector2 = this - surfaceNormal * (this dot surfaceNormal) * 2.0
