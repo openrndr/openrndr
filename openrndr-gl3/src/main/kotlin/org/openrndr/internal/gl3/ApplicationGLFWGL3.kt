@@ -17,7 +17,6 @@ import org.openrndr.WindowMultisample.*
 import org.openrndr.animatable.Animatable
 import org.openrndr.animatable.Clock
 import org.openrndr.draw.Drawer
-import org.openrndr.exceptions.installUncaughtExceptionHandler
 import org.openrndr.internal.Driver
 import org.openrndr.math.Vector2
 import java.io.File
@@ -518,7 +517,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
             if (entered) {
                 program.mouse.entered.trigger(MouseEvent(program.mouse.position, Vector2.ZERO, Vector2.ZERO, MouseEventType.ENTERED, MouseButton.NONE, emptySet()))
             } else {
-                program.mouse.left.trigger(MouseEvent(program.mouse.position, Vector2.ZERO, Vector2.ZERO, MouseEventType.LEFT, MouseButton.NONE, emptySet()))
+                program.mouse.exited.trigger(MouseEvent(program.mouse.position, Vector2.ZERO, Vector2.ZERO, MouseEventType.EXITED, MouseButton.NONE, emptySet()))
             }
         }
 
@@ -695,7 +694,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         program.mouse.buttonUp.deliver()
         program.mouse.dragged.deliver()
         program.mouse.entered.deliver()
-        program.mouse.left.deliver()
+        program.mouse.exited.deliver()
     }
 
     private fun drawFrame(): Throwable? {

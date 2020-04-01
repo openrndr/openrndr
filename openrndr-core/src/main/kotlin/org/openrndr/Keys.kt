@@ -33,7 +33,7 @@ enum class MouseEventType {
     BUTTON_DOWN,
     SCROLLED,
     ENTERED,
-    LEFT
+    EXITED
 }
 
 /**
