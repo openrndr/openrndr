@@ -37,5 +37,5 @@ class Mouse(val application: Application) {
     val scrolled = Event<MouseEvent>("mouse-scrolled").postpone(true)
     val clicked = Event<MouseEvent>("mouse-clicked").postpone(true)
     val entered = Event<MouseEvent>("mouse-entered").postpone(true)
-    val left = Event<MouseEvent>("mouse-left").postpone(true)
+    val exited = Event<MouseEvent>("mouse-exited").postpone(true)
 }
