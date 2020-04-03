@@ -77,9 +77,7 @@ object TestShapeContour : Spek({
                 resampled.closed `should be equal to` false
             }
         }
-
     }
-
 
     describe("a simple contour") {
         val width = 640
@@ -185,6 +183,40 @@ object TestShapeContour : Spek({
                 resampled.closed `should be equal to` true
             }
         }
+
+        it("it can be subbed from 0.0 to 1.0") {
+            val s = curve.sub(0.0, 1.0)
+            s.position(0.0) `should be near` curve.position(0.0)
+            s.position(1.0) `should be near` curve.position(1.0)
+        }
+
+        it("it can be subbed from -0.1 to 0.0") {
+            val s = curve.sub(-0.1, 0.0)
+        }
+
+        it("it can be subbed from -2.0 to -1.0") {
+            val s = curve.sub(-2.0, -1.0)
+            s.position(0.0) `should be near` curve.position(0.0)
+            s.position(1.0) `should be near` curve.position(1.0)
+        }
+        it("it can be subbed from 0 to 0") {
+            val s = curve.sub(0.0, 0.0)
+            println(s.length)
+
+        }
+        it("it can be subbed from -1 to -1") {
+            val s = curve.sub(-1.0, -1.0)
+
+        }
+        it("it can be subbed from 0.0 to 0.001 ") {
+//            for (i in -2000 .. 10000) {
+//                val o = i / 10000
+//                val s = curve.sub(0.0 + o, 0.01 + o)
+//                s.position(0.0) `should be somewhat near` curve.position(0.0 + o)
+//                s.position(1.0) `should be somewhat near` curve.position(0.01+ o)
+//            }
+        }
+
     }
     describe("a rectangle contour") {
         val curve = Rectangle(100.0, 100.0, 200.0, 200.0).contour
@@ -205,6 +237,4 @@ object TestShapeContour : Spek({
             }
         }
     }
-
-
 })

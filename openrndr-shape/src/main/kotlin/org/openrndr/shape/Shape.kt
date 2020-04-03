@@ -19,7 +19,6 @@ enum class SegmentType {
     CUBIC
 }
 
-
 /**
  * Segment describes a linear or bezier path between two points
  */
@@ -58,12 +57,7 @@ class Segment {
         this.start = start
         this.end = end
         this.control = emptyArray()
-
         val d = end - start
-
-//        require(d.squaredLength > 0.0) {
-//            "L end/start overlap $start $end"
-//        }
     }
 
     /**
@@ -95,16 +89,6 @@ class Segment {
         this.start = start
         this.control = control
         this.end = end
-
-        if (control.size == 1) {
-            val c0 = control[0]
-            val dc0s = c0 - start
-            val dc0e = c0 - end
-        }
-        if (control.size == 2) {
-            val c0 = control[0]
-            val c1 = control[1]
-        }
     }
 
     fun lut(size: Int = 100): List<Vector2> {
@@ -397,9 +381,7 @@ class Segment {
             while (t2 <= 1.0 + step) {
                 val segment = sub(t1, t2)
                 if (!segment.simple) {
-
                     t2 -= step
-                    println("t1: $t1 t2:$t2")
                     if (abs(t1 - t2) < step) {
                         return listOf(this)
                     }
@@ -418,7 +400,7 @@ class Segment {
         if (result.isEmpty()) {
             result.add(this)
         }
-        println("---")
+
         return result
     }
 
@@ -499,7 +481,7 @@ class Segment {
     }
 
     fun normal(ut: Double, polarity: YPolarity = YPolarity.CW_NEGATIVE_Y): Vector2 {
-        return direction(ut).let { it.perpendicular(polarity) }
+        return direction(ut).perpendicular(polarity)
     }
 
     val reverse: Segment
@@ -686,7 +668,12 @@ enum class SegmentJoin {
 
 data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val polarity: YPolarity = YPolarity.CW_NEGATIVE_Y) {
 
+
+
     companion object {
+
+        val EMPTY = ShapeContour(emptyList(), false)
+
         fun fromPoints(points: List<Vector2>, closed: Boolean, polarity: YPolarity = YPolarity.CW_NEGATIVE_Y) =
                 if (!closed)
                     ShapeContour((0 until points.size - 1).map { Segment(points[it], points[it + 1]) }, closed, polarity)
@@ -913,13 +900,24 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
      * @return sub contour
      */
     fun sub(u0: Double, u1: Double): ShapeContour {
+        if (segments.isEmpty()) {
+            return EMPTY
+        }
+
+        require(u0 == u0) { "u0 is NaN" }
+        require(u1 == u1) { "u1 is NaN" }
+
+        if (abs(u0-u1) < 10E-6) {
+            return EMPTY
+        }
+
         var t0 = u0
         var t1 = u1
 
         if (closed && (t1 < t0 || t1 > 1.0 || t0 > 1.0 || t0 < 0.0 || t1 < 0.0)) {
             val diff = t1 - t0
             t0 = mod(t0, 1.0)
-            if (Math.abs(diff) < 0.9999999999999998) {
+            if (abs(diff) < (1.0 - 10E-6)) {
                 return if (diff > 0.0) {
                     t1 = t0 + diff
                     if (t1 > 1.0) {
@@ -970,7 +968,6 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
         segment1 = Math.min(segments.size - 1, segment1)
         segment0 = Math.min(segments.size - 1, segment0)
 
-
         val newSegments = mutableListOf<Segment>()
         val epsilon = 0.000001
 
@@ -1000,7 +997,7 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
      *
      */
     fun on(point: Vector2, error: Double = 5.0): Double? {
-        for (i in 0 until segments.size) {
+        for (i in segments.indices) {
             val st = segments[i].on(point, error)
             if (st != null) {
                 return (i + st) / segments.size

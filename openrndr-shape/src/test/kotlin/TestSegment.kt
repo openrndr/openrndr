@@ -10,6 +10,12 @@ infix fun Vector2.`should be near`(other: Vector2) {
     y shouldBeInRange (other.y - 0.00001..other.y + 0.00001)
 }
 
+infix fun Vector2.`should be somewhat near`(other: Vector2) {
+    x shouldBeInRange (other.x - 0.01..other.x + 0.01)
+    y shouldBeInRange (other.y - 0.01..other.y + 0.01)
+}
+
+
 object TestSegment : Spek({
 
     describe("a horizontal segment") {
