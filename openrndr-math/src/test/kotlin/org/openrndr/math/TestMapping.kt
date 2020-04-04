@@ -7,8 +7,6 @@ import org.spekframework.spek2.style.specification.describe
 
 object TestMapping : Spek({
 
-    val maxError = 0.0000001
-
     describe("Mapping Operations") {
 
         describe("Mapping Double") {
