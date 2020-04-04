@@ -12,11 +12,15 @@ import kotlin.math.min
  * @param afterLeft the left value of the after domain
  * @param afterRight the right value of the after domain
  * @param value the value to map from the before domain to the after domain
+ * @param clamp constrain the result to [afterLeft, afterRight]
  * @return a value in the after domain
  */
-fun map(beforeLeft: Double, beforeRight: Double, afterLeft: Double, afterRight: Double, value: Double): Double {
+fun map(beforeLeft: Double, beforeRight: Double,
+        afterLeft: Double, afterRight: Double,
+        value: Double,
+        clamp: Boolean = false): Double {
     val n = (value - beforeLeft) / (beforeRight - beforeLeft)
-    return afterLeft + n * (afterRight - afterLeft)
+    return afterLeft + (if (clamp) saturate(n) else n) * (afterRight - afterLeft)
 }
 
 /**
@@ -25,36 +29,45 @@ fun map(beforeLeft: Double, beforeRight: Double, afterLeft: Double, afterRight: 
  * @param beforeRight the right value of the before domain
  * @param afterLeft the left value of the after domain
  * @param afterRight the right value of the after domain
+ * @param clamp constrain the result to [afterLeft, afterRight]
  * @return a value in the after domain
  */
 @JvmName("doubleMap")
-fun Double.map(beforeLeft: Double, beforeRight: Double, afterLeft: Double, afterRight: Double): Double {
-    return map(beforeLeft, beforeRight, afterLeft, afterRight, this)
+fun Double.map(beforeLeft: Double, beforeRight: Double,
+               afterLeft: Double, afterRight: Double,
+               clamp: Boolean = false): Double {
+    return map(beforeLeft, beforeRight, afterLeft, afterRight, this, clamp)
 }
 
-fun Vector2.map(beforeLeft: Vector2,
-                beforeRight: Vector2,
-                afterLeft: Vector2,
-                afterRight: Vector2) =
-        Vector2(x.map(beforeLeft.x, beforeRight.x, afterLeft.x, afterRight.x),
-                y.map(beforeLeft.y, beforeRight.y, afterLeft.y, afterRight.y))
+fun Vector2.map(beforeLeft: Vector2, beforeRight: Vector2,
+                afterLeft: Vector2, afterRight: Vector2,
+                clamp: Boolean = false) =
+        Vector2(x.map(beforeLeft.x, beforeRight.x, afterLeft.x, afterRight.x,
+                clamp),
+                y.map(beforeLeft.y, beforeRight.y, afterLeft.y, afterRight.y,
+                        clamp))
 
-fun Vector3.map(beforeLeft: Vector3,
-                beforeRight: Vector3,
-                afterLeft: Vector3,
-                afterRight: Vector3) =
-        Vector3(x.map(beforeLeft.x, beforeRight.x, afterLeft.x, afterRight.x),
-                y.map(beforeLeft.y, beforeRight.y, afterLeft.y, afterRight.y),
-                z.map(beforeLeft.z, beforeRight.z, afterLeft.z, afterRight.z))
+fun Vector3.map(beforeLeft: Vector3, beforeRight: Vector3,
+                afterLeft: Vector3, afterRight: Vector3,
+                clamp: Boolean = false) =
+        Vector3(x.map(beforeLeft.x, beforeRight.x, afterLeft.x, afterRight.x,
+                clamp),
+                y.map(beforeLeft.y, beforeRight.y, afterLeft.y, afterRight.y,
+                        clamp),
+                z.map(beforeLeft.z, beforeRight.z, afterLeft.z, afterRight.z,
+                        clamp))
 
-fun Vector4.map(beforeLeft: Vector4,
-                beforeRight: Vector4,
-                afterLeft: Vector4,
-                afterRight: Vector4) =
-        Vector4(x.map(beforeLeft.x, beforeRight.x, afterLeft.x, afterRight.x),
-                y.map(beforeLeft.y, beforeRight.y, afterLeft.y, afterRight.y),
-                z.map(beforeLeft.z, beforeRight.z, afterLeft.z, afterRight.z),
-                w.map(beforeLeft.w, beforeRight.w, afterLeft.w, afterRight.w))
+fun Vector4.map(beforeLeft: Vector4, beforeRight: Vector4,
+                afterLeft: Vector4, afterRight: Vector4,
+                clamp: Boolean = false) =
+        Vector4(x.map(beforeLeft.x, beforeRight.x, afterLeft.x, afterRight.x,
+                clamp),
+                y.map(beforeLeft.y, beforeRight.y, afterLeft.y, afterRight.y,
+                        clamp),
+                z.map(beforeLeft.z, beforeRight.z, afterLeft.z, afterRight.z,
+                        clamp),
+                w.map(beforeLeft.w, beforeRight.w, afterLeft.w, afterRight.w,
+                        clamp))
 
 fun linearstep(edge0: Double, edge1: Double, x: Double): Double = saturate((x - edge0) / (edge1 - edge0))
 
