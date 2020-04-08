@@ -1,7 +1,6 @@
 package org.openrndr.shape
 
 import org.openrndr.math.Vector2
-import org.openrndr.math.YPolarity
 import org.openrndr.math.mod_
 import kotlin.math.*
 
@@ -16,26 +15,38 @@ class ShapeBuilder {
     }
 
     fun contour(f: ContourBuilder.() -> Unit) {
-        val cb = ContourBuilder()
+        val cb = ContourBuilder(false)
         cb.f()
-        val c = ShapeContour(cb.segments, cb.closed, YPolarity.CW_NEGATIVE_Y)
+        val c = cb.result.first()
+        require(contours.isEmpty() || c.closed) {
+            "The contours that form a shape must all be closed"
+        }
         contours.add(if (contours.size == 0) c.clockwise else c.counterClockwise)
     }
 }
 
 @Suppress("unused")
-class ContourBuilder {
+class ContourBuilder(private val multipleContours: Boolean) {
     var cursor = Vector2.INFINITY
     var anchor = Vector2.INFINITY
-    internal var closed = false
+
 
     val segments = mutableListOf<Segment>()
+
+    internal val contours = mutableListOf<ShapeContour>()
 
     /**
      * Move pen without drawing
      * @param position coordinate to move pen to
      */
     fun moveTo(position: Vector2) {
+        require(multipleContours || anchor === Vector2.INFINITY) {
+            "pen only can only be moved once per contour, use 'contours {}' to create multiple contours"
+        }
+        if (multipleContours && segments.isNotEmpty()) {
+            contours.add(ShapeContour(segments.map { it }, false))
+            segments.clear()
+        }
         cursor = position
         anchor = position
     }
@@ -152,10 +163,15 @@ class ContourBuilder {
      * Closes the contour, adds a line segment to `anchor` when needed
      */
     fun close() {
+        require(segments.isNotEmpty()) {
+            "cannot close contour with 0 segments"
+        }
+
         if ((anchor - cursor).length > 0.001) {
             segments.add(Segment(cursor, anchor))
         }
-        closed = true
+        contours.add(ShapeContour(segments.map { it }, true))
+        segments.clear()
     }
 
     /**
@@ -210,11 +226,11 @@ class ContourBuilder {
         val x1 = cosAngle * dx2 + sinAngle * dy2
         val y1 = -sinAngle * dx2 + cosAngle * dy2
 
-        val rx_sq = rx * rx
-        val ry_sq = ry * ry
+        val rxSqr = rx * rx
+        val rySqr = ry * ry
 
-        val y1_sq = y1 * y1
-        val x1_sq = x1 * x1
+        val y1Sqr = y1 * y1
+        val x1Sqr = x1 * x1
 
         val radiiCheck = ((x1 * x1) / (rx * rx)) + ((y1 * y1) / (ry * ry))
         if (radiiCheck > 1) {
@@ -224,7 +240,7 @@ class ContourBuilder {
 
         // Step 2 : Compute (cx1, cy1) - the transformed centre point
         val sign0 = if (largeArcFlag == sweepFlag) -1.0 else 1.0
-        var sq = (rx_sq * ry_sq - rx_sq * y1_sq - ry_sq * x1_sq) / (rx_sq * y1_sq + ry_sq * x1_sq)
+        var sq = (rxSqr * rySqr - rxSqr * y1Sqr - rySqr * x1Sqr) / (rxSqr * y1Sqr + rySqr * x1Sqr)
         sq = if (sq < 0) 0.0 else sq
         val coef = sign0 * sqrt(sq)
         val cx1 = coef * (rx * y1 / ry)
@@ -367,8 +383,8 @@ class ContourBuilder {
 
     fun segment(segment: Segment) {
         if (cursor !== Vector2.INFINITY) {
-            require((segment.start - cursor).length < 10E-3) { "" +
-                    "segment is disconnected: cursor: ${cursor}, segment.start: ${segment.start}, distance: ${(cursor - segment.start).length}"
+            require((segment.start - cursor).length < 10E-3) {
+                "segment is disconnected: cursor: ${cursor}, segment.start: ${segment.start}, distance: ${(cursor - segment.start).length}"
             }
         }
         if (cursor === Vector2.INFINITY) {
@@ -399,7 +415,13 @@ class ContourBuilder {
     val lastSegment: Segment?
         get() = segments.lastOrNull()
 
+
+    val result: List<ShapeContour>
+    get() {
+        return contours + if (segments.isNotEmpty()) listOf(ShapeContour(segments.map { it }, false)) else emptyList()
+    }
 }
+
 
 /**
  * Build a shape
@@ -414,7 +436,16 @@ fun shape(f: ShapeBuilder.() -> Unit): Shape {
  * Build a contour
  */
 fun contour(f: ContourBuilder.() -> Unit): ShapeContour {
-    val cb = ContourBuilder()
+    val cb = ContourBuilder(false)
     cb.f()
-    return ShapeContour(cb.segments, cb.closed, YPolarity.CW_NEGATIVE_Y)
+    return cb.result.first()
+}
+
+/**
+ * Build multiple contours
+ */
+fun contours(f: ContourBuilder.() -> Unit): List<ShapeContour> {
+    val clb = ContourBuilder(true)
+    clb.f()
+    return clb.result
 }
