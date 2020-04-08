@@ -217,6 +217,28 @@ object TestShapeContour : Spek({
 //            }
         }
 
+        it("it can be subbed from 0.0 to 0.001 ") {
+
+
+                val s = curve.sub(0.0, 1/100000.0)
+                s.position(1.0) `should be somewhat near` curve.position(1/100000.0)
+
+
+
+        }
+
+
+//        it("it can be subbed from 0.0 to 0.001 ") {
+//            for (i in 1 until 100000) {
+//
+//                val s = curve.sub(0.0, i/100000.0)
+//                println(i)
+//                s.position(1.0) `should be somewhat near` curve.position(i/100000.0)
+//
+//
+//            }
+//        }
+
     }
     describe("a rectangle contour") {
         val curve = Rectangle(100.0, 100.0, 200.0, 200.0).contour

@@ -44,15 +44,15 @@ object TestSegment : Spek({
             sides.size `should be equal to` 2
         }
 
-        it("can be split at 0.0, but result in 1 part") {
-            val sides = segment.split(0.0)
-            sides.size `should be equal to` 1
-        }
-
-        it("can be split at 1.0, but result in 1 part") {
-            val sides = segment.split(1.0)
-            sides.size `should be equal to` 1
-        }
+//        it("can be split at 0.0, but result in 1 part") {
+//            val sides = segment.split(0.0)
+//            sides.size `should be equal to` 1
+//        }
+//
+//        it("can be split at 1.0, but result in 1 part") {
+//            val sides = segment.split(1.0)
+//            sides.size `should be equal to` 1
+//        }
         it("can be subbed from 0.0 to 1.0") {
             val sub = segment.sub(0.0, 1.0)
             sub `should be` segment
@@ -320,15 +320,15 @@ object TestSegment : Spek({
             sides.size `should be equal to` 2
         }
 
-        it("can be split at 0.0, but result in 1 part") {
-            val sides = segment.split(0.0)
-            sides.size `should be equal to` 1
-        }
-
-        it("can be split at 1.0, but result in 1 part") {
-            val sides = segment.split(1.0)
-            sides.size `should be equal to` 1
-        }
+//        it("can be split at 0.0, but result in 1 part") {
+//            val sides = segment.split(0.0)
+//            sides.size `should be equal to` 1
+//        }
+//
+//        it("can be split at 1.0, but result in 1 part") {
+//            val sides = segment.split(1.0)
+//            sides.size `should be equal to` 1
+//        }
 
         it("can be subbed from 0.0 to 1.0") {
             val sub = segment.sub(0.0, 1.0)

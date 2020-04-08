@@ -518,10 +518,14 @@ class Segment {
      */
     fun split(t: Double): Array<Segment> {
         val u = t.clamp(0.0, 1.0)
-        val splitSigma = 0.0001
+        val splitSigma = 10E-6
 
-        if (u <= splitSigma || u >= 1.0 - splitSigma) {
-            return arrayOf(this)
+        if (u < splitSigma) {
+            return arrayOf(Segment(start, start), this)
+        }
+
+        if (u >= 1.0 - splitSigma) {
+            return arrayOf(this, Segment(end, end))
         }
 
         if (linear) {
