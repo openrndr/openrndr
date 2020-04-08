@@ -1,14 +1,13 @@
 package org.openrndr.extensions
 
 import org.openrndr.Extension
-import org.openrndr.KEY_SPACEBAR
 import org.openrndr.Program
 import org.openrndr.draw.*
 import org.openrndr.extensions.CreateScreenshot.*
-import org.openrndr.math.Matrix44
 import java.io.File
 import java.time.LocalDateTime
 import mu.KotlinLogging
+import kotlin.math.max
 
 private val logger = KotlinLogging.logger {}
 
@@ -34,7 +33,7 @@ class SingleScreenshot : Screenshots() {
     var outputFile = "screenshot.png"
 
     override fun setup(program: Program) {
-        createScreenshot = CreateScreenshot.Named(outputFile)
+        createScreenshot = Named(outputFile)
     }
 }
 
@@ -80,15 +79,26 @@ open class Screenshots : Extension {
     private var target: RenderTarget? = null
     private var resolved: ColorBuffer? = null
 
+    private var programRef: Program? = null
+
     override fun setup(program: Program) {
+        programRef = program
         program.keyboard.keyDown.listen {
             if (!it.propagationCancelled) {
                 if (it.name == key) {
-                    createScreenshot = AutoNamed
-                    program.window.requestDraw()
+                    trigger()
+
                 }
             }
         }
+    }
+
+    /**
+     * Trigger screenshot creation
+     */
+    fun trigger() {
+        createScreenshot = AutoNamed
+        programRef?.window?.requestDraw()
     }
 
     override fun beforeDraw(drawer: Drawer, program: Program) {
@@ -116,7 +126,7 @@ open class Screenshots : Extension {
         fun Int.z(zeroes: Int = 2): String {
             val sv = this.toString()
             var prefix = ""
-            for (i in 0 until Math.max(zeroes - sv.length, 0)) {
+            for (i in 0 until max(zeroes - sv.length, 0)) {
                 prefix += "0"
             }
             return "$prefix$sv"
@@ -159,7 +169,6 @@ open class Screenshots : Extension {
                         drawer.image(resolved, resolved.bounds, drawer.bounds)
                     }
                 }
-
                 logger.info("[Screenshots] saved to: $filename")
             }
 
