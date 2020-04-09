@@ -560,10 +560,6 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
                         MouseEvent(program.mouse.position, Vector2.ZERO, Vector2.ZERO, MouseEventType.BUTTON_UP, mouseButton, modifiers)
                 )
                 buttonsDown.set(button, false)
-
-                program.mouse.clicked.trigger(
-                        MouseEvent(program.mouse.position, Vector2.ZERO, Vector2.ZERO, MouseEventType.CLICKED, mouseButton, modifiers)
-                )
             }
         }
 
@@ -689,7 +685,6 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         program.keyboard.character.deliver()
         program.mouse.moved.deliver()
         program.mouse.scrolled.deliver()
-        program.mouse.clicked.deliver()
         program.mouse.buttonDown.deliver()
         program.mouse.buttonUp.deliver()
         program.mouse.dragged.deliver()
