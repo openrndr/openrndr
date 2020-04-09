@@ -57,7 +57,6 @@ class Segment {
         this.start = start
         this.end = end
         this.control = emptyArray()
-        val d = end - start
     }
 
     /**

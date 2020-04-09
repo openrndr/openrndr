@@ -71,9 +71,9 @@ class FontImageMapManagerGL3 : FontMapManager() {
 
         val scale = (stbtt_ScaleForPixelHeight(info, (size * contentScale).toFloat())).toFloat()
 
-        var ascent = 0.0
-        var descent = 0.0
-        var lineGap = 0.0
+        @Suppress("VARIABLE_WITH_REDUNDANT_INITIALIZER") var ascent = 0.0
+        @Suppress("VARIABLE_WITH_REDUNDANT_INITIALIZER") var descent = 0.0
+        @Suppress("VARIABLE_WITH_REDUNDANT_INITIALIZER") var lineGap = 0.0
         stackPush().let {
             val pAscent = it.mallocInt(1)
             val pDescent = it.mallocInt(1)

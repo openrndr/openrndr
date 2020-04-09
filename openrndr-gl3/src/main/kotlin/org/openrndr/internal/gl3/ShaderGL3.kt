@@ -703,6 +703,7 @@ class ShaderGL3(val program: Int,
         }
     }
 
+    @Suppress("UNUSED_PARAMETER")
     private fun postUniformCheck(name: String, index: Int, value: Any) {
         val errorCheck = { it: Int ->
             val currentProgram = glGetInteger(GL_CURRENT_PROGRAM)

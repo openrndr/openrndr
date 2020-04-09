@@ -227,6 +227,9 @@ open class RenderTargetGL3(val framebuffer: Int,
                 glBlendEquationi(index, GL_FUNC_ADD)
                 glBlendFunci(index, GL_ONE, GL_ZERO)
             }
+            else -> {
+                error("unsupported blend mode: $blendMode")
+            }
         }
     }
 

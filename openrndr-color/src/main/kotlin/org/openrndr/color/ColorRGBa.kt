@@ -156,10 +156,3 @@ fun rgba(r: Double, g: Double, b: Double, a: Double) = ColorRGBa(r, g, b, a)
 
 fun rgb(hex: String) = ColorRGBa.fromHex(hex)
 
-fun main() {
-    val c = ColorRGBa.WHITE
-    val b = c(r = 0.4)
-    val d = ColorRGBa(0.4, 0.2, 0.4).let { it(r = it.r * 0.3) }
-    val e = rgb(1.0, 0.0, 1.0)
-    println(b)
-}

@@ -99,7 +99,6 @@ level(=0) or layer(=0) is less than zero
             glBindImageTexture(image, arrayTexture.texture, 0, false, 0, access.gl(), arrayTexture.format())
             checkGLErrors() {
                 val maxImageUnits = glGetInteger(GL_MAX_IMAGE_UNITS)
-                arrayTexture as ColorBufferGL3
                 when (it) {
                     GL_INVALID_VALUE ->
                         """unit(=$image) greater than or equal to the value of GL_MAX_IMAGE_UNITS(=$maxImageUnits)
@@ -131,7 +130,6 @@ level(=0) or layer(=0) is less than zero
             glBindImageTexture(image, arrayTexture.texture, 0, true, 0, access.gl(), arrayTexture.format())
             checkGLErrors() {
                 val maxImageUnits = glGetInteger(GL_MAX_IMAGE_UNITS)
-                arrayTexture as ColorBufferGL3
                 when (it) {
                     GL_INVALID_VALUE ->
                         """unit(=$image) greater than or equal to the value of GL_MAX_IMAGE_UNITS(=$maxImageUnits)
@@ -160,9 +158,8 @@ level(=0) or layer(=0) is less than zero
                 }
             }
             glBindImageTexture(image, cubemap.texture, 0, true, 0, access.gl(), cubemap.format())
-            checkGLErrors() {
+            checkGLErrors {
                 val maxImageUnits = glGetInteger(GL_MAX_IMAGE_UNITS)
-                cubemap as ColorBufferGL3
                 when (it) {
                     GL_INVALID_VALUE ->
                         """unit(=$image) greater than or equal to the value of GL_MAX_IMAGE_UNITS(=$maxImageUnits)

@@ -171,53 +171,53 @@ internal object Triangulator {
     }
 
     private fun earcutLinked(ear: Node?, triangles: MutableList<Int>, dim: Int, minX: Double, minY: Double, size: Double, pass: Int) {
-        var ear: Node? = ear ?: return
+        var earRef: Node? = ear ?: return
 
         // interlink polygon nodes in z-order
         if (pass == Integer.MIN_VALUE && size != java.lang.Double.MIN_VALUE)
-            indexCurve(ear, minX, minY, size)
+            indexCurve(earRef, minX, minY, size)
 
-        var stop = ear
+        var stop = earRef
 
         // iterate through ears, slicing them one by one
-        while (ear!!.prev !== ear!!.next) {
-            val prev = ear!!.prev
-            val next = ear.next
+        while (earRef!!.prev !== earRef!!.next) {
+            val prev = earRef!!.prev
+            val next = earRef.next
 
-            if (if (size != java.lang.Double.MIN_VALUE) isEarHashed(ear, minX, minY, size) else isEar(ear)) {
+            if (if (size != java.lang.Double.MIN_VALUE) isEarHashed(earRef, minX, minY, size) else isEar(earRef)) {
                 // cut off the triangle
                 triangles.add(prev!!.i / dim)
-                triangles.add(ear.i / dim)
+                triangles.add(earRef.i / dim)
                 triangles.add(next!!.i / dim)
 
-                removeNode(ear)
+                removeNode(earRef)
 
                 // skipping the next vertice leads to less sliver triangles
-                ear = next.next
+                earRef = next.next
                 stop = next.next
 
                 continue
             }
 
-            ear = next
+            earRef = next
 
             // if we looped through the whole remaining polygon and can't find
             // any more ears
-            if (ear === stop) {
+            if (earRef === stop) {
                 // try filtering points and slicing again
                 if (pass == Integer.MIN_VALUE) {
-                    earcutLinked(filterPoints(ear, null), triangles, dim, minX, minY, size, 1)
+                    earcutLinked(filterPoints(earRef, null), triangles, dim, minX, minY, size, 1)
 
                     // if this didn't work, try curing all small
                     // self-intersections locally
                 } else if (pass == 1) {
-                    ear = cureLocalIntersections(ear ?: throw IllegalStateException("ear is null"), triangles, dim)
-                    earcutLinked(ear, triangles, dim, minX, minY, size, 2)
+                    earRef = cureLocalIntersections(earRef ?: throw IllegalStateException("ear is null"), triangles, dim)
+                    earcutLinked(earRef, triangles, dim, minX, minY, size, 2)
 
                     // as a last resort, try splitting the remaining polygon
                     // into two
                 } else if (pass == 2) {
-                    splitEarcut(ear ?: throw IllegalStateException("ear is null"), triangles, dim, minX, minY, size)
+                    splitEarcut(earRef ?: throw IllegalStateException("ear is null"), triangles, dim, minX, minY, size)
                 }
 
                 break
@@ -285,8 +285,8 @@ internal object Triangulator {
     }
 
     private fun cureLocalIntersections(start: Node, triangles: MutableList<Int>, dim: Int): Node {
-        var start = start
-        var p: Node = start
+        var startRef = start
+        var p: Node = startRef
         do {
             val a = p.prev!!
             val b = p.next!!.next!!
@@ -302,11 +302,11 @@ internal object Triangulator {
                 removeNode(p)
                 removeNode(p.next!!)
 
-                start = b
-                p = start
+                startRef = b
+                p = startRef
             }
             p = p.next!!
-        } while (p !== start)
+        } while (p !== startRef)
 
         return p
     }
@@ -404,14 +404,14 @@ internal object Triangulator {
     }
 
     private fun sortLinked(list: Node?): Node? {
-        var list = list
+        var listRef = list
         var inSize = 1
 
 
         var numMerges: Int
         do {
-            var p = list
-            list = null
+            var p = listRef
+            listRef = null
             var tail: Node? = null
             numMerges = 0
 
@@ -451,7 +451,7 @@ internal object Triangulator {
                     if (tail != null)
                         tail.nextZ = e
                     else
-                        list = e
+                        listRef = e
 
                     e.prevZ = tail
                     tail = e
@@ -465,11 +465,11 @@ internal object Triangulator {
 
         } while (numMerges > 1)
 
-        return list
+        return listRef
     }
 
     private fun eliminateHoles(data: DoubleArray, holeIndices: IntArray, outerNode: Node?, dim: Int): Node? {
-        var outerNode = outerNode
+        var outerNodeRef = outerNode
         val queue = ArrayList<Node>()
 
         val len = holeIndices.size
@@ -491,19 +491,19 @@ internal object Triangulator {
         })
 
         for (node in queue) {
-            eliminateHole(node, outerNode)
-            outerNode = filterPoints(outerNode, outerNode!!.next)
+            eliminateHole(node, outerNodeRef)
+            outerNodeRef = filterPoints(outerNodeRef, outerNodeRef!!.next)
         }
 
-        return outerNode
+        return outerNodeRef
     }
 
     private fun filterPoints(start: Node?, end: Node?): Node? {
-        var end = end
+        var endRef = end
         if (start == null)
             return start
-        if (end == null)
-            end = start
+        if (endRef == null)
+            endRef = start
 
         var p = start
         var again: Boolean
@@ -513,17 +513,17 @@ internal object Triangulator {
 
             if (!p!!.steiner && equals(p, p.next!!) || area(p.prev!!, p, p.next!!) == 0.0) {
                 removeNode(p)
-                end = p.prev
-                p = end
+                endRef = p.prev
+                p = endRef
                 if (p === p!!.next)
                     return null
                 again = true
             } else {
                 p = p.next
             }
-        } while (again || p !== end)
+        } while (again || p !== endRef)
 
-        return end
+        return endRef
     }
 
     private fun equals(p1: Node, p2: Node): Boolean {
@@ -535,10 +535,10 @@ internal object Triangulator {
     }
 
     private fun eliminateHole(hole: Node, outerNode: Node?) {
-        var outerNode = outerNode
-        outerNode = findHoleBridge(hole, outerNode)
-        if (outerNode != null) {
-            val b = splitPolygon(outerNode, hole)
+        var outerNodeRef = outerNode
+        outerNodeRef = findHoleBridge(hole, outerNodeRef)
+        if (outerNodeRef != null) {
+            val b = splitPolygon(outerNodeRef, hole)
             filterPoints(b, b.next)
         }
     }

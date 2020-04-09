@@ -1,3 +1,4 @@
+import org.amshove.kluent.`should be equal to`
 import org.amshove.kluent.`should equal`
 import org.openrndr.draw.VertexElementType
 import org.openrndr.draw.vertexFormat
@@ -11,7 +12,7 @@ object TestVertexFormat : Spek({
         }
 
         it("should have a size of 12 bytes") {
-            vf.size `should equal` 12
+            vf.size `should be equal to` 12
         }
     }
 
@@ -21,7 +22,7 @@ object TestVertexFormat : Spek({
         }
 
         it("should have a size of 36 bytes") {
-            vf.size `should equal` 32
+            vf.size `should be equal to` 32
         }
     }
 

@@ -67,6 +67,7 @@ interface RenderTarget {
 class RenderTargetBuilder(private val renderTarget: RenderTarget) {
 
     @Deprecated("you should not use this", replaceWith = ReplaceWith("colorBuffer()"), level = DeprecationLevel.ERROR)
+    @Suppress("UNUSED_PARAMETER")
     fun colorBuffer(width: Int, height: Int, contentScale: Double = 1.0, format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.UINT8, multisample: BufferMultisample): Nothing {
         throw IllegalStateException("use colorBuffer without width and height arguments")
     }

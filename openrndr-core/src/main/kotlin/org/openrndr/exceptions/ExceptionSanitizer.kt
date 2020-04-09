@@ -55,13 +55,12 @@ fun findUserCause(throwable: Throwable) {
         var query = parts[0]
         val lambdaReceiverTypes = mutableListOf<String>()
 
-        for ((index, part) in parts.drop(1).withIndex()) {
+        for (part in parts.drop(1)) {
             query += "$$part"
             try {
                 val cl = Class.forName(query)
                 if (cl != null) {
                     if (cl.superclass.typeName == "kotlin.jvm.internal.Lambda") {
-                        val lcl = cl as Class<kotlin.jvm.internal.Lambda<Any>>
                         val annotation = cl.getAnnotation(kotlin.Metadata::class.java)
                         if (annotation != null) {
                             val types = annotation.data2[2].split(";").filter { it.isNotBlank() }.map {

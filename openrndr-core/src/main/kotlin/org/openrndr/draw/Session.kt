@@ -125,8 +125,6 @@ class Session(val parent: Session?) {
      * Ends the session, destroys any GPU resources in use by the session
      */
     fun end() {
-        val stack = sessionStack.getValue(Driver.instance.contextID)
-
         parent?.children?.remove(this)
 
         for (child in children.map { it }) {
@@ -216,6 +214,7 @@ fun session(code: () -> Unit) {
  */
 fun <T> persistent(builder: () -> T): T {
     Session.stack.push(Session.root)
-    return builder()
+    val result =  builder()
     Session.stack.pop()
+    return result
 }

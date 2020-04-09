@@ -16,19 +16,17 @@ interface Cubemap {
 
     companion object {
         fun create(width: Int, format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.UINT8, session: Session? = Session.active): Cubemap {
-            val cubemap = Driver.instance.createCubemap(width, format, type)
-            session?.track(cubemap)
+            val cubemap = Driver.instance.createCubemap(width, format, type, session)
             return cubemap
         }
 
         fun fromUrl(url: String, session: Session?): Cubemap {
-            val cubemap = Driver.instance.createCubemapFromUrls(listOf(url))
-            session?.track(cubemap)
+            val cubemap = Driver.instance.createCubemapFromUrls(listOf(url), session)
             return cubemap
         }
 
         fun fromUrls(urls: List<String>, session: Session?): Cubemap {
-            return Driver.instance.createCubemapFromUrls(urls)
+            return Driver.instance.createCubemapFromUrls(urls, session)
         }
     }
     val session: Session?

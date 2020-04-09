@@ -230,11 +230,13 @@ interface ColorBuffer {
             return colorBuffer
         }
 
+        @Suppress("UNUSED_PARAMETER")
         fun fromStream(stream: InputStream, formatHint: String? = null, session: Session? = Session.active): ColorBuffer {
             val colorBuffer = Driver.instance.createColorBufferFromStream(stream, session = session)
             return colorBuffer
         }
 
+        @Suppress("UNUSED_PARAMETER")
         fun fromArray(bytes: ByteArray, offset: Int = 0, length: Int = bytes.size, session: Session? = Session.active): ColorBuffer {
             val colorBuffer = Driver.instance.createColorBufferFromArray(bytes, session = session)
             return colorBuffer

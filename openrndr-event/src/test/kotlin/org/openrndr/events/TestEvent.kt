@@ -10,12 +10,12 @@ object TestSegment : Spek({
     describe("an event") {
         val event = Event<Int>()
 
-        val listener = { e: Int ->
+        val listener = { _: Int ->
 
         }
 
         fun listener2(e: Int) {
-
+            e
         }
 
         val ref = event.listen(listener)

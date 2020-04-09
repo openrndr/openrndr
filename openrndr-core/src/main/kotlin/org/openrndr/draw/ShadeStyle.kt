@@ -152,6 +152,7 @@ open class ShadeStyle {
     inner class Parameter<R : Any>: ReadWriteProperty<ShadeStyle, R> {
 
         override fun getValue(thisRef: ShadeStyle, property: KProperty<*>): R {
+            @Suppress("UNCHECKED_CAST")
             return parameterValues[property.name] as R
         }
 

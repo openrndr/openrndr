@@ -55,14 +55,13 @@ private fun restartJVM(): Boolean {
         val `is` = process.inputStream
         val isr = InputStreamReader(`is`)
         val br = BufferedReader(isr)
-        var line: String
 
         while(true) {
-            val line = br.readLine()
-            if (line == null)
+            val inline = br.readLine()
+            if (inline == null)
                 break
             else {
-                println(line)
+                println(inline)
             }
         }
         process.waitFor()
