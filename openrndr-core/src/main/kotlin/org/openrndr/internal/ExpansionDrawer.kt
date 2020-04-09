@@ -153,6 +153,12 @@ internal class ExpansionDrawer {
         val fringe = 1.0
         shader.uniform("strokeMult", 1.0)
         shader.uniform("strokeFillFactor", 1.0)
+
+        val minX = commands.minBy { it.minX }?.minX?: error("no commands")
+        val minY = commands.minBy { it.minY }?.minY?: error("no commands")
+        val maxX = commands.maxBy { it.maxX }?.maxX?: error("no commands")
+        val maxY = commands.maxBy { it.maxY }?.maxY?: error("no commands")
+
         val command = commands[0]
         shader.uniform("bounds", Vector4(command.minX, command.minY, command.maxX - command.minX, command.maxY - command.minY))
         localStyle.frontStencil = StencilStyle()
@@ -199,10 +205,7 @@ internal class ExpansionDrawer {
         localStyle.channelWriteMask = ChannelMask.ALL
         localStyle.cullTestPass = CullTestPass.ALWAYS
 
-        val minX = command.minX
-        val maxX = command.maxX
-        val minY = command.minY
-        val maxY = command.maxY
+
 
         quad.shadow.writer().apply {
             rewind()
