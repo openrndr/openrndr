@@ -18,19 +18,15 @@ import java.util.regex.Pattern
  * @param fileOrUrlOrSvg a filename, a url or an svg document
  */
 fun loadSVG(fileOrUrlOrSvg: String): Composition {
-    if (fileOrUrlOrSvg.endsWith(".svg")) {
-
+    return if (fileOrUrlOrSvg.endsWith(".svg")) {
         try {
             val url = URL(fileOrUrlOrSvg)
-            return parseSVG(url.readText())
+            parseSVG(url.readText())
         } catch (e: MalformedURLException) {
-
-            return parseSVG(File(fileOrUrlOrSvg).readText())
+            parseSVG(File(fileOrUrlOrSvg).readText())
         }
-
-
     } else {
-        return parseSVG(fileOrUrlOrSvg)
+        parseSVG(fileOrUrlOrSvg)
     }
 }
 
@@ -218,24 +214,18 @@ internal class SVGPath : SVGElement() {
                     "M" -> {
                         cursor = command.vector(0, 1)
                         anchor = cursor
-
                         val allPoints = command.vectors()
-
                         for (i in 1 until allPoints.size) {
-                            val point = allPoints[i]
-                            segments += Segment(cursor, point)
-                            cursor = point
+                            cursor = allPoints[i]
+
                         }
                     }
                     "m" -> {
                         val allPoints = command.vectors()
                         cursor += command.vector(0, 1)
                         anchor = cursor
-
                         for (i in 1 until allPoints.size) {
-                            val point = allPoints[i]
-                            segments += Segment(cursor, cursor + point)
-                            cursor += point
+                            cursor += allPoints[i]
                         }
                     }
                     "L" -> {
