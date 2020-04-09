@@ -39,15 +39,16 @@ interface VertexBuffer {
      */
     fun destroy()
 
-    fun put(putter: BufferWriter.() -> Unit): Int {
+    fun put(elementOffset: Int = 0, putter: BufferWriter.() -> Unit): Int {
         val w = shadow.writer()
         w.rewind()
+        w.positionElements = elementOffset
         w.putter()
         if (w.position % vertexFormat.size != 0) {
             throw RuntimeException("incomplete vertices written. likely violating the specified vertex format $vertexFormat")
         }
         val count = w.positionElements
-        shadow.uploadElements(0, count)
+        shadow.uploadElements(elementOffset, count)
         w.rewind()
         return count
     }

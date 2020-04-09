@@ -16,7 +16,7 @@ class BufferWriterGL3(val buffer: ByteBuffer, val elementSize: Int = 1) : Buffer
 
     override fun write(a: FloatArray, offset: Int, size: Int) {
         buffer.asFloatBuffer().put(a, offset, size)
-        (buffer as Buffer).position(buffer.position()+size*4)
+        (buffer as Buffer).position(buffer.position() + size * 4)
     }
 
     override fun write(v: Vector3) {
@@ -113,7 +113,8 @@ class BufferWriterGL3(val buffer: ByteBuffer, val elementSize: Int = 1) : Buffer
         get() = (buffer as Buffer).position() / elementSize
         set(value) {
             (buffer as Buffer).position(value * elementSize)
-    }
+        }
+
     override fun rewind() {
         (buffer as Buffer).rewind()
     }
