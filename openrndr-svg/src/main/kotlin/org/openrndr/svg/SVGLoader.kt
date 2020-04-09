@@ -214,18 +214,24 @@ internal class SVGPath : SVGElement() {
                     "M" -> {
                         cursor = command.vector(0, 1)
                         anchor = cursor
-                        val allPoints = command.vectors()
-                        for (i in 1 until allPoints.size) {
-                            cursor = allPoints[i]
 
+                        val allPoints = command.vectors()
+
+                        for (i in 1 until allPoints.size) {
+                            val point = allPoints[i]
+                            segments += Segment(cursor, point)
+                            cursor = point
                         }
                     }
                     "m" -> {
                         val allPoints = command.vectors()
                         cursor += command.vector(0, 1)
                         anchor = cursor
+
                         for (i in 1 until allPoints.size) {
-                            cursor += allPoints[i]
+                            val point = allPoints[i]
+                            segments += Segment(cursor, cursor + point)
+                            cursor += point
                         }
                     }
                     "L" -> {
@@ -389,6 +395,7 @@ internal class SVGDocument(private val root: SVGElement) {
             ShapeNode(e.shape()).apply {
                 fill = e.fill
                 stroke = e.stroke
+                this.id = e.id
             }
         }
         is SVGImage -> {

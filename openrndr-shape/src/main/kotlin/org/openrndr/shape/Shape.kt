@@ -672,7 +672,6 @@ enum class SegmentJoin {
 data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val polarity: YPolarity = YPolarity.CW_NEGATIVE_Y) {
 
 
-
     companion object {
 
         val EMPTY = ShapeContour(emptyList(), false)
@@ -910,7 +909,7 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
         require(u0 == u0) { "u0 is NaN" }
         require(u1 == u1) { "u1 is NaN" }
 
-        if (abs(u0-u1) < 10E-6) {
+        if (abs(u0 - u1) < 10E-6) {
             return EMPTY
         }
 
@@ -1075,6 +1074,15 @@ class Shape(val contours: List<ShapeContour>) {
      */
     fun map(mapper: (ShapeContour) -> ShapeContour) = Shape(contours.map { mapper(it) })
 
+
+    val compound: Boolean
+    get() {
+        return if (contours.isEmpty()) {
+            false
+        } else {
+            contours.count { it.winding == Winding.CLOCKWISE } > 1
+        }
+    }
     /**
      * Splits a compound shape into separate shapes.
      */
@@ -1083,8 +1091,18 @@ class Shape(val contours: List<ShapeContour>) {
             emptyList()
         } else {
             val split = contours[0].winding
-            val (ccw, cw) = contours.partition { it.winding == split }
-            ccw.map { Shape(listOf(it.counterClockwise) + cw.map { it.clockwise }) }
+            val splits = mutableListOf<List<ShapeContour>>()
+
+            val (cw, ccw) = contours.partition { it.winding == Winding.CLOCKWISE }
+
+            val candidates = cw.map { outer ->
+                val c = outer.bounds
+                val cs = ccw.filter { intersects(it.bounds, outer.bounds) }
+                listOf(outer) + cs
+            }
+            candidates.map { Shape(it) }
+
+
         }
     }
 }

@@ -16,9 +16,9 @@ object TestSVGLoader : Spek({
             composition.findShapes().all { it.shape.contours.all { it.closed } } `should be equal to` true
         }
 
-//        it("has only clockwise shapes") {
-//            composition.findShapes().all { it.shape.contours.all { it.winding == Winding.CLOCKWISE } } `should be equal to` true
-//        }
+        it("has only clockwise shapes") {
+            composition.findShapes().all { it.shape.contours.all { it.winding == Winding.CLOCKWISE } } `should be equal to` true
+        }
     }
 
 })

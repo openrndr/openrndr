@@ -22,22 +22,25 @@ fun List<Int>.cumsum(): List<Int> {
  * @param distanceTolerance how refined should the shape be, smaller values for higher precision
  */
 fun triangulate(shape: Shape, distanceTolerance: Double = 0.5): List<Vector2> {
-    val positions = shape.contours.map { it.adaptivePositions(distanceTolerance) }
-
-    val holes = if (shape.contours.size > 1) {
-        positions.dropLast(1).map { it.size }.cumsum().toIntArray()
-    } else {
-        null
-    }
-
-    val data = positions.flatMap { it.flatMap { listOf(it.x, it.y) } }.toDoubleArray()
-    val indices = Triangulator.earcut(data, holes, 2)
-
+    val compounds = shape.splitCompounds()
     val result = mutableListOf<Vector2>()
-    for (i in indices) {
-        result.add(Vector2(data[i * 2], data[i * 2 + 1]))
+    for (compound in compounds) {
+        val positions = compound.contours.map { it.adaptivePositions(distanceTolerance) }
+
+        val holes = if (shape.contours.size > 1) {
+            positions.dropLast(1).map { it.size }.cumsum().toIntArray()
+        } else {
+            null
+        }
+
+        val data = positions.flatMap { it.flatMap { listOf(it.x, it.y) } }.toDoubleArray()
+        val indices = Triangulator.earcut(data, holes, 2)
+        for (i in indices) {
+            result.add(Vector2(data[i * 2], data[i * 2 + 1]))
+        }
     }
     return result
+
 }
 
 /**
@@ -211,7 +214,8 @@ internal object Triangulator {
                     // if this didn't work, try curing all small
                     // self-intersections locally
                 } else if (pass == 1) {
-                    earRef = cureLocalIntersections(earRef ?: throw IllegalStateException("ear is null"), triangles, dim)
+                    earRef = cureLocalIntersections(earRef
+                            ?: throw IllegalStateException("ear is null"), triangles, dim)
                     earcutLinked(earRef, triangles, dim, minX, minY, size, 2)
 
                     // as a last resort, try splitting the remaining polygon
