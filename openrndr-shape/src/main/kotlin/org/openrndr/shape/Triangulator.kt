@@ -4,7 +4,6 @@ import org.openrndr.math.Vector2
 import org.openrndr.math.Vector3
 import java.util.*
 
-
 fun List<Int>.cumsum(): List<Int> {
     val result = mutableListOf<Int>()
     var sum = 0
@@ -14,7 +13,6 @@ fun List<Int>.cumsum(): List<Int> {
     }
     return result
 }
-
 
 /**
  * triangulates a [Shape] into a list of triangles
@@ -54,17 +52,28 @@ class IndexedTriangulation<T>(val vertices: List<T>, val triangles: List<Int>)
  * @param distanceTolerance how refined should the shape be, smaller values for higher precision
  */
 fun triangulateIndexed(shape: Shape, distanceTolerance: Double = 0.5): IndexedTriangulation<Vector2> {
-    val positions = shape.contours.map { it.adaptivePositions(distanceTolerance) }
+    val compounds = shape.splitCompounds()
 
-    val holes = if (shape.contours.size > 1) {
-        positions.dropLast(1).map { it.size }.cumsum().toIntArray()
-    } else {
-        null
+    val totalVertices = mutableListOf<Vector2>()
+    val totalIndices = mutableListOf<Int>()
+    var offset = 0
+    for (compound in compounds) {
+        val positions = shape.contours.map { it.adaptivePositions(distanceTolerance) }
+
+        val holes = if (shape.contours.size > 1) {
+            positions.dropLast(1).map { it.size }.cumsum().toIntArray()
+        } else {
+            null
+        }
+        val vertices = positions.flatMap { it }
+        val data = vertices.flatMap { listOf(it.x, it.y) }.toDoubleArray()
+        val indices = Triangulator.earcut(data, holes, 2).toList().map { it + offset }
+        offset += vertices.size
+
+        totalVertices.addAll(vertices)
+        totalIndices.addAll(indices)
     }
-    val vertices = positions.flatMap { it }
-    val data = vertices.flatMap { listOf(it.x, it.y) }.toDoubleArray()
-    val indices = Triangulator.earcut(data, holes, 2).toList()
-    return IndexedTriangulation(vertices, indices)
+    return IndexedTriangulation(totalVertices, totalIndices)
 }
 
 /**
