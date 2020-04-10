@@ -39,4 +39,6 @@ class Mouse(val application: Application) {
     val clicked = buttonUp
     val entered = Event<MouseEvent>("mouse-entered").postpone(true)
     val exited = Event<MouseEvent>("mouse-exited").postpone(true)
+
+    var pressedButtons = mutableSetOf<MouseButton>()
 }
