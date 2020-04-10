@@ -1047,7 +1047,34 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
     }
 }
 
+enum class ShapeTopology {
+    CLOSED,
+    OPEN,
+    MIXED
+}
+
 class Shape(val contours: List<ShapeContour>) {
+    val topology = when {
+        contours.isEmpty() -> ShapeTopology.OPEN
+        contours.all { it.closed } -> ShapeTopology.CLOSED
+        contours.all { !it.closed } -> ShapeTopology.OPEN
+        else -> ShapeTopology.MIXED
+    }
+
+    val openContours: List<ShapeContour> =
+            when (topology) {
+                ShapeTopology.OPEN -> contours
+                ShapeTopology.CLOSED -> emptyList()
+                ShapeTopology.MIXED -> contours.filter { !it.closed }
+            }
+
+    val closedContours: List<ShapeContour> =
+            when (topology) {
+                ShapeTopology.OPEN -> emptyList()
+                ShapeTopology.CLOSED -> contours
+                ShapeTopology.MIXED -> contours.filter { it.closed }
+            }
+
     val linear get() = contours.all { it.segments.all { it.linear } }
     fun polygon(distanceTolerance: Double = 0.5) = Shape(contours.map { it.sampleLinear(distanceTolerance) })
 
@@ -1076,13 +1103,14 @@ class Shape(val contours: List<ShapeContour>) {
 
 
     val compound: Boolean
-    get() {
-        return if (contours.isEmpty()) {
-            false
-        } else {
-            contours.count { it.winding == Winding.CLOCKWISE } > 1
+        get() {
+            return if (contours.isEmpty()) {
+                false
+            } else {
+                contours.count { it.winding == Winding.CLOCKWISE } > 1
+            }
         }
-    }
+
     /**
      * Splits a compound shape into separate shapes.
      */
@@ -1090,19 +1118,13 @@ class Shape(val contours: List<ShapeContour>) {
         return if (contours.isEmpty()) {
             emptyList()
         } else {
-            val split = contours[0].winding
-            val splits = mutableListOf<List<ShapeContour>>()
-
-            val (cw, ccw) = contours.partition { it.winding == Winding.CLOCKWISE }
-
+            val (cw, ccw) = closedContours.partition { it.winding == Winding.CLOCKWISE }
             val candidates = cw.map { outer ->
                 val c = outer.bounds
                 val cs = ccw.filter { intersects(it.bounds, outer.bounds) }
                 listOf(outer) + cs
             }
-            candidates.map { Shape(it) }
-
-
+            (candidates + closedContours.map { listOf(it) }).map { Shape(it) }
         }
     }
 }

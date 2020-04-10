@@ -366,13 +366,15 @@ class Drawer(val driver: Driver) {
      */
     fun shape(shape: Shape) {
         if (RenderTarget.active.hasDepthBuffer) {
-            if (shape.contours.size > 1 || shape.contours[0].closed) {
-                qualityPolygonDrawer.drawPolygon(context, drawStyle,
+            when (shape.topology) {
+                ShapeTopology.CLOSED -> qualityPolygonDrawer.drawPolygon(context, drawStyle,
                         shape.contours.map { it.adaptivePositions() })
-            } else if (!shape.contours[0].closed && drawStyle.stroke != null) {
-                qualityLineDrawer.drawLineStrips(context, drawStyle, listOf(shape.contours[0].adaptivePositions()))
+                ShapeTopology.OPEN -> qualityLineDrawer.drawLineStrips(context, drawStyle, shape.contours.map { it.adaptivePositions() })
+                ShapeTopology.MIXED -> {
+                    qualityPolygonDrawer.drawPolygon(context, drawStyle, shape.closedContours.map { it.adaptivePositions() })
+                    qualityLineDrawer.drawLineStrips(context, drawStyle, shape.openContours.map { it.adaptivePositions() })
+                }
             }
-
         } else {
             throw RuntimeException("drawing shapes requires a render target with a depth buffer attachment")
         }

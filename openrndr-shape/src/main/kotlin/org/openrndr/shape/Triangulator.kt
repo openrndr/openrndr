@@ -20,7 +20,7 @@ fun List<Int>.cumsum(): List<Int> {
  * @param distanceTolerance how refined should the shape be, smaller values for higher precision
  */
 fun triangulate(shape: Shape, distanceTolerance: Double = 0.5): List<Vector2> {
-    val compounds = shape.splitCompounds()
+    val compounds = shape.splitCompounds().filter { it.topology == ShapeTopology.CLOSED }
     val result = mutableListOf<Vector2>()
     for (compound in compounds) {
         val positions = compound.contours.map { it.adaptivePositions(distanceTolerance) }
@@ -52,7 +52,7 @@ class IndexedTriangulation<T>(val vertices: List<T>, val triangles: List<Int>)
  * @param distanceTolerance how refined should the shape be, smaller values for higher precision
  */
 fun triangulateIndexed(shape: Shape, distanceTolerance: Double = 0.5): IndexedTriangulation<Vector2> {
-    val compounds = shape.splitCompounds()
+    val compounds = shape.splitCompounds().filter { it.topology == ShapeTopology.CLOSED }
 
     val totalVertices = mutableListOf<Vector2>()
     val totalIndices = mutableListOf<Int>()

@@ -193,9 +193,7 @@ internal class SVGPath : SVGElement() {
             val path = SVGPath()
             path.commands.addAll(commands.subList(cs, ce))
 
-            if (compoundIndices.size > 1) {
-                path.commands.add(Command("Z"))
-            }
+
             compounds.add(path)
         }
         return compounds

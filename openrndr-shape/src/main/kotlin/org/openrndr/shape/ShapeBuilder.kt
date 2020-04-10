@@ -10,17 +10,27 @@ import kotlin.math.*
 class ShapeBuilder {
     internal val contours = mutableListOf<ShapeContour>()
 
-    fun contour(shapeContour: ShapeContour) {
-        contours.add(if (contours.size == 0) shapeContour.clockwise else shapeContour.counterClockwise)
+    fun boundary(f: ContourBuilder.() -> Unit) {
+        val cb = ContourBuilder(false)
+        cb.f()
+
+        val contour = cb.result.first()
+        require(contour.closed) { "boundary contours must be closed" }
+        contours.add(contour.clockwise)
+    }
+
+    fun hole(f: ContourBuilder.() -> Unit) {
+        val cb = ContourBuilder(false)
+        cb.f()
+        val contour = cb.result.first()
+        require(contour.closed) { "hole contours must be closed" }
+        contours.add(contour.counterClockwise)
     }
 
     fun contour(f: ContourBuilder.() -> Unit) {
         val cb = ContourBuilder(false)
         cb.f()
         val c = cb.result.first()
-        require(contours.isEmpty() || c.closed) {
-            "The contours that form a shape must all be closed"
-        }
         contours.add(if (contours.size == 0) c.clockwise else c.counterClockwise)
     }
 }
