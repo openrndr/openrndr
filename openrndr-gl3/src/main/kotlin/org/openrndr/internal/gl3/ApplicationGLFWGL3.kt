@@ -551,6 +551,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
                 program.mouse.buttonDown.trigger(
                         MouseEvent(program.mouse.position, Vector2.ZERO, Vector2.ZERO, MouseEventType.BUTTON_DOWN, mouseButton, modifiers)
                 )
+                program.mouse.pressedButtons.add(mouseButton)
                 buttonsDown.set(button, true)
             }
 
@@ -559,6 +560,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
                 program.mouse.buttonUp.trigger(
                         MouseEvent(program.mouse.position, Vector2.ZERO, Vector2.ZERO, MouseEventType.BUTTON_UP, mouseButton, modifiers)
                 )
+                program.mouse.pressedButtons.remove(mouseButton)
                 buttonsDown.set(button, false)
             }
         }
