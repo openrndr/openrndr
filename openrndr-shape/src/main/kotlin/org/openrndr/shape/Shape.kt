@@ -717,11 +717,19 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
     val counterClockwise: ShapeContour get() = if (winding == Winding.COUNTER_CLOCKWISE) this else this.reversed
 
     operator fun plus(other: ShapeContour): ShapeContour {
-
         require(polarity == other.polarity) {
             """shapes have mixed polarities"""
         }
-
+        if (segments.isEmpty() && other.segments.isEmpty()) {
+            return EMPTY
+        } else {
+            if (segments.isEmpty()) {
+                return other
+            }
+            if (other.segments.isEmpty()) {
+                return this
+            }
+        }
         val epsilon = 0.001
         val segments = mutableListOf<Segment>()
         segments.addAll(this.segments)
@@ -1114,17 +1122,17 @@ class Shape(val contours: List<ShapeContour>) {
     /**
      * Splits a compound shape into separate shapes.
      */
-    fun splitCompounds(): List<Shape> {
+    fun splitCompounds(winding: Winding = Winding.CLOCKWISE): List<Shape> {
         return if (contours.isEmpty()) {
             emptyList()
         } else {
-            val (cw, ccw) = closedContours.partition { it.winding == Winding.CLOCKWISE }
+            val (cw, ccw) = closedContours.partition { it.winding == winding }
             val candidates = cw.map { outer ->
                 val c = outer.bounds
                 val cs = ccw.filter { intersects(it.bounds, outer.bounds) }
                 listOf(outer) + cs
             }
-            (candidates + closedContours.map { listOf(it) }).map { Shape(it) }
+            (candidates + openContours.map { listOf(it) }).map { Shape(it) }
         }
     }
 }
