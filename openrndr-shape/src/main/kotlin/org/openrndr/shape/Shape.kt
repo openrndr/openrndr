@@ -7,6 +7,7 @@ import org.openrndr.shape.internal.BezierCubicSampler2D
 import org.openrndr.shape.internal.BezierQuadraticSampler2D
 import java.util.*
 import kotlin.math.abs
+import kotlin.math.min
 import kotlin.math.sign
 import kotlin.math.sqrt
 
@@ -670,10 +671,7 @@ enum class SegmentJoin {
 }
 
 data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val polarity: YPolarity = YPolarity.CW_NEGATIVE_Y) {
-
-
     companion object {
-
         val EMPTY = ShapeContour(emptyList(), false)
 
         fun fromPoints(points: List<Vector2>, closed: Boolean, polarity: YPolarity = YPolarity.CW_NEGATIVE_Y) =
@@ -682,12 +680,21 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
                 else {
                     val d = (points.last() - points.first()).squaredLength
                     val usePoints = if (d > 0.001) points else points.dropLast(1)
-                    ShapeContour((0 until usePoints.size).map { Segment(usePoints[it], usePoints[(it + 1) % usePoints.size]) }, true, polarity)
+                    ShapeContour((usePoints.indices).map { Segment(usePoints[it], usePoints[(it + 1) % usePoints.size]) }, true, polarity)
                 }
     }
 
-    val length get() = segments.sumByDouble { it.length }
+    init {
+        segments.zipWithNext().forEach {
 
+            val d = (it.first.end - it.second.start).length
+            require(d < 10E-6) {
+                "points are to far away from each other ${it.first.end} ${it.second.start} $d"
+            }
+
+        }
+    }
+    val length get() = segments.sumByDouble { it.length }
     val bounds get() = vector2Bounds(sampleLinear().segments.flatMap { listOf(it.start, it.end) })
 
     val winding: Winding
@@ -797,11 +804,19 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
                         }
                     }
                     for (segment in mOffset) {
+                        val d = (segment.start - cursor).length
+                        if (d > 1.0) {
+                            // TODO: I am not sure if this should happen at all, and if it should, if this is
+                            // the best way to deal with it.
+                            lineTo(segment.start)
+                        }
                         segment(segment)
                     }
                 }
             }
-            close()
+            if (this@ShapeContour.closed) {
+                close()
+            }
         }
     }
 
@@ -813,7 +828,7 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
             else -> {
                 val segment = (t * segments.size).toInt()
                 val segmentOffset = (t * segments.size) - segment
-                segments[Math.min(segments.size - 1, segment)].position(segmentOffset)
+                segments[min(segments.size - 1, segment)].position(segmentOffset)
             }
         }
     }
@@ -900,8 +915,6 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
     }
 
     fun transform(transform: Matrix44) = ShapeContour(segments.map { it.transform(transform) }, closed, polarity)
-
-    private fun mod(a: Double, b: Double) = ((a % b) + b) % b
 
     /**
      * Sample a sub contour
@@ -1109,7 +1122,6 @@ class Shape(val contours: List<ShapeContour>) {
      */
     fun map(mapper: (ShapeContour) -> ShapeContour) = Shape(contours.map { mapper(it) })
 
-
     val compound: Boolean
         get() {
             return if (contours.isEmpty()) {
@@ -1128,7 +1140,6 @@ class Shape(val contours: List<ShapeContour>) {
         } else {
             val (cw, ccw) = closedContours.partition { it.winding == winding }
             val candidates = cw.map { outer ->
-                val c = outer.bounds
                 val cs = ccw.filter { intersects(it.bounds, outer.bounds) }
                 listOf(outer) + cs
             }

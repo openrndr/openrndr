@@ -79,7 +79,25 @@ object TestShapeContour : Spek({
         }
     }
 
-    describe("a simple contour") {
+    describe("a simple open contour") {
+        val width = 640
+        val height = 480
+
+        val curve = contour {
+            moveTo(Vector2(0.1 * width, 0.3 * height))
+            continueTo(Vector2(0.5 * width, 0.5 * height))
+            continueTo(Vector2(0.9 * width, 0.3 * height))
+        }
+
+        it ("can be offset") {
+            val o = curve.offset(20.0)
+            o.winding `should be equal to` curve.winding
+            o.closed `should be equal to` curve.closed
+        }
+
+    }
+
+    describe("a simple closed contour") {
         val width = 640
         val height = 480
         val curve = contour {
@@ -115,12 +133,14 @@ object TestShapeContour : Spek({
         it("can be offset with round joins") {
             for (i in -100 until 100) {
                 val offset = curve.offset(i * 1.0, SegmentJoin.ROUND)
+                offset.closed `should be equal to` curve.closed
             }
         }
 
         it("can be offset with bevel joins") {
             for (i in -100 until 100) {
                 val offset = curve.offset(i * 1.0, SegmentJoin.BEVEL)
+                offset.closed `should be equal to` curve.closed
             }
         }
 
@@ -133,7 +153,7 @@ object TestShapeContour : Spek({
         }
     }
 
-    describe("another simple contour") {
+    describe("another simple closed contour") {
         // https://github.com/openrndr/openrndr/issues/79#issuecomment-601119834
         val curve  = contour {
             moveTo(Vector2(60.0, 200.0))
