@@ -53,11 +53,16 @@ class VertexBufferGL3(val buffer: Int, override val vertexFormat: VertexFormat, 
 
     companion object {
         fun createDynamic(vertexFormat: VertexFormat, vertexCount: Int, session: Session?): VertexBufferGL3 {
+            checkGLErrors() {
+                "pre-existing errors before creating vertex buffer"
+            }
             val buffer = glGenBuffers()
+            checkGLErrors()
             logger.debug {
                 "created new vertex buffer with id ${buffer}"
             }
             glBindBuffer(GL_ARRAY_BUFFER, buffer)
+            checkGLErrors()
             val sizeInBytes = vertexFormat.size * vertexCount
             nglBufferData(GL_ARRAY_BUFFER, sizeInBytes.toLong(), NULL, GL_DYNAMIC_DRAW)
             checkGLErrors()

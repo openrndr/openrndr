@@ -22,7 +22,6 @@ import java.util.*
 private val logger = KotlinLogging.logger {}
 internal val useDebugContext = System.getProperty("org.openrndr.gl3.debug") != null
 
-
 enum class DriverVersionGL {
     VERSION_3_3,
     VERSION_4_3
@@ -34,7 +33,6 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
             return GLFW.glfwGetCurrentContext()
         }
 
-
     override fun createResourceThread(session: Session?, f: () -> Unit): ResourceThread {
         return ResourceThreadGL3.create(f)
     }
@@ -43,11 +41,12 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         return DrawThreadGL3.create()
     }
 
-    private val defaultVAOs = WeakHashMap<Thread, Int>()
+    private val defaultVAOs = HashMap<Long, Int>()
     private val defaultVAO: Int
-        get() = defaultVAOs.getOrPut(Thread.currentThread()) {
+        get() = defaultVAOs.getOrPut(contextID) {
             val vaos = IntArray(1)
             synchronized(Driver.instance) {
+                logger.debug { "[context=$contextID] creating default VAO" }
                 glGenVertexArrays(vaos)
             }
             vaos[0]
@@ -167,7 +166,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
 
     override fun createBufferTexture(elementCount: Int, format: ColorFormat, type: ColorType, session: Session?): BufferTexture {
         logger.trace { "creating buffer texture" }
-        val bufferTexture= BufferTextureGL3.create(elementCount, format, type, session)
+        val bufferTexture = BufferTextureGL3.create(elementCount, format, type, session)
         session?.track(bufferTexture)
         return bufferTexture
     }
@@ -233,7 +232,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
     }
 
     override fun createColorBufferFromBuffer(buffer: ByteBuffer, name: String?, formatHint: ImageFileFormat?, session: Session?): ColorBuffer {
-        val colorBuffer =  ColorBufferGL3.fromBuffer(buffer, name, formatHint, session)
+        val colorBuffer = ColorBufferGL3.fromBuffer(buffer, name, formatHint, session)
         session?.track(colorBuffer)
         return colorBuffer
     }
@@ -264,12 +263,16 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
     }
 
     override fun drawVertexBuffer(shader: Shader, vertexBuffers: List<VertexBuffer>, drawPrimitive: DrawPrimitive, vertexOffset: Int, vertexCount: Int) {
+        debugGLErrors {
+            "a pre-existing GL error occurred before Driver.drawVertexBuffer "
+        }
+
         shader as ShaderGL3
         // -- find or create a VAO for our shader + vertex buffers combination
         val hash = hash(shader, vertexBuffers, emptyList())
         val vao = vaos.getOrPut(hash) {
             logger.debug {
-                "creating new VAO for hash $hash"
+                "[context=$contextID] creating new VAO for hash $hash"
             }
 
             val arrays = IntArray(1)
@@ -282,6 +285,12 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
             arrays[0]
         }
         glBindVertexArray(vao)
+        debugGLErrors {
+            when (it) {
+                GL_INVALID_OPERATION -> "array ($vao) is not zero or the name of a vertex array object previously returned from a call to glGenVertexArrays"
+                else -> "unknown error $it"
+            }
+        }
 
         logger.trace { "drawing vertex buffer with $drawPrimitive(${drawPrimitive.glType()}) and $vertexCount vertices with vertexOffset $vertexOffset " }
         glDrawArrays(drawPrimitive.glType(), vertexOffset, vertexCount)
@@ -334,7 +343,6 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
     }
 
     override fun drawInstances(shader: Shader, vertexBuffers: List<VertexBuffer>, instanceAttributes: List<VertexBuffer>, drawPrimitive: DrawPrimitive, vertexOffset: Int, vertexCount: Int, instanceCount: Int) {
-
         // -- find or create a VAO for our shader + vertex buffers + instance buffers combination
         val hash = hash(shader as ShaderGL3, vertexBuffers, instanceAttributes)
 
@@ -466,7 +474,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
                                         item.type.glType(), false, format.size, item.offset.toLong() + column * 12 + i * 48)
                                 debugGLErrors()
 
-                                glVertexAttribDivisor(  attributeIndex + column + i * 3, divisor)
+                                glVertexAttribDivisor(attributeIndex + column + i * 3, divisor)
                                 debugGLErrors()
                                 attributeBindings++
                             }
@@ -634,6 +642,10 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
 
 
         debugGLErrors()
+    }
+
+    override fun destroyContext(context: Long) {
+        logger.debug { "destroying context: $context" }
     }
 
     override val activeRenderTarget: RenderTarget
