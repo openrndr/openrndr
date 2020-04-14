@@ -1,10 +1,13 @@
 package org.openrndr.internal
 
+import mu.KotlinLogging
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
 import java.io.InputStream
 import java.nio.Buffer
 import java.nio.ByteBuffer
+
+private val logger = KotlinLogging.logger {}
 
 /**
  *  built-in shader generators
@@ -112,6 +115,8 @@ interface Driver {
 
     fun setState(drawStyle: DrawStyle)
 
+    fun destroyContext(context: Long)
+
     val fontImageMapManager: FontMapManager
     val fontVectorMapManager: FontMapManager
     val shaderGenerators: ShaderGenerators
@@ -127,6 +132,11 @@ interface Driver {
 
     companion object {
         var driver: Driver? = null
+        set(value) {
+            logger.debug("setting driver instance to $value")
+            field = value
+        }
+
         val instance: Driver get() = driver ?: error("No graphical context has been set up yet.")
     }
 }
