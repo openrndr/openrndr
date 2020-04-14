@@ -19,8 +19,17 @@ fun map(beforeLeft: Double, beforeRight: Double,
         afterLeft: Double, afterRight: Double,
         value: Double,
         clamp: Boolean = false): Double {
-    val n = (value - beforeLeft) / (beforeRight - beforeLeft)
-    return afterLeft + (if (clamp) saturate(n) else n) * (afterRight - afterLeft)
+
+    val db = (beforeRight - beforeLeft)
+    val da = (afterRight - afterLeft)
+
+    return if (db != 0.0) {
+        val n = (value - beforeLeft) / db
+        afterLeft + (if (clamp) saturate(n) else n) * da
+    } else {
+        val n = value - beforeLeft
+        afterLeft + (if (clamp) saturate(n) else n) * da
+    }
 }
 
 /**
