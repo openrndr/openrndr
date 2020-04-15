@@ -65,7 +65,9 @@ data class Vector3(val x: Double, val y: Double, val z: Double) : Serializable {
 
     operator fun unaryMinus() = Vector3(-x, -y, -z)
     operator fun plus(v: Vector3) = Vector3(x + v.x, y + v.y, z + v.z)
+    operator fun plus(d: Double) = Vector3(x + d, y + d, z + d)
     operator fun minus(v: Vector3) = Vector3(x - v.x, y - v.y, z - v.z)
+    operator fun minus(d: Double) = Vector3(x - d, y - d, z - d)
     operator fun times(v: Vector3) = Vector3(x * v.x, y * v.y, z * v.z)
     operator fun times(s: Double) = Vector3(x * s, y * s, z * s)
     operator fun div(s: Double) = Vector3(x / s, y / s, z / s)
