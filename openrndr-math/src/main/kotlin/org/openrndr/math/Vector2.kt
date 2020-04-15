@@ -62,8 +62,13 @@ data class Vector2(val x: Double, val y: Double) : Serializable {
     }
 
     operator fun unaryMinus() = Vector2(-x, -y)
+
     operator fun plus(vector2: Vector2) = Vector2(x + vector2.x, y + vector2.y)
+    operator fun plus(d: Double) = Vector2(x + d, y + d)
+
     operator fun minus(vector2: Vector2) = Vector2(x - vector2.x, y - vector2.y)
+    operator fun minus(d: Double) = Vector2(x - d, y - d)
+
     operator fun times(d: Double) = Vector2(x * d, y * d)
     operator fun times(v: Vector2) = Vector2(x * v.x, y * v.y)
 
