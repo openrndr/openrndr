@@ -17,6 +17,10 @@ data class Rectangle(val corner: Vector2, val width: Double, val height: Double)
     val area: Double
         get() = width * height
 
+    /** the center of the rectangle */
+    val dimensions: Vector2
+        get() = Vector2(width, height)
+
     /** returns a position for parameterized coordinates [u] and [v] between 0 and 1 */
     fun position(u: Double, v: Double): Vector2 {
         return corner + Vector2(u * width, v * height)
