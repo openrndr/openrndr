@@ -43,6 +43,9 @@ fun codeFromURL(url: String): String {
     return codeFromURL(URL(url))
 }
 
+/**
+ * A render target that wraps around the back-buffer
+ */
 interface ProgramRenderTarget : RenderTarget {
     val program: Program
     override val width get() = program.width
@@ -54,16 +57,21 @@ enum class DrawQuality {
     PERFORMANCE
 }
 
+/**
+ * The Drawer
+ */
 @Suppress("MemberVisibilityCanPrivate", "unused")
 class Drawer(val driver: Driver) {
 
+    /**
+     * The bounds of the drawable area as a [Rectangle]
+     */
     val bounds: Rectangle
         get() = Rectangle(Vector2(0.0, 0.0), width * 1.0, height * 1.0)
 
     private val drawStyles = Stack<DrawStyle>().apply {
         push(DrawStyle())
     }
-
     private var rectangleDrawer = RectangleDrawer()
     private var vertexBufferDrawer = VertexBufferDrawer()
     private var circleDrawer = CircleDrawer()
@@ -82,15 +90,22 @@ class Drawer(val driver: Driver) {
     var width: Int = 0
     var height: Int = 0
 
-    var model: Matrix44 = Matrix44.IDENTITY
-    var view: Matrix44 = Matrix44.IDENTITY
-    var projection: Matrix44 = Matrix44.IDENTITY
+    var model: Matrix44 = Matrix44.IDENTITY /** The active model matrix */
+    var view: Matrix44 = Matrix44.IDENTITY /** The active view matrix */
+    var projection: Matrix44 = Matrix44.IDENTITY /** The active projection matrix */
 
+    /**
+     * The draw context holds references to model, view, projection matrices, width, height and content-scale
+     */
     val context: DrawContext
         get() = DrawContext(model, view, projection, width, height, RenderTarget.active.contentScale)
 
-    var drawStyle = DrawStyle()
+    var drawStyle = DrawStyle() /** The active draw style */
 
+    /**
+     * @see isolatedWithTarget
+     * @see isolated
+     */
     fun withTarget(target: RenderTarget, action: Drawer.() -> Unit) {
         target.bind()
         this.action()
@@ -100,6 +115,7 @@ class Drawer(val driver: Driver) {
     /**
      *  Resets state stacks and load default values for draw style and transformations.
      *  This destroys the state stacks, consider using defaults() instead of reset()
+     *  @see defaults
      */
     @Deprecated("reset is considered harmful, use defaults()")
     fun reset() {
@@ -120,6 +136,10 @@ class Drawer(val driver: Driver) {
         model = Matrix44.IDENTITY
     }
 
+    /**
+     * Sets the [projection] matrix to orthogonal using the sizes of a [RenderTarget]
+     * @param renderTarget the render target to take the sizes from
+     */
     fun ortho(renderTarget: RenderTarget) {
         ortho(0.0, renderTarget.width.toDouble(), renderTarget.height.toDouble(), 0.0, -1.0, 1.0)
     }
@@ -133,6 +153,13 @@ class Drawer(val driver: Driver) {
 
     /**
      * Sets the [projection] matrix to orthogonal using [left], [right], [bottom], [top], [near], [far]
+     * @param left left value
+     * @param right right value
+     * @param bottom bottom value
+     * @param top top value
+     * @param near near value
+     * @param far far value
+     * @see perspective
      */
     fun ortho(left: Double, right: Double, bottom: Double, top: Double, near: Double, far: Double) {
         projection = _ortho(left, right, bottom, top, near, far)
@@ -145,6 +172,7 @@ class Drawer(val driver: Driver) {
      *  [aspectRatio] lens aspect aspectRatio
      *  [zNear] The distance to the zNear clipping plane along the -Z axis.
      *  [zFar]The distance to the zFar clipping plane along the -Z axis.
+     *  @see ortho
      */
     fun perspective(fovY: Double, aspectRatio: Double, zNear: Double, zFar: Double) {
         projection = _perspective(fovY, aspectRatio, zNear, zFar)
@@ -154,38 +182,76 @@ class Drawer(val driver: Driver) {
         view *= _lookAt(from, to, up)
     }
 
+    /**
+     * Apply a uniform scale to the model matrix
+     * @param s the scaling factor
+     */
     fun scale(s: Double) {
         model *= Matrix44.scale(s, s, s)
     }
 
+    /**
+     * Applies non-uniform scale to the model matrix
+     * @param x the scaling factor for the x-axis
+     * @param y the scaling factor for the y-axis
+     */
     fun scale(x: Double, y: Double) {
         model *= Matrix44.scale(x, y, 1.0)
     }
 
+    /**
+     * Applies non-uniform scale to the model matrix
+     * @param x the scaling factor for the x-axis
+     * @param y the scaling factor for the y-axis
+     * @param z the scaling factor for the y-axis
+     * @see translate
+     * @see scale
+     */
     fun scale(x: Double, y: Double, z: Double) {
         model *= Matrix44.scale(x, y, z)
     }
 
+    /**
+     * Applies a two-dimensional translation to the model matrix
+     */
     fun translate(t: Vector2) {
         model *= Matrix44.translate(t.vector3())
     }
 
+    /**
+     * Applies three-dimensional translation to the model matrix
+     */
     fun translate(t: Vector3) {
         model *= Matrix44.translate(t)
     }
 
+    /**
+     * Applies a two-dimensional translation to the model matrix
+     */
     fun translate(x: Double, y: Double) {
         translate(x, y, 0.0)
     }
 
+    /**
+     * Applies a three-dimensional translation to the model matrix
+     */
     fun translate(x: Double, y: Double, z: Double) {
         model *= Matrix44.translate(Vector3(x, y, z))
     }
 
+    /**
+     * Applies a rotation over the z-axis to the model matrix
+     * @param rotationInDegrees the rotation in degrees
+     */
     fun rotate(rotationInDegrees: Double) {
         model *= Matrix44.rotateZ(rotationInDegrees)
     }
 
+    /**
+     * Applies a rotation over an arbitrary axis to the model matrix
+     * @param axis the axis to rotate over, will be normalized
+     * @param rotationInDegrees the rotation in degrees
+     */
     fun rotate(axis: Vector3, rotationInDegrees: Double) {
         model *= Matrix44.rotate(axis, rotationInDegrees)
     }
@@ -198,7 +264,18 @@ class Drawer(val driver: Driver) {
         driver.clear(color)
     }
 
+    /**
+     * Push the active draw style on the draw style stack
+     * @see drawStyle
+     * @see popStyle
+     */
     fun pushStyle(): DrawStyle = drawStyles.push(drawStyle.copy())
+
+    /**
+     * Pop the draw style from the draw style stack
+     * @see drawStyle
+     * @see popStyle
+     */
     fun popStyle() {
         drawStyle = drawStyles.pop().copy()
     }
@@ -213,17 +290,38 @@ class Drawer(val driver: Driver) {
         model = modelStack.pop()
     }
 
+    /**
+     * Push the active projection matrix on the projection state stack
+     */
     fun pushProjection(): Matrix44 = projectionStack.push(projection)
+
+    /**
+     * Pop the active projection matrix from the projection state stack
+     */
     fun popProjection() {
         projection = projectionStack.pop()
     }
 
+    /**
+     * Push the active model, view and projection matrices on their according stacks
+     * @see pushTransforms
+     * @see popTransforms
+     * @see isolated
+     * @see isolatedWithTarget
+     */
     fun pushTransforms() {
         pushModel()
         pushView()
         pushProjection()
     }
 
+    /**
+     * Pop the active the model, view and projection matrices from their according stacks
+     * @see pushTransforms
+     * @see popTransforms
+     * @see isolated
+     * @see isolatedWithTarget
+     */
     fun popTransforms() {
         popModel()
         popView()
@@ -255,31 +353,51 @@ class Drawer(val driver: Driver) {
         }
         get() = drawStyle.shadeStyle
 
-
+    /**
+     * The active fill color
+     * @see stroke
+     */
     var fill: ColorRGBa?
         set(value) {
             drawStyle.fill = value
         }
         get() = drawStyle.fill
 
+    /**
+     * The active stroke color
+     * @see fill
+     * @see strokeWeight
+     */
     var stroke: ColorRGBa?
         set(value) {
             drawStyle.stroke = value
         }
         get() = drawStyle.stroke
 
+    /**
+     * The active stroke weight
+     * @see stroke
+     * @see lineCap
+     * @see lineJoin
+     */
     var strokeWeight: Double
         set(value) {
             drawStyle.strokeWeight = value
         }
         get() = drawStyle.strokeWeight
 
-
+    /**
+     * The active line cap method
+     * @see strokeWeight
+     * @see stroke
+     * @see lineJoin
+     */
     var lineCap: LineCap
         set(value) {
             drawStyle.lineCap = value
         }
         get() = drawStyle.lineCap
+
 
     var lineJoin: LineJoin
         set(value) {
@@ -287,6 +405,9 @@ class Drawer(val driver: Driver) {
         }
         get() = drawStyle.lineJoin
 
+    /**
+     * The active fontmap, default is null
+     */
     var fontMap: FontMap?
         set(value) {
             drawStyle.fontMap = value
@@ -318,16 +439,49 @@ class Drawer(val driver: Driver) {
         rectangleDrawer.drawRectangles(context, drawStyle, rectangles)
     }
 
-
+    /**
+     * Draw a single point
+     * @see points
+     * @see circle
+     */
     fun point(x: Double, y: Double, z: Double = 0.0) {
         pointDrawer.drawPoint(context, drawStyle, x, y, z)
     }
 
+    /**
+     * Draw a single point
+     * @see points
+     * @see circle
+     */
+    fun point(vector: Vector2) {
+        pointDrawer.drawPoint(context, drawStyle, vector.x, vector.y, 0.0)
+    }
+
+    /**
+     * Draw a single point
+     * @see points
+     * @see circle
+     */
+    fun point(vector: Vector3) {
+        pointDrawer.drawPoint(context, drawStyle, vector.x, vector.y, vector.z)
+    }
+
+    /**
+     * Draw a list of 2D points
+     * @see point
+     * @see circle
+     */
     @JvmName("points2D")
     fun points(points: List<Vector2>) {
         pointDrawer.drawPoints(context, drawStyle, points)
     }
 
+    /**
+     * Draw a list of 3D points
+     * @see point
+     * @see circle
+     * @see circles
+     */
     @JvmName("points3D")
     fun points(points: List<Vector3>) {
         pointDrawer.drawPoints(context, drawStyle, points)
@@ -363,6 +517,10 @@ class Drawer(val driver: Driver) {
 
     /**
      * Draws a single [Shape] using [fill], [stroke] and [strokeWeight] settings
+     * @see contour
+     * @see shapes
+     * @see contours
+     * @see composition
      */
     fun shape(shape: Shape) {
         if (RenderTarget.active.hasDepthBuffer) {
@@ -382,6 +540,9 @@ class Drawer(val driver: Driver) {
 
     /**
      * Draws shapes using [fill], [stroke] and [strokeWeight] settings
+     * @see shape
+     * @see contour
+     * @see contours
      */
     fun shapes(shapes: List<Shape>) {
         shapes.forEach {
@@ -389,6 +550,10 @@ class Drawer(val driver: Driver) {
         }
     }
 
+    /**
+     * Draw a single segment
+     * @see contour
+     */
     fun segment(segment: Segment) {
         contour(ShapeContour(listOf(segment), false, YPolarity.CW_NEGATIVE_Y))
     }
@@ -628,25 +793,42 @@ class Drawer(val driver: Driver) {
         }
     }
 
+    /**
+     * Draws a single 3D segment
+     */
     fun segment(segment: Segment3D) {
         lineStrip(segment.sampleAdaptive())
     }
 
+    /**
+     * Draws a list of 3D segments
+     */
     fun segments(segments: List<Segment3D>) {
         lineStrips(segments.map { it.sampleAdaptive() })
     }
 
+    /**
+     * Draws a list of 3D segments, each with their weight and color
+     */
     fun segments(segments: List<Segment3D>, weights: List<Double>, colors: List<ColorRGBa>) {
         lineStrips(segments.map { it.sampleAdaptive() }, weights, colors)
     }
 
+    /**
+     * Draws a single 3D path
+     * @param path the path to draw
+     */
     fun path(path: Path3D) {
         lineStrip(path.adaptivePositions(0.03))
     }
 
-
     /**
      * Draws a [Composition]
+     * @param composition The composition to draw
+     * @see contour
+     * @see contours
+     * @see shape
+     * @see shapes
      */
     fun composition(composition: Composition) {
         pushStyle()
@@ -773,23 +955,54 @@ class Drawer(val driver: Driver) {
     /**
      * Draws a [VertexBuffer] using [primitive]
      */
-    fun vertexBuffer(vertexBuffer: VertexBuffer, primitive: DrawPrimitive, vertexOffset: Int = 0, vertexCount: Int = vertexBuffer.vertexCount) {
+    fun vertexBuffer(
+            vertexBuffer: VertexBuffer,
+            primitive: DrawPrimitive,
+            vertexOffset: Int = 0,
+            vertexCount: Int = vertexBuffer.vertexCount
+    ) {
         vertexBuffer(listOf(vertexBuffer), primitive, vertexOffset, vertexCount)
     }
 
-    fun vertexBuffer(vertexBuffers: List<VertexBuffer>, primitive: DrawPrimitive, offset: Int = 0, vertexCount: Int = vertexBuffers[0].vertexCount) {
+    fun vertexBuffer(
+            vertexBuffers: List<VertexBuffer>,
+            primitive: DrawPrimitive,
+            offset: Int = 0,
+            vertexCount: Int = vertexBuffers[0].vertexCount
+    ) {
         vertexBufferDrawer.drawVertexBuffer(context, drawStyle, primitive, vertexBuffers, offset, vertexCount)
     }
 
-    fun vertexBuffer(indexBuffer: IndexBuffer, vertexBuffers: List<VertexBuffer>, primitive: DrawPrimitive, offset: Int = 0, indexCount: Int = indexBuffer.indexCount) {
+    fun vertexBuffer(
+            indexBuffer: IndexBuffer,
+            vertexBuffers: List<VertexBuffer>,
+            primitive: DrawPrimitive,
+            offset: Int = 0,
+            indexCount: Int = indexBuffer.indexCount
+    ) {
         vertexBufferDrawer.drawVertexBuffer(context, drawStyle, primitive, indexBuffer, vertexBuffers, offset, indexCount)
     }
 
-    fun vertexBufferInstances(vertexBuffers: List<VertexBuffer>, instanceAttributes: List<VertexBuffer>, primitive: DrawPrimitive, instanceCount: Int, offset: Int = 0, vertexCount: Int = vertexBuffers[0].vertexCount) {
+    fun vertexBufferInstances(
+            vertexBuffers: List<VertexBuffer>,
+            instanceAttributes: List<VertexBuffer>,
+            primitive: DrawPrimitive,
+            instanceCount: Int,
+            offset: Int = 0,
+            vertexCount: Int = vertexBuffers[0].vertexCount
+    ) {
         vertexBufferDrawer.drawVertexBufferInstances(context, drawStyle, primitive, vertexBuffers, instanceAttributes, offset, vertexCount, instanceCount)
     }
 
-    fun vertexBufferInstances(indexBuffer: IndexBuffer, vertexBuffers: List<VertexBuffer>, instanceAttributes: List<VertexBuffer>, primitive: DrawPrimitive, instanceCount: Int, offset: Int = 0, indexCount: Int = indexBuffer.indexCount) {
+    fun vertexBufferInstances(
+            indexBuffer: IndexBuffer,
+            vertexBuffers: List<VertexBuffer>,
+            instanceAttributes: List<VertexBuffer>,
+            primitive: DrawPrimitive,
+            instanceCount: Int,
+            offset: Int = 0,
+            indexCount: Int = indexBuffer.indexCount
+    ) {
         vertexBufferDrawer.drawVertexBufferInstances(context, drawStyle, primitive, indexBuffer, vertexBuffers, instanceAttributes, offset, indexCount, instanceCount)
     }
 }

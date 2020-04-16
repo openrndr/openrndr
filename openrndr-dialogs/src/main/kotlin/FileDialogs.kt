@@ -19,6 +19,9 @@ private val logger = KotlinLogging.logger {}
  * Returns the default path for a context
  * @param programName optional name of the program, default is guessed from a stack trace on the current thread
  * @param contextID optional context identifier, the default is "global"
+ * @return String encoded path or null
+ * @see setDefaultPathForContext
+ * @since 0.3.40
  */
 fun getDefaultPathForContext(programName: String = stackRootClassName(), contextID: String = "global"): String? {
     val props = Properties()
@@ -48,6 +51,8 @@ fun getDefaultPathForContext(programName: String = stackRootClassName(), context
  * @param programName optional name of the program, default is guessed from a stack trace on the current thread
  * @param contextID optional context identifier, the default is "global"
  * @param file the path to set as a default
+ * @see getDefaultPathForContext
+ * @since 0.3.40
  */
 fun setDefaultPathForContext(programName: String = stackRootClassName(), contextID: String = "global", file: File) {
     logger.debug {
@@ -78,6 +83,8 @@ fun setDefaultPathForContext(programName: String = stackRootClassName(), context
  * Creates a file dialog that can be used to open a single
  * @param programName optional name of the program, this is guessed from a stack trace by default
  * @param contextID optional context identifier, default is "global"
+ * @see openFilesDialog
+ * @see saveFileDialog
  */
 fun openFileDialog(programName: String = stackRootClassName(), contextID: String = "global", function: (File) -> Unit) {
     openFileDialog(programName, contextID, emptyList(), function)
@@ -89,6 +96,8 @@ fun openFileDialog(programName: String = stackRootClassName(), contextID: String
  * @param contextID optional context identifier, default is "global"
  * @param supportedExtensions a list of supported/allowed extensions
  * @param function the function to be invoked when a file has been picked
+ * @see openFilesDialog
+ * @see saveFileDialog
  */
 fun openFileDialog(programName: String = stackRootClassName(), contextID: String = "global", supportedExtensions: List<String>, function: (File) -> Unit) {
     val filterList: CharSequence? = if (supportedExtensions.isEmpty()) null else supportedExtensions.joinToString(";")
@@ -112,6 +121,8 @@ fun openFileDialog(programName: String = stackRootClassName(), contextID: String
  * @param contextID optional context identifier, default is "global"
  * @param supportedExtensions a list of supported/allowed extensions
  * @param function the function to be invoked when a file has been picked
+ * @see openFileDialog
+ * @see saveFileDialog
  */
 fun openFilesDialog(programName: String = stackRootClassName(), contextID: String = "global", supportedExtensions: List<String>, function: (List<File>) -> Unit) {
     val filterList: CharSequence? = if (supportedExtensions.isEmpty()) null else supportedExtensions.joinToString(";")
