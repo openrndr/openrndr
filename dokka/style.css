@@ -86,16 +86,16 @@ code, pre {
     font-family:Monaco, Bitstream Vera Sans Mono, Lucida Console, Terminal;
     color:#333;
     font-size:12px;
+    background-color: #F6F6F6;
+    padding: 5px !important;
+    border-radius: 3px;
+    display: block;
+    margin: 0px 0px 10px 0px;
+    line-height:180%;
 }
 
 pre {
     display: block;
-/*
-    padding:8px 8px;
-    background: #f8f8f8;
-    border-radius:5px;
-    border:1px solid #e5e5e5;
-*/
     overflow-x: auto;
 }
 
@@ -107,7 +107,8 @@ table {
 th, td {
     text-align:left;
     vertical-align: top;
-    padding:5px 10px;
+    padding:20px 10px 6px;
+    border-top: 1px dotted lightgray;
 }
 
 dt {
@@ -202,6 +203,30 @@ hr {
     background:#e5e5e5;
     height:1px;
     margin:0 0 20px;
+}
+
+code + p {  
+  margin-top: 20px;
+  margin-bottom: 5px;
+}
+
+p + code {
+  margin-top: 0px;
+  padding-top: 0px;
+}
+
+p {
+  margin-bottom: 6px;  
+  color: #111;
+  font-size: 120%;
+}
+
+code + code {
+  margin-top: 20px;
+}
+
+br {
+  display: none;
 }
 
 footer {
