@@ -13,9 +13,13 @@ import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.util.*
 
-
 private val logger = KotlinLogging.logger {}
 
+/**
+ * Returns the default path for a context
+ * @param programName optional name of the program, default is guessed from a stack trace on the current thread
+ * @param contextID optional context identifier, the default is "global"
+ */
 fun getDefaultPathForContext(programName: String = stackRootClassName(), contextID: String = "global"): String? {
     val props = Properties()
     return try {
@@ -38,6 +42,13 @@ fun getDefaultPathForContext(programName: String = stackRootClassName(), context
     }
 }
 
+/**
+ * Set the default path for a context
+ * This is an internal function but it can be used to set a default path before calling any of the file dialog functions
+ * @param programName optional name of the program, default is guessed from a stack trace on the current thread
+ * @param contextID optional context identifier, the default is "global"
+ * @param file the path to set as a default
+ */
 fun setDefaultPathForContext(programName: String = stackRootClassName(), contextID: String = "global", file: File) {
     logger.debug {
         "Setting default path for '$programName::$contextID' to '${file.absolutePath}'"
@@ -63,10 +74,22 @@ fun setDefaultPathForContext(programName: String = stackRootClassName(), context
     }
 }
 
+/**
+ * Creates a file dialog that can be used to open a single
+ * @param programName optional name of the program, this is guessed from a stack trace by default
+ * @param contextID optional context identifier, default is "global"
+ */
 fun openFileDialog(programName: String = stackRootClassName(), contextID: String = "global", function: (File) -> Unit) {
     openFileDialog(programName, contextID, emptyList(), function)
 }
 
+/**
+ * Creates a file dialog that can be used to open a single
+ * @param programName optional name of the program, this is guessed from a stack trace by default
+ * @param contextID optional context identifier, default is "global"
+ * @param supportedExtensions a list of supported/allowed extensions
+ * @param function the function to be invoked when a file has been picked
+ */
 fun openFileDialog(programName: String = stackRootClassName(), contextID: String = "global", supportedExtensions: List<String>, function: (File) -> Unit) {
     val filterList: CharSequence? = if (supportedExtensions.isEmpty()) null else supportedExtensions.joinToString(";")
     val defaultPath: CharSequence? = getDefaultPathForContext(programName, contextID)
@@ -83,6 +106,13 @@ fun openFileDialog(programName: String = stackRootClassName(), contextID: String
     memFree(out)
 }
 
+/**
+ * Creates a file dialog that can be used to open multiple files
+ * @param programName optional name of the program, this is guessed from a stack trace by default
+ * @param contextID optional context identifier, default is "global"
+ * @param supportedExtensions a list of supported/allowed extensions
+ * @param function the function to be invoked when a file has been picked
+ */
 fun openFilesDialog(programName: String = stackRootClassName(), contextID: String = "global", supportedExtensions: List<String>, function: (List<File>) -> Unit) {
     val filterList: CharSequence? = if (supportedExtensions.isEmpty()) null else supportedExtensions.joinToString(";")
     val defaultPath: CharSequence? = getDefaultPathForContext(programName, contextID)
@@ -106,10 +136,22 @@ fun openFilesDialog(programName: String = stackRootClassName(), contextID: Strin
     }
 }
 
+/**
+ * Creates a file dialog that can be used to open multiple files
+ * @param programName optional name of the program, this is guessed from a stack trace by default
+ * @param contextID optional context identifier, default is "global"
+ * @param function the function to be invoked when a file has been picked
+ */
 fun openFilesDialog(programName: String = stackRootClassName(), contextID: String = "global", function: (List<File>) -> Unit) {
     openFilesDialog(programName, contextID, emptyList(), function)
 }
 
+/**
+ * Creates a file dialog that can be used to open multiple files
+ * @param programName optional name of the program, this is guessed from a stack trace by default
+ * @param contextID optional context identifier, default is "global"
+ * @param function the function to be invoked when a file has been picked
+ */
 fun openFolderDialog(programName: String = stackRootClassName(), contextID: String = "global", function: (File) -> Unit) {
     val defaultPath: CharSequence? = getDefaultPathForContext(programName, contextID)
     val out = memAllocPointer(1)
@@ -125,6 +167,14 @@ fun openFolderDialog(programName: String = stackRootClassName(), contextID: Stri
     memFree(out)
 }
 
+/**
+ * Creates a file dialog that can be used to save a single file files
+ * @param programName optional name of the program, this is guessed from a stack trace by default
+ * @param contextID optional context identifier, default is "global"
+ * @param suggestedFilename an optional suggestion for a filename
+ * @param supportedExtensions an optional list of supported/allowed extensions
+ * @param function the function to be invoked when a file has been picked
+ */
 fun saveFileDialog(
         programName: String = stackRootClassName(),
         contextID: String = "global",
