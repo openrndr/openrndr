@@ -14,9 +14,6 @@ the core of OPENRNDR
 # Package org.openrndr.animatable
 optional animation library
 
-## 
-A tool to create interactive animations. 
-
 # Package org.openrndr.animatable.easing
 [easing](https://easings.net) types specify the rate of change of a parameter over time.
 
@@ -35,47 +32,8 @@ a simple event library
 # Package org.openrndr.extensions
 a simple Extension interface with which default Program behaviour can be changed.
 
-# Package org.openrndr.extensions.drawrate
-a configurable Extension which supports finer presentation control
-
-# Package org.openrndr.ffmpeg
-code related to optional FFMPEG based video playback
-
 # Package org.openrndr.filter
 optional library of filtering and post processing related code
-
-# Package org.openrndr.filter.antialias
-a filter type in the openrndr-filter library
-
-# Package org.openrndr.filter.blend
-a filter type in the openrndr-filter library
-
-# Package org.openrndr.filter.blur
-a filter type in the openrndr-filter library
-
-# Package org.openrndr.filter.color
-a filter type in the openrndr-filter library
-
-# Package org.openrndr.filter.dither
-a filter type in the openrndr-filter library
-
-# Package org.openrndr.filter.screenspace
-a filter type in the openrndr-filter library
-
-# Package org.openrndr.filter.transforms
-a filter type in the openrndr-filter library
-
-# Package org.openrndr.filter.unary
-a filter type in the openrndr-filter library
-
-# Package org.openrndr.internal
-a core component
-
-# Package org.openrndr.internal.gl3
-the OpenGL3 backend for OPENGL
-
-# Package org.openrndr.internal.gl3.dds
-support for dds file format
 
 # Package org.openrndr.math
 code related to math, mostly computer graphics math
