@@ -5,6 +5,7 @@ package org.openrndr.shape
 import org.openrndr.math.Vector2
 import org.openrndr.math.YPolarity
 import org.openrndr.math.map
+import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
@@ -110,10 +111,10 @@ class LineSegment(val start: Vector2, val end: Vector2) {
         get() = Shape(listOf(contour))
 }
 
-fun intersection(a: LineSegment, b: LineSegment, eps: Double = 0.01): Vector2 =
+fun intersection(a: LineSegment, b: LineSegment, eps: Double = 0.0): Vector2 =
         intersection(a.start, a.end, b.start, b.end, eps)
 
-fun intersection(a0: Vector2, a1: Vector2, b0: Vector2, b1: Vector2, eps: Double = 0.01): Vector2 {
+fun intersection(a0: Vector2, a1: Vector2, b0: Vector2, b1: Vector2, eps: Double = 0.0): Vector2 {
     val x0 = a0.x
     val x1 = a1.x
     val x2 = b0.x
@@ -126,7 +127,7 @@ fun intersection(a0: Vector2, a1: Vector2, b0: Vector2, b1: Vector2, eps: Double
 
     val den = (x0 - x1) * (y2 - y3) - (y0 - y1) * (x2 - x3)
 
-    return if (Math.abs(den) > 0.0000001) {
+    return if (abs(den) > 10E-6) {
         val px = ((x0 * y1 - y0 * x1) * (x2 - x3) - (x0 - x1) * (x2 * y3 - y2 * x3)) / den
         val py = ((x0 * y1 - y0 * x1) * (y2 - y3) - (y0 - y1) * (x2 * y3 - y2 * x3)) / den
 
