@@ -164,6 +164,12 @@ open class Filter(private val shader: Shader? = null, private val watcher: Shade
                     value.bind(textureIndex)
                     textureIndex++
                 }
+
+                is BufferTexture -> {
+                    shader.uniform("$uniform", textureIndex)
+                    value.bind(textureIndex)
+                    textureIndex++
+                }
             }
         }
 
