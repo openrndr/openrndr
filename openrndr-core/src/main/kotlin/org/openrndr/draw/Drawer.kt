@@ -589,7 +589,7 @@ class Drawer(val driver: Driver) {
      */
     fun contours(contours: List<ShapeContour>) {
         if (drawStyle.fill != null) {
-            qualityPolygonDrawer.drawPolygons(context, drawStyle, contours.map { listOf(it.adaptivePositions()) })
+            qualityPolygonDrawer.drawPolygons(context, drawStyle, contours.filter { it.closed }.map { listOf(it.adaptivePositions()) })
         }
 
         if (drawStyle.stroke != null) {
