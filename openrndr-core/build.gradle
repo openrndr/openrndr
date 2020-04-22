@@ -4,4 +4,6 @@ dependencies {
     api project(":openrndr-shape")
     api project(":openrndr-event")
     api project(":openrndr-animatable")
+
+    testRuntime project(":openrndr-nullgl")
 }

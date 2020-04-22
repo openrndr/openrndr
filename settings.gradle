@@ -27,4 +27,5 @@ include 'openrndr-core',
 		'openrndr-ffmpeg-natives-linux-arm64',
 //        'openrndr-shadestyle-parser',
 		'openrndr-extensions',
-		'openrndr-adopted-artifex'
+		'openrndr-adopted-artifex',
+		'openrndr-nullgl'

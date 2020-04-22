@@ -2,4 +2,6 @@ dependencies {
     implementation project(":openrndr-math")
     implementation project(":openrndr-color")
     implementation project(":openrndr-adopted-artifex")
+
+    testImplementation project(":openrndr-nullgl")
 }

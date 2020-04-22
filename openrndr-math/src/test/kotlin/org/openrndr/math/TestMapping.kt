@@ -1,6 +1,7 @@
 package org.openrndr.math
 
 import org.amshove.kluent.shouldBeInRange
+import org.amshove.kluent.shouldBeNear
 import org.amshove.kluent.shouldNotBeInRange
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
@@ -8,6 +9,19 @@ import org.spekframework.spek2.style.specification.describe
 object TestMapping : Spek({
 
     describe("Mapping Operations") {
+        describe("Mapping Double from zero-width before domain to non-zero-width after domain") {
+            it("should not produce NaN results") {
+                map(0.0, 0.0, 0.0, 1.0, 0.0).shouldBeNear(0.0, 10E-6)
+                map(0.0, 0.0, 0.0, 1.0, 1.0).shouldBeNear(1.0, 10E-6)
+            }
+        }
+
+        describe("Mapping Double from zero-width before domain to zero-width after domain") {
+            it("should not produce NaN results") {
+                map(0.0, 0.0, 0.0, 0.0, 0.0).shouldBeNear(0.0, 10E-6)
+                map(0.0, 0.0, 0.0, 0.0, 1.0).shouldBeNear(0.0, 10E-6)
+            }
+        }
 
         describe("Mapping Double") {
             val beforeLeft = 0.0

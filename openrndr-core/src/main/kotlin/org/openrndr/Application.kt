@@ -1,7 +1,10 @@
 package org.openrndr
 
+import mu.KotlinLogging
 import org.openrndr.math.Vector2
 import kotlin.concurrent.thread
+
+private val logger = KotlinLogging.logger {}
 
 /**
  * PresentationMode describes modes of frame presentation
@@ -11,6 +14,7 @@ enum class PresentationMode {
      * automatic presentation mode, frames are presented at highest rate possible
      */
     AUTOMATIC,
+
     /**
      * manual presentation mode, presentation only takes place after requesting redraw
      */
@@ -43,6 +47,14 @@ abstract class Application {
         }
 
         private fun applicationClass(configuration: Configuration): Class<*> {
+            try {
+                val c = Application::class.java.classLoader.loadClass("org.openrndr.internal.nullgl.ApplicationNullGL")
+                logger.debug { "NullGL found" }
+                return c
+            } catch (e: ClassNotFoundException) {
+                logger.debug { "NullGL not found" }
+            }
+
             return if (!configuration.headless)
                 Application::class.java.classLoader.loadClass("org.openrndr.internal.gl3.ApplicationGLFWGL3")
             else
