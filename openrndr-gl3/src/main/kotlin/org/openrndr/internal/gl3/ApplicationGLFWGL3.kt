@@ -191,6 +191,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
                 glfwCreateWindow(adjustedWidth,
                         adjustedHeight,
                         configuration.title, NULL, primaryWindow)
+
             } else {
                 logger.info { "creating fullscreen window" }
 
@@ -340,6 +341,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         })
 
         glfwShowWindow(window)
+        glfwSwapBuffers(window)
     }
 
     private fun createPrimaryWindow() {
@@ -581,16 +583,17 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
 
             // clear the front buffer
             glDepthMask(true)
-            glClearColor(0.5f, 0.5f, 0.5f, 0.0f)
+            glClearColor(0.0f, 0.0f, 0.0f, 0.0f)
             glClear(GL_COLOR_BUFFER_BIT or GL_STENCIL_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
             // swap the color buffers
             glfwSwapBuffers(window)
 
             // clear the back buffer
-            glClearColor(0.5f, 0.5f, 0.5f, 0.0f)
+            glClearColor(0.0f, 0.0f, 0.0f, 0.0f)
             glClear(GL_COLOR_BUFFER_BIT or GL_STENCIL_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
             glDepthMask(false)
+            glfwSwapBuffers(window)
 
             glfwPollEvents()
         }
