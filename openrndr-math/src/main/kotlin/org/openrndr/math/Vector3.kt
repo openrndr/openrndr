@@ -1,10 +1,7 @@
 package org.openrndr.math
 
 import java.io.Serializable
-import kotlin.math.cos
-import kotlin.math.max
-import kotlin.math.min
-import kotlin.math.sin
+import kotlin.math.*
 
 /**
  * Double precision vector 3
@@ -85,6 +82,21 @@ data class Vector3(val x: Double, val y: Double, val z: Double) : Serializable {
     val squaredLength get() = x * x + y * y + z * z
 
     fun toDoubleArray() = doubleArrayOf(x, y, z)
+
+    fun distanceTo(o: Vector3): Double {
+        val dx = o.x - x
+        val dy = o.y - y
+        val dz = o.z - z
+        return sqrt(dx * dx + dy * dy + dz * dz)
+    }
+
+    fun squaredDistanceTo(o: Vector3): Double {
+        val dx = o.x - x
+        val dy = o.y - y
+        val dz = o.z - z
+        return dx * dx + dy * dy + dz * dz
+    }
+
 
     val spherical: Spherical
         get() {

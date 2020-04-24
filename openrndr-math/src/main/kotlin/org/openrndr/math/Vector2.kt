@@ -75,6 +75,18 @@ data class Vector2(val x: Double, val y: Double) : Serializable {
     operator fun div(d: Double) = Vector2(x / d, y / d)
     operator fun div(d: Vector2) = Vector2(x / d.x, y / d.y)
 
+    fun distanceTo(o: Vector2): Double {
+        val dx = o.x - x
+        val dy = o.y - y
+        return sqrt(dx * dx + dy * dy)
+    }
+
+    fun squaredDistanceTo(o: Vector2): Double {
+        val dx = o.x - x
+        val dy = o.y - y
+        return dx * dx + dy * dy
+    }
+
     companion object {
         val ZERO = Vector2(0.0, 0.0)
         val ONE = Vector2(1.0, 1.0)

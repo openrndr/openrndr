@@ -62,6 +62,21 @@ data class Vector4(val x: Double, val y: Double, val z: Double, val w: Double) :
             else -> throw IllegalArgumentException("unsupported index")
         }
     }
+    fun distanceTo(o: Vector4): Double {
+        val dx = o.x - x
+        val dy = o.y - y
+        val dz = o.z - z
+        val dw = o.z - z
+        return sqrt(dx * dx + dy * dy + dz * dz + dw * dw)
+    }
+
+    fun squaredDistanceTo(o: Vector4): Double {
+        val dx = o.x - x
+        val dy = o.y - y
+        val dz = o.z - z
+        val dw = o.w - w
+        return dx * dx + dy * dy + dz * dz + dw * dw
+    }
 
     fun toDoubleArray() = doubleArrayOf(x, y, z, w)
 
