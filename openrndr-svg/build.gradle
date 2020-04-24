@@ -3,5 +3,6 @@ dependencies {
     implementation project(":openrndr-color")
     implementation project(":openrndr-shape")
     testImplementation project(":openrndr-core")
+    testRuntime project(":openrndr-nullgl")
     implementation "org.jsoup:jsoup:$jsoupVersion"
 }
