@@ -150,7 +150,7 @@ open class Screenshots : Extension {
                     is Named -> createScreenshot.name
                 }
 
-                File(filename).parentFile.let { file ->
+                File(filename).parentFile?.let { file ->
                     if (!file.exists()) {
                         file.mkdirs()
                     }
