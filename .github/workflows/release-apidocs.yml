@@ -18,7 +18,7 @@ jobs:
           cd build/docs/openrndr
           git init .
           git checkout --orphan gh-pages
-          git remote add https://github.com/openrndr/openrndr
+          git remote add origin https://github.com/openrndr/openrndr
           git add .
           git commit -m "Add automatically generated API docs"
           git push origin gh-pages --force
