@@ -12,16 +12,22 @@ jobs:
         with:
           java-version: 8
       - name: Build apidocs
-        run: ./gradlew dokka
+        run: |
+          git worktree add --detach build/docs/openrndr
+          cd build/docs/openrndr
+          git checkout --orphan gh-pages
+          git reset HEAD -- .
+          cd -
+          ./gradlew dokka
+      - uses: actions/checkout@v2
+        with:
+          ref: gh-pages
+          path: build/docs/openrndr  
       - name: Publish to gh-pages
         run: |
-          git remote -v
           cd build/docs/openrndr
           git config --global user.email "actions@openrndr.org"
           git config --global user.name "OPENRNDR Actions"
-          git init .
-          git remote add origin git@github.com:openrndr/openrndr
-          git checkout --orphan gh-pages
           git add .
           git commit -m "Add automatically generated API docs"
           git push origin gh-pages --force
