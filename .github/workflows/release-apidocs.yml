@@ -19,10 +19,6 @@ jobs:
           git reset HEAD -- .
           cd -
           ./gradlew dokka
-      - uses: actions/checkout@v2
-        with:
-          ref: gh-pages
-          path: build/docs/openrndr  
       - name: Publish to gh-pages
         run: |
           cd build/docs/openrndr
