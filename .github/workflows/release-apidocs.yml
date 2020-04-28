@@ -16,6 +16,8 @@ jobs:
       - name: Publish to gh-pages
         run: |
           cd build/docs/openrndr
+          git config --global user.email "actions@openrndr.org"
+          git config --global user.name "OPENRNDR Actions"
           git init .
           git checkout --orphan gh-pages
           git remote add origin https://github.com/openrndr/openrndr
