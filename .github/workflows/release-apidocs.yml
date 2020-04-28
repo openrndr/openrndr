@@ -24,6 +24,6 @@ jobs:
           cd build/docs/openrndr
           git config --global user.email "actions@openrndr.org"
           git config --global user.name "OPENRNDR Actions"
-          git add .
+          git add -f . 
           git commit -m "Add automatically generated API docs"
           git push origin gh-pages --force
