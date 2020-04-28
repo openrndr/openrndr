@@ -20,8 +20,8 @@ jobs:
           git config --global user.email "actions@openrndr.org"
           git config --global user.name "OPENRNDR Actions"
           git init .
+          git remote add origin git@github.com:openrndr/openrndr
           git checkout --orphan gh-pages
-          git remote add origin https://github.com/openrndr/openrndr
           git add .
           git commit -m "Add automatically generated API docs"
           git push origin gh-pages --force
