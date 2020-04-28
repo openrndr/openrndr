@@ -24,6 +24,7 @@ jobs:
       - name: Publish to gh-pages
         run: |
           cd build/docs/openrndr
+          git status
           git config --global user.email "actions@openrndr.org"
           git config --global user.name "OPENRNDR Actions"
           git add . 
