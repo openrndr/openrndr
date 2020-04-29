@@ -7,6 +7,7 @@ import org.openrndr.extensions.CreateScreenshot.*
 import java.io.File
 import java.time.LocalDateTime
 import mu.KotlinLogging
+import org.openrndr.events.Event
 import kotlin.math.max
 
 private val logger = KotlinLogging.logger {}
@@ -37,10 +38,23 @@ class SingleScreenshot : Screenshots() {
     }
 }
 
+data class ScreenshotEvent(val basename: String)
+
 /**
  * an extension that takes screenshots when [key] (default is spacebar) is pressed
  */
 open class Screenshots : Extension {
+
+    /**
+     * Event that is triggered just before drawing the contents for the screenshot
+     */
+    val beforeScreenshot = Event<ScreenshotEvent>()
+
+    /**
+     * Event that is triggered after contents have been drawn and the screenshot has been committed to file
+     */
+    val afterScreenshot = Event<ScreenshotEvent>()
+
     override var enabled: Boolean = true
 
     /**
@@ -101,7 +115,17 @@ open class Screenshots : Extension {
         programRef?.window?.requestDraw()
     }
 
+    private var filename: String? = null
     override fun beforeDraw(drawer: Drawer, program: Program) {
+        fun Int.z(zeroes: Int = 2): String {
+            val sv = this.toString()
+            var prefix = ""
+            for (i in 0 until max(zeroes - sv.length, 0)) {
+                prefix += "0"
+            }
+            return "$prefix$sv"
+        }
+
         if (createScreenshot != None) {
             val targetWidth = (program.width * scale).toInt()
             val targetHeight = (program.height * scale).toInt()
@@ -116,6 +140,19 @@ open class Screenshots : Extension {
             }
             target?.bind()
 
+            val dt = LocalDateTime.now()
+            val basename = program.name.ifBlank { program.window.title.ifBlank { "untitled" } }
+
+            filename = when (val cs = createScreenshot) {
+                None -> throw IllegalStateException("")
+                AutoNamed -> "${if (folder == null) "" else "$folder/"}$basename-${dt.year.z(4)}-${dt.month.value.z()}-${dt.dayOfMonth.z()}-${dt.hour.z()}.${dt.minute.z()}.${dt.second.z()}.png"
+                is Named -> cs.name
+            }
+
+            filename?.let {
+                beforeScreenshot.trigger(ScreenshotEvent(it.dropLast(4)))
+            }
+
             program.backgroundColor?.let {
                 drawer.clear(it)
             }
@@ -123,53 +160,34 @@ open class Screenshots : Extension {
     }
 
     override fun afterDraw(drawer: Drawer, program: Program) {
-        fun Int.z(zeroes: Int = 2): String {
-            val sv = this.toString()
-            var prefix = ""
-            for (i in 0 until max(zeroes - sv.length, 0)) {
-                prefix += "0"
-            }
-            return "$prefix$sv"
-        }
+        filename?.let { fn ->
+            filename = null
+            val targetFile = File(fn)
 
-        val createScreenshot = createScreenshot
-
-        if (createScreenshot != None) {
             drawer.shadeStyle = null
             target?.unbind()
 
             target?.let {
                 drawer.defaults()
-
-                val dt = LocalDateTime.now()
-                val basename = program.name.ifBlank { program.window.title.ifBlank { "untitled" } }
-
-                val filename = when (createScreenshot) {
-                    None -> throw IllegalStateException("")
-                    AutoNamed -> "${if (folder == null) "" else "$folder/"}$basename-${dt.year.z(4)}-${dt.month.value.z()}-${dt.dayOfMonth.z()}-${dt.hour.z()}.${dt.minute.z()}.${dt.second.z()}.png"
-                    is Named -> createScreenshot.name
-                }
-
-                File(filename).parentFile?.let { file ->
+                targetFile.parentFile?.let { file ->
                     if (!file.exists()) {
                         file.mkdirs()
                     }
                 }
 
                 val resolved = resolved
-
                 if (resolved == null) {
-                    it.colorBuffer(0).saveToFile(File(filename), async = async)
-
+                    it.colorBuffer(0).saveToFile(targetFile, async = async)
                     drawer.image(it.colorBuffer(0), it.colorBuffer(0).bounds, drawer.bounds)
                 } else {
                     target?.let { rt ->
                         rt.colorBuffer(0).resolveTo(resolved)
-                        resolved.saveToFile(File(filename))
+                        resolved.saveToFile(targetFile, async = async)
                         drawer.image(resolved, resolved.bounds, drawer.bounds)
                     }
                 }
-                logger.info("[Screenshots] saved to: $filename")
+                logger.info("[Screenshots] saved to: ${targetFile.relativeTo(File("."))}")
+                afterScreenshot.trigger(ScreenshotEvent(fn.dropLast(4)))
             }
 
             target?.destroy()
