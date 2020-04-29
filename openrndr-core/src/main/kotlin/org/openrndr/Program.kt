@@ -245,7 +245,7 @@ open class Program {
         frameCount++
 
         backgroundColor?.let {
-            drawer.background(it)
+            drawer.clear(it)
         }
         extensions.filter { it.enabled }.forEach { it.beforeDraw(drawer, this) }
         draw()

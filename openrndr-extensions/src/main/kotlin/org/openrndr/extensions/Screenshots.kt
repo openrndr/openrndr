@@ -117,7 +117,7 @@ open class Screenshots : Extension {
             target?.bind()
 
             program.backgroundColor?.let {
-                drawer.background(it)
+                drawer.clear(it)
             }
         }
     }

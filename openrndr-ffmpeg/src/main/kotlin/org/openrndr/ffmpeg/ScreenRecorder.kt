@@ -93,7 +93,7 @@ class ScreenRecorder : Extension {
     override fun beforeDraw(drawer: Drawer, program: Program) {
         frame.bind()
         program.backgroundColor?.let {
-            drawer.background(it)
+            drawer.clear(it)
         }
     }
 

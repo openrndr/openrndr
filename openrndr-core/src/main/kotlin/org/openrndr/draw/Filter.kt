@@ -116,7 +116,7 @@ open class Filter(private val shader: Shader? = null, private val watcher: Shade
         shader.uniform("targetSize", Vector2(target.width.toDouble(), target.height.toDouble()))
         shader.uniform("padding", Vector2(padding.toDouble(), padding.toDouble()))
 
-        var textureIndex = source.size
+        var textureIndex = source.size + 0
         parameters.forEach { (uniform, value) ->
             @Suppress("UNCHECKED_CAST")
             when (value) {

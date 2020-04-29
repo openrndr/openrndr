@@ -90,9 +90,14 @@ class Drawer(val driver: Driver) {
     var width: Int = 0
     var height: Int = 0
 
-    var model: Matrix44 = Matrix44.IDENTITY /** The active model matrix */
-    var view: Matrix44 = Matrix44.IDENTITY /** The active view matrix */
-    var projection: Matrix44 = Matrix44.IDENTITY /** The active projection matrix */
+    var model: Matrix44 = Matrix44.IDENTITY
+
+    /** The active model matrix */
+    var view: Matrix44 = Matrix44.IDENTITY
+
+    /** The active view matrix */
+    var projection: Matrix44 = Matrix44.IDENTITY
+    /** The active projection matrix */
 
     /**
      * The draw context holds references to model, view, projection matrices, width, height and content-scale
@@ -100,7 +105,8 @@ class Drawer(val driver: Driver) {
     val context: DrawContext
         get() = DrawContext(model, view, projection, width, height, RenderTarget.active.contentScale)
 
-    var drawStyle = DrawStyle() /** The active draw style */
+    var drawStyle = DrawStyle()
+    /** The active draw style */
 
     /**
      * @see isolatedWithTarget
@@ -256,10 +262,20 @@ class Drawer(val driver: Driver) {
         model *= Matrix44.rotate(axis, rotationInDegrees)
     }
 
+    fun clear(r: Double, g: Double, b: Double, a: Double) {
+        driver.clear(r, g, b, a)
+    }
+
+    fun clear(color: ColorRGBa) {
+        driver.clear(color)
+    }
+
+    @Deprecated("background will be replaced by clear", replaceWith = ReplaceWith("clear(r,g,b,a)"))
     fun background(r: Double, g: Double, b: Double, a: Double) {
         driver.clear(r, g, b, a)
     }
 
+    @Deprecated("background will be replaced by clear", replaceWith = ReplaceWith("clear(color)"))
     fun background(color: ColorRGBa) {
         driver.clear(color)
     }
