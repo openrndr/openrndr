@@ -87,6 +87,8 @@ data class Vector2(val x: Double, val y: Double) : Serializable {
         return dx * dx + dy * dy
     }
 
+    fun mix(o: Vector2, mix: Double): Vector2 = this * (1 - mix) + o * mix
+
     companion object {
         val ZERO = Vector2(0.0, 0.0)
         val ONE = Vector2(1.0, 1.0)
@@ -108,3 +110,5 @@ operator fun Double.times(v: Vector2) = v * this
 
 fun min(a: Vector2, b: Vector2): Vector2 = Vector2(min(a.x, b.x), min(a.y, b.y))
 fun max(a: Vector2, b: Vector2): Vector2 = Vector2(max(a.x, b.x), max(a.y, b.y))
+
+fun mix(a: Vector2, b: Vector2, mix:Double): Vector2 = a * (1 - mix) + b * mix

@@ -17,4 +17,23 @@ object TestVector3 : Spek({
             Vector3.ZERO.length.closeTo(0.0, maxError)
         }
     }
+
+    describe("Vector3 mix") {
+
+        it("should .mix towards first component") {
+            Vector3.ONE.mix(Vector3.ZERO, 0.0).closeTo(Vector3.ONE, maxError)
+        }
+
+        it("should .mix towards second component") {
+            Vector3.ONE.mix(Vector3.ZERO, 1.0).closeTo(Vector3.ZERO, maxError)
+        }
+
+        it("should mix() towards first component") {
+            mix(Vector3.ONE, Vector3.ZERO, 0.0).closeTo(Vector3.ONE, maxError)
+        }
+
+        it("should mix() towards second component") {
+            mix(Vector3.ONE, Vector3.ZERO, 1.0).closeTo(Vector3.ZERO, maxError)
+        }
+    }
 })
