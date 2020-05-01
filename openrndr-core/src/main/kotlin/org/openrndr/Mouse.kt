@@ -13,21 +13,21 @@ class MouseEvent(val position: Vector2, val rotation: Vector2, val dragDisplacem
     }
 }
 
-class Mouse(val application: Application) {
+class Mouse(val application: ()->Application) {
 
     /**
      * The current mouse position
      */
     var position: Vector2
-        get() = application.cursorPosition
+        get() = application().cursorPosition
         set(value) {
-            application.cursorPosition = value
+            application().cursorPosition = value
         }
 
     var cursorVisible: Boolean
-        get() = application.cursorVisible
+        get() = application().cursorVisible
         set(value) {
-            application.cursorVisible = value
+            application().cursorVisible = value
         }
 
     val buttonDown = Event<MouseEvent>("mouse-button-down").postpone(true)
