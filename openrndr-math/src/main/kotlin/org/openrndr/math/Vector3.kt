@@ -97,6 +97,8 @@ data class Vector3(val x: Double, val y: Double, val z: Double) : Serializable {
         return dx * dx + dy * dy + dz * dz
     }
 
+    fun mix(o: Vector3, mix: Double): Vector3 = this * (1 - mix) + o * mix
+
 
     val spherical: Spherical
         get() {
@@ -108,3 +110,5 @@ operator fun Double.times(v: Vector3) = v * this
 
 fun min(a: Vector3, b: Vector3) = Vector3(min(a.x, b.x), min(a.y, b.y), min(a.z, b.z))
 fun max(a: Vector3, b: Vector3) = Vector3(max(a.x, b.x), max(a.y, b.y), max(a.z, b.z))
+
+fun mix(a: Vector3, b: Vector3, mix:Double): Vector3 = a * (1 - mix) + b * mix

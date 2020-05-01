@@ -7,10 +7,22 @@ fun Double.closeTo(expected: Double, delta: Double) = this.should("\n[$this]\nan
     ((this - expected).absoluteValue - delta) <= 0.0
 }
 
+fun Vector2.closeTo(expected: Vector2, delta: Double) = this.should("\n[$this]\nand\n[$expected]\nshould be equal within an accuracy of $delta") {
+    ((this.x - expected.x).absoluteValue - delta) <= 0.0 &&
+            ((this.y - expected.y).absoluteValue - delta) <= 0.0
+}
+
 fun Vector3.closeTo(expected: Vector3, delta: Double) = this.should("\n[$this]\nand\n[$expected]\nshould be equal within an accuracy of $delta") {
     ((this.x - expected.x).absoluteValue - delta) <= 0.0 &&
             ((this.y - expected.y).absoluteValue - delta) <= 0.0 &&
             ((this.z - expected.z).absoluteValue - delta) <= 0.0
+}
+
+fun Vector4.closeTo(expected: Vector4, delta: Double) = this.should("\n[$this]\nand\n[$expected]\nshould be equal within an accuracy of $delta") {
+    ((this.x - expected.x).absoluteValue - delta) <= 0.0 &&
+            ((this.y - expected.y).absoluteValue - delta) <= 0.0 &&
+            ((this.z - expected.z).absoluteValue - delta) <= 0.0 &&
+            ((this.w - expected.w).absoluteValue - delta) <= 0.0
 }
 
 fun Matrix44.closeTo(expected: Matrix44, delta: Double) = this.should("\n[$this]\nand\n[$expected]\nshould be equal within an accuracy of $delta") {

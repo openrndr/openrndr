@@ -36,11 +36,14 @@ data class Vector4(val x: Double, val y: Double, val z: Double, val w: Double) :
         val ONE = Vector4(1.0, 1.0, 1.0, 1.0)
     }
 
-    val normalized
-        get() =
-            length.let {
-                Vector4(x / it, y / it, z / it, w / it)
+    val normalized: Vector4
+        get() {
+            val l = 1.0 / length
+            if (l.isNaN() || l.isInfinite()) {
+                return ZERO
             }
+            return this * l
+        }
 
     operator fun unaryMinus() = Vector4(-x, -y, -z, -w)
 
@@ -78,6 +81,8 @@ data class Vector4(val x: Double, val y: Double, val z: Double, val w: Double) :
         return dx * dx + dy * dy + dz * dz + dw * dw
     }
 
+    fun mix(o: Vector4, mix: Double): Vector4 = this * (1 - mix) + o * mix
+
     fun toDoubleArray() = doubleArrayOf(x, y, z, w)
 
 }
@@ -86,3 +91,5 @@ operator fun Double.times(v: Vector4) = v * this
 
 fun min(a: Vector4, b: Vector4): Vector4 = Vector4(min(a.x, b.x), min(a.y, b.y), min(a.z, b.z), min(a.w, b.w))
 fun max(a: Vector4, b: Vector4): Vector4 = Vector4(max(a.x, b.x), max(a.y, b.y), max(a.z, b.z), max(a.w, b.w))
+
+fun mix(a: Vector4, b: Vector4, mix:Double): Vector4 = a * (1 - mix) + b * mix
