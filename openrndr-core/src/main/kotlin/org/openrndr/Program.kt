@@ -224,7 +224,7 @@ open class Program {
     }
 
     val keyboard by lazy { Keyboard() }
-    val mouse by lazy { Mouse(application) }
+    val mouse by lazy { Mouse({ application }) }
 
     /**
      * This is ran exactly once before the first call to draw()
