@@ -851,19 +851,19 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
 
     fun adaptivePositions(distanceTolerance: Double = 0.5): List<Vector2> {
         val adaptivePoints = mutableListOf<Vector2>()
-        var last: Vector2? = null
+
         for (segment in this.segments) {
             val samples = segment.adaptivePositions(distanceTolerance)
-            if (samples.isNotEmpty()) {
-                val r = samples[0]
-                if (last == null || last.minus(r).length > 0.01) {
-                    adaptivePoints.add(r)
-                }
-                for (i in 1 until samples.size) {
-                    adaptivePoints.add(samples[i])
-                    last = samples[i]
+
+            samples.forEach {
+                val last = adaptivePoints.lastOrNull()
+                if (last == null || last.squaredDistanceTo(it) > 0.0) {
+                    adaptivePoints.add(it)
                 }
             }
+        }
+        adaptivePoints.zipWithNext().forEach {
+            require(it.first.squaredDistanceTo(it.second) > 0.0)
         }
         return adaptivePoints
     }
@@ -886,6 +886,9 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
                     last = samples.first[i]
                 }
             }
+        }
+        adaptivePoints.zipWithNext().forEach {
+            require(it.first.squaredDistanceTo(it.second) > 0.0)
         }
         return Pair(adaptivePoints, adaptiveNormals)
     }

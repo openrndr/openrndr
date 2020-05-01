@@ -37,8 +37,10 @@ internal class BezierQuadraticSampler2D {
                 // we tend to finish subdivisions.
                 //----------------------
                 if (angleTolerance < angleToleranceEpsilon) {
-                    direction.add(x3-x1)
-                    points.add(x123)
+                    if (points.last().squaredDistanceTo(x123) > 0.0) {
+                        direction.add(x3 - x1)
+                        points.add(x123)
+                    }
                     return
                 }
 
@@ -50,8 +52,10 @@ internal class BezierQuadraticSampler2D {
                 if (da < angleTolerance) {
                     // Finally we can stop the recursion
                     //----------------------
-                    direction.add(x3-x1)
-                    points.add(x123)
+                    if (points.last().squaredDistanceTo(x123) > 0.0) {
+                        direction.add(x3 - x1)
+                        points.add(x123)
+                    }
                     return
                 }
             }
@@ -76,8 +80,10 @@ internal class BezierQuadraticSampler2D {
                     d = squaredDistance(x2.x, x2.y, x1.x + d * dx, x1.y + d * dy)
             }
             if (d < distanceToleranceSquare) {
-                direction.add(x3-x1)
-                points.add(x2)
+                if (points.last().squaredDistanceTo(x2) > 0.0) {
+                    direction.add(x3 - x1)
+                    points.add(x2)
+                }
                 return
             }
         }
@@ -94,7 +100,9 @@ internal class BezierQuadraticSampler2D {
         direction.clear()
         points.add(x1); direction.add(x2-x1)
         sample(x1, x2, x3, 0)
-        points.add(x3); direction.add(x3-x2)
+        if (points.last().squaredDistanceTo(x3) > 0.0) {
+            points.add(x3); direction.add(x3 - x2)
+        }
         return Pair(points, direction)
     }
 
