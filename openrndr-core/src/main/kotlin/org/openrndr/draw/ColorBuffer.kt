@@ -20,11 +20,10 @@ enum class ImageFileFormat(val mimeType: String, val extensions: List<String>) {
 
     companion object {
         fun guessFromExtension(file: File): ImageFileFormat {
-            val extension = file.extension.toLowerCase()
-            return when (extension) {
-                "jpg", "jpeg" -> ImageFileFormat.JPG
-                "png" -> ImageFileFormat.PNG
-                "exr" -> ImageFileFormat.EXR
+            return when (val extension = file.extension.toLowerCase()) {
+                "jpg", "jpeg" -> JPG
+                "png" -> PNG
+                "exr" -> EXR
                 else -> throw IllegalArgumentException("unsupported format: \"$extension\"")
             }
         }
@@ -190,13 +189,18 @@ interface ColorBuffer {
      * @param ignoreMultisample ignores [multisample] in check when true
      */
     fun isEquivalentTo(other: ColorBuffer,
+                       ignoreWidth: Boolean = false,
+                       ignoreHeight: Boolean = false,
+                       ignoreContentScale: Boolean = false,
+                       ignoreFormat: Boolean = false,
+                       ignoreType: Boolean = false,
                        ignoreMultisample: Boolean = false,
                        ignoreLevels: Boolean = false): Boolean {
-        return width == other.width &&
-                height == other.height &&
-                format == other.format &&
-                type == other.type &&
-                contentScale == other.contentScale &&
+        return (ignoreWidth || width == other.width) &&
+                (ignoreHeight || height == other.height) &&
+                (ignoreContentScale || contentScale == other.contentScale) &&
+                (ignoreFormat || format == other.format) &&
+                (ignoreType || type == other.type) &&
                 (ignoreMultisample || multisample == other.multisample) &&
                 (ignoreLevels || levels == other.levels)
     }
