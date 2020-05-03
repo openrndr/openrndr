@@ -94,7 +94,8 @@ class X265Profile : VideoWriterProfile() {
         if (mode == WriterMode.Normal) {
 
             if (!hlg) {
-                return arrayOf("-pix_fmt", "yuv420", // this will produce videos that are playable by quicktime
+                return arrayOf("-pix_fmt", "yuv420p", // this will produce videos that are playable by quicktime
+                        "-vf", "vflip",
                         "-an", "-vcodec", "libx265", "-crf", "" + constantRateFactor)
             } else {
                 return arrayOf( // this will produce videos that are playable by quicktime
