@@ -125,4 +125,8 @@ class ScreenRecorder : Extension {
         }
         frameIndex++
     }
+
+    override fun shutdown(program: Program) {
+        videoWriter.stop()
+    }
 }
