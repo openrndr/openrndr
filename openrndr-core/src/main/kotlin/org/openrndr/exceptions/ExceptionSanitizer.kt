@@ -1,6 +1,8 @@
 package org.openrndr.exceptions
 
 import mu.KotlinLogging
+import org.openrndr.platform.Platform
+import org.openrndr.platform.PlatformType
 import java.lang.Thread.UncaughtExceptionHandler
 
 private val logger = KotlinLogging.logger(name = "")
@@ -13,9 +15,11 @@ private class SanitizingUncaughtExceptionHandler : UncaughtExceptionHandler {
 }
 
 fun installUncaughtExceptionHandler() {
-    System.err.print(color(0x7f, 0x7f, 0x7f))
-    if (System.getProperty("org.openrndr.exceptions") != "JVM") {
-        Thread.setDefaultUncaughtExceptionHandler(SanitizingUncaughtExceptionHandler());
+    if (Platform.type != PlatformType.WINDOWS) {
+        System.err.print(color(0x7f, 0x7f, 0x7f))
+        if (System.getProperty("org.openrndr.exceptions") != "JVM") {
+            Thread.setDefaultUncaughtExceptionHandler(SanitizingUncaughtExceptionHandler());
+        }
     }
 }
 
@@ -96,6 +100,15 @@ fun findUserCause(throwable: Throwable) {
     }
     System.err.println("${color(0x7f, 0x7f, 0x7f)}│${colorReset()}")
     System.err.println("${color(0x7f, 0x7f, 0x7f)}↑ ${color(0xff, 0xc0, 0xcb)}${throwable.message} (${throwable::class.simpleName})${colorReset()} ")
+
+    var cause = throwable.cause
+    while (cause != null) {
+        val line = cause.stackTrace.first()
+        val filledName = cleanClassName(line.className)
+        val cleanName = "${filledName}${cleanMethodName(line.methodName)}"
+        System.err.println("${color(0x7f, 0x7f, 0x7f)}├─ ${color(0x7f, 0x7f, 0x7f)}${cleanName}(${line.fileName}:${line.lineNumber})${colorReset()}")
+        cause = cause.cause
+    }
 
     if (throwable is NoSuchMethodError || throwable is ClassNotFoundException) {
         if (throwable.message?.contains("org.openrndr") == true) {
