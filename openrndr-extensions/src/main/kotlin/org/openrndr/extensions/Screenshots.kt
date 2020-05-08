@@ -73,6 +73,13 @@ open class Screenshots : Extension {
     var multisample: BufferMultisample = BufferMultisample.Disabled
 
     /**
+     * delays the screenshot for a number of frames.
+     * useful to let visuals build up in automated screenshots.
+     */
+
+    var delayFrames = 0
+
+    /**
      * should the program quit after taking a screenshot?
      */
     var quitAfterScreenshot = false
@@ -126,7 +133,7 @@ open class Screenshots : Extension {
             return "$prefix$sv"
         }
 
-        if (createScreenshot != None) {
+        if (createScreenshot != None && delayFrames-- <= 0) {
             val targetWidth = (program.width * scale).toInt()
             val targetHeight = (program.height * scale).toInt()
 
