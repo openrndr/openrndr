@@ -89,7 +89,7 @@ object TestShapeContour : Spek({
             continueTo(Vector2(0.9 * width, 0.3 * height))
         }
 
-        it ("can be offset") {
+        it("can be offset") {
             val o = curve.offset(20.0)
             o.winding `should be equal to` curve.winding
             o.closed `should be equal to` curve.closed
@@ -155,7 +155,7 @@ object TestShapeContour : Spek({
 
     describe("another simple closed contour") {
         // https://github.com/openrndr/openrndr/issues/79#issuecomment-601119834
-        val curve  = contour {
+        val curve = contour {
             moveTo(Vector2(60.0, 200.0))
             continueTo(Vector2(300.0, 300.0))
             continueTo(Vector2(280.0, 200.0))
@@ -240,9 +240,8 @@ object TestShapeContour : Spek({
         it("it can be subbed from 0.0 to 0.001 ") {
 
 
-                val s = curve.sub(0.0, 1/100000.0)
-                s.position(1.0) `should be somewhat near` curve.position(1/100000.0)
-
+            val s = curve.sub(0.0, 1 / 100000.0)
+            s.position(1.0) `should be somewhat near` curve.position(1 / 100000.0)
 
 
         }
@@ -279,4 +278,17 @@ object TestShapeContour : Spek({
             }
         }
     }
+
+    describe("a very specific contour") {
+        val c = contour {
+            moveTo(0.0, 0.0)
+            curveTo(204.0, 378.0, 800.0, 240.0)
+            curveTo(204.0, 378.0, 0.0, 480.0)
+        }
+        val points = c.equidistantPositions(100)
+        it("should give 100 points") {
+            points.size `should be equal to` 100
+        }
+    }
+
 })

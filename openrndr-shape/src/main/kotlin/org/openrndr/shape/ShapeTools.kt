@@ -48,9 +48,12 @@ fun sampleEquidistant(segments: List<Vector2>, count: Int): List<Vector2> {
             runLength = segmentLength - skip - newSegmentCount * spacing
         }
     }
-    // We replace the last point with the original last input point
     if (count >= 2) {
-        result[result.lastIndex] = segments.last()
+        if (result.size == count) {
+            result[result.lastIndex] = segments.last()
+        } else {
+            result.add(segments.last())
+        }
     }
     return result
 }
