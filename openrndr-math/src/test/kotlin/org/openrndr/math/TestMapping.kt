@@ -5,6 +5,7 @@ import org.amshove.kluent.shouldBeNear
 import org.amshove.kluent.shouldNotBeInRange
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
+import kotlin.math.absoluteValue
 
 object TestMapping : Spek({
 
@@ -118,6 +119,23 @@ object TestMapping : Spek({
                         afterLeft, afterRight, true)
                 for (i in 0 until 4)
                     mapped[i].shouldBeInRange(afterLeft[i], afterRight[i])
+            }
+        }
+    }
+
+    describe("Mixing Operations") {
+        describe("Mixing double") {
+            it("should produce expected result") {
+                mix(1.0, 3.0, 0.5).shouldBeNear(2.0, 10E-6)
+                mix(3.0, 1.0, 0.5).shouldBeNear(2.0, 10E-6)
+            }
+        }
+        describe("Mixing angles") {
+            it("should interpolate via shortest side") {
+                mixAngle(5.0, 355.0, 0.5).shouldBeNear(0.0, 10E-6)
+                mixAngle(355.0, 5.0, 0.5).shouldBeNear(0.0, 10E-6)
+                mixAngle(-100.0, 100.0, 0.5).absoluteValue.shouldBeNear(180.0, 10E-6)
+                mixAngle(100.0, -100.0, 0.5).absoluteValue.shouldBeNear(180.0, 10E-6)
             }
         }
     }
