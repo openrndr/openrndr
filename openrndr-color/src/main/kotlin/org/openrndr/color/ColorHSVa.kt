@@ -2,6 +2,7 @@
 
 package org.openrndr.color
 
+import org.openrndr.math.mixAngle
 import org.openrndr.math.mod
 
 
@@ -165,7 +166,7 @@ fun hsva(h: Double, s: Double, v: Double, a: Double) = ColorHSVa(h, s, v, a)
 fun mix(left: ColorHSVa, right: ColorHSVa, x: Double): ColorHSVa {
     val sx = x.coerceIn(0.0, 1.0)
     return ColorHSVa(
-            (1.0 - sx) * left.h + sx * right.h,
+            mixAngle(left.h, right.h, sx),
             (1.0 - sx) * left.s + sx * right.s,
             (1.0 - sx) * left.v + sx * right.v,
             (1.0 - sx) * left.a + sx * right.a)

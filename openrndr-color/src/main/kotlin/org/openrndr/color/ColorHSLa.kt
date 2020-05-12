@@ -1,5 +1,7 @@
 package org.openrndr.color
 
+import org.openrndr.math.mixAngle
+
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 data class ColorHSLa(val h: Double, val s: Double, val l: Double, val a: Double = 1.0) {
 
@@ -74,23 +76,6 @@ data class ColorHSLa(val h: Double, val s: Double, val l: Double, val a: Double 
 
     val unit get() = copy(h = ((h % 360) + 360) % 360)
 
-
-    /*
-    fun blendedWith(other: ColorHSL, blend: Double): ColorHSL {
-        var sh = h
-        var eh = other.h
-        if (Math.abs(eh - sh) > 180) {
-            if (eh > sh) {
-                sh += 360.0
-            } else {
-                eh += 360.0
-            }
-        }
-        return ColorHSL(sh * (1.0 - blend) + eh * blend,
-                        s * (1.0 - blend) + other.s * blend,
-                        l * (1.0 - blend) + other.l * blend)
-    }
-    */
     fun toRGBa(): ColorRGBa {
         return if (s == 0.0) {
             ColorRGBa(l, l, l, a)
@@ -128,3 +113,18 @@ internal fun hue2rgb(p: Double, q: Double, ut: Double): Double {
 fun hsl(h: Double, s: Double, l: Double) = ColorHSLa(h, s, l)
 fun hsla(h: Double, s: Double, l: Double, a: Double) = ColorHSLa(h, s, l, a)
 
+/**
+ * Mixes two colors in HSLa space
+ * @param left the left hand ColorHSLa color
+ * @param right the right hand ColorHSLa
+ * @param x the mix amount
+ * @return a mix of [left] and [right], x == 0.0 corresponds with left, x == 1.0 corresponds with right
+ */
+fun mix(left: ColorHSLa, right: ColorHSLa, x: Double): ColorHSLa {
+    val sx = x.coerceIn(0.0, 1.0)
+    return ColorHSLa(
+            mixAngle(left.h, right.h, sx),
+            (1.0 - sx) * left.s + sx * right.s,
+            (1.0 - sx) * left.l + sx * right.l,
+            (1.0 - sx) * left.a + sx * right.a)
+}

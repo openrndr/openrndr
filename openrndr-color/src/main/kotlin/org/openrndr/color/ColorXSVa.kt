@@ -1,5 +1,7 @@
 package org.openrndr.color
 
+import org.openrndr.math.mixAngle
+
 data class ColorXSVa(val x: Double, val s: Double, val v: Double, val alpha: Double = 1.0) {
 
     companion object {
@@ -45,4 +47,20 @@ data class ColorXSVa(val x: Double, val s: Double, val v: Double, val alpha: Dou
 
 private fun map(x: Double, a: Double, b: Double, c: Double, d: Double): Double {
     return ((x - a) / (b - a)) * (d - c) + c
+}
+
+/**
+ * Mixes two colors in XSVa space
+ * @param left the left hand ColorXSVa color
+ * @param right the right hand ColorXSVa
+ * @param x the mix amount
+ * @return a mix of [left] and [right], x == 0.0 corresponds with left, x == 1.0 corresponds with right
+ */
+fun mix(left: ColorXSVa, right: ColorXSVa, x: Double): ColorXSVa {
+    val sx = x.coerceIn(0.0, 1.0)
+    return ColorXSVa(
+            mixAngle(left.x, right.x, sx),
+            (1.0 - sx) * left.s + sx * right.s,
+            (1.0 - sx) * left.v + sx * right.v,
+            (1.0 - sx) * left.alpha + sx * right.alpha)
 }
