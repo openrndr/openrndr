@@ -292,7 +292,8 @@ internal class Path {
     companion object {
         fun fromLineStrip(segments: Iterable<Vector2>, closed: Boolean): Path {
             val sp = Path()
-            val path = segments.map { PathPoint().apply { x = it.x; y = it.y; flags = CORNER } }.dropLast(if (closed) 1 else 0)
+            val drop = closed && segments.first().squaredDistanceTo(segments.last()) < 10E-6
+            val path = segments.map { PathPoint().apply { x = it.x; y = it.y; flags = CORNER } }.dropLast(if (drop) 1 else 0)
 
             if (path.isNotEmpty()) {
                 if (!closed) {

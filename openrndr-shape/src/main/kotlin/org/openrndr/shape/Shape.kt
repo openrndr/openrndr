@@ -675,11 +675,11 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
         val EMPTY = ShapeContour(emptyList(), false)
 
         fun fromPoints(points: List<Vector2>, closed: Boolean, polarity: YPolarity = YPolarity.CW_NEGATIVE_Y) =
-                if (!closed)
+                if (!closed) {
                     ShapeContour((0 until points.size - 1).map { Segment(points[it], points[it + 1]) }, closed, polarity)
-                else {
+                } else {
                     val d = (points.last() - points.first()).squaredLength
-                    val usePoints = if (d > 0.001) points else points.dropLast(1)
+                    val usePoints = if (d > 10E-6) points else points.dropLast(1)
                     ShapeContour((usePoints.indices).map { Segment(usePoints[it], usePoints[(it + 1) % usePoints.size]) }, true, polarity)
                 }
     }
