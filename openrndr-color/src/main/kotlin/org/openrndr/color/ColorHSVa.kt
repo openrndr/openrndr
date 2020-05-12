@@ -87,6 +87,8 @@ data class ColorHSVa(val h: Double, val s: Double, val v: Double, val a: Double 
     fun shiftValue(shift: Double): ColorHSVa = copy(v = v + shift)
     fun scaleValue(scale: Double): ColorHSVa = copy(v = v * scale)
 
+    fun mix(other: ColorHSVa, x: Double) = mix(this, other, x)
+
     /**
      * a unit presentation of this ColorHSVa, essentially brings the hue back in [0, 360)
      * @return a copy with the hue value in [0, 360)

@@ -43,6 +43,8 @@ data class ColorXSVa(val x: Double, val s: Double, val v: Double, val alpha: Dou
     }
 
     fun toRGBa() = toHSVa().toRGBa()
+
+    fun mix(other: ColorXSVa, x: Double) = mix(this, other, x)
 }
 
 private fun map(x: Double, a: Double, b: Double, c: Double, d: Double): Double {

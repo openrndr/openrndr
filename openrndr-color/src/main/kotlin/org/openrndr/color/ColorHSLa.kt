@@ -69,10 +69,10 @@ data class ColorHSLa(val h: Double, val s: Double, val l: Double, val a: Double 
     fun scaleSaturation(scale: Double): ColorHSLa = copy(s = s * scale)
     fun shiftSaturation(shift: Double): ColorHSLa = copy(s = s + shift)
 
-
     fun shiftValue(shift: Double): ColorHSLa = copy(l = l + shift)
     fun scaleValue(scale: Double): ColorHSLa = copy(l = l * scale)
 
+    fun mix(other: ColorHSLa, x: Double) = mix(this, other, x)
 
     val unit get() = copy(h = ((h % 360) + 360) % 360)
 

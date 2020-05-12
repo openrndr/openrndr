@@ -43,6 +43,8 @@ data class ColorXSLa(val x: Double, val s: Double, val l: Double, val alpha: Dou
     }
 
     fun toRGBa() = toHSLa().toRGBa()
+
+    fun mix(other: ColorXSLa, x: Double) = mix(this, other, x)
 }
 
 private fun map(x: Double, a: Double, b: Double, c: Double, d: Double): Double {
