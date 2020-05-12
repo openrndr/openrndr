@@ -72,7 +72,6 @@ class X265Profile : VideoWriterProfile() {
     enum class WriterMode {
         Normal,
         Lossless
-
     }
 
     fun mode(mode: WriterMode): X265Profile {
@@ -91,45 +90,43 @@ class X265Profile : VideoWriterProfile() {
     }
 
     override fun arguments(): Array<String> {
-        if (mode == WriterMode.Normal) {
-
-            if (!hlg) {
-                return arrayOf("-pix_fmt", "yuv420p", // this will produce videos that are playable by quicktime
-                        "-vf", "vflip",
-                        "-an", "-vcodec", "libx265", "-crf", "" + constantRateFactor)
-            } else {
-                return arrayOf( // this will produce videos that are playable by quicktime
-                        "-an", "" +
-                        "-vcodec", "libx265",
-                        "-pix_fmt", "yuv420p10le",
-                        "-color_primaries", "bt2020",
-                        "-colorspace", "bt2020_ncl",
-                        "-color_trc", "arib-std-b67",
-                        "-crf", "" + constantRateFactor)
-// transfer=arib-std-b67
+        when (mode) {
+            WriterMode.Normal -> {
+                return if (!hlg) {
+                    arrayOf("-pix_fmt", "yuv420p", // this will produce videos that are playable by quicktime
+                            "-vf", "vflip",
+                            "-an", "-vcodec", "libx265", "-crf", "" + constantRateFactor)
+                } else {
+                    arrayOf( // this will produce videos that are playable by quicktime
+                            "-an", "" +
+                            "-vcodec", "libx265",
+                            "-pix_fmt", "yuv420p10le",
+                            "-color_primaries", "bt2020",
+                            "-colorspace", "bt2020_ncl",
+                            "-color_trc", "arib-std-b67",
+                            "-crf", "" + constantRateFactor)
+                    // transfer=arib-std-b67
+                }
             }
-
-        } else if (mode == WriterMode.Lossless) {
-            return arrayOf("-pix_fmt", "yuv420p10", // this will produce videos that are playable by quicktime
-                    "-an", "-vcodec", "libx265", "-preset", "ultrafast")
-        } else {
-            throw RuntimeException("unsupported write mode")
+            WriterMode.Lossless -> {
+                return arrayOf("-pix_fmt", "yuv420p10", // this will produce videos that are playable by quicktime
+                        "-an", "-vcodec", "libx265", "-preset", "ultrafast")
+            }
+            else -> {
+                throw RuntimeException("unsupported write mode")
+            }
         }
     }
-
-
 }
 
 class VideoWriter {
-
     internal var ffmpegOutput = File("ffmpegOutput.txt")
 
     private var frameRate = 25
     private var width = -1
     private var height = -1
 
-    private var filename: String? = "rndr.mp4"
-
+    private var filename: String? = "openrndr.mp4"
 
     private lateinit var frameBuffer: ByteBuffer
     private lateinit var channel: WritableByteChannel
@@ -153,7 +150,6 @@ class VideoWriter {
         return height
     }
 
-
     fun size(width: Int, height: Int): VideoWriter {
         if (width % 2 != 0 || height % 2 != 0) {
             throw IllegalArgumentException("width ($width) and height ($height) should be divisible by 2")
@@ -162,7 +158,6 @@ class VideoWriter {
         this.height = height
         return this
     }
-
 
     /**
      * Set the output file, should be set before calling start()
@@ -173,7 +168,6 @@ class VideoWriter {
         this.filename = filename
         return this
     }
-
 
     /**
      * Sets the framerate of the output video
@@ -205,10 +199,9 @@ class VideoWriter {
 
         //frameBufferArray = ByteArray(width * height * 4)
         frameBuffer = when (inputFormat) {
-                "rgba" -> BufferUtils.createByteBuffer(width*height*4)
-                "rgba64le"  -> BufferUtils.createByteBuffer(width*height*8)
-
-               else -> throw RuntimeException("unsupported format $inputFormat")
+            "rgba" -> BufferUtils.createByteBuffer(width * height * 4)
+            "rgba64le" -> BufferUtils.createByteBuffer(width * height * 8)
+            else -> throw RuntimeException("unsupported format $inputFormat")
         }
 
         val preamble = arrayOf("-y", "-f", "rawvideo", "-vcodec", "rawvideo",
@@ -222,8 +215,8 @@ class VideoWriter {
         } else {
             arguments.add("ffmpeg")
         }
-        arguments.addAll(Arrays.asList(*preamble))
-        arguments.addAll(Arrays.asList(*codec))
+        arguments.addAll(listOf(*preamble))
+        arguments.addAll(listOf(*codec))
 
         arguments.add(filename!!)
 
@@ -245,8 +238,6 @@ class VideoWriter {
             System.err.println("command: ${arguments.joinToString(" ")}")
             throw RuntimeException("failed to launch ffmpeg", e)
         }
-
-
     }
 
     /**
@@ -255,20 +246,20 @@ class VideoWriter {
      * @param frame a ColorBuffer (RGBA, 8bit) holding the image data to be written to the video. The ColorBuffer should have the same resolution as the VideoWriter.
      */
     fun frame(frame: ColorBuffer): VideoWriter {
-        if (! ((frame.width == width) && frame.height == height)) {
-            throw RuntimeException("frame size mismatch")
-        } else {
-            (frameBuffer as Buffer).rewind()
-            frameBuffer.order(ByteOrder.nativeOrder())
-            frame.read(frameBuffer)
-            (frameBuffer as Buffer).rewind()
-            try {
-                channel.write(frameBuffer)
-                movieStream!!.flush()
-            } catch (e: IOException) {
-                e.printStackTrace()
-                throw RuntimeException("failed to write frame", e)
-            }
+        val frameBytes = frame.width * frame.height * frame.format.componentCount * frame.type.componentSize
+        require(frameBytes == frameBuffer.capacity()) {
+            "frame size/format/type mismatch"
+        }
+        (frameBuffer as Buffer).rewind()
+        frameBuffer.order(ByteOrder.nativeOrder())
+        frame.read(frameBuffer)
+        (frameBuffer as Buffer).rewind()
+        try {
+            channel.write(frameBuffer)
+            movieStream!!.flush()
+        } catch (e: IOException) {
+            e.printStackTrace()
+            throw RuntimeException("failed to write frame", e)
         }
         return this
     }
@@ -280,7 +271,7 @@ class VideoWriter {
         try {
             movieStream!!.close()
             try {
-//                logger.info("waiting for ffmpeg to finish")
+                logger.info("waiting for ffmpeg to finish")
                 ffmpeg!!.waitFor()
             } catch (e: InterruptedException) {
                 e.printStackTrace()
@@ -294,11 +285,8 @@ class VideoWriter {
     }
 
     companion object {
-        //internal val logger = LogManager.getLogger(VideoWriter::class.java)
         fun create(): VideoWriter {
             return VideoWriter()
         }
     }
-
-
 }
