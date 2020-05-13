@@ -12,7 +12,7 @@ Basics and use are further explained in the [OPENRNDR guide](https://guide.openr
 
 Visit the [OPENRNDR website](https://openrndr.org) for the latest news on OPENRNDR, showcases and events 
 
-Join us on the [OPENRNDR forum](https://openrndr.discourse.org) for questions, tutorials and showcases.
+Join us on the [OPENRNDR forum](https://openrndr.discourse.group) for questions, tutorials and showcases.
 
 .. or if you prefer a more direct and chatty way of conversation talk to us the [OPENRNDR Slack](https://communityinviter.com/apps/openrndr/openrndr)
 
