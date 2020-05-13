@@ -684,6 +684,12 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
                 }
     }
 
+    val triangulation by lazy {
+        triangulate(Shape(listOf(this))).windowed(3, 3).map {
+            Triangle(it[0], it[1], it[2])
+        }
+    }
+
     init {
         segments.zipWithNext().forEach {
 
@@ -694,6 +700,7 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
 
         }
     }
+
     val length get() = segments.sumByDouble { it.length }
     val bounds get() = vector2Bounds(sampleLinear().segments.flatMap { listOf(it.start, it.end) })
 
@@ -746,6 +753,8 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
         segments.addAll(other.segments)
         return ShapeContour(segments, false, polarity)
     }
+
+    operator fun contains(v: Vector2): Boolean = closed && triangulation.any { v in it }
 
     fun offset(distance: Double, joinType: SegmentJoin = SegmentJoin.ROUND): ShapeContour {
         if (segments.size == 1) {
@@ -1101,6 +1110,15 @@ class Shape(val contours: List<ShapeContour>) {
 
     val linear get() = contours.all { it.segments.all { it.linear } }
     fun polygon(distanceTolerance: Double = 0.5) = Shape(contours.map { it.sampleLinear(distanceTolerance) })
+
+
+    val triangulation by lazy {
+        triangulate(this).windowed(3, 3).map {
+            Triangle(it[0], it[1], it[2])
+        }
+    }
+
+    operator fun contains(v: Vector2): Boolean = triangulation.any { v in it }
 
     /**
      * The outline of the shape

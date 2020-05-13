@@ -48,5 +48,7 @@ object TestShape : Spek({
         it("second contour should have counter-clockwise winding") {
             s.contours[1].winding `should be equal to` Winding.COUNTER_CLOCKWISE
         }
+
+
     }
 })
