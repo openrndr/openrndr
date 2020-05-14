@@ -1,8 +1,8 @@
-name: Release to Bintray
+name: Release candidate to Bintray
 on:
   push:
     tags:
-      - v[0-9].[0-9]+.[0-9]+
+      - v[0-9].[0-9]+.[0-9]+-rc.[0-9]+
 jobs:
   build:
     runs-on: ubuntu-18.04
@@ -15,7 +15,7 @@ jobs:
         with:
           java-version: 8
       - name: Build and publish to local maven
-        run: ./gradlew -Prelease.useLastTag=true release publishToMavenLocal --info
+        run: ./gradlew -Prelease.useLastTag=true candidate publishToMavenLocal --info
       - name: Zip and publish to Bintray
         run: |
           cd ~/.m2/repository
