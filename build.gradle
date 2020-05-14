@@ -10,7 +10,6 @@ buildscript {
         classpath "com.netflix.nebula:nebula-kotlin-plugin:1.3.72"
         classpath "com.netflix.nebula:nebula-publishing-plugin:17.2.1"
         classpath "com.netflix.nebula:nebula-release-plugin:14.1.0"
-        classpath "com.netflix.nebula:nebula-bintray-plugin:8.3.0"
     }
 }
 
@@ -89,7 +88,6 @@ allprojects {
     apply plugin: 'nebula.maven-publish'
     apply plugin: 'nebula.source-jar'
     apply plugin: 'nebula.javadoc-jar'
-    apply plugin: 'nebula.nebula-bintray-publishing'
 
     group 'org.openrndr'
 
@@ -151,20 +149,7 @@ allprojects {
         }
     }
 
-    bintray {
-        user = findProperty('bintrayUser') ?: System.getenv('BINTRAY_USER')
-        apiKey = findProperty('bintrayKey') ?: System.getenv('BINTRAY_KEY')
-        userOrg = 'openrndr'
-        repo = 'openrndr'
-        pkgName = 'openrndr'
-        gppSign = false
-        syncToMavenCentral = false
-        licenses = ['BSD-2-Clause']
-        vcsUrl = 'https://github.com/openrndr/openrndr.git'
-        websiteUrl = 'https://openrndr.org'
-        issueTrackerUrl = 'https://github.com/openrndr/openrndr/issues'
-        labels = ['creative-coding', 'realtime-rendering', 'opengl']
-    }
+
 }
 
 configure(subprojects) {
