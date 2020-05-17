@@ -17,7 +17,7 @@ data class Rectangle(val corner: Vector2, val width: Double, val height: Double)
     val area: Double
         get() = width * height
 
-    /** the center of the rectangle */
+    /** the dimensions of the rectangle */
     val dimensions: Vector2
         get() = Vector2(width, height)
 
