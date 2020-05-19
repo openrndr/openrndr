@@ -33,6 +33,17 @@ data class Matrix44(
                         c0.y, c1.y, c2.y, c3.y,
                         c0.z, c1.z, c2.z, c3.z,
                         c0.w, c1.w, c2.w, c3.w)
+
+
+        fun fromDoubleArray(a: DoubleArray): Matrix44 {
+            require(a.size >= 16) { "input array is too short (${a.size}}, should have at least a length of 16)" }
+            return Matrix44(
+                a[0], a[1], a[2], a[3],
+                a[4], a[5], a[6], a[7],
+                a[8], a[9], a[10], a[11],
+                a[12], a[13], a[14], a[15]
+            )
+        }
     }
 
     /**
