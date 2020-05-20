@@ -31,13 +31,15 @@ data class Polar(val theta: Double, val radius: Double = 1.0) {
     /**
      * Construct a Cartesian coordinate from polar representation
      */
-    val cartesian: Vector2 get() {
-        return Vector2.fromPolar(this)
-    }
+    val cartesian: Vector2
+        get() {
+            return Vector2.fromPolar(this)
+        }
 
-    operator fun plus(s: Polar) = Polar(radius + s.radius, theta + s.theta)
-    operator fun minus(s: Polar) = Polar(radius - s.radius, theta - s.theta)
-    operator fun times(s: Polar) = Polar(radius * s.radius, theta * s.theta)
-    operator fun times(s: Double) = Polar(radius * s, theta * s)
-    operator fun div(s: Double) = Polar(radius / s, theta / s)
+    operator fun plus(s: Polar) = Polar(theta + s.theta, radius + s.radius)
+    operator fun minus(s: Polar) = Polar(theta - s.theta, radius - s.radius)
+    operator fun times(s: Polar) = Polar(theta * s.theta, radius * s.radius)
+
+    operator fun times(s: Double) = Polar(theta * s, radius * s)
+    operator fun div(s: Double) = Polar(theta / s, radius / s)
 }
