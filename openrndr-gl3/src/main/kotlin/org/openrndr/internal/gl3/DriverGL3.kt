@@ -711,6 +711,8 @@ private fun VertexElementType.glType(): Int = when (this) {
     VertexElementType.VECTOR2_FLOAT32 -> GL_FLOAT
     VertexElementType.VECTOR3_FLOAT32 -> GL_FLOAT
     VertexElementType.VECTOR4_FLOAT32 -> GL_FLOAT
+    VertexElementType.INT16 -> GL_SHORT
+    VertexElementType.INT32 -> GL_INT
 }
 
 internal fun Matrix44.toFloatArray(): FloatArray = floatArrayOf(

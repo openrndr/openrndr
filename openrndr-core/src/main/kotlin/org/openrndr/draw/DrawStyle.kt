@@ -30,6 +30,11 @@ enum class LineCap {
  * Vertex element type enumeration
  */
 enum class VertexElementType(val componentCount: Int, val sizeInBytes: Int) {
+    /** signed 16 bit integer */
+    INT16(1, 2),
+    /** signed 32 bit integer */
+    INT32(1, 4),
+
     /** 32 bit float, or single precision float scalar */
     FLOAT32(1, 4),
     /** 32 bit float, or single precision float 2-component vector */

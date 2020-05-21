@@ -32,7 +32,7 @@ private fun mapType(type: String): String {
         "Int", "int" -> "int"
         "Matrix33" -> "mat3"
         "Matrix44" -> "mat4"
-        "float" -> "float"
+        "Float", "float" -> "float"
         "Vector2" -> "vec2"
         "Vector3" -> "vec3"
         "Vector4" -> "vec4"
@@ -53,6 +53,8 @@ private fun mapType(type: String): String {
 private val VertexElementType.glslType: String
     get() {
         return when (this) {
+            VertexElementType.INT16 -> "int"
+            VertexElementType.INT32 -> "int"
             VertexElementType.FLOAT32 -> "float"
             VertexElementType.VECTOR2_FLOAT32 -> "vec2"
             VertexElementType.VECTOR3_FLOAT32 -> "vec3"
