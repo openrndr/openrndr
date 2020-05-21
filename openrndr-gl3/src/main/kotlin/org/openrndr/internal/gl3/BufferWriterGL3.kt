@@ -9,9 +9,41 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
 class BufferWriterGL3(val buffer: ByteBuffer, val elementSize: Int = 1) : BufferWriter {
-
     init {
         buffer.order(ByteOrder.nativeOrder())
+    }
+
+    override fun copyBuffer(sourceBuffer: ByteBuffer, sourceOffset: Int, sourceSizeInBytes: Int) {
+        require(sourceBuffer.isDirect) {
+            "can only copy from direct buffers"
+        }
+        (sourceBuffer as Buffer).limit(sourceBuffer.capacity())
+        (sourceBuffer as Buffer).position(sourceOffset)
+        (sourceBuffer as Buffer).limit(sourceOffset + sourceSizeInBytes)
+        buffer.put(sourceBuffer)
+        (sourceBuffer as Buffer).limit(sourceBuffer.capacity())
+    }
+
+    override fun write(v: Int) {
+        buffer.putInt(v)
+    }
+
+    override fun write(v: IntVector2) {
+        buffer.putInt(v.x)
+        buffer.putInt(v.y)
+    }
+
+    override fun write(v: IntVector3) {
+        buffer.putInt(v.x)
+        buffer.putInt(v.y)
+        buffer.putInt(v.z)
+    }
+
+    override fun write(v: IntVector4) {
+        buffer.putInt(v.x)
+        buffer.putInt(v.y)
+        buffer.putInt(v.z)
+        buffer.putInt(v.w)
     }
 
     override fun write(a: FloatArray, offset: Int, size: Int) {

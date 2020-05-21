@@ -6,6 +6,20 @@ import org.openrndr.math.*
 import java.nio.ByteBuffer
 
 class BufferWriterNullGL : BufferWriter {
+    override fun write(v: Int) {
+
+    }
+
+    override fun write(v: IntVector2) {
+    }
+
+    override fun write(v: IntVector3) {
+    }
+
+    override fun write(v: IntVector4) {
+
+    }
+
     override fun write(v: Vector3) {
     }
 
@@ -37,6 +51,10 @@ class BufferWriterNullGL : BufferWriter {
     }
 
     override fun write(a: FloatArray, offset: Int, size: Int) {
+    }
+
+    override fun copyBuffer(buffer: ByteBuffer, sourceOffset: Int, sourceSizeInBytes: Int) {
+
     }
 
     override fun rewind() {
