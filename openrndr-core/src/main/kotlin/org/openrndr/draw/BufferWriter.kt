@@ -9,7 +9,7 @@ interface BufferWriter {
         v.forEach { write(it) }
     }
 
-    fun copyBuffer(buffer: ByteBuffer, sourceOffset: Int, sourceSizeInBytes: Int)
+    fun copyBuffer(sourceBuffer: ByteBuffer, sourceOffset: Int, sourceSizeInBytes: Int)
     fun write(v: Vector3)
     fun write(v: Vector2)
     fun write(v: Vector4)
