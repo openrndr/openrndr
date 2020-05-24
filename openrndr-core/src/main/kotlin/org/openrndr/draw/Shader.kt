@@ -48,6 +48,7 @@ interface Shader {
     fun uniform(name: String, value: Int)
     fun uniform(name: String, value: Boolean)
 
+    fun uniform(name: String, value: Array<Matrix44>)
     fun uniform(name: String, value: Array<Vector4>)
     fun uniform(name: String, value: Array<Vector3>)
     fun uniform(name: String, value: Array<Vector2>)

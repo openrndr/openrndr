@@ -62,6 +62,9 @@ class VertexFormat {
                 ", vertexSize=" + vertexSize +
                 '}'
     }
+
+    fun hasAttribute(name: String): Boolean = items.any { it.attribute == name }
+
 }
 
 fun vertexFormat(builder: VertexFormat.() -> Unit): VertexFormat {

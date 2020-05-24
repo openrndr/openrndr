@@ -79,8 +79,16 @@ class ShadeStyleManagerGL3(name: String,
                         shader.uniform("p_${it.key}", textureIndex)
                         textureIndex++
                     }
+                    is Array<*> -> {
+                        require(value.isNotEmpty())
+                        when(val v = value.first()!!) {
+                            is Matrix44 -> {
+                                shader.uniform("p_${it.key}", value as Array<Matrix44>)
+                            }
+                        }
+                    }
                     else -> {
-                        throw RuntimeException("unsupported value type")
+                        throw RuntimeException("unsupported value type ${value::class}")
                     }
                 }
             }

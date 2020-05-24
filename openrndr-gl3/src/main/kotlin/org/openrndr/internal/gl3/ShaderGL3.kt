@@ -268,6 +268,7 @@ class UniformBlockGL3(override val layout: UniformBlockLayout, val blockBinding:
         realDirty = true
     }
 
+
     override fun upload() {
         if (Thread.currentThread() != thread) {
             throw IllegalStateException("current thread ${Thread.currentThread()} is not equal to creation thread $thread")
@@ -601,6 +602,7 @@ class ShaderGL3(val program: Int,
         }
     }
 
+
     override fun uniform(name: String, value: Vector2) {
         val index = uniformIndex(name)
         if (index != -1) {
@@ -643,6 +645,27 @@ class ShaderGL3(val program: Int,
             postUniformCheck(name, index, value)
         }
     }
+
+    override fun uniform(name: String, value: Array<Matrix44>) {
+        val index = uniformIndex(name)
+        if (index != -1) {
+            logger.trace { "Setting uniform '$name' to $value" }
+
+            val floatValues = FloatArray(value.size * 4 * 4)
+            var offset = 0
+            for (j in value.indices) {
+                val mf = value[j].toFloatArray()
+                for (i in 0 until 16) {
+                    floatValues[offset] = mf[i]
+                    offset++
+                }
+            }
+            glUniformMatrix4fv(index, false, floatValues)
+            postUniformCheck(name, index, value)
+        }
+
+    }
+
 
     override fun uniform(name: String, value: Array<Vector2>) {
         val index = uniformIndex(name)

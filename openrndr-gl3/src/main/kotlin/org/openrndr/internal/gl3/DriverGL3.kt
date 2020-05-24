@@ -416,6 +416,16 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
 
     private fun setupFormat(vertexBuffer: List<VertexBuffer>, instanceAttributes: List<VertexBuffer>, shader: ShaderGL3) {
         debugGLErrors()
+
+        val scalarVectorTypes = setOf(
+                VertexElementType.UINT8, VertexElementType.VECTOR2_UINT8, VertexElementType.VECTOR3_UINT8, VertexElementType.VECTOR4_UINT8,
+                VertexElementType.INT8, VertexElementType.VECTOR2_INT8, VertexElementType.VECTOR3_INT8, VertexElementType.VECTOR4_INT8,
+                VertexElementType.UINT16, VertexElementType.VECTOR2_UINT16, VertexElementType.VECTOR3_UINT16, VertexElementType.VECTOR4_UINT16,
+                VertexElementType.INT16, VertexElementType.VECTOR2_INT16, VertexElementType.VECTOR3_INT16, VertexElementType.VECTOR4_INT16,
+                VertexElementType.UINT32, VertexElementType.VECTOR2_UINT32, VertexElementType.VECTOR3_UINT32, VertexElementType.VECTOR4_UINT32,
+                VertexElementType.INT32, VertexElementType.VECTOR2_INT32, VertexElementType.VECTOR3_INT32, VertexElementType.VECTOR4_INT32,
+                VertexElementType.FLOAT32, VertexElementType.VECTOR2_FLOAT32, VertexElementType.VECTOR3_FLOAT32, VertexElementType.VECTOR4_FLOAT32)
+
         fun setupBuffer(buffer: VertexBuffer, divisor: Int = 0) {
             val prefix = if (divisor == 0) "a" else "i"
             var attributeBindings = 0
@@ -425,7 +435,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
             for (item in format.items) {
                 val attributeIndex = shader.attributeIndex("${prefix}_${item.attribute}")
                 if (attributeIndex != -1) {
-                    if (item.type == VertexElementType.FLOAT32 || item.type == VertexElementType.VECTOR2_FLOAT32 || item.type == VertexElementType.VECTOR3_FLOAT32 || item.type == VertexElementType.VECTOR4_FLOAT32) {
+                    if (item.type in scalarVectorTypes) {
                         for (i in 0 until item.arraySize) {
                             glEnableVertexAttribArray(attributeIndex + i)
                             debugGLErrors {
@@ -435,9 +445,18 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
                                     else -> null
                                 }
                             }
-                            glVertexAttribPointer(attributeIndex + i,
-                                    item.type.componentCount,
-                                    item.type.glType(), false, format.size, item.offset.toLong() + i * item.type.sizeInBytes)
+                            val glType = item.type.glType()
+
+                            if (glType == GL_FLOAT) {
+                                glVertexAttribPointer(attributeIndex + i,
+                                        item.type.componentCount,
+                                        glType, false, format.size, item.offset.toLong() + i * item.type.sizeInBytes)
+                            } else {
+                                glVertexAttribIPointer(attributeIndex + i,
+                                        item.type.componentCount,
+                                        glType, format.size, item.offset.toLong() + i * item.type.sizeInBytes)
+
+                            }
                             debugGLErrors {
                                 when (it) {
                                     GL_INVALID_VALUE -> "index ($attributeIndex) is greater than or equal to GL_MAX_VERTEX_ATTRIBS"
@@ -704,6 +723,14 @@ private fun DrawPrimitive.glType(): Int {
 }
 
 private fun VertexElementType.glType(): Int = when (this) {
+    VertexElementType.UINT8, VertexElementType.VECTOR2_UINT8, VertexElementType.VECTOR3_UINT8, VertexElementType.VECTOR4_UINT8 -> GL_UNSIGNED_BYTE
+    VertexElementType.UINT16, VertexElementType.VECTOR2_UINT16, VertexElementType.VECTOR3_UINT16, VertexElementType.VECTOR4_UINT16 -> GL_UNSIGNED_SHORT
+    VertexElementType.UINT32, VertexElementType.VECTOR2_UINT32, VertexElementType.VECTOR3_UINT32, VertexElementType.VECTOR4_UINT32 -> GL_UNSIGNED_INT
+
+    VertexElementType.INT8, VertexElementType.VECTOR2_INT8, VertexElementType.VECTOR3_INT8, VertexElementType.VECTOR4_INT8 -> GL_BYTE
+    VertexElementType.INT16, VertexElementType.VECTOR2_INT16, VertexElementType.VECTOR3_INT16, VertexElementType.VECTOR4_INT16 -> GL_SHORT
+    VertexElementType.INT32, VertexElementType.VECTOR2_INT32, VertexElementType.VECTOR3_INT32, VertexElementType.VECTOR4_INT32 -> GL_INT
+
     VertexElementType.FLOAT32 -> GL_FLOAT
     VertexElementType.MATRIX22_FLOAT32 -> GL_FLOAT
     VertexElementType.MATRIX33_FLOAT32 -> GL_FLOAT
@@ -711,8 +738,6 @@ private fun VertexElementType.glType(): Int = when (this) {
     VertexElementType.VECTOR2_FLOAT32 -> GL_FLOAT
     VertexElementType.VECTOR3_FLOAT32 -> GL_FLOAT
     VertexElementType.VECTOR4_FLOAT32 -> GL_FLOAT
-    VertexElementType.INT16 -> GL_SHORT
-    VertexElementType.INT32 -> GL_INT
 }
 
 internal fun Matrix44.toFloatArray(): FloatArray = floatArrayOf(

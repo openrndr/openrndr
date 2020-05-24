@@ -51,6 +51,11 @@ open class ShadeStyle {
         parameters[name] = "Matrix44"
     }
 
+    fun parameter(name: String, value: Array<Matrix44>) {
+        parameterValues[name] = value
+        parameters[name] = "Matrix44,${value.size}"
+    }
+
     fun parameter(name: String, value: Float) {
         parameterValues[name] = value
         parameters[name] = "float"
@@ -179,6 +184,18 @@ open class ShadeStyle {
                     ColorSampling.UNSIGNED_INTEGER -> "ColorBuffer_UINT"
                     ColorSampling.SIGNED_INTEGER -> "ColorBuffer_SINT"
                     else -> "ColorBuffer"
+                }
+                is Array<*> -> {
+                    if (value.isNotEmpty()) {
+                        when(value.first()) {
+                            is Matrix44 -> {
+                                "Matrix44, ${value.size}"
+                            }
+                            else -> error("unsupported list type ${(value.first()!!)::class}")
+                        }
+                    } else {
+                        error("empty list")
+                    }
                 }
                 else -> error("unsupported type ${value::class}")
             }

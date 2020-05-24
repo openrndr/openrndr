@@ -42,6 +42,11 @@ class ShaderNullGL(override val session: Session?) : Shader {
 
     }
 
+    override fun uniform(name: String, value: Array<Matrix44>) {
+
+    }
+
+
     override fun uniform(name: String, value: ColorRGBa) {
 
     }

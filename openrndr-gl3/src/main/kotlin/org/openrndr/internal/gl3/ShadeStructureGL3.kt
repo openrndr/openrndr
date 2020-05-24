@@ -28,10 +28,12 @@ fun structureFromShadeStyle(shadeStyle: ShadeStyle?, vertexFormats: List<VertexF
 }
 
 private fun mapType(type: String): String {
-    return when (type) {
+    val tokens = type.split(",")
+    val arraySize = tokens.getOrNull(1)
+    return when (tokens[0]) {
         "Int", "int" -> "int"
         "Matrix33" -> "mat3"
-        "Matrix44" -> "mat4"
+        "Matrix44" -> "mat4${if (arraySize!=null) "[$arraySize]" else ""}"
         "Float", "float" -> "float"
         "Vector2" -> "vec2"
         "Vector3" -> "vec3"
@@ -53,8 +55,14 @@ private fun mapType(type: String): String {
 private val VertexElementType.glslType: String
     get() {
         return when (this) {
-            VertexElementType.INT16 -> "int"
-            VertexElementType.INT32 -> "int"
+            VertexElementType.INT8, VertexElementType.INT16, VertexElementType.INT32 -> "int"
+            VertexElementType.UINT8, VertexElementType.UINT16, VertexElementType.UINT32 -> "uint"
+            VertexElementType.VECTOR2_UINT8, VertexElementType.VECTOR2_UINT16, VertexElementType.VECTOR2_UINT32 -> "uvec2"
+            VertexElementType.VECTOR2_INT8, VertexElementType.VECTOR2_INT16, VertexElementType.VECTOR2_INT32 -> "ivec2"
+            VertexElementType.VECTOR3_UINT8, VertexElementType.VECTOR3_UINT16, VertexElementType.VECTOR3_UINT32 -> "uvec3"
+            VertexElementType.VECTOR3_INT8, VertexElementType.VECTOR3_INT16, VertexElementType.VECTOR3_INT32 -> "ivec3"
+            VertexElementType.VECTOR4_UINT8, VertexElementType.VECTOR4_UINT16, VertexElementType.VECTOR4_UINT32 -> "uvec4"
+            VertexElementType.VECTOR4_INT8, VertexElementType.VECTOR4_INT16, VertexElementType.VECTOR4_INT32 -> "ivec4"
             VertexElementType.FLOAT32 -> "float"
             VertexElementType.VECTOR2_FLOAT32 -> "vec2"
             VertexElementType.VECTOR3_FLOAT32 -> "vec3"

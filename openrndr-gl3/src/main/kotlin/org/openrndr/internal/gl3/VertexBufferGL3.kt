@@ -51,6 +51,10 @@ class VertexBufferGL3(val buffer: Int, override val vertexFormat: VertexFormat, 
     internal var realShadow: VertexBufferShadowGL3? = null
     internal var isDestroyed = false
 
+    override fun toString(): String {
+        return "VertexBufferGL3(vertexFormat: $vertexFormat, vertexCount: $vertexCount, buffer: $buffer, session: $session)"
+    }
+
     companion object {
         fun createDynamic(vertexFormat: VertexFormat, vertexCount: Int, session: Session?): VertexBufferGL3 {
             checkGLErrors() {
