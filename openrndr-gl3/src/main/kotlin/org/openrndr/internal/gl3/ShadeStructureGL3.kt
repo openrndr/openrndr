@@ -14,10 +14,10 @@ fun structureFromShadeStyle(shadeStyle: ShadeStyle?, vertexFormats: List<VertexF
             outputs = shadeStyle.outputs.map { "layout(location = ${it.value}) out vec4 o_${it.key};\n" }.joinToString("")
             uniforms = shadeStyle.parameters.map { "uniform ${mapType(it.value)} p_${it.key};\n" }.joinToString("")
         }
-        varyingOut = vertexFormats.flatMap { it.items }.joinToString("") { "out ${it.type.glslType} va_${it.attribute}${array(it)};\n" } +
-                instanceAttributeFormats.flatMap { it.items }.joinToString("") { "out ${it.type.glslType} vi_${it.attribute}${array(it)};\n" }
-        varyingIn = vertexFormats.flatMap { it.items }.joinToString("") { "in ${it.type.glslType} va_${it.attribute}${array(it)};\n" } +
-                instanceAttributeFormats.flatMap { it.items }.joinToString("") { "in ${it.type.glslType} vi_${it.attribute}${array(it)};\n" }
+        varyingOut = vertexFormats.flatMap { it.items }.joinToString("") { "${it.type.glslVaryingQualifier}out ${it.type.glslType} va_${it.attribute}${array(it)};\n" } +
+                instanceAttributeFormats.flatMap { it.items }.joinToString("") { "${it.type.glslVaryingQualifier}out ${it.type.glslType} vi_${it.attribute}${array(it)};\n" }
+        varyingIn = vertexFormats.flatMap { it.items }.joinToString("") { "${it.type.glslVaryingQualifier}in ${it.type.glslType} va_${it.attribute}${array(it)};\n" } +
+                instanceAttributeFormats.flatMap { it.items }.joinToString("") { "${it.type.glslVaryingQualifier}in ${it.type.glslType} vi_${it.attribute}${array(it)};\n" }
         varyingBridge = vertexFormats.flatMap { it.items }.joinToString("") { "    va_${it.attribute} = a_${it.attribute};\n" } +
                 instanceAttributeFormats.flatMap { it.items }.joinToString("") { "vi_${it.attribute} = i_${it.attribute};\n" }
         attributes = vertexFormats.flatMap { it.items }.joinToString("") { "in ${it.type.glslType} a_${it.attribute}${array(it)};\n" } +
@@ -70,5 +70,20 @@ private val VertexElementType.glslType: String
             VertexElementType.MATRIX22_FLOAT32 -> "mat2"
             VertexElementType.MATRIX33_FLOAT32 -> "mat3"
             VertexElementType.MATRIX44_FLOAT32 -> "mat4"
+        }
+    }
+
+private val VertexElementType.glslVaryingQualifier: String
+    get() {
+        return when (this) {
+            VertexElementType.INT8, VertexElementType.INT16, VertexElementType.INT32 -> "flat "
+            VertexElementType.UINT8, VertexElementType.UINT16, VertexElementType.UINT32 -> "flat "
+            VertexElementType.VECTOR2_UINT8, VertexElementType.VECTOR2_UINT16, VertexElementType.VECTOR2_UINT32 -> "flat "
+            VertexElementType.VECTOR2_INT8, VertexElementType.VECTOR2_INT16, VertexElementType.VECTOR2_INT32 -> "flat "
+            VertexElementType.VECTOR3_UINT8, VertexElementType.VECTOR3_UINT16, VertexElementType.VECTOR3_UINT32 -> "flat "
+            VertexElementType.VECTOR3_INT8, VertexElementType.VECTOR3_INT16, VertexElementType.VECTOR3_INT32 -> "flat "
+            VertexElementType.VECTOR4_UINT8, VertexElementType.VECTOR4_UINT16, VertexElementType.VECTOR4_UINT32 -> "flat "
+            VertexElementType.VECTOR4_INT8, VertexElementType.VECTOR4_INT16, VertexElementType.VECTOR4_INT32 -> "flat "
+            else -> ""
         }
     }
