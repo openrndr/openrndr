@@ -567,14 +567,6 @@ class Drawer(val driver: Driver) {
     }
 
     /**
-     * Draw a single segment
-     * @see contour
-     */
-    fun segment(segment: Segment) {
-        contour(ShapeContour(listOf(segment), false, YPolarity.CW_NEGATIVE_Y))
-    }
-
-    /**
      * Draws a single [ShapeContour] using [fill], [stroke] and [strokeWeight] settings
      */
     fun contour(contour: ShapeContour) {
@@ -687,6 +679,24 @@ class Drawer(val driver: Driver) {
         when (drawStyle.quality) {
             DrawQuality.QUALITY -> meshLineDrawer.drawLineSegments(context, drawStyle, segments, weights, colors)
             DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineSegments(context, drawStyle, segments)
+        }
+    }
+
+    @JvmName("lineSegmentsFromLineSegmentList")
+    fun lineSegments(segments: List<LineSegment>) {
+        when (drawStyle.quality) {
+            DrawQuality.PERFORMANCE -> {
+                // TODO: a faster version would pass `segments` to
+                // fastLineDrawer as is to avoid iterating over the points twice
+                val points = segments.map { it.start } + segments.last().end
+                fastLineDrawer.drawLineSegments(context, drawStyle, points)
+            }
+            DrawQuality.QUALITY -> {
+                val pairs = segments.map {
+                    listOf(it.start, it.end)
+                }
+                qualityLineDrawer.drawLineStrips(context, drawStyle, pairs)
+            }
         }
     }
 
@@ -810,10 +820,26 @@ class Drawer(val driver: Driver) {
     }
 
     /**
+     * Draw a single segment
+     * @see contour
+     */
+    fun segment(segment: Segment) {
+        contour(ShapeContour(listOf(segment), false, YPolarity.CW_NEGATIVE_Y))
+    }
+
+    /**
      * Draws a single 3D segment
      */
     fun segment(segment: Segment3D) {
         lineStrip(segment.sampleAdaptive())
+    }
+
+    /**
+     * Draws a list of 2D segments
+     */
+    @JvmName("segments2d")
+    fun segments(segments: List<Segment>) {
+        lineStrips(segments.map { it.adaptivePositions() })
     }
 
     /**
