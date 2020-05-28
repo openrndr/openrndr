@@ -45,20 +45,26 @@ class MP4Profile : VideoWriterProfile() {
 
     var highPrecisionChroma = true
 
+    val CODEC_LIBX264 = "libx264"
+    val CODEC_H264_NVENC = "h264_nvenc"
+
+    var codec = CODEC_LIBX264
+
     override fun arguments(): Array<String> {
 
         val chromaArguments = if (highPrecisionChroma) {
             arrayOf("-sws_flags", "spline+accurate_rnd+full_chroma_int", "-vf", "vflip, colorspace=bt709:iall=bt601-6-625:fast=1", "-color_range", "1", "-colorspace", "1", "-color_primaries", "1", "-color_trc", "1")
         } else {
+            emptyArray<String>()
             arrayOf("-vf", "vflip")
         }
 
         return when (mode) {
             WriterMode.Normal -> arrayOf("-pix_fmt", "yuv420p", // this will produce videos that are playable by quicktime
-                    "-an", "-vcodec", "libx264", "-crf", "" + constantRateFactor) + chromaArguments
+                    "-an", "-vcodec", codec, "-crf", "" + constantRateFactor) + chromaArguments
             WriterMode.Lossless -> {
                 arrayOf("-pix_fmt", "yuv420p", // this will produce videos that are playable by quicktime
-                        "-an", "-vcodec", "libx264", "-preset", "ultrafast") + chromaArguments
+                        "-an", "-vcodec", codec, "-preset", "llhp") + chromaArguments
             }
         }
     }

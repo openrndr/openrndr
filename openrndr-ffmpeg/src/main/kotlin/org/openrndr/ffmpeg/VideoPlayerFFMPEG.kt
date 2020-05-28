@@ -5,7 +5,6 @@ import mu.KotlinLogging
 import org.bytedeco.ffmpeg.avcodec.AVCodecContext
 import org.bytedeco.ffmpeg.avcodec.AVCodecParameters
 import org.bytedeco.ffmpeg.avformat.AVFormatContext
-import org.bytedeco.ffmpeg.avformat.AVInputFormat
 import org.bytedeco.ffmpeg.avformat.AVStream
 import org.bytedeco.ffmpeg.avutil.AVDictionary
 import org.bytedeco.ffmpeg.avutil.Callback_Pointer_int_String_Pointer
@@ -216,6 +215,9 @@ class VideoPlayerFFMPEG private constructor(
         private val clock: () -> Double = { System.currentTimeMillis() / 1000.0 }) {
 
     private val displayQueue = Queue<VideoFrame>(configuration.displayQueueSize)
+
+    var duration: Double = file.context.duration() / 1E6
+    private set
 
     companion object {
         /**
