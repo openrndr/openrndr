@@ -129,6 +129,11 @@ class Configuration {
      */
     var multisample: WindowMultisample = WindowMultisample.Disabled
 
+    /**
+     * Should the program wait for vertical retrace?
+     */
+
+    var vsync = true
 }
 
 /**

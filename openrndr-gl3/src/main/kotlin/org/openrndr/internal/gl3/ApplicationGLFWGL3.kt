@@ -176,7 +176,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         logger.debug { "creating window" }
 
 
-        val versions = listOf(Pair(4, 3), Pair(3, 3))
+        val versions = listOf(Pair(4, 3), Pair(4,1), Pair(3, 3))
         var versionIndex = 0
         while (window == NULL && versionIndex < versions.size) {
 
@@ -270,13 +270,14 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         logger.debug { "making context current" }
         glfwMakeContextCurrent(window)
 
-        val enableTearControl = false
-        if (enableTearControl && (glfwExtensionSupported("GLX_EXT_swap_control_tear") || glfwExtensionSupported("WGL_EXT_swap_control_tear"))) {
-            glfwSwapInterval(-1)
-        } else {
-            glfwSwapInterval(1)
+        if (configuration.vsync) {
+            val enableTearControl = false
+            if (enableTearControl && (glfwExtensionSupported("GLX_EXT_swap_control_tear") || glfwExtensionSupported("WGL_EXT_swap_control_tear"))) {
+                glfwSwapInterval(-1)
+            } else {
+                glfwSwapInterval(1)
+            }
         }
-
         var readyFrames = 0
 
         glfwSetWindowRefreshCallback(window) {
@@ -373,8 +374,13 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
             glfwWindowHint(GLFW_DEPTH_BITS, 24)
             glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE)
             primaryWindow = glfwCreateWindow(640, 480, title, NULL, NULL)
-
-
+            if (primaryWindow == 0L) {
+                version = DriverVersionGL.VERSION_4_1
+                logger.debug { "falling back to OpenGL 4.1" }
+                glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4)
+                glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1)
+                primaryWindow = glfwCreateWindow(640, 480, title, NULL, NULL)
+            }
             if (primaryWindow == 0L) {
                 version = DriverVersionGL.VERSION_3_3
                 logger.debug { "falling back to OpenGL 3.3" }
@@ -382,12 +388,10 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
                 glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3)
                 primaryWindow = glfwCreateWindow(640, 480, title, NULL, NULL)
             }
-
             if (primaryWindow == 0L) {
                 throw IllegalStateException("primary window could not be created")
             }
             Driver.driver = DriverGL3(version)
-
         }
     }
 
@@ -605,10 +609,12 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED)
         }
 
-        if (glfwExtensionSupported("GLX_EXT_swap_control_tear") || glfwExtensionSupported("WGL_EXT_swap_control_tear")) {
-            glfwSwapInterval(-1)
-        } else {
-            glfwSwapInterval(1)
+        if (configuration.vsync) {
+            if (glfwExtensionSupported("GLX_EXT_swap_control_tear") || glfwExtensionSupported("WGL_EXT_swap_control_tear")) {
+                glfwSwapInterval(-1)
+            } else {
+                glfwSwapInterval(1)
+            }
         }
 
 
