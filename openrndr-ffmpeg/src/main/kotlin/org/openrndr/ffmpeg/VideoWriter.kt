@@ -21,7 +21,7 @@ abstract class VideoWriterProfile {
 
 class MP4Profile : VideoWriterProfile() {
     private var mode = WriterMode.Normal
-    private var constantRateFactor = 23
+    private var constantRateFactor = null as Int?
 
     enum class WriterMode {
         Normal,
@@ -38,7 +38,7 @@ class MP4Profile : VideoWriterProfile() {
      * @param constantRateFactor the constant rate factor (default is 23)
      * @return
      */
-    fun constantRateFactor(constantRateFactor: Int): MP4Profile {
+    fun constantRateFactor(constantRateFactor: Int?): MP4Profile {
         this.constantRateFactor = constantRateFactor
         return this
     }
@@ -48,25 +48,46 @@ class MP4Profile : VideoWriterProfile() {
     val CODEC_LIBX264 = "libx264"
     val CODEC_H264_NVENC = "h264_nvenc"
 
-    var codec = CODEC_LIBX264
+    var videoCodec = CODEC_LIBX264 as String?
+    var hwaccel = null as String?
+    var preset = null as String?
+    var pixelFormat = "yuv420p" as String?
 
     override fun arguments(): Array<String> {
+        val filters = mutableListOf<String>()
+
+        filters.add("vflip")
 
         val chromaArguments = if (highPrecisionChroma) {
-            arrayOf("-sws_flags", "spline+accurate_rnd+full_chroma_int", "-vf", "vflip, colorspace=bt709:iall=bt601-6-625:fast=1", "-color_range", "1", "-colorspace", "1", "-color_primaries", "1", "-color_trc", "1")
+            arrayOf("-sws_flags", "spline+accurate_rnd+full_chroma_int", "-color_range", "1", "-colorspace", "1", "-color_primaries", "1", "-color_trc", "1")
         } else {
-            emptyArray<String>()
-            arrayOf("-vf", "vflip")
+            emptyArray()
         }
 
-        return when (mode) {
-            WriterMode.Normal -> arrayOf("-pix_fmt", "yuv420p", // this will produce videos that are playable by quicktime
-                    "-an", "-vcodec", codec, "-crf", "" + constantRateFactor) + chromaArguments
-            WriterMode.Lossless -> {
-                arrayOf("-pix_fmt", "yuv420p", // this will produce videos that are playable by quicktime
-                        "-an", "-vcodec", codec, "-preset", "llhp") + chromaArguments
-            }
+        if (highPrecisionChroma) {
+            filters.add("colorspace=bt709:iall=bt601-6-625:fast=1")
         }
+
+        val hwaccelArguments = hwaccel?.let { arrayOf("-hwaccel", it) } ?: emptyArray()
+        val pixelFormatArguments = pixelFormat?.let { arrayOf("-pixfmt", it) } ?: emptyArray()
+        val constantRateArguments = constantRateFactor?.let { arrayOf("-crf", it.toString()) } ?: emptyArray()
+        val presetArguments = preset?.let { arrayOf("-preset", it) } ?: emptyArray()
+        val videoCodecArguments = videoCodec?.let { arrayOf("-vcodec", it) } ?: emptyArray()
+        val filterArguments = arrayOf("-vf", filters.joinToString(","))
+
+
+        val arguments = hwaccelArguments + pixelFormatArguments + chromaArguments + filterArguments + videoCodecArguments + constantRateArguments + presetArguments
+
+        return arguments
+
+//        return when (mode) {
+//            WriterMode.Normal -> arrayOf("-pix_fmt", "yuv420p", // this will produce videos that are playable by quicktime
+//                    "-an", "-vcodec", codec, "-crf", "" + constantRateFactor) + chromaArguments
+//            WriterMode.Lossless -> {
+//                arrayOf("-pix_fmt", "yuv420p", // this will produce videos that are playable by quicktime
+//                        "-an", "-vcodec", codec, "-preset", "llhp") + chromaArguments
+//            }
+//        }
     }
 }
 
@@ -257,12 +278,13 @@ class VideoWriter {
             "frame size/format/type mismatch"
         }
         (frameBuffer as Buffer).rewind()
-        frameBuffer.order(ByteOrder.nativeOrder())
+        //frameBuffer.order(ByteOrder.nativeOrder())
         frame.read(frameBuffer)
         (frameBuffer as Buffer).rewind()
         try {
             channel.write(frameBuffer)
-            movieStream!!.flush()
+
+            //movieStream!!.flush()
         } catch (e: IOException) {
             e.printStackTrace()
             throw RuntimeException("failed to write frame", e)
