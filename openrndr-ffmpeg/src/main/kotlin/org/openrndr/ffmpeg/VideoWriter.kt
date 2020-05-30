@@ -69,7 +69,7 @@ class MP4Profile : VideoWriterProfile() {
         }
 
         val hwaccelArguments = hwaccel?.let { arrayOf("-hwaccel", it) } ?: emptyArray()
-        val pixelFormatArguments = pixelFormat?.let { arrayOf("-pixfmt", it) } ?: emptyArray()
+        val pixelFormatArguments = pixelFormat?.let { arrayOf("-pix_fmt", it) } ?: emptyArray()
         val constantRateArguments = constantRateFactor?.let { arrayOf("-crf", it.toString()) } ?: emptyArray()
         val presetArguments = preset?.let { arrayOf("-preset", it) } ?: emptyArray()
         val videoCodecArguments = videoCodec?.let { arrayOf("-vcodec", it) } ?: emptyArray()
