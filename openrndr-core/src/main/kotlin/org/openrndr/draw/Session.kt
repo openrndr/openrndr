@@ -11,7 +11,7 @@ private val sessionStack = mutableMapOf<Long, Stack<Session>>()
 /**
  * Session statistics
  */
-class SessionStatistics(val renderTargets: Int, val colorBuffers: Int, val depthBuffers: Int, val bufferTextures: Int, val indexBuffers: Int, val vertexBuffers: Int, val shaders: Int, val cubemaps: Int, val arrayTextures: Int, val computeShaders: Int, val atomicCounterBuffers: Int)
+class SessionStatistics(val renderTargets: Int, val colorBuffers: Int, val depthBuffers: Int, val bufferTextures: Int, val indexBuffers: Int, val vertexBuffers: Int, val shaders: Int, val cubemaps: Int, val arrayTextures: Int, val computeShaders: Int, val atomicCounterBuffers: Int, val arrayCubemaps : Int)
 
 /**
  * Session
@@ -58,6 +58,7 @@ class Session(val parent: Session?) {
     private val computeShaders = mutableSetOf<ComputeShader>()
     private val cubemaps = mutableSetOf<Cubemap>()
     private val arrayTextures = mutableSetOf<ArrayTexture>()
+    private val arrayCubemaps = mutableSetOf<ArrayCubemap>()
     private val indexBuffers = mutableSetOf<IndexBuffer>()
 
     private val atomicCounterBuffers = mutableSetOf<AtomicCounterBuffer>()
@@ -75,7 +76,8 @@ class Session(val parent: Session?) {
                     cubemaps = cubemaps.size,
                     arrayTextures = arrayTextures.size,
                     computeShaders = computeShaders.size,
-                    atomicCounterBuffers = atomicCounterBuffers.size)
+                    atomicCounterBuffers = atomicCounterBuffers.size,
+            arrayCubemaps = arrayCubemaps.size)
 
     fun track(renderTarget: RenderTarget) = renderTargets.add(renderTarget)
     fun untrack(renderTarget: RenderTarget) = renderTargets.remove(renderTarget)
@@ -109,6 +111,9 @@ class Session(val parent: Session?) {
 
     fun track(atomicCounterBuffer: AtomicCounterBuffer) = atomicCounterBuffers.add(atomicCounterBuffer)
     fun untrack(atomicCounterBuffer: AtomicCounterBuffer) = atomicCounterBuffers.remove(atomicCounterBuffer)
+
+    fun track(arrayCubemap: ArrayCubemap) = arrayCubemaps.add(arrayCubemap)
+    fun untrack(arrayCubemap: ArrayCubemap ) = arrayCubemaps.remove(arrayCubemap)
 
     /**
      * Fork the session
@@ -145,6 +150,7 @@ class Session(val parent: Session?) {
                 destroying ${arrayTextures.size} array textures
                 destroying ${computeShaders.size} compute shaders
                 destroying ${atomicCounterBuffers.size} atomic counter buffers
+                destroying ${arrayCubemaps.size} array cubemaps
             """.trimIndent()
         }
 
@@ -199,6 +205,11 @@ class Session(val parent: Session?) {
             it.destroy()
         }
         arrayTextures.clear()
+
+        arrayCubemaps.map { it }.forEach {
+            it.destroy()
+        }
+        arrayCubemaps.clear()
     }
 }
 

@@ -27,6 +27,10 @@ class RenderTargetNullGL(override val width: Int, override val height: Int, over
         TODO("Not yet implemented")
     }
 
+    override fun attach(arrayCubemap: ArrayCubemap, side: CubemapSide, layer: Int, level: Int) {
+
+    }
+
     override fun detachColorBuffers() {
         colorBuffers.clear()
     }

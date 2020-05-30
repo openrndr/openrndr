@@ -1,21 +1,31 @@
 package org.openrndr.internal.gl3
 
-import org.lwjgl.opengl.GL11C
 import org.lwjgl.opengl.GL33C.*
 import org.openrndr.draw.*
 import org.openrndr.internal.gl3.dds.loadDDS
 import java.net.URL
 import java.nio.Buffer
 import java.nio.ByteBuffer
+import kotlin.math.ceil
+import kotlin.math.log
 import kotlin.math.pow
 
-class CubemapGL3(val texture: Int, override val width: Int, val sides: List<ColorBuffer>, override val type: ColorType, override val format: ColorFormat, override val session: Session?) : Cubemap {
+class CubemapGL3(val texture: Int, override val width: Int, val sides: List<ColorBuffer>, override val type: ColorType, override val format: ColorFormat, levels: Int, override val session: Session?) : Cubemap {
 
+    override var levels = levels
+        private set(value:Int) {
+            if (field != value) {
+                field = value
+                bound {
+                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, levels - 1)
+                }
+            }
+        }
 
     private var destroyed = false
 
     companion object {
-        fun create(width: Int, format: ColorFormat, type: ColorType, session: Session?): CubemapGL3 {
+        fun create(width: Int, format: ColorFormat, type: ColorType, levels: Int, session: Session? = Session.active): CubemapGL3 {
             val textures = IntArray(1)
             glGenTextures(textures)
             glActiveTexture(GL_TEXTURE0)
@@ -25,12 +35,16 @@ class CubemapGL3(val texture: Int, override val width: Int, val sides: List<Colo
             val effectiveHeight = width
             val internalFormat = internalFormat(format, type)
             val sides = mutableListOf<ColorBufferGL3>()
-            for (i in 0..5) {
-                val nullBB: ByteBuffer? = null
-                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalFormat, effectiveWidth, effectiveHeight, 0, format.glFormat(), type.glType(), nullBB)
-                sides.add(ColorBufferGL3(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, textures[0], width, width, 1.0, format, type, 1, BufferMultisample.Disabled, session))
+
+            for (level in 0 until levels) {
+                val div = 1 shl level
+                for (i in 0..5) {
+                    val nullBB: ByteBuffer? = null
+                    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, level, internalFormat, effectiveWidth / div, effectiveHeight / div, 0, format.glFormat(), type.glType(), nullBB)
+                    sides.add(ColorBufferGL3(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, textures[0], width, width, 1.0, format, type, 1, BufferMultisample.Disabled, session))
+                }
             }
-            return CubemapGL3(textures[0], width, sides, type, format, session)
+            return CubemapGL3(textures[0], width, sides, type, format, levels, session)
         }
 
         fun fromUrl(url: String, session: Session?): CubemapGL3 {
@@ -90,11 +104,14 @@ class CubemapGL3(val texture: Int, override val width: Int, val sides: List<Colo
                     }
                     checkGLErrors()
                 }
+                var generateMipmaps = null as Int?
                 if (data.mipmaps == 1) {
                     glGenerateMipmap(GL_TEXTURE_CUBE_MAP)
+                    generateMipmaps = ceil(log(data.width.toDouble(), 2.0)).toInt()
                     checkGLErrors()
                 }
-                return CubemapGL3(textures[0], data.width, sides, data.type, data.format, session)
+                return CubemapGL3(textures[0], data.width, sides, data.type, data.format, generateMipmaps
+                        ?: data.mipmaps, session)
             } else {
                 throw RuntimeException("only dds files can be loaded through a single url")
             }
@@ -118,17 +135,18 @@ class CubemapGL3(val texture: Int, override val width: Int, val sides: List<Colo
                 glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + index, 0, internalFormat, data.width, data.height, 0, data.format.glFormat(), data.type.glType(), nullBB)
                 sides.add(ColorBufferGL3(GL_TEXTURE_CUBE_MAP_POSITIVE_X + index, textures[0], data.width, data.width, 1.0, data.format, data.type, 1, BufferMultisample.Disabled, session))
             }
-            return CubemapGL3(textures[0], sides[0].width, sides, sides[0].type, sides[0].format, session)
+            return CubemapGL3(textures[0], sides[0].width, sides, sides[0].type, sides[0].format, 0, session)
         }
     }
 
-    internal fun format() : Int {
+    internal fun format(): Int {
         return internalFormat(format, type)
     }
 
     override fun generateMipmaps() {
         bound {
             glGenerateMipmap(GL_TEXTURE_CUBE_MAP)
+            levels = ceil(log(width.toDouble(), 2.0)).toInt()
         }
     }
 
@@ -143,6 +161,56 @@ class CubemapGL3(val texture: Int, override val width: Int, val sides: List<Colo
         return sides[side.ordinal]
     }
 
+    override fun copyTo(target: ArrayCubemap, layer: Int, fromLevel: Int, toLevel: Int) {
+        require(!destroyed)
+        val fromDiv = 1 shl fromLevel
+        val toDiv = 1 shl toLevel
+        for (side in CubemapSide.values()) {
+            val readTarget = renderTarget(width / fromDiv, width / fromDiv) {
+                colorBuffer(side(side), fromLevel)
+            } as RenderTargetGL3
+
+            target as ArrayCubemapGL4
+            readTarget.bind()
+            glReadBuffer(GL_COLOR_ATTACHMENT0)
+            target.bound {
+                glCopyTexSubImage3D(target.target, toLevel, 0, 0, layer * 6 + side.ordinal, 0, 0, target.width / toDiv, target.width / toDiv)
+                debugGLErrors()
+            }
+            readTarget.unbind()
+            readTarget.detachColorBuffers()
+            readTarget.destroy()
+        }
+    }
+
+    override fun copyTo(target: Cubemap, fromLevel: Int, toLevel: Int) {
+        debugGLErrors()
+
+        require(!destroyed)
+        val fromDiv = 1 shl fromLevel
+        val toDiv = 1 shl toLevel
+        for (side in CubemapSide.values()) {
+            val readTarget = renderTarget(width / fromDiv, width / fromDiv) {
+                colorBuffer(side(side), fromLevel)
+                debugGLErrors()
+            } as RenderTargetGL3
+
+            target as CubemapGL3
+            readTarget.bind()
+            glReadBuffer(GL_COLOR_ATTACHMENT0)
+            debugGLErrors()
+
+            target.bound {
+                glCopyTexSubImage2D((target.side(side) as ColorBufferGL3).target, toLevel, 0, 0, 0, 0, target.width / toDiv, target.width / toDiv)
+                debugGLErrors()
+            }
+            readTarget.unbind()
+            readTarget.detachColorBuffers()
+            readTarget.destroy()
+        }
+    }
+
+
     override fun bind(textureUnit: Int) {
         if (!destroyed) {
             glActiveTexture(GL_TEXTURE0 + textureUnit)
@@ -154,7 +222,7 @@ class CubemapGL3(val texture: Int, override val width: Int, val sides: List<Colo
 
     override fun destroy() {
         if (!destroyed) {
-            GL11C.glDeleteTextures(texture)
+            glDeleteTextures(texture)
             Session.active.untrack(this)
             destroyed = true
         }

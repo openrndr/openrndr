@@ -189,6 +189,23 @@ open class RenderTargetGL3(val framebuffer: Int,
         attach(arrayTexture, layer, level)
     }
 
+
+    override fun attach(arrayCubemap: ArrayCubemap, side: CubemapSide, layer: Int, level: Int) {
+        require(!destroyed)
+        val context = glfwGetCurrentContext()
+        val effectiveWidth = (width * contentScale).toInt()
+        if (!(arrayCubemap.width == effectiveWidth && arrayCubemap.width == effectiveHeight)) {
+            throw IllegalArgumentException("buffer dimension mismatch. expected: ($effectiveWidth x $effectiveHeight), got: (${arrayCubemap.width} x ${arrayCubemap.width}")
+        }
+        arrayCubemap as ArrayCubemapGL4
+        glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + attachements, arrayCubemap.texture, level, layer * 6 + side.ordinal)
+        debugGLErrors { null }
+        attachements++
+
+        if (active[context]?.peek() != null)
+            (active[context]?.peek() as RenderTargetGL3).bindTarget()
+    }
+
     override fun attach(arrayTexture: ArrayTexture, layer: Int, level: Int) {
         require(!destroyed)
         val context = glfwGetCurrentContext()

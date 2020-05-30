@@ -66,6 +66,7 @@ interface Driver {
 
     fun createRenderTarget(width: Int, height: Int, contentScale: Double = 1.0, multisample: BufferMultisample = BufferMultisample.Disabled, session: Session? = Session.active): RenderTarget
 
+    fun createArrayCubemap(width: Int, layers: Int, format: ColorFormat, type: ColorType, levels: Int = 1, session: Session? = Session.active): ArrayCubemap
 
     fun createArrayTexture(width: Int, height: Int, layers: Int, format: ColorFormat, type: ColorType, levels: Int = 1, session: Session? = Session.active): ArrayTexture
     fun createAtomicCounterBuffer(counterCount: Int, session: Session? = Session.active): AtomicCounterBuffer
@@ -80,7 +81,7 @@ interface Driver {
     fun createDepthBuffer(width: Int, height: Int, format: DepthFormat, multisample: BufferMultisample = BufferMultisample.Disabled, session: Session? = Session.active): DepthBuffer
     fun createBufferTexture(elementCount: Int, format: ColorFormat, type: ColorType, session: Session? = Session.active): BufferTexture
 
-    fun createCubemap(width: Int, format: ColorFormat, type: ColorType, session: Session? = Session.active): Cubemap
+    fun createCubemap(width: Int, format: ColorFormat, type: ColorType, levels: Int, session: Session? = Session.active): Cubemap
     fun createCubemapFromUrls(urls: List<String>, session: Session? = Session.active): Cubemap
 
     fun createResourceThread(session: Session? = Session.active, f: () -> Unit): ResourceThread

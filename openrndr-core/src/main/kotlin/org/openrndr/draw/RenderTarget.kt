@@ -30,6 +30,7 @@ interface RenderTarget {
     fun attach(depthBuffer: DepthBuffer)
     fun attach(name: String, arrayTexture: ArrayTexture, layer: Int, level: Int = 0)
     fun attach(arrayTexture: ArrayTexture, layer: Int, level: Int = 0)
+    fun attach(arrayCubemap: ArrayCubemap, side: CubemapSide, layer: Int, level: Int = 0)
 
     fun detachColorBuffers()
     fun detachDepthBuffer()
@@ -102,6 +103,9 @@ class RenderTargetBuilder(private val renderTarget: RenderTarget) {
         renderTarget.attach(arrayTexture, layer, level)
     }
 
+    fun arrayCubemap(arrayCubemap: ArrayCubemap, side: CubemapSide, layer: Int, level: Int = 0) {
+        renderTarget.attach(arrayCubemap, side, layer, level)
+    }
 
     fun depthBuffer(format: DepthFormat = DepthFormat.DEPTH24_STENCIL8) {
         renderTarget.attach(_depthBuffer(renderTarget.effectiveWidth, renderTarget.effectiveHeight, format, renderTarget.multisample))

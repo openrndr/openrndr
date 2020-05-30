@@ -53,7 +53,7 @@ class BufferWriterNullGL : BufferWriter {
     override fun write(a: FloatArray, offset: Int, size: Int) {
     }
 
-    override fun copyBuffer(buffer: ByteBuffer, sourceOffset: Int, sourceSizeInBytes: Int) {
+    override fun copyBuffer(sourceBuffer: ByteBuffer, sourceOffset: Int, sourceSizeInBytes: Int) {
 
     }
 

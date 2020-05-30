@@ -109,11 +109,22 @@ open class ShadeStyle {
         }
     }
 
+    fun parameter(name: String, value: ArrayCubemap) {
+        parameterValues[name] = value
+        parameters[name] = when (value.type.colorSampling) {
+            ColorSampling.UNSIGNED_INTEGER -> "ArrayTexture_UINT"
+            ColorSampling.SIGNED_INTEGER -> "ArrayTexture_SINT"
+            else -> "ArrayCubemap"
+        }
+    }
+
 
     fun parameter(name: String, value: BufferTexture) {
         parameterValues[name] = value
         parameters[name] = "BufferTexture"
     }
+
+
 
     fun output(name: String, slot: Int) {
         outputs[name] = slot
@@ -179,6 +190,11 @@ open class ShadeStyle {
                     ColorSampling.UNSIGNED_INTEGER -> "ArrayTexture_UINT"
                     ColorSampling.SIGNED_INTEGER -> "ArrayTexture_SINT"
                     else -> "ArrayTexture"
+                }
+                is ArrayCubemap -> when (value.type.colorSampling) {
+                    ColorSampling.UNSIGNED_INTEGER -> "ArrayTexture_UINT"
+                    ColorSampling.SIGNED_INTEGER -> "ArrayTexture_SINT"
+                    else -> "ArrayCubemap"
                 }
                 is ColorBuffer -> when (value.type.colorSampling) {
                     ColorSampling.UNSIGNED_INTEGER -> "ColorBuffer_UINT"

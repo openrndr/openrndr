@@ -14,26 +14,26 @@ class ShadeStyleManagerGL3(name: String,
     private var defaultShader: Shader? = null
     private val shaders = mutableMapOf<ShadeStructure, Shader>()
 
-    override fun shader(style: ShadeStyle?, vertexFormats: List<VertexFormat>, inputInstanceFormats: List<VertexFormat>): Shader {
-        val instanceFormats = inputInstanceFormats + (style?.attributes
+    override fun shader(style: ShadeStyle?, vertexFormats: List<VertexFormat>, instanceFormats: List<VertexFormat>): Shader {
+        val outputInstanceFormats = instanceFormats + (style?.attributes
                 ?: emptyList<VertexBuffer>()).map { it.vertexFormat }
 
         if (style == null) {
             if (defaultShader == null) {
                 logger.debug { "creating default shader" }
-                val structure = structureFromShadeStyle(style, vertexFormats, instanceFormats)
+                val structure = structureFromShadeStyle(style, vertexFormats, outputInstanceFormats)
                 defaultShader = Shader.createFromCode(vertexShaderGenerator(structure), fragmentShaderGenerator(structure), "shade-style-default:$name", Session.root)
                 (defaultShader as ShaderGL3).userShader = false
             }
             return defaultShader!!
         } else {
-            val structure = structureFromShadeStyle(style, vertexFormats, instanceFormats)
+            val structure = structureFromShadeStyle(style, vertexFormats, outputInstanceFormats)
             val shader = shaders.getOrPut(structure) {
                 try {
                     Shader.createFromCode(vertexShaderGenerator(structure), fragmentShaderGenerator(structure), "shade-style-custom:$name-${structure.hashCode()}", Session.root)
                 } catch (e: Throwable) {
                     if (System.getProperties().containsKey("org.openrndr.ignoreShadeStyleErrors")) {
-                        shader(null, vertexFormats, instanceFormats)
+                        shader(null, vertexFormats, outputInstanceFormats)
                     } else {
                         throw e
                     }
@@ -79,10 +79,16 @@ class ShadeStyleManagerGL3(name: String,
                         shader.uniform("p_${it.key}", textureIndex)
                         textureIndex++
                     }
+                    is ArrayCubemap -> {
+                        value.bind(textureIndex)
+                        shader.uniform("p_${it.key}", textureIndex)
+                        textureIndex++
+                    }
                     is Array<*> -> {
                         require(value.isNotEmpty())
-                        when(val v = value.first()!!) {
+                        when(value.first()!!) {
                             is Matrix44 -> {
+                                @Suppress("UNCHECKED_CAST")
                                 shader.uniform("p_${it.key}", value as Array<Matrix44>)
                             }
                         }

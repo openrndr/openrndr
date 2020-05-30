@@ -31,6 +31,10 @@ class DriverNullGL: Driver {
         return RenderTargetNullGL(width, height, contentScale, multisample, session)
     }
 
+    override fun createArrayCubemap(width: Int, layers: Int, format: ColorFormat, type: ColorType, levels: Int, session: Session?): ArrayCubemap {
+        TODO("Not yet implemented")
+    }
+
     override fun createArrayTexture(width: Int, height: Int, layers: Int, format: ColorFormat, type: ColorType, levels: Int, session: Session?): ArrayTexture {
         TODO("Not yet implemented")
     }
@@ -71,9 +75,10 @@ class DriverNullGL: Driver {
         TODO("Not yet implemented")
     }
 
-    override fun createCubemap(width: Int, format: ColorFormat, type: ColorType, session: Session?): Cubemap {
+    override fun createCubemap(width: Int, format: ColorFormat, type: ColorType, levels: Int, session: Session?): Cubemap {
         TODO("Not yet implemented")
     }
+
 
     override fun createCubemapFromUrls(urls: List<String>, session: Session?): Cubemap {
         TODO("Not yet implemented")

@@ -45,6 +45,7 @@ private fun mapType(type: String): String {
         "ColorBuffer_SINT" -> "isampler2D"
         "DepthBuffer" -> "sampler2D"
         "Cubemap" -> "samplerCube"
+        "ArrayCubemap" -> "samplerCubeArray"
         "ArrayTexture" -> "sampler2DArray"
         "ArrayTexture_UINT" -> "usampler2DArray"
         "ArrayTexture_SINT" -> "isampler2DArray"

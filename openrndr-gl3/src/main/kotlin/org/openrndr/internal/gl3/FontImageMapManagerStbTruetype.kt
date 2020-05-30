@@ -17,34 +17,8 @@ import java.nio.ByteOrder
 
 private val logger = KotlinLogging.logger {}
 
-class FontImageMapManagerGL3 : FontMapManager() {
-
-    internal val fontMaps = mutableMapOf<String, FontImageMap>()
-    val standard = charArrayOf(
-            'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
-            'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
-            'ë', 'ä', 'ö', 'ü', 'ï', 'ÿ', 'Ë', 'Ä', 'Ö', 'Ü', 'Ï', 'Ÿ', 'ñ', 'Ñ', 'ç', 'Ç', 'ø', 'Ø', 'é', 'á', 'ó', 'í', 'ú', 'É', 'Á', 'Ó',
-            'Í', 'Ú', 'è', 'à', 'ò', 'ì', 'ù', 'È', 'À', 'Ò', 'Ì', 'Ù', 'â', 'ê', 'î', 'û', 'ô', 'Â', 'Ê', 'Î', 'Û', 'Ô', 'œ', 'Œ', 'æ', 'Æ',
-            'Ą', 'Ć', 'Ę', 'Ł', 'Ń', 'Ó', 'Ś', 'Ż', 'Ź', 'ą', 'ć', 'ę', 'ł', 'ń', 'ó', 'ś', 'ż', 'ź',
-            '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0',
-            '!', '?', '¿', '¡', '…', '.', ',', ' ', ':', ';', '&', '#', '№', '“', '”', '‘', '’', '`',
-            '¤', '€', '$', '£', '‒', '-', '—', '–', '_', '·', '•', '°', '@', '^', '*', '«', '»', '/',
-            '\\', '"', '\'', '+', '=', '÷', '~', '%', '(', ')', '[', ']', '{', '}', '<', '>', '|', '✕')
-
-
-    val cyrillic = charArrayOf(
-            'А', 'а', 'Б', 'б', 'В', 'в', 'Г', 'г', 'Д', 'д', 'Е', 'е', 'Ё', 'ё', 'Ж', 'ж', 'З', 'з', 'И', 'и', 'Й', 'й',
-            'К', 'к', 'Л', 'л', 'М', 'м', 'Н', 'н', 'О', 'о', 'П', 'п', 'Р', 'р', 'С', 'с', 'Т', 'т', 'У', 'у', 'Ф', 'ф',
-            'Х', 'х', 'Ц', 'ц', 'Ч', 'ч', 'Ш', 'ш', 'Щ', 'щ', 'Ъ', 'ъ', 'Ы', 'ы', 'Ь', 'ь', 'Э', 'э', 'Ю', 'ю', 'Я', 'я',
-            'І', 'і', 'Ў', 'ў', 'Ґ', 'ґ', 'Ї', 'ї',	'Й', 'й'
-    )
-
-    val alphabet = standard + cyrillic
-
-    override fun fontMapFromUrl(url: String, size: Double, contentScale: Double): FontImageMap {
-
-        checkGLErrors()
-
+class FontImageMapManagerStbTruetype : FontMapManager() {
+    override fun fontMapFromUrl(url: String, size: Double, characterSet: Set<Char>, contentScale: Double): FontImageMap {
         logger.debug { "content scale $contentScale" }
         var packSize = 256
 
@@ -70,7 +44,7 @@ class FontImageMapManagerGL3 : FontMapManager() {
             throw RuntimeException("font error")
         }
 
-        val scale = (stbtt_ScaleForPixelHeight(info, (size * contentScale).toFloat())).toFloat()
+        val scale = (stbtt_ScaleForPixelHeight(info, (size * contentScale).toFloat()))
 
         @Suppress("VARIABLE_WITH_REDUNDANT_INITIALIZER") var ascent = 0.0
         @Suppress("VARIABLE_WITH_REDUNDANT_INITIALIZER") var descent = 0.0
@@ -87,14 +61,14 @@ class FontImageMapManagerGL3 : FontMapManager() {
             lineGap = pLineGap.get(0) * scale * 1.0
         }
 
-        val glyphIndices = alphabet.associate { Pair(it, stbtt_FindGlyphIndex(info, it.toInt())) }
-        val glyphDimensions = alphabet.associate { c ->
+        val glyphIndices = defaultFontmapCharacterSet.associate { Pair(it, stbtt_FindGlyphIndex(info, it.toInt())) }
+        val glyphDimensions = defaultFontmapCharacterSet.associate { c ->
             stackPush().use {
-                val px0 = it.mallocInt(1);
-                val py0 = it.mallocInt(1);
-                val px1 = it.mallocInt(1);
+                val px0 = it.mallocInt(1)
+                val py0 = it.mallocInt(1)
+                val px1 = it.mallocInt(1)
                 val py1 = it.mallocInt(1)
-                stbtt_GetGlyphBitmapBoxSubpixel(info, glyphIndices[c]!!, scale, scale, 0.0f, 0.0f, px0, py0, px1, py1)
+                stbtt_GetGlyphBitmapBoxSubpixel(info, glyphIndices.getValue(c), scale, scale, 0.0f, 0.0f, px0, py0, px1, py1)
                 Pair(c, IntVector2(px1.get() - px0.get(), py1.get() - py0.get()))
             }
         }
@@ -144,12 +118,12 @@ class FontImageMapManagerGL3 : FontMapManager() {
                 var x1 = 0
                 var y1 = 0
                 stackPush().use { stack ->
-                    val px0 = stack.mallocInt(1);
-                    val py0 = stack.mallocInt(1);
-                    val px1 = stack.mallocInt(1);
+                    val px0 = stack.mallocInt(1)
+                    val py0 = stack.mallocInt(1)
+                    val px1 = stack.mallocInt(1)
                     val py1 = stack.mallocInt(1)
                     stbtt_GetGlyphBitmapBoxSubpixel(info, glyphIndex, scale, scale, 0.0f, 0.0f, px0, py0, px1, py1)
-                    x0 = px0.get(0); y0 = py0.get(0); x1 = px1.get(0); y1 = py1.get(0);
+                    x0 = px0.get(0); y0 = py0.get(0); x1 = px1.get(0); y1 = py1.get(0)
                 }
                 val ascale = scale / contentScale
                 glyphMetrics[it.key] = GlyphMetrics(advanceWidth * ascale, leftBearing * ascale, x0.toDouble(), y0.toDouble())
@@ -160,16 +134,15 @@ class FontImageMapManagerGL3 : FontMapManager() {
             }
         }
         logger.debug { "uploading bitmap to colorbuffer" }
-        image as ColorBufferGL3
         (bitmap as Buffer).rewind()
         image.write(bitmap)
 
         val leading = ascent - descent + lineGap
         return FontImageMap(image, map, glyphMetrics, size, contentScale, ascent / contentScale, descent / contentScale, (ascent + descent) / contentScale, leading / contentScale, url).apply {
-            for (outer in standard) {
-                for (inner in standard) {
-                    val outerGlyph = glyphIndices.get(outer)
-                    val innerGlyph = glyphIndices.get(inner)
+            for (outer in characterSet) {
+                for (inner in characterSet) {
+                    val outerGlyph = glyphIndices[outer]
+                    val innerGlyph = glyphIndices[inner]
                     if (outerGlyph != null && innerGlyph != null) {
                         val kernInfo = stbtt_GetGlyphKernAdvance(info, outerGlyph, innerGlyph)
                         kerningTable[CharacterPair(outer, inner)] = kernInfo * (scale/contentScale)

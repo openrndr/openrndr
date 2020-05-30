@@ -22,9 +22,10 @@ import java.util.*
 private val logger = KotlinLogging.logger {}
 internal val useDebugContext = System.getProperty("org.openrndr.gl3.debug") != null
 
-enum class DriverVersionGL {
-    VERSION_3_3,
-    VERSION_4_3
+enum class DriverVersionGL(val glslVersion:String) {
+    VERSION_3_3("330 core"),
+    VERSION_4_1("410 core"),
+    VERSION_4_3("430 core")
 }
 
 class DriverGL3(val version: DriverVersionGL) : Driver {
@@ -82,12 +83,12 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         logger.trace { "initializing DriverGL3" }
     }
 
-    private var fontImageMapManagerInstance: FontImageMapManagerGL3? = null
+    private var fontImageMapManagerInstance: FontImageMapManagerStbTruetype? = null
 
     override val fontImageMapManager: FontMapManager
         get() {
             if (fontImageMapManagerInstance == null) {
-                fontImageMapManagerInstance = FontImageMapManagerGL3()
+                fontImageMapManagerInstance = FontImageMapManagerStbTruetype()
             }
             return fontImageMapManagerInstance!!
         }
@@ -171,9 +172,9 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         return bufferTexture
     }
 
-    override fun createCubemap(width: Int, format: ColorFormat, type: ColorType, session: Session?): Cubemap {
+    override fun createCubemap(width: Int, format: ColorFormat, type: ColorType, levels: Int, session: Session?): Cubemap {
         logger.trace { "creating cubemap $width" }
-        val cubemap = CubemapGL3.create(width, format, type, session)
+        val cubemap = CubemapGL3.create(width, format, type, levels, session)
         session?.track(cubemap)
         return cubemap
     }
@@ -196,6 +197,13 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
             session?.track(renderTarget)
             return renderTarget
         }
+    }
+
+    override fun createArrayCubemap(width: Int, layers: Int, format: ColorFormat, type: ColorType, levels: Int, session: Session?): ArrayCubemap {
+        logger.trace { "creating array texture" }
+        val arrayTexture = ArrayCubemapGL4.create(width, layers, format, type, levels, session)
+        session?.track(arrayTexture)
+        return arrayTexture
     }
 
     override fun createColorBuffer(width: Int, height: Int, contentScale: Double, format: ColorFormat, type: ColorType, multisample: BufferMultisample, levels: Int, session: Session?): ColorBuffer {
