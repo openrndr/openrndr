@@ -76,9 +76,12 @@ class FontImageMap(val texture: ColorBuffer,
 }
 
 fun Program.loadFont(fileOrUrl: String, size: Double, characterSet: Set<Char> = defaultFontmapCharacterSet, contentScale: Double = this.drawer.context.contentScale): FontImageMap {
+
+    val activeSet = if (characterSet.contains(' ')) characterSet else (characterSet + ' ')
+
     return try {
         URL(fileOrUrl)
-        FontImageMap.fromUrl(fileOrUrl, size, characterSet, contentScale)
+        FontImageMap.fromUrl(fileOrUrl, size, activeSet, contentScale)
     } catch (e: MalformedURLException) {
         val file = File(fileOrUrl)
         require(file.exists()) {
@@ -87,14 +90,15 @@ fun Program.loadFont(fileOrUrl: String, size: Double, characterSet: Set<Char> = 
         require(file.extension.toLowerCase() in setOf("ttf", "otf")) {
             "failed to load font: file '${file.absolutePath}' is not a .ttf or .otf file"
         }
-        FontImageMap.fromFile(fileOrUrl, size, characterSet, contentScale)
+        FontImageMap.fromFile(fileOrUrl, size, activeSet, contentScale)
     }
 }
 
 fun loadFont(fileOrUrl: String, size: Double, characterSet: Set<Char> = defaultFontmapCharacterSet, contentScale: Double = 1.0): FontImageMap {
+    val activeSet = if (characterSet.contains(' ')) characterSet else (characterSet + ' ')
     return try {
         URL(fileOrUrl)
-        FontImageMap.fromUrl(fileOrUrl, size, characterSet, contentScale)
+        FontImageMap.fromUrl(fileOrUrl, size, activeSet, contentScale)
     } catch (e: MalformedURLException) {
         val file = File(fileOrUrl)
         require(file.exists()) {
@@ -103,7 +107,7 @@ fun loadFont(fileOrUrl: String, size: Double, characterSet: Set<Char> = defaultF
         require(file.extension.toLowerCase() in setOf("ttf", "otf")) {
             "failed to load font: file '${file.absolutePath}' is not a .ttf or .otf file"
         }
-        FontImageMap.fromFile(fileOrUrl, size, characterSet, contentScale)
+        FontImageMap.fromFile(fileOrUrl, size, activeSet, contentScale)
     }
 }
 

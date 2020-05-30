@@ -61,8 +61,8 @@ class FontImageMapManagerStbTruetype : FontMapManager() {
             lineGap = pLineGap.get(0) * scale * 1.0
         }
 
-        val glyphIndices = defaultFontmapCharacterSet.associate { Pair(it, stbtt_FindGlyphIndex(info, it.toInt())) }
-        val glyphDimensions = defaultFontmapCharacterSet.associate { c ->
+        val glyphIndices = characterSet.associate { Pair(it, stbtt_FindGlyphIndex(info, it.toInt())) }
+        val glyphDimensions = characterSet.associate { c ->
             stackPush().use {
                 val px0 = it.mallocInt(1)
                 val py0 = it.mallocInt(1)
