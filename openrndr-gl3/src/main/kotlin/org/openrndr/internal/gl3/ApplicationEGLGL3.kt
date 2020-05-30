@@ -10,6 +10,7 @@ import org.openrndr.Configuration
 import org.openrndr.PresentationMode
 import org.openrndr.Program
 import org.openrndr.draw.Drawer
+import org.openrndr.draw.renderTarget
 import org.openrndr.internal.Driver
 import org.openrndr.math.Vector2
 
@@ -107,6 +108,13 @@ class ApplicationEGLGL3(private val program: Program, private val configuration:
     }
 
     override fun loop() {
+
+        val defaultRenderTarget = renderTarget(configuration.width, configuration.height) {
+            colorBuffer()
+            depthBuffer()
+        }
+        defaultRenderTarget.bind()
+
         while (!exitRequested) {
             glBindVertexArray(vaos[0])
             program.drawer.reset()
@@ -125,7 +133,7 @@ class ApplicationEGLGL3(private val program: Program, private val configuration:
         get() = Vector2.ZERO
         set(value) {}
     override var windowSize: Vector2
-        get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
+        get() = Vector2(configuration.width.toDouble(), configuration.height.toDouble())
         set(value) {}
     override val seconds: Double
         get() = (System.currentTimeMillis() - startTime) / 1000.0
