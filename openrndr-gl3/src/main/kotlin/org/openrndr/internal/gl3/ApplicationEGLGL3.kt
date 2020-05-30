@@ -14,7 +14,7 @@ import org.openrndr.internal.Driver
 import org.openrndr.math.Vector2
 
 @Suppress("UNUSED_PARAMETER")
-class ApplicationEGLGL3(private val program: Program, private val configuration: Configuration):Application() {
+class ApplicationEGLGL3(private val program: Program, private val configuration: Configuration) : Application() {
 
     override var cursorVisible: Boolean = false
 
@@ -28,6 +28,7 @@ class ApplicationEGLGL3(private val program: Program, private val configuration:
     private val vaos = IntArray(1)
 
     init {
+        program.application = this
         driver = DriverGL3(DriverVersionGL.VERSION_3_3)
         Driver.driver = driver
     }
@@ -54,55 +55,55 @@ class ApplicationEGLGL3(private val program: Program, private val configuration:
 
         println("EGL version ${major[0]}.${minor[0]}")
 
-         stackPush().use {
-             val configCount = it.mallocInt(1)
+        stackPush().use {
+            val configCount = it.mallocInt(1)
 
-             val attributes = it.ints(EGL_SURFACE_TYPE, EGL_PBUFFER_BIT,
-                     EGL_BLUE_SIZE, 8,
-                     EGL_GREEN_SIZE, 8,
-                     EGL_RED_SIZE, 8,
-                     EGL_DEPTH_SIZE, 24,
-                     EGL_STENCIL_SIZE, 8,
-                     EGL_RENDERABLE_TYPE, EGL_OPENGL_BIT,
-                     EGL_NONE)
+            val attributes = it.ints(EGL_SURFACE_TYPE, EGL_PBUFFER_BIT,
+                    EGL_BLUE_SIZE, 8,
+                    EGL_GREEN_SIZE, 8,
+                    EGL_RED_SIZE, 8,
+                    EGL_DEPTH_SIZE, 24,
+                    EGL_STENCIL_SIZE, 8,
+                    EGL_RENDERABLE_TYPE, EGL_OPENGL_BIT,
+                    EGL_NONE)
 
-             if (!eglChooseConfig(display, attributes, null, configCount)) {
-                 throw RuntimeException("${eglGetError()}")
-             }
+            if (!eglChooseConfig(display, attributes, null, configCount)) {
+                throw RuntimeException("${eglGetError()}")
+            }
 
-             println("number of configs found : ${configCount[0]}")
-             val configs = it.mallocPointer(configCount[0])
-             eglChooseConfig(display, attributes, configs, configCount)
+            println("number of configs found : ${configCount[0]}")
+            val configs = it.mallocPointer(configCount[0])
+            eglChooseConfig(display, attributes, configs, configCount)
 
-             val surface = eglCreatePbufferSurface(display, configs[0], attributes)
+            val surface = eglCreatePbufferSurface(display, configs[0], attributes)
 
-             eglBindAPI(EGL_OPENGL_API)
-             val EGL_CONTEXT_FLAGS = 0x30FC
+            eglBindAPI(EGL_OPENGL_API)
+            val EGL_CONTEXT_FLAGS = 0x30FC
 
-             val contextAttributes = it.ints(
-                     EGL_CONTEXT_MAJOR_VERSION, 3,
-                     EGL_CONTEXT_MINOR_VERSION, 3,
-                     EGL_CONTEXT_FLAGS, EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT,
-                     EGL_NONE)
+            val contextAttributes = it.ints(
+                    EGL_CONTEXT_MAJOR_VERSION, 3,
+                    EGL_CONTEXT_MINOR_VERSION, 3,
+                    EGL_CONTEXT_FLAGS, EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT,
+                    EGL_NONE)
 
-             val context = eglCreateContext(display, configs[0], EGL_NO_CONTEXT,contextAttributes)
-             println("context: $context")
-             println("client api ${eglQueryString(display, EGL_CLIENT_APIS)}" )
-             eglMakeCurrent(display, surface, surface, context)
-             GL.createCapabilities()
-             println("${glGetString(GL_VENDOR)}")
-             println( "opengl version: ${glGetString(GL_VERSION)}" )
+            val context = eglCreateContext(display, configs[0], EGL_NO_CONTEXT, contextAttributes)
+            println("context: $context")
+            println("client api ${eglQueryString(display, EGL_CLIENT_APIS)}")
+            eglMakeCurrent(display, surface, surface, context)
+            GL.createCapabilities()
+            println("${glGetString(GL_VENDOR)}")
+            println("opengl version: ${glGetString(GL_VERSION)}")
 
-             glGenVertexArrays(vaos)
-             glBindVertexArray(vaos[0])
+            glGenVertexArrays(vaos)
+            glBindVertexArray(vaos[0])
 
-             startTime = System.currentTimeMillis()
-             val defaultRenderTarget = ProgramRenderTargetGL3(program)
-             defaultRenderTarget.bind()
-             program.drawer = Drawer(driver)
-             program.setup()
+            startTime = System.currentTimeMillis()
+            val defaultRenderTarget = ProgramRenderTargetGL3(program)
+            defaultRenderTarget.bind()
+            program.drawer = Drawer(driver)
+            program.setup()
 
-         }
+        }
     }
 
     override fun loop() {
@@ -110,7 +111,7 @@ class ApplicationEGLGL3(private val program: Program, private val configuration:
             glBindVertexArray(vaos[0])
             program.drawer.reset()
             program.drawer.ortho()
-            program.draw()
+            program.drawImpl()
         }
     }
 
@@ -127,7 +128,7 @@ class ApplicationEGLGL3(private val program: Program, private val configuration:
         get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
         set(value) {}
     override val seconds: Double
-        get() = (System.currentTimeMillis()-startTime)/1000.0
+        get() = (System.currentTimeMillis() - startTime) / 1000.0
     override var presentationMode: PresentationMode
         get() = PresentationMode.AUTOMATIC
         set(value) {}
