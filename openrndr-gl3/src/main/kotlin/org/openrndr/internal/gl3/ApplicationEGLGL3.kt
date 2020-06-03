@@ -108,7 +108,6 @@ class ApplicationEGLGL3(private val program: Program, private val configuration:
     }
 
     override fun loop() {
-
         val defaultRenderTarget = renderTarget(configuration.width, configuration.height) {
             colorBuffer()
             depthBuffer()

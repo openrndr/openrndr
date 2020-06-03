@@ -178,6 +178,8 @@ class VideoPlayerConfiguration {
     var maximumSeekOffset = 0.0
     var legacyStreamOpen = false
     var allowArbitrarySeek = false
+    var synchronizeToClock = true
+    var displayQueueCooldown = 10
     /**
      * Maximum time in seconds it may take before a new packet is received
      */
@@ -522,13 +524,13 @@ class VideoPlayerFFMPEG private constructor(
                     }
 
 
-                    if (now - nextFrame > duration * 2) {
+                    if (now - nextFrame > duration * 2 && configuration.synchronizeToClock) {
                         logger.debug {
                             "resetting next frame time"
                         }
                         nextFrame = now
                     }
-                    if (now >= nextFrame) {
+                    if (now >= nextFrame || !configuration.synchronizeToClock) {
                         val frame = decoder.nextVideoFrame()
                         if (frame != null) {
                             nextFrame += 1.0 / duration
@@ -537,7 +539,7 @@ class VideoPlayerFFMPEG private constructor(
                                 logger.debug {
                                     "display queue is full (${displayQueue.size()} / ${displayQueue.maxSize})"
                                 }
-                                Thread.sleep(10)
+                                Thread.sleep(configuration.displayQueueCooldown.toLong())
                             }
                             synchronized(displayQueue) {
                                 if (!frame.buffer.isNull) {
@@ -618,6 +620,7 @@ class VideoPlayerFFMPEG private constructor(
 
             synchronized(displayQueue) {
                 if (!configuration.allowFrameSkipping) {
+
                     val frame = displayQueue.peek()
                     if (frame != null) {
                         displayQueue.pop()
