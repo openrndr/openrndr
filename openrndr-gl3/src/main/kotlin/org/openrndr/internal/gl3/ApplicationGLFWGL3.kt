@@ -432,6 +432,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
 
 
         var lastDragPosition = Vector2.ZERO
+        var lastMouseButtonDown = MouseButton.NONE
         var globalModifiers = setOf<KeyModifier>()
 
         glfwSetKeyCallback(window) { _, key, scancode, action, mods ->
@@ -554,6 +555,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
             if (action == GLFW_PRESS) {
                 down = true
                 lastDragPosition = program.mouse.position
+                lastMouseButtonDown = mouseButton
                 program.mouse.buttonDown.trigger(
                         MouseEvent(program.mouse.position, Vector2.ZERO, Vector2.ZERO, MouseEventType.BUTTON_DOWN, mouseButton, modifiers)
                 )
@@ -577,7 +579,8 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
             realCursorPosition = position
             program.mouse.moved.trigger(MouseEvent(position, Vector2.ZERO, Vector2.ZERO, MouseEventType.MOVED, MouseButton.NONE, globalModifiers))
             if (down) {
-                program.mouse.dragged.trigger(MouseEvent(position, Vector2.ZERO, position - lastDragPosition, MouseEventType.DRAGGED, MouseButton.NONE, globalModifiers))
+                program.mouse.dragged.trigger(MouseEvent(position, Vector2.ZERO, position - lastDragPosition,
+                        MouseEventType.DRAGGED, lastMouseButtonDown, globalModifiers))
                 lastDragPosition = position
             }
         }
