@@ -15,6 +15,7 @@ import org.lwjgl.stb.STBIWriteCallback
 import org.lwjgl.stb.STBImage
 import org.lwjgl.stb.STBImageWrite
 import org.lwjgl.system.MemoryUtil
+import org.lwjgl.system.MemoryUtil.*
 import org.lwjgl.util.tinyexr.EXRChannelInfo
 import org.lwjgl.util.tinyexr.EXRHeader
 import org.lwjgl.util.tinyexr.EXRImage
@@ -30,6 +31,7 @@ import java.net.URL
 import java.nio.Buffer
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import java.nio.ShortBuffer
 import java.util.*
 
 internal data class ConversionEntry(val format: ColorFormat, val type: ColorType, val glFormat: Int)
@@ -536,24 +538,23 @@ class ColorBufferDataGL3(val width: Int, val height: Int, val format: ColorForma
             (buffer as Buffer).rewind()
             buffer.put(byteArray)
             (buffer as Buffer).rewind()
-            return fromByteBuffer(buffer, name)
+            return fromByteBuffer(buffer, name, formatHint)
         }
 
         fun fromArray(bytes: ByteArray, offset: Int = 0, length: Int = bytes.size, name: String? = null, formatHint: ImageFileFormat? = null): ColorBufferDataGL3 {
             val buffer = ByteBuffer.allocateDirect(length)
             buffer.put(bytes, offset, length)
-            return fromByteBuffer(buffer, name)
+            return fromByteBuffer(buffer, name, formatHint)
         }
 
         fun fromByteBuffer(buffer: ByteBuffer, name: String? = null, formatHint: ImageFileFormat? = null): ColorBufferDataGL3 {
-
-            var likelyFormat = ImageFileFormat.PNG
+            var assumedFormat = ImageFileFormat.PNG
 
             if (formatHint != null) {
-                likelyFormat = formatHint
+                assumedFormat = formatHint
             }
 
-            if (likelyFormat == ImageFileFormat.PNG || likelyFormat == ImageFileFormat.JPG) {
+            if (assumedFormat == ImageFileFormat.PNG || assumedFormat == ImageFileFormat.JPG) {
                 val wa = IntArray(1)
                 val ha = IntArray(1)
                 val ca = IntArray(1)
@@ -561,137 +562,196 @@ class ColorBufferDataGL3(val width: Int, val height: Int, val format: ColorForma
                 STBImage.stbi_set_flip_vertically_on_load(true)
                 STBImage.stbi_set_unpremultiply_on_load(false)
 
-                val data = STBImage.stbi_load_from_memory(buffer, wa, ha, ca, 0)
-                if (data != null) {
+                val bitsPerChannel = if (assumedFormat == ImageFileFormat.PNG) {
+                    if (STBImage.stbi_is_16_bit_from_memory(buffer)) {
+                        16
+                    } else {
+                        8
+                    }
+                } else {
+                    8
+                }
+                (buffer as Buffer).rewind()
+
+                val targetType: ColorType
+                val mask: Int
+                val alphaOffset = 3
+                val redOffset = 0
+                val greenOffset = 1
+                val blueOffset = 2
+                when (bitsPerChannel) {
+                    8 -> {
+                        targetType = ColorType.UINT8
+                        mask = 0xff
+                    }
+                    16 -> {
+                        targetType = ColorType.UINT16
+                        mask = 0xffff
+                    }
+                    else -> error("unsupported bits per channel: $bitsPerChannel")
+                }
+
+                val (data8, data16) = when (bitsPerChannel) {
+                    8 -> Pair(STBImage.stbi_load_from_memory(buffer, wa, ha, ca, 0), null as ShortBuffer?)
+                    16 -> Pair(null as ByteBuffer?, STBImage.stbi_load_16_from_memory(buffer, wa, ha, ca, 0))
+                    else -> error("unsupported bits per channel: $bitsPerChannel")
+                }
+
+                if (data8 != null) {
                     var offset = 0
                     if (ca[0] == 4) {
                         for (y in 0 until ha[0]) {
                             for (x in 0 until wa[0]) {
-                                val a = (data.get(offset + 3).toInt() and 0xff).toDouble() / 255.0
-                                val r = ((data.get(offset).toInt() and 0xff) * a).toByte()
-                                val g = ((data.get(offset + 1).toInt() and 0xff) * a).toByte()
-                                val b = ((data.get(offset + 2).toInt() and 0xff) * a).toByte()
-
-                                data.put(offset, r)
-                                data.put(offset + 1, g)
-                                data.put(offset + 2, b)
+                                val a = (data8.get(offset + alphaOffset).toInt() and mask).toDouble() / mask.toDouble()
+                                val r = ((data8.get(offset + redOffset).toInt() and mask) * a)
+                                val g = ((data8.get(offset + greenOffset).toInt() and mask) * a)
+                                val b = ((data8.get(offset + blueOffset).toInt() and mask) * a)
+                                data8.put(offset + redOffset, r.toByte())
+                                data8.put(offset + greenOffset, g.toByte())
+                                data8.put(offset + blueOffset, b.toByte())
                                 offset += 4
                             }
                         }
                     }
                 }
 
-                if (data != null) {
-                    return ColorBufferDataGL3(wa[0], ha[0],
-                            when (ca[0]) {
-                                1 -> ColorFormat.R
-                                2 -> ColorFormat.RG
-                                3 -> ColorFormat.RGB
-                                4 -> ColorFormat.RGBa
-                                else -> throw Exception("invalid component count ${ca[0]}")
-                            }
-                            , ColorType.UINT8, data) { b -> STBImage.stbi_image_free(b) }
-                } else {
-                    throw RuntimeException("failed to load image ${name ?: ("unknown image")}")
-                }
-            } else if (likelyFormat == ImageFileFormat.EXR) {
-                val exrHeader = EXRHeader.create()
-                val exrVersion = EXRVersion.create()
-                val versionResult = ParseEXRVersionFromMemory(exrVersion, buffer)
-                (buffer as Buffer).rewind()
-
-                if (versionResult != TINYEXR_SUCCESS) {
-                    error("failed to get version")
-                }
-
-                val errors = PointerBuffer.allocateDirect(1)
-
-                val parseResult = ParseEXRHeaderFromMemory(exrHeader, exrVersion, buffer, errors)
-                if (parseResult != TINYEXR_SUCCESS) {
-                    error("failed to parse file")
-                }
-
-                for (i in 0 until exrHeader.num_channels()) {
-                    exrHeader.requested_pixel_types().put(i, exrHeader.pixel_types().get(i))
-                }
-
-                val exrImage = EXRImage.create()
-                InitEXRImage(exrImage)
-
-
-                LoadEXRImageFromMemory(exrImage, exrHeader, buffer, errors)
-
-                val format =
-                        when (val c = exrImage.num_channels()) {
-                            1 -> ColorFormat.R
-                            3 -> ColorFormat.RGB
-                            4 -> ColorFormat.RGBa
-                            else -> error("unsupported number of channels $c")
-                        }
-
-                val type = when (val t = exrHeader.requested_pixel_types().get(0)) {
-                    TINYEXR_PIXELTYPE_HALF -> ColorType.FLOAT16
-                    TINYEXR_PIXELTYPE_FLOAT -> ColorType.FLOAT32
-                    else -> error("unsupported pixel type [type=$t]")
-                }
-
-                val height = exrImage.height()
-                val width = exrImage.width()
-                val channels = exrImage.num_channels()
-
-                val data = ByteBuffer.allocateDirect(format.componentCount * type.componentSize * exrImage.width() * exrImage.height()).order(ByteOrder.nativeOrder())
-                val channelNames = (0 until exrHeader.num_channels()).map { exrHeader.channels().get(it).nameString() }
-                val images = exrImage.images()!!
-                val channelImages = (0 until exrHeader.num_channels()).map { images.getByteBuffer(it, width * height * type.componentSize) }
-
-
-                val order = when (format) {
-                    ColorFormat.R -> listOf("R").map { channelNames.indexOf(it) }
-                    ColorFormat.RGB -> listOf("B", "G", "R").map { channelNames.indexOf(it) }
-                    ColorFormat.RGBa -> listOf("B", "G", "R", "A").map { channelNames.indexOf(it) }
-                    else -> error("unsupported channel layout")
-                }
-                require(order.none { it == -1 }) { "some channels are not found" }
-
-                val orderedImages = order.map { channelImages[it] }
-                orderedImages.forEach { (it as Buffer).rewind() }
-
-                for (y in 0 until exrImage.height()) {
-                    val offset = (height - 1 - y) * format.componentCount * type.componentSize * width
-                    (data as Buffer).position(offset)
-                    for (x in 0 until exrImage.width()) {
-                        for (c in 0 until channels) {
-                            for (i in 0 until type.componentSize) {
-                                data.put(orderedImages[c].get())
+                if (data16 != null) {
+                    var offset = 0
+                    if (ca[0] == 4) {
+                        for (y in 0 until ha[0]) {
+                            for (x in 0 until wa[0]) {
+                                val a = (data16.get(offset + alphaOffset).toInt() and mask).toDouble() / mask.toDouble()
+                                val r = ((data16.get(offset + redOffset).toInt() and mask) * a)
+                                val g = ((data16.get(offset + greenOffset).toInt() and mask) * a)
+                                val b = ((data16.get(offset + blueOffset).toInt() and mask) * a)
+                                data16.put(offset + redOffset, r.toShort())
+                                data16.put(offset + greenOffset, g.toShort())
+                                data16.put(offset + blueOffset, b.toShort())
+                                offset += 4
                             }
                         }
                     }
                 }
-                (data as Buffer).rewind()
 
-                FreeEXRHeader(exrHeader)
-                FreeEXRImage(exrImage)
-                return ColorBufferDataGL3(exrImage.width(), exrImage.height(), format, type, data)
-            } else {
-                error("format not supported")
-            }
-        }
+                val copyData = (data8?.let { memAlloc(it.capacity()) } ?: data16?.let { memAlloc(it.capacity() * 2) })
+                        ?: error("alloc failed")
 
-        fun fromFile(filename: String): ColorBufferDataGL3 {
-            val file = File(filename)
+                val source = data8?.let { memAddress(it) } ?: data16?.let { memAddress(it) } ?: error("get address failed")
+                val dest = memAddress(copyData)
+                memCopy(source, dest, copyData.capacity().toLong())
 
-            val byteArray = file.readBytes()
-            if (byteArray.isEmpty()) {
-                throw RuntimeException("read 0 bytes from stream $filename")
-            }
-            val buffer = BufferUtils.createByteBuffer(byteArray.size)
+                data8?.let { STBImage.stbi_image_free(it) }
+                data16?.let { STBImage.stbi_image_free(it) }
+
+                return ColorBufferDataGL3(wa[0], ha[0],
+                        when (ca[0]) {
+                            1 -> ColorFormat.R
+                            2 -> ColorFormat.RG
+                            3 -> ColorFormat.RGB
+                            4 -> ColorFormat.RGBa
+                            else -> throw Exception("invalid component count ${ca[0]}")
+                        },
+                        targetType, copyData) { b -> memFree(b) }
+
+        } else if (assumedFormat == ImageFileFormat.EXR) {
+            val exrHeader = EXRHeader.create()
+            val exrVersion = EXRVersion.create()
+            val versionResult = ParseEXRVersionFromMemory(exrVersion, buffer)
             (buffer as Buffer).rewind()
-            buffer.put(byteArray)
-            (buffer as Buffer).rewind()
 
-            return fromByteBuffer(buffer, filename, formatHint = ImageFileFormat.guessFromExtension(file))
+            if (versionResult != TINYEXR_SUCCESS) {
+                error("failed to get version")
+            }
+
+            val errors = PointerBuffer.allocateDirect(1)
+
+            val parseResult = ParseEXRHeaderFromMemory(exrHeader, exrVersion, buffer, errors)
+            if (parseResult != TINYEXR_SUCCESS) {
+                error("failed to parse file")
+            }
+
+            for (i in 0 until exrHeader.num_channels()) {
+                exrHeader.requested_pixel_types().put(i, exrHeader.pixel_types().get(i))
+            }
+
+            val exrImage = EXRImage.create()
+            InitEXRImage(exrImage)
+
+
+            LoadEXRImageFromMemory(exrImage, exrHeader, buffer, errors)
+
+            val format =
+                    when (val c = exrImage.num_channels()) {
+                        1 -> ColorFormat.R
+                        3 -> ColorFormat.RGB
+                        4 -> ColorFormat.RGBa
+                        else -> error("unsupported number of channels $c")
+                    }
+
+            val type = when (val t = exrHeader.requested_pixel_types().get(0)) {
+                TINYEXR_PIXELTYPE_HALF -> ColorType.FLOAT16
+                TINYEXR_PIXELTYPE_FLOAT -> ColorType.FLOAT32
+                else -> error("unsupported pixel type [type=$t]")
+            }
+
+            val height = exrImage.height()
+            val width = exrImage.width()
+            val channels = exrImage.num_channels()
+
+            val data = ByteBuffer.allocateDirect(format.componentCount * type.componentSize * exrImage.width() * exrImage.height()).order(ByteOrder.nativeOrder())
+            val channelNames = (0 until exrHeader.num_channels()).map { exrHeader.channels().get(it).nameString() }
+            val images = exrImage.images()!!
+            val channelImages = (0 until exrHeader.num_channels()).map { images.getByteBuffer(it, width * height * type.componentSize) }
+
+
+            val order = when (format) {
+                ColorFormat.R -> listOf("R").map { channelNames.indexOf(it) }
+                ColorFormat.RGB -> listOf("B", "G", "R").map { channelNames.indexOf(it) }
+                ColorFormat.RGBa -> listOf("B", "G", "R", "A").map { channelNames.indexOf(it) }
+                else -> error("unsupported channel layout")
+            }
+            require(order.none { it == -1 }) { "some channels are not found" }
+
+            val orderedImages = order.map { channelImages[it] }
+            orderedImages.forEach { (it as Buffer).rewind() }
+
+            for (y in 0 until exrImage.height()) {
+                val offset = (height - 1 - y) * format.componentCount * type.componentSize * width
+                (data as Buffer).position(offset)
+                for (x in 0 until exrImage.width()) {
+                    for (c in 0 until channels) {
+                        for (i in 0 until type.componentSize) {
+                            data.put(orderedImages[c].get())
+                        }
+                    }
+                }
+            }
+            (data as Buffer).rewind()
+
+            FreeEXRHeader(exrHeader)
+            FreeEXRImage(exrImage)
+            return ColorBufferDataGL3(exrImage.width(), exrImage.height(), format, type, data)
+        } else
+        {
+            error("format not supported")
         }
     }
+
+    fun fromFile(filename: String): ColorBufferDataGL3 {
+        val file = File(filename)
+
+        val byteArray = file.readBytes()
+        if (byteArray.isEmpty()) {
+            throw RuntimeException("read 0 bytes from stream $filename")
+        }
+        val buffer = BufferUtils.createByteBuffer(byteArray.size)
+        (buffer as Buffer).rewind()
+        buffer.put(byteArray)
+        (buffer as Buffer).rewind()
+
+        return fromByteBuffer(buffer, filename, formatHint = ImageFileFormat.guessFromExtension(file))
+    }
+}
 }
 
 @Suppress("MemberVisibilityCanBePrivate")
@@ -1003,9 +1063,16 @@ class ColorBufferGL3(val target: Int,
     var realShadow: ColorBufferShadow? = null
 
     override fun write(buffer: ByteBuffer, sourceFormat: ColorFormat, sourceType: ColorType, level: Int) {
+        val div = 1 shl level
         checkDestroyed()
         if (!buffer.isDirect) {
             throw IllegalArgumentException("buffer is not a direct buffer.")
+        }
+        if (!sourceType.compressed) {
+            val bytesNeeded = sourceFormat.componentCount * sourceType.componentSize * (effectiveWidth / div) * (effectiveHeight / div)
+            require(bytesNeeded <= buffer.remaining()) {
+                "write requires $bytesNeeded bytes, buffer only has ${buffer.remaining()} bytes left, buffer capacity is ${buffer.capacity()}"
+            }
         }
 
         if (multisample == Disabled) {
@@ -1019,7 +1086,7 @@ class ColorBufferGL3(val target: Int,
                 val currentPack = intArrayOf(0)
                 glGetIntegerv(GL_UNPACK_ALIGNMENT, currentPack)
                 glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
-                val div = 1 shl level
+
                 if (sourceType.compressed) {
                     glCompressedTexSubImage2D(target, level, 0, 0, width / div, height / div, compressedType(sourceFormat, sourceType), buffer)
                     debugGLErrors {
@@ -1331,6 +1398,7 @@ internal fun ColorType.glType(): Int {
         ColorType.BPTC_UNORM, ColorType.BPTC_FLOAT, ColorType.BPTC_UFLOAT -> throw RuntimeException("gl type of compressed types cannot be queried")
     }
 }
+
 
 internal fun compressedType(format: ColorFormat, type: ColorType): Int {
     when (format) {
