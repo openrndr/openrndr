@@ -500,7 +500,7 @@ class VideoPlayerFFMPEG private constructor(
                     nextFrame = 0.0
                 }
 
-                while (true) {
+                while (!disposed) {
                     if (seekRequested) {
                         logger.debug { "performing seek" }
                         synchronized(displayQueue) {
@@ -553,7 +553,11 @@ class VideoPlayerFFMPEG private constructor(
                     }
                     Thread.sleep(3)
                 }
+                logger.debug {
+                    """display thread ended"""
+                }
             }
+
         }
         state = State.PLAYING
     }

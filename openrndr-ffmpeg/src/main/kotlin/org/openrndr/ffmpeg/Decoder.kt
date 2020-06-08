@@ -150,6 +150,9 @@ internal class Decoder(private val statistics: VideoStatistics,
             decodeIfNeeded()
             Thread.sleep(0)
         }
+        logger.debug {
+            "decoder loop ended"
+        }
     }
 
     fun restart() {
@@ -171,6 +174,7 @@ internal class Decoder(private val statistics: VideoStatistics,
             ?: true)
 
     fun dispose() {
+        logger.debug { "disposing decoder" }
         disposed = true
         videoDecoder?.dispose()
         audioDecoder?.dispose()
@@ -210,7 +214,7 @@ internal class Decoder(private val statistics: VideoStatistics,
         }
 
         var packetsReceived = 0
-        while (needMoreFrames()) {
+        while (needMoreFrames() && !disposed) {
             if (videoDecoder?.isQueueAlmostFull() == true) {
                 logger.warn { "video queue is almost full. [video queue: ${videoDecoder?.queueCount()}, audio queue: ${audioDecoder?.queueCount()}]" }
                 Thread.sleep(100)
