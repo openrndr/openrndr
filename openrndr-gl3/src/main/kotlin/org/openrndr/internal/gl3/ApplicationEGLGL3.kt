@@ -9,6 +9,8 @@ import org.openrndr.Application
 import org.openrndr.Configuration
 import org.openrndr.PresentationMode
 import org.openrndr.Program
+import org.openrndr.animatable.Animatable
+import org.openrndr.animatable.Clock
 import org.openrndr.draw.Drawer
 import org.openrndr.draw.renderTarget
 import org.openrndr.internal.Driver
@@ -99,6 +101,16 @@ class ApplicationEGLGL3(private val program: Program, private val configuration:
             glBindVertexArray(vaos[0])
 
             startTime = System.currentTimeMillis()
+
+
+            Animatable.clock(object : Clock {
+                override val time: Long
+                    get() = (program.seconds * 1E3).toLong()
+                override val timeNanos: Long
+                    get() = (program.seconds * 1E6).toLong()
+            })
+
+
             val defaultRenderTarget = ProgramRenderTargetGL3(program)
             defaultRenderTarget.bind()
             program.drawer = Drawer(driver)
