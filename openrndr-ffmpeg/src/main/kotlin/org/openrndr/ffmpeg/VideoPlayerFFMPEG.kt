@@ -180,6 +180,7 @@ class VideoPlayerConfiguration {
     var allowArbitrarySeek = false
     var synchronizeToClock = true
     var displayQueueCooldown = 10
+
     /**
      * Maximum time in seconds it may take before a new packet is received
      */
@@ -219,9 +220,20 @@ class VideoPlayerFFMPEG private constructor(
     private val displayQueue = Queue<VideoFrame>(configuration.displayQueueSize)
 
     var duration: Double = file.context.duration() / 1E6
-    private set
+        private set
 
     companion object {
+        // Setting optimized for screen recording, with lower latency
+        private val screenRecordingConfiguration = VideoPlayerConfiguration()
+        init {
+            screenRecordingConfiguration.let {
+                it.videoFrameQueueSize = 5
+                it.packetQueueSize = 1250
+                it.displayQueueSize = 2
+                it.synchronizeToClock = false
+            }
+        }
+
         /**
          * Lists the available machine-specific device names
          */
@@ -368,15 +380,51 @@ class VideoPlayerFFMPEG private constructor(
          */
         fun defaultDevice(): String {
             return when (Platform.type) {
-                PlatformType.WINDOWS -> {
-                    "Integrated Webcam"
-                }
-                PlatformType.MAC -> {
-                    "0"
-                }
-                PlatformType.GENERIC -> {
-                    "/dev/video0"
-                }
+                PlatformType.WINDOWS -> "Integrated Webcam"
+                PlatformType.MAC -> "0"
+                PlatformType.GENERIC -> "/dev/video0"
+            }
+        }
+
+        /**
+         * Opens the screen for grabbing frames
+         * See https://trac.ffmpeg.org/wiki/Capture/Desktop
+         * @param screenName a machine-specific device name
+         *   Windows: "desktop" or "title=window_title"
+         *   Mac:     something like "1:0"
+         *   Linux:   run `echo $DISPLAY` to find out
+         * @param mode which streams should be opened and played
+         *   Reserved for future use, in case we want grabbing audio
+         * @param frameRate optional frame rate (in Hz)
+         * @param imageWidth optional image width
+         * @param imageHeight optional image height
+         * @param configuration optional video player configuration
+         * @return a ready-to-play video player on success
+         */
+        fun fromScreen(screenName: String = defaultScreenDevice(),
+                       mode: PlayMode = PlayMode.VIDEO,
+                       frameRate: Double? = null,
+                       imageWidth: Int? = null,
+                       imageHeight: Int? = null,
+                       configuration: VideoPlayerConfiguration = screenRecordingConfiguration)
+                : VideoPlayerFFMPEG {
+            val (format, properDeviceName) = when (Platform.type) {
+                PlatformType.WINDOWS -> ("gdigrab" to screenName)
+                PlatformType.MAC -> ("avfoundation" to screenName)
+                PlatformType.GENERIC -> ("x11grab" to screenName)
+            }
+            val file = AVFile(configuration, properDeviceName, mode, format, frameRate, imageWidth, imageHeight)
+            return VideoPlayerFFMPEG(file, mode, configuration)
+        }
+
+        /**
+         * Returns machine-specific default device
+         */
+        fun defaultScreenDevice(): String {
+            return when (Platform.type) {
+                PlatformType.WINDOWS -> "desktop"
+                PlatformType.MAC -> "1:0"
+                PlatformType.GENERIC -> ":1"
             }
         }
     }
@@ -520,7 +568,7 @@ class VideoPlayerFFMPEG private constructor(
 
 
                     if (state == State.PAUSED) {
-                        nextFrame = now+0.001
+                        nextFrame = now + 0.001
                     }
 
 
