@@ -52,6 +52,7 @@ class MP4Profile : VideoWriterProfile() {
     var hwaccel = null as String?
     var preset = null as String?
     var pixelFormat = "yuv420p" as String?
+    var userArguments = emptyArray<String>()
 
     override fun arguments(): Array<String> {
         val filters = mutableListOf<String>()
@@ -76,7 +77,7 @@ class MP4Profile : VideoWriterProfile() {
         val filterArguments = arrayOf("-vf", filters.joinToString(","))
 
 
-        val arguments = hwaccelArguments + pixelFormatArguments + chromaArguments + filterArguments + videoCodecArguments + constantRateArguments + presetArguments
+        val arguments = hwaccelArguments + pixelFormatArguments + chromaArguments + filterArguments + videoCodecArguments + constantRateArguments + presetArguments + userArguments
 
         return arguments
 
@@ -148,6 +149,7 @@ class X265Profile : VideoWriterProfile() {
 
 class VideoWriter {
     internal var ffmpegOutput = File("ffmpegOutput.txt")
+    private var stopped = false
 
     private var frameRate = 25
     private var width = -1
@@ -273,21 +275,25 @@ class VideoWriter {
      * @param frame a ColorBuffer (RGBA, 8bit) holding the image data to be written to the video. The ColorBuffer should have the same resolution as the VideoWriter.
      */
     fun frame(frame: ColorBuffer): VideoWriter {
-        val frameBytes = frame.width * frame.height * frame.format.componentCount * frame.type.componentSize
-        require(frameBytes == frameBuffer.capacity()) {
-            "frame size/format/type mismatch"
-        }
-        (frameBuffer as Buffer).rewind()
-        //frameBuffer.order(ByteOrder.nativeOrder())
-        frame.read(frameBuffer)
-        (frameBuffer as Buffer).rewind()
-        try {
-            channel.write(frameBuffer)
+        if (!stopped) {
+            val frameBytes = frame.width * frame.height * frame.format.componentCount * frame.type.componentSize
+            require(frameBytes == frameBuffer.capacity()) {
+                "frame size/format/type mismatch"
+            }
+            (frameBuffer as Buffer).rewind()
+            //frameBuffer.order(ByteOrder.nativeOrder())
+            frame.read(frameBuffer)
+            (frameBuffer as Buffer).rewind()
+            try {
+                channel.write(frameBuffer)
 
-            //movieStream!!.flush()
-        } catch (e: IOException) {
-            e.printStackTrace()
-            throw RuntimeException("failed to write frame", e)
+                //movieStream!!.flush()
+            } catch (e: IOException) {
+                e.printStackTrace()
+                throw RuntimeException("failed to write frame", e)
+            }
+        } else {
+            logger.warn { "ignoring frame after VideoWriter stop" }
         }
         return this
     }
@@ -296,6 +302,7 @@ class VideoWriter {
      * Stop writing to the video file. This closes the video, after calling stop() it is no longer possible to provide new frames.
      */
     fun stop(): VideoWriter {
+        stopped = true
         try {
             movieStream!!.close()
             try {
