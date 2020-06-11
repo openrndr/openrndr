@@ -1,16 +1,16 @@
 package org.openrndr.dialogs
 
 import mu.KotlinLogging
-import java.io.File
-
-import org.lwjgl.util.nfd.NativeFileDialog
 import org.lwjgl.system.MemoryUtil.*
 import org.lwjgl.util.nfd.NFDPathSet
+import org.lwjgl.util.nfd.NativeFileDialog
 import org.lwjgl.util.nfd.NativeFileDialog.*
 import org.openrndr.exceptions.stackRootClassName
 import org.openrndr.platform.Platform
+import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
+import java.nio.file.Paths
 import java.util.*
 
 private val logger = KotlinLogging.logger {}
@@ -101,7 +101,8 @@ fun openFileDialog(programName: String = stackRootClassName(), contextID: String
  */
 fun openFileDialog(programName: String = stackRootClassName(), contextID: String = "global", supportedExtensions: List<String>, function: (File) -> Unit) {
     val filterList: CharSequence? = if (supportedExtensions.isEmpty()) null else supportedExtensions.joinToString(";")
-    val defaultPath: CharSequence? = getDefaultPathForContext(programName, contextID)
+    val defaultPath = Paths.get(getDefaultPathForContext(programName, contextID) ?: ".").normalize().toString()
+
     val out = memAllocPointer(1)
 
     val r = NativeFileDialog.NFD_OpenDialog(filterList, defaultPath, out)
@@ -126,7 +127,7 @@ fun openFileDialog(programName: String = stackRootClassName(), contextID: String
  */
 fun openFilesDialog(programName: String = stackRootClassName(), contextID: String = "global", supportedExtensions: List<String>, function: (List<File>) -> Unit) {
     val filterList: CharSequence? = if (supportedExtensions.isEmpty()) null else supportedExtensions.joinToString(";")
-    val defaultPath: CharSequence? = getDefaultPathForContext(programName, contextID)
+    val defaultPath = Paths.get(getDefaultPathForContext(programName, contextID) ?: ".").normalize().toString()
 
     val pathSet = NFDPathSet.calloc()
 
@@ -193,11 +194,18 @@ fun saveFileDialog(
         supportedExtensions: List<String> = emptyList(),
         function: (File) -> Unit
 ) {
-    val filterList: CharSequence? = if (supportedExtensions.isEmpty()) null else supportedExtensions.joinToString(";")
-    val defaultPathBase: CharSequence? = getDefaultPathForContext(programName, contextID)
+    val filterList = if (supportedExtensions.isEmpty()) null else supportedExtensions.joinToString(";")
+    val defaultPathBase = Paths.get(getDefaultPathForContext(programName, contextID) ?: ".").normalize().toString()
 
-    val defaultPath = if (suggestedFilename == null) defaultPathBase else "${(defaultPathBase
-            ?: ".")}/$suggestedFilename"
+    val defaultPath = if (suggestedFilename == null) {
+        defaultPathBase
+    } else {
+        if (defaultPathBase == null) {
+            suggestedFilename
+        } else {
+            File(defaultPathBase, suggestedFilename).absolutePath
+        }
+    }
     logger.debug { "Default path is $defaultPath" }
 
     val out = memAllocPointer(1)
