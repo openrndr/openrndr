@@ -33,7 +33,7 @@ class CubemapGL3(val texture: Int, override val width: Int, val sides: List<Colo
 
             val effectiveWidth = width
             val effectiveHeight = width
-            val internalFormat = internalFormat(format, type)
+            val (internalFormat, internalType) = internalFormat(format, type)
             val sides = mutableListOf<ColorBufferGL3>()
 
             for (level in 0 until levels) {
@@ -74,7 +74,7 @@ class CubemapGL3(val texture: Int, override val width: Int, val sides: List<Colo
                     (data.sideNZ(level) as Buffer).rewind()
 
                     if (data.type == ColorType.DXT1 || data.type == ColorType.DXT3 || data.type == ColorType.DXT5) {
-                        val format = internalFormat(data.format, data.type)
+                        val format = internalFormat(data.format, data.type).first
                         glCompressedTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, level, format, data.width, data.height, 0, data.sidePX(level))
                         checkGLErrors()
                         glCompressedTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, level, format, data.width, data.height, 0, data.sideNX(level))
@@ -89,7 +89,7 @@ class CubemapGL3(val texture: Int, override val width: Int, val sides: List<Colo
                     } else {
                         val format = data.format.glFormat()
                         val type = data.type.glType()
-                        val internalFormat = internalFormat(data.format, data.type)
+                        val (internalFormat, internalType) = internalFormat(data.format, data.type)
                         glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, level, internalFormat, width, height, 0, format, type, data.sidePX(level))
                         checkGLErrors()
                         glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, level, internalFormat, width, height, 0, format, type, data.sideNX(level))
@@ -129,7 +129,7 @@ class CubemapGL3(val texture: Int, override val width: Int, val sides: List<Colo
 
             urls.forEachIndexed { index, it ->
                 val data = ColorBufferDataGL3.fromUrl(it)
-                val internalFormat = internalFormat(data.format, data.type)
+                val (internalFormat, internalType) = internalFormat(data.format, data.type)
                 val nullBB: ByteBuffer? = null
 
                 glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + index, 0, internalFormat, data.width, data.height, 0, data.format.glFormat(), data.type.glType(), nullBB)
@@ -139,8 +139,8 @@ class CubemapGL3(val texture: Int, override val width: Int, val sides: List<Colo
         }
     }
 
-    internal fun format(): Int {
-        return internalFormat(format, type)
+    internal fun glFormat(): Int {
+        return internalFormat(format, type).first
     }
 
     override fun generateMipmaps() {

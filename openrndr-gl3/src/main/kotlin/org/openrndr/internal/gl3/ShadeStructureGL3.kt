@@ -11,7 +11,7 @@ fun structureFromShadeStyle(shadeStyle: ShadeStyle?, vertexFormats: List<VertexF
             fragmentTransform = shadeStyle.fragmentTransform
             vertexPreamble = shadeStyle.vertexPreamble
             fragmentPreamble = shadeStyle.fragmentPreamble
-            outputs = shadeStyle.outputs.map { "layout(location = ${it.value}) out vec4 o_${it.key};\n" }.joinToString("")
+            outputs = shadeStyle.outputs.map { "// -- output-from  ${it.value} \nlayout(location = ${it.value.attachment}) out ${it.value.glslType} o_${it.key};\n" }.joinToString("")
             uniforms = shadeStyle.parameters.map { "uniform ${mapType(it.value)} p_${it.key};\n" }.joinToString("")
         }
         varyingOut = vertexFormats.flatMap { it.items }.joinToString("") { "${it.type.glslVaryingQualifier}out ${it.type.glslType} va_${it.attribute}${array(it)};\n" } +
@@ -52,6 +52,27 @@ private fun mapType(type: String): String {
         else -> throw RuntimeException("unsupported type $type")
     }
 }
+
+private val ShadeStyleOutput.glslType: String
+get() {
+    return when(val c = Pair(this.format.componentCount, this.type.colorSampling))  {
+        Pair(1, ColorSampling.NORMALIZED) -> "float"
+        Pair(2, ColorSampling.NORMALIZED) -> "vec2"
+        Pair(3, ColorSampling.NORMALIZED) -> "vec3"
+        Pair(4, ColorSampling.NORMALIZED) -> "vec4"
+        Pair(1, ColorSampling.UNSIGNED_INTEGER) -> "uint"
+        Pair(2, ColorSampling.UNSIGNED_INTEGER) -> "uvec2"
+        Pair(3, ColorSampling.UNSIGNED_INTEGER) -> "uvec3"
+        Pair(4, ColorSampling.UNSIGNED_INTEGER) -> "uvec4"
+        Pair(1, ColorSampling.SIGNED_INTEGER) -> "int"
+        Pair(2, ColorSampling.SIGNED_INTEGER) -> "ivec2"
+        Pair(3, ColorSampling.SIGNED_INTEGER) -> "ivec3"
+        Pair(4, ColorSampling.SIGNED_INTEGER) -> "ivec4"
+
+        else -> error("unsupported type")
+    }
+}
+
 
 private val VertexElementType.glslType: String
     get() {

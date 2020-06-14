@@ -5,6 +5,8 @@ import org.openrndr.math.*
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
+data class ShadeStyleOutput(val attachment: Int, val format: ColorFormat = ColorFormat.RGBa, val type : ColorType = ColorType.FLOAT32 )
+
 open class ShadeStyle {
     var vertexPreamble: String? = null
     var fragmentPreamble: String? = null
@@ -13,7 +15,7 @@ open class ShadeStyle {
 
     var parameterValues = mutableMapOf<String, Any>()
     var parameters = mutableMapOf<String, String>()
-    var outputs = mutableMapOf<String, Int>()
+    var outputs = mutableMapOf<String, ShadeStyleOutput>()
     var attributes = mutableListOf<VertexBuffer>()
 
     var suppressDefaultOutput = false
@@ -126,8 +128,12 @@ open class ShadeStyle {
 
 
 
-    fun output(name: String, slot: Int) {
-        outputs[name] = slot
+//    fun output(name: String, slot: Int) {
+//        outputs[name] = ShadeStyleOutput(slot)
+//    }
+
+    fun output(name: String, output: ShadeStyleOutput) {
+        outputs[name] = output
     }
 
     fun attributes(attributesBuffer: VertexBuffer) {

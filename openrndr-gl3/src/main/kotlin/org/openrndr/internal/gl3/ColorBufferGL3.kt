@@ -10,6 +10,11 @@ import org.lwjgl.opengl.ARBTextureCompressionBPTC.*
 import org.lwjgl.opengl.EXTTextureCompressionS3TC.*
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic.GL_TEXTURE_MAX_ANISOTROPY_EXT
 import org.lwjgl.opengl.EXTTextureSRGB.*
+import org.lwjgl.opengl.GL11C
+import org.lwjgl.opengl.GL11C.GL_RED
+import org.lwjgl.opengl.GL21C
+import org.lwjgl.opengl.GL30C
+import org.lwjgl.opengl.GL30C.*
 import org.lwjgl.opengl.GL33C.*
 import org.lwjgl.stb.STBIWriteCallback
 import org.lwjgl.stb.STBImage
@@ -34,64 +39,64 @@ import java.nio.ByteOrder
 import java.nio.ShortBuffer
 import java.util.*
 
-internal data class ConversionEntry(val format: ColorFormat, val type: ColorType, val glFormat: Int)
+internal data class ConversionEntry(val format: ColorFormat, val type: ColorType, val glFormat: Int, val glType : Int)
 
 private val logger = KotlinLogging.logger {}
 
-internal fun internalFormat(format: ColorFormat, type: ColorType): Int {
+internal fun internalFormat(format: ColorFormat, type: ColorType): Pair<Int, Int> {
     val entries = arrayOf(
-            ConversionEntry(ColorFormat.R, ColorType.UINT8, GL_R8),
-            ConversionEntry(ColorFormat.R, ColorType.UINT8_INT, GL_R8UI),
-            ConversionEntry(ColorFormat.R, ColorType.SINT8_INT, GL_R8I),
-            ConversionEntry(ColorFormat.R, ColorType.UINT16, GL_R16),
-            ConversionEntry(ColorFormat.R, ColorType.UINT16_INT, GL_R16UI),
-            ConversionEntry(ColorFormat.R, ColorType.SINT16_INT, GL_RG16I),
-            ConversionEntry(ColorFormat.R, ColorType.FLOAT16, GL_R16F),
-            ConversionEntry(ColorFormat.R, ColorType.FLOAT32, GL_R32F),
-            ConversionEntry(ColorFormat.RG, ColorType.UINT8, GL_RG8),
-            ConversionEntry(ColorFormat.RG, ColorType.UINT8_INT, GL_RG8UI),
-            ConversionEntry(ColorFormat.RG, ColorType.SINT16_INT, GL_RG16I),
-            ConversionEntry(ColorFormat.RG, ColorType.UINT16, GL_RG16),
-            ConversionEntry(ColorFormat.RG, ColorType.UINT16_INT, GL_RG16UI),
-            ConversionEntry(ColorFormat.RG, ColorType.FLOAT16, GL_RG16F),
-            ConversionEntry(ColorFormat.RG, ColorType.FLOAT32, GL_RG32F),
-            ConversionEntry(ColorFormat.RGB, ColorType.UINT8, GL_RGB8),
-            ConversionEntry(ColorFormat.RGB, ColorType.UINT8, GL_RGB8UI),
-            ConversionEntry(ColorFormat.RGB, ColorType.UINT16, GL_RGB16),
-            ConversionEntry(ColorFormat.RGB, ColorType.UINT16_INT, GL_RGB16UI),
-            ConversionEntry(ColorFormat.RGB, ColorType.SINT16_INT, GL_RGB16I),
-            ConversionEntry(ColorFormat.RGB, ColorType.FLOAT16, GL_RGB16F),
-            ConversionEntry(ColorFormat.RGB, ColorType.FLOAT32, GL_RGB32F),
-            ConversionEntry(ColorFormat.BGR, ColorType.UINT8, GL_RGB8),
-            ConversionEntry(ColorFormat.RGBa, ColorType.UINT8, GL_RGBA8),
-            ConversionEntry(ColorFormat.RGBa, ColorType.UINT8_INT, GL_RGBA8UI),
-            ConversionEntry(ColorFormat.RGBa, ColorType.UINT16, GL_RGBA16),
-            ConversionEntry(ColorFormat.RGBa, ColorType.UINT16_INT, GL_RGBA16UI),
-            ConversionEntry(ColorFormat.RGBa, ColorType.SINT16_INT, GL_RGBA16I),
-            ConversionEntry(ColorFormat.RGBa, ColorType.FLOAT16, GL_RGBA16F),
-            ConversionEntry(ColorFormat.RGBa, ColorType.FLOAT32, GL_RGBA32F),
-            ConversionEntry(ColorFormat.R, ColorType.UINT8, GL_R8),
-            ConversionEntry(ColorFormat.R, ColorType.FLOAT16, GL_R16F),
-            ConversionEntry(ColorFormat.R, ColorType.FLOAT16, GL_R16F),
-            ConversionEntry(ColorFormat.R, ColorType.FLOAT32, GL_R32F),
-            ConversionEntry(ColorFormat.sRGB, ColorType.UINT8, GL_SRGB8),
-            ConversionEntry(ColorFormat.sRGBa, ColorType.UINT8, GL_SRGB8_ALPHA8),
-            ConversionEntry(ColorFormat.RGBa, ColorType.DXT1, GL_COMPRESSED_RGBA_S3TC_DXT1_EXT),
-            ConversionEntry(ColorFormat.RGBa, ColorType.DXT3, GL_COMPRESSED_RGBA_S3TC_DXT3_EXT),
-            ConversionEntry(ColorFormat.RGBa, ColorType.DXT5, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT),
-            ConversionEntry(ColorFormat.RGB, ColorType.DXT1, GL_COMPRESSED_RGB_S3TC_DXT1_EXT),
-            ConversionEntry(ColorFormat.sRGBa, ColorType.DXT1, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT),
-            ConversionEntry(ColorFormat.sRGBa, ColorType.DXT3, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT),
-            ConversionEntry(ColorFormat.sRGBa, ColorType.DXT5, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT),
-            ConversionEntry(ColorFormat.sRGB, ColorType.DXT1, GL_COMPRESSED_SRGB_S3TC_DXT1_EXT),
-            ConversionEntry(ColorFormat.RGBa, ColorType.BPTC_UNORM, GL_COMPRESSED_RGBA_BPTC_UNORM_ARB),
-            ConversionEntry(ColorFormat.sRGBa, ColorType.BPTC_UNORM, GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM_ARB),
-            ConversionEntry(ColorFormat.RGB, ColorType.BPTC_FLOAT, GL_COMPRESSED_RGB_BPTC_SIGNED_FLOAT_ARB),
-            ConversionEntry(ColorFormat.RGB, ColorType.BPTC_UFLOAT, GL_COMPRESSED_RGB_BPTC_UNSIGNED_FLOAT_ARB)
+            ConversionEntry(ColorFormat.R, ColorType.UINT8, GL_R8, GL_RED),
+            ConversionEntry(ColorFormat.R, ColorType.UINT8_INT, GL_R8UI,  GL_RED_INTEGER),
+            ConversionEntry(ColorFormat.R, ColorType.SINT8_INT, GL_R8I,  GL_RED_INTEGER),
+            ConversionEntry(ColorFormat.R, ColorType.UINT16, GL_R16, GL_RED),
+            ConversionEntry(ColorFormat.R, ColorType.UINT16_INT, GL_R16UI, GL_RED_INTEGER),
+            ConversionEntry(ColorFormat.R, ColorType.SINT16_INT, GL_RG16I, GL_RED_INTEGER),
+            ConversionEntry(ColorFormat.R, ColorType.FLOAT16, GL_R16F, GL_RED),
+            ConversionEntry(ColorFormat.R, ColorType.FLOAT32, GL_R32F, GL_RED),
+
+            ConversionEntry(ColorFormat.RG, ColorType.UINT8, GL_RG8, GL_RG),
+            ConversionEntry(ColorFormat.RG, ColorType.UINT8_INT, GL_RG8UI, GL_RG_INTEGER),
+            ConversionEntry(ColorFormat.RG, ColorType.SINT16_INT, GL_RG16I, GL_RG_INTEGER),
+            ConversionEntry(ColorFormat.RG, ColorType.UINT16, GL_RG16, GL_RG),
+            ConversionEntry(ColorFormat.RG, ColorType.UINT16_INT, GL_RG16UI, GL30C.GL_RG_INTEGER),
+            ConversionEntry(ColorFormat.RG, ColorType.FLOAT16, GL_RG16F, GL_RG),
+            ConversionEntry(ColorFormat.RG, ColorType.FLOAT32, GL_RG32F, GL_RG),
+
+            ConversionEntry(ColorFormat.RGB, ColorType.UINT8, GL_RGB8, GL_RGB),
+            ConversionEntry(ColorFormat.RGB, ColorType.UINT8_INT, GL_RGB8UI, GL30C.GL_RGB_INTEGER),
+            ConversionEntry(ColorFormat.RGB, ColorType.UINT16, GL_RGB16, GL_RGB),
+            ConversionEntry(ColorFormat.RGB, ColorType.UINT16_INT, GL_RGB16UI, GL30C.GL_RGB_INTEGER),
+            ConversionEntry(ColorFormat.RGB, ColorType.SINT16_INT, GL_RGB16I, GL30C.GL_RGB_INTEGER),
+            ConversionEntry(ColorFormat.RGB, ColorType.FLOAT16, GL_RGB16F, GL_RGB),
+            ConversionEntry(ColorFormat.RGB, ColorType.FLOAT32, GL_RGB32F, GL_RGB),
+            ConversionEntry(ColorFormat.BGR, ColorType.UINT8, GL_RGB8, GL_BGR),
+
+            ConversionEntry(ColorFormat.RGBa, ColorType.UINT8, GL_RGBA8, GL_RGBA),
+            ConversionEntry(ColorFormat.RGBa, ColorType.UINT8_INT, GL_RGBA8UI, GL30C.GL_RGBA_INTEGER),
+            ConversionEntry(ColorFormat.RGBa, ColorType.UINT16, GL_RGBA16, GL_RGBA),
+            ConversionEntry(ColorFormat.RGBa, ColorType.UINT16_INT, GL_RGBA16UI, GL30C.GL_RGBA_INTEGER),
+            ConversionEntry(ColorFormat.RGBa, ColorType.SINT16_INT, GL_RGBA16I, GL30C.GL_RGBA_INTEGER),
+            ConversionEntry(ColorFormat.RGBa, ColorType.FLOAT16, GL_RGBA16F, GL_RGBA),
+            ConversionEntry(ColorFormat.RGBa, ColorType.FLOAT32, GL_RGBA32F, GL_RGBA),
+
+            ConversionEntry(ColorFormat.sRGB, ColorType.UINT8, GL_SRGB8, GL_RGB),
+            ConversionEntry(ColorFormat.sRGBa, ColorType.UINT8, GL_SRGB8_ALPHA8, GL_RGBA),
+            ConversionEntry(ColorFormat.RGBa, ColorType.DXT1, GL_COMPRESSED_RGBA_S3TC_DXT1_EXT, GL_RGBA),
+            ConversionEntry(ColorFormat.RGBa, ColorType.DXT3, GL_COMPRESSED_RGBA_S3TC_DXT3_EXT, GL_RGBA),
+            ConversionEntry(ColorFormat.RGBa, ColorType.DXT5, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, GL_RGBA),
+            ConversionEntry(ColorFormat.RGB, ColorType.DXT1, GL_COMPRESSED_RGB_S3TC_DXT1_EXT, GL_RGBA),
+            ConversionEntry(ColorFormat.sRGBa, ColorType.DXT1, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT, GL_RGBA),
+            ConversionEntry(ColorFormat.sRGBa, ColorType.DXT3, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT, GL_RGBA),
+            ConversionEntry(ColorFormat.sRGBa, ColorType.DXT5, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT, GL_RGBA),
+            ConversionEntry(ColorFormat.sRGB, ColorType.DXT1, GL_COMPRESSED_SRGB_S3TC_DXT1_EXT, GL_RGBA),
+            ConversionEntry(ColorFormat.RGBa, ColorType.BPTC_UNORM, GL_COMPRESSED_RGBA_BPTC_UNORM_ARB, GL_RGBA),
+            ConversionEntry(ColorFormat.sRGBa, ColorType.BPTC_UNORM, GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM_ARB, GL_RGBA),
+            ConversionEntry(ColorFormat.RGB, ColorType.BPTC_FLOAT, GL_COMPRESSED_RGB_BPTC_SIGNED_FLOAT_ARB, GL_RGBA),
+            ConversionEntry(ColorFormat.RGB, ColorType.BPTC_UFLOAT, GL_COMPRESSED_RGB_BPTC_UNSIGNED_FLOAT_ARB, GL_RGBA)
     )
     for (entry in entries) {
         if (entry.format === format && entry.type === type) {
-            return entry.glFormat
+            return Pair(entry.glFormat, entry.glType)
         }
     }
     throw Exception("no conversion entry for $format/$type")
@@ -767,11 +772,13 @@ class ColorBufferGL3(val target: Int,
                      override val multisample: BufferMultisample,
                      override val session: Session?) : ColorBuffer {
 
+
+
     private var destroyed = false
     override var flipV: Boolean = false
 
-    internal fun format(): Int {
-        return internalFormat(format, type)
+    internal fun glFormat(): Int {
+        return internalFormat(format, type).first
     }
 
     companion object {
@@ -824,7 +831,8 @@ class ColorBufferGL3(val target: Int,
                    multisample: BufferMultisample,
                    levels: Int,
                    session: Session?): ColorBufferGL3 {
-            val internalFormat = internalFormat(format, type)
+            val (internalFormat, internalType) = internalFormat(format, type)
+            type.glType()
             if (width <= 0 || height <= 0) {
                 throw Exception("cannot create ColorBuffer with dimensions: ${width}x$height")
             }
@@ -855,13 +863,13 @@ class ColorBufferGL3(val target: Int,
                 val div = 1 shl level
                 when (multisample) {
                     Disabled ->
-                        glTexImage2D(GL_TEXTURE_2D, level, internalFormat, effectiveWidth / div, effectiveHeight / div, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullBB)
+                        glTexImage2D(GL_TEXTURE_2D, level, internalFormat, effectiveWidth / div, effectiveHeight / div, 0, internalType, GL11C.GL_UNSIGNED_BYTE, nullBB)
                     is SampleCount -> glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, multisample.sampleCount.coerceAtMost(glGetInteger(GL_MAX_COLOR_TEXTURE_SAMPLES)), internalFormat, effectiveWidth / div, effectiveHeight / div, true)
                 }
             }
             checkGLErrors {
                 when (it) {
-                    GL_INVALID_OPERATION -> """format is GL_DEPTH_COMPONENT ${format.glFormat() == GL_DEPTH_COMPONENT} and internalFormat is not GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT16, GL_DEPTH_COMPONENT24, or GL_DEPTH_COMPONENT32F"""
+                    GL_INVALID_OPERATION -> """format is GL_DEPTH_COMPONENT (${format.glFormat() == GL_DEPTH_COMPONENT}) and internalFormat is not GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT16, GL_DEPTH_COMPONENT24, or GL_DEPTH_COMPONENT32F"""
                     GL_INVALID_FRAMEBUFFER_OPERATION -> "buh?"
                     else -> null
                 }
@@ -1343,6 +1351,10 @@ class ColorBufferGL3(val target: Int,
         if (destroyed) {
             throw IllegalStateException("colorbuffer is destroyed")
         }
+    }
+
+    override fun toString(): String {
+        return "ColorBufferGL3(target=$target, texture=$texture, width=$width, height=$height, contentScale=$contentScale, format=$format, type=$type, levels=$levels, multisample=$multisample)"
     }
 }
 

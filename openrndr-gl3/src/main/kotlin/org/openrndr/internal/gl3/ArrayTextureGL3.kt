@@ -26,7 +26,7 @@ class ArrayTextureGL3(val target: Int,
             for (level in 0 until levels) {
                 val div = 1 shr level
                 glTexImage3D(GL_TEXTURE_2D_ARRAY,
-                        level, internalFormat(format, type),
+                        level, internalFormat(format, type).first,
                         width / div, height / div, layers,
                         0, GL_RGB, GL_UNSIGNED_BYTE, null as ByteBuffer?)
                 checkGLErrors()
@@ -43,8 +43,8 @@ class ArrayTextureGL3(val target: Int,
         }
     }
 
-    internal fun format(): Int {
-        return internalFormat(format, type)
+    internal fun glFormat(): Int {
+        return internalFormat(format, type).first
     }
 
     override fun destroy() {

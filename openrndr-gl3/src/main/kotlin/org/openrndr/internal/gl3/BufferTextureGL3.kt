@@ -50,7 +50,7 @@ class BufferTextureGL3(val texture: Int, val buffer: Int, override val elementCo
             val textures = IntArray(1)
             glGenTextures(textures)
             glBindTexture(GL_TEXTURE_BUFFER, textures[0])
-            glTexBuffer(GL_TEXTURE_BUFFER, internalFormat(format, type), buffers[0])
+            glTexBuffer(GL_TEXTURE_BUFFER, internalFormat(format, type).first, buffers[0])
 
             glBindBuffer(GL_TEXTURE_BUFFER, 0)
 

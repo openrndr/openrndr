@@ -341,5 +341,11 @@ open class RenderTargetGL3(val framebuffer: Int,
         destroyed = true
         glDeleteFramebuffers(framebuffer)
     }
+
+    override fun toString(): String {
+        return "RenderTargetGL3(framebuffer=$framebuffer, width=$width, height=$height, contentScale=$contentScale, multisample=$multisample, session=$session, thread=$thread, destroyed=$destroyed, attachements=$attachements, colorBufferIndices=$colorBufferIndices, arrayTextureIndices=$arrayTextureIndices, _arrayTextures=$_arrayTextures, _colorBuffers=$_colorBuffers, _depthBuffer=$_depthBuffer)"
+    }
+
+
 }
 

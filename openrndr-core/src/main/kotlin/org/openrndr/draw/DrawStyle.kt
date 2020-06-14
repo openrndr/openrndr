@@ -241,6 +241,7 @@ enum class ColorType {
         get() {
             return when (this) {
                 UINT8_INT, UINT16_INT -> ColorSampling.UNSIGNED_INTEGER
+                SINT16_INT, SINT8_INT -> ColorSampling.SIGNED_INTEGER
                 else -> ColorSampling.NORMALIZED
             }
         }

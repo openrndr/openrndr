@@ -2,8 +2,6 @@ package org.openrndr.internal.gl3
 
 import mu.KotlinLogging
 import org.lwjgl.BufferUtils
-import org.lwjgl.opengl.GL15C
-import org.lwjgl.opengl.GL42C
 import org.lwjgl.opengl.GL43C.*
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
@@ -65,7 +63,7 @@ class ComputeShaderGL43(val programObject: Int, val name: String = "compute_shad
                     else -> null
                 }
             }
-            glBindImageTexture(image, colorBuffer.texture, 0, false, 0, access.gl(), colorBuffer.format())
+            glBindImageTexture(image, colorBuffer.texture, 0, false, 0, access.gl(), colorBuffer.glFormat())
             checkGLErrors() {
                 val maxImageUnits = glGetInteger(GL_MAX_IMAGE_UNITS)
                 colorBuffer as ColorBufferGL3
@@ -96,7 +94,7 @@ level(=0) or layer(=0) is less than zero
                     else -> null
                 }
             }
-            glBindImageTexture(image, arrayTexture.texture, 0, false, 0, access.gl(), arrayTexture.format())
+            glBindImageTexture(image, arrayTexture.texture, 0, false, 0, access.gl(), arrayTexture.glFormat())
             checkGLErrors() {
                 val maxImageUnits = glGetInteger(GL_MAX_IMAGE_UNITS)
                 when (it) {
@@ -127,7 +125,7 @@ level(=0) or layer(=0) is less than zero
                     else -> null
                 }
             }
-            glBindImageTexture(image, arrayTexture.texture, 0, true, 0, access.gl(), arrayTexture.format())
+            glBindImageTexture(image, arrayTexture.texture, 0, true, 0, access.gl(), arrayTexture.glFormat())
             checkGLErrors() {
                 val maxImageUnits = glGetInteger(GL_MAX_IMAGE_UNITS)
                 when (it) {
@@ -157,7 +155,7 @@ level(=0) or layer(=0) is less than zero
                     else -> null
                 }
             }
-            glBindImageTexture(image, cubemap.texture, 0, true, 0, access.gl(), cubemap.format())
+            glBindImageTexture(image, cubemap.texture, 0, true, 0, access.gl(), cubemap.glFormat())
             checkGLErrors {
                 val maxImageUnits = glGetInteger(GL_MAX_IMAGE_UNITS)
                 when (it) {

@@ -67,12 +67,18 @@ sealed class BufferMultisample {
     /**
      * Disable multisampling
      */
-    object Disabled : BufferMultisample()
+    object Disabled : BufferMultisample() {
+        override fun toString(): String {
+            return "Disabled()"
+        }
+    }
 
     /**
      * Enable multisampling with a given [sampleCount]
      */
     data class SampleCount(val sampleCount: Int) : BufferMultisample()
+
+
 }
 
 /**
@@ -251,6 +257,8 @@ interface ColorBuffer {
             return colorBuffer
         }
     }
+
+
 }
 
 
