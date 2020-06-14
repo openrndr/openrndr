@@ -2,7 +2,6 @@ package org.openrndr.internal.gl3
 
 import mu.KotlinLogging
 import org.lwjgl.BufferUtils
-import org.lwjgl.opengl.GL11C
 import org.lwjgl.opengl.GL33C.*
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
@@ -338,9 +337,14 @@ fun checkProgramInfoLog(`object`: Int, sourceFile: String) {
 
 class ShaderGL3(val program: Int,
                 val name: String,
+                val geometryShader: GeometryShaderGL3?,
                 val vertexShader: VertexShaderGL3,
                 val fragmentShader: FragmentShaderGL3,
                 override val session: Session?) : Shader {
+
+    override val types: Set<ShaderType> = if (geometryShader != null) setOf(ShaderType.VERTEX, ShaderType.GEOMETRY, ShaderType.FRAGMENT) else
+        setOf(ShaderType.VERTEX, ShaderType.FRAGMENT)
+
 
     private var destroyed = false
     private var running = false
@@ -355,13 +359,20 @@ class ShaderGL3(val program: Int,
     internal var userShader = true
 
     companion object {
-        fun create(vertexShader: VertexShaderGL3, fragmentShader: FragmentShaderGL3, name: String, session: Session?): ShaderGL3 {
-
+        fun create(
+                vertexShader: VertexShaderGL3,
+                geometryShader: GeometryShaderGL3?,
+                fragmentShader: FragmentShaderGL3, name: String, session: Session?): ShaderGL3 {
             synchronized(Driver.instance) {
                 debugGLErrors()
 
                 val program = glCreateProgram()
                 debugGLErrors()
+
+                geometryShader?.let {
+                    glAttachShader(program, geometryShader?.shaderObject)
+                    debugGLErrors()
+                }
 
                 glAttachShader(program, vertexShader.shaderObject)
                 debugGLErrors()
@@ -380,9 +391,10 @@ class ShaderGL3(val program: Int,
                     checkProgramInfoLog(program, "noname")
                 }
                 glFinish()
-                return ShaderGL3(program, name, vertexShader, fragmentShader, session)
+                return ShaderGL3(program, name, geometryShader, vertexShader, fragmentShader, session)
             }
         }
+
     }
 
     override fun createBlock(blockName: String): UniformBlock {

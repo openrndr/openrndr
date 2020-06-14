@@ -1,13 +1,13 @@
 package org.openrndr.internal.nullgl
 
 import org.openrndr.color.ColorRGBa
-import org.openrndr.draw.Session
-import org.openrndr.draw.Shader
-import org.openrndr.draw.UniformBlock
-import org.openrndr.draw.UniformBlockLayout
+import org.openrndr.draw.*
 import org.openrndr.math.*
 
 class ShaderNullGL(override val session: Session?) : Shader {
+
+    override val types: Set<ShaderType> = emptySet()
+
 
     override fun begin() {
 

@@ -15,7 +15,7 @@ class DriverNullGL: Driver {
         return Thread.currentThread().id
     }
 
-    override fun createShader(vsCode: String, fsCode: String, name: String, session: Session?): Shader {
+    override fun createShader(vsCode: String, gsCode: String?,fsCode: String, name: String, session: Session?): Shader {
         return ShaderNullGL(session)
     }
 

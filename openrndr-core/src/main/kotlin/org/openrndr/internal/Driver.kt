@@ -55,8 +55,18 @@ interface Driver {
 
     val contextID: Long
 
+    /**
+     * Create a shader from code
+     * @param vsCode vertex shader code
+     * @param gsCode optional geometry shader code
+     * @param fsCode fragment shader code
+     */
 
-    fun createShader(vsCode: String, fsCode: String, name: String, session: Session? = Session.active): Shader
+    fun createShader(vsCode: String,
+                     gsCode: String?,
+                     fsCode: String,
+                     name: String,
+                     session: Session? = Session.active): Shader
 
     fun createComputeShader(code: String, session: Session? = Session.active): ComputeShader
 

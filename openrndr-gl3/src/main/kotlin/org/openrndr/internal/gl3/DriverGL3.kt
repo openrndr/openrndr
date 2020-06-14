@@ -34,6 +34,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
             return GLFW.glfwGetCurrentContext()
         }
 
+
     override fun createResourceThread(session: Session?, f: () -> Unit): ResourceThread {
         return ResourceThreadGL3.create(f)
     }
@@ -128,15 +129,16 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         return ShadeStyleManagerGL3(name, vertexShaderGenerator, fragmentShaderGenerator)
     }
 
-    override fun createShader(vsCode: String, fsCode: String, name: String, session: Session?): Shader {
+    override fun createShader(vsCode: String, gsCode: String?, fsCode: String, name: String, session: Session?): Shader {
         logger.trace {
-            "creating shader:\n${vsCode}\n${fsCode}"
+            "creating shader:\n${gsCode}\n${vsCode}\n${fsCode}"
         }
+        val geometryShader = gsCode?.let { GeometryShaderGL3.fromString(it, name) }
         val vertexShader = VertexShaderGL3.fromString(vsCode, name)
         val fragmentShader = FragmentShaderGL3.fromString(fsCode, name)
 
         synchronized(this) {
-            return ShaderGL3.create(vertexShader, fragmentShader, name, session)
+            return ShaderGL3.create(vertexShader, geometryShader, fragmentShader, name, session)
         }
     }
 

@@ -4,21 +4,45 @@ import org.openrndr.color.ColorRGBa
 import org.openrndr.internal.Driver
 import org.openrndr.math.*
 
+enum class ShaderType {
+    VERTEX,
+    GEOMETRY,
+    FRAGMENT
+}
+
 interface Shader {
     val session: Session?
 
+    val types: Set<ShaderType>
+
     @Suppress("unused")
     companion object {
+
+        fun createFromUrls(vsUrl: String, gsUrl: String, fsUrl: String, session: Session? = Session.active): Shader {
+            val vsCode = codeFromURL(vsUrl)
+            val gsCode = codeFromURL(gsUrl)
+            val fsCode = codeFromURL(fsUrl)
+            val shader = Driver.instance.createShader(vsCode, gsCode, fsCode, "$$vsUrl / $gsUrl / $fsUrl", session)
+            session?.track(shader)
+            return shader
+        }
+
         fun createFromUrls(vsUrl: String, fsUrl: String, session: Session? = Session.active): Shader {
             val vsCode = codeFromURL(vsUrl)
             val fsCode = codeFromURL(fsUrl)
-            val shader = Driver.instance.createShader(vsCode, fsCode, "$vsUrl / $fsUrl", session)
+            val shader = Driver.instance.createShader(vsCode, null, fsCode, "$vsUrl / $fsUrl", session)
             session?.track(shader)
             return shader
         }
 
         fun createFromCode(vsCode: String, fsCode: String, name: String, session: Session? = Session.active): Shader {
-            val shader = Driver.instance.createShader(vsCode, fsCode, name, session)
+            val shader = Driver.instance.createShader(vsCode, null, fsCode, name, session)
+            session?.track(shader)
+            return shader
+        }
+
+        fun createFromCode(vsCode: String, gsCode: String, fsCode: String, name: String, session: Session? = Session.active): Shader {
+            val shader = Driver.instance.createShader(vsCode, gsCode, fsCode, name, session)
             session?.track(shader)
             return shader
         }
