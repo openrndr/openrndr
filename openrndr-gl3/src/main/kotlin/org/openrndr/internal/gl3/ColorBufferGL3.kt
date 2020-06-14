@@ -636,7 +636,8 @@ class ColorBufferDataGL3(val width: Int, val height: Int, val format: ColorForma
                 val copyData = (data8?.let { memAlloc(it.capacity()) } ?: data16?.let { memAlloc(it.capacity() * 2) })
                         ?: error("alloc failed")
 
-                val source = data8?.let { memAddress(it) } ?: data16?.let { memAddress(it) } ?: error("get address failed")
+                val source = data8?.let { memAddress(it) } ?: data16?.let { memAddress(it) }
+                ?: error("get address failed")
                 val dest = memAddress(copyData)
                 memCopy(source, dest, copyData.capacity().toLong())
 
@@ -653,105 +654,104 @@ class ColorBufferDataGL3(val width: Int, val height: Int, val format: ColorForma
                         },
                         targetType, copyData) { b -> memFree(b) }
 
-        } else if (assumedFormat == ImageFileFormat.EXR) {
-            val exrHeader = EXRHeader.create()
-            val exrVersion = EXRVersion.create()
-            val versionResult = ParseEXRVersionFromMemory(exrVersion, buffer)
-            (buffer as Buffer).rewind()
+            } else if (assumedFormat == ImageFileFormat.EXR) {
+                val exrHeader = EXRHeader.create()
+                val exrVersion = EXRVersion.create()
+                val versionResult = ParseEXRVersionFromMemory(exrVersion, buffer)
+                (buffer as Buffer).rewind()
 
-            if (versionResult != TINYEXR_SUCCESS) {
-                error("failed to get version")
-            }
+                if (versionResult != TINYEXR_SUCCESS) {
+                    error("failed to get version")
+                }
 
-            val errors = PointerBuffer.allocateDirect(1)
+                val errors = PointerBuffer.allocateDirect(1)
 
-            val parseResult = ParseEXRHeaderFromMemory(exrHeader, exrVersion, buffer, errors)
-            if (parseResult != TINYEXR_SUCCESS) {
-                error("failed to parse file")
-            }
+                val parseResult = ParseEXRHeaderFromMemory(exrHeader, exrVersion, buffer, errors)
+                if (parseResult != TINYEXR_SUCCESS) {
+                    error("failed to parse file")
+                }
 
-            for (i in 0 until exrHeader.num_channels()) {
-                exrHeader.requested_pixel_types().put(i, exrHeader.pixel_types().get(i))
-            }
+                for (i in 0 until exrHeader.num_channels()) {
+                    exrHeader.requested_pixel_types().put(i, exrHeader.pixel_types().get(i))
+                }
 
-            val exrImage = EXRImage.create()
-            InitEXRImage(exrImage)
-
-
-            LoadEXRImageFromMemory(exrImage, exrHeader, buffer, errors)
-
-            val format =
-                    when (val c = exrImage.num_channels()) {
-                        1 -> ColorFormat.R
-                        3 -> ColorFormat.RGB
-                        4 -> ColorFormat.RGBa
-                        else -> error("unsupported number of channels $c")
-                    }
-
-            val type = when (val t = exrHeader.requested_pixel_types().get(0)) {
-                TINYEXR_PIXELTYPE_HALF -> ColorType.FLOAT16
-                TINYEXR_PIXELTYPE_FLOAT -> ColorType.FLOAT32
-                else -> error("unsupported pixel type [type=$t]")
-            }
-
-            val height = exrImage.height()
-            val width = exrImage.width()
-            val channels = exrImage.num_channels()
-
-            val data = ByteBuffer.allocateDirect(format.componentCount * type.componentSize * exrImage.width() * exrImage.height()).order(ByteOrder.nativeOrder())
-            val channelNames = (0 until exrHeader.num_channels()).map { exrHeader.channels().get(it).nameString() }
-            val images = exrImage.images()!!
-            val channelImages = (0 until exrHeader.num_channels()).map { images.getByteBuffer(it, width * height * type.componentSize) }
+                val exrImage = EXRImage.create()
+                InitEXRImage(exrImage)
 
 
-            val order = when (format) {
-                ColorFormat.R -> listOf("R").map { channelNames.indexOf(it) }
-                ColorFormat.RGB -> listOf("B", "G", "R").map { channelNames.indexOf(it) }
-                ColorFormat.RGBa -> listOf("B", "G", "R", "A").map { channelNames.indexOf(it) }
-                else -> error("unsupported channel layout")
-            }
-            require(order.none { it == -1 }) { "some channels are not found" }
+                LoadEXRImageFromMemory(exrImage, exrHeader, buffer, errors)
 
-            val orderedImages = order.map { channelImages[it] }
-            orderedImages.forEach { (it as Buffer).rewind() }
+                val format =
+                        when (val c = exrImage.num_channels()) {
+                            1 -> ColorFormat.R
+                            3 -> ColorFormat.RGB
+                            4 -> ColorFormat.RGBa
+                            else -> error("unsupported number of channels $c")
+                        }
 
-            for (y in 0 until exrImage.height()) {
-                val offset = (height - 1 - y) * format.componentCount * type.componentSize * width
-                (data as Buffer).position(offset)
-                for (x in 0 until exrImage.width()) {
-                    for (c in 0 until channels) {
-                        for (i in 0 until type.componentSize) {
-                            data.put(orderedImages[c].get())
+                val type = when (val t = exrHeader.requested_pixel_types().get(0)) {
+                    TINYEXR_PIXELTYPE_HALF -> ColorType.FLOAT16
+                    TINYEXR_PIXELTYPE_FLOAT -> ColorType.FLOAT32
+                    else -> error("unsupported pixel type [type=$t]")
+                }
+
+                val height = exrImage.height()
+                val width = exrImage.width()
+                val channels = exrImage.num_channels()
+
+                val data = ByteBuffer.allocateDirect(format.componentCount * type.componentSize * exrImage.width() * exrImage.height()).order(ByteOrder.nativeOrder())
+                val channelNames = (0 until exrHeader.num_channels()).map { exrHeader.channels().get(it).nameString() }
+                val images = exrImage.images()!!
+                val channelImages = (0 until exrHeader.num_channels()).map { images.getByteBuffer(it, width * height * type.componentSize) }
+
+
+                val order = when (format) {
+                    ColorFormat.R -> listOf("R").map { channelNames.indexOf(it) }
+                    ColorFormat.RGB -> listOf("B", "G", "R").map { channelNames.indexOf(it) }
+                    ColorFormat.RGBa -> listOf("B", "G", "R", "A").map { channelNames.indexOf(it) }
+                    else -> error("unsupported channel layout")
+                }
+                require(order.none { it == -1 }) { "some channels are not found" }
+
+                val orderedImages = order.map { channelImages[it] }
+                orderedImages.forEach { (it as Buffer).rewind() }
+
+                for (y in 0 until exrImage.height()) {
+                    val offset = (height - 1 - y) * format.componentCount * type.componentSize * width
+                    (data as Buffer).position(offset)
+                    for (x in 0 until exrImage.width()) {
+                        for (c in 0 until channels) {
+                            for (i in 0 until type.componentSize) {
+                                data.put(orderedImages[c].get())
+                            }
                         }
                     }
                 }
+                (data as Buffer).rewind()
+
+                FreeEXRHeader(exrHeader)
+                FreeEXRImage(exrImage)
+                return ColorBufferDataGL3(exrImage.width(), exrImage.height(), format, type, data)
+            } else {
+                error("format not supported")
             }
-            (data as Buffer).rewind()
+        }
 
-            FreeEXRHeader(exrHeader)
-            FreeEXRImage(exrImage)
-            return ColorBufferDataGL3(exrImage.width(), exrImage.height(), format, type, data)
-        } else
-        {
-            error("format not supported")
+        fun fromFile(filename: String): ColorBufferDataGL3 {
+            val file = File(filename)
+
+            val byteArray = file.readBytes()
+            if (byteArray.isEmpty()) {
+                throw RuntimeException("read 0 bytes from stream $filename")
+            }
+            val buffer = BufferUtils.createByteBuffer(byteArray.size)
+            (buffer as Buffer).rewind()
+            buffer.put(byteArray)
+            (buffer as Buffer).rewind()
+
+            return fromByteBuffer(buffer, filename, formatHint = ImageFileFormat.guessFromExtension(file))
         }
     }
-
-    fun fromFile(filename: String): ColorBufferDataGL3 {
-        val file = File(filename)
-
-        val byteArray = file.readBytes()
-        if (byteArray.isEmpty()) {
-            throw RuntimeException("read 0 bytes from stream $filename")
-        }
-        val buffer = BufferUtils.createByteBuffer(byteArray.size)
-        (buffer as Buffer).rewind()
-        buffer.put(byteArray)
-        (buffer as Buffer).rewind()
-
-        return fromByteBuffer(buffer, filename, formatHint = ImageFileFormat.guessFromExtension(file))
-    }
-}
 }
 
 @Suppress("MemberVisibilityCanBePrivate")
@@ -1324,20 +1324,18 @@ class ColorBufferGL3(val target: Int,
     }
 
     override fun destroy() {
-        session?.untrack(this)
-        glDeleteTextures(texture)
-        destroyed = true
-        checkGLErrors()
+        if (!destroyed) {
+            session?.untrack(this)
+            glDeleteTextures(texture)
+            destroyed = true
+            checkGLErrors()
+        }
     }
 
     override fun bind(unit: Int) {
         checkDestroyed()
-        if (multisample == Disabled) {
-            glActiveTexture(GL_TEXTURE0 + unit)
-            glBindTexture(target, texture)
-        } else {
-            throw IllegalArgumentException("multisample targets cannot be bound as texture")
-        }
+        glActiveTexture(GL_TEXTURE0 + unit)
+        glBindTexture(target, texture)
     }
 
     private fun checkDestroyed() {
