@@ -553,6 +553,7 @@ class ColorBufferDataGL3(val width: Int, val height: Int, val format: ColorForma
             if (formatHint != null) {
                 assumedFormat = formatHint
             }
+            (buffer as Buffer).mark()
 
             if (assumedFormat == ImageFileFormat.PNG || assumedFormat == ImageFileFormat.JPG) {
                 val wa = IntArray(1)
@@ -571,7 +572,7 @@ class ColorBufferDataGL3(val width: Int, val height: Int, val format: ColorForma
                 } else {
                     8
                 }
-                (buffer as Buffer).rewind()
+                (buffer as Buffer).reset()
 
                 val targetType: ColorType
                 val mask: Int
@@ -592,8 +593,8 @@ class ColorBufferDataGL3(val width: Int, val height: Int, val format: ColorForma
                 }
 
                 val (data8, data16) = when (bitsPerChannel) {
-                    8 -> Pair(STBImage.stbi_load_from_memory(buffer, wa, ha, ca, 0), null as ShortBuffer?)
-                    16 -> Pair(null as ByteBuffer?, STBImage.stbi_load_16_from_memory(buffer, wa, ha, ca, 0))
+                    8 -> Pair(STBImage.stbi_load_from_memory(buffer, wa, ha, ca, 0)?:error("stbi_load returned null"), null as ShortBuffer?)
+                    16 -> Pair(null as ByteBuffer?, STBImage.stbi_load_16_from_memory(buffer, wa, ha, ca, 0)?:error("stdi_load returned null"))
                     else -> error("unsupported bits per channel: $bitsPerChannel")
                 }
 
@@ -634,7 +635,7 @@ class ColorBufferDataGL3(val width: Int, val height: Int, val format: ColorForma
                 }
 
                 val copyData = (data8?.let { memAlloc(it.capacity()) } ?: data16?.let { memAlloc(it.capacity() * 2) })
-                        ?: error("alloc failed")
+                        ?: error("alloc failed, data8: ${data8}, data16: ${data16}, $assumedFormat, $bitsPerChannel")
 
                 val source = data8?.let { memAddress(it) } ?: data16?.let { memAddress(it) }
                 ?: error("get address failed")
