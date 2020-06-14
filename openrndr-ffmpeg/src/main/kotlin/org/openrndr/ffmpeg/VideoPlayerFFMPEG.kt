@@ -380,7 +380,7 @@ class VideoPlayerFFMPEG private constructor(
          */
         fun defaultDevice(): String {
             return when (Platform.type) {
-                PlatformType.WINDOWS -> "Integrated Webcam"
+                PlatformType.WINDOWS -> listDeviceNames()[0]
                 PlatformType.MAC -> "0"
                 PlatformType.GENERIC -> "/dev/video0"
             }
