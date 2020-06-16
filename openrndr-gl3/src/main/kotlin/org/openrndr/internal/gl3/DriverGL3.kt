@@ -280,9 +280,9 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
 
         shader as ShaderGL3
         // -- find or create a VAO for our shader + vertex buffers combination
-        val hash = measure("drawVertexBuffer-hash-shader-vb") {
+        val hash =
             hash(shader, vertexBuffers, emptyList())
-        }
+
 
         val vao = vaos.getOrPut(hash) {
             logger.debug {
@@ -293,9 +293,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
             synchronized(Driver.instance) {
                 glGenVertexArrays(arrays)
                 glBindVertexArray(arrays[0])
-                measure("drawVertexBuffer-setup-format") {
-                    setupFormat(vertexBuffers, emptyList(), shader)
-                }
+                setupFormat(vertexBuffers, emptyList(), shader)
                 glBindVertexArray(defaultVAO)
             }
             arrays[0]
@@ -309,7 +307,9 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         }
 
         logger.trace { "drawing vertex buffer with $drawPrimitive(${drawPrimitive.glType()}) and $vertexCount vertices with vertexOffset $vertexOffset " }
-        glDrawArrays(drawPrimitive.glType(), vertexOffset, vertexCount)
+        measure("glDrawArrays") {
+            glDrawArrays(drawPrimitive.glType(), vertexOffset, vertexCount)
+        }
         debugGLErrors {
             when (it) {
                 GL_INVALID_ENUM -> "mode ($drawPrimitive) is not an accepted value."
@@ -323,43 +323,61 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
     }
 
     override fun drawIndexedVertexBuffer(shader: Shader, indexBuffer: IndexBuffer, vertexBuffers: List<VertexBuffer>, drawPrimitive: DrawPrimitive, indexOffset: Int, indexCount: Int) {
+
         shader as ShaderGL3
         indexBuffer as IndexBufferGL3
-        // -- find or create a VAO for our shader + vertex buffers combination
-        val hash = measure("drawIndexedVertexBuffer-hash-shader-vb") {
-            hash(shader, vertexBuffers, emptyList())
-        }
-        val vao = vaos.getOrPut(hash) {
-            logger.debug {
-                "creating new VAO for hash $hash"
+
+        measure("DriverGL3.drawIndexedVertexBuffer") {
+            // -- find or create a VAO for our shader + vertex buffers combination
+            val hash = measure("hash-vao") {
+                hash(shader, vertexBuffers, emptyList())
             }
-            val arrays = IntArray(1)
-            synchronized(Driver.instance) {
-                glGenVertexArrays(arrays)
-                glBindVertexArray(arrays[0])
-                measure("drawIndexedVertexBuffer-setup-format") {
-                    setupFormat(vertexBuffers, emptyList(), shader)
+            val vao = measure("get-vao") {
+                vaos.getOrPut(hash) {
+                    measure("miss") {
+                        logger.debug {
+                            "creating new VAO for hash $hash"
+                        }
+                        val arrays = IntArray(1)
+                        synchronized(Driver.instance) {
+                            glGenVertexArrays(arrays)
+                            glBindVertexArray(arrays[0])
+                            measure("drawIndexedVertexBuffer-setup-format") {
+                                setupFormat(vertexBuffers, emptyList(), shader)
+                            }
+                            glBindVertexArray(defaultVAO)
+                        }
+                        arrays[0]
+                    }
                 }
+            }
+            measure("bind-vao") {
+                glBindVertexArray(vao)
+            }
+
+            //logger.trace { "drawing vertex buffer with $drawPrimitive(${drawPrimitive.glType()}) and $indexCount indices with indexOffset $indexOffset " }
+            measure("bind-index-buffer") {
+                indexBuffer.bind()
+            }
+            measure("glDrawElements") {
+                glDrawElements(drawPrimitive.glType(), indexCount, indexBuffer.type.glType(), indexOffset.toLong())
+            }
+
+            measure("check-errors") {
+                debugGLErrors {
+                    when (it) {
+                        GL_INVALID_ENUM -> "mode ($drawPrimitive) is not an accepted value."
+                        GL_INVALID_VALUE -> "count ($indexCount) is negative."
+                        GL_INVALID_OPERATION -> "a non-zero buffer object name is bound to an enabled array and the buffer object's data store is currently mapped."
+                        else -> null
+                    }
+                }
+            }
+            // -- restore defaultVAO binding
+            measure("bind-default-vao") {
                 glBindVertexArray(defaultVAO)
             }
-            arrays[0]
         }
-        glBindVertexArray(vao)
-
-        logger.trace { "drawing vertex buffer with $drawPrimitive(${drawPrimitive.glType()}) and $indexCount indices with indexOffset $indexOffset " }
-        indexBuffer.bind()
-        glDrawElements(drawPrimitive.glType(), indexCount, indexBuffer.type.glType(), indexOffset.toLong())
-
-        debugGLErrors {
-            when (it) {
-                GL_INVALID_ENUM -> "mode ($drawPrimitive) is not an accepted value."
-                GL_INVALID_VALUE -> "count ($indexCount) is negative."
-                GL_INVALID_OPERATION -> "a non-zero buffer object name is bound to an enabled array and the buffer object's data store is currently mapped."
-                else -> null
-            }
-        }
-        // -- restore defaultVAO binding
-        glBindVertexArray(defaultVAO)
     }
 
     override fun drawInstances(shader: Shader, vertexBuffers: List<VertexBuffer>, instanceAttributes: List<VertexBuffer>, drawPrimitive: DrawPrimitive, vertexOffset: Int, vertexCount: Int, instanceCount: Int) {
@@ -383,7 +401,9 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         glBindVertexArray(vao)
 
         logger.trace { "drawing $instanceCount instances with $drawPrimitive(${drawPrimitive.glType()}) and $vertexCount vertices with vertexOffset $vertexOffset " }
-        glDrawArraysInstanced(drawPrimitive.glType(), vertexOffset, vertexCount, instanceCount)
+        measure("glDrawArraysInstanced") {
+            glDrawArraysInstanced(drawPrimitive.glType(), vertexOffset, vertexCount, instanceCount)
+        }
         debugGLErrors {
             when (it) {
                 GL_INVALID_ENUM -> "mode is not one of the accepted values."
@@ -420,7 +440,9 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         indexBuffer.bind()
 
         logger.trace { "drawing $instanceCount instances with $drawPrimitive(${drawPrimitive.glType()}) and $indexCount vertices with vertexOffset $indexOffset " }
-        glDrawElementsInstanced(drawPrimitive.glType(), indexCount, indexBuffer.type.glType(), indexOffset.toLong(), instanceCount)
+        measure("glDrawElementsInstanced") {
+            glDrawElementsInstanced(drawPrimitive.glType(), indexCount, indexBuffer.type.glType(), indexOffset.toLong(), instanceCount)
+        }
         debugGLErrors {
             when (it) {
                 GL_INVALID_ENUM -> "mode is not one of the accepted values."
@@ -435,106 +457,108 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
 
 
     private fun setupFormat(vertexBuffer: List<VertexBuffer>, instanceAttributes: List<VertexBuffer>, shader: ShaderGL3) {
-        debugGLErrors()
+        measure("setupFormat") {
+            debugGLErrors()
 
-        val scalarVectorTypes = setOf(
-                VertexElementType.UINT8, VertexElementType.VECTOR2_UINT8, VertexElementType.VECTOR3_UINT8, VertexElementType.VECTOR4_UINT8,
-                VertexElementType.INT8, VertexElementType.VECTOR2_INT8, VertexElementType.VECTOR3_INT8, VertexElementType.VECTOR4_INT8,
-                VertexElementType.UINT16, VertexElementType.VECTOR2_UINT16, VertexElementType.VECTOR3_UINT16, VertexElementType.VECTOR4_UINT16,
-                VertexElementType.INT16, VertexElementType.VECTOR2_INT16, VertexElementType.VECTOR3_INT16, VertexElementType.VECTOR4_INT16,
-                VertexElementType.UINT32, VertexElementType.VECTOR2_UINT32, VertexElementType.VECTOR3_UINT32, VertexElementType.VECTOR4_UINT32,
-                VertexElementType.INT32, VertexElementType.VECTOR2_INT32, VertexElementType.VECTOR3_INT32, VertexElementType.VECTOR4_INT32,
-                VertexElementType.FLOAT32, VertexElementType.VECTOR2_FLOAT32, VertexElementType.VECTOR3_FLOAT32, VertexElementType.VECTOR4_FLOAT32)
+            val scalarVectorTypes = setOf(
+                    VertexElementType.UINT8, VertexElementType.VECTOR2_UINT8, VertexElementType.VECTOR3_UINT8, VertexElementType.VECTOR4_UINT8,
+                    VertexElementType.INT8, VertexElementType.VECTOR2_INT8, VertexElementType.VECTOR3_INT8, VertexElementType.VECTOR4_INT8,
+                    VertexElementType.UINT16, VertexElementType.VECTOR2_UINT16, VertexElementType.VECTOR3_UINT16, VertexElementType.VECTOR4_UINT16,
+                    VertexElementType.INT16, VertexElementType.VECTOR2_INT16, VertexElementType.VECTOR3_INT16, VertexElementType.VECTOR4_INT16,
+                    VertexElementType.UINT32, VertexElementType.VECTOR2_UINT32, VertexElementType.VECTOR3_UINT32, VertexElementType.VECTOR4_UINT32,
+                    VertexElementType.INT32, VertexElementType.VECTOR2_INT32, VertexElementType.VECTOR3_INT32, VertexElementType.VECTOR4_INT32,
+                    VertexElementType.FLOAT32, VertexElementType.VECTOR2_FLOAT32, VertexElementType.VECTOR3_FLOAT32, VertexElementType.VECTOR4_FLOAT32)
 
-        fun setupBuffer(buffer: VertexBuffer, divisor: Int = 0) {
-            val prefix = if (divisor == 0) "a" else "i"
-            var attributeBindings = 0
+            fun setupBuffer(buffer: VertexBuffer, divisor: Int = 0) {
+                val prefix = if (divisor == 0) "a" else "i"
+                var attributeBindings = 0
 
-            glBindBuffer(GL_ARRAY_BUFFER, (buffer as VertexBufferGL3).buffer)
-            val format = buffer.vertexFormat
-            for (item in format.items) {
-                val attributeIndex = shader.attributeIndex("${prefix}_${item.attribute}")
-                if (attributeIndex != -1) {
-                    if (item.type in scalarVectorTypes) {
-                        for (i in 0 until item.arraySize) {
-                            glEnableVertexAttribArray(attributeIndex + i)
-                            debugGLErrors {
-                                when (it) {
-                                    GL_INVALID_OPERATION -> "no vertex array object is bound"
-                                    GL_INVALID_VALUE -> "index ($attributeIndex) is greater than or equal to GL_MAX_VERTEX_ATTRIBS"
-                                    else -> null
+                glBindBuffer(GL_ARRAY_BUFFER, (buffer as VertexBufferGL3).buffer)
+                val format = buffer.vertexFormat
+                for (item in format.items) {
+                    val attributeIndex = shader.attributeIndex("${prefix}_${item.attribute}")
+                    if (attributeIndex != -1) {
+                        if (item.type in scalarVectorTypes) {
+                            for (i in 0 until item.arraySize) {
+                                glEnableVertexAttribArray(attributeIndex + i)
+                                debugGLErrors {
+                                    when (it) {
+                                        GL_INVALID_OPERATION -> "no vertex array object is bound"
+                                        GL_INVALID_VALUE -> "index ($attributeIndex) is greater than or equal to GL_MAX_VERTEX_ATTRIBS"
+                                        else -> null
+                                    }
                                 }
-                            }
-                            val glType = item.type.glType()
+                                val glType = item.type.glType()
 
-                            if (glType == GL_FLOAT) {
-                                glVertexAttribPointer(attributeIndex + i,
-                                        item.type.componentCount,
-                                        glType, false, format.size, item.offset.toLong() + i * item.type.sizeInBytes)
-                            } else {
-                                glVertexAttribIPointer(attributeIndex + i,
-                                        item.type.componentCount,
-                                        glType, format.size, item.offset.toLong() + i * item.type.sizeInBytes)
+                                if (glType == GL_FLOAT) {
+                                    glVertexAttribPointer(attributeIndex + i,
+                                            item.type.componentCount,
+                                            glType, false, format.size, item.offset.toLong() + i * item.type.sizeInBytes)
+                                } else {
+                                    glVertexAttribIPointer(attributeIndex + i,
+                                            item.type.componentCount,
+                                            glType, format.size, item.offset.toLong() + i * item.type.sizeInBytes)
 
-                            }
-                            debugGLErrors {
-                                when (it) {
-                                    GL_INVALID_VALUE -> "index ($attributeIndex) is greater than or equal to GL_MAX_VERTEX_ATTRIBS"
-                                    else -> null
                                 }
-                            }
-                            glVertexAttribDivisor(attributeIndex, divisor)
-                            attributeBindings++
-                        }
-                    } else if (item.type == VertexElementType.MATRIX44_FLOAT32) {
-                        for (i in 0 until item.arraySize) {
-                            for (column in 0 until 4) {
-                                glEnableVertexAttribArray(attributeIndex + column + i * 4)
-                                debugGLErrors()
-
-                                glVertexAttribPointer(attributeIndex + column + i * 4,
-                                        4,
-                                        item.type.glType(), false, format.size, item.offset.toLong() + column * 16 + i * 64)
-                                debugGLErrors()
-
-                                glVertexAttribDivisor(attributeIndex + column + i * 4, divisor)
-                                debugGLErrors()
+                                debugGLErrors {
+                                    when (it) {
+                                        GL_INVALID_VALUE -> "index ($attributeIndex) is greater than or equal to GL_MAX_VERTEX_ATTRIBS"
+                                        else -> null
+                                    }
+                                }
+                                glVertexAttribDivisor(attributeIndex, divisor)
                                 attributeBindings++
                             }
-                        }
-                    } else if (item.type == VertexElementType.MATRIX33_FLOAT32) {
-                        for (i in 0 until item.arraySize) {
-                            for (column in 0 until 3) {
-                                glEnableVertexAttribArray(attributeIndex + column + i * 3)
-                                debugGLErrors()
+                        } else if (item.type == VertexElementType.MATRIX44_FLOAT32) {
+                            for (i in 0 until item.arraySize) {
+                                for (column in 0 until 4) {
+                                    glEnableVertexAttribArray(attributeIndex + column + i * 4)
+                                    debugGLErrors()
 
-                                glVertexAttribPointer(attributeIndex + column + i * 3,
-                                        3,
-                                        item.type.glType(), false, format.size, item.offset.toLong() + column * 12 + i * 48)
-                                debugGLErrors()
+                                    glVertexAttribPointer(attributeIndex + column + i * 4,
+                                            4,
+                                            item.type.glType(), false, format.size, item.offset.toLong() + column * 16 + i * 64)
+                                    debugGLErrors()
 
-                                glVertexAttribDivisor(attributeIndex + column + i * 3, divisor)
-                                debugGLErrors()
-                                attributeBindings++
+                                    glVertexAttribDivisor(attributeIndex + column + i * 4, divisor)
+                                    debugGLErrors()
+                                    attributeBindings++
+                                }
                             }
+                        } else if (item.type == VertexElementType.MATRIX33_FLOAT32) {
+                            for (i in 0 until item.arraySize) {
+                                for (column in 0 until 3) {
+                                    glEnableVertexAttribArray(attributeIndex + column + i * 3)
+                                    debugGLErrors()
+
+                                    glVertexAttribPointer(attributeIndex + column + i * 3,
+                                            3,
+                                            item.type.glType(), false, format.size, item.offset.toLong() + column * 12 + i * 48)
+                                    debugGLErrors()
+
+                                    glVertexAttribDivisor(attributeIndex + column + i * 3, divisor)
+                                    debugGLErrors()
+                                    attributeBindings++
+                                }
+                            }
+                        } else {
+                            TODO("implement support for ${item.type}")
                         }
-                    } else {
-                        TODO("implement support for ${item.type}")
                     }
                 }
+
+                if (attributeBindings > 16) {
+                    throw RuntimeException("Maximum vertex attributes exceeded $attributeBindings (limit is 16)")
+                }
+            }
+            vertexBuffer.forEach {
+                require(!(it as VertexBufferGL3).isDestroyed)
+                setupBuffer(it, 0)
             }
 
-            if (attributeBindings > 16) {
-                throw RuntimeException("Maximum vertex attributes exceeded $attributeBindings (limit is 16)")
+            instanceAttributes.forEach {
+                setupBuffer(it, 1)
             }
-        }
-        vertexBuffer.forEach {
-            require(!(it as VertexBufferGL3).isDestroyed)
-            setupBuffer(it, 0)
-        }
-
-        instanceAttributes.forEach {
-            setupBuffer(it, 1)
         }
     }
 
@@ -703,7 +727,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
 
 
             debugGLErrors()
-            dirty = false
+            //dirty = false
         }
     }
 

@@ -71,7 +71,7 @@ class LRUCache<K, V>(private val delegate: Cache<K, V>, private val minimalSize:
     }
 
     companion object {
-        private const val DEFAULT_SIZE = 100
+        private const val DEFAULT_SIZE = 10000
         private const val PRESENT = true
     }
 }
@@ -87,7 +87,7 @@ fun structureFromShadeStyle(shadeStyle: ShadeStyle?, vertexFormats: List<VertexF
 
         shadeStyleCache.getOrSet(cacheEntry, shadeStyle?.dirty ?: false) {
 
-            measure("strctureFromShadeStyle-cache-miss") {
+            measure("miss") {
                 shadeStyle?.dirty = false
 
                 ShadeStructure().apply {
@@ -96,26 +96,26 @@ fun structureFromShadeStyle(shadeStyle: ShadeStyle?, vertexFormats: List<VertexF
                         fragmentTransform = shadeStyle.fragmentTransform
                         vertexPreamble = shadeStyle.vertexPreamble
                         fragmentPreamble = shadeStyle.fragmentPreamble
-                        measure("structureFromShadeStyle-outputs") {
+                        measure("outputs") {
                             outputs = shadeStyle.outputs.map { "// -- output-from  ${it.value} \nlayout(location = ${it.value.attachment}) out ${it.value.glslType} o_${it.key};\n" }.joinToString("")
                         }
-                        measure("structureFromShadeStyle-uniforms") {
+                        measure("uniforms") {
                             uniforms = shadeStyle.parameters.map { "uniform ${mapType(it.value)} p_${it.key};\n" }.joinToString("")
                         }
                     }
-                    measure("structureFromShadeStyle-varying-out") {
+                    measure("varying-out") {
                         varyingOut = vertexFormats.flatMap { it.items }.joinToString("") { "${it.type.glslVaryingQualifier}out ${it.type.glslType} va_${it.attribute}${array(it)};\n" } +
                                 instanceAttributeFormats.flatMap { it.items }.joinToString("") { "${it.type.glslVaryingQualifier}out ${it.type.glslType} vi_${it.attribute}${array(it)};\n" }
                     }
-                    measure("structureFromShadeStyle-varying-in") {
+                    measure("varying-in") {
                         varyingIn = vertexFormats.flatMap { it.items }.joinToString("") { "${it.type.glslVaryingQualifier}in ${it.type.glslType} va_${it.attribute}${array(it)};\n" } +
                                 instanceAttributeFormats.flatMap { it.items }.joinToString("") { "${it.type.glslVaryingQualifier}in ${it.type.glslType} vi_${it.attribute}${array(it)};\n" }
                     }
-                    measure("structureFromShadeStyle-varying-bridge") {
+                    measure("varying-bridge") {
                         varyingBridge = vertexFormats.flatMap { it.items }.joinToString("") { "    va_${it.attribute} = a_${it.attribute};\n" } +
                                 instanceAttributeFormats.flatMap { it.items }.joinToString("") { "vi_${it.attribute} = i_${it.attribute};\n" }
                     }
-                    measure("structureFromShadeStyle-attributes") {
+                    measure("attributes") {
                         attributes = vertexFormats.flatMap { it.items }.joinToString("") { "in ${it.type.glslType} a_${it.attribute}${array(it)};\n" } +
                                 instanceAttributeFormats.flatMap { it.items }.joinToString("") { "in ${it.type.glslType} i_${it.attribute}${array(it)};\n" }
                     }

@@ -20,7 +20,7 @@ class ShadeStyleManagerGL3(name: String,
                 ?: emptyList<VertexBuffer>()).map { it.vertexFormat }
 
         if (style == null) {
-            return measure("ShadeStyleManagerGl3.shader-default-shader") {
+            return measure("default-shader") {
                 if (defaultShader == null) {
                     logger.debug { "creating default shader" }
                     val structure = structureFromShadeStyle(style, vertexFormats, outputInstanceFormats)
@@ -30,7 +30,7 @@ class ShadeStyleManagerGL3(name: String,
                 defaultShader!!
             }
         } else {
-            return measure("ShadeStyleManagerGL3.shader-custom-shader") {
+            return measure("custom-shader") {
                 val structure = structureFromShadeStyle(style, vertexFormats, outputInstanceFormats)
                 val shader = shaders.getOrPut(structure) {
                     try {
@@ -47,7 +47,7 @@ class ShadeStyleManagerGL3(name: String,
 
                 shader.begin()
                 var textureIndex = 2
-                measure("shadestyle-parameters-to-uniforms") {
+                measure("set-uniforms") {
                     for (it in style.parameterValues.entries) {
                         when (val value = it.value) {
                             is Int -> shader.uniform("p_${it.key}", value)
