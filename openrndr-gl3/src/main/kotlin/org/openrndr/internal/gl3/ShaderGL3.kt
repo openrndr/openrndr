@@ -2,11 +2,13 @@ package org.openrndr.internal.gl3
 
 import mu.KotlinLogging
 import org.lwjgl.BufferUtils
+import org.lwjgl.opengl.GL20C
 import org.lwjgl.opengl.GL33C.*
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
 import org.openrndr.internal.Driver
 import org.openrndr.math.*
+import org.openrndr.measure
 import java.io.File
 import java.io.FileWriter
 import java.nio.Buffer
@@ -342,6 +344,9 @@ class ShaderGL3(val program: Int,
                 val fragmentShader: FragmentShaderGL3,
                 override val session: Session?) : Shader {
 
+
+    private val lastValues = mutableMapOf<String, Any>()
+
     override val types: Set<ShaderType> = if (geometryShader != null) setOf(ShaderType.VERTEX, ShaderType.GEOMETRY, ShaderType.FRAGMENT) else
         setOf(ShaderType.VERTEX, ShaderType.FRAGMENT)
 
@@ -554,26 +559,41 @@ class ShaderGL3(val program: Int,
     }
 
     override fun uniform(name: String, value: ColorRGBa) {
-        val index = uniformIndex(name)
-        if (index != -1) {
-            glUniform4f(index, value.r.toFloat(), value.g.toFloat(), value.b.toFloat(), value.a.toFloat())
-            postUniformCheck(name, index, value)
+        measure("set-uniform-colorrgba::$name") {
+            if (lastValues[name] !== value) {
+                val index = uniformIndex(name)
+                if (index != -1) {
+                    glUniform4f(index, value.r.toFloat(), value.g.toFloat(), value.b.toFloat(), value.a.toFloat())
+                    postUniformCheck(name, index, value)
+                }
+                lastValues[name] = value
+            }
         }
     }
 
     override fun uniform(name: String, value: Vector3) {
-        val index = uniformIndex(name)
-        if (index != -1) {
-            glUniform3f(index, value.x.toFloat(), value.y.toFloat(), value.z.toFloat())
-            postUniformCheck(name, index, value)
+        measure("set-uniform-vector3::$name") {
+            if (lastValues[name] !== value) {
+                val index = uniformIndex(name)
+                if (index != -1) {
+                    glUniform3f(index, value.x.toFloat(), value.y.toFloat(), value.z.toFloat())
+                    postUniformCheck(name, index, value)
+                }
+                lastValues[name] = value
+            }
         }
     }
 
     override fun uniform(name: String, value: Vector4) {
-        val index = uniformIndex(name)
-        if (index != -1) {
-            glUniform4f(index, value.x.toFloat(), value.y.toFloat(), value.z.toFloat(), value.w.toFloat())
-            postUniformCheck(name, index, value)
+        measure("set-uniform-vector4::$name") {
+            if (lastValues[name] !== value) {
+                val index = uniformIndex(name)
+                if (index != -1) {
+                    glUniform4f(index, value.x.toFloat(), value.y.toFloat(), value.z.toFloat(), value.w.toFloat())
+                    postUniformCheck(name, index, value)
+                }
+                lastValues[name] = value
+            }
         }
     }
 
@@ -599,62 +619,87 @@ class ShaderGL3(val program: Int,
     }
 
     override fun uniform(name: String, value: Int) {
-        val index = uniformIndex(name)
-        if (index != -1) {
-            glUniform1i(index, value)
-            postUniformCheck(name, index, value)
+        if (lastValues[name] == null || lastValues[name] != value) {
+            val index = uniformIndex(name)
+            if (index != -1) {
+                glUniform1i(index, value)
+                postUniformCheck(name, index, value)
+            }
         }
     }
 
     override fun uniform(name: String, value: Boolean) {
-        val index = uniformIndex(name)
-        if (index != -1) {
-            glUniform1i(index, if (value) 1 else 0)
-            postUniformCheck(name, index, value)
+        if (lastValues[name] == null || lastValues[name] != value) {
+            val index = uniformIndex(name)
+            if (index != -1) {
+                glUniform1i(index, if (value) 1 else 0)
+                postUniformCheck(name, index, value)
+            }
         }
     }
 
 
     override fun uniform(name: String, value: Vector2) {
-        val index = uniformIndex(name)
-        if (index != -1) {
-            glUniform2f(index, value.x.toFloat(), value.y.toFloat())
-            postUniformCheck(name, index, value)
+        if (lastValues[name] !== value) {
+            val index = uniformIndex(name)
+            if (index != -1) {
+                glUniform2f(index, value.x.toFloat(), value.y.toFloat())
+                postUniformCheck(name, index, value)
+            }
+            lastValues[name] = value
         }
     }
 
     override fun uniform(name: String, value: Float) {
-        val index = uniformIndex(name)
-        if (index != -1) {
-            glUniform1f(index, value)
-            postUniformCheck(name, index, value)
+        if (lastValues[name] == null || lastValues[name] != value) {
+            val index = uniformIndex(name)
+            if (index != -1) {
+                glUniform1f(index, value)
+                postUniformCheck(name, index, value)
+            }
+            lastValues[name] = value
         }
     }
 
     override fun uniform(name: String, value: Double) {
-        val index = uniformIndex(name)
-        if (index != -1) {
-            glUniform1f(index, value.toFloat())
-            postUniformCheck(name, index, value)
+        if (lastValues[name] == null || lastValues[name] != value) {
+            val index = uniformIndex(name)
+            if (index != -1) {
+                glUniform1f(index, value.toFloat())
+                postUniformCheck(name, index, value)
+            }
+            lastValues[name] = value
         }
     }
 
     override fun uniform(name: String, value: Matrix33) {
-        val index = uniformIndex(name)
-        if (index != -1) {
-            logger.trace { "Setting uniform '$name' to $value" }
-            glUniformMatrix3fv(index, false, value.toFloatArray())
-            postUniformCheck(name, index, value)
+        measure("set-uniform-matrix33::$name") {
+            if (lastValues[name] !== value) {
+                val index = uniformIndex(name)
+                if (index != -1) {
+                    logger.trace { "Setting uniform '$name' to $value" }
+                    glUniformMatrix3fv(index, false, value.toFloatArray())
+                    postUniformCheck(name, index, value)
+                }
+                lastValues[name] = value
+            }
         }
     }
 
 
     override fun uniform(name: String, value: Matrix44) {
-        val index = uniformIndex(name)
-        if (index != -1) {
-            logger.trace { "Setting uniform '$name' to $value" }
-            glUniformMatrix4fv(index, false, value.toFloatArray())
-            postUniformCheck(name, index, value)
+        measure("set-uniform-matrix44::$name") {
+            if (lastValues[name] !== value) {
+                measure("set-uniform-matrix44::$name-miss") {
+                    val index = uniformIndex(name)
+                    if (index != -1) {
+                        logger.trace { "Setting uniform '$name' to $value" }
+                        glUniformMatrix4fv(index, false, value.toFloatArray())
+                        postUniformCheck(name, index, value)
+                    }
+                    lastValues[name] = value
+                }
+            }
         }
     }
 
@@ -675,9 +720,7 @@ class ShaderGL3(val program: Int,
             glUniformMatrix4fv(index, false, floatValues)
             postUniformCheck(name, index, value)
         }
-
     }
-
 
     override fun uniform(name: String, value: Array<Vector2>) {
         val index = uniformIndex(name)

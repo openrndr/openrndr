@@ -5,20 +5,62 @@ import org.openrndr.math.*
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
-data class ShadeStyleOutput(val attachment: Int, val format: ColorFormat = ColorFormat.RGBa, val type : ColorType = ColorType.FLOAT32 )
+data class ShadeStyleOutput(val attachment: Int, val format: ColorFormat = ColorFormat.RGBa, val type: ColorType = ColorType.FLOAT32)
+
+class ObservableHashmap<K, V>(inline val onChange: () -> Unit) : HashMap<K, V>() {
+    override fun put(key: K, value: V): V? {
+        if (key in this) {
+            if (get(key) != value) {
+                onChange()
+            }
+        }
+        return super.put(key, value)
+    }
+
+    override fun remove(key: K): V? {
+        onChange()
+        return super.remove(key)
+    }
+}
 
 open class ShadeStyle {
+    var dirty = true
+
     var vertexPreamble: String? = null
+        set(value) {
+            dirty = true
+            field = value
+        }
+
     var fragmentPreamble: String? = null
+        set(value) {
+            dirty = true
+            field = value
+        }
+
     var vertexTransform: String? = null
+        set(value) {
+            dirty = true
+            field = value
+        }
+
     var fragmentTransform: String? = null
+        set(value) {
+            dirty = true
+            field = value
+        }
+
 
     var parameterValues = mutableMapOf<String, Any>()
-    var parameters = mutableMapOf<String, String>()
-    var outputs = mutableMapOf<String, ShadeStyleOutput>()
+    var parameters = ObservableHashmap<String, String> { dirty = true }
+    var outputs = ObservableHashmap<String, ShadeStyleOutput> { dirty = true }
     var attributes = mutableListOf<VertexBuffer>()
 
     var suppressDefaultOutput = false
+        set(value) {
+            dirty = true
+            field = value
+        }
 
     constructor()
 
@@ -126,12 +168,6 @@ open class ShadeStyle {
         parameters[name] = "BufferTexture"
     }
 
-
-
-//    fun output(name: String, slot: Int) {
-//        outputs[name] = ShadeStyleOutput(slot)
-//    }
-
     fun output(name: String, output: ShadeStyleOutput) {
         outputs[name] = output
     }
@@ -171,7 +207,7 @@ open class ShadeStyle {
         return s
     }
 
-    inner class Parameter<R : Any>: ReadWriteProperty<ShadeStyle, R> {
+    inner class Parameter<R : Any> : ReadWriteProperty<ShadeStyle, R> {
 
         override fun getValue(thisRef: ShadeStyle, property: KProperty<*>): R {
             @Suppress("UNCHECKED_CAST")
@@ -209,7 +245,7 @@ open class ShadeStyle {
                 }
                 is Array<*> -> {
                     if (value.isNotEmpty()) {
-                        when(value.first()) {
+                        when (value.first()) {
                             is Matrix44 -> {
                                 "Matrix44, ${value.size}"
                             }
@@ -247,4 +283,3 @@ private fun isolate(code: String): String =
         } else {
             "{$code}"
         }
-

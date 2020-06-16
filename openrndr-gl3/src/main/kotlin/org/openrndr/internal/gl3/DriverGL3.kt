@@ -13,6 +13,7 @@ import org.openrndr.internal.ResourceThread
 import org.openrndr.internal.ShaderGenerators
 import org.openrndr.math.Matrix33
 import org.openrndr.math.Matrix44
+import org.openrndr.measure
 import java.io.InputStream
 import java.math.BigInteger
 import java.nio.Buffer
@@ -279,7 +280,10 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
 
         shader as ShaderGL3
         // -- find or create a VAO for our shader + vertex buffers combination
-        val hash = hash(shader, vertexBuffers, emptyList())
+        val hash = measure("drawVertexBuffer-hash-shader-vb") {
+            hash(shader, vertexBuffers, emptyList())
+        }
+
         val vao = vaos.getOrPut(hash) {
             logger.debug {
                 "[context=$contextID] creating new VAO for hash $hash"
@@ -289,7 +293,9 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
             synchronized(Driver.instance) {
                 glGenVertexArrays(arrays)
                 glBindVertexArray(arrays[0])
-                setupFormat(vertexBuffers, emptyList(), shader)
+                measure("drawVertexBuffer-setup-format") {
+                    setupFormat(vertexBuffers, emptyList(), shader)
+                }
                 glBindVertexArray(defaultVAO)
             }
             arrays[0]
@@ -320,7 +326,9 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         shader as ShaderGL3
         indexBuffer as IndexBufferGL3
         // -- find or create a VAO for our shader + vertex buffers combination
-        val hash = hash(shader, vertexBuffers, emptyList())
+        val hash = measure("drawIndexedVertexBuffer-hash-shader-vb") {
+            hash(shader, vertexBuffers, emptyList())
+        }
         val vao = vaos.getOrPut(hash) {
             logger.debug {
                 "creating new VAO for hash $hash"
@@ -329,7 +337,9 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
             synchronized(Driver.instance) {
                 glGenVertexArrays(arrays)
                 glBindVertexArray(arrays[0])
-                setupFormat(vertexBuffers, emptyList(), shader)
+                measure("drawIndexedVertexBuffer-setup-format") {
+                    setupFormat(vertexBuffers, emptyList(), shader)
+                }
                 glBindVertexArray(defaultVAO)
             }
             arrays[0]
@@ -544,133 +554,157 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         instanceAttributes.forEach { teardownFormat(it.vertexFormat, shader) }
     }
 
+    private val cached = DrawStyle()
+    private var dirty = true
     override fun setState(drawStyle: DrawStyle) {
-        if (drawStyle.clip != null) {
-            drawStyle.clip?.let {
-                val target = RenderTarget.active
-                glScissor((it.x * target.contentScale).toInt(), (target.height * target.contentScale - it.y * target.contentScale - it.height * target.contentScale).toInt(), (it.width * target.contentScale).toInt(), (it.height * target.contentScale).toInt())
-                glEnable(GL_SCISSOR_TEST)
+        measure("DriverGL3.setState") {
+            if (dirty || cached.clip != drawStyle.clip) {
+                if (drawStyle.clip != null) {
+                    drawStyle.clip?.let {
+                        val target = RenderTarget.active
+                        glScissor((it.x * target.contentScale).toInt(), (target.height * target.contentScale - it.y * target.contentScale - it.height * target.contentScale).toInt(), (it.width * target.contentScale).toInt(), (it.height * target.contentScale).toInt())
+                        glEnable(GL_SCISSOR_TEST)
+                    }
+                } else {
+                    glDisable(GL_SCISSOR_TEST)
+                }
+                cached.clip = drawStyle.clip
             }
-        } else {
-            glDisable(GL_SCISSOR_TEST)
-        }
 
-        glColorMask(drawStyle.channelWriteMask.red, drawStyle.channelWriteMask.green, drawStyle.channelWriteMask.blue, drawStyle.channelWriteMask.alpha)
+            if (dirty || cached.channelWriteMask != drawStyle.channelWriteMask) {
+                glColorMask(drawStyle.channelWriteMask.red, drawStyle.channelWriteMask.green, drawStyle.channelWriteMask.blue, drawStyle.channelWriteMask.alpha)
+                cached.channelWriteMask = drawStyle.channelWriteMask
+            }
 
-        when (drawStyle.depthWrite) {
-            true -> glDepthMask(true)
-            false -> glDepthMask(false)
-        }
-        glEnable(GL_DEPTH_TEST)
-        debugGLErrors()
+            if (dirty || cached.depthWrite != drawStyle.depthWrite) {
+                when (drawStyle.depthWrite) {
+                    true -> glDepthMask(true)
+                    false -> glDepthMask(false)
+                }
+                glEnable(GL_DEPTH_TEST)
+                debugGLErrors()
+                cached.depthWrite = drawStyle.depthWrite
+            }
 
-        if (drawStyle.frontStencil === drawStyle.backStencil) {
-            if (drawStyle.stencil.stencilTest === StencilTest.DISABLED) {
-                glDisable(GL_STENCIL_TEST)
+            if (drawStyle.frontStencil === drawStyle.backStencil) {
+                if (drawStyle.stencil.stencilTest === StencilTest.DISABLED) {
+                    glDisable(GL_STENCIL_TEST)
+                } else {
+                    glEnable(GL_STENCIL_TEST)
+                    glStencilFunc(glStencilTest(drawStyle.stencil.stencilTest), drawStyle.stencil.stencilTestReference, drawStyle.stencil.stencilTestMask)
+                    debugGLErrors()
+                    glStencilOp(glStencilOp(drawStyle.stencil.stencilFailOperation), glStencilOp(drawStyle.stencil.depthFailOperation), glStencilOp(drawStyle.stencil.depthPassOperation))
+                    debugGLErrors()
+                    glStencilMask(drawStyle.stencil.stencilWriteMask)
+                    debugGLErrors()
+                }
             } else {
                 glEnable(GL_STENCIL_TEST)
-                glStencilFunc(glStencilTest(drawStyle.stencil.stencilTest), drawStyle.stencil.stencilTestReference, drawStyle.stencil.stencilTestMask)
+                glStencilFuncSeparate(GL_FRONT, glStencilTest(drawStyle.frontStencil.stencilTest), drawStyle.frontStencil.stencilTestReference, drawStyle.frontStencil.stencilTestMask)
+                glStencilFuncSeparate(GL_BACK, glStencilTest(drawStyle.backStencil.stencilTest), drawStyle.backStencil.stencilTestReference, drawStyle.backStencil.stencilTestMask)
+                glStencilOpSeparate(GL_FRONT, glStencilOp(drawStyle.frontStencil.stencilFailOperation), glStencilOp(drawStyle.frontStencil.depthFailOperation), glStencilOp(drawStyle.frontStencil.depthPassOperation))
+                glStencilOpSeparate(GL_BACK, glStencilOp(drawStyle.backStencil.stencilFailOperation), glStencilOp(drawStyle.backStencil.depthFailOperation), glStencilOp(drawStyle.backStencil.depthPassOperation))
+                glStencilMaskSeparate(GL_FRONT, drawStyle.frontStencil.stencilWriteMask)
+                glStencilMaskSeparate(GL_BACK, drawStyle.backStencil.stencilWriteMask)
+            }
+
+            if (dirty || cached.blendMode != drawStyle.blendMode) {
+                when (drawStyle.blendMode) {
+                    BlendMode.OVER -> {
+                        glEnable(GL_BLEND)
+                        glBlendEquationi(0, GL_FUNC_ADD)
+                        glBlendFunci(0, GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
+                    }
+                    BlendMode.BLEND -> {
+                        glEnable(GL_BLEND)
+                        glBlendEquationi(0, GL_FUNC_ADD)
+                        glBlendFunci(0, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+                    }
+                    BlendMode.ADD -> {
+                        glEnable(GL_BLEND)
+                        glBlendEquationi(0, GL_FUNC_ADD)
+                        glBlendFunci(0, GL_ONE, GL_ONE)
+                    }
+
+                    BlendMode.REPLACE -> {
+                        glDisable(GL_BLEND)
+                    }
+                    BlendMode.SUBTRACT -> {
+                        glEnable(GL_BLEND)
+                        glBlendEquationSeparatei(0, GL_FUNC_REVERSE_SUBTRACT, GL_FUNC_ADD)
+                        glBlendFuncSeparatei(0, GL_SRC_ALPHA, GL_ONE, GL_ONE, GL_ONE)
+                    }
+                    BlendMode.MULTIPLY -> {
+                        glEnable(GL_BLEND)
+                        glBlendEquationi(0, GL_FUNC_ADD)
+                        glBlendFunci(0, GL_DST_COLOR, GL_ZERO)
+                    }
+                }
+                cached.blendMode = drawStyle.blendMode
+            }
+            if (dirty || cached.alphaToCoverage != drawStyle.alphaToCoverage) {
+                if (drawStyle.alphaToCoverage) {
+                    GL33C.glEnable(GL13C.GL_SAMPLE_ALPHA_TO_COVERAGE)
+                    GL33C.glDisable(GL11C.GL_BLEND)
+                } else {
+                    GL33C.glDisable(GL13C.GL_SAMPLE_ALPHA_TO_COVERAGE)
+                }
+                cached.alphaToCoverage = drawStyle.alphaToCoverage
+            }
+
+            if (dirty || cached.depthTestPass != drawStyle.depthTestPass) {
+                when (drawStyle.depthTestPass) {
+                    DepthTestPass.ALWAYS -> {
+                        glDepthFunc(GL_ALWAYS)
+                    }
+                    DepthTestPass.GREATER -> {
+                        glDepthFunc(GL_GREATER)
+                    }
+                    DepthTestPass.GREATER_OR_EQUAL -> {
+                        glDepthFunc(GL_GEQUAL)
+                    }
+                    DepthTestPass.LESS -> {
+                        glDepthFunc(GL_LESS)
+                    }
+                    DepthTestPass.LESS_OR_EQUAL -> {
+                        glDepthFunc(GL_LEQUAL)
+                    }
+                    DepthTestPass.EQUAL -> {
+                        glDepthFunc(GL_EQUAL)
+                    }
+                    DepthTestPass.NEVER -> {
+                        glDepthFunc(GL_NEVER)
+                    }
+                }
                 debugGLErrors()
-                glStencilOp(glStencilOp(drawStyle.stencil.stencilFailOperation), glStencilOp(drawStyle.stencil.depthFailOperation), glStencilOp(drawStyle.stencil.depthPassOperation))
-                debugGLErrors()
-                glStencilMask(drawStyle.stencil.stencilWriteMask)
-                debugGLErrors()
+                cached.depthTestPass = drawStyle.depthTestPass
             }
-        } else {
-            glEnable(GL_STENCIL_TEST)
-            glStencilFuncSeparate(GL_FRONT, glStencilTest(drawStyle.frontStencil.stencilTest), drawStyle.frontStencil.stencilTestReference, drawStyle.frontStencil.stencilTestMask)
-            glStencilFuncSeparate(GL_BACK, glStencilTest(drawStyle.backStencil.stencilTest), drawStyle.backStencil.stencilTestReference, drawStyle.backStencil.stencilTestMask)
-            glStencilOpSeparate(GL_FRONT, glStencilOp(drawStyle.frontStencil.stencilFailOperation), glStencilOp(drawStyle.frontStencil.depthFailOperation), glStencilOp(drawStyle.frontStencil.depthPassOperation))
-            glStencilOpSeparate(GL_BACK, glStencilOp(drawStyle.backStencil.stencilFailOperation), glStencilOp(drawStyle.backStencil.depthFailOperation), glStencilOp(drawStyle.backStencil.depthPassOperation))
-            glStencilMaskSeparate(GL_FRONT, drawStyle.frontStencil.stencilWriteMask)
-            glStencilMaskSeparate(GL_BACK, drawStyle.backStencil.stencilWriteMask)
+
+            if (dirty || cached.cullTestPass != drawStyle.cullTestPass) {
+                when (drawStyle.cullTestPass) {
+                    CullTestPass.ALWAYS -> {
+                        glDisable(GL_CULL_FACE)
+                    }
+                    CullTestPass.FRONT -> {
+                        glEnable(GL_CULL_FACE)
+                        glCullFace(GL_BACK)
+                    }
+                    CullTestPass.BACK -> {
+                        glEnable(GL_CULL_FACE)
+                        glCullFace(GL_FRONT)
+                    }
+                    CullTestPass.NEVER -> {
+                        glEnable(GL_CULL_FACE)
+                        glCullFace(GL_FRONT_AND_BACK)
+                    }
+                }
+                cached.cullTestPass = drawStyle.cullTestPass
+            }
+
+
+            debugGLErrors()
+            dirty = false
         }
-
-        when (drawStyle.blendMode) {
-            BlendMode.OVER -> {
-                glEnable(GL_BLEND)
-                glBlendEquationi(0, GL_FUNC_ADD)
-                glBlendFunci(0, GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
-            }
-            BlendMode.BLEND -> {
-                glEnable(GL_BLEND)
-                glBlendEquationi(0, GL_FUNC_ADD)
-                glBlendFunci(0, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-            }
-            BlendMode.ADD -> {
-                glEnable(GL_BLEND)
-                glBlendEquationi(0, GL_FUNC_ADD)
-                glBlendFunci(0, GL_ONE, GL_ONE)
-            }
-
-            BlendMode.REPLACE -> {
-                glDisable(GL_BLEND)
-            }
-            BlendMode.SUBTRACT -> {
-                glEnable(GL_BLEND)
-                glBlendEquationSeparatei(0, GL_FUNC_REVERSE_SUBTRACT, GL_FUNC_ADD)
-                glBlendFuncSeparatei(0, GL_SRC_ALPHA, GL_ONE, GL_ONE, GL_ONE)
-            }
-            BlendMode.MULTIPLY -> {
-                glEnable(GL_BLEND)
-                glBlendEquationi(0, GL_FUNC_ADD)
-                glBlendFunci(0, GL_DST_COLOR, GL_ZERO)
-            }
-        }
-        if (drawStyle.alphaToCoverage) {
-            GL33C.glEnable(GL13C.GL_SAMPLE_ALPHA_TO_COVERAGE)
-            GL33C.glDisable(GL11C.GL_BLEND)
-        } else {
-            GL33C.glDisable(GL13C.GL_SAMPLE_ALPHA_TO_COVERAGE)
-        }
-
-
-        when (drawStyle.depthTestPass) {
-            DepthTestPass.ALWAYS -> {
-                glDepthFunc(GL_ALWAYS)
-            }
-            DepthTestPass.GREATER -> {
-                glDepthFunc(GL_GREATER)
-            }
-            DepthTestPass.GREATER_OR_EQUAL -> {
-                glDepthFunc(GL_GEQUAL)
-            }
-            DepthTestPass.LESS -> {
-                glDepthFunc(GL_LESS)
-            }
-            DepthTestPass.LESS_OR_EQUAL -> {
-                glDepthFunc(GL_LEQUAL)
-            }
-            DepthTestPass.EQUAL -> {
-                glDepthFunc(GL_EQUAL)
-            }
-            DepthTestPass.NEVER -> {
-                glDepthFunc(GL_NEVER)
-            }
-        }
-        debugGLErrors()
-
-        when (drawStyle.cullTestPass) {
-            CullTestPass.ALWAYS -> {
-                glDisable(GL_CULL_FACE)
-            }
-            CullTestPass.FRONT -> {
-                glEnable(GL_CULL_FACE)
-                glCullFace(GL_BACK)
-            }
-            CullTestPass.BACK -> {
-                glEnable(GL_CULL_FACE)
-                glCullFace(GL_FRONT)
-            }
-            CullTestPass.NEVER -> {
-                glEnable(GL_CULL_FACE)
-                glCullFace(GL_FRONT_AND_BACK)
-            }
-        }
-
-
-
-        debugGLErrors()
     }
 
     override fun destroyContext(context: Long) {

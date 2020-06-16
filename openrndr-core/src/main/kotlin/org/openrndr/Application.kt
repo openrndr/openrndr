@@ -31,6 +31,13 @@ annotation class ApplicationDslMarker
 abstract class Application {
     companion object {
         fun run(program: Program, configuration: Configuration) {
+
+            Runtime.getRuntime().addShutdownHook(object : Thread() {
+                override fun run() {
+                    report()
+                }
+            })
+
             val c = applicationClass(configuration)
             val application = c.declaredConstructors[0].newInstance(program, configuration) as Application
             application.setup()

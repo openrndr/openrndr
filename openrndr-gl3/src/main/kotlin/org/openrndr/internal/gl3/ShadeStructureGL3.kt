@@ -1,29 +1,128 @@
 package org.openrndr.internal.gl3
 
 import org.openrndr.draw.*
+import org.openrndr.measure
 
 fun array(item: VertexElement): String = if (item.arraySize == 1) "" else "[${item.arraySize}]"
 
-fun structureFromShadeStyle(shadeStyle: ShadeStyle?, vertexFormats: List<VertexFormat>, instanceAttributeFormats: List<VertexFormat>): ShadeStructure {
-    return ShadeStructure().apply {
-        if (shadeStyle != null) {
-            vertexTransform = shadeStyle.vertexTransform
-            fragmentTransform = shadeStyle.fragmentTransform
-            vertexPreamble = shadeStyle.vertexPreamble
-            fragmentPreamble = shadeStyle.fragmentPreamble
-            outputs = shadeStyle.outputs.map { "// -- output-from  ${it.value} \nlayout(location = ${it.value.attachment}) out ${it.value.glslType} o_${it.key};\n" }.joinToString("")
-            uniforms = shadeStyle.parameters.map { "uniform ${mapType(it.value)} p_${it.key};\n" }.joinToString("")
-        }
-        varyingOut = vertexFormats.flatMap { it.items }.joinToString("") { "${it.type.glslVaryingQualifier}out ${it.type.glslType} va_${it.attribute}${array(it)};\n" } +
-                instanceAttributeFormats.flatMap { it.items }.joinToString("") { "${it.type.glslVaryingQualifier}out ${it.type.glslType} vi_${it.attribute}${array(it)};\n" }
-        varyingIn = vertexFormats.flatMap { it.items }.joinToString("") { "${it.type.glslVaryingQualifier}in ${it.type.glslType} va_${it.attribute}${array(it)};\n" } +
-                instanceAttributeFormats.flatMap { it.items }.joinToString("") { "${it.type.glslVaryingQualifier}in ${it.type.glslType} vi_${it.attribute}${array(it)};\n" }
-        varyingBridge = vertexFormats.flatMap { it.items }.joinToString("") { "    va_${it.attribute} = a_${it.attribute};\n" } +
-                instanceAttributeFormats.flatMap { it.items }.joinToString("") { "vi_${it.attribute} = i_${it.attribute};\n" }
-        attributes = vertexFormats.flatMap { it.items }.joinToString("") { "in ${it.type.glslType} a_${it.attribute}${array(it)};\n" } +
-                instanceAttributeFormats.flatMap { it.items }.joinToString("") { "in ${it.type.glslType} i_${it.attribute}${array(it)};\n" }
+interface Cache<K, V> {
+    val size: Int
+    operator fun set(key: K, value: V)
+    operator fun get(key: K): V?
+    fun remove(key: K): V?
+    fun clear()
+}
 
-        suppressDefaultOutput = shadeStyle?.suppressDefaultOutput ?: false
+class PerpetualCache<K, V> : Cache<K, V> {
+    private val cache = HashMap<K, V>()
+    override val size: Int
+        get() = cache.size
+
+    override fun set(key: K, value: V) {
+        this.cache[key] = value
+    }
+
+    override fun remove(key: K) = this.cache.remove(key)
+    override fun get(key: K) = this.cache[key]
+    override fun clear() = this.cache.clear()
+}
+
+class LRUCache<K, V>(private val delegate: Cache<K, V>, private val minimalSize: Int = DEFAULT_SIZE) : Cache<K, V> by delegate {
+    inline fun getOrSet(key: K, forceSet: Boolean, crossinline valueFunction: () -> V): V {
+        val v = measure("LRUCache-lookup") { get(key) }
+        return if (forceSet || v == null) {
+            val n = valueFunction()
+            set(key, n)
+            n
+        } else {
+            v
+        }
+    }
+
+    private val keyMap = object : LinkedHashMap<K, Boolean>(minimalSize, .75f, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<K, Boolean>): Boolean {
+            val tooManyCachedItems = size > minimalSize
+            if (tooManyCachedItems) eldestKeyToRemove = eldest.key
+            return tooManyCachedItems
+        }
+    }
+
+    private var eldestKeyToRemove: K? = null
+
+    override fun set(key: K, value: V) {
+        delegate[key] = value
+        cycleKeyMap(key)
+    }
+
+    override fun get(key: K): V? {
+        keyMap[key]
+        return delegate[key]
+    }
+
+    override fun clear() {
+        keyMap.clear()
+        delegate.clear()
+    }
+
+    private fun cycleKeyMap(key: K) {
+        keyMap[key] = PRESENT
+        eldestKeyToRemove?.let { delegate.remove(it) }
+        eldestKeyToRemove = null
+    }
+
+    companion object {
+        private const val DEFAULT_SIZE = 100
+        private const val PRESENT = true
+    }
+}
+
+data class CacheEntry(val shadeStyle: ShadeStyle?, val vertexFormats: List<VertexFormat>, val instanceAttributeFormats: List<VertexFormat>)
+
+private val shadeStyleCache = LRUCache<CacheEntry, ShadeStructure>(PerpetualCache())
+
+fun structureFromShadeStyle(shadeStyle: ShadeStyle?, vertexFormats: List<VertexFormat>, instanceAttributeFormats: List<VertexFormat>): ShadeStructure {
+    return measure("structureFromShadeStyle") {
+
+        val cacheEntry = CacheEntry(shadeStyle, vertexFormats, instanceAttributeFormats)
+
+        shadeStyleCache.getOrSet(cacheEntry, shadeStyle?.dirty ?: false) {
+
+            measure("strctureFromShadeStyle-cache-miss") {
+                shadeStyle?.dirty = false
+
+                ShadeStructure().apply {
+                    if (shadeStyle != null) {
+                        vertexTransform = shadeStyle.vertexTransform
+                        fragmentTransform = shadeStyle.fragmentTransform
+                        vertexPreamble = shadeStyle.vertexPreamble
+                        fragmentPreamble = shadeStyle.fragmentPreamble
+                        measure("structureFromShadeStyle-outputs") {
+                            outputs = shadeStyle.outputs.map { "// -- output-from  ${it.value} \nlayout(location = ${it.value.attachment}) out ${it.value.glslType} o_${it.key};\n" }.joinToString("")
+                        }
+                        measure("structureFromShadeStyle-uniforms") {
+                            uniforms = shadeStyle.parameters.map { "uniform ${mapType(it.value)} p_${it.key};\n" }.joinToString("")
+                        }
+                    }
+                    measure("structureFromShadeStyle-varying-out") {
+                        varyingOut = vertexFormats.flatMap { it.items }.joinToString("") { "${it.type.glslVaryingQualifier}out ${it.type.glslType} va_${it.attribute}${array(it)};\n" } +
+                                instanceAttributeFormats.flatMap { it.items }.joinToString("") { "${it.type.glslVaryingQualifier}out ${it.type.glslType} vi_${it.attribute}${array(it)};\n" }
+                    }
+                    measure("structureFromShadeStyle-varying-in") {
+                        varyingIn = vertexFormats.flatMap { it.items }.joinToString("") { "${it.type.glslVaryingQualifier}in ${it.type.glslType} va_${it.attribute}${array(it)};\n" } +
+                                instanceAttributeFormats.flatMap { it.items }.joinToString("") { "${it.type.glslVaryingQualifier}in ${it.type.glslType} vi_${it.attribute}${array(it)};\n" }
+                    }
+                    measure("structureFromShadeStyle-varying-bridge") {
+                        varyingBridge = vertexFormats.flatMap { it.items }.joinToString("") { "    va_${it.attribute} = a_${it.attribute};\n" } +
+                                instanceAttributeFormats.flatMap { it.items }.joinToString("") { "vi_${it.attribute} = i_${it.attribute};\n" }
+                    }
+                    measure("structureFromShadeStyle-attributes") {
+                        attributes = vertexFormats.flatMap { it.items }.joinToString("") { "in ${it.type.glslType} a_${it.attribute}${array(it)};\n" } +
+                                instanceAttributeFormats.flatMap { it.items }.joinToString("") { "in ${it.type.glslType} i_${it.attribute}${array(it)};\n" }
+                    }
+                    suppressDefaultOutput = shadeStyle?.suppressDefaultOutput ?: false
+                }
+            }
+        }
     }
 }
 
@@ -33,7 +132,7 @@ private fun mapType(type: String): String {
     return when (tokens[0]) {
         "Int", "int" -> "int"
         "Matrix33" -> "mat3"
-        "Matrix44" -> "mat4${if (arraySize!=null) "[$arraySize]" else ""}"
+        "Matrix44" -> "mat4${if (arraySize != null) "[$arraySize]" else ""}"
         "Float", "float" -> "float"
         "Vector2" -> "vec2"
         "Vector3" -> "vec3"
@@ -54,24 +153,24 @@ private fun mapType(type: String): String {
 }
 
 private val ShadeStyleOutput.glslType: String
-get() {
-    return when(val c = Pair(this.format.componentCount, this.type.colorSampling))  {
-        Pair(1, ColorSampling.NORMALIZED) -> "float"
-        Pair(2, ColorSampling.NORMALIZED) -> "vec2"
-        Pair(3, ColorSampling.NORMALIZED) -> "vec3"
-        Pair(4, ColorSampling.NORMALIZED) -> "vec4"
-        Pair(1, ColorSampling.UNSIGNED_INTEGER) -> "uint"
-        Pair(2, ColorSampling.UNSIGNED_INTEGER) -> "uvec2"
-        Pair(3, ColorSampling.UNSIGNED_INTEGER) -> "uvec3"
-        Pair(4, ColorSampling.UNSIGNED_INTEGER) -> "uvec4"
-        Pair(1, ColorSampling.SIGNED_INTEGER) -> "int"
-        Pair(2, ColorSampling.SIGNED_INTEGER) -> "ivec2"
-        Pair(3, ColorSampling.SIGNED_INTEGER) -> "ivec3"
-        Pair(4, ColorSampling.SIGNED_INTEGER) -> "ivec4"
+    get() {
+        return when (val c = Pair(this.format.componentCount, this.type.colorSampling)) {
+            Pair(1, ColorSampling.NORMALIZED) -> "float"
+            Pair(2, ColorSampling.NORMALIZED) -> "vec2"
+            Pair(3, ColorSampling.NORMALIZED) -> "vec3"
+            Pair(4, ColorSampling.NORMALIZED) -> "vec4"
+            Pair(1, ColorSampling.UNSIGNED_INTEGER) -> "uint"
+            Pair(2, ColorSampling.UNSIGNED_INTEGER) -> "uvec2"
+            Pair(3, ColorSampling.UNSIGNED_INTEGER) -> "uvec3"
+            Pair(4, ColorSampling.UNSIGNED_INTEGER) -> "uvec4"
+            Pair(1, ColorSampling.SIGNED_INTEGER) -> "int"
+            Pair(2, ColorSampling.SIGNED_INTEGER) -> "ivec2"
+            Pair(3, ColorSampling.SIGNED_INTEGER) -> "ivec3"
+            Pair(4, ColorSampling.SIGNED_INTEGER) -> "ivec4"
 
-        else -> error("unsupported type")
+            else -> error("unsupported type")
+        }
     }
-}
 
 
 private val VertexElementType.glslType: String
