@@ -1,6 +1,5 @@
 package org.openrndr.internal.gl3
 
-import org.lwjgl.opengl.GL11C
 import org.lwjgl.opengl.GL33C.*
 import org.lwjgl.opengl.GL40C.GL_TEXTURE_CUBE_MAP_ARRAY
 import org.openrndr.draw.*
@@ -39,21 +38,16 @@ class ArrayCubemapGL4(val target: Int,
                 null
             }
 
-            for(level in 0 until levels) {
+            for (level in 0 until levels) {
                 val div = 1 shr level
-                for (layer in 0 until layers) {
-                    for (side in 0 until 6) {
-                        val depth = layer * 6 + side
-                        glTexImage3D(GL_TEXTURE_CUBE_MAP_ARRAY,
-                                level, internalFormat(format, type).first,
-                                width / div, width / div, layer * 6,
-                                0, GL_RGB, GL_UNSIGNED_BYTE, null as ByteBuffer?)
-                        checkGLErrors() {
-                            when (it) {
-                                GL11C.GL_INVALID_VALUE -> "level ($level) is less than 0 ($level < false), or level > max mip level, or width (${width/div}) < 0, or (${depth/div} < 0  "
-                                else -> null
-                            }
-                        }
+                glTexImage3D(GL_TEXTURE_CUBE_MAP_ARRAY,
+                        level, internalFormat(format, type).first,
+                        width / div, width / div, layers * 6,
+                        0, GL_RGB, GL_UNSIGNED_BYTE, null as ByteBuffer?)
+                checkGLErrors() {
+                    when (it) {
+                        GL_INVALID_VALUE -> "level ($level) is less than 0 ($level < false), or level > max mip level, or width (${width / div}) < 0, or ($layers}) < 0  "
+                        else -> null
                     }
                 }
             }
