@@ -23,10 +23,18 @@ import java.util.*
 private val logger = KotlinLogging.logger {}
 internal val useDebugContext = System.getProperty("org.openrndr.gl3.debug") != null
 
-enum class DriverVersionGL(val glslVersion:String) {
+enum class DriverVersionGL(val glslVersion: String) {
     VERSION_3_3("330 core"),
     VERSION_4_1("410 core"),
-    VERSION_4_3("430 core")
+    VERSION_4_3("430 core");
+
+}
+
+@Suppress("NOTHING_TO_INLINE")
+inline fun DriverVersionGL.require(minimum: DriverVersionGL) {
+    require(ordinal >= minimum.ordinal) {
+        """Feature is not supported on current configuration (configuration: $this, required: $minimum)"""
+    }
 }
 
 class DriverGL3(val version: DriverVersionGL) : Driver {
@@ -34,7 +42,6 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         get() {
             return GLFW.glfwGetCurrentContext()
         }
-
 
     override fun createResourceThread(session: Session?, f: () -> Unit): ResourceThread {
         return ResourceThreadGL3.create(f)
@@ -144,21 +151,15 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
     }
 
     override fun createComputeShader(code: String, session: Session?): ComputeShader {
-        if (version == DriverVersionGL.VERSION_4_3) {
-            return ComputeShaderGL43.createFromCode(code)
-        } else {
-            throw IllegalArgumentException("compute shaders are not supported by this configuration")
-        }
+        version.require(DriverVersionGL.VERSION_4_3)
+        return ComputeShaderGL43.createFromCode(code)
     }
 
     override fun createAtomicCounterBuffer(counterCount: Int, session: Session?): AtomicCounterBuffer {
-        if (version == DriverVersionGL.VERSION_4_3) {
-            val atomicCounterBuffer = AtomicCounterBufferGL43.create(counterCount)
-            session?.track(atomicCounterBuffer)
-            return atomicCounterBuffer
-        } else {
-            throw IllegalArgumentException("atomic counter buffers are not supported by this configuration ($version)")
-        }
+        version.require(DriverVersionGL.VERSION_4_3)
+        val atomicCounterBuffer = AtomicCounterBufferGL43.create(counterCount)
+        session?.track(atomicCounterBuffer)
+        return atomicCounterBuffer
     }
 
     override fun createArrayTexture(width: Int, height: Int, layers: Int, format: ColorFormat, type: ColorType, levels: Int, session: Session?): ArrayTexture {
@@ -204,6 +205,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
 
     override fun createArrayCubemap(width: Int, layers: Int, format: ColorFormat, type: ColorType, levels: Int, session: Session?): ArrayCubemap {
         logger.trace { "creating array texture" }
+        version.require(DriverVersionGL.VERSION_4_1)
         val arrayTexture = ArrayCubemapGL4.create(width, layers, format, type, levels, session)
         session?.track(arrayTexture)
         return arrayTexture
@@ -281,7 +283,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         shader as ShaderGL3
         // -- find or create a VAO for our shader + vertex buffers combination
         val hash =
-            hash(shader, vertexBuffers, emptyList())
+                hash(shader, vertexBuffers, emptyList())
 
 
         val vao = vaos.getOrPut(hash) {
