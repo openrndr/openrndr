@@ -64,6 +64,21 @@ class VertexFormat {
     }
 
     fun hasAttribute(name: String): Boolean = items.any { it.attribute == name }
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as VertexFormat
+
+        if (items != other.items) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return items.hashCode()
+    }
+
 
 }
 
