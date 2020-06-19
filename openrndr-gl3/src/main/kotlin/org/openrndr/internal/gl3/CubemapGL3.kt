@@ -228,7 +228,7 @@ class CubemapGL3(val texture: Int, override val width: Int, val sides: List<Colo
         }
     }
 
-    private fun bound(f: CubemapGL3.() -> Unit) {
+    internal fun bound(f: CubemapGL3.() -> Unit) {
         glActiveTexture(GL_TEXTURE0)
         val current = glGetInteger(GL_TEXTURE_BINDING_CUBE_MAP)
         glBindTexture(GL_TEXTURE_CUBE_MAP, texture)
