@@ -12,6 +12,12 @@ import kotlin.math.pow
 
 class CubemapGL3(val texture: Int, override val width: Int, val sides: List<ColorBuffer>, override val type: ColorType, override val format: ColorFormat, levels: Int, override val session: Session?) : Cubemap {
 
+    init {
+        require(sides.size == 6) { """
+            sides should contain 6 entries (has ${sides.size})
+        """.trimIndent() }
+    }
+
     override var levels = levels
         private set(value:Int) {
             if (field != value) {
@@ -26,6 +32,11 @@ class CubemapGL3(val texture: Int, override val width: Int, val sides: List<Colo
 
     companion object {
         fun create(width: Int, format: ColorFormat, type: ColorType, levels: Int, session: Session? = Session.active): CubemapGL3 {
+
+            require(levels >= 1) {
+                """should have at least 1 level (has $levels)"""
+            }
+
             val textures = IntArray(1)
             glGenTextures(textures)
             glActiveTexture(GL_TEXTURE0)
@@ -41,7 +52,10 @@ class CubemapGL3(val texture: Int, override val width: Int, val sides: List<Colo
                 for (i in 0..5) {
                     val nullBB: ByteBuffer? = null
                     glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, level, internalFormat, effectiveWidth / div, effectiveHeight / div, 0, format.glFormat(), type.glType(), nullBB)
-                    sides.add(ColorBufferGL3(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, textures[0], width, width, 1.0, format, type, 1, BufferMultisample.Disabled, session))
+
+                    if (level == 0) {
+                        sides.add(ColorBufferGL3(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, textures[0], width, width, 1.0, format, type, levels, BufferMultisample.Disabled, session))
+                    }
                 }
             }
             return CubemapGL3(textures[0], width, sides, type, format, levels, session)

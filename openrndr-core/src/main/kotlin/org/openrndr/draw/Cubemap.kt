@@ -47,8 +47,7 @@ interface Cubemap {
     fun destroy()
 }
 
-fun cubemap(width: Int, format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.UINT8, levels: Int = -1, session: Session?): Cubemap {
-    val cubemap = Cubemap.create(width, format, type, levels)
-    session?.track(cubemap)
+fun cubemap(width: Int, format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.UINT8, levels: Int = 1, session: Session? = Session.active): Cubemap {
+    val cubemap = Cubemap.create(width, format, type, levels, session)
     return cubemap
 }
