@@ -193,13 +193,14 @@ open class RenderTargetGL3(val framebuffer: Int,
     override fun attach(arrayCubemap: ArrayCubemap, side: CubemapSide, layer: Int, level: Int) {
         require(!destroyed)
         val context = glfwGetCurrentContext()
+        bindTarget()
         val effectiveWidth = (width * contentScale).toInt()
         if (!(arrayCubemap.width == effectiveWidth && arrayCubemap.width == effectiveHeight)) {
             throw IllegalArgumentException("buffer dimension mismatch. expected: ($effectiveWidth x $effectiveHeight), got: (${arrayCubemap.width} x ${arrayCubemap.width}")
         }
         arrayCubemap as ArrayCubemapGL4
         glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + attachements, arrayCubemap.texture, level, layer * 6 + side.ordinal)
-        debugGLErrors { null }
+        checkGLErrors() { null }
         attachements++
 
         if (active[context]?.peek() != null)
@@ -286,13 +287,12 @@ open class RenderTargetGL3(val framebuffer: Int,
             depthBuffer as DepthBufferGL3
 
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthBuffer.target, depthBuffer.texture, 0)
-            debugGLErrors { null }
+            checkGLErrors { null }
 
             if (depthBuffer.hasStencil) {
                 glFramebufferTexture2D(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, depthBuffer.target, depthBuffer.texture, 0)
-                debugGLErrors { null }
+                checkGLErrors { null }
             }
-            checkGLErrors()
 
             this._depthBuffer = depthBuffer
 
