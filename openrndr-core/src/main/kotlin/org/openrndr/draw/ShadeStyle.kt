@@ -100,6 +100,21 @@ open class ShadeStyle {
         parameters[name] = "Matrix44,${value.size}"
     }
 
+    fun parameter(name: String, value: Array<Vector2>) {
+        parameterValues[name] = value
+        parameters[name] = "Vector2,${value.size}"
+    }
+
+    fun parameter(name: String, value: Array<Vector3>) {
+        parameterValues[name] = value
+        parameters[name] = "Vector3,${value.size}"
+    }
+
+    fun parameter(name: String, value: Array<Vector4>) {
+        parameterValues[name] = value
+        parameters[name] = "Vector4,${value.size}"
+    }
+
     fun parameter(name: String, value: Float) {
         parameterValues[name] = value
         parameters[name] = "float"

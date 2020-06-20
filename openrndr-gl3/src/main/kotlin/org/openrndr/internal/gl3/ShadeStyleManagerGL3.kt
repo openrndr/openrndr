@@ -96,6 +96,18 @@ class ShadeStyleManagerGL3(name: String,
                                         @Suppress("UNCHECKED_CAST")
                                         shader.uniform("p_${it.key}", value as Array<Matrix44>)
                                     }
+                                    is Vector4 -> {
+                                        @Suppress("UNCHECKED_CAST")
+                                        shader.uniform("p_${it.key}", value as Array<Vector4>)
+                                    }
+                                    is Vector3 -> {
+                                        @Suppress("UNCHECKED_CAST")
+                                        shader.uniform("p_${it.key}", value as Array<Vector3>)
+                                    }
+                                    is Vector2 -> {
+                                        @Suppress("UNCHECKED_CAST")
+                                        shader.uniform("p_${it.key}", value as Array<Vector2>)
+                                    }
                                 }
                             }
                             else -> {
