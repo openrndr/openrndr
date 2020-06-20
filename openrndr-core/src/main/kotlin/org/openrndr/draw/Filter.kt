@@ -159,7 +159,13 @@ open class Filter(private val shader: Shader? = null, private val watcher: Shade
                     textureIndex++
                 }
 
-                is ArrayTexture -> {
+                is ArrayCubemap -> {
+                    shader.uniform("$uniform", textureIndex)
+                    value.bind(textureIndex)
+                    textureIndex++
+                }
+
+                is Cubemap -> {
                     shader.uniform("$uniform", textureIndex)
                     value.bind(textureIndex)
                     textureIndex++
