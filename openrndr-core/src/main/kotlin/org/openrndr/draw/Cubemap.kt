@@ -10,6 +10,10 @@ enum class CubemapSide(val forward: Vector3, val up: Vector3) {
     NEGATIVE_Y(-Vector3.UNIT_Y, -Vector3.UNIT_Z),
     POSITIVE_Z(Vector3.UNIT_Z, -Vector3.UNIT_Y),
     NEGATIVE_Z(-Vector3.UNIT_Z, -Vector3.UNIT_Y)
+    ;
+
+    val right
+        get() = forward cross up
 }
 
 interface Cubemap {
