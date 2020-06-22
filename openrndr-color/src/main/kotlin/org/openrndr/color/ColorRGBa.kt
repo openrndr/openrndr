@@ -11,6 +11,7 @@ enum class Linearity {
     SRGB,
     ASSUMED_LINEAR,
     ASSUMED_SRGB
+
 }
 
 /**
@@ -62,15 +63,24 @@ data class ColorRGBa(val r: Double, val g: Double, val b: Double, val a: Double 
             return ColorRGBa(r / 255.0, g / 255.0, b / 255.0, 1.0, Linearity.SRGB)
         }
 
-        /** @suppress */ val PINK = fromHex(0xffc0cb)
-        /** @suppress */ val BLACK = ColorRGBa(0.0, 0.0, 0.0, 1.0)
-        /** @suppress */ val WHITE = ColorRGBa(1.0, 1.0, 1.0, 1.0)
-        /** @suppress */ val RED = ColorRGBa(1.0, 0.0, 0.0, 1.0)
-        /** @suppress */ val BLUE = ColorRGBa(0.0, 0.0, 1.0)
-        /** @suppress */ val GREEN = ColorRGBa(0.0, 1.0, 0.0)
-        /** @suppress */ val YELLOW = ColorRGBa(1.0, 1.0, 0.0)
-        /** @suppress */ val GRAY = ColorRGBa(0.5, 0.5, 0.5)
-        /** @suppress */ val TRANSPARENT = ColorRGBa(0.0, 0.0, 0.0, 0.0)
+        /** @suppress */
+        val PINK = fromHex(0xffc0cb)
+        /** @suppress */
+        val BLACK = ColorRGBa(0.0, 0.0, 0.0, 1.0)
+        /** @suppress */
+        val WHITE = ColorRGBa(1.0, 1.0, 1.0, 1.0)
+        /** @suppress */
+        val RED = ColorRGBa(1.0, 0.0, 0.0, 1.0)
+        /** @suppress */
+        val BLUE = ColorRGBa(0.0, 0.0, 1.0)
+        /** @suppress */
+        val GREEN = ColorRGBa(0.0, 1.0, 0.0)
+        /** @suppress */
+        val YELLOW = ColorRGBa(1.0, 1.0, 0.0)
+        /** @suppress */
+        val GRAY = ColorRGBa(0.5, 0.5, 0.5)
+        /** @suppress */
+        val TRANSPARENT = ColorRGBa(0.0, 0.0, 0.0, 0.0)
 
         /**
          * Create a ColorRGBa object from a [Vector3]
@@ -162,6 +172,18 @@ data class ColorRGBa(val r: Double, val g: Double, val b: Double, val a: Double 
             Linearity.UNKNOWN, Linearity.ASSUMED_LINEAR -> ColorRGBa(t(r), t(g), t(b), a, Linearity.ASSUMED_SRGB)
             Linearity.ASSUMED_SRGB, Linearity.SRGB -> this
         }
+    }
+
+
+    // This is here because the default hashing of enums on the JVM is not stable.
+    override fun hashCode(): Int {
+        var result = r.hashCode()
+        result = 31 * result + g.hashCode()
+        result = 31 * result + b.hashCode()
+        result = 31 * result + a.hashCode()
+        // here we overcome the unstable hash by using the ordinal value
+        result = 31 * result + linearity.ordinal.hashCode()
+        return result
     }
 }
 
