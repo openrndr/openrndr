@@ -2,6 +2,7 @@ package org.openrndr.draw
 
 import org.openrndr.internal.Driver
 import org.openrndr.math.Vector3
+import java.nio.ByteBuffer
 
 enum class CubemapSide(val forward: Vector3, val up: Vector3) {
     POSITIVE_X(Vector3.UNIT_X, -Vector3.UNIT_Y),
@@ -49,6 +50,8 @@ interface Cubemap {
     fun bind(textureUnit: Int = 0)
     fun generateMipmaps()
     fun destroy()
+
+    fun read(side: CubemapSide, target: ByteBuffer, targetFormat: ColorFormat = format, targetType: ColorType = type, level: Int = 0)
 }
 
 fun cubemap(width: Int, format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.UINT8, levels: Int = 1, session: Session? = Session.active): Cubemap {

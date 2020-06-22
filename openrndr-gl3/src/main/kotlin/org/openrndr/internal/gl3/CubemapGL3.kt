@@ -10,16 +10,28 @@ import kotlin.math.ceil
 import kotlin.math.log
 import kotlin.math.pow
 
+val CubemapSide.glTextureTarget
+    get() = when (this) {
+        CubemapSide.POSITIVE_X -> GL_TEXTURE_CUBE_MAP_POSITIVE_X
+        CubemapSide.POSITIVE_Y -> GL_TEXTURE_CUBE_MAP_POSITIVE_Y
+        CubemapSide.POSITIVE_Z -> GL_TEXTURE_CUBE_MAP_POSITIVE_Z
+        CubemapSide.NEGATIVE_X -> GL_TEXTURE_CUBE_MAP_NEGATIVE_X
+        CubemapSide.NEGATIVE_Y -> GL_TEXTURE_CUBE_MAP_NEGATIVE_Y
+        CubemapSide.NEGATIVE_Z -> GL_TEXTURE_CUBE_MAP_NEGATIVE_Z
+    }
+
 class CubemapGL3(val texture: Int, override val width: Int, val sides: List<ColorBuffer>, override val type: ColorType, override val format: ColorFormat, levels: Int, override val session: Session?) : Cubemap {
 
     init {
-        require(sides.size == 6) { """
+        require(sides.size == 6) {
+            """
             sides should contain 6 entries (has ${sides.size})
-        """.trimIndent() }
+        """.trimIndent()
+        }
     }
 
     override var levels = levels
-        private set(value:Int) {
+        private set(value: Int) {
             if (field != value) {
                 field = value
                 bound {
@@ -224,6 +236,13 @@ class CubemapGL3(val texture: Int, override val width: Int, val sides: List<Colo
         }
     }
 
+    override fun read(side: CubemapSide, target: ByteBuffer, targetFormat: ColorFormat, targetType: ColorType, level: Int) {
+        bound {
+            glPixelStorei(GL_PACK_ALIGNMENT, 1)
+            glGetTexImage(side.glTextureTarget, level, targetFormat.glFormat(), targetType.glType(), target)
+            debugGLErrors()
+        }
+    }
 
     override fun bind(textureUnit: Int) {
         if (!destroyed) {
