@@ -16,7 +16,7 @@ class BufferTextureShadowGL3(override val bufferTexture: BufferTextureGL3) : Buf
                 order(ByteOrder.nativeOrder())
             }
 
-    override fun upload(offset:Int, size:Int) {
+    override fun upload(offset: Int, size: Int) {
         logger.trace { "uploading shadow to buffer texture" }
         (buffer as Buffer).rewind()
         (buffer as Buffer).position(offset)
@@ -33,7 +33,7 @@ class BufferTextureShadowGL3(override val bufferTexture: BufferTextureGL3) : Buf
         bufferTexture.realShadow = null
     }
 
-    override fun writer():BufferWriter {
+    override fun writer(): BufferWriter {
         return BufferWriterGL3(buffer, bufferTexture.format.componentCount * bufferTexture.type.componentSize)
     }
 }
@@ -67,12 +67,24 @@ class BufferTextureGL3(val texture: Int, val buffer: Int, override val elementCo
             return realShadow!!
         }
 
-    fun write(buffer:ByteBuffer) {
-        (buffer as Buffer).rewind()
+
+    override fun read(targetBuffer: ByteBuffer, offset: Int, elementReadCount: Int) {
+        val oldLimit = targetBuffer.limit()
+        targetBuffer.limit(targetBuffer.position() + elementReadCount * format.componentCount * type.componentSize)
+        glBindBuffer(GL_TEXTURE_BUFFER, this.buffer)
+        glGetBufferSubData(GL_TEXTURE_BUFFER, 0, targetBuffer)
+        targetBuffer.limit(oldLimit)
+    }
+
+    override fun write(sourceBuffer: ByteBuffer, offset: Int, elementWriteCount: Int) {
+        require(sourceBuffer.isDirect)
+        val oldLimit = sourceBuffer.limit()
+        sourceBuffer.limit(sourceBuffer.position() + elementWriteCount * format.componentCount * type.componentSize)
         glBindBuffer(GL_TEXTURE_BUFFER, this.buffer)
         debugGLErrors()
-        glBufferSubData(GL_TEXTURE_BUFFER, 0L, buffer)
+        glBufferSubData(GL_TEXTURE_BUFFER, 0L, sourceBuffer)
         debugGLErrors()
+        sourceBuffer.limit(oldLimit)
     }
 
     override fun bind(unit: Int) {
@@ -86,7 +98,6 @@ class BufferTextureGL3(val texture: Int, val buffer: Int, override val elementCo
             session?.untrack(this)
             glDeleteTextures(texture)
             destroyed = true
-
         }
     }
 }

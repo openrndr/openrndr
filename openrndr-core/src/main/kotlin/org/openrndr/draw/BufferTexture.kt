@@ -1,6 +1,7 @@
 package org.openrndr.draw
 
 import org.openrndr.internal.Driver
+import java.nio.ByteBuffer
 
 interface BufferTexture {
     val session: Session?
@@ -30,6 +31,9 @@ interface BufferTexture {
         w.rewind()
         return count
     }
+
+    fun read(target: ByteBuffer, offset:Int = 0, elementReadCount: Int = this.elementCount)
+    fun write(source: ByteBuffer, offset:Int = 0, elementWriteCount: Int = this.elementCount)
 }
 
 /**
