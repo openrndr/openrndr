@@ -130,6 +130,7 @@ private fun mapType(type: String): String {
     val tokens = type.split(",")
     val arraySize = tokens.getOrNull(1)
     return when (tokens[0]) {
+        "Boolean", "boolean" -> "bool"
         "Int", "int" -> "int"
         "Matrix33" -> "mat3"
         "Matrix44" -> "mat4${if (arraySize != null) "[$arraySize]" else ""}"

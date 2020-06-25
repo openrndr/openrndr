@@ -50,6 +50,7 @@ class ShadeStyleManagerGL3(name: String,
                 measure("set-uniforms") {
                     for (it in style.parameterValues.entries) {
                         when (val value = it.value) {
+                            is Boolean -> shader.uniform("p_${it.key}", value)
                             is Int -> shader.uniform("p_${it.key}", value)
                             is Float -> shader.uniform("p_${it.key}", value)
                             is Double -> shader.uniform("p_${it.key}", value)

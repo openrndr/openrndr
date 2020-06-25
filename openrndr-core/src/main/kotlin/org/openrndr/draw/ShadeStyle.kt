@@ -80,6 +80,11 @@ open class ShadeStyle {
         parameters[name] = "Cubemap"
     }
 
+    fun parameter(name: String, value: Boolean) {
+        parameterValues[name] = value
+        parameters[name] = "boolean"
+    }
+
     fun parameter(name: String, value: Int) {
         parameterValues[name] = value
         parameters[name] = "int"
@@ -232,6 +237,7 @@ open class ShadeStyle {
         override fun setValue(thisRef: ShadeStyle, property: KProperty<*>, value: R) {
             parameterValues[property.name] = value
             parameters[property.name] = when (value) {
+                is Boolean -> "boolean"
                 is Int -> "int"
                 is Double -> "float"
                 is Float -> "float"
