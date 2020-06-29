@@ -603,6 +603,32 @@ class ShaderGL3(val program: Int,
         }
     }
 
+    override fun uniform(name: String, value: IntVector3) {
+        measure("set-uniform-intvector3::$name") {
+            if (lastValues[name] !== value) {
+                val index = uniformIndex(name)
+                if (index != -1) {
+                    glUniform3i(index, value.x, value.y, value.z)
+                    postUniformCheck(name, index, value)
+                }
+                lastValues[name] = value
+            }
+        }
+    }
+
+    override fun uniform(name: String, value: IntVector4) {
+        measure("set-uniform-intvector4::$name") {
+            if (lastValues[name] !== value) {
+                val index = uniformIndex(name)
+                if (index != -1) {
+                    glUniform4i(index, value.x, value.y, value.z, value.w)
+                    postUniformCheck(name, index, value)
+                }
+                lastValues[name] = value
+            }
+        }
+    }
+
     override fun uniform(name: String, x: Float, y: Float, z: Float, w: Float) {
         val index = uniformIndex(name)
         if (index != -1) {
@@ -655,6 +681,18 @@ class ShaderGL3(val program: Int,
             lastValues[name] = value
         }
     }
+
+    override fun uniform(name: String, value: IntVector2) {
+        if (lastValues[name] !== value) {
+            val index = uniformIndex(name)
+            if (index != -1) {
+                glUniform2i(index, value.x, value.y)
+                postUniformCheck(name, index, value)
+            }
+            lastValues[name] = value
+        }
+    }
+
 
     override fun uniform(name: String, value: Float) {
         if (lastValues[name] == null || lastValues[name] != value) {
@@ -782,11 +820,69 @@ class ShaderGL3(val program: Int,
         }
     }
 
+    override fun uniform(name: String, value: Array<IntVector2>) {
+        val index = uniformIndex(name)
+        if (index != -1) {
+            logger.trace { "Setting uniform '$name' to $value" }
+
+            val intValues = IntArray(value.size * 2)
+            for (i in value.indices) {
+                intValues[i * 2] = value[i].x
+                intValues[i * 2 + 1] = value[i].y
+            }
+
+            glUniform2iv(index, intValues)
+            postUniformCheck(name, index, value)
+        }
+    }
+
+    override fun uniform(name: String, value: Array<IntVector3>) {
+        val index = uniformIndex(name)
+        if (index != -1) {
+            logger.trace { "Setting uniform '$name' to $value" }
+
+            val intValues = IntArray(value.size * 3)
+            for (i in value.indices) {
+                intValues[i * 3] = value[i].x
+                intValues[i * 3 + 1] = value[i].y
+                intValues[i * 3 + 2] = value[i].z
+            }
+            glUniform3iv(index, intValues)
+            postUniformCheck(name, index, value)
+        }
+    }
+
+    override fun uniform(name: String, value: Array<IntVector4>) {
+        val index = uniformIndex(name)
+        if (index != -1) {
+            logger.trace { "Setting uniform '$name' to $value" }
+
+            val intValues = IntArray(value.size * 4)
+            for (i in value.indices) {
+                intValues[i * 4] = value[i].x
+                intValues[i * 4 + 1] = value[i].y
+                intValues[i * 4 + 2] = value[i].z
+                intValues[i * 4 + 3] = value[i].w
+            }
+            glUniform4iv(index, intValues)
+            postUniformCheck(name, index, value)
+        }
+    }
+
     override fun uniform(name: String, value: FloatArray) {
         val index = uniformIndex(name)
         if (index != -1) {
             logger.trace { "Setting uniform '$name' to $value" }
             glUniform1fv(index, value)
+            postUniformCheck(name, index, value)
+        }
+    }
+
+    override fun uniform(name: String, value: IntArray) {
+        val index = uniformIndex(name)
+        if (index != -1) {
+            logger.trace { "Setting uniform '$name' to $value" }
+            glUniform1iv(index, value)
             postUniformCheck(name, index, value)
         }
     }
@@ -852,7 +948,7 @@ private fun Int.toUniformType(): UniformType {
         GL_FLOAT_VEC2 -> UniformType.VECTOR2_FLOAT32
         GL_FLOAT_VEC3 -> UniformType.VECTOR3_FLOAT32
         GL_FLOAT_VEC4 -> UniformType.VECTOR4_FLOAT32
-        GL_INT -> UniformType.VECTOR2_INT32
+        GL_INT -> UniformType.INT32
         GL_INT_VEC2 -> UniformType.VECTOR2_INT32
         GL_INT_VEC3 -> UniformType.VECTOR3_INT32
         GL_INT_VEC4 -> UniformType.VECTOR4_INT32

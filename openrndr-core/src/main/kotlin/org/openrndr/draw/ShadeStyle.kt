@@ -145,6 +145,22 @@ open class ShadeStyle {
         parameters[name] = "Vector4"
     }
 
+    fun parameter(name: String, value: IntVector2) {
+        parameterValues[name] = value
+        parameters[name] = "IntVector2"
+    }
+
+    fun parameter(name: String, value: IntVector3) {
+        parameterValues[name] = value
+        parameters[name] = "IntVector3"
+    }
+
+    fun parameter(name: String, value: IntVector4) {
+        parameterValues[name] = value
+        parameters[name] = "IntVector4"
+    }
+
+
     fun parameter(name: String, value: ColorRGBa) {
         parameterValues[name] = value
         parameters[name] = "ColorRGBa"
@@ -241,9 +257,14 @@ open class ShadeStyle {
                 is Int -> "int"
                 is Double -> "float"
                 is Float -> "float"
+                is IntArray -> "int, ${value.size}"
+                is FloatArray -> "float, ${value.size}"
                 is Vector2 -> "Vector2"
                 is Vector3 -> "Vector3"
                 is Vector4 -> "Vector4"
+                is IntVector2 -> "IntVector2"
+                is IntVector3 -> "IntVector3"
+                is IntVector4 -> "IntVector4"
                 is Matrix33 -> "Matrix33"
                 is Matrix44 -> "Matrix44"
                 is ColorRGBa -> "ColorRGBa"
@@ -270,10 +291,28 @@ open class ShadeStyle {
                             is Matrix44 -> {
                                 "Matrix44, ${value.size}"
                             }
-                            else -> error("unsupported list type ${(value.first()!!)::class}")
+                            is Vector2 -> {
+                                "Vector2, ${value.size}"
+                            }
+                            is Vector3 -> {
+                                "Vector3, ${value.size}"
+                            }
+                            is Vector4 -> {
+                                "Vector4, ${value.size}"
+                            }
+                            is IntVector2 -> {
+                                "IntVector2, ${value.size}"
+                            }
+                            is IntVector3 -> {
+                                "IntVector3, ${value.size}"
+                            }
+                            is IntVector4 -> {
+                                "IntVector4, ${value.size}"
+                            }
+                            else -> error("unsupported array type ${(value.first()!!)::class}")
                         }
                     } else {
-                        error("empty list")
+                        error("empty array")
                     }
                 }
                 else -> error("unsupported type ${value::class}")

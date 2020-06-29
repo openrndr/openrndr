@@ -64,6 +64,10 @@ interface Shader {
     fun uniform(name: String, value: Vector4)
     fun uniform(name: String, value: Vector3)
     fun uniform(name: String, value: Vector2)
+    fun uniform(name: String, value: IntVector4)
+    fun uniform(name: String, value: IntVector3)
+    fun uniform(name: String, value: IntVector2)
+
     fun uniform(name: String, x: Float, y: Float, z: Float, w: Float)
     fun uniform(name: String, x: Float, y: Float, z: Float)
     fun uniform(name: String, x: Float, y: Float)
@@ -76,7 +80,12 @@ interface Shader {
     fun uniform(name: String, value: Array<Vector4>)
     fun uniform(name: String, value: Array<Vector3>)
     fun uniform(name: String, value: Array<Vector2>)
-    fun uniform(name: String, value: FloatArray)
+    fun uniform(name: String, value: Array<IntVector4>)
+    fun uniform(name: String, value: Array<IntVector3>)
+    fun uniform(name: String, value: Array<IntVector2>)
 
+
+    fun uniform(name: String, value: FloatArray)
+    fun uniform(name: String, value: IntArray)
     fun destroy()
 }

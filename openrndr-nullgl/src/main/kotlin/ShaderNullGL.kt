@@ -63,6 +63,16 @@ class ShaderNullGL(override val session: Session?) : Shader {
 
     }
 
+    override fun uniform(name: String, value: IntVector4) {
+
+    }
+
+    override fun uniform(name: String, value: IntVector3) {
+    }
+
+    override fun uniform(name: String, value: IntVector2) {
+    }
+
     override fun uniform(name: String, x: Float, y: Float, z: Float, w: Float) {
 
     }
@@ -102,8 +112,20 @@ class ShaderNullGL(override val session: Session?) : Shader {
 
     }
 
+    override fun uniform(name: String, value: Array<IntVector4>) {
+    }
+
+    override fun uniform(name: String, value: Array<IntVector3>) {
+    }
+
+    override fun uniform(name: String, value: Array<IntVector2>) {
+    }
+
     override fun uniform(name: String, value: FloatArray) {
 
+    }
+
+    override fun uniform(name: String, value: IntArray) {
     }
 
     override fun destroy() {
