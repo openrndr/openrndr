@@ -26,6 +26,21 @@ object TestMatrix33 : Spek({
             Matrix33.fromColumnVectors(Vector3.UNIT_X, Vector3.UNIT_X*2.0, Vector3.UNIT_X*3.0 ).determinant.`should be in range`(0.0-maxError, 0.0+maxError)
         }
 
+        it("inverse of identity") {
+            val inversed = Matrix33.IDENTITY.inversed
+            inversed.trace.`should be in range`(3.0-maxError,3.0+maxError)
+            inversed.determinant.`should be in range`(1.0-maxError,1.0+maxError)
+        }
 
+        it("inverse of non-identity diagonal") {
+            val d = Matrix33.IDENTITY * 3.0
+            val inversed = d.inversed
+            inversed.trace.`should be in range`(1.0-maxError,1.0+maxError)
+        }
+        it("inverse of non-diagonal") {
+            val nd = Matrix33.fromColumnVectors(Vector3(1.0, 0.0, 0.0), Vector3(0.0, 1.0, 0.0), Vector3(1.0, 1.0, 1.0))
+            val inversed = nd.inversed
+            (nd * inversed).trace.`should be in range`(1.0-maxError,1.0+maxError)
+        }
     }
 })

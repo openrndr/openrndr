@@ -41,6 +41,21 @@ data class Matrix33(
             return x + y + z
         }
 
+    val inversed: Matrix33
+        get() {
+            val invDet = 1.0 / determinant
+            return Matrix33(
+                    invDet * (c1r1 * c2r2 - c2r1 * c1r2),
+                    invDet * (c2r0 * c1r2 - c1r0 * c2r2),
+                    invDet * (c1r0 * c2r1 - c2r0 * c1r1),
+                    invDet * (c2r1 * c0r2 - c0r1 * c2r2),
+                    invDet * (c0r0 * c2r2 - c2r0 * c0r2),
+                    invDet * (c2r0 * c0r1 - c0r0 * c2r1),
+                    invDet * (c0r1 * c1r2 - c1r1 * c0r2),
+                    invDet * (c1r0 * c0r2 - c0r0 * c1r2),
+                    invDet * (c0r0 * c1r1 - c1r0 * c0r1))
+        }
+
     operator fun plus(o: Matrix33) = Matrix33(
             c0r0 + o.c0r0, c1r0 + o.c1r0, c2r0 + o.c2r0,
             c0r1 + o.c0r1, c1r1 + o.c1r1, c2r1 + o.c2r1,
