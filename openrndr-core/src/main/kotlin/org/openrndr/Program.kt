@@ -21,12 +21,19 @@ enum class WindowEventType {
     UNFOCUSED,
     MINIMIZED,
     RESTORED,
+    CLOSED
 }
 
 class WindowEvent(val type: WindowEventType, val position: Vector2, val size: Vector2, val focused: Boolean)
 
 class DropEvent(val position: Vector2, val files: List<File>)
 
+
+enum class ProgramEventType {
+    ENDED
+}
+
+class ProgramEvent(val type: ProgramEventType)
 
 /**
 The Program class, this is where most user implementations start
@@ -39,7 +46,6 @@ open class Program {
 
     var name = stackRootClassName()
 
-
     lateinit var drawer: Drawer
     lateinit var driver: Driver
 
@@ -47,6 +53,8 @@ open class Program {
 
     var backgroundColor: ColorRGBa? = ColorRGBa.BLACK
     val dispatcher = Dispatcher()
+
+    var ended = Event<ProgramEvent>()
 
     /**
      * clock function. defaults to returning the application time.
@@ -197,6 +205,12 @@ open class Program {
          * Window restored (from minimization) event
          */
         val restored = Event<WindowEvent>("window-restored").postpone(true)
+
+        /**
+         * Window restored (from minimization) event
+         */
+        val closed = Event<WindowEvent>("window-closed").postpone(false)
+
 
         /**
          * Drop event, triggered when a file is dropped on the window

@@ -5,10 +5,7 @@ import org.lwjgl.egl.EGL15.*
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL33C.*
 import org.lwjgl.system.MemoryStack.stackPush
-import org.openrndr.Application
-import org.openrndr.Configuration
-import org.openrndr.PresentationMode
-import org.openrndr.Program
+import org.openrndr.*
 import org.openrndr.animatable.Animatable
 import org.openrndr.animatable.Clock
 import org.openrndr.draw.Drawer
@@ -132,6 +129,11 @@ class ApplicationEGLGL3(private val program: Program, private val configuration:
             program.drawer.ortho()
             program.drawImpl()
         }
+        for (extension in program.extensions) {
+            extension.shutdown(program)
+        }
+
+        program.ended.trigger(ProgramEvent(ProgramEventType.ENDED))
     }
 
     override var clipboardContents: String?

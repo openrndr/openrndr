@@ -280,6 +280,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         }
         var readyFrames = 0
 
+
         glfwSetWindowRefreshCallback(window) {
             if (readyFrames > 0) {
                 if (setupCalled)
@@ -319,6 +320,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
 
         glfwSetWindowCloseCallback(window) { window ->
             logger.debug { "window ($window) closed" }
+            program.window.closed.trigger(WindowEvent(WindowEventType.CLOSED, program.window.position, program.window.size, focused = true))
             exitRequested = true
         }
 
@@ -672,6 +674,8 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         }
         program.extensions.clear()
 
+        program.ended.trigger(ProgramEvent(ProgramEventType.ENDED))
+
         glfwFreeCallbacks(window)
         glfwDestroyWindow(window)
 
@@ -684,6 +688,9 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
             logger.info { "OPENRNDR program ended with exceptions" }
             throw it
         }
+
+
+
     }
 
     private fun deliverEvents() {
