@@ -40,7 +40,7 @@ object TestMatrix33 : Spek({
         it("inverse of non-diagonal") {
             val nd = Matrix33.fromColumnVectors(Vector3(1.0, 0.0, 0.0), Vector3(0.0, 1.0, 0.0), Vector3(1.0, 1.0, 1.0))
             val inversed = nd.inversed
-            (nd * inversed).trace.`should be in range`(1.0-maxError,1.0+maxError)
+            (nd * inversed).trace.`should be in range`(3.0-maxError,3.0+maxError)
         }
     }
 })
