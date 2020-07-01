@@ -149,14 +149,6 @@ data class Matrix44(
             v.x * c0r3 + v.y * c1r3 + v.z * c2r3 + v.w * c3r3)
 
     /**
-     * Multiplies the 3x3 top-left part of the matrix with a Vector3
-     */
-    operator fun times(v: Vector3) = Vector3(
-            v.x * c0r0 + v.y * c1r0 + v.z * c2r0,
-            v.x * c0r1 + v.y * c1r1 + v.z * c2r1,
-            v.x * c0r2 + v.y * c1r2 + v.z * c2r2)
-
-    /**
      * Multiplies all the elements in the 4x4 matrix with a scalar
      */
     operator fun times(s: Double) = Matrix44(s * c0r0, s * c1r0, s * c2r0, s * c3r0,
