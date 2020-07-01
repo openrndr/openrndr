@@ -52,9 +52,9 @@ open class Filter(private val shader: Shader? = null, private val watcher: Shade
     }
 
 
-    fun apply(source: RenderTarget, target: RenderTarget) {
-        apply(source.colorBuffers.toTypedArray(), target)
-    }
+//    fun apply(source: RenderTarget, target: RenderTarget) {
+//        apply(source.colorBuffers.toTypedArray(), target)
+//    }
 
     open fun apply(source: Array<ColorBuffer>, target: Array<ColorBuffer>) {
         if (target.isEmpty()) {
