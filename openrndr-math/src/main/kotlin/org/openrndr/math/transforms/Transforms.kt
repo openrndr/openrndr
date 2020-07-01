@@ -331,7 +331,7 @@ fun project(point: Vector3, projection: Matrix44, view: Matrix44, width: Int, he
 fun unproject(point: Vector3, projection: Matrix44, view: Matrix44, width: Int, height: Int): Vector3 {
     val ipm = (projection * view).inversed
     val v = Vector3(2 * point.x / width - 1, 2 * point.y / height - 1, 2 * point.z - 1)
-    return (ipm * v)
+    return (ipm * v.xyz1).xyz
 }
 
 /**
