@@ -647,6 +647,26 @@ class Segment {
         return Segment(start, control, end)
     }
 
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as Segment
+
+        if (start != other.start) return false
+        if (end != other.end) return false
+        if (!control.contentEquals(other.control)) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = start.hashCode()
+        result = 31 * result + end.hashCode()
+        result = 31 * result + control.contentHashCode()
+        return result
+    }
+
 
 //    fun intersect(other: Segment) {
 //        if (control.size == 0 && other.control.size == 0) {
@@ -1166,6 +1186,21 @@ class Shape(val contours: List<ShapeContour>) {
             }
             (candidates + openContours.map { listOf(it) }).map { Shape(it) }
         }
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as Shape
+
+        if (contours != other.contours) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return contours.hashCode()
     }
 }
 

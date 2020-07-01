@@ -34,18 +34,20 @@ sealed class CompositionNode {
                 }
             }
         }
+
+
 }
 
 
 sealed class CompositionColor
 
 object InheritColor : CompositionColor()
-class Color(val color: ColorRGBa?) : CompositionColor()
+data class Color(val color: ColorRGBa?) : CompositionColor()
 
 
 sealed class CompositionStrokeWeight
 object InheritStrokeWeight : CompositionStrokeWeight()
-class StrokeWeight(val weight: Double) : CompositionStrokeWeight()
+data class StrokeWeight(val weight: Double) : CompositionStrokeWeight()
 
 
 private fun transform(node: CompositionNode): Matrix44 =
@@ -89,11 +91,23 @@ class ShapeNode(var shape: Shape) : CompositionNode() {
             it.shape = shape
         }
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is ShapeNode) return false
+
+        if (shape != other.shape) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return shape.hashCode()
+    }
+
 }
 
-class TextNode(var text:String, var contour: ShapeContour?) : CompositionNode() {
-
-}
+data class TextNode(var text:String, var contour: ShapeContour?) : CompositionNode()
 
 open class GroupNode(val children: MutableList<CompositionNode> = mutableListOf()) : CompositionNode() {
     override val bounds: Rectangle
@@ -111,10 +125,22 @@ open class GroupNode(val children: MutableList<CompositionNode> = mutableListOf(
             it.stroke = stroke
         }
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is GroupNode) return false
+
+        if (children != other.children) return false
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return children.hashCode()
+    }
+
 }
 
 class GroupNodeStop(children: MutableList<CompositionNode>) : GroupNode(children)
-
 class Composition(val root: CompositionNode) {
     fun findTerminals(filter: (CompositionNode) -> Boolean): List<CompositionNode> {
         val result = mutableListOf<CompositionNode>()
@@ -182,6 +208,5 @@ fun CompositionNode.map(mapper: (CompositionNode) -> CompositionNode): Compositi
             copy
         }
         else -> r
-
     }
 }

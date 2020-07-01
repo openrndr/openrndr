@@ -2,7 +2,7 @@ package org.openrndr.shape
 
 import org.openrndr.math.Vector2
 
-class Circle(val center: Vector2, val radius: Double) {
+data class Circle(val center: Vector2, val radius: Double) {
     constructor(x: Double, y: Double, radius: Double) : this(Vector2(x, y), radius)
 
     companion object {

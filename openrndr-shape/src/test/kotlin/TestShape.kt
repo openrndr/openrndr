@@ -1,12 +1,30 @@
 import org.amshove.kluent.`should be equal to`
+import org.amshove.kluent.`should not be equal to`
 import org.openrndr.math.Vector2
 import org.openrndr.math.YPolarity
+import org.openrndr.shape.Circle
 import org.openrndr.shape.Winding
 import org.openrndr.shape.shape
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 
 object TestShape : Spek({
+
+    describe("two equivalent shapes") {
+        val a = Circle(40.0, 40.0, 100.0).shape
+        val b = Circle(40.0, 40.0, 100.0).shape
+        it("should be equal") {
+            a `should be equal to` b
+        }
+    }
+
+    describe("two non-equivalent shapes") {
+        val a = Circle(40.0, 40.0, 100.0).shape
+        val b = Circle(40.0, 80.0, 100.0).shape
+        it("should not be equal") {
+            a `should not be equal to` b
+        }
+    }
 
     describe("a shape") {
         val width = 640

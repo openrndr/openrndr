@@ -1,11 +1,28 @@
 import org.amshove.kluent.`should be equal to`
 import org.amshove.kluent.`should match all with`
+import org.amshove.kluent.`should not be equal to`
 import org.openrndr.math.Vector2
 import org.openrndr.shape.*
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 
 object TestShapeContour : Spek({
+
+    describe("two equivalent contours") {
+        val a = Circle(40.0, 40.0, 100.0).contour
+        val b = Circle(40.0, 40.0, 100.0).contour
+        it("should be equal") {
+            a `should be equal to` b
+        }
+    }
+
+    describe("two non-equivalent contours") {
+        val a = Circle(40.0, 40.0, 100.0).contour
+        val b = Circle(40.0, 80.0, 100.0).contour
+        it("should not be equal") {
+            a `should not be equal to` b
+        }
+    }
 
     describe("a single line contour") {
         val c = contour {

@@ -230,4 +230,24 @@ class Path3D(val segments: List<Segment3D>, val closed: Boolean) {
 
         return Path3D(if (segments.size > 1) fixedSegments else segments, closed)
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as Path3D
+
+        if (segments != other.segments) return false
+        if (closed != other.closed) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = segments.hashCode()
+        result = 31 * result + closed.hashCode()
+        return result
+    }
+
+
 }

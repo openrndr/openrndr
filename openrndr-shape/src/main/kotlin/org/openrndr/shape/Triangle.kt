@@ -5,7 +5,7 @@ import kotlin.math.max
 import kotlin.math.min
 
 
-class Triangle(val x1: Vector2, val x2: Vector2, val x3: Vector2) {
+data class Triangle(val x1: Vector2, val x2: Vector2, val x3: Vector2) {
     operator fun contains(v: Vector2): Boolean {
         val x23 = x2 - x3
         val x32 = x3 - x2

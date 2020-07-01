@@ -391,4 +391,25 @@ class Segment3D {
         return Segment3D(start, control, end)
     }
 
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as Segment3D
+
+        if (start != other.start) return false
+        if (end != other.end) return false
+        if (!control.contentEquals(other.control)) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = start.hashCode()
+        result = 31 * result + end.hashCode()
+        result = 31 * result + control.contentHashCode()
+        return result
+    }
+
+
 }
