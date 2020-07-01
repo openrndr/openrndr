@@ -68,23 +68,23 @@ class BufferTextureGL3(val texture: Int, val buffer: Int, override val elementCo
         }
 
 
-    override fun read(targetBuffer: ByteBuffer, offset: Int, elementReadCount: Int) {
-        val oldLimit = targetBuffer.limit()
-        targetBuffer.limit(targetBuffer.position() + elementReadCount * format.componentCount * type.componentSize)
+    override fun read(target: ByteBuffer, offset: Int, elementReadCount: Int) {
+        val oldLimit = target.limit()
+        target.limit(target.position() + elementReadCount * format.componentCount * type.componentSize)
         glBindBuffer(GL_TEXTURE_BUFFER, this.buffer)
-        glGetBufferSubData(GL_TEXTURE_BUFFER, 0, targetBuffer)
-        targetBuffer.limit(oldLimit)
+        glGetBufferSubData(GL_TEXTURE_BUFFER, 0, target)
+        target.limit(oldLimit)
     }
 
-    override fun write(sourceBuffer: ByteBuffer, offset: Int, elementWriteCount: Int) {
-        require(sourceBuffer.isDirect)
-        val oldLimit = sourceBuffer.limit()
-        sourceBuffer.limit(sourceBuffer.position() + elementWriteCount * format.componentCount * type.componentSize)
+    override fun write(source: ByteBuffer, offset: Int, elementWriteCount: Int) {
+        require(source.isDirect)
+        val oldLimit = source.limit()
+        source.limit(source.position() + elementWriteCount * format.componentCount * type.componentSize)
         glBindBuffer(GL_TEXTURE_BUFFER, this.buffer)
         debugGLErrors()
-        glBufferSubData(GL_TEXTURE_BUFFER, 0L, sourceBuffer)
+        glBufferSubData(GL_TEXTURE_BUFFER, 0L, source)
         debugGLErrors()
-        sourceBuffer.limit(oldLimit)
+        source.limit(oldLimit)
     }
 
     override fun bind(unit: Int) {

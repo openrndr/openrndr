@@ -111,7 +111,7 @@ class ArrayCubemapGL4(val target: Int,
             }
             readTarget.unbind()
 
-            readTarget.detachColorBuffers()
+            readTarget.detachColorAttachments()
             readTarget.destroy()
         }
     }
@@ -133,7 +133,7 @@ class ArrayCubemapGL4(val target: Int,
                 debugGLErrors()
             }
             readTarget.unbind()
-            readTarget.detachColorBuffers()
+            readTarget.detachColorAttachments()
             readTarget.destroy()
         }
     }

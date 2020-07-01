@@ -204,7 +204,7 @@ class CubemapGL3(val texture: Int, override val width: Int, val sides: List<Colo
                 debugGLErrors()
             }
             readTarget.unbind()
-            readTarget.detachColorBuffers()
+            readTarget.detachColorAttachments()
             readTarget.destroy()
         }
     }
@@ -231,7 +231,7 @@ class CubemapGL3(val texture: Int, override val width: Int, val sides: List<Colo
                 debugGLErrors()
             }
             readTarget.unbind()
-            readTarget.detachColorBuffers()
+            readTarget.detachColorAttachments()
             readTarget.destroy()
         }
     }

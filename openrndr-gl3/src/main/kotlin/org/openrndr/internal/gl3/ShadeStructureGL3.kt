@@ -158,7 +158,7 @@ private fun mapType(type: String): String {
 
 private val ShadeStyleOutput.glslType: String
     get() {
-        return when (val c = Pair(this.format.componentCount, this.type.colorSampling)) {
+        return when (Pair(this.format.componentCount, this.type.colorSampling)) {
             Pair(1, ColorSampling.NORMALIZED) -> "float"
             Pair(2, ColorSampling.NORMALIZED) -> "vec2"
             Pair(3, ColorSampling.NORMALIZED) -> "vec3"

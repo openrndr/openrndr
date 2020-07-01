@@ -57,10 +57,10 @@ class DepthBufferGL3(val texture: Int,
         glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_DEPTH_BUFFER_BIT, GL_NEAREST)
         writeTarget.unbind()
 
-        writeTarget.detachColorBuffers()
+        writeTarget.detachColorAttachments()
         writeTarget.destroy()
 
-        readTarget.detachColorBuffers()
+        readTarget.detachColorAttachments()
         readTarget.destroy()
 
     }

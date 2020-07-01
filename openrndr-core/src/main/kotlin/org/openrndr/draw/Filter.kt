@@ -78,7 +78,7 @@ open class Filter(private val shader: Shader? = null, private val watcher: Shade
         if (depthBufferOut != null) {
             renderTarget.detachDepthBuffer()
         }
-        renderTarget.detachColorBuffers()
+        renderTarget.detachColorAttachments()
         renderTarget.destroy()
     }
 
@@ -166,12 +166,6 @@ open class Filter(private val shader: Shader? = null, private val watcher: Shade
                 }
 
                 is ArrayCubemap -> {
-                    shader.uniform("$uniform", textureIndex)
-                    value.bind(textureIndex)
-                    textureIndex++
-                }
-
-                is Cubemap -> {
                     shader.uniform("$uniform", textureIndex)
                     value.bind(textureIndex)
                     textureIndex++

@@ -155,7 +155,7 @@ class Session(val parent: Session?) {
         }
 
         renderTargets.map { it }.forEach {
-            it.detachColorBuffers()
+            it.detachColorAttachments()
             it.detachDepthBuffer()
             it.destroy()
         }

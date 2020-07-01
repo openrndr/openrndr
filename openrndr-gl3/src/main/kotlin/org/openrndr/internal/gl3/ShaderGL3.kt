@@ -374,7 +374,7 @@ class ShaderGL3(val program: Int,
                 debugGLErrors()
 
                 geometryShader?.let {
-                    glAttachShader(program, geometryShader?.shaderObject)
+                    glAttachShader(program, it.shaderObject)
                     debugGLErrors()
                 }
 

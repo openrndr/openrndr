@@ -89,7 +89,7 @@ class ArrayTextureGL3(val target: Int,
             }
             readTarget.unbind()
 
-            readTarget.detachColorBuffers()
+            readTarget.detachColorAttachments()
             readTarget.destroy()
         } else {
             throw IllegalArgumentException("cannot copy to multisample target")
@@ -112,7 +112,7 @@ class ArrayTextureGL3(val target: Int,
         }
         readTarget.unbind()
 
-        readTarget.detachColorBuffers()
+        readTarget.detachColorAttachments()
         readTarget.destroy()
     }
 

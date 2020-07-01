@@ -113,7 +113,7 @@ fun loadBufferTexture(file: File, formatHint: BufferTextureFileFormat? = BufferT
     chan.close()
 
     val elementCount = size / (format.componentCount * type.componentSize)
-    val bufferTexture = bufferTexture(elementCount, format, type)
+    val bufferTexture = bufferTexture(elementCount, format, type, session)
     buffer.rewind()
     bufferTexture.write(buffer)
     return bufferTexture
@@ -147,7 +147,7 @@ fun loadBufferTexture(url: URL, formatHint: BufferTextureFileFormat? = BufferTex
     buffer.rewind()
 
     val elementCount = size / (format.componentCount * type.componentSize)
-    val bufferTexture = bufferTexture(elementCount, format, type)
+    val bufferTexture = bufferTexture(elementCount, format, type, session)
     bufferTexture.write(buffer)
     return bufferTexture
 }
