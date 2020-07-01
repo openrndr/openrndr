@@ -14,7 +14,7 @@ dependencies {
     testRuntimeOnly project(":openrndr-gl3-natives-windows")
     testRuntimeOnly project(":openrndr-gl3-natives-macos")
     testRuntimeOnly project(":openrndr-gl3-natives-linux-x64")
-    testRuntimeOnly 'org.slf4j:slf4j-simple:1.7.5'
+    testRuntimeOnly 'org.slf4j:slf4j-simple:1.7.30'
 }
 
 test {
