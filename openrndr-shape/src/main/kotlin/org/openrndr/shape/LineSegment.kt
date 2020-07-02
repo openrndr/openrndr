@@ -104,6 +104,15 @@ data class LineSegment(val start: Vector2, val end: Vector2) {
 
     fun position(t: Double) = start + (end.minus(start) * t)
 
+    fun rotate(theta: Double, t: Double = 0.5): LineSegment {
+        val anchorPoint = end.mix(start, t.coerceIn(0.0, 1.0))
+
+        return LineSegment(
+                start.rotate(theta, anchorPoint),
+                end.rotate(theta, anchorPoint)
+        )
+    }
+
     val contour: ShapeContour
         get() = ShapeContour.fromPoints(listOf(start, end), false, YPolarity.CW_NEGATIVE_Y)
 
