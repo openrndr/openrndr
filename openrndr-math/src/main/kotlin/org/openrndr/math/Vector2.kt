@@ -43,6 +43,18 @@ data class Vector2(val x: Double, val y: Double) : Serializable {
     infix fun dot(right: Vector2) = x * right.x + y * right.y
     infix fun reflect(surfaceNormal: Vector2): Vector2 = this - surfaceNormal * (this dot surfaceNormal) * 2.0
 
+    fun rotate(degrees: Double, origin: Vector2 = ZERO): Vector2 {
+        val p = this - origin
+        val a = toRadians(degrees)
+
+        val w = Vector2(
+                p.x * cos(a) - p.y * sin(a),
+                p.y * cos(a) + p.x * sin(a)
+        )
+
+        return w + origin
+    }
+
     val yx get() = Vector2(y, x)
     val xx get() = Vector2(x, x)
     val yy get() = Vector2(y, y)
