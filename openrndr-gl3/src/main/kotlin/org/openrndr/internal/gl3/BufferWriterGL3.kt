@@ -24,6 +24,14 @@ class BufferWriterGL3(val buffer: ByteBuffer, val elementSize: Int = 1) : Buffer
         (sourceBuffer as Buffer).limit(sourceBuffer.capacity())
     }
 
+    override fun write(v: Byte) {
+        buffer.put(v)
+    }
+
+    override fun write(v: Short) {
+        buffer.putShort(v)
+    }
+
     override fun write(v: Int) {
         buffer.putInt(v)
     }

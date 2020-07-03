@@ -51,22 +51,30 @@ internal fun internalFormat(format: ColorFormat, type: ColorType): Pair<Int, Int
             ConversionEntry(ColorFormat.R, ColorType.UINT16, GL_R16, GL_RED),
             ConversionEntry(ColorFormat.R, ColorType.UINT16_INT, GL_R16UI, GL_RED_INTEGER),
             ConversionEntry(ColorFormat.R, ColorType.SINT16_INT, GL_RG16I, GL_RED_INTEGER),
+            ConversionEntry(ColorFormat.R, ColorType.UINT32_INT, GL_R32UI, GL_RED_INTEGER),
+            ConversionEntry(ColorFormat.R, ColorType.SINT32_INT, GL_RG32I, GL_RED_INTEGER),
+
             ConversionEntry(ColorFormat.R, ColorType.FLOAT16, GL_R16F, GL_RED),
             ConversionEntry(ColorFormat.R, ColorType.FLOAT32, GL_R32F, GL_RED),
 
             ConversionEntry(ColorFormat.RG, ColorType.UINT8, GL_RG8, GL_RG),
             ConversionEntry(ColorFormat.RG, ColorType.UINT8_INT, GL_RG8UI, GL_RG_INTEGER),
             ConversionEntry(ColorFormat.RG, ColorType.SINT16_INT, GL_RG16I, GL_RG_INTEGER),
+            ConversionEntry(ColorFormat.RG, ColorType.SINT32_INT, GL_RG32I, GL_RG_INTEGER),
             ConversionEntry(ColorFormat.RG, ColorType.UINT16, GL_RG16, GL_RG),
-            ConversionEntry(ColorFormat.RG, ColorType.UINT16_INT, GL_RG16UI, GL30C.GL_RG_INTEGER),
+            ConversionEntry(ColorFormat.RG, ColorType.UINT16_INT, GL_RG16UI, GL_RG_INTEGER),
+            ConversionEntry(ColorFormat.RG, ColorType.UINT32_INT, GL_RG32UI, GL_RG_INTEGER),
+
             ConversionEntry(ColorFormat.RG, ColorType.FLOAT16, GL_RG16F, GL_RG),
             ConversionEntry(ColorFormat.RG, ColorType.FLOAT32, GL_RG32F, GL_RG),
 
             ConversionEntry(ColorFormat.RGB, ColorType.UINT8, GL_RGB8, GL_RGB),
             ConversionEntry(ColorFormat.RGB, ColorType.UINT8_INT, GL_RGB8UI, GL30C.GL_RGB_INTEGER),
             ConversionEntry(ColorFormat.RGB, ColorType.UINT16, GL_RGB16, GL_RGB),
-            ConversionEntry(ColorFormat.RGB, ColorType.UINT16_INT, GL_RGB16UI, GL30C.GL_RGB_INTEGER),
-            ConversionEntry(ColorFormat.RGB, ColorType.SINT16_INT, GL_RGB16I, GL30C.GL_RGB_INTEGER),
+            ConversionEntry(ColorFormat.RGB, ColorType.UINT16_INT, GL_RGB16UI, GL_RGB_INTEGER),
+            ConversionEntry(ColorFormat.RGB, ColorType.UINT32_INT, GL_RGB32UI, GL_RGB_INTEGER),
+            ConversionEntry(ColorFormat.RGB, ColorType.SINT16_INT, GL_RGB16I, GL_RGB_INTEGER),
+            ConversionEntry(ColorFormat.RGB, ColorType.SINT32_INT, GL_RGB32I, GL_RGB_INTEGER),
             ConversionEntry(ColorFormat.RGB, ColorType.FLOAT16, GL_RGB16F, GL_RGB),
             ConversionEntry(ColorFormat.RGB, ColorType.FLOAT32, GL_RGB32F, GL_RGB),
             ConversionEntry(ColorFormat.BGR, ColorType.UINT8, GL_RGB8, GL_BGR),
@@ -76,6 +84,8 @@ internal fun internalFormat(format: ColorFormat, type: ColorType): Pair<Int, Int
             ConversionEntry(ColorFormat.RGBa, ColorType.UINT16, GL_RGBA16, GL_RGBA),
             ConversionEntry(ColorFormat.RGBa, ColorType.UINT16_INT, GL_RGBA16UI, GL30C.GL_RGBA_INTEGER),
             ConversionEntry(ColorFormat.RGBa, ColorType.SINT16_INT, GL_RGBA16I, GL30C.GL_RGBA_INTEGER),
+            ConversionEntry(ColorFormat.RGBa, ColorType.UINT32_INT, GL_RGBA32UI, GL30C.GL_RGBA_INTEGER),
+            ConversionEntry(ColorFormat.RGBa, ColorType.SINT32_INT, GL_RGBA32I, GL30C.GL_RGBA_INTEGER),
             ConversionEntry(ColorFormat.RGBa, ColorType.FLOAT16, GL_RGBA16F, GL_RGBA),
             ConversionEntry(ColorFormat.RGBa, ColorType.FLOAT32, GL_RGBA32F, GL_RGBA),
 
@@ -946,10 +956,10 @@ class ColorBufferGL3(val target: Int,
         glBlitFramebuffer(0, 0, effectiveWidth / fromDiv, effectiveHeight / fromDiv, 0, 0, target.effectiveWidth / toDiv, target.effectiveHeight / toDiv, GL_COLOR_BUFFER_BIT, GL_NEAREST)
         writeTarget.unbind()
 
-        writeTarget.detachColorBuffers()
+        writeTarget.detachColorAttachments()
         writeTarget.destroy()
 
-        readTarget.detachColorBuffers()
+        readTarget.detachColorAttachments()
         readTarget.destroy()
     }
 
@@ -998,7 +1008,7 @@ class ColorBufferGL3(val target: Int,
         }
         readTarget.unbind()
 
-        readTarget.detachColorBuffers()
+        readTarget.detachColorAttachments()
         readTarget.destroy()
     }
 
@@ -1403,6 +1413,8 @@ internal fun ColorType.glType(): Int {
         ColorType.SINT8_INT -> GL_BYTE
         ColorType.UINT16, ColorType.UINT16_INT -> GL_UNSIGNED_SHORT
         ColorType.SINT16_INT -> GL_SHORT
+        ColorType.UINT32_INT -> GL_UNSIGNED_INT
+        ColorType.SINT32_INT -> GL_INT
         ColorType.FLOAT16 -> GL_HALF_FLOAT
         ColorType.FLOAT32 -> GL_FLOAT
         ColorType.DXT1, ColorType.DXT3, ColorType.DXT5,

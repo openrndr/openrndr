@@ -10,6 +10,8 @@ interface BufferWriter {
     }
 
     fun copyBuffer(sourceBuffer: ByteBuffer, sourceOffset: Int, sourceSizeInBytes: Int)
+    fun write(v: Byte)
+    fun write(v: Short)
     fun write(v: Vector3)
     fun write(v: Vector2)
     fun write(v: Vector4)

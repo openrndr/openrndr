@@ -213,10 +213,14 @@ enum class ColorType {
     UINT8_INT,
     /** unsigned 16 bit integer type, with integer sampler */
     UINT16_INT,
+    /** unsigned 32 bit integer type, with integer sampler */
+    UINT32_INT,
     /** signed 8 bit integer type, with integer sampler */
     SINT8_INT,
     /** signed 16 bit integer type, with integer sampler */
     SINT16_INT,
+    /** signed 32 bit integer type, with integer sampler */
+    SINT32_INT,
     /** 16 bit float type, or half precision float type */
     FLOAT16,
     /** 32 bit float type, or single precision float type */
@@ -240,8 +244,8 @@ enum class ColorType {
     val colorSampling: ColorSampling
         get() {
             return when (this) {
-                UINT8_INT, UINT16_INT -> ColorSampling.UNSIGNED_INTEGER
-                SINT16_INT, SINT8_INT -> ColorSampling.SIGNED_INTEGER
+                UINT32_INT, UINT8_INT, UINT16_INT -> ColorSampling.UNSIGNED_INTEGER
+                SINT32_INT, SINT16_INT, SINT8_INT -> ColorSampling.SIGNED_INTEGER
                 else -> ColorSampling.NORMALIZED
             }
         }
@@ -254,7 +258,7 @@ enum class ColorType {
             return when (this) {
                 UINT8, UINT8_INT, SINT8_INT -> 1
                 UINT16, UINT16_INT, SINT16_INT, FLOAT16 -> 2
-                FLOAT32 -> 4
+                UINT32_INT, SINT32_INT, FLOAT32 -> 4
                 DXT1, DXT3, DXT5,
                 BPTC_UNORM, BPTC_FLOAT, BPTC_UFLOAT -> throw RuntimeException("component size of compressed types cannot be queried")
             }

@@ -20,6 +20,14 @@ class BufferWriterNullGL : BufferWriter {
 
     }
 
+    override fun write(v: Byte) {
+
+    }
+
+    override fun write(v: Short) {
+
+    }
+
     override fun write(v: Vector3) {
     }
 

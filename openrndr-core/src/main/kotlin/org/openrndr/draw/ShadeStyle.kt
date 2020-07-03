@@ -77,7 +77,11 @@ open class ShadeStyle {
 
     fun parameter(name: String, value: Cubemap) {
         parameterValues[name] = value
-        parameters[name] = "Cubemap"
+        parameters[name] = when (value.type.colorSampling) {
+            ColorSampling.UNSIGNED_INTEGER -> "Cubemap_UINT"
+            ColorSampling.SIGNED_INTEGER -> "Cubemap_SINT"
+            else -> "Cubemap"
+        }
     }
 
     fun parameter(name: String, value: Boolean) {
@@ -160,7 +164,6 @@ open class ShadeStyle {
         parameters[name] = "IntVector4"
     }
 
-
     fun parameter(name: String, value: ColorRGBa) {
         parameterValues[name] = value
         parameters[name] = "ColorRGBa"
@@ -192,16 +195,19 @@ open class ShadeStyle {
     fun parameter(name: String, value: ArrayCubemap) {
         parameterValues[name] = value
         parameters[name] = when (value.type.colorSampling) {
-            ColorSampling.UNSIGNED_INTEGER -> "ArrayTexture_UINT"
-            ColorSampling.SIGNED_INTEGER -> "ArrayTexture_SINT"
+            ColorSampling.UNSIGNED_INTEGER -> "ArrayCubemap_UINT"
+            ColorSampling.SIGNED_INTEGER -> "ArrayCubemap_SINT"
             else -> "ArrayCubemap"
         }
     }
 
-
     fun parameter(name: String, value: BufferTexture) {
         parameterValues[name] = value
-        parameters[name] = "BufferTexture"
+        parameters[name] = when (value.type.colorSampling) {
+            ColorSampling.UNSIGNED_INTEGER -> "BufferTexture_UINT"
+            ColorSampling.SIGNED_INTEGER -> "BufferTexture_SINT"
+            else -> "BufferTexture"
+        }
     }
 
     fun output(name: String, output: ShadeStyleOutput) {
@@ -268,7 +274,11 @@ open class ShadeStyle {
                 is Matrix33 -> "Matrix33"
                 is Matrix44 -> "Matrix44"
                 is ColorRGBa -> "ColorRGBa"
-                is BufferTexture -> "BufferTexture"
+                is BufferTexture -> when (value.type.colorSampling) {
+                    ColorSampling.UNSIGNED_INTEGER -> "BufferTexture_UINT"
+                    ColorSampling.SIGNED_INTEGER -> "BufferTexture_SINT"
+                    else -> "BufferTexture"
+                }
                 is DepthBuffer -> "DepthBuffer"
                 is ArrayTexture -> when (value.type.colorSampling) {
                     ColorSampling.UNSIGNED_INTEGER -> "ArrayTexture_UINT"
@@ -276,9 +286,14 @@ open class ShadeStyle {
                     else -> "ArrayTexture"
                 }
                 is ArrayCubemap -> when (value.type.colorSampling) {
-                    ColorSampling.UNSIGNED_INTEGER -> "ArrayTexture_UINT"
-                    ColorSampling.SIGNED_INTEGER -> "ArrayTexture_SINT"
+                    ColorSampling.UNSIGNED_INTEGER -> "ArrayCubemap_UINT"
+                    ColorSampling.SIGNED_INTEGER -> "ArrayCubemap_SINT"
                     else -> "ArrayCubemap"
+                }
+                is Cubemap -> when (value.type.colorSampling) {
+                    ColorSampling.UNSIGNED_INTEGER -> "Cubemap_UINT"
+                    ColorSampling.SIGNED_INTEGER -> "Cubemap_SINT"
+                    else -> "Cubemap"
                 }
                 is ColorBuffer -> when (value.type.colorSampling) {
                     ColorSampling.UNSIGNED_INTEGER -> "ColorBuffer_UINT"
