@@ -391,12 +391,22 @@ fun loadDDS(file: InputStream): DDSData {
             val dxt10Header = DDSHeaderDXT10(newByteBuffer(dxt10HeaderArray))
 //            println("dxgi format: ${dxt10Header.dxgiFormat}")
 
-            if (dxt10Header.dxgiFormat == DXGI_FORMAT_R32G32B32A32_FLOAT) {
-                format = ColorFormat.RGBa
-                type = ColorType.FLOAT32
-            } else {
-                throw RuntimeException("unsupported dxgi format: ${dxt10Header.dxgiFormat}")
+
+            when(dxt10Header.dxgiFormat) {
+                DXGI_FORMAT_R16G16B16A16_FLOAT -> {
+                    format = ColorFormat.RGBa
+                    type = ColorType.FLOAT16
+                }
+                DXGI_FORMAT_R32G32B32A32_FLOAT -> {
+                    format = ColorFormat.RGBa
+                    type = ColorType.FLOAT32
+                }
+                else -> {
+                    error("unsupported dxgi format: ${dxt10Header.dxgiFormat}")
+                }
             }
+
+
         } else if (header.pixelFormat.dwRGBBitCount == 24 && header.pixelFormat.dwRBitMask == (0xff0000) && header.pixelFormat.dwGBitMask == 0x00ff00 && header.pixelFormat.dwBBitMask == 0x0000ff) {
             format = ColorFormat.BGR
             type = ColorType.UINT8
