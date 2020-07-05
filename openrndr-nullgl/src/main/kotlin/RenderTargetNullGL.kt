@@ -23,6 +23,10 @@ class RenderTargetNullGL(override val width: Int, override val height: Int, over
         TODO("Not yet implemented")
     }
 
+    override fun attach(cubemap: Cubemap, side: CubemapSide, level: Int, name: String?) {
+        TODO("Not yet implemented")
+    }
+
     override fun detachColorAttachments() {
         TODO("Not yet implemented")
     }

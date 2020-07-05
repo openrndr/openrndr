@@ -125,6 +125,7 @@ open class RenderTargetGL3(val framebuffer: Int,
 
     override fun attach(colorBuffer: ColorBuffer, level: Int, name: String?) {
         require(!destroyed)
+
         val context = glfwGetCurrentContext()
         bindTarget()
 
@@ -158,6 +159,32 @@ open class RenderTargetGL3(val framebuffer: Int,
         checkGLErrors() { null }
 
         colorAttachments.add(ArrayCubemapAttachment(colorAttachments.size, name, arrayCubemap, side, layer, level))
+
+        if (active[context]?.peek() != null)
+            (active[context]?.peek() as RenderTargetGL3).bindTarget()
+    }
+
+    override fun attach(cubemap: Cubemap, side: CubemapSide, level: Int, name: String?) {
+        val div = 1 shl level
+        require(!destroyed)
+        val context = glfwGetCurrentContext()
+        bindTarget()
+        val effectiveWidth = (width * contentScale).toInt()
+        if (!(cubemap.width/div == effectiveWidth && cubemap.width/div == effectiveHeight)) {
+            throw IllegalArgumentException("buffer dimension mismatch. expected: ($effectiveWidth x $effectiveHeight), got: (${cubemap.width} x ${cubemap.width})")
+        }
+        cubemap as CubemapGL3
+
+        glFramebufferTexture2D(
+                GL_FRAMEBUFFER,
+                GL_COLOR_ATTACHMENT0 + colorAttachments.size,
+                side.glTextureTarget,
+                cubemap.texture,
+                level)
+
+        checkGLErrors() { null }
+
+        colorAttachments.add(CubemapAttachment(colorAttachments.size, name, cubemap, side, level))
 
         if (active[context]?.peek() != null)
             (active[context]?.peek() as RenderTargetGL3).bindTarget()

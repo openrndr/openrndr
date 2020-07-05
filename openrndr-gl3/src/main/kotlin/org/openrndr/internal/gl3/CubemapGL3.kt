@@ -1,5 +1,6 @@
 package org.openrndr.internal.gl3
 
+import org.lwjgl.opengl.GL13C
 import org.lwjgl.opengl.GL33C.*
 import org.openrndr.draw.*
 import org.openrndr.internal.gl3.dds.loadDDS
@@ -9,7 +10,6 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import kotlin.math.ceil
 import kotlin.math.log
-import kotlin.math.pow
 
 val CubemapSide.glTextureTarget
     get() = when (this) {
@@ -21,15 +21,8 @@ val CubemapSide.glTextureTarget
         CubemapSide.NEGATIVE_Z -> GL_TEXTURE_CUBE_MAP_NEGATIVE_Z
     }
 
-class CubemapGL3(val texture: Int, override val width: Int, val sides: List<ColorBuffer>, override val type: ColorType, override val format: ColorFormat, levels: Int, override val session: Session?) : Cubemap {
+class CubemapGL3(val texture: Int, override val width: Int, override val type: ColorType, override val format: ColorFormat, levels: Int, override val session: Session?) : Cubemap {
 
-    init {
-        require(sides.size == 6) {
-            """
-            sides should contain 6 entries (has ${sides.size})
-        """.trimIndent()
-        }
-    }
 
     override var levels = levels
         private set(value: Int) {
@@ -58,20 +51,32 @@ class CubemapGL3(val texture: Int, override val width: Int, val sides: List<Colo
             val effectiveWidth = width
             val effectiveHeight = width
             val (internalFormat, internalType) = internalFormat(format, type)
-            val sides = mutableListOf<ColorBufferGL3>()
 
-            for (level in 0 until levels) {
-                val div = 1 shl level
-                for (i in 0..5) {
+
+            for (side in CubemapSide.values()) {
+                for (level in 0 until levels) {
+                    println("creating level: $level")
+                    val div = 1 shl level
+                    println("creating side: $side, ${effectiveWidth / div}")
                     val nullBB: ByteBuffer? = null
-                    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, level, internalFormat, effectiveWidth / div, effectiveHeight / div, 0, format.glFormat(), type.glType(), nullBB)
-
-                    if (level == 0) {
-                        sides.add(ColorBufferGL3(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, textures[0], width, width, 1.0, format, type, levels, BufferMultisample.Disabled, session))
-                    }
+                    glTexImage2D(
+                            side.glTextureTarget,
+                            level,
+                            internalFormat,
+                            effectiveWidth / div,
+                            effectiveHeight / div,
+                            0,
+                            format.glFormat(),
+                            type.glType(),
+                            nullBB
+                    )
+                    checkGLErrors()
                 }
             }
-            return CubemapGL3(textures[0], width, sides, type, format, levels, session)
+            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_BASE_LEVEL, 0)
+            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAX_LEVEL, levels - 1)
+
+            return CubemapGL3(textures[0], width, type, format, levels, session)
         }
 
         fun fromUrl(url: String, session: Session?): CubemapGL3 {
@@ -88,8 +93,10 @@ class CubemapGL3(val texture: Int, override val width: Int, val sides: List<Colo
                 val data = loadDDS(URL(url).openStream())
 
                 val cubemap = create(data.width, data.format, data.type, data.mipmaps, session)
+                println("mipmaps: ${data.mipmaps}")
 
                 for (level in 0 until data.mipmaps) {
+                    println("writing level $level")
                     (data.sidePX(level) as Buffer).rewind()
                     (data.sideNX(level) as Buffer).rewind()
                     (data.sidePY(level) as Buffer).rewind()
@@ -103,12 +110,12 @@ class CubemapGL3(val texture: Int, override val width: Int, val sides: List<Colo
                     cubemap.write(CubemapSide.NEGATIVE_Y, data.sideNY(level), level = level)
                     cubemap.write(CubemapSide.POSITIVE_Z, data.sidePZ(level), level = level)
                     cubemap.write(CubemapSide.NEGATIVE_Z, data.sideNZ(level), level = level)
-
-
                 }
-                var generateMipmaps = null as Int?
                 if (data.mipmaps == 1) {
+                    println("generating mipmaps")
                     cubemap.generateMipmaps()
+
+
                 }
                 return cubemap
             } else {
@@ -134,7 +141,7 @@ class CubemapGL3(val texture: Int, override val width: Int, val sides: List<Colo
                 glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + index, 0, internalFormat, data.width, data.height, 0, data.format.glFormat(), data.type.glType(), nullBB)
                 sides.add(ColorBufferGL3(GL_TEXTURE_CUBE_MAP_POSITIVE_X + index, textures[0], data.width, data.width, 1.0, data.format, data.type, 1, BufferMultisample.Disabled, session))
             }
-            return CubemapGL3(textures[0], sides[0].width, sides, sides[0].type, sides[0].format, 0, session)
+            return CubemapGL3(textures[0], sides[0].width, sides[0].type, sides[0].format, 0, session)
         }
     }
 
@@ -146,6 +153,7 @@ class CubemapGL3(val texture: Int, override val width: Int, val sides: List<Colo
         bound {
             glGenerateMipmap(GL_TEXTURE_CUBE_MAP)
             levels = ceil(log(width.toDouble(), 2.0)).toInt()
+            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAX_LEVEL, levels-1)
         }
     }
 
@@ -156,17 +164,13 @@ class CubemapGL3(val texture: Int, override val width: Int, val sides: List<Colo
         }
     }
 
-    override fun side(side: CubemapSide): ColorBuffer {
-        return sides[side.ordinal]
-    }
-
     override fun copyTo(target: ArrayCubemap, layer: Int, fromLevel: Int, toLevel: Int) {
         require(!destroyed)
         val fromDiv = 1 shl fromLevel
         val toDiv = 1 shl toLevel
         for (side in CubemapSide.values()) {
             val readTarget = renderTarget(width / fromDiv, width / fromDiv) {
-                colorBuffer(side(side), fromLevel)
+                cubemap(this@CubemapGL3, side, fromLevel)
             } as RenderTargetGL3
 
             target as ArrayCubemapGL4
@@ -184,13 +188,12 @@ class CubemapGL3(val texture: Int, override val width: Int, val sides: List<Colo
 
     override fun copyTo(target: Cubemap, fromLevel: Int, toLevel: Int) {
         debugGLErrors()
-
         require(!destroyed)
         val fromDiv = 1 shl fromLevel
         val toDiv = 1 shl toLevel
         for (side in CubemapSide.values()) {
             val readTarget = renderTarget(width / fromDiv, width / fromDiv) {
-                colorBuffer(side(side), fromLevel)
+                cubemap(this@CubemapGL3, side, fromLevel)
                 debugGLErrors()
             } as RenderTargetGL3
 
@@ -200,13 +203,38 @@ class CubemapGL3(val texture: Int, override val width: Int, val sides: List<Colo
             debugGLErrors()
 
             target.bound {
-                glCopyTexSubImage2D((target.side(side) as ColorBufferGL3).target, toLevel, 0, 0, 0, 0, target.width / toDiv, target.width / toDiv)
+                glCopyTexSubImage2D(side.glTextureTarget, toLevel, 0, 0, 0, 0, target.width / toDiv, target.width / toDiv)
                 debugGLErrors()
             }
             readTarget.unbind()
             readTarget.detachColorAttachments()
             readTarget.destroy()
         }
+    }
+
+    override fun copyTo(target: ColorBuffer, fromSide: CubemapSide, fromLevel: Int, toLevel: Int) {
+        debugGLErrors()
+        require(!destroyed)
+        val fromDiv = 1 shl fromLevel
+        val toDiv = 1 shl toLevel
+
+        val readTarget = renderTarget(width / fromDiv, width / fromDiv) {
+            cubemap(this@CubemapGL3, fromSide, fromLevel)
+            debugGLErrors()
+        } as RenderTargetGL3
+
+        target as ColorBufferGL3
+        readTarget.bind()
+        glReadBuffer(GL_COLOR_ATTACHMENT0)
+        debugGLErrors()
+
+        target.bound {
+            glCopyTexSubImage2D(target.target, toLevel, 0, 0, 0, 0, target.width / toDiv, target.width / toDiv)
+            debugGLErrors()
+        }
+        readTarget.unbind()
+        readTarget.detachColorAttachments()
+        readTarget.destroy()
     }
 
     override fun read(side: CubemapSide, target: ByteBuffer, targetFormat: ColorFormat, targetType: ColorType, level: Int) {
@@ -233,35 +261,31 @@ class CubemapGL3(val texture: Int, override val width: Int, val sides: List<Colo
                 "write of ${width}x${width} of $format/$type pixels to level $level requires $bytesNeeded bytes, buffer only has ${source.remaining()} bytes left, buffer capacity is ${source.capacity()}"
             }
         }
+        bound {
+            debugGLErrors()
 
-        if (true) {
-            bound {
-                debugGLErrors()
+            (source as Buffer).rewind()
+            source.order(ByteOrder.nativeOrder())
+            val currentPack = intArrayOf(0)
+            glGetIntegerv(GL_UNPACK_ALIGNMENT, currentPack)
+            glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
 
-                (source as Buffer).rewind()
-                source.order(ByteOrder.nativeOrder())
-                val currentPack = intArrayOf(0)
-                glGetIntegerv(GL_UNPACK_ALIGNMENT, currentPack)
-                glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
-
-                if (sourceType.compressed) {
-                    glCompressedTexSubImage2D(side.glTextureTarget, level, 0, 0, width / div, width / div, compressedType(sourceFormat, sourceType), source)
-                    debugGLErrors {
-                        when (it) {
-                            GL_INVALID_VALUE -> "data size mismatch? ${source.remaining()}"
-                            else -> null
-                        }
+            if (sourceType.compressed) {
+                glCompressedTexSubImage2D(side.glTextureTarget, level, 0, 0, width / div, width / div, compressedType(sourceFormat, sourceType), source)
+                debugGLErrors {
+                    when (it) {
+                        GL_INVALID_VALUE -> "data size mismatch? ${source.remaining()}"
+                        else -> null
                     }
-                } else {
-                    glTexSubImage2D(side.glTextureTarget, level, 0, 0, width / div, width / div, sourceFormat.glFormat(), sourceType.glType(), source)
-                    debugGLErrors()
                 }
-                glPixelStorei(GL_UNPACK_ALIGNMENT, currentPack[0])
+            } else {
+                glTexSubImage2D(side.glTextureTarget, level, 0, 0, width / div, width / div, sourceFormat.glFormat(), sourceType.glType(), source)
                 debugGLErrors()
-                (source as Buffer).rewind()
             }
-        } else {
-            throw IllegalArgumentException("multisample targets cannot be written to")
+            glPixelStorei(GL_UNPACK_ALIGNMENT, currentPack[0])
+            debugGLErrors()
+            (source as Buffer).rewind()
+            (source as Buffer).rewind()
         }
 
     }

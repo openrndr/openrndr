@@ -55,9 +55,9 @@ interface Cubemap {
 
     fun copyTo(target: ArrayCubemap, layer: Int, fromLevel: Int = 0, toLevel: Int = 0)
     fun copyTo(target: Cubemap, fromLevel: Int = 0, toLevel: Int = 0)
+    fun copyTo(target: ColorBuffer, fromSide: CubemapSide, fromLevel: Int = 0, toLevel: Int = 0)
 
     fun filter(min: MinifyingFilter, mag: MagnifyingFilter)
-    fun side(side: CubemapSide): ColorBuffer
     fun bind(textureUnit: Int = 0)
     fun generateMipmaps()
     fun destroy()

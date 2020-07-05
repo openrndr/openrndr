@@ -105,8 +105,7 @@ class ArrayCubemapGL4(val target: Int,
             readTarget.bind()
             glReadBuffer(GL_COLOR_ATTACHMENT0)
             target.bound {
-                val cb = target.side(side) as ColorBufferGL3
-                glCopyTexSubImage2D(cb.target, toLevel, 0, 0, 0, 0, target.width / toDiv, target.width / toDiv)
+                glCopyTexSubImage2D(side.glTextureTarget, toLevel, 0, 0, 0, 0, target.width / toDiv, target.width / toDiv)
                 debugGLErrors()
             }
             readTarget.unbind()
