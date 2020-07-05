@@ -79,8 +79,11 @@ class DriverNullGL: Driver {
         TODO("Not yet implemented")
     }
 
-
     override fun createCubemapFromUrls(urls: List<String>, session: Session?): Cubemap {
+        TODO("Not yet implemented")
+    }
+
+    override fun createCubemapFromFiles(urls: List<String>, session: Session?): Cubemap {
         TODO("Not yet implemented")
     }
 

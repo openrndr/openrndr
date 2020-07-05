@@ -93,6 +93,7 @@ interface Driver {
 
     fun createCubemap(width: Int, format: ColorFormat, type: ColorType, levels: Int, session: Session? = Session.active): Cubemap
     fun createCubemapFromUrls(urls: List<String>, session: Session? = Session.active): Cubemap
+    fun createCubemapFromFiles(filenames: List<String>, session: Session? = Session.active): Cubemap
 
     fun createResourceThread(session: Session? = Session.active, f: () -> Unit): ResourceThread
     fun createDrawThread(session: Session? = Session.active): DrawThread

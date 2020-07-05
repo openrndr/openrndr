@@ -2,6 +2,9 @@ package org.openrndr.draw
 
 import org.openrndr.internal.Driver
 import org.openrndr.math.Vector3
+import java.io.File
+import java.net.MalformedURLException
+import java.net.URL
 import java.nio.ByteBuffer
 
 enum class CubemapSide(val forward: Vector3, val up: Vector3) {
@@ -25,13 +28,21 @@ interface Cubemap {
             return cubemap
         }
 
-        fun fromUrl(url: String, session: Session?): Cubemap {
+        fun fromUrl(url: String, session: Session? = Session.active): Cubemap {
             val cubemap = Driver.instance.createCubemapFromUrls(listOf(url), session)
             return cubemap
         }
 
-        fun fromUrls(urls: List<String>, session: Session?): Cubemap {
+        fun fromUrls(urls: List<String>, session: Session? = Session.active): Cubemap {
             return Driver.instance.createCubemapFromUrls(urls, session)
+        }
+
+        fun fromFile(file: File, session: Session? = Session.active): Cubemap {
+            return Driver.instance.createCubemapFromFiles(listOf(file.absolutePath), session)
+        }
+
+        fun fromFiles(filenames: List<File>, session: Session? = Session.active): Cubemap {
+            return Driver.instance.createCubemapFromFiles(filenames.map { it.absolutePath }, session)
         }
     }
 
@@ -52,9 +63,21 @@ interface Cubemap {
     fun destroy()
 
     fun read(side: CubemapSide, target: ByteBuffer, targetFormat: ColorFormat = format, targetType: ColorType = type, level: Int = 0)
+    fun write(side: CubemapSide, source: ByteBuffer, sourceFormat: ColorFormat = format, sourceType: ColorType = type, level: Int = 0)
 }
 
 fun cubemap(width: Int, format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.UINT8, levels: Int = 1, session: Session? = Session.active): Cubemap {
     val cubemap = Cubemap.create(width, format, type, levels, session)
     return cubemap
+}
+
+fun loadCubemap(fileOrUrl: String, session: Session? = Session.active): Cubemap {
+    return try {
+        if (!fileOrUrl.startsWith("data:")) {
+            URL(fileOrUrl)
+        }
+        Cubemap.fromUrl(fileOrUrl, session)
+    } catch (e: MalformedURLException) {
+        Cubemap.fromFile(File(fileOrUrl), session)
+    }
 }

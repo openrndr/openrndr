@@ -194,6 +194,18 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         return cubemap
     }
 
+    override fun createCubemapFromFiles(filenames: List<String>, session: Session?): Cubemap {
+        val urls = filenames.map { "file:$it" }
+        logger.trace { "creating cubemap from urls $urls" }
+        val cubemap = when (urls.size) {
+            1 -> CubemapGL3.fromUrl(urls[0], session)
+            6 -> CubemapGL3.fromUrls(urls, session)
+            else -> throw RuntimeException("expected 1 or 6 urls")
+        }
+        session?.track(cubemap)
+        return cubemap
+    }
+
     override fun createRenderTarget(width: Int, height: Int, contentScale: Double, multisample: BufferMultisample, session: Session?): RenderTarget {
         logger.trace { "creating render target $width x $height @ ${contentScale}x $multisample" }
         synchronized(this) {

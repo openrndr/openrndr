@@ -6,6 +6,7 @@ import org.openrndr.internal.gl3.dds.loadDDS
 import java.net.URL
 import java.nio.Buffer
 import java.nio.ByteBuffer
+import java.nio.ByteOrder
 import kotlin.math.ceil
 import kotlin.math.log
 import kotlin.math.pow
@@ -85,13 +86,10 @@ class CubemapGL3(val texture: Int, override val width: Int, val sides: List<Colo
                 checkGLErrors()
 
                 val data = loadDDS(URL(url).openStream())
-                val sides = (0..5).map { ColorBufferGL3(GL_TEXTURE_CUBE_MAP_POSITIVE_X + it, textures[0], data.width, data.height, 1.0, ColorFormat.RGB, ColorType.UINT8, 1, BufferMultisample.Disabled, session) }
+
+                val cubemap = create(data.width, data.format, data.type, data.mipmaps, session)
+
                 for (level in 0 until data.mipmaps) {
-
-                    val m = 2.0.pow(-level * 1.0)
-                    val width = (data.width * m).toInt()
-                    val height = (data.height * m).toInt()
-
                     (data.sidePX(level) as Buffer).rewind()
                     (data.sideNX(level) as Buffer).rewind()
                     (data.sidePY(level) as Buffer).rewind()
@@ -99,45 +97,20 @@ class CubemapGL3(val texture: Int, override val width: Int, val sides: List<Colo
                     (data.sidePZ(level) as Buffer).rewind()
                     (data.sideNZ(level) as Buffer).rewind()
 
-                    if (data.type == ColorType.DXT1 || data.type == ColorType.DXT3 || data.type == ColorType.DXT5) {
-                        val format = internalFormat(data.format, data.type).first
-                        glCompressedTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, level, format, data.width, data.height, 0, data.sidePX(level))
-                        checkGLErrors()
-                        glCompressedTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, level, format, data.width, data.height, 0, data.sideNX(level))
-                        checkGLErrors()
-                        glCompressedTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, level, format, data.width, data.height, 0, data.sidePY(level))
-                        checkGLErrors()
-                        glCompressedTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, level, format, data.width, data.height, 0, data.sideNY(level))
-                        checkGLErrors()
-                        glCompressedTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, level, format, data.width, data.height, 0, data.sidePZ(level))
-                        checkGLErrors()
-                        glCompressedTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, level, format, data.width, data.height, 0, data.sideNZ(level))
-                    } else {
-                        val format = data.format.glFormat()
-                        val type = data.type.glType()
-                        val (internalFormat, internalType) = internalFormat(data.format, data.type)
-                        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, level, internalFormat, width, height, 0, format, type, data.sidePX(level))
-                        checkGLErrors()
-                        glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, level, internalFormat, width, height, 0, format, type, data.sideNX(level))
-                        checkGLErrors()
-                        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, level, internalFormat, width, height, 0, format, type, data.sidePY(level))
-                        checkGLErrors()
-                        glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, level, internalFormat, width, height, 0, format, type, data.sideNY(level))
-                        checkGLErrors()
-                        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, level, internalFormat, width, height, 0, format, type, data.sidePZ(level))
-                        checkGLErrors()
-                        glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, level, internalFormat, width, height, 0, format, type, data.sideNZ(level))
-                    }
-                    checkGLErrors()
+                    cubemap.write(CubemapSide.POSITIVE_X, data.sidePX(level), level = level)
+                    cubemap.write(CubemapSide.NEGATIVE_X, data.sideNX(level), level = level)
+                    cubemap.write(CubemapSide.POSITIVE_Y, data.sidePY(level), level = level)
+                    cubemap.write(CubemapSide.NEGATIVE_Y, data.sideNY(level), level = level)
+                    cubemap.write(CubemapSide.POSITIVE_Z, data.sidePZ(level), level = level)
+                    cubemap.write(CubemapSide.NEGATIVE_Z, data.sideNZ(level), level = level)
+
+
                 }
                 var generateMipmaps = null as Int?
                 if (data.mipmaps == 1) {
-                    glGenerateMipmap(GL_TEXTURE_CUBE_MAP)
-                    generateMipmaps = ceil(log(data.width.toDouble(), 2.0)).toInt()
-                    checkGLErrors()
+                    cubemap.generateMipmaps()
                 }
-                return CubemapGL3(textures[0], data.width, sides, data.type, data.format, generateMipmaps
-                        ?: data.mipmaps, session)
+                return cubemap
             } else {
                 throw RuntimeException("only dds files can be loaded through a single url")
             }
@@ -242,6 +215,55 @@ class CubemapGL3(val texture: Int, override val width: Int, val sides: List<Colo
             glGetTexImage(side.glTextureTarget, level, targetFormat.glFormat(), targetType.glType(), target)
             debugGLErrors()
         }
+    }
+
+    override fun write(side: CubemapSide, source: ByteBuffer, sourceFormat: ColorFormat, sourceType: ColorType, level: Int) {
+        require(!destroyed)
+        val div = 1 shl level
+
+        if (!source.isDirect) {
+            throw IllegalArgumentException("buffer is not a direct buffer.")
+        }
+
+        val effectiveWidth = width
+        val effectiveHeight = width
+        if (!sourceType.compressed) {
+            val bytesNeeded = sourceFormat.componentCount * sourceType.componentSize * (effectiveWidth / div) * (effectiveHeight / div)
+            require(bytesNeeded <= source.remaining()) {
+                "write of ${width}x${width} of $format/$type pixels to level $level requires $bytesNeeded bytes, buffer only has ${source.remaining()} bytes left, buffer capacity is ${source.capacity()}"
+            }
+        }
+
+        if (true) {
+            bound {
+                debugGLErrors()
+
+                (source as Buffer).rewind()
+                source.order(ByteOrder.nativeOrder())
+                val currentPack = intArrayOf(0)
+                glGetIntegerv(GL_UNPACK_ALIGNMENT, currentPack)
+                glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
+
+                if (sourceType.compressed) {
+                    glCompressedTexSubImage2D(side.glTextureTarget, level, 0, 0, width / div, width / div, compressedType(sourceFormat, sourceType), source)
+                    debugGLErrors {
+                        when (it) {
+                            GL_INVALID_VALUE -> "data size mismatch? ${source.remaining()}"
+                            else -> null
+                        }
+                    }
+                } else {
+                    glTexSubImage2D(side.glTextureTarget, level, 0, 0, width / div, width / div, sourceFormat.glFormat(), sourceType.glType(), source)
+                    debugGLErrors()
+                }
+                glPixelStorei(GL_UNPACK_ALIGNMENT, currentPack[0])
+                debugGLErrors()
+                (source as Buffer).rewind()
+            }
+        } else {
+            throw IllegalArgumentException("multisample targets cannot be written to")
+        }
+
     }
 
     override fun bind(textureUnit: Int) {

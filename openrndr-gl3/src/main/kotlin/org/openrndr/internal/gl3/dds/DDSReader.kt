@@ -9,9 +9,9 @@ package org.openrndr.internal.gl3.dds
 
 import org.openrndr.draw.ColorFormat
 import org.openrndr.draw.ColorType
-import java.nio.ByteBuffer
 import java.io.InputStream
 import java.nio.Buffer
+import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
 private const val DDPF_ALPHAPIXELS = 0x1
@@ -246,7 +246,7 @@ private const val DDSCAPS2_CUBEMAP_POSITIVEZ = 0x4000
 private const val DDSCAPS2_CUBEMAP_NEGATIVEZ = 0x8000
 private const val DDSCAPS2_VOLUME = 0x200000
 
-private  class DDSHeader(header: ByteBuffer) {
+private class DDSHeader(header: ByteBuffer) {
     var size: Int = 0
     var flags: Int = 0
     var height: Int = 0
@@ -343,12 +343,12 @@ class DDSData(val format: ColorFormat, val type: ColorType, val width: Int, val 
     }
 
     fun mipMapLevel(level: Int): ByteBuffer = bdata2[level]
-    fun sidePX(level: Int = 0): ByteBuffer = if (level == 0) bdata[0] else bdata2[(level - 1) + 0 * mipmaps]
-    fun sideNX(level: Int = 0): ByteBuffer = if (level == 0) bdata[1] else bdata2[(level - 1) + 1 * mipmaps]
-    fun sidePY(level: Int = 0): ByteBuffer = if (level == 0) bdata[2] else bdata2[(level - 1) + 2 * mipmaps]
-    fun sideNY(level: Int = 0): ByteBuffer = if (level == 0) bdata[3] else bdata2[(level - 1) + 3 * mipmaps]
-    fun sidePZ(level: Int = 0): ByteBuffer = if (level == 0) bdata[4] else bdata2[(level - 1) + 4 * mipmaps]
-    fun sideNZ(level: Int = 0): ByteBuffer = if (level == 0) bdata[5] else bdata2[(level - 1) + 5 * mipmaps]
+    fun sidePX(level: Int = 0): ByteBuffer = if (level == 0) bdata[0] else bdata2[(level - 1) + 0 * (mipmaps - 1)]
+    fun sideNX(level: Int = 0): ByteBuffer = if (level == 0) bdata[1] else bdata2[(level - 1) + 1 * (mipmaps - 1)]
+    fun sidePY(level: Int = 0): ByteBuffer = if (level == 0) bdata[2] else bdata2[(level - 1) + 2 * (mipmaps - 1)]
+    fun sideNY(level: Int = 0): ByteBuffer = if (level == 0) bdata[3] else bdata2[(level - 1) + 3 * (mipmaps - 1)]
+    fun sidePZ(level: Int = 0): ByteBuffer = if (level == 0) bdata[4] else bdata2[(level - 1) + 4 * (mipmaps - 1)]
+    fun sideNZ(level: Int = 0): ByteBuffer = if (level == 0) bdata[5] else bdata2[(level - 1) + 5 * (mipmaps - 1)]
 }
 
 private const val DDS_MAGIC = 0x20534444
@@ -371,14 +371,12 @@ fun loadDDS(file: InputStream): DDSData {
         fis.read(bHeader)
         val header = DDSHeader(newByteBuffer(bHeader))
 
-        val format:ColorFormat
-        val type:ColorType
+        val format: ColorFormat
+        val type: ColorType
 
-        var blockSize = 16
         if (header.pixelFormat.sFourCC.equals("DXT1", ignoreCase = true)) {
             type = ColorType.DXT1
             format = ColorFormat.RGBa
-            blockSize = 8
         } else if (header.pixelFormat.sFourCC.equals("DXT3", ignoreCase = true)) {
             type = ColorType.DXT3
             format = ColorFormat.RGBa
@@ -389,10 +387,8 @@ fun loadDDS(file: InputStream): DDSData {
             val dxt10HeaderArray = ByteArray(20)
             fis.read(dxt10HeaderArray)
             val dxt10Header = DDSHeaderDXT10(newByteBuffer(dxt10HeaderArray))
-//            println("dxgi format: ${dxt10Header.dxgiFormat}")
 
-
-            when(dxt10Header.dxgiFormat) {
+            when (dxt10Header.dxgiFormat) {
                 DXGI_FORMAT_R16G16B16A16_FLOAT -> {
                     format = ColorFormat.RGBa
                     type = ColorType.FLOAT16
@@ -405,8 +401,6 @@ fun loadDDS(file: InputStream): DDSData {
                     error("unsupported dxgi format: ${dxt10Header.dxgiFormat}")
                 }
             }
-
-
         } else if (header.pixelFormat.dwRGBBitCount == 24 && header.pixelFormat.dwRBitMask == (0xff0000) && header.pixelFormat.dwGBitMask == 0x00ff00 && header.pixelFormat.dwBBitMask == 0x0000ff) {
             format = ColorFormat.BGR
             type = ColorType.UINT8
@@ -435,13 +429,13 @@ fun loadDDS(file: InputStream): DDSData {
             primarySurfaces.add(newByteBuffer(bytes))
 
             if (header.hasFlagMipMapCount) {
-                var size2 = Math.max(size / 4, blockSize)
-                for (j in 0 until header.mipmapCount - 1) {
+                for (j in 1 until header.mipmapCount) {
+                    val div = 1 shl j
+                    val size2 = size / (div * div)
                     val bytes2 = ByteArray(size2)
                     fis.read(bytes2)
                     totalByteCount -= bytes2.size
                     secondarySurfaces.add(newByteBuffer(bytes2))
-                    size2 = Math.max(size2 / 4, blockSize)
                 }
             }
         }
