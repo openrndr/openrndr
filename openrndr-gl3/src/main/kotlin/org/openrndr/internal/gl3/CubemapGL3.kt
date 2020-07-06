@@ -1,6 +1,5 @@
 package org.openrndr.internal.gl3
 
-import org.lwjgl.opengl.GL13C
 import org.lwjgl.opengl.GL33C.*
 import org.openrndr.draw.*
 import org.openrndr.internal.gl3.dds.loadDDS
@@ -55,9 +54,7 @@ class CubemapGL3(val texture: Int, override val width: Int, override val type: C
 
             for (side in CubemapSide.values()) {
                 for (level in 0 until levels) {
-                    println("creating level: $level")
                     val div = 1 shl level
-                    println("creating side: $side, ${effectiveWidth / div}")
                     val nullBB: ByteBuffer? = null
                     glTexImage2D(
                             side.glTextureTarget,
@@ -93,10 +90,8 @@ class CubemapGL3(val texture: Int, override val width: Int, override val type: C
                 val data = loadDDS(URL(url).openStream())
 
                 val cubemap = create(data.width, data.format, data.type, data.mipmaps, session)
-                println("mipmaps: ${data.mipmaps}")
 
                 for (level in 0 until data.mipmaps) {
-                    println("writing level $level")
                     (data.sidePX(level) as Buffer).rewind()
                     (data.sideNX(level) as Buffer).rewind()
                     (data.sidePY(level) as Buffer).rewind()
@@ -112,10 +107,7 @@ class CubemapGL3(val texture: Int, override val width: Int, override val type: C
                     cubemap.write(CubemapSide.NEGATIVE_Z, data.sideNZ(level), level = level)
                 }
                 if (data.mipmaps == 1) {
-                    println("generating mipmaps")
                     cubemap.generateMipmaps()
-
-
                 }
                 return cubemap
             } else {

@@ -71,7 +71,7 @@ interface RenderTarget {
 
     fun attach(arrayTexture: ArrayTexture, layer: Int, level: Int = 0, name: String? = null)
     fun attach(arrayCubemap: ArrayCubemap, side: CubemapSide, layer: Int, level: Int = 0, name: String? = null)
-    fun attach(cubemap: Cubemap, side: CubemapSide, level: Int, name: String? = null)
+    fun attach(cubemap: Cubemap, side: CubemapSide, level: Int = 0, name: String? = null)
 
     fun detachColorAttachments()
 
