@@ -90,14 +90,14 @@ class Drawer(val driver: Driver) {
     var width: Int = 0
     var height: Int = 0
 
+    /** The active model matrix */
     var model: Matrix44 = Matrix44.IDENTITY
 
-    /** The active model matrix */
+    /** The active view matrix */
     var view: Matrix44 = Matrix44.IDENTITY
 
-    /** The active view matrix */
-    var projection: Matrix44 = Matrix44.IDENTITY
     /** The active projection matrix */
+    var projection: Matrix44 = Matrix44.IDENTITY
 
     /**
      * The draw context holds references to model, view, projection matrices, width, height and content-scale
