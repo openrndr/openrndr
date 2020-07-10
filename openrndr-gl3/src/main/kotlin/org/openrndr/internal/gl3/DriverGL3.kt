@@ -23,23 +23,35 @@ import java.util.*
 private val logger = KotlinLogging.logger {}
 internal val useDebugContext = System.getProperty("org.openrndr.gl3.debug") != null
 
-enum class DriverVersionGL(val glslVersion: String, val majorVersion:Int, val minorVersion:Int) {
+enum class DriverVersionGL(val glslVersion: String, val majorVersion: Int, val minorVersion: Int) {
     VERSION_3_3("330 core", 3, 3),
     VERSION_4_1("410 core", 4, 1),
     VERSION_4_2("420 core", 4, 2),
     VERSION_4_3("430 core", 4, 3),
     VERSION_4_4("440 core", 4, 4),
     VERSION_4_5("450 core", 4, 5);
+
+    val versionString
+    get() = "$majorVersion.$minorVersion"
 }
 
 @Suppress("NOTHING_TO_INLINE")
 inline fun DriverVersionGL.require(minimum: DriverVersionGL) {
     require(ordinal >= minimum.ordinal) {
-        """Feature is not supported on current configuration (configuration: $this, required: $minimum)"""
+        """Feature is not supported on current OpenGL configuration (configuration: ${this.versionString}, required: ${minimum.versionString})"""
     }
 }
 
 class DriverGL3(val version: DriverVersionGL) : Driver {
+
+    companion object {
+        fun candidateVersions(): List<DriverVersionGL> {
+            val property = System.getProperty("org.openrndr.gl3.version", "all")
+            return DriverVersionGL.values().find { "${it.majorVersion}.${it.minorVersion}" == property }?.let { listOf(it) }
+                    ?: DriverVersionGL.values().reversed()
+        }
+    }
+
     override val contextID: Long
         get() {
             return GLFW.glfwGetCurrentContext()
@@ -535,71 +547,76 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
                 for (item in format.items) {
                     val attributeIndex = shader.attributeIndex("${prefix}_${item.attribute}")
                     if (attributeIndex != -1) {
-                        if (item.type in scalarVectorTypes) {
-                            for (i in 0 until item.arraySize) {
-                                glEnableVertexAttribArray(attributeIndex + i)
-                                debugGLErrors {
-                                    when (it) {
-                                        GL_INVALID_OPERATION -> "no vertex array object is bound"
-                                        GL_INVALID_VALUE -> "index ($attributeIndex) is greater than or equal to GL_MAX_VERTEX_ATTRIBS"
-                                        else -> null
+                        when (item.type) {
+                            in scalarVectorTypes -> {
+                                for (i in 0 until item.arraySize) {
+                                    glEnableVertexAttribArray(attributeIndex + i)
+                                    debugGLErrors {
+                                        when (it) {
+                                            GL_INVALID_OPERATION -> "no vertex array object is bound"
+                                            GL_INVALID_VALUE -> "index ($attributeIndex) is greater than or equal to GL_MAX_VERTEX_ATTRIBS"
+                                            else -> null
+                                        }
                                     }
-                                }
-                                val glType = item.type.glType()
+                                    val glType = item.type.glType()
 
-                                if (glType == GL_FLOAT) {
-                                    glVertexAttribPointer(attributeIndex + i,
-                                            item.type.componentCount,
-                                            glType, false, format.size, item.offset.toLong() + i * item.type.sizeInBytes)
-                                } else {
-                                    glVertexAttribIPointer(attributeIndex + i,
-                                            item.type.componentCount,
-                                            glType, format.size, item.offset.toLong() + i * item.type.sizeInBytes)
+                                    if (glType == GL_FLOAT) {
+                                        glVertexAttribPointer(attributeIndex + i,
+                                                item.type.componentCount,
+                                                glType, false, format.size, item.offset.toLong() + i * item.type.sizeInBytes)
+                                    } else {
+                                        glVertexAttribIPointer(attributeIndex + i,
+                                                item.type.componentCount,
+                                                glType, format.size, item.offset.toLong() + i * item.type.sizeInBytes)
 
-                                }
-                                debugGLErrors {
-                                    when (it) {
-                                        GL_INVALID_VALUE -> "index ($attributeIndex) is greater than or equal to GL_MAX_VERTEX_ATTRIBS"
-                                        else -> null
                                     }
-                                }
-                                glVertexAttribDivisor(attributeIndex, divisor)
-                                attributeBindings++
-                            }
-                        } else if (item.type == VertexElementType.MATRIX44_FLOAT32) {
-                            for (i in 0 until item.arraySize) {
-                                for (column in 0 until 4) {
-                                    glEnableVertexAttribArray(attributeIndex + column + i * 4)
-                                    debugGLErrors()
-
-                                    glVertexAttribPointer(attributeIndex + column + i * 4,
-                                            4,
-                                            item.type.glType(), false, format.size, item.offset.toLong() + column * 16 + i * 64)
-                                    debugGLErrors()
-
-                                    glVertexAttribDivisor(attributeIndex + column + i * 4, divisor)
-                                    debugGLErrors()
+                                    debugGLErrors {
+                                        when (it) {
+                                            GL_INVALID_VALUE -> "index ($attributeIndex) is greater than or equal to GL_MAX_VERTEX_ATTRIBS"
+                                            else -> null
+                                        }
+                                    }
+                                    glVertexAttribDivisor(attributeIndex, divisor)
                                     attributeBindings++
                                 }
                             }
-                        } else if (item.type == VertexElementType.MATRIX33_FLOAT32) {
-                            for (i in 0 until item.arraySize) {
-                                for (column in 0 until 3) {
-                                    glEnableVertexAttribArray(attributeIndex + column + i * 3)
-                                    debugGLErrors()
+                            VertexElementType.MATRIX44_FLOAT32 -> {
+                                for (i in 0 until item.arraySize) {
+                                    for (column in 0 until 4) {
+                                        glEnableVertexAttribArray(attributeIndex + column + i * 4)
+                                        debugGLErrors()
 
-                                    glVertexAttribPointer(attributeIndex + column + i * 3,
-                                            3,
-                                            item.type.glType(), false, format.size, item.offset.toLong() + column * 12 + i * 48)
-                                    debugGLErrors()
+                                        glVertexAttribPointer(attributeIndex + column + i * 4,
+                                                4,
+                                                item.type.glType(), false, format.size, item.offset.toLong() + column * 16 + i * 64)
+                                        debugGLErrors()
 
-                                    glVertexAttribDivisor(attributeIndex + column + i * 3, divisor)
-                                    debugGLErrors()
-                                    attributeBindings++
+                                        glVertexAttribDivisor(attributeIndex + column + i * 4, divisor)
+                                        debugGLErrors()
+                                        attributeBindings++
+                                    }
                                 }
                             }
-                        } else {
-                            TODO("implement support for ${item.type}")
+                            VertexElementType.MATRIX33_FLOAT32 -> {
+                                for (i in 0 until item.arraySize) {
+                                    for (column in 0 until 3) {
+                                        glEnableVertexAttribArray(attributeIndex + column + i * 3)
+                                        debugGLErrors()
+
+                                        glVertexAttribPointer(attributeIndex + column + i * 3,
+                                                3,
+                                                item.type.glType(), false, format.size, item.offset.toLong() + column * 12 + i * 48)
+                                        debugGLErrors()
+
+                                        glVertexAttribDivisor(attributeIndex + column + i * 3, divisor)
+                                        debugGLErrors()
+                                        attributeBindings++
+                                    }
+                                }
+                            }
+                            else -> {
+                                TODO("implement support for ${item.type}")
+                            }
                         }
                     }
                 }
@@ -877,3 +894,5 @@ internal fun Matrix33.toFloatArray(): FloatArray = floatArrayOf(
         c1r0.toFloat(), c1r1.toFloat(), c1r2.toFloat(),
         c2r0.toFloat(), c2r1.toFloat(), c2r2.toFloat())
 
+val Driver.Companion.glVersion
+get() = (Driver.instance as DriverGL3).version

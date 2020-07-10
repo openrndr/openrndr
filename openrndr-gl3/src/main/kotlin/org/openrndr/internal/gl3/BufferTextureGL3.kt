@@ -58,6 +58,10 @@ class BufferTextureGL3(val texture: Int, val buffer: Int, override val elementCo
         }
     }
 
+    internal fun glFormat(): Int {
+        return internalFormat(format, type).first
+    }
+
     internal var realShadow: BufferTextureShadowGL3? = null
     override val shadow: BufferTextureShadow
         get() {

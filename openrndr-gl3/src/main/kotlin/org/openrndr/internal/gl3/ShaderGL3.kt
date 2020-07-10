@@ -551,7 +551,7 @@ class ShaderGL3(val program: Int,
             logger.trace { "Setting uniform '$name' to $value" }
 
             val floatValues = FloatArray(value.size * 4)
-            for (i in 0 until value.size) {
+            for (i in value.indices) {
                 floatValues[i * 4] = value[i].x.toFloat()
                 floatValues[i * 4 + 1] = value[i].y.toFloat()
                 floatValues[i * 4 + 2] = value[i].z.toFloat()
@@ -693,11 +693,11 @@ class ShaderGL3(val program: Int,
     }
 
     override fun image(name: String, image: Int, imageBinding: ImageBinding) {
-        require((Driver.instance as DriverGL3).version >= DriverVersionGL.VERSION_4_3)
+        (Driver.instance as DriverGL3).version.require(DriverVersionGL.VERSION_4_3)
 
         when (imageBinding) {
             is BufferTextureImageBinding -> {
-                val bufferTexture = imageBinding.bufferTexture as ColorBufferGL3
+                val bufferTexture = imageBinding.bufferTexture as BufferTextureGL3
                 require(bufferTexture.format.componentCount != 3) {
                     "color buffer has unsupported format (${imageBinding.bufferTexture.format}), only formats with 1, 2 or 4 components are supported"
                 }

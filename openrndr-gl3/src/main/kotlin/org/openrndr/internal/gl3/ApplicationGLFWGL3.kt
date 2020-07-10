@@ -175,8 +175,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
 
         logger.debug { "creating window" }
 
-
-        val versions = DriverVersionGL.values().reversed()
+        val versions = DriverGL3.candidateVersions()
         var versionIndex = 0
         while (window == NULL && versionIndex < versions.size) {
 
@@ -347,6 +346,8 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         glfwSwapBuffers(window)
     }
 
+
+
     private fun createPrimaryWindow() {
         if (primaryWindow == NULL) {
             glfwSetErrorCallback(GLFWErrorCallback.create { error, description ->
@@ -363,7 +364,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
             val title = "OPENRNDR primary window"
 
 
-            var versions = DriverVersionGL.values().reversed()
+            val versions = DriverGL3.candidateVersions()
             glfwDefaultWindowHints()
             glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE)
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE)
