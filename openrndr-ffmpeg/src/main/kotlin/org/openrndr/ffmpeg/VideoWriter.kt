@@ -17,11 +17,25 @@ private val logger = KotlinLogging.logger {}
 
 abstract class VideoWriterProfile {
     abstract fun arguments(): Array<String>
+    abstract val fileExtension: String
 }
+
+
+val File.fileWithoutExtension: File
+    get() {
+        val p = parent
+        return if (p == null) {
+            File(nameWithoutExtension)
+        } else {
+            File(p, nameWithoutExtension)
+        }
+    }
 
 class MP4Profile : VideoWriterProfile() {
     private var mode = WriterMode.Normal
     private var constantRateFactor = null as Int?
+
+    override val fileExtension = "mp4"
 
     enum class WriterMode {
         Normal,
@@ -92,61 +106,6 @@ class MP4Profile : VideoWriterProfile() {
     }
 }
 
-class X265Profile : VideoWriterProfile() {
-    internal var mode = WriterMode.Normal
-    internal var constantRateFactor = 28
-    var hlg = false
-
-    enum class WriterMode {
-        Normal,
-        Lossless
-    }
-
-    fun mode(mode: WriterMode): X265Profile {
-        this.mode = mode
-        return this
-    }
-
-    /**
-     * Sets the constant rate factor
-     * @param constantRateFactor the constant rate factor (default is 28)
-     * @return
-     */
-    fun constantRateFactor(constantRateFactor: Int): X265Profile {
-        this.constantRateFactor = constantRateFactor
-        return this
-    }
-
-    override fun arguments(): Array<String> {
-        when (mode) {
-            WriterMode.Normal -> {
-                return if (!hlg) {
-                    arrayOf("-pix_fmt", "yuv420p", // this will produce videos that are playable by quicktime
-                            "-vf", "vflip",
-                            "-an", "-vcodec", "libx265", "-crf", "" + constantRateFactor)
-                } else {
-                    arrayOf( // this will produce videos that are playable by quicktime
-                            "-an", "" +
-                            "-vcodec", "libx265",
-                            "-pix_fmt", "yuv420p10le",
-                            "-color_primaries", "bt2020",
-                            "-colorspace", "bt2020_ncl",
-                            "-color_trc", "arib-std-b67",
-                            "-crf", "" + constantRateFactor)
-                    // transfer=arib-std-b67
-                }
-            }
-            WriterMode.Lossless -> {
-                return arrayOf("-pix_fmt", "yuv420p10", // this will produce videos that are playable by quicktime
-                        "-an", "-vcodec", "libx265", "-preset", "ultrafast")
-            }
-            else -> {
-                throw RuntimeException("unsupported write mode")
-            }
-        }
-    }
-}
-
 class VideoWriter {
     internal var ffmpegOutput = File("ffmpegOutput.txt")
     private var stopped = false
@@ -155,7 +114,7 @@ class VideoWriter {
     private var width = -1
     private var height = -1
 
-    private var filename: String? = "openrndr.mp4"
+    private var filename: String = "openrndr.mp4"
 
     private lateinit var frameBuffer: ByteBuffer
     private lateinit var channel: WritableByteChannel
@@ -215,8 +174,11 @@ class VideoWriter {
     fun start(): VideoWriter {
         logger.debug { "starting video writer with $width x $height output using $inputFormat writing to $filename" }
 
-        if (filename == null) {
-            throw RuntimeException("output not set")
+        val file = File(filename)
+        val finalFilename = if (file.extension != profile.fileExtension) {
+            "${file.fileWithoutExtension}.${profile.fileExtension}"
+        } else {
+            filename
         }
 
         if (width <= 0) {
@@ -247,7 +209,7 @@ class VideoWriter {
         arguments.addAll(listOf(*preamble))
         arguments.addAll(listOf(*codec))
 
-        arguments.add(filename!!)
+        arguments.add(finalFilename)
 
         logger.debug {
             "using arguments: ${arguments.joinToString()}"
