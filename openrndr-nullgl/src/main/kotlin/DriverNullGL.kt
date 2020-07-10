@@ -15,7 +15,7 @@ class DriverNullGL: Driver {
         return Thread.currentThread().id
     }
 
-    override fun createShader(vsCode: String, gsCode: String?,fsCode: String, name: String, session: Session?): Shader {
+    override fun createShader(vsCode: String, tcsCode: String?, tesCode: String?, gsCode: String?, fsCode: String, name: String, session: Session?): Shader {
         return ShaderNullGL(session)
     }
 
@@ -23,7 +23,7 @@ class DriverNullGL: Driver {
         TODO("Not yet implemented")
     }
 
-    override fun createShadeStyleManager(name: String, vertexShaderGenerator: (ShadeStructure) -> String, fragmentShaderGenerator: (ShadeStructure) -> String, session: Session?): ShadeStyleManager {
+    override fun createShadeStyleManager(name: String, vsGenerator: (ShadeStructure) -> String, tcsGenerator: ((ShadeStructure) -> String)?, tesGenerator: ((ShadeStructure) -> String)?, gsGenerator: ((ShadeStructure) -> String)?, fsGenerator: (ShadeStructure) -> String, session: Session?): ShadeStyleManager {
         return ShadeStyleManagerNullGL(name)
     }
 
@@ -83,7 +83,11 @@ class DriverNullGL: Driver {
         TODO("Not yet implemented")
     }
 
-    override fun createCubemapFromFiles(urls: List<String>, session: Session?): Cubemap {
+    override fun createCubemapFromFiles(filenames: List<String>, session: Session?): Cubemap {
+        TODO("Not yet implemented")
+    }
+
+    override fun createVolumeTexture(width: Int, height: Int, depth: Int, format: ColorFormat, type: ColorType, levels: Int, session: Session?): VolumeTexture {
         TODO("Not yet implemented")
     }
 

@@ -23,22 +23,6 @@ interface ColorBufferShadow {
 
     fun read(x: Int, y: Int): ColorRGBa
 
-    fun mapBoolean(mapper: (r: Double, g: Double, b: Double, a: Double) -> Boolean): Array<BooleanArray>
-    fun mapDouble(mapper: (r: Double, g: Double, b: Double, a: Double) -> Double): Array<DoubleArray>
-    fun mapFloat(mapper: (r: Double, g: Double, b: Double, a: Double) -> Float): Array<FloatArray>
-    fun mapInt(mapper: (r: Double, g: Double, b: Double, a: Double) -> Int): Array<IntArray>
-
-    fun <T> mapIndexed(xrange: IntProgression = 0 until this.colorBuffer.effectiveWidth,
-                       yrange: IntProgression = 0 until this.colorBuffer.effectiveHeight,
-                       mapper: (x: Int, y: Int, r: Double, g: Double, b: Double, a: Double) -> T): Array<List<T>>
-
-    fun <T> flatMapIndexed(xrange: IntProgression = 0 until this.colorBuffer.effectiveWidth,
-                           yrange: IntProgression = 0 until this.colorBuffer.effectiveHeight,
-                           mapper: (x: Int, y: Int, r: Double, g: Double, b: Double, a: Double) -> T): List<T> {
-        return mapIndexed(xrange, yrange, mapper).flatMap { it }
-    }
-
-
     operator fun get(x: Int, y: Int): ColorRGBa {
         return read(x, y)
     }

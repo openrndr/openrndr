@@ -22,12 +22,12 @@ class ImageDrawer {
     private var instanceAttributes = vertexBuffer(instanceFormat, 10, Session.root)
 
     private val shaderManager: ShadeStyleManager = ShadeStyleManager.fromGenerators("image",
-            Driver.instance.shaderGenerators::imageVertexShader,
-            Driver.instance.shaderGenerators::imageFragmentShader)
+            vsGenerator = Driver.instance.shaderGenerators::imageVertexShader,
+            fsGenerator = Driver.instance.shaderGenerators::imageFragmentShader)
 
     private val arrayTextureShaderManager: ShadeStyleManager = ShadeStyleManager.fromGenerators("array-texture",
-            Driver.instance.shaderGenerators::imageArrayTextureVertexShader,
-            Driver.instance.shaderGenerators::imageArrayTextureFragmentShader)
+            vsGenerator = Driver.instance.shaderGenerators::imageArrayTextureVertexShader,
+            fsGenerator = Driver.instance.shaderGenerators::imageArrayTextureFragmentShader)
 
     init {
         val w = vertices.shadow.writer()

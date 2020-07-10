@@ -2,9 +2,11 @@ package org.openrndr.internal.gl3
 
 import mu.KotlinLogging
 import org.lwjgl.BufferUtils
+import org.lwjgl.opengl.GL43C
 import org.lwjgl.opengl.GL43C.*
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
+import org.openrndr.internal.Driver
 import org.openrndr.math.*
 import java.nio.Buffer
 
@@ -53,126 +55,22 @@ class ComputeShaderGL43(val programObject: Int, val name: String = "compute_shad
 
     }
 
-    override fun image(name: String, image: Int, colorBuffer: ColorBuffer, access: ImageAccess) {
-        if (colorBuffer.format.componentCount != 3) {
-            colorBuffer as ColorBufferGL3
-            glUseProgram(programObject)
-            checkGLErrors {
-                when (it) {
-                    GL_INVALID_OPERATION -> " program ($programObject) is not a program object / program could not be made part of current state / transform feedback mode is active"
-                    else -> null
-                }
-            }
-            glBindImageTexture(image, colorBuffer.texture, 0, false, 0, access.gl(), colorBuffer.glFormat())
-            checkGLErrors() {
-                val maxImageUnits = glGetInteger(GL_MAX_IMAGE_UNITS)
-                colorBuffer as ColorBufferGL3
-                when (it) {
-                    GL_INVALID_VALUE ->
-                        """unit(=$image) greater than or equal to the value of GL_MAX_IMAGE_UNITS(=$maxImageUnits)
-texture(=${colorBuffer.texture}) is not the name of an existing texture object
-level(=0) or layer(=0) is less than zero                                        
-                """.trimIndent()
-                    else -> null
-                }
-            }
-            val index = uniformIndex(name)
-            glUniform1i(index, image)
-            checkGLErrors()
-        } else {
-            throw IllegalArgumentException("color buffer has unsupported format (${colorBuffer.format}), only formats with 1, 2 or 4 components are supported")
-        }
-    }
+    override fun image(name: String, image: Int, imageBinding: ImageBinding) {
+        require((Driver.instance as DriverGL3).version >= DriverVersionGL.VERSION_4_3)
 
-    override fun image(name: String, image: Int, arrayTexture: ArrayTexture, layer:Int, access: ImageAccess) {
-        if (arrayTexture.format.componentCount != 3) {
-            arrayTexture as ArrayTextureGL3
-            glUseProgram(programObject)
-            checkGLErrors {
-                when (it) {
-                    GL_INVALID_OPERATION -> " program ($programObject) is not a program object / program could not be made part of current state / transform feedback mode is active"
-                    else -> null
+        when (imageBinding) {
+            is ColorBufferImageBinding -> {
+                val colorBuffer = imageBinding.colorBuffer as ColorBufferGL3
+                require(colorBuffer.format.componentCount != 3) {
+                    "color buffer has unsupported format (${imageBinding.colorBuffer.format}), only formats with 1, 2 or 4 components are supported"
                 }
+                GL43C.glBindImageTexture(image, colorBuffer.texture, 0, false, 0, imageBinding.access.gl(), colorBuffer.glFormat())
             }
-            glBindImageTexture(image, arrayTexture.texture, 0, false, 0, access.gl(), arrayTexture.glFormat())
-            checkGLErrors() {
-                val maxImageUnits = glGetInteger(GL_MAX_IMAGE_UNITS)
-                when (it) {
-                    GL_INVALID_VALUE ->
-                        """unit(=$image) greater than or equal to the value of GL_MAX_IMAGE_UNITS(=$maxImageUnits)
-texture(=${arrayTexture.texture}) is not the name of an existing texture object
-level(=0) or layer(=0) is less than zero                                        
-                """.trimIndent()
-                    else -> null
-                }
-            }
-            val index = uniformIndex(name)
-            glUniform1i(index, image)
-            checkGLErrors()
-        } else {
-            throw IllegalArgumentException("color buffer has unsupported format (${arrayTexture.format}), only formats with 1, 2 or 4 components are supported")
+            else -> error("unsupported binding")
         }
-    }
-
-
-    override fun image(name: String, image: Int, arrayTexture: ArrayTexture, access: ImageAccess) {
-        if (arrayTexture.format.componentCount != 3) {
-            arrayTexture as ArrayTextureGL3
-            glUseProgram(programObject)
-            checkGLErrors {
-                when (it) {
-                    GL_INVALID_OPERATION -> " program ($programObject) is not a program object / program could not be made part of current state / transform feedback mode is active"
-                    else -> null
-                }
-            }
-            glBindImageTexture(image, arrayTexture.texture, 0, true, 0, access.gl(), arrayTexture.glFormat())
-            checkGLErrors() {
-                val maxImageUnits = glGetInteger(GL_MAX_IMAGE_UNITS)
-                when (it) {
-                    GL_INVALID_VALUE ->
-                        """unit(=$image) greater than or equal to the value of GL_MAX_IMAGE_UNITS(=$maxImageUnits)
-texture(=${arrayTexture.texture}) is not the name of an existing texture object
-level(=0) or layer(=0) is less than zero                                        
-                """.trimIndent()
-                    else -> null
-                }
-            }
-            val index = uniformIndex(name)
-            glUniform1i(index, image)
-            checkGLErrors()
-        } else {
-            throw IllegalArgumentException("color buffer has unsupported format (${arrayTexture.format}), only formats with 1, 2 or 4 components are supported")
-        }
-    }
-
-    override fun image(name: String, image: Int, cubemap: Cubemap, access: ImageAccess) {
-        if (cubemap.format.componentCount != 3) {
-            cubemap as CubemapGL3
-            glUseProgram(programObject)
-            checkGLErrors {
-                when (it) {
-                    GL_INVALID_OPERATION -> " program ($programObject) is not a program object / program could not be made part of current state / transform feedback mode is active"
-                    else -> null
-                }
-            }
-            glBindImageTexture(image, cubemap.texture, 0, true, 0, access.gl(), cubemap.glFormat())
-            checkGLErrors {
-                val maxImageUnits = glGetInteger(GL_MAX_IMAGE_UNITS)
-                when (it) {
-                    GL_INVALID_VALUE ->
-                        """unit(=$image) greater than or equal to the value of GL_MAX_IMAGE_UNITS(=$maxImageUnits)
-texture(=${cubemap.texture}) is not the name of an existing texture object
-level(=0) or layer(=0) is less than zero                                        
-                """.trimIndent()
-                    else -> null
-                }
-            }
-            val index = uniformIndex(name)
-            glUniform1i(index, image)
-            checkGLErrors()
-        } else {
-            throw IllegalArgumentException("color buffer has unsupported format (${cubemap.format}), only formats with 1, 2 or 4 components are supported")
-        }
+        val index = uniformIndex(name)
+        GL43C.glUniform1i(index, image)
+        checkGLErrors()
     }
 
 

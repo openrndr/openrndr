@@ -9,8 +9,11 @@ import org.openrndr.measure
 private val logger = KotlinLogging.logger {}
 
 class ShadeStyleManagerGL3(name: String,
-                           val vertexShaderGenerator: (ShadeStructure) -> String,
-                           val fragmentShaderGenerator: (ShadeStructure) -> String) : ShadeStyleManager(name) {
+                           val vsGenerator: (ShadeStructure) -> String,
+                           val tcsGenerator: ((ShadeStructure) -> String)?,
+                           val tesGenerator: ((ShadeStructure) -> String)?,
+                           val gsGenerator: ((ShadeStructure) -> String)?,
+                           val fsGenerator: (ShadeStructure) -> String) : ShadeStyleManager(name) {
 
     private var defaultShader: Shader? = null
     private val shaders = mutableMapOf<ShadeStructure, Shader>()
@@ -24,7 +27,12 @@ class ShadeStyleManagerGL3(name: String,
                 if (defaultShader == null) {
                     logger.debug { "creating default shader" }
                     val structure = structureFromShadeStyle(style, vertexFormats, outputInstanceFormats)
-                    defaultShader = Shader.createFromCode(vertexShaderGenerator(structure), fragmentShaderGenerator(structure), "shade-style-default:$name", Session.root)
+                    defaultShader = Shader.createFromCode(
+                            vsCode = vsGenerator(structure),
+                            fsCode = fsGenerator(structure),
+                            name = "shade-style-default:$name",
+                            session = Session.root
+                    )
                     (defaultShader as ShaderGL3).userShader = false
                 }
                 defaultShader!!
@@ -34,7 +42,15 @@ class ShadeStyleManagerGL3(name: String,
                 val structure = structureFromShadeStyle(style, vertexFormats, outputInstanceFormats)
                 val shader = shaders.getOrPut(structure) {
                     try {
-                        Shader.createFromCode(vertexShaderGenerator(structure), fragmentShaderGenerator(structure), "shade-style-custom:$name-${structure.hashCode()}", Session.root)
+                        Shader.createFromCode(
+                                vsCode = vsGenerator(structure),
+                                tcsCode = tcsGenerator?.invoke(structure),
+                                tesCode = tesGenerator?.invoke(structure),
+                                gsCode = gsGenerator?.invoke(structure),
+                                fsCode  = fsGenerator(structure),
+                                name ="shade-style-custom:$name-${structure.hashCode()}",
+                                session = Session.root
+                        )
                     } catch (e: Throwable) {
                         if (System.getProperties().containsKey("org.openrndr.ignoreShadeStyleErrors")) {
                             shader(null, vertexFormats, outputInstanceFormats)
@@ -47,6 +63,7 @@ class ShadeStyleManagerGL3(name: String,
 
                 shader.begin()
                 var textureIndex = 2
+                var imageIndex = 0
                 measure("set-uniforms") {
                     for (it in style.parameterValues.entries) {
                         when (val value = it.value) {
@@ -89,6 +106,15 @@ class ShadeStyleManagerGL3(name: String,
                                 value.bind(textureIndex)
                                 shader.uniform("p_${it.key}", textureIndex)
                                 textureIndex++
+                            }
+                            is VolumeTexture -> {
+                                value.bind(textureIndex)
+                                shader.uniform("p_${it.key}", textureIndex)
+                                textureIndex++
+                            }
+                            is ImageBinding -> {
+                                shader.image("p_${it.key}", imageIndex, value)
+                                imageIndex++
                             }
                             is Array<*> -> {
                                 require(value.isNotEmpty())

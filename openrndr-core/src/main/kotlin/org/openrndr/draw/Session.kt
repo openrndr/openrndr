@@ -60,6 +60,7 @@ class Session(val parent: Session?) {
     private val arrayTextures = mutableSetOf<ArrayTexture>()
     private val arrayCubemaps = mutableSetOf<ArrayCubemap>()
     private val indexBuffers = mutableSetOf<IndexBuffer>()
+    private val volumeTextures = mutableSetOf<VolumeTexture>()
 
     private val atomicCounterBuffers = mutableSetOf<AtomicCounterBuffer>()
 
@@ -114,6 +115,9 @@ class Session(val parent: Session?) {
 
     fun track(arrayCubemap: ArrayCubemap) = arrayCubemaps.add(arrayCubemap)
     fun untrack(arrayCubemap: ArrayCubemap ) = arrayCubemaps.remove(arrayCubemap)
+
+    fun track(volumeTexture: VolumeTexture) = volumeTextures.add(volumeTexture)
+    fun untrack(volumeTexture: VolumeTexture) = volumeTextures.remove(volumeTexture)
 
     /**
      * Fork the session

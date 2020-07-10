@@ -93,14 +93,16 @@ fun structureFromShadeStyle(shadeStyle: ShadeStyle?, vertexFormats: List<VertexF
                 ShadeStructure().apply {
                     if (shadeStyle != null) {
                         vertexTransform = shadeStyle.vertexTransform
+                        geometryTransform = shadeStyle.geometryTransform
                         fragmentTransform = shadeStyle.fragmentTransform
                         vertexPreamble = shadeStyle.vertexPreamble
+                        geometryPreamble = shadeStyle.geometryPreamble
                         fragmentPreamble = shadeStyle.fragmentPreamble
                         measure("outputs") {
                             outputs = shadeStyle.outputs.map { "// -- output-from  ${it.value} \nlayout(location = ${it.value.attachment}) out ${it.value.glslType} o_${it.key};\n" }.joinToString("")
                         }
                         measure("uniforms") {
-                            uniforms = shadeStyle.parameters.map { "uniform ${mapType(it.value)} p_${it.key};\n" }.joinToString("")
+                            uniforms = shadeStyle.parameters.map { "${mapTypeToUniform(it.value)} p_${it.key};\n" }.joinToString("")
                         }
                     }
                     measure("varying-out") {
@@ -126,41 +128,89 @@ fun structureFromShadeStyle(shadeStyle: ShadeStyle?, vertexFormats: List<VertexF
     }
 }
 
-private fun mapType(type: String): String {
+private fun mapTypeToUniform(type: String): String {
     val tokens = type.split(",")
     val arraySize = tokens.getOrNull(1)
+    val u = "uniform"
     return when (tokens[0]) {
-        "Boolean", "boolean" -> "bool"
-        "Int", "int" -> "int${if (arraySize != null) "[$arraySize]" else ""}"
-        "Matrix33" -> "mat3"
-        "Matrix44" -> "mat4${if (arraySize != null) "[$arraySize]" else ""}"
-        "Float", "float" -> "float${if (arraySize != null) "[$arraySize]" else ""}"
-        "Vector2" -> "vec2${if (arraySize != null) "[$arraySize]" else ""}"
-        "Vector3" -> "vec3${if (arraySize != null) "[$arraySize]" else ""}"
-        "Vector4" -> "vec4${if (arraySize != null) "[$arraySize]" else ""}"
-        "IntVector2" -> "ivec2${if (arraySize != null) "[$arraySize]" else ""}"
-        "IntVector3" -> "ivec3${if (arraySize != null) "[$arraySize]" else ""}"
-        "IntVector4" -> "ivec4${if (arraySize != null) "[$arraySize]" else ""}"
-        "ColorRGBa" -> "vec4${if (arraySize != null) "[$arraySize]" else ""}"
-        "BufferTexture" -> "samplerBuffer"
-        "BufferTexture_UINT" -> "usamplerBuffer"
-        "BufferTexture_SINT" -> "isamplerBuffer"
-        "ColorBuffer" -> "sampler2D"
-        "ColorBuffer_UINT" -> "usampler2D"
-        "ColorBuffer_SINT" -> "isampler2D"
-        "DepthBuffer" -> "sampler2D"
-        "Cubemap" -> "samplerCube"
-        "Cubemap_UINT" -> "usamplerCube"
-        "Cubemap_SINT" -> "isamplerCube"
-        "ArrayCubemap" -> "samplerCubeArray"
-        "ArrayCubemap_UINT" -> "usamplerCubeArray"
-        "ArrayCubemap_SINT" -> "isamplerCubeArray"
-        "ArrayTexture" -> "sampler2DArray"
-        "ArrayTexture_UINT" -> "usampler2DArray"
-        "ArrayTexture_SINT" -> "isampler2DArray"
+        "Boolean", "boolean" -> "$u bool"
+        "Int", "int" -> "$u int${if (arraySize != null) "[$arraySize]" else ""}"
+        "Matrix33" -> "$u mat3"
+        "Matrix44" -> "$u mat4${if (arraySize != null) "[$arraySize]" else ""}"
+        "Float", "float" -> "$u float${if (arraySize != null) "[$arraySize]" else ""}"
+        "Vector2" -> "$u vec2${if (arraySize != null) "[$arraySize]" else ""}"
+        "Vector3" -> "$u vec3${if (arraySize != null) "[$arraySize]" else ""}"
+        "Vector4" -> "$u vec4${if (arraySize != null) "[$arraySize]" else ""}"
+        "IntVector2" -> "$u ivec2${if (arraySize != null) "[$arraySize]" else ""}"
+        "IntVector3" -> "$u ivec3${if (arraySize != null) "[$arraySize]" else ""}"
+        "IntVector4" -> "$u ivec4${if (arraySize != null) "[$arraySize]" else ""}"
+        "ColorRGBa" -> "$u vec4${if (arraySize != null) "[$arraySize]" else ""}"
+        "BufferTexture" -> "$u samplerBuffer"
+        "BufferTexture_UINT" -> "$u usamplerBuffer"
+        "BufferTexture_SINT" -> "$u isamplerBuffer"
+        "ColorBuffer" -> "$u sampler2D"
+        "ColorBuffer_UINT" -> "$u usampler2D"
+        "ColorBuffer_SINT" -> "$u isampler2D"
+        "DepthBuffer" -> "$u sampler2D"
+        "Cubemap" -> "$u samplerCube"
+        "Cubemap_UINT" -> "$u usamplerCube"
+        "Cubemap_SINT" -> "$u isamplerCube"
+        "ArrayCubemap" -> "$u samplerCubeArray"
+        "ArrayCubemap_UINT" -> "$u usamplerCubeArray"
+        "ArrayCubemap_SINT" -> "$u isamplerCubeArray"
+        "ArrayTexture" -> "$u sampler2DArray"
+        "ArrayTexture_UINT" -> "$u usampler2DArray"
+        "ArrayTexture_SINT" -> "$u isampler2DArray"
+        "VolumeTexture" -> "$u sampler3D"
+        "VolumeTexture_UINT" -> "$u usampler3D"
+        "VolumeTexture_SINT" -> "$u isampler3D"
+        "Image2D", "Image3D", "ImageCube", "Image2DArray", "ImageBuffer", "ImageCubeArray" -> {
+            val sampler = tokens[0].take(1).toLowerCase() + tokens[0].drop(1)
+            val format = ColorFormat.valueOf(tokens[1])
+            val type = ColorType.valueOf(tokens[2])
+            val access = ImageAccess.valueOf(tokens[3])
+            val layout = imageLayout(format, type)
+            when (access) {
+                ImageAccess.READ, ImageAccess.READ_WRITE -> "layout($layout) $u $sampler"
+                ImageAccess.WRITE -> "writeonly $u $sampler"
+            }
+        }
         else -> throw RuntimeException("unsupported type $type")
     }
 }
+
+private fun imageLayout(format: ColorFormat, type: ColorType): String {
+    return when (Pair(format, type)) {
+        Pair(ColorFormat.R, ColorType.UINT8) -> "r8"
+        Pair(ColorFormat.R, ColorType.UINT8_INT) -> "r8u"
+        Pair(ColorFormat.R, ColorType.SINT8_INT) -> "r8i"
+        Pair(ColorFormat.R, ColorType.UINT16) -> "r16"
+        Pair(ColorFormat.R, ColorType.UINT16_INT) -> "r16u"
+        Pair(ColorFormat.R, ColorType.SINT16_INT) -> "r16i"
+        Pair(ColorFormat.R, ColorType.FLOAT16) -> "r16f"
+        Pair(ColorFormat.R, ColorType.FLOAT32) -> "r32f"
+
+        Pair(ColorFormat.RG, ColorType.UINT8) -> "rg8"
+        Pair(ColorFormat.RG, ColorType.UINT8_INT) -> "rg8u"
+        Pair(ColorFormat.RG, ColorType.SINT8_INT) -> "rg8i"
+        Pair(ColorFormat.RG, ColorType.UINT16) -> "rg16"
+        Pair(ColorFormat.RG, ColorType.UINT16_INT) -> "rg16u"
+        Pair(ColorFormat.RG, ColorType.SINT16_INT) -> "rg16i"
+        Pair(ColorFormat.RG, ColorType.FLOAT16) -> "rg16f"
+        Pair(ColorFormat.RG, ColorType.FLOAT32) -> "rg32f"
+
+        Pair(ColorFormat.RGBa, ColorType.UINT8) -> "rgba8"
+        Pair(ColorFormat.RGBa, ColorType.UINT8_INT) -> "rgba8u"
+        Pair(ColorFormat.RGBa, ColorType.SINT8_INT) -> "rgba8i"
+        Pair(ColorFormat.RGBa, ColorType.UINT16) -> "rgba16"
+        Pair(ColorFormat.RGBa, ColorType.UINT16_INT) -> "rgba16u"
+        Pair(ColorFormat.RGBa, ColorType.SINT16_INT) -> "rgba16i"
+        Pair(ColorFormat.RGBa, ColorType.FLOAT16) -> "rgba16f"
+        Pair(ColorFormat.RGBa, ColorType.FLOAT32) -> "rgba32f"
+        else -> error("unsupported layout: $format $type")
+    }
+}
+
 
 private val ShadeStyleOutput.glslType: String
     get() {

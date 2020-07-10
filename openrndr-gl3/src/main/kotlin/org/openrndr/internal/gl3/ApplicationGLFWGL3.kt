@@ -176,12 +176,12 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         logger.debug { "creating window" }
 
 
-        val versions = listOf(Pair(4, 3), Pair(4,1), Pair(3, 3))
+        val versions = DriverVersionGL.values().reversed()
         var versionIndex = 0
         while (window == NULL && versionIndex < versions.size) {
 
-            glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, versions[versionIndex].first)
-            glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, versions[versionIndex].second)
+            glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, versions[versionIndex].majorVersion)
+            glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, versions[versionIndex].minorVersion)
 
 
             window = if (configuration.fullscreen == Fullscreen.DISABLED) {
@@ -363,10 +363,8 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
             val title = "OPENRNDR primary window"
 
 
-            var version = DriverVersionGL.VERSION_4_3
+            var versions = DriverVersionGL.values().reversed()
             glfwDefaultWindowHints()
-            glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4)
-            glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3)
             glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE)
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE)
             glfwWindowHint(GLFW_RED_BITS, 8)
@@ -375,25 +373,22 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
             glfwWindowHint(GLFW_STENCIL_BITS, 8)
             glfwWindowHint(GLFW_DEPTH_BITS, 24)
             glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE)
-            primaryWindow = glfwCreateWindow(640, 480, title, NULL, NULL)
-            if (primaryWindow == 0L) {
-                version = DriverVersionGL.VERSION_4_1
-                logger.debug { "falling back to OpenGL 4.1" }
-                glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4)
-                glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1)
+
+            var foundVersion = null as? DriverVersionGL?
+            for (version in versions) {
+                glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, version.majorVersion)
+                glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, version.minorVersion)
                 primaryWindow = glfwCreateWindow(640, 480, title, NULL, NULL)
+                if (primaryWindow != 0L) {
+                    foundVersion = version
+                    break
+                }
             }
-            if (primaryWindow == 0L) {
-                version = DriverVersionGL.VERSION_3_3
-                logger.debug { "falling back to OpenGL 3.3" }
-                glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3)
-                glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3)
-                primaryWindow = glfwCreateWindow(640, 480, title, NULL, NULL)
-            }
+
             if (primaryWindow == 0L) {
                 throw IllegalStateException("primary window could not be created")
             }
-            Driver.driver = DriverGL3(version)
+            Driver.driver = DriverGL3(foundVersion ?: error("no version found"))
         }
     }
 
@@ -627,7 +622,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         var setupException: Throwable? = null
         try {
             program.setup()
-        } catch(t : Throwable) {
+        } catch (t: Throwable) {
             setupException = t
         }
 
@@ -637,8 +632,6 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         }
 
         setupCalled = true
-
-
 
 
         var exception: Throwable? = null
@@ -688,7 +681,6 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
             logger.info { "OPENRNDR program ended with exceptions" }
             throw it
         }
-
 
 
     }

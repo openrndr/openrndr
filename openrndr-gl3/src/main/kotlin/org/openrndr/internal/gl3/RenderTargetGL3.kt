@@ -190,6 +190,29 @@ open class RenderTargetGL3(val framebuffer: Int,
             (active[context]?.peek() as RenderTargetGL3).bindTarget()
     }
 
+    override fun attach(volumeTexture: VolumeTexture, layer: Int, level: Int, name: String?) {
+        require(!destroyed)
+        require(level >= 0 && level < volumeTexture.depth)
+
+        val context = glfwGetCurrentContext()
+        bindTarget()
+
+        val effectiveWidth = (width * contentScale).toInt()
+        val effectiveHeight = (height * contentScale).toInt()
+
+        if (!(volumeTexture.width == effectiveWidth && volumeTexture.height == effectiveHeight)) {
+            throw IllegalArgumentException("buffer dimension mismatch. expected: ($effectiveWidth x $effectiveHeight), got: (${volumeTexture.width} x ${volumeTexture.height}")
+        }
+        volumeTexture as VolumeTextureGL3
+        glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + colorAttachments.size, volumeTexture.texture, level, layer)
+        debugGLErrors { null }
+
+        colorAttachments.add(VolumeTextureAttachment(colorAttachments.size, name, volumeTexture, layer, level))
+
+        if (active[context]?.peek() != null)
+            (active[context]?.peek() as RenderTargetGL3).bindTarget()
+    }
+
     override fun attach(arrayTexture: ArrayTexture, layer: Int, level: Int, name:String?) {
         require(!destroyed)
         val context = glfwGetCurrentContext()

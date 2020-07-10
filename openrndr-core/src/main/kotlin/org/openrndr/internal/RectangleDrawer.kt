@@ -18,8 +18,9 @@ class RectangleDrawer {
     }
     private var instanceAttributes = VertexBuffer.createDynamic(instanceFormat, 10000, Session.root)
 
-    private val shaderManager: ShadeStyleManager = ShadeStyleManager.fromGenerators("rectangle", Driver.instance.shaderGenerators::rectangleVertexShader,
-            Driver.instance.shaderGenerators::rectangleFragmentShader)
+    private val shaderManager: ShadeStyleManager = ShadeStyleManager.fromGenerators("rectangle",
+            vsGenerator = Driver.instance.shaderGenerators::rectangleVertexShader,
+            fsGenerator = Driver.instance.shaderGenerators::rectangleFragmentShader)
 
     init {
         val w = vertices.shadow.writer()

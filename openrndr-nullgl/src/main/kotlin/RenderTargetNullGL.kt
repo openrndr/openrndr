@@ -27,6 +27,10 @@ class RenderTargetNullGL(override val width: Int, override val height: Int, over
         TODO("Not yet implemented")
     }
 
+    override fun attach(volumeTexture: VolumeTexture, layer: Int, level: Int, name: String?) {
+        TODO("Not yet implemented")
+    }
+
     override fun detachColorAttachments() {
         TODO("Not yet implemented")
     }

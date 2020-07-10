@@ -62,16 +62,23 @@ interface Driver {
      * @param fsCode fragment shader code
      */
 
-    fun createShader(vsCode: String,
-                     gsCode: String?,
-                     fsCode: String,
-                     name: String,
-                     session: Session? = Session.active): Shader
+    fun createShader(
+            vsCode: String,
+            tcsCode: String?,
+            tesCode: String?,
+            gsCode: String?,
+            fsCode: String,
+            name: String,
+            session: Session? = Session.active): Shader
 
     fun createComputeShader(code: String, session: Session? = Session.active): ComputeShader
 
-    fun createShadeStyleManager(name: String, vertexShaderGenerator: (ShadeStructure) -> String,
-                                fragmentShaderGenerator: (ShadeStructure) -> String,
+    fun createShadeStyleManager(name: String,
+                                vsGenerator: (ShadeStructure) -> String,
+                                tcsGenerator: ((ShadeStructure) -> String)? = null,
+                                tesGenerator: ((ShadeStructure) -> String)? = null,
+                                gsGenerator: ((ShadeStructure) -> String)? = null,
+                                fsGenerator: (ShadeStructure) -> String,
                                 session: Session? = Session.root): ShadeStyleManager
 
     fun createRenderTarget(width: Int, height: Int, contentScale: Double = 1.0, multisample: BufferMultisample = BufferMultisample.Disabled, session: Session? = Session.active): RenderTarget
@@ -94,6 +101,8 @@ interface Driver {
     fun createCubemap(width: Int, format: ColorFormat, type: ColorType, levels: Int, session: Session? = Session.active): Cubemap
     fun createCubemapFromUrls(urls: List<String>, session: Session? = Session.active): Cubemap
     fun createCubemapFromFiles(filenames: List<String>, session: Session? = Session.active): Cubemap
+
+    fun createVolumeTexture(width: Int, height: Int, depth: Int, format: ColorFormat, type: ColorType, levels: Int, session: Session? = Session.active): VolumeTexture
 
     fun createResourceThread(session: Session? = Session.active, f: () -> Unit): ResourceThread
     fun createDrawThread(session: Session? = Session.active): DrawThread
@@ -144,10 +153,10 @@ interface Driver {
 
     companion object {
         var driver: Driver? = null
-        set(value) {
-            logger.debug("setting driver instance to $value")
-            field = value
-        }
+            set(value) {
+                logger.debug("setting driver instance to $value")
+                field = value
+            }
 
         val instance: Driver get() = driver ?: error("No graphical context has been set up yet.")
     }

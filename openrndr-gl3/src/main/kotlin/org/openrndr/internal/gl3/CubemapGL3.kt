@@ -131,7 +131,7 @@ class CubemapGL3(val texture: Int, override val width: Int, override val type: C
                 val nullBB: ByteBuffer? = null
 
                 glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + index, 0, internalFormat, data.width, data.height, 0, data.format.glFormat(), data.type.glType(), nullBB)
-                sides.add(ColorBufferGL3(GL_TEXTURE_CUBE_MAP_POSITIVE_X + index, textures[0], data.width, data.width, 1.0, data.format, data.type, 1, BufferMultisample.Disabled, session))
+                sides.add(ColorBufferGL3(GL_TEXTURE_CUBE_MAP_POSITIVE_X + index, textures[0], TextureStorageModeGL.IMAGE, data.width, data.width, 1.0, data.format, data.type, 1, BufferMultisample.Disabled, session))
             }
             return CubemapGL3(textures[0], sides[0].width, sides[0].type, sides[0].format, 0, session)
         }

@@ -31,7 +31,7 @@ fun filterWatcherFromUrl(url: String): ShaderWatcher {
 }
 
 fun filterShaderFromCode(fragmentShaderCode: String, name: String): Shader {
-    return Shader.createFromCode(Filter.filterVertexCode, fragmentShaderCode, name)
+    return Shader.createFromCode(vsCode = Filter.filterVertexCode, fsCode = fragmentShaderCode, name = name)
 }
 
 /**

@@ -4,8 +4,9 @@ import org.openrndr.draw.*
 
 class VertexBufferDrawer {
 
-    private val shaderManager: ShadeStyleManager = ShadeStyleManager.fromGenerators("vertex-buffer", Driver.instance.shaderGenerators::vertexBufferVertexShader,
-            Driver.instance.shaderGenerators::vertexBufferFragmentShader)
+    private val shaderManager: ShadeStyleManager = ShadeStyleManager.fromGenerators("vertex-buffer",
+            vsGenerator = Driver.instance.shaderGenerators::vertexBufferVertexShader,
+            fsGenerator = Driver.instance.shaderGenerators::vertexBufferFragmentShader)
 
     fun drawVertexBuffer(drawContext: DrawContext, drawStyle: DrawStyle, primitive: DrawPrimitive, vertexBuffers:List<VertexBuffer>, offset:Int, vertexCount:Int) {
         val shader = shaderManager.shader(drawStyle.shadeStyle, vertexBuffers.map { it.vertexFormat })

@@ -5,8 +5,10 @@ import org.openrndr.internal.Driver
 data class ShadeStructure(var uniforms: String? = null,
                           var attributes: String? = null,
                           var vertexTransform: String? = null,
+                          var geometryTransform: String? = null,
                           var fragmentTransform: String? = null,
                           var vertexPreamble: String? = null,
+                          var geometryPreamble: String? = null,
                           var fragmentPreamble: String? = null,
                           var outputs: String? = null,
                           var varyingOut: String? = null,
@@ -17,8 +19,18 @@ data class ShadeStructure(var uniforms: String? = null,
 
 abstract class ShadeStyleManager(val name: String) {
     companion object {
-        fun fromGenerators(name: String, vertexShaderGenerator: (ShadeStructure) -> String, fragmentShaderGenerator: (ShadeStructure) -> String): ShadeStyleManager {
-            return Driver.instance.createShadeStyleManager(name, vertexShaderGenerator, fragmentShaderGenerator)
+        fun fromGenerators(name: String,
+                           vsGenerator: (ShadeStructure) -> String,
+                           tscGenerator: ((ShadeStructure) -> String)? = null,
+                           tseGenerator: ((ShadeStructure) -> String)? = null,
+                           gsGenerator: ((ShadeStructure) -> String)? = null,
+                           fsGenerator: (ShadeStructure) -> String): ShadeStyleManager {
+            return Driver.instance.createShadeStyleManager(name,
+                    vsGenerator = vsGenerator,
+                    tcsGenerator = tscGenerator,
+                    tesGenerator = tseGenerator,
+                    gsGenerator = gsGenerator,
+                    fsGenerator = fsGenerator)
         }
     }
 

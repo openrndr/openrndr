@@ -11,8 +11,9 @@ class PerformanceLineDrawer {
         attribute("vertexOffset", VertexElementType.FLOAT32)
     }, 1024 * 1024, Session.root)
 
-    private val shaderManager: ShadeStyleManager = ShadeStyleManager.fromGenerators("performance-line", Driver.instance.shaderGenerators::fastLineVertexShader,
-            Driver.instance.shaderGenerators::fastLineFragmentShader)
+    private val shaderManager: ShadeStyleManager = ShadeStyleManager.fromGenerators("performance-line",
+            vsGenerator = Driver.instance.shaderGenerators::fastLineVertexShader,
+            fsGenerator = Driver.instance.shaderGenerators::fastLineFragmentShader)
 
     @JvmName("drawLineSegments3d")
     fun drawLineSegments(drawContext: DrawContext,

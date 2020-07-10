@@ -10,39 +10,40 @@ enum class ShaderType {
     FRAGMENT
 }
 
-interface Shader {
+interface Shader : ShaderImageBindings {
     val session: Session?
-
     val types: Set<ShaderType>
 
     @Suppress("unused")
     companion object {
-
-        fun createFromUrls(vsUrl: String, gsUrl: String, fsUrl: String, session: Session? = Session.active): Shader {
+        fun createFromUrls(
+                vsUrl: String,
+                tcsUrl: String? = null,
+                tesUrl: String? = null,
+                gsUrl: String? = null,
+                fsUrl: String,
+                session: Session? = Session.active
+        ): Shader {
             val vsCode = codeFromURL(vsUrl)
-            val gsCode = codeFromURL(gsUrl)
+            val tcsCode = tcsUrl?.let { codeFromURL(it) }
+            val tesCode = tesUrl?.let { codeFromURL(it) }
+            val gsCode = gsUrl?.let { codeFromURL(it) }
             val fsCode = codeFromURL(fsUrl)
-            val shader = Driver.instance.createShader(vsCode, gsCode, fsCode, "$$vsUrl / $gsUrl / $fsUrl", session)
+            val shader = Driver.instance.createShader(vsCode, tcsCode, tesCode, gsCode, fsCode, "$$vsUrl / $gsUrl / $fsUrl", session)
             session?.track(shader)
             return shader
         }
 
-        fun createFromUrls(vsUrl: String, fsUrl: String, session: Session? = Session.active): Shader {
-            val vsCode = codeFromURL(vsUrl)
-            val fsCode = codeFromURL(fsUrl)
-            val shader = Driver.instance.createShader(vsCode, null, fsCode, "$vsUrl / $fsUrl", session)
-            session?.track(shader)
-            return shader
-        }
-
-        fun createFromCode(vsCode: String, fsCode: String, name: String, session: Session? = Session.active): Shader {
-            val shader = Driver.instance.createShader(vsCode, null, fsCode, name, session)
-            session?.track(shader)
-            return shader
-        }
-
-        fun createFromCode(vsCode: String, gsCode: String, fsCode: String, name: String, session: Session? = Session.active): Shader {
-            val shader = Driver.instance.createShader(vsCode, gsCode, fsCode, name, session)
+        fun createFromCode(
+                vsCode: String,
+                tcsCode: String? = null,
+                tesCode: String? = null,
+                gsCode: String? = null,
+                fsCode: String,
+                name: String,
+                session: Session? = Session.active
+        ): Shader {
+            val shader = Driver.instance.createShader(vsCode, tcsCode, tesCode, gsCode, fsCode, name, session)
             session?.track(shader)
             return shader
         }
@@ -83,7 +84,6 @@ interface Shader {
     fun uniform(name: String, value: Array<IntVector4>)
     fun uniform(name: String, value: Array<IntVector3>)
     fun uniform(name: String, value: Array<IntVector2>)
-
 
     fun uniform(name: String, value: FloatArray)
     fun uniform(name: String, value: IntArray)

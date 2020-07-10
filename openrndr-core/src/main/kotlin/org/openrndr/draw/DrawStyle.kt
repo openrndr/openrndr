@@ -90,7 +90,8 @@ enum class DrawPrimitive {
     TRIANGLE_FAN,
     POINTS,
     LINES,
-    LINE_STRIP
+    LINE_STRIP,
+    PATCHES
 }
 
 enum class StencilTest {

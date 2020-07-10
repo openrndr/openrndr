@@ -11,10 +11,9 @@ enum class ImageAccess {
     READ_WRITE
 }
 
-interface ComputeShader {
 
+interface ComputeShader:ShaderImageBindings {
     companion object {
-
         /**
          * Create a compute shader from (GLSL) code as a String
          */
@@ -27,27 +26,6 @@ interface ComputeShader {
             return fromCode(file.readText())
         }
     }
-
-    /**
-     * Bind a colorbuffer as to image
-     */
-    fun image(name: String, image: Int, colorBuffer: ColorBuffer, access: ImageAccess = ImageAccess.READ)
-
-    /**
-     * Bind an array texture to image
-     */
-    fun image(name: String, image: Int, arrayTexture: ArrayTexture, layer:Int, access: ImageAccess = ImageAccess.READ)
-
-    /**
-     * Bind an array texture layer to image
-     */
-    fun image(name: String, image: Int, arrayTexture: ArrayTexture, access: ImageAccess = ImageAccess.READ)
-
-    /**
-     * Bind a cubemap texture side to image
-     */
-    fun image(name: String, image: Int, cubemap: Cubemap, access: ImageAccess = ImageAccess.READ)
-
 
 
     fun buffer(name:String, vertexBuffer: VertexBuffer)

@@ -162,7 +162,7 @@ ${shadeStructure.varyingBridge ?: ""}
 }
             """.trimMargin()
 
-    override fun imageFragmentShader(shadeStructure: ShadeStructure): String = """#version 330
+    override fun imageFragmentShader(shadeStructure: ShadeStructure): String = """#version ${glslVersion()}
 ${primitiveTypes("d_image")}
 ${shadeStructure.uniforms ?: ""}
 layout(origin_upper_left) in vec4 gl_FragCoord;
@@ -201,7 +201,7 @@ void main(void) {
 }"""
 
     override fun imageVertexShader(shadeStructure: ShadeStructure): String = """
-#version 330
+#version ${glslVersion()}
 ${primitiveTypes("d_image")}
 $drawerUniforms
 uniform int u_flipV;
@@ -236,7 +236,7 @@ void main() {
 }
 """
 
-    override fun imageArrayTextureFragmentShader(shadeStructure: ShadeStructure): String = """#version 330
+    override fun imageArrayTextureFragmentShader(shadeStructure: ShadeStructure): String = """#version ${glslVersion()}
 ${primitiveTypes("d_image")}
 ${shadeStructure.uniforms ?: ""}
 layout(origin_upper_left) in vec4 gl_FragCoord;
@@ -276,7 +276,7 @@ void main(void) {
 }"""
 
     override fun imageArrayTextureVertexShader(shadeStructure: ShadeStructure): String = """
-#version 330
+#version ${glslVersion()}
 ${primitiveTypes("d_image")}
 $drawerUniforms
 uniform int u_flipV;

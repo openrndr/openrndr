@@ -8,8 +8,9 @@ internal class Command(val vertexBuffer: VertexBuffer, val type: ExpansionType, 
 
 internal class ExpansionDrawer {
 
-    private val shaderManager = ShadeStyleManager.fromGenerators("expansion", Driver.instance.shaderGenerators::expansionVertexShader,
-    Driver.instance.shaderGenerators::expansionFragmentShader)
+    private val shaderManager = ShadeStyleManager.fromGenerators("expansion",
+            vsGenerator = Driver.instance.shaderGenerators::expansionVertexShader,
+    fsGenerator = Driver.instance.shaderGenerators::expansionFragmentShader)
 
     val vertexFormat = vertexFormat {
         position(2)

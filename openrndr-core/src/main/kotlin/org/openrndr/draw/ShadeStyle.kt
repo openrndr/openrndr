@@ -32,6 +32,12 @@ open class ShadeStyle {
             field = value
         }
 
+    var geometryPreamble: String? = null
+        set(value) {
+            dirty = true
+            field = value
+        }
+
     var fragmentPreamble: String? = null
         set(value) {
             dirty = true
@@ -44,12 +50,17 @@ open class ShadeStyle {
             field = value
         }
 
-    var fragmentTransform: String? = null
+    var geometryTransform: String? = null
         set(value) {
             dirty = true
             field = value
         }
 
+    var fragmentTransform: String? = null
+        set(value) {
+            dirty = true
+            field = value
+        }
 
     var parameterValues = mutableMapOf<String, Any>()
     var parameters = ObservableHashmap<String, String> { dirty = true }
@@ -66,11 +77,13 @@ open class ShadeStyle {
 
     constructor(other: ShadeStyle) {
         this.fragmentPreamble = other.fragmentPreamble
+        this.geometryPreamble = other.geometryPreamble
         this.vertexPreamble = other.vertexPreamble
-        this.vertexTransform = other.vertexTransform
-        this.fragmentTransform = other.fragmentTransform
 
-        this.parameterValues.putAll(other.parameterValues)
+        this.fragmentTransform = other.fragmentTransform
+        this.geometryTransform = other.geometryTransform
+        this.vertexTransform = other.vertexTransform
+
         this.parameters.putAll(other.parameters)
         this.outputs.putAll(other.outputs)
     }
@@ -209,6 +222,41 @@ open class ShadeStyle {
             else -> "BufferTexture"
         }
     }
+
+    fun parameter(name: String, value: VolumeTexture) {
+        parameterValues[name] = value
+        parameters[name] = when (value.type.colorSampling) {
+            ColorSampling.UNSIGNED_INTEGER -> "VolumeTexture_UINT"
+            ColorSampling.SIGNED_INTEGER -> "VolumeTexture_SINT"
+            else -> "VolumeTexture"
+        }
+    }
+
+    fun parameter(name: String, value: ImageBinding) {
+        parameterValues[name] = value
+        parameters[name] = when (value) {
+            is BufferTextureImageBinding -> {
+                "ImageBuffer,${value.bufferTexture.format.name},${value.bufferTexture.type.name},${value.access.name}"
+            }
+            is CubemapImageBinding -> {
+                "ImageCube,${value.cubemap.format.name},${value.cubemap.type.name},${value.access.name}"
+            }
+            is ArrayCubemapImageBinding -> {
+                "ImageCubeArray,${value.arrayCubemap.format.name},${value.arrayCubemap.type.name},${value.access.name}"
+            }
+            is ColorBufferImageBinding -> {
+                "Image2D,${value.colorBuffer.format.name},${value.colorBuffer.type.name},${value.access.name}"
+            }
+            is ArrayTextureImageBinding -> {
+                "Image2DArray,${value.arrayTexture.format.name},${value.arrayTexture.type.name},${value.access.name}"
+            }
+            is VolumeTextureImageBinding -> {
+                "Image3D,${value.volumeTexture.format.name},${value.volumeTexture.type.name},${value.access.name}"
+            }
+            else -> error("unsupported image binding")
+        }
+    }
+
 
     fun output(name: String, output: ShadeStyleOutput) {
         outputs[name] = output

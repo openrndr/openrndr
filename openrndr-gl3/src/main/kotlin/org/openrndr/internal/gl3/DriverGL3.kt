@@ -23,11 +23,13 @@ import java.util.*
 private val logger = KotlinLogging.logger {}
 internal val useDebugContext = System.getProperty("org.openrndr.gl3.debug") != null
 
-enum class DriverVersionGL(val glslVersion: String) {
-    VERSION_3_3("330 core"),
-    VERSION_4_1("410 core"),
-    VERSION_4_3("430 core");
-
+enum class DriverVersionGL(val glslVersion: String, val majorVersion:Int, val minorVersion:Int) {
+    VERSION_3_3("330 core", 3, 3),
+    VERSION_4_1("410 core", 4, 1),
+    VERSION_4_2("420 core", 4, 2),
+    VERSION_4_3("430 core", 4, 3),
+    VERSION_4_4("440 core", 4, 4),
+    VERSION_4_5("450 core", 4, 5);
 }
 
 @Suppress("NOTHING_TO_INLINE")
@@ -133,20 +135,51 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
-    override fun createShadeStyleManager(name: String, vertexShaderGenerator: (ShadeStructure) -> String, fragmentShaderGenerator: (ShadeStructure) -> String, session: Session?): ShadeStyleManager {
-        return ShadeStyleManagerGL3(name, vertexShaderGenerator, fragmentShaderGenerator)
+    override fun createShadeStyleManager(
+            name: String,
+            vsGenerator: (ShadeStructure) -> String,
+            tcsGenerator: ((ShadeStructure) -> String)?,
+            tesGenerator: ((ShadeStructure) -> String)?,
+            gsGenerator: ((ShadeStructure) -> String)?,
+            fsGenerator: (ShadeStructure) -> String,
+            session: Session?
+    ): ShadeStyleManager {
+        return ShadeStyleManagerGL3(name,
+                vsGenerator = vsGenerator,
+                tcsGenerator = tcsGenerator,
+                tesGenerator = tesGenerator,
+                gsGenerator = gsGenerator,
+                fsGenerator = fsGenerator)
     }
 
-    override fun createShader(vsCode: String, gsCode: String?, fsCode: String, name: String, session: Session?): Shader {
+    override fun createShader(
+            vsCode: String,
+            tcsCode: String?,
+            tesCode: String?,
+            gsCode: String?,
+            fsCode: String,
+            name: String,
+            session: Session?
+    ): Shader {
         logger.trace {
             "creating shader:\n${gsCode}\n${vsCode}\n${fsCode}"
         }
-        val geometryShader = gsCode?.let { GeometryShaderGL3.fromString(it, name) }
         val vertexShader = VertexShaderGL3.fromString(vsCode, name)
+        val geometryShader = gsCode?.let { GeometryShaderGL3.fromString(it, name) }
+        val tcShader = tcsCode?.let { TessellationControlShaderGL3.fromString(it, name) }
+        val teShader = tesCode?.let { TessellationEvaluationShaderGL3.fromString(it, name) }
         val fragmentShader = FragmentShaderGL3.fromString(fsCode, name)
 
         synchronized(this) {
-            return ShaderGL3.create(vertexShader, geometryShader, fragmentShader, name, session)
+            return ShaderGL3.create(
+                    vertexShader,
+                    tcShader,
+                    teShader,
+                    geometryShader,
+                    fragmentShader,
+                    name,
+                    session
+            )
         }
     }
 
@@ -204,6 +237,12 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         }
         session?.track(cubemap)
         return cubemap
+    }
+
+    override fun createVolumeTexture(width: Int, height: Int, depth: Int, format: ColorFormat, type: ColorType, levels: Int, session: Session?): VolumeTexture {
+        val volumeTexture = VolumeTextureGL3.create(width, height, depth, format, type, levels, session)
+        session?.track(volumeTexture)
+        return volumeTexture
     }
 
     override fun createRenderTarget(width: Int, height: Int, contentScale: Double, multisample: BufferMultisample, session: Session?): RenderTarget {
@@ -290,6 +329,10 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
     override fun drawVertexBuffer(shader: Shader, vertexBuffers: List<VertexBuffer>, drawPrimitive: DrawPrimitive, vertexOffset: Int, vertexCount: Int) {
         debugGLErrors {
             "a pre-existing GL error occurred before Driver.drawVertexBuffer "
+        }
+
+        if (drawPrimitive == DrawPrimitive.PATCHES) {
+            glPatchParameteri(GL_PATCH_VERTICES, 4)
         }
 
         shader as ShaderGL3
@@ -801,6 +844,7 @@ private fun DrawPrimitive.glType(): Int {
         DrawPrimitive.LINES -> GL_LINES
         DrawPrimitive.LINE_STRIP -> GL_LINE_STRIP
         DrawPrimitive.TRIANGLE_STRIP -> GL_TRIANGLE_STRIP
+        DrawPrimitive.PATCHES -> GL_PATCHES
     }
 }
 
