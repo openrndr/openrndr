@@ -488,7 +488,10 @@ internal class Path {
                 val dy = p1.y - p0.y
                 val length = sqrt(dx * dx + dy * dy)
                 offset = length
+            } else {
+                offset += p0.length
             }
+
             // -- end
             if (closed) {
                 // Loop it
