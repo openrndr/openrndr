@@ -81,7 +81,7 @@ class ScreenRecorder : Extension {
         val filename = outputFile
                 ?: "video/$basename-${dt.year.z(4)}-${dt.month.value.z()}-${dt.dayOfMonth.z()}-${dt.hour.z()}.${dt.minute.z()}.${dt.second.z()}.${profile.fileExtension}"
 
-        File(filename).parentFile.let {
+        File(filename).parentFile?.let {
             if (!it.exists()) {
                 it.mkdirs()
             }
