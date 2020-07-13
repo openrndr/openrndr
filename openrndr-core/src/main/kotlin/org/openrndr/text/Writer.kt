@@ -86,10 +86,10 @@ class Writer(val drawerRef: Drawer?) {
 
     fun text(text: String, visible: Boolean = true) {
         // Triggers loading the default font (if needed) by accessing .fontMap
-        // otherwise makeRenderTokens() won't work
+        // otherwise makeRenderTokens() is not aware of the default font.
         drawerRef?.fontMap
-        val renderTokens = makeRenderTokens(text, false)
 
+        val renderTokens = makeRenderTokens(text, false)
 
         if (visible) {
             drawerRef?.let { d ->
