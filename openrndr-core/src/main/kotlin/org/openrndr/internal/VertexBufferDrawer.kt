@@ -34,7 +34,7 @@ class VertexBufferDrawer {
         drawContext.applyToShader(shader)
         drawStyle.applyToShader(shader)
         Driver.instance.setState(drawStyle)
-        Driver.instance.drawInstances(shader, vertexBuffers, instanceAttributes + (drawStyle.shadeStyle?.attributes?: emptyList()), primitive, offset, vertexCount, instanceCount)
+        Driver.instance.drawInstances(shader, vertexBuffers, instanceAttributes + (drawStyle.shadeStyle?.attributes?: emptyList()), primitive, offset, vertexCount, 0, instanceCount)
         shader.end()
     }
 
@@ -45,7 +45,7 @@ class VertexBufferDrawer {
         drawContext.applyToShader(shader)
         drawStyle.applyToShader(shader)
         Driver.instance.setState(drawStyle)
-        Driver.instance.drawIndexedInstances(shader, indexBuffer, vertexBuffers, instanceAttributes + (drawStyle.shadeStyle?.attributes?: emptyList()), primitive, offset, indexCount, instanceCount)
+        Driver.instance.drawIndexedInstances(shader, indexBuffer, vertexBuffers, instanceAttributes + (drawStyle.shadeStyle?.attributes?: emptyList()), primitive, offset, indexCount, 0, instanceCount)
         shader.end()
     }
 }

@@ -527,8 +527,8 @@ class Drawer(val driver: Driver) {
         circleDrawer.drawCircles(context, drawStyle, circles)
     }
 
-    fun circles(vertexBuffer: VertexBuffer, count: Int = vertexBuffer.vertexCount) {
-        circleDrawer.drawCircles(context, drawStyle, vertexBuffer, count)
+    fun circles(batch: CircleBatch, count: Int = batch.size) {
+        circleDrawer.drawCircles(context, drawStyle, batch, count)
     }
 
     /**

@@ -99,7 +99,7 @@ class PointDrawer {
         drawStyle.applyToShader(shader)
         Driver.instance.setState(drawStyle)
         Driver.instance.drawInstances(shader, listOf(vertices), listOf(instanceAttributes) + (drawStyle.shadeStyle?.attributes
-                ?: emptyList()), DrawPrimitive.POINTS, 0, 1, count)
+                ?: emptyList()), DrawPrimitive.POINTS, 0, 1, 0, count)
         shader.end()
     }
 }

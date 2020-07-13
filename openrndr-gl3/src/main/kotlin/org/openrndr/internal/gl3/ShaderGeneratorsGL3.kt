@@ -393,8 +393,10 @@ void main(void) {
             boundsSize = "v_boundsSize")}
     float smoothFactor = 3.0;
 
-    vec4 x_fill = u_fill;
-    vec4 x_stroke = u_stroke;
+    vec4 x_fill = vi_fill;
+    vec4 x_stroke = vi_stroke;
+    float x_strokeWeight = vi_strokeWeight;
+    
     {
         ${shadeStructure.fragmentTransform ?: ""}
     }
@@ -402,7 +404,7 @@ void main(void) {
     float d = length(va_texCoord0 - vec2(0.5)) * 2;
 
     float or = smoothstep(0, wd * smoothFactor, 1.0 - d);
-    float b = u_strokeWeight / vi_radius;
+    float b = x_strokeWeight / vi_radius.x;
     float ir = smoothstep(0, wd * smoothFactor, 1.0 - b - d);
 
     vec4 final = vec4(0.0);
@@ -433,10 +435,10 @@ void main() {
     ${vertexConstants()}
     ${shadeStructure.varyingBridge ?: ""}
 
-    v_boundsSize = vec3(i_radius, i_radius, 0.0);
+    v_boundsSize = vec3(i_radius.xy, 0.0);
     ${preTransform}
     vec3 x_normal = a_normal;
-    vec3 x_position = a_position * i_radius + i_offset;
+    vec3 x_position = vec3(a_position.xy * i_radius, 0.0) + i_offset;
     {
         ${shadeStructure.vertexTransform ?: ""}
     }

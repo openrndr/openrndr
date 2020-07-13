@@ -2,9 +2,7 @@ package org.openrndr.internal.gl3
 
 import mu.KotlinLogging
 import org.lwjgl.glfw.GLFW
-import org.lwjgl.opengl.GL11C
-import org.lwjgl.opengl.GL13C
-import org.lwjgl.opengl.GL33C
+import org.lwjgl.opengl.*
 import org.lwjgl.opengl.GL40C.*
 import org.openrndr.draw.*
 import org.openrndr.internal.Driver
@@ -449,7 +447,11 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         }
     }
 
-    override fun drawInstances(shader: Shader, vertexBuffers: List<VertexBuffer>, instanceAttributes: List<VertexBuffer>, drawPrimitive: DrawPrimitive, vertexOffset: Int, vertexCount: Int, instanceCount: Int) {
+    override fun drawInstances(shader: Shader, vertexBuffers: List<VertexBuffer>, instanceAttributes: List<VertexBuffer>, drawPrimitive: DrawPrimitive, vertexOffset: Int, vertexCount: Int, instanceOffset: Int, instanceCount: Int) {
+        require(instanceOffset == 0 || Driver.glVersion >= DriverVersionGL.VERSION_4_2) {
+            "non-zero instance offsets require OpenGL 4.2 (current config: ${Driver.glVersion.versionString})"
+        }
+
         // -- find or create a VAO for our shader + vertex buffers + instance buffers combination
         val hash = hash(shader as ShaderGL3, vertexBuffers, instanceAttributes)
 
@@ -471,7 +473,17 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
 
         logger.trace { "drawing $instanceCount instances with $drawPrimitive(${drawPrimitive.glType()}) and $vertexCount vertices with vertexOffset $vertexOffset " }
         measure("glDrawArraysInstanced") {
-            glDrawArraysInstanced(drawPrimitive.glType(), vertexOffset, vertexCount, instanceCount)
+            if (instanceOffset == 0) {
+                glDrawArraysInstanced(drawPrimitive.glType(), vertexOffset, vertexCount, instanceCount)
+            } else {
+                GL42C.glDrawArraysInstancedBaseInstance(
+                        drawPrimitive.glType(),
+                        vertexOffset,
+                        vertexCount,
+                        instanceCount,
+                        instanceOffset
+                )
+            }
         }
         debugGLErrors {
             when (it) {
@@ -485,7 +497,12 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         glBindVertexArray(defaultVAO)
     }
 
-    override fun drawIndexedInstances(shader: Shader, indexBuffer: IndexBuffer, vertexBuffers: List<VertexBuffer>, instanceAttributes: List<VertexBuffer>, drawPrimitive: DrawPrimitive, indexOffset: Int, indexCount: Int, instanceCount: Int) {
+    override fun drawIndexedInstances(shader: Shader, indexBuffer: IndexBuffer, vertexBuffers: List<VertexBuffer>, instanceAttributes: List<VertexBuffer>, drawPrimitive: DrawPrimitive, indexOffset: Int, indexCount: Int,
+                                      instanceOffset: Int, instanceCount: Int) {
+
+        require(instanceOffset == 0 || Driver.glVersion >= DriverVersionGL.VERSION_4_2) {
+            "non-zero instance offsets require OpenGL 4.2 (current config: ${Driver.glVersion.versionString})"
+        }
 
         // -- find or create a VAO for our shader + vertex buffers + instance buffers combination
         val hash = hash(shader as ShaderGL3, vertexBuffers, instanceAttributes)
@@ -510,7 +527,24 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
 
         logger.trace { "drawing $instanceCount instances with $drawPrimitive(${drawPrimitive.glType()}) and $indexCount vertices with vertexOffset $indexOffset " }
         measure("glDrawElementsInstanced") {
-            glDrawElementsInstanced(drawPrimitive.glType(), indexCount, indexBuffer.type.glType(), indexOffset.toLong(), instanceCount)
+            if (instanceOffset == 0) {
+                glDrawElementsInstanced(
+                        drawPrimitive.glType(),
+                        indexCount,
+                        indexBuffer.type.glType(),
+                        indexOffset.toLong(),
+                        instanceCount
+                )
+            } else {
+                GL42C.glDrawElementsInstancedBaseInstance(
+                        drawPrimitive.glType(),
+                        indexCount,
+                        indexBuffer.type.glType(),
+                        indexOffset.toLong(),
+                        instanceCount,
+                        instanceOffset
+                )
+            }
         }
         debugGLErrors {
             when (it) {

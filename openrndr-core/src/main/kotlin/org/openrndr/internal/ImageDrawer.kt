@@ -93,7 +93,7 @@ class ImageDrawer {
         shader.uniform("u_flipV", if (colorBuffer.flipV) 1 else 0)
         drawStyle.applyToShader(shader)
         Driver.instance.setState(drawStyle)
-        Driver.instance.drawInstances(shader, listOf(vertices),  listOf(instanceAttributes) + ( drawStyle.shadeStyle?.attributes?: emptyList() ), DrawPrimitive.TRIANGLES, 0, 6, rectangles.size)
+        Driver.instance.drawInstances(shader, listOf(vertices),  listOf(instanceAttributes) + ( drawStyle.shadeStyle?.attributes?: emptyList() ), DrawPrimitive.TRIANGLES, 0, 6, 0, rectangles.size)
         shader.end()
     }
 
@@ -119,7 +119,7 @@ class ImageDrawer {
         shader.uniform("u_flipV", if (arrayTexture.flipV) 1 else 0)
         drawStyle.applyToShader(shader)
         Driver.instance.setState(drawStyle)
-        Driver.instance.drawInstances(shader, listOf(vertices),  listOf(instanceAttributes) + ( drawStyle.shadeStyle?.attributes?: emptyList() ), DrawPrimitive.TRIANGLES, 0, 6, rectangles.size)
+        Driver.instance.drawInstances(shader, listOf(vertices),  listOf(instanceAttributes) + ( drawStyle.shadeStyle?.attributes?: emptyList() ), DrawPrimitive.TRIANGLES, 0, 6, 0, rectangles.size)
         shader.end()
     }
 
