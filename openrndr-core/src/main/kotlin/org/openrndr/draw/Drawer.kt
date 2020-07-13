@@ -15,6 +15,7 @@ import org.openrndr.math.transforms.scale
 import org.openrndr.math.transforms.translate
 import org.openrndr.shape.*
 import java.io.BufferedReader
+import java.io.File
 import java.io.InputStream
 import java.io.InputStreamReader
 import java.net.URL
@@ -82,6 +83,15 @@ class Drawer(val driver: Driver) {
     private var qualityLineDrawer = QualityLineDrawer()
     private var qualityPolygonDrawer = QualityPolygonDrawer()
     internal val fontImageMapDrawer = FontImageMapDrawer()
+
+    private val defaultFontMap by lazy {
+        val defaultFontPath = "data/fonts/default.otf"
+        if (File(defaultFontPath).isFile) {
+            loadFont(defaultFontPath, 16.0)
+        } else {
+            null
+        }
+    }
 
     private val modelStack = Stack<Matrix44>()
     private val viewStack = Stack<Matrix44>()
@@ -428,8 +438,12 @@ class Drawer(val driver: Driver) {
         set(value) {
             drawStyle.fontMap = value
         }
-        get() = drawStyle.fontMap
-
+        get() {
+            if(drawStyle.fontMap == null) {
+                drawStyle.fontMap = defaultFontMap
+            }
+            return drawStyle.fontMap
+        }
 
     fun rectangle(rectangle: Rectangle) {
         rectangleDrawer.drawRectangle(context, drawStyle, rectangle.x, rectangle.y, rectangle.width, rectangle.height)

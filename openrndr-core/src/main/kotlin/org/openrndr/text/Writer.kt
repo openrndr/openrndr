@@ -85,6 +85,9 @@ class Writer(val drawerRef: Drawer?) {
                     (text.length - 1).coerceAtLeast(0) * style.tracking
 
     fun text(text: String, visible: Boolean = true) {
+        // Triggers loading the default font (if needed) by accessing .fontMap
+        // otherwise makeRenderTokens() won't work
+        drawerRef?.fontMap
         val renderTokens = makeRenderTokens(text, false)
 
 
