@@ -117,6 +117,8 @@ interface Driver {
 
     fun createDynamicIndexBuffer(elementCount: Int, type: IndexType, session: Session? = Session.active): IndexBuffer
 
+    fun createShaderStorageBuffer(format: ShaderStorageFormat, session: Session? = Session.active) : ShaderStorageBuffer
+
     fun drawVertexBuffer(shader: Shader, vertexBuffers: List<VertexBuffer>,
                          drawPrimitive: DrawPrimitive,
                          vertexOffset: Int, vertexCount: Int)

@@ -328,6 +328,10 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         }
     }
 
+    override fun createShaderStorageBuffer(format: ShaderStorageFormat, session: Session?): ShaderStorageBuffer {
+        return ShaderStorageBufferGL43.create(format, session)
+    }
+
     override fun createDynamicVertexBuffer(format: VertexFormat, vertexCount: Int, session: Session?): VertexBuffer {
         synchronized(this) {
             val vertexBuffer = VertexBufferGL3.createDynamic(format, vertexCount, session)

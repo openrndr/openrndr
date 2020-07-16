@@ -62,6 +62,8 @@ open class ShadeStyle {
             field = value
         }
 
+    var bufferValues = mutableMapOf<String, Any>()
+    val buffers = mutableMapOf<String, String>()
     var parameterValues = mutableMapOf<String, Any>()
     var parameters = ObservableHashmap<String, String> { dirty = true }
     var outputs = ObservableHashmap<String, ShadeStyleOutput> { dirty = true }
@@ -231,6 +233,17 @@ open class ShadeStyle {
             else -> "VolumeTexture"
         }
     }
+
+    fun buffer(name: String, buffer: ShaderStorageBuffer) {
+        bufferValues[name] = buffer
+        buffers[name] = buffer.format.hashCode().toString()
+    }
+
+    fun buffer(name: String, buffer: AtomicCounterBuffer) {
+        bufferValues[name] = buffer
+        buffers[name] = "AtomicCounterBuffer"
+    }
+
 
     fun parameter(name: String, value: ImageBinding) {
         parameterValues[name] = value

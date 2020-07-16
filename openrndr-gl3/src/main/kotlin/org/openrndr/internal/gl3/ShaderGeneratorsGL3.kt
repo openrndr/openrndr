@@ -106,6 +106,7 @@ private const val postTransform = """
 class ShaderGeneratorsGL3 : ShaderGenerators {
     override fun vertexBufferFragmentShader(shadeStructure: ShadeStructure): String = """|#version ${glslVersion()}
 |${primitiveTypes("d_vertex_buffer")}
+|${shadeStructure.buffers ?: ""}
 |${shadeStructure.uniforms ?: ""}
 |layout(origin_upper_left) in vec4 gl_FragCoord;
 
@@ -135,6 +136,7 @@ class ShaderGeneratorsGL3 : ShaderGenerators {
 
     override fun vertexBufferVertexShader(shadeStructure: ShadeStructure): String = """#version ${glslVersion()}
 ${primitiveTypes("d_vertex_buffer")}
+${shadeStructure.buffers ?: ""}
 $drawerUniforms
 ${shadeStructure.attributes ?: ""}
 ${shadeStructure.uniforms ?: ""}
@@ -164,6 +166,7 @@ ${shadeStructure.varyingBridge ?: ""}
 
     override fun imageFragmentShader(shadeStructure: ShadeStructure): String = """#version ${glslVersion()}
 ${primitiveTypes("d_image")}
+${shadeStructure.buffers ?: ""}
 ${shadeStructure.uniforms ?: ""}
 layout(origin_upper_left) in vec4 gl_FragCoord;
 
@@ -203,6 +206,7 @@ void main(void) {
     override fun imageVertexShader(shadeStructure: ShadeStructure): String = """
 #version ${glslVersion()}
 ${primitiveTypes("d_image")}
+${shadeStructure.buffers ?: ""}
 $drawerUniforms
 uniform int u_flipV;
 ${shadeStructure.attributes ?: ""}
@@ -238,6 +242,7 @@ void main() {
 
     override fun imageArrayTextureFragmentShader(shadeStructure: ShadeStructure): String = """#version ${glslVersion()}
 ${primitiveTypes("d_image")}
+${shadeStructure.buffers ?: ""}
 ${shadeStructure.uniforms ?: ""}
 layout(origin_upper_left) in vec4 gl_FragCoord;
 
@@ -278,6 +283,7 @@ void main(void) {
     override fun imageArrayTextureVertexShader(shadeStructure: ShadeStructure): String = """
 #version ${glslVersion()}
 ${primitiveTypes("d_image")}
+${shadeStructure.buffers ?: ""}
 $drawerUniforms
 uniform int u_flipV;
 ${shadeStructure.attributes ?: ""}
@@ -315,6 +321,7 @@ void main() {
 
     override fun pointFragmentShader(shadeStructure: ShadeStructure): String = """#version ${glslVersion()}
 ${primitiveTypes("d_circle")}
+${shadeStructure.buffers ?: ""}
 ${shadeStructure.uniforms ?: ""}
 layout(origin_upper_left) in vec4 gl_FragCoord;
 
@@ -344,6 +351,7 @@ void main(void) {
 
     override fun pointVertexShader(shadeStructure: ShadeStructure): String = """#version ${glslVersion()}
 ${primitiveTypes("d_point")}
+${shadeStructure.buffers ?: ""}
 $drawerUniforms
 ${shadeStructure.attributes ?: ""}
 ${shadeStructure.uniforms ?: ""}
@@ -376,6 +384,7 @@ void main() {
     override fun circleFragmentShader(shadeStructure: ShadeStructure): String = """#version ${glslVersion()}
 ${primitiveTypes("d_circle")}
 ${shadeStructure.uniforms ?: ""}
+${shadeStructure.buffers ?: ""}
 layout(origin_upper_left) in vec4 gl_FragCoord;
 
 $drawerUniforms
@@ -419,7 +428,9 @@ void main(void) {
 """
 
     override fun circleVertexShader(shadeStructure: ShadeStructure): String = """#version ${glslVersion()}
+// -- circle vertex shader        
 ${primitiveTypes("d_circle")}
+${shadeStructure.buffers ?: ""}
 $drawerUniforms
 ${shadeStructure.attributes ?: ""}
 ${shadeStructure.uniforms ?: ""}
@@ -451,6 +462,7 @@ void main() {
 
     override fun fontImageMapFragmentShader(shadeStructure: ShadeStructure): String = """#version ${glslVersion()}
 ${primitiveTypes("d_font_image_map")}
+${shadeStructure.buffers ?: ""}
 ${shadeStructure.uniforms ?: ""}
 layout(origin_upper_left) in vec4 gl_FragCoord;
 
@@ -487,7 +499,7 @@ void main(void) {
 
     override fun fontImageMapVertexShader(shadeStructure: ShadeStructure): String = """#version ${glslVersion()}
 ${primitiveTypes("d_font_image_map")}
-
+${shadeStructure.buffers ?: ""}
 $drawerUniforms
 
 ${shadeStructure.attributes ?: ""}
@@ -518,7 +530,7 @@ void main() {
 
     override fun rectangleFragmentShader(shadeStructure: ShadeStructure): String = """#version ${glslVersion()}
 ${primitiveTypes("d_rectangle")}
-
+${shadeStructure.buffers ?: ""}
 ${shadeStructure.uniforms ?: ""}
 layout(origin_upper_left) in vec4 gl_FragCoord;
 
@@ -565,6 +577,7 @@ void main(void) {
 
     override fun rectangleVertexShader(shadeStructure: ShadeStructure): String = """#version ${glslVersion()}
 ${primitiveTypes("d_rectangle")}
+${shadeStructure.buffers ?: ""}
 $drawerUniforms
 ${shadeStructure.attributes ?: ""}
 ${shadeStructure.uniforms ?: ""}
@@ -594,7 +607,7 @@ void main() {
 
     override fun expansionFragmentShader(shadeStructure: ShadeStructure): String = """#version ${glslVersion()}
 ${primitiveTypes("d_expansion")}
-
+${shadeStructure.buffers ?: ""}
 ${shadeStructure.uniforms ?: ""}
 layout(origin_upper_left) in vec4 gl_FragCoord;
 $drawerUniforms
@@ -646,6 +659,7 @@ void main(void) {
 
     override fun expansionVertexShader(shadeStructure: ShadeStructure): String = """#version ${glslVersion()}
 ${primitiveTypes("d_expansion")}
+${shadeStructure.buffers ?: ""}
 $drawerUniforms
 ${shadeStructure.uniforms ?: ""}
 ${shadeStructure.attributes}
@@ -681,6 +695,7 @@ void main() {
 
     override fun fastLineFragmentShader(shadeStructure: ShadeStructure): String = """#version ${glslVersion()}
 ${primitiveTypes("d_fast_line")}
+${shadeStructure.buffers ?: ""}
 ${shadeStructure.uniforms ?: ""}
 layout(origin_upper_left) in vec4 gl_FragCoord;
 
@@ -711,7 +726,7 @@ void main(void) {
 
     override fun fastLineVertexShader(shadeStructure: ShadeStructure): String = """#version ${glslVersion()}
 ${primitiveTypes("d_fast_line")}
-
+${shadeStructure.buffers ?: ""}
 $drawerUniforms
 ${shadeStructure.attributes ?: ""}
 ${shadeStructure.uniforms ?: ""}
@@ -740,6 +755,7 @@ void main() {
     override fun meshLineFragmentShader(shadeStructure: ShadeStructure): String = """
         |#version ${glslVersion()}
         |${primitiveTypes("d_mesh_line")}
+        |${shadeStructure.buffers ?: ""}
         |${shadeStructure.outputs ?: ""}
         |${shadeStructure.uniforms ?: ""}
         |layout(origin_upper_left) in vec4 gl_FragCoord;
@@ -767,6 +783,7 @@ void main() {
 
     override fun meshLineVertexShader(shadeStructure: ShadeStructure): String = """
         |#version ${glslVersion()}
+        |${shadeStructure.buffers ?: ""}
         |${primitiveTypes("d_mesh_line")}
         |$drawerUniforms
         |${shadeStructure.attributes ?: ""}
@@ -831,6 +848,7 @@ void main() {
 
     override fun filterVertexShader(shadeStructure: ShadeStructure): String = """
         |// -- ShaderGeneratorsGL3.filterVertexShader
+        |${shadeStructure.buffers ?: ""}
         |#version ${glslVersion()}
         |in vec2 a_texCoord0;
         |in vec2 a_position;
@@ -850,6 +868,7 @@ void main() {
 
     override fun filterFragmentShader(shadeStructure: ShadeStructure): String = """
         |// -- ShaderGeneratorsGL3.filterFragmentShader
+        |${shadeStructure.buffers ?: ""}
         |#version ${glslVersion()}
         |in vec2 v_texCoord0;
         |uniform sampler2D tex0;

@@ -104,6 +104,19 @@ fun structureFromShadeStyle(shadeStyle: ShadeStyle?, vertexFormats: List<VertexF
                         measure("uniforms") {
                             uniforms = shadeStyle.parameters.map { "${mapTypeToUniform(it.value)} p_${it.key};\n" }.joinToString("")
                         }
+
+                        measure("buffers") {
+                            var bufferIndex = 2
+                            buffers = shadeStyle.bufferValues.map {
+                                val r  =when (val v = it.value) {
+                                    is ShaderStorageBuffer -> "layout(std430, binding = $bufferIndex) buffer B_${it.key} { ${v.format.glslLayout} } b_${it.key};"
+                                    else -> error("unsupported buffer type: $v")
+                                }
+                                bufferIndex++
+                                r
+                            }.joinToString("\n")
+                        }
+
                     }
                     measure("varying-out") {
                         varyingOut = vertexFormats.flatMap { it.items }.joinToString("") { "${it.type.glslVaryingQualifier}out ${it.type.glslType} va_${it.attribute}${array(it)};\n" } +
@@ -268,3 +281,12 @@ private val VertexElementType.glslVaryingQualifier: String
             else -> ""
         }
     }
+
+private val ShaderStorageFormat.glslLayout: String
+    get() = items.map {
+        if (it.arraySize == 1) {
+            "${it.type.glslType} ${it.attribute};"
+        } else {
+            "${it.type.glslType}[${it.arraySize}] ${it.attribute};"
+        }
+    }.joinToString("\n")

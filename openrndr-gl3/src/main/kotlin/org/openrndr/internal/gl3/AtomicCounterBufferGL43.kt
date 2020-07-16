@@ -31,6 +31,11 @@ class AtomicCounterBufferGL43(val buffer: Int, val size: Int) : AtomicCounterBuf
         return result
     }
 
+    override fun bind(index: Int) {
+        glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, index, buffer)
+        debugGLErrors()
+    }
+
     override fun reset() {
         require(!destroyed)
         write(IntArray(size))

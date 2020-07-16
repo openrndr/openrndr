@@ -4,6 +4,7 @@ import org.openrndr.internal.Driver
 
 data class ShadeStructure(var uniforms: String? = null,
                           var attributes: String? = null,
+                          var buffers: String? = null,
                           var vertexTransform: String? = null,
                           var geometryTransform: String? = null,
                           var fragmentTransform: String? = null,

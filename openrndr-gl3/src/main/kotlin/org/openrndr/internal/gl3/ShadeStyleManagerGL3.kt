@@ -64,6 +64,19 @@ class ShadeStyleManagerGL3(name: String,
                 shader.begin()
                 var textureIndex = 2
                 var imageIndex = 0
+                var bufferIndex = 2
+                measure("bind-ssbos") {
+                    for (it in style.bufferValues.entries) {
+                        when (val value = it.value) {
+                            is ShaderStorageBuffer -> {
+                                value.bind(bufferIndex)
+                                bufferIndex++
+                            }
+                            else -> error("unsupported buffer type $value")
+                        }
+                    }
+                }
+
                 measure("set-uniforms") {
                     for (it in style.parameterValues.entries) {
                         when (val value = it.value) {

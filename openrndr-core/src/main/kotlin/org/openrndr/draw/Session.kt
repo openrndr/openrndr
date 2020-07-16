@@ -11,7 +11,21 @@ private val sessionStack = mutableMapOf<Long, Stack<Session>>()
 /**
  * Session statistics
  */
-class SessionStatistics(val renderTargets: Int, val colorBuffers: Int, val depthBuffers: Int, val bufferTextures: Int, val indexBuffers: Int, val vertexBuffers: Int, val shaders: Int, val cubemaps: Int, val arrayTextures: Int, val computeShaders: Int, val atomicCounterBuffers: Int, val arrayCubemaps : Int)
+class SessionStatistics(
+        val renderTargets: Int,
+        val colorBuffers: Int,
+        val depthBuffers: Int,
+        val bufferTextures: Int,
+        val indexBuffers: Int,
+        val vertexBuffers: Int,
+        val shaders: Int,
+        val cubemaps: Int,
+        val arrayTextures: Int,
+        val computeShaders: Int,
+        val atomicCounterBuffers: Int,
+        val arrayCubemaps: Int,
+        val shaderStorageBuffers: Int)
+
 
 /**
  * Session
@@ -61,7 +75,7 @@ class Session(val parent: Session?) {
     private val arrayCubemaps = mutableSetOf<ArrayCubemap>()
     private val indexBuffers = mutableSetOf<IndexBuffer>()
     private val volumeTextures = mutableSetOf<VolumeTexture>()
-
+    private val shaderStorageBuffers = mutableSetOf<ShaderStorageBuffer>()
     private val atomicCounterBuffers = mutableSetOf<AtomicCounterBuffer>()
 
     /** Session statistics */
@@ -78,7 +92,8 @@ class Session(val parent: Session?) {
                     arrayTextures = arrayTextures.size,
                     computeShaders = computeShaders.size,
                     atomicCounterBuffers = atomicCounterBuffers.size,
-            arrayCubemaps = arrayCubemaps.size)
+                    arrayCubemaps = arrayCubemaps.size,
+                    shaderStorageBuffers = shaderStorageBuffers.size)
 
     fun track(renderTarget: RenderTarget) = renderTargets.add(renderTarget)
     fun untrack(renderTarget: RenderTarget) = renderTargets.remove(renderTarget)
@@ -114,10 +129,13 @@ class Session(val parent: Session?) {
     fun untrack(atomicCounterBuffer: AtomicCounterBuffer) = atomicCounterBuffers.remove(atomicCounterBuffer)
 
     fun track(arrayCubemap: ArrayCubemap) = arrayCubemaps.add(arrayCubemap)
-    fun untrack(arrayCubemap: ArrayCubemap ) = arrayCubemaps.remove(arrayCubemap)
+    fun untrack(arrayCubemap: ArrayCubemap) = arrayCubemaps.remove(arrayCubemap)
 
     fun track(volumeTexture: VolumeTexture) = volumeTextures.add(volumeTexture)
     fun untrack(volumeTexture: VolumeTexture) = volumeTextures.remove(volumeTexture)
+
+    fun track(shaderStorageBuffer: ShaderStorageBuffer) = shaderStorageBuffers.add(shaderStorageBuffer)
+    fun untrack(shaderStorageBuffer: ShaderStorageBuffer) = shaderStorageBuffers.remove(shaderStorageBuffer)
 
     /**
      * Fork the session
@@ -214,6 +232,12 @@ class Session(val parent: Session?) {
             it.destroy()
         }
         arrayCubemaps.clear()
+
+
+        shaderStorageBuffers.map { it }.forEach {
+            it.destroy()
+        }
+        shaderStorageBuffers.clear()
     }
 }
 
@@ -229,7 +253,7 @@ fun session(code: () -> Unit) {
  */
 fun <T> persistent(builder: () -> T): T {
     Session.stack.push(Session.root)
-    val result =  builder()
+    val result = builder()
     Session.stack.pop()
     return result
 }
