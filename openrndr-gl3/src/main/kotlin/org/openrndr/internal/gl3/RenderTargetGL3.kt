@@ -2,7 +2,6 @@ package org.openrndr.internal.gl3
 
 import mu.KotlinLogging
 import org.lwjgl.glfw.GLFW.glfwGetCurrentContext
-import org.lwjgl.opengl.GL11C
 import org.lwjgl.opengl.GL33C.*
 import org.lwjgl.opengl.GL40C.glBlendEquationi
 import org.lwjgl.opengl.GL40C.glBlendFunci
@@ -156,7 +155,7 @@ open class RenderTargetGL3(val framebuffer: Int,
         }
         arrayCubemap as ArrayCubemapGL4
         glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + colorAttachments.size, arrayCubemap.texture, level, layer * 6 + side.ordinal)
-        checkGLErrors() { null }
+        checkGLErrors { null }
 
         colorAttachments.add(ArrayCubemapAttachment(colorAttachments.size, name, arrayCubemap, side, layer, level))
 
@@ -182,7 +181,7 @@ open class RenderTargetGL3(val framebuffer: Int,
                 cubemap.texture,
                 level)
 
-        checkGLErrors() { null }
+        checkGLErrors { null }
 
         colorAttachments.add(CubemapAttachment(colorAttachments.size, name, cubemap, side, level))
 
@@ -208,6 +207,93 @@ open class RenderTargetGL3(val framebuffer: Int,
         debugGLErrors { null }
 
         colorAttachments.add(VolumeTextureAttachment(colorAttachments.size, name, volumeTexture, layer, level))
+
+        if (active[context]?.peek() != null)
+            (active[context]?.peek() as RenderTargetGL3).bindTarget()
+    }
+
+    override fun attachLayered(arrayTexture: ArrayTexture, level: Int, name: String?) {
+        require(!destroyed)
+        val context = glfwGetCurrentContext()
+        bindTarget()
+
+        val effectiveWidth = (width * contentScale).toInt()
+        val effectiveHeight = (height * contentScale).toInt()
+
+        if (!(arrayTexture.width == effectiveWidth && arrayTexture.height == effectiveHeight)) {
+            throw IllegalArgumentException("buffer dimension mismatch. expected: ($effectiveWidth x $effectiveHeight), got: (${arrayTexture.width} x ${arrayTexture.height}")
+        }
+        arrayTexture as ArrayTextureGL3
+        glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + colorAttachments.size, arrayTexture.texture, level)
+        debugGLErrors { null }
+
+        colorAttachments.add(LayeredArrayTextureAttachment(colorAttachments.size, name, arrayTexture, level))
+
+        if (active[context]?.peek() != null)
+            (active[context]?.peek() as RenderTargetGL3).bindTarget()
+    }
+
+    override fun attachLayered(arrayCubemap: ArrayCubemap, level: Int, name: String?) {
+        require(!destroyed)
+        val context = glfwGetCurrentContext()
+        bindTarget()
+        val effectiveWidth = (width * contentScale).toInt()
+        if (!(arrayCubemap.width == effectiveWidth && arrayCubemap.width == effectiveHeight)) {
+            throw IllegalArgumentException("buffer dimension mismatch. expected: ($effectiveWidth x $effectiveHeight), got: (${arrayCubemap.width} x ${arrayCubemap.width}")
+        }
+        arrayCubemap as ArrayCubemapGL4
+        glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + colorAttachments.size, arrayCubemap.texture, level)
+        checkGLErrors { null }
+
+        colorAttachments.add(LayeredArrayCubemapAttachment(colorAttachments.size, name, arrayCubemap, level))
+
+        if (active[context]?.peek() != null)
+            (active[context]?.peek() as RenderTargetGL3).bindTarget()
+    }
+
+    override fun attachLayered(cubemap: Cubemap, level: Int, name: String?) {
+        val div = 1 shl level
+        require(!destroyed)
+        val context = glfwGetCurrentContext()
+        bindTarget()
+        val effectiveWidth = (width * contentScale).toInt()
+        if (!(cubemap.width/div == effectiveWidth && cubemap.width/div == effectiveHeight)) {
+            throw IllegalArgumentException("buffer dimension mismatch. expected: ($effectiveWidth x $effectiveHeight), got: (${cubemap.width} x ${cubemap.width})")
+        }
+        cubemap as CubemapGL3
+
+        glFramebufferTexture(
+                GL_FRAMEBUFFER,
+                GL_COLOR_ATTACHMENT0 + colorAttachments.size,
+                cubemap.texture,
+                level)
+
+        checkGLErrors() { null }
+
+        colorAttachments.add(LayeredCubemapAttachment(colorAttachments.size, name, cubemap, level))
+
+        if (active[context]?.peek() != null)
+            (active[context]?.peek() as RenderTargetGL3).bindTarget()
+    }
+
+    override fun attachLayered(volumeTexture: VolumeTexture, level: Int, name: String?) {
+        require(!destroyed)
+        require(level >= 0 && level < volumeTexture.depth)
+
+        val context = glfwGetCurrentContext()
+        bindTarget()
+
+        val effectiveWidth = (width * contentScale).toInt()
+        val effectiveHeight = (height * contentScale).toInt()
+
+        if (!(volumeTexture.width == effectiveWidth && volumeTexture.height == effectiveHeight)) {
+            throw IllegalArgumentException("buffer dimension mismatch. expected: ($effectiveWidth x $effectiveHeight), got: (${volumeTexture.width} x ${volumeTexture.height}")
+        }
+        volumeTexture as VolumeTextureGL3
+        glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + colorAttachments.size, volumeTexture.texture, level)
+        debugGLErrors { null }
+
+        colorAttachments.add(LayeredVolumeTextureAttachment(colorAttachments.size, name, volumeTexture, level))
 
         if (active[context]?.peek() != null)
             (active[context]?.peek() as RenderTargetGL3).bindTarget()

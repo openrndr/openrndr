@@ -21,6 +21,13 @@ class ArrayTextureAttachment(
         val level: Int
 ) : ColorAttachment(index, name)
 
+class LayeredArrayTextureAttachment(
+        index: Int,
+        name: String?,
+        val arrayTexture: ArrayTexture,
+        val level: Int
+) : ColorAttachment(index, name)
+
 class VolumeTextureAttachment(
         index: Int,
         name: String?,
@@ -29,6 +36,12 @@ class VolumeTextureAttachment(
         val level: Int
 ) : ColorAttachment(index, name)
 
+class LayeredVolumeTextureAttachment(
+        index: Int,
+        name: String?,
+        val volumeTexture: VolumeTexture,
+        val level: Int
+) : ColorAttachment(index, name)
 
 class ArrayCubemapAttachment(
         index: Int,
@@ -39,11 +52,25 @@ class ArrayCubemapAttachment(
         val level: Int
 ) : ColorAttachment(index, name)
 
+class LayeredArrayCubemapAttachment(
+        index: Int,
+        name: String?,
+        val arrayCubemap: ArrayCubemap,
+        val level: Int
+) : ColorAttachment(index, name)
+
 class CubemapAttachment(
         index: Int,
         name: String?,
         val cubemap: Cubemap,
         val side: CubemapSide,
+        val level: Int
+) : ColorAttachment(index, name)
+
+class LayeredCubemapAttachment(
+        index: Int,
+        name: String?,
+        val cubemap: Cubemap,
         val level: Int
 ) : ColorAttachment(index, name)
 
@@ -82,6 +109,11 @@ interface RenderTarget {
     fun attach(arrayCubemap: ArrayCubemap, side: CubemapSide, layer: Int, level: Int = 0, name: String? = null)
     fun attach(cubemap: Cubemap, side: CubemapSide, level: Int = 0, name: String? = null)
     fun attach(volumeTexture: VolumeTexture, layer: Int, level: Int = 0, name: String? = null)
+
+    fun attachLayered(arrayTexture: ArrayTexture, level: Int = 0, name: String? = null)
+    fun attachLayered(arrayCubemap: ArrayCubemap, level: Int = 0, name: String? = null)
+    fun attachLayered(cubemap: Cubemap, level: Int = 0, name: String? = null)
+    fun attachLayered(volumeTexture: VolumeTexture, level: Int = 0, name: String? = null)
 
     fun detachColorAttachments()
 
