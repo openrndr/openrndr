@@ -563,6 +563,24 @@ class ShaderGL3(val program: Int,
         }
     }
 
+    override fun uniform(name: String, value: Array<ColorRGBa>) {
+        val index = uniformIndex(name)
+        if (index != -1) {
+            logger.trace { "Setting uniform '$name' to $value" }
+
+            val floatValues = FloatArray(value.size * 4)
+            for (i in value.indices) {
+                floatValues[i * 4] = value[i].r.toFloat()
+                floatValues[i * 4 + 1] = value[i].g.toFloat()
+                floatValues[i * 4 + 2] = value[i].b.toFloat()
+                floatValues[i * 4 + 3] = value[i].a.toFloat()
+            }
+
+            glUniform4fv(index, floatValues)
+            postUniformCheck(name, index, value)
+        }
+    }
+
     override fun uniform(name: String, value: Array<IntVector2>) {
         val index = uniformIndex(name)
         if (index != -1) {

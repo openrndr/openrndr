@@ -139,6 +139,11 @@ open class ShadeStyle {
         parameters[name] = "Vector4,${value.size}"
     }
 
+    fun parameter(name: String, value: Array<ColorRGBa>) {
+        parameterValues[name] = value
+        parameters[name] = "ColorRGBa,${value.size}"
+    }
+
     fun parameter(name: String, value: Float) {
         parameterValues[name] = value
         parameters[name] = "float"
@@ -375,6 +380,9 @@ open class ShadeStyle {
                             }
                             is Vector4 -> {
                                 "Vector4, ${value.size}"
+                            }
+                            is ColorRGBa -> {
+                                "ColorRGBa, ${value.size}"
                             }
                             is IntVector2 -> {
                                 "IntVector2, ${value.size}"
