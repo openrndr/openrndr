@@ -136,6 +136,10 @@ class ShadeStyleManagerGL3(name: String,
                                         @Suppress("UNCHECKED_CAST")
                                         shader.uniform("p_${it.key}", value as Array<Matrix44>)
                                     }
+                                    is ColorRGBa -> {
+                                        @Suppress("UNCHECKED_CAST")
+                                        shader.uniform("p_${it.key}", value as Array<ColorRGBa>)
+                                    }
                                     is Vector4 -> {
                                         @Suppress("UNCHECKED_CAST")
                                         shader.uniform("p_${it.key}", value as Array<Vector4>)
