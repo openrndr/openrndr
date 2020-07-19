@@ -16,13 +16,13 @@ class CircleDrawer {
         textureCoordinate(2)
     }, 6, Session.root)
 
-    private var batch = CircleBatch.create(10_000)
+    internal var batch = CircleBatch.create(10_000)
 
     private val shaderManager: ShadeStyleManager = ShadeStyleManager.fromGenerators("circle",
             vsGenerator = Driver.instance.shaderGenerators::circleVertexShader,
             fsGenerator = Driver.instance.shaderGenerators::circleFragmentShader)
 
-    private fun assertInstanceSize(size: Int) {
+    internal fun ensureBatchSize(size: Int) {
         if (batch.size < size) {
             logger.debug {
                 "resizing buffer from ${batch.size} to $size"
@@ -63,7 +63,7 @@ class CircleDrawer {
     }
 
     fun drawCircles(drawContext: DrawContext, drawStyle: DrawStyle, positions: List<Vector2>, radii: List<Double>) {
-        assertInstanceSize(positions.size)
+        ensureBatchSize(positions.size)
         batch.geometry.shadow.writer().apply {
             rewind()
             for (i in positions.indices) {
@@ -84,7 +84,7 @@ class CircleDrawer {
     }
 
     fun drawCircles(drawContext: DrawContext, drawStyle: DrawStyle, positions: List<Vector2>, radius: Double) {
-        assertInstanceSize(positions.size)
+        ensureBatchSize(positions.size)
         batch.geometry.shadow.writer().apply {
             rewind()
             for (i in positions.indices) {
@@ -105,7 +105,7 @@ class CircleDrawer {
     }
 
     fun drawCircles(drawContext: DrawContext, drawStyle: DrawStyle, circles: List<Circle>) {
-        assertInstanceSize(circles.size)
+        ensureBatchSize(circles.size)
         batch.geometry.shadow.writer().apply {
             rewind()
             for (i in circles.indices) {
@@ -128,7 +128,7 @@ class CircleDrawer {
 
     fun drawCircle(drawContext: DrawContext,
                    drawStyle: DrawStyle, x: Double, y: Double, radius: Double) {
-        assertInstanceSize(1)
+        ensureBatchSize(1)
         batch.geometry.shadow.writer().apply {
             rewind()
             write(Vector3(x, y, 0.0))

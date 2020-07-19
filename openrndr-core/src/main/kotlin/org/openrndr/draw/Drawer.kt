@@ -75,6 +75,10 @@ class Drawer(val driver: Driver) {
     }
     private var rectangleDrawer = RectangleDrawer()
     private var vertexBufferDrawer = VertexBufferDrawer()
+
+
+
+
     private var circleDrawer = CircleDrawer()
     private var pointDrawer = PointDrawer()
     private var imageDrawer = ImageDrawer()
@@ -541,8 +545,22 @@ class Drawer(val driver: Driver) {
         circleDrawer.drawCircles(context, drawStyle, circles)
     }
 
+    /**
+     * Draw stored circle batch
+     */
     fun circles(batch: CircleBatch, count: Int = batch.size) {
         circleDrawer.drawCircles(context, drawStyle, batch, count)
+    }
+
+    /**
+     * Create and draw batched circles
+     */
+    fun circles(build: CircleBatchBuilder.() -> Unit)  {
+        val batchBuilder = CircleBatchBuilder(this)
+        batchBuilder.build()
+        circleDrawer.ensureBatchSize(batchBuilder.entries.size)
+        batchBuilder.batch(circleDrawer.batch)
+        circleDrawer.drawCircles(context, drawStyle, circleDrawer.batch, batchBuilder.entries.size)
     }
 
     /**

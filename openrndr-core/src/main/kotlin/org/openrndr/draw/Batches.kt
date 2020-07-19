@@ -3,13 +3,13 @@ package org.openrndr.draw
 import org.openrndr.color.ColorRGBa
 import org.openrndr.math.Vector2
 import org.openrndr.math.Vector3
+import org.openrndr.shape.Circle
 
 fun BufferWriter.write(drawStyle: DrawStyle) {
     write(drawStyle.fill ?: ColorRGBa.TRANSPARENT)
     write(drawStyle.stroke ?: ColorRGBa.TRANSPARENT)
     write(drawStyle.strokeWeight.toFloat())
 }
-
 
 val drawStyleFormat = vertexFormat {
     attribute("fill", VertexElementType.VECTOR4_FLOAT32)
@@ -22,6 +22,9 @@ val circleFormat = vertexFormat {
     attribute("radius", VertexElementType.VECTOR2_FLOAT32)
 }
 
+/**
+ * Stored circle batch
+ */
 class CircleBatch(val geometry: VertexBuffer, val drawStyle: VertexBuffer) {
     init {
         require(geometry.vertexFormat == circleFormat)
@@ -38,15 +41,34 @@ class CircleBatch(val geometry: VertexBuffer, val drawStyle: VertexBuffer) {
         }
     }
 
+    /**
+     * Destroy the stored batch
+     */
     fun destroy() {
         geometry.destroy()
         drawStyle.destroy()
     }
 }
 
+
+/**
+ * Builder for stored circle batches
+ */
 class CircleBatchBuilder(val drawer: Drawer) {
+
+    /**
+     * Active fill color
+     */
     var fill = drawer.fill
+
+    /**
+     * Active stroke color
+     */
     var stroke = drawer.stroke
+
+    /**
+     * Active stroke weight
+     */
     var strokeWeight = drawer.strokeWeight
 
     class Entry(
@@ -59,12 +81,60 @@ class CircleBatchBuilder(val drawer: Drawer) {
 
     val entries = mutableListOf<Entry>()
 
+    /**
+     * Add a circle to the batch
+     */
     fun circle(x: Double, y: Double, radius: Double) {
         entries.add(Entry(fill, stroke, strokeWeight, Vector3(x, y, 0.0), Vector2(radius, radius)))
     }
 
-    fun batch(): CircleBatch {
-        val geometry = vertexBuffer(circleFormat, entries.size)
+    /**
+     * Add a circle to the batch
+     */
+    fun circle(position: Vector2, radius: Double) {
+        entries.add(Entry(fill, stroke, strokeWeight, position.xy0, Vector2(radius, radius)))
+    }
+
+    /**
+     * Add a circle to the batch
+     */
+    fun circle(circle: Circle) {
+        entries.add(Entry(fill, stroke, strokeWeight, circle.center.xy0, Vector2(circle.radius, circle.radius)))
+    }
+
+    /**
+     * Add a circle to the batch
+     */
+    fun circles(circles: List<Circle>) {
+        for (circle in circles) {
+            circle(circle)
+        }
+    }
+
+    /**
+     * Add circles to the batch
+     */
+    fun circles(centers: List<Vector2>, radius: Double) {
+        for (center in centers) {
+            entries.add(Entry(fill, stroke, strokeWeight, center.xy0, Vector2(radius, radius)))
+        }
+    }
+
+    /**
+     * Add circles to the batch
+     */
+    fun circles(centers: List<Vector2>, radii: List<Double>) {
+        require(centers.size == radii.size)
+        for (i in centers.indices) {
+            entries.add(Entry(fill, stroke, strokeWeight, centers[i].xy0, Vector2(radii[i], radii[i])))
+        }
+    }
+
+    /**
+     * Generate the stored batch
+     */
+    fun batch(existingBatch: CircleBatch? = null): CircleBatch {
+        val geometry = existingBatch?.geometry ?: vertexBuffer(circleFormat, entries.size)
         geometry.put {
             for (entry in entries) {
                 write(entry.offset)
@@ -72,7 +142,7 @@ class CircleBatchBuilder(val drawer: Drawer) {
             }
         }
 
-        val drawStyle = vertexBuffer(drawStyleFormat, entries.size)
+        val drawStyle = existingBatch?.drawStyle ?: vertexBuffer(drawStyleFormat, entries.size)
         drawStyle.put {
             for (entry in entries) {
                 write(entry.fill ?: ColorRGBa.TRANSPARENT)
@@ -80,10 +150,13 @@ class CircleBatchBuilder(val drawer: Drawer) {
                 write(if (entry.stroke == null) 0.0f else entry.strokeWeight.toFloat())
             }
         }
-        return CircleBatch(geometry, drawStyle)
+        return existingBatch ?: CircleBatch(geometry, drawStyle)
     }
 }
 
+/**
+ * Create a stored batch of circles
+ */
 fun Drawer.circleBatch(build: CircleBatchBuilder.() -> Unit): CircleBatch {
     val circleBatchBuilder = CircleBatchBuilder(this)
     circleBatchBuilder.build()
