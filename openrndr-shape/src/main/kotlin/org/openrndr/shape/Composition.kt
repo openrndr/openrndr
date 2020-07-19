@@ -10,6 +10,7 @@ sealed class CompositionNode {
     var fill: CompositionColor = InheritColor
     var stroke: CompositionColor = InheritColor
     var strokeWeight: CompositionStrokeWeight = InheritStrokeWeight
+    var attributes = mutableMapOf<String, String?>()
 
     open val bounds: Rectangle
         get() = TODO("can't have it")

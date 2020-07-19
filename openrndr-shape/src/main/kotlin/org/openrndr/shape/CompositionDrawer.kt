@@ -36,9 +36,9 @@ class CompositionDrawer {
         model = modelStack.pop()
     }
 
-    fun group(builder:CompositionDrawer.()->Unit) {
-
+    fun group(id: String? = null, builder: CompositionDrawer.() -> Unit): GroupNode {
         val g = GroupNode()
+        g.id = id
         val oldCursor = cursor
 
         cursor.children.add(g)
@@ -46,6 +46,7 @@ class CompositionDrawer {
         builder()
 
         cursor = oldCursor
+        return g
     }
 
     fun translate(x: Double, y: Double) = translate(Vector2(x, y))
@@ -66,33 +67,30 @@ class CompositionDrawer {
         model *= Matrix44.translate(t.vector3())
     }
 
-    fun contour(contour: ShapeContour) {
+    fun contour(contour: ShapeContour): ShapeNode {
         val shape = Shape(listOf(contour))
-        shape(shape)
+        return shape(shape)
     }
 
-    fun contours(contours: List<ShapeContour>) = contours.forEach { contour(it) }
+    fun contours(contours: List<ShapeContour>) = contours.map { contour(it) }
 
-    fun shape(shape: Shape) {
+    fun shape(shape: Shape): ShapeNode {
         val shapeNode = ShapeNode(shape)
         shapeNode.transform = model
         shapeNode.fill = Color(fill)
         shapeNode.stroke = Color(stroke)
         shapeNode.strokeWeight = StrokeWeight(strokeWeight)
         cursor.children.add(shapeNode)
+        return shapeNode
     }
 
-    fun shapes(shapes: List<Shape>) = shapes.forEach { shape(it) }
+    fun shapes(shapes: List<Shape>) = shapes.map { shape(it) }
 
     fun rectangle(rectangle: Rectangle) = contour(rectangle.contour)
 
     fun rectangle(x: Double, y: Double, width: Double, height: Double) = rectangle(Rectangle(x, y, width, height))
 
-    fun rectangles(rectangles: List<Rectangle>) {
-        rectangles.forEach {
-            rectangle(it)
-        }
-    }
+    fun rectangles(rectangles: List<Rectangle>) = rectangles.map { rectangle(it) }
 
     fun rectangles(positions: List<Vector2>, width: Double, height: Double) = rectangles(positions.map {
         Rectangle(it, width, height)
@@ -106,11 +104,7 @@ class CompositionDrawer {
 
     fun circle(circle: Circle) = contour(circle.contour)
 
-    fun circles(circles: List<Circle>) {
-        circles.forEach {
-            circle(it)
-        }
-    }
+    fun circles(circles: List<Circle>) = circles.map { circle(it) }
 
     fun circles(positions: List<Vector2>, radius: Double) = circles(positions.map { Circle(it, radius) })
 
@@ -120,36 +114,32 @@ class CompositionDrawer {
 
     fun lineSegment(lineSegment: LineSegment) = contour(lineSegment.contour)
 
-    fun lineSegments(lineSegments: List<LineSegment>) {
-        lineSegments.forEach {
-            lineSegment(it)
-        }
+    fun lineSegments(lineSegments: List<LineSegment>) = lineSegments.map {
+        lineSegment(it)
     }
 
-    fun lineStrip(points: List<Vector2>) {
-        contour(ShapeContour.fromPoints(points, false, YPolarity.CW_NEGATIVE_Y))
-    }
+    fun lineStrip(points: List<Vector2>) = contour(ShapeContour.fromPoints(points, false, YPolarity.CW_NEGATIVE_Y))
 
-    fun lineLoop(points: List<Vector2>) {
-        contour(ShapeContour.fromPoints(points, true, YPolarity.CW_NEGATIVE_Y))
-    }
+    fun lineLoop(points: List<Vector2>) = contour(ShapeContour.fromPoints(points, true, YPolarity.CW_NEGATIVE_Y))
 
-    fun text(text: String, position: Vector2) {
+    fun text(text: String, position: Vector2): TextNode {
         val g = GroupNode()
-        g.transform = transform { translate(position.xy0 ) }
-        g.children.add(TextNode(text, null).apply{
+        g.transform = transform { translate(position.xy0) }
+        val textNode = TextNode(text, null).apply {
             this.fill = Color(this@CompositionDrawer.fill)
-        })
+        }
+        g.children.add(textNode)
         cursor.children.add(g)
+        return textNode
     }
 
-    fun textOnContour(text: String,path: ShapeContour) {
+    fun textOnContour(text: String, path: ShapeContour) {
         cursor.children.add(TextNode(text, path))
     }
 
-    fun texts(text: List<String>, positions: List<Vector2>) {
-        (text zip positions).forEach {
-            text(it.first, it.second)
-        }
-    }
+    fun texts(text: List<String>, positions: List<Vector2>) =
+            (text zip positions).map {
+                text(it.first, it.second)
+            }
+
 }

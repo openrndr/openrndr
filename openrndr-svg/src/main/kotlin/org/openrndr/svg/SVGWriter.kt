@@ -1,5 +1,6 @@
 package org.openrndr.svg
 
+import org.jsoup.nodes.Entities
 import org.openrndr.color.ColorRGBa
 import org.openrndr.math.Matrix44
 import org.openrndr.shape.*
@@ -14,23 +15,40 @@ fun Composition.saveToFile(file: File) {
     }
 }
 
+private val CompositionNode.svgId: String
+    get() = if (id != null) {
+        "id=${id ?: error("id = null")}"
+    } else {
+        ""
+    }
+
+private val CompositionNode.svgAttributes: String
+    get() {
+        return attributes.map {
+            if (it.value != null) {
+                "${it.key}=\"${Entities.escape(it.value)}\""
+            } else {
+                "${it.key}"
+            }
+        }.joinToString(" ")
+    }
+
 fun writeSVG(composition: Composition): String {
     val sb = StringBuilder()
     sb.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n")
     sb.append("<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1 Tiny//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11-tiny.dtd\">\n")
     sb.append("<svg version=\"1.1\" baseProfile=\"tiny\" id=\"Layer_1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"  x=\"0px\" y=\"0px\"\n width=\"2676px\" height=\"2048px\">")
 
-
     var textPathID = 0
     process(composition.root) {
         if (it == VisitStage.PRE) {
             when (this) {
                 is GroupNode -> {
-                    if (transform !== Matrix44.IDENTITY) {
-                        sb.append("<g transform=\"${transform.svg}\">\n")
-                    } else {
-                        sb.append("<g>\n")
-                    }
+                    val attributes =
+                            listOf(svgId, transform.svgTransform, svgAttributes)
+                                    .filter { it.isNotBlank() }
+                                    .joinToString(" ")
+                    sb.append("<g $attributes>\n")
                 }
                 is ShapeNode -> {
                     val fillAttribute = fill.let {
@@ -40,25 +58,36 @@ fun writeSVG(composition: Composition): String {
                         if (it is Color) it.color?.let { "stroke=\"${it.svg}\"" } ?: "stroke=\"none\"" else ""
                     }
                     val strokeWidthAttribute = strokeWeight.let { if (it is StrokeWeight) "stroke-width=\"${it.weight}\"" else "" }
-
-                    val transformAttribute = if (transform !== Matrix44.IDENTITY) "transform=\"${transform.svg}\"" else ""
-
+                    val transformAttribute = if (transform !== Matrix44.IDENTITY) "transform=\"${transform.svgTransform}\"" else ""
                     val pathAttribute = "d=\"${shape.svg}\""
-                    sb.append("<path $transformAttribute $fillAttribute $strokeAttribute $strokeWidthAttribute $pathAttribute/>\n")
+
+                    val attributes = listOf(
+                            svgId,
+                            transformAttribute,
+                            fillAttribute,
+                            strokeAttribute,
+                            strokeWidthAttribute,
+                            svgAttributes,
+                            pathAttribute)
+                            .filter { it.isNotBlank() }
+                            .joinToString(" ")
+
+                    sb.append("<path $attributes/>\n")
                 }
 
                 is TextNode -> {
-                    val fillAttribute = fill.let {
-                        if (it is Color) it.color?.let { "fill=\"${it.svg}\"" } ?: "fill=\"none\"" else ""
+                    val fillAttribute = fill.let { color ->
+                        if (color is Color) color.color?.let { "fill=\"${it.svg}\"" } ?: "fill=\"none\"" else ""
                     }
                     val contour = this.contour
+                    val escapedText = Entities.escape(this.text)
                     if (contour == null) {
-                        sb.append("<text $fillAttribute>${this.text}</text>")
+                        sb.append("<text $svgId $fillAttribute $svgAttributes>$escapedText</text>")
                     } else {
                         sb.append("<defs>")
                         sb.append("<path id=\"text$textPathID\" d=\"${contour.svg}\"/>")
                         sb.append("</defs>")
-                        sb.append("<text $fillAttribute><textPath href=\"#text$textPathID\">${this.text}</textPath></text>")
+                        sb.append("<text $fillAttribute><textPath href=\"#text$textPathID\">$escapedText</textPath></text>")
                         textPathID++
                     }
                 }
@@ -83,7 +112,7 @@ private val ColorRGBa.svg: String
         return String.format("#%02X%02x%02x", ir, ig, ib)
     }
 
-private val Matrix44.svg get() = "matrix(${this.c0r0}, ${this.c0r1}, ${this.c1r0}, ${this.c1r1}, ${this.c3r0}, ${this.c3r1})"
+private val Matrix44.svgTransform get() = if (this == Matrix44.IDENTITY) "" else "transform=\"matrix(${this.c0r0}, ${this.c0r1}, ${this.c1r0}, ${this.c1r1}, ${this.c3r0}, ${this.c3r1})\""
 
 private val Shape.svg: String
     get() {

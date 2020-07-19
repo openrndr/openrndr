@@ -52,6 +52,19 @@ internal class Command(val op: String, vararg val operands: Double) {
 internal sealed class SVGElement {
     var transform = Matrix44.IDENTITY
     var id: String? = null
+    var attributes = mutableMapOf<String, String?>()
+
+    fun parseAttributes(e: Element) {
+        for (attribute in e.attributes()) {
+            if (attribute.key.contains(":") || attribute.key.startsWith("data-")) {
+                if (attribute.hasDeclaredValue()) {
+                    attributes[attribute.key] = attribute.value
+                } else {
+                    attributes[attribute.key] = null
+                }
+            }
+        }
+    }
 
     fun parseTransform(e: Element) {
         val p = Pattern.compile("(matrix|translate|scale|rotate|skewX|skewY)\\(.+\\)")
@@ -99,7 +112,7 @@ internal fun parseColor(scolor: String): ColorRGBa? {
     return when {
         scolor.isEmpty() || scolor == "none" -> null
         scolor.startsWith("#") -> {
-            val normalizedColor = normalizeColorHex(scolor).replace("#","")
+            val normalizedColor = normalizeColorHex(scolor).replace("#", "")
             val v = normalizedColor.toLong(radix = 16)
             val vi = v.toInt()
             val r = vi shr 16 and 0xff
@@ -388,7 +401,9 @@ internal class SVGDocument(private val root: SVGElement) {
     fun composition(): Composition = Composition(convertElement(root))
 
     private fun convertElement(e: SVGElement): CompositionNode = when (e) {
-        is SVGGroup -> GroupNode().apply { e.elements.mapTo(children) { convertElement(it).also { x -> x.parent = this@apply } } }
+        is SVGGroup -> GroupNode().apply {
+            e.elements.mapTo(children) { convertElement(it).also { x -> x.parent = this@apply } }
+        }
         is SVGPath -> {
             ShapeNode(e.shape()).apply {
                 fill = e.fill
@@ -402,6 +417,7 @@ internal class SVGDocument(private val root: SVGElement) {
         }
     }.apply {
         transform = e.transform
+        attributes.putAll(e.attributes)
     }
 }
 
@@ -438,6 +454,7 @@ internal class SVGLoader {
             id = e.id()
             parseDrawAttributes(e)
             parseTransform(e)
+            parseAttributes(e)
             commands.add(Command("M", points[0].x, points[0].y))
             (1 until points.size).mapTo(commands) { Command("L", points[it].x, points[it].y) }
             commands.add(Command("Z"))
@@ -452,6 +469,7 @@ internal class SVGLoader {
             id = e.id()
             parseDrawAttributes(e)
             parseTransform(e)
+            parseAttributes(e)
             commands.add(Command("M", points[0].x, points[0].y))
             (1 until points.size).mapTo(commands) { Command("L", points[it].x, points[it].y) }
         }
@@ -462,6 +480,7 @@ internal class SVGLoader {
         val group = SVGGroup().apply {
             id = e.id()
             parseTransform(e)
+            parseAttributes(e)
         }
         parent.elements.add(group)
         e.children().forEach { c ->
@@ -503,6 +522,7 @@ internal class SVGLoader {
         path.id = e.id()
         path.parseDrawAttributes(e)
         path.parseTransform(e)
+        path.parseAttributes(e)
         path.commands.add(Command("M", x, ym))
         path.commands.add(Command("C", x, ym - oy, xm - ox, y, xm, y))
         path.commands.add(Command("C", xm + ox, y, xe, ym - oy, xe, ym))
@@ -537,6 +557,7 @@ internal class SVGLoader {
         path.id = e.id()
         path.parseDrawAttributes(e)
         path.parseTransform(e)
+        path.parseAttributes(e)
         path.commands.add(Command("M", x, ym))
         path.commands.add(Command("C", x, ym - oy, xm - ox, y, xm, y))
         path.commands.add(Command("C", xm + ox, y, xe, ym - oy, xe, ym))
@@ -567,6 +588,7 @@ internal class SVGLoader {
             id = e.id()
             parseTransform(e)
             parseDrawAttributes(e)
+            parseAttributes(e)
             commands.add(Command("M", x, y))
             commands.add(Command("h", width))
             commands.add(Command("v", height))
@@ -584,6 +606,7 @@ internal class SVGLoader {
 
         val path = SVGPath().apply {
             parseDrawAttributes(e)
+            parseAttributes(e)
             commands.add(Command("M", x1, y1))
             commands.add(Command("L", x2, y2))
         }
@@ -595,6 +618,7 @@ internal class SVGLoader {
             id = e.id()
             parseDrawAttributes(e)
             parseTransform(e)
+            parseAttributes(e)
         }
         group.elements.add(path)
     }
