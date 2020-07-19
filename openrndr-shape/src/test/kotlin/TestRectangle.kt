@@ -1,4 +1,6 @@
 import org.amshove.kluent.`should be equal to`
+import org.amshove.kluent.`should be greater or equal to`
+import org.amshove.kluent.`should be less or equal to`
 import org.openrndr.math.YPolarity
 import org.openrndr.shape.Rectangle
 import org.openrndr.shape.Winding
@@ -22,5 +24,30 @@ object TestRectangle : Spek({
             c.polarity `should be equal to` YPolarity.CW_NEGATIVE_Y
         }
     }
+    describe("A specific rectangle's contour") {
+        // testing for issue described in https://github.com/openrndr/openrndr/issues/135
+        val c = Rectangle(100.0, 100.0, 300.0, 300.0).contour
 
+        it("can be sampled for adaptive positions") {
+            val aps = c.adaptivePositions()
+            for (p in aps) {
+                p.x `should be greater or equal to` 100.0
+                p.y `should be greater or equal to` 100.0
+                p.x `should be less or equal to` 400.0
+                p.y `should be less or equal to` 400.0
+            }
+        }
+
+        it("can be sampled for equidistant positions") {
+            val eps = c.equidistantPositions(10)
+            eps.size `should be equal to` 10
+
+            for (p in eps) {
+                p.x `should be greater or equal to` 100.0
+                p.y `should be greater or equal to` 100.0
+                p.x `should be less or equal to` 400.0
+                p.y `should be less or equal to` 400.0
+            }
+        }
+    }
 })

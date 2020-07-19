@@ -925,9 +925,7 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
     /**
      *
      */
-    fun equidistantPositions(pointCount: Int): List<Vector2> {
-        return sampleEquidistant(adaptivePositions(), pointCount)
-    }
+    fun equidistantPositions(pointCount: Int) = sampleEquidistant(adaptivePositions(), pointCount)
 
     /**
      * Adaptively sample the contour into line segments while still approximating the original contour
