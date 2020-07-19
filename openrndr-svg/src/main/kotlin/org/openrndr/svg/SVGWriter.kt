@@ -17,7 +17,7 @@ fun Composition.saveToFile(file: File) {
 
 private val CompositionNode.svgId: String
     get() = if (id != null) {
-        "id=${id ?: error("id = null")}"
+        "id=\"${id ?: error("id = null")}\""
     } else {
         ""
     }
