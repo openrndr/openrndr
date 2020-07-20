@@ -6,14 +6,16 @@ import org.openrndr.math.Matrix44
 import org.openrndr.shape.*
 import java.io.File
 
-fun Composition.saveToFile(file: File) {
+fun Composition.saveToFile(file: File, namespaces: List<String> = emptyList()) {
     if (file.extension == "svg") {
-        val svg = writeSVG(this)
+        val svg = writeSVG(this, namespaces = namespaces)
         file.writeText(svg)
     } else {
         throw IllegalArgumentException("can only write svg files, the extension '${file.extension}' is not supported")
     }
 }
+
+fun Composition.toSVG(namespaces: List<String> = emptyList()) = writeSVG(this, namespaces = namespaces)
 
 private val CompositionNode.svgId: String
     get() = if (id != null) {
@@ -33,11 +35,27 @@ private val CompositionNode.svgAttributes: String
         }.joinToString(" ")
     }
 
-fun writeSVG(composition: Composition): String {
+val svgNamespaceInkscape = """xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape""""
+
+fun writeSVG(composition: Composition,
+             topLevelId:String = "openrndr-svg",
+             namespaces : List<String> = emptyList() ): String {
     val sb = StringBuilder()
     sb.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n")
     sb.append("<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1 Tiny//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11-tiny.dtd\">\n")
-    sb.append("<svg version=\"1.1\" baseProfile=\"tiny\" id=\"Layer_1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"  x=\"0px\" y=\"0px\"\n width=\"2676px\" height=\"2048px\">")
+
+    val allNamespaces = (listOf(
+            "xmlns=\"http://www.w3.org/2000/svg\"",
+            "xmlns:xlink=\"http://www.w3.org/1999/xlink\""
+            ) + namespaces).joinToString(" ")
+
+    fun Rectangle.svgAttributes() = mapOf("x" to corner.x.toInt().toString(),
+            "y" to corner.y.toInt().toString(),
+            "width" to width.toInt(),
+            "height" to height.toInt())
+            .map {"""${it.key}="${it.value}px"""" }.joinToString(" ")
+
+    sb.append("<svg version=\"1.1\" baseProfile=\"tiny\" id=\"$topLevelId\" $allNamespaces ${composition.documentBounds.svgAttributes()}>")
 
     var textPathID = 0
     process(composition.root) {
@@ -109,7 +127,7 @@ private val ColorRGBa.svg: String
         val ir = (r.coerceIn(0.0, 1.0) * 255.0).toInt()
         val ig = (g.coerceIn(0.0, 1.0) * 255.0).toInt()
         val ib = (b.coerceIn(0.0, 1.0) * 255.0).toInt()
-        return String.format("#%02X%02x%02x", ir, ig, ib)
+        return String.format("#%02x%02x%02x", ir, ig, ib)
     }
 
 private val Matrix44.svgTransform get() = if (this == Matrix44.IDENTITY) "" else "transform=\"matrix(${this.c0r0}, ${this.c0r1}, ${this.c1r0}, ${this.c1r1}, ${this.c3r0}, ${this.c3r1})\""

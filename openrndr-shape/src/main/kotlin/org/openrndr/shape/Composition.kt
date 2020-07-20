@@ -141,8 +141,10 @@ open class GroupNode(val children: MutableList<CompositionNode> = mutableListOf(
 
 }
 
+val DefaultCompositionBounds = Rectangle(0.0, 0.0, 2676.0, 2048.0)
+
 class GroupNodeStop(children: MutableList<CompositionNode>) : GroupNode(children)
-class Composition(val root: CompositionNode) {
+class Composition(val root: CompositionNode, val documentBounds: Rectangle = DefaultCompositionBounds) {
     fun findTerminals(filter: (CompositionNode) -> Boolean): List<CompositionNode> {
         val result = mutableListOf<CompositionNode>()
         fun find(node: CompositionNode) {

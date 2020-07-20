@@ -16,9 +16,9 @@ import java.util.*
  * This should be easier than creating Compositions manually
  */
 
-class CompositionDrawer {
+class CompositionDrawer(documentBounds: Rectangle = DefaultCompositionBounds) {
     val root = GroupNode()
-    val composition = Composition(root)
+    val composition = Composition(root, documentBounds)
 
     private var cursor = root
     private val modelStack = Stack<Matrix44>()
@@ -141,5 +141,9 @@ class CompositionDrawer {
             (text zip positions).map {
                 text(it.first, it.second)
             }
-
 }
+
+fun drawComposition(
+        documentBounds : Rectangle = DefaultCompositionBounds,
+        drawFunction:CompositionDrawer.() -> Unit
+) : Composition = CompositionDrawer(documentBounds).apply { drawFunction() }.composition
