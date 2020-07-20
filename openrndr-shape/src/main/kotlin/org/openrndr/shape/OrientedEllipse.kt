@@ -1,8 +1,8 @@
 package org.openrndr.shape
 
-import org.openrndr.math.Matrix44
 import org.openrndr.math.Vector2
-import org.openrndr.math.transforms.rotateZ
+import org.openrndr.math.Vector3
+import org.openrndr.math.transforms.transform
 
 data class OrientedEllipse(val center: Vector2, val xRadius: Double, val yRadius: Double, val rotation: Double = 0.0) {
     constructor(x: Double, y: Double, xRadius: Double, yRadius: Double, rotation: Double) : this(Vector2(x, y), xRadius, yRadius, rotation)
@@ -37,6 +37,12 @@ data class OrientedEllipse(val center: Vector2, val xRadius: Double, val yRadius
             val xm = x + width / 2        // x-middle
             val ym = y + height / 2       // y-middle
 
+            val t = transform {
+                translate(center)
+                rotate(Vector3.UNIT_Z, rotation)
+                translate(-center)
+            }
+
             return contour {
                 moveTo(Vector2(x, ym))
                 curveTo(Vector2(x, ym - oy), Vector2(xm - ox, y), Vector2(xm, y))
@@ -44,6 +50,6 @@ data class OrientedEllipse(val center: Vector2, val xRadius: Double, val yRadius
                 curveTo(Vector2(xe, ym + oy), Vector2(xm + ox, ye), Vector2(xm, ye))
                 curveTo(Vector2(xm - ox, ye), Vector2(x, ym + oy), Vector2(x, ym))
                 close()
-            }.transform(Matrix44.rotateZ(rotation))
+            }.transform(t)
         }
 }
