@@ -34,7 +34,7 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.util.*
 
-internal data class ConversionEntry(val format: ColorFormat, val type: ColorType, val glFormat: Int, val glType : Int)
+internal data class ConversionEntry(val format: ColorFormat, val type: ColorType, val glFormat: Int, val glType: Int)
 
 private val logger = KotlinLogging.logger {}
 
@@ -46,8 +46,8 @@ enum class TextureStorageModeGL {
 internal fun internalFormat(format: ColorFormat, type: ColorType): Pair<Int, Int> {
     val entries = arrayOf(
             ConversionEntry(ColorFormat.R, ColorType.UINT8, GL_R8, GL_RED),
-            ConversionEntry(ColorFormat.R, ColorType.UINT8_INT, GL_R8UI,  GL_RED_INTEGER),
-            ConversionEntry(ColorFormat.R, ColorType.SINT8_INT, GL_R8I,  GL_RED_INTEGER),
+            ConversionEntry(ColorFormat.R, ColorType.UINT8_INT, GL_R8UI, GL_RED_INTEGER),
+            ConversionEntry(ColorFormat.R, ColorType.SINT8_INT, GL_R8I, GL_RED_INTEGER),
             ConversionEntry(ColorFormat.R, ColorType.UINT16, GL_R16, GL_RED),
             ConversionEntry(ColorFormat.R, ColorType.UINT16_INT, GL_R16UI, GL_RED_INTEGER),
             ConversionEntry(ColorFormat.R, ColorType.SINT16_INT, GL_RG16I, GL_RED_INTEGER),
@@ -129,7 +129,6 @@ class ColorBufferGL3(val target: Int,
                      override val levels: Int,
                      override val multisample: BufferMultisample,
                      override val session: Session?) : ColorBuffer {
-
 
 
     private var destroyed = false
@@ -222,7 +221,7 @@ class ColorBufferGL3(val target: Int,
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, levels - 1)
             }
 
-            when(storageMode) {
+            when (storageMode) {
                 TextureStorageModeGL.IMAGE -> {
                     for (level in 0 until levels) {
                         val div = 1 shl level
@@ -234,11 +233,11 @@ class ColorBufferGL3(val target: Int,
                     }
                 }
                 TextureStorageModeGL.STORAGE -> {
-                        when (multisample) {
-                            Disabled ->
-                                glTexStorage2D(GL_TEXTURE_2D, levels, internalFormat, effectiveWidth, effectiveHeight)
-                            is SampleCount -> glTexStorage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, multisample.sampleCount.coerceAtMost(glGetInteger(GL_MAX_COLOR_TEXTURE_SAMPLES)), internalFormat, effectiveWidth, effectiveHeight, true)
-                        }
+                    when (multisample) {
+                        Disabled ->
+                            glTexStorage2D(GL_TEXTURE_2D, levels, internalFormat, effectiveWidth, effectiveHeight)
+                        is SampleCount -> glTexStorage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, multisample.sampleCount.coerceAtMost(glGetInteger(GL_MAX_COLOR_TEXTURE_SAMPLES)), internalFormat, effectiveWidth, effectiveHeight, true)
+                    }
                 }
             }
             checkGLErrors {
@@ -327,7 +326,7 @@ class ColorBufferGL3(val target: Int,
     }
 
     override fun copyTo(target: ColorBuffer, fromLevel: Int, toLevel: Int) {
-        val useFrameBufferCopy = Driver.glVersion < DriverVersionGL.VERSION_4_3 || (this.type.compressed || target.type.compressed)
+        val useFrameBufferCopy = Driver.glVersion < DriverVersionGL.VERSION_4_3 || (type != target.type || format != target.format)
 
         if (useFrameBufferCopy) {
             checkDestroyed()
@@ -403,7 +402,7 @@ class ColorBufferGL3(val target: Int,
         checkDestroyed()
 
         val floatColorData = floatArrayOf(color.r.toFloat(), color.g.toFloat(), color.b.toFloat(), color.a.toFloat())
-        when  {
+        when {
             (Driver.glVersion < DriverVersionGL.VERSION_4_4) -> {
                 val writeTarget = renderTarget(width, height, contentScale) {
                     colorBuffer(this@ColorBufferGL3)
