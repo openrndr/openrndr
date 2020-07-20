@@ -102,7 +102,7 @@ fun structureFromShadeStyle(shadeStyle: ShadeStyle?, vertexFormats: List<VertexF
                             outputs = shadeStyle.outputs.map { "// -- output-from  ${it.value} \nlayout(location = ${it.value.attachment}) out ${it.value.glslType} o_${it.key};\n" }.joinToString("")
                         }
                         measure("uniforms") {
-                            uniforms = shadeStyle.parameters.map { "${mapTypeToUniform(it.value)} p_${it.key};\n" }.joinToString("")
+                            uniforms = shadeStyle.parameters.map { "${mapTypeToUniform(it.value, it.key)}"}.joinToString("")
                         }
 
                         measure("buffers") {
@@ -141,42 +141,48 @@ fun structureFromShadeStyle(shadeStyle: ShadeStyle?, vertexFormats: List<VertexF
     }
 }
 
-private fun mapTypeToUniform(type: String): String {
+private fun mapTypeToUniform(type: String, name: String): String {
     val tokens = type.split(",")
     val arraySize = tokens.getOrNull(1)
     val u = "uniform"
+
+    fun String?.arraySizeDefinition() = if (this == null) {
+        ""
+    } else {
+        "\n#define p_${name}_SIZE $arraySize"
+    }
     return when (tokens[0]) {
-        "Boolean", "boolean" -> "$u bool"
-        "Int", "int" -> "$u int${if (arraySize != null) "[$arraySize]" else ""}"
-        "Matrix33" -> "$u mat3"
-        "Matrix44" -> "$u mat4${if (arraySize != null) "[$arraySize]" else ""}"
-        "Float", "float" -> "$u float${if (arraySize != null) "[$arraySize]" else ""}"
-        "Vector2" -> "$u vec2${if (arraySize != null) "[$arraySize]" else ""}"
-        "Vector3" -> "$u vec3${if (arraySize != null) "[$arraySize]" else ""}"
-        "Vector4" -> "$u vec4${if (arraySize != null) "[$arraySize]" else ""}"
-        "IntVector2" -> "$u ivec2${if (arraySize != null) "[$arraySize]" else ""}"
-        "IntVector3" -> "$u ivec3${if (arraySize != null) "[$arraySize]" else ""}"
-        "IntVector4" -> "$u ivec4${if (arraySize != null) "[$arraySize]" else ""}"
-        "ColorRGBa" -> "$u vec4${if (arraySize != null) "[$arraySize]" else ""}"
-        "BufferTexture" -> "$u samplerBuffer"
-        "BufferTexture_UINT" -> "$u usamplerBuffer"
-        "BufferTexture_SINT" -> "$u isamplerBuffer"
-        "ColorBuffer" -> "$u sampler2D"
-        "ColorBuffer_UINT" -> "$u usampler2D"
-        "ColorBuffer_SINT" -> "$u isampler2D"
-        "DepthBuffer" -> "$u sampler2D"
-        "Cubemap" -> "$u samplerCube"
-        "Cubemap_UINT" -> "$u usamplerCube"
-        "Cubemap_SINT" -> "$u isamplerCube"
-        "ArrayCubemap" -> "$u samplerCubeArray"
-        "ArrayCubemap_UINT" -> "$u usamplerCubeArray"
-        "ArrayCubemap_SINT" -> "$u isamplerCubeArray"
-        "ArrayTexture" -> "$u sampler2DArray"
-        "ArrayTexture_UINT" -> "$u usampler2DArray"
-        "ArrayTexture_SINT" -> "$u isampler2DArray"
-        "VolumeTexture" -> "$u sampler3D"
-        "VolumeTexture_UINT" -> "$u usampler3D"
-        "VolumeTexture_SINT" -> "$u isampler3D"
+        "Boolean", "boolean" -> "$u bool;"
+        "Int", "int" -> "$u int${if (arraySize != null) "[$arraySize]" else ""} p_$name; ${arraySize.arraySizeDefinition()}"
+        "Matrix33" -> "$u mat3 p_$name; ${arraySize.arraySizeDefinition()}"
+        "Matrix44" -> "$u mat4${if (arraySize != null) "[$arraySize]" else ""} p_$name; ${arraySize.arraySizeDefinition()}"
+        "Float", "float" -> "$u float${if (arraySize != null) "[$arraySize]" else ""} p_$name; ${arraySize.arraySizeDefinition()}"
+        "Vector2" -> "$u vec2${if (arraySize != null) "[$arraySize]" else ""} p_$name; ${arraySize.arraySizeDefinition()}"
+        "Vector3" -> "$u vec3${if (arraySize != null) "[$arraySize]" else ""} p_$name; ${arraySize.arraySizeDefinition()}"
+        "Vector4" -> "$u vec4${if (arraySize != null) "[$arraySize]" else ""} p_$name; ${arraySize.arraySizeDefinition()}"
+        "IntVector2" -> "$u ivec2${if (arraySize != null) "[$arraySize]" else ""} p_$name; ${arraySize.arraySizeDefinition()}"
+        "IntVector3" -> "$u ivec3${if (arraySize != null) "[$arraySize]" else ""} p_$name; ${arraySize.arraySizeDefinition()}"
+        "IntVector4" -> "$u ivec4${if (arraySize != null) "[$arraySize]" else ""} p_$name; ${arraySize.arraySizeDefinition()}"
+        "ColorRGBa" -> "$u vec4${if (arraySize != null) "[$arraySize]" else ""} p_$name; ${arraySize.arraySizeDefinition()}"
+        "BufferTexture" -> "$u samplerBuffer p_$name;"
+        "BufferTexture_UINT" -> "$u usamplerBuffer p_$name;"
+        "BufferTexture_SINT" -> "$u isamplerBuffer p_$name;"
+        "ColorBuffer" -> "$u sampler2D p_$name;"
+        "ColorBuffer_UINT" -> "$u usampler2D p_$name;"
+        "ColorBuffer_SINT" -> "$u isampler2D p_$name;"
+        "DepthBuffer" -> "$u sampler2D p_$name;"
+        "Cubemap" -> "$u samplerCube p_$name;"
+        "Cubemap_UINT" -> "$u usamplerCube p_$name;"
+        "Cubemap_SINT" -> "$u isamplerCube p_$name;"
+        "ArrayCubemap" -> "$u samplerCubeArray p_$name;"
+        "ArrayCubemap_UINT" -> "$u usamplerCubeArray p_$name;"
+        "ArrayCubemap_SINT" -> "$u isamplerCubeArray p_$name;"
+        "ArrayTexture" -> "$u sampler2DArray p_$name;"
+        "ArrayTexture_UINT" -> "$u usampler2DArray p_$name;"
+        "ArrayTexture_SINT" -> "$u isampler2DArray p_$name;"
+        "VolumeTexture" -> "$u sampler3D p_$name;"
+        "VolumeTexture_UINT" -> "$u usampler3D p_$name;"
+        "VolumeTexture_SINT" -> "$u isampler3D p_$name;"
         "Image2D", "Image3D", "ImageCube", "Image2DArray", "ImageBuffer", "ImageCubeArray" -> {
             val sampler = tokens[0].take(1).toLowerCase() + tokens[0].drop(1)
             val format = ColorFormat.valueOf(tokens[1])
@@ -184,7 +190,7 @@ private fun mapTypeToUniform(type: String): String {
             val access = ImageAccess.valueOf(tokens[3])
             val layout = imageLayout(format, type)
             when (access) {
-                ImageAccess.READ, ImageAccess.READ_WRITE -> "layout($layout) $u $sampler"
+                ImageAccess.READ, ImageAccess.READ_WRITE -> "layout($layout) $u $sampler p_$name;"
                 ImageAccess.WRITE -> "writeonly $u $sampler"
             }
         }
