@@ -163,6 +163,51 @@ fun expandToTwoDigitsPerComponent(hexValue: String) =
                 .map { "$it$it" }
                 .reduce { accumulatedHex, component -> accumulatedHex + component }
 
+internal fun Double.toBoolean() = this.toInt() == 1
+
+internal fun parseArcCommand(p: String): List<List<String>> {
+    val sepReg = Pattern.compile(",|\\s")
+    val boolReg = Pattern.compile("[01]")
+
+    var cursor = 0
+    var group = ""
+    val groups = mutableListOf<String>()
+    val commands = mutableListOf<List<String>>()
+
+    while (cursor <= p.lastIndex) {
+        val token = p[cursor].toString()
+
+        if (sepReg.matcher(token).find()) {
+            if (group.isNotEmpty()) {
+                groups.add(group)
+            }
+
+            group = ""
+        } else {
+            group += token
+
+            if ((boolReg.matcher(token).find() && (groups.size in 3..5)) || cursor == p.lastIndex) {
+                if (group.isNotEmpty()) {
+                    groups.add(group)
+                }
+
+                group = ""
+            }
+        }
+
+        if (groups.size == 7) {
+            commands.add(groups.toList())
+            groups.clear()
+            group = ""
+        }
+
+        cursor++
+    }
+
+    return commands
+}
+
+
 internal class SVGPath : SVGElement() {
     val commands = mutableListOf<Command>()
     var fill: CompositionColor = InheritColor
@@ -174,15 +219,25 @@ internal class SVGPath : SVGElement() {
             val path = SVGPath()
             val rawCommands = svgPath.split("(?=[MmZzLlHhVvCcSsQqTtAa])".toRegex()).dropLastWhile { it.isEmpty() }
             val numbers = Pattern.compile("[-+]?[0-9]*[.]?[0-9]+(?:[eE][-+]?[0-9]+)?")
+            val arcOpReg = Pattern.compile("[aA]")
 
             for (rawCommand in rawCommands) {
                 if (rawCommand.isNotEmpty()) {
-                    val numberMatcher = numbers.matcher(rawCommand)
-                    val operands = mutableListOf<Double>()
-                    while (numberMatcher.find()) {
-                        operands.add(numberMatcher.group().toDouble())
+                    // Special case for arcTo command where the "numbers" RegExp breaks
+                    if (arcOpReg.matcher(rawCommand[0].toString()).find()) {
+                        parseArcCommand(rawCommand.substring(1)).forEach {
+                            val operands = it.map { operand -> operand.toDouble() }
+
+                            path.commands.add(Command(rawCommand[0].toString(), *(operands.toDoubleArray())))
+                        }
+                    } else {
+                        val numberMatcher = numbers.matcher(rawCommand)
+                        val operands = mutableListOf<Double>()
+                        while (numberMatcher.find()) {
+                            operands.add(numberMatcher.group().toDouble())
+                        }
+                        path.commands.add(Command(rawCommand[0].toString(), *(operands.toDoubleArray())))
                     }
-                    path.commands.add(Command(rawCommand[0].toString(), *(operands.toDoubleArray())))
                 }
             }
             return path
@@ -222,6 +277,27 @@ internal class SVGPath : SVGElement() {
             var closed = false
             compound.commands.forEach { command ->
                 when (command.op) {
+                    "a", "A" -> {
+                        command.operands.let {
+                            val rx = it[0]
+                            val ry = it[1]
+                            val xAxisRot = it[2]
+                            val largeArcFlag = it[3].toBoolean()
+                            val sweepFlag = it[4].toBoolean()
+
+                            var end = Vector2(it[5], it[6])
+
+                            if (command.op == "a") end += cursor
+
+                            val c = contour {
+                                moveTo(cursor)
+                                arcTo(rx, ry, xAxisRot, largeArcFlag, sweepFlag, end)
+                            }.segments
+
+                            segments += c
+                            cursor = end
+                        }
+                    }
                     "M" -> {
                         cursor = command.vector(0, 1)
                         anchor = cursor
