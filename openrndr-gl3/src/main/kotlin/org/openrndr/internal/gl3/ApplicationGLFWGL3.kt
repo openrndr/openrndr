@@ -431,10 +431,10 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
 
         var lastDragPosition = Vector2.ZERO
         var lastMouseButtonDown = MouseButton.NONE
-        var globalModifiers = setOf<KeyModifier>()
+        val modifiers = mutableSetOf<KeyModifier>()
 
         glfwSetKeyCallback(window) { _, key, scancode, action, mods ->
-            val modifiers = modifierSet(mods)
+
             val name = when (key) {
                 GLFW_KEY_SPACE -> "space"
                 GLFW_KEY_ENTER -> "enter"
@@ -475,14 +475,39 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
                 GLFW_KEY_CAPS_LOCK -> "caps-lock"
                 else -> glfwGetKeyName(key, scancode) ?: "<null>"
             }
-            globalModifiers = modifiers
+
             when (action) {
                 GLFW_PRESS -> {
+                    // This works around an issue in GLFW: https://github.com/glfw/glfw/issues/1630
+                    if (key == GLFW_KEY_LEFT_ALT || key == GLFW_KEY_RIGHT_ALT) {
+                        modifiers += KeyModifier.ALT
+                    }
+                    if (key == GLFW_KEY_LEFT_CONTROL || key == GLFW_KEY_RIGHT_CONTROL) {
+                        modifiers += KeyModifier.CTRL
+                    }
+                    if (key == GLFW_KEY_LEFT_SHIFT || key == GLFW_KEY_RIGHT_SHIFT) {
+                        modifiers += KeyModifier.SHIFT
+                    }
+                    if (key == GLFW_KEY_LEFT_SUPER || key == GLFW_KEY_RIGHT_SUPER) {
+                        modifiers += KeyModifier.SUPER
+                    }
                     program.keyboard.keyDown.trigger(KeyEvent(KeyEventType.KEY_DOWN, key, name, modifiers))
                     program.keyboard.pressedKeys.add(name)
                 }
 
                 GLFW_RELEASE -> {
+                    if (key == GLFW_KEY_LEFT_ALT || key == GLFW_KEY_RIGHT_ALT) {
+                        modifiers -= KeyModifier.ALT
+                    }
+                    if (key == GLFW_KEY_LEFT_CONTROL || key == GLFW_KEY_RIGHT_CONTROL) {
+                        modifiers -= KeyModifier.CTRL
+                    }
+                    if (key == GLFW_KEY_LEFT_SHIFT || key == GLFW_KEY_RIGHT_SHIFT) {
+                        modifiers -= KeyModifier.SHIFT
+                    }
+                    if (key == GLFW_KEY_LEFT_SUPER || key == GLFW_KEY_RIGHT_SUPER) {
+                        modifiers -= KeyModifier.SUPER
+                    }
                     program.keyboard.keyUp.trigger(KeyEvent(KeyEventType.KEY_UP, key, name, modifiers))
                     program.keyboard.pressedKeys.remove(name)
                 }
@@ -507,7 +532,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
 
         var down = false
         glfwSetScrollCallback(window) { _, xoffset, yoffset ->
-            program.mouse.scrolled.trigger(MouseEvent(program.mouse.position, Vector2(xoffset, yoffset), Vector2.ZERO, MouseEventType.SCROLLED, MouseButton.NONE, globalModifiers))
+            program.mouse.scrolled.trigger(MouseEvent(program.mouse.position, Vector2(xoffset, yoffset), Vector2.ZERO, MouseEventType.SCROLLED, MouseButton.NONE, modifiers))
         }
 
         glfwSetWindowIconifyCallback(window) { _, iconified ->
@@ -534,21 +559,9 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
                 else -> MouseButton.NONE
             }
 
-            val modifiers = mutableSetOf<KeyModifier>()
+
             val buttonsDown = BitSet()
 
-            if (mods and GLFW_MOD_SHIFT != 0) {
-                modifiers.add(KeyModifier.SHIFT)
-            }
-            if (mods and GLFW_MOD_ALT != 0) {
-                modifiers.add(KeyModifier.ALT)
-            }
-            if (mods and GLFW_MOD_CONTROL != 0) {
-                modifiers.add(KeyModifier.CTRL)
-            }
-            if (mods and GLFW_MOD_SUPER != 0) {
-                modifiers.add(KeyModifier.SUPER)
-            }
 
             if (action == GLFW_PRESS) {
                 down = true
@@ -575,10 +588,10 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
             val position = if (fixWindowSize) Vector2(xpos, ypos) / program.window.scale else Vector2(xpos, ypos)
             logger.trace { "mouse moved $xpos $ypos -- $position" }
             realCursorPosition = position
-            program.mouse.moved.trigger(MouseEvent(position, Vector2.ZERO, Vector2.ZERO, MouseEventType.MOVED, MouseButton.NONE, globalModifiers))
+            program.mouse.moved.trigger(MouseEvent(position, Vector2.ZERO, Vector2.ZERO, MouseEventType.MOVED, MouseButton.NONE, modifiers))
             if (down) {
                 program.mouse.dragged.trigger(MouseEvent(position, Vector2.ZERO, position - lastDragPosition,
-                        MouseEventType.DRAGGED, lastMouseButtonDown, globalModifiers))
+                        MouseEventType.DRAGGED, lastMouseButtonDown, modifiers))
                 lastDragPosition = position
             }
         }
