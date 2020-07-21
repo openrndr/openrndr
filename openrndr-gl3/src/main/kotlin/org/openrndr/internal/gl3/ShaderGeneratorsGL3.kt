@@ -10,6 +10,16 @@ import org.openrndr.internal.ShaderGenerators
 fun glslVersion(): String = (Driver.instance as DriverGL3).version.glslVersion
 
 @Language("GLSL")
+private val rotate2 = """mat2 rotate2(float rotationInDegrees) {
+    float r = radians(rotationInDegrees);
+    float cr = cos(r);
+    float sr = sin(r);
+    return mat2(vec2(cr, sr), vec2(-sr, cr));
+}
+""".trimIndent()
+
+
+@Language("GLSL")
 private fun primitiveTypes(type: String) = """
 // -- primitiveTypes
 #define d_vertex_buffer 0
@@ -596,6 +606,7 @@ ${shadeStructure.vertexPreamble ?: ""}
 
 flat out int v_instance;
 out vec3 v_boundsSize;
+${rotate2}
 
 void main() {
     v_instance =  gl_InstanceID;
@@ -603,7 +614,9 @@ void main() {
     ${shadeStructure.varyingBridge ?: ""}
     ${preTransform}
     vec3 x_normal = vec3(0.0, 0.0, 1.0);
-    vec3 x_position = a_position * vec3(i_dimensions,1.0) + i_offset;
+    vec2 rotatedPosition = rotate2(i_rotation) * (( a_position.xy - vec2(0.5) ) * i_dimensions) + vec2(0.5) * i_dimensions;
+      
+    vec3 x_position = vec3(rotatedPosition, 0.0) + i_offset;
     v_boundsSize = vec3(i_dimensions, 1.0);
     {
         ${shadeStructure.vertexTransform ?: ""}
