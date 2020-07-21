@@ -144,6 +144,7 @@ open class Filter(private val shader: Shader? = null, private val watcher: Shade
                     is IntVector3 -> shader.uniform(uniform, value as Array<IntVector3>)
                     is IntVector4 -> shader.uniform(uniform, value as Array<IntVector4>)
                     is ColorRGBa -> shader.uniform(uniform, value as Array<ColorRGBa>)
+                    is Double -> shader.uniform(uniform, value as Array<Double>)
                     else -> throw IllegalArgumentException("unsupported array value: ${value[0]!!::class.java}")
                     //is ColorRGBa -> shader.uniform(uniform, value as Array<ColorRGBa>)
                 }

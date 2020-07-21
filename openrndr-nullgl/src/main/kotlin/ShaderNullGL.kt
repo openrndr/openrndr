@@ -100,6 +100,10 @@ class ShaderNullGL(override val session: Session?) : Shader {
 
     }
 
+    override fun uniform(name: String, value: Array<Double>) {
+
+    }
+
     override fun uniform(name: String, value: Array<ColorRGBa>) {
 
     }

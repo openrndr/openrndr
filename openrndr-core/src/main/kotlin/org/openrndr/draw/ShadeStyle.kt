@@ -384,6 +384,9 @@ open class ShadeStyle {
                             is ColorRGBa -> {
                                 "ColorRGBa, ${value.size}"
                             }
+                            is Double -> {
+                                "float, ${value.size}"
+                            }
                             is IntVector2 -> {
                                 "IntVector2, ${value.size}"
                             }

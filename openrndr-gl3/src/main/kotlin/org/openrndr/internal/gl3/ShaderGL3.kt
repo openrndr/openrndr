@@ -563,6 +563,20 @@ class ShaderGL3(val program: Int,
         }
     }
 
+    override fun uniform(name: String, value: Array<Double>) {
+        val index = uniformIndex(name)
+        if (index != -1) {
+            logger.trace { "Setting uniform '$name' to $value" }
+
+            val floatValues = FloatArray(value.size) {
+                i -> value[i].toFloat()
+            }
+
+            glUniform1fv(index, floatValues)
+            postUniformCheck(name, index, value)
+        }
+    }
+
     override fun uniform(name: String, value: Array<ColorRGBa>) {
         val index = uniformIndex(name)
         if (index != -1) {

@@ -85,6 +85,7 @@ interface Shader : ShaderImageBindings {
     fun uniform(name: String, value: Array<IntVector3>)
     fun uniform(name: String, value: Array<IntVector2>)
     fun uniform(name: String, value: Array<ColorRGBa>)
+    fun uniform(name: String, value: Array<Double>)
 
     fun uniform(name: String, value: FloatArray)
     fun uniform(name: String, value: IntArray)
