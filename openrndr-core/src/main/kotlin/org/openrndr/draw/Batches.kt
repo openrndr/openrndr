@@ -22,6 +22,12 @@ val circleFormat = vertexFormat {
     attribute("radius", VertexElementType.VECTOR2_FLOAT32)
 }
 
+val rectangleFormat = vertexFormat {
+    attribute("offset", VertexElementType.VECTOR3_FLOAT32)
+    attribute("dimensions", VertexElementType.VECTOR2_FLOAT32)
+    attribute("rotation", VertexElementType.FLOAT32)
+}
+
 /**
  * Stored circle batch
  */
@@ -51,11 +57,7 @@ class CircleBatch(val geometry: VertexBuffer, val drawStyle: VertexBuffer) {
 }
 
 
-/**
- * Builder for stored circle batches
- */
-class CircleBatchBuilder(val drawer: Drawer) {
-
+open class BatchBuilder(val drawer: Drawer) {
     /**
      * Active fill color
      */
@@ -71,6 +73,12 @@ class CircleBatchBuilder(val drawer: Drawer) {
      */
     var strokeWeight = drawer.strokeWeight
 
+}
+
+/**
+ * Builder for stored circle batches
+ */
+class CircleBatchBuilder(drawer: Drawer) : BatchBuilder(drawer) {
     class Entry(
             val fill: ColorRGBa?,
             val stroke: ColorRGBa?,
@@ -161,4 +169,81 @@ fun Drawer.circleBatch(build: CircleBatchBuilder.() -> Unit): CircleBatch {
     val circleBatchBuilder = CircleBatchBuilder(this)
     circleBatchBuilder.build()
     return circleBatchBuilder.batch()
+}
+
+
+class RectangleBatch(val geometry: VertexBuffer, val drawStyle: VertexBuffer) {
+    init {
+        require(geometry.vertexFormat == rectangleFormat)
+        require(drawStyle.vertexFormat == drawStyleFormat)
+        require(geometry.vertexCount == drawStyle.vertexCount)
+    }
+
+    val size
+        get() = geometry.vertexCount
+
+    companion object {
+        fun create(size: Int, session: Session? = Session.active): RectangleBatch {
+            return RectangleBatch(vertexBuffer(rectangleFormat, size, session), vertexBuffer(drawStyleFormat, size, session))
+        }
+    }
+
+    /**
+     * Destroy the stored batch
+     */
+    fun destroy() {
+        geometry.destroy()
+        drawStyle.destroy()
+    }
+}
+
+
+class RectangleBatchBuilder(drawer: Drawer) : BatchBuilder(drawer) {
+    class Entry(
+            val fill: ColorRGBa?,
+            val stroke: ColorRGBa?,
+            val strokeWeight: Double,
+            val offset: Vector3,
+            val dimensions: Vector2,
+            val rotation: Double
+    )
+
+    val entries = mutableListOf<Entry>()
+
+    fun rectangle(x: Double, y: Double, width: Double, height: Double, rotationInDegrees: Double = 0.0) {
+        entries.add(Entry(fill, stroke, strokeWeight, Vector3(x, y, 0.0), Vector2(width, height), rotationInDegrees))
+    }
+
+    /**
+     * Generate the stored batch
+     */
+    fun batch(existingBatch: RectangleBatch? = null): RectangleBatch {
+        val geometry = existingBatch?.geometry ?: vertexBuffer(rectangleFormat, entries.size)
+        geometry.put {
+            for (entry in entries) {
+                write(entry.offset)
+                write(entry.dimensions)
+                write(entry.rotation.toFloat())
+            }
+        }
+
+        val drawStyle = existingBatch?.drawStyle ?: vertexBuffer(drawStyleFormat, entries.size)
+        drawStyle.put {
+            for (entry in entries) {
+                write(entry.fill ?: ColorRGBa.TRANSPARENT)
+                write(entry.stroke ?: ColorRGBa.TRANSPARENT)
+                write(if (entry.stroke == null) 0.0f else entry.strokeWeight.toFloat())
+            }
+        }
+        return existingBatch ?: RectangleBatch(geometry, drawStyle)
+    }
+}
+
+/**
+ * Create a stored batch of rectangles
+ */
+fun Drawer.rectangleBatch(build: RectangleBatchBuilder.() -> Unit): RectangleBatch {
+    val rectangleBatchBuilder = RectangleBatchBuilder(this)
+    rectangleBatchBuilder.build()
+    return rectangleBatchBuilder.batch()
 }

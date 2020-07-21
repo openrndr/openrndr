@@ -2,12 +2,14 @@
 
 package org.openrndr.internal.gl3
 
+import org.intellij.lang.annotations.Language
 import org.openrndr.draw.ShadeStructure
 import org.openrndr.internal.Driver
 import org.openrndr.internal.ShaderGenerators
 
 fun glslVersion(): String = (Driver.instance as DriverGL3).version.glslVersion
 
+@Language("GLSL")
 private fun primitiveTypes(type: String) = """
 // -- primitiveTypes
 #define d_vertex_buffer 0
@@ -22,11 +24,13 @@ private fun primitiveTypes(type: String) = """
 #define d_primitive $type
 """
 
+@Language("GLSL")
 fun vertexConstants(instance: String = "gl_InstanceID", element: String = "0") = """
 |    int c_instance = $instance;
 |    int c_element = $element;
 """.trimMargin()
 
+@Language("GLSL")
 fun fragmentConstants(
         instance: String = "v_instance",
         element: String = "0",
@@ -43,6 +47,7 @@ fun fragmentConstants(
 |    vec3 c_boundsSize = $boundsSize;
 """.trimMargin()
 
+@Language("GLSL")
 private const val drawerUniforms = """
 // -- drawerUniforms    
 layout(shared) uniform ContextBlock {
@@ -63,6 +68,7 @@ layout(shared) uniform StyleBlock {
 };
 """
 
+@Language("GLSL")
 private const val transformVaryingOut = """
 // -- transformVaryingOut    
 out vec3 v_worldNormal;
@@ -74,6 +80,7 @@ out vec4 v_clipPosition;
 flat out mat4 v_modelNormalMatrix;
 """
 
+@Language("GLSL")
 private const val transformVaryingIn = """
 // -- transformVaryingIn
 in vec3 v_worldNormal;
@@ -84,6 +91,7 @@ in vec4 v_clipPosition;
 flat in mat4 v_modelNormalMatrix;
 """
 
+@Language("GLSL")
 private const val preTransform = """
     // -- preTransform
     mat4 x_modelMatrix = u_modelMatrix;
@@ -549,16 +557,16 @@ void main(void) {
     ${fragmentConstants(
             boundsPosition = "vec3(va_texCoord0, 0.0)",
             boundsSize = "v_boundsSize")}
-    vec4 x_fill = u_fill;
-    vec4 x_stroke = u_stroke;
+    vec4 x_fill = vi_fill;
+    vec4 x_stroke = vi_stroke;
     {
         ${shadeStructure.fragmentTransform ?: ""}
     }
     vec2 wd = fwidth(va_texCoord0 - vec2(0.5));
     vec2 d = abs((va_texCoord0 - vec2(0.5)) * 2);
 
-    float irx = smoothstep(0.0, wd.x * 2.5, 1.0-d.x - u_strokeWeight*2.0/vi_dimensions.x);
-    float iry = smoothstep(0.0, wd.y * 2.5, 1.0-d.y - u_strokeWeight*2.0/vi_dimensions.y);
+    float irx = smoothstep(0.0, wd.x * 2.5, 1.0-d.x - vi_strokeWeight*2.0/vi_dimensions.x);
+    float iry = smoothstep(0.0, wd.y * 2.5, 1.0-d.y - vi_strokeWeight*2.0/vi_dimensions.y);
     float ir = irx*iry;
 
     vec4 final = vec4(1.0);
