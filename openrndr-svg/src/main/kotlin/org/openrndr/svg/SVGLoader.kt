@@ -14,7 +14,7 @@ import java.net.URL
 import java.util.regex.Pattern
 
 /**
- * Load a [Composition] from a file, url or svg string
+ * Load a [Composition] from a filename, url or svg string
  * @param fileOrUrlOrSvg a filename, a url or an svg document
  */
 fun loadSVG(fileOrUrlOrSvg: String): Composition {
@@ -28,6 +28,14 @@ fun loadSVG(fileOrUrlOrSvg: String): Composition {
     } else {
         parseSVG(fileOrUrlOrSvg)
     }
+}
+
+/**
+ * Load a [Composition] from a file, url or svg string
+ * @param file a filename, a url or an svg document
+ */
+fun loadSVG(file: File): Composition {
+    return parseSVG(file.readText())
 }
 
 /**
