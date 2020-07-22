@@ -152,7 +152,7 @@ private fun mapTypeToUniform(type: String, name: String): String {
         "\n#define p_${name}_SIZE $arraySize"
     }
     return when (tokens[0]) {
-        "Boolean", "boolean" -> "$u bool;"
+        "Boolean", "boolean" -> "$u bool p_$name;"
         "Int", "int" -> "$u int${if (arraySize != null) "[$arraySize]" else ""} p_$name; ${arraySize.arraySizeDefinition()}"
         "Matrix33" -> "$u mat3 p_$name; ${arraySize.arraySizeDefinition()}"
         "Matrix44" -> "$u mat4${if (arraySize != null) "[$arraySize]" else ""} p_$name; ${arraySize.arraySizeDefinition()}"
@@ -191,7 +191,7 @@ private fun mapTypeToUniform(type: String, name: String): String {
             val layout = imageLayout(format, type)
             when (access) {
                 ImageAccess.READ, ImageAccess.READ_WRITE -> "layout($layout) $u $sampler p_$name;"
-                ImageAccess.WRITE -> "writeonly $u $sampler"
+                ImageAccess.WRITE -> "writeonly $u $sampler p_$name"
             }
         }
         else -> throw RuntimeException("unsupported type $type")
