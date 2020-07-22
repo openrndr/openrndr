@@ -4,6 +4,7 @@ import org.openrndr.color.ColorRGBa
 import org.openrndr.math.Vector2
 import org.openrndr.math.Vector3
 import org.openrndr.shape.Circle
+import org.openrndr.shape.Rectangle
 
 fun BufferWriter.write(drawStyle: DrawStyle) {
     write(drawStyle.fill ?: ColorRGBa.TRANSPARENT)
@@ -212,6 +213,20 @@ class RectangleBatchBuilder(drawer: Drawer) : BatchBuilder(drawer) {
 
     fun rectangle(x: Double, y: Double, width: Double, height: Double, rotationInDegrees: Double = 0.0) {
         entries.add(Entry(fill, stroke, strokeWeight, Vector3(x, y, 0.0), Vector2(width, height), rotationInDegrees))
+    }
+
+    fun rectangle(corner: Vector2, width: Double, height: Double, rotationInDegrees: Double = 0.0) {
+        entries.add(Entry(fill, stroke, strokeWeight, corner.xy0, Vector2(width, height), rotationInDegrees))
+    }
+
+    fun rectangle(rectangle: Rectangle, rotationInDegrees: Double = 0.0) {
+        entries.add(Entry(fill, stroke, strokeWeight, rectangle.corner.xy0, Vector2(rectangle.width, rectangle.height), rotationInDegrees))
+    }
+
+    fun rectangles(rectangles: List<Rectangle>) {
+        for (rectangle in rectangles) {
+            rectangle(rectangle)
+        }
     }
 
     /**
