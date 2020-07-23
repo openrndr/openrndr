@@ -6,10 +6,7 @@ import org.openrndr.math.*
 import org.openrndr.shape.internal.BezierCubicSampler2D
 import org.openrndr.shape.internal.BezierQuadraticSampler2D
 import java.util.*
-import kotlin.math.abs
-import kotlin.math.min
-import kotlin.math.sign
-import kotlin.math.sqrt
+import kotlin.math.*
 
 class SegmentProjection(val segment: Segment, val projection: Double, val distance: Double, val point: Vector2)
 class ContourProjection(val segmentProjection: SegmentProjection, val projection: Double, val distance: Double, val point: Vector2)
@@ -1203,3 +1200,21 @@ class Shape(val contours: List<ShapeContour>) {
 }
 
 class Compound(val shapes: List<Shape>)
+
+fun CatmullRom2.toSegment(): Segment {
+    val d1a2 = (p1 - p0).length.pow(2 * alpha)
+    val d2a2 = (p2 - p1).length.pow(2 * alpha)
+    val d3a2 = (p3 - p2).length.pow(2 * alpha)
+    val d1a = (p1 - p0).length.pow(alpha)
+    val d2a = (p2 - p1).length.pow(alpha)
+    val d3a = (p3 - p2).length.pow(alpha)
+
+    val b0 = p1
+    val b1 = (p2 * d1a2 - p0 * d2a2 + p1 * (2 * d1a2 + 3 * d1a * d2a + d2a2)) / (3 * d1a * (d1a + d2a))
+    val b2 = (p1 * d3a2 - p3 * d2a2 + p2 * (2 * d3a2 + 3 * d3a * d2a + d2a2)) / (3 * d3a * (d3a + d2a))
+    val b3 = p2
+
+    return Segment(b0, b1, b2, b3)
+}
+
+fun CatmullRomChain2.toContour(): ShapeContour = ShapeContour(segments.map { it.toSegment() }, this.loop)

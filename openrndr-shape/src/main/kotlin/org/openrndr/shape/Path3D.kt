@@ -1,8 +1,10 @@
 package org.openrndr.shape
 
+import org.openrndr.math.CatmullRom3
+import org.openrndr.math.CatmullRomChain3
 import org.openrndr.math.Matrix44
-import org.openrndr.math.Vector2
 import org.openrndr.math.Vector3
+import kotlin.math.pow
 
 
 class PathProjection3D(val segmentProjection: SegmentProjection3D, val projection: Double, val distance: Double, val point: Vector3)
@@ -14,7 +16,7 @@ class Path3D(val segments: List<Segment3D>, val closed: Boolean) {
                 if (!closed)
                     Path3D((0 until points.size - 1).map { Segment3D(points[it], points[it + 1]) }, closed)
                 else
-                    Path3D((0 until points.size).map { Segment3D(points[it], points[(it + 1)%points.size]) }, closed)
+                    Path3D((0 until points.size).map { Segment3D(points[it], points[(it + 1) % points.size]) }, closed)
     }
 
     val exploded: List<Path3D>
@@ -248,6 +250,23 @@ class Path3D(val segments: List<Segment3D>, val closed: Boolean) {
         result = 31 * result + closed.hashCode()
         return result
     }
-
-
 }
+
+
+fun CatmullRom3.toSegment(): Segment3D {
+    val d1a2 = (p1 - p0).length.pow(2 * alpha)
+    val d2a2 = (p2 - p1).length.pow(2 * alpha)
+    val d3a2 = (p3 - p2).length.pow(2 * alpha)
+    val d1a = (p1 - p0).length.pow(alpha)
+    val d2a = (p2 - p1).length.pow(alpha)
+    val d3a = (p3 - p2).length.pow(alpha)
+
+    val b0 = p1
+    val b1 = (p2 * d1a2 - p0 * d2a2 + p1 * (2 * d1a2 + 3 * d1a * d2a + d2a2)) / (3 * d1a * (d1a + d2a))
+    val b2 = (p1 * d3a2 - p3 * d2a2 + p2 * (2 * d3a2 + 3 * d3a * d2a + d2a2)) / (3 * d3a * (d3a + d2a))
+    val b3 = p2
+
+    return Segment3D(b0, b1, b2, b3)
+}
+
+fun CatmullRomChain3.toPath3D(): Path3D = Path3D(segments.map { it.toSegment() }, this.loop)
