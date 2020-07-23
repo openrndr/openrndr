@@ -113,6 +113,10 @@ data class LineSegment(val start: Vector2, val end: Vector2) {
         )
     }
 
+    fun extend(times:Double) : LineSegment {
+        return LineSegment(start-direction*times, end+direction*times)
+    }
+
     val contour: ShapeContour
         get() = ShapeContour.fromPoints(listOf(start, end), false, YPolarity.CW_NEGATIVE_Y)
 
