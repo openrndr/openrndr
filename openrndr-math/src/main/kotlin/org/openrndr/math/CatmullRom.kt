@@ -50,10 +50,16 @@ class CatmulRom1(val p0: Double, val p1: Double, val p2: Double, val p3: Double,
 class CatmullRomChain1(points: List<Double>, alpha: Double = 0.5, val loop: Boolean = false) {
     val segments = if (!loop) points.windowed(4, 1).map {
         CatmulRom1(it[0], it[1], it[2], it[3], alpha)
-    } else
-        (points + points.subList(0, 3)).windowed(4, 1).map {
+    } else {
+        val cleanPoints = if (loop && abs(points.first() - (points.last())) <= 1.0E-6) {
+            points.dropLast(1)
+        } else {
+            points
+        }
+        (cleanPoints.takeLast(2) + cleanPoints.subList(0, 3) + cleanPoints.take(2)).windowed(4, 1).map {
             CatmulRom1(it[0], it[1], it[2], it[3], alpha)
         }
+    }
 
     fun position(rt: Double): Double {
         val st = if (loop) mod(rt, 1.0) else rt.coerceIn(0.0, 1.0)
@@ -101,7 +107,12 @@ class CatmullRomChain2(points: List<Vector2>, alpha: Double = 0.5, val loop: Boo
             CatmullRom2(it[0], it[1], it[2], it[3], alpha)
         }
     } else {
-        (points + points.subList(0, 3)).windowed(4, 1).map {
+        val cleanPoints = if (loop && points.first().distanceTo(points.last()) <= 1.0E-6) {
+            points.dropLast(1)
+        } else {
+            points
+        }
+        (cleanPoints.takeLast(2) + cleanPoints + cleanPoints.take(2)).windowed(4, 1).map {
             CatmullRom2(it[0], it[1], it[2], it[3], alpha)
         }
     }
@@ -158,7 +169,12 @@ class CatmullRomChain3(points: List<Vector3>, alpha: Double = 0.5, val loop: Boo
             CatmullRom3(it[0], it[1], it[2], it[3], alpha)
         }
     } else {
-        (points + points.subList(0, 3)).windowed(4, 1).map {
+        val cleanPoints = if (loop && points.first().distanceTo(points.last()) <= 1.0E-6) {
+            points.dropLast(1)
+        } else {
+            points
+        }
+        (cleanPoints.takeLast(2) + cleanPoints + cleanPoints.take(2)).windowed(4, 1).map {
             CatmullRom3(it[0], it[1], it[2], it[3], alpha)
         }
     }
