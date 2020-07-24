@@ -3,6 +3,7 @@ package org.openrndr.ffmpeg
 import org.openrndr.Extension
 import org.openrndr.Program
 import org.openrndr.draw.*
+import org.openrndr.utils.namedTimestamp
 import java.io.File
 import java.time.LocalDateTime
 
@@ -55,15 +56,6 @@ class ScreenRecorder : Extension {
             }
         }
 
-        fun Int.z(zeroes: Int = 2): String {
-            val sv = this.toString()
-            var prefix = ""
-            for (i in 0 until Math.max(zeroes - sv.length, 0)) {
-                prefix += "0"
-            }
-            return "$prefix$sv"
-        }
-
         val effectiveWidth = (program.width * contentScale).toInt()
         val effectiveHeight = (program.height * contentScale).toInt()
 
@@ -76,10 +68,8 @@ class ScreenRecorder : Extension {
             resolved = colorBuffer(effectiveWidth, effectiveHeight)
         }
 
-        val dt = LocalDateTime.now()
-        val basename = program.name.ifBlank { program.window.title.ifBlank { "untitled" } }
         val filename = outputFile
-                ?: "video/$basename-${dt.year.z(4)}-${dt.month.value.z()}-${dt.dayOfMonth.z()}-${dt.hour.z()}.${dt.minute.z()}.${dt.second.z()}.${profile.fileExtension}"
+                ?: program.namedTimestamp(profile.fileExtension,"video/")
 
         File(filename).parentFile?.let {
             if (!it.exists()) {

@@ -8,6 +8,7 @@ import java.io.File
 import java.time.LocalDateTime
 import mu.KotlinLogging
 import org.openrndr.events.Event
+import org.openrndr.utils.namedTimestamp
 import kotlin.math.max
 
 private val logger = KotlinLogging.logger {}
@@ -124,15 +125,6 @@ open class Screenshots : Extension {
 
     private var filename: String? = null
     override fun beforeDraw(drawer: Drawer, program: Program) {
-        fun Int.z(zeroes: Int = 2): String {
-            val sv = this.toString()
-            var prefix = ""
-            for (i in 0 until max(zeroes - sv.length, 0)) {
-                prefix += "0"
-            }
-            return "$prefix$sv"
-        }
-
         if (createScreenshot != None && delayFrames-- <= 0) {
             val targetWidth = (program.width * scale).toInt()
             val targetHeight = (program.height * scale).toInt()
@@ -147,12 +139,9 @@ open class Screenshots : Extension {
             }
             target?.bind()
 
-            val dt = LocalDateTime.now()
-            val basename = program.name.ifBlank { program.window.title.ifBlank { "untitled" } }
-
             filename = when (val cs = createScreenshot) {
                 None -> throw IllegalStateException("")
-                AutoNamed -> "${if (folder == null) "" else "$folder/"}$basename-${dt.year.z(4)}-${dt.month.value.z()}-${dt.dayOfMonth.z()}-${dt.hour.z()}.${dt.minute.z()}.${dt.second.z()}.png"
+                AutoNamed -> program.namedTimestamp("png", folder)
                 is Named -> cs.name
             }
 
