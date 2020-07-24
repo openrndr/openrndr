@@ -56,7 +56,7 @@ class CatmullRomChain1(points: List<Double>, alpha: Double = 0.5, val loop: Bool
         } else {
             points
         }
-        (cleanPoints.takeLast(2) + cleanPoints.subList(0, 3) + cleanPoints.take(2)).windowed(4, 1).map {
+        (cleanPoints + cleanPoints.take(3)).windowed(4, 1).map {
             CatmulRom1(it[0], it[1], it[2], it[3], alpha)
         }
     }
@@ -112,7 +112,7 @@ class CatmullRomChain2(points: List<Vector2>, alpha: Double = 0.5, val loop: Boo
         } else {
             points
         }
-        (cleanPoints.takeLast(2) + cleanPoints + cleanPoints.take(2)).windowed(4, 1).map {
+        (cleanPoints + cleanPoints.take(3)).windowed(4, 1).map {
             CatmullRom2(it[0], it[1], it[2], it[3], alpha)
         }
     }
@@ -174,7 +174,7 @@ class CatmullRomChain3(points: List<Vector3>, alpha: Double = 0.5, val loop: Boo
         } else {
             points
         }
-        (cleanPoints.takeLast(2) + cleanPoints + cleanPoints.take(2)).windowed(4, 1).map {
+        (cleanPoints + cleanPoints + cleanPoints.take(3)).windowed(4, 1).map {
             CatmullRom3(it[0], it[1], it[2], it[3], alpha)
         }
     }
