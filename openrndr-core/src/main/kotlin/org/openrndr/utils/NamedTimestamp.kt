@@ -10,7 +10,8 @@ import java.time.LocalDateTime
  * `basename` defaults to the current program or window name.
  * Used by ScreenRecorder, Screenshots and available to the user.
  */
-fun Program.namedTimestamp(extension: String, folder: String? = null): String {
+fun Program.namedTimestamp(extension: String = "", folder: String? = null):
+        String {
     val now = LocalDateTime.now()
     val basename = this.name.ifBlank { this.window.title.ifBlank { "untitled" } }
     val path = when {
@@ -18,8 +19,13 @@ fun Program.namedTimestamp(extension: String, folder: String? = null): String {
         folder.endsWith("/") -> folder
         else -> "$folder/"
     }
+    val ext = when {
+        extension.isEmpty() -> ""
+        extension.startsWith(".") -> extension
+        else -> ".$extension"
+    }
 
-    return "$path$basename-%04d-%02d-%02d-%02d.%02d.%02d.$extension".format(
+    return "$path$basename-%04d-%02d-%02d-%02d.%02d.%02d$ext".format(
             now.year, now.month.value, now.dayOfMonth,
             now.hour, now.minute, now.second)
 }
