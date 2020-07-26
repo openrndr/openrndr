@@ -29,6 +29,10 @@ val rectangleFormat = vertexFormat {
     attribute("rotation", VertexElementType.FLOAT32)
 }
 
+val pointFormat = vertexFormat {
+    attribute("offset", VertexElementType.VECTOR3_FLOAT32)
+}
+
 /**
  * Stored circle batch
  */
@@ -261,4 +265,100 @@ fun Drawer.rectangleBatch(build: RectangleBatchBuilder.() -> Unit): RectangleBat
     val rectangleBatchBuilder = RectangleBatchBuilder(this)
     rectangleBatchBuilder.build()
     return rectangleBatchBuilder.batch()
+}
+
+class PointBatch(val geometry: VertexBuffer, val drawStyle: VertexBuffer) {
+    init {
+        require(geometry.vertexFormat == pointFormat)
+        require(drawStyle.vertexFormat == drawStyleFormat)
+        require(geometry.vertexCount == drawStyle.vertexCount)
+    }
+
+    val size
+        get() = geometry.vertexCount
+
+    companion object {
+        fun create(size: Int, session: Session? = Session.active): PointBatch {
+            return PointBatch(vertexBuffer(pointFormat, size, session), vertexBuffer(drawStyleFormat, size, session))
+        }
+    }
+
+    /**
+     * Destroy the stored batch
+     */
+    fun destroy() {
+        geometry.destroy()
+        drawStyle.destroy()
+    }
+}
+
+/**
+* Create a stored batch of points
+*/
+fun Drawer.pointBatch(build: PointBatchBuilder.() -> Unit): PointBatch {
+    val pointBatchBuilder = PointBatchBuilder(this)
+    pointBatchBuilder.build()
+    return pointBatchBuilder.batch()
+}
+
+
+class PointBatchBuilder(drawer: Drawer) : BatchBuilder(drawer) {
+    class Entry(
+            val fill: ColorRGBa?,
+            val offset: Vector3
+    )
+
+    val entries = mutableListOf<Entry>()
+
+    fun point(x: Double, y: Double) {
+        entries.add(Entry(fill, Vector3(x, y, 0.0)))
+    }
+
+    fun point(x: Double, y: Double, z: Double) {
+        entries.add(Entry(fill, Vector3(x, y, z)))
+    }
+
+    fun point(position: Vector2) {
+        entries.add(Entry(fill, position.xy0))
+    }
+
+    fun point(position: Vector3) {
+        entries.add(Entry(fill, position))
+    }
+
+    @JvmName("points3D")
+    fun points(positions: List<Vector3>) {
+        for (position in positions) {
+            point(position)
+        }
+    }
+    @JvmName("points2D")
+    fun points(positions: List<Vector2>) {
+        for (position in positions) {
+            point(position)
+        }
+    }
+
+
+    /**
+     * Generate the stored batch
+     */
+    fun batch(existingBatch: PointBatch? = null): PointBatch {
+        val geometry = existingBatch?.geometry ?: vertexBuffer(pointFormat, entries.size)
+        geometry.put {
+            for (entry in entries) {
+                write(entry.offset)
+            }
+        }
+
+        val drawStyle = existingBatch?.drawStyle ?: vertexBuffer(drawStyleFormat, entries.size)
+        drawStyle.put {
+            for (entry in entries) {
+                write(entry.fill ?: ColorRGBa.TRANSPARENT)
+                write(entry.fill ?: ColorRGBa.TRANSPARENT)
+                write(1.0f)
+            }
+        }
+        return existingBatch ?: PointBatch(geometry, drawStyle)
+    }
 }

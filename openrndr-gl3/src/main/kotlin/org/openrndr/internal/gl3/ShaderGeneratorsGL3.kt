@@ -357,8 +357,8 @@ void main(void) {
     ${fragmentConstants(boundsPosition = "vec3(0.0, 0.0, 0.0)",
             boundsSize = "v_boundsSize")}
 
-    vec4 x_fill = u_fill;
-    vec4 x_stroke = u_stroke;
+    vec4 x_fill = vi_fill;
+    vec4 x_stroke = vi_stroke;
     {
         ${shadeStructure.fragmentTransform ?: ""}
     }
