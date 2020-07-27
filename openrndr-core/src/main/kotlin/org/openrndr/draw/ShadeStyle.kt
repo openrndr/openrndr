@@ -1,11 +1,16 @@
 package org.openrndr.draw
 
+import org.intellij.lang.annotations.Language
 import org.openrndr.color.ColorRGBa
 import org.openrndr.math.*
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
 data class ShadeStyleOutput(val attachment: Int, val format: ColorFormat = ColorFormat.RGBa, val type: ColorType = ColorType.FLOAT32)
+
+
+fun glsl(@Language("GLSL", prefix = "void () {", suffix = "}") source: String) = source
+
 
 class ObservableHashmap<K, V>(inline val onChange: () -> Unit) : HashMap<K, V>() {
     override fun put(key: K, value: V): V? {
@@ -26,36 +31,42 @@ class ObservableHashmap<K, V>(inline val onChange: () -> Unit) : HashMap<K, V>()
 open class ShadeStyle {
     var dirty = true
 
+    @Language("GLSL", prefix = "void () {", suffix = "}")
     var vertexPreamble: String? = null
         set(value) {
             dirty = true
             field = value
         }
 
+    @Language("GLSL", prefix = "void () {", suffix = "}")
     var geometryPreamble: String? = null
         set(value) {
             dirty = true
             field = value
         }
 
+    @Language("GLSL", prefix = "void () {", suffix = "}")
     var fragmentPreamble: String? = null
         set(value) {
             dirty = true
             field = value
         }
 
+    @Language("GLSL", prefix = "void () {", suffix = "}")
     var vertexTransform: String? = null
         set(value) {
             dirty = true
             field = value
         }
 
+    @Language("GLSL", prefix = "void () {", suffix = "}")
     var geometryTransform: String? = null
         set(value) {
             dirty = true
             field = value
         }
 
+    @Language("GLSL", prefix = "void () {", suffix = "}")
     var fragmentTransform: String? = null
         set(value) {
             dirty = true

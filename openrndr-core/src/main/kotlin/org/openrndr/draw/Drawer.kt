@@ -664,6 +664,10 @@ class Drawer(val driver: Driver) {
      * Draws contours using [fill], [stroke] and [strokeWeight] settings
      */
     fun contours(contours: List<ShapeContour>) {
+        for (contour in contours) {
+            contour(contour)
+        }
+        /*
         if (drawStyle.fill != null) {
             qualityPolygonDrawer.drawPolygons(context, drawStyle, contours.filter { it.closed }.map { listOf(it.adaptivePositions()) })
         }
@@ -671,6 +675,8 @@ class Drawer(val driver: Driver) {
         if (drawStyle.stroke != null) {
             qualityLineDrawer.drawLineStrips(context, drawStyle, contours.map { it.adaptivePositions() })
         }
+        */
+
     }
 
     fun lineSegment(x0: Double, y0: Double, x1: Double, y1: Double) {

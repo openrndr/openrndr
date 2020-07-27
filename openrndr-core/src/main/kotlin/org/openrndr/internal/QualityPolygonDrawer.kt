@@ -37,7 +37,7 @@ class QualityPolygonDrawer {
             val paths =
                     loops.map { loop ->
                         Path.fromLineLoops(loop.mapIndexed { index, it ->
-                            it.let { it.subList(0, it.size - 1) }
+                            it.let { it.subList(0, it.size ) }
                                     .let { if (index == 0) it else it.reversed() }
                         })
                     }
