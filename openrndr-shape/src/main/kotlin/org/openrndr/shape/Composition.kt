@@ -108,7 +108,7 @@ class ShapeNode(var shape: Shape) : CompositionNode() {
 
 }
 
-data class TextNode(var text:String, var contour: ShapeContour?) : CompositionNode()
+data class TextNode(var text: String, var contour: ShapeContour?) : CompositionNode()
 
 open class GroupNode(val children: MutableList<CompositionNode> = mutableListOf()) : CompositionNode() {
     override val bounds: Rectangle
@@ -162,6 +162,20 @@ class Composition(val root: CompositionNode, val documentBounds: Rectangle = Def
     fun findShapes(): List<ShapeNode> = findTerminals { it is ShapeNode }.map { it as ShapeNode }
 }
 
+fun CompositionNode.visitAll(visitor: (CompositionNode.() -> Unit)) {
+    visitor()
+    when (this) {
+        is GroupNode -> {
+            for (child in children) {
+                child.visitAll(visitor)
+            }
+        }
+        else -> {
+        }
+    }
+}
+
+
 fun CompositionNode.filter(filter: (CompositionNode) -> Boolean): CompositionNode? {
     val f = filter(this)
 
@@ -179,15 +193,15 @@ fun CompositionNode.filter(filter: (CompositionNode) -> Boolean): CompositionNod
             if (filtered != null) {
                 when (filtered) {
                     is ShapeNode -> {
-                        copies.add(filtered.copy(parent=this))
+                        copies.add(filtered.copy(parent = this))
                     }
                     is GroupNode -> {
-                        copies.add(filtered.copy(parent=this))
+                        copies.add(filtered.copy(parent = this))
                     }
                 }
             }
         }
-        return GroupNode(children=copies)
+        return GroupNode(children = copies)
     } else {
         return this
     }
