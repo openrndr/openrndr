@@ -208,7 +208,7 @@ fun intersections(a: ShapeContour, b: ShapeContour): List<Triple<Double, Double,
     val result = mutableListOf<Triple<Double, Double, Vector2>>()
     for ((ia, sa) in a.segments.withIndex()) {
         for ((ib, sb) in b.segments.withIndex()) {
-            result.addAll(intersections(sa, sb).map { Triple(ia + it.first, ib + it.second, it.third) })
+            result.addAll(intersections(sa, sb).map { Triple((ia + it.first) / a.segments.size, (ib + it.second) / b.segments.size, it.third) })
         }
     }
     return result
