@@ -3,6 +3,7 @@
 package org.openrndr.shape
 
 import io.lacuna.artifex.*
+import io.lacuna.artifex.utils.Intersections
 import org.openrndr.math.Vector2
 import org.openrndr.math.YPolarity
 
@@ -193,6 +194,24 @@ fun intersection(from: List<Shape>, with: List<List<Shape>>): List<Shape> {
         left = intersection(left, withShapes)
     }
     return left
+}
+
+fun intersections(a: Segment, b: Segment): List<Triple<Double, Double, Vector2>> {
+    val ca = a.toCurve2()
+    val cb = b.toCurve2()
+    return Intersections.intersections(ca, cb).map {
+        Triple(it.x, it.y, ca.position(it.x).toVector2())
+    }
+}
+
+fun intersections(a: ShapeContour, b: ShapeContour): List<Triple<Double, Double, Vector2>> {
+    val result = mutableListOf<Triple<Double, Double, Vector2>>()
+    for ((ia, sa) in a.segments.withIndex()) {
+        for ((ib, sb) in b.segments.withIndex()) {
+            result.addAll(intersections(sa, sb).map { Triple(ia + it.first, ib + it.second, it.third) })
+        }
+    }
+    return result
 }
 
 fun split(shape: Shape, line: LineSegment): Pair<List<Shape>, List<Shape>> {
