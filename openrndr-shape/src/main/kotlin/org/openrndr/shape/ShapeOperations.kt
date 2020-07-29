@@ -196,22 +196,65 @@ fun intersection(from: List<Shape>, with: List<List<Shape>>): List<Shape> {
     return left
 }
 
-fun intersections(a: Segment, b: Segment): List<Triple<Double, Double, Vector2>> {
+class SegmentIntersection(val segmentA: Segment, val segmentTA: Double,
+                          val segmentB: Segment, val segmentTB: Double,
+                          val position: Vector2)
+
+/** Find intersections between two Segments **/
+fun intersections(a: Segment, b: Segment): List<SegmentIntersection> {
+    // Test if checking against self. This test should be improved such that it is not based on object identity
+    val selfTest = a === b
     val ca = a.toCurve2()
     val cb = b.toCurve2()
-    return Intersections.intersections(ca, cb).map {
-        Triple(it.x, it.y, ca.position(it.x).toVector2())
+
+    return if (!selfTest) {
+        Intersections.intersections(ca, cb).map {
+            SegmentIntersection(a, it.x, b, it.y, ca.position(it.x).toVector2())
+        }
+    } else {
+        // Here we should handle self-intersections properly
+        emptyList()
     }
 }
 
-fun intersections(a: ShapeContour, b: ShapeContour): List<Triple<Double, Double, Vector2>> {
-    val result = mutableListOf<Triple<Double, Double, Vector2>>()
+data class ContourIntersection(val contourA: ShapeContour, val contourTA: Double, val segmentA: Segment, val segmentTA: Double,
+                               val contourB: ShapeContour, val contourTB: Double, val segmentB: Segment, val segmentTB: Double,
+                               val position: Vector2)
+
+/**
+ * Find intersections between two ShapeContours
+ */
+fun intersections(a: ShapeContour, b: ShapeContour): List<ContourIntersection> {
+    val selfTest = a === b
+    val result = mutableListOf<ContourIntersection>()
     for ((ia, sa) in a.segments.withIndex()) {
         for ((ib, sb) in b.segments.withIndex()) {
-            result.addAll(intersections(sa, sb).map { Triple((ia + it.first) / a.segments.size, (ib + it.second) / b.segments.size, it.third) })
+            if (selfTest && ib > ia) {
+                continue
+            }
+            val segmentIntersections = intersections(sa, sb).let {
+                if (selfTest) {
+                    it.filterNot { intersection -> intersection.segmentTA == 1.0 && intersection.segmentTB == 0.0 || intersection.segmentTA == 0.0 && intersection.segmentTB == 1.0 }
+                } else {
+                    it
+                }
+            }
+            result.addAll(segmentIntersections.map {
+                ContourIntersection(
+                        a, (ia + it.segmentTA) / a.segments.size, it.segmentA, it.segmentTA,
+                        b, (ib + it.segmentTB) / b.segments.size, it.segmentB, it.segmentTB,
+                        it.position
+                )
+            })
         }
     }
-    return result
+    return result.let {
+        if (selfTest) {
+            it.distinctBy { intersection -> Pair(intersection.contourTA, intersection.contourTB) }
+        } else {
+            it
+        }
+    }
 }
 
 fun split(shape: Shape, line: LineSegment): Pair<List<Shape>, List<Shape>> {
