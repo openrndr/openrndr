@@ -108,6 +108,47 @@ class Segment {
         return if (hits > 0) t / hits else null
     }
 
+    /**
+     * Estimate t parameter value for a given length
+     * @return a value between 0 and 1
+     */
+    fun tForLength(length: Double): Double {
+        if (type == SegmentType.LINEAR) {
+            return (length / this.length).coerceIn(0.0, 1.0)
+        }
+
+        val segmentLength = this.length
+        val clength = length.coerceIn(0.0, segmentLength)
+
+        if (clength == 0.0) {
+            return 0.0
+        }
+        if (clength >= segmentLength) {
+            return 1.0
+        }
+        var summedLength = 0.0
+        lut(100)
+        val clut = lut ?: error("no lut")
+        val partitionCount = clut.size - 1
+
+        val dt = 1.0 / partitionCount
+        for ((index, point) in lut!!.withIndex()) {
+            if (index < lut!!.size - 1) {
+                val p0 = clut[index]
+                val p1 = clut[index + 1]
+                val partitionLength = p0.distanceTo(p1)
+                summedLength += partitionLength
+                if (summedLength >= length) {
+                    val localT = index.toDouble() / partitionCount
+                    val overshoot = summedLength - length
+                    return localT + (overshoot / partitionLength) * dt
+                }
+            }
+        }
+        return 1.0
+    }
+
+
     private fun closest(points: List<Vector2>, query: Vector2): Pair<Int, Vector2> {
         var closestIndex = 0
         var closestValue = points[0]
@@ -772,6 +813,29 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
     }
 
     operator fun contains(v: Vector2): Boolean = closed && triangulation.any { v in it }
+
+    /**
+     * Estimate t parameter value for a given length
+     * @return a value between 0 and 1
+     */
+    fun tForLength(length: Double): Double {
+        var remaining = length
+        if (length <= 0.0) {
+            return 0.0
+        }
+        if (segments.size == 1) {
+            return segments.first().tForLength(length)
+        }
+        for ((index, segment) in segments.withIndex()) {
+            val segmentLength = segment.length
+            if (segmentLength > remaining) {
+                return (segment.tForLength(remaining) + index) / segments.size
+            } else {
+                remaining -= segmentLength
+            }
+        }
+        return 1.0
+    }
 
     fun offset(distance: Double, joinType: SegmentJoin = SegmentJoin.ROUND): ShapeContour {
         if (segments.size == 1) {
