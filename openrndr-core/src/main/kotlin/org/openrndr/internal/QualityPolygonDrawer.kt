@@ -8,7 +8,7 @@ class QualityPolygonDrawer {
     private val expansionDrawer = ExpansionDrawer()
 
     fun drawPolygon(drawContext: DrawContext,
-                    drawStyle: DrawStyle, loops: List<List<Vector2>>) {
+                    drawStyle: DrawStyle, loops: List<List<Vector2>>, fringeWidth: Double = 1.0) {
 
         val ratio = 1.0
         if (drawStyle.fill != null) {
@@ -17,32 +17,31 @@ class QualityPolygonDrawer {
                         .let { if (index == 0) it else it }
             })
             val strokeWeight = if (drawStyle.stroke == null) 1.0 else 0.0
-            val fillExpansions = path.expandFill(0.0 / ratio, strokeWeight, drawStyle.lineJoin, 2.4)
-            expansionDrawer.renderFill(drawContext, drawStyle, fillExpansions, path.convex)
+            val fillExpansions = path.expandFill(fringeWidth, fringeWidth, drawStyle.lineJoin, 2.4)
+            expansionDrawer.renderFill(drawContext, drawStyle, fillExpansions, path.convex, fringeWidth)
         }
         if (drawStyle.stroke != null) {
             loops.forEach {
                 val path = Path.fromLineStrip(it, true)
-                val strokeExpansion = path.expandStroke(1.0 / ratio, drawStyle.strokeWeight, drawStyle.lineCap, drawStyle.lineJoin, 2.4)
-                expansionDrawer.renderStroke(drawContext, drawStyle, strokeExpansion)
+                val strokeExpansion = path.expandStroke(fringeWidth, drawStyle.strokeWeight / 2.0, drawStyle.lineCap, drawStyle.lineJoin, 2.4)
+                expansionDrawer.renderStroke(drawContext, drawStyle, strokeExpansion, fringeWidth)
             }
         }
     }
 
     fun drawPolygons(drawContext: DrawContext,
-                    drawStyle: DrawStyle, loops: List<List<List<Vector2>>>) {
+                     drawStyle: DrawStyle, loops: List<List<List<Vector2>>>, fringeWidth: Double = 1.0) {
 
-        val ratio = 1.0
         if (drawStyle.fill != null) {
             val paths =
                     loops.map { loop ->
                         Path.fromLineLoops(loop.mapIndexed { index, it ->
-                            it.let { it.subList(0, it.size ) }
+                            it.let { it.subList(0, it.size) }
                                     .let { if (index == 0) it else it.reversed() }
                         })
                     }
-            val fillExpansions = paths.flatMap { path ->path.expandFill(1.0 / ratio, 0.25, drawStyle.lineJoin, 2.4)}
-            expansionDrawer.renderFills(drawContext, drawStyle, fillExpansions)
+            val fillExpansions = paths.flatMap { path -> path.expandFill(fringeWidth, 0.25, drawStyle.lineJoin, 2.4) }
+            expansionDrawer.renderFills(drawContext, drawStyle, fillExpansions, fringeWidth)
         }
 //        if (drawStyle.stroke != null) {
 //            loops.forEach {

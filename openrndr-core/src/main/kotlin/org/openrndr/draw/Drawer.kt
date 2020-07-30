@@ -20,6 +20,7 @@ import java.io.InputStream
 import java.io.InputStreamReader
 import java.net.URL
 import java.util.*
+import kotlin.math.min
 import org.openrndr.math.transforms.lookAt as _lookAt
 import org.openrndr.math.transforms.ortho as _ortho
 import org.openrndr.math.transforms.perspective as _perspective
@@ -77,8 +78,6 @@ class Drawer(val driver: Driver) {
     private var vertexBufferDrawer = VertexBufferDrawer()
 
 
-
-
     private var circleDrawer = CircleDrawer()
     private var pointDrawer = PointDrawer()
     private var imageDrawer = ImageDrawer()
@@ -104,11 +103,22 @@ class Drawer(val driver: Driver) {
     var width: Int = 0
     var height: Int = 0
 
+    private var modelViewScaling = 1.0
+
     /** The active model matrix */
     var model: Matrix44 = Matrix44.IDENTITY
+        set(value) {
+            field = value
+            modelViewScaling = ((view * model).matrix33 * Vector3(1.0, 1.0, 1.0).normalized).length
+        }
 
     /** The active view matrix */
     var view: Matrix44 = Matrix44.IDENTITY
+        set(value) {
+            field = value
+            modelViewScaling = ((view * model).matrix33 * Vector3(1.0, 1.0, 1.0).normalized).length
+        }
+
 
     /** The active projection matrix */
     var projection: Matrix44 = Matrix44.IDENTITY
@@ -443,7 +453,7 @@ class Drawer(val driver: Driver) {
             drawStyle.fontMap = value
         }
         get() {
-            if(drawStyle.fontMap == null) {
+            if (drawStyle.fontMap == null) {
                 drawStyle.fontMap = defaultFontMap
             }
             return drawStyle.fontMap
@@ -480,7 +490,7 @@ class Drawer(val driver: Driver) {
     /**
      * Create and draw batched rectangles
      */
-    fun rectangles(build: RectangleBatchBuilder.() -> Unit)  {
+    fun rectangles(build: RectangleBatchBuilder.() -> Unit) {
         val batchBuilder = RectangleBatchBuilder(this)
         batchBuilder.build()
         rectangleDrawer.ensureBatchSize(batchBuilder.entries.size)
@@ -539,7 +549,7 @@ class Drawer(val driver: Driver) {
     /**
      * Create and draw batched points
      */
-    fun points(build: PointBatchBuilder.() -> Unit)  {
+    fun points(build: PointBatchBuilder.() -> Unit) {
         val batchBuilder = PointBatchBuilder(this)
         batchBuilder.build()
         pointDrawer.ensureBatchSize(batchBuilder.entries.size)
@@ -550,7 +560,7 @@ class Drawer(val driver: Driver) {
     /**
      * Draw a stored batch of points
      */
-    fun points(batch: PointBatch, count:Int = batch.size) {
+    fun points(batch: PointBatch, count: Int = batch.size) {
         pointDrawer.drawPoints(context, drawStyle, batch, count)
     }
 
@@ -591,13 +601,14 @@ class Drawer(val driver: Driver) {
     /**
      * Create and draw batched circles
      */
-    fun circles(build: CircleBatchBuilder.() -> Unit)  {
+    fun circles(build: CircleBatchBuilder.() -> Unit) {
         val batchBuilder = CircleBatchBuilder(this)
         batchBuilder.build()
         circleDrawer.ensureBatchSize(batchBuilder.entries.size)
         batchBuilder.batch(circleDrawer.batch)
         circleDrawer.drawCircles(context, drawStyle, circleDrawer.batch, batchBuilder.entries.size)
     }
+
 
     /**
      * Draws a single [Shape] using [fill], [stroke] and [strokeWeight] settings
@@ -607,14 +618,17 @@ class Drawer(val driver: Driver) {
      * @see composition
      */
     fun shape(shape: Shape) {
+        val fringeWidth = 1.0 / modelViewScaling
+        val distanceTolerance = 0.5 / modelViewScaling
+
         if (RenderTarget.active.hasDepthBuffer) {
             when (shape.topology) {
                 ShapeTopology.CLOSED -> qualityPolygonDrawer.drawPolygon(context, drawStyle,
                         shape.contours.map { it.adaptivePositions() })
-                ShapeTopology.OPEN -> qualityLineDrawer.drawLineStrips(context, drawStyle, shape.contours.map { it.adaptivePositions() })
+                ShapeTopology.OPEN -> qualityLineDrawer.drawLineStrips(context, drawStyle, shape.contours.map { it.adaptivePositions(distanceTolerance) }, fringeWidth)
                 ShapeTopology.MIXED -> {
-                    qualityPolygonDrawer.drawPolygon(context, drawStyle, shape.closedContours.map { it.adaptivePositions() })
-                    qualityLineDrawer.drawLineStrips(context, drawStyle, shape.openContours.map { it.adaptivePositions() })
+                    qualityPolygonDrawer.drawPolygon(context, drawStyle, shape.closedContours.map { it.adaptivePositions(distanceTolerance) }, fringeWidth)
+                    qualityLineDrawer.drawLineStrips(context, drawStyle, shape.openContours.map { it.adaptivePositions(distanceTolerance) }, fringeWidth)
                 }
             }
         } else {
@@ -638,20 +652,23 @@ class Drawer(val driver: Driver) {
      * Draws a single [ShapeContour] using [fill], [stroke] and [strokeWeight] settings
      */
     fun contour(contour: ShapeContour) {
+        val distanceTolerance = 0.5 / modelViewScaling
+        val fringeWidth = 1.0 / modelViewScaling
+
         if (RenderTarget.active.hasDepthBuffer) {
             if (drawStyle.fill != null && contour.closed) {
-                qualityPolygonDrawer.drawPolygon(context, drawStyle, listOf(contour.adaptivePositions()))
+                qualityPolygonDrawer.drawPolygon(context, drawStyle, listOf(contour.adaptivePositions(distanceTolerance)), fringeWidth)
             }
 
             if (drawStyle.stroke != null) {
                 when (drawStyle.quality) {
                     DrawQuality.PERFORMANCE -> when (contour.closed) {
-                        true -> fastLineDrawer.drawLineLoops(context, drawStyle, listOf(contour.adaptivePositions()))
-                        false -> fastLineDrawer.drawLineLoops(context, drawStyle, listOf(contour.adaptivePositions()))
+                        true -> fastLineDrawer.drawLineLoops(context, drawStyle, listOf(contour.adaptivePositions(distanceTolerance)))
+                        false -> fastLineDrawer.drawLineLoops(context, drawStyle, listOf(contour.adaptivePositions(distanceTolerance)))
                     }
                     DrawQuality.QUALITY -> when (contour.closed) {
-                        true -> qualityLineDrawer.drawLineLoops(context, drawStyle, listOf(contour.adaptivePositions()))
-                        false -> qualityLineDrawer.drawLineStrips(context, drawStyle, listOf(contour.adaptivePositions()))
+                        true -> qualityLineDrawer.drawLineLoops(context, drawStyle, listOf(contour.adaptivePositions(distanceTolerance)), fringeWidth)
+                        false -> qualityLineDrawer.drawLineStrips(context, drawStyle, listOf(contour.adaptivePositions(distanceTolerance)), fringeWidth)
                     }
                 }
             }
@@ -691,9 +708,11 @@ class Drawer(val driver: Driver) {
      * Draws a line segment from [start] to [end] using 2d coordinates
      */
     fun lineSegment(start: Vector2, end: Vector2) {
+        val fringeWidth = 1.0 / modelViewScaling
+
         when (drawStyle.quality) {
             DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineSegments(context, drawStyle, listOf(start, end))
-            DrawQuality.QUALITY -> qualityLineDrawer.drawLineStrips(context, drawStyle, listOf(listOf(start, end)))
+            DrawQuality.QUALITY -> qualityLineDrawer.drawLineStrips(context, drawStyle, listOf(listOf(start, end)), fringeWidth)
         }
     }
 
@@ -708,6 +727,7 @@ class Drawer(val driver: Driver) {
     }
 
     fun lineSegments(segments: List<Vector2>) {
+        val fringeWidth = 0.5 / modelViewScaling
         when (drawStyle.quality) {
             DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineSegments(context, drawStyle, segments)
             DrawQuality.QUALITY -> {
@@ -715,19 +735,21 @@ class Drawer(val driver: Driver) {
                 val pairs = (0 until segments.size / 2).map {
                     listOf(segments[it * 2], segments[it * 2 + 1])
                 }
-                qualityLineDrawer.drawLineStrips(context, drawStyle, pairs)
+                qualityLineDrawer.drawLineStrips(context, drawStyle, pairs, fringeWidth)
             }
         }
     }
 
     fun lineSegments(segments: List<Vector2>, weights: List<Double>) {
+        val fringeWidth = 0.5 / modelViewScaling
+
         when (drawStyle.quality) {
             DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineSegments(context, drawStyle, segments)
             DrawQuality.QUALITY -> {
                 val pairs = (0 until segments.size / 2).map {
                     listOf(segments[it * 2], segments[it * 2 + 1])
                 }
-                qualityLineDrawer.drawLineStrips(context, drawStyle, pairs, weights)
+                qualityLineDrawer.drawLineStrips(context, drawStyle, pairs, weights, fringeWidth)
             }
         }
     }
@@ -758,6 +780,7 @@ class Drawer(val driver: Driver) {
 
     @JvmName("lineSegmentsFromLineSegmentList")
     fun lineSegments(segments: List<LineSegment>) {
+        val fringeWidth = 1.0 / modelViewScaling
         when (drawStyle.quality) {
             DrawQuality.PERFORMANCE -> {
                 // TODO: a faster version would pass `segments` to
@@ -769,7 +792,7 @@ class Drawer(val driver: Driver) {
                 val pairs = segments.map {
                     listOf(it.start, it.end)
                 }
-                qualityLineDrawer.drawLineStrips(context, drawStyle, pairs)
+                qualityLineDrawer.drawLineStrips(context, drawStyle, pairs, fringeWidth)
             }
         }
     }
@@ -823,9 +846,10 @@ class Drawer(val driver: Driver) {
      * Draws a line strip with 2d coordinates
      */
     fun lineStrip(points: List<Vector2>) {
+        val fringeWidth = 1.0 / modelViewScaling
         when (drawStyle.quality) {
             DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineLoops(context, drawStyle, listOf(points))
-            DrawQuality.QUALITY -> qualityLineDrawer.drawLineStrips(context, drawStyle, listOf(points))
+            DrawQuality.QUALITY -> qualityLineDrawer.drawLineStrips(context, drawStyle, listOf(points), fringeWidth)
         }
     }
 
@@ -844,9 +868,10 @@ class Drawer(val driver: Driver) {
      * Draws line strips with 3d coordinates
      */
     fun lineStrips(strips: List<List<Vector2>>) {
+        val fringeWidth = 1.0 / modelViewScaling
         when (drawStyle.quality) {
             DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineLoops(context, drawStyle, strips)
-            DrawQuality.QUALITY -> qualityLineDrawer.drawLineStrips(context, drawStyle, strips)
+            DrawQuality.QUALITY -> qualityLineDrawer.drawLineStrips(context, drawStyle, strips, fringeWidth)
         }
     }
 

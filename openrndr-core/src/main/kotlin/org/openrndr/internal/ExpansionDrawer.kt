@@ -1,27 +1,28 @@
 package org.openrndr.internal
 
 import org.openrndr.draw.*
+import org.openrndr.math.Vector3
 import org.openrndr.math.Vector4
 
-internal class Command(val vertexBuffer: VertexBuffer, val type: ExpansionType, val vertexOffset: Int, val vertexCount: Int,
-                       val minX: Double, val minY: Double, val maxX: Double, val maxY: Double)
+internal data class Command(val vertexBuffer: VertexBuffer, val type: ExpansionType, val vertexOffset: Int, val vertexCount: Int,
+                            val minX: Double, val minY: Double, val maxX: Double, val maxY: Double)
 
 internal class ExpansionDrawer {
 
     private val shaderManager = ShadeStyleManager.fromGenerators("expansion",
             vsGenerator = Driver.instance.shaderGenerators::expansionVertexShader,
-    fsGenerator = Driver.instance.shaderGenerators::expansionFragmentShader)
+            fsGenerator = Driver.instance.shaderGenerators::expansionFragmentShader)
 
     val vertexFormat = vertexFormat {
         position(2)
         textureCoordinate(2)
-        attribute("vertexOffset",  VertexElementType.FLOAT32)
+        attribute("vertexOffset", VertexElementType.FLOAT32)
     }
 
     var vertices = VertexBuffer.createDynamic(vertexFormat, 4 * 1024 * 1024, Session.root)
     var quad = VertexBuffer.createDynamic(vertexFormat, 6, Session.root)
 
-    fun renderStrokeCommands(drawContext: DrawContext, drawStyle: DrawStyle, commands: List<Command>) {
+    fun renderStrokeCommands(drawContext: DrawContext, drawStyle: DrawStyle, commands: List<Command>, fringeScale: Double) {
 
         val shader = shaderManager.shader(drawStyle.shadeStyle, listOf(vertices.vertexFormat), emptyList())
         shader.begin()
@@ -31,10 +32,10 @@ internal class ExpansionDrawer {
 
         val localStyle = drawStyle.copy()
 
-        val fringe = 1.0
-        shader.uniform("strokeMult", (drawStyle.strokeWeight+fringe)/fringe)
-
-//        shader.uniform("strokeMult", drawStyle.strokeWeight / 2.0 + 0.65)
+        shader.uniform("strokeMult", (drawStyle.strokeWeight + fringeScale*2.0)/(fringeScale*2.0))
+        //shader.uniform("strokeMult", (drawStyle.strokeWeight + fringe) / fringe)
+        //shader.uniform("strokeMult", (drawStyle.strokeWeight+fringeScale)/fringeScale)
+//        shader.uniform("strokeMult", (drawStyle.strokeWeight + fringeScale) / fringeScale)
         shader.uniform("strokeFillFactor", 0.0)
         commands.forEach { command ->
 
@@ -68,8 +69,7 @@ internal class ExpansionDrawer {
         shader.end()
     }
 
-    fun renderStrokeCommandsInterleaved(drawContext: DrawContext, drawStyle: DrawStyle, commands: List<Command>) {
-
+    fun renderStrokeCommandsInterleaved(drawContext: DrawContext, drawStyle: DrawStyle, commands: List<Command>, fringeScale: Double) {
         if (commands.isNotEmpty()) {
             val shader = shaderManager.shader(drawStyle.shadeStyle, listOf(vertices.vertexFormat))
             shader.begin()
@@ -80,7 +80,7 @@ internal class ExpansionDrawer {
             val localStyle = drawStyle
             val vertexCount = commands.last().let { it.vertexOffset + it.vertexCount }
 
-            shader.uniform("strokeMult", drawStyle.strokeWeight / 2.0 + 0.65)
+            shader.uniform("strokeMult", (drawStyle.strokeWeight + fringeScale*2.0)/(fringeScale*2.0))
             shader.uniform("strokeFillFactor", 0.0)
 
             shader.uniform("bounds", Vector4(-1000.0, -1000.0, 2000.0, 2000.0))
@@ -112,7 +112,8 @@ internal class ExpansionDrawer {
         }
     }
 
-    fun renderConvexFillCommands(drawContext: DrawContext, drawStyle: DrawStyle, commands: List<Command>) {
+    fun renderConvexFillCommands(drawContext: DrawContext, drawStyle: DrawStyle, commands: List<Command>, fringeScale: Double) {
+        println("yo convex")
         val shader = shaderManager.shader(drawStyle.shadeStyle, vertices.vertexFormat)
         shader.begin()
         drawContext.applyToShader(shader)
@@ -121,6 +122,7 @@ internal class ExpansionDrawer {
 
         shader.uniform("strokeThr", -1.0f)
         shader.uniform("strokeMult", 1.0)
+
         shader.uniform("strokeFillFactor", 1.0)
         commands.forEach { command ->
             if (command.type == ExpansionType.FILL) {
@@ -134,7 +136,7 @@ internal class ExpansionDrawer {
         }
     }
 
-    fun renderFillCommands(drawContext: DrawContext, drawStyle: DrawStyle, commands: List<Command>) {
+    fun renderFillCommands(drawContext: DrawContext, drawStyle: DrawStyle, commands: List<Command>, fringeScale: Double) {
 
         if (commands.isEmpty()) {
             return
@@ -150,15 +152,15 @@ internal class ExpansionDrawer {
 
         // -- pass 1 : draw fill shapes in stencil only
         shader.uniform("strokeThr", -1.0f)
-        //shader.uniform("strokeMult", drawStyle.strokeWeight / 2.0 + 0.65)
-        val fringe = 1.0
+        shader.uniform("strokeMult", 1.0)
+
         shader.uniform("strokeMult", 1.0)
         shader.uniform("strokeFillFactor", 1.0)
 
-        val minX = commands.minBy { it.minX }?.minX?: error("no commands")
-        val minY = commands.minBy { it.minY }?.minY?: error("no commands")
-        val maxX = commands.maxBy { it.maxX }?.maxX?: error("no commands")
-        val maxY = commands.maxBy { it.maxY }?.maxY?: error("no commands")
+        val minX = commands.minBy { it.minX }?.minX ?: error("no commands")
+        val minY = commands.minBy { it.minY }?.minY ?: error("no commands")
+        val maxX = commands.maxBy { it.maxX }?.maxX ?: error("no commands")
+        val maxY = commands.maxBy { it.maxY }?.maxY ?: error("no commands")
 
         val command = commands[0]
         shader.uniform("bounds", Vector4(command.minX, command.minY, command.maxX - command.minX, command.maxY - command.minY))
@@ -171,7 +173,7 @@ internal class ExpansionDrawer {
         localStyle.frontStencil.stencilOp(onStencilTestFail = StencilOperation.KEEP, onDepthTestFail = StencilOperation.KEEP, onDepthTestPass = StencilOperation.INCREASE_WRAP)
         localStyle.backStencil.stencilOp(onStencilTestFail = StencilOperation.KEEP, onDepthTestFail = StencilOperation.KEEP, onDepthTestPass = StencilOperation.DECREASE_WRAP)
         localStyle.frontStencil.stencilFunc(stencilTest = StencilTest.ALWAYS, testReference = 0, writeMask = 0xff)
-        localStyle.backStencil.stencilFunc(stencilTest = StencilTest.ALWAYS, testReference= 0, writeMask = 0xff)
+        localStyle.backStencil.stencilFunc(stencilTest = StencilTest.ALWAYS, testReference = 0, writeMask = 0xff)
 
         localStyle.channelWriteMask = ChannelMask.NONE
         localStyle.cullTestPass = CullTestPass.ALWAYS
@@ -263,23 +265,23 @@ internal class ExpansionDrawer {
         return commands
     }
 
-    fun renderStroke(drawContext: DrawContext, drawStyle: DrawStyle, expansion: Expansion) {
-        renderStrokeCommands(drawContext, drawStyle, toCommands(vertices, listOf(expansion)))
+    fun renderStroke(drawContext: DrawContext, drawStyle: DrawStyle, expansion: Expansion, fringeScale: Double) {
+        renderStrokeCommands(drawContext, drawStyle, toCommands(vertices, listOf(expansion)), fringeScale)
     }
 
-    fun renderStrokes(drawContext: DrawContext, drawStyle: DrawStyle, expansions: List<Expansion>) {
-        renderStrokeCommandsInterleaved(drawContext, drawStyle, toCommands(vertices, expansions))
+    fun renderStrokes(drawContext: DrawContext, drawStyle: DrawStyle, expansions: List<Expansion>, fringeScale: Double) {
+        renderStrokeCommandsInterleaved(drawContext, drawStyle, toCommands(vertices, expansions), fringeScale)
     }
 
-    fun renderFill(drawContext: DrawContext, drawStyle: DrawStyle, expansions: List<Expansion>, convex: Boolean) {
+    fun renderFill(drawContext: DrawContext, drawStyle: DrawStyle, expansions: List<Expansion>, convex: Boolean, fringeScale: Double) {
         if (convex) {
-            renderConvexFillCommands(drawContext, drawStyle, toCommands(vertices, expansions))
+            renderConvexFillCommands(drawContext, drawStyle, toCommands(vertices, expansions), fringeScale)
         } else {
-            renderFillCommands(drawContext, drawStyle, toCommands(vertices, expansions))
+            renderFillCommands(drawContext, drawStyle, toCommands(vertices, expansions), fringeScale)
         }
     }
 
-    fun renderFills(drawContext: DrawContext, drawStyle: DrawStyle, expansions: List<Expansion>) {
-        renderFillCommands(drawContext, drawStyle, toCommands(vertices, expansions))
+    fun renderFills(drawContext: DrawContext, drawStyle: DrawStyle, expansions: List<Expansion>, fringeScale: Double) {
+        renderFillCommands(drawContext, drawStyle, toCommands(vertices, expansions), fringeScale)
     }
 }
