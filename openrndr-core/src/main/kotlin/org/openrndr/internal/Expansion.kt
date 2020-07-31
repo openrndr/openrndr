@@ -639,7 +639,7 @@ internal class Path {
                     var p1ptr = 0
                     for (j in points.indices) {
                         if (p1.flags and (BEVEL or INNER_BEVEL) != 0) {
-                            fringe.bevelJoin(p0, p1, lw, rw, lu, ru, fringeWidth, offset)
+                            fringe.bevelJoin(p0, p1, lw, rw, lu, ru, 0.0, offset)
                         } else {
                             fringe.addVertex(p1.x + (p1.dmx * lw), p1.y + (p1.dmy * lw), lu, 1.0, offset)
                             fringe.addVertex(p1.x - (p1.dmx * rw), p1.y - (p1.dmy * rw), ru, 1.0, offset)

@@ -113,7 +113,6 @@ internal class ExpansionDrawer {
     }
 
     fun renderConvexFillCommands(drawContext: DrawContext, drawStyle: DrawStyle, commands: List<Command>, fringeScale: Double) {
-        println("yo convex")
         val shader = shaderManager.shader(drawStyle.shadeStyle, vertices.vertexFormat)
         shader.begin()
         drawContext.applyToShader(shader)
@@ -154,7 +153,6 @@ internal class ExpansionDrawer {
         shader.uniform("strokeThr", -1.0f)
         shader.uniform("strokeMult", 1.0)
 
-        shader.uniform("strokeMult", 1.0)
         shader.uniform("strokeFillFactor", 1.0)
 
         val minX = commands.minBy { it.minX }?.minX ?: error("no commands")
