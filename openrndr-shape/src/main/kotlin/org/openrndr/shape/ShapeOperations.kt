@@ -290,3 +290,22 @@ fun split(shape: Shape, line: LineSegment): Pair<List<Shape>, List<Shape>> {
     val rightShapes = difference(shape, rightContour)
     return Pair(leftShapes, rightShapes)
 }
+
+
+data class SegmentPoint(val segment: Segment, val segmentT: Double, val position: Vector2)
+
+fun Segment.nearest(point: Vector2): SegmentPoint {
+    val c2 = this.toCurve2()
+    val t = c2.nearestPoint(point.toVec2()).coerceIn(0.0, 1.0)
+    val p = c2.position(t).toVector2()
+    return SegmentPoint(this, t, p)
+}
+
+data class ContourPoint(val contour: ShapeContour, val contourT: Double, val segment: Segment, val segmentT: Double, val position: Vector2)
+
+fun ShapeContour.nearest(point: Vector2): ContourPoint {
+    val n = segments.map { it.nearest(point) }.minBy { it.position.distanceTo(point) } ?: error("no segments")
+    val segmentIndex = segments.indexOf(n.segment)
+    val t = (segmentIndex + n.segmentT) / segments.size
+    return ContourPoint(this, t, n.segment, n.segmentT, n.position)
+}
