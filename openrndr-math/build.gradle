@@ -1,0 +1,3 @@
+dependencies {
+    testImplementation project(":openrndr-adopted-artifex")
+}

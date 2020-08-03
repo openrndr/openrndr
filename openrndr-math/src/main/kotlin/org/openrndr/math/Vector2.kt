@@ -40,6 +40,7 @@ data class Vector2(val x: Double, val y: Double) : Serializable {
             }
         }
 
+    infix fun cross(right: Vector2) = x * right.y - y * right.x
     infix fun dot(right: Vector2) = x * right.x + y * right.y
     infix fun reflect(surfaceNormal: Vector2): Vector2 = this - surfaceNormal * (this dot surfaceNormal) * 2.0
 

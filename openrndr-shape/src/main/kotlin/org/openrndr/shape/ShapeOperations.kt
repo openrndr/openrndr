@@ -196,9 +196,7 @@ fun intersection(from: List<Shape>, with: List<List<Shape>>): List<Shape> {
     return left
 }
 
-class SegmentIntersection(val segmentA: Segment, val segmentTA: Double,
-                          val segmentB: Segment, val segmentTB: Double,
-                          val position: Vector2)
+class SegmentIntersection(val a: SegmentPoint, val b: SegmentPoint, val position: Vector2)
 
 /** Find intersections between two Segments **/
 fun intersections(a: Segment, b: Segment): List<SegmentIntersection> {
@@ -209,7 +207,9 @@ fun intersections(a: Segment, b: Segment): List<SegmentIntersection> {
 
     return if (!selfTest) {
         Intersections.intersections(ca, cb).map {
-            SegmentIntersection(a, it.x, b, it.y, ca.position(it.x).toVector2())
+            val a = SegmentPoint(a, it.x, ca.position(it.x).toVector2())
+            val b = SegmentPoint(b, it.y, a.position)
+            SegmentIntersection(a, b, a.position)
         }
     } else {
         // Here we should handle self-intersections properly
@@ -217,9 +217,7 @@ fun intersections(a: Segment, b: Segment): List<SegmentIntersection> {
     }
 }
 
-data class ContourIntersection(val contourA: ShapeContour, val contourTA: Double, val segmentA: Segment, val segmentTA: Double,
-                               val contourB: ShapeContour, val contourTB: Double, val segmentB: Segment, val segmentTB: Double,
-                               val position: Vector2)
+data class ContourIntersection(val a: ContourPoint, val b: ContourPoint, val position: Vector2)
 
 /**
  * Find intersections between two ShapeContours
@@ -234,15 +232,15 @@ fun intersections(a: ShapeContour, b: ShapeContour): List<ContourIntersection> {
             }
             val segmentIntersections = intersections(sa, sb).let {
                 if (selfTest) {
-                    it.filterNot { intersection -> intersection.segmentTA == 1.0 && intersection.segmentTB == 0.0 || intersection.segmentTA == 0.0 && intersection.segmentTB == 1.0 }
+                    it.filterNot { intersection -> intersection.a.segmentT == 1.0 && intersection.b.segmentT == 0.0 || intersection.a.segmentT == 0.0 && intersection.b.segmentT == 1.0 }
                 } else {
                     it
                 }
             }
             result.addAll(segmentIntersections.map {
                 ContourIntersection(
-                        a, (ia + it.segmentTA) / a.segments.size, it.segmentA, it.segmentTA,
-                        b, (ib + it.segmentTB) / b.segments.size, it.segmentB, it.segmentTB,
+                        ContourPoint(a, (ia + it.a.segmentT) / a.segments.size, it.a.segment, it.a.segmentT, it.position),
+                        ContourPoint(b, (ib + it.b.segmentT) / b.segments.size, it.b.segment, it.b.segmentT, it.position),
                         it.position
                 )
             })
@@ -250,7 +248,7 @@ fun intersections(a: ShapeContour, b: ShapeContour): List<ContourIntersection> {
     }
     return result.let {
         if (selfTest) {
-            it.distinctBy { intersection -> Pair(intersection.contourTA, intersection.contourTB) }
+            it.distinctBy { intersection -> Pair(intersection.a.contourT, intersection.b.contourT) }
         } else {
             it
         }
@@ -289,23 +287,4 @@ fun split(shape: Shape, line: LineSegment): Pair<List<Shape>, List<Shape>> {
     val leftShapes = difference(shape, leftContour)
     val rightShapes = difference(shape, rightContour)
     return Pair(leftShapes, rightShapes)
-}
-
-
-data class SegmentPoint(val segment: Segment, val segmentT: Double, val position: Vector2)
-
-fun Segment.nearest(point: Vector2): SegmentPoint {
-    val c2 = this.toCurve2()
-    val t = c2.nearestPoint(point.toVec2()).coerceIn(0.0, 1.0)
-    val p = c2.position(t).toVector2()
-    return SegmentPoint(this, t, p)
-}
-
-data class ContourPoint(val contour: ShapeContour, val contourT: Double, val segment: Segment, val segmentT: Double, val position: Vector2)
-
-fun ShapeContour.nearest(point: Vector2): ContourPoint {
-    val n = segments.map { it.nearest(point) }.minBy { it.position.distanceTo(point) } ?: error("no segments")
-    val segmentIndex = segments.indexOf(n.segment)
-    val t = (segmentIndex + n.segmentT) / segments.size
-    return ContourPoint(this, t, n.segment, n.segmentT, n.position)
 }

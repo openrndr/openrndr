@@ -8,8 +8,11 @@ import org.openrndr.shape.internal.BezierQuadraticSampler2D
 import java.util.*
 import kotlin.math.*
 
-class SegmentProjection(val segment: Segment, val projection: Double, val distance: Double, val point: Vector2)
-class ContourProjection(val segmentProjection: SegmentProjection, val projection: Double, val distance: Double, val point: Vector2)
+
+
+data class SegmentPoint(val segment: Segment, val segmentT: Double, val position: Vector2)
+data class ContourPoint(val contour: ShapeContour, val contourT: Double, val segment: Segment, val segmentT: Double, val position: Vector2)
+
 
 enum class SegmentType {
     LINEAR,
@@ -165,37 +168,109 @@ class Segment {
         return Pair(closestIndex, closestValue)
     }
 
-    fun project(point: Vector2): SegmentProjection {
-        // based on bezier.js
-        val lut = lut()
-        val l = (lut.size - 1).toDouble()
-        val closest = closest(lut, point)
 
-        var closestDistance = (point - closest.second).squaredLength
+    /**
+     *
+     */
 
-        if (closest.first == 0 || closest.first == lut.size - 1) {
-            val t = closest.first.toDouble() / l
-            return SegmentProjection(this, t, closestDistance, closest.second)
-        } else {
-            val t1 = (closest.first - 1) / l
-            val t2 = (closest.first + 1) / l
-            val step = 0.1 / l
-
-            var t = t1
-            var ft = t1
-
-            while (t < t2 + step) {
-                val p = position(t)
-                val d = (p - point).squaredLength
-                if (d < closestDistance) {
-                    closestDistance = d
-                    ft = t
-                }
-                t += step
+    fun nearest(point: Vector2): SegmentPoint {
+        val t = when (type) {
+            SegmentType.LINEAR -> {
+                val dir = end - start
+                val relativePoint = point - start
+                (dir dot relativePoint) / dir.squaredLength
             }
-            val p = position(ft)
-            return SegmentProjection(this, ft, closestDistance, p)
+            SegmentType.QUADRATIC -> {
+                val qa = start - point
+                val ab = control[0] - start
+                val bc = end - control[0]
+                val qc = end - point
+                val ac = end - start
+                val br = start + end - control[0] - control[0]
+
+                var minDistance = sign(ab cross qa) * qa.length
+                var param = -(qa dot ab) / (ab dot ab)
+
+                val distance = sign(bc cross qc) * qc.length
+                if (abs(distance) < abs(minDistance)) {
+                    minDistance = distance;
+                    param = max(1.0, ((point - control[0]) dot bc) / (bc dot bc))
+                }
+
+                val a = br dot br
+                val b = 3.0 * (ab dot br)
+                val c = (2.0 * (ab dot ab)) + (qa dot br);
+                val d = qa dot ab
+                val ts = solveCubic(a, b, c, d);
+
+                for (t in ts) {
+                    if (t > 0 && t < 1) {
+                        val endpoint = position(t);
+                        val distance = sign(ac cross (endpoint - point)) * (endpoint - point).length
+                        if (abs(distance) < abs(minDistance)) {
+                            minDistance = distance
+                            param = t
+                        }
+                    }
+                }
+                param.coerceIn(0.0, 1.0)
+            }
+            SegmentType.CUBIC -> {
+                fun sign(n: Double): Double {
+                    val s = Math.signum(n)
+                    return if (s == 0.0) -1.0 else s
+                }
+
+                val qa = start - point
+                val ab = control[0] - start
+                val bc = control[1] - control[0]
+                val cd = end - control[1]
+                val qd = end - point
+                val br = bc - ab
+                val ax = (cd - bc) - br
+
+                var minDistance = sign(ab cross qa) * qa.length
+                var param = -(qa dot ab) / (ab dot ab)
+
+                var distance = sign(cd cross qd) * qd.length
+                if (abs(distance) < abs(minDistance)) {
+                    minDistance = distance
+                    param = max(1.0, (point - control[1] dot cd) / (cd dot cd))
+                }
+                val SEARCH_STARTS = 4
+                val SEARCH_STEPS = 8
+
+                for (i in 0 until SEARCH_STARTS) {
+                    var t = i.toDouble() / (SEARCH_STARTS - 1)
+                    var step = 0
+                    while (true) {
+                        val qpt = position(t) - point
+                        distance = sign(direction(t) cross qpt) * qpt.length
+                        if (abs(distance) < abs(minDistance)) {
+                            minDistance = distance
+                            param = t
+                        }
+                        if (step == SEARCH_STEPS) {
+                            break
+                        }
+                        val d1 = (ax * (3 * t * t)) + br * (6 * t) + ab * 3.0
+                        val d2 = (ax * (6 * t)) + br * 6.0
+                        val dt = (qpt dot d1) / ((d1 dot d1) + (qpt dot d2))
+                        if (abs(dt) < 1e-14) {
+                            break
+                        }
+                        t -= dt
+                        if (t < 0 || t > 1) {
+                            break
+                        }
+                        step++
+                    }
+                }
+                param.coerceIn(0.0, 1.0)
+            }
         }
+        val closest = position(t)
+        return SegmentPoint(this, t, closest)
     }
 
 
@@ -1125,12 +1200,11 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
      * @param point the point to project
      * @return a projected point that lies on the contour
      */
-    fun project(point: Vector2): ContourProjection {
-        val nearest = segments.mapIndexed { index, it -> Pair(index, it.project(point)) }.minBy { it.second.distance }!!
-
-        return ContourProjection(nearest.second, (nearest.first + nearest.second.projection) /
-                segments.size, nearest.second.distance, nearest.second.point)
-
+    fun nearest(point: Vector2): ContourPoint {
+        val n = segments.map { it.nearest(point) }.minBy { it.position.distanceTo(point) } ?: error("no segments")
+        val segmentIndex = segments.indexOf(n.segment)
+        val t = (segmentIndex + n.segmentT) / segments.size
+        return ContourPoint(this, t, n.segment, n.segmentT, n.position)
     }
 
     val reversed get() = ShapeContour(segments.map { it.reverse }.reversed(), closed, polarity)
