@@ -11,4 +11,12 @@ data class IntRectangle(val corner: IntVector2, val width: Int, val height: Int)
     val center get() = corner + IntVector2(width / 2, height / 2)
     val area get() = width * height
     val rectangle get() = Rectangle(corner.vector2, width.toDouble(), height.toDouble())
+    val dimensions = IntVector2(width, height)
+
+    fun contains(point: IntVector2): Boolean {
+        return (point.x >= corner.x &&
+                point.x < corner.x + width &&
+                point.y >= corner.y &&
+                point.y < corner.y + height)
+    }
 }

@@ -27,6 +27,9 @@ import org.openrndr.draw.*
 import org.openrndr.draw.BufferMultisample.Disabled
 import org.openrndr.draw.BufferMultisample.SampleCount
 import org.openrndr.internal.Driver
+import org.openrndr.math.IntVector2
+import org.openrndr.shape.IntRectangle
+import org.openrndr.shape.Rectangle
 import java.io.File
 import java.io.InputStream
 import java.nio.Buffer
@@ -421,6 +424,35 @@ class ColorBufferGL3(val target: Int,
                 debugGLErrors()
             }
         }
+    }
+
+    override fun crop(x: Int, y: Int, width: Int, height: Int): ColorBuffer = crop(IntRectangle(x, y, width, height))
+
+    override fun crop(frame: IntRectangle): ColorBuffer {
+        val intBounds = this.bounds.toIntRectangle()
+        val x = frame.x
+        val y = frame.y
+
+        if (!intBounds.contains(frame.corner) ||
+                !intBounds.contains(frame.corner + IntVector2(frame.width, 0)) ||
+                !intBounds.contains(frame.corner + IntVector2(0, frame.height)) ||
+                !intBounds.contains(frame.corner + frame.dimensions)
+        ) return this
+
+        val crop = this.createEquivalent(frame.width, frame.height)
+
+        this.shadow.download()
+        crop.shadow.download()
+
+        for (yi in y until (y + crop.height)) {
+            for (xi in x until (x + crop.width)) {
+                crop.shadow[xi - x, yi - y] = this.shadow[xi, yi]
+            }
+        }
+
+        crop.shadow.upload()
+
+        return crop
     }
 
     override var wrapU: WrapMode

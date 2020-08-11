@@ -3,6 +3,7 @@ package org.openrndr.draw
 import org.openrndr.color.ColorRGBa
 import org.openrndr.internal.Driver
 import org.openrndr.math.Vector2
+import org.openrndr.shape.IntRectangle
 import org.openrndr.shape.Rectangle
 import java.io.File
 import java.io.InputStream
@@ -157,6 +158,13 @@ interface ColorBuffer {
      * @param color the color used for filling
      */
     fun fill(color: ColorRGBa)
+
+    /**
+     * crops the current colorbuffer
+     * @param frame rectangle coordinates of the crop which must be equal or smaller than the current bounds
+     */
+    fun crop(frame: IntRectangle): ColorBuffer
+    fun crop(x: Int, y: Int, width: Int, height: Int): ColorBuffer
 
     /** the wrapping mode to use in the horizontal direction */
     var wrapU: WrapMode

@@ -4,6 +4,7 @@ package org.openrndr.shape
 
 import org.openrndr.math.Vector2
 import org.openrndr.math.YPolarity
+import kotlin.math.floor
 
 data class Rectangle(val corner: Vector2, val width: Double, val height: Double) {
 
@@ -77,6 +78,14 @@ data class Rectangle(val corner: Vector2, val width: Double, val height: Double)
         /** creates a [Rectangle] around [center] with dimensions [width] and [height] */
         fun fromCenter(center: Vector2, width: Double, height: Double) =
                 Rectangle(center.x - width / 2.0, center.y - height / 2.0, width, height)
+    }
+
+    fun toIntRectangle(): IntRectangle {
+        val x = floor(this.x).toInt()
+        val y = floor(this.y).toInt()
+        val width = floor(this.width).toInt()
+        val height = floor(this.height).toInt()
+        return IntRectangle(x, y, width, height)
     }
 }
 

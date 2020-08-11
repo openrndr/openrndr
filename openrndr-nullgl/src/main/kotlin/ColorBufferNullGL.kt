@@ -2,6 +2,7 @@ package org.openrndr.internal.nullgl
 
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
+import org.openrndr.shape.IntRectangle
 import java.io.File
 import java.nio.ByteBuffer
 
@@ -49,6 +50,14 @@ class ColorBufferNullGL(override val width: Int, override val height: Int, overr
 
     override fun fill(color: ColorRGBa) {
 
+    }
+
+    override fun crop(frame: IntRectangle): ColorBuffer {
+        return this
+    }
+
+    override fun crop(x: Int, y: Int, width: Int, height: Int): ColorBuffer {
+        return this
     }
 
     override var wrapU = WrapMode.CLAMP_TO_EDGE
