@@ -16,6 +16,7 @@ data class Matrix44(
          * 4x4 identity matrix
          */
         val IDENTITY = Matrix44(c0r0 = 1.0, c1r1 = 1.0, c2r2 = 1.0, c3r3 = 1.0)
+
         /**
          * 4x4 zero matrix
          */
@@ -35,15 +36,29 @@ data class Matrix44(
                         c0.w, c1.w, c2.w, c3.w)
 
 
+        /**
+         * Construct matrix from `DoubleArray` with values in row-major order
+         */
         fun fromDoubleArray(a: DoubleArray): Matrix44 {
             require(a.size >= 16) { "input array is too short (${a.size}}, should have at least a length of 16)" }
             return Matrix44(
-                a[0], a[1], a[2], a[3],
-                a[4], a[5], a[6], a[7],
-                a[8], a[9], a[10], a[11],
-                a[12], a[13], a[14], a[15]
+                    a[0], a[1], a[2], a[3],
+                    a[4], a[5], a[6], a[7],
+                    a[8], a[9], a[10], a[11],
+                    a[12], a[13], a[14], a[15]
             )
         }
+    }
+
+    /**
+     * Convert matrix to a `DoubleArray` in row-major order
+     */
+    fun toDoubleArray(): DoubleArray {
+        return doubleArrayOf(
+                c0r0, c1r0, c2r0, c3r0,
+                c0r1, c1r1, c2r1, c3r1,
+                c0r2, c1r2, c2r2, c3r2,
+                c0r3, c1r3, c2r3, c3r3)
     }
 
     /**
@@ -136,8 +151,8 @@ data class Matrix44(
      */
     val matrix33
         get() = Matrix33(c0r0, c1r0, c2r0,
-                    c0r1, c1r1, c2r1,
-                    c0r2, c1r2, c2r2)
+                c0r1, c1r1, c2r1,
+                c0r2, c1r2, c2r2)
 
     /**
      * Multiplies the 4x4 matrix with a vector 4
