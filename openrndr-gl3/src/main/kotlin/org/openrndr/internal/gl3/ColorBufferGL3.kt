@@ -27,6 +27,7 @@ import org.openrndr.draw.*
 import org.openrndr.draw.BufferMultisample.Disabled
 import org.openrndr.draw.BufferMultisample.SampleCount
 import org.openrndr.internal.Driver
+import org.openrndr.shape.IntRectangle
 import java.io.File
 import java.io.InputStream
 import java.nio.Buffer
@@ -292,88 +293,115 @@ class ColorBufferGL3(val target: Int,
         }
     }
 
-    override fun resolveTo(target: ColorBuffer, fromLevel: Int, toLevel: Int) {
+    override fun copyTo(
+            target: ColorBuffer,
+            fromLevel: Int,
+            toLevel: Int,
+            sourceRectangle: IntRectangle,
+            targetRectangle: IntRectangle
+    ) {
         checkDestroyed()
+
         val fromDiv = 1 shl fromLevel
         val toDiv = 1 shl toLevel
+        val refRectangle = IntRectangle(0, 0, effectiveWidth/fromDiv, effectiveHeight/fromDiv)
 
-        if (target.format != format) {
-            throw IllegalArgumentException("cannot resolve to target because its color format differs. got ${target.format}, expected $format.")
-        }
+        val useTexSubImage = target.type.compressed || (refRectangle == sourceRectangle && refRectangle == targetRectangle && multisample == target.multisample )
 
-        if (target.type != type) {
-            throw IllegalArgumentException("cannot resolve to target because its color type differs. got ${target.type}, expected $type.")
-        }
-
-        val readTarget = renderTarget(width / fromDiv, height / fromDiv, contentScale, multisample = multisample) {
-            colorBuffer(this@ColorBufferGL3, fromLevel)
-        } as RenderTargetGL3
-
-        val writeTarget = renderTarget(target.width / toDiv, target.height / toDiv, target.contentScale, multisample = target.multisample) {
-            colorBuffer(target, toLevel)
-        } as RenderTargetGL3
-
-        writeTarget.bind()
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, readTarget.framebuffer)
-        glBlitFramebuffer(0, 0, effectiveWidth / fromDiv, effectiveHeight / fromDiv, 0, 0, target.effectiveWidth / toDiv, target.effectiveHeight / toDiv, GL_COLOR_BUFFER_BIT, GL_NEAREST)
-        writeTarget.unbind()
-
-        writeTarget.detachColorAttachments()
-        writeTarget.destroy()
-
-        readTarget.detachColorAttachments()
-        readTarget.destroy()
-    }
-
-    override fun copyTo(target: ColorBuffer, fromLevel: Int, toLevel: Int) {
-        val useFrameBufferCopy = Driver.glVersion < DriverVersionGL.VERSION_4_3 || (type != target.type || format != target.format)
-
-        if (useFrameBufferCopy) {
-            checkDestroyed()
-            val fromDiv = 1 shl fromLevel
-            val toDiv = 1 shl toLevel
-
-            val readTarget = renderTarget(width / fromDiv, height / fromDiv, contentScale) {
+        if (!useTexSubImage) {
+            val readTarget = renderTarget(
+                    width / fromDiv,
+                    height / fromDiv,
+                    contentScale,
+                    multisample = multisample
+            ) {
                 colorBuffer(this@ColorBufferGL3, fromLevel)
             } as RenderTargetGL3
 
-            target as ColorBufferGL3
-            readTarget.bind()
-            glReadBuffer(GL_COLOR_ATTACHMENT0)
-            debugGLErrors()
-            target.bound {
-                glCopyTexSubImage2D(target.target, toLevel, 0, 0, 0, 0, target.effectiveWidth / toDiv, target.effectiveHeight / toDiv)
-                debugGLErrors() {
-                    when (it) {
-                        GL_INVALID_VALUE -> "level ($toLevel) less than 0, effective target is GL_TEXTURE_RECTANGLE (${target.target == GL_TEXTURE_RECTANGLE} and level is not 0"
-                        else -> null
-                    }
-                }
-            }
-            readTarget.unbind()
+            val writeTarget = renderTarget(
+                    target.width / toDiv,
+                    target.height / toDiv,
+                    target.contentScale,
+                    multisample = target.multisample
+            ) {
+                colorBuffer(target, toLevel)
+            } as RenderTargetGL3
+
+            writeTarget.bind()
+            glBindFramebuffer(GL_READ_FRAMEBUFFER, readTarget.framebuffer)
+
+            val ssx = sourceRectangle.x
+            val ssy = sourceRectangle.y
+            val sex = sourceRectangle.width + ssx
+            val sey = sourceRectangle.height + ssy
+
+            val tsx = targetRectangle.x
+            val tsy = (target.effectiveHeight/ toDiv) - targetRectangle.height
+            val tex = targetRectangle.width + tsx
+            val tey = targetRectangle.height + tsy
+
+            glBlitFramebuffer(ssx,ssy, sex, sey, tsx, tsy, tex, tey, GL_COLOR_BUFFER_BIT, GL_NEAREST)
+            writeTarget.unbind()
+
+            writeTarget.detachColorAttachments()
+            writeTarget.destroy()
 
             readTarget.detachColorAttachments()
             readTarget.destroy()
         } else {
-            target as ColorBufferGL3
-            GL43C.glCopyImageSubData(
-                    texture,
-                    this.target,
-                    fromLevel,
-                    0,
-                    0,
-                    0,
-                    target.texture,
-                    target.target,
-                    toLevel,
-                    0,
-                    0,
-                    0,
-                    effectiveWidth,
-                    effectiveHeight,
-                    1
-            )
-            debugGLErrors()
+            require(sourceRectangle == refRectangle && targetRectangle == refRectangle) {
+                "cropped or scaled copyTo is not allowed with the selected color buffers: ${this} -> ${target}"
+            }
+
+            val useFrameBufferCopy = Driver.glVersion < DriverVersionGL.VERSION_4_3 || (type != target.type || format != target.format)
+
+            if (useFrameBufferCopy) {
+                checkDestroyed()
+                val fromDiv = 1 shl fromLevel
+                val toDiv = 1 shl toLevel
+
+                val readTarget = renderTarget(width / fromDiv, height / fromDiv, contentScale) {
+                    colorBuffer(this@ColorBufferGL3, fromLevel)
+                } as RenderTargetGL3
+
+                target as ColorBufferGL3
+                readTarget.bind()
+                glReadBuffer(GL_COLOR_ATTACHMENT0)
+                debugGLErrors()
+                target.bound {
+                    glCopyTexSubImage2D(target.target, toLevel, 0, 0, 0, 0, target.effectiveWidth / toDiv, target.effectiveHeight / toDiv)
+                    debugGLErrors() {
+                        when (it) {
+                            GL_INVALID_VALUE -> "level ($toLevel) less than 0, effective target is GL_TEXTURE_RECTANGLE (${target.target == GL_TEXTURE_RECTANGLE} and level is not 0"
+                            else -> null
+                        }
+                    }
+                }
+                readTarget.unbind()
+
+                readTarget.detachColorAttachments()
+                readTarget.destroy()
+            } else {
+                target as ColorBufferGL3
+                GL43C.glCopyImageSubData(
+                        texture,
+                        this.target,
+                        fromLevel,
+                        0,
+                        0,
+                        0,
+                        target.texture,
+                        target.target,
+                        toLevel,
+                        0,
+                        0,
+                        0,
+                        effectiveWidth,
+                        effectiveHeight,
+                        1
+                )
+                debugGLErrors()
+            }
         }
     }
 

@@ -3,6 +3,7 @@ package org.openrndr.draw
 import org.openrndr.color.ColorRGBa
 import org.openrndr.internal.Driver
 import org.openrndr.math.Vector2
+import org.openrndr.shape.IntRectangle
 import org.openrndr.shape.Rectangle
 import java.io.File
 import java.io.InputStream
@@ -133,7 +134,10 @@ interface ColorBuffer {
     /**
      * resolves contents to a non-multisampled color buffer
      */
-    fun resolveTo(target: ColorBuffer, fromLevel: Int = 0, toLevel: Int = 0)
+    @Deprecated("functionality is merged into copyTo")
+    fun resolveTo(target: ColorBuffer, fromLevel: Int = 0, toLevel: Int = 0) {
+        copyTo(target, fromLevel, toLevel)
+    }
 
     /**
      * copies contents to a target color buffer
@@ -141,7 +145,22 @@ interface ColorBuffer {
      * @param fromLevel the mip-map level from which will be copied
      * @param toLevel the mip-map level of [target] to which will be copied
      */
-    fun copyTo(target: ColorBuffer, fromLevel: Int = 0, toLevel: Int = 0)
+    fun copyTo(
+            target: ColorBuffer,
+            fromLevel: Int = 0,
+            toLevel: Int = 0,
+            sourceRectangle: IntRectangle = IntRectangle(
+                    0,
+                    0,
+                    this.effectiveWidth / (1 shl fromLevel),
+                    this.effectiveHeight / (1 shl fromLevel)
+            ),
+            targetRectangle: IntRectangle = IntRectangle(
+                    0,
+                    0,
+                    sourceRectangle.width,
+                    sourceRectangle.height
+            ))
 
     /**
      * copies contents to a target array texture

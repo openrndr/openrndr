@@ -2,6 +2,7 @@ package org.openrndr.internal.nullgl
 
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
+import org.openrndr.shape.IntRectangle
 import java.io.File
 import java.nio.ByteBuffer
 
@@ -35,11 +36,8 @@ class ColorBufferNullGL(override val width: Int, override val height: Int, overr
 
     }
 
-    override fun resolveTo(target: ColorBuffer, fromLevel: Int, toLevel: Int) {
 
-    }
-
-    override fun copyTo(target: ColorBuffer, fromLevel: Int, toLevel: Int) {
+    override fun copyTo(target: ColorBuffer, fromLevel: Int, toLevel: Int, sourceRectangle: IntRectangle, targetRectangle: IntRectangle) {
 
     }
 
