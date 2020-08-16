@@ -5,9 +5,10 @@ package org.openrndr.shape
 import org.openrndr.math.Vector2
 import org.openrndr.math.YPolarity
 
-data class Rectangle(val corner: Vector2, val width: Double, val height: Double) {
+data class Rectangle(val corner: Vector2, val width: Double, val height: Double = width) {
 
-    constructor(x: Double, y: Double, width: Double, height: Double) : this(Vector2(x, y), width, height)
+    constructor(x: Double, y: Double, width: Double, height: Double = width) :
+            this(Vector2(x, y), width, height)
 
     /** the center of the rectangle */
     val center: Vector2
@@ -75,7 +76,7 @@ data class Rectangle(val corner: Vector2, val width: Double, val height: Double)
 
     companion object {
         /** creates a [Rectangle] around [center] with dimensions [width] and [height] */
-        fun fromCenter(center: Vector2, width: Double, height: Double) =
+        fun fromCenter(center: Vector2, width: Double, height: Double = width) =
                 Rectangle(center.x - width / 2.0, center.y - height / 2.0, width, height)
     }
 }
