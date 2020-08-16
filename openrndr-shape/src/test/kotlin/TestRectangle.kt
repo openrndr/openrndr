@@ -1,6 +1,7 @@
 import org.amshove.kluent.`should be equal to`
 import org.amshove.kluent.`should be greater or equal to`
 import org.amshove.kluent.`should be less or equal to`
+import org.openrndr.math.Vector2
 import org.openrndr.math.YPolarity
 import org.openrndr.shape.Rectangle
 import org.openrndr.shape.Winding
@@ -9,6 +10,15 @@ import org.spekframework.spek2.style.specification.describe
 
 object TestRectangle : Spek({
 
+    describe("A rectangle with default height") {
+        val width = 200.0
+
+        it("has default height equal to width") {
+            Rectangle(50.0,50.0, width).height `should be equal to` width
+            Rectangle.fromCenter(Vector2.ZERO, width).height `should be equal to` width
+            Rectangle(Vector2.ZERO, width).height `should be equal to` width
+        }
+    }
 
     describe("A rectangle's contour") {
 
