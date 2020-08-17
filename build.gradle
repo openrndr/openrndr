@@ -7,20 +7,24 @@ buildscript {
 
     dependencies {
         classpath "org.jetbrains.dokka:dokka-gradle-plugin:0.10.1"
-        classpath "com.netflix.nebula:nebula-kotlin-plugin:1.3.72"
+
         classpath "com.netflix.nebula:nebula-publishing-plugin:17.3.0"
-        classpath "com.netflix.nebula:nebula-release-plugin:15.0.3"
+        classpath "com.netflix.nebula:nebula-release-plugin:15.1.0"
+
     }
 }
 
+plugins {
+    id 'org.jetbrains.kotlin.jvm' version '1.4.0'
+}
 
 apply plugin: 'org.jetbrains.dokka'
 
 project.ext {
     lwjglVersion = '3.2.3'
     ffmpeg_version = '4.2.2-1.5.3'
-    kotlinVersion = '1.3.72'
-    spekVersion = '2.0.11'
+    kotlinVersion = '1.4.0'
+    spekVersion = '2.0.12'
     jsoupVersion = '1.13.1'
 }
 
@@ -71,7 +75,7 @@ dokka {
 allprojects {
     apply plugin: 'idea'
     apply plugin: 'java'
-    apply plugin: 'nebula.kotlin'
+    apply plugin: 'kotlin'
     apply plugin: 'nebula.contacts'
 
     // -- work-around for problem with nebula.info on arm64, which is currently not used a build host platform
@@ -99,8 +103,9 @@ allprojects {
     }
 
     dependencies {
-        implementation 'io.github.microutils:kotlin-logging:1.7.10'
-        implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.7'
+        implementation 'io.github.microutils:kotlin-logging:1.8.3'
+        implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.9'
+        implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"
 
         testImplementation "org.spekframework.spek2:spek-dsl-jvm:$spekVersion"
         testImplementation "org.amshove.kluent:kluent:1.61"
