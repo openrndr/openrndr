@@ -54,7 +54,7 @@ interface Shader : ShaderImageBindings {
 
     fun hasUniform(name: String): Boolean
 
-    fun createBlock(blockName: String): UniformBlock
+    fun createBlock(blockName: String): UniformBlock?
     fun blockLayout(blockName: String): UniformBlockLayout?
     fun block(blockName: String, block: UniformBlock)
 

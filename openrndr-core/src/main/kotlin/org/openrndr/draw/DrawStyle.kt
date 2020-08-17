@@ -329,7 +329,7 @@ class ChannelMask(val red: Boolean, val green: Boolean, val blue: Boolean, val a
     }
 }
 
-private var styleBlocks = mutableMapOf<Long, UniformBlock>()
+private var styleBlocks = mutableMapOf<Long, UniformBlock?>()
 private var useStyleBlock = true
 
 enum class KernMode {
@@ -398,7 +398,7 @@ data class DrawStyle(
                 shader.createBlock("StyleBlock")
             }
 
-            styleBlock.apply {
+            styleBlock?.apply {
                 uniform("u_fill", fill ?: ColorRGBa.TRANSPARENT)
                 uniform("u_stroke", stroke ?: ColorRGBa.TRANSPARENT)
                 uniform("u_strokeWeight", strokeWeight.toFloat())

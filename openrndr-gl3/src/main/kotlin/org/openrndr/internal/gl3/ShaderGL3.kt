@@ -144,13 +144,12 @@ class ShaderGL3(val program: Int,
         }
     }
 
-    override fun createBlock(blockName: String): UniformBlock {
+    override fun createBlock(blockName: String): UniformBlock? {
         val layout = blockLayout(blockName)
-        if (layout != null) {
-            return UniformBlockGL3.create(layout)
-
+        return if (layout != null) {
+            UniformBlockGL3.create(layout)
         } else {
-            throw RuntimeException("block does not exists $blockName")
+            null
         }
     }
 

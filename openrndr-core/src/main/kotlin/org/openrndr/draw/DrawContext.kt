@@ -11,7 +11,7 @@ private var lastModelNormal = Matrix44.IDENTITY
 private var lastView = Matrix44.IDENTITY
 private var lastViewNormal = Matrix44.IDENTITY
 
-private var contextBlocks = mutableMapOf<Long, UniformBlock>()
+private var contextBlocks = mutableMapOf<Long, UniformBlock?>()
 private var useContextBlock = true
 
 private val logger = KotlinLogging.logger {}
@@ -58,7 +58,7 @@ data class DrawContext(val model: Matrix44, val view: Matrix44, val projection: 
                 shader.uniform("u_contentScale", contentScale)
             }
         } else {
-            contextBlock.apply {
+            contextBlock?.apply {
                 uniform("u_viewMatrix", view)
                 uniform("u_modelMatrix", model)
                 uniform("u_projectionMatrix", projection)
