@@ -128,6 +128,15 @@ interface ColorBuffer {
     fun write(buffer: ByteBuffer, sourceFormat: ColorFormat = format, sourceType: ColorType = type, level: Int = 0)
     fun read(buffer: ByteBuffer, targetFormat: ColorFormat = format, targetType: ColorType = type, level: Int = 0)
 
+    /**
+     * create a cropped copy
+     */
+    fun crop(sourceRectangle: IntRectangle) : ColorBuffer {
+        val cropped = createEquivalent(width = sourceRectangle.width, height = sourceRectangle.height)
+        copyTo(cropped, sourceRectangle = sourceRectangle)
+        return cropped
+    }
+
     /** generates mipmaps from the top-level mipmap */
     fun generateMipmaps()
 
