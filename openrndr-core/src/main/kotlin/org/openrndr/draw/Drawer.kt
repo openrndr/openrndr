@@ -618,13 +618,13 @@ class Drawer(val driver: Driver) {
      * @see composition
      */
     fun shape(shape: Shape) {
-        val fringeWidth = 1.0 / modelViewScaling
         val distanceTolerance = 0.5 / modelViewScaling
+        val fringeWidth = 1.0 / modelViewScaling
 
         if (RenderTarget.active.hasDepthBuffer) {
             when (shape.topology) {
                 ShapeTopology.CLOSED -> qualityPolygonDrawer.drawPolygon(context, drawStyle,
-                        shape.contours.map { it.adaptivePositions() })
+                        shape.contours.map { it.adaptivePositions(distanceTolerance) }, fringeWidth)
                 ShapeTopology.OPEN -> qualityLineDrawer.drawLineStrips(context, drawStyle, shape.contours.map { it.adaptivePositions(distanceTolerance) }, fringeWidth)
                 ShapeTopology.MIXED -> {
                     qualityPolygonDrawer.drawPolygon(context, drawStyle, shape.closedContours.map { it.adaptivePositions(distanceTolerance) }, fringeWidth)
