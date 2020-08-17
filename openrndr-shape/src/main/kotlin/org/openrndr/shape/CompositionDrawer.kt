@@ -10,6 +10,11 @@ import org.openrndr.math.transforms.transform
 import org.openrndr.math.transforms.translate
 import java.util.*
 
+private data class CompositionDrawStyle(
+        var fill: ColorRGBa? = null,
+        var stroke: ColorRGBa? = ColorRGBa.BLACK,
+        var strokeWeight: Double = 1.0)
+
 
 /**
  * A Drawer-like interface for the creation of Compositions
@@ -22,11 +27,27 @@ class CompositionDrawer(documentBounds: Rectangle = DefaultCompositionBounds) {
 
     private var cursor = root
     private val modelStack = Stack<Matrix44>()
+    private val styleStack = Stack<CompositionDrawStyle>()
+    private var drawStyle = CompositionDrawStyle()
 
     var model = Matrix44.IDENTITY
-    var fill: ColorRGBa? = null
-    var stroke: ColorRGBa? = ColorRGBa.BLACK
-    var strokeWeight = 1.0
+    var fill
+        set(value) {
+            drawStyle.fill = value
+        }
+        get() = drawStyle.fill
+
+    var stroke
+        set(value) {
+            drawStyle.stroke = value
+        }
+        get() = drawStyle.stroke
+
+    var strokeWeight
+        set(value) {
+            drawStyle.strokeWeight = value
+        }
+        get() = drawStyle.strokeWeight
 
     fun pushModel() {
         modelStack.push(model)
@@ -34,6 +55,22 @@ class CompositionDrawer(documentBounds: Rectangle = DefaultCompositionBounds) {
 
     fun popModel() {
         model = modelStack.pop()
+    }
+
+    fun pushStyle() {
+        styleStack.push(drawStyle.copy())
+    }
+
+    fun popStyle() {
+        drawStyle = styleStack.pop()
+    }
+
+    fun isolated(draw: CompositionDrawer.() -> Unit) {
+        pushModel()
+        pushStyle()
+        draw()
+        popModel()
+        popStyle()
     }
 
     fun group(id: String? = null, builder: CompositionDrawer.() -> Unit): GroupNode {
@@ -144,6 +181,6 @@ class CompositionDrawer(documentBounds: Rectangle = DefaultCompositionBounds) {
 }
 
 fun drawComposition(
-        documentBounds : Rectangle = DefaultCompositionBounds,
-        drawFunction:CompositionDrawer.() -> Unit
-) : Composition = CompositionDrawer(documentBounds).apply { drawFunction() }.composition
+        documentBounds: Rectangle = DefaultCompositionBounds,
+        drawFunction: CompositionDrawer.() -> Unit
+): Composition = CompositionDrawer(documentBounds).apply { drawFunction() }.composition
