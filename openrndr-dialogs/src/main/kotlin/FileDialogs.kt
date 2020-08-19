@@ -113,7 +113,7 @@ fun openFileDialog(
 
     val out = memAllocPointer(1)
 
-    val r = NativeFileDialog.NFD_OpenDialog(filterList, defaultPath, out)
+    val r = NFD_OpenDialog(filterList, defaultPath, out)
     if (r == NFD_OKAY) {
         val ptr = out.get(0)
         val str = memUTF8(ptr)
@@ -162,7 +162,7 @@ fun openFilesDialog(
 
     val pathSet = NFDPathSet.calloc()
 
-    val r = NativeFileDialog.NFD_OpenDialogMultiple(filterList, defaultPath, pathSet)
+    val r = NFD_OpenDialogMultiple(filterList, defaultPath, pathSet)
     val files = mutableListOf<File>()
     if (r == NFD_OKAY) {
         for (i in 0 until NFD_PathSet_GetCount(pathSet)) {
@@ -219,7 +219,7 @@ fun openFolderDialog(programName: String = stackRootClassName(), contextID: Stri
     val defaultPath: CharSequence? = getDefaultPathForContext(programName, contextID)
     val out = memAllocPointer(1)
 
-    val r = NativeFileDialog.NFD_PickFolder(defaultPath, out)
+    val r = NFD_PickFolder(defaultPath, out)
     if (r == NFD_OKAY) {
         val ptr = out.get(0)
         val str = memUTF8(ptr)
@@ -253,11 +253,7 @@ fun saveFileDialog(
     val defaultPath = if (suggestedFilename == null) {
         defaultPathBase
     } else {
-        if (defaultPathBase == null) {
-            suggestedFilename
-        } else {
-            File(defaultPathBase, suggestedFilename).absolutePath
-        }
+        File(defaultPathBase, suggestedFilename).absolutePath
     }
     logger.debug { "Default path is $defaultPath" }
 
