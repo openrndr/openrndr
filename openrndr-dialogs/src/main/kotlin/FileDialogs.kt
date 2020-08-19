@@ -3,7 +3,6 @@ package org.openrndr.dialogs
 import mu.KotlinLogging
 import org.lwjgl.system.MemoryUtil.*
 import org.lwjgl.util.nfd.NFDPathSet
-import org.lwjgl.util.nfd.NativeFileDialog
 import org.lwjgl.util.nfd.NativeFileDialog.*
 import org.openrndr.exceptions.stackRootClassName
 import org.openrndr.platform.Platform
@@ -80,23 +79,12 @@ fun setDefaultPathForContext(programName: String = stackRootClassName(), context
 }
 
 /**
- * Creates a file dialog that can be used to open a single
- * @param programName optional name of the program, this is guessed from a stack trace by default
- * @param contextID optional context identifier, default is "global"
- * @see openFilesDialog
- * @see saveFileDialog
- */
-fun openFileDialog(
-        programName: String = stackRootClassName(),
-        contextID: String = "global",
-        function: (File) -> Unit
-) = openFileDialog(programName, contextID, emptyList<String>(), function)
-
-/**
  * Creates a file dialog that can be used to open a single file
  * @param programName optional name of the program, this is guessed from a stack trace by default
  * @param contextID optional context identifier, default is "global"
- * @param supportedExtensions a list of lists with supported/allowed extensions sets
+ * @param supportedExtensions a list with supported/allowed
+ * extensions sets. Usage: listOf("vector" to listOf("svg", "ai"),
+ *                                "bitmap" to listOf("jpg", "JPG"))
  * @param function the function to be invoked when a file has been picked
  * @see openFilesDialog
  * @see saveFileDialog
@@ -104,7 +92,7 @@ fun openFileDialog(
 fun openFileDialog(
         programName: String = stackRootClassName(),
         contextID: String = "global",
-        supportedExtensions: List<List<String>>,
+        supportedExtensions: List<Pair<String, List<String>>>,
         function: (File) -> Unit
 ) {
     val filterList = extensionsToString(supportedExtensions)
@@ -128,24 +116,40 @@ fun openFileDialog(
  * Creates a file dialog that can be used to open a single file
  * @param programName optional name of the program, this is guessed from a stack trace by default
  * @param contextID optional context identifier, default is "global"
- * @param supportedExtensions a list of supported/allowed extensions
+ * @param supportedExtensions a supported/allowed file extension
  * @param function the function to be invoked when a file has been picked
  * @see openFilesDialog
  * @see saveFileDialog
  */
-@JvmName("openFileDialogFlatExtensions")
+@JvmName("openFileDialogSimple")
 fun openFileDialog(
         programName: String = stackRootClassName(),
         contextID: String = "global",
         supportedExtensions: List<String>,
         function: (File) -> Unit
-) = openFileDialog(programName, contextID, listOf(supportedExtensions), function)
+) = openFileDialog(programName, contextID, listOf("supported extensions" to
+        supportedExtensions), function)
+
+/**
+ * Creates a file dialog that can be used to open a single
+ * @param programName optional name of the program, this is guessed from a stack trace by default
+ * @param contextID optional context identifier, default is "global"
+ * @see openFilesDialog
+ * @see saveFileDialog
+ */
+fun openFileDialog(
+        programName: String = stackRootClassName(),
+        contextID: String = "global",
+        function: (File) -> Unit
+) = openFileDialog(programName, contextID, emptyList<String>(), function)
 
 /**
  * Creates a file dialog that can be used to open multiple files
  * @param programName optional name of the program, this is guessed from a stack trace by default
  * @param contextID optional context identifier, default is "global"
- * @param supportedExtensions a list of lists with supported/allowed extensions sets
+ * @param supportedExtensions a list with supported/allowed
+ * extensions sets. Usage: listOf("vector" to listOf("svg", "ai"),
+ *                                "bitmap" to listOf("jpg", "JPG"))
  * @param function the function to be invoked when a file has been picked
  * @see openFileDialog
  * @see saveFileDialog
@@ -153,7 +157,7 @@ fun openFileDialog(
 fun openFilesDialog(
         programName: String = stackRootClassName(),
         contextID: String = "global",
-        supportedExtensions: List<List<String>>,
+        supportedExtensions: List<Pair<String, List<String>>>,
         function: (List<File>) -> Unit
 ) {
     val filterList = extensionsToString(supportedExtensions)
@@ -183,18 +187,19 @@ fun openFilesDialog(
  * Creates a file dialog that can be used to open multiple files
  * @param programName optional name of the program, this is guessed from a stack trace by default
  * @param contextID optional context identifier, default is "global"
- * @param supportedExtensions a list of supported/allowed extensions
+ * @param supportedExtensions a supported/allowed file extension
  * @param function the function to be invoked when a file has been picked
  * @see openFileDialog
  * @see saveFileDialog
  */
-@JvmName("openFilesDialogFlatExtensions")
+@JvmName("openFilesDialogSimple")
 fun openFilesDialog(
         programName: String = stackRootClassName(),
         contextID: String = "global",
-        supportedExtensions: List<String>,
+        supportedExtensions: List<String>, // simplified signature
         function: (List<File>) -> Unit
-) = openFilesDialog(programName, contextID, listOf(supportedExtensions), function)
+) = openFilesDialog(programName, contextID, listOf("supported extensions" to
+        supportedExtensions), function)
 
 /**
  * Creates a file dialog that can be used to open multiple files
@@ -215,7 +220,11 @@ fun openFilesDialog(
  * @param contextID optional context identifier, default is "global"
  * @param function the function to be invoked when a file has been picked
  */
-fun openFolderDialog(programName: String = stackRootClassName(), contextID: String = "global", function: (File) -> Unit) {
+fun openFolderDialog(
+        programName: String = stackRootClassName(),
+        contextID: String = "global",
+        function: (File) -> Unit
+) {
     val defaultPath: CharSequence? = getDefaultPathForContext(programName, contextID)
     val out = memAllocPointer(1)
 
@@ -235,15 +244,17 @@ fun openFolderDialog(programName: String = stackRootClassName(), contextID: Stri
  * @param programName optional name of the program, this is guessed from a stack trace by default
  * @param contextID optional context identifier, default is "global"
  * @param suggestedFilename an optional suggestion for a filename
- * @param supportedExtensions an optional list of lists with supported/allowed
- * extensions sets
+ * @param supportedExtensions an optional list with supported/allowed
+ * extensions sets. Usage: listOf("vector" to listOf("svg", "ai"),
+ *                                "bitmap" to listOf("jpg", "JPG"))
+ * The first extension in the list is applied when none provided.
  * @param function the function to be invoked when a file has been picked
  */
 fun saveFileDialog(
         programName: String = stackRootClassName(),
         contextID: String = "global",
         suggestedFilename: String? = null,
-        supportedExtensions: List<List<String>> = emptyList(),
+        supportedExtensions: List<Pair<String, List<String>>> = emptyList(),
         function: (File) -> Unit
 ) {
     val filterList = extensionsToString(supportedExtensions)
@@ -264,8 +275,8 @@ fun saveFileDialog(
         val pickedFilename = memUTF8(ptr)
         val pickedFile = File(pickedFilename)
 
-        val finalFile = if (supportedExtensions.isNotEmpty() && pickedFile.extension !in supportedExtensions) {
-            val fixedFilename = pickedFilename + ".${supportedExtensions.first().first()}"
+        val finalFile = if (supportedExtensions.isNotEmpty() && supportedExtensions.none { pickedFile.extension in it.second }) {
+            val fixedFilename = "$pickedFilename.${supportedExtensions.first().second.first()}"
             logger.warn { "User has picked either no or an unsupported extension, fixed filename to '$fixedFilename'" }
             File(fixedFilename)
         } else {
@@ -289,26 +300,29 @@ fun saveFileDialog(
  * @param programName optional name of the program, this is guessed from a stack trace by default
  * @param contextID optional context identifier, default is "global"
  * @param suggestedFilename an optional suggestion for a filename
- * @param supportedExtensions an optional lists with supported/allowed
- * extensions
+ * @param supportedExtensions a supported/allowed file extension
  * @param function the function to be invoked when a file has been picked
  */
-@JvmName("saveFileDialogFlatExtensions")
+@JvmName("saveFileDialogSimple")
 fun saveFileDialog(
         programName: String = stackRootClassName(),
         contextID: String = "global",
         suggestedFilename: String? = null,
-        supportedExtensions: List<String> = emptyList(),
+        supportedExtensions: List<String>,
         function: (File) -> Unit
 ) = saveFileDialog(programName, contextID, suggestedFilename,
-        listOf(supportedExtensions), function)
+        listOf("supported formats" to supportedExtensions), function)
 
 /**
  * Helper function to join the provided extensions as one string with
  * separator characters
  */
-private fun extensionsToString(extensions: List<List<String>>) =
+private fun extensionsToString(extensions: List<Pair<String, List<String>>>) =
         if (extensions.isEmpty())
             null
         else
-            extensions.joinToString(";") { it.joinToString(",") }
+            extensions.joinToString(";") {
+                // TODO: Use `it.first` when file filter names are supported by
+                // https://github.com/mlabbe/nativefiledialog/#known-limitations
+                it.second.joinToString(",")
+            }
