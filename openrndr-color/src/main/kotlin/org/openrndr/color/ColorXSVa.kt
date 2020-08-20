@@ -2,7 +2,13 @@ package org.openrndr.color
 
 import org.openrndr.math.mixAngle
 
-data class ColorXSVa(val x: Double, val s: Double, val v: Double, val alpha: Double = 1.0) {
+data class ColorXSVa(val x: Double, val s: Double, val v: Double, val a: Double = 1.0) :
+        ConvertibleToColorRGBa,
+        ShadableColor<ColorXSVa>,
+        HueShiftableColor<ColorXSVa>,
+        SaturatableColor<ColorXSVa>,
+        OpacifiableColor<ColorXSVa>,
+        AlgebraicColor<ColorXSVa> {
 
     companion object {
         fun fromHSVa(hsva: ColorHSVa): ColorXSLa {
@@ -39,12 +45,21 @@ data class ColorXSVa(val x: Double, val s: Double, val v: Double, val alpha: Dou
         } else {
             map(x, 300.0, 360.0, 276.0, 360.0)
         }
-        return ColorHSVa(h, s, v, alpha)
+        return ColorHSVa(h, s, v, a)
     }
 
-    fun toRGBa() = toHSVa().toRGBa()
+    override fun toRGBa() = toHSVa().toRGBa()
 
-    fun mix(other: ColorXSVa, x: Double) = mix(this, other, x)
+    override fun shiftHue(shiftInDegrees: Double) = copy(x = (x + shiftInDegrees))
+    override fun saturate(factor: Double) = copy(s = s * factor)
+    override fun shade(factor: Double) = copy(v = v * factor)
+    override fun opacify(factor: Double): ColorXSVa = copy(a = a * factor)
+
+    override fun plus(other: ColorXSVa) = copy(x = x + other.x, s = s + other.s, v = v + other.v, a = a + other.a)
+    override fun minus(other: ColorXSVa) = copy(x = x - other.x, s = s - other.s, v = v - other.v, a = a - other.a)
+    override fun times(factor: Double) = copy(x = x * factor, s = s * factor, v = v * factor, a = a * factor)
+
+    override fun mix(other: ColorXSVa, factor: Double) = mix(this, other, factor)
 }
 
 private fun map(x: Double, a: Double, b: Double, c: Double, d: Double): Double {
@@ -64,5 +79,5 @@ fun mix(left: ColorXSVa, right: ColorXSVa, x: Double): ColorXSVa {
             mixAngle(left.x, right.x, sx),
             (1.0 - sx) * left.s + sx * right.s,
             (1.0 - sx) * left.v + sx * right.v,
-            (1.0 - sx) * left.alpha + sx * right.alpha)
+            (1.0 - sx) * left.a + sx * right.a)
 }

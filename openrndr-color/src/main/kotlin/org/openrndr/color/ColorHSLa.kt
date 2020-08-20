@@ -3,7 +3,12 @@ package org.openrndr.color
 import org.openrndr.math.mixAngle
 
 @Suppress("unused", "MemberVisibilityCanBePrivate")
-data class ColorHSLa(val h: Double, val s: Double, val l: Double, val a: Double = 1.0) {
+data class ColorHSLa(val h: Double, val s: Double, val l: Double, val a: Double = 1.0) :
+        ConvertibleToColorRGBa,
+        ShadableColor<ColorHSLa>,
+        HueShiftableColor<ColorHSLa>,
+        SaturatableColor<ColorHSLa>,
+        AlgebraicColor<ColorHSLa> {
 
     operator fun invoke(h: Double = this.h, s: Double = this.s, l: Double = this.l, a: Double = this.a) =
             ColorHSLa(h, s, l, a)
@@ -63,20 +68,15 @@ data class ColorHSLa(val h: Double, val s: Double, val l: Double, val a: Double 
         }
     }
 
-    fun scaleHue(shift: Double): ColorHSLa = copy(h = (h + shift))
-    fun shiftHue(shift: Double): ColorHSLa = copy(h = (h + shift))
+    override fun shiftHue(shiftInDegrees: Double): ColorHSLa = copy(h = (h + shiftInDegrees))
+    override fun saturate(factor: Double) = copy(s = s * factor)
+    override fun shade(factor: Double) = copy(l = l * factor)
 
-    fun scaleSaturation(scale: Double): ColorHSLa = copy(s = s * scale)
-    fun shiftSaturation(shift: Double): ColorHSLa = copy(s = s + shift)
-
-    fun shiftValue(shift: Double): ColorHSLa = copy(l = l + shift)
-    fun scaleValue(scale: Double): ColorHSLa = copy(l = l * scale)
-
-    fun mix(other: ColorHSLa, x: Double) = mix(this, other, x)
+    override fun mix(other: ColorHSLa, x: Double) = mix(this, other, x)
 
     val unit get() = copy(h = ((h % 360) + 360) % 360)
 
-    fun toRGBa(): ColorRGBa {
+    override fun toRGBa(): ColorRGBa {
         return if (s == 0.0) {
             ColorRGBa(l, l, l, a)
         } else {
@@ -87,7 +87,6 @@ data class ColorHSLa(val h: Double, val s: Double, val l: Double, val a: Double 
             val b = hue2rgb(p, q, h / 360.0 - 1.0 / 3)
             ColorRGBa(r, g, b, a, Linearity.SRGB)
         }
-
     }
 
     fun toHSVa(): ColorHSVa = toRGBa().toHSVa()
@@ -98,6 +97,9 @@ data class ColorHSLa(val h: Double, val s: Double, val l: Double, val a: Double 
     fun toLCHUVa(ref: ColorXYZa = ColorXYZa.NEUTRAL) = toLUVa(ref).toLCHUVa()
 
     fun toXSLa() = ColorXSLa.fromHSLa(this)
+    override fun plus(other: ColorHSLa) = copy(h = h + other.h, s = s + other.s, l = l + other.l, a = a + other.a)
+    override fun minus(other: ColorHSLa) = copy(h = h - other.h, s = s - other.s, l = l - other.l, a = a - other.a)
+    override fun times(factor: Double) = copy(h = h * factor, s = s * factor, l = l * factor, a = a * factor)
 
 }
 

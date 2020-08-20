@@ -22,7 +22,11 @@ enum class Linearity {
  * @param b blue in `[0,1]`
  * @param a alpha in `[0,1]`
  */
-data class ColorRGBa(val r: Double, val g: Double, val b: Double, val a: Double = 1.0, val linearity: Linearity = Linearity.UNKNOWN) {
+data class ColorRGBa(val r: Double, val g: Double, val b: Double, val a: Double = 1.0, val linearity: Linearity = Linearity.UNKNOWN) :
+        ConvertibleToColorRGBa,
+        OpacifiableColor<ColorRGBa>,
+        ShadableColor<ColorRGBa>,
+        AlgebraicColor<ColorRGBa> {
 
     operator fun invoke(r: Double = this.r, g: Double = this.g, b: Double = this.b, a: Double = this.a) = ColorRGBa(r, g, b, a)
 
@@ -65,20 +69,28 @@ data class ColorRGBa(val r: Double, val g: Double, val b: Double, val a: Double 
 
         /** @suppress */
         val PINK = fromHex(0xffc0cb)
+
         /** @suppress */
         val BLACK = ColorRGBa(0.0, 0.0, 0.0, 1.0)
+
         /** @suppress */
         val WHITE = ColorRGBa(1.0, 1.0, 1.0, 1.0)
+
         /** @suppress */
         val RED = ColorRGBa(1.0, 0.0, 0.0, 1.0)
+
         /** @suppress */
         val BLUE = ColorRGBa(0.0, 0.0, 1.0)
+
         /** @suppress */
         val GREEN = ColorRGBa(0.0, 1.0, 0.0)
+
         /** @suppress */
         val YELLOW = ColorRGBa(1.0, 1.0, 0.0)
+
         /** @suppress */
         val GRAY = ColorRGBa(0.5, 0.5, 0.5)
+
         /** @suppress */
         val TRANSPARENT = ColorRGBa(0.0, 0.0, 0.0, 0.0)
 
@@ -103,26 +115,25 @@ data class ColorRGBa(val r: Double, val g: Double, val b: Double, val a: Double 
 
     /**
      * Creates a copy of color with adjusted opacity
-     * @param opacity a scaling factor used for the opacity
+     * @param factor a scaling factor used for the opacity
      * @return A [ColorRGBa] with scaled opacity
      * @see shade
      */
-    fun opacify(opacity: Double): ColorRGBa = ColorRGBa(r, g, b, a * opacity)
+    override fun opacify(factor: Double): ColorRGBa = ColorRGBa(r, g, b, a * factor)
 
     /**
      * Creates a copy of color with adjusted color
-     * @param shade a scaling factor used for the opacity
+     * @param factor a scaling factor used for the opacity
      * @return A [ColorRGBa] with scaled colors
      * @see opacify
      */
-    fun shade(shade: Double): ColorRGBa = ColorRGBa(r * shade, g * shade, b * shade, a)
+    override fun shade(factor: Double): ColorRGBa = ColorRGBa(r * factor, g * factor, b * factor, a)
 
     /**
      * Copy of the the color with all of its fields clamped to `[0, 1]`
      */
     val saturated get() = ColorRGBa(r.coerceIn(0.0, 1.0), g.coerceIn(0.0, 1.0), b.coerceIn(0.0, 1.0), a.coerceIn(0.0, 1.0))
     val alphaMultiplied get() = ColorRGBa(r * a, g * a, b * a, a)
-
 
     /**
      * The minimum value over `r`, `g`, `b`
@@ -174,6 +185,7 @@ data class ColorRGBa(val r: Double, val g: Double, val b: Double, val a: Double 
         }
     }
 
+    override fun toRGBa(): ColorRGBa = this
 
     // This is here because the default hashing of enums on the JVM is not stable.
     override fun hashCode(): Int {
@@ -185,6 +197,12 @@ data class ColorRGBa(val r: Double, val g: Double, val b: Double, val a: Double 
         result = 31 * result + linearity.ordinal.hashCode()
         return result
     }
+
+    override fun plus(other: ColorRGBa) = copy(r = r + other.r, g = g + other.g, b = b + other.b, a = a - other.a)
+
+    override fun minus(other: ColorRGBa) = copy(r = r - other.r, g = g - other.g, b = b - other.b, a = a - other.a)
+
+    override fun times(factor: Double) = copy(r = r * factor, g = g * factor, b = g * factor, a = a * factor)
 }
 
 /**

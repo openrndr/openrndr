@@ -5,7 +5,14 @@ import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.sqrt
 
-data class ColorLCHABa(val l: Double, val c: Double, val h: Double, val alpha: Double = 1.0, val ref: ColorXYZa = ColorXYZa.NEUTRAL) {
+data class ColorLCHABa(val l: Double, val c: Double, val h: Double, val alpha: Double = 1.0, val ref: ColorXYZa = ColorXYZa.NEUTRAL):
+    ConvertibleToColorRGBa,
+    ShadableColor<ColorLCHABa>,
+    OpacifiableColor<ColorLCHABa>,
+    HueShiftableColor<ColorLCHABa>,
+    AlgebraicColor<ColorLCHABa>
+
+{
     companion object {
         fun findMaxChroma(l: Double, h: Double, ref: ColorXYZa): Double {
             var left = 0.0
@@ -63,14 +70,6 @@ data class ColorLCHABa(val l: Double, val c: Double, val h: Double, val alpha: D
         }
     }
 
-    fun scaleHue(scale: Double): ColorLCHABa = copy(h = (h * scale))
-    fun shiftHue(shift: Double): ColorLCHABa = copy(h = (h + shift))
-
-    fun scaleLuminosity(scale: Double): ColorLCHABa = copy(l = l * scale)
-    fun shiftLuminosity(shift: Double): ColorLCHABa = copy(l = l + shift)
-
-    fun shiftChroma(shift: Double): ColorLCHABa = copy(c = c + shift)
-    fun scaleChroma(scale: Double): ColorLCHABa = copy(c = c * scale)
 
 
     fun toLABa(): ColorLABa {
@@ -81,7 +80,15 @@ data class ColorLCHABa(val l: Double, val c: Double, val h: Double, val alpha: D
 
     fun toXYZa(): ColorXYZa = toLABa().toXYZa()
 
-    fun toRGBa(): ColorRGBa = toLABa().toXYZa().toRGBa()
+    override fun toRGBa(): ColorRGBa = toLABa().toXYZa().toRGBa()
 
     fun toLSHABa() = ColorLSHABa.fromLCHABa(this)
+
+    override fun opacify(factor: Double) = copy(alpha = alpha * factor)
+    override fun shade(factor: Double) = copy(l = l * factor)
+    override fun shiftHue(shiftInDegrees: Double) = copy(h = h + shiftInDegrees)
+
+    override fun plus(other: ColorLCHABa) = copy(l = l + other.l, c = c + other.c, h = h + other.h, alpha = alpha + other.alpha)
+    override fun minus(other: ColorLCHABa) = copy(l = l - other.l, c = c  -other.c, h = h - other.h, alpha = alpha - other.alpha)
+    override fun times(factor: Double)= copy(l = l * factor, c = c * factor, h = h * factor, alpha = alpha * factor)
 }

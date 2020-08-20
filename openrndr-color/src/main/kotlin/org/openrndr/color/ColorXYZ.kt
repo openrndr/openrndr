@@ -1,6 +1,11 @@
 package org.openrndr.color
 
-data class ColorXYZa(val x: Double, val y: Double, val z: Double, val a: Double = 1.0) {
+import kotlin.math.min
+
+data class ColorXYZa(val x: Double, val y: Double, val z: Double, val a: Double = 1.0) :
+        ConvertibleToColorRGBa,
+        OpacifiableColor<ColorXYZa>,
+        AlgebraicColor<ColorXYZa> {
 
     companion object {
         val SO2_A = ColorXYZa(109.83, 100.0, 35.55)
@@ -33,11 +38,11 @@ data class ColorXYZa(val x: Double, val y: Double, val z: Double, val a: Double 
         }
     }
 
-    val minValue get() = Math.min(Math.min(x, y), z)
+    val minValue get() = min(min(x, y), z)
 
     fun toLABa(ref: ColorXYZa) = ColorLABa.fromXYZa(this, ref)
     fun toLUVa(ref: ColorXYZa) = ColorLUVa.fromXYZa(this, ref)
-    fun toRGBa(): ColorRGBa {
+    override fun toRGBa(): ColorRGBa {
         val r = 3.2406 * x - 1.5372 * y - 0.4986 * z
         val g = -0.9689 * x + 1.8758 * y + 0.0415 * z
         val b = 0.0557 * x - 0.2040 * y + 1.0570 * z
@@ -46,4 +51,8 @@ data class ColorXYZa(val x: Double, val y: Double, val z: Double, val a: Double 
 
     fun toHSVa(): ColorHSVa = toRGBa().toHSVa()
     fun toHSLa(): ColorHSLa = toRGBa().toHSLa()
+    override fun plus(other: ColorXYZa) = copy(x = x + other.x, y = y + other.y, z = z + other.z, a = a + other.a)
+    override fun minus(other: ColorXYZa) = copy(x = x - other.x, y = y - other.y, z = z - other.z, a = a - other.a)
+    override fun times(factor: Double): ColorXYZa = copy(x = x * factor, y = y * factor, z = z * factor, a = a * factor)
+    override fun opacify(factor: Double) = copy(a = a * factor)
 }

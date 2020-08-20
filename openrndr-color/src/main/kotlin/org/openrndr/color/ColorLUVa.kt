@@ -3,7 +3,13 @@ package org.openrndr.color
 import kotlin.math.pow
 
 @Suppress("unused", "UNUSED_PARAMETER")
-data class ColorLUVa(val l: Double, val u: Double, val v: Double, val alpha: Double = 1.0, val ref: ColorXYZa) {
+data class ColorLUVa(val l: Double, val u: Double, val v: Double, val alpha: Double = 1.0, val ref: ColorXYZa):
+    ConvertibleToColorRGBa,
+    OpacifiableColor<ColorLUVa>,
+    ShadableColor<ColorLUVa>,
+    AlgebraicColor<ColorLUVa>
+{
+
     companion object {
         fun fromXYZa(xyz: ColorXYZa, ref: ColorXYZa): ColorLUVa {
             val y = xyz.y / ref.y
@@ -44,6 +50,7 @@ data class ColorLUVa(val l: Double, val u: Double, val v: Double, val alpha: Dou
     }
 
 
+    override fun toRGBa() = toXYZa().toRGBa()
     fun toRGBa(ref: ColorXYZa = this.ref): ColorRGBa = toXYZa().toRGBa()
     fun toHSVa(ref: ColorXYZa = this.ref): ColorHSVa = toXYZa().toRGBa().toHSVa()
     fun toHSLa(ref: ColorXYZa = this.ref): ColorHSLa = toXYZa().toRGBa().toHSLa()
@@ -51,4 +58,10 @@ data class ColorLUVa(val l: Double, val u: Double, val v: Double, val alpha: Dou
 
     fun toLCHUVa(): ColorLCHUVa = ColorLCHUVa.fromLUVa(this)
 
+    override fun opacify(factor: Double) = copy(alpha = alpha * factor)
+    override fun shade(factor: Double) = copy(l = l * factor)
+
+    override fun plus(other: ColorLUVa) = copy(l = l + other.l, u = u + other.u, v = v + other.v, alpha = alpha + other.alpha)
+    override fun minus(other: ColorLUVa) = copy(l = l - other.l, u = u  -other.u, v = v - other.v, alpha = alpha - other.alpha)
+    override fun times(factor: Double) = copy(l = l * factor, u = u * factor, v = v * factor, alpha = alpha * factor)
 }

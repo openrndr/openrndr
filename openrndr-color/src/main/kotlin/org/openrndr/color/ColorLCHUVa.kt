@@ -1,12 +1,22 @@
 package org.openrndr.color
 
-data class ColorLCHUVa(val l: Double, val c: Double, val h: Double, val alpha: Double = 1.0, val ref: ColorXYZa = ColorXYZa.NEUTRAL) {
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.sin
+import kotlin.math.sqrt
+
+data class ColorLCHUVa(val l: Double, val c: Double, val h: Double, val alpha: Double = 1.0, val ref: ColorXYZa = ColorXYZa.NEUTRAL) :
+        ConvertibleToColorRGBa,
+        ShadableColor<ColorLCHUVa>,
+        OpacifiableColor<ColorLCHUVa>,
+        HueShiftableColor<ColorLCHUVa>,
+        AlgebraicColor<ColorLCHUVa> {
 
     companion object {
         fun fromLUVa(luva: ColorLUVa): ColorLCHUVa {
             val l = luva.l
-            val c = Math.sqrt(luva.u * luva.u + luva.v * luva.v)
-            var h = Math.atan2(luva.v, luva.u)
+            val c = sqrt(luva.u * luva.u + luva.v * luva.v)
+            var h = atan2(luva.v, luva.u)
 
             if (h < 0) {
                 h += Math.PI * 2
@@ -27,16 +37,16 @@ data class ColorLCHUVa(val l: Double, val c: Double, val h: Double, val alpha: D
 
                 val leftTry = ColorLCHUVa(l, left, h, 1.0, ref)
                 val rightTry = ColorLCHUVa(l, right, h, 1.0, ref)
-                var middle = (left + right) / 2
-                var middleTry = ColorLCHUVa(l, middle, h, 1.0, ref)
+                val middle = (left + right) / 2
+                val middleTry = ColorLCHUVa(l, middle, h, 1.0, ref)
 
                 val leftValid = leftTry.toRGBa().let { it.minValue >= 0 && it.maxValue <= 1.0 }
                 val rightValid = rightTry.toRGBa().let { it.minValue >= 0 && it.maxValue <= 1.0 }
                 val middleValid = middleTry.toRGBa().let { it.minValue >= 0 && it.maxValue <= 1.0 }
 
                 if (leftValid && middleValid && !rightValid) {
-                    var newLeft = middle
-                    var newRight = right
+                    val newLeft = middle
+                    val newRight = right
                     bestGuess = middle
                     left = newLeft
                     right = newRight
@@ -44,7 +54,7 @@ data class ColorLCHUVa(val l: Double, val c: Double, val h: Double, val alpha: D
 
                 if (leftValid && !middleValid && !rightValid) {
                     val newLeft = left
-                    var newRight = middle
+                    val newRight = middle
                     left = newLeft
                     right = newRight
                 }
@@ -56,21 +66,21 @@ data class ColorLCHUVa(val l: Double, val c: Double, val h: Double, val alpha: D
         }
     }
 
-    fun scaleHue(shift: Double): ColorLCHUVa = copy(h = (h + shift))
-    fun shiftHue(shift: Double): ColorLCHUVa = copy(h = (h + shift))
-
-    fun scaleLuminosity(scale: Double): ColorLCHUVa = copy(l = l * scale)
-    fun shiftLuminosity(shift: Double): ColorLCHUVa = copy(l = l + shift)
-
-    fun shiftChroma(shift: Double): ColorLCHUVa = copy(c = c + shift)
-    fun scaleChroma(scale: Double): ColorLCHUVa = copy(c = c * scale)
 
     fun toLUVa(): ColorLUVa {
-        val u = c * Math.cos(Math.toRadians(h))
-        val v = c * Math.sin(Math.toRadians(h))
+        val u = c * cos(Math.toRadians(h))
+        val v = c * sin(Math.toRadians(h))
         return ColorLUVa(l, u, v, alpha, ref)
     }
 
     fun toLSHUVa() = ColorLSHUVa.fromLCHUVa(this)
-    fun toRGBa() = toLUVa().toRGBa()
+    override fun toRGBa() = toLUVa().toRGBa()
+
+    override fun opacify(factor: Double) = copy(alpha = alpha * factor)
+    override fun shade(factor: Double) = copy(l = l * factor)
+    override fun shiftHue(shiftInDegrees: Double) = copy(h = h + shiftInDegrees)
+
+    override fun plus(other: ColorLCHUVa) = copy(l = l + other.l, c = c + other.c, h = h + other.h, alpha = alpha + other.alpha)
+    override fun minus(other: ColorLCHUVa) = copy(l = l - other.l, c = c - other.c, h = h - other.h, alpha = alpha - other.alpha)
+    override fun times(factor: Double) = copy(l = l * factor, c = c * factor, h = h * factor, alpha = alpha * factor)
 }

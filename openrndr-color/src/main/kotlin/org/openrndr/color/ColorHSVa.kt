@@ -15,7 +15,12 @@ import org.openrndr.math.mod
  * @param a alpha in [0, 1]
  */
 @Suppress("unused")
-data class ColorHSVa(val h: Double, val s: Double, val v: Double, val a: Double = 1.0) {
+data class ColorHSVa(val h: Double, val s: Double, val v: Double, val a: Double = 1.0) :
+        ConvertibleToColorRGBa,
+        ShadableColor<ColorHSVa>,
+        HueShiftableColor<ColorHSVa>,
+        SaturatableColor<ColorHSVa>,
+        AlgebraicColor<ColorHSVa> {
 
     operator fun invoke(h: Double = this.h, s: Double = this.s, v: Double = this.v, a: Double = this.a) =
             ColorHSVa(h, s, v, a)
@@ -78,16 +83,11 @@ data class ColorHSVa(val h: Double, val s: Double, val v: Double, val a: Double 
     }
 
 
-    fun scaleHue(scale: Double): ColorHSVa = copy(h = (h * scale))
-    fun shiftHue(shift: Double): ColorHSVa = copy(h = (h + shift))
+    override fun shiftHue(shiftInDegrees: Double) = copy(h = (h + shiftInDegrees))
+    override fun saturate(factor: Double) = copy(s = s * factor)
+    override fun shade(factor: Double): ColorHSVa = copy(v = v * factor)
 
-    fun scaleSaturation(scale: Double): ColorHSVa = copy(s = s * scale)
-    fun shiftSaturation(shift: Double): ColorHSVa = copy(s = s + shift)
-
-    fun shiftValue(shift: Double): ColorHSVa = copy(v = v + shift)
-    fun scaleValue(scale: Double): ColorHSVa = copy(v = v * scale)
-
-    fun mix(other: ColorHSVa, x: Double) = mix(this, other, x)
+    override fun mix(other: ColorHSVa, factor: Double) = mix(this, other, factor)
 
     /**
      * a unit presentation of this ColorHSVa, essentially brings the hue back in [0, 360)
@@ -95,7 +95,7 @@ data class ColorHSVa(val h: Double, val s: Double, val v: Double, val a: Double 
      */
     val unit get() = copy(h = ((h % 360) + 360) % 360)
 
-    fun toRGBa(): ColorRGBa {
+    override fun toRGBa(): ColorRGBa {
         val i: Int
         val f: Double
 
@@ -153,6 +153,10 @@ data class ColorHSVa(val h: Double, val s: Double, val v: Double, val a: Double 
         return ColorRGBa(r, g, b, hsv.a, Linearity.SRGB)
 
     }
+
+    override fun plus(other: ColorHSVa) = copy(h = h + other.h, s = s + other.s, v = v + other.v, a = a + other.a)
+    override fun minus(other: ColorHSVa) = copy(h = h - other.h, s = s - other.s, v = v - other.v, a = a - other.a)
+    override fun times(factor: Double) = copy(h = h * factor, s = s * factor, v = v * factor, a = a * factor)
 }
 
 fun hsv(h: Double, s: Double, v: Double) = ColorHSVa(h, s, v)
