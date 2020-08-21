@@ -1,5 +1,6 @@
 package org.openrndr.color
 
+import org.openrndr.math.mixAngle
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
@@ -91,4 +92,14 @@ data class ColorLCHABa(val l: Double, val c: Double, val h: Double, val alpha: D
     override fun plus(other: ColorLCHABa) = copy(l = l + other.l, c = c + other.c, h = h + other.h, alpha = alpha + other.alpha)
     override fun minus(other: ColorLCHABa) = copy(l = l - other.l, c = c  -other.c, h = h - other.h, alpha = alpha - other.alpha)
     override fun times(factor: Double)= copy(l = l * factor, c = c * factor, h = h * factor, alpha = alpha * factor)
+    override fun mix(other: ColorLCHABa, factor: Double) = mix(this, other, factor)
+}
+
+fun mix(left: ColorLCHABa, right: ColorLCHABa, x: Double): ColorLCHABa {
+    val sx = x.coerceIn(0.0, 1.0)
+    return ColorLCHABa(
+            (1.0 - sx) * left.l + sx * right.l,
+            (1.0 - sx) * left.c + sx * right.c,
+            mixAngle(left.h, right.h, sx),
+            (1.0 - sx) * left.alpha + sx * right.alpha)
 }

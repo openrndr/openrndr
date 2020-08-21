@@ -149,6 +149,8 @@ data class ColorRGBa(val r: Double, val g: Double, val b: Double, val a: Double 
 
     fun toHSVa(): ColorHSVa = ColorHSVa.fromRGBa(this.toSRGB())
     fun toHSLa(): ColorHSLa = ColorHSLa.fromRGBa(this.toSRGB())
+    fun toXSVa(): ColorXSVa = ColorHSVa.fromRGBa(this.toSRGB()).toXSVa()
+    fun toXSLa(): ColorXSLa = ColorHSLa.fromRGBa(this.toSRGB()).toXSLa()
     fun toXYZa(): ColorXYZa = ColorXYZa.fromRGBa(this.toLinear())
     fun toLABa(ref: ColorXYZa = ColorXYZa.NEUTRAL): ColorLABa = ColorLABa.fromRGBa(this.toLinear(), ref)
     fun toLUVa(ref: ColorXYZa = ColorXYZa.NEUTRAL): ColorLUVa = ColorLUVa.fromRGBa(this.toLinear(), ref)
@@ -198,11 +200,12 @@ data class ColorRGBa(val r: Double, val g: Double, val b: Double, val a: Double 
         return result
     }
 
-    override fun plus(other: ColorRGBa) = copy(r = r + other.r, g = g + other.g, b = b + other.b, a = a - other.a)
+    override fun plus(other: ColorRGBa) = copy(r = r + other.r, g = g + other.g, b = b + other.b, a = a + other.a)
 
     override fun minus(other: ColorRGBa) = copy(r = r - other.r, g = g - other.g, b = b - other.b, a = a - other.a)
 
-    override fun times(factor: Double) = copy(r = r * factor, g = g * factor, b = g * factor, a = a * factor)
+    override fun times(factor: Double) = copy(r = r * factor, g = g * factor, b = b * factor, a = a * factor)
+
 }
 
 /**

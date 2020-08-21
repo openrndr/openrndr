@@ -11,7 +11,7 @@ data class ColorXSVa(val x: Double, val s: Double, val v: Double, val a: Double 
         AlgebraicColor<ColorXSVa> {
 
     companion object {
-        fun fromHSVa(hsva: ColorHSVa): ColorXSLa {
+        fun fromHSVa(hsva: ColorHSVa): ColorXSVa {
             val h = ((hsva.h % 360.0) + 360.0) % 360.0
             val x = if (0 <= h && h < 35) {
                 map(h, 0.0, 35.0, 0.0, 60.0)
@@ -26,7 +26,7 @@ data class ColorXSVa(val x: Double, val s: Double, val v: Double, val a: Double 
             } else {
                 map(h, 276.0, 360.0, 300.0, 360.0)
             }
-            return ColorXSLa(x, hsva.s, hsva.v, hsva.a)
+            return ColorXSVa(x, hsva.s, hsva.v, hsva.a)
         }
     }
 
