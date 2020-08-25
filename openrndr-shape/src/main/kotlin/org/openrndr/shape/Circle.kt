@@ -5,6 +5,7 @@ import org.openrndr.math.Vector2
 import kotlin.math.acos
 import kotlin.math.pow
 import kotlin.math.sqrt
+import kotlin.math.abs
 
 data class Circle(val center: Vector2, val radius: Double) {
     constructor(x: Double, y: Double, radius: Double) : this(Vector2(x, y), radius)
@@ -13,6 +14,33 @@ data class Circle(val center: Vector2, val radius: Double) {
         fun fromPoints(a: Vector2, b: Vector2): Circle {
             val center = (a + b) * 0.5
             return Circle(center, b.minus(center).length)
+        }
+
+        fun fromPoints(a: Vector2, b: Vector2, c: Vector2): Circle {
+            val epsilon = 1E-7
+            val dyba = b.y - a.y
+            val dxba = b.x - a.x
+            val dycb = c.y - b.y
+            val dxcb = c.x - b.x
+
+            if (abs(dxba) <= epsilon && abs(dycb) <= epsilon) {
+                val center = (b + c) * 0.5
+                val radius = center.distanceTo(a)
+                return Circle(center, radius)
+            }
+
+            val baSlope = dyba / dxba
+            val cbSlope = dycb / dxcb
+            if (abs(baSlope - cbSlope) <= epsilon) {
+                return Circle((a + b + c) / 3.0, 0.0)
+            }
+
+            val cx = (baSlope * cbSlope * (a.y - c.y) + cbSlope * (a.x + b.x)
+                    - baSlope * (b.x + c.x)) / (2 * (cbSlope - baSlope))
+            val cy = -1 * (cx - (a.x + b.x) / 2) / baSlope + (a.y + b.y) / 2
+
+            val center = Vector2(cx, cy)
+            return Circle(center, center.distanceTo(a))
         }
     }
 
