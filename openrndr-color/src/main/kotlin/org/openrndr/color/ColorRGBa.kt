@@ -103,6 +103,7 @@ data class ColorRGBa(val r: Double, val g: Double, val b: Double, val a: Double 
             return ColorRGBa(vector.x, vector.y, vector.z, alpha)
         }
 
+
         /**
          * Create a ColorRGBa object from a [Vector4]
          * @param vector input vector, `[x, y, z, w]` is mapped to `[r, g, b, a]`
@@ -146,6 +147,21 @@ data class ColorRGBa(val r: Double, val g: Double, val b: Double, val a: Double 
      * @see minValue
      */
     val maxValue get() = r.coerceAtLeast(g).coerceAtLeast(b)
+
+    // https://www.w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef
+    val luminance: Double
+        get() = when(linearity) {
+        Linearity.SRGB -> toLinear().luminance
+        else -> 0.2126 * r + 0.7152 * g + 0.0722 * b
+    }
+
+    // see http://www.w3.org/TR/2008/REC-WCAG20-20081211/#contrast-ratiodef
+    fun getContrastRatio(colorB: ColorRGBa): Double {
+        val l1 = luminance
+        val l2 = colorB.luminance
+
+        return if (l1 > l2) (l1 + 0.05) / (l2 + 0.05) else (l2 + 0.05) / (l1 + 0.05)
+    }
 
     fun toHSVa(): ColorHSVa = ColorHSVa.fromRGBa(this.toSRGB())
     fun toHSLa(): ColorHSLa = ColorHSLa.fromRGBa(this.toSRGB())
