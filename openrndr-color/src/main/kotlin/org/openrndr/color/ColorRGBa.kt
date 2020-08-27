@@ -149,7 +149,11 @@ data class ColorRGBa(val r: Double, val g: Double, val b: Double, val a: Double 
     val maxValue get() = r.coerceAtLeast(g).coerceAtLeast(b)
 
     // https://www.w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef
-    val luminance get() = 0.2126 * r + 0.7152 * g + 0.0722 * b
+    val luminance: Double
+        get() = when(linearity) {
+        Linearity.SRGB -> toLinear().luminance
+        else -> 0.2126 * r + 0.7152 * g + 0.0722 * b
+    }
 
     // see http://www.w3.org/TR/2008/REC-WCAG20-20081211/#contrast-ratiodef
     fun getContrastRatio(colorB: ColorRGBa): Double {
