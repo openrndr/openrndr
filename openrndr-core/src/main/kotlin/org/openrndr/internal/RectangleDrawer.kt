@@ -4,6 +4,8 @@ import org.openrndr.draw.*
 import org.openrndr.math.Vector2
 import org.openrndr.math.Vector3
 import org.openrndr.shape.Rectangle
+import kotlin.math.abs
+import kotlin.math.min
 
 class RectangleDrawer {
     private val vertices: VertexBuffer = VertexBuffer.createDynamic(VertexFormat().apply {
@@ -57,15 +59,22 @@ class RectangleDrawer {
 
     fun drawRectangles(drawContext: DrawContext, drawStyle: DrawStyle, positions: List<Vector2>, dimensions: List<Vector2>) {
         ensureBatchSize(positions.size)
+        require(positions.size == dimensions.size) {
+            "`positions.size` and `dimensions.size` must be equal in drawRectangles()"
+        }
         batch.geometry.put {
-            for (i in positions.indices) {
-                write(Vector3(positions[i].x, positions[i].y, 0.0))
-                write(dimensions[i])
-                write(0.0f)
+            dimensions.forEachIndexed { i, sz ->
+                write(Vector3(
+                        positions[i].x + min(0.0, sz.x),
+                        positions[i].y + min(0.0, sz.y), 0.0))
+                write(Vector3(abs(sz.x), abs(sz.y), 0.0))
+
             }
         }
         batch.drawStyle.put {
-            write(drawStyle)
+            for (i in positions.indices) {
+                write(drawStyle)
+            }
         }
         drawRectangles(drawContext, drawStyle, batch, positions.size)
     }
@@ -74,10 +83,10 @@ class RectangleDrawer {
         ensureBatchSize(positions.size)
         batch.geometry.put {
             positions.forEach {
-                write(it.x.toFloat(), it.y.toFloat(), 0.0f)
-                write(width.toFloat())
-                write(height.toFloat())
-                write(0.0f)
+                write(Vector3(
+                        it.x + min(0.0, width),
+                        it.y + min(0.0, height), 0.0))
+                write(Vector3(abs(width), abs(height), 0.0))
             }
         }
         batch.drawStyle.put {
@@ -92,14 +101,14 @@ class RectangleDrawer {
         ensureBatchSize(rectangles.size)
         batch.geometry.put {
             rectangles.forEach {
-                write(Vector3(it.x, it.y, 0.0))
-                write(it.width.toFloat())
-                write(it.height.toFloat())
-                write(0.0f)
+                write(Vector3(
+                        it.x + min(0.0, it.width),
+                        it.y + min(0.0, it.height), 0.0))
+                write(Vector3(abs(it.width), abs(it.height), 0.0))
             }
         }
         batch.drawStyle.put {
-            rectangles.forEach {
+            for (i in rectangles.indices) {
                 write(drawStyle)
             }
         }
@@ -111,15 +120,15 @@ class RectangleDrawer {
         ensureBatchSize(1)
 
         batch.geometry.put {
-            write(Vector3(x, y, 0.0))
-            write(width.toFloat())
-            write(height.toFloat())
-            write(0.0f)
+            write(Vector3(
+                    x + min(0.0, width),
+                    y + min(0.0, height), 0.0))
+            write(Vector3(abs(width), abs(height), 0.0))
         }
         batch.drawStyle.put {
             write(drawStyle)
         }
-        drawRectangles(drawContext, drawStyle,  batch,1)
+        drawRectangles(drawContext, drawStyle, batch, 1)
     }
 
     fun drawRectangles(drawContext: DrawContext, drawStyle: DrawStyle, batch: RectangleBatch, count: Int) {
