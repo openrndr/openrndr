@@ -340,7 +340,13 @@ class ColorBufferGL3(val target: Int,
             val tex = targetRectangle.width + tsx
             val tey = targetRectangle.height + tsy
 
-            glBlitFramebuffer(ssx,ssy, sex, sey, tsx, tsy, tex, tey, GL_COLOR_BUFFER_BIT, GL_NEAREST)
+            // crop operation
+            if (sex != tex || sey != tey) {
+                glBlitFramebuffer(tsx, readTarget.height - targetRectangle.y, tsx + targetRectangle.width, readTarget.height - targetRectangle.y - targetRectangle.height, 0, 0, targetRectangle.width, targetRectangle.height, GL_COLOR_BUFFER_BIT, GL_NEAREST)
+            } else {
+                glBlitFramebuffer(ssx,ssy, sex, sey, tsx, tsy, tex, tey, GL_COLOR_BUFFER_BIT, GL_NEAREST)
+            }
+
             writeTarget.unbind()
 
             writeTarget.detachColorAttachments()

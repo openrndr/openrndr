@@ -133,6 +133,7 @@ interface ColorBuffer {
      */
     fun crop(sourceRectangle: IntRectangle) : ColorBuffer {
         val cropped = createEquivalent(width = sourceRectangle.width, height = sourceRectangle.height)
+        cropped.flipV = true
         copyTo(cropped, sourceRectangle = sourceRectangle)
         return cropped
     }
@@ -165,8 +166,7 @@ interface ColorBuffer {
                     this.effectiveHeight / (1 shl fromLevel)
             ),
             targetRectangle: IntRectangle = IntRectangle(
-                    0,
-                    0,
+                    sourceRectangle.corner,
                     sourceRectangle.width,
                     sourceRectangle.height
             ))
