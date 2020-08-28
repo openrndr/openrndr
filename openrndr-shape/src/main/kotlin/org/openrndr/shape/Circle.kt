@@ -1,6 +1,10 @@
 package org.openrndr.shape
 
+import org.openrndr.math.Polar
 import org.openrndr.math.Vector2
+import kotlin.math.acos
+import kotlin.math.pow
+import kotlin.math.sqrt
 
 data class Circle(val center: Vector2, val radius: Double) {
     constructor(x: Double, y: Double, radius: Double) : this(Vector2(x, y), radius)
@@ -53,4 +57,42 @@ data class Circle(val center: Vector2, val radius: Double) {
                 close()
             }
         }
+
+    /**
+     * calculates the tangent lines between two circles
+     * by default it returns the outer tangents
+     * @param isInner if true returns the inner tangents
+     **/
+    fun tangents(c: Circle, isInner: Boolean = false): List<Pair<Vector2, Vector2>>? {
+        val r1 = radius
+        val r2 = if (isInner) -c.radius else c.radius
+
+        val w = (c.center - center) // hypotenuse
+        val d = w.length
+        val dr = r1 - r2 // adjacent
+        val d2 = sqrt(d)
+        val h = sqrt(d.pow(2.0) - dr.pow(2.0))
+
+        if (d2 == 0.0) return null
+
+        return listOf(-1.0, 1.0).map { sign ->
+            val v = (w * dr + w.perpendicular() * h * sign) / d.pow(2.0)
+
+            Pair(center + v * r1, c.center + v * r2)
+        }
+    }
+
+    /** calculates the tangent lines to an external point **/
+    fun tangents(point: Vector2): Pair<Vector2, Vector2> {
+        val v = Polar.fromVector(point - center)
+        val b = v.radius
+        val theta = Math.toDegrees(acos(radius / b))
+        val d1 = v.theta + theta
+        val d2 = v.theta - theta
+
+        val tp = center + Polar(d1, radius).cartesian
+        val tp2 = center + Polar(d2, radius).cartesian
+
+        return Pair(tp, tp2)
+    }
 }
