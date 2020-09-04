@@ -245,15 +245,13 @@ class ShaderGL3(val program: Int,
             throw IllegalStateException("use begin() before setting blocks")
         }
         val blockIndex = blockIndex(blockName)
-        if (blockIndex == -1) {
-            throw IllegalArgumentException("block not found $blockName")
-        }
-
-        if (blockBindings[blockName] != block.blockBinding) {
-            //checkGLErrors()
-            glUniformBlockBinding(program, blockIndex, block.blockBinding)
-            debugGLErrors()
-            blockBindings[blockName] = block.blockBinding
+        if (blockIndex != -1) {
+            if (blockBindings[blockName] != block.blockBinding) {
+                //checkGLErrors()
+                glUniformBlockBinding(program, blockIndex, block.blockBinding)
+                debugGLErrors()
+                blockBindings[blockName] = block.blockBinding
+            }
         }
     }
 
