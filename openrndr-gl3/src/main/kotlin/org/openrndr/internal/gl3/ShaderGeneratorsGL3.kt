@@ -57,10 +57,17 @@ fun fragmentConstants(
 |    vec3 c_boundsSize = $boundsSize;
 """.trimMargin()
 
+private fun Boolean.trueOrEmpty(f: () -> String): String {
+    return if (this) f() else ""
+}
+
 @Language("GLSL")
-private const val drawerUniforms = """
-// -- drawerUniforms    
-layout(shared) uniform ContextBlock {
+private fun drawerUniforms(contextBlock: Boolean = true, styleBlock: Boolean = true) = """
+// -- drawerUniforms($contextBlock, $styleBlock)    
+
+${
+    contextBlock.trueOrEmpty {
+        """layout(shared) uniform ContextBlock {
     uniform mat4 u_modelNormalMatrix;
     uniform mat4 u_modelMatrix;
     uniform mat4 u_viewNormalMatrix;
@@ -68,7 +75,12 @@ layout(shared) uniform ContextBlock {
     uniform mat4 u_projectionMatrix;
     uniform float u_contentScale;
     uniform vec2 u_viewDimensions;
-};
+};"""
+    }
+}
+${
+    styleBlock.trueOrEmpty {
+        """
 
 layout(shared) uniform StyleBlock {
     uniform vec4 u_fill;
@@ -76,6 +88,9 @@ layout(shared) uniform StyleBlock {
     uniform float u_strokeWeight;
     uniform float[25] u_colorMatrix;
 };
+"""
+    }
+}
 """
 
 @Language("GLSL")
@@ -129,7 +144,7 @@ class ShaderGeneratorsGL3 : ShaderGenerators {
 |layout(origin_upper_left) in vec4 gl_FragCoord;
 
 |uniform sampler2D image;
-|$drawerUniforms
+|${drawerUniforms()}
 |${shadeStructure.varyingIn ?: ""}
 |${shadeStructure.outputs ?: ""}
 |${transformVaryingIn}
@@ -146,16 +161,18 @@ class ShaderGeneratorsGL3 : ShaderGenerators {
 |    {
 |       ${shadeStructure.fragmentTransform ?: ""}
 |    }
-     ${if (!shadeStructure.suppressDefaultOutput) """
+     ${
+        if (!shadeStructure.suppressDefaultOutput) """
      |    o_color = x_fill;
      |    o_color.rgb *= o_color.a;
-     |""".trimMargin() else ""}
+     |""".trimMargin() else ""
+    }
 |}""".trimMargin()
 
     override fun vertexBufferVertexShader(shadeStructure: ShadeStructure): String = """#version ${glslVersion()}
 ${primitiveTypes("d_vertex_buffer")}
 ${shadeStructure.buffers ?: ""}
-$drawerUniforms
+${drawerUniforms()}
 ${shadeStructure.attributes ?: ""}
 ${shadeStructure.uniforms ?: ""}
 ${shadeStructure.varyingOut ?: ""}
@@ -189,7 +206,7 @@ ${shadeStructure.uniforms ?: ""}
 layout(origin_upper_left) in vec4 gl_FragCoord;
 
 uniform sampler2D image;
-$drawerUniforms
+${drawerUniforms()}
 ${shadeStructure.varyingIn ?: ""}
 ${transformVaryingIn}
 
@@ -225,7 +242,7 @@ void main(void) {
 #version ${glslVersion()}
 ${primitiveTypes("d_image")}
 ${shadeStructure.buffers ?: ""}
-$drawerUniforms
+${drawerUniforms()}
 uniform int u_flipV;
 ${shadeStructure.attributes ?: ""}
 ${shadeStructure.uniforms ?: ""}
@@ -265,7 +282,7 @@ ${shadeStructure.uniforms ?: ""}
 layout(origin_upper_left) in vec4 gl_FragCoord;
 
 uniform sampler2DArray image;
-$drawerUniforms
+${drawerUniforms()}
 ${shadeStructure.varyingIn ?: ""}
 ${transformVaryingIn}
 
@@ -302,7 +319,7 @@ void main(void) {
 #version ${glslVersion()}
 ${primitiveTypes("d_image")}
 ${shadeStructure.buffers ?: ""}
-$drawerUniforms
+${drawerUniforms()}
 uniform int u_flipV;
 ${shadeStructure.attributes ?: ""}
 ${shadeStructure.uniforms ?: ""}
@@ -343,7 +360,7 @@ ${shadeStructure.buffers ?: ""}
 ${shadeStructure.uniforms ?: ""}
 layout(origin_upper_left) in vec4 gl_FragCoord;
 
-$drawerUniforms
+${drawerUniforms(styleBlock = false)}
 ${shadeStructure.varyingIn ?: ""}
 ${transformVaryingIn}
 
@@ -354,8 +371,10 @@ ${shadeStructure.fragmentPreamble ?: ""}
 flat in int v_instance;
 in vec3 v_boundsSize;
 void main(void) {
-    ${fragmentConstants(boundsPosition = "vec3(0.0, 0.0, 0.0)",
-            boundsSize = "v_boundsSize")}
+    ${
+        fragmentConstants(boundsPosition = "vec3(0.0, 0.0, 0.0)",
+                boundsSize = "v_boundsSize")
+    }
 
     vec4 x_fill = vi_fill;
     vec4 x_stroke = vi_stroke;
@@ -370,7 +389,7 @@ void main(void) {
     override fun pointVertexShader(shadeStructure: ShadeStructure): String = """#version ${glslVersion()}
 ${primitiveTypes("d_point")}
 ${shadeStructure.buffers ?: ""}
-$drawerUniforms
+${drawerUniforms(styleBlock = false)}
 ${shadeStructure.attributes ?: ""}
 ${shadeStructure.uniforms ?: ""}
 ${shadeStructure.varyingOut ?: ""}
@@ -405,7 +424,7 @@ ${shadeStructure.uniforms ?: ""}
 ${shadeStructure.buffers ?: ""}
 layout(origin_upper_left) in vec4 gl_FragCoord;
 
-$drawerUniforms
+${drawerUniforms(styleBlock = false)}
 ${shadeStructure.varyingIn ?: ""}
 ${transformVaryingIn}
 
@@ -416,8 +435,10 @@ ${shadeStructure.fragmentPreamble ?: ""}
 flat in int v_instance;
 in vec3 v_boundsSize;
 void main(void) {
-    ${fragmentConstants(boundsPosition = "vec3(va_texCoord0, 0.0)",
-            boundsSize = "v_boundsSize")}
+    ${
+        fragmentConstants(boundsPosition = "vec3(va_texCoord0, 0.0)",
+                boundsSize = "v_boundsSize")
+    }
     float smoothFactor = 3.0;
 
     vec4 x_fill = vi_fill;
@@ -449,7 +470,7 @@ void main(void) {
 // -- circle vertex shader        
 ${primitiveTypes("d_circle")}
 ${shadeStructure.buffers ?: ""}
-$drawerUniforms
+${drawerUniforms(styleBlock = false)}
 ${shadeStructure.attributes ?: ""}
 ${shadeStructure.uniforms ?: ""}
 ${shadeStructure.varyingOut ?: ""}
@@ -488,7 +509,7 @@ uniform sampler2D image;
 flat in int v_instance;
 flat in int v_element;
 
-$drawerUniforms
+${drawerUniforms()}
 ${shadeStructure.varyingIn ?: ""}
 ${transformVaryingIn}
 
@@ -497,11 +518,13 @@ ${if (!shadeStructure.suppressDefaultOutput) "out vec4 o_color;" else ""}
 ${shadeStructure.fragmentPreamble ?: ""}
 
 void main(void) {
-    ${fragmentConstants(
-            element = "v_element",
-            instance = "v_instance",
-            boundsPosition = "vec3(va_bounds.xy, 0.0)",
-            boundsSize = "vec3(va_bounds.zw, 0.0)")}
+    ${
+        fragmentConstants(
+                element = "v_element",
+                instance = "v_instance",
+                boundsPosition = "vec3(va_bounds.xy, 0.0)",
+                boundsSize = "vec3(va_bounds.zw, 0.0)")
+    }
 
     float imageMap = texture(image, va_texCoord0).r;
     vec4 x_fill = vec4(u_fill.rgb,u_fill.a * imageMap);
@@ -518,7 +541,7 @@ void main(void) {
     override fun fontImageMapVertexShader(shadeStructure: ShadeStructure): String = """#version ${glslVersion()}
 ${primitiveTypes("d_font_image_map")}
 ${shadeStructure.buffers ?: ""}
-$drawerUniforms
+${drawerUniforms()}
 
 ${shadeStructure.attributes ?: ""}
 ${shadeStructure.uniforms ?: ""}
@@ -552,7 +575,7 @@ ${shadeStructure.buffers ?: ""}
 ${shadeStructure.uniforms ?: ""}
 layout(origin_upper_left) in vec4 gl_FragCoord;
 
-$drawerUniforms
+${drawerUniforms(styleBlock = false)}
 ${shadeStructure.varyingIn ?: ""}
 ${shadeStructure.outputs ?: ""}
 ${transformVaryingIn}
@@ -564,9 +587,11 @@ flat in int v_instance;
 in vec3 v_boundsSize;
 
 void main(void) {
-    ${fragmentConstants(
-            boundsPosition = "vec3(va_texCoord0, 0.0)",
-            boundsSize = "v_boundsSize")}
+    ${
+        fragmentConstants(
+                boundsPosition = "vec3(va_texCoord0, 0.0)",
+                boundsSize = "v_boundsSize")
+    }
     vec4 x_fill = vi_fill;
     vec4 x_stroke = vi_stroke;
     {
@@ -587,16 +612,18 @@ void main(void) {
     final.rgb = final.rgb * (1.0-sa) + x_stroke.rgb * sa;
     final.a = final.a * (1.0-sa) + sa;
 
-    ${if (!shadeStructure.suppressDefaultOutput) """
+    ${
+        if (!shadeStructure.suppressDefaultOutput) """
     |   o_color = final;
-    """.trimMargin() else ""}
+    """.trimMargin() else ""
+    }
 }
 """
 
     override fun rectangleVertexShader(shadeStructure: ShadeStructure): String = """#version ${glslVersion()}
 ${primitiveTypes("d_rectangle")}
 ${shadeStructure.buffers ?: ""}
-$drawerUniforms
+${drawerUniforms(styleBlock = false)}
 ${shadeStructure.attributes ?: ""}
 ${shadeStructure.uniforms ?: ""}
 ${shadeStructure.varyingOut ?: ""}
@@ -632,7 +659,7 @@ ${primitiveTypes("d_expansion")}
 ${shadeStructure.buffers ?: ""}
 ${shadeStructure.uniforms ?: ""}
 layout(origin_upper_left) in vec4 gl_FragCoord;
-$drawerUniforms
+${drawerUniforms()}
 ${shadeStructure.varyingIn ?: ""}
 ${transformVaryingIn}
 flat in int v_instance;
@@ -653,10 +680,12 @@ float strokeMask() {
 }
 
 void main(void) {
-    ${fragmentConstants(boundsPosition = "vec3(v_objectPosition.xy - bounds.xy, 0.0) / vec3(bounds.zw,1.0)",
-            boundsSize = "vec3(bounds.zw, 0.0)",
-            contourPosition = "va_vertexOffset"
-    )}
+    ${
+        fragmentConstants(boundsPosition = "vec3(v_objectPosition.xy - bounds.xy, 0.0) / vec3(bounds.zw,1.0)",
+                boundsSize = "vec3(bounds.zw, 0.0)",
+                contourPosition = "va_vertexOffset"
+        )
+    }
 
 	float strokeAlpha = strokeMask();
 
@@ -682,7 +711,7 @@ void main(void) {
     override fun expansionVertexShader(shadeStructure: ShadeStructure): String = """#version ${glslVersion()}
 ${primitiveTypes("d_expansion")}
 ${shadeStructure.buffers ?: ""}
-$drawerUniforms
+${drawerUniforms()}
 ${shadeStructure.uniforms ?: ""}
 ${shadeStructure.attributes}
 ${shadeStructure.varyingOut ?: ""}
@@ -722,7 +751,7 @@ ${shadeStructure.uniforms ?: ""}
 layout(origin_upper_left) in vec4 gl_FragCoord;
 
 uniform sampler2D image;
-$drawerUniforms
+${drawerUniforms()}
 ${shadeStructure.varyingIn ?: ""}
 $transformVaryingIn
 flat in int v_instance;
@@ -749,7 +778,7 @@ void main(void) {
     override fun fastLineVertexShader(shadeStructure: ShadeStructure): String = """#version ${glslVersion()}
 ${primitiveTypes("d_fast_line")}
 ${shadeStructure.buffers ?: ""}
-$drawerUniforms
+${drawerUniforms()}
 ${shadeStructure.attributes ?: ""}
 ${shadeStructure.uniforms ?: ""}
 ${shadeStructure.varyingOut ?: ""}
@@ -784,7 +813,7 @@ void main() {
         |
         |uniform sampler2D image;
         |${shadeStructure.fragmentPreamble ?: ""}
-        |$drawerUniforms
+        |${drawerUniforms()}
         |${shadeStructure.varyingIn ?: ""}
         |$transformVaryingIn
         |flat in int v_instance;
@@ -796,10 +825,12 @@ void main() {
         |   {
         |       ${shadeStructure.fragmentTransform ?: ""}
         |   }
-        |${if (!shadeStructure.suppressDefaultOutput) """
+        |${
+        if (!shadeStructure.suppressDefaultOutput) """
             |o_color = x_stroke;
             |o_color.rgb *= o_color.a;
-            """.trimMargin() else ""}
+            """.trimMargin() else ""
+    }
         |}
         """.trimMargin()
 
@@ -807,7 +838,7 @@ void main() {
         |#version ${glslVersion()}
         |${shadeStructure.buffers ?: ""}
         |${primitiveTypes("d_mesh_line")}
-        |$drawerUniforms
+        |${drawerUniforms()}
         |${shadeStructure.attributes ?: ""}
         |${shadeStructure.uniforms ?: ""}
         |${shadeStructure.varyingOut ?: ""}
@@ -899,7 +930,7 @@ void main() {
         |uniform sampler2D tex3;
         |uniform sampler2D tex4;
         |// -- drawerUniforms
-        |${drawerUniforms}
+        |${drawerUniforms()}
         |// -- shadeStructure.outputs
         |${shadeStructure.outputs ?: ""}
         |${if (!shadeStructure.suppressDefaultOutput) "out vec4 o_color;" else ""}
@@ -915,10 +946,12 @@ void main() {
         |       // -- shadeStructure.fragmentTransform
         |       ${shadeStructure.fragmentTransform ?: ""}
         |   }
-        |${if (!shadeStructure.suppressDefaultOutput) """
+        |${
+        if (!shadeStructure.suppressDefaultOutput) """
             |o_color = x_fill;
             |o_color.rgb *= o_color.a;
-            """.trimMargin() else ""}
+            """.trimMargin() else ""
+    }
         |}
         |
         
