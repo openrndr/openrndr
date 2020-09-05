@@ -6,6 +6,7 @@ import org.openrndr.draw.*
 import org.openrndr.math.Vector2
 import org.openrndr.math.Vector3
 import org.openrndr.shape.Circle
+import kotlin.math.abs
 
 private val logger = KotlinLogging.logger {}
 
@@ -68,7 +69,7 @@ class CircleDrawer {
             rewind()
             for (i in positions.indices) {
                 write(Vector3(positions[i].x, positions[i].y, 0.0))
-                write(radii[i].toFloat(), radii[i].toFloat())
+                write(Vector2(abs(radii[i])))
             }
         }
         batch.geometry.shadow.uploadElements(0, positions.size)
@@ -89,7 +90,7 @@ class CircleDrawer {
             rewind()
             for (i in positions.indices) {
                 write(Vector3(positions[i].x, positions[i].y, 0.0))
-                write(radius.toFloat(), radius.toFloat())
+                write(Vector2(abs(radius)))
             }
         }
         batch.geometry.shadow.uploadElements(0, positions.size)
@@ -110,7 +111,7 @@ class CircleDrawer {
             rewind()
             for (i in circles.indices) {
                 write(circles[i].center.xy0)
-                write(circles[i].radius.toFloat(), circles[i].radius.toFloat())
+                write(Vector2(abs(circles[i].radius)))
             }
         }
         batch.geometry.shadow.uploadElements(0, circles.size)
@@ -132,7 +133,7 @@ class CircleDrawer {
         batch.geometry.shadow.writer().apply {
             rewind()
             write(Vector3(x, y, 0.0))
-            write(radius.toFloat(), radius.toFloat())
+            write(Vector2(abs(radius)))
         }
         batch.geometry.shadow.uploadElements(0, 1)
 
