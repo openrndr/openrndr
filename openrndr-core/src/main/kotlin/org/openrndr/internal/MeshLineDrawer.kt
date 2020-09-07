@@ -109,7 +109,8 @@ class MeshLineDrawer {
                        drawStyle: DrawStyle,
                        strips: List<List<Vector3>>,
                        weights: List<Double> = emptyList(),
-                       colors: List<ColorRGBa> = emptyList()
+                       colors: List<ColorRGBa> = emptyList(),
+                       closed: List<Boolean> = emptyList()
                        ) {
 
 
@@ -118,6 +119,8 @@ class MeshLineDrawer {
         val vertexCount = vertices.put {
             for ((element, strip) in strips.withIndex()) {
 
+                val stripClosed = closed.getOrNull(element) ?: false
+
                 val color = if (element < colorCount ) colors[element] else defaultColor
 
                 if (strip.size >= 2) {
@@ -125,7 +128,7 @@ class MeshLineDrawer {
                     val width = weights.getOrElse(element) { drawStyle.strokeWeight }.toFloat()
                     val elementF = element.toFloat()
 
-                    var previous = strip[0]
+                    var previous =  if (stripClosed) strip.last() else strip[0]
                     // leading degenerate
                     write(strip[0])
                     write(strip[0])
@@ -186,102 +189,6 @@ class MeshLineDrawer {
                     write(elementF)
                     write(color)
                 }
-            }
-        }
-
-        val shader = shaderManager.shader(drawStyle.shadeStyle, vertices.vertexFormat)
-        shader.begin()
-        drawContext.applyToShader(shader)
-        drawStyle.applyToShader(shader)
-
-        Driver.instance.setState(drawStyle)
-        Driver.instance.drawVertexBuffer(shader, listOf(vertices), DrawPrimitive.TRIANGLE_STRIP, 0, vertexCount)
-        shader.end()
-    }
-
-    fun drawLineLoops(drawContext: DrawContext,
-                      drawStyle: DrawStyle,
-                      loops: List<List<Vector3>>,
-                      weights: List<Double> = emptyList()) {
-
-
-        val vertexCount = vertices.put {
-            for ((element, loop) in loops.withIndex()) {
-
-                val width = weights.getOrElse(element) { drawStyle.strokeWeight }.toFloat()
-                val elementF = element.toFloat()
-
-                var previous = loop.last()
-                // leading degenerate
-                write(loop.last())
-                write(loop[0])
-                write(loop[1])
-                write(-1.0f)
-                write(width)
-                write(Vector2.ZERO)
-                write(elementF)
-
-                for ((current, next) in loop.zipWithNext()) {
-                    write(previous)
-                    write(current)
-                    write(next)
-                    write(-1.0f)
-                    write(width)
-                    write(Vector2.ZERO)
-                    write(elementF)
-
-                    write(previous)
-                    write(current)
-                    write(next)
-                    write(1.0f)
-                    write(width)
-                    write(Vector2.ZERO)
-                    write(elementF)
-                    previous = current
-                }
-
-                // last point
-                write(previous)
-                write(loop.last())
-                write(loop[0])
-                write(-1.0f)
-                write(width)
-                write(Vector2.ZERO)
-                write(elementF)
-
-                write(previous)
-                write(loop.last())
-                write(loop[0])
-                write(1.0f)
-                write(width)
-                write(Vector2.ZERO)
-                write(elementF)
-
-                // first point (close)
-                write(loop.last())
-                write(loop[0])
-                write(loop[1])
-                write(-1.0f)
-                write(width)
-                write(Vector2.ZERO)
-                write(elementF)
-
-                write(loop.last())
-                write(loop[0])
-                write(loop[1])
-                write(1.0f)
-                write(width)
-                write(Vector2.ZERO)
-                write(elementF)
-
-                // -- degenerate
-                write(loop.last())
-                write(loop[0])
-                write(loop[1])
-                write(1.0f)
-                write(width)
-                write(Vector2.ZERO)
-                write(elementF)
             }
         }
 

@@ -808,7 +808,7 @@ class Drawer(val driver: Driver) {
     fun lineLoop(points: List<Vector3>) {
         when (drawStyle.quality) {
             DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineLoops(context, drawStyle, listOf(points))
-            DrawQuality.QUALITY -> meshLineDrawer.drawLineLoops(context, drawStyle, listOf(points))
+            DrawQuality.QUALITY -> meshLineDrawer.drawLineStrips(context, drawStyle, listOf(points), closed = listOf(true))
         }
     }
 
@@ -823,7 +823,7 @@ class Drawer(val driver: Driver) {
     fun lineLoops(loops: List<List<Vector3>>) {
         when (drawStyle.quality) {
             DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineLoops(context, drawStyle, loops)
-            DrawQuality.QUALITY -> meshLineDrawer.drawLineLoops(context, drawStyle, loops)
+            DrawQuality.QUALITY -> meshLineDrawer.drawLineStrips(context, drawStyle, loops, closed = List(loops.size) { true })
         }
     }
 
@@ -838,7 +838,7 @@ class Drawer(val driver: Driver) {
     fun lineLoops(loops: List<List<Vector3>>, weights: List<Double>) {
         when (drawStyle.quality) {
             DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineLoops(context, drawStyle, loops)
-            DrawQuality.QUALITY -> meshLineDrawer.drawLineLoops(context, drawStyle, loops, weights)
+            DrawQuality.QUALITY -> meshLineDrawer.drawLineStrips(context, drawStyle, loops, weights, closed = List(loops.size) { true })
         }
     }
 
