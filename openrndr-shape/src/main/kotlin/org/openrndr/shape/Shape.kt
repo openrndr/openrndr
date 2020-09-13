@@ -834,6 +834,8 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
         }
     }
 
+    val shape get() = Shape(listOf(this))
+
     val length get() = segments.sumByDouble { it.length }
     val bounds get() = vector2Bounds(sampleLinear().segments.flatMap { listOf(it.start, it.end) })
 

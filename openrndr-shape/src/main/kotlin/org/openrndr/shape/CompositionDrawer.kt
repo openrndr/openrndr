@@ -10,10 +10,20 @@ import org.openrndr.math.transforms.transform
 import org.openrndr.math.transforms.translate
 import java.util.*
 
+enum class ClipMode {
+    DISABLED,
+    SUBTRACT_GROUP,
+    SUBTRACT,
+    INTERSECT_GROUP,
+    INTERSECT
+}
+
 private data class CompositionDrawStyle(
         var fill: ColorRGBa? = null,
         var stroke: ColorRGBa? = ColorRGBa.BLACK,
-        var strokeWeight: Double = 1.0)
+        var strokeWeight: Double = 1.0,
+        var clipMode: ClipMode = ClipMode.DISABLED
+)
 
 
 /**
@@ -31,23 +41,11 @@ class CompositionDrawer(documentBounds: Rectangle = DefaultCompositionBounds) {
     private var drawStyle = CompositionDrawStyle()
 
     var model = Matrix44.IDENTITY
-    var fill
-        set(value) {
-            drawStyle.fill = value
-        }
-        get() = drawStyle.fill
 
-    var stroke
-        set(value) {
-            drawStyle.stroke = value
-        }
-        get() = drawStyle.stroke
-
-    var strokeWeight
-        set(value) {
-            drawStyle.strokeWeight = value
-        }
-        get() = drawStyle.strokeWeight
+    var fill by drawStyle::fill
+    var stroke by drawStyle::stroke
+    var strokeWeight by drawStyle::strokeWeight
+    var clipMode by drawStyle::clipMode
 
     fun pushModel() {
         modelStack.push(model)
@@ -104,21 +102,51 @@ class CompositionDrawer(documentBounds: Rectangle = DefaultCompositionBounds) {
         model *= Matrix44.translate(t.vector3())
     }
 
-    fun contour(contour: ShapeContour): ShapeNode {
+    fun contour(contour: ShapeContour): ShapeNode? {
         val shape = Shape(listOf(contour))
         return shape(shape)
     }
 
     fun contours(contours: List<ShapeContour>) = contours.map { contour(it) }
 
-    fun shape(shape: Shape): ShapeNode {
-        val shapeNode = ShapeNode(shape)
-        shapeNode.transform = model
-        shapeNode.fill = Color(fill)
-        shapeNode.stroke = Color(stroke)
-        shapeNode.strokeWeight = StrokeWeight(strokeWeight)
-        cursor.children.add(shapeNode)
-        return shapeNode
+    fun shape(shape: Shape): ShapeNode? {
+        return when (clipMode) {
+            ClipMode.DISABLED -> {
+                val shapeNode = ShapeNode(shape)
+                shapeNode.transform = model
+                shapeNode.fill = Color(fill)
+                shapeNode.stroke = Color(stroke)
+                shapeNode.strokeWeight = StrokeWeight(strokeWeight)
+                cursor.children.add(shapeNode)
+                shapeNode.parent = cursor
+                shapeNode
+            }
+            ClipMode.INTERSECT -> {
+                composition.findShapes().forEach { shapeNode ->
+                    val transform = shapeNode.effectiveTransform
+                    val inverse = if (transform === Matrix44.IDENTITY) Matrix44.IDENTITY else transform.inversed
+                    val transformedShape = if (inverse === Matrix44.IDENTITY) shape else shape.transform(inverse)
+                    val intersected = intersection(shapeNode.shape, transformedShape)
+
+                    when (intersected.size) {
+                        0 -> {
+                            shapeNode.remove()
+                        }
+                        1 -> {
+                            shapeNode.shape = intersected.first()
+                        }
+                        else -> {
+                            val groupNode = GroupNode(intersected.map { ShapeNode(it) }.toMutableList())
+                            (shapeNode.parent as? GroupNode)?.children?.replace(shapeNode, groupNode)
+                            }
+                    }
+                }
+                null
+            }
+            else -> {
+                error("clip mode not supported")
+            }
+        }
     }
 
     fun shapes(shapes: List<Shape>) = shapes.map { shape(it) }
@@ -178,6 +206,13 @@ class CompositionDrawer(documentBounds: Rectangle = DefaultCompositionBounds) {
             (text zip positions).map {
                 text(it.first, it.second)
             }
+}
+
+private fun <E> MutableList<E>.replace(search: E, replace: E) {
+    val index = this.indexOf(search)
+    if (index != -1) {
+        this[index] = replace
+    }
 }
 
 fun drawComposition(

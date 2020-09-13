@@ -16,6 +16,7 @@ sealed class CompositionNode {
         get() = TODO("can't have it")
 
 
+
     val effectiveStroke: ColorRGBa?
         get() {
             return stroke.let {
@@ -36,7 +37,14 @@ sealed class CompositionNode {
             }
         }
 
-
+    val effectiveTransform: Matrix44
+    get() {
+        return if (transform === Matrix44.IDENTITY) {
+            parent?.effectiveTransform ?: Matrix44.IDENTITY
+        } else {
+            transform * (parent?.effectiveTransform ?: Matrix44.IDENTITY)
+        }
+    }
 }
 
 
@@ -104,6 +112,12 @@ class ShapeNode(var shape: Shape) : CompositionNode() {
 
     override fun hashCode(): Int {
         return shape.hashCode()
+    }
+
+    fun remove() {
+        require(parent != null) { "parent is null" }
+        (parent as? GroupNode)?.children?.remove(this)
+        parent = null
     }
 
 }

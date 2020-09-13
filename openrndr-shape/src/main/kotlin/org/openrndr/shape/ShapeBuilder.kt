@@ -194,6 +194,28 @@ class ContourBuilder(private val multipleContours: Boolean) {
         segments.reverse()
     }
 
+
+//    fun doubleCircularArcTo(through:Vector2, end:Vector2) {
+//        val tc = through.distanceTo(cursor)
+//        val et = end.distanceTo(through)
+//
+//        val
+//
+//        arcTo(tc, tc, )
+//    }
+
+    fun circularArcTo(through: Vector2, end: Vector2) {
+        val circle = Circle.fromPoints(cursor, through, end)
+        val tc = (through - circle.center).normalized
+        val ec = (end - circle.center).normalized
+        val angle = Math.toDegrees(acos(tc dot ec))
+        val side = (end - cursor).dot(through - cursor) > 0.0
+
+        val largeArc = circle.radius > end.distanceTo(cursor) / 2.0
+
+        arcTo(circle.radius, circle.radius, angle, largeArc, side, end)
+    }
+
     fun arcTo(
             crx: Double,
             cry: Double,
@@ -427,9 +449,9 @@ class ContourBuilder(private val multipleContours: Boolean) {
 
 
     val result: List<ShapeContour>
-    get() {
-        return contours + if (segments.isNotEmpty()) listOf(ShapeContour(segments.map { it }, false)) else emptyList()
-    }
+        get() {
+            return contours + if (segments.isNotEmpty()) listOf(ShapeContour(segments.map { it }, false)) else emptyList()
+        }
 }
 
 

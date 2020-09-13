@@ -36,6 +36,11 @@ private fun Shape.toRegion2(): Region2 {
     return Region2(contours.map { it.toRing2() })
 }
 
+private fun Shape.toPath2(): List<Path2> {
+    return contours.map { it.toPath2()}
+}
+
+
 private fun Region2.toShapes(): List<Shape> {
     val shapes = mutableListOf<Shape>()
     if (rings.isNotEmpty()) {
@@ -119,8 +124,13 @@ fun difference(from: List<Shape>, subtract: List<List<Shape>>): List<Shape> {
 
 
 fun union(from: ShapeContour, add: ShapeContour): List<Shape> {
-    val result = from.toRing2().region().union(add.toRing2().region())
-    return result.toShapes()
+    if (from.closed) {
+        val result = from.toRing2().region().union(add.toRing2().region())
+        return result.toShapes()
+    } else {
+        // TODO: handle open contours
+        return listOf(from.shape)
+    }
 }
 
 fun union(from: Shape, add: ShapeContour): List<Shape> {
@@ -129,8 +139,13 @@ fun union(from: Shape, add: ShapeContour): List<Shape> {
 }
 
 fun union(from: Shape, add: Shape): List<Shape> {
-    val result = from.toRegion2().union(add.toRegion2())
-    return result.toShapes()
+    return if (from.topology == ShapeTopology.CLOSED) {
+        val result = from.toRegion2().union(add.toRegion2())
+        result.toShapes()
+    } else {
+        // TODO: handle open shapes
+        listOf(from)
+    }
 }
 
 fun union(from: List<Shape>, add: ShapeContour): List<Shape> {
@@ -154,26 +169,46 @@ fun union(from: List<Shape>, add: List<List<Shape>>): List<Shape> {
     return left
 }
 
-
 fun intersection(from: ShapeContour, with: ShapeContour): List<Shape> {
-    val result = from.toRing2().region().intersection(with.toRing2().region())
-    return result.toShapes()
+    return if (from.closed) {
+        val result = from.toRing2().region().intersection(with.toRing2().region())
+        result.toShapes()
+    } else {
+        // TODO: handle open shapes
+        listOf(from.shape)
+    }
 }
 
 fun intersection(from: Shape, with: ShapeContour): List<Shape> {
-    val result = from.toRegion2().intersection(with.toRing2().region())
-    return result.toShapes()
+    return if (from.topology == ShapeTopology.CLOSED) {
+        val result = from.toRegion2().intersection(with.toRing2().region())
+        result.toShapes()
+    } else {
+        // TODO: handle open shapes
+        listOf(from)
+    }
 }
 
 fun intersection(from: ShapeContour, with: Shape): List<Shape> {
-    val result = from.toRing2().region().intersection(with.toRegion2())
-    return result.toShapes()
+    return if (from.closed) {
+        val result = from.toRing2().region().intersection(with.toRegion2())
+        result.toShapes()
+    } else {
+        // TODO: handle open contours
+        listOf(from.shape)
+    }
 }
 
 fun intersection(from: Shape, with: Shape): List<Shape> {
-    val result = from.toRegion2().intersection(with.toRegion2())
-    return result.toShapes()
+    return if (from.topology == ShapeTopology.OPEN) {
+        // TODO: handle open shapes
+        listOf(from)
+    } else {
+        val result = from.toRegion2().intersection(with.toRegion2())
+        result.toShapes()
+    }
 }
+
 
 fun intersection(from: List<Shape>, with: ShapeContour): List<Shape> {
     return from.toRegion2().intersection(with.toRing2().region()).toShapes()
