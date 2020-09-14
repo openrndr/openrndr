@@ -64,7 +64,11 @@ private fun transform(node: CompositionNode): Matrix44 =
 
 class ShapeNode(var shape: Shape) : CompositionNode() {
     override val bounds: Rectangle
-        get() = shape.contours[0].transform(transform(this)).bounds
+        get() {
+            return rectangleBounds(shape.contours.map {
+                it.transform(transform(this)).bounds
+            })
+        }
 
     /**
      * Applies transforms of all ancestor nodes and returns a new detached ShapeNode with conflated transform
