@@ -10,12 +10,21 @@ import org.openrndr.math.transforms.transform
 import org.openrndr.math.transforms.translate
 import java.util.*
 
-enum class ClipMode {
+enum class ClipOp {
     DISABLED,
-    SUBTRACT_GROUP,
-    SUBTRACT,
-    INTERSECT_GROUP,
-    INTERSECT
+    DIFFERENCE,
+    INTERSECT,
+    UNION
+}
+
+enum class ClipMode(val grouped: Boolean, val op: ClipOp) {
+    DISABLED(false, ClipOp.DISABLED),
+    DIFFERENCE(false, ClipOp.DIFFERENCE),
+    DIFFERENCE_GROUP(true, ClipOp.DIFFERENCE),
+    INTERSECT(false, ClipOp.INTERSECT),
+    INTERSECT_GROUP(true, ClipOp.INTERSECT),
+    UNION(false, ClipOp.UNION),
+    UNION_GROUP(true, ClipOp.UNION)
 }
 
 private data class CompositionDrawStyle(
@@ -110,6 +119,9 @@ class CompositionDrawer(documentBounds: Rectangle = DefaultCompositionBounds) {
     fun contours(contours: List<ShapeContour>) = contours.map { contour(it) }
 
     fun shape(shape: Shape): ShapeNode? {
+        // only use clipping for open shapes
+        val clipMode = if (shape.topology == ShapeTopology.CLOSED) clipMode else ClipMode.DISABLED
+
         return when (clipMode) {
             ClipMode.DISABLED -> {
                 val shapeNode = ShapeNode(shape)
@@ -121,30 +133,36 @@ class CompositionDrawer(documentBounds: Rectangle = DefaultCompositionBounds) {
                 shapeNode.parent = cursor
                 shapeNode
             }
-            ClipMode.INTERSECT -> {
-                composition.findShapes().forEach { shapeNode ->
+            else -> {
+                val shapeNodes = (if (!clipMode.grouped) composition.findShapes() else cursor.findShapes())
+
+                shapeNodes.forEach { shapeNode ->
                     val transform = shapeNode.effectiveTransform
                     val inverse = if (transform === Matrix44.IDENTITY) Matrix44.IDENTITY else transform.inversed
                     val transformedShape = if (inverse === Matrix44.IDENTITY) shape else shape.transform(inverse)
-                    val intersected = intersection(shapeNode.shape, transformedShape)
+                    val operated =
+                            when (clipMode.op) {
+                                ClipOp.INTERSECT -> intersection(shapeNode.shape, transformedShape)
+                                ClipOp.UNION -> union(shapeNode.shape, transformedShape).take(1)
+                                ClipOp.DIFFERENCE -> difference(shapeNode.shape, transformedShape)
+                                else -> error("unsupported base op ${clipMode.op}")
+                            }
 
-                    when (intersected.size) {
+                    when (operated.size) {
                         0 -> {
                             shapeNode.remove()
                         }
                         1 -> {
-                            shapeNode.shape = intersected.first()
+                            shapeNode.shape = operated.first()
                         }
                         else -> {
-                            val groupNode = GroupNode(intersected.map { ShapeNode(it) }.toMutableList())
-                            (shapeNode.parent as? GroupNode)?.children?.replace(shapeNode, groupNode)
-                            }
+                            shapeNode.shape = Shape.compound(operated)
+//                            val groupNode = GroupNode(operated.map { ShapeNode(it) }.toMutableList())
+//                            (shapeNode.parent as? GroupNode)?.children?.replace(shapeNode, groupNode)
+                        }
                     }
                 }
                 null
-            }
-            else -> {
-                error("clip mode not supported")
             }
         }
     }
