@@ -4,6 +4,7 @@ import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import org.jsoup.parser.Parser
 import org.openrndr.color.ColorRGBa
+import org.openrndr.draw.ColorBuffer
 import org.openrndr.math.Matrix44
 import org.openrndr.math.Vector2
 import org.openrndr.math.YPolarity
@@ -112,8 +113,9 @@ internal sealed class SVGElement {
     }
 }
 
-internal class SVGImage(val url: String) : SVGElement()
+internal class SVGImage(val url: String, val x: Double?, val y: Double?, val width: Double?, val height: Double?) : SVGElement()
 internal class SVGGroup(val elements: MutableList<SVGElement> = mutableListOf()) : SVGElement()
+
 
 internal fun parseColor(scolor: String): ColorRGBa? {
 
@@ -496,9 +498,12 @@ internal class SVGDocument(private val root: SVGElement) {
             }
         }
         is SVGImage -> {
-            val group = GroupNode()
-            group
+            val image = ColorBuffer.fromUrl(e.url)
+            ImageNode(image, e.x ?: 0.0, e.y ?: 0.0, e.width ?: 0.0, e.height ?: 0.0).apply {
+                this.id = e.id
+            }
         }
+
     }.apply {
         transform = e.transform
         attributes.putAll(e.attributes)
@@ -577,8 +582,22 @@ internal class SVGLoader {
                 "circle" -> handleCircle(group, c)
                 "polygon" -> handlePolygon(group, c)
                 "polyline" -> handlePolyline(group, c)
+                "image" -> handleImage(group, c)
             }
         }
+    }
+
+    private fun handleImage(group: SVGGroup, e: Element) {
+        val width = e.attr("width").toDoubleOrNull()
+        val height = e.attr("height").toDoubleOrNull()
+        val x = e.attr("x").toDoubleOrNull()
+        val y = e.attr("y").toDoubleOrNull()
+        val imageData = e.attr("xlink:href")
+//        val image = ColorBuffer.fromUrl(imageData)
+//        val imageNode = ImageNode(image, width ?: image.width.toDouble(), height ?: image.height.toDouble())
+        val image = SVGImage(imageData, x, y, width, height)
+        image.parseTransform(e)
+        group.elements.add(image)
     }
 
     private fun handleEllipse(group: SVGGroup, e: Element) {

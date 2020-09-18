@@ -1,7 +1,11 @@
 package org.openrndr.shape
 
 import org.openrndr.color.ColorRGBa
+import org.openrndr.draw.ColorBuffer
+import org.openrndr.draw.ShadeStyle
 import org.openrndr.math.Matrix44
+import kotlin.reflect.KMutableProperty0
+import kotlin.reflect.KProperty
 
 sealed class CompositionNode {
     var id: String? = null
@@ -11,11 +15,21 @@ sealed class CompositionNode {
     var stroke: CompositionColor = InheritColor
     var strokeWeight: CompositionStrokeWeight = InheritStrokeWeight
     var attributes = mutableMapOf<String, String?>()
+    var shadeStyle: CompositionShadeStyle = InheritShadeStyle
 
     open val bounds: Rectangle
         get() = TODO("can't have it")
 
 
+    val effectiveShadeStyle: ShadeStyle?
+        get() {
+            return shadeStyle.let {
+                when (it) {
+                    is InheritShadeStyle -> parent?.effectiveShadeStyle
+                    is CShadeStyle -> it.shadeStyle
+                }
+            }
+        }
 
     val effectiveStroke: ColorRGBa?
         get() {
@@ -38,21 +52,30 @@ sealed class CompositionNode {
         }
 
     val effectiveTransform: Matrix44
-    get() {
-        return if (transform === Matrix44.IDENTITY) {
-            parent?.effectiveTransform ?: Matrix44.IDENTITY
-        } else {
-            transform * (parent?.effectiveTransform ?: Matrix44.IDENTITY)
+        get() {
+            return if (transform === Matrix44.IDENTITY) {
+                parent?.effectiveTransform ?: Matrix44.IDENTITY
+            } else {
+                transform * (parent?.effectiveTransform ?: Matrix44.IDENTITY)
+            }
         }
-    }
 }
 
+infix fun KMutableProperty0<CompositionShadeStyle>.`=`(shadeStyle: ShadeStyle?) = this.set(CShadeStyle(shadeStyle))
+infix fun KMutableProperty0<CompositionColor>.`=`(color: ColorRGBa?) = this.set(Color(color))
+infix fun KMutableProperty0<CompositionStrokeWeight>.`=`(weight: Double) = this.set(StrokeWeight(weight))
+
+operator fun KMutableProperty0<CompositionShadeStyle>.setValue(thisRef:Any?, property: KProperty<*>, value:ShadeStyle) {
+    this.set(CShadeStyle(value))
+}
 
 sealed class CompositionColor
-
 object InheritColor : CompositionColor()
 data class Color(val color: ColorRGBa?) : CompositionColor()
 
+sealed class CompositionShadeStyle
+object InheritShadeStyle : CompositionShadeStyle()
+data class CShadeStyle(val shadeStyle: ShadeStyle?) : CompositionShadeStyle()
 
 sealed class CompositionStrokeWeight
 object InheritStrokeWeight : CompositionStrokeWeight()
@@ -61,6 +84,11 @@ data class StrokeWeight(val weight: Double) : CompositionStrokeWeight()
 
 private fun transform(node: CompositionNode): Matrix44 =
         (node.parent?.let { transform(it) } ?: Matrix44.IDENTITY) * node.transform
+
+class ImageNode(var image: ColorBuffer, var x: Double, var y: Double, var width: Double, var height: Double) : CompositionNode() {
+    override val bounds: Rectangle
+        get() = Rectangle(0.0, 0.0, width, height).contour.transform(transform(this)).bounds
+}
 
 class ShapeNode(var shape: Shape) : CompositionNode() {
     override val bounds: Rectangle
@@ -163,22 +191,34 @@ val DefaultCompositionBounds = Rectangle(0.0, 0.0, 2676.0, 2048.0)
 
 class GroupNodeStop(children: MutableList<CompositionNode>) : GroupNode(children)
 class Composition(val root: CompositionNode, val documentBounds: Rectangle = DefaultCompositionBounds) {
-    fun findTerminals(filter: (CompositionNode) -> Boolean): List<CompositionNode> {
-        val result = mutableListOf<CompositionNode>()
-        fun find(node: CompositionNode) {
-            when (node) {
-                is GroupNode -> node.children.forEach { find(it) }
-                else -> if (filter(node)) {
-                    result.add(node)
-                }
-            }
-        }
-        find(root)
-        return result
+    fun findShapes() = root.findShapes()
+    fun findShape(id: String): ShapeNode? {
+        return (root.findTerminals { it.id == id }).firstOrNull() as? ShapeNode
     }
 
-    fun findShapes(): List<ShapeNode> = findTerminals { it is ShapeNode }.map { it as ShapeNode }
+    fun findImages() = root.findImages()
+
+    fun findGroup(id: String): ShapeNode? {
+        return (root.findTerminals { it.id == id }).firstOrNull() as? ShapeNode
+    }
 }
+
+fun CompositionNode.findTerminals(filter: (CompositionNode) -> Boolean): List<CompositionNode> {
+    val result = mutableListOf<CompositionNode>()
+    fun find(node: CompositionNode) {
+        when (node) {
+            is GroupNode -> node.children.forEach { find(it) }
+            else -> if (filter(node)) {
+                result.add(node)
+            }
+        }
+    }
+    find(this)
+    return result
+}
+
+fun CompositionNode.findShapes(): List<ShapeNode> = findTerminals { it is ShapeNode }.map { it as ShapeNode }
+fun CompositionNode.findImages(): List<ImageNode> = findTerminals { it is ImageNode }.map { it as ImageNode }
 
 fun CompositionNode.visitAll(visitor: (CompositionNode.() -> Unit)) {
     visitor()
@@ -245,3 +285,4 @@ fun CompositionNode.map(mapper: (CompositionNode) -> CompositionNode): Compositi
         else -> r
     }
 }
+

@@ -987,32 +987,42 @@ class Drawer(val driver: Driver) {
             pushStyle()
             model *= compositionNode.transform
 
+            when (val s = compositionNode.shadeStyle) {
+                is CShadeStyle -> {
+                    shadeStyle = s.shadeStyle
+                }
+                else -> {
+                }
+            }
+
             when (compositionNode) {
                 is ShapeNode -> {
-
                     compositionNode.fill.let {
                         if (it is Color) {
                             fill = it.color
                         }
                     }
-
                     compositionNode.stroke.let {
                         if (it is Color) {
                             stroke = it.color
                         }
                     }
-
                     compositionNode.strokeWeight.let {
                         if (it is StrokeWeight) {
                             strokeWeight = it.weight
                         }
                     }
-
                     shape(compositionNode.shape)
+                }
+                is ImageNode -> {
+                    image(compositionNode.image)
                 }
                 is TextNode -> TODO()
                 is GroupNode -> compositionNode.children.forEach { node(it) }
             }
+
+
+
             popModel()
             popStyle()
         }
@@ -1154,7 +1164,7 @@ class Drawer(val driver: Driver) {
     }
 
 
-    fun transform(transform: TransformTarget) : KMutableProperty0<Matrix44> {
+    fun transform(transform: TransformTarget): KMutableProperty0<Matrix44> {
         return when (transform) {
             TransformTarget.PROJECTION -> this::projection
             TransformTarget.MODEL -> this::model
@@ -1162,6 +1172,7 @@ class Drawer(val driver: Driver) {
         }
     }
 }
+
 /**
  * Pushes style, view- and projection matrix, calls function and pops.
  * @param function the function that is called in the isolation

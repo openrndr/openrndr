@@ -9,7 +9,6 @@ import java.util.*
 import kotlin.math.*
 
 
-
 data class SegmentPoint(val segment: Segment, val segmentT: Double, val position: Vector2)
 data class ContourPoint(val contour: ShapeContour, val contourT: Double, val segment: Segment, val segmentT: Double, val position: Vector2)
 
@@ -1242,6 +1241,11 @@ enum class ShapeTopology {
 }
 
 class Shape(val contours: List<ShapeContour>) {
+
+    companion object {
+        fun compound(shapes: List<Shape>) = Shape(shapes.flatMap { it.contours })
+    }
+
     val topology = when {
         contours.isEmpty() -> ShapeTopology.OPEN
         contours.all { it.closed } -> ShapeTopology.CLOSED
@@ -1338,8 +1342,6 @@ class Shape(val contours: List<ShapeContour>) {
         return contours.hashCode()
     }
 }
-
-class Compound(val shapes: List<Shape>)
 
 fun CatmullRom2.toSegment(): Segment {
     val d1a2 = (p1 - p0).length.pow(2 * alpha)
