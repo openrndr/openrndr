@@ -20,7 +20,7 @@ import java.io.InputStream
 import java.io.InputStreamReader
 import java.net.URL
 import java.util.*
-import kotlin.math.min
+import kotlin.reflect.KMutableProperty0
 import org.openrndr.math.transforms.lookAt as _lookAt
 import org.openrndr.math.transforms.ortho as _ortho
 import org.openrndr.math.transforms.perspective as _perspective
@@ -57,6 +57,12 @@ interface ProgramRenderTarget : RenderTarget {
 enum class DrawQuality {
     QUALITY,
     PERFORMANCE
+}
+
+enum class TransformTarget {
+    MODEL,
+    VIEW,
+    PROJECTION
 }
 
 /**
@@ -208,16 +214,16 @@ class Drawer(val driver: Driver) {
         projection = _perspective(fovY, aspectRatio, zNear, zFar)
     }
 
-    fun lookAt(from: Vector3, to: Vector3, up: Vector3 = Vector3.UNIT_Y) {
-        view *= _lookAt(from, to, up)
+    fun lookAt(from: Vector3, to: Vector3, up: Vector3 = Vector3.UNIT_Y, target: TransformTarget = TransformTarget.VIEW) {
+        transform(target) *= _lookAt(from, to, up)
     }
 
     /**
      * Apply a uniform scale to the model matrix
      * @param s the scaling factor
      */
-    fun scale(s: Double) {
-        model *= Matrix44.scale(s, s, s)
+    fun scale(s: Double, target: TransformTarget = TransformTarget.MODEL) {
+        transform(target) *= Matrix44.scale(s, s, s)
     }
 
     /**
@@ -225,8 +231,8 @@ class Drawer(val driver: Driver) {
      * @param x the scaling factor for the x-axis
      * @param y the scaling factor for the y-axis
      */
-    fun scale(x: Double, y: Double) {
-        model *= Matrix44.scale(x, y, 1.0)
+    fun scale(x: Double, y: Double, target: TransformTarget = TransformTarget.MODEL) {
+        transform(target) *= Matrix44.scale(x, y, 1.0)
     }
 
     /**
@@ -237,44 +243,44 @@ class Drawer(val driver: Driver) {
      * @see translate
      * @see scale
      */
-    fun scale(x: Double, y: Double, z: Double) {
-        model *= Matrix44.scale(x, y, z)
+    fun scale(x: Double, y: Double, z: Double, target: TransformTarget = TransformTarget.MODEL) {
+        transform(target) *= Matrix44.scale(x, y, z)
     }
 
     /**
      * Applies a two-dimensional translation to the model matrix
      */
-    fun translate(t: Vector2) {
-        model *= Matrix44.translate(t.vector3())
+    fun translate(t: Vector2, target: TransformTarget = TransformTarget.MODEL) {
+        transform(target) *= Matrix44.translate(t.vector3())
     }
 
     /**
      * Applies three-dimensional translation to the model matrix
      */
-    fun translate(t: Vector3) {
-        model *= Matrix44.translate(t)
+    fun translate(t: Vector3, target: TransformTarget = TransformTarget.MODEL) {
+        transform(target) *= Matrix44.translate(t)
     }
 
     /**
      * Applies a two-dimensional translation to the model matrix
      */
-    fun translate(x: Double, y: Double) {
-        translate(x, y, 0.0)
+    fun translate(x: Double, y: Double, target: TransformTarget = TransformTarget.MODEL) {
+        translate(x, y, 0.0, target)
     }
 
     /**
      * Applies a three-dimensional translation to the model matrix
      */
-    fun translate(x: Double, y: Double, z: Double) {
-        model *= Matrix44.translate(Vector3(x, y, z))
+    fun translate(x: Double, y: Double, z: Double, target: TransformTarget = TransformTarget.MODEL) {
+        transform(target) *= Matrix44.translate(Vector3(x, y, z))
     }
 
     /**
      * Applies a rotation over the z-axis to the model matrix
      * @param rotationInDegrees the rotation in degrees
      */
-    fun rotate(rotationInDegrees: Double) {
-        model *= Matrix44.rotateZ(rotationInDegrees)
+    fun rotate(rotationInDegrees: Double, target: TransformTarget = TransformTarget.MODEL) {
+        transform(target) *= Matrix44.rotateZ(rotationInDegrees)
     }
 
     /**
@@ -282,8 +288,8 @@ class Drawer(val driver: Driver) {
      * @param axis the axis to rotate over, will be normalized
      * @param rotationInDegrees the rotation in degrees
      */
-    fun rotate(axis: Vector3, rotationInDegrees: Double) {
-        model *= Matrix44.rotate(axis, rotationInDegrees)
+    fun rotate(axis: Vector3, rotationInDegrees: Double, target: TransformTarget = TransformTarget.MODEL) {
+        transform(target) *= Matrix44.rotate(axis, rotationInDegrees)
     }
 
     fun clear(r: Double, g: Double, b: Double, a: Double) {
@@ -1146,8 +1152,16 @@ class Drawer(val driver: Driver) {
     ) {
         vertexBufferDrawer.drawVertexBufferInstances(context, drawStyle, primitive, indexBuffer, vertexBuffers, instanceAttributes, offset, indexCount, instanceCount)
     }
-}
 
+
+    fun transform(transform: TransformTarget) : KMutableProperty0<Matrix44> {
+        return when (transform) {
+            TransformTarget.PROJECTION -> this::projection
+            TransformTarget.MODEL -> this::model
+            TransformTarget.VIEW -> this::view
+        }
+    }
+}
 /**
  * Pushes style, view- and projection matrix, calls function and pops.
  * @param function the function that is called in the isolation
@@ -1169,3 +1183,6 @@ fun Drawer.isolatedWithTarget(target: RenderTarget, function: Drawer.() -> Unit)
     isolated(function)
     target.unbind()
 }
+
+
+private operator fun KMutableProperty0<Matrix44>.timesAssign(matrix: Matrix44) = set(get() * matrix)
