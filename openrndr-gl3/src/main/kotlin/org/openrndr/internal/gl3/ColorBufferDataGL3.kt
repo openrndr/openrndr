@@ -35,7 +35,7 @@ class ColorBufferDataGL3(val width: Int, val height: Int, val format: ColorForma
             if (urlString.startsWith("data:")) {
                 val decoder = Base64.getDecoder()
                 val commaIndex = urlString.indexOf(",")
-                val base64Data = urlString.drop(commaIndex + 1)
+                val base64Data = urlString.drop(commaIndex + 1).replace("\n","")
                 val decoded = decoder.decode(base64Data)
                 val buffer = ByteBuffer.allocateDirect(decoded.size)
                 buffer.put(decoded)
