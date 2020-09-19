@@ -58,24 +58,25 @@ fun writeSVG(composition: Composition,
     sb.append("<svg version=\"1.1\" baseProfile=\"tiny\" id=\"$topLevelId\" $allNamespaces ${composition.documentBounds.svgAttributes()}>")
 
     var textPathID = 0
-    process(composition.root) {
-        if (it == VisitStage.PRE) {
+    process(composition.root) { stage ->
+        if (stage == VisitStage.PRE) {
             when (this) {
                 is GroupNode -> {
+                    val transformAttribute = if (transform !== Matrix44.IDENTITY) "transform=\"${transform.svgTransform}\"" else ""
                     val attributes =
-                            listOf(svgId, transform.svgTransform, svgAttributes)
-                                    .filter { it.isNotBlank() }
+                            listOf(svgId, transformAttribute, svgAttributes)
+                                    .filter { a -> a.isNotBlank() }
                                     .joinToString(" ")
                     sb.append("<g $attributes>\n")
                 }
                 is ShapeNode -> {
-                    val fillAttribute = fill.let {
-                        if (it is Color) it.color?.let { "fill=\"${it.svg}\"" } ?: "fill=\"none\"" else ""
+                    val fillAttribute = fill.let { f ->
+                        if (f is Color) f.color?.let { c -> "fill=\"${c.svg}\"" } ?: "fill=\"none\"" else ""
                     }
-                    val strokeAttribute = stroke.let {
-                        if (it is Color) it.color?.let { "stroke=\"${it.svg}\"" } ?: "stroke=\"none\"" else ""
+                    val strokeAttribute = stroke.let { s ->
+                        if (s is Color) s.color?.let { c -> "stroke=\"${c.svg}\"" } ?: "stroke=\"none\"" else ""
                     }
-                    val strokeWidthAttribute = strokeWeight.let { if (it is StrokeWeight) "stroke-width=\"${it.weight}\"" else "" }
+                    val strokeWidthAttribute = strokeWeight.let { w -> if (w is StrokeWeight) "stroke-width=\"${w.weight}\"" else "" }
                     val transformAttribute = if (transform !== Matrix44.IDENTITY) "transform=\"${transform.svgTransform}\"" else ""
                     val pathAttribute = "d=\"${shape.svg}\""
 
@@ -94,8 +95,8 @@ fun writeSVG(composition: Composition,
                 }
 
                 is TextNode -> {
-                    val fillAttribute = fill.let { color ->
-                        if (color is Color) color.color?.let { "fill=\"${it.svg}\"" } ?: "fill=\"none\"" else ""
+                    val fillAttribute = fill.let { f ->
+                        if (f is Color) f.color?.let { c -> "fill=\"${c.svg}\"" } ?: "fill=\"none\"" else ""
                     }
                     val contour = this.contour
                     val escapedText = Entities.escape(this.text)
@@ -130,7 +131,7 @@ private val ColorRGBa.svg: String
         return String.format("#%02x%02x%02x", ir, ig, ib)
     }
 
-private val Matrix44.svgTransform get() = if (this == Matrix44.IDENTITY) "" else "transform=\"matrix(${this.c0r0}, ${this.c0r1}, ${this.c1r0}, ${this.c1r1}, ${this.c3r0}, ${this.c3r1})\""
+private val Matrix44.svgTransform get() = if (this == Matrix44.IDENTITY) null else "matrix(${this.c0r0}, ${this.c0r1}, ${this.c1r0}, ${this.c1r1}, ${this.c3r0}, ${this.c3r1})"
 
 private val Shape.svg: String
     get() {
