@@ -1,5 +1,6 @@
 package org.openrndr.math
 
+import org.amshove.kluent.`should be equal to`
 import org.openrndr.shape.CompositionDrawer
 import org.openrndr.shape.drawComposition
 import org.openrndr.svg.loadSVG
@@ -7,6 +8,7 @@ import org.openrndr.svg.toSVG
 import org.openrndr.svg.writeSVG
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
+import kotlin.test.assertEquals
 
 object TestSVGWriter : Spek({
 
@@ -32,7 +34,8 @@ object TestSVGWriter : Spek({
         it("can be written and loaded") {
             val svgString = comp.toSVG()
             val loaded = loadSVG(svgString)
-            loaded
+            val shape = loaded.findShape("circle")
+            shape?.effectiveTransform?.get(3) `should be equal to` Vector4(50.0, 50.0, 0.0, 1.0)
         }
     }
 
