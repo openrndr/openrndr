@@ -190,7 +190,9 @@ open class GroupNode(val children: MutableList<CompositionNode> = mutableListOf(
 val DefaultCompositionBounds = Rectangle(0.0, 0.0, 2676.0, 2048.0)
 
 class GroupNodeStop(children: MutableList<CompositionNode>) : GroupNode(children)
-class Composition(val root: CompositionNode, val documentBounds: Rectangle = DefaultCompositionBounds) {
+class Composition(val root: CompositionNode, var documentBounds: Rectangle = DefaultCompositionBounds) {
+    val namespaces = mutableMapOf<String, String>()
+
     fun findShapes() = root.findShapes()
     fun findShape(id: String): ShapeNode? {
         return (root.findTerminals { it.id == id }).firstOrNull() as? ShapeNode

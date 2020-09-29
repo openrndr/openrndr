@@ -483,8 +483,10 @@ internal class SVGPath : SVGElement() {
     }
 }
 
-internal class SVGDocument(private val root: SVGElement) {
-    fun composition(): Composition = Composition(convertElement(root))
+internal class SVGDocument(private val root: SVGElement, val namespaces: Map<String, String>) {
+    fun composition(): Composition = Composition(convertElement(root)).apply {
+        namespaces.putAll(this@SVGDocument.namespaces)
+    }
 
     private fun convertElement(e: SVGElement): CompositionNode = when (e) {
         is SVGGroup -> GroupNode().apply {
@@ -514,6 +516,9 @@ internal class SVGLoader {
     fun loadSVG(svg: String): SVGDocument {
         val doc = Jsoup.parse(svg, "", Parser.xmlParser())
         val root = doc.select("svg").first()
+        val namespaces = root.attributes().filter { it.key.startsWith("xmlns") }.associate {
+            Pair(it.key, it.value)
+        }
 //        val version = root.attr("version")
 
 //        val supportedVersions = setOf("1.0", "1.1", "1.2")
@@ -533,7 +538,7 @@ internal class SVGLoader {
 
         val rootGroup = SVGGroup()
         handleGroup(rootGroup, root)
-        return SVGDocument(rootGroup)
+        return SVGDocument(rootGroup, namespaces)
     }
 
     private fun handlePolygon(group: SVGGroup, e: Element) {

@@ -1,6 +1,7 @@
 package org.openrndr.shape
 
 import org.openrndr.color.ColorRGBa
+import org.openrndr.draw.ColorBuffer
 import org.openrndr.math.Matrix44
 import org.openrndr.math.Vector2
 import org.openrndr.math.YPolarity
@@ -224,6 +225,13 @@ class CompositionDrawer(documentBounds: Rectangle = DefaultCompositionBounds) {
             (text zip positions).map {
                 text(it.first, it.second)
             }
+
+    fun image(image: ColorBuffer, x: Double = 0.0, y: Double = 0.0) : ImageNode {
+        val node = ImageNode(image, x, y, width = image.width.toDouble(), height = image.height.toDouble())
+        node.transform = this.model
+        cursor.children.add(node)
+        return node
+    }
 }
 
 private fun <E> MutableList<E>.replace(search: E, replace: E) {

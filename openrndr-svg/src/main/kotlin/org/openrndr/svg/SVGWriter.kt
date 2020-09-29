@@ -6,16 +6,16 @@ import org.openrndr.math.Matrix44
 import org.openrndr.shape.*
 import java.io.File
 
-fun Composition.saveToFile(file: File, namespaces: List<String> = emptyList()) {
+fun Composition.saveToFile(file: File) {
     if (file.extension == "svg") {
-        val svg = writeSVG(this, namespaces = namespaces)
+        val svg = writeSVG(this)
         file.writeText(svg)
     } else {
         throw IllegalArgumentException("can only write svg files, the extension '${file.extension}' is not supported")
     }
 }
 
-fun Composition.toSVG(namespaces: List<String> = emptyList()) = writeSVG(this, namespaces = namespaces)
+fun Composition.toSVG() = writeSVG(this)
 
 private val CompositionNode.svgId: String
     get() = if (id != null) {
@@ -35,27 +35,31 @@ private val CompositionNode.svgAttributes: String
         }.joinToString(" ")
     }
 
-val svgNamespaceInkscape = """xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape""""
+
 
 fun writeSVG(composition: Composition,
-             topLevelId:String = "openrndr-svg",
-             namespaces : List<String> = emptyList() ): String {
+             topLevelId: String = "openrndr-svg"): String {
     val sb = StringBuilder()
     sb.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n")
     sb.append("<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1 Tiny//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11-tiny.dtd\">\n")
 
-    val allNamespaces = (listOf(
-            "xmlns=\"http://www.w3.org/2000/svg\"",
-            "xmlns:xlink=\"http://www.w3.org/1999/xlink\""
-            ) + namespaces).joinToString(" ")
+    val defaultNamespaces = mapOf(
+            "xmlns" to "http://www.w3.org/2000/svg",
+            "xmlns:xlink" to "http://www.w3.org/1999/xlink"
+    )
+
+    val namespaces = (defaultNamespaces + composition.namespaces).map { (k, v) ->
+        """$k="$v""""
+    }.joinToString(" ")
+
 
     fun Rectangle.svgAttributes() = mapOf("x" to corner.x.toInt().toString(),
             "y" to corner.y.toInt().toString(),
             "width" to width.toInt(),
             "height" to height.toInt())
-            .map {"""${it.key}="${it.value}px"""" }.joinToString(" ")
+            .map { """${it.key}="${it.value}px"""" }.joinToString(" ")
 
-    sb.append("<svg version=\"1.1\" baseProfile=\"tiny\" id=\"$topLevelId\" $allNamespaces ${composition.documentBounds.svgAttributes()}>")
+    sb.append("<svg version=\"1.1\" baseProfile=\"tiny\" id=\"$topLevelId\" $namespaces ${composition.documentBounds.svgAttributes()}>")
 
     var textPathID = 0
     process(composition.root) { stage ->
@@ -109,6 +113,10 @@ fun writeSVG(composition: Composition,
                         sb.append("<text $fillAttribute><textPath href=\"#text$textPathID\">$escapedText</textPath></text>")
                         textPathID++
                     }
+                }
+                is ImageNode -> {
+                    val dataUrl = this.image.toDataUrl()
+                    sb.append("""<image xlink:href="$dataUrl" height="${this.image.height}" width="${this.image.width}"/>""")
                 }
             }
         } else {
