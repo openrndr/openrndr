@@ -2,6 +2,7 @@
 
 package org.openrndr.shape
 
+import io.lacuna.artifex.Vec2
 import org.openrndr.math.*
 import org.openrndr.shape.internal.BezierCubicSampler2D
 import org.openrndr.shape.internal.BezierQuadraticSampler2D
@@ -888,7 +889,13 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
         return ShapeContour(segments, false, polarity)
     }
 
-    operator fun contains(v: Vector2): Boolean = closed && triangulation.any { v in it }
+    operator fun contains(point: Vector2): Boolean = closed && this.toRing2().test(Vec2(point.x, point.y)).inside
+
+    /*
+    operator fun contains(point: Vector2) : Boolean {
+        return this.toRing2().test(Vec2(point.x, point.y)).inside
+    }
+     */
 
     /**
      * Estimate t parameter value for a given length
@@ -987,6 +994,7 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
     }
 
     fun position(ut: Double): Vector2 {
+        require(segments.isNotEmpty())
         val t = ut.clamp(0.0, 1.0)
         return when (t) {
             0.0 -> segments[0].start
@@ -1232,6 +1240,8 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
 
         return ShapeContour(if (segments.size > 1) fixedSegments else segments, closed, polarity)
     }
+
+
 }
 
 enum class ShapeTopology {
@@ -1277,7 +1287,13 @@ class Shape(val contours: List<ShapeContour>) {
         }
     }
 
-    operator fun contains(v: Vector2): Boolean = triangulation.any { v in it }
+    //operator fun contains(v: Vector2): Boolean = triangulation.any { v in it }
+
+    operator fun contains(v: Vector2) : Boolean {
+        val v = Vec2(v.x, v.y)
+        return toRegion2().contains(v)
+    }
+
 
     /**
      * The outline of the shape
