@@ -304,9 +304,9 @@ class ColorBufferGL3(val target: Int,
 
         val fromDiv = 1 shl fromLevel
         val toDiv = 1 shl toLevel
-        val refRectangle = IntRectangle(0, 0, effectiveWidth/fromDiv, effectiveHeight/fromDiv)
+        val refRectangle = IntRectangle(0, 0, effectiveWidth / fromDiv, effectiveHeight / fromDiv)
 
-        val useTexSubImage = target.type.compressed || (refRectangle == sourceRectangle && refRectangle == targetRectangle && multisample == target.multisample )
+        val useTexSubImage = target.type.compressed || (refRectangle == sourceRectangle && refRectangle == targetRectangle && multisample == target.multisample)
 
         if (!useTexSubImage) {
             val readTarget = renderTarget(
@@ -336,11 +336,19 @@ class ColorBufferGL3(val target: Int,
             val sey = sourceRectangle.height + ssy
 
             val tsx = targetRectangle.x
-            val tsy = (target.effectiveHeight/ toDiv) - targetRectangle.height
+            val tsy = targetRectangle.y
             val tex = targetRectangle.width + tsx
             val tey = targetRectangle.height + tsy
 
-            glBlitFramebuffer(ssx,ssy, sex, sey, tsx, tsy, tex, tey, GL_COLOR_BUFFER_BIT, GL_NEAREST)
+            fun sflip(y: Int): Int {
+                return this.effectiveHeight / fromDiv - y
+            }
+
+            fun tflip(y: Int): Int {
+                return target.effectiveHeight / toDiv - y
+            }
+
+            glBlitFramebuffer(ssx, sflip(ssy), sex, sflip(sey), tsx, tflip(tsy), tex, tflip(tey), GL_COLOR_BUFFER_BIT, GL_NEAREST)
             writeTarget.unbind()
 
             writeTarget.detachColorAttachments()
@@ -353,13 +361,10 @@ class ColorBufferGL3(val target: Int,
                 "cropped or scaled copyTo is not allowed with the selected color buffers: ${this} -> ${target}"
             }
 
-            val useFrameBufferCopy = Driver.glVersion < DriverVersionGL.VERSION_4_3 || (type != target.type || format != target.format)
+            val useFrameBufferCopy = true // Driver.glVersion < DriverVersionGL.VERSION_4_3 || (type != target.type || format != target.format)
 
             if (useFrameBufferCopy) {
                 checkDestroyed()
-                val fromDiv = 1 shl fromLevel
-                val toDiv = 1 shl toLevel
-
                 val readTarget = renderTarget(width / fromDiv, height / fromDiv, contentScale) {
                     colorBuffer(this@ColorBufferGL3, fromLevel)
                 } as RenderTargetGL3
