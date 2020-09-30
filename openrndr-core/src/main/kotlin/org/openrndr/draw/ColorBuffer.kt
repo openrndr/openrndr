@@ -131,7 +131,7 @@ interface ColorBuffer {
     /**
      * create a cropped copy
      */
-    fun crop(sourceRectangle: IntRectangle) : ColorBuffer {
+    fun crop(sourceRectangle: IntRectangle): ColorBuffer {
         val cropped = createEquivalent(width = sourceRectangle.width, height = sourceRectangle.height)
         copyTo(cropped, sourceRectangle = sourceRectangle)
         return cropped
@@ -153,6 +153,9 @@ interface ColorBuffer {
      * @param target the color buffer to which contents will be copied
      * @param fromLevel the mip-map level from which will be copied
      * @param toLevel the mip-map level of [target] to which will be copied
+     * @param sourceRectangle rectangle that specifies where to read from
+     * @param targetRectangle rectangle that specifies where to write to
+     * @param filter filter to use for copying
      */
     fun copyTo(
             target: ColorBuffer,
@@ -169,7 +172,9 @@ interface ColorBuffer {
                     0,
                     sourceRectangle.width,
                     sourceRectangle.height
-            ))
+            ),
+            filter: MagnifyingFilter = MagnifyingFilter.NEAREST
+    )
 
     /**
      * copies contents to a target array texture

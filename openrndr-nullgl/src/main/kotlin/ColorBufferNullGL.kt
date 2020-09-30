@@ -37,7 +37,7 @@ class ColorBufferNullGL(override val width: Int, override val height: Int, overr
     }
 
 
-    override fun copyTo(target: ColorBuffer, fromLevel: Int, toLevel: Int, sourceRectangle: IntRectangle, targetRectangle: IntRectangle) {
+    override fun copyTo(target: ColorBuffer, fromLevel: Int, toLevel: Int, sourceRectangle: IntRectangle, targetRectangle: IntRectangle, filter: MagnifyingFilter) {
 
     }
 

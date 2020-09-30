@@ -298,7 +298,8 @@ class ColorBufferGL3(val target: Int,
             fromLevel: Int,
             toLevel: Int,
             sourceRectangle: IntRectangle,
-            targetRectangle: IntRectangle
+            targetRectangle: IntRectangle,
+            filter: MagnifyingFilter
     ) {
         checkDestroyed()
 
@@ -348,7 +349,7 @@ class ColorBufferGL3(val target: Int,
                 return target.effectiveHeight / toDiv - y
             }
 
-            glBlitFramebuffer(ssx, sflip(ssy), sex, sflip(sey), tsx, tflip(tsy), tex, tflip(tey), GL_COLOR_BUFFER_BIT, GL_NEAREST)
+            glBlitFramebuffer(ssx, sflip(ssy), sex, sflip(sey), tsx, tflip(tsy), tex, tflip(tey), GL_COLOR_BUFFER_BIT, filter.toGLFilter())
             writeTarget.unbind()
 
             writeTarget.detachColorAttachments()
