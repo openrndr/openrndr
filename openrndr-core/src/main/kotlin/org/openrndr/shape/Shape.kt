@@ -1216,6 +1216,7 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
         return ContourPoint(this, t, n.segment, n.segmentT, n.position)
     }
 
+    val opened get() = ShapeContour(segments, false, polarity)
     val reversed get() = ShapeContour(segments.map { it.reverse }.reversed(), closed, polarity)
 
     fun map(closed: Boolean = this.closed, mapper: (Segment) -> Segment): ShapeContour {

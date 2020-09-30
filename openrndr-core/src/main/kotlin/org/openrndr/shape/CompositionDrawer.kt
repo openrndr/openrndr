@@ -35,27 +35,40 @@ private data class CompositionDrawStyle(
         var clipMode: ClipMode = ClipMode.DISABLED
 )
 
+data class ShapeNodeIntersection(val node: ShapeNode, val intersection: ContourIntersection)
+data class ShapeNodeNearestContour(val node: ShapeNode, val point: ContourPoint, val distance: Double)
+
 
 /**
  * A Drawer-like interface for the creation of Compositions
  * This should be easier than creating Compositions manually
  */
-
 class CompositionDrawer(documentBounds: Rectangle = DefaultCompositionBounds) {
     val root = GroupNode()
     val composition = Composition(root, documentBounds)
 
     private var cursor = root
     private val modelStack = Stack<Matrix44>()
-    private val styleStack = Stack<CompositionDrawStyle>()
+    private val styleStack = Stack<CompositionDrawStyle>().apply { }
     private var drawStyle = CompositionDrawStyle()
 
     var model = Matrix44.IDENTITY
 
-    var fill by drawStyle::fill
-    var stroke by drawStyle::stroke
-    var strokeWeight by drawStyle::strokeWeight
-    var clipMode by drawStyle::clipMode
+    var fill
+        get() = drawStyle.fill
+        set(value) = run { drawStyle.fill = value }
+
+    var stroke
+        get() = drawStyle.stroke
+        set(value) = run { drawStyle.stroke = value }
+
+    var strokeWeight
+        get() = drawStyle.strokeWeight
+        set(value) = run { drawStyle.strokeWeight = value }
+
+    var clipMode
+        get() = drawStyle.clipMode
+        set(value) = run { drawStyle.clipMode = value }
 
     fun pushModel() {
         modelStack.push(model)
@@ -118,6 +131,24 @@ class CompositionDrawer(documentBounds: Rectangle = DefaultCompositionBounds) {
     }
 
     fun contours(contours: List<ShapeContour>) = contours.map { contour(it) }
+
+    fun nearest(point: Vector2) : ShapeNodeNearestContour? {
+        return composition.findShapes().flatMap { node ->
+            node.shape.contours
+                    .map { it.nearest(point) }
+                    .map { ShapeNodeNearestContour(node, it, it.position.distanceTo(point) ) }
+        }.minByOrNull { it.distance }
+    }
+
+    fun intersections(contour: ShapeContour): List<ShapeNodeIntersection> {
+        return composition.findShapes().flatMap { node ->
+            node.shape.contours.flatMap {
+                intersections(contour, it).map {
+                    ShapeNodeIntersection(node, it)
+                }
+            }
+        }
+    }
 
     fun shape(shape: Shape): ShapeNode? {
         // only use clipping for open shapes
@@ -226,7 +257,7 @@ class CompositionDrawer(documentBounds: Rectangle = DefaultCompositionBounds) {
                 text(it.first, it.second)
             }
 
-    fun image(image: ColorBuffer, x: Double = 0.0, y: Double = 0.0) : ImageNode {
+    fun image(image: ColorBuffer, x: Double = 0.0, y: Double = 0.0): ImageNode {
         val node = ImageNode(image, x, y, width = image.width.toDouble(), height = image.height.toDouble())
         node.transform = this.model
         cursor.children.add(node)
