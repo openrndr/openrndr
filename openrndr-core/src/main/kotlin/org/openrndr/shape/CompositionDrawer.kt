@@ -36,16 +36,30 @@ private data class CompositionDrawStyle(
 )
 
 data class ShapeNodeIntersection(val node: ShapeNode, val intersection: ContourIntersection)
-data class ShapeNodeNearestContour(val node: ShapeNode, val point: ContourPoint, val distance: Double)
+data class ShapeNodeNearestContour(val node: ShapeNode, val point: ContourPoint, val distanceDirection:Vector2, val distance: Double)
+
+fun List<ShapeNodeIntersection>.merge(threshold: Double = 0.5): List<ShapeNodeIntersection> {
+    val result = mutableListOf<ShapeNodeIntersection>()
+    for (i in this) {
+        val nearest = result.minByOrNull { it.intersection.position.squaredDistanceTo(i.intersection.position) }
+        if (nearest == null) {
+            result.add(i)
+        } else if (nearest.intersection.position.squaredDistanceTo(i.intersection.position) >= threshold * threshold) {
+            result.add(i)
+        }
+    }
+    return result
+}
 
 
 /**
  * A Drawer-like interface for the creation of Compositions
  * This should be easier than creating Compositions manually
  */
-class CompositionDrawer(documentBounds: Rectangle = DefaultCompositionBounds) {
+class CompositionDrawer(documentBounds: Rectangle = DefaultCompositionBounds,
+                        composition: Composition? = null) {
     val root = GroupNode()
-    val composition = Composition(root, documentBounds)
+    val composition = composition ?: Composition(root, documentBounds)
 
     private var cursor = root
     private val modelStack = Stack<Matrix44>()
@@ -94,6 +108,19 @@ class CompositionDrawer(documentBounds: Rectangle = DefaultCompositionBounds) {
         popStyle()
     }
 
+    operator fun GroupNode.invoke(builder: CompositionDrawer.() -> Unit): GroupNode {
+        val oldCursor = cursor
+        cursor = this
+        builder()
+        cursor = oldCursor
+        return this
+    }
+
+    /**
+     * Create a group node and run `builder` inside its context
+     * @param id an optional identifier
+     * @param builder the function that is executed inside the group context
+     */
     fun group(id: String? = null, builder: CompositionDrawer.() -> Unit): GroupNode {
         val g = GroupNode()
         g.id = id
@@ -132,21 +159,63 @@ class CompositionDrawer(documentBounds: Rectangle = DefaultCompositionBounds) {
 
     fun contours(contours: List<ShapeContour>) = contours.map { contour(it) }
 
-    fun nearest(point: Vector2) : ShapeNodeNearestContour? {
-        return composition.findShapes().flatMap { node ->
+    /**
+     * Search for a point on a contour in the composition tree that's nearest to `point`
+     * @param point the query point
+     * @param searchFrom a node from which the search starts, defaults to composition root
+     * @return an optional ShapeNodeNearestContour instance
+     */
+    fun nearest(
+            point: Vector2,
+            searchFrom: CompositionNode = composition.root as GroupNode
+    ): ShapeNodeNearestContour? {
+        return searchFrom.findShapes().flatMap { node ->
             node.shape.contours
                     .map { it.nearest(point) }
-                    .map { ShapeNodeNearestContour(node, it, it.position.distanceTo(point) ) }
+                    .map { ShapeNodeNearestContour(node, it, point - it.position, it.position.distanceTo(point)) }
         }.minByOrNull { it.distance }
     }
 
-    fun intersections(contour: ShapeContour): List<ShapeNodeIntersection> {
-        return composition.findShapes().flatMap { node ->
+    /**
+     * Test a given `contour` against contours in the composition tree
+     * @param contour the query contour
+     * @param searchFrom a node from which the search starts, defaults to composition root
+     * @param mergeThreshold minimum distance between intersections before they are merged together,
+     * 0.0 or lower means no merge
+     * @return a list of `ShapeNodeIntersection`
+     */
+    fun intersections(
+            contour: ShapeContour,
+            searchFrom: CompositionNode = composition.root as GroupNode,
+            mergeThreshold: Double = 0.5
+    ): List<ShapeNodeIntersection> {
+        return searchFrom.findShapes().flatMap { node ->
             node.shape.contours.flatMap {
                 intersections(contour, it).map {
                     ShapeNodeIntersection(node, it)
                 }
             }
+        }.let {
+            if (mergeThreshold > 0.0) {
+                it.merge(mergeThreshold)
+            } else {
+                it
+            }
+        }
+    }
+
+    /**
+     * Test a given `shape` against contours in the composition tree
+     * @param shape the query shape
+     * @param searchFrom a node from which the search starts, defaults to composition root
+     * @return a list of `ShapeNodeIntersection`
+     */
+    fun intersections(
+            shape: Shape,
+            searchFrom: CompositionNode = composition.root as GroupNode
+    ): List<ShapeNodeIntersection> {
+        return shape.contours.flatMap {
+            intersections(it, searchFrom)
         }
     }
 
@@ -215,6 +284,8 @@ class CompositionDrawer(documentBounds: Rectangle = DefaultCompositionBounds) {
         Rectangle(it.first, it.second.x, it.second.y)
     })
 
+    fun circle(x: Double, y: Double, radius: Double) = circle(Circle(Vector2(x, y), radius))
+
     fun circle(position: Vector2, radius: Double) = circle(Circle(position, radius))
 
     fun circle(circle: Circle) = contour(circle.contour)
@@ -257,6 +328,9 @@ class CompositionDrawer(documentBounds: Rectangle = DefaultCompositionBounds) {
                 text(it.first, it.second)
             }
 
+    /**
+     * Adds an image to the composition tree
+     */
     fun image(image: ColorBuffer, x: Double = 0.0, y: Double = 0.0): ImageNode {
         val node = ImageNode(image, x, y, width = image.width.toDouble(), height = image.height.toDouble())
         node.transform = this.model
@@ -274,5 +348,6 @@ private fun <E> MutableList<E>.replace(search: E, replace: E) {
 
 fun drawComposition(
         documentBounds: Rectangle = DefaultCompositionBounds,
+        composition: Composition? = null,
         drawFunction: CompositionDrawer.() -> Unit
-): Composition = CompositionDrawer(documentBounds).apply { drawFunction() }.composition
+): Composition = CompositionDrawer(documentBounds, composition).apply { drawFunction() }.composition
