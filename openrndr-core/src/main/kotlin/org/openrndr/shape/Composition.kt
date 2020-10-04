@@ -7,6 +7,9 @@ import org.openrndr.math.Matrix44
 import kotlin.reflect.KMutableProperty0
 import kotlin.reflect.KProperty
 
+/**
+ * Describes a node in a composition
+ */
 sealed class CompositionNode {
     var id: String? = null
     var parent: CompositionNode? = null
@@ -16,6 +19,7 @@ sealed class CompositionNode {
     var strokeWeight: CompositionStrokeWeight = InheritStrokeWeight
     var attributes = mutableMapOf<String, String?>()
     var shadeStyle: CompositionShadeStyle = InheritShadeStyle
+    val userData = mutableMapOf<String, Any>()
 
     open val bounds: Rectangle
         get() = TODO("can't have it")
@@ -195,13 +199,17 @@ class Composition(val root: CompositionNode, var documentBounds: Rectangle = Def
 
     fun findShapes() = root.findShapes()
     fun findShape(id: String): ShapeNode? {
-        return (root.findTerminals { it.id == id }).firstOrNull() as? ShapeNode
+        return (root.findTerminals { it is ShapeNode && it.id == id }).firstOrNull() as? ShapeNode
     }
 
     fun findImages() = root.findImages()
+    fun findImage(id: String): ImageNode? {
+        return (root.findTerminals { it is ImageNode && it.id == id }).firstOrNull() as? ImageNode
+    }
 
-    fun findGroup(id: String): ShapeNode? {
-        return (root.findTerminals { it.id == id }).firstOrNull() as? ShapeNode
+    fun findGroups(): List<GroupNode> = root.findGroups()
+    fun findGroup(id: String): GroupNode? {
+        return (root.findTerminals { it is GroupNode && it.id == id }).firstOrNull() as? GroupNode
     }
 }
 
@@ -219,23 +227,48 @@ fun CompositionNode.findTerminals(filter: (CompositionNode) -> Boolean): List<Co
     return result
 }
 
+fun CompositionNode.findAll(filter: (CompositionNode) -> Boolean): List<CompositionNode> {
+    val result = mutableListOf<CompositionNode>()
+    fun find(node: CompositionNode) {
+        if (filter(node)) {
+            result.add(node)
+        }
+        if (node is GroupNode) {
+            node.children.forEach { find(it) }
+        }
+    }
+    find(this)
+    return result
+}
+
 fun CompositionNode.findShapes(): List<ShapeNode> = findTerminals { it is ShapeNode }.map { it as ShapeNode }
 fun CompositionNode.findImages(): List<ImageNode> = findTerminals { it is ImageNode }.map { it as ImageNode }
+fun CompositionNode.findGroups(): List<GroupNode> = findAll { it is GroupNode }.map { it as GroupNode }
 
 fun CompositionNode.visitAll(visitor: (CompositionNode.() -> Unit)) {
     visitor()
-    when (this) {
-        is GroupNode -> {
-            for (child in children) {
-                child.visitAll(visitor)
-            }
-        }
-        else -> {
+    if (this is GroupNode) {
+        for (child in children) {
+            child.visitAll(visitor)
         }
     }
 }
 
+class UserData<T:Any>(
+        val name: String, val initial: T
+) {
+    @Suppress("USELESS_CAST", "UNCHECKED_CAST")
+    operator fun getValue(node: CompositionNode, property: KProperty<*>): T {
+        val value: T? = node.userData[name] as? T
+        return value ?: initial
+    }
 
+    operator fun setValue(stylesheet: CompositionNode, property: KProperty<*>, value: T) {
+        stylesheet.userData[name] = value
+    }
+}
+
+@Deprecated("complicated semantics")
 fun CompositionNode.filter(filter: (CompositionNode) -> Boolean): CompositionNode? {
     val f = filter(this)
 
@@ -267,6 +300,7 @@ fun CompositionNode.filter(filter: (CompositionNode) -> Boolean): CompositionNod
     }
 }
 
+@Deprecated("complicated semantics")
 fun CompositionNode.map(mapper: (CompositionNode) -> CompositionNode): CompositionNode {
     val r = mapper(this)
     return when (r) {

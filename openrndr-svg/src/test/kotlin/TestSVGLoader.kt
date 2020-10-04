@@ -1,6 +1,8 @@
 package org.openrndr.math
 
 import org.amshove.kluent.`should be equal to`
+import org.amshove.kluent.`should have key`
+import org.amshove.kluent.`should not be in`
 import org.openrndr.resourceUrl
 import org.openrndr.shape.ShapeTopology
 import org.openrndr.shape.Winding
@@ -13,6 +15,10 @@ object TestSVGLoader : Spek({
 
     describe("a simple SVG file") {
         val composition = loadSVG(resourceUrl("/svg/closed-shapes.svg"))
+
+        it ("it has namespaces") {
+            composition.namespaces.`should have key`("xmlns")
+        }
 
         it("has only closed shapes") {
             composition.findShapes().all { it.shape.contours.all { it.closed } } `should be equal to` true

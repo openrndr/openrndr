@@ -36,7 +36,7 @@ private data class CompositionDrawStyle(
 )
 
 data class ShapeNodeIntersection(val node: ShapeNode, val intersection: ContourIntersection)
-data class ShapeNodeNearestContour(val node: ShapeNode, val point: ContourPoint, val distanceDirection:Vector2, val distance: Double)
+data class ShapeNodeNearestContour(val node: ShapeNode, val point: ContourPoint, val distanceDirection: Vector2, val distance: Double)
 
 fun List<ShapeNodeIntersection>.merge(threshold: Double = 0.5): List<ShapeNodeIntersection> {
     val result = mutableListOf<ShapeNodeIntersection>()
@@ -57,11 +57,16 @@ fun List<ShapeNodeIntersection>.merge(threshold: Double = 0.5): List<ShapeNodeIn
  * This should be easier than creating Compositions manually
  */
 class CompositionDrawer(documentBounds: Rectangle = DefaultCompositionBounds,
-                        composition: Composition? = null) {
-    val root = GroupNode()
+                        composition: Composition? = null,
+                        cursor: GroupNode? = composition?.root as? GroupNode
+                        ) {
+
+    val root = (composition?.root as? GroupNode) ?: GroupNode()
     val composition = composition ?: Composition(root, documentBounds)
 
-    private var cursor = root
+    var cursor = cursor ?: root
+        private set
+
     private val modelStack = Stack<Matrix44>()
     private val styleStack = Stack<CompositionDrawStyle>().apply { }
     private var drawStyle = CompositionDrawStyle()
@@ -169,11 +174,24 @@ class CompositionDrawer(documentBounds: Rectangle = DefaultCompositionBounds,
             point: Vector2,
             searchFrom: CompositionNode = composition.root as GroupNode
     ): ShapeNodeNearestContour? {
+        return distances(point, searchFrom).firstOrNull()
+    }
+
+    /**
+     * Find distances to each contour in the composition tree (or starting node)
+     * @param point the query point
+     * @param searchFrom a node from which the search starts, defaults to composition root
+     * @return a sorted list of [ShapeNodeNearestContour] describing distance to every contour
+     */
+    fun distances(
+            point: Vector2,
+            searchFrom: CompositionNode = composition.root as GroupNode
+    ): List<ShapeNodeNearestContour> {
         return searchFrom.findShapes().flatMap { node ->
             node.shape.contours
                     .map { it.nearest(point) }
                     .map { ShapeNodeNearestContour(node, it, point - it.position, it.position.distanceTo(point)) }
-        }.minByOrNull { it.distance }
+        }.sortedBy { it.distance }
     }
 
     /**
@@ -236,7 +254,6 @@ class CompositionDrawer(documentBounds: Rectangle = DefaultCompositionBounds,
             }
             else -> {
                 val shapeNodes = (if (!clipMode.grouped) composition.findShapes() else cursor.findShapes())
-
                 shapeNodes.forEach { shapeNode ->
                     val transform = shapeNode.effectiveTransform
                     val inverse = if (transform === Matrix44.IDENTITY) Matrix44.IDENTITY else transform.inversed
@@ -244,23 +261,14 @@ class CompositionDrawer(documentBounds: Rectangle = DefaultCompositionBounds,
                     val operated =
                             when (clipMode.op) {
                                 ClipOp.INTERSECT -> intersection(shapeNode.shape, transformedShape)
-                                ClipOp.UNION -> union(shapeNode.shape, transformedShape).take(1)
+                                ClipOp.UNION -> union(shapeNode.shape, transformedShape)
                                 ClipOp.DIFFERENCE -> difference(shapeNode.shape, transformedShape)
                                 else -> error("unsupported base op ${clipMode.op}")
                             }
-
-                    when (operated.size) {
-                        0 -> {
-                            shapeNode.remove()
-                        }
-                        1 -> {
-                            shapeNode.shape = operated.first()
-                        }
-                        else -> {
-                            shapeNode.shape = Shape.compound(operated)
-//                            val groupNode = GroupNode(operated.map { ShapeNode(it) }.toMutableList())
-//                            (shapeNode.parent as? GroupNode)?.children?.replace(shapeNode, groupNode)
-                        }
+                    if (operated !== Shape.EMPTY) {
+                        shapeNode.shape = operated
+                    } else {
+                        shapeNode.remove()
                     }
                 }
                 null
@@ -295,6 +303,8 @@ class CompositionDrawer(documentBounds: Rectangle = DefaultCompositionBounds,
     fun circles(positions: List<Vector2>, radius: Double) = circles(positions.map { Circle(it, radius) })
 
     fun circles(positions: List<Vector2>, radii: List<Double>) = circles((positions zip radii).map { Circle(it.first, it.second) })
+
+    fun lineSegment(startX: Double, startY: Double, endX: Double, endY: Double) = lineSegment(LineSegment(startX, startY, endX, endY))
 
     fun lineSegment(start: Vector2, end: Vector2) = lineSegment(LineSegment(start, end))
 
@@ -349,5 +359,6 @@ private fun <E> MutableList<E>.replace(search: E, replace: E) {
 fun drawComposition(
         documentBounds: Rectangle = DefaultCompositionBounds,
         composition: Composition? = null,
+        cursor: GroupNode? = composition?.root as? GroupNode,
         drawFunction: CompositionDrawer.() -> Unit
-): Composition = CompositionDrawer(documentBounds, composition).apply { drawFunction() }.composition
+): Composition = CompositionDrawer(documentBounds, composition, cursor).apply { drawFunction() }.composition
