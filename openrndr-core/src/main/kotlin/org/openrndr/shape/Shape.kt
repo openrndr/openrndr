@@ -273,14 +273,18 @@ class Segment {
 
 
     fun transform(transform: Matrix44): Segment {
-        val tstart = (transform * (start.xy01)).div.xy
-        val tend = (transform * (end.xy01)).div.xy
-        val tcontrol = when (control.size) {
-            2 -> arrayOf((transform * control[0].xy01).div.xy, (transform * control[1].xy01).div.xy)
-            1 -> arrayOf((transform * control[0].xy01).div.xy)
-            else -> emptyArray()
+        return if (transform === Matrix44.IDENTITY) {
+            this
+        } else {
+            val tstart = (transform * (start.xy01)).div.xy
+            val tend = (transform * (end.xy01)).div.xy
+            val tcontrol = when (control.size) {
+                2 -> arrayOf((transform * control[0].xy01).div.xy, (transform * control[1].xy01).div.xy)
+                1 -> arrayOf((transform * control[0].xy01).div.xy)
+                else -> emptyArray()
+            }
+            Segment(tstart, tcontrol, tend)
         }
-        return Segment(tstart, tcontrol, tend)
     }
 
     fun adaptivePositions(distanceTolerance: Double = 0.5): List<Vector2> = when (control.size) {
@@ -819,12 +823,10 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
 
     init {
         segments.zipWithNext().forEach {
-
             val d = (it.first.end - it.second.start).length
             require(d < 10E-6) {
-                "points are to far away from each other ${it.first.end} ${it.second.start} $d"
+                "points are too far away from each other ${it.first.end} ${it.second.start} $d"
             }
-
         }
     }
 
@@ -1097,7 +1099,7 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
      */
     fun sampleEquidistant(pointCount: Int): ShapeContour {
         if (empty) {
-            return ShapeContour.EMPTY
+            return EMPTY
         }
         val points = equidistantPositions(pointCount.coerceAtLeast(2))
         val segments = (0 until points.size - 1).map { Segment(points[it], points[it + 1]) }
@@ -1106,9 +1108,13 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
 
     fun transform(transform: Matrix44) =
             if (empty) {
-                ShapeContour.EMPTY
+                EMPTY
             } else {
-                ShapeContour(segments.map { it.transform(transform) }, closed, polarity)
+                if (transform === Matrix44.IDENTITY) {
+                    this
+                } else {
+                    ShapeContour(segments.map { it.transform(transform) }, closed, polarity)
+                }
             }
 
     /**
@@ -1274,6 +1280,20 @@ class Shape(val contours: List<ShapeContour>) {
     companion object {
         val EMPTY = Shape(emptyList())
         fun compound(shapes: List<Shape>) = Shape(shapes.flatMap { it.contours })
+    }
+
+    val bounds by lazy {
+        if (empty) {
+            Rectangle(0.0, 0.0, 0.0, 0.0)
+        } else {
+            rectangleBounds(contours.mapNotNull {
+                if (it.empty) {
+                    null
+                } else {
+                    it.bounds
+                }
+            })
+        }
     }
 
     val topology = when {

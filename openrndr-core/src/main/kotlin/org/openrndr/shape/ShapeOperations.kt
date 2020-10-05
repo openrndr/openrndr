@@ -42,10 +42,10 @@ private fun Shape.toPath2(): List<Path2> {
 }
 
 private fun Region2.toShape(): Shape {
-    if (rings.isEmpty()) {
-        error("cannot convert empty region2 to shape")
+    return if (rings.isEmpty()) {
+        Shape.EMPTY
     } else {
-        return Shape(rings.map { it.toShapeContour() })
+        Shape(rings.map { it.toShapeContour() })
     }
 }
 
@@ -54,10 +54,10 @@ private fun Region2.toShapes(): List<Shape> {
     if (rings.isNotEmpty()) {
 
         val contours = mutableListOf<ShapeContour>()
-        rings.forEach { it ->
-            contours.add(it.toShapeContour())
+        rings.forEach { ring ->
+            contours.add(ring.toShapeContour())
 
-            if (!it.isClockwise) {
+            if (!ring.isClockwise) {
                 if (contours.isNotEmpty()) {
                     shapes.add(Shape(contours.reversed()))
                 }
@@ -493,6 +493,12 @@ class SegmentIntersection(val a: SegmentPoint, val b: SegmentPoint, val position
 
 /** Find intersections between two Segments **/
 fun intersections(a: Segment, b: Segment): List<SegmentIntersection> {
+
+    if ((a.linear && a.length == 0.0) || (b.linear && b.length == 0.0)) {
+        return emptyList()
+    }
+
+
     // Test if checking against self. This test should be improved such that it is not based on object identity
     val selfTest = a === b
     val ca = a.toCurve2()

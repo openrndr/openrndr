@@ -34,11 +34,16 @@ data class Rectangle(val corner: Vector2, val width: Double, val height: Double 
     val shape get() = Shape(listOf(contour))
 
     /** [ShapeContour] representation of the rectangle */
-    val contour
-        get() =
-            ShapeContour.fromPoints(listOf(corner, corner + Vector2(width, 0.0),
-                    corner + Vector2(width, height),
-                    corner + Vector2(0.0, height)), true, YPolarity.CW_NEGATIVE_Y)
+    val contour: ShapeContour
+        get() {
+            return if (corner == Vector2.INFINITY || corner.x != corner.x || corner.y != corner.y || width != width || height != height) {
+                ShapeContour.EMPTY
+            } else {
+                ShapeContour.fromPoints(listOf(corner, corner + Vector2(width, 0.0),
+                        corner + Vector2(width, height),
+                        corner + Vector2(0.0, height)), true, YPolarity.CW_NEGATIVE_Y)
+            }
+        }
 
     /** create a new [Rectangle] instance with offset edges */
     fun offsetEdges(offset: Double, offsetY: Double = offset): Rectangle {

@@ -1,5 +1,8 @@
 package org.openrndr.shape
 
+import org.openrndr.collections.pflatMap
+import org.openrndr.collections.pforEach
+import org.openrndr.collections.pmap
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.ColorBuffer
 import org.openrndr.math.Matrix44
@@ -188,7 +191,7 @@ class CompositionDrawer(documentBounds: Rectangle = DefaultCompositionBounds,
             searchFrom: CompositionNode = composition.root as GroupNode
     ): List<ShapeNodeNearestContour> {
         return searchFrom.findShapes().flatMap { node ->
-            node.shape.contours
+            node.shape.contours.filter { !it.empty }
                     .map { it.nearest(point) }
                     .map { ShapeNodeNearestContour(node, it, point - it.position, it.position.distanceTo(point)) }
         }.sortedBy { it.distance }
@@ -207,11 +210,17 @@ class CompositionDrawer(documentBounds: Rectangle = DefaultCompositionBounds,
             searchFrom: CompositionNode = composition.root as GroupNode,
             mergeThreshold: Double = 0.5
     ): List<ShapeNodeIntersection> {
-        return searchFrom.findShapes().flatMap { node ->
-            node.shape.contours.flatMap {
-                intersections(contour, it).map {
-                    ShapeNodeIntersection(node, it)
+
+        val start = System.currentTimeMillis()
+        val result = searchFrom.findShapes().pflatMap { node ->
+            if (intersects(node.bounds, contour.bounds)) {
+                node.shape.contours.flatMap {
+                    intersections(contour, it).map {
+                        ShapeNodeIntersection(node, it)
+                    }
                 }
+            } else {
+                emptyList()
             }
         }.let {
             if (mergeThreshold > 0.0) {
@@ -220,6 +229,10 @@ class CompositionDrawer(documentBounds: Rectangle = DefaultCompositionBounds,
                 it
             }
         }
+        val end = System.currentTimeMillis()
+        println("duration: ${end-start}ms, ${result.size}")
+
+        return result
     }
 
     /**
@@ -254,7 +267,7 @@ class CompositionDrawer(documentBounds: Rectangle = DefaultCompositionBounds,
             }
             else -> {
                 val shapeNodes = (if (!clipMode.grouped) composition.findShapes() else cursor.findShapes())
-                shapeNodes.forEach { shapeNode ->
+                shapeNodes.pforEach { shapeNode ->
                     val transform = shapeNode.effectiveTransform
                     val inverse = if (transform === Matrix44.IDENTITY) Matrix44.IDENTITY else transform.inversed
                     val transformedShape = if (inverse === Matrix44.IDENTITY) shape else shape.transform(inverse)

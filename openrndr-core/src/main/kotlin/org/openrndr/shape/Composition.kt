@@ -97,9 +97,12 @@ class ImageNode(var image: ColorBuffer, var x: Double, var y: Double, var width:
 class ShapeNode(var shape: Shape) : CompositionNode() {
     override val bounds: Rectangle
         get() {
-            return rectangleBounds(shape.contours.map {
-                it.transform(transform(this)).bounds
-            })
+            val t = transform(this)
+            return if (t === Matrix44.IDENTITY) {
+                shape.bounds
+            } else {
+                shape.bounds.contour.transform(t).bounds
+            }
         }
 
     /**
