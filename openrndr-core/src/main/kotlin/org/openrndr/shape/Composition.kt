@@ -19,6 +19,10 @@ sealed class CompositionNode {
     var strokeWeight: CompositionStrokeWeight = InheritStrokeWeight
     var attributes = mutableMapOf<String, String?>()
     var shadeStyle: CompositionShadeStyle = InheritShadeStyle
+
+    /**
+     * A map that stores user data
+     */
     val userData = mutableMapOf<String, Any>()
 
     open val bounds: Rectangle
@@ -69,7 +73,7 @@ infix fun KMutableProperty0<CompositionShadeStyle>.`=`(shadeStyle: ShadeStyle?) 
 infix fun KMutableProperty0<CompositionColor>.`=`(color: ColorRGBa?) = this.set(Color(color))
 infix fun KMutableProperty0<CompositionStrokeWeight>.`=`(weight: Double) = this.set(StrokeWeight(weight))
 
-operator fun KMutableProperty0<CompositionShadeStyle>.setValue(thisRef:Any?, property: KProperty<*>, value:ShadeStyle) {
+operator fun KMutableProperty0<CompositionShadeStyle>.setValue(thisRef: Any?, property: KProperty<*>, value: ShadeStyle) {
     this.set(CShadeStyle(value))
 }
 
@@ -257,7 +261,10 @@ fun CompositionNode.visitAll(visitor: (CompositionNode.() -> Unit)) {
     }
 }
 
-class UserData<T:Any>(
+/**
+ * UserData delegate
+ */
+class UserData<T : Any>(
         val name: String, val initial: T
 ) {
     @Suppress("USELESS_CAST", "UNCHECKED_CAST")
@@ -281,11 +288,8 @@ fun CompositionNode.filter(filter: (CompositionNode) -> Boolean): CompositionNod
 
     if (this is GroupNode) {
         val copies = mutableListOf<CompositionNode>()
-
         children.forEach {
-
             val filtered = it.filter(filter)
-
             if (filtered != null) {
                 when (filtered) {
                     is ShapeNode -> {

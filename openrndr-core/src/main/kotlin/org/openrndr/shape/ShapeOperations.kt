@@ -45,7 +45,7 @@ private fun Region2.toShape(): Shape {
     return if (rings.isEmpty()) {
         Shape.EMPTY
     } else {
-        Shape(rings.map { it.toShapeContour() })
+        Shape(rings.map { it.toShapeContour() }.filter { !it.empty })
     }
 }
 
@@ -85,6 +85,9 @@ private fun Curve2.toSegment(): Segment {
 }
 
 private fun Ring2.toShapeContour(): ShapeContour {
+    if (curves.isEmpty()) {
+        return ShapeContour.EMPTY
+    }
     return ShapeContour(this.curves.map { it.toSegment() }, true, YPolarity.CW_NEGATIVE_Y)
 }
 
@@ -193,6 +196,9 @@ fun difference(from: ShapeContour, with: Shape): Shape {
 }
 
 fun difference(from: Shape, with: Shape): Shape {
+    if (from.empty || with.empty) {
+        return Shape.EMPTY
+    }
     return when (from.topology) {
         ShapeTopology.OPEN -> {
             when (with.topology) {
