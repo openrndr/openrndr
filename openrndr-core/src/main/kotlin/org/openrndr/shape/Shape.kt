@@ -7,6 +7,7 @@ import org.openrndr.math.*
 import org.openrndr.shape.internal.BezierCubicSampler2D
 import org.openrndr.shape.internal.BezierQuadraticSampler2D
 import kotlin.math.*
+import kotlin.random.Random
 
 data class SegmentPoint(val segment: Segment, val segmentT: Double, val position: Vector2)
 data class ContourPoint(val contour: ShapeContour, val contourT: Double, val segment: Segment, val segmentT: Double, val position: Vector2)
@@ -989,9 +990,10 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
         }
     }
 
-    val empty: Boolean get() {
-        return this === EMPTY || segments.isEmpty()
-    }
+    val empty: Boolean
+        get() {
+            return this === EMPTY || segments.isEmpty()
+        }
 
     fun position(ut: Double): Vector2 {
         if (empty) {
@@ -1328,7 +1330,31 @@ class Shape(val contours: List<ShapeContour>) {
         }
     }
 
-    operator fun contains(v: Vector2) : Boolean {
+    val area by lazy {
+        triangulation.sumByDouble { it.area }
+    }
+
+    fun randomPoints(pointCount: Int, random: Random = Random.Default): List<Vector2> {
+        val randomValues = List(pointCount) { random.nextDouble() * area }.sortedDescending().toMutableList()
+        var sum = 0.0
+        val result = mutableListOf<Vector2>()
+        for (triangle in triangulation) {
+            sum += triangle.area
+            if (randomValues.isEmpty()) {
+                break
+            }
+            while (sum > randomValues.last()) {
+                result.add(triangle.randomPoint())
+                randomValues.removeLastOrNull()
+                if (randomValues.isEmpty()) {
+                    break
+                }
+            }
+        }
+        return result
+    }
+
+    operator fun contains(v: Vector2): Boolean {
         return toRegion2().contains(Vec2(v.x, v.y))
     }
 
@@ -1348,7 +1374,11 @@ class Shape(val contours: List<ShapeContour>) {
      * @param transform a Matrix44 that represents the transform
      * @return a transformed shape instance
      */
-    fun transform(transform: Matrix44) = Shape(contours.map { it.transform(transform) })
+    fun transform(transform: Matrix44) = if (transform === Matrix44.IDENTITY) {
+        this
+    } else {
+        Shape(contours.map { it.transform(transform) })
+    }
 
     /**
      * Apply a map to the shape. Maps every contour.
@@ -1396,6 +1426,12 @@ class Shape(val contours: List<ShapeContour>) {
     }
 }
 
+val List<ShapeContour>.shape
+    get() = Shape(this)
+
+val List<Shape>.compound
+    get() = Shape.compound(this)
+
 fun CatmullRom2.toSegment(): Segment {
     val d1a2 = (p1 - p0).length.pow(2 * alpha)
     val d2a2 = (p2 - p1).length.pow(2 * alpha)
@@ -1413,3 +1449,5 @@ fun CatmullRom2.toSegment(): Segment {
 }
 
 fun CatmullRomChain2.toContour(): ShapeContour = ShapeContour(segments.map { it.toSegment() }, this.loop)
+
+

@@ -6,11 +6,9 @@ import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.ColorBuffer
 import org.openrndr.math.Matrix44
 import org.openrndr.math.Vector2
+import org.openrndr.math.Vector3
 import org.openrndr.math.YPolarity
-import org.openrndr.math.transforms.rotateZ
-import org.openrndr.math.transforms.scale
-import org.openrndr.math.transforms.transform
-import org.openrndr.math.transforms.translate
+import org.openrndr.math.transforms.*
 import java.util.*
 
 enum class ClipOp {
@@ -40,6 +38,7 @@ private data class CompositionDrawStyle(
         var stroke: ColorRGBa? = ColorRGBa.BLACK,
         var strokeWeight: Double = 1.0,
         var clipMode: ClipMode = ClipMode.DISABLED,
+        var mask: Shape? = null,
         var transformMode: TransformMode = TransformMode.APPLY
 )
 
@@ -68,7 +67,6 @@ class CompositionDrawer(documentBounds: Rectangle = DefaultCompositionBounds,
                         composition: Composition? = null,
                         cursor: GroupNode? = composition?.root as? GroupNode
 ) {
-
     val root = (composition?.root as? GroupNode) ?: GroupNode()
     val composition = composition ?: Composition(root, documentBounds)
 
@@ -96,6 +94,10 @@ class CompositionDrawer(documentBounds: Rectangle = DefaultCompositionBounds,
     var clipMode
         get() = drawStyle.clipMode
         set(value) = run { drawStyle.clipMode = value }
+
+    var mask: Shape?
+        get() = drawStyle.mask
+        set(value) = run { drawStyle.mask = value }
 
     var transformMode
         get() = drawStyle.transformMode
@@ -125,7 +127,7 @@ class CompositionDrawer(documentBounds: Rectangle = DefaultCompositionBounds,
         popStyle()
     }
 
-    operator fun GroupNode.invoke(builder: CompositionDrawer.() -> Unit): GroupNode {
+    fun GroupNode.with(builder: CompositionDrawer.() -> Unit): GroupNode {
         val oldCursor = cursor
         cursor = this
         builder()
@@ -135,20 +137,24 @@ class CompositionDrawer(documentBounds: Rectangle = DefaultCompositionBounds,
 
     /**
      * Create a group node and run `builder` inside its context
+     * @param insert if true the created group will be inserted at [cursor]
      * @param id an optional identifier
      * @param builder the function that is executed inside the group context
      */
-    fun group(id: String? = null, builder: CompositionDrawer.() -> Unit): GroupNode {
-        val g = GroupNode()
-        g.id = id
+    fun group(insert: Boolean = true, id: String? = null, builder: CompositionDrawer.() -> Unit): GroupNode {
+        val group = GroupNode()
+        group.id = id
         val oldCursor = cursor
 
-        cursor.children.add(g)
-        cursor = g
+        if (insert) {
+            cursor.children.add(group)
+            group.parent = cursor
+        }
+        cursor = group
         builder()
 
         cursor = oldCursor
-        return g
+        return group
     }
 
     fun translate(x: Double, y: Double) = translate(Vector2(x, y))
@@ -169,15 +175,15 @@ class CompositionDrawer(documentBounds: Rectangle = DefaultCompositionBounds,
         model *= Matrix44.translate(t.vector3())
     }
 
-    fun contour(contour: ShapeContour): ShapeNode? {
+    fun contour(contour: ShapeContour, insert: Boolean = true): ShapeNode? {
         if (contour.empty) {
             return null
         }
         val shape = Shape(listOf(contour))
-        return shape(shape)
+        return shape(shape, insert)
     }
 
-    fun contours(contours: List<ShapeContour>) = contours.map { contour(it) }
+    fun contours(contours: List<ShapeContour>, insert: Boolean = true) = contours.map { contour(it, insert) }
 
     /**
      * Search for a point on a contour in the composition tree that's nearest to `point`
@@ -192,10 +198,13 @@ class CompositionDrawer(documentBounds: Rectangle = DefaultCompositionBounds,
         return distances(point, searchFrom).firstOrNull()
     }
 
+    fun CompositionNode.nearest(point: Vector2) = nearest(point, searchFrom = this)
 
-    fun difference(shape: Shape, searchFrom: CompositionNode = composition.root as GroupNode) : Shape {
+    fun difference(
+            shape: Shape,
+            searchFrom: CompositionNode = composition.root as GroupNode
+    ): Shape {
         val shapes = searchFrom.findShapes()
-
         var from = shape
 
         for (subtract in shapes) {
@@ -223,6 +232,8 @@ class CompositionDrawer(documentBounds: Rectangle = DefaultCompositionBounds,
         }.sortedBy { it.distance }
     }
 
+    fun CompositionNode.distances(point: Vector2): List<ShapeNodeNearestContour> = distances(point, searchFrom = this)
+
     /**
      * Test a given `contour` against contours in the composition tree
      * @param contour the query contour
@@ -236,7 +247,6 @@ class CompositionDrawer(documentBounds: Rectangle = DefaultCompositionBounds,
             searchFrom: CompositionNode = composition.root as GroupNode,
             mergeThreshold: Double = 0.5
     ): List<ShapeNodeIntersection> {
-
         val start = System.currentTimeMillis()
         val result = searchFrom.findShapes().pflatMap { node ->
             if (intersects(node.bounds, contour.bounds)) {
@@ -259,6 +269,9 @@ class CompositionDrawer(documentBounds: Rectangle = DefaultCompositionBounds,
         return result
     }
 
+    fun CompositionNode.intersections(contour: ShapeContour, mergeThreshold: Double = 0.5) =
+            intersections(contour, this, mergeThreshold)
+
     /**
      * Test a given `shape` against contours in the composition tree
      * @param shape the query shape
@@ -267,24 +280,36 @@ class CompositionDrawer(documentBounds: Rectangle = DefaultCompositionBounds,
      */
     fun intersections(
             shape: Shape,
-            searchFrom: CompositionNode = composition.root as GroupNode
+            searchFrom: CompositionNode = composition.root as GroupNode,
+            mergeThreshold: Double = 0.5
     ): List<ShapeNodeIntersection> {
         return shape.contours.flatMap {
-            intersections(it, searchFrom)
+            intersections(it, searchFrom, mergeThreshold)
         }
     }
 
-    fun shape(shape: Shape): ShapeNode? {
+    fun CompositionNode.intersections(shape: Shape, mergeThreshold: Double = 0.5) =
+            intersections(shape, this, mergeThreshold)
+
+
+    fun shape(shape: Shape, insert: Boolean = true): ShapeNode? {
         if (shape.empty) {
             return null
         }
 
+        val inverseModel = model.inversed
+        val postShape = mask?.let { intersection(shape, it.transform(inverseModel)) } ?: shape
+
+        if (postShape.empty) {
+            return null
+        }
+
         // only use clipping for open shapes
-        val clipMode = if (shape.topology == ShapeTopology.CLOSED) clipMode else ClipMode.DISABLED
+        val clipMode = if (postShape.topology == ShapeTopology.CLOSED) clipMode else ClipMode.DISABLED
 
         return when (clipMode) {
             ClipMode.DISABLED -> {
-                val shapeNode = ShapeNode(shape)
+                val shapeNode = ShapeNode(postShape)
 
                 val shapeTransform: Matrix44
                 when (transformMode) {
@@ -297,21 +322,22 @@ class CompositionDrawer(documentBounds: Rectangle = DefaultCompositionBounds,
                         shapeTransform = model
                     }
                 }
-                shapeNode.shape = shape.transform(shapeTransform)
+                shapeNode.shape = postShape.transform(shapeTransform)
 
                 shapeNode.fill = Color(fill)
                 shapeNode.stroke = Color(stroke)
                 shapeNode.strokeWeight = StrokeWeight(strokeWeight)
-                cursor.children.add(shapeNode)
-                shapeNode.parent = cursor
+                if (insert) {
+                    cursor.children.add(shapeNode)
+                    shapeNode.parent = cursor
+                }
                 shapeNode
             }
             else -> {
                 val shapeNodes = (if (!clipMode.grouped) composition.findShapes() else cursor.findShapes())
                 shapeNodes.pforEach { shapeNode ->
-                    val transform = shapeNode.effectiveTransform
-                    val inverse = if (transform === Matrix44.IDENTITY) Matrix44.IDENTITY else transform.inversed
-                    val transformedShape = if (inverse === Matrix44.IDENTITY) shape else shape.transform(inverse)
+                    val inverse = shapeNode.effectiveTransform.inversed
+                    val transformedShape = postShape.transform(inverse * model)
                     val operated =
                             when (clipMode.op) {
                                 ClipOp.INTERSECT -> intersection(shapeNode.shape, transformedShape)
@@ -330,84 +356,134 @@ class CompositionDrawer(documentBounds: Rectangle = DefaultCompositionBounds,
         }
     }
 
-    fun shapes(shapes: List<Shape>) = shapes.map { shape(it) }
+    fun shapes(shapes: List<Shape>, insert: Boolean = true) = shapes.map { shape(it, insert) }
 
-    fun rectangle(rectangle: Rectangle, closed: Boolean = true) = contour(rectangle.contour.let {
+    fun rectangle(rectangle: Rectangle, closed: Boolean = true, insert: Boolean = true) = contour(rectangle.contour.let {
         if (closed) {
             it
         } else {
             it.opened
         }
-    })
+    }, insert = insert)
 
-    fun rectangle(x: Double, y: Double, width: Double, height: Double, closed: Boolean = true) = rectangle(Rectangle(x, y, width, height), closed)
+    fun rectangle(x: Double, y: Double, width: Double, height: Double, closed: Boolean = true, insert: Boolean = true) = rectangle(Rectangle(x, y, width, height), closed, insert)
 
-    fun rectangles(rectangles: List<Rectangle>) = rectangles.map { rectangle(it) }
+    fun rectangles(rectangles: List<Rectangle>, insert: Boolean = true) = rectangles.map { rectangle(it, insert) }
 
-    fun rectangles(positions: List<Vector2>, width: Double, height: Double) = rectangles(positions.map {
+    fun rectangles(positions: List<Vector2>, width: Double, height: Double, insert: Boolean = true) = rectangles(positions.map {
         Rectangle(it, width, height)
-    })
+    }, insert)
 
-    fun rectangles(positions: List<Vector2>, dimensions: List<Vector2>) = rectangles((positions zip dimensions).map {
+    fun rectangles(positions: List<Vector2>, dimensions: List<Vector2>, insert: Boolean) = rectangles((positions zip dimensions).map {
         Rectangle(it.first, it.second.x, it.second.y)
-    })
+    }, insert)
 
-    fun circle(x: Double, y: Double, radius: Double, closed: Boolean = true) = circle(Circle(Vector2(x, y), radius), closed)
+    fun circle(x: Double, y: Double, radius: Double, closed: Boolean = true, insert: Boolean = true) = circle(Circle(Vector2(x, y), radius), closed, insert)
 
-    fun circle(position: Vector2, radius: Double, closed: Boolean = true) = circle(Circle(position, radius), closed)
+    fun circle(position: Vector2, radius: Double, closed: Boolean = true, insert: Boolean = true) = circle(Circle(position, radius), closed, insert)
 
-    fun circle(circle: Circle, closed: Boolean = true) = contour(circle.contour.let {
+    fun circle(circle: Circle, closed: Boolean = true, insert: Boolean = true) = contour(circle.contour.let {
         if (closed) {
             it
         } else {
             it.opened
         }
-    })
+    }, insert)
 
+    fun circles(circles: List<Circle>, insert: Boolean = true) = circles.map { circle(it, insert) }
 
-    fun circles(circles: List<Circle>) = circles.map { circle(it) }
+    fun circles(positions: List<Vector2>, radius: Double, insert: Boolean = true) = circles(positions.map { Circle(it, radius) }, insert)
 
-    fun circles(positions: List<Vector2>, radius: Double) = circles(positions.map { Circle(it, radius) })
+    fun circles(positions: List<Vector2>, radii: List<Double>, insert: Boolean = true) = circles((positions zip radii).map { Circle(it.first, it.second) }, insert)
 
-    fun circles(positions: List<Vector2>, radii: List<Double>) = circles((positions zip radii).map { Circle(it.first, it.second) })
+    fun ellipse(
+            x: Double,
+            y: Double,
+            xRadius: Double,
+            yRadius: Double,
+            rotationInDegrees: Double = 0.0,
+            closed: Boolean = true,
+            insert: Boolean = true
+    ) = ellipse(Vector2(x, y), xRadius, yRadius, rotationInDegrees, closed, insert)
 
-    fun ellipse(x: Double, y: Double, xRadius: Double, yRadius: Double, rotationInDegrees: Double = 0.0, closed: Boolean = true) = ellipse(Vector2(x, y), xRadius, yRadius, rotationInDegrees, closed)
-
-    fun ellipse(center: Vector2, xRadius: Double, yRadius: Double, rotationInDegrees: Double, closed: Boolean = true) = contour(OrientedEllipse(center, xRadius, yRadius, rotationInDegrees).contour.let {
+    fun ellipse(
+            center: Vector2,
+            xRadius: Double,
+            yRadius: Double,
+            rotationInDegrees: Double,
+            closed: Boolean = true,
+            insert: Boolean = true
+    ) = contour(OrientedEllipse(center, xRadius, yRadius, rotationInDegrees).contour.let {
         if (closed) {
             it
         } else {
             it.opened
         }
-    })
+    }, insert)
 
-    fun lineSegment(startX: Double, startY: Double, endX: Double, endY: Double) = lineSegment(LineSegment(startX, startY, endX, endY))
+    fun lineSegment(
+            startX: Double,
+            startY: Double,
+            endX: Double,
+            endY: Double,
+            insert: Boolean = true
+    ) = lineSegment(LineSegment(startX, startY, endX, endY), insert)
 
-    fun lineSegment(start: Vector2, end: Vector2) = lineSegment(LineSegment(start, end))
+    fun lineSegment(
+            start: Vector2,
+            end: Vector2,
+            insert: Boolean = true
+    ) = lineSegment(LineSegment(start, end), insert)
 
-    fun lineSegment(lineSegment: LineSegment) = contour(lineSegment.contour)
+    fun lineSegment(
+            lineSegment: LineSegment,
+            insert: Boolean = true
+    ) = contour(lineSegment.contour, insert)
 
-    fun lineSegments(lineSegments: List<LineSegment>) = lineSegments.map {
-        lineSegment(it)
+    fun lineSegments(
+            lineSegments: List<LineSegment>,
+            insert: Boolean = true
+    ) = lineSegments.map {
+        lineSegment(it, insert)
     }
 
-    fun lineStrip(points: List<Vector2>) = contour(ShapeContour.fromPoints(points, false, YPolarity.CW_NEGATIVE_Y))
+    fun lineStrip(
+            points: List<Vector2>,
+            insert: Boolean = true
+    ) = contour(ShapeContour.fromPoints(points, false, YPolarity.CW_NEGATIVE_Y), insert)
 
-    fun lineLoop(points: List<Vector2>) = contour(ShapeContour.fromPoints(points, true, YPolarity.CW_NEGATIVE_Y))
+    fun lineLoop(
+            points: List<Vector2>,
+            insert: Boolean = true
+    ) = contour(ShapeContour.fromPoints(points, true, YPolarity.CW_NEGATIVE_Y), insert)
 
-    fun text(text: String, position: Vector2): TextNode {
+    fun text(
+            text: String,
+            position: Vector2,
+            insert: Boolean = true
+    ): TextNode {
         val g = GroupNode()
         g.transform = transform { translate(position.xy0) }
         val textNode = TextNode(text, null).apply {
             this.fill = Color(this@CompositionDrawer.fill)
         }
         g.children.add(textNode)
-        cursor.children.add(g)
+        if (insert) {
+            cursor.children.add(g)
+        }
         return textNode
     }
 
-    fun textOnContour(text: String, path: ShapeContour) {
-        cursor.children.add(TextNode(text, path))
+    fun textOnContour(
+            text: String,
+            contour: ShapeContour,
+            insert: Boolean = true
+    ): TextNode {
+        val textNode = TextNode(text, contour)
+        if (insert) {
+            cursor.children.add(textNode)
+        }
+        return textNode
     }
 
     fun texts(text: List<String>, positions: List<Vector2>) =
@@ -418,18 +494,83 @@ class CompositionDrawer(documentBounds: Rectangle = DefaultCompositionBounds,
     /**
      * Adds an image to the composition tree
      */
-    fun image(image: ColorBuffer, x: Double = 0.0, y: Double = 0.0): ImageNode {
+    fun image(
+            image: ColorBuffer,
+            x: Double = 0.0,
+            y: Double = 0.0,
+            insert: Boolean = true
+    ): ImageNode {
         val node = ImageNode(image, x, y, width = image.width.toDouble(), height = image.height.toDouble())
         node.transform = this.model
-        cursor.children.add(node)
+        if (insert) {
+            cursor.children.add(node)
+        }
         return node
     }
-}
 
-private fun <E> MutableList<E>.replace(search: E, replace: E) {
-    val index = this.indexOf(search)
-    if (index != -1) {
-        this[index] = replace
+    fun CompositionNode.translate(x: Double, y: Double, z: Double = 0.0) {
+        transform = transform.transform {
+            translate(x, y, z)
+        }
+    }
+
+    fun CompositionNode.rotate(angleInDegrees: Double, pivot: Vector2 = Vector2.ZERO) {
+        transform = transform.transform {
+            translate(pivot.xy0)
+            rotate(Vector3.UNIT_Z, angleInDegrees)
+            translate(-pivot.xy0)
+        }
+    }
+
+    fun CompositionNode.scale(scale: Double, pivot: Vector2 = Vector2.ZERO) {
+        transform = transform.transform {
+            translate(pivot.xy0)
+            scale(scale, scale, scale)
+            translate(-pivot.xy0)
+        }
+    }
+
+    fun CompositionNode.transform(builder: TransformBuilder.() -> Unit) = this::transform.transform(builder)
+
+    /**
+     * Copy node and insert copy at [cursor]
+     * @param insert when true the copy is inserted at [cursor]
+     * @return a deep copy of the node
+     */
+    fun CompositionNode.duplicate(insert: Boolean = true): CompositionNode {
+        fun nodeCopy(node: CompositionNode): CompositionNode {
+            val copy = when (node) {
+                is ImageNode -> {
+                    ImageNode(node.image, node.x, node.y, node.width, node.height)
+                }
+                is ShapeNode -> {
+                    ShapeNode(node.shape)
+                }
+                is TextNode -> {
+                    TextNode(node.text, node.contour)
+                }
+                is GroupNode -> {
+                    val children = node.children.map { nodeCopy(it) }.toMutableList()
+                    val groupNode = GroupNode(children)
+                    groupNode.children.forEach {
+                        it.parent = groupNode
+                    }
+                    groupNode
+                }
+            }
+            copy.transform = node.transform
+            copy.fill = node.fill
+            copy.stroke = node.stroke
+            copy.strokeWeight = node.strokeWeight
+            return copy
+        }
+
+        val copy = nodeCopy(this)
+        if (insert) {
+            this@CompositionDrawer.cursor.children.add(copy)
+            copy.parent = cursor
+        }
+        return copy
     }
 }
 
@@ -439,3 +580,7 @@ fun drawComposition(
         cursor: GroupNode? = composition?.root as? GroupNode,
         drawFunction: CompositionDrawer.() -> Unit
 ): Composition = CompositionDrawer(documentBounds, composition, cursor).apply { drawFunction() }.composition
+
+fun Composition.draw(drawFunction: CompositionDrawer.() -> Unit) {
+    drawComposition(composition = this, drawFunction = drawFunction)
+}

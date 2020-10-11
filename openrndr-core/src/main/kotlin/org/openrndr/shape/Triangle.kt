@@ -1,9 +1,12 @@
 package org.openrndr.shape
 
 import org.openrndr.math.Vector2
+import org.openrndr.math.Vector3
+import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
-
+import kotlin.math.sqrt
+import kotlin.random.Random
 
 data class Triangle(val x1: Vector2, val x2: Vector2, val x3: Vector2) {
     operator fun contains(v: Vector2): Boolean {
@@ -32,4 +35,20 @@ data class Triangle(val x1: Vector2, val x2: Vector2, val x3: Vector2) {
     }
     val contour: ShapeContour
         get() = ShapeContour.fromPoints(listOf(x1, x2, x3), closed = true)
+
+    fun randomPoint(random: Random = Random.Default) : Vector2 {
+        val u = random.nextDouble()
+        val v = random.nextDouble()
+        val su0 = sqrt(u)
+        val b0 = 1.0 - su0
+        val b1 = v * su0
+        val b = Vector3(b0, b1, 1.0 - b0 - b1)
+        return x1 * b.x + x2 * b.y + x3 * b.z
+    }
+
+    val area by lazy {
+        val u = x2 - x1
+        val v = x3 - x1
+        abs(u cross v) / 2.0
+    }
 }

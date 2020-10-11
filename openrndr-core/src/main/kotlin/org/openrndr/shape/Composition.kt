@@ -13,7 +13,7 @@ import kotlin.reflect.KProperty
 sealed class CompositionNode {
     var id: String? = null
     var parent: CompositionNode? = null
-    var transform = Matrix44.IDENTITY
+    open var transform = Matrix44.IDENTITY
     var fill: CompositionColor = InheritColor
     var stroke: CompositionColor = InheritColor
     var strokeWeight: CompositionStrokeWeight = InheritStrokeWeight
@@ -101,7 +101,7 @@ class ImageNode(var image: ColorBuffer, var x: Double, var y: Double, var width:
 class ShapeNode(var shape: Shape) : CompositionNode() {
     override val bounds: Rectangle
         get() {
-            val t = transform(this)
+            val t = effectiveTransform
             return if (t === Matrix44.IDENTITY) {
                 shape.bounds
             } else {
@@ -157,11 +157,9 @@ class ShapeNode(var shape: Shape) : CompositionNode() {
         return shape.hashCode()
     }
 
-    fun remove() {
-        require(parent != null) { "parent is null" }
-        (parent as? GroupNode)?.children?.remove(this)
-        parent = null
-    }
+
+    val effectiveShape
+        get() = shape.transform(effectiveTransform)
 
 }
 
@@ -218,6 +216,12 @@ class Composition(val root: CompositionNode, var documentBounds: Rectangle = Def
     fun findGroup(id: String): GroupNode? {
         return (root.findTerminals { it is GroupNode && it.id == id }).firstOrNull() as? GroupNode
     }
+}
+
+fun CompositionNode.remove() {
+    require(parent != null) { "parent is null" }
+    (parent as? GroupNode)?.children?.remove(this)
+    parent = null
 }
 
 fun CompositionNode.findTerminals(filter: (CompositionNode) -> Boolean): List<CompositionNode> {
