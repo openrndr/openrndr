@@ -786,6 +786,70 @@ class Segment {
         return result
     }
 
+    operator fun times(scale: Double): Segment {
+        return when (type) {
+            SegmentType.LINEAR -> Segment(start * scale, end * scale)
+            SegmentType.QUADRATIC -> Segment(start * scale, control[0] * scale, end * scale)
+            SegmentType.CUBIC -> Segment(start * scale, control[0] * scale, control[1] * scale, end * scale)
+        }
+    }
+
+    operator fun div(scale: Double): Segment {
+        return when (type) {
+            SegmentType.LINEAR -> Segment(start / scale, end / scale)
+            SegmentType.QUADRATIC -> Segment(start / scale, control[0] / scale, end / scale)
+            SegmentType.CUBIC -> Segment(start / scale, control[0] / scale, control[1] / scale, end / scale)
+        }
+    }
+
+    operator fun minus(right: Segment): Segment {
+        return if (this.type == right.type) {
+            when (type) {
+                SegmentType.LINEAR -> Segment(start - right.start, end - right.end)
+                SegmentType.QUADRATIC -> Segment(start - right.start, control[0] - right.control[0], end - right.end)
+                SegmentType.CUBIC -> Segment(start - right.start, control[0] - right.control[0], control[1] - right.control[1], end - right.end)
+            }
+        } else {
+            if (this.type.ordinal > right.type.ordinal) {
+                when (type) {
+                    SegmentType.LINEAR -> error("impossible?")
+                    SegmentType.QUADRATIC -> this - right.quadratic
+                    SegmentType.CUBIC -> this - right.cubic
+                }
+            } else {
+                when (right.type) {
+                    SegmentType.LINEAR -> error("impossible?")
+                    SegmentType.QUADRATIC -> this.quadratic - right
+                    SegmentType.CUBIC -> this.cubic - right
+                }
+            }
+        }
+    }
+
+    operator fun plus(right: Segment): Segment {
+        return if (this.type == right.type) {
+            when (type) {
+                SegmentType.LINEAR -> Segment(start + right.start, end + right.end)
+                SegmentType.QUADRATIC -> Segment(start + right.start, control[0] + right.control[0], end + right.end)
+                SegmentType.CUBIC -> Segment(start + right.start, control[0] + right.control[0], control[1] + right.control[1], end + right.end)
+            }
+        } else {
+            if (this.type.ordinal > right.type.ordinal) {
+                when (type) {
+                    SegmentType.LINEAR -> error("impossible?")
+                    SegmentType.QUADRATIC -> this + right.quadratic
+                    SegmentType.CUBIC -> this + right.cubic
+                }
+            } else {
+                when (right.type) {
+                    SegmentType.LINEAR -> error("impossible?")
+                    SegmentType.QUADRATIC -> this.quadratic + right
+                    SegmentType.CUBIC -> this.cubic + right
+                }
+            }
+        }
+    }
+
     val contour: ShapeContour
         get() = ShapeContour(listOf(this), false)
 }

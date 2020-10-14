@@ -30,4 +30,15 @@ data class Ellipse(val center: Vector2, val xRadius: Double, val yRadius: Double
             return withOrientation(0.0).contour
         }
 
+    operator fun times(scale: Double) = Ellipse(center * scale, xRadius * scale, yRadius * scale)
+
+    operator fun div(scale: Double) = Ellipse(center / scale, xRadius / scale, yRadius / scale)
+
+    operator fun plus(right: Ellipse) =
+            Ellipse(center + right.center, xRadius + right.xRadius, yRadius + right.yRadius)
+
+    operator fun minus(right: Ellipse) =
+            Ellipse(center - right.center, xRadius - right.xRadius, yRadius - right.yRadius)
+
+
 }

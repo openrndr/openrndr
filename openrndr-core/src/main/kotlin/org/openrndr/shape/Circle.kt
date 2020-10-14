@@ -123,4 +123,15 @@ data class Circle(val center: Vector2, val radius: Double) {
 
         return Pair(tp, tp2)
     }
+
+    operator fun times(scale: Double) = Circle(center * scale, radius * scale)
+
+    operator fun div(scale: Double) = Circle(center / scale, radius / scale)
+
+    operator fun plus(right: Circle) =
+            Circle(center + right.center, radius + right.radius)
+
+    operator fun minus(right: Circle) =
+            Circle(center - right.center, radius - right.radius)
+
 }

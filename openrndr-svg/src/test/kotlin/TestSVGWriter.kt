@@ -2,6 +2,7 @@ package org.openrndr.math
 
 import org.amshove.kluent.`should be equal to`
 import org.openrndr.shape.CompositionDrawer
+import org.openrndr.shape.TransformMode
 import org.openrndr.shape.drawComposition
 import org.openrndr.svg.loadSVG
 import org.openrndr.svg.toSVG
@@ -14,7 +15,7 @@ object TestSVGWriter : Spek({
 
     describe("a composition") {
         val cd = CompositionDrawer()
-        cd.group("Layer_2") {
+        cd.group(id = "Layer_2") {
             val circle = cd.circle(Vector2(100.0, 100.0), 40.0)
             circle?.attributes?.set("openrndr:test", "5")
         }
@@ -26,6 +27,7 @@ object TestSVGWriter : Spek({
     }
     describe("a composition with transforms") {
         val comp = drawComposition {
+            transformMode = TransformMode.KEEP
             group {
                 translate(Vector2(50.0, 50.0))
                 circle(Vector2(100.0, 100.0), 50.0)?.id = "circle"

@@ -36,17 +36,16 @@ class ApplicationNullGL(private val program: Program, private val configuration:
     }
 
     override fun setup() {
-        println("setup?")
+        logger.debug { "entering setup" }
 
     }
 
     override fun loop() {
-
+        logger.debug { "entering loop" }
         program.driver = Driver.instance
         program.drawer = Drawer(Driver.instance)
 
 
-        println("looping?")
         logger.debug { "calling program.setup" }
         var setupException: Throwable? = null
         try {
@@ -72,11 +71,9 @@ class ApplicationNullGL(private val program: Program, private val configuration:
     override var windowPosition = Vector2.ZERO
     override var windowSize = Vector2(640.0, 480.0)
 
-
     override var cursorPosition: Vector2 = Vector2.ZERO
     override var cursorVisible: Boolean = true
     override val seconds: Double
         get() = (startMS - System.currentTimeMillis()) / 1000.0
     override var presentationMode: PresentationMode = PresentationMode.AUTOMATIC
-
 }

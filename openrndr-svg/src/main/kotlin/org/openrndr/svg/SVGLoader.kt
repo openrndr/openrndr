@@ -490,6 +490,7 @@ internal class SVGDocument(private val root: SVGElement, val namespaces: Map<Str
 
     private fun convertElement(e: SVGElement): CompositionNode = when (e) {
         is SVGGroup -> GroupNode().apply {
+            this.id = e.id
             e.elements.mapTo(children) { convertElement(it).also { x -> x.parent = this@apply } }
         }
         is SVGPath -> {
