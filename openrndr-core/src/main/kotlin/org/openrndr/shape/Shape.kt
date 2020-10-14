@@ -785,6 +785,9 @@ class Segment {
         result = 31 * result + control.contentHashCode()
         return result
     }
+
+    val contour: ShapeContour
+        get() = ShapeContour(listOf(this), false)
 }
 
 private fun sumDifferences(points: List<Vector2>) =
