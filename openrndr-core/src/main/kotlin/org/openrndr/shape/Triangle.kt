@@ -33,10 +33,11 @@ data class Triangle(val x1: Vector2, val x2: Vector2, val x3: Vector2) {
 
         return true
     }
+
     val contour: ShapeContour
         get() = ShapeContour.fromPoints(listOf(x1, x2, x3), closed = true)
 
-    fun randomPoint(random: Random = Random.Default) : Vector2 {
+    fun randomPoint(random: Random = Random.Default): Vector2 {
         val u = random.nextDouble()
         val v = random.nextDouble()
         val su0 = sqrt(u)
@@ -51,4 +52,21 @@ data class Triangle(val x1: Vector2, val x2: Vector2, val x3: Vector2) {
         val v = x3 - x1
         abs(u cross v) / 2.0
     }
+
+    operator fun times(scale: Double): Triangle {
+        return Triangle(x1 * scale, x2 * scale, x3 * scale)
+    }
+
+    operator fun div(scale: Double): Triangle {
+        return Triangle(x1 / scale, x2 / scale, x3 / scale)
+    }
+
+    operator fun plus(right: Triangle): Triangle {
+        return Triangle(x1 + right.x1, x2 + right.x2, x3 + right.x3)
+    }
+
+    operator fun minus(right: Triangle): Triangle {
+        return Triangle(x1 - right.x1, x2 - right.x2, x3 - right.x3)
+    }
+
 }

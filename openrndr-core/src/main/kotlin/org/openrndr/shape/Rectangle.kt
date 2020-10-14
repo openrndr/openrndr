@@ -84,6 +84,17 @@ data class Rectangle(val corner: Vector2, val width: Double, val height: Double 
         fun fromCenter(center: Vector2, width: Double, height: Double = width) =
                 Rectangle(center.x - width / 2.0, center.y - height / 2.0, width, height)
     }
+
+    operator fun times(scale: Double) = Rectangle(corner * scale, width * scale, height * scale)
+
+    operator fun div(scale: Double) = Rectangle(corner / scale, width / scale, height / scale)
+
+    operator fun plus(right: Rectangle) =
+            Rectangle(corner + right.corner, width + right.width, height + right.height)
+
+    operator fun minus(right: Rectangle) =
+            Rectangle(corner - right.corner, width - right.width, height - right.height)
+
 }
 
 /** calculates [Rectangle]-bounds for a list of [Vector2] instances */

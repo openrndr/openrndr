@@ -113,8 +113,8 @@ data class LineSegment(val start: Vector2, val end: Vector2) {
         )
     }
 
-    fun extend(times:Double) : LineSegment {
-        return LineSegment(start-direction*times, end+direction*times)
+    fun extend(times: Double): LineSegment {
+        return LineSegment(start - direction * times, end + direction * times)
     }
 
     val segment: Segment
@@ -125,6 +125,23 @@ data class LineSegment(val start: Vector2, val end: Vector2) {
 
     val shape: Shape
         get() = Shape(listOf(contour))
+
+    operator fun times(scale: Double) : LineSegment {
+        return LineSegment(start * scale, end * scale)
+    }
+
+    operator fun div(scale: Double) : LineSegment {
+        return LineSegment(start / scale, end / scale)
+    }
+
+    operator fun plus(right: LineSegment) : LineSegment {
+        return LineSegment(start + right.start, end + right.end)
+    }
+
+    operator fun minus(right: LineSegment) : LineSegment {
+        return LineSegment(start - right.start, end - right.end)
+    }
+
 }
 
 fun intersection(a: LineSegment, b: LineSegment, eps: Double = 0.0): Vector2 =
