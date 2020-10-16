@@ -1,6 +1,7 @@
 [![Build Status](https://travis-ci.org/openrndr/openrndr.svg?branch=master)](https://travis-ci.org/openrndr/openrndr)
 [![Download](https://api.bintray.com/packages/openrndr/openrndr/openrndr/images/download.svg) ](https://bintray.com/openrndr/openrndr/openrndr/_latestVersion)
 [![Awesome Kotlin Badge](https://kotlin.link/awesome-kotlin.svg)](https://github.com/KotlinBy/awesome-kotlin)
+[<img src="https://img.shields.io/badge/slack-@openrndr-yellow.svg?logo=slack">](https://openrndr.slack.com/) 
 
 # OPENRNDR
 
