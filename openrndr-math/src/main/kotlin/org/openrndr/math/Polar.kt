@@ -8,7 +8,7 @@ import kotlin.math.atan2
  * Ref: https://en.wikipedia.org/wiki/Polar_coordinate_system
  * [theta] angle in degrees
  */
-data class Polar(val theta: Double, val radius: Double = 1.0) {
+data class Polar(val theta: Double, val radius: Double = 1.0) : LinearType<Polar> {
 
     fun makeSafe() = Polar(
             radius,
@@ -36,10 +36,10 @@ data class Polar(val theta: Double, val radius: Double = 1.0) {
             return Vector2.fromPolar(this)
         }
 
-    operator fun plus(s: Polar) = Polar(theta + s.theta, radius + s.radius)
-    operator fun minus(s: Polar) = Polar(theta - s.theta, radius - s.radius)
+    override operator fun plus(s: Polar) = Polar(theta + s.theta, radius + s.radius)
+    override operator fun minus(s: Polar) = Polar(theta - s.theta, radius - s.radius)
     operator fun times(s: Polar) = Polar(theta * s.theta, radius * s.radius)
 
-    operator fun times(s: Double) = Polar(theta * s, radius * s)
-    operator fun div(s: Double) = Polar(theta / s, radius / s)
+    override operator fun times(s: Double) = Polar(theta * s, radius * s)
+    override operator fun div(s: Double) = Polar(theta / s, radius / s)
 }

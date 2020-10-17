@@ -13,7 +13,7 @@ import kotlin.math.atan2
 
 private const val EPS = 0.000001
 
-data class Spherical(val theta: Double, val phi: Double, val radius: Double) {
+data class Spherical(val theta: Double, val phi: Double, val radius: Double) : LinearType<Spherical> {
 
     fun makeSafe() = Spherical(
             theta,
@@ -36,9 +36,9 @@ data class Spherical(val theta: Double, val phi: Double, val radius: Double) {
             return Vector3.fromSpherical(this)
         }
 
-    operator fun plus(s: Spherical) = Spherical(theta + s.theta, phi + s.phi, radius + s.radius)
-    operator fun minus(s: Spherical) = Spherical(theta - s.theta, phi - s.phi, radius - s.radius)
+    override operator fun plus(s: Spherical) = Spherical(theta + s.theta, phi + s.phi, radius + s.radius)
+    override operator fun minus(s: Spherical) = Spherical(theta - s.theta, phi - s.phi, radius - s.radius)
     operator fun times(s: Spherical) = Spherical(theta * s.theta, phi * s.phi, radius * s.radius)
-    operator fun times(s: Double) = Spherical(theta * s, phi * s, radius * s)
-    operator fun div(s: Double) = Spherical(theta / s, phi / s, radius / s)
+    override operator fun times(s: Double) = Spherical(theta * s, phi * s, radius * s)
+    override operator fun div(s: Double) = Spherical(theta / s, phi / s, radius / s)
 }

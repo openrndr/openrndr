@@ -8,7 +8,7 @@ import kotlin.math.sqrt
 /**
  * Double precision vector 4
  */
-data class Vector4(val x: Double, val y: Double, val z: Double, val w: Double) : Serializable {
+data class Vector4(val x: Double, val y: Double, val z: Double, val w: Double) : Serializable, LinearType<Vector4> {
     constructor(x: Double) : this(x, x, x, x)
 
     operator fun invoke(x: Double = this.x, y: Double = this.y, z: Double = this.z, w: Double = this.w) = Vector4(x, y, z, w)
@@ -47,14 +47,14 @@ data class Vector4(val x: Double, val y: Double, val z: Double, val w: Double) :
 
     operator fun unaryMinus() = Vector4(-x, -y, -z, -w)
 
-    operator fun plus(v: Vector4) = Vector4(x + v.x, y + v.y, z + v.z, w + v.w)
+    override operator fun plus(v: Vector4) = Vector4(x + v.x, y + v.y, z + v.z, w + v.w)
     operator fun plus(d: Double) = Vector4(x + d, y + d, z + d, w + d)
-    operator fun minus(v: Vector4) = Vector4(x - v.x, y - v.y, z - v.z, w - v.w)
+    override operator fun minus(v: Vector4) = Vector4(x - v.x, y - v.y, z - v.z, w - v.w)
     operator fun minus(d: Double) = Vector4(x - d, y - d, z - d, w - d)
     operator fun times(v: Vector4) = Vector4(x * v.x, y * v.y, z * v.z, w * v.w)
-    operator fun times(s: Double) = Vector4(x * s, y * s, z * s, w * s)
+    override operator fun times(s: Double) = Vector4(x * s, y * s, z * s, w * s)
     operator fun div(v: Vector4) = Vector4(x / v.x, y / v.y, z / v.z, w / v.w)
-    operator fun div(s: Double) = Vector4(x / s, y / s, z / s, w / s)
+    override operator fun div(s: Double) = Vector4(x / s, y / s, z / s, w / s)
 
     operator fun get(i: Int): Double {
         return when (i) {

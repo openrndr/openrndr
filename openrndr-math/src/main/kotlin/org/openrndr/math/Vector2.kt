@@ -12,7 +12,7 @@ enum class YPolarity {
 /**
  * Double precision vector 2
  */
-data class Vector2(val x: Double, val y: Double) : Serializable {
+data class Vector2(val x: Double, val y: Double) : Serializable, LinearType<Vector2> {
 
     constructor(x: Double) : this(x, x)
 
@@ -76,16 +76,16 @@ data class Vector2(val x: Double, val y: Double) : Serializable {
 
     operator fun unaryMinus() = Vector2(-x, -y)
 
-    operator fun plus(vector2: Vector2) = Vector2(x + vector2.x, y + vector2.y)
+    override operator fun plus(vector2: Vector2) = Vector2(x + vector2.x, y + vector2.y)
     operator fun plus(d: Double) = Vector2(x + d, y + d)
 
-    operator fun minus(vector2: Vector2) = Vector2(x - vector2.x, y - vector2.y)
+    override operator fun minus(vector2: Vector2) = Vector2(x - vector2.x, y - vector2.y)
     operator fun minus(d: Double) = Vector2(x - d, y - d)
 
-    operator fun times(d: Double) = Vector2(x * d, y * d)
+    override operator fun times(d: Double) = Vector2(x * d, y * d)
     operator fun times(v: Vector2) = Vector2(x * v.x, y * v.y)
 
-    operator fun div(d: Double) = Vector2(x / d, y / d)
+    override operator fun div(d: Double) = Vector2(x / d, y / d)
     operator fun div(d: Vector2) = Vector2(x / d.x, y / d.y)
 
     fun distanceTo(o: Vector2): Double {

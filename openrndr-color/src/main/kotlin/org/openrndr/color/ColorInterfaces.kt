@@ -1,5 +1,7 @@
 package org.openrndr.color
 
+import org.openrndr.math.LinearType
+
 interface ConvertibleToColorRGBa {
     fun toRGBa(): ColorRGBa
 }
@@ -20,9 +22,7 @@ interface OpacifiableColor<T> {
     fun opacify(factor: Double): T
 }
 
-interface AlgebraicColor<T : AlgebraicColor<T>> {
-    operator fun plus(other: T): T
-    operator fun minus(other: T): T
-    operator fun times(factor: Double): T
+interface AlgebraicColor<T : AlgebraicColor<T>> : LinearType<T> {
+    override operator fun div(factor: Double): T = times(1.0 / factor)
     fun mix(other: T, factor: Double): T = ((this * (1.0 - factor)) as AlgebraicColor<T>) + (other as AlgebraicColor<T> * factor)
 }
