@@ -9,12 +9,51 @@ import org.openrndr.shape.internal.BezierQuadraticSampler2D
 import kotlin.math.*
 import kotlin.random.Random
 
-data class SegmentPoint(val segment: Segment, val segmentT: Double, val position: Vector2)
-data class ContourPoint(val contour: ShapeContour, val contourT: Double, val segment: Segment, val segmentT: Double, val position: Vector2)
+/**
+ * representation of a point on a [Segment]
+ * @param segment the [Segment] on which the point lies
+ * @param segmentT the t-parameter value of the point on the [Segment]
+ * @param position the position of the point
+ */
+data class SegmentPoint(
+        val segment: Segment,
+        val segmentT: Double,
+        val position: Vector2
+)
 
+/**
+ * representation of a point on a [ShapeContour]
+ * @param contour the [ShapeContour] on which the point lies
+ * @param contourT the t-parameter value of the point on the [ShapeContour]
+ * @param segment the [Segment] on which the point lies
+ * @param segmentT the t-parameter value of the point on the [Segment]
+ * @param position the position of the point
+ */
+data class ContourPoint(
+        val contour: ShapeContour,
+        val contourT: Double,
+        val segment: Segment,
+        val segmentT: Double,
+        val position: Vector2
+)
+
+/**
+ * indication of the type of segment
+ */
 enum class SegmentType {
+    /**
+     * a segment with 2 control points
+     */
     LINEAR,
+
+    /**
+     * a bezier segment with 3 control points
+     */
     QUADRATIC,
+
+    /**
+     * a bezier segment with 4 control points
+     */
     CUBIC
 }
 
@@ -22,7 +61,14 @@ enum class SegmentType {
  * Segment describes a linear or bezier path between two points
  */
 class Segment {
+    /**
+     * the start of the segment
+     */
     val start: Vector2
+
+    /**
+     * the end of the segment
+     */
     val end: Vector2
 
     /**
@@ -30,6 +76,9 @@ class Segment {
      */
     val control: Array<Vector2>
 
+    /**
+     * indicate segment linearity
+     */
     val linear: Boolean get() = control.isEmpty()
 
     /**
@@ -98,6 +147,7 @@ class Segment {
         }
         return lut!!
     }
+
 
     fun on(point: Vector2, error: Double = 5.0): Double? {
         val lut = lut()
@@ -313,6 +363,9 @@ class Segment {
         return sampleEquidistant(adaptivePositions(), pointCount)
     }
 
+    /**
+     * calculate (approximate) Euclidean length of the segment
+     */
     val length: Double
         get() = when (control.size) {
             0 -> (end - start).length
@@ -321,7 +374,7 @@ class Segment {
         }
 
     /**
-     * Return a point the segment
+     * Return a point on the segment
      * @param ut unfiltered t parameter, will be clamped between 0.0 and 1.0
      * @return a [Vector2] that lies on the segment
      */
@@ -408,15 +461,12 @@ class Segment {
             } else {
                 val d = direction()
                 val s = distance.coerceAtMost(length / 2.0)
-
-
                 val candidate = Segment(start - s * d + distance * n, end + s * d + distance * n)
                 if (candidate.length > 0.0) {
                     listOf(candidate)
                 } else {
                     emptyList()
                 }
-
             }
         } else {
             reduced(stepSize).map { it.scale(distance, yPolarity) }
@@ -430,7 +480,7 @@ class Segment {
         val dy2 = v2.y - o.y
         val cross = dx1 * dy2 - dy1 * dx2
         val dot = dx1 * dx2 + dy1 * dy2
-        return Math.atan2(cross, dot)
+        return atan2(cross, dot)
     }
 
     fun isStraight(epsilon: Double = 0.01): Boolean {
@@ -601,6 +651,9 @@ class Segment {
             else -> error("cannot convert to cubic segment")
         }
 
+    /**
+     * convert to linear to quadratic segment
+     */
     val quadratic: Segment
         get() = when {
             control.size == 1 -> this
@@ -883,7 +936,9 @@ class Segment {
 private fun sumDifferences(points: List<Vector2>) =
         (0 until points.size - 1).sumByDouble { (points[it] - points[it + 1]).length }
 
-
+/**
+ * indication of contour winding order
+ */
 enum class Winding {
     CLOCKWISE,
     COUNTER_CLOCKWISE
@@ -924,11 +979,24 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
         }
     }
 
+    /**
+     * convert to [Shape]
+     */
     val shape get() = Shape(listOf(this))
 
+    /**
+     * calculate approximate Euclidean length of the contour
+     */
     val length by lazy { segments.sumByDouble { it.length } }
+
+    /**
+     * calculate bounding box [Rectangle] of the contour
+     */
     val bounds by lazy { vector2Bounds(sampleLinear().segments.flatMap { listOf(it.start, it.end) }) }
 
+    /**
+     * determine winding order of the contour
+     */
     val winding: Winding
         get() {
             var sum = 0.0
@@ -949,10 +1017,21 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
                 }
             }
         }
+
+    /**
+     * convert to list of single segment [ShapeContour]s
+     */
     val exploded: List<ShapeContour>
         get() = segments.map { ShapeContour(listOf(it), false, polarity) }
 
+    /**
+     * convert to contour with clock wise winding
+     */
     val clockwise: ShapeContour get() = if (winding == Winding.CLOCKWISE) this else this.reversed
+
+    /**
+     * convert to contour with contour-clockwise winding
+     */
     val counterClockwise: ShapeContour get() = if (winding == Winding.COUNTER_CLOCKWISE) this else this.reversed
 
     operator fun plus(other: ShapeContour): ShapeContour {
@@ -980,12 +1059,6 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
     }
 
     operator fun contains(point: Vector2): Boolean = closed && this.toRing2().test(Vec2(point.x, point.y)).inside
-
-    /*
-    operator fun contains(point: Vector2) : Boolean {
-        return this.toRing2().test(Vec2(point.x, point.y)).inside
-    }
-     */
 
     /**
      * Estimate t parameter value for a given length
@@ -1120,7 +1193,7 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
             else -> {
                 val segment = (t * segments.size).toInt()
                 val segmentOffset = (t * segments.size) - segment
-                segments[Math.min(segments.size - 1, segment)].normal(segmentOffset, polarity)
+                segments[min(segments.size - 1, segment)].normal(segmentOffset, polarity)
             }
         }
     }
@@ -1292,8 +1365,8 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
         var segment1 = (z1 * length).toInt()
         val segmentOffset1 = if (segment1 < segments.size) z1 * length % 1.0 else 1.0
 
-        segment1 = Math.min(segments.size - 1, segment1)
-        segment0 = Math.min(segments.size - 1, segment0)
+        segment1 = min(segments.size - 1, segment1)
+        segment0 = min(segments.size - 1, segment0)
 
         val newSegments = mutableListOf<Segment>()
         val epsilon = 0.000001
@@ -1604,5 +1677,3 @@ fun CatmullRom2.toSegment(): Segment {
  * convert to [ShapeContour]
  */
 fun CatmullRomChain2.toContour(): ShapeContour = ShapeContour(segments.map { it.toSegment() }, this.loop)
-
-
