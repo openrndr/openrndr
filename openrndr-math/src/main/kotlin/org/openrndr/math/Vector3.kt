@@ -9,8 +9,6 @@ import kotlin.math.*
 data class Vector3(val x: Double, val y: Double, val z: Double) : Serializable {
     constructor(x: Double) : this(x, x, x)
 
-    operator fun invoke(x: Double = this.x, y: Double = this.y, z: Double = this.z) = Vector3(x, y, z)
-
     companion object {
         val ZERO = Vector3(0.0, 0.0, 0.0)
         val ONE = Vector3(1.0, 1.0, 1.0)
@@ -81,29 +79,42 @@ data class Vector3(val x: Double, val y: Double, val z: Double) : Serializable {
     val length: Double get() = Math.sqrt(x * x + y * y + z * z)
     val squaredLength get() = x * x + y * y + z * z
 
+    /**
+     * convert to [DoubleArray]
+     */
     fun toDoubleArray() = doubleArrayOf(x, y, z)
 
-    fun distanceTo(o: Vector3): Double {
-        val dx = o.x - x
-        val dy = o.y - y
-        val dz = o.z - z
+    /**
+     * calculate the Euclidean distance to [other]
+     */
+    fun distanceTo(other: Vector3): Double {
+        val dx = other.x - x
+        val dy = other.y - y
+        val dz = other.z - z
         return sqrt(dx * dx + dy * dy + dz * dz)
     }
 
-    fun squaredDistanceTo(o: Vector3): Double {
-        val dx = o.x - x
-        val dy = o.y - y
-        val dz = o.z - z
+    /**
+     * calculate the squared Euclidean distance to [other]
+     */
+    fun squaredDistanceTo(other: Vector3): Double {
+        val dx = other.x - x
+        val dy = other.y - y
+        val dz = other.z - z
         return dx * dx + dy * dy + dz * dz
     }
 
     fun mix(o: Vector3, mix: Double): Vector3 = this * (1 - mix) + o * mix
 
-
     val spherical: Spherical
         get() {
             return Spherical.fromVector(this)
         }
+
+    /**
+     * convert to [IntVector3]
+     */
+    fun toInt() = IntVector3(x.toInt(), y.toInt(), z.toInt())
 }
 
 operator fun Double.times(v: Vector3) = v * this

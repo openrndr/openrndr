@@ -11,8 +11,6 @@ import kotlin.math.sqrt
 data class Vector4(val x: Double, val y: Double, val z: Double, val w: Double) : Serializable {
     constructor(x: Double) : this(x, x, x, x)
 
-    operator fun invoke(x: Double = this.x, y: Double = this.y, z: Double = this.z, w: Double = this.w) = Vector4(x, y, z, w)
-
     val xy: Vector2 get() = Vector2(x, y)
     val yx: Vector2 get() = Vector2(y, x)
     val xz: Vector2 get() = Vector2(x, z)
@@ -21,11 +19,21 @@ data class Vector4(val x: Double, val y: Double, val z: Double, val w: Double) :
     val zy: Vector2 get() = Vector2(z, y)
 
     val xyz: Vector3 get() = Vector3(x, y, z)
+
+    /**
+     * calculate [Vector3] by dividing x, y, z by w
+     */
     val div: Vector3 get() = Vector3(x / w, y / w, z / w)
 
+    /**
+     * the Euclidean length of the vector
+     */
     val length get() = sqrt(x * x + y * y + z * z + w * w)
-    val squaredLength get() = x * x + y * y + z * z + w * w
 
+    /**
+     * the squared Euclidean length of the vector
+     */
+    val squaredLength get() = x * x + y * y + z * z + w * w
 
     companion object {
         val UNIT_X = Vector4(1.0, 0.0, 0.0, 0.0)
@@ -65,26 +73,40 @@ data class Vector4(val x: Double, val y: Double, val z: Double, val w: Double) :
             else -> throw IllegalArgumentException("unsupported index")
         }
     }
-    fun distanceTo(o: Vector4): Double {
-        val dx = o.x - x
-        val dy = o.y - y
-        val dz = o.z - z
-        val dw = o.z - z
+
+    /**
+     * calculate the Euclidean distance to [other]
+     */
+    fun distanceTo(other: Vector4): Double {
+        val dx = other.x - x
+        val dy = other.y - y
+        val dz = other.z - z
+        val dw = other.z - z
         return sqrt(dx * dx + dy * dy + dz * dz + dw * dw)
     }
 
-    fun squaredDistanceTo(o: Vector4): Double {
-        val dx = o.x - x
-        val dy = o.y - y
-        val dz = o.z - z
-        val dw = o.w - w
+    /**
+     * calculate the squared Euclidean distance to [other]
+     */
+    fun squaredDistanceTo(other: Vector4): Double {
+        val dx = other.x - x
+        val dy = other.y - y
+        val dz = other.z - z
+        val dw = other.w - w
         return dx * dx + dy * dy + dz * dz + dw * dw
     }
 
     fun mix(o: Vector4, mix: Double): Vector4 = this * (1 - mix) + o * mix
 
+    /**
+     * convert to [DoubleArray]
+     */
     fun toDoubleArray() = doubleArrayOf(x, y, z, w)
 
+    /**
+     * convert to [IntVector4]
+     */
+    fun toInt() = IntVector4(x.toInt(), y.toInt(), z.toInt(), w.toInt())
 }
 
 operator fun Double.times(v: Vector4) = v * this

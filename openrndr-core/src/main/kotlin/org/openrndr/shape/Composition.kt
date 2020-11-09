@@ -6,29 +6,63 @@ import org.openrndr.draw.ShadeStyle
 import org.openrndr.math.Matrix44
 import kotlin.reflect.KMutableProperty0
 import kotlin.reflect.KProperty
-
 /**
  * Describes a node in a composition
  */
 sealed class CompositionNode {
+    /**
+     * node identifier
+     */
     var id: String? = null
+
+    /**
+     * parent node
+     */
     var parent: CompositionNode? = null
+
+    /**
+     * local transform
+     */
     open var transform = Matrix44.IDENTITY
+
+    /**
+     * cascading fill color
+     */
     var fill: CompositionColor = InheritColor
+
+    /**
+     * cascading stroke color
+     */
     var stroke: CompositionColor = InheritColor
+
+    /**
+     * cascading stroke weight
+     */
     var strokeWeight: CompositionStrokeWeight = InheritStrokeWeight
+
+    /**
+     * node attributes, these are used for loading and saving to SVG
+     */
     var attributes = mutableMapOf<String, String?>()
+
+    /**
+     * shadeStyle
+     */
     var shadeStyle: CompositionShadeStyle = InheritShadeStyle
 
     /**
-     * A map that stores user data
+     * a map that stores user data
      */
     val userData = mutableMapOf<String, Any>()
 
-    open val bounds: Rectangle
-        get() = TODO("can't have it")
+    /**
+     * a [Rectangle] that describes the bounding box of the contents
+     */
+    abstract val bounds: Rectangle
 
-
+    /**
+     * the effective [ShadeStyle] calculated from ancestor nodes and current node, null if no shade style
+     */
     val effectiveShadeStyle: ShadeStyle?
         get() {
             return shadeStyle.let {
@@ -39,6 +73,9 @@ sealed class CompositionNode {
             }
         }
 
+    /**
+     * the effective stroke [ColorRGBa] calculated from ancestor nodes and current node, null if no stroke
+     */
     val effectiveStroke: ColorRGBa?
         get() {
             return stroke.let {
@@ -49,6 +86,9 @@ sealed class CompositionNode {
             }
         }
 
+    /**
+     * the effective fill [ColorRGBa] calculated from ancestor nodes and current node, null if no fill
+     */
     val effectiveFill: ColorRGBa?
         get() {
             return fill.let {
@@ -59,6 +99,9 @@ sealed class CompositionNode {
             }
         }
 
+    /**
+     * the effective transform [Matrix44] calculated from ancestor nodes and current node
+     */
     val effectiveTransform: Matrix44
         get() {
             return if (transform === Matrix44.IDENTITY) {
@@ -77,27 +120,41 @@ operator fun KMutableProperty0<CompositionShadeStyle>.setValue(thisRef: Any?, pr
     this.set(CShadeStyle(value))
 }
 
+/**
+ * cascading color for compositions
+ */
 sealed class CompositionColor
 object InheritColor : CompositionColor()
 data class Color(val color: ColorRGBa?) : CompositionColor()
 
+/**
+ * cascading shade styles for compositions
+ */
 sealed class CompositionShadeStyle
 object InheritShadeStyle : CompositionShadeStyle()
 data class CShadeStyle(val shadeStyle: ShadeStyle?) : CompositionShadeStyle()
 
+/**
+ * cascading stroke weight for compositions
+ */
 sealed class CompositionStrokeWeight
 object InheritStrokeWeight : CompositionStrokeWeight()
 data class StrokeWeight(val weight: Double) : CompositionStrokeWeight()
 
-
 private fun transform(node: CompositionNode): Matrix44 =
         (node.parent?.let { transform(it) } ?: Matrix44.IDENTITY) * node.transform
 
+/**
+ * a [CompositionNode] that holds a single image [ColorBuffer]
+ */
 class ImageNode(var image: ColorBuffer, var x: Double, var y: Double, var width: Double, var height: Double) : CompositionNode() {
     override val bounds: Rectangle
         get() = Rectangle(0.0, 0.0, width, height).contour.transform(transform(this)).bounds
 }
 
+/**
+ * a [CompositionNode] that holds a single [Shape]
+ */
 class ShapeNode(var shape: Shape) : CompositionNode() {
     override val bounds: Rectangle
         get() {
@@ -110,7 +167,7 @@ class ShapeNode(var shape: Shape) : CompositionNode() {
         }
 
     /**
-     * Applies transforms of all ancestor nodes and returns a new detached ShapeNode with conflated transform
+     * apply transforms of all ancestor nodes and return a new detached ShapeNode with conflated transform
      */
     fun conflate(): ShapeNode {
         return ShapeNode(shape).also {
@@ -122,7 +179,7 @@ class ShapeNode(var shape: Shape) : CompositionNode() {
     }
 
     /**
-     * Applies transforms of all ancestor nodes and returns a new detached shape node with identity transform and transformed Shape
+     * apply transforms of all ancestor nodes and return a new detached shape node with identity transform and transformed Shape
      */
     fun flatten(): ShapeNode {
         return ShapeNode(shape.transform(transform(this))).also {
@@ -147,9 +204,7 @@ class ShapeNode(var shape: Shape) : CompositionNode() {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is ShapeNode) return false
-
         if (shape != other.shape) return false
-
         return true
     }
 
@@ -157,14 +212,25 @@ class ShapeNode(var shape: Shape) : CompositionNode() {
         return shape.hashCode()
     }
 
-
+    /**
+     * the local [Shape] with the [effectiveTransform] applied to it
+     */
     val effectiveShape
         get() = shape.transform(effectiveTransform)
 
 }
 
-data class TextNode(var text: String, var contour: ShapeContour?) : CompositionNode()
+/**
+ * a [CompositionNode] that holds a single text
+ */
+data class TextNode(var text: String, var contour: ShapeContour?) : CompositionNode() {
+    override val bounds: Rectangle
+        get() = Rectangle.EMPTY
+}
 
+/**
+ * A [CompositionNode] that functions as a group node
+ */
 open class GroupNode(val children: MutableList<CompositionNode> = mutableListOf()) : CompositionNode() {
     override val bounds: Rectangle
         get() {
@@ -196,10 +262,23 @@ open class GroupNode(val children: MutableList<CompositionNode> = mutableListOf(
 
 }
 
+/**
+ * default composition bounds
+ */
 val DefaultCompositionBounds = Rectangle(0.0, 0.0, 2676.0, 2048.0)
 
+@Deprecated("complicated semantics")
 class GroupNodeStop(children: MutableList<CompositionNode>) : GroupNode(children)
+
+/**
+ * A vector composition.
+ * @param root the root node of the composition
+ * @param documentBounds the document bounds [Rectangle] of the composition, serves as a hint only
+ */
 class Composition(val root: CompositionNode, var documentBounds: Rectangle = DefaultCompositionBounds) {
+    /**
+     * svg/xml namespaces
+     */
     val namespaces = mutableMapOf<String, String>()
 
     fun findShapes() = root.findShapes()
@@ -218,6 +297,9 @@ class Composition(val root: CompositionNode, var documentBounds: Rectangle = Def
     }
 }
 
+/**
+ * remove node from its parent [CompositionNode]
+ */
 fun CompositionNode.remove() {
     require(parent != null) { "parent is null" }
     (parent as? GroupNode)?.children?.remove(this)
@@ -252,10 +334,27 @@ fun CompositionNode.findAll(filter: (CompositionNode) -> Boolean): List<Composit
     return result
 }
 
+/**
+ * find all descendant [ShapeNode] nodes, including potentially this node
+ * @return a [List] of [ShapeNode] nodes
+ */
 fun CompositionNode.findShapes(): List<ShapeNode> = findTerminals { it is ShapeNode }.map { it as ShapeNode }
+
+/**
+ * find all descendant [ImageNode] nodes, including potentially this node
+ * @return a [List] of [ImageNode] nodes
+ */
 fun CompositionNode.findImages(): List<ImageNode> = findTerminals { it is ImageNode }.map { it as ImageNode }
+
+/**
+ * find all descendant [GroupNode] nodes, including potentially this node
+ * @return a [List] of [GroupNode] nodes
+ */
 fun CompositionNode.findGroups(): List<GroupNode> = findAll { it is GroupNode }.map { it as GroupNode }
 
+/**
+ * visit this [CompositionNode] and all descendant nodes and execute [visitor]
+ */
 fun CompositionNode.visitAll(visitor: (CompositionNode.() -> Unit)) {
     visitor()
     if (this is GroupNode) {
@@ -332,4 +431,3 @@ fun CompositionNode.map(mapper: (CompositionNode) -> CompositionNode): Compositi
         else -> r
     }
 }
-

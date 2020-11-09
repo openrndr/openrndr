@@ -4,6 +4,8 @@ package org.openrndr.shape
 
 import org.openrndr.math.Vector2
 import org.openrndr.math.YPolarity
+import kotlin.math.max
+import kotlin.math.min
 
 data class Rectangle(val corner: Vector2, val width: Double, val height: Double = width) {
 
@@ -83,6 +85,8 @@ data class Rectangle(val corner: Vector2, val width: Double, val height: Double 
         /** creates a [Rectangle] around [center] with dimensions [width] and [height] */
         fun fromCenter(center: Vector2, width: Double, height: Double = width) =
                 Rectangle(center.x - width / 2.0, center.y - height / 2.0, width, height)
+
+        val EMPTY = Rectangle(0.0, 0.0, 0.0, 0.0)
     }
 
     operator fun times(scale: Double) = Rectangle(corner * scale, width * scale, height * scale)
@@ -95,6 +99,7 @@ data class Rectangle(val corner: Vector2, val width: Double, val height: Double 
     operator fun minus(right: Rectangle) =
             Rectangle(corner - right.corner, width - right.width, height - right.height)
 
+    fun toInt() = IntRectangle(x.toInt(), y.toInt(), width.toInt(), height.toInt())
 }
 
 /** calculates [Rectangle]-bounds for a list of [Vector2] instances */
@@ -105,10 +110,10 @@ fun vector2Bounds(points: List<Vector2>): Rectangle {
     var maxY = Double.NEGATIVE_INFINITY
 
     points.forEach {
-        minX = Math.min(minX, it.x)
-        maxX = Math.max(maxX, it.x)
-        minY = Math.min(minY, it.y)
-        maxY = Math.max(maxY, it.y)
+        minX = min(minX, it.x)
+        maxX = max(maxX, it.x)
+        minY = min(minY, it.y)
+        maxY = max(maxY, it.y)
     }
     return Rectangle(Vector2(minX, minY), maxX - minX, maxY - minY)
 }
@@ -121,10 +126,12 @@ fun rectangleBounds(rectangles: List<Rectangle>): Rectangle {
     var maxY = Double.NEGATIVE_INFINITY
 
     rectangles.forEach {
-        minX = Math.min(minX, it.x)
-        maxX = Math.max(maxX, it.x + it.width)
-        minY = Math.min(minY, it.y)
-        maxY = Math.max(maxY, it.y + it.height)
+        if (it != Rectangle.EMPTY) {
+            minX = min(minX, it.x)
+            maxX = max(maxX, it.x + it.width)
+            minY = min(minY, it.y)
+            maxY = max(maxY, it.y + it.height)
+        }
     }
     return Rectangle(Vector2(minX, minY), maxX - minX, maxY - minY)
 }
