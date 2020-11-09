@@ -7,6 +7,9 @@ import org.openrndr.math.YPolarity
 import kotlin.math.max
 import kotlin.math.min
 
+/**
+ * Rectangle with double precision
+ */
 data class Rectangle(val corner: Vector2, val width: Double, val height: Double = width) {
 
     constructor(x: Double, y: Double, width: Double, height: Double = width) :
@@ -29,7 +32,14 @@ data class Rectangle(val corner: Vector2, val width: Double, val height: Double 
         return corner + Vector2(u * width, v * height)
     }
 
+    /**
+     * x-coordinate of the top-left corner
+     */
     val x: Double get() = corner.x
+
+    /**
+     * y-coordinate of the top-left corner
+     */
     val y: Double get() = corner.y
 
     /** [Shape] representation of the rectangle */
@@ -52,12 +62,12 @@ data class Rectangle(val corner: Vector2, val width: Double, val height: Double 
         return Rectangle(Vector2(corner.x - offset, corner.y - offsetY), width + 2 * offset, height + 2 * offsetY)
     }
 
-    /** creates a new [Rectangle] with dimensions scaled by [scale] and [scaleY] */
+    /** create a new [Rectangle] with dimensions scaled by [scale] and [scaleY] */
     fun scaled(scale: Double, scaleY: Double = scale): Rectangle {
         return Rectangle(corner, width * scale, height * scaleY)
     }
 
-    /** creates a new [Rectangle] with width set to [fitWidth] and height scaled proportionally */
+    /** create a new [Rectangle] with width set to [fitWidth] and height scaled proportionally */
     fun widthScaledTo(fitWidth: Double): Rectangle {
         val scale = fitWidth / width
         return Rectangle(corner, fitWidth, height * scale)
@@ -74,6 +84,9 @@ data class Rectangle(val corner: Vector2, val width: Double, val height: Double 
         return Rectangle(corner + offset, width, height)
     }
 
+    /**
+     * check if [point] is contained by [Rectangle]
+     */
     operator fun contains(point: Vector2): Boolean {
         return (point.x >= corner.x &&
                 point.x < corner.x + width &&
@@ -108,6 +121,9 @@ data class Rectangle(val corner: Vector2, val width: Double, val height: Double 
         return Rectangle(p0.x, p0.y, width, height)
     }
 
+    /**
+     * convert to [IntRectangle]
+     */
     fun toInt() = IntRectangle(x.toInt(), y.toInt(), width.toInt(), height.toInt())
 }
 
@@ -151,6 +167,5 @@ fun intersects(a: Rectangle, b: Rectangle): Boolean {
     val below = a.y > b.y + b.height
     val rightOf = a.x > b.x + b.width
     val leftOf = a.x + a.width < b.x
-
     return !(above || below || leftOf || rightOf)
 }

@@ -272,7 +272,10 @@ class Segment {
         return SegmentPoint(this, t, closest)
     }
 
-
+    /**
+     * apply linear transform
+     * @param transform a [Matrix44]
+     */
     fun transform(transform: Matrix44): Segment {
         return if (transform === Matrix44.IDENTITY) {
             this
@@ -336,7 +339,9 @@ class Segment {
 
     fun direction(t: Double): Vector2 = derivative(t).normalized
 
-
+    /**
+     * calculate pose matrix for t-parameter value
+     */
     fun pose(t: Double, polarity: YPolarity = YPolarity.CW_NEGATIVE_Y): Matrix44 {
         val dx = direction(t).xy0.xyz0
         val dy = direction(t).perpendicular(polarity).xy0.xyz0
@@ -344,6 +349,9 @@ class Segment {
         return Matrix44.fromColumnVectors(dx, dy, Vector4.UNIT_Z, dt)
     }
 
+    /**
+     * extrema t-parameter values
+     */
     fun extrema(): List<Double> {
         val dpoints = dpoints()
         return when {
@@ -362,8 +370,14 @@ class Segment {
         }
     }
 
+    /**
+     * extrema points
+     */
     fun extremaPoints(): List<Vector2> = extrema().map { position(it) }
 
+    /**
+     * bounding box [Rectangle]
+     */
     val bounds: Rectangle get() = vector2Bounds(listOf(start, end) + extremaPoints())
 
 
@@ -419,7 +433,6 @@ class Segment {
         return Math.atan2(cross, dot)
     }
 
-
     fun isStraight(epsilon: Double = 0.01): Boolean {
         return when (control.size) {
             2 -> {
@@ -446,12 +459,14 @@ class Segment {
 
     }
 
+    /**
+     * determines if this is a simple segment
+     */
     val simple: Boolean
         get() {
             if (linear) {
                 return true
             }
-
             if (control.size == 2) {
                 val a1 = angle(start, end, control[0])
                 val a2 = angle(start, end, control[1])
@@ -583,7 +598,7 @@ class Segment {
                 val delta = end - start
                 Segment(start, start + delta * (1.0 / 3.0), start + delta * (2.0 / 3.0), end)
             }
-            else -> throw RuntimeException("cannot convert to cubic segment")
+            else -> error("cannot convert to cubic segment")
         }
 
     val quadratic: Segment
@@ -593,7 +608,7 @@ class Segment {
                 val delta = end - start
                 Segment(start, start + delta * (1.0 / 2.0), end)
             }
-            else -> throw RuntimeException("cannot convert to cubic segment")
+            else -> error("cannot convert to quadratic segment")
         }
 
 
@@ -608,6 +623,9 @@ class Segment {
         return direction(ut).perpendicular(polarity)
     }
 
+    /**
+     * calculate a reversed version of the segment
+     */
     val reverse: Segment
         get() {
             return when (control.size) {
@@ -1354,19 +1372,38 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
     }
 }
 
+/**
+ * indication of shape topology
+ */
 enum class ShapeTopology {
+    /**
+     * the shape contains closed contours only
+     */
     CLOSED,
+
+    /**
+     * the shape contains open contours only
+     */
     OPEN,
+
+    /**
+     * the shape contains a mix of open and closed contours
+     */
     MIXED
 }
 
 class Shape(val contours: List<ShapeContour>) {
-
     companion object {
+        /**
+         * an empty shape object, advised to use this instance whenever an empty shape is needed
+         */
         val EMPTY = Shape(emptyList())
         fun compound(shapes: List<Shape>) = Shape(shapes.flatMap { it.contours })
     }
 
+    /**
+     * bounding box [Rectangle]
+     */
     val bounds by lazy {
         if (empty) {
             Rectangle(0.0, 0.0, 0.0, 0.0)
@@ -1381,6 +1418,9 @@ class Shape(val contours: List<ShapeContour>) {
         }
     }
 
+    /**
+     * indication of shape topology
+     */
     val topology = when {
         contours.isEmpty() -> ShapeTopology.OPEN
         contours.all { it.closed } -> ShapeTopology.CLOSED
@@ -1388,6 +1428,9 @@ class Shape(val contours: List<ShapeContour>) {
         else -> ShapeTopology.MIXED
     }
 
+    /**
+     * list the open contours
+     */
     val openContours: List<ShapeContour> =
             when (topology) {
                 ShapeTopology.OPEN -> contours
@@ -1395,6 +1438,9 @@ class Shape(val contours: List<ShapeContour>) {
                 ShapeTopology.MIXED -> contours.filter { !it.closed }
             }
 
+    /**
+     * list the closed contours
+     */
     val closedContours: List<ShapeContour> =
             when (topology) {
                 ShapeTopology.OPEN -> emptyList()
@@ -1404,19 +1450,33 @@ class Shape(val contours: List<ShapeContour>) {
 
     val empty get() = this === EMPTY || contours.isEmpty()
 
+    /**
+     * indicates that the shape has only contours for which each segment is a line segment
+     */
     val linear get() = contours.all { it.segments.all { it.linear } }
     fun polygon(distanceTolerance: Double = 0.5) = Shape(contours.map { it.sampleLinear(distanceTolerance) })
 
+    /**
+     * calculate triangulation for this shape
+     */
     val triangulation by lazy {
         triangulate(this).windowed(3, 3).map {
             Triangle(it[0], it[1], it[2])
         }
     }
 
+    /**
+     * calculate (approximate) area for this shape (through triangulation)
+     */
     val area by lazy {
         triangulation.sumByDouble { it.area }
     }
 
+    /**
+     * generate random points that lie inside the shape
+     * @param pointCount the number of points to generate
+     * @param random the [Random] number generator to use, default is [Random.Default]
+     */
     fun randomPoints(pointCount: Int, random: Random = Random.Default): List<Vector2> {
         val randomValues = List(pointCount) { random.nextDouble() * area }.sortedDescending().toMutableList()
         var sum = 0.0
@@ -1509,12 +1569,21 @@ class Shape(val contours: List<ShapeContour>) {
     }
 }
 
+/**
+ * convert a List of [ShapeContour] items to a [Shape]
+ */
 val List<ShapeContour>.shape
     get() = Shape(this)
 
+/**
+ * convert a list of [Shape] items into a single [Shape] compound
+ */
 val List<Shape>.compound
     get() = Shape.compound(this)
 
+/**
+ * convert to [Segment]
+ */
 fun CatmullRom2.toSegment(): Segment {
     val d1a2 = (p1 - p0).length.pow(2 * alpha)
     val d2a2 = (p2 - p1).length.pow(2 * alpha)
@@ -1531,6 +1600,9 @@ fun CatmullRom2.toSegment(): Segment {
     return Segment(b0, b1, b2, b3)
 }
 
+/**
+ * convert to [ShapeContour]
+ */
 fun CatmullRomChain2.toContour(): ShapeContour = ShapeContour(segments.map { it.toSegment() }, this.loop)
 
 

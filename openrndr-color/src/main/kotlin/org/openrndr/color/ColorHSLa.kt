@@ -2,6 +2,13 @@ package org.openrndr.color
 
 import org.openrndr.math.mixAngle
 
+/**
+ * color in HSL space
+ * @param h hue in degrees (0 .. 360)
+ * @param s saturation (0.0 .. 1.0)
+ * @param l lightness (0.0 .. 1.0)
+ * @param a alpha (0.0. .. 1.0)
+ */
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 data class ColorHSLa(val h: Double, val s: Double, val l: Double, val a: Double = 1.0) :
         ConvertibleToColorRGBa,
@@ -23,7 +30,6 @@ data class ColorHSLa(val h: Double, val s: Double, val l: Double, val a: Double 
 
     companion object {
         fun fromRGBa(rgb: ColorRGBa): ColorHSLa {
-
             val min = if (rgb.r <= rgb.b && rgb.r <= rgb.g) {
                 rgb.r
             } else if (rgb.g <= rgb.b && rgb.g <= rgb.r) {
@@ -96,6 +102,9 @@ data class ColorHSLa(val h: Double, val s: Double, val l: Double, val a: Double 
     fun toLCHABa(ref: ColorXYZa = ColorXYZa.NEUTRAL) = toLABa(ref).toLCHABa()
     fun toLCHUVa(ref: ColorXYZa = ColorXYZa.NEUTRAL) = toLUVa(ref).toLCHUVa()
 
+    /**
+     * convert to [ColorXSLa]
+     */
     fun toXSLa() = ColorXSLa.fromHSLa(this)
     override fun plus(other: ColorHSLa) = copy(h = h + other.h, s = s + other.s, l = l + other.l, a = a + other.a)
     override fun minus(other: ColorHSLa) = copy(h = h - other.h, s = s - other.s, l = l - other.l, a = a - other.a)

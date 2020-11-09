@@ -5,22 +5,22 @@ import org.openrndr.math.Vector4
 import java.lang.NumberFormatException
 import kotlin.math.pow
 
+
 enum class Linearity {
     UNKNOWN,
     LINEAR,
     SRGB,
     ASSUMED_LINEAR,
     ASSUMED_SRGB
-
 }
 
 /**
- * Color in RGBa space
+ * color in RGBa space
  *
- * @param r red in `[0,1]`
- * @param g green in `[0,1]`
- * @param b blue in `[0,1]`
- * @param a alpha in `[0,1]`
+ * @param r red between 0 and 1
+ * @param g green between 0 and 1
+ * @param b blue between 0 and 1
+ * @param a alpha between 0 and 1
  */
 data class ColorRGBa(val r: Double, val g: Double, val b: Double, val a: Double = 1.0, val linearity: Linearity = Linearity.UNKNOWN) :
         ConvertibleToColorRGBa,
@@ -148,18 +148,23 @@ data class ColorRGBa(val r: Double, val g: Double, val b: Double, val a: Double 
      */
     val maxValue get() = r.coerceAtLeast(g).coerceAtLeast(b)
 
-    // https://www.w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef
+    /**
+     * calculate luminance value
+     * luminance value is according to <a>https://www.w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef</a>
+     */
     val luminance: Double
         get() = when(linearity) {
         Linearity.SRGB -> toLinear().luminance
         else -> 0.2126 * r + 0.7152 * g + 0.0722 * b
     }
 
-    // see http://www.w3.org/TR/2008/REC-WCAG20-20081211/#contrast-ratiodef
-    fun getContrastRatio(colorB: ColorRGBa): Double {
+    /**
+     * calculate the contrast value between this color and the given color
+     * contrast value is accordingo to <a>// see http://www.w3.org/TR/2008/REC-WCAG20-20081211/#contrast-ratiodef</a>
+     */
+    fun getContrastRatio(other: ColorRGBa): Double {
         val l1 = luminance
-        val l2 = colorB.luminance
-
+        val l2 = other.luminance
         return if (l1 > l2) (l1 + 0.05) / (l2 + 0.05) else (l2 + 0.05) / (l1 + 0.05)
     }
 
