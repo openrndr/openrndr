@@ -9,7 +9,7 @@ data class Matrix44(
         val c0r0: Double = 0.0, val c1r0: Double = 0.0, val c2r0: Double = 0.0, val c3r0: Double = 0.0,
         val c0r1: Double = 0.0, val c1r1: Double = 0.0, val c2r1: Double = 0.0, val c3r1: Double = 0.0,
         val c0r2: Double = 0.0, val c1r2: Double = 0.0, val c2r2: Double = 0.0, val c3r2: Double = 0.0,
-        val c0r3: Double = 0.0, val c1r3: Double = 0.0, val c2r3: Double = 0.0, val c3r3: Double = 0.0) : Serializable {
+        val c0r3: Double = 0.0, val c1r3: Double = 0.0, val c2r3: Double = 0.0, val c3r3: Double = 0.0) : Serializable, LinearType<Matrix44> {
 
     companion object {
         /**
@@ -122,7 +122,7 @@ data class Matrix44(
      * Matrix addition
      * @param o the other matrix
      */
-    operator fun plus(o: Matrix44) = Matrix44(
+    override operator fun plus(o: Matrix44) = Matrix44(
             c0r0 + o.c0r0, c1r0 + o.c1r0, c2r0 + o.c2r0, c3r0 + o.c3r0,
             c0r1 + o.c0r1, c1r1 + o.c1r1, c2r1 + o.c2r1, c3r1 + o.c3r1,
             c0r2 + o.c0r2, c1r2 + o.c1r2, c2r2 + o.c2r2, c3r2 + o.c3r2,
@@ -132,7 +132,7 @@ data class Matrix44(
      * Matrix subtraction
      * @param o the other matrix
      */
-    operator fun minus(o: Matrix44) = Matrix44(
+    override operator fun minus(o: Matrix44) = Matrix44(
             c0r0 - o.c0r0, c1r0 - o.c1r0, c2r0 - o.c2r0, c3r0 - o.c3r0,
             c0r1 - o.c0r1, c1r1 - o.c1r1, c2r1 - o.c2r1, c3r1 - o.c3r1,
             c0r2 - o.c0r2, c1r2 - o.c1r2, c2r2 - o.c2r2, c3r2 - o.c3r2,
@@ -169,10 +169,16 @@ data class Matrix44(
     /**
      * Multiplies all the elements in the 4x4 matrix with a scalar
      */
-    operator fun times(s: Double) = Matrix44(s * c0r0, s * c1r0, s * c2r0, s * c3r0,
+    override operator fun times(s: Double) = Matrix44(s * c0r0, s * c1r0, s * c2r0, s * c3r0,
             s * c0r1, s * c1r1, s * c2r1, s * c3r1,
             s * c0r2, s * c1r2, s * c2r2, s * c3r2,
             s * c0r3, s * c1r3, s * c2r3, s * c3r3)
+
+    override operator fun div(s: Double) = Matrix44(s / c0r0, s / c1r0, s / c2r0, s / c3r0,
+            s / c0r1, s / c1r1, s / c2r1, s / c3r1,
+            s / c0r2, s / c1r2, s / c2r2, s / c3r2,
+            s / c0r3, s / c1r3, s / c2r3, s / c3r3)
+
 
     /**
      * Matrix concatenation

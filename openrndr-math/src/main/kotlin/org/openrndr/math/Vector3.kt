@@ -6,7 +6,7 @@ import kotlin.math.*
 /**
  * Double precision vector 3
  */
-data class Vector3(val x: Double, val y: Double, val z: Double) : Serializable {
+data class Vector3(val x: Double, val y: Double, val z: Double) : Serializable, LinearType<Vector3> {
     constructor(x: Double) : this(x, x, x)
 
     companion object {
@@ -59,13 +59,13 @@ data class Vector3(val x: Double, val y: Double, val z: Double) : Serializable {
     }
 
     operator fun unaryMinus() = Vector3(-x, -y, -z)
-    operator fun plus(v: Vector3) = Vector3(x + v.x, y + v.y, z + v.z)
+    override operator fun plus(v: Vector3) = Vector3(x + v.x, y + v.y, z + v.z)
     operator fun plus(d: Double) = Vector3(x + d, y + d, z + d)
-    operator fun minus(v: Vector3) = Vector3(x - v.x, y - v.y, z - v.z)
+    override operator fun minus(v: Vector3) = Vector3(x - v.x, y - v.y, z - v.z)
     operator fun minus(d: Double) = Vector3(x - d, y - d, z - d)
     operator fun times(v: Vector3) = Vector3(x * v.x, y * v.y, z * v.z)
-    operator fun times(s: Double) = Vector3(x * s, y * s, z * s)
-    operator fun div(s: Double) = Vector3(x / s, y / s, z / s)
+    override operator fun times(s: Double) = Vector3(x * s, y * s, z * s)
+    override operator fun div(s: Double) = Vector3(x / s, y / s, z / s)
     operator fun div(v: Vector3) = Vector3(x / v.x, y / v.y, z / v.z)
 
     infix fun dot(v: Vector3) = x * v.x + y * v.y + z * v.z

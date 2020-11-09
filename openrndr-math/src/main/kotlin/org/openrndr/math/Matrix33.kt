@@ -6,7 +6,7 @@ package org.openrndr.math
 data class Matrix33(
         val c0r0: Double = 0.0, val c1r0: Double = 0.0, val c2r0: Double = 0.0,
         val c0r1: Double = 0.0, val c1r1: Double = 0.0, val c2r1: Double = 0.0,
-        val c0r2: Double = 0.0, val c1r2: Double = 0.0, val c2r2: Double = 0.0) {
+        val c0r2: Double = 0.0, val c1r2: Double = 0.0, val c2r2: Double = 0.0) : LinearType<Matrix33> {
 
     companion object {
         val IDENTITY = Matrix33(c0r0 = 1.0, c1r1 = 1.0, c2r2 = 1.0)
@@ -56,12 +56,12 @@ data class Matrix33(
                     invDet * (c0r0 * c1r1 - c1r0 * c0r1))
         }
 
-    operator fun plus(o: Matrix33) = Matrix33(
+    override operator fun plus(o: Matrix33) = Matrix33(
             c0r0 + o.c0r0, c1r0 + o.c1r0, c2r0 + o.c2r0,
             c0r1 + o.c0r1, c1r1 + o.c1r1, c2r1 + o.c2r1,
             c0r2 + o.c0r2, c1r2 + o.c1r2, c2r2 + o.c2r2)
 
-    operator fun minus(o: Matrix33) = Matrix33(
+    override operator fun minus(o: Matrix33) = Matrix33(
             c0r0 - o.c0r0, c1r0 - o.c1r0, c2r0 - o.c2r0,
             c0r1 - o.c0r1, c1r1 - o.c1r1, c2r1 - o.c2r1,
             c0r2 - o.c0r2, c1r2 - o.c1r2, c2r2 - o.c2r2)
@@ -84,9 +84,13 @@ data class Matrix33(
             v.x * c0r1 + v.y * c1r1 + v.z * c2r1,
             v.x * c0r2 + v.y * c1r2 + v.z * c2r2)
 
-    operator fun times(s: Double) = Matrix33(s * c0r0, s * c1r0, s * c2r0,
+    override operator fun times(s: Double) = Matrix33(s * c0r0, s * c1r0, s * c2r0,
             s * c0r1, s * c1r1, s * c2r1,
             s * c0r2, s * c1r2, s * c2r2)
+
+    override operator fun div(s: Double) = Matrix33(s / c0r0, s / c1r0, s / c2r0,
+            s / c0r1, s / c1r1, s / c2r1,
+            s / c0r2, s / c1r2, s / c2r2)
 
     operator fun times(mat: Matrix33) = Matrix33(
             this.c0r0 * mat.c0r0 + this.c1r0 * mat.c0r1 + this.c2r0 * mat.c0r2,

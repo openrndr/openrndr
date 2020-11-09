@@ -99,6 +99,15 @@ data class Rectangle(val corner: Vector2, val width: Double, val height: Double 
     operator fun minus(right: Rectangle) =
             Rectangle(corner - right.corner, width - right.width, height - right.height)
 
+
+    fun sub(u0: Double, v0: Double, u1: Double, v1: Double): Rectangle {
+        val p0 = position(u0, v0)
+        val p1 = position(u1, v1)
+        val width = p1.x - p0.x
+        val height = p1.y - p0.y
+        return Rectangle(p0.x, p0.y, width, height)
+    }
+
     fun toInt() = IntRectangle(x.toInt(), y.toInt(), width.toInt(), height.toInt())
 }
 

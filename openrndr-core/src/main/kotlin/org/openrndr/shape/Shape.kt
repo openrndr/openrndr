@@ -336,6 +336,14 @@ class Segment {
 
     fun direction(t: Double): Vector2 = derivative(t).normalized
 
+
+    fun pose(t: Double, polarity: YPolarity = YPolarity.CW_NEGATIVE_Y): Matrix44 {
+        val dx = direction(t).xy0.xyz0
+        val dy = direction(t).perpendicular(polarity).xy0.xyz0
+        val dt = position(t).xy01
+        return Matrix44.fromColumnVectors(dx, dy, Vector4.UNIT_Z, dt)
+    }
+
     fun extrema(): List<Double> {
         val dpoints = dpoints()
         return when {
@@ -849,6 +857,9 @@ class Segment {
             }
         }
     }
+
+    val contour: ShapeContour
+        get() = ShapeContour(listOf(this), false)
 }
 
 private fun sumDifferences(points: List<Vector2>) =
@@ -1094,6 +1105,14 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
                 segments[Math.min(segments.size - 1, segment)].normal(segmentOffset, polarity)
             }
         }
+    }
+
+    fun pose(t: Double): Matrix44 {
+        val n = normal(t)
+        val dx = n.perpendicular(polarity).xy0.xyz0
+        val dy = n.xy0.xyz0
+        val dt = position(t).xy01
+        return Matrix44.fromColumnVectors(dx, dy, Vector4.UNIT_Z, dt)
     }
 
     fun adaptivePositions(distanceTolerance: Double = 0.5): List<Vector2> {
