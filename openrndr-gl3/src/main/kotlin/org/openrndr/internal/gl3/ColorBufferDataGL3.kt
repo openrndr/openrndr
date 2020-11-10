@@ -31,7 +31,7 @@ class ColorBufferDataGL3(val width: Int, val height: Int, val format: ColorForma
     }
 
     companion object {
-        fun fromUrl(urlString: String): ColorBufferDataGL3 {
+        fun fromUrl(urlString: String, formatHint: ImageFileFormat?): ColorBufferDataGL3 {
             if (urlString.startsWith("data:")) {
                 val decoder = Base64.getDecoder()
                 val commaIndex = urlString.indexOf(",")

@@ -76,7 +76,7 @@ class CubemapGL3(val texture: Int, override val width: Int, override val type: C
             return CubemapGL3(textures[0], width, type, format, levels, session)
         }
 
-        fun fromUrl(url: String, session: Session?): CubemapGL3 {
+        fun fromUrl(url: String, formatHint: ImageFileFormat?, session: Session?): CubemapGL3 {
             glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS)
             if (url.endsWith(".dds")) {
                 val textures = IntArray(1)
@@ -115,7 +115,7 @@ class CubemapGL3(val texture: Int, override val width: Int, override val type: C
             }
         }
 
-        fun fromUrls(urls: List<String>, session: Session?): CubemapGL3 {
+        fun fromUrls(urls: List<String>, formatHint: ImageFileFormat?, session: Session?): CubemapGL3 {
             if (urls.size != 6) {
                 throw RuntimeException("6 urls are needed for a cubemap")
             }
@@ -126,7 +126,7 @@ class CubemapGL3(val texture: Int, override val width: Int, override val type: C
             val sides = mutableListOf<ColorBufferGL3>()
 
             urls.forEachIndexed { index, it ->
-                val data = ColorBufferDataGL3.fromUrl(it)
+                val data = ColorBufferDataGL3.fromUrl(it, formatHint)
                 val (internalFormat, internalType) = internalFormat(data.format, data.type)
                 val nullBB: ByteBuffer? = null
 

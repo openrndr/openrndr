@@ -13,7 +13,6 @@ import org.openrndr.math.Vector2
 import java.io.File
 import kotlin.coroutines.CoroutineContext
 
-
 enum class WindowEventType {
     MOVED,
     RESIZED,
@@ -24,23 +23,36 @@ enum class WindowEventType {
     CLOSED
 }
 
-class WindowEvent(val type: WindowEventType, val position: Vector2, val size: Vector2, val focused: Boolean)
+/**
+ * window event message
+ */
+data class WindowEvent(val type: WindowEventType, val position: Vector2, val size: Vector2, val focused: Boolean)
 
-class DropEvent(val position: Vector2, val files: List<File>)
+/**
+ * window drop item event message
+ */
+data class DropEvent(val position: Vector2, val files: List<File>)
 
-
+/**
+ * program event type
+ */
 enum class ProgramEventType {
+    /**
+     * indicates the program has ended
+     */
     ENDED
 }
 
-class ProgramEvent(val type: ProgramEventType)
+/**
+ * program event message
+ */
+data class ProgramEvent(val type: ProgramEventType)
 
 /**
 The Program class, this is where most user implementations start
  **/
 //@ApplicationDslMarker
 open class Program {
-
     var width = 0
     var height = 0
 
@@ -51,9 +63,17 @@ open class Program {
 
     lateinit var application: Application
 
+    /**
+     * background color that is used to clear the background every frame
+     */
     var backgroundColor: ColorRGBa? = ColorRGBa.BLACK
     val dispatcher = Dispatcher()
 
+    /**
+     * program ended event
+     *
+     * The [ended] event is emitted when the program is ended by closing the application window
+     */
     var ended = Event<ProgramEvent>()
 
     /**
@@ -92,10 +112,15 @@ open class Program {
     }
 
     val clipboard = Clipboard()
+
+    /**
+     * list of installed extensions
+     */
     val extensions = mutableListOf<Extension>()
 
     /**
-     * Install an [Extension].
+     * install an [Extension]
+     * @param extension the [Extension] to install
      */
     fun <T : Extension> extend(extension: T): T {
         extensions.add(extension)
@@ -104,7 +129,10 @@ open class Program {
     }
 
     /**
-     * Install an [Extension] and configure it
+     * install an [Extension] and configure it
+     * @param extension the [Extension] to install
+     * @param configure a configuration function to called with [extension] as its receiver
+     * @return the installed [Extension]
      */
     fun <T : Extension> extend(extension: T, configure: T.() -> Unit): T {
         extensions.add(extension)
@@ -114,7 +142,7 @@ open class Program {
     }
 
     /**
-     * Install an extension function for the given [ExtensionStage]
+     * install an extension function for the given [ExtensionStage]
      */
     fun extend(stage: ExtensionStage = ExtensionStage.BEFORE_DRAW, userDraw: Program.() -> Unit) {
         val functionExtension = when (stage) {
@@ -143,12 +171,10 @@ open class Program {
         extensions.add(functionExtension)
     }
 
-
     /**
      * Simplified window interface
      */
     inner class Window {
-
         var title: String
             get() = application.windowTitle
             set(value) {
@@ -169,7 +195,6 @@ open class Program {
                 application.presentationMode = value
             }
 
-
         fun requestFocus() = application.requestFocus()
 
         fun requestDraw() = application.requestDraw()
@@ -177,45 +202,42 @@ open class Program {
         /**
          * Window focused event, triggered when the window receives focus
          */
-        val focused = Event<WindowEvent>("window-focused").postpone(true)
+        val focused = Event<WindowEvent>("window-focused", postpone = true)
 
         /**
          * Window focused event, triggered when the window loses focus
          */
-        val unfocused = Event<WindowEvent>("window-unfocused").postpone(true)
+        val unfocused = Event<WindowEvent>("window-unfocused", postpone = true)
 
         /**
          * Window moved event
          */
-        val moved = Event<WindowEvent>("window-moved").postpone(true)
+        val moved = Event<WindowEvent>("window-moved", postpone = true)
 
         /**
          * Window sized event
          */
-        val sized = Event<WindowEvent>("window-sized").postpone(true)
-
+        val sized = Event<WindowEvent>("window-sized", postpone = true)
 
         /**
          * Window minimized event
          */
-        val minimized = Event<WindowEvent>("window-minimized").postpone(true)
-
-
-        /**
-         * Window restored (from minimization) event
-         */
-        val restored = Event<WindowEvent>("window-restored").postpone(true)
+        val minimized = Event<WindowEvent>("window-minimized", postpone = true)
 
         /**
          * Window restored (from minimization) event
          */
-        val closed = Event<WindowEvent>("window-closed").postpone(false)
+        val restored = Event<WindowEvent>("window-restored", postpone = true)
 
+        /**
+         * Window restored (from minimization) event
+         */
+        val closed = Event<WindowEvent>("window-closed", postpone = true)
 
         /**
          * Drop event, triggered when a file is dropped on the window
          */
-        val drop = Event<DropEvent>("window-drop").postpone(true)
+        val drop = Event<DropEvent>("window-drop", postpone = true)
 
         /**
          * Window position
@@ -225,8 +247,6 @@ open class Program {
             set(value) {
                 application.windowPosition = value
             }
-
-
     }
 
     val window = Window()
@@ -270,9 +290,11 @@ open class Program {
      * This is the user facing draw call. It should be overridden by the user.
      */
     open fun draw() {}
-
 }
 
+/**
+ * launch a coroutine in the [Program] context
+ */
 fun Program.launch(
         context: CoroutineContext = dispatcher,
         start: CoroutineStart = CoroutineStart.DEFAULT,

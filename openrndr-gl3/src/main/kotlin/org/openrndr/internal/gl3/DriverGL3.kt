@@ -30,7 +30,7 @@ enum class DriverVersionGL(val glslVersion: String, val majorVersion: Int, val m
     VERSION_4_5("450 core", 4, 5);
 
     val versionString
-    get() = "$majorVersion.$minorVersion"
+        get() = "$majorVersion.$minorVersion"
 }
 
 @Suppress("NOTHING_TO_INLINE")
@@ -226,23 +226,23 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         return cubemap
     }
 
-    override fun createCubemapFromUrls(urls: List<String>, session: Session?): Cubemap {
+    override fun createCubemapFromUrls(urls: List<String>, formatHint: ImageFileFormat?, session: Session?): Cubemap {
         logger.trace { "creating cubemap from urls $urls" }
         val cubemap = when (urls.size) {
-            1 -> CubemapGL3.fromUrl(urls[0], session)
-            6 -> CubemapGL3.fromUrls(urls, session)
+            1 -> CubemapGL3.fromUrl(urls[0], formatHint, session)
+            6 -> CubemapGL3.fromUrls(urls, formatHint, session)
             else -> throw RuntimeException("expected 1 or 6 urls")
         }
         session?.track(cubemap)
         return cubemap
     }
 
-    override fun createCubemapFromFiles(filenames: List<String>, session: Session?): Cubemap {
+    override fun createCubemapFromFiles(filenames: List<String>, formatHint: ImageFileFormat?, session: Session?): Cubemap {
         val urls = filenames.map { "file:$it" }
         logger.trace { "creating cubemap from urls $urls" }
         val cubemap = when (urls.size) {
-            1 -> CubemapGL3.fromUrl(urls[0], session)
-            6 -> CubemapGL3.fromUrls(urls, session)
+            1 -> CubemapGL3.fromUrl(urls[0], formatHint, session)
+            6 -> CubemapGL3.fromUrls(urls, formatHint, session)
             else -> throw RuntimeException("expected 1 or 6 urls")
         }
         session?.track(cubemap)
@@ -281,14 +281,14 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         }
     }
 
-    override fun createColorBufferFromUrl(url: String, session: Session?): ColorBuffer {
-        val colorBuffer = ColorBufferGL3.fromUrl(url, session)
+    override fun createColorBufferFromUrl(url: String, formatHint: ImageFileFormat?, session: Session?): ColorBuffer {
+        val colorBuffer = ColorBufferGL3.fromUrl(url, formatHint, session)
         session?.track(colorBuffer)
         return colorBuffer
     }
 
-    override fun createColorBufferFromFile(filename: String, session: Session?): ColorBuffer {
-        val colorBuffer = ColorBufferGL3.fromFile(filename, session)
+    override fun createColorBufferFromFile(filename: String, formatHint: ImageFileFormat?, session: Session?): ColorBuffer {
+        val colorBuffer = ColorBufferGL3.fromFile(filename, formatHint, session)
         session?.track(colorBuffer)
         return colorBuffer
     }
@@ -933,4 +933,4 @@ internal fun Matrix33.toFloatArray(): FloatArray = floatArrayOf(
         c2r0.toFloat(), c2r1.toFloat(), c2r2.toFloat())
 
 val Driver.Companion.glVersion
-get() = (Driver.instance as DriverGL3).version
+    get() = (Driver.instance as DriverGL3).version

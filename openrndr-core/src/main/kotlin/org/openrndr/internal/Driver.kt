@@ -89,8 +89,8 @@ interface Driver {
     fun createAtomicCounterBuffer(counterCount: Int, session: Session? = Session.active): AtomicCounterBuffer
 
     fun createColorBuffer(width: Int, height: Int, contentScale: Double, format: ColorFormat, type: ColorType, multisample: BufferMultisample = BufferMultisample.Disabled, levels: Int = 1, session: Session? = Session.active): ColorBuffer
-    fun createColorBufferFromUrl(url: String, session: Session? = Session.active): ColorBuffer
-    fun createColorBufferFromFile(filename: String, session: Session? = Session.active): ColorBuffer
+    fun createColorBufferFromUrl(url: String, formatHint: ImageFileFormat? = null, session: Session? = Session.active): ColorBuffer
+    fun createColorBufferFromFile(filename: String, formatHint: ImageFileFormat? = null, session: Session? = Session.active): ColorBuffer
     fun createColorBufferFromStream(stream: InputStream, name: String? = null, formatHint: ImageFileFormat? = null, session: Session? = Session.active): ColorBuffer
     fun createColorBufferFromArray(array: ByteArray, offset: Int = 0, length: Int = 0, name: String? = null, formatHint: ImageFileFormat? = null, session: Session? = Session.active): ColorBuffer
     fun createColorBufferFromBuffer(buffer: ByteBuffer, name: String? = null, formatHint: ImageFileFormat? = null, session: Session? = Session.active): ColorBuffer
@@ -99,8 +99,8 @@ interface Driver {
     fun createBufferTexture(elementCount: Int, format: ColorFormat, type: ColorType, session: Session? = Session.active): BufferTexture
 
     fun createCubemap(width: Int, format: ColorFormat, type: ColorType, levels: Int, session: Session? = Session.active): Cubemap
-    fun createCubemapFromUrls(urls: List<String>, session: Session? = Session.active): Cubemap
-    fun createCubemapFromFiles(filenames: List<String>, session: Session? = Session.active): Cubemap
+    fun createCubemapFromUrls(urls: List<String>, formatHint: ImageFileFormat? = null, session: Session? = Session.active): Cubemap
+    fun createCubemapFromFiles(filenames: List<String>, formatHint: ImageFileFormat? = null, session: Session? = Session.active): Cubemap
 
     fun createVolumeTexture(width: Int, height: Int, depth: Int, format: ColorFormat, type: ColorType, levels: Int, session: Session? = Session.active): VolumeTexture
 
@@ -117,7 +117,7 @@ interface Driver {
 
     fun createDynamicIndexBuffer(elementCount: Int, type: IndexType, session: Session? = Session.active): IndexBuffer
 
-    fun createShaderStorageBuffer(format: ShaderStorageFormat, session: Session? = Session.active) : ShaderStorageBuffer
+    fun createShaderStorageBuffer(format: ShaderStorageFormat, session: Session? = Session.active): ShaderStorageBuffer
 
     fun drawVertexBuffer(shader: Shader, vertexBuffers: List<VertexBuffer>,
                          drawPrimitive: DrawPrimitive,
@@ -136,7 +136,7 @@ interface Driver {
     fun drawIndexedInstances(shader: Shader, indexBuffer: IndexBuffer, vertexBuffers: List<VertexBuffer>,
                              instanceAttributes: List<VertexBuffer>,
                              drawPrimitive: DrawPrimitive, indexOffset: Int, indexCount: Int,
-                             instanceOffset : Int, instanceCount: Int)
+                             instanceOffset: Int, instanceCount: Int)
 
     fun setState(drawStyle: DrawStyle)
 

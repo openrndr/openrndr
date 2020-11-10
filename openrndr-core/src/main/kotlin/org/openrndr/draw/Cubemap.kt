@@ -28,21 +28,21 @@ interface Cubemap {
             return cubemap
         }
 
-        fun fromUrl(url: String, session: Session? = Session.active): Cubemap {
-            val cubemap = Driver.instance.createCubemapFromUrls(listOf(url), session)
+        fun fromUrl(url: String, formatHint: ImageFileFormat?, session: Session? = Session.active): Cubemap {
+            val cubemap = Driver.instance.createCubemapFromUrls(listOf(url), formatHint, session)
             return cubemap
         }
 
-        fun fromUrls(urls: List<String>, session: Session? = Session.active): Cubemap {
-            return Driver.instance.createCubemapFromUrls(urls, session)
+        fun fromUrls(urls: List<String>, formatHint: ImageFileFormat?, session: Session? = Session.active): Cubemap {
+            return Driver.instance.createCubemapFromUrls(urls, formatHint, session)
         }
 
-        fun fromFile(file: File, session: Session? = Session.active): Cubemap {
-            return Driver.instance.createCubemapFromFiles(listOf(file.absolutePath), session)
+        fun fromFile(file: File, formatHint: ImageFileFormat?, session: Session? = Session.active): Cubemap {
+            return Driver.instance.createCubemapFromFiles(listOf(file.absolutePath), formatHint, session)
         }
 
-        fun fromFiles(filenames: List<File>, session: Session? = Session.active): Cubemap {
-            return Driver.instance.createCubemapFromFiles(filenames.map { it.absolutePath }, session)
+        fun fromFiles(filenames: List<File>, formatHint: ImageFileFormat?, session: Session? = Session.active): Cubemap {
+            return Driver.instance.createCubemapFromFiles(filenames.map { it.absolutePath }, formatHint, session)
         }
     }
 
@@ -71,13 +71,13 @@ fun cubemap(width: Int, format: ColorFormat = ColorFormat.RGBa, type: ColorType 
     return cubemap
 }
 
-fun loadCubemap(fileOrUrl: String, session: Session? = Session.active): Cubemap {
+fun loadCubemap(fileOrUrl: String, formatHint: ImageFileFormat?, session: Session? = Session.active): Cubemap {
     return try {
         if (!fileOrUrl.startsWith("data:")) {
             URL(fileOrUrl)
         }
-        Cubemap.fromUrl(fileOrUrl, session)
+        Cubemap.fromUrl(fileOrUrl, formatHint, session)
     } catch (e: MalformedURLException) {
-        Cubemap.fromFile(File(fileOrUrl), session)
+        Cubemap.fromFile(File(fileOrUrl), formatHint, session)
     }
 }

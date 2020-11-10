@@ -156,12 +156,12 @@ class ColorBufferGL3(val target: Int,
             }
         }
 
-        fun fromUrl(url: String, session: Session?): ColorBuffer {
-            val data = ColorBufferDataGL3.fromUrl(url)
+        fun fromUrl(url: String, formatHint: ImageFileFormat?, session: Session?): ColorBuffer {
+            val data = ColorBufferDataGL3.fromUrl(url, formatHint)
             return fromColorBufferData(data, session)
         }
 
-        fun fromFile(filename: String, session: Session?): ColorBuffer {
+        fun fromFile(filename: String, formatHint: ImageFileFormat?, session: Session?): ColorBuffer {
             val data = ColorBufferDataGL3.fromFile(filename)
             return fromColorBufferData(data, session)
         }
@@ -511,16 +511,16 @@ class ColorBufferGL3(val target: Int,
 
     var realShadow: ColorBufferShadow? = null
 
-    override fun write(buffer: ByteBuffer, sourceFormat: ColorFormat, sourceType: ColorType, level: Int) {
+    override fun write(sourceBuffer: ByteBuffer, sourceFormat: ColorFormat, sourceType: ColorType, level: Int) {
         val div = 1 shl level
         checkDestroyed()
-        if (!buffer.isDirect) {
+        if (!sourceBuffer.isDirect) {
             throw IllegalArgumentException("buffer is not a direct buffer.")
         }
         if (!sourceType.compressed) {
             val bytesNeeded = sourceFormat.componentCount * sourceType.componentSize * (effectiveWidth / div) * (effectiveHeight / div)
-            require(bytesNeeded <= buffer.remaining()) {
-                "write requires $bytesNeeded bytes, buffer only has ${buffer.remaining()} bytes left, buffer capacity is ${buffer.capacity()}"
+            require(bytesNeeded <= sourceBuffer.remaining()) {
+                "write requires $bytesNeeded bytes, buffer only has ${sourceBuffer.remaining()} bytes left, buffer capacity is ${sourceBuffer.capacity()}"
             }
         }
 
@@ -530,27 +530,27 @@ class ColorBufferGL3(val target: Int,
                 logger.trace {
                     "Writing to color buffer in: $format ${format.glFormat()}, $type ${type.glType()}"
                 }
-                (buffer as Buffer).rewind()
-                buffer.order(ByteOrder.nativeOrder())
+                (sourceBuffer as Buffer).rewind()
+                sourceBuffer.order(ByteOrder.nativeOrder())
                 val currentPack = intArrayOf(0)
                 glGetIntegerv(GL_UNPACK_ALIGNMENT, currentPack)
                 glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
 
                 if (sourceType.compressed) {
-                    glCompressedTexSubImage2D(target, level, 0, 0, width / div, height / div, compressedType(sourceFormat, sourceType), buffer)
+                    glCompressedTexSubImage2D(target, level, 0, 0, width / div, height / div, compressedType(sourceFormat, sourceType), sourceBuffer)
                     debugGLErrors {
                         when (it) {
-                            GL_INVALID_VALUE -> "data size mismatch? ${buffer.remaining()}"
+                            GL_INVALID_VALUE -> "data size mismatch? ${sourceBuffer.remaining()}"
                             else -> null
                         }
                     }
                 } else {
-                    glTexSubImage2D(target, level, 0, 0, width / div, height / div, sourceFormat.glFormat(), sourceType.glType(), buffer)
+                    glTexSubImage2D(target, level, 0, 0, width / div, height / div, sourceFormat.glFormat(), sourceType.glType(), sourceBuffer)
                     debugGLErrors()
                 }
                 glPixelStorei(GL_UNPACK_ALIGNMENT, currentPack[0])
                 debugGLErrors()
-                (buffer as Buffer).rewind()
+                (sourceBuffer as Buffer).rewind()
             }
         } else {
             throw IllegalArgumentException("multisample targets cannot be written to")
@@ -558,9 +558,9 @@ class ColorBufferGL3(val target: Int,
     }
 
 
-    override fun read(buffer: ByteBuffer, targetFormat: ColorFormat, targetType: ColorType, level: Int) {
+    override fun read(targetBuffer: ByteBuffer, targetFormat: ColorFormat, targetType: ColorType, level: Int) {
         checkDestroyed()
-        if (!buffer.isDirect) {
+        if (!targetBuffer.isDirect) {
             throw IllegalArgumentException("buffer is not a direct buffer.")
         }
         if (multisample == Disabled) {
@@ -572,11 +572,11 @@ class ColorBufferGL3(val target: Int,
                 glPixelStorei(GL_PACK_ALIGNMENT, 1)
                 debugGLErrors()
                 val packAlignment = glGetInteger(GL_PACK_ALIGNMENT)
-                buffer.order(ByteOrder.nativeOrder())
-                (buffer as Buffer).rewind()
-                glGetTexImage(target, 0, targetFormat.glFormat(), targetType.glType(), buffer)
+                targetBuffer.order(ByteOrder.nativeOrder())
+                (targetBuffer as Buffer).rewind()
+                glGetTexImage(target, 0, targetFormat.glFormat(), targetType.glType(), targetBuffer)
                 debugGLErrors()
-                (buffer as Buffer).rewind()
+                (targetBuffer as Buffer).rewind()
                 glPixelStorei(GL_PACK_ALIGNMENT, packAlignment)
                 debugGLErrors()
             }

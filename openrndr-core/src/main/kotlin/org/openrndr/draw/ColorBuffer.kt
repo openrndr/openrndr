@@ -78,12 +78,13 @@ sealed class BufferMultisample {
      * Enable multisampling with a given [sampleCount]
      */
     data class SampleCount(val sampleCount: Int) : BufferMultisample()
-
-
 }
 
 /**
- * Color Buffer, a GPU resource
+ * representation for simple images stored on GPU memory
+ *
+ * [ColorBuffer] is a unmanaged GPU resource, the user is responsible for destroying a [ColorBuffer] once it is no
+ * longer used.
  */
 interface ColorBuffer {
     val session: Session?
@@ -96,7 +97,15 @@ interface ColorBuffer {
 
     /** the content scale of the [ColorBuffer] */
     val contentScale: Double
+
+    /**
+     * the [ColorFormat] of the image stored in the [ColorBuffer]
+     */
     val format: ColorFormat
+
+    /**
+     * the [ColorType] of the image stored in the [ColorBuffer]
+     */
     val type: ColorType
 
     /** the number of mipmap levels */
@@ -104,7 +113,6 @@ interface ColorBuffer {
 
     /** the multisampling method used for this [ColorBuffer] */
     val multisample: BufferMultisample
-
     val bounds: Rectangle get() = Rectangle(Vector2.ZERO, width * 1.0, height * 1.0)
 
     /** the width of the [ColorBuffer] in pixels */
@@ -116,27 +124,42 @@ interface ColorBuffer {
     /** save the [ColorBuffer] to [File] */
     fun saveToFile(file: File, imageFileFormat: ImageFileFormat = ImageFileFormat.guessFromExtension(file), async: Boolean = true)
 
-    /** returns a base64 data url representation */
+    /** return a base64 data url representation */
     fun toDataUrl(imageFileFormat: ImageFileFormat = ImageFileFormat.JPG): String
 
-    /** destroys the underlying [ColorBuffer] resources */
+    /** permanently destroy the underlying [ColorBuffer] resources, [ColorBuffer] can not be used after it is destroyed */
     fun destroy()
 
-    /** binds the colorbuffer to a texture unit, internal API */
+    /** bind the colorbuffer to a texture unit, internal API */
     fun bind(unit: Int)
-
-    fun write(buffer: ByteBuffer, sourceFormat: ColorFormat = format, sourceType: ColorType = type, level: Int = 0)
-    fun read(buffer: ByteBuffer, targetFormat: ColorFormat = format, targetType: ColorType = type, level: Int = 0)
-
     /**
-     * create a cropped copy
+     * write the contents from [sourceBuffer] to the [ColorBuffer], potentially with format and type conversions
+     *
+     * The [sourceBuffer] should be allocated using [ByteBuffer.allocateDirect] and have an amount of remaining bytes
+     * that matches with the dimensions, [sourceFormat] and [sourceType].
+     * @param sourceBuffer a [ByteBuffer] holding raw image data
+     * @param sourceFormat the [ColorFormat] that is used for the image data stored in [sourceBuffer], default is [ColorBuffer.format]
+     * @param sourceType the [ColorType] that is used for the image data stored in [sourceBuffer], default is [ColorBuffer.type]
+     * @param level the mipmap-level of [ColorBuffer] to write to
+     */
+    fun write(sourceBuffer: ByteBuffer, sourceFormat: ColorFormat = format, sourceType: ColorType = type, level: Int = 0)
+    /**
+     * read the contents of the [ColorBuffer] and write to [targetBuffer], potentially with format and type conversions
+     * @param targetBuffer a [ByteBuffer] to which the contents of the [ColorBuffer] will be written
+     * @param targetFormat the [ColorFormat] that is used for the image data stored in [targetBuffer], default is [ColorBuffer.format]
+     * @param targetType the [ColorType] that is used for the image data stored in [targetBuffer], default is [ColorBuffer.type]
+     * @param level the mipmap-level of [ColorBuffer] to read from
+     */
+    fun read(targetBuffer: ByteBuffer, targetFormat: ColorFormat = format, targetType: ColorType = type, level: Int = 0)
+    /**
+     * create a cropped copy of the [ColorBuffer]
+     * @param sourceRectangle
      */
     fun crop(sourceRectangle: IntRectangle): ColorBuffer {
         val cropped = createEquivalent(width = sourceRectangle.width, height = sourceRectangle.height)
         copyTo(cropped, sourceRectangle = sourceRectangle)
         return cropped
     }
-
     /** generates mipmaps from the top-level mipmap */
     fun generateMipmaps()
 
@@ -153,8 +176,8 @@ interface ColorBuffer {
      * @param target the color buffer to which contents will be copied
      * @param fromLevel the mip-map level from which will be copied
      * @param toLevel the mip-map level of [target] to which will be copied
-     * @param sourceRectangle rectangle that specifies where to read from
-     * @param targetRectangle rectangle that specifies where to write to
+     * @param sourceRectangle rectangle in pixel units that specifies where to read from
+     * @param targetRectangle rectangle in pixel units that specifies where to write to
      * @param filter filter to use for copying
      */
     fun copyTo(
@@ -186,7 +209,7 @@ interface ColorBuffer {
     fun copyTo(target: ArrayTexture, layer: Int, fromLevel: Int = 0, toLevel: Int = 0)
 
     /**
-     * sets every pixel in the color buffer to [color]
+     * sets all pixels in the color buffer to [color]
      * @param color the color used for filling
      */
     fun fill(color: ColorRGBa)
@@ -222,10 +245,14 @@ interface ColorBuffer {
     }
 
     /**
-     * Checks if this [ColorBuffer] is equivalent to [other]
+     * check if this [ColorBuffer] is equivalent to [other]
      * @param other the [ColorBuffer] to check against
-     * @param ignoreLevels ignores [levels] in check when true
-     * @param ignoreMultisample ignores [multisample] in check when true
+     * @param ignoreWidth ignore [ColorBuffer.width] in check when true
+     * @param ignoreHeight ignore [ColorBuffer.height] in check when true
+     * @param ignoreLevels ignore [ColorBuffer.levels] in check when true
+     * @param ignoreContentScale ignore [ColorBuffer.contentScale] when true
+     * @param ignoreMultisample ignore [ColorBuffer.multisample] in check when true
+     * @param ignoreLevels ignore [ColorBuffer.levels] in check when true
      */
     fun isEquivalentTo(other: ColorBuffer,
                        ignoreWidth: Boolean = false,
@@ -245,7 +272,7 @@ interface ColorBuffer {
     }
 
     /**
-     * Create an equivalent [ColorBuffer], with the option to override attributes
+     * create an equivalent [ColorBuffer], with the option to override attributes
      */
     fun createEquivalent(width: Int = this.width,
                          height: Int = this.height,
@@ -258,86 +285,144 @@ interface ColorBuffer {
     }
 
     companion object {
-        fun fromUrl(url: String, session: Session? = Session.active): ColorBuffer {
-            val colorBuffer = Driver.instance.createColorBufferFromUrl(url, session)
+        /**
+         * create a [ColorBuffer] from a [File] containing a formatted image
+         * @param file a [File] containing a formatted image
+         * @param formatHint an optional [ImageFileFormat] hint, default is null
+         * @param session the [Session] under which the [ColorBuffer] should be created, default is [Session.active]
+         * @see loadImage
+         */
+        fun fromUrl(url: String, formatHint: ImageFileFormat? = null, session: Session? = Session.active): ColorBuffer {
+            val colorBuffer = Driver.instance.createColorBufferFromUrl(url, formatHint, session)
             return colorBuffer
         }
 
-        fun fromFile(file: File, session: Session? = Session.active): ColorBuffer {
-            val colorBuffer = Driver.instance.createColorBufferFromFile(file.absolutePath, session)
+        /**
+         * create a [ColorBuffer] from a [File] containing a formatted image
+         * @param file a [File] containing a formatted image
+         * @param formatHint an optional [ImageFileFormat] hint, default is null
+         * @param session the [Session] under which the [ColorBuffer] should be created, default is [Session.active]
+         * @see loadImage
+         */
+        fun fromFile(file: File, formatHint: ImageFileFormat? = null, session: Session? = Session.active): ColorBuffer {
+            val colorBuffer = Driver.instance.createColorBufferFromFile(file.absolutePath, formatHint = formatHint, session)
             return colorBuffer
         }
 
-        fun fromFile(filename: String, session: Session? = Session.active): ColorBuffer {
-            val colorBuffer = Driver.instance.createColorBufferFromFile(filename, session)
+        /**
+         * create a [ColorBuffer] from a file indicated by [filename] containing a formatted image
+         * @param filename a file containing a formatted image
+         * @param formatHint an optional [ImageFileFormat] hint, default is null
+         * @param session the [Session] under which the [ColorBuffer] should be created, default is [Session.active]
+         * @see loadImage
+         */
+        fun fromFile(filename: String, formatHint: ImageFileFormat?, session: Session? = Session.active): ColorBuffer {
+            val colorBuffer = Driver.instance.createColorBufferFromFile(filename, formatHint = formatHint, session)
             return colorBuffer
         }
 
+        /**
+         * create a [ColorBuffer] from an [InputStream] containing a formatted image
+         * @param stream an [InputStream] holding a formatted image
+         * @param formatHint optional [ImageFileFormat] hint, default is null
+         * @param session the [Session] under which to create this [ColorBuffer]
+         */
         @Suppress("UNUSED_PARAMETER")
-        fun fromStream(stream: InputStream, formatHint: String? = null, session: Session? = Session.active): ColorBuffer {
-            val colorBuffer = Driver.instance.createColorBufferFromStream(stream, session = session)
+        fun fromStream(stream: InputStream, formatHint: ImageFileFormat? = null, session: Session? = Session.active): ColorBuffer {
+            val colorBuffer = Driver.instance.createColorBufferFromStream(
+                    stream,
+                    formatHint = formatHint,
+                    session = session
+            )
             return colorBuffer
         }
 
+        /**
+         * create a [ColorBuffer] from a [ByteArray] containing a formatted image (meaning any of the formats in [ImageFileFormat])
+         * @param bytes a [ByteArray] containing a formatted image
+         * @param offset offset used for reading from [bytes], default is 0
+         * @param length number of bytes to be used from [bytes], default is [bytes.size]
+         * @param formatHint an optiononal [ImageFileFormat] hint, default is nuull
+         */
         @Suppress("UNUSED_PARAMETER")
-        fun fromArray(bytes: ByteArray, offset: Int = 0, length: Int = bytes.size, session: Session? = Session.active): ColorBuffer {
-            val colorBuffer = Driver.instance.createColorBufferFromArray(bytes, session = session)
+        fun fromArray(
+                bytes: ByteArray,
+                offset: Int = 0,
+                length: Int = bytes.size,
+                formatHint: ImageFileFormat?,
+                session: Session? = Session.active
+        ): ColorBuffer {
+            val colorBuffer = Driver.instance.createColorBufferFromArray(bytes,
+                    offset,
+                    length,
+                    formatHint = formatHint,
+                    session = session)
             return colorBuffer
         }
 
-        fun fromBuffer(bytes: ByteBuffer, session: Session? = Session.active): ColorBuffer {
+        /**
+         * create a [ColorBuffer] from a [ByteBuffer] holding a formatted image (meaning any of the formats in [ImageFileFormat]
+         * @param bytes a [ByteBuffer] containing a formatted image
+         * @param formatHint an optional [ImageFileFormat] hint
+         * @param session the [Session] under which this [ColorBuffer] should be created, default is [Session.active]
+         */
+        fun fromBuffer(bytes: ByteBuffer, formatHint: ImageFileFormat?, session: Session? = Session.active): ColorBuffer {
             val colorBuffer = Driver.instance.createColorBufferFromBuffer(bytes, session = session)
             return colorBuffer
         }
     }
-
-
 }
 
-
 /**
- * creates a [ColorBuffer]
+ * create a [ColorBuffer]
  * @param width the width in device units
  * @param height the height in device units
  * @param contentScale content scale used for denoting hi-dpi content
  * @param format the color format
  * @param type the color type
+ * @param multisample multisampling mode to use
  * @param format the color format
  * @param levels the number of mip-map levels
  * @param session the [Session] that should track this color buffer
  */
-fun colorBuffer(width: Int, height: Int, contentScale: Double = 1.0, format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.UINT8, multisample: BufferMultisample = BufferMultisample.Disabled, levels: Int = 1, session: Session? = Session.active): ColorBuffer {
+fun colorBuffer(
+        width: Int,
+        height: Int,
+        contentScale: Double = 1.0,
+        format: ColorFormat = ColorFormat.RGBa,
+        type: ColorType = ColorType.UINT8,
+        multisample: BufferMultisample = BufferMultisample.Disabled,
+        levels: Int = 1,
+        session: Session? = Session.active
+): ColorBuffer {
     return Driver.instance.createColorBuffer(width, height, contentScale, format, type, multisample, levels, session)
 }
 
 /**
- * loads an image from a file or url encoded as [String], also accepts base64 encoded dat urls
+ * load an image from a file or url encoded as [String], also accepts base64 encoded data urls
  */
-fun loadImage(fileOrUrl: String, session: Session? = Session.active): ColorBuffer {
+fun loadImage(fileOrUrl: String, formatHint: ImageFileFormat? = null, session: Session? = Session.active): ColorBuffer {
     return try {
         if (!fileOrUrl.startsWith("data:")) {
             URL(fileOrUrl)
         }
-        ColorBuffer.fromUrl(fileOrUrl, session)
+        ColorBuffer.fromUrl(fileOrUrl, formatHint, session)
     } catch (e: MalformedURLException) {
-        loadImage(File(fileOrUrl), session)
+        loadImage(File(fileOrUrl), formatHint, session)
     }
 }
-
 /**
- * loads an image from [file]
+ * load an image from [File]
  */
-fun loadImage(file: File, session: Session? = Session.active): ColorBuffer {
+fun loadImage(file: File, formatHint: ImageFileFormat? = null, session: Session? = Session.active): ColorBuffer {
     require(file.exists()) {
         "failed to load image: file '${file.absolutePath}' does not exist."
     }
-    return ColorBuffer.fromFile(file, session)
+    return ColorBuffer.fromFile(file, formatHint, session)
 }
-
 /**
- * loads an image from an [url]
+ * load an image from an [url]
  */
-fun loadImage(url: URL, session: Session? = Session.active): ColorBuffer {
-    return ColorBuffer.fromUrl(url.toExternalForm(), session)
+fun loadImage(url: URL, formatHint: ImageFileFormat?, session: Session? = Session.active): ColorBuffer {
+    return ColorBuffer.fromUrl(url.toExternalForm(), formatHint, session)
 }
-
