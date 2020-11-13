@@ -162,7 +162,12 @@ data class Vector2(val x: Double, val y: Double) : Serializable, LinearType<Vect
          */
         val INFINITY = Vector2(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY)
 
-        fun fromPolar(polar: Polar) = polar.cartesian
+        fun fromPolar(polar: Polar): Vector2 {
+            val theta = toRadians(polar.theta)
+            val x = cos(theta)
+            val y = sin(theta)
+            return Vector2(x, y) * polar.radius
+        }
     }
 
     /**
