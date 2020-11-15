@@ -63,8 +63,8 @@ internal class Expansion(val type: ExpansionType, val fb: FloatArray, val buffer
         val dlx1 = p1.dy
         val dly1 = -p1.dx
 
-        val frw = (rw+fringe)
-        val flw = (lw+fringe)
+        val frw = (rw + fringe)
+        val flw = (lw + fringe)
 
         if (p1.flags and LEFT != 0) {
             val r = chooseBevel(p1.flags and INNER_BEVEL != 0, p0, p1, lw)
@@ -302,12 +302,15 @@ internal class Path {
     var nbevel: Int = 0
     val contours = mutableListOf<List<PathPoint>>()
 
-
     companion object {
-        fun fromLineStrip(segments: Iterable<Vector2>, closed: Boolean): Path {
+        fun fromLineStrip(segments: List<Vector2>,
+                          corners: List<Boolean>,
+                          closed: Boolean): Path {
             val sp = Path()
             val drop = closed && segments.first().squaredDistanceTo(segments.last()) < 10E-6
-            val path = segments.map { PathPoint().apply { x = it.x; y = it.y; flags = CORNER } }.dropLast(if (drop) 1 else 0)
+            val path = segments.mapIndexed { index, it ->
+                PathPoint().apply { x = it.x; y = it.y; flags = if (corners[index]) CORNER else 0 }
+            }.dropLast(if (drop) 1 else 0)
 
             if (path.isNotEmpty()) {
                 if (!closed) {
@@ -320,10 +323,10 @@ internal class Path {
             return sp
         }
 
-        fun fromLineLoops(contours: Iterable<Iterable<Vector2>>): Path {
+        fun fromLineLoops(contours: List<List<Vector2>>, corners: List<List<Boolean>>): Path {
             val sp = Path()
-            contours.forEach { contour ->
-                val path = contour.map { PathPoint().apply { x = it.x; y = it.y; flags = CORNER } }.dropLast(1)
+            contours.forEachIndexed() { contourIndex, contour ->
+                val path = contour.mapIndexed { index, it -> PathPoint().apply { x = it.x; y = it.y; flags = if (corners[contourIndex][index]) CORNER else 0 } }.dropLast(1)
                 sp.contours.add(path)
             }
             sp.closed = true
@@ -422,7 +425,7 @@ internal class Path {
     }
 
     fun expandStroke(fringeWidth: Double, weight: Double, lineCap: LineCap, lineJoin: LineJoin, miterLimit: Double): Expansion {
-        if (contours.isNotEmpty() && contours[0].renderable ) {
+        if (contours.isNotEmpty() && contours[0].renderable) {
             val points = contours[0]
 
             val tessTol = 0.1 * fringeWidth

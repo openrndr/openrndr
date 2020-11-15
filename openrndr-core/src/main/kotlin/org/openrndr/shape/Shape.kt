@@ -81,6 +81,8 @@ class Segment {
      */
     val linear: Boolean get() = control.isEmpty()
 
+    val corner: Boolean
+
     /**
      * The type of the segment
      */
@@ -104,10 +106,11 @@ class Segment {
      * @param start starting point of the segment
      * @param end end point of the segment
      */
-    constructor(start: Vector2, end: Vector2) {
+    constructor(start: Vector2, end: Vector2, corner: Boolean = true) {
         this.start = start
         this.end = end
         this.control = emptyArray()
+        this.corner = corner
     }
 
     /**
@@ -116,10 +119,11 @@ class Segment {
      * @param c0 control point
      * @param end end point of the segment
      */
-    constructor(start: Vector2, c0: Vector2, end: Vector2) {
+    constructor(start: Vector2, c0: Vector2, end: Vector2, corner: Boolean = true) {
         this.start = start
         this.control = arrayOf(c0)
         this.end = end
+        this.corner = corner
     }
 
     /**
@@ -129,16 +133,18 @@ class Segment {
      * @param c1 second control point
      * @param end end point of the segment
      */
-    constructor(start: Vector2, c0: Vector2, c1: Vector2, end: Vector2) {
+    constructor(start: Vector2, c0: Vector2, c1: Vector2, end: Vector2, corner: Boolean = true) {
         this.start = start
         this.control = arrayOf(c0, c1)
         this.end = end
+        this.corner = corner
     }
 
-    constructor(start: Vector2, control: Array<Vector2>, end: Vector2) {
+    constructor(start: Vector2, control: Array<Vector2>, end: Vector2, corner: Boolean = true) {
         this.start = start
         this.control = control
         this.end = end
+        this.corner = corner
     }
 
     fun lut(size: Int = 100): List<Vector2> {
@@ -147,7 +153,6 @@ class Segment {
         }
         return lut!!
     }
-
 
     fun on(point: Vector2, error: Double = 5.0): Double? {
         val lut = lut()
@@ -732,8 +737,8 @@ class Segment {
             val cut = start + (end.minus(start) * u)
             return arrayOf(Segment(start, cut), Segment(cut, end))
         } else {
-            when {
-                control.size == 2 -> {
+            when (control.size) {
+                2 -> {
                     val z = u
                     val z2 = z * z
                     val z3 = z * z * z
@@ -779,7 +784,7 @@ class Segment {
 
                     return arrayOf(left, right)
                 }
-                control.size == 1 -> {
+                1 -> {
                     val z = u
                     val iz = 1 - z
                     val iz2 = iz * iz
@@ -1207,14 +1212,25 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
     }
 
     fun adaptivePositions(distanceTolerance: Double = 0.5): List<Vector2> {
+        return adaptivePositionsAndCorners(distanceTolerance).first
+    }
+
+    fun adaptivePositionsAndCorners(distanceTolerance: Double = 0.5): Pair<List<Vector2>, List<Boolean>> {
         if (empty) {
-            return emptyList()
+            return Pair(emptyList(), emptyList())
         }
 
         val adaptivePoints = mutableListOf<Vector2>()
-
+        val corners = mutableListOf<Boolean>()
         for (segment in this.segments) {
             val samples = segment.adaptivePositions(distanceTolerance)
+            samples.forEachIndexed { index, it ->
+                if (index == 0) {
+                    corners.add(segment.corner)
+                } else {
+                    corners.add(false)
+                }
+            }
 
             samples.forEach {
                 val last = adaptivePoints.lastOrNull()
@@ -1226,8 +1242,10 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
         adaptivePoints.zipWithNext().forEach {
             require(it.first.squaredDistanceTo(it.second) > 0.0)
         }
-        return adaptivePoints
+        return Pair(adaptivePoints, corners)
     }
+
+
 
     fun adaptivePositionsAndDirection(distanceTolerance: Double = 0.5): Pair<List<Vector2>, List<Vector2>> {
         if (empty) {
