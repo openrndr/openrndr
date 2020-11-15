@@ -22,13 +22,17 @@ class ColorBufferLoader {
         synchronized(loadQueue) { loadQueue.add(colorBufferProxy) }
     }
 
-    fun loadFromUrl(url: String, persistent: Boolean = false): ColorBufferProxy = urlItems.getOrPut(url) {
+    fun loadFromUrl(url: String, queue: Boolean = true, persistent: Boolean = false): ColorBufferProxy = urlItems.getOrPut(url) {
         val proxy = ColorBufferProxy(url, this, persistent).apply {
             lastTouched = System.currentTimeMillis()
-            realState = ColorBufferProxy.State.QUEUED
+            state = if (queue) {
+                ColorBufferProxy.State.QUEUED
+            } else {
+                ColorBufferProxy.State.NOT_LOADED
+            }
         }
-        synchronized(loadQueue) {
-            loadQueue.add(proxy)
+        if (queue) {
+            queue(proxy)
         }
         proxy
     }
@@ -53,8 +57,8 @@ class ColorBufferLoader {
                         }
                         try {
                             val cb = ColorBuffer.fromUrl(proxy.url)
-                            proxy.realColorBuffer = cb
-                            proxy.realState = ColorBufferProxy.State.LOADED
+                            proxy.colorBuffer = cb
+                            proxy.state = ColorBufferProxy.State.LOADED
                             if (!proxy.persistent) {
                                 synchronized(loader.unloadQueue) {
                                     loader.unloadQueue.add(proxy)
@@ -64,12 +68,12 @@ class ColorBufferLoader {
                             proxy.events.loaded.trigger(ColorBufferProxy.ProxyEvent())
                         } catch (e: IOException) {
                             logger.error { e.stackTrace }
-                            proxy.realState = ColorBufferProxy.State.RETRY
+                            proxy.state = ColorBufferProxy.State.RETRY
                             proxy.events.retry.trigger(ColorBufferProxy.ProxyEvent())
                         } catch (e: Exception) {
                             logger.error { "unexpected exception while loading $proxy" }
                             logger.error { e.stackTrace }
-                            proxy.realState = ColorBufferProxy.State.ERROR
+                            proxy.state = ColorBufferProxy.State.ERROR
                             proxy.events.error.trigger(ColorBufferProxy.ProxyEvent())
                             // maybe come to a grinding halt here?
                         }
@@ -81,15 +85,14 @@ class ColorBufferLoader {
                             val dt = System.currentTimeMillis() - loader.unloadQueue[0].lastTouched
                             if (dt > 5000) {
                                 val proxy = loader.unloadQueue.removeAt(0)
-                                proxy.realColorBuffer?.destroy()
-                                proxy.realColorBuffer = null
-                                proxy.realState = ColorBufferProxy.State.NOT_LOADED
+                                proxy.colorBuffer?.destroy()
+                                proxy.colorBuffer = null
+                                proxy.state = ColorBufferProxy.State.NOT_LOADED
                                 proxy.events.unloaded.trigger(ColorBufferProxy.ProxyEvent())
                                 logger.debug { "unloaded $proxy" }
                             }
                         }
                     }
-
                     Driver.instance.clear(ColorRGBa.BLACK)
                     Thread.sleep(5)
                 }
