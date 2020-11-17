@@ -118,9 +118,9 @@ class ColorBufferDataGL3(val width: Int, val height: Int, val format: ColorForma
                 }
 
                 val (data8, data16) = when (bitsPerChannel) {
-                    8 -> Pair(STBImage.stbi_load_from_memory(buffer, wa, ha, ca, 0)
+                    8 -> Pair(STBImage.stbi_load_from_memory(buffer, wa, ha, ca, 4)
                             ?:error("stbi_load returned null"), null as ShortBuffer?)
-                    16 -> Pair(null as ByteBuffer?, STBImage.stbi_load_16_from_memory(buffer, wa, ha, ca, 0)
+                    16 -> Pair(null as ByteBuffer?, STBImage.stbi_load_16_from_memory(buffer, wa, ha, ca, 4)
                             ?:error("stdi_load returned null"))
                     else -> error("unsupported bits per channel: $bitsPerChannel")
                 }
@@ -205,8 +205,6 @@ class ColorBufferDataGL3(val width: Int, val height: Int, val format: ColorForma
 
                 val exrImage = EXRImage.create()
                 TinyEXR.InitEXRImage(exrImage)
-
-
                 TinyEXR.LoadEXRImageFromMemory(exrImage, exrHeader, buffer, errors)
 
                 val format =
@@ -231,7 +229,6 @@ class ColorBufferDataGL3(val width: Int, val height: Int, val format: ColorForma
                 val channelNames = (0 until exrHeader.num_channels()).map { exrHeader.channels().get(it).nameString() }
                 val images = exrImage.images()!!
                 val channelImages = (0 until exrHeader.num_channels()).map { images.getByteBuffer(it, width * height * type.componentSize) }
-
 
                 val order = when (format) {
                     ColorFormat.R -> listOf("R").map { channelNames.indexOf(it) }
