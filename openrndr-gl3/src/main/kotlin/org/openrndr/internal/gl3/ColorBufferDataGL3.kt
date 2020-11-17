@@ -191,12 +191,12 @@ class ColorBufferDataGL3(val width: Int, val height: Int, val format: ColorForma
                 val dest = MemoryUtil.memAddress(copyData)
                 MemoryUtil.memCopy(source, dest, copyData.capacity().toLong())
 
-                data8?.let { STBImage.stbi_image_free(it) }
-                data16?.let { STBImage.stbi_image_free(it) }
+                tdata8?.let { STBImage.stbi_image_free(it) }
+                tdata16?.let { STBImage.stbi_image_free(it) }
 
                 return ColorBufferDataGL3(wa[0], ha[0],
                         when (ca[0]) {
-                            1 -> ColorFormat.R
+                            1 -> ColorFormat.RGB
                             2 -> ColorFormat.RG
                             3 -> ColorFormat.RGB
                             4 -> ColorFormat.RGBa
