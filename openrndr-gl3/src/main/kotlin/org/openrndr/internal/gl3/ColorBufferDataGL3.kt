@@ -117,49 +117,71 @@ class ColorBufferDataGL3(val width: Int, val height: Int, val format: ColorForma
                     else -> error("unsupported bits per channel: $bitsPerChannel")
                 }
 
-                val (data8, data16) = when (bitsPerChannel) {
-                    8 -> Pair(STBImage.stbi_load_from_memory(buffer, wa, ha, ca, 4)
+                val (tdata8, tdata16) = when (bitsPerChannel) {
+                    8 -> Pair(STBImage.stbi_load_from_memory(buffer, wa, ha, ca, 0)
                             ?:error("stbi_load returned null"), null as ShortBuffer?)
-                    16 -> Pair(null as ByteBuffer?, STBImage.stbi_load_16_from_memory(buffer, wa, ha, ca, 4)
+                    16 -> Pair(null as ByteBuffer?, STBImage.stbi_load_16_from_memory(buffer, wa, ha, ca, 0)
                             ?:error("stdi_load returned null"))
                     else -> error("unsupported bits per channel: $bitsPerChannel")
                 }
 
-                if (data8 != null) {
+                if (tdata8 != null) {
                     var offset = 0
                     if (ca[0] == 4) {
                         for (y in 0 until ha[0]) {
                             for (x in 0 until wa[0]) {
-                                val a = (data8.get(offset + alphaOffset).toInt() and mask).toDouble() / mask.toDouble()
-                                val r = ((data8.get(offset + redOffset).toInt() and mask) * a)
-                                val g = ((data8.get(offset + greenOffset).toInt() and mask) * a)
-                                val b = ((data8.get(offset + blueOffset).toInt() and mask) * a)
-                                data8.put(offset + redOffset, r.toByte())
-                                data8.put(offset + greenOffset, g.toByte())
-                                data8.put(offset + blueOffset, b.toByte())
+                                val a = (tdata8.get(offset + alphaOffset).toInt() and mask).toDouble() / mask.toDouble()
+                                val r = ((tdata8.get(offset + redOffset).toInt() and mask) * a)
+                                val g = ((tdata8.get(offset + greenOffset).toInt() and mask) * a)
+                                val b = ((tdata8.get(offset + blueOffset).toInt() and mask) * a)
+                                tdata8.put(offset + redOffset, r.toByte())
+                                tdata8.put(offset + greenOffset, g.toByte())
+                                tdata8.put(offset + blueOffset, b.toByte())
+                                offset += 4
+                            }
+                        }
+                    }
+                }
+                val data8 = tdata8?.let {
+                    if (ca[0] == 1) {
+                        var roffset = 0
+                        var woffset = 0
+                        val data8 = ByteBuffer.allocateDirect(tdata8.capacity() * 3)
+                        for (y in 0 until ha[0]) {
+                            for (x in 0 until wa[0]) {
+                                val r = tdata8.get(roffset)
+                                data8.put(woffset + 0, r)
+                                data8.put(woffset + 1, r)
+                                data8.put(woffset + 2, r)
+                                roffset ++
+                                woffset += 3
+                            }
+                        }
+                        data8
+                    } else {
+                        tdata8
+                    }
+                }
+
+                if (tdata16 != null) {
+                    var offset = 0
+                    if (ca[0] == 4) {
+                        for (y in 0 until ha[0]) {
+                            for (x in 0 until wa[0]) {
+                                val a = (tdata16.get(offset + alphaOffset).toInt() and mask).toDouble() / mask.toDouble()
+                                val r = ((tdata16.get(offset + redOffset).toInt() and mask) * a)
+                                val g = ((tdata16.get(offset + greenOffset).toInt() and mask) * a)
+                                val b = ((tdata16.get(offset + blueOffset).toInt() and mask) * a)
+                                tdata16.put(offset + redOffset, r.toShort())
+                                tdata16.put(offset + greenOffset, g.toShort())
+                                tdata16.put(offset + blueOffset, b.toShort())
                                 offset += 4
                             }
                         }
                     }
                 }
 
-                if (data16 != null) {
-                    var offset = 0
-                    if (ca[0] == 4) {
-                        for (y in 0 until ha[0]) {
-                            for (x in 0 until wa[0]) {
-                                val a = (data16.get(offset + alphaOffset).toInt() and mask).toDouble() / mask.toDouble()
-                                val r = ((data16.get(offset + redOffset).toInt() and mask) * a)
-                                val g = ((data16.get(offset + greenOffset).toInt() and mask) * a)
-                                val b = ((data16.get(offset + blueOffset).toInt() and mask) * a)
-                                data16.put(offset + redOffset, r.toShort())
-                                data16.put(offset + greenOffset, g.toShort())
-                                data16.put(offset + blueOffset, b.toShort())
-                                offset += 4
-                            }
-                        }
-                    }
-                }
+                val data16 = tdata16
 
                 val copyData = (data8?.let { MemoryUtil.memAlloc(it.capacity()) } ?: data16?.let { MemoryUtil.memAlloc(it.capacity() * 2) })
                         ?: error("alloc failed, data8: ${data8}, data16: ${data16}, $assumedFormat, $bitsPerChannel")
