@@ -96,6 +96,29 @@ open class Screenshots : Extension {
      */
     var folder: String? = "screenshots"
 
+    /**
+     * when true, capture every frame.
+     * when false, only capture on keypress.
+     */
+    var captureEveryFrame: Boolean = false
+        set(value) {
+            field = value
+            if (value) createScreenshot = AutoNamed
+        }
+
+    /**
+     * override automatic naming for screenshot
+     */
+    var name: String? = null
+        set(value) {
+            field = value
+            createScreenshot = if (value == null) {
+                None
+            } else {
+                Named(value)
+            }
+        }
+
     internal var createScreenshot: CreateScreenshot = None
 
     private var target: RenderTarget? = null
@@ -188,7 +211,9 @@ open class Screenshots : Extension {
 
             target?.destroy()
             resolved?.destroy()
-            this.createScreenshot = None
+            if (!this.captureEveryFrame) {
+                this.createScreenshot = None
+            }
 
             if (quitAfterScreenshot) {
                 program.application.exit()
