@@ -110,14 +110,6 @@ open class Screenshots : Extension {
      * override automatic naming for screenshot
      */
     var name: String? = null
-        set(value) {
-            field = value
-            createScreenshot = if (value == null) {
-                None
-            } else {
-                Named(value)
-            }
-        }
 
     internal var createScreenshot: CreateScreenshot = None
 
@@ -142,7 +134,7 @@ open class Screenshots : Extension {
      * Trigger screenshot creation
      */
     fun trigger() {
-        createScreenshot = AutoNamed
+        createScreenshot = if (name.isNullOrBlank()) AutoNamed else Named(name!!)
         programRef?.window?.requestDraw()
     }
 
@@ -164,7 +156,7 @@ open class Screenshots : Extension {
 
             filename = when (val cs = createScreenshot) {
                 None -> throw IllegalStateException("")
-                AutoNamed -> program.namedTimestamp("png", folder)
+                AutoNamed -> if (name.isNullOrBlank()) program.namedTimestamp("png", folder) else name
                 is Named -> cs.name
             }
 
