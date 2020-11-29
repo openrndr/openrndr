@@ -11,6 +11,7 @@ import org.lwjgl.util.tinyexr.TinyEXR
 import org.openrndr.draw.ColorFormat
 import org.openrndr.draw.ColorType
 import org.openrndr.draw.ImageFileFormat
+import org.openrndr.internal.gl3.dds.loadDDS
 import java.io.File
 import java.io.InputStream
 import java.net.URL
@@ -20,7 +21,7 @@ import java.nio.ByteOrder
 import java.nio.ShortBuffer
 import java.util.*
 
-class ColorBufferDataGL3(val width: Int, val height: Int, val format: ColorFormat, val type: ColorType, var data: ByteBuffer?, var destroyFunction: ((ByteBuffer) -> Unit)? = null) {
+class ColorBufferDataGL3(val width: Int, val height: Int, val format: ColorFormat, val type: ColorType, val flipV: Boolean, var data: ByteBuffer?, var destroyFunction: ((ByteBuffer) -> Unit)? = null) {
     fun destroy() {
         val localData = data
         if (localData != null) {
@@ -202,7 +203,12 @@ class ColorBufferDataGL3(val width: Int, val height: Int, val format: ColorForma
                             4 -> ColorFormat.RGBa
                             else -> throw Exception("invalid component count ${ca[0]}")
                         },
-                        targetType, copyData) { b -> MemoryUtil.memFree(b) }
+                        targetType, false, copyData) { b -> MemoryUtil.memFree(b) }
+
+            } else if (assumedFormat == ImageFileFormat.DDS) {
+                val data = loadDDS(buffer)
+
+                return ColorBufferDataGL3(data.width, data.height,data.format, data.type, data.flipV, data.image(0))
 
             } else if (assumedFormat == ImageFileFormat.EXR) {
                 val exrHeader = EXRHeader.create()
@@ -278,7 +284,7 @@ class ColorBufferDataGL3(val width: Int, val height: Int, val format: ColorForma
 
                 TinyEXR.FreeEXRHeader(exrHeader)
                 TinyEXR.FreeEXRImage(exrImage)
-                return ColorBufferDataGL3(exrImage.width(), exrImage.height(), format, type, data)
+                return ColorBufferDataGL3(exrImage.width(), exrImage.height(), format, type, false, data)
             } else {
                 error("format not supported")
             }

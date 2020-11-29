@@ -17,6 +17,7 @@ import java.nio.ByteBuffer
 enum class ImageFileFormat(val mimeType: String, val extensions: List<String>) {
     JPG("image/jpeg", listOf("jpg", "jpeg")),
     PNG("image/png", listOf("png")),
+    DDS("image/vnd.ms-dds", listOf("dds")),
     EXR("image/x-exr", listOf("exr"));
 
     companion object {
@@ -24,6 +25,7 @@ enum class ImageFileFormat(val mimeType: String, val extensions: List<String>) {
             return when (val extension = file.extension.toLowerCase()) {
                 "jpg", "jpeg" -> JPG
                 "png" -> PNG
+                "dds" -> DDS
                 "exr" -> EXR
                 else -> throw IllegalArgumentException("unsupported format: \"$extension\"")
             }

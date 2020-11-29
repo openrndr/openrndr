@@ -143,6 +143,7 @@ class ColorBufferGL3(val target: Int,
         fun fromColorBufferData(data: ColorBufferDataGL3, session: Session?): ColorBuffer {
             val cb = create(data.width, data.height, 1.0, data.format, data.type, Disabled, 1, session)
             return cb.apply {
+                this.flipV = data.flipV
                 val d = data.data
                 if (d != null) {
                     cb.write(d)
@@ -190,7 +191,6 @@ class ColorBufferGL3(val target: Int,
                    levels: Int,
                    session: Session?): ColorBufferGL3 {
             val (internalFormat, internalType) = internalFormat(format, type)
-            type.glType()
             if (width <= 0 || height <= 0) {
                 throw Exception("cannot create ColorBuffer with dimensions: ${width}x$height")
             }

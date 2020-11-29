@@ -337,12 +337,11 @@ private class DDSHeader(header: ByteBuffer) {
     }
 }
 
-class DDSData(val format: ColorFormat, val type: ColorType, val width: Int, val height: Int, val mipmaps: Int, val cubeMap: Boolean, val bdata: List<ByteBuffer>, val bdata2: List<ByteBuffer>) {
+class DDSData(val format: ColorFormat, val type: ColorType, val width: Int, val height: Int, val mipmaps: Int, val cubeMap: Boolean, val bdata: List<ByteBuffer>, val bdata2: List<ByteBuffer>, val flipV: Boolean) {
     fun image(level: Int): ByteBuffer {
         return if (level == 0) bdata[0] else bdata2[level - 1]
     }
 
-    fun mipMapLevel(level: Int): ByteBuffer = bdata2[level]
     fun sidePX(level: Int = 0): ByteBuffer = if (level == 0) bdata[0] else bdata2[(level - 1) + 0 * (mipmaps - 1)]
     fun sideNX(level: Int = 0): ByteBuffer = if (level == 0) bdata[1] else bdata2[(level - 1) + 1 * (mipmaps - 1)]
     fun sidePY(level: Int = 0): ByteBuffer = if (level == 0) bdata[2] else bdata2[(level - 1) + 2 * (mipmaps - 1)]
@@ -354,13 +353,19 @@ class DDSData(val format: ColorFormat, val type: ColorType, val width: Int, val 
 private const val DDS_MAGIC = 0x20534444
 
 fun loadDDS(file: InputStream): DDSData {
+    val ba = ByteArray(file.available())
+    return loadDDS(newByteBuffer(ba))
+}
+
+fun loadDDS(data: ByteBuffer): DDSData {
     val primarySurfaces = mutableListOf<ByteBuffer>()
     val secondarySurfaces = mutableListOf<ByteBuffer>()
 
-    file.use { fis ->
-        var totalByteCount = fis.available()
+    run {
+        val fis = data
+        var totalByteCount = fis.capacity()
         val bMagic = ByteArray(4)
-        fis.read(bMagic)
+        fis.get(bMagic)
 
         val magic = newByteBuffer(bMagic).int
         if (magic != DDS_MAGIC) {
@@ -368,7 +373,7 @@ fun loadDDS(file: InputStream): DDSData {
         }
 
         val bHeader = ByteArray(124)
-        fis.read(bHeader)
+        fis.get(bHeader)
         val header = DDSHeader(newByteBuffer(bHeader))
 
         val format: ColorFormat
@@ -385,7 +390,7 @@ fun loadDDS(file: InputStream): DDSData {
             format = ColorFormat.RGBa
         } else if (header.pixelFormat.sFourCC.equals("DX10", ignoreCase = true)) {
             val dxt10HeaderArray = ByteArray(20)
-            fis.read(dxt10HeaderArray)
+            fis.get(dxt10HeaderArray)
             val dxt10Header = DDSHeaderDXT10(newByteBuffer(dxt10HeaderArray))
 
             when (dxt10Header.dxgiFormat) {
@@ -420,11 +425,18 @@ fun loadDDS(file: InputStream): DDSData {
             isCubeMap = false
         }
 
-        val size = header.pitchOrLinearSize * header.height
+        val size = when (type) {
+            ColorType.DXT5 -> (header.pitchOrLinearSize * header.height) / 4
+            else -> header.pitchOrLinearSize * header.height
+        }
 
         for (i in 0 until surfaceCount) {
+            require(fis.remaining() >= size) {
+                "source byte buffer only has ${fis.remaining()} bytes left, need $size"
+            }
+
             val bytes = ByteArray(size)
-            fis.read(bytes)
+            fis.get(bytes)
             totalByteCount -= bytes.size
             primarySurfaces.add(newByteBuffer(bytes))
 
@@ -433,13 +445,13 @@ fun loadDDS(file: InputStream): DDSData {
                     val div = 1 shl j
                     val size2 = size / (div * div)
                     val bytes2 = ByteArray(size2)
-                    fis.read(bytes2)
+                    fis.get(bytes2)
                     totalByteCount -= bytes2.size
                     secondarySurfaces.add(newByteBuffer(bytes2))
                 }
             }
         }
-        return DDSData(format, type, header.width, header.height, header.mipmapCount, isCubeMap, primarySurfaces, secondarySurfaces)
+        return DDSData(format, type, header.width, header.height, header.mipmapCount, isCubeMap, primarySurfaces, secondarySurfaces, true)
     }
 }
 
