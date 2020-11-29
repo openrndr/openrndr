@@ -25,6 +25,20 @@ object TestDrawLineSegments : Spek({
         }
     }
 
+    describe("drawing a single line segment") {
+        it("should not throw exceptions") {
+            application {
+                program {
+                    extend {
+                        val ls = LineSegment(0.0, 0.0, 50.0, 50.0)
+                        drawer.lineSegment(ls)
+                        application.exit()
+                    }
+                }
+            }
+        }
+    }
+
     describe("drawing one lineSegment using a List of LineSegment") {
         it("should not throw exceptions") {
             application {

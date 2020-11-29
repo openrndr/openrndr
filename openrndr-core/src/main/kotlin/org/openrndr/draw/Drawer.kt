@@ -744,7 +744,7 @@ class Drawer(val driver: Driver) {
 
         when (drawStyle.quality) {
             DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineSegments(context, drawStyle, listOf(start, end))
-            DrawQuality.QUALITY -> qualityLineDrawer.drawLineStrips(context, drawStyle, listOf(listOf(start, end)), listOf(listOf(true)), fringeWidth)
+            DrawQuality.QUALITY -> qualityLineDrawer.drawLineStrips(context, drawStyle, listOf(listOf(start, end)), listOf(listOf(true, true)), fringeWidth)
         }
     }
 
