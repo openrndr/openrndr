@@ -1246,7 +1246,6 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
     }
 
 
-
     fun adaptivePositionsAndDirection(distanceTolerance: Double = 0.5): Pair<List<Vector2>, List<Vector2>> {
         if (empty) {
             return Pair(emptyList(), emptyList())
@@ -1278,7 +1277,12 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
     /**
      *
      */
-    fun equidistantPositions(pointCount: Int) = sampleEquidistant(adaptivePositions(), pointCount)
+    fun equidistantPositions(pointCount: Int) =
+            if (empty) {
+                emptyList<Vector2>()
+            } else {
+                sampleEquidistant(adaptivePositions(), pointCount + if (closed) 1 else 0)
+            }
 
     /**
      * Adaptively sample the contour into line segments while still approximating the original contour
@@ -1286,7 +1290,11 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
      * @return a ShapeContour composed of linear segments
      */
     fun sampleLinear(distanceTolerance: Double = 0.5) =
-            fromPoints(adaptivePositions(distanceTolerance), closed, polarity)
+            if (empty) {
+                EMPTY
+            } else {
+                fromPoints(adaptivePositions(distanceTolerance), closed, polarity)
+            }
 
     /**
      * Sample the shape contour into line segments
@@ -1318,7 +1326,7 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
      * @return sub contour
      */
     fun sub(startT: Double, endT: Double): ShapeContour {
-        if (segments.isEmpty()) {
+        if (empty) {
             return EMPTY
         }
 
@@ -1545,7 +1553,12 @@ class Shape(val contours: List<ShapeContour>) {
      * indicates that the shape has only contours for which each segment is a line segment
      */
     val linear get() = contours.all { it.segments.all { it.linear } }
-    fun polygon(distanceTolerance: Double = 0.5) = Shape(contours.map { it.sampleLinear(distanceTolerance) })
+    fun polygon(distanceTolerance: Double = 0.5) =
+            if (empty) {
+                EMPTY
+            } else {
+                Shape(contours.map { it.sampleLinear(distanceTolerance) })
+            }
 
     /**
      * calculate triangulation for this shape
@@ -1589,6 +1602,9 @@ class Shape(val contours: List<ShapeContour>) {
     }
 
     operator fun contains(v: Vector2): Boolean {
+        if (empty) {
+            return false
+        }
         return toRegion2().contains(Vec2(v.x, v.y))
     }
 
@@ -1608,10 +1624,10 @@ class Shape(val contours: List<ShapeContour>) {
      * @param transform a Matrix44 that represents the transform
      * @return a transformed shape instance
      */
-    fun transform(transform: Matrix44) = if (transform === Matrix44.IDENTITY) {
-        this
-    } else {
-        Shape(contours.map { it.transform(transform) })
+    fun transform(transform: Matrix44) = when {
+        empty -> EMPTY
+        transform === Matrix44.IDENTITY -> this
+        else -> Shape(contours.map { it.transform(transform) })
     }
 
     /**

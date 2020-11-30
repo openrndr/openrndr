@@ -50,13 +50,13 @@ object TestRectangle : Spek({
 
         it("can be sampled for equidistant positions") {
             val eps = c.equidistantPositions(10)
-            eps.size `should be equal to` 10
+            eps.size `should be equal to` 11
 
             for (p in eps) {
-                p.x `should be greater or equal to` 100.0
-                p.y `should be greater or equal to` 100.0
-                p.x `should be less or equal to` 400.0
-                p.y `should be less or equal to` 400.0
+                p.x `should be greater or equal to` 100.0 - 1E-6
+                p.y `should be greater or equal to` 100.0 - 1E-6
+                p.x `should be less or equal to` 400.0 + 1E-6
+                p.y `should be less or equal to` 400.0 + 1E-6
             }
         }
     }
