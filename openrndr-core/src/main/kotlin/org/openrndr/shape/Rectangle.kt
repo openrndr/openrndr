@@ -4,6 +4,7 @@ package org.openrndr.shape
 
 import org.openrndr.math.Vector2
 import org.openrndr.math.YPolarity
+import org.openrndr.math.clamp
 import kotlin.math.max
 import kotlin.math.min
 
@@ -62,7 +63,20 @@ data class Rectangle(val corner: Vector2, val width: Double, val height: Double 
         return Rectangle(Vector2(corner.x - offset, corner.y - offsetY), width + 2 * offset, height + 2 * offsetY)
     }
 
-    /** create a new [Rectangle] with dimensions scaled by [scale] and [scaleY] */
+    /** create a new [Rectangle] with dimensions scaled by [scale] and [scaleY]
+     * @param scale the x scale factor
+     * @param scaleY the y scale factor, default is [scale]
+     * @param anchorU x coordinate of the scaling anchor in u parameter space, default is 0.5 (center)
+     * @param anchorV y coordinate of the scaling anchor in v parameter space, default is 0.5 (center)
+     * */
+
+    fun scale(scale: Double, scaleY: Double = scale, anchorU: Double = 0.5, anchorV: Double = 0.5): Rectangle {
+        val d = corner - position(anchorU, anchorV)
+        val nd = position(anchorU, anchorV) + d * Vector2(scale, scaleY)
+        return Rectangle(nd, width * scale, height * scaleY)
+    }
+
+    @Deprecated("use scale instead")
     fun scaled(scale: Double, scaleY: Double = scale): Rectangle {
         return Rectangle(corner, width * scale, height * scaleY)
     }
@@ -128,29 +142,42 @@ data class Rectangle(val corner: Vector2, val width: Double, val height: Double 
 }
 
 /** calculates [Rectangle]-bounds for a list of [Vector2] instances */
+@Deprecated("use List<Vector2>.bounds instead")
 fun vector2Bounds(points: List<Vector2>): Rectangle {
-    var minX = Double.POSITIVE_INFINITY
-    var minY = Double.POSITIVE_INFINITY
-    var maxX = Double.NEGATIVE_INFINITY
-    var maxY = Double.NEGATIVE_INFINITY
+    return points.bounds
+}
 
-    points.forEach {
-        minX = min(minX, it.x)
-        maxX = max(maxX, it.x)
-        minY = min(minY, it.y)
-        maxY = max(maxY, it.y)
+val List<Vector2>.bounds: Rectangle
+    @JvmName("getVector2Bounds") get() {
+        var minX = Double.POSITIVE_INFINITY
+        var minY = Double.POSITIVE_INFINITY
+        var maxX = Double.NEGATIVE_INFINITY
+        var maxY = Double.NEGATIVE_INFINITY
+
+        this.forEach {
+            minX = min(minX, it.x)
+            maxX = max(maxX, it.x)
+            minY = min(minY, it.y)
+            maxY = max(maxY, it.y)
+        }
+        return Rectangle(Vector2(minX, minY), maxX - minX, maxY - minY)
     }
-    return Rectangle(Vector2(minX, minY), maxX - minX, maxY - minY)
+
+/** calculates [Rectangle]-bounds for a list of [Rectangle] instances */
+@Deprecated("use List<Rectangle>.bounds instead")
+fun rectangleBounds(rectangles: List<Rectangle>): Rectangle {
+    return rectangles.bounds
 }
 
 /** calculates [Rectangle]-bounds for a list of [Rectangle] instances */
-fun rectangleBounds(rectangles: List<Rectangle>): Rectangle {
+val List<Rectangle>.bounds: Rectangle
+    @JvmName("getRectangleBounds") get() {
     var minX = Double.POSITIVE_INFINITY
     var minY = Double.POSITIVE_INFINITY
     var maxX = Double.NEGATIVE_INFINITY
     var maxY = Double.NEGATIVE_INFINITY
 
-    rectangles.forEach {
+    this.forEach {
         if (it != Rectangle.EMPTY) {
             minX = min(minX, it.x)
             maxX = max(maxX, it.x + it.width)
@@ -161,7 +188,7 @@ fun rectangleBounds(rectangles: List<Rectangle>): Rectangle {
     return Rectangle(Vector2(minX, minY), maxX - minX, maxY - minY)
 }
 
-/** determines of [a] and [b] intersect */
+/** determines if [a] and [b] intersect */
 fun intersects(a: Rectangle, b: Rectangle): Boolean {
     val above = a.y + a.height < b.y
     val below = a.y > b.y + b.height
@@ -169,3 +196,9 @@ fun intersects(a: Rectangle, b: Rectangle): Boolean {
     val leftOf = a.x + a.width < b.x
     return !(above || below || leftOf || rightOf)
 }
+
+fun Vector2.map(sourceRectangle: Rectangle, targetRectangle: Rectangle, clamp: Boolean = false): Vector2 {
+    val remapped = (this - sourceRectangle.corner) / sourceRectangle.dimensions * targetRectangle.dimensions + targetRectangle.corner
+    return if (clamp) remapped.clamp(targetRectangle.corner, targetRectangle.corner + targetRectangle.dimensions) else remapped
+}
+

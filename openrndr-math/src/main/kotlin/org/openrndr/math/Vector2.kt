@@ -187,3 +187,4 @@ fun min(a: Vector2, b: Vector2): Vector2 = Vector2(min(a.x, b.x), min(a.y, b.y))
 fun max(a: Vector2, b: Vector2): Vector2 = Vector2(max(a.x, b.x), max(a.y, b.y))
 
 fun mix(a: Vector2, b: Vector2, mix: Double): Vector2 = a * (1 - mix) + b * mix
+
