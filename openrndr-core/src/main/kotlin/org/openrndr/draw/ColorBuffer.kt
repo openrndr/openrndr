@@ -123,6 +123,19 @@ interface ColorBuffer {
     /** the height of the [ColorBuffer] in pixels */
     val effectiveHeight: Int get() = (height * contentScale).toInt()
 
+    /** return the buffer size in bytes */
+    fun bufferSize(level: Int = 0) : Long  {
+        val baseSize = ((effectiveWidth * effectiveHeight) shr level).toLong()
+        return when (type) {
+            ColorType.DXT1 -> (baseSize) / 2
+            ColorType.DXT3, ColorType.DXT5 -> baseSize
+            ColorType.BPTC_FLOAT -> TODO()
+            ColorType.BPTC_UFLOAT -> TODO()
+            ColorType.BPTC_UNORM -> TODO()
+            else -> baseSize * format.componentCount * type.componentSize
+        }
+    }
+
     /** save the [ColorBuffer] to [File] */
     fun saveToFile(file: File, imageFileFormat: ImageFileFormat = ImageFileFormat.guessFromExtension(file), async: Boolean = true)
 

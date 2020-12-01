@@ -207,7 +207,10 @@ class ColorBufferDataGL3(val width: Int, val height: Int, val format: ColorForma
 
             } else if (assumedFormat == ImageFileFormat.DDS) {
                 val data = loadDDS(buffer)
-
+                val buffer = data.image(0)
+                require(buffer.remaining() > 0) {
+                    "image buffer ${buffer} has no remaining bytes"
+                }
                 return ColorBufferDataGL3(data.width, data.height,data.format, data.type, data.flipV, data.image(0))
 
             } else if (assumedFormat == ImageFileFormat.EXR) {

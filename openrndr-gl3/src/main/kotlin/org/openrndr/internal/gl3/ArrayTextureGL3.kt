@@ -1,11 +1,14 @@
 package org.openrndr.internal.gl3
 
 import org.lwjgl.opengl.GL33C.*
+import org.lwjgl.opengl.GL42C.glTexStorage3D
 import org.openrndr.draw.*
+import org.openrndr.internal.Driver
 import java.nio.ByteBuffer
 
 class ArrayTextureGL3(val target: Int,
                       val texture: Int,
+                      val storageMode: TextureStorageModeGL,
                       override val width: Int,
                       override val height: Int,
                       override val layers: Int,
@@ -21,15 +24,31 @@ class ArrayTextureGL3(val target: Int,
                 throw IllegalArgumentException("layers ($layers) exceeds maximum of $maximumLayers")
             }
             val texture = glGenTextures()
+
+            val storageMode = when {
+                (Driver.instance as DriverGL3).version >= DriverVersionGL.VERSION_4_3 -> TextureStorageModeGL.STORAGE
+                else -> TextureStorageModeGL.IMAGE
+            }
+
             glBindTexture(GL_TEXTURE_2D_ARRAY, texture)
             checkGLErrors()
-            for (level in 0 until levels) {
-                val div = 1 shr level
-                glTexImage3D(GL_TEXTURE_2D_ARRAY,
-                        level, internalFormat(format, type).first,
-                        width / div, height / div, layers,
-                        0, GL_RGB, GL_UNSIGNED_BYTE, null as ByteBuffer?)
-                checkGLErrors()
+
+            when (storageMode) {
+                TextureStorageModeGL.IMAGE -> {
+                    for (level in 0 until levels) {
+                        val div = 1 shr level
+                        glTexImage3D(GL_TEXTURE_2D_ARRAY,
+                                level, internalFormat(format, type).first,
+                                width / div, height / div, layers,
+                                0, GL_RGB, GL_UNSIGNED_BYTE, null as ByteBuffer?)
+
+                        checkGLErrors()
+                    }
+                }
+                TextureStorageModeGL.STORAGE -> {
+                    glTexStorage3D(GL_TEXTURE_2D_ARRAY, levels, internalFormat(format, type).first, width, height, layers)
+                    checkGLErrors()
+                }
             }
             if (levels > 1) {
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, levels - 1)
@@ -39,7 +58,7 @@ class ArrayTextureGL3(val target: Int,
             glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, MinifyingFilter.LINEAR.toGLFilter())
             glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, MagnifyingFilter.LINEAR.toGLFilter())
             checkGLErrors()
-            return ArrayTextureGL3(GL_TEXTURE_2D_ARRAY, texture, width, height, layers, format, type, levels, session)
+            return ArrayTextureGL3(GL_TEXTURE_2D_ARRAY, texture, storageMode, width, height, layers, format, type, levels, session)
         }
     }
 
@@ -63,6 +82,8 @@ class ArrayTextureGL3(val target: Int,
             val div = 1 shl level
             if (sourceType.compressed) {
                 glCompressedTexSubImage3D(target, level, 0, 0, layer, width / div, height / div, 1, compressedType(sourceFormat, sourceType), buffer)
+                glFlush()
+                glFinish()
                 debugGLErrors()
             } else {
                 glTexSubImage3D(target, level, 0, 0, layer, width / div, height / div, 1, sourceFormat.glFormat(), sourceType.glType(), buffer)

@@ -335,6 +335,11 @@ private class DDSHeader(header: ByteBuffer) {
             throw RuntimeException("missing required caps")
         }
     }
+
+    override fun toString(): String {
+        return "DDSHeader(size=$size, flags=$flags, height=$height, width=$width, pitchOrLinearSize=$pitchOrLinearSize, depth=$depth, mipmapCount=$mipmapCount, reserved=${reserved.contentToString()}, pixelFormat=$pixelFormat, caps=$caps, caps2=$caps2, caps3=$caps3, caps4=$caps4, reserved2=$reserved2, hasFlagMipMapCount=$hasFlagMipMapCount, hasFlagCaps=$hasFlagCaps, hasFlagHeight=$hasFlagHeight, hasFlagWidth=$hasFlagWidth, hasFlagPitch=$hasFlagPitch, hasFlagPixelFormat=$hasFlagPixelFormat, hasFlagLinearSize=$hasFlagLinearSize, hasFlagDepth=$hasFlagDepth, hasCapsComplex=$hasCapsComplex, hasCapsMipMap=$hasCapsMipMap, hasCapsTexture=$hasCapsTexture, hasCaps2CubeMap=$hasCaps2CubeMap, hasCaps2CubeMapPX=$hasCaps2CubeMapPX, hasCaps2CubeMapNX=$hasCaps2CubeMapNX, hasCaps2CubeMapPY=$hasCaps2CubeMapPY, hasCaps2CubeMapNY=$hasCaps2CubeMapNY, hasCaps2CubeMapPZ=$hasCaps2CubeMapPZ, hasCaps2CubeMapNZ=$hasCaps2CubeMapNZ, hasCaps2Volume=$hasCaps2Volume)"
+    }
+
 }
 
 class DDSData(val format: ColorFormat, val type: ColorType, val width: Int, val height: Int, val mipmaps: Int, val cubeMap: Boolean, val bdata: List<ByteBuffer>, val bdata2: List<ByteBuffer>, val flipV: Boolean) {
@@ -381,7 +386,11 @@ fun loadDDS(data: ByteBuffer): DDSData {
 
         if (header.pixelFormat.sFourCC.equals("DXT1", ignoreCase = true)) {
             type = ColorType.DXT1
-            format = ColorFormat.RGBa
+            format = if (header.pixelFormat.hasFlagAlpha) {
+                ColorFormat.RGBa
+            } else {
+                ColorFormat.RGB
+            }
         } else if (header.pixelFormat.sFourCC.equals("DXT3", ignoreCase = true)) {
             type = ColorType.DXT3
             format = ColorFormat.RGBa
@@ -425,26 +434,34 @@ fun loadDDS(data: ByteBuffer): DDSData {
             isCubeMap = false
         }
 
-        val size = when (type) {
-            ColorType.DXT5 -> (header.pitchOrLinearSize * header.height) / 4
-            else -> header.pitchOrLinearSize * header.height
-        }
-
-        for (i in 0 until surfaceCount) {
-            require(fis.remaining() >= size) {
-                "source byte buffer only has ${fis.remaining()} bytes left, need $size"
+        fun size(level:Int) : Int {
+            val div = (1 shl level)
+            val width = header.width / div
+            val height = header.height / div
+            return when (type) {
+                ColorType.DXT1 -> (width * height) / 2
+                ColorType.DXT3, ColorType.DXT5 -> (width * height)
+                else -> (header.pitchOrLinearSize * header.height) shl level
             }
+        }
+        val primarySize = size(0)
 
-            val bytes = ByteArray(size)
+        require(primarySize > 0) {
+            """size of surface is 0 bytes ${header}"""
+        }
+        for (i in 0 until surfaceCount) {
+            require(fis.remaining() >= primarySize) {
+                "source byte buffer only has ${fis.remaining()} bytes left, need $primarySize, $format/$type"
+            }
+            val bytes = ByteArray(primarySize)
             fis.get(bytes)
             totalByteCount -= bytes.size
             primarySurfaces.add(newByteBuffer(bytes))
 
             if (header.hasFlagMipMapCount) {
-                for (j in 1 until header.mipmapCount) {
-                    val div = 1 shl j
-                    val size2 = size / (div * div)
-                    val bytes2 = ByteArray(size2)
+                for (level in 1 until header.mipmapCount) {
+                    val secondarySize = size(level)
+                    val bytes2 = ByteArray(secondarySize)
                     fis.get(bytes2)
                     totalByteCount -= bytes2.size
                     secondarySurfaces.add(newByteBuffer(bytes2))

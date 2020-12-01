@@ -10,6 +10,7 @@ import org.lwjgl.opengl.ARBTextureCompressionBPTC.*
 import org.lwjgl.opengl.EXTTextureCompressionS3TC.*
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic.GL_TEXTURE_MAX_ANISOTROPY_EXT
 import org.lwjgl.opengl.EXTTextureSRGB.*
+import org.lwjgl.opengl.GL13C
 import org.lwjgl.opengl.GL33C.*
 import org.lwjgl.opengl.GL42C.glTexStorage2D
 import org.lwjgl.opengl.GL43C
@@ -412,24 +413,52 @@ class ColorBufferGL3(val target: Int,
     }
 
     override fun copyTo(target: ArrayTexture, layer: Int, fromLevel: Int, toLevel: Int) {
-        checkDestroyed()
-        val fromDiv = 1 shl fromLevel
-        val toDiv = 1 shl toLevel
-        val readTarget = renderTarget(width / fromDiv, height / fromDiv, contentScale) {
-            colorBuffer(this@ColorBufferGL3, fromLevel)
-        } as RenderTargetGL3
-
-        target as ArrayTextureGL3
-        readTarget.bind()
-        glReadBuffer(GL_COLOR_ATTACHMENT0)
-        target.bound {
-            glCopyTexSubImage3D(target.target, toLevel, 0, 0, layer, 0, 0, target.width / toDiv, target.height / toDiv)
-            debugGLErrors()
+        debugGLErrors() {
+            "leaking error"
         }
-        readTarget.unbind()
 
-        readTarget.detachColorAttachments()
-        readTarget.destroy()
+        if (!type.compressed) {
+            checkDestroyed()
+            val fromDiv = 1 shl fromLevel
+            val toDiv = 1 shl toLevel
+            val readTarget = renderTarget(width / fromDiv, height / fromDiv, contentScale) {
+                colorBuffer(this@ColorBufferGL3, fromLevel)
+            } as RenderTargetGL3
+            debugGLErrors()
+
+            target as ArrayTextureGL3
+            readTarget.bind()
+            glReadBuffer(GL_COLOR_ATTACHMENT0)
+            debugGLErrors()
+
+            target.bound {
+                glCopyTexSubImage3D(target.target, toLevel, 0, 0, layer, 0, 0, target.width / toDiv, target.height / toDiv)
+                debugGLErrors() {
+                    when (it) {
+                        GL_INVALID_FRAMEBUFFER_OPERATION -> "the object bound to GL_READ_FRAMEBUFFER_BINDING is not framebuffer complete."
+                        else -> null
+                    }
+                }
+            }
+            readTarget.unbind()
+
+            readTarget.detachColorAttachments()
+            readTarget.destroy()
+        } else {
+            if (type == target.type && format == target.format) {
+                val copyBuffer = MemoryUtil.memAlloc(bufferSize(fromLevel).toInt())
+                try {
+                    read(copyBuffer, level = fromLevel)
+                    copyBuffer.rewind()
+                    target.write(layer = layer, copyBuffer, level = toLevel)
+                    copyBuffer.rewind()
+                } finally {
+                    MemoryUtil.memFree(copyBuffer)
+                }
+            } else {
+                error("can't copy from compressed source ${format}/${type} to compressed target ${target.format}/${target.type}")
+            }
+        }
     }
 
     override fun fill(color: ColorRGBa) {
@@ -512,6 +541,11 @@ class ColorBufferGL3(val target: Int,
     var realShadow: ColorBufferShadow? = null
 
     override fun write(sourceBuffer: ByteBuffer, sourceFormat: ColorFormat, sourceType: ColorType, level: Int) {
+
+        require(sourceBuffer.remaining() > 0) {
+            "sourceBuffer ${sourceBuffer} has no remaining data"
+        }
+
         val div = 1 shl level
         checkDestroyed()
         if (!sourceBuffer.isDirect) {
@@ -574,7 +608,14 @@ class ColorBufferGL3(val target: Int,
                 val packAlignment = glGetInteger(GL_PACK_ALIGNMENT)
                 targetBuffer.order(ByteOrder.nativeOrder())
                 (targetBuffer as Buffer).rewind()
-                glGetTexImage(target, 0, targetFormat.glFormat(), targetType.glType(), targetBuffer)
+                if (!targetType.compressed) {
+                    glGetTexImage(target, level, targetFormat.glFormat(), targetType.glType(), targetBuffer)
+                } else {
+                    require(targetType == type && targetFormat == format) {
+                        "source format/type (${format}/${type}) and target format/type ${targetFormat}/${targetType}) must match"
+                    }
+                    glGetCompressedTexImage(target, level, targetBuffer)
+                }
                 debugGLErrors()
                 (targetBuffer as Buffer).rewind()
                 glPixelStorei(GL_PACK_ALIGNMENT, packAlignment)
