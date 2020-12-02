@@ -14,6 +14,7 @@ import org.lwjgl.opengl.GL13C
 import org.lwjgl.opengl.GL33C.*
 import org.lwjgl.opengl.GL42C.glTexStorage2D
 import org.lwjgl.opengl.GL43C
+import org.lwjgl.opengl.GL43C.glCopyImageSubData
 import org.lwjgl.opengl.GL43C.glTexStorage2DMultisample
 import org.lwjgl.opengl.GL44C
 import org.lwjgl.stb.STBIWriteCallback
@@ -446,14 +447,20 @@ class ColorBufferGL3(val target: Int,
             readTarget.destroy()
         } else {
             if (type == target.type && format == target.format) {
-                val copyBuffer = MemoryUtil.memAlloc(bufferSize(fromLevel).toInt())
-                try {
-                    read(copyBuffer, level = fromLevel)
-                    copyBuffer.rewind()
-                    target.write(layer = layer, copyBuffer, level = toLevel)
-                    copyBuffer.rewind()
-                } finally {
-                    MemoryUtil.memFree(copyBuffer)
+                if (Driver.glVersion >= DriverVersionGL.VERSION_4_3) {
+                    val tgl = target as ArrayTextureGL3
+                    val fromDiv = 1 shl fromLevel
+                    glCopyImageSubData(texture, this.target, fromLevel, 0, 0, 0, tgl.texture, tgl.target, toLevel, 0, 0, layer, effectiveWidth / fromDiv, effectiveHeight / fromDiv, 1)
+                } else {
+                    val copyBuffer = MemoryUtil.memAlloc(bufferSize(fromLevel).toInt())
+                    try {
+                        read(copyBuffer, level = fromLevel)
+                        copyBuffer.rewind()
+                        target.write(layer = layer, copyBuffer, level = toLevel)
+                        copyBuffer.rewind()
+                    } finally {
+                        MemoryUtil.memFree(copyBuffer)
+                    }
                 }
             } else {
                 error("can't copy from compressed source ${format}/${type} to compressed target ${target.format}/${target.type}")
