@@ -20,6 +20,7 @@ import java.io.InputStream
 import java.io.InputStreamReader
 import java.net.URL
 import java.util.*
+import kotlin.math.abs
 import kotlin.math.log2
 import kotlin.reflect.KMutableProperty0
 import org.openrndr.math.transforms.lookAt as _lookAt
@@ -626,6 +627,10 @@ class Drawer(val driver: Driver) {
      */
     fun shape(shape: Shape) {
         val distanceTolerance = 0.5 / (modelViewScaling * log2(strokeWeight).coerceAtLeast(1.0))
+        if (abs(modelViewScaling) < 1E-6){
+            return
+        }
+
         val fringeWidth = 1.0 / modelViewScaling
         if (RenderTarget.active.hasDepthBuffer) {
 
@@ -677,6 +682,9 @@ class Drawer(val driver: Driver) {
     fun contour(contour: ShapeContour) {
         val distanceTolerance = 0.5 / (modelViewScaling * log2(strokeWeight).coerceAtLeast(1.0))
         val fringeWidth = 1.0 / modelViewScaling
+        if (abs(modelViewScaling) < 1E-6){
+            return
+        }
 
         if (RenderTarget.active.hasDepthBuffer) {
             if (drawStyle.fill != null && contour.closed) {
@@ -741,6 +749,10 @@ class Drawer(val driver: Driver) {
      */
     fun lineSegment(start: Vector2, end: Vector2) {
         val fringeWidth = 1.0 / modelViewScaling
+        if (abs(modelViewScaling) < 1E-6){
+            return
+        }
+
 
         when (drawStyle.quality) {
             DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineSegments(context, drawStyle, listOf(start, end))
@@ -760,6 +772,10 @@ class Drawer(val driver: Driver) {
 
     fun lineSegments(segments: List<Vector2>) {
         val fringeWidth = 0.5 / modelViewScaling
+        if (abs(modelViewScaling) < 1E-6){
+            return
+        }
+
         when (drawStyle.quality) {
             DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineSegments(context, drawStyle, segments)
             DrawQuality.QUALITY -> {
@@ -775,6 +791,9 @@ class Drawer(val driver: Driver) {
 
     fun lineSegments(segments: List<Vector2>, weights: List<Double>) {
         val fringeWidth = 0.5 / modelViewScaling
+        if (abs(modelViewScaling) < 1E-6){
+            return
+        }
 
         when (drawStyle.quality) {
             DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineSegments(context, drawStyle, segments)
@@ -815,6 +834,10 @@ class Drawer(val driver: Driver) {
     @JvmName("lineSegmentsFromLineSegmentList")
     fun lineSegments(segments: List<LineSegment>) {
         val fringeWidth = 1.0 / modelViewScaling
+        if (abs(modelViewScaling) < 1E-6){
+            return
+        }
+
         when (drawStyle.quality) {
             DrawQuality.PERFORMANCE -> {
                 // TODO: a faster version would pass `segments` to
@@ -881,6 +904,10 @@ class Drawer(val driver: Driver) {
      */
     fun lineStrip(points: List<Vector2>) {
         val fringeWidth = 1.0 / modelViewScaling
+        if (abs(modelViewScaling) < 1E-6){
+            return
+        }
+
         when (drawStyle.quality) {
             DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineLoops(context, drawStyle, listOf(points))
             DrawQuality.QUALITY -> qualityLineDrawer.drawLineStrips(context, drawStyle, listOf(points), listOf(points.map { true }), fringeWidth)
@@ -903,6 +930,10 @@ class Drawer(val driver: Driver) {
      */
     fun lineStrips(strips: List<List<Vector2>>) {
         val fringeWidth = 1.0 / modelViewScaling
+        if (abs(modelViewScaling) < 1E-6){
+            return
+        }
+
         when (drawStyle.quality) {
             DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineLoops(context, drawStyle, strips)
             DrawQuality.QUALITY -> qualityLineDrawer.drawLineStrips(context, drawStyle, strips, strips.map { it.map { true } }, fringeWidth)
