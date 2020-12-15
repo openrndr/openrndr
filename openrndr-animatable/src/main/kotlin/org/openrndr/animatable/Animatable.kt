@@ -128,6 +128,27 @@ open class Animatable {
     }
 
     /**
+     * the last queued or active animation group for [Unit] property, or null if no animations are available
+     */
+    val KMutableProperty0<Unit>.last: PropertyAnimationKey<Unit>?
+        @JvmName("lastUnitProperty")
+        get() = propertyAnimationKeys.findLast { it.property == this } as PropertyAnimationKey<Unit>?
+
+    /**
+     * the last queued or active animation for [LinearType] property, or null if no animations are available
+     */
+    val <T : LinearType<T>> KMutableProperty0<T>.last: PropertyAnimationKey<T>?
+        @JvmName("lastLinearTypeProperty")
+        get() = propertyAnimationKeys.findLast { it.property == this } as PropertyAnimationKey<T>?
+
+    /**
+     * the last queued or active animation for [Double] property, or null if no animations are available
+     */
+    val KMutableProperty0<Double>.last: PropertyAnimationKey<Double>?
+        @JvmName("lastDoubleProperty")
+        get() = propertyAnimationKeys.findLast { it.property == this } as PropertyAnimationKey<Double>?
+
+    /**
      * check if [Unit] property has queued or active animation groups
      */
     val KMutableProperty0<Unit>.hasAnimations
