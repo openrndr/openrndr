@@ -2,13 +2,17 @@ package org.openrndr.animatable
 
 import org.openrndr.animatable.easing.Easer
 import org.openrndr.animatable.easing.Easing
+import org.openrndr.events.Event
+import org.openrndr.math.LinearType
 import java.lang.reflect.Field
 import java.util.*
+import kotlin.reflect.KMutableProperty
 import kotlin.reflect.KMutableProperty0
 
 /*
 Copyright (c) 2012, Edwin Jakobs
 Copyright (c) 2013, Edwin Jakobs
+Copyright (c) 2020, Edwin Jakobs
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -19,55 +23,178 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 */
 
 
-/**
- * The Animatable base class.
- *
- * Example usage:
- * <pre>
- * class Foo extends Animatable {
- * double x;
- * double y;
- * }
-</pre> *
- * Then construct a `Foo` object and cue an animation
- * <pre>
- * Foo foo = new Foo();
- * foo.animate("x", 5, 1000).animate("y", 10, 1000);
-</pre> *
- * In your animation loop you update the object's animation and use its animated fields:
- * <pre>
- * foo.updateAnimation();
- * drawFoo(foo.x, foo.y);
-</pre> *
- *
- * @author Edwin Jakobs
- */
+private val globalAnimator by lazy { Animatable() }
+
+
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 open class Animatable {
 
-    @JvmName("animateProp")
-    fun KMutableProperty0<Double>.animate(target: Double, duration: Long, easing: Easing) {
-        animate(this, target, duration, easing)
+    /**
+     * create an animation group
+     * @param builder the animation group builder function
+     */
+    @JvmName("animateUnitProperty")
+    fun KMutableProperty0<Unit>.animationGroup(builder: (Animatable.() -> Unit)): PropertyAnimationKey<Unit> {
+        pushTime()
+        val before = propertyAnimationKeys.map { it }
+        this@Animatable.builder()
+        val added = propertyAnimationKeys subtract before
+
+        val groupDurationInNs = added.maxByOrNull { it.endInNs }?.let {
+            it.endInNs - createAtTimeInNs
+        } ?: 0L
+        val uak = UnitAnimationKey(this, Unit, groupDurationInNs, createAtTimeInNs)
+        uak.cancelled.listen {
+            for (key in added) {
+                key.cancelled.trigger(AnimationEvent())
+            }
+            this@Animatable.propertyAnimationKeys.removeAll(added)
+        }
+        propertyAnimationKeys.add(uak)
+        popTime()
+        return uak
     }
 
+    /**
+     * animate [Double] property
+     * @param targetValue the target animation value
+     * @param durationInMs animation duration in milliseconds
+     * @param easing the easing to use during the animation, default is [Easing.None]
+     * @param predelayInMs time to wait in milliseconds before the animation starts
+     */
+    @JvmName("animateProp")
+    fun KMutableProperty0<Double>.animate(targetValue: Double, durationInMs: Long, easing: Easing = Easing.None, predelayInMs: Long = 0): PropertyAnimationKey<Double> {
+        return animate(this, targetValue, durationInMs, easing, predelayInMs)
+    }
 
-    internal var createAtTime: Long = clock.timeNanos
-    internal var lastTime = createAtTime
+    /**
+     * animate [LinearType] property
+     * @param targetValue the target animation value
+     * @param durationInMs animation duration in milliseconds
+     * @param easing the easing to use during the animation, default is [Easing.None]
+     * @param predelayInMs time to wait in milliseconds before the animation starts
+     */
+    @JvmName("animatePropLinearType")
+    fun <T : LinearType<T>> KMutableProperty0<T>.animate(targetValue: T, durationInMs: Long, easing: Easing = Easing.None, predelayInMs: Long = 0): PropertyAnimationKey<T> {
+        return animate(this, targetValue, durationInMs, easing, predelayInMs)
+    }
+
+    internal fun MutableList<PropertyAnimationKey<*>>.cancel(property: KMutableProperty<*>) {
+        val toCancel = filter { it.property == property }
+        for (key in toCancel) {
+            key.cancelled.trigger(AnimationEvent())
+        }
+        removeAll(toCancel)
+    }
+
+    /**
+     * cancel all animation groups on [Unit] property
+     */
+    @JvmName("cancelUnitProperty")
+    fun KMutableProperty0<Unit>.cancel() = propertyAnimationKeys.cancel(this)
+
+    /**
+     * cancel all animations on [Double] property
+     */
+    @JvmName("cancelDoubleProperty")
+    fun KMutableProperty0<Double>.cancel() = propertyAnimationKeys.cancel(this)
+
+    /**
+     * cancel all animations on [LinearType] property
+     */
+    @JvmName("cancelLinearTypeProperty")
+    fun <T : LinearType<T>> KMutableProperty0<T>.cancel() = propertyAnimationKeys.cancel(this)
+
+
+    @JvmName("completeUnitProperty")
+    fun KMutableProperty0<Unit>.complete() {
+        propertyAnimationKeys.findLast { it.property == this }?.let {
+            createAtTimeInNs = it.startInNs + it.durationInNs
+        }
+    }
+
+    @JvmName("completeDoubleProperty")
+    fun KMutableProperty0<Double>.complete() {
+        propertyAnimationKeys.findLast { it.property == this }?.let {
+            createAtTimeInNs = it.startInNs + it.durationInNs
+        }
+    }
+
+    @JvmName("completeLinearTypeProperty")
+    fun <T : LinearType<T>> KMutableProperty0<T>.complete() {
+        propertyAnimationKeys.findLast { it.property == this }?.let {
+            createAtTimeInNs = it.startInNs + it.durationInNs
+        }
+    }
+
+    /**
+     * check if [Unit] property has queued or active animation groups
+     */
+    val KMutableProperty0<Unit>.hasAnimations
+        @JvmName("hasAnimationsUnitProperty")
+        get() = propertyAnimationKeys.find { it.property == this } != null
+
+    /**
+     * check if [Double] property has queued or active animation groups
+     */
+    val KMutableProperty0<Double>.hasAnimations
+        @JvmName("hasAnimationsDoubleProperty")
+        get() = propertyAnimationKeys.find { it.property == this } != null
+
+    /**
+     * check if [LinearType] property has queued or active animation groups
+     */
+    val <T : LinearType<T>>  KMutableProperty0<T>.hasAnimations
+        @JvmName("hasAnimationsLinearTypeProperty")
+        get() = propertyAnimationKeys.find { it.property == this } != null
+
+    internal fun <T> List<PropertyAnimationKey<*>>.durationInMs(property: KMutableProperty0<T>) =
+            filter { it.property == property }.maxByOrNull { it.endInNs }?.let {
+                (it.endInNs - lastTimeInNs) / 1000L
+            } ?: 0L
+
+    /**
+     * remaining duration of queued and activate animation groups for [Unit] property
+     */
+    val KMutableProperty0<Unit>.durationInMs: Long
+        @JvmName("durationInMsUnit")
+        get() = propertyAnimationKeys.durationInMs(this)
+
+    /**
+     * remaining duration of queued and active animations for [Double] property
+     */
+    val KMutableProperty0<Double>.durationInMs: Long
+        @JvmName("durationInMsDouble")
+        get() = propertyAnimationKeys.durationInMs(this)
+
+    /**
+     * remaining duration of queued and active animations for [LinearType] property
+     */
+    val <T : LinearType<T>> KMutableProperty0<T>.durationInMs: Long
+        @JvmName("durationInMsLinearTypeProperty")
+        get() = propertyAnimationKeys.durationInMs(this)
+
+    /**
+     * the time at which created animations will start
+     */
+    var createAtTimeInNs: Long = clock.timeNanos
+        private set
+
+    internal var lastTimeInNs = createAtTimeInNs
 
     private var animationKeys: MutableList<AnimationKey>? = mutableListOf()
+    private var propertyAnimationKeys: MutableList<PropertyAnimationKey<*>> = mutableListOf()
 
     private var stage: String? = null
 
     private var timeStack: Stack<Long>? = null
 
-    // private var emitListeners: ArrayList<EmitListener>? = null// = new ArrayList<EmitListener>();
-
     private var animatable: Any? = null
 
-
+    @Deprecated("no longer needed for property based API")
     private val fieldCache = HashMap<String, Field>()
 
-
+    @Deprecated("no longer needed for property based API")
     constructor(target: Any) {
         animatable = target
         //   animationKeys!!.ensureCapacity(10)
@@ -79,7 +206,7 @@ open class Animatable {
     }
 
     constructor(createAtTime: Long) {
-        this.createAtTime = createAtTime
+        this.createAtTimeInNs = createAtTime
         //animationKeys!!.ensureCapacity(10)
         animatable = this
     }
@@ -88,29 +215,29 @@ open class Animatable {
         if (timeStack == null) {
             timeStack = Stack()
         }
-        timeStack!!.push(createAtTime)
+        timeStack!!.push(createAtTimeInNs)
     }
 
     fun popTime() {
-        createAtTime = timeStack!!.pop()
+        createAtTimeInNs = timeStack!!.pop()
     }
 
     /**
      * Wait for a given time before cueing the next animation.
-     * @param durationMillis the delay in milliseconds
+     * @param delayInMs the delay in milliseconds
      * @return `this` for easy animation chaining
      */
-    fun delay(durationMillis: Long, durationNanos:Long = 0) {
-        createAtTime += durationMillis * 1_000 + durationNanos
+    fun delay(delayInMs: Long, delayInNs: Long = 0) {
+        createAtTimeInNs += delayInMs * 1_000 + delayInNs
     }
 
     /**
      * Wait until a the given timeMillis
-     * @param timeMillis the timeMillis in milliseconds
+     * @param timeInMs the timeMillis in milliseconds
      * @return `this` for easy animation chaining
      */
-    fun waitUntil(timeMillis: Long, timeNanos:Long = 0) {
-        createAtTime = timeMillis * 1_000 + timeNanos
+    fun waitUntil(timeInMs: Long, timeInNs: Long = 0) {
+        createAtTimeInNs = timeInMs * 1_000 + timeInNs
     }
 
 
@@ -121,6 +248,7 @@ open class Animatable {
      * @param durationMillis the durationMillis of the animation in milliseconds
      * @return `this` for easy animation chaining
      */
+    @Deprecated("use property based API")
     fun animate(variable: String, target: Double, durationMillis: Long) {
         return animate(variable, target, durationMillis, Easing.None)
     }
@@ -135,6 +263,8 @@ open class Animatable {
      * Also arrays of floats or doubles can be animated
      * <pre>animatable.animate("x[0]", 100, 1000).complete().animate("x[0]", 0, 1000);</pre>
      */
+
+    @Deprecated("use property based API")
     fun animate(variable: String, target: Double, durationMillis: Long, easing: Easing) {
         return animate(variable, target, durationMillis, easing.easer)
     }
@@ -149,8 +279,9 @@ open class Animatable {
      * Also arrays of floats or doubles can be animated
      * <pre>animatable.animate("x[0]", 100, 1000).complete().animate("x[0]", 0, 1000);</pre>
      */
+    @Deprecated("use property based API")
     fun animate(variable: String, target: Double, durationMillis: Long, easer: Easer) {
-        val key = AnimationKey(variable, target, durationMillis * 1000, createAtTime)
+        val key = AnimationKey(variable, target, durationMillis * 1000, createAtTimeInNs)
         key.easing = easer
         if (animationKeys == null) {
             animationKeys = mutableListOf()
@@ -164,7 +295,7 @@ open class Animatable {
      * @return `true` iff animations are cued.
      */
     fun hasAnimations(): Boolean {
-        return animationKeys!!.size != 0
+        return (animationKeys?.size ?: 0) + propertyAnimationKeys.size != 0
     }
 
     /**
@@ -172,6 +303,7 @@ open class Animatable {
      * @param variables
      * @return `true` iff animations matching any of the given variables are cued.
      */
+    @Deprecated("use property based API")
     fun hasAnimations(vararg variables: String): Boolean {
         val variableSet = HashSet<String>()
         for (variable in variables) {
@@ -187,6 +319,7 @@ open class Animatable {
      * @param duration the duration of the animation in milliseconds
      * @return `this` for easy animation chaining
      */
+    @Deprecated("use property based API")
     fun add(variable: String, target: Double, duration: Long) {
         add(variable, target, duration, Easing.None)
     }
@@ -206,23 +339,24 @@ open class Animatable {
      * animatable.add("x", 0, 1000);`
     </pre> *
      */
-
+    @Deprecated("use property based API")
     fun add(variable: String, target: Double, durationMillis: Long, easing: Easing) {
         add(variable, target, durationMillis, easing.easer)
     }
 
+    @Deprecated("use property based API")
     fun add(variable: String, target: Double, durationMillis: Long, easer: Easer) {
-        val key = AnimationKey(variable, target, durationMillis * 1000, createAtTime)
+        val key = AnimationKey(variable, target, durationMillis * 1000, createAtTimeInNs)
         key.animationMode = AnimationKey.AnimationMode.Additive
         key.easing = easer
         animationKeys!!.add(key)
     }
 
-
+    @Deprecated("use property based API")
     fun complete(variable: String) {
         val key = lastQueued(variable)
         if (key != null) {
-            createAtTime = key.start + key.duration
+            createAtTimeInNs = key.start + key.duration
 
         }
     }
@@ -247,6 +381,7 @@ open class Animatable {
      * @param callback the callback to call when the animation is completed
      * @return `this` for easy animation chaining
      */
+    @Deprecated("use property based API")
     fun complete(callback: (Animatable) -> Unit) {
         return complete(this, callback)
     }
@@ -266,10 +401,12 @@ open class Animatable {
      * @param easing the easing mode to set
      * @return `this` for easy animation chaining
      */
+    @Deprecated("use property based API")
     fun ease(easing: Easing) {
         return ease(easing.easer)
     }
 
+    @Deprecated("use property based API")
     fun ease(easer: Easer) {
         val last = lastQueued()
         if (last != null) {
@@ -282,30 +419,23 @@ open class Animatable {
      * @param variable the variable to give the velocity for
      * @return velocity in units per second
      */
-
+    @Deprecated("use property based API")
     fun velocity(variable: String): Double {
-
-
         for (key in animationKeys!!) {
-            if (key.start <= lastTime && key.variable.equals(variable)) {
-
+            if (key.start <= lastTimeInNs && key.variable.equals(variable)) {
                 val delta = key.target - key.from
-                val dt = (lastTime - key.start) / 1E6
-
-
+                val dt = (lastTimeInNs - key.start) / 1E6
                 return key.easing.velocity(dt, key.from, delta, key.durationSeconds)
-
             }
         }
         return 0.0
     }
 
-
     /**
      * Wait for the last cued animation in the given animatable to complete before starting the next animation.
      * @param animatable the animatable to wait for
-     * @return `this` for easy animation chaining
      */
+    @Deprecated("use property based API")
     fun complete(animatable: Animatable) {
         //noinspection unchecked,RedundantCast
         return complete(animatable, null)
@@ -319,15 +449,14 @@ open class Animatable {
      * @param callback the callback to call when the animation is completed
      * @return `this` for easy animation chaining
      */
-
+    @Deprecated("use property based API")
     fun complete(animatable: Animatable = this, callback: ((Animatable) -> Unit)? = null) {
-
         val waitForKey = animatable.lastQueued()
 
         if (waitForKey != null) {
-            createAtTime = waitForKey.start + waitForKey.duration
+            createAtTimeInNs = waitForKey.start + waitForKey.duration
             if (callback != null)
-                animationKeys!![animationKeys!!.size - 1].addCompletionCallback(callback)
+                animationKeys?.last()?.addCompletionCallback(callback)
         } else {
             callback?.invoke(this)
         }
@@ -339,17 +468,19 @@ open class Animatable {
      */
     fun cancel() {
         animationKeys?.clear()
-        createAtTime = clock.timeNanos
+        propertyAnimationKeys.clear()
+        createAtTimeInNs = lastTimeInNs
     }
+
 
     /**
      * Cancels all queued animations. Running animations will run until end.
      * @return `this` for easy animation chaining
      */
-
+    @Deprecated("use property based API")
     fun cancelQueued() {
         val keep = mutableListOf<AnimationKey>()
-        animationKeys?.let {keys ->
+        animationKeys?.let { keys ->
             keys.filterTo(keep) { it.animationState == AnimationKey.AnimationState.Playing }
             keys.clear()
             keys.addAll(keep)
@@ -361,6 +492,7 @@ open class Animatable {
      * Ends running animations and cancels all cued animations. The behaviour of end() differs from cancel() in how animated variables are treated, end() sets the animated variables to their target value. Using end() will produce a pop in the animation.
      * @return `this` for easy animation chaining
      */
+    @Deprecated("use property based API")
     fun end() {
         for (key in animationKeys!!) {
             if (key.animationState == AnimationKey.AnimationState.Playing) {
@@ -369,7 +501,7 @@ open class Animatable {
         }
 
         animationKeys?.clear()
-        createAtTime = lastTime
+        createAtTimeInNs = lastTimeInNs
     }
 
     /**
@@ -382,6 +514,7 @@ open class Animatable {
      * @param fields the names of the fields for which animations should be cancelled
      * @return `this` for easy animation chaining
      */
+    @Deprecated("use property based API")
     fun cancel(fields: Array<String>) {
 
         val filter = HashSet<String>()
@@ -395,14 +528,11 @@ open class Animatable {
         }
 
         animationKeys?.removeAll(toRemove)
-
-
-        //animationKeys.clear();
-        createAtTime = lastTime
+        createAtTimeInNs = lastTimeInNs
     }
 
+    @Deprecated("use property based API")
     private fun getField(variable: String): Field? {
-
         var field: Field? = fieldCache[variable]
 
         if (field == null) {
@@ -425,9 +555,8 @@ open class Animatable {
         return field
     }
 
-
+    @Deprecated("use property based API")
     private fun getFieldValue(variable: String): Double {
-
         //getFieldValue(this::lastTime)
 
         try {
@@ -485,6 +614,7 @@ open class Animatable {
     }
 
 
+    @Deprecated("use property based API")
     private fun lastQueued(): AnimationKey? {
         return if (animationKeys!!.size > 0) {
             animationKeys!![animationKeys!!.size - 1]
@@ -492,6 +622,7 @@ open class Animatable {
             null
     }
 
+    @Deprecated("use property based API")
     private fun lastQueued(variable: String): AnimationKey? {
         for (i in animationKeys!!.indices.reversed()) {
             val k = animationKeys!![i]
@@ -502,10 +633,9 @@ open class Animatable {
         return null
     }
 
+    @Deprecated("old JVM reflection based API")
     private fun setFieldValue(variable: String, value: Double) {
-
         try {
-
             val indexPos = if (variable[variable.length - 1] == ']') variable.indexOf("[") else -1
             if (indexPos != -1) {
 
@@ -570,6 +700,7 @@ open class Animatable {
      * Returns the duration of the animation in milliseconds
      * @return the duration of the running plus queued animations
      */
+    @Deprecated("use property based API")
     fun duration(): Long {
         var latest: Long = 0
         for (key in this.animationKeys!!) {
@@ -579,39 +710,37 @@ open class Animatable {
             }
         }
 
-        return Math.max(0L, Math.max(latest, createAtTime) - lastTime)
+        return Math.max(0L, Math.max(latest, createAtTimeInNs) - lastTimeInNs)
     }
 
     /**
      * Updates the animation state with a user supplied time
-     * @param time the time to use for updating the animation state
+     * @param timeInNs the time to use for updating the animation state
      */
     @JvmOverloads
-    fun updateAnimation(time: Long = clock.timeNanos) {
-
+    fun updateAnimation(timeInNs: Long = clock.timeNanos) {
         val toRemove = mutableListOf<AnimationKey>()
         val calls = mutableListOf<Pair<(Animatable) -> Unit, Animatable>>()
 
+        lastTimeInNs = timeInNs
+        createAtTimeInNs = lastTimeInNs
 
 
         if (animationKeys == null) {
             animationKeys = mutableListOf()
         }
         for (key in animationKeys!!) {
-
             if (key.start == -1L) {
-                key.start = time
+                key.start = timeInNs
             }
 
-            if (key.start <= time) { // && key.start + key.duration >= time) {
-
+            if (key.start <= timeInNs) { // && key.start + key.duration >= time) {
                 if (key.animationState == AnimationKey.AnimationState.Queued) {
                     key.play(getFieldValue(key.variable))
-
                 }
 
                 if (key.animationState == AnimationKey.AnimationState.Playing) {
-                    var dt = (time - key.start).toDouble()
+                    var dt = (timeInNs - key.start).toDouble()
 
                     if (key.duration > 0) {
                         dt /= key.duration
@@ -633,9 +762,7 @@ open class Animatable {
                         val value = blend(key.easing, dt, key.from, key.target)
                         setFieldValue(key.variable, value)
                     }
-
                 }
-
                 if (key.animationState == AnimationKey.AnimationState.Stopped) {
                     for (callback in key.completionCallbacks) {
                         calls.add(Pair(callback, this))
@@ -643,9 +770,7 @@ open class Animatable {
                     toRemove.add(key)
                 }
             }
-
         }
-
         for (call in calls) {
             call.first(call.second)
         }
@@ -654,29 +779,69 @@ open class Animatable {
             animationKeys!!.remove(key)
         }
 
-        lastTime = time
+        updatePropertyAnimations(timeInNs)
 
-        if (lastTime > createAtTime) {
-            createAtTime = lastTime
+
+    }
+
+    private fun updatePropertyAnimations(timeInNs: Long = clock.timeNanos) {
+        val toRemove = mutableListOf<PropertyAnimationKey<*>>()
+        val triggers = mutableListOf<Event<AnimationEvent>>()
+
+        for (key in propertyAnimationKeys) {
+            if (key.startInNs <= timeInNs) { // && key.start + key.duration >= time) {
+                if (key.animationState == AnimationKey.AnimationState.Queued) {
+                    key.play()
+                }
+
+                if (key.animationState == AnimationKey.AnimationState.Playing) {
+                    var dt = (timeInNs - key.startInNs).toDouble()
+
+                    if (key.durationInNs > 0) {
+                        dt /= key.durationInNs
+                    } else {
+                        dt = 1.0
+                    }
+
+                    if (dt < 0)
+                        dt = 0.0
+                    if (dt >= 1) {
+                        dt = 1.0
+                        key.stop()
+                    }
+                    key.applyToProperty(dt)
+                }
+                if (key.animationState == AnimationKey.AnimationState.Stopped) {
+                    triggers.add(key.completed)
+                    toRemove.add(key)
+                }
+            }
+        }
+        for (event in triggers) {
+            event.trigger(AnimationEvent())
+        }
+
+        for (key in toRemove) {
+            propertyAnimationKeys.remove(key)
+        }
+
+        lastTimeInNs = timeInNs
+
+        if (lastTimeInNs > createAtTimeInNs) {
+            createAtTimeInNs = lastTimeInNs
         }
     }
 
-
-    internal fun createAtTime(): Long {
-        return createAtTime
-    }
 
     /**
      * Returns the number of playing plus queued animations
      * @return number of playing plus queued animations
      */
     fun animationCount(): Int {
-        return animationKeys!!.size
+        return animationKeys!!.size + propertyAnimationKeys.size
     }
 
     companion object {
-
-
         internal var clock: Clock = DefaultClock()
 
         /**
@@ -700,8 +865,23 @@ open class Animatable {
         }
     }
 
-    fun animate(variable: KMutableProperty0<*>, target: Double, durationMillis: Long,
-                easing: Easing = Easing.None) {
-        animate(variable.name, target, durationMillis, easing)
+    fun <T : LinearType<T>> animate(variable: KMutableProperty0<T>, target: T, durationMillis: Long,
+                                    easing: Easing = Easing.None, predelayInMs: Long = 0): PropertyAnimationKey<T> {
+        val key = LinearTypeAnimationKey(variable, target, durationMillis * 1000, createAtTimeInNs + predelayInMs * 1000, easing)
+        propertyAnimationKeys.add(key)
+        return key
     }
+
+    fun animate(variable: KMutableProperty0<Double>, target: Double, durationMillis: Long,
+                easing: Easing = Easing.None, predelayInMs: Long = 0): PropertyAnimationKey<Double> {
+        val key = DoubleAnimationKey(variable, target, durationMillis * 1000, createAtTimeInNs + predelayInMs * 1000, easing)
+        propertyAnimationKeys.add(key)
+        return key
+    }
+
 }
+
+//fun animate(builder: Animatable.() -> Unit) {
+//    globalAnimator.builder()
+//}
+

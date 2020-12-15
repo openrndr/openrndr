@@ -3,6 +3,7 @@
 package org.openrndr
 
 import kotlinx.coroutines.*
+import org.openrndr.animatable.Animatable
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.Drawer
 import org.openrndr.events.Event
@@ -57,6 +58,8 @@ open class Program {
     var height = 0
 
     var name = stackRootClassName()
+
+    private val animator by lazy { Animatable() }
 
     lateinit var drawer: Drawer
     lateinit var driver: Driver
@@ -269,6 +272,7 @@ open class Program {
      * This is the draw call that is called by Application. It takes care of handling extensions.
      */
     fun drawImpl() {
+        animator.updateAnimation()
         frameSeconds = clock()
 
         if (lastSeconds == -1.0) lastSeconds = seconds
@@ -284,6 +288,10 @@ open class Program {
         extensions.filter { it.enabled }.forEach { it.beforeDraw(drawer, this) }
         draw()
         extensions.reversed().filter { it.enabled }.forEach { it.afterDraw(drawer, this) }
+    }
+
+    fun animate(animationFunction: Animatable.() -> Unit) {
+        animator.animationFunction()
     }
 
     /**

@@ -7,7 +7,7 @@ import org.openrndr.animatable.easing.Easing
  * @author Edwin Jakobs
  */
 
-internal class AnimationKey(val variable: String, val target: Double, val duration: Long, var start: Long) {
+class AnimationKey(val variable: String, val target: Double, val duration: Long, var start: Long) {
     var from: Double = 0.toDouble()
 
     var message: Any? = null
@@ -17,6 +17,7 @@ internal class AnimationKey(val variable: String, val target: Double, val durati
      * returns all completion callbacks for the animation
      * @return a list containing completion callbacks
      */
+
     var completionCallbacks = mutableListOf<(Animatable)->Unit>()
 
     var animationState = AnimationState.Queued

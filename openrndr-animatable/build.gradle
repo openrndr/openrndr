@@ -1,0 +1,5 @@
+dependencies {
+    implementation project(":openrndr-math")
+    implementation project(":openrndr-event")
+
+}
