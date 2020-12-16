@@ -176,16 +176,16 @@ class Writer(val drawerRef: Drawer?) {
     }
 }
 
-fun writer(drawer: Drawer, f: Writer.() -> Unit) {
+fun <T> writer(drawer: Drawer, f: Writer.() -> T) : T {
     val writer = Writer(drawer)
-    writer.f()
+    return writer.f()
 }
 
-fun Program.writer(f: Writer.() -> Unit) {
-    writer(drawer, f)
+fun <T> Program.writer(f: Writer.() -> T) : T {
+    return writer(drawer, f)
 }
 
 @JvmName("drawerWriter")
-fun Drawer.writer(f: Writer.() -> Unit) {
-    writer(this, f)
+fun <T> Drawer.writer(f: Writer.() -> T) : T {
+    return writer(this, f)
 }
