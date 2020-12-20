@@ -14,6 +14,7 @@ import java.util.*
 enum class ClipOp {
     DISABLED,
     DIFFERENCE,
+    REVERSE_DIFFERENCE,
     INTERSECT,
     UNION
 }
@@ -27,6 +28,8 @@ enum class ClipMode(val grouped: Boolean, val op: ClipOp) {
     DISABLED(false, ClipOp.DISABLED),
     DIFFERENCE(false, ClipOp.DIFFERENCE),
     DIFFERENCE_GROUP(true, ClipOp.DIFFERENCE),
+    REVERSE_DIFFERENCE(false, ClipOp.REVERSE_DIFFERENCE),
+    REVERSE_DIFFERENCE_GROUP(true, ClipOp.REVERSE_DIFFERENCE),
     INTERSECT(false, ClipOp.INTERSECT),
     INTERSECT_GROUP(true, ClipOp.INTERSECT),
     UNION(false, ClipOp.UNION),
@@ -307,8 +310,8 @@ class CompositionDrawer(documentBounds: Rectangle = DefaultCompositionBounds,
         // only use clipping for open shapes
         val clipMode = if (postShape.topology == ShapeTopology.CLOSED) clipMode else ClipMode.DISABLED
 
-        return when (clipMode) {
-            ClipMode.DISABLED -> {
+        return when (clipMode.op) {
+            ClipOp.DISABLED, ClipOp.REVERSE_DIFFERENCE -> {
                 val shapeNode = ShapeNode(postShape)
 
                 val shapeTransform: Matrix44
@@ -322,8 +325,23 @@ class CompositionDrawer(documentBounds: Rectangle = DefaultCompositionBounds,
                         shapeTransform = model
                     }
                 }
-                shapeNode.shape = postShape.transform(shapeTransform)
-
+                shapeNode.shape = when (clipMode.op) {
+                    ClipOp.DISABLED -> postShape.transform(shapeTransform)
+                    ClipOp.REVERSE_DIFFERENCE -> {
+                        val shapeNodes = (if (!clipMode.grouped) composition.findShapes() else cursor.findShapes())
+                        var toInsert = shape
+                        val inverse = model.inversed
+                        for (shapeNode in shapeNodes) {
+                            if (toInsert.empty) {
+                                break
+                            } else {
+                                toInsert = difference(toInsert,shapeNode.effectiveShape.transform(inverse))
+                            }
+                        }
+                        toInsert
+                    }
+                    else -> error("unreachable")
+                }
                 shapeNode.fill = Color(fill)
                 shapeNode.stroke = Color(stroke)
                 shapeNode.strokeWeight = StrokeWeight(strokeWeight)
