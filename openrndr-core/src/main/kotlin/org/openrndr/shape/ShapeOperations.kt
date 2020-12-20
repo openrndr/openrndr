@@ -560,6 +560,17 @@ fun intersections(a: ShapeContour, b: ShapeContour): List<ContourIntersection> {
     }
 }
 
+fun intersections(a: Shape, b: Shape) : List<ContourIntersection> {
+    return a.contours.flatMap { ac ->
+        b.contours.flatMap { bc ->
+            intersections(ac, bc)
+        }
+    }
+}
+
+
+
+
 fun split(shape: Shape, line: LineSegment): Pair<Shape, Shape> {
     val center = (line.end + line.start) / 2.0
     val direction = (line.end - line.start).normalized

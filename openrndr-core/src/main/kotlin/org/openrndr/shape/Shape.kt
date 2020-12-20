@@ -936,6 +936,10 @@ class Segment {
 
     val contour: ShapeContour
         get() = ShapeContour(listOf(this), false)
+
+    fun intersections(other: Segment) = intersections(this, other)
+    fun intersections(other: ShapeContour) = intersections(this.contour, other)
+    fun intersections(other: Shape) = intersections(this.contour.shape, other)
 }
 
 private fun sumDifferences(points: List<Vector2>) =
@@ -1469,6 +1473,14 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
         }
         return ShapeContour(if (segments.size > 1) fixedSegments else segments, closed, polarity)
     }
+
+    fun union(other: Shape): Shape = union(this.shape, other)
+    fun difference(other: Shape): Shape = difference(this, other)
+    fun intersection(other: Shape): Shape = intersection(this, other)
+
+    fun intersections(other: Segment) = intersections(this, other.contour)
+    fun intersections(other: ShapeContour) = intersections(this, other)
+    fun intersections(other: Shape) = intersections(this.shape, other)
 }
 
 /**
@@ -1674,6 +1686,14 @@ class Shape(val contours: List<ShapeContour>) {
     override fun hashCode(): Int {
         return contours.hashCode()
     }
+
+    fun union(other: Shape): Shape = union(this, other)
+    fun difference(other: Shape): Shape = difference(this, other)
+    fun intersection(other: Shape): Shape = intersection(this, other)
+
+    fun intersections(other: Shape) = intersections(this, other)
+    fun intersections(other: ShapeContour) = intersections(this, other.shape)
+    fun intersections(other: Segment) = intersections(this, other.contour.shape)
 }
 
 /**
