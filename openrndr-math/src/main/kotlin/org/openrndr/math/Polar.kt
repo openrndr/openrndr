@@ -16,7 +16,6 @@ data class Polar(val theta: Double, val radius: Double = 1.0) : LinearType<Polar
     fun makeSafe() = Polar(
             mod(theta, 360.0),
             radius
-
     )
 
     companion object {
