@@ -1694,6 +1694,11 @@ class Shape(val contours: List<ShapeContour>) {
     fun intersections(other: Shape) = intersections(this, other)
     fun intersections(other: ShapeContour) = intersections(this, other.shape)
     fun intersections(other: Segment) = intersections(this, other.contour.shape)
+    override fun toString(): String {
+        return "Shape(contours=$contours, topology=$topology)"
+    }
+
+
 }
 
 /**
