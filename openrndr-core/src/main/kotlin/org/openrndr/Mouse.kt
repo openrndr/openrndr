@@ -29,6 +29,17 @@ data class MouseEvent(val position: Vector2, val rotation: Vector2, val dragDisp
     }
 }
 
+
+enum class CursorType {
+    ARROW_CURSOR,
+    IBEAM_CURSOR,
+    CROSSHAIR_CURSOR,
+    HAND_CURSOR,
+    HRESIZE_CURSOR,
+    VRESIZE_CURSOR
+}
+
+
 /**
  * Mouse events
  */
@@ -49,6 +60,15 @@ class Mouse(private val application: () -> Application) {
         get() = application().cursorVisible
         set(value) {
             application().cursorVisible = value
+        }
+
+    /**
+     * specifies the active cursor type, default is [CursorType.ARROW_CURSOR]
+     */
+    var cursorType: CursorType
+        get() = application().cursorType
+        set(value) {
+            application().cursorType = value
         }
 
     /**

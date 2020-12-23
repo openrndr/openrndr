@@ -50,16 +50,33 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
             glfwSetCursorPos(window, value.x, value.y)
         }
 
-    private var realCursorVisible = true
-    override var cursorVisible: Boolean
-        get() {
-            return realCursorVisible
-        }
+    override var cursorVisible: Boolean = true
         set(value) {
+            field = value
             if (value) {
                 glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL)
             } else {
-                glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED)
+                glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN)
+            }
+        }
+
+    private val cursorCache by lazy { mutableMapOf<CursorType, Long>() }
+    override var cursorType: CursorType = CursorType.ARROW_CURSOR
+        set(value) {
+            if (value != field) {
+                val cursor = cursorCache.getOrPut(value) {
+                    val glfwCursor = when (value) {
+                        CursorType.ARROW_CURSOR -> GLFW_ARROW_CURSOR
+                        CursorType.IBEAM_CURSOR -> GLFW_IBEAM_CURSOR
+                        CursorType.HAND_CURSOR -> GLFW_HAND_CURSOR
+                        CursorType.CROSSHAIR_CURSOR -> GLFW_CROSSHAIR_CURSOR
+                        CursorType.HRESIZE_CURSOR -> GLFW_HRESIZE_CURSOR
+                        CursorType.VRESIZE_CURSOR -> GLFW_VRESIZE_CURSOR
+                    }
+                    glfwCreateStandardCursor(glfwCursor)
+                }
+                glfwSetCursor(window, cursor)
+                field = value
             }
         }
 
@@ -620,7 +637,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         logger.info { "OpenGL version: ${glGetString(GL_VERSION)}" }
 
         if (configuration.hideCursor) {
-            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED)
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN)
         }
 
         if (configuration.vsync) {

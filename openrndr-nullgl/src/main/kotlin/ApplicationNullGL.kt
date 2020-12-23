@@ -1,12 +1,9 @@
 package org.openrndr.internal.nullgl
 
 import mu.KotlinLogging
+import org.openrndr.*
 
 
-import org.openrndr.Application
-import org.openrndr.Configuration
-import org.openrndr.PresentationMode
-import org.openrndr.Program
 import org.openrndr.draw.Drawer
 import org.openrndr.internal.Driver
 import org.openrndr.math.Vector2
@@ -73,6 +70,7 @@ class ApplicationNullGL(private val program: Program, private val configuration:
 
     override var cursorPosition: Vector2 = Vector2.ZERO
     override var cursorVisible: Boolean = true
+    override var cursorType: CursorType = CursorType.ARROW_CURSOR
     override val seconds: Double
         get() = (startMS - System.currentTimeMillis()) / 1000.0
     override var presentationMode: PresentationMode = PresentationMode.AUTOMATIC
