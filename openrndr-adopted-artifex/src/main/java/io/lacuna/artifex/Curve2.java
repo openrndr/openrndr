@@ -90,10 +90,29 @@ public interface Curve2 {
   }
 
   /**
-   * @param ts an array of parametric split points
+   * @param unsafeTs an array of parametric split points
    * @return an array of curves, split at the specified points.
    */
-  default Curve2[] split(double[] ts) {
+  default Curve2[] split(double[] unsafeTs) {
+
+    double previous = Double.POSITIVE_INFINITY;
+    int tCount = 0;
+    for (int i = 0; i < unsafeTs.length; ++i) {
+      if (unsafeTs[i] != previous) {
+        tCount++;
+      }
+      previous = unsafeTs[i];
+    }
+    double[] ts = new double[tCount];
+    tCount = 0;
+    previous = Double.POSITIVE_INFINITY;
+    for (int i = 0; i < unsafeTs.length; ++i) {
+      if (unsafeTs[i] != previous) {
+        ts[tCount] = unsafeTs[i];
+        tCount++;
+      }
+      previous = unsafeTs[i];
+    }
 
     if (ts.length == 0) {
       return new Curve2[] {this};
