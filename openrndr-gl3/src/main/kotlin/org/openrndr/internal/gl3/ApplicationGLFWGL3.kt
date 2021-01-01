@@ -233,21 +233,23 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
             throw IllegalStateException("Window creation failed")
         }
 
-        val buf = BufferUtils.createByteBuffer(128 * 128 * 4)
-        (buf as Buffer).rewind()
-        for (y in 0 until 128) {
-            for (x in 0 until 128) {
-                buf.putInt(0xffc0cbff.toInt())
+        if (configuration.windowSetIcon) {
+            val buf = BufferUtils.createByteBuffer(128 * 128 * 4)
+            (buf as Buffer).rewind()
+            for (y in 0 until 128) {
+                for (x in 0 until 128) {
+                    buf.putInt(0xffc0cbff.toInt())
+                }
             }
-        }
-        (buf as Buffer).flip()
+            (buf as Buffer).flip()
 
-        stackPush().use {
-            glfwSetWindowIcon(window, GLFWImage.mallocStack(1, it)
-                    .width(128)
-                    .height(128)
-                    .pixels(buf)
-            )
+            stackPush().use {
+                glfwSetWindowIcon(window, GLFWImage.mallocStack(1, it)
+                        .width(128)
+                        .height(128)
+                        .pixels(buf)
+                )
+            }
         }
 
         logger.debug { "window created: $window" }

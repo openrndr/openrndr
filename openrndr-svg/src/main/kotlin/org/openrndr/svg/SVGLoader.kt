@@ -222,7 +222,7 @@ internal class SVGPath : SVGElement() {
     val commands = mutableListOf<Command>()
     var fill: CompositionColor = InheritColor
     var stroke: CompositionColor = InheritColor
-    var strokeWeight: Double? = null
+    var strokeWeight: CompositionStrokeWeight = InheritStrokeWeight
 
     companion object {
         fun fromSVGPathString(svgPath: String): SVGPath {
@@ -460,8 +460,8 @@ internal class SVGPath : SVGElement() {
         if (e.hasAttr("stroke")) {
             stroke = Color(parseColor(e.attr("stroke")))
         }
-        strokeWeight = e.attr("stroke-width").let {
-            if (it.isEmpty()) null else it.toDouble()
+        if (e.hasAttr("stroke-width")) {
+            strokeWeight = StrokeWeight(e.attr("stroke-width").toDouble())
         }
 
         e.attr("style").split(";").forEach {
@@ -477,7 +477,7 @@ internal class SVGPath : SVGElement() {
             when (attribute) {
                 "fill" -> fill = Color(parseColor(value()))
                 "stroke" -> stroke = Color(parseColor(value()))
-                "stroke-width" -> strokeWeight = value().toDouble()
+                "stroke-width" -> strokeWeight = StrokeWeight(value().toDouble())
             }
         }
     }
@@ -497,6 +497,7 @@ internal class SVGDocument(private val root: SVGElement, val namespaces: Map<Str
             ShapeNode(e.shape()).apply {
                 fill = e.fill
                 stroke = e.stroke
+                strokeWeight = e.strokeWeight
                 this.id = e.id
             }
         }

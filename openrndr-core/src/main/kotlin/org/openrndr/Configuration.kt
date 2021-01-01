@@ -120,6 +120,11 @@ class Configuration {
     var windowResizable: Boolean = false
 
     /**
+     * Should the window icon be set to the openrndr pink icon?
+     */
+    var windowSetIcon: Boolean = true
+
+    /**
      * Should the application be run in headless mode?
      */
     var headless: Boolean = false

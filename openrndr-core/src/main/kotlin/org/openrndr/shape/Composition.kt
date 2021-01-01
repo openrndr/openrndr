@@ -6,6 +6,7 @@ import org.openrndr.draw.ShadeStyle
 import org.openrndr.math.Matrix44
 import kotlin.reflect.KMutableProperty0
 import kotlin.reflect.KProperty
+
 /**
  * Describes a node in a composition
  */
@@ -85,6 +86,20 @@ sealed class CompositionNode {
                 }
             }
         }
+
+    /**
+     * the effective stroke weight calculated from ancestor nodes and current node, null if no stroke
+     */
+    val effectiveStrokeWeight: Double?
+        get() {
+            return strokeWeight.let {
+                when (it) {
+                    is InheritStrokeWeight -> parent?.effectiveStrokeWeight
+                    is StrokeWeight -> it.weight
+                }
+            }
+        }
+
 
     /**
      * the effective fill [ColorRGBa] calculated from ancestor nodes and current node, null if no fill
@@ -173,6 +188,7 @@ class ShapeNode(var shape: Shape) : CompositionNode() {
         return ShapeNode(shape).also {
             it.fill = fill
             it.stroke = stroke
+            it.strokeWeight = strokeWeight
             it.transform = transform(this)
             it.id = id
         }
@@ -183,8 +199,9 @@ class ShapeNode(var shape: Shape) : CompositionNode() {
      */
     fun flatten(): ShapeNode {
         return ShapeNode(shape.transform(transform(this))).also {
-            it.fill = fill
-            it.stroke = stroke
+            it.fill = Color(effectiveFill)
+            it.stroke = Color(effectiveStroke)
+            it.strokeWeight = StrokeWeight(effectiveStrokeWeight ?: 0.0)
             it.transform = Matrix44.IDENTITY
             it.id = id
         }
@@ -197,6 +214,7 @@ class ShapeNode(var shape: Shape) : CompositionNode() {
             it.transform = transform
             it.fill = fill
             it.stroke = stroke
+            it.strokeWeight = strokeWeight
             it.shape = shape
         }
     }

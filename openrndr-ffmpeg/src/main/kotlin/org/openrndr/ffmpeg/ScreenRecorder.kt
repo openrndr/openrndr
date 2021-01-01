@@ -5,7 +5,6 @@ import org.openrndr.Program
 import org.openrndr.draw.*
 import org.openrndr.utils.namedTimestamp
 import java.io.File
-import java.time.LocalDateTime
 
 /**
  * ScreenRecorder extension can be used to record to contents of a `Program` to a video
@@ -17,6 +16,16 @@ class ScreenRecorder : Extension {
     private lateinit var frame: RenderTarget
     private var resolved: ColorBuffer? = null
     private var frameIndex: Long = 0
+
+    /**
+     * optional width, overrides the program width
+     */
+    var width: Int? = null
+
+    /**
+     * optional height, overrides the program height
+     */
+    var height: Int? = null
 
     /** the output file, auto-determined if left null */
     var outputFile: String? = null
@@ -49,6 +58,7 @@ class ScreenRecorder : Extension {
 
     var contentScale: Double = 1.0
 
+
     override fun setup(program: Program) {
         if (frameClock) {
             program.clock = {
@@ -56,8 +66,8 @@ class ScreenRecorder : Extension {
             }
         }
 
-        val effectiveWidth = (program.width * contentScale).toInt()
-        val effectiveHeight = (program.height * contentScale).toInt()
+        val effectiveWidth = ((width ?: program.width) * contentScale).toInt()
+        val effectiveHeight = ((height ?: program.height) * contentScale).toInt()
 
         frame = renderTarget(effectiveWidth, effectiveHeight, multisample = multisample) {
             colorBuffer()
@@ -69,7 +79,7 @@ class ScreenRecorder : Extension {
         }
 
         val filename = outputFile
-                ?: program.namedTimestamp(profile.fileExtension,"video/")
+                ?: program.namedTimestamp(profile.fileExtension, "video/")
 
         File(filename).parentFile?.let {
             if (!it.exists()) {
