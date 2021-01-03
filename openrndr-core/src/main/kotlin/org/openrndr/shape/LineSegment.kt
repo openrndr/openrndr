@@ -143,6 +143,7 @@ data class LineSegment(val start: Vector2, val end: Vector2) : LinearType<LineSe
  * @param b the second line segment
  * @param eps how far outside the t-parameter range of 0 .. 1 are intersections considered
  */
+@JvmOverloads
 fun intersection(a: LineSegment, b: LineSegment, eps: Double = 0.0): Vector2 =
         intersection(a.start, a.end, b.start, b.end, eps)
 
@@ -154,6 +155,7 @@ fun intersection(a: LineSegment, b: LineSegment, eps: Double = 0.0): Vector2 =
  * @param b1 the end of the second line segment
  * @param eps how far outside the t-parameter range of 0 .. 1 are intersections considered, default is 0.0
  */
+@JvmOverloads
 fun intersection(a0: Vector2, a1: Vector2, b0: Vector2, b1: Vector2, eps: Double = 0.0): Vector2 {
     val x0 = a0.x
     val x1 = a1.x
