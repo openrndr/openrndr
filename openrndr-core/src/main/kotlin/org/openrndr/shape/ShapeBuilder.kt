@@ -357,7 +357,7 @@ class ContourBuilder(private val multipleContours: Boolean) {
 
     fun continueTo(end: Vector2, tangentScale: Double = 1.0) {
         if ((cursor - end).squaredLength > 0.0) {
-            if (segments.isNotEmpty()) {
+            if (segments.isNotEmpty() && segments.last().control.isNotEmpty()) {
                 val last = segments.last()
                 val delta = last.control.last() - last.end
                 curveTo(last.end - delta * tangentScale, end)
@@ -370,7 +370,7 @@ class ContourBuilder(private val multipleContours: Boolean) {
     fun continueTo(x: Double, y: Double, tangentScale: Double = 1.0) = continueTo(Vector2(x, y), tangentScale)
 
     fun continueTo(control: Vector2, end: Vector2, tangentScale: Double = 1.0) {
-        if (segments.isNotEmpty()) {
+        if (segments.isNotEmpty() && segments.last().control.isNotEmpty()) {
             val last = segments.last()
             val delta = last.control.last() - last.end
             curveTo(last.end - delta * tangentScale, control, end)
