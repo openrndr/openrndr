@@ -1009,8 +1009,14 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
      */
     val centroid: Vector2
         get() {
-            val weightedAreas = triangulation.map { it.centroid.times(it.area) }
-            return Vector2(weightedAreas.sumByDouble { it.x } / weightedAreas.size, weightedAreas.sumByDouble { it.y } / weightedAreas.size)
+            val weightedCentroids = arrayListOf<Vector2>();
+            var totalWeight = 0.0;
+            for (t in triangulation) {
+                val a = t.area
+                weightedCentroids.add(t.centroid.times(a))
+                totalWeight += a
+            }
+            return Vector2(weightedCentroids.sumByDouble { it.x } / totalWeight, weightedCentroids.sumByDouble { it.y } / totalWeight)
         }
 
     /**
