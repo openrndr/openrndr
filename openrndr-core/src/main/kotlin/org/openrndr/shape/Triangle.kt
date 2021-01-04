@@ -47,11 +47,12 @@ data class Triangle(val x1: Vector2, val x2: Vector2, val x3: Vector2) {
         return x1 * b.x + x2 * b.y + x3 * b.z
     }
 
-    val area by lazy {
-        val u = x2 - x1
-        val v = x3 - x1
-        abs(u cross v) / 2.0
-    }
+    val area: Double
+        get() {
+            val u = x2 - x1
+            val v = x3 - x1
+            return abs(u cross v) / 2.0
+        }
 
     operator fun times(scale: Double): Triangle {
         return Triangle(x1 * scale, x2 * scale, x3 * scale)

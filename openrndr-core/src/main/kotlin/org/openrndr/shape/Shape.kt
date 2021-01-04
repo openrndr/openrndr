@@ -973,11 +973,12 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
                 }
     }
 
-    val triangulation by lazy {
-        triangulate(Shape(listOf(this))).windowed(3, 3).map {
-            Triangle(it[0], it[1], it[2])
+    val triangulation: List<Triangle>
+        get() {
+            return triangulate(Shape(listOf(this))).windowed(3, 3).map {
+                Triangle(it[0], it[1], it[2])
+            }
         }
-    }
 
     init {
         segments.zipWithNext().forEach {
@@ -996,12 +997,12 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
     /**
      * calculate approximate Euclidean length of the contour
      */
-    val length by lazy { segments.sumByDouble { it.length } }
+    val length get() = segments.sumByDouble { it.length }
 
     /**
      * calculate bounding box [Rectangle] of the contour
      */
-    val bounds by lazy { vector2Bounds(sampleLinear().segments.flatMap { listOf(it.start, it.end) }) }
+    val bounds get() = vector2Bounds(sampleLinear().segments.flatMap { listOf(it.start, it.end) })
 
     /**
      * determine winding order of the contour
@@ -1515,19 +1516,20 @@ class Shape(val contours: List<ShapeContour>) {
     /**
      * bounding box [Rectangle]
      */
-    val bounds by lazy {
-        if (empty) {
-            Rectangle(0.0, 0.0, 0.0, 0.0)
-        } else {
-            rectangleBounds(contours.mapNotNull {
-                if (it.empty) {
-                    null
-                } else {
-                    it.bounds
-                }
-            })
+    val bounds: Rectangle
+        get() {
+            return if (empty) {
+                Rectangle(0.0, 0.0, 0.0, 0.0)
+            } else {
+                rectangleBounds(contours.mapNotNull {
+                    if (it.empty) {
+                        null
+                    } else {
+                        it.bounds
+                    }
+                })
+            }
         }
-    }
 
     /**
      * indication of shape topology
@@ -1575,18 +1577,17 @@ class Shape(val contours: List<ShapeContour>) {
     /**
      * calculate triangulation for this shape
      */
-    val triangulation by lazy {
-        triangulate(this).windowed(3, 3).map {
-            Triangle(it[0], it[1], it[2])
+    val triangulation: List<Triangle>
+        get() {
+            return triangulate(this).windowed(3, 3).map {
+                Triangle(it[0], it[1], it[2])
+            }
         }
-    }
 
     /**
      * calculate (approximate) area for this shape (through triangulation)
      */
-    val area by lazy {
-        triangulation.sumByDouble { it.area }
-    }
+    val area get() = triangulation.sumByDouble { it.area }
 
     /**
      * generate random points that lie inside the shape
