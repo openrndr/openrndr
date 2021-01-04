@@ -54,6 +54,8 @@ data class Triangle(val x1: Vector2, val x2: Vector2, val x3: Vector2) {
             return abs(u cross v) / 2.0
         }
 
+    val centroid get() = x1.plus(x2).plus(x3).div(3.0);
+
     operator fun times(scale: Double): Triangle {
         return Triangle(x1 * scale, x2 * scale, x3 * scale)
     }

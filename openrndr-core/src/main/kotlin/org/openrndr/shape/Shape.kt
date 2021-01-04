@@ -1005,6 +1005,15 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
     val bounds get() = vector2Bounds(sampleLinear().segments.flatMap { listOf(it.start, it.end) })
 
     /**
+     * centroid of the shape contour if all segments were linear
+     */
+    val centroid: Vector2
+        get() {
+            val weightedAreas = triangulation.map { it.centroid.times(it.area) }
+            return Vector2(weightedAreas.sumByDouble { it.x } / weightedAreas.size, weightedAreas.sumByDouble { it.y } / weightedAreas.size)
+        }
+
+    /**
      * determine winding order of the contour
      */
     val winding: Winding
