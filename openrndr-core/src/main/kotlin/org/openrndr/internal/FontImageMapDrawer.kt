@@ -125,9 +125,9 @@ class FontImageMapDrawer {
             val pad = 1.0f
 
             val u0 = (rectangle.x.toFloat() - pad) / fontMap.texture.width
-            val u1 = u0 + (1 + pad * 2 + rectangle.width.toFloat()) / (fontMap.texture.width)
+            val u1 = u0 + (pad * 2 + rectangle.width.toFloat()) / (fontMap.texture.width)
             val v0 = (rectangle.y.toFloat() - pad) / fontMap.texture.height
-            val v1 = v0 + (1 + pad * 2 + rectangle.height.toFloat()) / (fontMap.texture.height)
+            val v1 = v0 + (pad * 2 + rectangle.height.toFloat()) / (fontMap.texture.height)
 
             val x0 = x.toFloat() - pad
             val x1 = x0 + rectangle.width.toFloat() / fontMap.contentScale.toFloat() + pad * 2
