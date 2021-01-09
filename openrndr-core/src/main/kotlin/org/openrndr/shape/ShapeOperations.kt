@@ -196,8 +196,11 @@ fun difference(from: ShapeContour, with: Shape): Shape {
 }
 
 fun difference(from: Shape, with: Shape): Shape {
-    if (from.empty || with.empty) {
+    if (from.empty) {
         return Shape.EMPTY
+    }
+    if (with.empty) {
+        return from
     }
     return when (from.topology) {
         ShapeTopology.OPEN -> {
