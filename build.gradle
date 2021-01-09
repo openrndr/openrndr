@@ -4,18 +4,15 @@ buildscript {
     repositories {
         jcenter()
     }
-
     dependencies {
         classpath "org.jetbrains.dokka:dokka-gradle-plugin:0.10.1"
-
         classpath "com.netflix.nebula:nebula-publishing-plugin:17.3.0"
         classpath "com.netflix.nebula:nebula-release-plugin:15.1.0"
-
     }
 }
 
 plugins {
-    id 'org.jetbrains.kotlin.jvm' version '1.4.10'
+    id 'org.jetbrains.kotlin.jvm' version '1.4.21'
 }
 
 apply plugin: 'org.jetbrains.dokka'
@@ -23,7 +20,7 @@ apply plugin: 'org.jetbrains.dokka'
 project.ext {
     lwjglVersion = '3.2.3'
     ffmpeg_version = '4.3.1-1.5.4'
-    kotlinVersion = '1.4.0'
+    kotlinVersion = '1.4.21'
     spekVersion = '2.0.12'
     jsoupVersion = '1.13.1'
 }
@@ -43,7 +40,7 @@ dokka {
 
         disableAutoconfiguration = false
 
-        subProjects = ["openrndr-animatable", "openrndr-color", "openrndr-core", "openrndr-dialogs","openrndr-event",
+        subProjects = ["openrndr-animatable", "openrndr-color", "openrndr-core", "openrndr-dialogs", "openrndr-event",
                        "openrndr-extensions", "openrndr-filter", "openrndr-math", "openrndr-shape", "openrndr-svg"]
 
         sourceLink {
@@ -60,7 +57,6 @@ dokka {
         }
     }
 
-
     if (!System.properties['os.name'].toLowerCase().contains('windows')) {
         doLast {
             exec {
@@ -74,6 +70,45 @@ allprojects {
     apply plugin: 'idea'
     apply plugin: 'java'
     apply plugin: 'kotlin'
+
+    group 'org.openrndr'
+
+    repositories {
+        jcenter()
+        maven {
+            url "https://dl.bintray.com/spekframework/spek"
+        }
+    }
+
+    dependencies {
+        implementation 'io.github.microutils:kotlin-logging-jvm:2.0.2'
+        implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.9'
+        implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"
+
+        testImplementation "org.spekframework.spek2:spek-dsl-jvm:$spekVersion"
+        testImplementation "org.amshove.kluent:kluent:1.61"
+        testImplementation "org.jetbrains.kotlin:kotlin-test:$kotlinVersion"
+        testRuntimeOnly "org.spekframework.spek2:spek-runner-junit5:$spekVersion"
+        testRuntimeOnly "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"
+    }
+
+    test {
+        useJUnitPlatform {
+            includeEngines 'spek2'
+        }
+    }
+
+    java {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+
+    javadoc {
+        options.addBooleanOption 'Xdoclint:none', true
+    }
+}
+
+configure(allprojects.findAll { it.name != "openrndr-demos" }) {
     apply plugin: 'nebula.contacts'
 
     // -- work-around for problem with nebula.info on arm64, which is currently not used a build host platform
@@ -91,68 +126,12 @@ allprojects {
     apply plugin: 'nebula.source-jar'
     apply plugin: 'nebula.javadoc-jar'
 
-    group 'org.openrndr'
-
-    repositories {
-        jcenter()
-        maven {
-            url "https://dl.bintray.com/spekframework/spek"
-        }
-    }
-
-    dependencies {
-        implementation 'io.github.microutils:kotlin-logging:1.8.3'
-        implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.9'
-        implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"
-
-        testImplementation "org.spekframework.spek2:spek-dsl-jvm:$spekVersion"
-        testImplementation "org.amshove.kluent:kluent:1.61"
-        testImplementation "org.jetbrains.kotlin:kotlin-test:$kotlinVersion"
-        testRuntimeOnly "org.spekframework.spek2:spek-runner-junit5:$spekVersion"
-        testRuntimeOnly "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"
-
-    }
-
-    test {
-        useJUnitPlatform {
-            includeEngines 'spek2'
-        }
-    }
-
-    java {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
-    }
-
-
-    javadoc {
-        options.addBooleanOption 'Xdoclint:none', true
-    }
-
-
-
-    /*
-    if (System.getenv('TRAVIS') == null) {
-        task runJupiter(type: JavaExec) {
-            if (System.properties['os.name'].toLowerCase().contains('mac')) {
-               jvmArgs '-XstartOnFirstThread'
-            }
-            classpath = project.sourceSets.test.runtimeClasspath
-            main 'org.junit.platform.console.ConsoleLauncher'
-            args '--scan-class-path'
-            args "--reports-dir=$project.testReportDir"
-        }
-        test.dependsOn runJupiter
-    }*/
-
     contacts {
         'edwin@openrndr.org' {
             moniker 'Edwin Jakobs'
             github 'edwinRNDR'
         }
     }
-
-
 }
 
 configure(subprojects) {

@@ -1,0 +1,18 @@
+switch (org.gradle.internal.os.OperatingSystem.current()) {
+    case org.gradle.internal.os.OperatingSystem.WINDOWS:
+        project.ext.openrndrOS = "windows"
+        break
+    case org.gradle.internal.os.OperatingSystem.LINUX:
+        project.ext.openrndrOS = "linux-x64"
+        break
+    case org.gradle.internal.os.OperatingSystem.MAC_OS:
+        project.ext.openrndrOS = "macos"
+        break
+}
+
+dependencies {
+    runtimeOnly project(":openrndr-gl3")
+    runtimeOnly project(":openrndr-gl3-natives-$openrndrOS")
+    implementation project(":openrndr-core")
+    runtimeOnly "org.slf4j:slf4j-simple:1.7.29"
+}
