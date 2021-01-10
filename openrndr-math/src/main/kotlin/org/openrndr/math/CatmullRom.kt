@@ -98,10 +98,10 @@ class CatmullRom2(val p0: Vector2, val p1: Vector2, val p2: Vector2, val p3: Vec
 
 class CatmullRomChain2(points: List<Vector2>, alpha: Double = 0.5, val loop: Boolean = false) {
     val segments = if (!loop) {
-        val startPoints = points.subList(0, 2)
-        val endPoints = points.subList(points.size - 2, points.size)
-        val mirrorStart = (startPoints.last() - startPoints.first()).normalized * -1.0
-        val mirrorEnd = (endPoints.last() - endPoints.first()).normalized * -1.0
+        val startPoints = points.take(2)
+        val endPoints = points.takeLast(2)
+        val mirrorStart = startPoints.first() - (startPoints.last() - startPoints.first()).normalized
+        val mirrorEnd = endPoints.last() + (endPoints.last() - endPoints.first()).normalized
 
         (listOf(mirrorStart) + points + listOf(mirrorEnd)).windowed(4, 1).map {
             CatmullRom2(it[0], it[1], it[2], it[3], alpha)
@@ -160,10 +160,10 @@ class CatmullRom3(val p0: Vector3, val p1: Vector3, val p2: Vector3, val p3: Vec
 
 class CatmullRomChain3(points: List<Vector3>, alpha: Double = 0.5, val loop: Boolean = false) {
     val segments = if (!loop) {
-        val startPoints = points.subList(0, 2)
-        val endPoints = points.subList(points.size - 2, points.size)
-        val mirrorStart = (startPoints.last() - startPoints.first()).normalized * -1.0
-        val mirrorEnd = (endPoints.last() - endPoints.first()).normalized * -1.0
+        val startPoints = points.take(2)
+        val endPoints = points.takeLast(2)
+        val mirrorStart = startPoints.first() - (startPoints.last() - startPoints.first()).normalized
+        val mirrorEnd = endPoints.last() + (endPoints.last() - endPoints.first()).normalized
 
         (listOf(mirrorStart) + points + listOf(mirrorEnd)).windowed(4, 1).map {
             CatmullRom3(it[0], it[1], it[2], it[3], alpha)
