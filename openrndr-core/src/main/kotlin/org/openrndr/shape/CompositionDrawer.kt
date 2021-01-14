@@ -526,6 +526,53 @@ class CompositionDrawer(documentBounds: Rectangle = DefaultCompositionBounds,
         return node
     }
 
+    fun composition(composition: Composition): CompositionNode {
+        pushStyle()
+
+        fun node(compositionNode: CompositionNode) {
+            pushModel()
+            pushStyle()
+            model *= compositionNode.transform
+
+            // (skip compositionNode.shadeStyle here)
+
+            when (compositionNode) {
+                is ShapeNode -> {
+                    compositionNode.fill.let {
+                        if (it is Color) {
+                            fill = it.color
+                        }
+                    }
+                    compositionNode.stroke.let {
+                        if (it is Color) {
+                            stroke = it.color
+                        }
+                    }
+                    compositionNode.strokeWeight.let {
+                        if (it is StrokeWeight) {
+                            strokeWeight = it.weight
+                        }
+                    }
+                    shape(compositionNode.shape)
+                }
+                is ImageNode -> {
+                    image(compositionNode.image)
+                }
+                is TextNode -> {
+                    text(compositionNode.text, Vector2.ZERO)
+                }
+                is GroupNode -> compositionNode.children.forEach { node(it) }
+            }
+
+            popStyle()
+            popModel()
+        }
+        node(composition.root)
+        popStyle()
+
+        return composition.root
+    }
+
     fun CompositionNode.translate(x: Double, y: Double, z: Double = 0.0) {
         transform = transform.transform {
             translate(x, y, z)
