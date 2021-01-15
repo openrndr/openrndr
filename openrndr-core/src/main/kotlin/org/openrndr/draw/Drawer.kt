@@ -2,6 +2,7 @@
 
 package org.openrndr.draw
 
+import mu.KotlinLogging
 import org.openrndr.Program
 import org.openrndr.color.ColorRGBa
 import org.openrndr.internal.*
@@ -26,6 +27,8 @@ import kotlin.reflect.KMutableProperty0
 import org.openrndr.math.transforms.lookAt as _lookAt
 import org.openrndr.math.transforms.ortho as _ortho
 import org.openrndr.math.transforms.perspective as _perspective
+private val logger = KotlinLogging.logger {}
+
 
 data class VertexElement(val attribute: String, val offset: Int, val type: VertexElementType, val arraySize: Int)
 
@@ -96,10 +99,12 @@ class Drawer(val driver: Driver) {
     internal val fontImageMapDrawer = FontImageMapDrawer()
 
     private val defaultFontMap by lazy {
-        val defaultFontPath = "data/fonts/default.otf"
-        if (File(defaultFontPath).isFile) {
-            loadFont(defaultFontPath, 16.0)
+        val defaultFontPath = File("data/fonts/default.otf")
+        if (defaultFontPath.isFile) {
+            logger.info("loading default font from ${defaultFontPath.absolutePath}")
+            loadFont(defaultFontPath.path, 16.0)
         } else {
+            logger.warn("default font ${defaultFontPath.absolutePath} not found")
             null
         }
     }

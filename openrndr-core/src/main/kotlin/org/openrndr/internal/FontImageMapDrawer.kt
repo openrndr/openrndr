@@ -36,7 +36,7 @@ class FontImageMapDrawer {
                 if (drawStyle.kerning == KernMode.METRIC) {
                     cursorX += if (lc != null) fontMap.kerning(lc, it) else 0.0
                 }
-                insertCharacterQuad(fontMap, bw, it, x + cursorX + metrics.leftSideBearing, y + cursorY + metrics.yBitmapShift / fontMap.contentScale, 0)
+                insertCharacterQuad(fontMap, bw, it, x + cursorX + (metrics.xBitmapShift + metrics.leftSideBearing) / fontMap.contentScale, y + cursorY + metrics.yBitmapShift / fontMap.contentScale, 0)
                 cursorX += metrics.advanceWidth
                 lastChar = it
             }
@@ -62,10 +62,10 @@ class FontImageMapDrawer {
                 text.forEach {
                     val lc = lastChar
                     if (drawStyle.kerning == KernMode.METRIC) {
-                        cursorX += if (lc != null) fontMap.kerning(lc, it) else 0.0
+                       cursorX += if (lc != null) fontMap.kerning(lc, it) else 0.0
                     }
                     val metrics = fontMap.glyphMetrics[it] ?: fontMap.glyphMetrics.getValue(' ')
-                    insertCharacterQuad(fontMap, bw, it, position.x + cursorX + metrics.xBitmapShift / fontMap.contentScale, position.y + cursorY + metrics.yBitmapShift / fontMap.contentScale, instance)
+                    insertCharacterQuad(fontMap, bw, it, position.x + cursorX + (metrics.xBitmapShift + metrics.leftSideBearing) / fontMap.contentScale, position.y + cursorY + metrics.yBitmapShift / fontMap.contentScale, instance)
                     cursorX += metrics.advanceWidth
                     lastChar = it
                 }
@@ -80,7 +80,6 @@ class FontImageMapDrawer {
         val bw = vertices.shadow.writer()
         bw.position = vertices.vertexFormat.size * quads * 6
         fontMap as FontImageMap
-
         var cursorX = 0.0
         var cursorY = 0.0
         var lastChar:Char? = null
@@ -91,7 +90,7 @@ class FontImageMapDrawer {
                 if (kerning == KernMode.METRIC) {
                     cursorX += if (lc != null) fontMap.kerning(lc, it) else 0.0
                 }
-                insertCharacterQuad(fontMap, bw, it, x + cursorX + m.leftSideBearing / fontMap.contentScale, y + cursorY + m.yBitmapShift / fontMap.contentScale, queuedInstances)
+                insertCharacterQuad(fontMap, bw, it, x + cursorX + 0.0 * m.leftSideBearing / fontMap.contentScale, y + cursorY + m.yBitmapShift / fontMap.contentScale, queuedInstances)
                 cursorX += m.advanceWidth + tracking
                 lastChar = it
             }
