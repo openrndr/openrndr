@@ -864,19 +864,16 @@ void main() {
         |   }
         |   $postTransform
         |   float aspect = u_viewDimensions.x / u_viewDimensions.y;
-        |   float pixelWidthRatio = 1. / (u_viewDimensions.x * x_projectionMatrix[0][0]);
+        |   vec2 pixelWidthRatio = 1.0 / (u_viewDimensions);
         |   mat4 pvm = x_projectionMatrix * x_viewMatrix * x_modelMatrix;
         |   vec4 finalPosition = pvm * vec4(a_position, 1.0);
         |   vec4 prevPosition = pvm * vec4(a_previous, 1.0);
         |   vec4 nextPosition = pvm * vec4(a_next, 1.0);
-
         |   vec2 currentP = fix(finalPosition, aspect);
         |   vec2 prevP = fix(prevPosition, aspect);
         |   vec2 nextP = fix(nextPosition, aspect);
-
-        |   float pixelWidth = finalPosition.w * pixelWidthRatio;
-        |   float w = 1.8 * pixelWidth * a_width;
-
+        |   
+        |   vec2 w = max(pixelWidthRatio*1.0, (pixelWidthRatio) * a_width);
         |   vec2 dir;
         |   if (nextP == currentP) {
         |       dir = normalize(currentP - prevP);
@@ -888,9 +885,7 @@ void main() {
         |       dir = normalize(dir1 + dir2);
         |   }
         |   x_normal = ( cross( vec3( dir, 0. ), vec3( 0., 0., 1. ) ) );
-        |   vec2 normal = vec2(-dir.y, dir.x);
-        |   normal.x /= aspect;
-        |   normal *= .5 * w;
+        |   vec2 normal = vec2(-dir.y, dir.x) * w;
         |   vec4 offset = vec4(normal * a_side, 0.0, 1.0);
         |
         |   finalPosition.xy += offset.xy;
