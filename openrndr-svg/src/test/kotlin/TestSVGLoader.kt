@@ -54,4 +54,15 @@ object TestSVGLoader : Spek({
 //        composition.findShapes()[0].shape.topology `should be equal to` ShapeTopology.OPEN
 //        composition.findShapes().all { node -> node.shape.contours.all { it.closed } } `should be equal to` false
     }
+
+    describe("the svg file 'delta.svg'") {
+        it("correctly parsed a list of transforms") {
+            val composition = loadSVG(resourceUrl("/svg/delta.svg"))
+            composition.findShapes()[1].effectiveTransform `should be equal to`
+                    Matrix44(0.2, 0.0, 0.0, 8.0,
+                             0.0, 0.2, 0.0, 21.888,
+                             0.0, 0.0, 0.0, 0.0,
+                             0.0, 0.0, 0.0, 1.0,)
+        }
+    }
 })
