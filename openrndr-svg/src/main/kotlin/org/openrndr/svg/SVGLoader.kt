@@ -8,11 +8,16 @@ import org.openrndr.draw.ColorBuffer
 import org.openrndr.math.Matrix44
 import org.openrndr.math.Vector2
 import org.openrndr.math.YPolarity
+import org.openrndr.math.transforms.scale
+import org.openrndr.math.transforms.translate
 import org.openrndr.shape.*
 import java.io.File
 import java.net.MalformedURLException
 import java.net.URL
 import java.util.regex.Pattern
+import kotlin.math.cos
+import kotlin.math.sin
+import kotlin.math.tan
 
 /**
  * Load a [Composition] from a filename, url or svg string
@@ -76,7 +81,7 @@ internal sealed class SVGElement {
     }
 
     fun parseTransform(e: Element) {
-        val p = Pattern.compile("(matrix|translate|scale|rotate|skewX|skewY)\\(.+\\)")
+        val p = Pattern.compile("(matrix|translate|scale|rotate|skewX|skewY)\\([\\d\\.,\\-\\s]+\\)")
         val m = p.matcher(e.attr("transform"))
 
         fun getTransformOperands(token: String): List<Double> {
@@ -99,15 +104,46 @@ internal sealed class SVGElement {
                         operands[1], operands[3], 0.0, operands[5],
                         0.0, 0.0, 1.0, 0.0,
                         0.0, 0.0, 0.0, 1.0)
-                transform = mat
+                transform *= mat
             }
             if (token.startsWith("scale")) {
                 val operands = getTransformOperands(token.substring(5))
-                val mat = Matrix44(operands[0], 0.0, 0.0, 0.0,
-                        0.0, operands[1], 0.0, 0.0,
-                        0.0, 0.0, 1.0, 0.0,
-                        0.0, 0.0, 0.0, 1.0)
-                transform = mat
+                val mat = Matrix44.scale(operands[0], operands.elementAtOrElse(1) { operands[0] }, 0.0)
+                transform *= mat
+            }
+            if (token.startsWith("translate")) {
+                val operands = getTransformOperands(token.substring(9))
+                val mat = Matrix44.translate(operands[0], operands.elementAtOrElse(1) { 0.0 }, 0.0)
+                transform *= mat
+            }
+            if (token.startsWith("rotate")) {
+                val operands = getTransformOperands(token.substring(6))
+                val angle = Math.toRadians(operands[0])
+                val sina = sin(angle)
+                val cosa = cos(angle)
+                val x = operands.elementAtOrElse(1) { 0.0 }
+                val y = operands.elementAtOrElse(2) { 0.0 }
+                val mat = Matrix44(cosa, -sina, 0.0, -x*cosa + y*sina + x,
+                    sina, cosa, 0.0, -x*sina - y*cosa + y,
+                    0.0, 0.0, 1.0, 0.0,
+                    0.0, 0.0, 0.0, 1.0)
+                transform *= mat
+            }
+            if (token.startsWith("skewX")) {
+                val operands = getTransformOperands(token.substring(5))
+                val mat = Matrix44(1.0, tan(Math.toRadians(operands[0])), 0.0, 0.0,
+                0.0, 1.0, 0.0, 0.0,
+                0.0, 0.0, 1.0, 0.0,
+                0.0, 0.0, 0.0, 1.0)
+                transform *= mat
+            }
+            if (token.startsWith("skewY")) {
+                val operands = getTransformOperands(token.substring(5))
+                val mat = Matrix44(1.0, 0.0, 0.0, 0.0,
+                    tan(Math.toRadians(operands[0])), 1.0, 0.0, 0.0,
+                    0.0, 0.0, 1.0, 0.0,
+                    0.0, 0.0, 0.0, 1.0)
+                transform *= mat
             }
         }
     }
