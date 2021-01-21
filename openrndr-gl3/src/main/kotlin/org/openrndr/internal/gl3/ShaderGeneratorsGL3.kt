@@ -873,7 +873,7 @@ void main() {
         |   vec2 prevP = fix(prevPosition, aspect);
         |   vec2 nextP = fix(nextPosition, aspect);
         |   
-        |   vec2 w = max(pixelWidthRatio*1.0, (pixelWidthRatio) * a_width);
+        |   vec2 w = max(pixelWidthRatio*finalPosition.w, (pixelWidthRatio) * a_width);
         |   vec2 dir;
         |   if (nextP == currentP) {
         |       dir = normalize(currentP - prevP);
