@@ -367,7 +367,9 @@ class CompositionDrawer(documentBounds: Rectangle = DefaultCompositionBounds,
                     if (!operated.empty) {
                         shapeNode.shape = operated
                     } else {
-                        toRemove.add(shapeNode)
+                        synchronized(toRemove) {
+                            toRemove.add(shapeNode)
+                        }
                     }
                 }
                 for (node in toRemove) {
