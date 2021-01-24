@@ -320,7 +320,14 @@ class Composition(val root: CompositionNode, var documentBounds: Rectangle = Def
  */
 fun CompositionNode.remove() {
     require(parent != null) { "parent is null" }
-    (parent as? GroupNode)?.children?.remove(this)
+    val parentGroup = (parent as? GroupNode)
+    if (parentGroup != null) {
+        val filtered = parentGroup.children.filter {
+            it != this
+        }
+        parentGroup.children.clear()
+        parentGroup.children.addAll(filtered)
+    }
     parent = null
 }
 

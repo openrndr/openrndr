@@ -353,6 +353,7 @@ class CompositionDrawer(documentBounds: Rectangle = DefaultCompositionBounds,
             }
             else -> {
                 val shapeNodes = (if (!clipMode.grouped) composition.findShapes() else cursor.findShapes())
+                val toRemove = mutableListOf<CompositionNode>()
                 shapeNodes.pforEach { shapeNode ->
                     val inverse = shapeNode.effectiveTransform.inversed
                     val transformedShape = postShape.transform(inverse * model)
@@ -363,11 +364,14 @@ class CompositionDrawer(documentBounds: Rectangle = DefaultCompositionBounds,
                                 ClipOp.DIFFERENCE -> difference(shapeNode.shape, transformedShape)
                                 else -> error("unsupported base op ${clipMode.op}")
                             }
-                    if (operated !== Shape.EMPTY) {
+                    if (!operated.empty) {
                         shapeNode.shape = operated
                     } else {
-                        shapeNode.remove()
+                        toRemove.add(shapeNode)
                     }
+                }
+                for (node in toRemove) {
+                    node.remove()
                 }
                 null
             }
