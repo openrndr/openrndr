@@ -129,6 +129,12 @@ class ShadeStyleManagerGL3(name: String,
                                 shader.image("p_${it.key}", imageIndex, value)
                                 imageIndex++
                             }
+                            is DoubleArray -> {
+                                shader.uniform("p_${it.key}", value.map { it.toFloat()  }.toFloatArray())
+                            }
+                            is IntArray -> {
+                                shader.uniform("p_${it.key}", value)
+                            }
                             is Array<*> -> {
                                 require(value.isNotEmpty())
                                 when (value.first()!!) {

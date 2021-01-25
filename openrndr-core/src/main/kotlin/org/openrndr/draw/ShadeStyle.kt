@@ -223,6 +223,16 @@ open class ShadeStyle {
         }
     }
 
+    fun parameter(name: String, value: IntArray) {
+        parameterValues[name] = value
+        parameters[name] = "int, ${value.size}"
+    }
+
+    fun parameter(name: String, value: DoubleArray) {
+        parameterValues[name] = value
+        parameters[name] = "float, ${value.size}"
+    }
+
     fun parameter(name: String, value: ArrayCubemap) {
         parameterValues[name] = value
         parameters[name] = when (value.type.colorSampling) {
