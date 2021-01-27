@@ -38,6 +38,11 @@ class ScreenRecorder : Extension {
      */
     var timeOffset = 0.0
 
+    /**
+     * how many frames to skip before starting to record
+     */
+    var frameSkip = 0L
+
     /** the profile to use for the output video */
     var profile: VideoWriterProfile = MP4Profile()
 
@@ -79,7 +84,7 @@ class ScreenRecorder : Extension {
         }
 
         val filename = outputFile
-                ?: program.namedTimestamp(profile.fileExtension, "video/")
+            ?: program.namedTimestamp(profile.fileExtension, "video/")
 
         File(filename).parentFile?.let {
             if (!it.exists()) {
@@ -87,40 +92,53 @@ class ScreenRecorder : Extension {
             }
         }
 
-        videoWriter = VideoWriter().profile(profile).output(filename).size(effectiveWidth, effectiveHeight).frameRate(frameRate).start()
+        videoWriter = VideoWriter().profile(profile).output(filename).size(effectiveWidth, effectiveHeight).frameRate(frameRate)
     }
 
     override fun beforeDraw(drawer: Drawer, program: Program) {
-        frame.bind()
-        program.backgroundColor?.let {
-            drawer.clear(it)
+        if (frameIndex == frameSkip){
+            videoWriter.start()
+        }
+        if (frameIndex >= frameSkip) {
+            frame.bind()
+            program.backgroundColor?.let {
+                drawer.clear(it)
+            }
         }
     }
 
     override fun afterDraw(drawer: Drawer, program: Program) {
-        frame.unbind()
-        if (frameIndex < maximumFrames && frameIndex / frameRate.toDouble() < maximumDuration) {
-            val lresolved = resolved
-            if (lresolved != null) {
-                frame.colorBuffer(0).resolveTo(lresolved)
-                videoWriter.frame(lresolved)
-            } else {
-                videoWriter.frame(frame.colorBuffer(0))
-            }
-
-            drawer.isolated {
-                drawer.defaults()
-
+        if (frameIndex >= frameSkip) {
+            frame.unbind()
+            if (frameIndex < maximumFrames + frameSkip && (frameIndex - frameSkip) / frameRate.toDouble() < maximumDuration) {
+                val lresolved = resolved
                 if (lresolved != null) {
-                    drawer.image(lresolved)
+                    frame.colorBuffer(0).resolveTo(lresolved)
+                    videoWriter.frame(lresolved)
                 } else {
-                    drawer.image(frame.colorBuffer(0), 0.0, 0.0, frame.width / contentScale, frame.height / contentScale)
+                    videoWriter.frame(frame.colorBuffer(0))
                 }
-            }
-        } else {
-            if (quitAfterMaximum) {
-                videoWriter.stop()
-                program.application.exit()
+
+                drawer.isolated {
+                    drawer.defaults()
+
+                    if (lresolved != null) {
+                        drawer.image(lresolved)
+                    } else {
+                        drawer.image(
+                            frame.colorBuffer(0),
+                            0.0,
+                            0.0,
+                            frame.width / contentScale,
+                            frame.height / contentScale
+                        )
+                    }
+                }
+            } else {
+                if (quitAfterMaximum) {
+                    videoWriter.stop()
+                    program.application.exit()
+                }
             }
         }
         frameIndex++
