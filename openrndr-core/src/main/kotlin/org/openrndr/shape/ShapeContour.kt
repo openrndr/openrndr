@@ -30,6 +30,7 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
                 }
     }
 
+    @Suppress("unused")
     val triangulation by lazy {
         triangulate(Shape(listOf(this))).windowed(3, 3).map {
             Triangle(it[0], it[1], it[2])
@@ -59,12 +60,12 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
      * calculate bounding box [Rectangle] of the contour
      */
     val bounds by lazy {
-        vector2Bounds(sampleLinear().segments.flatMap {
+        sampleLinear().segments.flatMap {
             listOf(
                 it.start,
                 it.end
             )
-        })
+        }.bounds
     }
 
     /**
@@ -94,6 +95,7 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
     /**
      * convert to list of single segment [ShapeContour]s
      */
+    @Suppress("unused")
     val exploded: List<ShapeContour>
         get() = segments.map { ShapeContour(listOf(it), false, polarity) }
 
@@ -144,6 +146,7 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
      * Estimate t parameter value for a given length
      * @return a value between 0 and 1
      */
+    @Suppress("unused")
     fun tForLength(length: Double): Double {
         var remaining = length
         if (length <= 0.0) {
@@ -262,8 +265,7 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
             return Vector2.INFINITY
         }
 
-        val t = ut.clamp(0.0, 1.0)
-        return when (t) {
+        return when (val t = ut.clamp(0.0, 1.0)) {
             0.0 -> segments[0].start
             1.0 -> segments.last().end
             else -> {
@@ -282,8 +284,7 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
             return Vector2.ZERO
         }
 
-        val t = ut.coerceIn(0.0, 1.0)
-        return when (t) {
+        return when (val t = ut.coerceIn(0.0, 1.0)) {
             0.0 -> segments[0].normal(0.0, polarity)
             1.0 -> segments.last().normal(1.0, polarity)
             else -> {
@@ -294,6 +295,7 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
         }
     }
 
+    @Suppress("unused")
     fun pose(t: Double): Matrix44 {
         val n = normal(t)
         val dx = n.perpendicular(polarity).xy0.xyz0
@@ -315,7 +317,7 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
         val corners = mutableListOf<Boolean>()
         for (segment in this.segments) {
             val samples = segment.adaptivePositions(distanceTolerance)
-            samples.forEachIndexed { index, it ->
+            samples.forEachIndexed { index, _ ->
                 if (index == 0) {
                     corners.add(segment.corner)
                 } else {
@@ -337,6 +339,7 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
     }
 
 
+    @Suppress("unused")
     fun adaptivePositionsAndDirection(distanceTolerance: Double = 0.5): Pair<List<Vector2>, List<Vector2>> {
         if (empty) {
             return Pair(emptyList(), emptyList())
@@ -370,7 +373,7 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
      */
     fun equidistantPositions(pointCount: Int) =
             if (empty) {
-                emptyList<Vector2>()
+                emptyList()
             } else {
                 sampleEquidistant(
                     adaptivePositions(),
@@ -521,7 +524,7 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
     /**
      * Checks if a give point lies on the contour
      * @param point the point to check
-     * @param error what is the allowed error (unitless, but likely in pixels)
+     * @param error what is the allowed error (unit-less, but likely in pixels)
      * @return the contour parameter in [0..1.0) if the point is within error `null` otherwise
      *
      */
@@ -587,12 +590,22 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
         )
     }
 
+    @Suppress("unused")
     fun union(other: Shape): Shape = union(this.shape, other)
+
+    @Suppress("unused")
     fun difference(other: Shape): Shape = difference(this, other)
+
+    @Suppress("unused")
     fun intersection(other: Shape): Shape = intersection(this, other)
 
+    @Suppress("unused")
     fun intersections(other: Segment) = intersections(this, other.contour)
+
+    @Suppress("unused")
     fun intersections(other: ShapeContour) = intersections(this, other)
+
+    @Suppress("unused")
     fun intersections(other: Shape) = intersections(this.shape, other)
 }
 
@@ -605,5 +618,6 @@ val List<ShapeContour>.shape
 /**
  * convert to [ShapeContour]
  */
+@Suppress("unused")
 fun CatmullRomChain2.toContour(): ShapeContour =
     ShapeContour(segments.map { it.toSegment() }, this.loop)

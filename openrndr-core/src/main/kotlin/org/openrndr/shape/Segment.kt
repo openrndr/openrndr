@@ -95,6 +95,7 @@ class Segment {
         this.corner = corner
     }
 
+    @Suppress("unused")
     fun lut(size: Int = 100): List<Vector2> {
         if (lut == null || lut!!.size != size) {
             lut = (0..size).map { position((it.toDouble() / size)) }
@@ -106,7 +107,7 @@ class Segment {
         val lut = lut()
         var hits = 0
         var t = 0.0
-        for (i in 0 until lut.size) {
+        for (i in lut.indices) {
             if ((lut[i] - point).squaredLength < error * error) {
                 hits++
                 t += i.toDouble() / lut.size
@@ -125,24 +126,24 @@ class Segment {
         }
 
         val segmentLength = this.length
-        val clength = length.coerceIn(0.0, segmentLength)
+        val cLength = length.coerceIn(0.0, segmentLength)
 
-        if (clength == 0.0) {
+        if (cLength == 0.0) {
             return 0.0
         }
-        if (clength >= segmentLength) {
+        if (cLength >= segmentLength) {
             return 1.0
         }
         var summedLength = 0.0
         lut(100)
-        val clut = lut ?: error("no lut")
-        val partitionCount = clut.size - 1
+        val cLut = lut ?: error("no lut")
+        val partitionCount = cLut.size - 1
 
         val dt = 1.0 / partitionCount
-        for ((index, point) in lut!!.withIndex()) {
+        for ((index, _ /*point*/) in lut!!.withIndex()) {
             if (index < lut!!.size - 1) {
-                val p0 = clut[index]
-                val p1 = clut[index + 1]
+                val p0 = cLut[index]
+                val p1 = cLut[index + 1]
                 val partitionLength = p0.distanceTo(p1)
                 summedLength += partitionLength
                 if (summedLength >= length) {
@@ -155,6 +156,7 @@ class Segment {
         return 1.0
     }
 
+    @Suppress("unused")
     private fun closest(points: List<Vector2>, query: Vector2): Pair<Int, Vector2> {
         var closestIndex = 0
         var closestValue = points[0]
@@ -195,7 +197,7 @@ class Segment {
 
                 val distance = sign(bc cross qc) * qc.length
                 if (abs(distance) < abs(minDistance)) {
-                    minDistance = distance;
+                    minDistance = distance
                     param =
                         max(1.0, ((point - control[0]) dot bc) / (bc dot bc))
                 }
@@ -208,10 +210,10 @@ class Segment {
 
                 for (t in ts) {
                     if (t > 0 && t < 1) {
-                        val endpoint = position(t);
-                        val distance = sign(ac cross (endpoint - point)) * (endpoint - point).length
-                        if (abs(distance) < abs(minDistance)) {
-                            minDistance = distance
+                        val endpoint = position(t)
+                        val distance2 = sign(ac cross (endpoint - point)) * (endpoint - point).length
+                        if (abs(distance2) < abs(minDistance)) {
+                            minDistance = distance2
                             param = t
                         }
                     }
@@ -220,7 +222,7 @@ class Segment {
             }
             SegmentType.CUBIC -> {
                 fun sign(n: Double): Double {
-                    val s = Math.signum(n)
+                    val s = n.sign
                     return if (s == 0.0) -1.0 else s
                 }
 
@@ -240,11 +242,11 @@ class Segment {
                     minDistance = distance
                     param = max(1.0, (point - control[1] dot cd) / (cd dot cd))
                 }
-                val SEARCH_STARTS = 4
-                val SEARCH_STEPS = 8
+                val searchStarts = 4
+                val searchSteps = 8
 
-                for (i in 0 until SEARCH_STARTS) {
-                    var t = i.toDouble() / (SEARCH_STARTS - 1)
+                for (i in 0 until searchStarts) {
+                    var t = i.toDouble() / (searchStarts - 1)
                     var step = 0
                     while (true) {
                         val qpt = position(t) - point
@@ -253,7 +255,7 @@ class Segment {
                             minDistance = distance
                             param = t
                         }
-                        if (step == SEARCH_STEPS) {
+                        if (step == searchSteps) {
                             break
                         }
                         val d1 = (ax * (3 * t * t)) + br * (6 * t) + ab * 3.0
@@ -284,14 +286,14 @@ class Segment {
         return if (transform === Matrix44.IDENTITY) {
             this
         } else {
-            val tstart = (transform * (start.xy01)).div.xy
-            val tend = (transform * (end.xy01)).div.xy
-            val tcontrol = when (control.size) {
+            val tStart = (transform * (start.xy01)).div.xy
+            val tEnd = (transform * (end.xy01)).div.xy
+            val tControl = when (control.size) {
                 2 -> arrayOf((transform * control[0].xy01).div.xy, (transform * control[1].xy01).div.xy)
                 1 -> arrayOf((transform * control[0].xy01).div.xy)
                 else -> emptyArray()
             }
-            Segment(tstart, tcontrol, tend)
+            Segment(tStart, tControl, tEnd)
         }
     }
 
@@ -352,6 +354,7 @@ class Segment {
     /**
      * calculate pose matrix for t-parameter value
      */
+    @Suppress("unused")
     fun pose(t: Double, polarity: YPolarity = YPolarity.CW_NEGATIVE_Y): Matrix44 {
         val dx = direction(t).xy0.xyz0
         val dy = direction(t).perpendicular(polarity).xy0.xyz0
@@ -363,17 +366,17 @@ class Segment {
      * extrema t-parameter values
      */
     fun extrema(): List<Double> {
-        val dpoints = dpoints()
+        val dPoints = dPoints()
         return when {
             linear -> emptyList()
             control.size == 1 -> {
-                val xRoots = roots(dpoints[0].map { it.x })
-                val yRoots = roots(dpoints[0].map { it.y })
+                val xRoots = roots(dPoints[0].map { it.x })
+                val yRoots = roots(dPoints[0].map { it.y })
                 (xRoots + yRoots).distinct().sorted().filter { it in 0.0..1.0 }
             }
             control.size == 2 -> {
-                val xRoots = roots(dpoints[0].map { it.x }) + roots(dpoints[1].map { it.x })
-                val yRoots = roots(dpoints[0].map { it.y }) + roots(dpoints[1].map { it.y })
+                val xRoots = roots(dPoints[0].map { it.x }) + roots(dPoints[1].map { it.x })
+                val yRoots = roots(dPoints[0].map { it.y }) + roots(dPoints[1].map { it.y })
                 (xRoots + yRoots).distinct().sorted().filter { it in 0.0..1.0 }
             }
             else -> throw RuntimeException("not supported")
@@ -383,25 +386,21 @@ class Segment {
     /**
      * extrema points
      */
+    @Suppress("unused")
     fun extremaPoints(): List<Vector2> = extrema().map { position(it) }
 
     /**
      * bounding box [Rectangle]
      */
     val bounds: Rectangle
-        get() = vector2Bounds(
-            listOf(
-                start,
-                end
-            ) + extremaPoints()
-        )
+        get() = (listOf(start, end) + extremaPoints()).bounds
 
 
-    private fun dpoints(): List<List<Vector2>> {
+    private fun dPoints(): List<List<Vector2>> {
         val points = listOf(start, *control, end)
         var d = points.size
         var c = d - 1
-        val dpoints = mutableListOf<List<Vector2>>()
+        val dPoints = mutableListOf<List<Vector2>>()
         var p = points
         while (d > 1) {
             val list = mutableListOf<Vector2>()
@@ -413,12 +412,12 @@ class Segment {
                     )
                 )
             }
-            dpoints.add(list)
+            dPoints.add(list)
             p = list
             d--
             c--
         }
-        return dpoints
+        return dPoints
     }
 
     fun offset(distance: Double, stepSize: Double = 0.01, yPolarity: YPolarity = YPolarity.CW_NEGATIVE_Y): List<Segment> {
@@ -454,6 +453,7 @@ class Segment {
         return atan2(cross, dot)
     }
 
+    @Suppress("unused")
     fun isStraight(epsilon: Double = 0.01): Boolean {
         return when (control.size) {
             2 -> {
@@ -721,6 +721,7 @@ class Segment {
         } else {
             when (control.size) {
                 2 -> {
+                    @Suppress("UnnecessaryVariable")
                     val z = u
                     val z2 = z * z
                     val z3 = z * z * z
@@ -768,6 +769,7 @@ class Segment {
                     return arrayOf(left, right)
                 }
                 1 -> {
+                    @Suppress("UnnecessaryVariable")
                     val z = u
                     val iz = 1 - z
                     val iz2 = iz * iz
@@ -966,8 +968,13 @@ class Segment {
     val contour: ShapeContour
         get() = ShapeContour(listOf(this), false)
 
+    @Suppress("unused")
     fun intersections(other: Segment) = intersections(this, other)
+
+    @Suppress("unused")
     fun intersections(other: ShapeContour) = intersections(this.contour, other)
+
+    @Suppress("unused")
     fun intersections(other: Shape) = intersections(this.contour.shape, other)
 }
 

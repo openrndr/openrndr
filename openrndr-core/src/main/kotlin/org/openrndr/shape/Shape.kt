@@ -22,13 +22,13 @@ class Shape(val contours: List<ShapeContour>) {
         if (empty) {
             Rectangle(0.0, 0.0, 0.0, 0.0)
         } else {
-            rectangleBounds(contours.mapNotNull {
+            contours.mapNotNull {
                 if (it.empty) {
                     null
                 } else {
                     it.bounds
                 }
-            })
+            }.bounds
         }
     }
 
@@ -67,7 +67,7 @@ class Shape(val contours: List<ShapeContour>) {
     /**
      * indicates that the shape has only contours for which each segment is a line segment
      */
-    val linear get() = contours.all { it.segments.all { it.linear } }
+    val linear get() = contours.all { it.segments.all { segment -> segment.linear } }
     fun polygon(distanceTolerance: Double = 0.5) =
             if (empty) {
                 EMPTY
@@ -135,7 +135,7 @@ class Shape(val contours: List<ShapeContour>) {
     fun hole(index: Int) = contours[index + 1]
 
     /**
-     * Apply a tranform to the shape
+     * Apply a transform to the shape
      * @param transform a Matrix44 that represents the transform
      * @return a transformed shape instance
      */
