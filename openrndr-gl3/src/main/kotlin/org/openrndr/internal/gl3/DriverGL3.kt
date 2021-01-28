@@ -773,7 +773,12 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
                     BlendMode.MULTIPLY -> {
                         glEnable(GL_BLEND)
                         glBlendEquationi(0, GL_FUNC_ADD)
-                        glBlendFunci(0, GL_DST_COLOR, GL_ZERO)
+                        glBlendFunci(0, GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA)
+                    }
+                    BlendMode.REMOVE -> {
+                        glEnable(GL_BLEND)
+                        glBlendEquationi(0, GL_FUNC_ADD)
+                        glBlendFunci(0, GL_ZERO, GL_ONE_MINUS_SRC_ALPHA)
                     }
                 }
                 cached.blendMode = drawStyle.blendMode
