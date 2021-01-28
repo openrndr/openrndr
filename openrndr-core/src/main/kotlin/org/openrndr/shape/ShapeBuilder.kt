@@ -10,6 +10,7 @@ import kotlin.math.*
 class ShapeBuilder {
     internal val contours = mutableListOf<ShapeContour>()
 
+    @Suppress("unused")
     fun boundary(f: ContourBuilder.() -> Unit) {
         val cb = ContourBuilder(false)
         cb.f()
@@ -19,6 +20,7 @@ class ShapeBuilder {
         contours.add(contour.clockwise)
     }
 
+    @Suppress("unused")
     fun hole(f: ContourBuilder.() -> Unit) {
         val cb = ContourBuilder(false)
         cb.f()
@@ -73,6 +75,7 @@ class ContourBuilder(private val multipleContours: Boolean) {
      * The pen is moved without drawing when to prior moveTo instructions have been given.
      * @param position the coordinates to move the pen to
      */
+    @Suppress("unused")
     fun moveOrLineTo(position: Vector2) {
         if (anchor === Vector2.INFINITY) {
             moveTo(position)
@@ -90,6 +93,7 @@ class ContourBuilder(private val multipleContours: Boolean) {
     fun moveOrLineTo(x: Double, y: Double) = moveOrLineTo(Vector2(x, y))
 
 
+    @Suppress("unused")
     fun moveOrCurveTo(control: Vector2, position: Vector2) {
         if (anchor === Vector2.INFINITY) {
             moveTo(position)
@@ -100,6 +104,7 @@ class ContourBuilder(private val multipleContours: Boolean) {
 
     fun moveOrCurveTo(cx: Double, cy: Double, x: Double, y: Double) = moveOrCurveTo(Vector2(cx, cy), Vector2(x, y))
 
+    @Suppress("unused")
     fun moveOrCurveTo(control0: Vector2, control1: Vector2, position: Vector2) {
         if (anchor === Vector2.INFINITY) {
             moveTo(position)
@@ -133,6 +138,7 @@ class ContourBuilder(private val multipleContours: Boolean) {
     /**
      * Quadratic curve to
      */
+    @Suppress("unused")
     fun curveTo(control: Vector2, position: Vector2) {
         require(cursor !== Vector2.INFINITY) {
             "use moveTo first"
@@ -274,9 +280,9 @@ class ContourBuilder(private val multipleContours: Boolean) {
         val sign0 = if (largeArcFlag == sweepFlag) -1.0 else 1.0
         var sq = (rxSqr * rySqr - rxSqr * y1Sqr - rySqr * x1Sqr) / (rxSqr * y1Sqr + rySqr * x1Sqr)
         sq = if (sq < 0) 0.0 else sq
-        val coef = sign0 * sqrt(sq)
-        val cx1 = coef * (rx * y1 / ry)
-        val cy1 = coef * -(ry * x1 / rx)
+        val coefficient = sign0 * sqrt(sq)
+        val cx1 = coefficient * (rx * y1 / ry)
+        val cy1 = coefficient * -(ry * x1 / rx)
 
         // Step 3 : Compute (cx, cy) from (cx1, cy1)
         val sx2 = (cursor.x + tx) / 2.0
@@ -292,16 +298,16 @@ class ContourBuilder(private val multipleContours: Boolean) {
 
         // Compute the angle start
         val n0 = sqrt(ux * ux + uy * uy)
-        val p0 = ux // (1 * ux) + (0 * uy)
+        //val p0 = (1 * ux) + (0 * uy)
         val sign1 = if (uy < 0) -1.0 else 1.0
-        var angleStart = sign1 * acos(p0 / n0)
+        var angleStart = sign1 * acos(ux / n0) // ux was p0
 
         // Compute the angle extent
         val n1 = sqrt((ux * ux + uy * uy) * (vx * vx + vy * vy))
         val p1 = ux * vx + uy * vy
         val sign2 = if (ux * vy - uy * vx < 0) -1.0 else 1.0
 
-        fun checkedAcos(v: Double): Double {
+        fun checkedACos(v: Double): Double {
             return when {
                 v < -1.0 -> Math.PI
                 v > 1.0 -> 0.0
@@ -309,7 +315,7 @@ class ContourBuilder(private val multipleContours: Boolean) {
             }
         }
 
-        var angleExtent = sign2 * checkedAcos(p1 / n1)
+        var angleExtent = sign2 * checkedACos(p1 / n1)
 
         if (angleExtent == 0.0) {
             lineTo(tx, ty)
@@ -369,6 +375,7 @@ class ContourBuilder(private val multipleContours: Boolean) {
 
     fun continueTo(x: Double, y: Double, tangentScale: Double = 1.0) = continueTo(Vector2(x, y), tangentScale)
 
+    @Suppress("unused")
     fun continueTo(control: Vector2, end: Vector2, tangentScale: Double = 1.0) {
         if (segments.isNotEmpty() && segments.last().control.isNotEmpty()) {
             val last = segments.last()
@@ -389,7 +396,7 @@ class ContourBuilder(private val multipleContours: Boolean) {
         // The length of each control point vector is given by the following formula.
         val controlLength = 4.0 / 3.0 * sin(angleIncrement / 2.0) / (1.0 + cos(angleIncrement / 2.0))
 
-        val coords = Array(numSegments * 3) { Vector2.ZERO }
+        val coordinates = Array(numSegments * 3) { Vector2.ZERO }
         var pos = 0
 
         for (i in 0 until numSegments) {
@@ -398,19 +405,19 @@ class ContourBuilder(private val multipleContours: Boolean) {
             var dx = cos(angle)
             var dy = sin(angle)
             // First control point
-            coords[pos] = Vector2(dx - controlLength * dy, dy + controlLength * dx)
+            coordinates[pos] = Vector2(dx - controlLength * dy, dy + controlLength * dx)
             pos++
             // Second control point
             angle += angleIncrement
             dx = cos(angle)
             dy = sin(angle)
-            coords[pos] = Vector2(dx + controlLength * dy, dy - controlLength * dx)
+            coordinates[pos] = Vector2(dx + controlLength * dy, dy - controlLength * dx)
             pos++
             // Endpoint of bezier
-            coords[pos] = Vector2(dx, dy)
+            coordinates[pos] = Vector2(dx, dy)
             pos++
         }
-        return coords
+        return coordinates
     }
 
     fun segment(segment: Segment) {
