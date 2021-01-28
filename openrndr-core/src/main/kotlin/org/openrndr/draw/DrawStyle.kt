@@ -314,7 +314,8 @@ enum class BlendMode {
     ADD,
     SUBTRACT,
     MULTIPLY,
-    REPLACE
+    REPLACE,
+    REMOVE
 }
 
 @Suppress("unused")
