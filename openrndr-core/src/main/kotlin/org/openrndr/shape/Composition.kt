@@ -313,6 +313,8 @@ class Composition(val root: CompositionNode, var documentBounds: Rectangle = Def
     fun findGroup(id: String): GroupNode? {
         return (root.findTerminals { it is GroupNode && it.id == id }).firstOrNull() as? GroupNode
     }
+
+    fun clear() = (root as? GroupNode)?.children?.clear()
 }
 
 /**
