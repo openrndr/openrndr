@@ -4,6 +4,7 @@ package org.openrndr.shape
 
 import io.lacuna.artifex.Vec2
 import org.openrndr.math.*
+import org.openrndr.utils.resettableLazy
 import kotlin.random.Random
 
 class Shape(val contours: List<ShapeContour>) {
@@ -18,7 +19,7 @@ class Shape(val contours: List<ShapeContour>) {
     /**
      * bounding box [Rectangle]
      */
-    val bounds by lazy {
+    private val boundsDelegate = resettableLazy {
         if (empty) {
             Rectangle(0.0, 0.0, 0.0, 0.0)
         } else {
@@ -31,6 +32,7 @@ class Shape(val contours: List<ShapeContour>) {
             }.bounds
         }
     }
+    val bounds by boundsDelegate
 
     /**
      * indication of shape topology
@@ -78,17 +80,25 @@ class Shape(val contours: List<ShapeContour>) {
     /**
      * calculate triangulation for this shape
      */
-    val triangulation by lazy {
+    private val triangulationDelegate = resettableLazy {
         triangulate(this).windowed(3, 3).map {
             Triangle(it[0], it[1], it[2])
         }
     }
+    val triangulation by triangulationDelegate
 
     /**
      * calculate (approximate) area for this shape (through triangulation)
      */
-    val area by lazy {
+    private val areaDelegate = resettableLazy {
         triangulation.sumByDouble { it.area }
+    }
+    val area by areaDelegate
+
+    fun resetCache() {
+        boundsDelegate.reset()
+        triangulationDelegate.reset()
+        areaDelegate.reset()
     }
 
     /**
