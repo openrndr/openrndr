@@ -13,6 +13,8 @@ switch (org.gradle.internal.os.OperatingSystem.current()) {
 dependencies {
     runtimeOnly project(":openrndr-gl3")
     runtimeOnly project(":openrndr-gl3-natives-$openrndrOS")
+    runtimeOnly project(":openrndr-ffmpeg-natives-$openrndrOS")
     implementation project(":openrndr-core")
+    implementation project(":openrndr-ffmpeg")
     runtimeOnly "org.slf4j:slf4j-simple:1.7.29"
 }

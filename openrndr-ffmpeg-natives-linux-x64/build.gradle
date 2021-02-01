@@ -1,3 +1,4 @@
 dependencies {
     runtimeOnly "org.bytedeco:ffmpeg:$ffmpeg_version:linux-x86_64"
+    runtimeOnly "org.bytedeco:javacpp:$javacpp_version:linux-x86_64"
 }

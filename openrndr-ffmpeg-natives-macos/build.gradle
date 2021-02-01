@@ -1,4 +1,4 @@
 dependencies {
     runtimeOnly "org.bytedeco:ffmpeg:$ffmpeg_version:macosx-x86_64"
-
+    runtimeOnly "org.bytedeco:javacpp:$javacpp_version:macosx-x86_64"
 }
