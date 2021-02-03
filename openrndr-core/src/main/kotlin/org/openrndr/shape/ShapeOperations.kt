@@ -167,7 +167,7 @@ fun difference(from: ShapeContour, with: Shape): Shape {
             ShapeTopology.CLOSED -> {
                 val ints = with.contours.flatMap { intersections(from, it) }
                 if (ints.isNotEmpty()) {
-                    val sortedInts = ints.sortedBy { it.a.contourT }.map { it.a.contourT }
+                    val sortedInts = ints.map { it.a.contourT }.sorted()
                     val weldedInts = (listOfNotNull(if (sortedInts.first() > 0.0) 0.0 else null) + sortedInts + (if (sortedInts.last() < 1.0) 1.0 else null)).filterNotNull().merge { a, b ->
                         abs(a - b) < 1E-6
                     }
@@ -344,7 +344,7 @@ fun intersection(from: ShapeContour, with: ShapeContour): Shape {
         return if (with.closed) {
             val ints = intersections(from, with)
             return if (ints.isNotEmpty()) {
-                val sortedInts = ints.sortedBy { it.a.contourT }.map { it.a.contourT }
+                val sortedInts = ints.map { it.a.contourT }.sorted()
                 val weldedInts = (listOf(if (sortedInts.first() > 0.0) 0.0 else null) + sortedInts + (if (sortedInts.last() < 1.0) 1.0 else null)).filterNotNull().merge { a, b ->
                     abs(a - b) < 1E-6
                 }
@@ -414,7 +414,7 @@ fun intersection(from: ShapeContour, with: Shape): Shape {
             ShapeTopology.CLOSED -> {
                 val ints = with.contours.flatMap { intersections(from, it) }
                 if (ints.isNotEmpty()) {
-                    val sortedInts = ints.sortedBy { it.a.contourT }.map { it.a.contourT }
+                    val sortedInts = ints.map { it.a.contourT }.sorted()
                     val weldedInts = (listOf(if (sortedInts.first() > 0.0) 0.0 else null) + sortedInts + (if (sortedInts.last() < 1.0) 1.0 else null)).filterNotNull().merge { a, b ->
                         abs(a - b) < 1E-6
                     }
@@ -515,9 +515,9 @@ fun intersections(a: Segment, b: Segment): List<SegmentIntersection> {
 
     return if (!selfTest) {
         Intersections.intersections(ca, cb).map {
-            val a = SegmentPoint(a, it.x, ca.position(it.x).toVector2())
-            val b = SegmentPoint(b, it.y, a.position)
-            SegmentIntersection(a, b, a.position)
+            val pointA = SegmentPoint(a, it.x, ca.position(it.x).toVector2())
+            val pointB = SegmentPoint(b, it.y, pointA.position)
+            SegmentIntersection(pointA, pointB, pointA.position)
         }
     } else {
         // Here we should handle self-intersections properly
@@ -619,24 +619,14 @@ fun split(from: ShapeContour, cutter: ShapeContour): List<ShapeContour> {
     val ints = intersections(from, cutter)
     return if (ints.isNotEmpty()) {
         val sortedInts = ints.map { it.a.contourT }.sorted()
-        if (from.closed) {
-            val weldedInts = (
-                    sortedInts +
-                            (if (sortedInts.first() > 0.0) 1 + sortedInts.first() else null)
-                    ).filterNotNull().merge { a, b -> abs(a - b) < 1E-6 }
-
-            weldedInts.zipWithNext().map {
-                from.sub(it.first, it.second)
-            }
+        val weldedInts = (if (from.closed) {
+            sortedInts + (if (sortedInts.first() > 0.0) 1 +
+                    sortedInts.first() else null)
         } else {
-            val weldedInts = (
-                    listOf(if (sortedInts.first() > 0.0) 0.0 else null) +
-                            sortedInts +
-                            (if (sortedInts.last() < 1.0) 1.0 else null)
-                    ).filterNotNull().merge { a, b -> abs(a - b) < 1E-6 }
-
-            weldedInts.zipWithNext().map { from.sub(it.first, it.second) }
-        }
+            listOf(if (sortedInts.first() > 0.0) 0.0 else null) +
+                    sortedInts + (if (sortedInts.last() < 1.0) 1.0 else null)
+        }).filterNotNull().merge { a, b -> abs(a - b) < 1E-6 }
+        weldedInts.zipWithNext().map { from.sub(it.first, it.second) }
     } else {
         listOf(from)
     }
