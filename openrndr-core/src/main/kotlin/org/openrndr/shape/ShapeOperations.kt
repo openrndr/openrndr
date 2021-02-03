@@ -607,3 +607,37 @@ fun split(shape: Shape, line: LineSegment): Pair<Shape, Shape> {
     val rightShape = difference(shape, rightContour)
     return Pair(leftShape, rightShape)
 }
+
+/**
+ * Splits a ShapeContour with another ShapeContour.
+ * If there is no intersection it returns the original contour.
+ */
+fun split(from: ShapeContour, cutter: ShapeContour): List<ShapeContour> {
+    if (from.empty || cutter.empty)
+        return listOf()
+
+    val ints = intersections(from, cutter)
+    return if (ints.isNotEmpty()) {
+        val sortedInts = ints.map { it.a.contourT }.sorted()
+        if (from.closed) {
+            val weldedInts = (
+                    sortedInts +
+                            (if (sortedInts.first() > 0.0) 1 + sortedInts.first() else null)
+                    ).filterNotNull().merge { a, b -> abs(a - b) < 1E-6 }
+
+            weldedInts.zipWithNext().map {
+                from.sub(it.first, it.second)
+            }
+        } else {
+            val weldedInts = (
+                    listOf(if (sortedInts.first() > 0.0) 0.0 else null) +
+                            sortedInts +
+                            (if (sortedInts.last() < 1.0) 1.0 else null)
+                    ).filterNotNull().merge { a, b -> abs(a - b) < 1E-6 }
+
+            weldedInts.zipWithNext().map { from.sub(it.first, it.second) }
+        }
+    } else {
+        listOf(from)
+    }
+}
