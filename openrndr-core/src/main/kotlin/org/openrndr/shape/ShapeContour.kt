@@ -170,6 +170,7 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
      * Split a ShapeContour with another ShapeContour.
      */
     fun split(cutter: ShapeContour) = split(this, cutter)
+    fun split(cutters: List<ShapeContour>) = split(this, cutters)
 
     fun offset(distance: Double, joinType: SegmentJoin = SegmentJoin.ROUND): ShapeContour {
         if (segments.size == 1) {
