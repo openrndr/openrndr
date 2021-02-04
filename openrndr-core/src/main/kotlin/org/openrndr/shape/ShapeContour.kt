@@ -556,7 +556,20 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
         return ContourPoint(this, t, n.segment, n.segmentT, n.position)
     }
 
-    val opened get() = ShapeContour(segments, false, polarity)
+    //@Deprecated("Please use .open() instead")
+    //val opened = open
+
+    val open get() = if(empty) EMPTY else
+        ShapeContour(segments, false, polarity)
+
+    val close get() = if(empty) EMPTY else {
+        if ((segments.last().end - segments.first().start).squaredLength < 10E-6)
+            ShapeContour(segments, true, polarity)
+        else
+            ShapeContour(segments + Segment(segments.last().end,
+                segments.first().start), true, polarity)
+    }
+
     val reversed get() = ShapeContour(
         segments.map { it.reverse }.reversed(),
         closed,
