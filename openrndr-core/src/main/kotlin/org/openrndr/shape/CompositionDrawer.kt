@@ -386,7 +386,7 @@ class CompositionDrawer(documentBounds: Rectangle = DefaultCompositionBounds,
         if (closed) {
             it
         } else {
-            it.opened
+            it.open
         }
     }, insert = insert)
 
@@ -410,7 +410,7 @@ class CompositionDrawer(documentBounds: Rectangle = DefaultCompositionBounds,
         if (closed) {
             it
         } else {
-            it.opened
+            it.open
         }
     }, insert)
 
@@ -441,7 +441,7 @@ class CompositionDrawer(documentBounds: Rectangle = DefaultCompositionBounds,
         if (closed) {
             it
         } else {
-            it.opened
+            it.open
         }
     }, insert)
 
