@@ -613,8 +613,13 @@ fun split(shape: Shape, line: LineSegment): Pair<Shape, Shape> {
  * If there is no intersection it returns the original contour.
  */
 fun split(from: ShapeContour, cutter: ShapeContour): List<ShapeContour> {
-    if (from.empty || cutter.empty)
+    if (from.empty) {
         return listOf()
+    }
+
+    if (cutter.empty) {
+        return listOf(from)
+    }
 
     val ints = intersections(from, cutter)
     return if (ints.isNotEmpty()) {
