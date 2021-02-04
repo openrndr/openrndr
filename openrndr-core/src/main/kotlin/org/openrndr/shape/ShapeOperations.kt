@@ -613,15 +613,40 @@ fun split(shape: Shape, line: LineSegment): Pair<Shape, Shape> {
  * If there is no intersection it returns the original contour.
  */
 fun split(from: ShapeContour, cutter: ShapeContour): List<ShapeContour> {
-    if (from.empty) {
-        return listOf()
-    }
-
-    if (cutter.empty) {
-        return listOf(from)
-    }
+    if (from.empty) return listOf()
+    if (cutter.empty) return listOf(from)
 
     val ints = intersections(from, cutter)
+    return performSplit(from, ints)
+}
+
+/**
+ * Splits a ShapeContour with all other ShapeContours in a list.
+ */
+fun split(from: ShapeContour, cutters: List<ShapeContour>): List<ShapeContour> {
+    if (from.empty) return listOf()
+
+    // Do `it != from` because we may want to split all contours
+    // in a collection at their intersections.
+    // We would iterate over each element and cut against
+    // "all other items". Building a collection with "all other items"
+    // for each item is tedious. Easier to just discard if equal.
+    val validCutters = cutters.filter { !it.empty && it != from}
+    if (validCutters.isEmpty()) return listOf(from)
+
+    val ints = validCutters.map { cutter ->
+        intersections(from, cutter)
+    }.flatten()
+
+    return performSplit(from, ints)
+}
+
+/**
+ * Performs the actual ShapeContour cutting. Receive the shape to be cut
+ * and a list of all the cut points.
+ */
+private fun performSplit(from: ShapeContour, ints: List<ContourIntersection>):
+        List<ShapeContour> {
     return if (ints.isNotEmpty()) {
         val sortedInts = ints.map { it.a.contourT }.sorted()
         val weldedInts = (if (from.closed) {
