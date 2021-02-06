@@ -35,10 +35,10 @@ class ColorBufferShadowGL3(override val colorBuffer: ColorBufferGL3) : ColorBuff
         val offset = (ay * colorBuffer.effectiveWidth + x) * colorBuffer.format.componentCount * colorBuffer.type.componentSize
         when (colorBuffer.type) {
             ColorType.UINT8 -> {
-                val ir = (r * 255).coerceIn(0.0, 255.0).toByte()
-                val ig = (g * 255).coerceIn(0.0, 255.0).toByte()
-                val ib = (b * 255).coerceIn(0.0, 255.0).toByte()
-                val ia = (a * 255).coerceIn(0.0, 255.0).toByte()
+                val ir = (r * 255).coerceIn(0.0, 255.0).toInt().toByte()
+                val ig = (g * 255).coerceIn(0.0, 255.0).toInt().toByte()
+                val ib = (b * 255).coerceIn(0.0, 255.0).toInt().toByte()
+                val ia = (a * 255).coerceIn(0.0, 255.0).toInt().toByte()
                 buffer.put(offset, ir)
                 buffer.put(offset + 1, ig)
                 buffer.put(offset + 2, ib)

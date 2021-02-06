@@ -41,7 +41,7 @@ class ColorBufferDataGL3(val width: Int, val height: Int, val format: ColorForma
                 val buffer = ByteBuffer.allocateDirect(decoded.size)
                 buffer.put(decoded)
                 (buffer as Buffer).rewind()
-                return fromByteBuffer(buffer, "data-url")
+                return fromByteBuffer(buffer, "data-url", formatHint = formatHint)
             } else {
                 val url = URL(urlString)
                 url.openStream().use {
@@ -135,9 +135,9 @@ class ColorBufferDataGL3(val width: Int, val height: Int, val format: ColorForma
                                 val r = ((tdata8.get(offset + redOffset).toInt() and mask) * a)
                                 val g = ((tdata8.get(offset + greenOffset).toInt() and mask) * a)
                                 val b = ((tdata8.get(offset + blueOffset).toInt() and mask) * a)
-                                tdata8.put(offset + redOffset, r.toByte())
-                                tdata8.put(offset + greenOffset, g.toByte())
-                                tdata8.put(offset + blueOffset, b.toByte())
+                                tdata8.put(offset + redOffset, r.toInt().toByte())
+                                tdata8.put(offset + greenOffset, g.toInt().toByte())
+                                tdata8.put(offset + blueOffset, b.toInt().toByte())
                                 offset += 4
                             }
                         }
@@ -173,9 +173,9 @@ class ColorBufferDataGL3(val width: Int, val height: Int, val format: ColorForma
                                 val r = ((tdata16.get(offset + redOffset).toInt() and mask) * a)
                                 val g = ((tdata16.get(offset + greenOffset).toInt() and mask) * a)
                                 val b = ((tdata16.get(offset + blueOffset).toInt() and mask) * a)
-                                tdata16.put(offset + redOffset, r.toShort())
-                                tdata16.put(offset + greenOffset, g.toShort())
-                                tdata16.put(offset + blueOffset, b.toShort())
+                                tdata16.put(offset + redOffset, r.toInt().toShort())
+                                tdata16.put(offset + greenOffset, g.toInt().toShort())
+                                tdata16.put(offset + blueOffset, b.toInt().toShort())
                                 offset += 4
                             }
                         }
