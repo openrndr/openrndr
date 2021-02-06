@@ -23,16 +23,6 @@ class Dispatcher : MainCoroutineDispatcher(), Delay {
         }
     }
 
-    override fun invokeOnTimeout(timeMillis: Long, block: Runnable): DisposableHandle {
-        synchronized(toRunAfter) {
-            logger.trace { "invokeOnTimeOut $timeMillis $block" }
-            toRunAfter.add(Pair(System.currentTimeMillis() + timeMillis, block))
-        }
-        return DisposableHandle {
-            TODO()
-        }
-    }
-
     @ExperimentalCoroutinesApi
     override val immediate: MainCoroutineDispatcher
         get() = this
