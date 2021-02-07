@@ -103,6 +103,7 @@ data class LineSegment(val start: Vector2, val end: Vector2) : LinearType<LineSe
      * @param t The [t](https://pomax.github.io/bezierinfo/#explanation) value
      *      of the point on the segment to rotate around, default is `0.5` (mid-point).
      */
+    @JvmOverloads
     fun rotate(degrees: Double, t: Double = 0.5): LineSegment {
         val anchorPoint = end.mix(start, t.coerceIn(0.0, 1.0))
 
