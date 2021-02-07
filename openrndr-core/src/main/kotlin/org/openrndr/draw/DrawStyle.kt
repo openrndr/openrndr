@@ -395,8 +395,9 @@ data class DrawStyle(
             }
         } else {
             val styleBlock = styleBlocks.getOrPut(Driver.instance.contextID) {
-                logger.debug { "creating styleblock UBO for ${Driver.instance.contextID}" }
-                shader.createBlock("StyleBlock")
+                logger.trace { "creating styleblock UBO for ${Driver.instance.contextID}" }
+                val styleBlock = shader.createBlock("StyleBlock")
+                styleBlock
             }
 
             styleBlock?.apply {

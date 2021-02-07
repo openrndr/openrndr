@@ -19,9 +19,11 @@ class CircleDrawer {
 
     internal var batch = CircleBatch.create(10_000)
 
-    private val shaderManager: ShadeStyleManager = ShadeStyleManager.fromGenerators("circle",
-            vsGenerator = Driver.instance.shaderGenerators::circleVertexShader,
-            fsGenerator = Driver.instance.shaderGenerators::circleFragmentShader)
+    private val shaderManager: ShadeStyleManager = ShadeStyleManager.fromGenerators(
+        "circle",
+        vsGenerator = Driver.instance.shaderGenerators::circleVertexShader,
+        fsGenerator = Driver.instance.shaderGenerators::circleFragmentShader
+    )
 
     internal fun ensureBatchSize(size: Int) {
         if (batch.size < size) {
@@ -127,8 +129,10 @@ class CircleDrawer {
         drawCircles(drawContext, drawStyle, circles.size)
     }
 
-    fun drawCircle(drawContext: DrawContext,
-                   drawStyle: DrawStyle, x: Double, y: Double, radius: Double) {
+    fun drawCircle(
+        drawContext: DrawContext,
+        drawStyle: DrawStyle, x: Double, y: Double, radius: Double
+    ) {
         ensureBatchSize(1)
         batch.geometry.shadow.writer().apply {
             rewind()
@@ -139,9 +143,11 @@ class CircleDrawer {
 
         batch.drawStyle.shadow.writer().apply {
             rewind()
-            write(drawStyle.fill?: ColorRGBa.TRANSPARENT)
-            write(drawStyle.stroke?: ColorRGBa.TRANSPARENT)
-            write(drawStyle.strokeWeight.toFloat())
+            write(drawStyle.fill ?: ColorRGBa.TRANSPARENT)
+            write(drawStyle.stroke ?: ColorRGBa.TRANSPARENT)
+            val weight = if (drawStyle.stroke == null || drawStyle.stroke?.a == 0.0) 0.0 else
+                drawStyle.strokeWeight
+            write(weight.toFloat())
         }
         batch.drawStyle.shadow.uploadElements(0, 1)
 
@@ -157,23 +163,23 @@ class CircleDrawer {
         val instanceAttributeFormats = listOf(circleBatch.geometry.vertexFormat, circleBatch.drawStyle.vertexFormat)
 
         val shader = shaderManager.shader(
-                drawStyle.shadeStyle,
-                listOf(vertices.vertexFormat),
-                instanceAttributeFormats
+            drawStyle.shadeStyle,
+            listOf(vertices.vertexFormat),
+            instanceAttributeFormats
         )
         shader.begin()
         drawContext.applyToShader(shader)
         drawStyle.applyToShader(shader)
         Driver.instance.setState(drawStyle)
         Driver.instance.drawInstances(
-                shader,
-                listOf(vertices),
-                instanceAttributes + (drawStyle.shadeStyle?.attributes.orEmpty()),
-                DrawPrimitive.TRIANGLES,
-                0,
-                6,
-                0,
-                count
+            shader,
+            listOf(vertices),
+            instanceAttributes + (drawStyle.shadeStyle?.attributes.orEmpty()),
+            DrawPrimitive.TRIANGLES,
+            0,
+            6,
+            0,
+            count
         )
         shader.end()
     }

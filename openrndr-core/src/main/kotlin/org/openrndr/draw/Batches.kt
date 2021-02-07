@@ -9,7 +9,9 @@ import org.openrndr.shape.Rectangle
 fun BufferWriter.write(drawStyle: DrawStyle) {
     write(drawStyle.fill ?: ColorRGBa.TRANSPARENT)
     write(drawStyle.stroke ?: ColorRGBa.TRANSPARENT)
-    write(drawStyle.strokeWeight.toFloat())
+    val weight = if (drawStyle.stroke == null || drawStyle.stroke?.a == 0.0) 0.0 else
+        drawStyle.strokeWeight
+    write(weight.toFloat())
 }
 
 val drawStyleFormat = vertexFormat {
@@ -160,7 +162,7 @@ class CircleBatchBuilder(drawer: Drawer) : BatchBuilder(drawer) {
             for (entry in entries) {
                 write(entry.fill ?: ColorRGBa.TRANSPARENT)
                 write(entry.stroke ?: ColorRGBa.TRANSPARENT)
-                write(if (entry.stroke == null) 0.0f else entry.strokeWeight.toFloat())
+                write(if (entry.stroke == null || entry.stroke.a == 0.0) 0.0f else entry.strokeWeight.toFloat())
             }
         }
         return existingBatch ?: CircleBatch(geometry, drawStyle)
