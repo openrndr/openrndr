@@ -7,15 +7,25 @@ import kotlin.math.pow
 import kotlin.math.sqrt
 import kotlin.math.abs
 
+/**
+ * Creates a [Circle].
+ *
+ * Alternatively, see [Ellipse].
+ */
 data class Circle(val center: Vector2, val radius: Double) {
     constructor(x: Double, y: Double, radius: Double) : this(Vector2(x, y), radius)
 
     companion object {
+        /** Creates a [Circle] by using the distance between the two points as diameter. */
         fun fromPoints(a: Vector2, b: Vector2): Circle {
             val center = (a + b) * 0.5
             return Circle(center, b.minus(center).length)
         }
 
+        /**
+         * Constructs a [Circle] where all three points
+         * pass through the perimeter of the [Circle].
+         */
         fun fromPoints(a: Vector2, b: Vector2, c: Vector2): Circle {
             val epsilon = 1E-7
             val dyba = b.y - a.y
@@ -44,24 +54,25 @@ data class Circle(val center: Vector2, val radius: Double) {
         }
     }
 
-    /** creates new [Circle] with center offset by [offset] */
+    /** Creates a new [Circle] with the current [center] offset by [offset]. */
     fun moved(offset: Vector2): Circle = Circle(center + offset, radius)
 
-    /** creates new [Circle] with center at [position] */
+    /** Creates a new [Circle] with center at [position]. */
     fun movedTo(position: Vector2): Circle = Circle(position, radius)
 
-    /** creates new [Circle] with radius scaled by [scale] */
+    /** Creates a new [Circle] with scale specified by a multiplier for the current radius. */
     fun scaled(scale: Double): Circle = Circle(center, radius * scale)
 
-    /** creates new [Circle] with radius set to [fitRadius] */
+    /** Creates a new [Circle] at the same position with given radius. */
     fun scaledTo(fitRadius: Double) = Circle(center, fitRadius)
 
+    /** Returns true if given [point] lies inside the [Shape]. */
     fun contains(point: Vector2): Boolean = point.minus(center).squaredLength < radius * radius
 
-    /** creates [Shape] representation */
+    /** Returns [Shape] representation of the [Circle]. */
     val shape get() = Shape(listOf(contour))
 
-    /** creates [ShapeContour] representation */
+    /** Returns [ShapeContour] representation of the [Circle]. */
     val contour: ShapeContour
         get() {
             val x = center.x - radius
@@ -87,10 +98,12 @@ data class Circle(val center: Vector2, val radius: Double) {
         }
 
     /**
-     * calculates the tangent lines between two circles
-     * by default it returns the outer tangents
-     * @param isInner if true returns the inner tangents
-     **/
+     * Calculates the tangent lines between two [Circle]s.
+     *
+     * Defaults to returning the outer tangents.
+     *
+     * @param isInner If true, returns the inner tangents instead.
+     */
     fun tangents(c: Circle, isInner: Boolean = false): List<Pair<Vector2, Vector2>>? {
         val r1 = radius
         val r2 = if (isInner) -c.radius else c.radius
@@ -110,7 +123,7 @@ data class Circle(val center: Vector2, val radius: Double) {
         }
     }
 
-    /** calculates the tangent lines to an external point **/
+    /** Calculates the tangent lines to an external point. **/
     fun tangents(point: Vector2): Pair<Vector2, Vector2> {
         val v = Polar.fromVector(point - center)
         val b = v.radius

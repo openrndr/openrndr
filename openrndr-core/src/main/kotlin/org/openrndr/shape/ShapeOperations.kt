@@ -97,6 +97,9 @@ private fun List<Shape>.toRegion2(): Region2 {
     })
 }
 
+/**
+ * Applies a boolean difference operation between two [ShapeContour]s.
+ */
 fun difference(from: ShapeContour, with: ShapeContour): Shape {
     return if (from.closed) {
         val result = from.toRing2().region().difference(with.toRing2().region())
@@ -127,6 +130,9 @@ fun difference(from: ShapeContour, with: ShapeContour): Shape {
     }
 }
 
+/**
+ * Applies a boolean difference operation between a [Shape] and a [ShapeContour].
+ */
 fun difference(from: Shape, with: ShapeContour): Shape {
     return when (from.topology) {
         ShapeTopology.CLOSED -> {
@@ -158,6 +164,9 @@ fun difference(from: Shape, with: ShapeContour): Shape {
     }
 }
 
+/**
+ * Applies a boolean difference operation between a [ShapeContour] and a [Shape].
+ */
 fun difference(from: ShapeContour, with: Shape): Shape {
     return if (from.closed) {
         val result = from.toRing2().region().difference(with.toRegion2())
@@ -195,6 +204,9 @@ fun difference(from: ShapeContour, with: Shape): Shape {
     }
 }
 
+/**
+ * Applies a boolean difference operation between two [Shape]s.
+ */
 fun difference(from: Shape, with: Shape): Shape {
     if (from.empty) {
         return Shape.EMPTY
@@ -236,18 +248,32 @@ fun difference(from: Shape, with: Shape): Shape {
     }
 }
 
+/**
+ * Applies a boolean difference operation between a [List] of [Shape]s and a [ShapeContour].
+ */
 fun difference(from: List<Shape>, subtract: ShapeContour): List<Shape> {
     return from.toRegion2().difference(subtract.toRing2().region()).toShapes()
 }
 
+/**
+ * Applies a boolean difference operation between a [List] of [Shape]s and a [Shape].
+ */
 fun difference(from: List<Shape>, subtract: Shape): List<Shape> {
     return from.toRegion2().difference(subtract.toRegion2()).toShapes()
 }
 
+/**
+ * Applies a boolean difference operation between two [List]s of [Shape]s.
+ */
 fun difference(from: List<Shape>, subtract: List<Shape>): List<Shape> {
     return from.toRegion2().difference(subtract.toRegion2()).toShapes()
 }
 
+/**
+ * Applies a boolean difference operation iteratively between a [List] of [Shape]s and a two-dimensional [List] of [Shape]s.
+ *
+ * [subtract] is traversed and a boolean [union] is applied between [from] and each element.
+ */
 @JvmName("differenceIterative")
 fun difference(from: List<Shape>, subtract: List<List<Shape>>): List<Shape> {
     var left = from
@@ -257,6 +283,9 @@ fun difference(from: List<Shape>, subtract: List<List<Shape>>): List<Shape> {
     return left
 }
 
+/**
+ * Applies a boolean union operation between two [ShapeContour]s.
+ */
 fun union(from: ShapeContour, add: ShapeContour): Shape {
     if (from === ShapeContour.EMPTY && add == ShapeContour.EMPTY) {
         return Shape.EMPTY
@@ -276,6 +305,9 @@ fun union(from: ShapeContour, add: ShapeContour): Shape {
     }
 }
 
+/**
+ * Applies a boolean union operation between a [Shape] and a [ShapeContour].
+ */
 fun union(from: Shape, add: ShapeContour): Shape {
     if (from === Shape.EMPTY && add === ShapeContour.EMPTY) {
         return Shape.EMPTY
@@ -290,6 +322,9 @@ fun union(from: Shape, add: ShapeContour): Shape {
     return result.toShape()
 }
 
+/**
+ * Applies a boolean union operation between two [Shape]s.
+ */
 fun union(from: Shape, add: Shape): Shape {
     return if (from.topology == ShapeTopology.CLOSED) {
         val result = from.toRegion2().union(add.toRegion2())
@@ -299,18 +334,32 @@ fun union(from: Shape, add: Shape): Shape {
     }
 }
 
+/**
+ * Applies a boolean union operation between a [List] of [Shape]s and a [ShapeContour].
+ */
 fun union(from: List<Shape>, add: ShapeContour): List<Shape> {
     return from.toRegion2().union(add.toRing2().region()).toShapes()
 }
 
+/**
+ * Applies a boolean union operation between a [List] of [Shape]s and a [Shape].
+ */
 fun union(from: List<Shape>, add: Shape): List<Shape> {
     return from.toRegion2().union(add.toRegion2()).toShapes()
 }
 
+/**
+ * Applies a boolean union operation between two [List]s of [Shape]s.
+ */
 fun union(from: List<Shape>, add: List<Shape>): List<Shape> {
     return from.toRegion2().union(add.toRegion2()).toShapes()
 }
 
+/**
+ * Applies a boolean union operation iteratively between a [List] of [Shape]s and a two-dimensional [List] of [Shape]s.
+ *
+ * [add] is traversed and a boolean [union] is applied between [from] and each element.
+ */
 @JvmName("unionIterative")
 fun union(from: List<Shape>, add: List<List<Shape>>): List<Shape> {
     var left = from
@@ -333,6 +382,9 @@ fun List<Double>.merge(f: (Double, Double) -> Boolean): List<Double> {
     return result
 }
 
+/**
+ * Applies a boolean intersection operation between two [ShapeContour]s.
+ */
 fun intersection(from: ShapeContour, with: ShapeContour): Shape {
     if (from.empty || with.empty)
         return Shape.EMPTY
@@ -366,6 +418,9 @@ fun intersection(from: ShapeContour, with: ShapeContour): Shape {
     }
 }
 
+/**
+ * Applies a boolean intersection operation between a [Shape] and a [ShapeContour].
+ */
 fun intersection(from: Shape, with: ShapeContour): Shape {
     if (from.empty || with.empty) {
         return Shape.EMPTY
@@ -401,6 +456,9 @@ fun intersection(from: Shape, with: ShapeContour): Shape {
     }
 }
 
+/**
+ * Applies a boolean intersection operation between a [ShapeContour] and [Shape].
+ */
 fun intersection(from: ShapeContour, with: Shape): Shape {
     if (from.empty || with.empty) {
         return Shape.EMPTY
@@ -442,6 +500,9 @@ fun intersection(from: ShapeContour, with: Shape): Shape {
     }
 }
 
+/**
+ * Applies a boolean intersection operation between two [Shape]s.
+ */
 fun intersection(from: Shape, with: Shape): Shape {
     return when (from.topology) {
         ShapeTopology.OPEN -> {
@@ -477,18 +538,32 @@ fun intersection(from: Shape, with: Shape): Shape {
     }
 }
 
+/**
+ * Applies a boolean intersection operation between a [List] of [Shape]s and a [ShapeContour].
+ */
 fun intersection(from: List<Shape>, with: ShapeContour): List<Shape> {
     return from.toRegion2().intersection(with.toRing2().region()).toShapes()
 }
 
+/**
+ * Applies a boolean intersection operation between a [List] of [Shape]s and a [Shape].
+ */
 fun intersection(from: List<Shape>, with: Shape): List<Shape> {
     return from.toRegion2().intersection(with.toRegion2()).toShapes()
 }
 
+/**
+ * Applies a boolean intersection operation between two [List]s of [Shape]s.
+ */
 fun intersection(from: List<Shape>, with: List<Shape>): List<Shape> {
     return from.toRegion2().intersection(with.toRegion2()).toShapes()
 }
 
+/**
+ * Applies a boolean intersection operation iteratively between a [List] of [Shape]s and a two-dimensional [List] of [Shape]s.
+ *
+ * [with] is traversed and a boolean [intersection] is applied between [from] and each element.
+ */
 @JvmName("intersectionIterative")
 fun intersection(from: List<Shape>, with: List<List<Shape>>): List<Shape> {
     var left = from
@@ -500,7 +575,9 @@ fun intersection(from: List<Shape>, with: List<List<Shape>>): List<Shape> {
 
 class SegmentIntersection(val a: SegmentPoint, val b: SegmentPoint, val position: Vector2)
 
-/** Find intersections between two Segments **/
+/**
+ * Calculates a [List] of all points of where paths intersect between the two [Segment]s.
+ */
 fun intersections(a: Segment, b: Segment): List<SegmentIntersection> {
 
     if ((a.linear && a.length == 0.0) || (b.linear && b.length == 0.0)) {
@@ -528,7 +605,7 @@ fun intersections(a: Segment, b: Segment): List<SegmentIntersection> {
 data class ContourIntersection(val a: ContourPoint, val b: ContourPoint, val position: Vector2)
 
 /**
- * Find intersections between two ShapeContours
+ * Calculates a [List] of all points of where paths intersect between two [ShapeContour]s.
  */
 fun intersections(a: ShapeContour, b: ShapeContour): List<ContourIntersection> {
     val selfTest = a === b
@@ -563,7 +640,10 @@ fun intersections(a: ShapeContour, b: ShapeContour): List<ContourIntersection> {
     }
 }
 
-fun intersections(a: Shape, b: Shape) : List<ContourIntersection> {
+/**
+ * Calculates a [List] of all points of where paths intersect between the two [Shape]s.
+ */
+fun intersections(a: Shape, b: Shape): List<ContourIntersection> {
     return a.contours.flatMap { ac ->
         b.contours.flatMap { bc ->
             intersections(ac, bc)
@@ -572,8 +652,14 @@ fun intersections(a: Shape, b: Shape) : List<ContourIntersection> {
 }
 
 
-
-
+/**
+ * Splits a [Shape] into two separate [Shape]s from given [LineSegment].
+ *
+ * [LineSegment] doesn't necessarily need to cover the full length of the [Shape],
+ * as it will be extended on both ends to ensure it splits the whole [Shape].
+ *
+ * @return A pair containing two partial [Shape]s.
+ */
 fun split(shape: Shape, line: LineSegment): Pair<Shape, Shape> {
     val center = (line.end + line.start) / 2.0
     val direction = (line.end - line.start).normalized
@@ -609,8 +695,9 @@ fun split(shape: Shape, line: LineSegment): Pair<Shape, Shape> {
 }
 
 /**
- * Splits a ShapeContour with another ShapeContour.
- * If there is no intersection it returns the original contour.
+ * Splits a [ShapeContour] with another [ShapeContour].
+ *
+ * If there is no intersection, the original contour is returned.
  */
 fun split(from: ShapeContour, cutter: ShapeContour): List<ShapeContour> {
     if (from.empty) return listOf()
@@ -621,7 +708,7 @@ fun split(from: ShapeContour, cutter: ShapeContour): List<ShapeContour> {
 }
 
 /**
- * Splits a ShapeContour with all other ShapeContours in a list.
+ * Splits a [ShapeContour] with all other [ShapeContour] in a [List].
  */
 fun split(from: ShapeContour, cutters: List<ShapeContour>): List<ShapeContour> {
     if (from.empty) return listOf()
@@ -631,7 +718,7 @@ fun split(from: ShapeContour, cutters: List<ShapeContour>): List<ShapeContour> {
     // We would iterate over each element and cut against
     // "all other items". Building a collection with "all other items"
     // for each item is tedious. Easier to just discard if equal.
-    val validCutters = cutters.filter { !it.empty && it != from}
+    val validCutters = cutters.filter { !it.empty && it != from }
     if (validCutters.isEmpty()) return listOf(from)
 
     val ints = validCutters.map { cutter ->

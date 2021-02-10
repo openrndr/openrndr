@@ -6,16 +6,33 @@ import kotlin.math.abs
 import kotlin.math.min
 import kotlin.math.sqrt
 
-data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val polarity: YPolarity = YPolarity.CW_NEGATIVE_Y) {
+/**
+ * A [List] for managing a collection of [Segment]s.
+ */
+data class ShapeContour(
+        val segments: List<Segment>,
+        val closed: Boolean,
+        val polarity: YPolarity = YPolarity.CW_NEGATIVE_Y
+) {
     companion object {
+        /**
+         * An empty [ShapeContour] object.
+         *
+         * It is advised to use this instance whenever an empty contour is needed.
+         */
         val EMPTY = ShapeContour(emptyList(), false)
 
-        fun fromPoints(points: List<Vector2>, closed: Boolean, polarity: YPolarity = YPolarity.CW_NEGATIVE_Y) =
+        /** Creates a [ShapeContour] by converting [points] to [Segment]s. */
+        fun fromPoints(
+                points: List<Vector2>,
+                closed: Boolean,
+                polarity: YPolarity = YPolarity.CW_NEGATIVE_Y
+        ) =
                 if (!closed) {
                     ShapeContour((0 until points.size - 1).map {
                         Segment(
-                            points[it],
-                            points[it + 1]
+                                points[it],
+                                points[it + 1]
                         )
                     }, closed, polarity)
                 } else {
@@ -23,13 +40,14 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
                     val usePoints = if (d > 10E-6) points else points.dropLast(1)
                     ShapeContour((usePoints.indices).map {
                         Segment(
-                            usePoints[it],
-                            usePoints[(it + 1) % usePoints.size]
+                                usePoints[it],
+                                usePoints[(it + 1) % usePoints.size]
                         )
                     }, true, polarity)
                 }
     }
 
+    /** Triangulates [ShapeContour] into a [List] of [Triangle]s. */
     @Suppress("unused")
     val triangulation by lazy {
         triangulate(Shape(listOf(this))).windowed(3, 3).map {
@@ -46,31 +64,23 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
         }
     }
 
-    /**
-     * convert to [Shape]
-     */
+    /** Returns [Shape] representation. */
     val shape get() = Shape(listOf(this))
 
-    /**
-     * calculate approximate Euclidean length of the contour
-     */
+    /** Calculates approximate Euclidean length of the contour. */
     val length by lazy { segments.sumByDouble { it.length } }
 
-    /**
-     * calculate bounding box [Rectangle] of the contour
-     */
+    /** Calculates the bounding box of the contour as [Rectangle]. */
     val bounds by lazy {
         sampleLinear().segments.flatMap {
             listOf(
-                it.start,
-                it.end
+                    it.start,
+                    it.end
             )
         }.bounds
     }
 
-    /**
-     * determine winding order of the contour
-     */
+    /** Determines the winding order of the [ShapeContour]. */
     val winding: Winding
         get() {
             var sum = 0.0
@@ -92,21 +102,15 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
             }
         }
 
-    /**
-     * convert to list of single segment [ShapeContour]s
-     */
+    /** Converts to a [List] of single [Segment]s. */
     @Suppress("unused")
     val exploded: List<ShapeContour>
         get() = segments.map { ShapeContour(listOf(it), false, polarity) }
 
-    /**
-     * convert to contour with clock wise winding
-     */
+    /** Converts to [ShapeContour] with a clockwise winding. */
     val clockwise: ShapeContour get() = if (winding == Winding.CLOCKWISE) this else this.reversed
 
-    /**
-     * convert to contour with contour-clockwise winding
-     */
+    /** Converts to [ShapeContour] with a counterclockwise winding. */
     val counterClockwise: ShapeContour get() = if (winding == Winding.COUNTER_CLOCKWISE) this else this.reversed
 
     operator fun plus(other: ShapeContour): ShapeContour {
@@ -128,23 +132,24 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
         segments.addAll(this.segments)
         if ((this.segments[this.segments.size - 1].end - other.segments[0].start).length > epsilon) {
             segments.add(
-                Segment(
-                    this.segments[this.segments.size - 1].end,
-                    other.segments[0].start
-                )
+                    Segment(
+                            this.segments[this.segments.size - 1].end,
+                            other.segments[0].start
+                    )
             )
         }
         segments.addAll(other.segments)
         return ShapeContour(segments, false, polarity)
     }
 
+    /** Returns true if given [point] lies inside the [ShapeContour]. */
     operator fun contains(point: Vector2): Boolean = closed && this.toRing2().test(
-        Vec2(point.x, point.y)
+            Vec2(point.x, point.y)
     ).inside
 
     /**
-     * Estimate t parameter value for a given length
-     * @return a value between 0 and 1
+     * Estimate [t](https://pomax.github.io/bezierinfo/#explanation) value for a given length.
+     * @return A value between `0.0` and `1.0`.
      */
     @Suppress("unused")
     fun tForLength(length: Double): Double {
@@ -166,23 +171,31 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
         return 1.0
     }
 
-    /**
-     * Split a ShapeContour with another ShapeContour.
-     */
+    /** Splits a [ShapeContour] with another [ShapeContour]. */
     fun split(cutter: ShapeContour) = split(this, cutter)
+
+    /** Splits a [ShapeContour] with a [List] of [ShapeContour]s. */
     fun split(cutters: List<ShapeContour>) = split(this, cutters)
 
+    /**
+     * Offsets a [ShapeContour]'s [Segment]s by given [distance].
+     *
+     * [Segment]s are moved outwards if [distance] is > 0 or inwards if [distance] is < 0.
+     *
+     * @param joinType Specifies how to join together the moved [Segment]s.
+     */
     fun offset(distance: Double, joinType: SegmentJoin = SegmentJoin.ROUND): ShapeContour {
         if (segments.size == 1) {
             return ShapeContour(
-                segments[0].offset(
-                    distance,
-                    yPolarity = polarity
-                ), false, polarity
+                    segments[0].offset(
+                            distance,
+                            yPolarity = polarity
+                    ), false, polarity
             )
         }
 
-        val offsets = segments.map { it.offset(distance, yPolarity = polarity) }.filter { it.isNotEmpty() }
+        val offsets =
+                segments.map { it.offset(distance, yPolarity = polarity) }.filter { it.isNotEmpty() }
 
         if (offsets.isEmpty()) {
             return ShapeContour(emptyList(), false)
@@ -198,10 +211,10 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
                     val fs = offset.first()
                     if (ls.type == SegmentType.LINEAR && fs.type == SegmentType.LINEAR) {
                         val i = intersection(
-                            ls.start,
-                            ls.end,
-                            offset.first().start,
-                            offset.first().end
+                                ls.start,
+                                ls.end,
+                                offset.first().start,
+                                offset.first().end
                         )
                         if (i != Vector2.INFINITY && (i - ls.end).squaredLength > 10E-6) {
                             undo()
@@ -218,22 +231,22 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
                         when (joinType) {
                             SegmentJoin.BEVEL -> lineTo(mOffset.first().start)
                             SegmentJoin.ROUND -> arcTo(
-                                crx = joinDistance * 0.5 * sqrt(2.0),
-                                cry = joinDistance * 0.5 * sqrt(2.0),
-                                angle = 90.0,
-                                largeArcFlag = false,
-                                sweepFlag = true,
-                                end = mOffset.first().start
+                                    crx = joinDistance * 0.5 * sqrt(2.0),
+                                    cry = joinDistance * 0.5 * sqrt(2.0),
+                                    angle = 90.0,
+                                    largeArcFlag = false,
+                                    sweepFlag = true,
+                                    end = mOffset.first().start
                             )
                             SegmentJoin.MITER -> {
                                 val ls = lastSegment ?: offsets.last().last()
                                 val fs = mOffset.first()
                                 val i = intersection(
-                                    ls.end,
-                                    ls.end + ls.direction(1.0),
-                                    fs.start,
-                                    fs.start - fs.direction(0.0),
-                                    eps = 10E8
+                                        ls.end,
+                                        ls.end + ls.direction(1.0),
+                                        fs.start,
+                                        fs.start - fs.direction(0.0),
+                                        eps = 10E8
                                 )
                                 if (i !== Vector2.INFINITY) {
                                     lineTo(i)
@@ -261,11 +274,20 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
         }
     }
 
+    /** Returns true if [ShapeContour] doesn't contain any [Segment]s. */
     val empty: Boolean
         get() {
             return this === EMPTY || segments.isEmpty()
         }
 
+    /**
+     * Returns a point on the path of the [ShapeContour].
+     *
+     * Also see: [Segment.position].
+     *
+     * @param ut unfiltered t parameter, will be clamped between 0.0 and 1.0.
+     * @return [Vector2] that lies on the path of the [ShapeContour].
+     */
     fun position(ut: Double): Vector2 {
         if (empty) {
             return Vector2.INFINITY
@@ -282,9 +304,7 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
         }
     }
 
-    /**
-     * Evaluates the contour for the given position
-     */
+    /** Evaluates the contour for the given position. */
     fun normal(ut: Double): Vector2 {
         if (empty) {
             return Vector2.ZERO
@@ -301,6 +321,13 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
         }
     }
 
+    /**
+     * Calculates pose [Matrix44] that describes an orthonormal basis
+     * formed by normal and tangent of the contour at [t](https://pomax.github.io/bezierinfo/#explanation).
+     *
+     * Which means it returns a [Matrix44],
+     * that you can use to orient an object the same way the curve is oriented at given [t](https://pomax.github.io/bezierinfo/#explanation).
+     */
     @Suppress("unused")
     fun pose(t: Double): Matrix44 {
         val n = normal(t)
@@ -310,10 +337,24 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
         return Matrix44.fromColumnVectors(dx, dy, Vector4.UNIT_Z, dt)
     }
 
+    /**
+     * Recursively subdivides linear [Segment]s to approximate Bézier curves.
+     *
+     * Works like [adaptivePositionsAndCorners] but discards list of booleans.
+     */
     fun adaptivePositions(distanceTolerance: Double = 0.5): List<Vector2> {
         return adaptivePositionsAndCorners(distanceTolerance).first
     }
 
+    /**
+     * Recursively subdivides linear [Segment]s to approximate Bézier curves.
+     *
+     * Also see [Segment.adaptivePositions].
+     *
+     * @param distanceTolerance The square of the maximal distance of each point from curve.
+     * @return A pair containing a list of points and a list of
+     * respective boolean values for each point, indicating if the point is on a [Segment] boundary or not.
+     */
     fun adaptivePositionsAndCorners(distanceTolerance: Double = 0.5): Pair<List<Vector2>, List<Boolean>> {
         if (empty) {
             return Pair(emptyList(), emptyList())
@@ -344,7 +385,15 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
         return Pair(adaptivePoints, corners)
     }
 
-
+    /**
+     * Recursively subdivides linear [Segment]s to approximate Bézier curves.
+     *
+     * Also see [Segment.adaptivePositions].
+     *
+     * @param distanceTolerance The square of the maximal distance of each point from curve.
+     * @return A pair containing a list of points and a list of
+     *      respective normal vectors.
+     */
     @Suppress("unused")
     fun adaptivePositionsAndDirection(distanceTolerance: Double = 0.5): Pair<List<Vector2>, List<Vector2>> {
         if (empty) {
@@ -375,22 +424,22 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
     }
 
     /**
-     *
+     * Returns specified amount of points of equal distance from eachother.
      */
     fun equidistantPositions(pointCount: Int) =
             if (empty) {
                 emptyList()
             } else {
                 sampleEquidistant(
-                    adaptivePositions(),
-                    pointCount + if (closed) 1 else 0
+                        adaptivePositions(),
+                        pointCount + if (closed) 1 else 0
                 )
             }
 
     /**
      * Adaptively sample the contour into line segments while still approximating the original contour
-     * @param distanceTolerance controls the quality of the approximation
-     * @return a ShapeContour composed of linear segments
+     * @param distanceTolerance Controls the precision of the approximation
+     * @return A [ShapeContour] composed of linear [Segment]s
      */
     fun sampleLinear(distanceTolerance: Double = 0.5) =
             if (empty) {
@@ -399,9 +448,7 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
                 fromPoints(adaptivePositions(distanceTolerance), closed, polarity)
             }
 
-    /**
-     * Sample the shape contour into line segments
-     */
+    /** Samples the [ShapeContour] into equidistant linear [Segment]s. */
     fun sampleEquidistant(pointCount: Int): ShapeContour {
         if (empty) {
             return EMPTY
@@ -409,13 +456,14 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
         val points = equidistantPositions(pointCount.coerceAtLeast(2))
         val segments = (0 until points.size - 1).map {
             Segment(
-                points[it],
-                points[it + 1]
+                    points[it],
+                    points[it + 1]
             )
         }
         return ShapeContour(segments, closed, polarity)
     }
 
+    /** Applies linear transformation to [ShapeContour]. */
     fun transform(transform: Matrix44) =
             if (empty) {
                 EMPTY
@@ -424,18 +472,18 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
                     this
                 } else {
                     ShapeContour(
-                        segments.map { it.transform(transform) },
-                        closed,
-                        polarity
+                            segments.map { it.transform(transform) },
+                            closed,
+                            polarity
                     )
                 }
             }
 
     /**
-     * Sample a sub contour
-     * @param startT starting point in [0, 1)
-     * @param endT ending point in [0, 1)
-     * @return sub contour
+     * Returns a sample of the [ShapeContour].
+     * @param startT Starting point in range `0.0` to less than `1.0`.
+     * @param endT Ending point in range `0.0` to less than `1.0`.
+     * @return Subcontour
      */
     fun sub(startT: Double, endT: Double): ShapeContour {
         if (empty) {
@@ -528,11 +576,12 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
 
 
     /**
-     * Checks if a give point lies on the contour
-     * @param point the point to check
-     * @param error what is the allowed error (unit-less, but likely in pixels)
-     * @return the contour parameter in [0..1.0) if the point is within error `null` otherwise
+     * Checks if given point lies on the path of the [ShapeContour].
      *
+     * @param point The point to check.
+     * @param error Maximum acceptable margin for error.
+     * @return The contour parameter in the range 0 to less than 1 (inclusive of 0, but not 1) only if the point is within the margin of error.
+     *      Otherwise `null` will be returned.
      */
     fun on(point: Vector2, error: Double = 5.0): Double? {
         for (i in segments.indices) {
@@ -545,12 +594,13 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
     }
 
     /**
-     * Project a point on the contour
-     * @param point the point to project
-     * @return a projected point that lies on the contour
+     * Projects a point on the [ShapeContour]
+     * @param point The point to project.
+     * @return a projected point that lies on the [ShapeContour].
      */
     fun nearest(point: Vector2): ContourPoint {
-        val n = segments.map { it.nearest(point) }.minByOrNull { it.position.distanceTo(point) } ?: error("no segments")
+        val n = segments.map { it.nearest(point) }.minByOrNull { it.position.distanceTo(point) }
+                ?: error("no segments")
         val segmentIndex = segments.indexOf(n.segment)
         val t = (segmentIndex + n.segmentT) / segments.size
         return ContourPoint(this, t, n.segment, n.segmentT, n.position)
@@ -559,22 +609,45 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
     //@Deprecated("Please use .open() instead")
     //val opened = open
 
-    val open get() = if(empty) EMPTY else
-        ShapeContour(segments, false, polarity)
+    /**
+     * Opens the path of the [ShapeContour].
+     */
+    val open
+        get() = if (empty) EMPTY else
+            ShapeContour(segments, false, polarity)
 
-    val close get() = if(empty) EMPTY else {
-        if ((segments.last().end - segments.first().start).squaredLength < 10E-6)
-            ShapeContour(segments, true, polarity)
-        else
-            ShapeContour(segments + Segment(segments.last().end,
-                segments.first().start), true, polarity)
-    }
+    /**
+     * Closes the path of the [ShapeContour].
+     *
+     * The path is closed by creating a new connecting [Segment]
+     * between the first and last [Segment] in the contour.
+     * If the distance between the beginning of the first and the finish of the last point is negligible (`<0.001`),
+     * then no new [Segment]s are added.
+     */
+    val close
+        get() = if (empty) EMPTY else {
+            if ((segments.last().end - segments.first().start).squaredLength < 10E-6)
+                ShapeContour(segments, true, polarity)
+            else
+                ShapeContour(
+                        segments + Segment(
+                                segments.last().end,
+                                segments.first().start
+                        ), true, polarity
+                )
+        }
 
-    val reversed get() = ShapeContour(
-        segments.map { it.reverse }.reversed(),
-        closed,
-        polarity
-    )
+    /**
+     * Reverses the direction of [Segment]s and their order.
+     *
+     * For more information, see [Segment.reverse].
+     */
+    val reversed
+        get() = ShapeContour(
+                segments.map { it.reverse }.reversed(),
+                closed,
+                polarity
+        )
 
     @Deprecated("complicated semantics")
     fun map(closed: Boolean = this.closed, mapper: (Segment) -> Segment): ShapeContour {
@@ -592,51 +665,57 @@ data class ShapeContour(val segments: List<Segment>, val closed: Boolean, val po
                 val left = segments.last()
                 val right = segments.first()
                 fixedSegments.add(
-                    Segment(
-                        left.start,
-                        left.control,
-                        right.start
-                    )
+                        Segment(
+                                left.start,
+                                left.control,
+                                right.start
+                        )
                 )
             } else {
                 fixedSegments.add(segments.last())
             }
         }
         return ShapeContour(
-            if (segments.size > 1) fixedSegments else segments,
-            closed,
-            polarity
+                if (segments.size > 1) fixedSegments else segments,
+                closed,
+                polarity
         )
     }
 
+    /** Applies a boolean union operation between the [ShapeContour] and a [Shape]. */
     @Suppress("unused")
     fun union(other: Shape): Shape = union(this.shape, other)
 
+    /** Applies a boolean difference operation between the [ShapeContour] and another [Shape]. */
     @Suppress("unused")
     fun difference(other: Shape): Shape = difference(this, other)
 
+    /** Applies a boolean intersection operation between the [ShapeContour] and a [Shape]. */
     @Suppress("unused")
     fun intersection(other: Shape): Shape = intersection(this, other)
 
+    /** Calculates a [List] of all points of where paths intersect between the [ShapeContour] and a [Segment]. */
     @Suppress("unused")
     fun intersections(other: Segment) = intersections(this, other.contour)
 
+    /** Calculates a [List] of all points of where paths intersect between the [ShapeContour] and another [ShapeContour]. */
     @Suppress("unused")
     fun intersections(other: ShapeContour) = intersections(this, other)
 
+    /** Calculates a [List] of all points of where paths intersect between the [ShapeContour] and a [Shape]. */
     @Suppress("unused")
     fun intersections(other: Shape) = intersections(this.shape, other)
 }
 
 /**
- * convert a List of [ShapeContour] items to a [Shape]
+ * Converts a [List] of [ShapeContour]s to a single [Shape].
  */
 val List<ShapeContour>.shape
     get() = Shape(this)
 
 /**
- * convert to [ShapeContour]
+ * Converts chain to a [ShapeContour].
  */
 @Suppress("unused")
 fun CatmullRomChain2.toContour(): ShapeContour =
-    ShapeContour(segments.map { it.toSegment() }, this.loop)
+        ShapeContour(segments.map { it.toSegment() }, this.loop)

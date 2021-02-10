@@ -3,9 +3,7 @@ package org.openrndr.math
 import java.io.Serializable
 import kotlin.math.sqrt
 
-/**
- * Integer vector 2
- */
+/** Integer 2D vector, exclusively for integer calculations. */
 @Suppress("unused")
 data class IntVector2(val x: Int, val y: Int) : Serializable {
     companion object {
@@ -14,9 +12,15 @@ data class IntVector2(val x: Int, val y: Int) : Serializable {
         val UNIT_Y = IntVector2(0, 1)
     }
 
+    /** The Euclidean length of the vector. */
     val length get() = sqrt(1.0 * x * x + y * y)
+
+    /** The squared Euclidean length of the vector. */
     val squaredLength get() = x * x + y * y
+
+    /** Calculates a dot product between this [Vector2] and [right]. */
     infix fun dot(right: IntVector2) = x * right.x + y * right.y
+
     val yx get() = IntVector2(y, x)
     val xx get() = IntVector2(x, x)
     val yy get() = IntVector2(y, y)
@@ -24,6 +28,8 @@ data class IntVector2(val x: Int, val y: Int) : Serializable {
     operator fun minus(v: IntVector2) = IntVector2(x - v.x, y - v.y)
     operator fun times(d: Int) = IntVector2(x * d, y * d)
     operator fun div(d: Int) = IntVector2(x / d, y / d)
+
+    /** Casts to [Vector2]. */
     val vector2 get() = Vector2(this.x.toDouble(), this.y.toDouble())
 }
 

@@ -7,18 +7,23 @@ import org.openrndr.math.*
 import org.openrndr.utils.resettableLazy
 import kotlin.random.Random
 
+/**
+ * A simple interface for managing a [List] of [ShapeContour].
+ */
 class Shape(val contours: List<ShapeContour>) {
     companion object {
         /**
-         * an empty shape object, advised to use this instance whenever an empty shape is needed
+         * An empty [Shape] object.
+         *
+         * It is advised to use this instance whenever an empty shape is needed.
          */
         val EMPTY = Shape(emptyList())
+
+        /** Creates a [Shape] from combining a [List] of Shapes */
         fun compound(shapes: List<Shape>) = Shape(shapes.flatMap { it.contours })
     }
 
-    /**
-     * bounding box [Rectangle]
-     */
+    /** Returns [Shape] bounding box. */
     private val boundsDelegate = resettableLazy {
         if (empty) {
             Rectangle(0.0, 0.0, 0.0, 0.0)
@@ -34,9 +39,7 @@ class Shape(val contours: List<ShapeContour>) {
     }
     val bounds by boundsDelegate
 
-    /**
-     * indication of shape topology
-     */
+    /** Indicates the [Shape] topology. */
     val topology = when {
         contours.isEmpty() -> ShapeTopology.OPEN
         contours.all { it.closed } -> ShapeTopology.CLOSED
@@ -44,9 +47,7 @@ class Shape(val contours: List<ShapeContour>) {
         else -> ShapeTopology.MIXED
     }
 
-    /**
-     * list the open contours
-     */
+    /** Lists all [ShapeContour]s with an [open topology][ShapeTopology.OPEN]. */
     val openContours: List<ShapeContour> =
             when (topology) {
                 ShapeTopology.OPEN -> contours
@@ -54,9 +55,7 @@ class Shape(val contours: List<ShapeContour>) {
                 ShapeTopology.MIXED -> contours.filter { !it.closed }
             }
 
-    /**
-     * list the closed contours
-     */
+    /** Lists all [ShapeContour]s with a [closed topology][ShapeTopology.CLOSED]. */
     val closedContours: List<ShapeContour> =
             when (topology) {
                 ShapeTopology.OPEN -> emptyList()
@@ -64,10 +63,12 @@ class Shape(val contours: List<ShapeContour>) {
                 ShapeTopology.MIXED -> contours.filter { it.closed }
             }
 
+    /** Returns true if [Shape] contains no [ShapeContour]s. */
     val empty get() = this === EMPTY || contours.isEmpty()
 
     /**
-     * indicates that the shape has only contours for which each segment is a line segment
+     * Returns true if [Shape] consists solely of [ShapeContour]s,
+     * where each [Segment] is a [line segment][SegmentType.LINEAR].
      */
     val linear get() = contours.all { it.segments.all { segment -> segment.linear } }
     fun polygon(distanceTolerance: Double = 0.5) =
@@ -77,22 +78,20 @@ class Shape(val contours: List<ShapeContour>) {
                 Shape(contours.map { it.sampleLinear(distanceTolerance) })
             }
 
-    /**
-     * calculate triangulation for this shape
-     */
     private val triangulationDelegate = resettableLazy {
         triangulate(this).windowed(3, 3).map {
             Triangle(it[0], it[1], it[2])
         }
     }
+
+    /** Triangulates [Shape] into a [List] of [Triangle]s. */
     val triangulation by triangulationDelegate
 
-    /**
-     * calculate (approximate) area for this shape (through triangulation)
-     */
     private val areaDelegate = resettableLazy {
         triangulation.sumByDouble { it.area }
     }
+
+    /** Calculates approximate area for this shape (through triangulation). */
     val area by areaDelegate
 
     fun resetCache() {
@@ -102,9 +101,10 @@ class Shape(val contours: List<ShapeContour>) {
     }
 
     /**
-     * generate random points that lie inside the shape
-     * @param pointCount the number of points to generate
-     * @param random the [Random] number generator to use, default is [Random.Default]
+     * Generates specified amount of random points that lie inside the [Shape].
+     *
+     * @param pointCount The number of points to generate.
+     * @param random The [Random] number generator to use, defaults to [Random.Default].
      */
     fun randomPoints(pointCount: Int, random: Random = Random.Default): List<Vector2> {
         val randomValues = List(pointCount) { random.nextDouble() * area }.sortedDescending().toMutableList()
@@ -126,6 +126,7 @@ class Shape(val contours: List<ShapeContour>) {
         return result
     }
 
+    /** Returns true if given [Vector2] is inside the [Shape]. */
     operator fun contains(v: Vector2): Boolean {
         if (empty) {
             return false
@@ -133,21 +134,20 @@ class Shape(val contours: List<ShapeContour>) {
         return toRegion2().contains(Vec2(v.x, v.y))
     }
 
-    /**
-     * The outline of the shape
-     */
+    /** The outline of the shape. */
     val outline get() = contours[0]
 
     /**
-     * The indexed hole of the shape
+     * The indexed hole of the shape.
      * @param index
      */
     fun hole(index: Int) = contours[index + 1]
 
     /**
-     * Apply a transform to the shape
-     * @param transform a Matrix44 that represents the transform
-     * @return a transformed shape instance
+     * Applies a linear transformation to the [Shape].
+     *
+     * @param transform A [Matrix44] that represents the transform.
+     * @return A transformed [Shape] instance
      */
     fun transform(transform: Matrix44) = when {
         empty -> EMPTY
@@ -155,11 +155,14 @@ class Shape(val contours: List<ShapeContour>) {
         else -> Shape(contours.map { it.transform(transform) })
     }
 
-    /**
-     * Apply a map to the shape. Maps every contour.
-     */
+    /** Applies a map to the shape. Maps every contour. */
     fun map(mapper: (ShapeContour) -> ShapeContour) = Shape(contours.map { mapper(it) })
 
+    /**
+     * Checks whether the [Shape] is compound or not.
+     *
+     * Returns true when the amount of [ShapeContour]s with a [clockwise winding][Winding.CLOCKWISE] because it assumes
+     */
     val compound: Boolean
         get() {
             return if (contours.isEmpty()) {
@@ -169,9 +172,7 @@ class Shape(val contours: List<ShapeContour>) {
             }
         }
 
-    /**
-     * Splits a compound shape into separate shapes.
-     */
+    /** Splits a compound shape into separate shapes. */
     fun splitCompounds(winding: Winding = Winding.CLOCKWISE): List<Shape> {
         return if (contours.isEmpty()) {
             emptyList()
@@ -200,23 +201,29 @@ class Shape(val contours: List<ShapeContour>) {
         return contours.hashCode()
     }
 
+    /** Applies a boolean union operation between two [Shape]s. */
     fun union(other: Shape): Shape = union(this, other)
+
+    /** Applies a boolean difference operation between two [Shape]s. */
     fun difference(other: Shape): Shape = difference(this, other)
+
+    /** Applies a boolean intersection operation between two [Shape]s. */
     fun intersection(other: Shape): Shape = intersection(this, other)
 
+    /** Calculates a [List] of all points of where paths intersect between two [Shape]s. */
     fun intersections(other: Shape) = intersections(this, other)
+
+    /** Calculates a [List] of all points of where paths intersect between the [Shape] and a [ShapeContour]. */
     fun intersections(other: ShapeContour) = intersections(this, other.shape)
+
+    /** Calculates a [List] of all points of where paths intersect between the [Shape] and a [Segment]. */
     fun intersections(other: Segment) = intersections(this, other.contour.shape)
     override fun toString(): String {
         return "Shape(contours=$contours, topology=$topology)"
     }
-
-
 }
 
-/**
- * convert a list of [Shape] items into a single [Shape] compound
- */
+/** Converts a [List] of [Shape] items into a single compound [Shape]. */
 val List<Shape>.compound
     get() = Shape.compound(this)
 

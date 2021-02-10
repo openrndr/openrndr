@@ -8,8 +8,7 @@ import org.openrndr.math.Vector2
  *
  * @author Edwin Jakobs
  *
- * @param points
- * @param epsilon when epsilon is less than the max distance between 2 points, recursively simplify
+ * @param epsilon When epsilon is less than the max distance between 2 points, recursively simplify.
  */
 fun simplify(points: List<Vector2>, epsilon: Double): List<Vector2> {
     // Find the point with the maximum distance
