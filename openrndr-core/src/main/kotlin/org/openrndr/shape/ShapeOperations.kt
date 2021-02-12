@@ -575,9 +575,7 @@ fun intersection(from: List<Shape>, with: List<List<Shape>>): List<Shape> {
 
 class SegmentIntersection(val a: SegmentPoint, val b: SegmentPoint, val position: Vector2)
 
-/**
- * Calculates a [List] of all points of where paths intersect between the two [Segment]s.
- */
+/** Calculates a [List] of all points where two [Segment]s intersect. */
 fun intersections(a: Segment, b: Segment): List<SegmentIntersection> {
 
     if ((a.linear && a.length == 0.0) || (b.linear && b.length == 0.0)) {

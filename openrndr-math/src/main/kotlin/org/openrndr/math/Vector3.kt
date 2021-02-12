@@ -36,7 +36,7 @@ data class Vector3(val x: Double, val y: Double, val z: Double) : Serializable, 
     val zx get() = Vector2(z, x)
     val xz get() = Vector2(x, z)
 
-    /** Returns a normalized version of the vector. */
+    /** Returns a normalized version of the vector. (i.e. unit vector) */
     val normalized: Vector3
         get() {
             val l = 1.0 / length

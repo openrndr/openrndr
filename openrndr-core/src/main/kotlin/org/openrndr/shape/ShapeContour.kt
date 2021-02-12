@@ -107,10 +107,10 @@ data class ShapeContour(
     val exploded: List<ShapeContour>
         get() = segments.map { ShapeContour(listOf(it), false, polarity) }
 
-    /** Converts to [ShapeContour] with a clockwise winding. */
+    /** Returns the [ShapeContour], but with a clockwise winding. */
     val clockwise: ShapeContour get() = if (winding == Winding.CLOCKWISE) this else this.reversed
 
-    /** Converts to [ShapeContour] with a counterclockwise winding. */
+    /** Returns the [ShapeContour], but with a counterclockwise winding. */
     val counterClockwise: ShapeContour get() = if (winding == Winding.COUNTER_CLOCKWISE) this else this.reversed
 
     operator fun plus(other: ShapeContour): ShapeContour {
@@ -304,7 +304,7 @@ data class ShapeContour(
         }
     }
 
-    /** Evaluates the contour for the given position. */
+    /** Calculates the normal for given value of `t`. */
     fun normal(ut: Double): Vector2 {
         if (empty) {
             return Vector2.ZERO
@@ -322,11 +322,13 @@ data class ShapeContour(
     }
 
     /**
-     * Calculates pose [Matrix44] that describes an orthonormal basis
+     * Calculates the pose [Matrix44] (i.e. translation and rotation) that describes an orthonormal basis
      * formed by normal and tangent of the contour at [t](https://pomax.github.io/bezierinfo/#explanation).
      *
      * Which means it returns a [Matrix44],
-     * that you can use to orient an object the same way the curve is oriented at given [t](https://pomax.github.io/bezierinfo/#explanation).
+     * that you can use to orient an object
+     * the same way the curve is oriented at
+     * given value of [t](https://pomax.github.io/bezierinfo/#explanation).
      */
     @Suppress("unused")
     fun pose(t: Double): Matrix44 {
@@ -340,7 +342,8 @@ data class ShapeContour(
     /**
      * Recursively subdivides linear [Segment]s to approximate Bézier curves.
      *
-     * Works like [adaptivePositionsAndCorners] but discards list of booleans.
+     * Works similar to [adaptivePositionsAndCorners] but it only returns
+     * the positions without the corners.
      */
     fun adaptivePositions(distanceTolerance: Double = 0.5): List<Vector2> {
         return adaptivePositionsAndCorners(distanceTolerance).first
@@ -390,7 +393,7 @@ data class ShapeContour(
      *
      * Also see [Segment.adaptivePositions].
      *
-     * @param distanceTolerance The square of the maximal distance of each point from curve.
+     * @param distanceTolerance The square of the maximum distance of each point from curve.
      * @return A pair containing a list of points and a list of
      *      respective normal vectors.
      */
@@ -424,7 +427,7 @@ data class ShapeContour(
     }
 
     /**
-     * Returns specified amount of points of equal distance from eachother.
+     * Returns specified amount of points of equal distance from each other.
      */
     fun equidistantPositions(pointCount: Int) =
             if (empty) {
@@ -437,8 +440,10 @@ data class ShapeContour(
             }
 
     /**
-     * Adaptively sample the contour into line segments while still approximating the original contour
-     * @param distanceTolerance Controls the precision of the approximation
+     * Adaptively samples the contour into a new [ShapeContour] of
+     * [linear][SegmentType.LINEAR] [Segment]s while still approximating the original contour.
+     *
+     * @param distanceTolerance Controls the precision of the approximation, higher values result in lower accuracy.
      * @return A [ShapeContour] composed of linear [Segment]s
      */
     fun sampleLinear(distanceTolerance: Double = 0.5) =
@@ -481,6 +486,7 @@ data class ShapeContour(
 
     /**
      * Returns a sample of the [ShapeContour].
+     *
      * @param startT Starting point in range `0.0` to less than `1.0`.
      * @param endT Ending point in range `0.0` to less than `1.0`.
      * @return Subcontour
@@ -694,15 +700,15 @@ data class ShapeContour(
     @Suppress("unused")
     fun intersection(other: Shape): Shape = intersection(this, other)
 
-    /** Calculates a [List] of all points of where paths intersect between the [ShapeContour] and a [Segment]. */
+    /** Calculates a [List] of all intersections between the [ShapeContour] and a [Segment]. */
     @Suppress("unused")
     fun intersections(other: Segment) = intersections(this, other.contour)
 
-    /** Calculates a [List] of all points of where paths intersect between the [ShapeContour] and another [ShapeContour]. */
+    /** Calculates a [List] of all intersections between the [ShapeContour] and another [ShapeContour]. */
     @Suppress("unused")
     fun intersections(other: ShapeContour) = intersections(this, other)
 
-    /** Calculates a [List] of all points of where paths intersect between the [ShapeContour] and a [Shape]. */
+    /** Calculates a [List] of all intersections between the [ShapeContour] and a [Shape]. */
     @Suppress("unused")
     fun intersections(other: Shape) = intersections(this.shape, other)
 }

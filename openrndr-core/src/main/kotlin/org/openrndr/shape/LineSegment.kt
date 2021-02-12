@@ -13,9 +13,10 @@ import kotlin.math.min
 /**
  * A strictly linear 2D segment.
  *
- * Think of [LineSegment] as a more limited representation of [Segment].
- * You'd generally only use [LineSegment] if you want to
- * work with problems specifically in the linear segment domain.
+ * Think of [LineSegment] as a more limited representation of the [Segment], .
+ * While both [LineSegment] and [Segment] are capable of describing straight lines, [LineSegment] is only capable of dealing with straight lines
+ * you'd generally only use [LineSegment] if you strictly
+ * want to work with problems in the linear segment domain.
  *
  * [LineSegment]s are easy to extend in length
  * thanks to their simple two-point construction.
@@ -48,7 +49,7 @@ data class LineSegment(val start: Vector2, val end: Vector2) : LinearType<LineSe
     }
 
     /**
-     * Find shortest distance to the [LineSegment] from given point.
+     * Finds the shortest distance to the [LineSegment] from given point.
      * @param query The query point.
      */
     fun distance(query: Vector2): Double = nearest(query).distanceTo(query)

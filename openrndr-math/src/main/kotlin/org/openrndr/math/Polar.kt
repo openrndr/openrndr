@@ -4,7 +4,8 @@ import java.lang.Math.toDegrees
 import kotlin.math.atan2
 
 /**
- * The [Polar coordinate system](https://en.wikipedia.org/wiki/Polar_coordinate_system).
+ * A 2D point defined in the
+ * [Polar coordinate system](https://en.wikipedia.org/wiki/Polar_coordinate_system).
  *
  * @param theta The angle in degrees.
  */

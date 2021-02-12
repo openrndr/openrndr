@@ -6,9 +6,9 @@ import org.openrndr.shape.internal.BezierQuadraticSampler2D
 import kotlin.math.*
 
 /**
- * Creates a new [Segment], which specifies a linear or a Bézier curve path between two control points.
- *
- * The Bézier curves require specifying up to two intermediate control points that don't lie on the curve.
+ * Creates a new [Segment], which specifies a linear
+ * or a Bézier curve path between two anchor points
+ * (and up to two control points for curvature).
  */
 class Segment {
     /** The start point of the [Segment]. */
@@ -18,7 +18,7 @@ class Segment {
     val end: Vector2
 
     /**
-     * Amount of intermediate control points that don't lie on the curve.
+     * Array of control points which control the curvature of the [Segment].
      *
      * Returns 0 if the [Segment] is linear.
      */
@@ -32,7 +32,7 @@ class Segment {
     val corner: Boolean
 
     /**
-     * The type of the segment
+     * Returns the type of the segment.
      */
     val type: SegmentType
         get() {
@@ -50,9 +50,10 @@ class Segment {
     private var lut: List<Vector2>? = null
 
     /**
-     * Linear segment constructor
-     * @param start starting point of the segment
-     * @param end end point of the segment
+     * Linear segment constructor.
+     *
+     * @param start The starting anchor point.
+     * @param end The ending anchor point.
      */
     constructor(start: Vector2, end: Vector2, corner: Boolean = true) {
         this.start = start
@@ -62,10 +63,11 @@ class Segment {
     }
 
     /**
-     * Quadratic bezier segment constructor
-     * @param start starting point of the segment
-     * @param c0 control point
-     * @param end end point of the segment
+     * Quadratic Bézier segment constructor.
+     *
+     * @param start The starting anchor point.
+     * @param c0 The control point.
+     * @param end The ending anchor point.
      */
     constructor(start: Vector2, c0: Vector2, end: Vector2, corner: Boolean = true) {
         this.start = start
@@ -75,11 +77,12 @@ class Segment {
     }
 
     /**
-     * Cubic bezier segment constructor
-     * @param start starting point of the segment
-     * @param c0 first control point
-     * @param c1 second control point
-     * @param end end point of the segment
+     * Cubic Bézier segment constructor.
+     *
+     * @param start The starting anchor point.
+     * @param c0 The first control point.
+     * @param c1 The second control point
+     * @param end The ending anchor point.
      */
     constructor(start: Vector2, c0: Vector2, c1: Vector2, end: Vector2, corner: Boolean = true) {
         this.start = start
@@ -174,7 +177,7 @@ class Segment {
     }
 
     /**
-     * Find point on segment nearest to given `point`.
+     * Find point on segment nearest to given [point].
      * @param point The query point.
      */
     fun nearest(point: Vector2): SegmentPoint {
@@ -314,7 +317,7 @@ class Segment {
      * For a more detailed breakdown, see [http://agg.sourceforge.net/antigrain.com/research/adaptive_bezier/index.html].
      *
      * @param distanceTolerance The square of the maximal distance of each point from curve.
-     * @return A pair containing approximated points and their respective normalized vectors.
+     * @return A pair of lists. The first list contains positions, the second list the points' normals.
      */
     fun adaptivePositionsAndNormals(distanceTolerance: Double = 0.5): Pair<List<Vector2>, List<Vector2>> = when (control.size) {
         0 -> Pair(listOf(start, end), listOf(end - start, end - start))
@@ -358,12 +361,20 @@ class Segment {
         }
     }
 
-    /** Gets direction [Vector2] of [Segment]. */
+    /** Returns the direction [Vector2] of between the [Segment] anchor points. */
     fun direction(): Vector2 = (end - start).normalized
 
     fun direction(t: Double): Vector2 = derivative(t).normalized
 
-    /** Calculates the pose [Matrix44] for given value of [t](https://pomax.github.io/bezierinfo/#explanation). */
+    /**
+     * Calculates the pose [Matrix44] (i.e. translation and rotation) that describes an orthonormal basis
+     * formed by normal and tangent of the contour at [t](https://pomax.github.io/bezierinfo/#explanation).
+     *
+     * Which means it returns a [Matrix44],
+     * that you can use to orient an object
+     * the same way the curve is oriented at
+     * given value of [t](https://pomax.github.io/bezierinfo/#explanation).
+     */
     @Suppress("unused")
     fun pose(t: Double, polarity: YPolarity = YPolarity.CW_NEGATIVE_Y): Matrix44 {
         val dx = direction(t).xy0.xyz0
@@ -372,7 +383,13 @@ class Segment {
         return Matrix44.fromColumnVectors(dx, dy, Vector4.UNIT_Z, dt)
     }
 
-    /** Returns the extrema [t](https://pomax.github.io/bezierinfo/#explanation) values for current [Segment]. */
+    /**
+     * Returns the extrema [t](https://pomax.github.io/bezierinfo/#explanation) values for the current [Segment].
+     *
+     * Either one or two [t](https://pomax.github.io/bezierinfo/#explanation)
+     * values in which the curve is the most distant from an imaginary
+     * straight line between the two anchor points.
+     */
     fun extrema(): List<Double> {
         val dPoints = dPoints()
         return when {
@@ -391,7 +408,7 @@ class Segment {
         }
     }
 
-    /** Returns the extrema points for current [Segment] */
+    /** Returns the extrema points as [Vector2]s for current [Segment] */
     @Suppress("unused")
     fun extremaPoints(): List<Vector2> = extrema().map { position(it) }
 
@@ -460,7 +477,7 @@ class Segment {
     /**
      * Determines if the [Segment] forms a straight line.
      *
-     * If the given [Segment] has intermediate control points,
+     * If the given [Segment] has control points,
      * the function verifies that they do not add any curvature to the path.
      *
      * @param epsilon The margin of error for what's considered a straight line.
@@ -664,7 +681,7 @@ class Segment {
         else -> throw RuntimeException("not implemented")
     }
 
-    /** Returns a normalized [Vector2] at given value of [t](https://pomax.github.io/bezierinfo/#explanation). */
+    /** Returns a normal [Vector2] at given value of [t](https://pomax.github.io/bezierinfo/#explanation). */
     fun normal(ut: Double, polarity: YPolarity = YPolarity.CW_NEGATIVE_Y): Vector2 {
         return direction(ut).perpendicular(polarity)
     }
@@ -976,19 +993,19 @@ class Segment {
         get() = ShapeContour(listOf(this), false)
 
     /**
-     * Calculates a [List] of all points of where paths intersect between two [Segment]s.
+     * Calculates a [List] of all points where two [Segment]s intersect.
      */
     @Suppress("unused")
     fun intersections(other: Segment) = intersections(this, other)
 
     /**
-     * Calculates a [List] of all points of where paths intersect between a [Segment] and a [ShapeContour].
+     * Calculates a [List] of all points of where a [Segment] and a [ShapeContour] intersect.
      */
     @Suppress("unused")
     fun intersections(other: ShapeContour) = intersections(this.contour, other)
 
     /**
-     * Calculates a [List] of all points of where paths intersect between a [Segment] and a [Shape].
+     * Calculates a [List] of all points of where a [Segment] and a [Shape] intersect.
      */
     @Suppress("unused")
     fun intersections(other: Shape) = intersections(this.contour.shape, other)

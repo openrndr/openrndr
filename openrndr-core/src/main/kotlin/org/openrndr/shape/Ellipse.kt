@@ -13,16 +13,16 @@ import org.openrndr.math.Vector2
 data class Ellipse(val center: Vector2, val xRadius: Double, val yRadius: Double) {
     constructor(x: Double, y: Double, xRadius: Double, yRadius: Double) : this(Vector2(x, y), xRadius, yRadius)
 
-    /** Creates a new [Ellipse] with the current [center] offset by [offset]. */
+    /** Creates a new [Ellipse] with the current [center] offset by [offset] with the same radii. */
     fun moved(offset: Vector2): OrientedEllipse = OrientedEllipse(center + offset, xRadius, yRadius)
 
-    /** Creates a new [Ellipse] with center at [position]. */
+    /** Creates a new [Ellipse] with center at [position] with the same radii. */
     fun movedTo(position: Vector2): OrientedEllipse = OrientedEllipse(position, xRadius, yRadius)
 
     /** Creates a new [Ellipse] with scale specified by multipliers for the current radii. */
     fun scaled(xScale: Double, yScale: Double = xScale): OrientedEllipse = OrientedEllipse(center, xRadius * xScale, yRadius * yScale)
 
-    /** Creates a new [Ellipse] at the same position with given radius. */
+    /** Creates a new [Ellipse] at the same position with given radii. */
     fun scaledTo(xFitRadius: Double, yFitRadius: Double = xFitRadius) = OrientedEllipse(center, xFitRadius, yFitRadius)
 
     /** Returns [Shape] representation of the [Ellipse]. */

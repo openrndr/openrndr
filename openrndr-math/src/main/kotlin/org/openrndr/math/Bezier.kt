@@ -20,7 +20,7 @@ fun derivative(x0: Vector2, c0: Vector2, x1: Vector2, t: Double): Vector2 {
 }
 
 /**
- * Like [derivative] but handles cases in which [p0] and [p1] coincide.
+ * Similar to [derivative] but handles cases in which [p0] and [p1] coincide.
  */
 fun safeDerivative(p0: Vector2, c0: Vector2, p1: Vector2, t: Double): Vector2 {
     val epsilon = 10E-6
@@ -92,7 +92,7 @@ fun derivative(p0: Vector2, p1: Vector2, p2: Vector2, p3: Vector2, t: Double): V
 }
 
 /**
- * Like [derivative] but handles cases in which [p0] and [p1] or [p2] and [p3] coincide.
+ * Similar to [derivative] but handles cases in which [p0] and [p1] or [p2] and [p3] coincide.
  */
 fun safeDerivative(p0: Vector2, p1: Vector2, p2: Vector2, p3: Vector2, t: Double): Vector2 {
     val epsilon = 10E-6

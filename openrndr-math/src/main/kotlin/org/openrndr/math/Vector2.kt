@@ -33,7 +33,7 @@ data class Vector2(val x: Double, val y: Double) : Serializable, LinearType<Vect
         YPolarity.CW_NEGATIVE_Y -> Vector2(y, -x)
     }
 
-    /** Returns a normalized version of the vector. */
+    /** Returns a normalized version of the vector. (i.e. unit vector) */
     val normalized: Vector2
         get() {
             val localLength = length
@@ -59,7 +59,7 @@ data class Vector2(val x: Double, val y: Double) : Serializable, LinearType<Vect
     infix fun reflect(surfaceNormal: Vector2): Vector2 = this - surfaceNormal * (this dot surfaceNormal) * 2.0
 
     /**
-     * Calculates the rotation of [Vector2].
+     * Creates a new [Vector2] with the given rotation and origin.
      *
      * @param degrees The rotation in degrees.
      * @param origin The point around which the vector is rotated, default is [Vector2.ZERO].

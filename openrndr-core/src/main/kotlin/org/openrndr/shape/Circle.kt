@@ -16,15 +16,18 @@ data class Circle(val center: Vector2, val radius: Double) {
     constructor(x: Double, y: Double, radius: Double) : this(Vector2(x, y), radius)
 
     companion object {
-        /** Creates a [Circle] by using the distance between the two points as diameter. */
+        /**
+         * Creates a [Circle] passing through two points.
+         *
+         * The diameter of the circle equals the distance between the points.
+         */
         fun fromPoints(a: Vector2, b: Vector2): Circle {
             val center = (a + b) * 0.5
             return Circle(center, b.minus(center).length)
         }
 
         /**
-         * Constructs a [Circle] where all three points
-         * pass through the perimeter of the [Circle].
+         * Constructs a [Circle] where the perimeter passes through the three points.
          */
         fun fromPoints(a: Vector2, b: Vector2, c: Vector2): Circle {
             val epsilon = 1E-7
@@ -123,7 +126,7 @@ data class Circle(val center: Vector2, val radius: Double) {
         }
     }
 
-    /** Calculates the tangent lines to an external point. **/
+    /** Calculates the tangent lines through an external point. **/
     fun tangents(point: Vector2): Pair<Vector2, Vector2> {
         val v = Polar.fromVector(point - center)
         val b = v.radius

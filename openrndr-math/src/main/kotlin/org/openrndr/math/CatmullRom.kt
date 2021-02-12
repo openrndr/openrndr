@@ -10,10 +10,10 @@ private const val almostOne = 0.99999999
  * Creates a 1D Catmull-Rom spline curve.
  *
  * @param p0 The first control point.
- * @param p1 The second control point.
- * @param p2 The third control point.
- * @param p3 The fourth control point.
- * @param alpha The so-called "tension" of the curve.
+ * @param p1 The starting anchor point.
+ * @param p2 The ending anchor point.
+ * @param p3 The second control point.
+ * @param alpha The *tension* of the curve.
  *      Use `0.0` for the uniform spline, `0.5` for the centripetal spline, `1.0` for the chordal spline.
  */
 class CatmulRom1(val p0: Double, val p1: Double, val p2: Double, val p3: Double, val alpha: Double = 0.5) {
@@ -60,7 +60,7 @@ class CatmulRom1(val p0: Double, val p1: Double, val p2: Double, val p3: Double,
  * For more details, see [CatmulRom1].
  *
  * @param points The [List] of 1D points where [CatmulRom1] is applied in groups of 4.
- * @param alpha The so-called "tension" of the curve.
+ * @param alpha The *tension* of the curve.
  *      Use `0.0` for the uniform spline, `0.5` for the centripetal spline, `1.0` for the chordal spline.
  * @param loop Whether or not to connect the first and last point so it forms a closed shape.
  */
@@ -89,14 +89,14 @@ class CatmullRomChain1(points: List<Double>, alpha: Double = 0.5, val loop: Bool
 /**
  * Creates a 2D Catmull-Rom spline curve.
  *
- * When converted to a contour, then a Segment is drawn between [p1] and [p2],
- * while [p0] and [p3] are merely used as control points.
+ * Can be represented as a segment drawn between [p1] and [p2],
+ * while [p0] and [p3] are used as control points.
  *
  * @param p0 The first control point.
- * @param p1 The second control point.
- * @param p2 The third control point.
- * @param p3 The fourth control point.
- * @param alpha The so-called "tension" of the curve.
+ * @param p1 The starting anchor point.
+ * @param p2 The ending anchor point.
+ * @param p3 The second control point.
+ * @param alpha The *tension* of the curve.
  *      Use `0.0` for the uniform spline, `0.5` for the centripetal spline, `1.0` for the chordal spline.
  */
 class CatmullRom2(val p0: Vector2, val p1: Vector2, val p2: Vector2, val p3: Vector2, val alpha: Double = 0.5) {
@@ -136,7 +136,7 @@ class CatmullRom2(val p0: Vector2, val p1: Vector2, val p2: Vector2, val p3: Vec
  * For more details, see [CatmullRom2].
  *
  * @param points The [List] of 2D points where [CatmullRom2] is applied in groups of 4.
- * @param alpha The so-called "tension" of the curve.
+ * @param alpha The *tension* of the curve.
  *      Use `0.0` for the uniform spline, `0.5` for the centripetal spline, `1.0` for the chordal spline.
  * @param loop Whether or not to connect the first and last point so it forms a closed shape.
  */
@@ -179,14 +179,14 @@ class CatmullRomChain2(points: List<Vector2>, alpha: Double = 0.5, val loop: Boo
 /**
  * Creates a 3D Catmull-Rom spline curve.
  *
- * When converted to a contour, then a Segment is drawn between [p1] and [p2],
- * while [p0] and [p3] are merely used as control points.
+ * Can be represented as a segment drawn between [p1] and [p2],
+ * while [p0] and [p3] are used as control points.
  *
  * @param p0 The first control point.
- * @param p1 The second control point.
- * @param p2 The third control point.
- * @param p3 The fourth control point.
- * @param alpha The so-called "tension" of the curve.
+ * @param p1 The starting anchor point.
+ * @param p2 The ending anchor point.
+ * @param p3 The second control point.
+ * @param alpha The *tension* of the curve.
  *      Use `0.0` for the uniform spline, `0.5` for the centripetal spline, `1.0` for the chordal spline.
  */
 class CatmullRom3(val p0: Vector3, val p1: Vector3, val p2: Vector3, val p3: Vector3, val alpha: Double = 0.5) {
@@ -226,7 +226,7 @@ class CatmullRom3(val p0: Vector3, val p1: Vector3, val p2: Vector3, val p3: Vec
  * For more details, see [CatmullRom3].
  *
  * @param points The [List] of 3D points where [CatmullRom3] is applied in groups of 4.
- * @param alpha The so-called "tension" of the curve.
+ * @param alpha The *tension* of the curve.
  *      Use `0.0` for the uniform spline, `0.5` for the centripetal spline, `1.0` for the chordal spline.
  * @param loop Whether or not to connect the first and last point so it forms a closed shape.
  */

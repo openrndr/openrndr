@@ -34,13 +34,13 @@ data class ContourPoint(
 
 /** Indicates the type of [Segment]. */
 enum class SegmentType {
-    /** A simple [Segment] with 2 control points. */
+    /** A simple [Segment] with two anchor points. */
     LINEAR,
 
-    /** A quadratic Bézier curve [Segment] with 3 control points. */
+    /** A quadratic Bézier curve [Segment] with two anchor points and one control point. */
     QUADRATIC,
 
-    /** A cubic Bézier curve [Segment] with 4 control points. */
+    /** A cubic Bézier curve [Segment] with two anchor points and two control points. */
     CUBIC
 }
 

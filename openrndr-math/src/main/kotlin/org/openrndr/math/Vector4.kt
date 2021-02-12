@@ -37,7 +37,7 @@ data class Vector4(val x: Double, val y: Double, val z: Double, val w: Double) :
         val ONE = Vector4(1.0, 1.0, 1.0, 1.0)
     }
 
-    /** Returns a normalized version of the vector. */
+    /** Returns a normalized version of the vector. (i.e. unit vector) */
     val normalized: Vector4
         get() {
             val l = 1.0 / length

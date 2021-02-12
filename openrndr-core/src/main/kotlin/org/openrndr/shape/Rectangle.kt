@@ -30,7 +30,10 @@ data class Rectangle(val corner: Vector2, val width: Double, val height: Double 
     val dimensions: Vector2
         get() = Vector2(width, height)
 
-    /** Returns a position for parameterized coordinates [u] and [v] between `0.0` and `1.0`. */
+    /**
+     * Returns a position for parameterized values [u] and [v] between `0.0` and `1.0`
+     * where (`0.5`, `0.5`) is the center of the rectangle.
+     */
     fun position(u: Double, v: Double): Vector2 {
         return corner + Vector2(u * width, v * height)
     }
@@ -100,7 +103,7 @@ data class Rectangle(val corner: Vector2, val width: Double, val height: Double 
         return Rectangle(corner, width * scale, fitHeight)
     }
 
-    /** Creates a new [Rectangle] with the current position offset by [offset]. */
+    /** Creates a new [Rectangle] with the same size but the current position offset by [offset] amount. */
     fun moved(offset: Vector2): Rectangle {
         return Rectangle(corner + offset, width, height)
     }

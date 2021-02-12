@@ -161,7 +161,8 @@ class Shape(val contours: List<ShapeContour>) {
     /**
      * Checks whether the [Shape] is compound or not.
      *
-     * Returns true when the amount of [ShapeContour]s with a [clockwise winding][Winding.CLOCKWISE] because it assumes
+     * Returns true when there's multiple [ShapeContour]s with a [clockwise winding][Winding.CLOCKWISE]
+     * because the function only counts non-hole ShapeContours (which are clockwise).
      */
     val compound: Boolean
         get() {
@@ -210,13 +211,13 @@ class Shape(val contours: List<ShapeContour>) {
     /** Applies a boolean intersection operation between two [Shape]s. */
     fun intersection(other: Shape): Shape = intersection(this, other)
 
-    /** Calculates a [List] of all points of where paths intersect between two [Shape]s. */
+    /** Calculates a [List] of all points where two [Shape]s intersect. */
     fun intersections(other: Shape) = intersections(this, other)
 
-    /** Calculates a [List] of all points of where paths intersect between the [Shape] and a [ShapeContour]. */
+    /** Calculates a [List] of all points where the [Shape] and a [ShapeContour] intersect. */
     fun intersections(other: ShapeContour) = intersections(this, other.shape)
 
-    /** Calculates a [List] of all points of where paths intersect between the [Shape] and a [Segment]. */
+    /** Calculates a [List] of all points where the [Shape] and a [Segment] intersect. */
     fun intersections(other: Segment) = intersections(this, other.contour.shape)
     override fun toString(): String {
         return "Shape(contours=$contours, topology=$topology)"
