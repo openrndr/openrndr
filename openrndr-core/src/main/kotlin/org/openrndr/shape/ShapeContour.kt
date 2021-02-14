@@ -148,8 +148,9 @@ data class ShapeContour(
     ).inside
 
     /**
-     * Estimate [t](https://pomax.github.io/bezierinfo/#explanation) value for a given length.
-     * @return A value between `0.0` and `1.0`.
+     * Estimates the [t](https://pomax.github.io/bezierinfo/#explanation) value for a given length.
+     *
+     * @return The value of *t* between `0.0` and `1.0`.
      */
     @Suppress("unused")
     fun tForLength(length: Double): Double {
@@ -328,7 +329,9 @@ data class ShapeContour(
      * Which means it returns a [Matrix44],
      * that you can use to orient an object
      * the same way the curve is oriented at
-     * given value of [t](https://pomax.github.io/bezierinfo/#explanation).
+     * given value of *t*.
+     *
+     * @param t The value of t in the range of `0.0` to `1.0` at which to return the pose at.
      */
     @Suppress("unused")
     fun pose(t: Double): Matrix44 {
@@ -485,7 +488,7 @@ data class ShapeContour(
             }
 
     /**
-     * Returns a sample of the [ShapeContour].
+     * Samples a new [ShapeContour] from the current [ShapeContour] starting at [startT] and ending at [endT].
      *
      * @param startT Starting point in range `0.0` to less than `1.0`.
      * @param endT Ending point in range `0.0` to less than `1.0`.

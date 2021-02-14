@@ -92,6 +92,11 @@ class CatmullRomChain1(points: List<Double>, alpha: Double = 0.5, val loop: Bool
  * Can be represented as a segment drawn between [p1] and [p2],
  * while [p0] and [p3] are used as control points.
  *
+ * Under some circumstances alpha can have
+ * no perceptible effect, for example,
+ * when creating closed shapes with the vertices
+ * forming a regular 2D polygon.
+ *
  * @param p0 The first control point.
  * @param p1 The starting anchor point.
  * @param p2 The ending anchor point.
@@ -181,6 +186,11 @@ class CatmullRomChain2(points: List<Vector2>, alpha: Double = 0.5, val loop: Boo
  *
  * Can be represented as a segment drawn between [p1] and [p2],
  * while [p0] and [p3] are used as control points.
+ *
+ * Under some circumstances alpha can have
+ * no perceptible effect, for example,
+ * when creating closed shapes with the vertices
+ * forming a regular 2D polygon (even on a 3D plane).
  *
  * @param p0 The first control point.
  * @param p1 The starting anchor point.

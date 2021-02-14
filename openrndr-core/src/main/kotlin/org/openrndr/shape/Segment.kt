@@ -373,7 +373,9 @@ class Segment {
      * Which means it returns a [Matrix44],
      * that you can use to orient an object
      * the same way the curve is oriented at
-     * given value of [t](https://pomax.github.io/bezierinfo/#explanation).
+     * given value of *t*.
+     *
+     * @param t The value of t in the range of `0.0` to `1.0` at which to return the pose at.
      */
     @Suppress("unused")
     fun pose(t: Double, polarity: YPolarity = YPolarity.CW_NEGATIVE_Y): Matrix44 {
@@ -384,10 +386,11 @@ class Segment {
     }
 
     /**
-     * Returns the extrema [t](https://pomax.github.io/bezierinfo/#explanation) values for the current [Segment].
+     * Returns the [t](https://pomax.github.io/bezierinfo/#explanation)
+     * values of the extrema for the current [Segment].
      *
-     * Either one or two [t](https://pomax.github.io/bezierinfo/#explanation)
-     * values in which the curve is the most distant from an imaginary
+     * Either one or two *t* values in which the curve
+     * is the most distant from an imaginary
      * straight line between the two anchor points.
      */
     fun extrema(): List<Double> {
@@ -681,7 +684,11 @@ class Segment {
         else -> throw RuntimeException("not implemented")
     }
 
-    /** Returns a normal [Vector2] at given value of [t](https://pomax.github.io/bezierinfo/#explanation). */
+    /**
+     * Returns a normal [Vector2] at given value of
+     * [t](https://pomax.github.io/bezierinfo/#explanation)
+     * in the range of `0.0` to `1.0`.
+     */
     fun normal(ut: Double, polarity: YPolarity = YPolarity.CW_NEGATIVE_Y): Vector2 {
         return direction(ut).perpendicular(polarity)
     }
@@ -698,10 +705,10 @@ class Segment {
         }
 
     /**
-     * Samples a [Segment] starting at [startT] and ending at [endT].
+     * Samples a new [Segment] from the current [Segment] starting at [startT] and ending at [endT].
      *
-     * @param startT Starting value of [t](https://pomax.github.io/bezierinfo/#explanation).
-     * @param endT Ending value of [t](https://pomax.github.io/bezierinfo/#explanation).
+     * @param startT The starting value of [t](https://pomax.github.io/bezierinfo/#explanation) in the range of `0.0` to `1.0`.
+     * @param endT The ending value of *t* in the range of `0.0` to `1.0`.
      */
     fun sub(startT: Double, endT: Double): Segment {
         // ftp://ftp.fu-berlin.de/tex/CTAN/dviware/dvisvgm/src/Bezier.cpp

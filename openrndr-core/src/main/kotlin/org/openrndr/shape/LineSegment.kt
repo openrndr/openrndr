@@ -55,10 +55,10 @@ data class LineSegment(val start: Vector2, val end: Vector2) : LinearType<LineSe
     fun distance(query: Vector2): Double = nearest(query).distanceTo(query)
 
     /**
-     * Calculates a new subsegment between two [t](https://pomax.github.io/bezierinfo/#explanation)
-     * values of the [LineSegment].
-     * @param t0 The [t](https://pomax.github.io/bezierinfo/#explanation) value marking the start of the subsegment, between `0.0` and `1.0`.
-     * @param t1 The [t](https://pomax.github.io/bezierinfo/#explanation) value marking the end of the subsegment, between `0.0` and `1.0`.
+     * Samples a new [LineSegment] from the current [LineSegment] starting at [t0] and ending at [t1].
+     *
+     * @param t0 The [t](https://pomax.github.io/bezierinfo/#explanation) value marking the start of the subsegment, in the range of `0.0` to `1.0`.
+     * @param t1 The *t* value marking the end of the subsegment, in the range of `0.0` to `1.0`.
      */
     fun sub(t0: Double, t1: Double): LineSegment {
         var z0 = t0
@@ -77,7 +77,7 @@ data class LineSegment(val start: Vector2, val end: Vector2) : LinearType<LineSe
 
     /**
      * Splits line segment at given [t](https://pomax.github.io/bezierinfo/#explanation) value.
-     * @param t The [t](https://pomax.github.io/bezierinfo/#explanation) value between `0.0` and `1.0`.
+     * @param t The *t* value in the range of `0.0` to `1.0`.
      */
     fun split(t: Double): Array<LineSegment> {
         val u = t.coerceIn(0.0, 1.0)
@@ -87,7 +87,7 @@ data class LineSegment(val start: Vector2, val end: Vector2) : LinearType<LineSe
 
     /**
      * Calculates [Vector2] position at given [t](https://pomax.github.io/bezierinfo/#explanation) value.
-     * @param t The [t](https://pomax.github.io/bezierinfo/#explanation) value between `0.0` and `1.0`.
+     * @param t The *t* value in the range of `0.0` to `1.0`.
      */
     fun position(t: Double) = start + (end.minus(start) * t)
 
@@ -95,7 +95,7 @@ data class LineSegment(val start: Vector2, val end: Vector2) : LinearType<LineSe
      * Rotates the [LineSegment] around a point on the segment.
      * @param degrees The rotation in degrees.
      * @param t The [t](https://pomax.github.io/bezierinfo/#explanation) value
-     *      of the point on the segment to rotate around, default is 0.5 (mid-point).
+     *      of the point on the segment to rotate around, default is `0.5` (mid-point).
      */
     fun rotate(degrees: Double, t: Double = 0.5): LineSegment {
         val anchorPoint = end.mix(start, t.coerceIn(0.0, 1.0))
@@ -142,6 +142,9 @@ data class LineSegment(val start: Vector2, val end: Vector2) : LinearType<LineSe
 
 /**
  * Finds the intersection point between two [LineSegment]s.
+ *
+ * Returns [Vector2.INFINITY] if none exists.
+ *
  * @param a The first line segment.
  * @param b The second line segment.
  * @param eps How far outside the [t](https://pomax.github.io/bezierinfo/#explanation) value are intersections considered.
@@ -152,6 +155,9 @@ fun intersection(a: LineSegment, b: LineSegment, eps: Double = 0.0): Vector2 =
 
 /**
  * Finds the intersection point between two [LineSegment]s.
+ *
+ * Returns [Vector2.INFINITY] if none exists.
+ *
  * @param a0 The start of the first line segment.
  * @param a1 The end of the first line segment.
  * @param b0 The start of the second line segment.

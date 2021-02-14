@@ -164,13 +164,16 @@ fun bezier(x0: Vector2, c0: Vector2, c1: Vector2, x1: Vector2, t: Double): Vecto
 }
 
 /**
- * Samples a single point on a 3d Bezier curve
- * @param x0 start point of the curve
- * @param c0 first control point
- * @param c1 second control point
- * @param x1 end point of the curve
- * @param t [0, 1]
- * @return a sample on the curve
+ * Samples a single point based on the provided
+ * [t](https://pomax.github.io/bezierinfo/#explanation) value
+ * from given 3D cubic Bézier curve.
+ *
+ * @param x0 The starting anchor point of the curve.
+ * @param c0 The first control point.
+ * @param c1 The second control point.
+ * @param x1 The ending anchor point of the curve.
+ * @param t The value of *t* in the range of `0.0` to `1.0`.
+ * @return A sample on the curve.
  */
 fun bezier(x0: Vector3, c0: Vector3, c1: Vector3, x1: Vector3, t: Double): Vector3 {
     val it = 1.0 - t

@@ -19,9 +19,9 @@ data class SegmentPoint(
  * Representation of a point on a [ShapeContour].
  *
  * @param contour The [ShapeContour] on which the point lies.
- * @param contourT The [t](https://pomax.github.io/bezierinfo/#explanation) value of the point on the [ShapeContour].
+ * @param contourT The [t](https://pomax.github.io/bezierinfo/#explanation) value of the point on the [ShapeContour] in the range of `0.0` to `1.0`.
  * @param segment The [Segment] on which the point lies.
- * @param segmentT The [t](https://pomax.github.io/bezierinfo/#explanation) value of the point on the [Segment].
+ * @param segmentT The *t* value of the point on the [Segment] in the range of `0.0` to `1.0`.
  * @param position The position of the point.
  */
 data class ContourPoint(
