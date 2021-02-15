@@ -4,9 +4,10 @@ import java.lang.Math.toDegrees
 import kotlin.math.atan2
 
 /**
- * Polar coordinate
- * Ref: https://en.wikipedia.org/wiki/Polar_coordinate_system
- * [theta] angle in degrees
+ * A 2D point defined in the
+ * [Polar coordinate system](https://en.wikipedia.org/wiki/Polar_coordinate_system).
+ *
+ * @param theta The angle in degrees.
  */
 data class Polar(val theta: Double, val radius: Double = 1.0) : LinearType<Polar> {
 
@@ -19,9 +20,7 @@ data class Polar(val theta: Double, val radius: Double = 1.0) : LinearType<Polar
     )
 
     companion object {
-        /**
-         * Construct a polar coordinate representation for Cartesian vector 2
-         */
+        /** Constructs equivalent polar coordinates from the Cartesian coordinate system. */
         fun fromVector(vector: Vector2): Polar {
             val r = vector.length
             return Polar(
@@ -31,9 +30,7 @@ data class Polar(val theta: Double, val radius: Double = 1.0) : LinearType<Polar
         }
     }
 
-    /**
-     * Construct a Cartesian coordinate from polar representation
-     */
+    /** Constructs equivalent Cartesian coordinates from the polar representation. */
     val cartesian: Vector2
         get() {
             return Vector2.fromPolar(this)

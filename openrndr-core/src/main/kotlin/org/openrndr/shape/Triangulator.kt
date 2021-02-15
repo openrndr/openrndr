@@ -9,7 +9,13 @@ import org.openrndr.shape.tessellation.GLUtessellatorCallbackAdapter
 import org.openrndr.shape.tessellation.Tessellator
 import java.util.*
 
+/**
+ * Cumulative sum of [Int]s in the [List].
+ *
+ * Not to be confused with [sum].
+ */
 fun List<Int>.cumsum(): List<Int> {
+    listOf(0, 3).sum()
     val result = mutableListOf<Int>()
     var sum = 0
     for (i in this) {
@@ -80,6 +86,11 @@ enum class FillRule {
     NONZERO_WINDING,
 }
 
+/**
+ * Triangulates a [Shape] into a [List] of triangle corner positions.
+ *
+ * @param distanceTolerance How refined should the triangular shape be, smaller values equate to higher precision.
+ */
 fun triangulate(
         shape: Shape,
         distanceTolerance: Double = 0.5,

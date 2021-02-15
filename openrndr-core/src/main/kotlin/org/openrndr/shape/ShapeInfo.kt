@@ -3,10 +3,11 @@ package org.openrndr.shape
 import org.openrndr.math.Vector2
 
 /**
- * representation of a point on a [Segment]
- * @param segment the [Segment] on which the point lies
- * @param segmentT the t-parameter value of the point on the [Segment]
- * @param position the position of the point
+ * Representation of a point on a [Segment].
+ *
+ * @param segment The [Segment] on which the point lies.
+ * @param segmentT The [t](https://pomax.github.io/bezierinfo/#explanation) value of the point on the [Segment].
+ * @param position The position of the point.
  */
 data class SegmentPoint(
     val segment: Segment,
@@ -15,12 +16,13 @@ data class SegmentPoint(
 )
 
 /**
- * representation of a point on a [ShapeContour]
- * @param contour the [ShapeContour] on which the point lies
- * @param contourT the t-parameter value of the point on the [ShapeContour]
- * @param segment the [Segment] on which the point lies
- * @param segmentT the t-parameter value of the point on the [Segment]
- * @param position the position of the point
+ * Representation of a point on a [ShapeContour].
+ *
+ * @param contour The [ShapeContour] on which the point lies.
+ * @param contourT The [t](https://pomax.github.io/bezierinfo/#explanation) value of the point on the [ShapeContour] in the range of `0.0` to `1.0`.
+ * @param segment The [Segment] on which the point lies.
+ * @param segmentT The *t* value of the point on the [Segment] in the range of `0.0` to `1.0`.
+ * @param position The position of the point.
  */
 data class ContourPoint(
     val contour: ShapeContour,
@@ -30,29 +32,19 @@ data class ContourPoint(
     val position: Vector2
 )
 
-/**
- * indication of the type of segment
- */
+/** Indicates the type of [Segment]. */
 enum class SegmentType {
-    /**
-     * a segment with 2 control points
-     */
+    /** A simple [Segment] with two anchor points. */
     LINEAR,
 
-    /**
-     * a bezier segment with 3 control points
-     */
+    /** A quadratic Bézier curve [Segment] with two anchor points and one control point. */
     QUADRATIC,
 
-    /**
-     * a bezier segment with 4 control points
-     */
+    /** A cubic Bézier curve [Segment] with two anchor points and two control points. */
     CUBIC
 }
 
-/**
- * indication of contour winding order
- */
+/** Indicates the winding order of the [ShapeContour]. */
 enum class Winding {
     CLOCKWISE,
     COUNTER_CLOCKWISE
@@ -64,22 +56,14 @@ enum class SegmentJoin {
     BEVEL
 }
 
-/**
- * indication of shape topology
- */
+/** Indicates the [Shape] topology. */
 enum class ShapeTopology {
-    /**
-     * the shape contains closed contours only
-     */
+    /** The [Shape] consists entirely of closed [ShapeContour]s. */
     CLOSED,
 
-    /**
-     * the shape contains open contours only
-     */
+    /** The [Shape] consists entirely of open [ShapeContour]s. */
     OPEN,
 
-    /**
-     * the shape contains a mix of open and closed contours
-     */
+    /** The [Shape] contains both open and closed [ShapeContour]s. */
     MIXED
 }

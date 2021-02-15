@@ -8,7 +8,12 @@ import kotlin.math.min
 import kotlin.math.sqrt
 import kotlin.random.Random
 
+/**
+ * Creates a simple three-point polygon.
+ */
 data class Triangle(val x1: Vector2, val x2: Vector2, val x3: Vector2) {
+
+    /** Returns true if given [v] lies inside the [Triangle]. */
     operator fun contains(v: Vector2): Boolean {
         val x23 = x2 - x3
         val x32 = x3 - x2
@@ -34,9 +39,11 @@ data class Triangle(val x1: Vector2, val x2: Vector2, val x3: Vector2) {
         return true
     }
 
+    /** Returns [ShapeContour] representation of the [Triangle]. */
     val contour: ShapeContour
         get() = ShapeContour.fromPoints(listOf(x1, x2, x3), closed = true)
 
+    /** Generates a random point that lies inside the [Triangle]. */
     fun randomPoint(random: Random = Random.Default): Vector2 {
         val u = random.nextDouble()
         val v = random.nextDouble()
@@ -47,6 +54,7 @@ data class Triangle(val x1: Vector2, val x2: Vector2, val x3: Vector2) {
         return x1 * b.x + x2 * b.y + x3 * b.z
     }
 
+    /** The unitless area covered by this [Triangle]. */
     val area by lazy {
         val u = x2 - x1
         val v = x3 - x1

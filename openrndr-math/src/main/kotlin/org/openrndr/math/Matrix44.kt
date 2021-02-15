@@ -23,11 +23,12 @@ data class Matrix44(
         val ZERO = Matrix44()
 
         /**
-         * Create a 4x4 matrix from column vectors
-         * @param c0 the first column vector
-         * @param c1 the second column vector
-         * @param c2 the third column vector
-         * @param c3 the fourth column vector
+         * Creates a 4x4 matrix from column vectors.
+         *
+         * @param c0 The first column vector
+         * @param c1 The second column vector
+         * @param c2 The third column vector
+         * @param c3 The fourth column vector
          */
         fun fromColumnVectors(c0: Vector4, c1: Vector4, c2: Vector4, c3: Vector4): Matrix44 =
                 Matrix44(c0.x, c1.x, c2.x, c3.x,
@@ -37,7 +38,7 @@ data class Matrix44(
 
 
         /**
-         * Construct matrix from `DoubleArray` with values in row-major order
+         * Constructs a matrix from `DoubleArray` with values in row-major order.
          */
         fun fromDoubleArray(a: DoubleArray): Matrix44 {
             require(a.size >= 16) { "input array is too short (${a.size}}, should have at least a length of 16)" }

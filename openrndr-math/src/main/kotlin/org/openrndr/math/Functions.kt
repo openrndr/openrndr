@@ -52,7 +52,9 @@ fun IntVector4.mod(b: IntVector4) =
                 z.mod_(b.z),
                 w.mod_(b.w))
 
+/** Returns number whose value is limited between [min] and [max]. */
 fun clamp(value: Double, min: Double, max: Double) = max(min, min(max, value))
+/** Returns number whose value is limited between [min] and [max]. */
 fun clamp(value: Int, min: Int, max: Int) = max(min, min(max, value))
 
 @JvmName("doubleClamp")
@@ -61,30 +63,36 @@ fun Double.clamp(min: Double, max: Double) = clamp(this, min, max)
 @JvmName("intClamp")
 fun Int.clamp(min: Int, max: Int) = clamp(this, min, max)
 
+/** Returns [Vector2] whose value is limited between [min] and [max] per vector component. */
 fun Vector2.clamp(min : Vector2, max : Vector2) =
         Vector2(x.clamp(min.x, max.x),
                 y.clamp(min.y, max.y))
 
+/** Returns [Vector3] whose value is limited between [min] and [max] per vector component. */
 fun Vector3.clamp(min : Vector3, max : Vector3) =
         Vector3(x.clamp(min.x, max.x),
                 y.clamp(min.y, max.y),
                 z.clamp(min.y, max.z))
 
+/** Returns [Vector4] whose value is limited between [min] and [max] per vector component. */
 fun Vector4.clamp(min : Vector4, max : Vector4) =
         Vector4(x.clamp(min.x, max.x),
                 y.clamp(min.y, max.y),
                 z.clamp(min.z, max.z),
                 w.clamp(min.w, max.w))
 
+/** Returns [IntVector2] whose value is limited between [min] and [max] per vector component. */
 fun IntVector2.clamp(min : IntVector2, max : IntVector2) =
         IntVector2(x.clamp(min.x, max.x),
                 y.clamp(min.y, max.y))
 
+/** Returns [IntVector3] whose value is limited between [min] and [max] per vector component. */
 fun IntVector3.clamp(min : IntVector3, max : IntVector3) =
         IntVector3(x.clamp(min.x, max.x),
                 y.clamp(min.y, max.y),
                 z.clamp(min.y, max.z))
 
+/** Returns [IntVector4] whose value is limited between [min] and [max] per vector component. */
 fun IntVector4.clamp(min : IntVector4, max : IntVector4) =
         IntVector4(x.clamp(min.x, max.x),
                 y.clamp(min.y, max.y),

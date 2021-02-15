@@ -4,9 +4,7 @@ import java.io.Serializable
 import kotlin.math.sqrt
 
 
-/**
- * Integer vector 4
- */
+/** Integer 4D vector, exclusively for integer calculations. */
 @Suppress("unused")
 data class IntVector4(val x: Int, val y: Int, val z: Int, val w: Int) : Serializable {
     companion object {
@@ -17,9 +15,15 @@ data class IntVector4(val x: Int, val y: Int, val z: Int, val w: Int) : Serializ
         val UNIT_W = IntVector4(0, 0, 0, 1)
     }
 
+    /** The Euclidean length of the vector. */
     val length get() = sqrt(1.0 * x * x + y * y + z * z + w * w)
+
+    /** The squared Euclidean length of the vector. */
     val squaredLength get() = x * x + y * y + z * z + w * w
+
+    /** Calculates a dot product between this [Vector4] and [right]. */
     infix fun dot(right: IntVector4) = x * right.x + y * right.y + z * right.z + w * right.w
+
     val xy get() = IntVector2(x, y)
     val yx get() = IntVector2(y, x)
     val xx get() = IntVector2(x, x)
@@ -28,6 +32,8 @@ data class IntVector4(val x: Int, val y: Int, val z: Int, val w: Int) : Serializ
     operator fun minus(v: IntVector4) = IntVector4(x - v.x, y - v.y, z - v.z, w - v.w)
     operator fun times(d: Int) = IntVector4(x * d, y * d, z * d, w * d)
     operator fun div(d: Int) = IntVector4(x / d, y / d, z / d, w / d)
+
+    /** Casts to [Vector4]. */
     val vector4 get() = Vector4(this.x.toDouble(), this.y.toDouble(), this.z.toDouble(), this.w.toDouble())
 }
 

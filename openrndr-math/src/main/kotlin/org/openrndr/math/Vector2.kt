@@ -9,38 +9,31 @@ enum class YPolarity {
     CW_NEGATIVE_Y
 }
 
-/**
- * Double precision vector 2
- */
+/** Double-precision 2D vector. */
 data class Vector2(val x: Double, val y: Double) : Serializable, LinearType<Vector2> {
 
     constructor(x: Double) : this(x, x)
 
-    /**
-     * the Euclidean length of the vector
-     */
+    /** The Euclidean length of the vector. */
     val length: Double
         get() = sqrt(x * x + y * y)
 
-    /**
-     * the squared Euclidean length of the vector
-     */
+    /** The squared Euclidean length of the vector. */
     val squaredLength: Double
         get() = x * x + y * y
 
 
     /**
-     * calculate perpendicular vector
-     * @param polarity polarity, default is [YPolarity.CW_NEGATIVE_Y] (screen space)
+     * Calculates a vector perpendicular to the current one.
+     *
+     * @param polarity The polarity of the new vector, default is [CW_NEGATIVE_Y][YPolarity.CW_NEGATIVE_Y].
      */
     fun perpendicular(polarity: YPolarity = YPolarity.CW_NEGATIVE_Y): Vector2 = when (polarity) {
         YPolarity.CCW_POSITIVE_Y -> Vector2(-y, x)
         YPolarity.CW_NEGATIVE_Y -> Vector2(y, -x)
     }
 
-    /**
-     * a normalized version of the vector
-     */
+    /** Returns a normalized version of the vector. (i.e. unit vector) */
     val normalized: Vector2
         get() {
             val localLength = length
@@ -52,20 +45,24 @@ data class Vector2(val x: Double, val y: Double) : Serializable, LinearType<Vect
         }
 
     /**
-     * calculate cross product between this [Vector2] and [right]
+     * Calculates a cross product between this [Vector2] and [right].
+     *
+     * Technically you cannot find the
+     * [cross product of two 2D vectors](https://stackoverflow.com/a/243984)
+     * but it is still possible with clever use of mathematics.
      */
     infix fun cross(right: Vector2) = x * right.y - y * right.x
 
-    /**
-     * calculate dot product between this [Vector2] and [right]
-     */
+    /** Calculates a dot product between this [Vector2] and [right]. */
     infix fun dot(right: Vector2) = x * right.x + y * right.y
+
     infix fun reflect(surfaceNormal: Vector2): Vector2 = this - surfaceNormal * (this dot surfaceNormal) * 2.0
 
     /**
-     * calculate rotation of [Vector2]
-     * @param degrees the rotation in degrees
-     * @param origin the point around which the vector is rotated, default is [Vector2.ZERO]
+     * Creates a new [Vector2] with the given rotation and origin.
+     *
+     * @param degrees The rotation in degrees.
+     * @param origin The point around which the vector is rotated, default is [Vector2.ZERO].
      */
     fun rotate(degrees: Double, origin: Vector2 = ZERO): Vector2 {
         val p = this - origin
@@ -88,21 +85,23 @@ data class Vector2(val x: Double, val y: Double) : Serializable, LinearType<Vect
     val xy01 get() = Vector4(x, y, 0.0, 1.0)
 
     /**
-     * upcast to [Vector3]
-     * @param x value for x component, default is [x]
-     * @param y value for y component, default is [y]
-     * @param z value for z component, default is 0.0
+     * Upcasts to [Vector3].
+     *
+     * @param x The x component value, default is [x].
+     * @param y The y component value, default is [y].
+     * @param z The z component value, default is `0.0`.
      */
     fun vector3(x: Double = this.x, y: Double = this.y, z: Double = 0.0): Vector3 {
         return Vector3(x, y, z)
     }
 
     /**
-     * upcast to [Vector4]
-     * @param x value for x component, default is [x]
-     * @param y value for y component, default is [y]
-     * @param z value for z component, default is 0.0
-     * @param w value for w component, default is 0.0
+     * Upcasts to [Vector4].
+     *
+     * @param x The x component value, default is [x].
+     * @param y The y component value, default is [y].
+     * @param z The z component value, default is `0.0`.
+     * @param w The w component value, default is `0.0`.
      */
     fun vector4(x: Double = this.x, y: Double = this.y, z: Double = 0.0, w: Double = 0.0): Vector4 {
         return Vector4(x, y, z, w)
@@ -131,18 +130,14 @@ data class Vector2(val x: Double, val y: Double) : Serializable, LinearType<Vect
     override operator fun div(d: Double) = Vector2(x / d, y / d)
     operator fun div(d: Vector2) = Vector2(x / d.x, y / d.y)
 
-    /**
-     * calculate the Euclidean distance to [other]
-     */
+    /** Calculates the Euclidean distance to [other]. */
     fun distanceTo(other: Vector2): Double {
         val dx = other.x - x
         val dy = other.y - y
         return sqrt(dx * dx + dy * dy)
     }
 
-    /**
-     * calculate the squared Euclidean distance to [other]
-     */
+    /** Calculates the squared Euclidean distance to [other]. */
     fun squaredDistanceTo(other: Vector2): Double {
         val dx = other.x - x
         val dy = other.y - y
@@ -157,9 +152,7 @@ data class Vector2(val x: Double, val y: Double) : Serializable, LinearType<Vect
         val UNIT_X = Vector2(1.0, 0.0)
         val UNIT_Y = Vector2(0.0, 1.0)
 
-        /**
-         * a [Vector2] representation for infinite values
-         */
+        /** A [Vector2] representation for infinite values. */
         val INFINITY = Vector2(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY)
 
         fun fromPolar(polar: Polar): Vector2 {
@@ -170,14 +163,10 @@ data class Vector2(val x: Double, val y: Double) : Serializable, LinearType<Vect
         }
     }
 
-    /**
-     * convert to [DoubleArray]
-     */
+    /** Casts to [DoubleArray]. */
     fun toDoubleArray() = doubleArrayOf(x, y)
 
-    /**
-     * convert to [IntVector2]
-     */
+    /** Casts to [IntVector2]. */
     fun toInt() = IntVector2(x.toInt(), y.toInt())
 }
 

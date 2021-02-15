@@ -6,10 +6,11 @@ import org.openrndr.math.Vector2
  * The [Ramer–Douglas–Peucker algorithm](https://en.wikipedia.org/wiki/Ramer–Douglas–Peucker_algorithm),
  * is an algorithm that decimates a curve composed of line segments to a similar curve with fewer points.
  *
+ * When the epsilon is less than the distance between two points, [simplify] is applied recursively.
+ *
  * @author Edwin Jakobs
  *
- * @param points
- * @param epsilon when epsilon is less than the max distance between 2 points, recursively simplify
+ * @param epsilon Maximum distance two points can have without simplifying them.
  */
 fun simplify(points: List<Vector2>, epsilon: Double): List<Vector2> {
     // Find the point with the maximum distance

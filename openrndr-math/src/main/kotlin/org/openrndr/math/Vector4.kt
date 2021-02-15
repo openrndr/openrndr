@@ -5,9 +5,7 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt
 
-/**
- * Double precision vector 4
- */
+/** Double-precision 4D vector. */
 data class Vector4(val x: Double, val y: Double, val z: Double, val w: Double) : Serializable, LinearType<Vector4> {
     constructor(x: Double) : this(x, x, x, x)
 
@@ -18,21 +16,16 @@ data class Vector4(val x: Double, val y: Double, val z: Double, val w: Double) :
     val zx: Vector2 get() = Vector2(z, x)
     val zy: Vector2 get() = Vector2(z, y)
 
+    /** Downcasts to [Vector3] by discarding [w]. */
     val xyz: Vector3 get() = Vector3(x, y, z)
 
-    /**
-     * calculate [Vector3] by dividing x, y, z by w
-     */
+    /** Calculates [Vector3] by dividing [x], [y], [z] by [w]. */
     val div: Vector3 get() = Vector3(x / w, y / w, z / w)
 
-    /**
-     * the Euclidean length of the vector
-     */
+    /** The Euclidean length of the vector. */
     val length get() = sqrt(x * x + y * y + z * z + w * w)
 
-    /**
-     * the squared Euclidean length of the vector
-     */
+    /** The squared Euclidean length of the vector. */
     val squaredLength get() = x * x + y * y + z * z + w * w
 
     companion object {
@@ -44,6 +37,7 @@ data class Vector4(val x: Double, val y: Double, val z: Double, val w: Double) :
         val ONE = Vector4(1.0, 1.0, 1.0, 1.0)
     }
 
+    /** Returns a normalized version of the vector. (i.e. unit vector) */
     val normalized: Vector4
         get() {
             val l = 1.0 / length
@@ -74,9 +68,7 @@ data class Vector4(val x: Double, val y: Double, val z: Double, val w: Double) :
         }
     }
 
-    /**
-     * calculate the Euclidean distance to [other]
-     */
+    /** Calculates the Euclidean distance to [other]. */
     fun distanceTo(other: Vector4): Double {
         val dx = other.x - x
         val dy = other.y - y
@@ -85,9 +77,7 @@ data class Vector4(val x: Double, val y: Double, val z: Double, val w: Double) :
         return sqrt(dx * dx + dy * dy + dz * dz + dw * dw)
     }
 
-    /**
-     * calculate the squared Euclidean distance to [other]
-     */
+    /** Calculates the squared Euclidean distance to [other]. */
     fun squaredDistanceTo(other: Vector4): Double {
         val dx = other.x - x
         val dy = other.y - y
@@ -98,14 +88,10 @@ data class Vector4(val x: Double, val y: Double, val z: Double, val w: Double) :
 
     fun mix(o: Vector4, mix: Double): Vector4 = this * (1 - mix) + o * mix
 
-    /**
-     * convert to [DoubleArray]
-     */
+    /** Casts to [DoubleArray]. */
     fun toDoubleArray() = doubleArrayOf(x, y, z, w)
 
-    /**
-     * convert to [IntVector4]
-     */
+    /** Casts to [IntVector4]. */
     fun toInt() = IntVector4(x.toInt(), y.toInt(), z.toInt(), w.toInt())
 }
 

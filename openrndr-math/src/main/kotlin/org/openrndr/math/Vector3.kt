@@ -3,9 +3,7 @@ package org.openrndr.math
 import java.io.Serializable
 import kotlin.math.*
 
-/**
- * Double precision vector 3
- */
+/** Double-precision 3D vector. */
 data class Vector3(val x: Double, val y: Double, val z: Double) : Serializable, LinearType<Vector3> {
     constructor(x: Double) : this(x, x, x)
 
@@ -38,6 +36,7 @@ data class Vector3(val x: Double, val y: Double, val z: Double) : Serializable, 
     val zx get() = Vector2(z, x)
     val xz get() = Vector2(x, z)
 
+    /** Returns a normalized version of the vector. (i.e. unit vector) */
     val normalized: Vector3
         get() {
             val l = 1.0 / length
@@ -68,25 +67,27 @@ data class Vector3(val x: Double, val y: Double, val z: Double) : Serializable, 
     override operator fun div(s: Double) = Vector3(x / s, y / s, z / s)
     operator fun div(v: Vector3) = Vector3(x / v.x, y / v.y, z / v.z)
 
+    /** Calculates a dot product between this [Vector2] and [v]. */
     infix fun dot(v: Vector3) = x * v.x + y * v.y + z * v.z
 
+    /** Calculates a cross product between this [Vector2] and [v]. */
     infix fun cross(v: Vector3) = Vector3(
             y * v.z - z * v.y,
             -(x * v.z - z * v.x),
             x * v.y - y * v.x)
 
     infix fun projectedOn(v: Vector3) = (this dot v) / (v dot v) * v
+
+    /** The Euclidean length of the vector. */
     val length: Double get() = Math.sqrt(x * x + y * y + z * z)
+
+    /** The squared Euclidean length of the vector. */
     val squaredLength get() = x * x + y * y + z * z
 
-    /**
-     * convert to [DoubleArray]
-     */
+    /** Casts to [DoubleArray]. */
     fun toDoubleArray() = doubleArrayOf(x, y, z)
 
-    /**
-     * calculate the Euclidean distance to [other]
-     */
+    /** Calculates the Euclidean distance to [other]. */
     fun distanceTo(other: Vector3): Double {
         val dx = other.x - x
         val dy = other.y - y
@@ -94,9 +95,7 @@ data class Vector3(val x: Double, val y: Double, val z: Double) : Serializable, 
         return sqrt(dx * dx + dy * dy + dz * dz)
     }
 
-    /**
-     * calculate the squared Euclidean distance to [other]
-     */
+    /** Calculates the squared Euclidean distance to [other]. */
     fun squaredDistanceTo(other: Vector3): Double {
         val dx = other.x - x
         val dy = other.y - y
@@ -111,9 +110,7 @@ data class Vector3(val x: Double, val y: Double, val z: Double) : Serializable, 
             return Spherical.fromVector(this)
         }
 
-    /**
-     * convert to [IntVector3]
-     */
+    /** Casts to [IntVector3]. */
     fun toInt() = IntVector3(x.toInt(), y.toInt(), z.toInt())
 }
 
