@@ -325,7 +325,7 @@ internal class Path {
 
         fun fromLineLoops(contours: List<List<Vector2>>, corners: List<List<Boolean>>): Path {
             val sp = Path()
-            contours.forEachIndexed() { contourIndex, contour ->
+            contours.forEachIndexed { contourIndex, contour ->
                 val path = contour.mapIndexed { index, it -> PathPoint().apply { x = it.x; y = it.y; flags = if (corners[contourIndex][index]) CORNER else 0 } }.dropLast(1)
                 sp.contours.add(path)
             }
