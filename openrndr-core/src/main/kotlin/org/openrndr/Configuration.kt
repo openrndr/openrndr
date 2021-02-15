@@ -8,6 +8,7 @@ import org.openrndr.math.IntVector2
 enum class UnfocusBehaviour {
     /** Continue as usual **/
     NORMAL,
+
     /** Throttle drawing **/
     THROTTLE
 }
@@ -18,8 +19,10 @@ enum class UnfocusBehaviour {
 enum class Fullscreen {
     /** Do not use fullscreen */
     DISABLED,
+
     /** Use current display mode for fullscreen */
     CURRENT_DISPLAY_MODE,
+
     /** Use given width and height to set a display mode */
     SET_DISPLAY_MODE
 }
@@ -27,8 +30,10 @@ enum class Fullscreen {
 sealed class WindowMultisample {
     /** Use the system default */
     object SystemDefault : WindowMultisample()
+
     /** Disable multisampling */
     object Disabled : WindowMultisample()
+
     /** Use the specified sample count */
     data class SampleCount(val count: Int) : WindowMultisample()
 }
@@ -59,12 +64,12 @@ class Configuration {
     /**
      * The maximum window width
      */
-    var maximumWidth: Int = Int.MAX_VALUE/8
+    var maximumWidth: Int = Int.MAX_VALUE / 8
 
     /**
      * The maximum window height
      */
-    var maximumHeight: Int = Int.MAX_VALUE/8
+    var maximumHeight: Int = Int.MAX_VALUE / 8
 
 
     /**
@@ -86,7 +91,7 @@ class Configuration {
     /**
      * Should the window be made fullscreen?
      */
-    var fullscreen:Fullscreen = Fullscreen.DISABLED
+    var fullscreen: Fullscreen = Fullscreen.DISABLED
 
     /**
      * Should the window be made visible before calling setup?
@@ -97,6 +102,11 @@ class Configuration {
      * Should the cursor be hidden?
      */
     var hideCursor = false
+
+    /**
+     * Should the cursor be disabled? (i.e. hidden and captured by the window)
+     */
+    var disableCursor = false
 
     /**
      * The window position. The window will be placed in the center of the primary screen when set to null

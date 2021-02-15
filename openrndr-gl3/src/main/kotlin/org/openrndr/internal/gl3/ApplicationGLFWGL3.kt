@@ -641,6 +641,9 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         if (configuration.hideCursor) {
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN)
         }
+        if (configuration.disableCursor) {
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED)
+        }
 
         if (configuration.vsync) {
             if (glfwExtensionSupported("GLX_EXT_swap_control_tear") || glfwExtensionSupported("WGL_EXT_swap_control_tear")) {
