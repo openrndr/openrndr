@@ -38,6 +38,14 @@ data class Rectangle(val corner: Vector2, val width: Double, val height: Double 
         return corner + Vector2(u * width, v * height)
     }
 
+    /**
+     * Returns a position for parameterized values [u] and [v] between `0.0` and `1.0`
+     * where (`0.5`, `0.5`) is the center of the rectangle.
+     */
+    fun position(uv: Vector2): Vector2 {
+        return corner + uv * dimensions
+    }
+
     /** The [x]-coordinate of the top-left corner. */
     val x: Double get() = corner.x
 
