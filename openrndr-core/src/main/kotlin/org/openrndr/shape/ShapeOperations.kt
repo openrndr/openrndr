@@ -100,13 +100,13 @@ private fun List<Shape>.toRegion2(): Region2 {
 /**
  * Applies a boolean difference operation between two [ShapeContour]s.
  */
-fun difference(from: ShapeContour, with: ShapeContour): Shape {
+fun difference(from: ShapeContour, subtract: ShapeContour): Shape {
     return if (from.closed) {
-        val result = from.toRing2().region().difference(with.toRing2().region())
+        val result = from.toRing2().region().difference(subtract.toRing2().region())
         result.toShape()
     } else {
-        return if (with.closed) {
-            val ints = intersections(from, with)
+        return if (subtract.closed) {
+            val ints = intersections(from, subtract)
             return if (ints.isNotEmpty()) {
                 val sortedInts = ints.sortedBy { it.a.contourT }.map { it.a.contourT }
                 val weldedInts = (listOf(if (sortedInts.first() > 0.0) 0.0 else null) + sortedInts + (if (sortedInts.last() < 1.0) 1.0 else null)).filterNotNull().merge { a, b ->
@@ -114,7 +114,7 @@ fun difference(from: ShapeContour, with: ShapeContour): Shape {
                 }
                 val partitions = weldedInts.zipWithNext().mapNotNull {
                     val partition = from.sub(it.first, it.second)
-                    if (partition.position(0.5) !in with) {
+                    if (partition.position(0.5) !in subtract) {
                         partition
                     } else {
                         null
@@ -122,7 +122,7 @@ fun difference(from: ShapeContour, with: ShapeContour): Shape {
                 }
                 Shape(partitions)
             } else {
-                if (from.position(0.0) !in with) from.shape else Shape.EMPTY
+                if (from.position(0.0) !in subtract) from.shape else Shape.EMPTY
             }
         } else {
             from.shape
@@ -133,29 +133,29 @@ fun difference(from: ShapeContour, with: ShapeContour): Shape {
 /**
  * Applies a boolean difference operation between a [Shape] and a [ShapeContour].
  */
-fun difference(from: Shape, with: ShapeContour): Shape {
+fun difference(from: Shape, subtract: ShapeContour): Shape {
     return when (from.topology) {
         ShapeTopology.CLOSED -> {
-            if (with.closed) {
-                val result = from.toRegion2().difference(with.toRing2().region())
+            if (subtract.closed) {
+                val result = from.toRegion2().difference(subtract.toRing2().region())
                 result.toShape()
             } else {
                 return from
             }
         }
         ShapeTopology.OPEN -> {
-            if (with.closed) {
+            if (subtract.closed) {
                 Shape.compound(from.contours.map {
-                    difference(it, with)
+                    difference(it, subtract)
                 })
             } else {
                 return from
             }
         }
         ShapeTopology.MIXED -> {
-            if (with.closed) {
+            if (subtract.closed) {
                 Shape.compound(from.splitCompounds().map {
-                    difference(it, with)
+                    difference(it, subtract)
                 })
             } else {
                 return from
@@ -167,14 +167,14 @@ fun difference(from: Shape, with: ShapeContour): Shape {
 /**
  * Applies a boolean difference operation between a [ShapeContour] and a [Shape].
  */
-fun difference(from: ShapeContour, with: Shape): Shape {
+fun difference(from: ShapeContour, subtract: Shape): Shape {
     return if (from.closed) {
-        val result = from.toRing2().region().difference(with.toRegion2())
+        val result = from.toRing2().region().difference(subtract.toRegion2())
         result.toShape()
     } else {
-        when (with.topology) {
+        when (subtract.topology) {
             ShapeTopology.CLOSED -> {
-                val ints = with.contours.flatMap { intersections(from, it) }
+                val ints = subtract.contours.flatMap { intersections(from, it) }
                 if (ints.isNotEmpty()) {
                     val sortedInts = ints.map { it.a.contourT }.sorted()
                     val weldedInts = (listOfNotNull(if (sortedInts.first() > 0.0) 0.0 else null) + sortedInts + (if (sortedInts.last() < 1.0) 1.0 else null)).filterNotNull().merge { a, b ->
@@ -182,7 +182,7 @@ fun difference(from: ShapeContour, with: Shape): Shape {
                     }
                     val partitions = weldedInts.zipWithNext().mapNotNull {
                         val partition = from.sub(it.first, it.second)
-                        if (partition.position(0.5) !in with) {
+                        if (partition.position(0.5) !in subtract) {
                             partition
                         } else {
                             null
@@ -190,14 +190,14 @@ fun difference(from: ShapeContour, with: Shape): Shape {
                     }
                     Shape(partitions)
                 } else {
-                    if (from.position(0.0) !in with) from.shape else Shape.EMPTY
+                    if (from.position(0.0) !in subtract) from.shape else Shape.EMPTY
                 }
             }
             ShapeTopology.OPEN -> {
                 from.shape
             }
             ShapeTopology.MIXED -> {
-                return difference(from, Shape(with.splitCompounds().filter { it.topology == ShapeTopology.OPEN }.flatMap { it.contours }))
+                return difference(from, Shape(subtract.splitCompounds().filter { it.topology == ShapeTopology.OPEN }.flatMap { it.contours }))
             }
         }
 
@@ -207,43 +207,43 @@ fun difference(from: ShapeContour, with: Shape): Shape {
 /**
  * Applies a boolean difference operation between two [Shape]s.
  */
-fun difference(from: Shape, with: Shape): Shape {
+fun difference(from: Shape, subtract: Shape): Shape {
     if (from.empty) {
         return Shape.EMPTY
     }
-    if (with.empty) {
+    if (subtract.empty) {
         return from
     }
     return when (from.topology) {
         ShapeTopology.OPEN -> {
-            when (with.topology) {
+            when (subtract.topology) {
                 ShapeTopology.OPEN -> from
                 ShapeTopology.CLOSED -> {
-                    Shape.compound(from.contours.map { difference(it, with) })
+                    Shape.compound(from.contours.map { difference(it, subtract) })
                 }
                 ShapeTopology.MIXED -> {
                     val closed = Shape(from.splitCompounds().filter { it.topology == ShapeTopology.CLOSED }.flatMap { it.contours })
-                    difference(closed, with)
+                    difference(closed, subtract)
                 }
             }
         }
         ShapeTopology.CLOSED -> {
-            when (with.topology) {
+            when (subtract.topology) {
                 ShapeTopology.OPEN -> from
                 ShapeTopology.CLOSED -> {
-                    val result = from.toRegion2().difference(with.toRegion2())
+                    val result = from.toRegion2().difference(subtract.toRegion2())
                     result.toShape()
                 }
                 ShapeTopology.MIXED -> {
                     val closed = Shape(from.splitCompounds().filter { it.topology == ShapeTopology.CLOSED }.flatMap { it.contours })
-                    difference(closed, with)
+                    difference(closed, subtract)
                 }
             }
         }
         ShapeTopology.MIXED -> {
             val closed = Shape(from.splitCompounds().filter { it.topology == ShapeTopology.CLOSED }.flatMap { it.contours })
             val open = from.openContours
-            Shape.compound(listOf(difference(closed, with)) + open.map { difference(it, with) })
+            Shape.compound(listOf(difference(closed, subtract)) + open.map { difference(it, subtract) })
         }
     }
 }
@@ -658,9 +658,9 @@ fun intersections(a: Shape, b: Shape): List<ContourIntersection> {
  *
  * @return A pair containing two partial [Shape]s.
  */
-fun split(shape: Shape, line: LineSegment): Pair<Shape, Shape> {
-    val center = (line.end + line.start) / 2.0
-    val direction = (line.end - line.start).normalized
+fun split(shape: Shape, cutter: LineSegment): Pair<Shape, Shape> {
+    val center = (cutter.end + cutter.start) / 2.0
+    val direction = (cutter.end - cutter.start).normalized
     val perpendicular = direction.perpendicular(shape.contours.first().polarity)
     val extend = 50000.0
 
