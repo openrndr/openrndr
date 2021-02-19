@@ -210,6 +210,8 @@ ${drawerUniforms()}
 ${shadeStructure.varyingIn ?: ""}
 ${transformVaryingIn}
 
+${shadeStructure.outputs ?: ""}
+
 ${if (!shadeStructure.suppressDefaultOutput) "out vec4 o_color;" else ""}
 
 ${shadeStructure.fragmentPreamble ?: ""}
