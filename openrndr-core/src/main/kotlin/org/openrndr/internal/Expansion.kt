@@ -56,15 +56,14 @@ internal class Expansion(val type: ExpansionType, val fb: FloatArray, val buffer
     }
 
     fun bevelJoin(p0: PathPoint, p1: PathPoint,
-                  lw: Double, rw: Double, lu: Double, ru: Double, fringe: Double, offset: Double) {
+                  lw: Double, rw: Double, lu: Double, ru: Double,
+                  offset: Double) {
 
         val dlx0 = p0.dy
         val dly0 = -p0.dx
         val dlx1 = p1.dy
         val dly1 = -p1.dx
 
-        val frw = (rw + fringe)
-        val flw = (lw + fringe)
 
         if (p1.flags and LEFT != 0) {
             val r = chooseBevel(p1.flags and INNER_BEVEL != 0, p0, p1, lw)
@@ -74,30 +73,30 @@ internal class Expansion(val type: ExpansionType, val fb: FloatArray, val buffer
             val ly1 = r[3]
 
             addVertex(lx0, ly0, lu, 1.0, offset)
-            addVertex(p1.x - dlx0 * frw, p1.y - dly0 * frw, ru, 1.0, offset)
+            addVertex(p1.x - dlx0 * rw, p1.y - dly0 * rw, ru, 1.0, offset)
 
             if (p1.flags and BEVEL != 0) {
                 addVertex(lx0, ly0, lu, 1.0, offset)
-                addVertex(p1.x - dlx0 * frw, p1.y - dly0 * frw, ru, 1.0, offset)
+                addVertex(p1.x - dlx0 * rw, p1.y - dly0 * rw, ru, 1.0, offset)
 
                 addVertex(lx1, ly1, lu, 1.0, offset)
-                addVertex(p1.x - dlx1 * frw, p1.y - dly1 * frw, ru, 1.0, offset)
+                addVertex(p1.x - dlx1 * rw, p1.y - dly1 * rw, ru, 1.0, offset)
             } else {
                 val rx0 = p1.x - p1.dmx * rw
                 val ry0 = p1.y - p1.dmy * rw
 
                 addVertex(p1.x, p1.y, 0.5, 1.0, offset)
-                addVertex(p1.x - dlx0 * frw, p1.y - dly0 * frw, ru, 1.0, offset)
+                addVertex(p1.x - dlx0 * rw, p1.y - dly0 * rw, ru, 1.0, offset)
 
                 addVertex(rx0, ry0, ru, 1.0, offset)
                 addVertex(rx0, ry0, ru, 1.0, offset)
 
                 addVertex(p1.x, p1.y, 0.5, 1.0, offset)
-                addVertex(p1.x - dlx1 * frw, p1.y - dly1 * frw, ru, 1.0, offset)
+                addVertex(p1.x - dlx1 * rw, p1.y - dly1 * rw, ru, 1.0, offset)
             }
 
             addVertex(lx1, ly1, lu, 1.0, offset)
-            addVertex(p1.x - dlx1 * frw, p1.y - dly1 * frw, ru, 1.0, offset)
+            addVertex(p1.x - dlx1 * rw, p1.y - dly1 * rw, ru, 1.0, offset)
 
         } else {
             val r = chooseBevel(p1.flags and INNER_BEVEL != 0, p0, p1, -rw)
@@ -107,44 +106,41 @@ internal class Expansion(val type: ExpansionType, val fb: FloatArray, val buffer
             val rx1 = r[2]
             val ry1 = r[3]
 
-            addVertex(p1.x + dlx0 * flw, p1.y + dly0 * flw, lu, 1.0, offset)
+            addVertex(p1.x + dlx0 * lw, p1.y + dly0 * lw, lu, 1.0, offset)
             addVertex(rx0, ry0, ru, 1.0, offset)
 
             if (p1.flags and BEVEL != 0) {
-                addVertex(p1.x + dlx0 * flw, p1.y + dly0 * flw, lu, 1.0, offset)
+                addVertex(p1.x + dlx0 * lw, p1.y + dly0 * lw, lu, 1.0, offset)
                 addVertex(rx0, ry0, ru, 1.0, offset)
 
-                addVertex(p1.x + dlx1 * flw, p1.y + dly1 * flw, lu, 1.0, offset)
+                addVertex(p1.x + dlx1 * lw, p1.y + dly1 * lw, lu, 1.0, offset)
                 addVertex(rx1, ry1, ru, 1.0, offset)
             } else {
                 val lx0 = p1.x + p1.dmx * lw
                 val ly0 = p1.y + p1.dmy * lw
 
-                addVertex(p1.x + dlx0 * flw, p1.y + dly0 * flw, lu, 1.0, offset)
+                addVertex(p1.x + dlx0 * lw, p1.y + dly0 * lw, lu, 1.0, offset)
                 addVertex(p1.x, p1.y, 0.5, 1.0, offset)
 
                 addVertex(lx0, ly0, lu, 1.0, offset)
                 addVertex(lx0, ly0, lu, 1.0, offset)
 
-                addVertex(p1.x + dlx1 * flw, p1.y + dly1 * flw, lu, 1.0, offset)
+                addVertex(p1.x + dlx1 * lw, p1.y + dly1 * lw, lu, 1.0, offset)
                 addVertex(p1.x, p1.y, 0.5, 1.0, offset)
             }
 
-            addVertex(p1.x + dlx1 * flw, p1.y + dly1 * flw, lu, 1.0, offset)
+            addVertex(p1.x + dlx1 * lw, p1.y + dly1 * lw, lu, 1.0, offset)
             addVertex(rx1, ry1, ru, 1.0, offset)
         }
     }
 
     fun roundJoin(p0: PathPoint, p1: PathPoint,
-                  lw: Double, rw: Double, lu: Double, ru: Double, ncap: Int, fringe: Double, offset: Double) {
+                  lw: Double, rw: Double, lu: Double, ru: Double, ncap: Int, offset: Double) {
 
         val dlx0 = p0.dy
         val dly0 = -p0.dx
         val dlx1 = p1.dy
         val dly1 = -p1.dx
-
-        val flw = lw + fringe
-        val frw = rw + fringe
 
         if (p1.flags and LEFT != 0) {
 
@@ -164,20 +160,20 @@ internal class Expansion(val type: ExpansionType, val fb: FloatArray, val buffer
             }
 
             addVertex(lx0, ly0, lu, 1.0, offset)
-            addVertex(p1.x - dlx0 * frw, p1.y - dly0 * frw, ru, 1.0, offset)
+            addVertex(p1.x - dlx0, p1.y - dly0, ru, 1.0, offset)
 
             val n = ncap.coerceAtMost(ceil((a0 - a1) / PI * ncap).toInt()).coerceAtLeast(2)
             for (i in 0 until n) {
                 val u = i / (n - 1.0)
                 val a = a0 + u * (a1 - a0)
-                val rx = p1.x + cos(a) * frw
-                val ry = p1.y + sin(a) * frw
+                val rx = p1.x + cos(a) * rw
+                val ry = p1.y + sin(a) * rw
                 addVertex(p1.x, p1.y, 0.5, 1.0, offset)
                 addVertex(rx, ry, ru, 1.0, offset)
             }
 
             addVertex(lx1, ly1, lu, 1.0, offset)
-            addVertex(p1.x - dlx1 * frw, p1.y - dly1 * frw, ru, 1.0, offset)
+            addVertex(p1.x - dlx1 * rw, p1.y - dly1 * rw, ru, 1.0, offset)
 
         } else {
             val r = chooseBevel(p1.flags and INNER_BEVEL != 0, p0, p1, -rw)
@@ -191,81 +187,74 @@ internal class Expansion(val type: ExpansionType, val fb: FloatArray, val buffer
             if (a1 < a0) {
                 a1 += PI * 2
             }
-            addVertex(p1.x + dlx0 * frw, p1.y + dly0 * frw, lu, 1.0, offset)
+            addVertex(p1.x + dlx0 * rw, p1.y + dly0 * rw, lu, 1.0, offset)
             addVertex(rx0, ry0, ru, 1.0, offset)
 
             val n = ncap.coerceAtMost(ceil((a1 - a0) / PI * ncap).toInt()).coerceAtLeast(2)
 
             for (i in 0 until n) {
                 val a = a0 + i.toDouble() / (n - 1.0) * (a1 - a0)
-                addVertex(p1.x + cos(a) * flw, p1.y + sin(a) * flw, lu, 1.0, offset)
+                addVertex(p1.x + cos(a) * lw, p1.y + sin(a) * lw, lu, 1.0, offset)
                 addVertex(p1.x, p1.y, 0.5, 1.0, offset)
             }
-            addVertex(p1.x + dlx1 * frw, p1.y + dly1 * frw, lu, 1.0, offset)
+            addVertex(p1.x + dlx1 * rw, p1.y + dly1 * rw, lu, 1.0, offset)
             addVertex(rx1, ry1, ru, 1.0, offset)
         }
     }
 
     fun buttCapStart(p: PathPoint, dx: Double, dy: Double, w: Double,
-                     d: Double, fringe: Double, offset: Double) {
+                     d: Double, offset: Double) {
         val px = p.x - dx * d
         val py = p.y - dy * d
         val dly = -dx
 
-        val fw = w + fringe
-
-        addVertex(px + dy * fw - dx * fringe, py + dly * fw - dy * fringe, 0.0, 0.0, offset)
-        addVertex(px - dy * fw - dx * fringe, py - dly * fw - dy * fringe, 1.0, 0.0, offset)
-        addVertex(px + dy * fw, py + dly * fw, 0.0, 1.0, offset)
-        addVertex(px - dy * fw, py - dly * fw, 1.0, 1.0, offset)
+        addVertex(px + dy * w - dx, py + dly * w - dy, 0.0, 0.0, offset)
+        addVertex(px - dy * w - dx, py - dly * w - dy, 1.0, 0.0, offset)
+        addVertex(px + dy * w, py + dly * w, 0.0, 1.0, offset)
+        addVertex(px - dy * w, py - dly * w, 1.0, 1.0, offset)
     }
 
-    fun buttCapEnd(p: PathPoint, dx: Double, dy: Double, w: Double, d: Double, fringe: Double, offset: Double) {
+    fun buttCapEnd(p: PathPoint, dx: Double, dy: Double, w: Double, d: Double, offset: Double) {
         val px = p.x - dx * d
         val py = p.y - dy * d
         val dly = -dx
 
-        val fw = w + fringe
-
-        addVertex(px + dy * fw, py + dly * fw, 0.0, 1.0, offset)
-        addVertex(px - dy * fw, py - dly * fw, 1.0, 1.0, offset)
-        addVertex(px + dy * fw + dx * fringe, py + dly * fw + dy * fringe, 0.0, 0.0, offset)
-        addVertex(px - dy * fw + dx * fringe, py - dly * fw + dy * fringe, 1.0, 0.0, offset)
+        addVertex(px + dy * w, py + dly * w, 0.0, 1.0, offset)
+        addVertex(px - dy * w, py - dly * w, 1.0, 1.0, offset)
+        addVertex(px + dy * w + dx, py + dly * w + dy, 0.0, 0.0, offset)
+        addVertex(px - dy * w + dx, py - dly * w + dy, 1.0, 0.0, offset)
     }
 
     fun roundCapStart(p: PathPoint,
-                      dx: Double, dy: Double, w: Double, ncap: Int, fringe: Double, offset: Double) {
+                      dx: Double, dy: Double, w: Double, ncap: Int,  offset: Double) {
         val px = p.x
         val py = p.y
         val dly = -dx
 
-        val fw = w + fringe
 
         for (i in 0 until ncap) {
             val a = i / (ncap - 1.0) * PI
-            val ax = cos(a) * fw
-            val ay = sin(a) * fw
+            val ax = cos(a) * w
+            val ay = sin(a) * w
             addVertex(px - dy * ax - dx * ay, py - dly * ax - dy * ay, 0.0, 1.0, offset)
             addVertex(px, py, 0.5, 1.0, offset)
         }
-        addVertex(px + dy * fw, py + dly * fw, 0.0, 1.0, offset)
-        addVertex(px - dy * fw, py - dly * fw, 1.0, 1.0, offset)
+        addVertex(px + dy * w, py + dly * w, 0.0, 1.0, offset)
+        addVertex(px - dy * w, py - dly * w, 1.0, 1.0, offset)
     }
 
     fun roundCapEnd(p: PathPoint,
-                    dx: Double, dy: Double, w: Double, ncap: Int, fringe: Double, offset: Double) {
+                    dx: Double, dy: Double, w: Double, ncap: Int, offset: Double) {
         val px = p.x
         val py = p.y
         val dly = -dx
 
-        val fw = w + fringe
-
-        addVertex(px + dy * fw, py + dly * fw, 0.0, 1.0, offset)
-        addVertex(px - dy * fw, py - dly * fw, 1.0, 1.0, offset)
+        addVertex(px + dy * w, py + dly * w, 0.0, 1.0, offset)
+        addVertex(px - dy * w, py - dly * w, 1.0, 1.0, offset)
         for (i in 0 until ncap) {
             val a = i / (ncap - 1).toDouble() * PI
-            val ax = cos(a) * fw
-            val ay = sin(a) * fw
+            val ax = cos(a) * w
+            val ay = sin(a) * w
             addVertex(px, py, 0.5, 1.0, offset)
             addVertex(px - dy * ax + dx * ay, py - dly * ax + dy * ay, 0.0, 1.0, offset)
         }
@@ -275,7 +264,6 @@ internal class Expansion(val type: ExpansionType, val fb: FloatArray, val buffer
             Vector2(fb[bufferStart + idx * 5].toDouble(), fb[bufferStart + idx * 5 + 1].toDouble())
 
     fun addVertex(x: Double, y: Double, u: Double, v: Double, offset: Double) {
-
         if (x != x) {
             throw RuntimeException("$x $y $u $v")
         }
@@ -299,7 +287,7 @@ internal class Expansion(val type: ExpansionType, val fb: FloatArray, val buffer
 internal class Path {
     var convex: Boolean = false
     var closed: Boolean = false
-    var nbevel: Int = 0
+    private var nbevel: Int = 0
     val contours = mutableListOf<List<PathPoint>>()
 
     companion object {
@@ -325,7 +313,7 @@ internal class Path {
 
         fun fromLineLoops(contours: List<List<Vector2>>, corners: List<List<Boolean>>): Path {
             val sp = Path()
-            contours.forEachIndexed() { contourIndex, contour ->
+            contours.forEachIndexed { contourIndex, contour ->
                 val path = contour.mapIndexed { index, it -> PathPoint().apply { x = it.x; y = it.y; flags = if (corners[contourIndex][index]) CORNER else 0 } }.dropLast(1)
                 sp.contours.add(path)
             }
@@ -424,11 +412,15 @@ internal class Path {
         }
     }
 
-    fun expandStroke(fringeWidth: Double, weight: Double, lineCap: LineCap, lineJoin: LineJoin, miterLimit: Double): Expansion {
+    fun expandStroke(fringeWidth: Double, strokeWeight: Double, lineCap: LineCap, lineJoin: LineJoin, miterLimit: Double): Expansion {
+
+
+        val weight = strokeWeight + 1.0
+
         if (contours.isNotEmpty() && contours[0].renderable) {
             val points = contours[0]
 
-            val tessTol = 0.1 * fringeWidth
+            val tessTol = 0.1
             val capSteps = curveDivs(weight, PI, tessTol)
 
             prepare(points)
@@ -443,7 +435,7 @@ internal class Path {
             }
 
             if (!closed) {
-                cverts += if (lineCap === LineCap.ROUND) {
+                cverts += if (lineCap == LineCap.ROUND) {
                     (capSteps * 2 + 2) * 2
                 } else {
                     (3 + 3) * 2
@@ -453,7 +445,7 @@ internal class Path {
             val expansion = Expansion(ExpansionType.STROKE, FloatArray(cverts * 5), 0)
 
             var offset = 0.0
-            val aa = fringeWidth
+            val aa = 0.25
 
             var p0 = if (closed) points[points.size - 1] else points[0]
             var p1 = if (closed) points[0] else points[1]
@@ -473,26 +465,25 @@ internal class Path {
                 }
 
                 when (lineCap) {
-                    LineCap.BUTT -> expansion.buttCapStart(p0, dx, dy, weight, -aa * 0.5, aa, offset)
-                    LineCap.SQUARE -> expansion.buttCapStart(p0, dx, dy, weight, weight - aa, aa, offset)
-                    LineCap.ROUND -> expansion.roundCapStart(p0, dx, dy, weight, capSteps, aa, offset)
+                    LineCap.BUTT -> expansion.buttCapStart(p0, dx, dy, weight, -aa * 0.5, offset)
+                    LineCap.SQUARE -> expansion.buttCapStart(p0, dx, dy, weight, weight - aa, offset)
+                    LineCap.ROUND -> expansion.roundCapStart(p0, dx, dy, weight, capSteps, offset)
                 }
             }
 
 
             // -- middle
-            val fweight = weight + fringeWidth
             for (j in start until end) {
                 offset += p0.length
                 if (p1.flags and (BEVEL or INNER_BEVEL) != 0) {
                     if (lineJoin === LineJoin.ROUND) {
-                        expansion.roundJoin(p0, p1, weight, weight, 0.0, 1.0, capSteps, aa, offset)
+                        expansion.roundJoin(p0, p1, weight, weight, 0.0, 1.0, capSteps, offset)
                     } else {
-                        expansion.bevelJoin(p0, p1, weight, weight, 0.0, 1.0, aa, offset)
+                        expansion.bevelJoin(p0, p1, weight, weight, 0.0, 1.0, offset)
                     }
                 } else {
-                    expansion.addVertex(p1.x + p1.dmx * fweight, p1.y + p1.dmy * fweight, 0.0, 1.0, offset)
-                    expansion.addVertex(p1.x - p1.dmx * fweight, p1.y - p1.dmy * fweight, 1.0, 1.0, offset)
+                    expansion.addVertex(p1.x + p1.dmx * weight, p1.y + p1.dmy * weight, 0.0, 1.0, offset)
+                    expansion.addVertex(p1.x - p1.dmx * weight, p1.y - p1.dmy * weight, 1.0, 1.0, offset)
                 }
                 p0 = p1
                 p1ptr += 1
@@ -527,9 +518,9 @@ internal class Path {
                     dy /= l
                 }
                 when (lineCap) {
-                    LineCap.BUTT -> expansion.buttCapEnd(p1, dx, dy, weight, -aa * 0.5, aa, offset)
-                    LineCap.SQUARE -> expansion.buttCapEnd(p1, dx, dy, weight, weight - aa, aa, offset)
-                    LineCap.ROUND -> expansion.roundCapEnd(p1, dx, dy, weight, capSteps, aa, offset)
+                    LineCap.BUTT -> expansion.buttCapEnd(p1, dx, dy, weight, -aa * 0.5, offset)
+                    LineCap.SQUARE -> expansion.buttCapEnd(p1, dx, dy, weight, weight - aa, offset)
+                    LineCap.ROUND -> expansion.roundCapEnd(p1, dx, dy, weight, capSteps, offset)
                 }
             }
             return expansion
@@ -642,7 +633,7 @@ internal class Path {
                     var p1ptr = 0
                     for (j in points.indices) {
                         if (p1.flags and (BEVEL or INNER_BEVEL) != 0) {
-                            fringe.bevelJoin(p0, p1, lw, rw, lu, ru, 0.0, offset)
+                            fringe.bevelJoin(p0, p1, lw, rw, lu, ru, offset)
                         } else {
                             fringe.addVertex(p1.x + (p1.dmx * lw), p1.y + (p1.dmy * lw), lu, 1.0, offset)
                             fringe.addVertex(p1.x - (p1.dmx * rw), p1.y - (p1.dmy * rw), ru, 1.0, offset)
