@@ -370,23 +370,18 @@ data class ShapeContour(
         val corners = mutableListOf<Boolean>()
         for (segment in this.segments) {
             val samples = segment.adaptivePositions(distanceTolerance)
-            samples.forEachIndexed { index, _ ->
-                if (index == 0) {
-                    corners.add(segment.corner)
-                } else {
-                    corners.add(false)
-                }
-            }
-
-            samples.forEach {
+            val lastSampleIndex = samples.size - 1
+            samples.forEachIndexed { index, it ->
                 val last = adaptivePoints.lastOrNull()
                 if (last == null || last.squaredDistanceTo(it) > 0.0) {
                     adaptivePoints.add(it)
+                    if (index == 0 || index == lastSampleIndex) {
+                        corners.add(segment.corner)
+                    } else {
+                        corners.add(false)
+                    }
                 }
             }
-        }
-        adaptivePoints.zipWithNext().forEach {
-            require(it.first.squaredDistanceTo(it.second) > 0.0)
         }
         return Pair(adaptivePoints, corners)
     }

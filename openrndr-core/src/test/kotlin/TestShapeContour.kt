@@ -255,14 +255,14 @@ object TestShapeContour : Spek({
         }
 
         it("it can be subbed from 0.0 to 0.001 ") {
-
-
             val s = curve.sub(0.0, 1 / 100000.0)
             s.position(1.0) `should be somewhat near` curve.position(1 / 100000.0)
-
-
         }
 
+        it("adaptive positions and corners should have the same length") {
+            val pc = curve.adaptivePositionsAndCorners()
+            pc.first.size `should be equal to` pc.second.size
+        }
 
 //        it("it can be subbed from 0.0 to 0.001 ") {
 //            for (i in 1 until 100000) {
