@@ -55,9 +55,11 @@ internal class Expansion(val type: ExpansionType, val fb: FloatArray, val buffer
         return doubleArrayOf(x0, y0, x1, y1)
     }
 
-    fun bevelJoin(p0: PathPoint, p1: PathPoint,
-                  lw: Double, rw: Double, lu: Double, ru: Double,
-                  offset: Double) {
+    fun bevelJoin(
+        p0: PathPoint, p1: PathPoint,
+        lw: Double, rw: Double, lu: Double, ru: Double,
+        offset: Double
+    ) {
 
         val dlx0 = p0.dy
         val dly0 = -p0.dx
@@ -134,8 +136,10 @@ internal class Expansion(val type: ExpansionType, val fb: FloatArray, val buffer
         }
     }
 
-    fun roundJoin(p0: PathPoint, p1: PathPoint,
-                  lw: Double, rw: Double, lu: Double, ru: Double, ncap: Int, offset: Double) {
+    fun roundJoin(
+        p0: PathPoint, p1: PathPoint,
+        lw: Double, rw: Double, lu: Double, ru: Double, ncap: Int, offset: Double
+    ) {
 
         val dlx0 = p0.dy
         val dly0 = -p0.dx
@@ -202,31 +206,36 @@ internal class Expansion(val type: ExpansionType, val fb: FloatArray, val buffer
         }
     }
 
-    fun buttCapStart(p: PathPoint, dx: Double, dy: Double, w: Double,
-                     d: Double, offset: Double) {
+    fun buttCapStart(
+        p: PathPoint, dx: Double, dy: Double, w: Double,
+        d: Double, aa: Double, offset: Double
+    ) {
         val px = p.x - dx * d
         val py = p.y - dy * d
         val dly = -dx
 
-        addVertex(px + dy * w - dx, py + dly * w - dy, 0.0, 0.0, offset)
-        addVertex(px - dy * w - dx, py - dly * w - dy, 1.0, 0.0, offset)
+        addVertex(px + dy * w - dx * aa, py + dly * w - dy * aa, 0.0, 0.0, offset)
+        addVertex(px - dy * w - dx * aa, py - dly * w - dy * aa, 1.0, 0.0, offset)
         addVertex(px + dy * w, py + dly * w, 0.0, 1.0, offset)
         addVertex(px - dy * w, py - dly * w, 1.0, 1.0, offset)
     }
 
-    fun buttCapEnd(p: PathPoint, dx: Double, dy: Double, w: Double, d: Double, offset: Double) {
+
+    fun buttCapEnd(p: PathPoint, dx: Double, dy: Double, w: Double, d: Double, aa: Double, offset: Double) {
         val px = p.x - dx * d
         val py = p.y - dy * d
         val dly = -dx
 
         addVertex(px + dy * w, py + dly * w, 0.0, 1.0, offset)
         addVertex(px - dy * w, py - dly * w, 1.0, 1.0, offset)
-        addVertex(px + dy * w + dx, py + dly * w + dy, 0.0, 0.0, offset)
-        addVertex(px - dy * w + dx, py - dly * w + dy, 1.0, 0.0, offset)
+        addVertex(px + dy * w + dx * aa, py + dly * w + dy * aa, 0.0, 0.0, offset)
+        addVertex(px - dy * w + dx * aa, py - dly * w + dy * aa, 1.0, 0.0, offset)
     }
 
-    fun roundCapStart(p: PathPoint,
-                      dx: Double, dy: Double, w: Double, ncap: Int,  offset: Double) {
+    fun roundCapStart(
+        p: PathPoint,
+        dx: Double, dy: Double, w: Double, ncap: Int, offset: Double
+    ) {
         val px = p.x
         val py = p.y
         val dly = -dx
@@ -243,8 +252,10 @@ internal class Expansion(val type: ExpansionType, val fb: FloatArray, val buffer
         addVertex(px - dy * w, py - dly * w, 1.0, 1.0, offset)
     }
 
-    fun roundCapEnd(p: PathPoint,
-                    dx: Double, dy: Double, w: Double, ncap: Int, offset: Double) {
+    fun roundCapEnd(
+        p: PathPoint,
+        dx: Double, dy: Double, w: Double, ncap: Int, offset: Double
+    ) {
         val px = p.x
         val py = p.y
         val dly = -dx
@@ -261,7 +272,7 @@ internal class Expansion(val type: ExpansionType, val fb: FloatArray, val buffer
     }
 
     fun vertex(idx: Int): Vector2 =
-            Vector2(fb[bufferStart + idx * 5].toDouble(), fb[bufferStart + idx * 5 + 1].toDouble())
+        Vector2(fb[bufferStart + idx * 5].toDouble(), fb[bufferStart + idx * 5 + 1].toDouble())
 
     fun addVertex(x: Double, y: Double, u: Double, v: Double, offset: Double) {
         if (x != x) {
@@ -291,9 +302,11 @@ internal class Path {
     val contours = mutableListOf<List<PathPoint>>()
 
     companion object {
-        fun fromLineStrip(segments: List<Vector2>,
-                          corners: List<Boolean>,
-                          closed: Boolean): Path {
+        fun fromLineStrip(
+            segments: List<Vector2>,
+            corners: List<Boolean>,
+            closed: Boolean
+        ): Path {
             val sp = Path()
             val drop = closed && segments.first().squaredDistanceTo(segments.last()) < 10E-6
             val path = segments.mapIndexed { index, it ->
@@ -314,7 +327,11 @@ internal class Path {
         fun fromLineLoops(contours: List<List<Vector2>>, corners: List<List<Boolean>>): Path {
             val sp = Path()
             contours.forEachIndexed { contourIndex, contour ->
-                val path = contour.mapIndexed { index, it -> PathPoint().apply { x = it.x; y = it.y; flags = if (corners[contourIndex][index]) CORNER else 0 } }.dropLast(1)
+                val path = contour.mapIndexed { index, it ->
+                    PathPoint().apply {
+                        x = it.x; y = it.y; flags = if (corners[contourIndex][index]) CORNER else 0
+                    }
+                }.dropLast(1)
                 sp.contours.add(path)
             }
             sp.closed = true
@@ -412,15 +429,19 @@ internal class Path {
         }
     }
 
-    fun expandStroke(fringeWidth: Double, strokeWeight: Double, lineCap: LineCap, lineJoin: LineJoin, miterLimit: Double): Expansion {
-
-
-        val weight = strokeWeight + 1.0
+    fun expandStroke(
+        fringeWidth: Double,
+        strokeWeight: Double,
+        lineCap: LineCap,
+        lineJoin: LineJoin,
+        miterLimit: Double
+    ): Expansion {
+        val weight = strokeWeight + fringeWidth * 0.5
 
         if (contours.isNotEmpty() && contours[0].renderable) {
             val points = contours[0]
 
-            val tessTol = 0.1
+            val tessTol = 0.1 * fringeWidth
             val capSteps = curveDivs(weight, PI, tessTol)
 
             prepare(points)
@@ -445,7 +466,7 @@ internal class Path {
             val expansion = Expansion(ExpansionType.STROKE, FloatArray(cverts * 5), 0)
 
             var offset = 0.0
-            val aa = 0.25
+            val aa = fringeWidth
 
             var p0 = if (closed) points[points.size - 1] else points[0]
             var p1 = if (closed) points[0] else points[1]
@@ -465,8 +486,8 @@ internal class Path {
                 }
 
                 when (lineCap) {
-                    LineCap.BUTT -> expansion.buttCapStart(p0, dx, dy, weight, -aa * 0.5, offset)
-                    LineCap.SQUARE -> expansion.buttCapStart(p0, dx, dy, weight, weight - aa, offset)
+                    LineCap.BUTT -> expansion.buttCapStart(p0, dx, dy, weight, -aa * 0.5, aa, offset)
+                    LineCap.SQUARE -> expansion.buttCapStart(p0, dx, dy, weight, weight - aa, aa, offset)
                     LineCap.ROUND -> expansion.roundCapStart(p0, dx, dy, weight, capSteps, offset)
                 }
             }
@@ -518,8 +539,8 @@ internal class Path {
                     dy /= l
                 }
                 when (lineCap) {
-                    LineCap.BUTT -> expansion.buttCapEnd(p1, dx, dy, weight, -aa * 0.5, offset)
-                    LineCap.SQUARE -> expansion.buttCapEnd(p1, dx, dy, weight, weight - aa, offset)
+                    LineCap.BUTT -> expansion.buttCapEnd(p1, dx, dy, weight, -aa * 0.5, aa, offset)
+                    LineCap.SQUARE -> expansion.buttCapEnd(p1, dx, dy, weight, weight - aa, aa, offset)
                     LineCap.ROUND -> expansion.roundCapEnd(p1, dx, dy, weight, capSteps, offset)
                 }
             }
