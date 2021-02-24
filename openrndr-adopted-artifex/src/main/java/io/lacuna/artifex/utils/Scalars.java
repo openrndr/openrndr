@@ -59,7 +59,11 @@ public class Scalars {
   }
 
   public static double normalizationFactor(double a, double b, double c) {
-    double exponent = getExponent(max(max(a, b), c));
+    double maxValue = max(a, b, c);
+    if(maxValue == 0.0) {
+      maxValue = min(a, b, c);
+    }
+    double exponent = getExponent(maxValue);
     return (exponent < -8 || exponent > 8) ? Math.pow(2, -exponent) : 1;
   }
 
@@ -74,5 +78,13 @@ public class Scalars {
 
   public static double max(double a, double b, double c) {
     return max(a, max(b, c));
+  }
+
+  public static double min(double a, double b) {
+    return a > b ? b : a;
+  }
+
+  public static double min(double a, double b, double c) {
+    return min(a, min(b, c));
   }
 }
