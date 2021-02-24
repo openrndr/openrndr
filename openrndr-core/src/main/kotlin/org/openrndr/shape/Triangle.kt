@@ -1,5 +1,6 @@
 package org.openrndr.shape
 
+import org.openrndr.math.Polar
 import org.openrndr.math.Vector2
 import org.openrndr.math.Vector3
 import kotlin.math.abs
@@ -59,6 +60,35 @@ data class Triangle(val x1: Vector2, val x2: Vector2, val x3: Vector2) {
         val u = x2 - x1
         val v = x3 - x1
         abs(u cross v) / 2.0
+    }
+
+    /** The centroid of the [Triangle]. */
+    val centroid by lazy {
+        (x1 + x2 + x3) / 3.0
+    }
+
+    companion object {
+        /**
+         * Creates a triangle from a [centroid] based on the circumradius [radius]
+         *
+         * @param centroid
+         * @param radius
+         * @param theta angle of one of the vertices -> equilateral if theta = 60.0 and isosceles otherwise
+         * @param rotation
+         * @return
+         */
+        fun fromCentroid(centroid: Vector2, radius: Double, theta: Double = 60.0, rotation: Double = 0.0): Triangle {
+            val omega = (180.0 - theta)
+
+            val x1 = centroid + Polar(rotation, radius).cartesian
+            val x2 = centroid + Polar(omega + rotation, radius).cartesian
+            val x3 = centroid + Polar(-omega + rotation, radius).cartesian
+
+            val c = (x1 + x2 + x3) / 3.0
+            val delta = centroid - c
+
+            return Triangle(x1 + delta, x2 + delta, x3 + delta)
+        }
     }
 
     operator fun times(scale: Double): Triangle {
