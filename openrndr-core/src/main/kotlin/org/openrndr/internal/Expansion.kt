@@ -436,7 +436,7 @@ internal class Path {
         lineJoin: LineJoin,
         miterLimit: Double
     ): Expansion {
-        val weight = strokeWeight + fringeWidth * 0.5
+        val weight = strokeWeight + fringeWidth * 1.0
 
         if (contours.isNotEmpty() && contours[0].renderable) {
             val points = contours[0]

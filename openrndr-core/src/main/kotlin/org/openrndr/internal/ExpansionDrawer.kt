@@ -32,7 +32,7 @@ internal class ExpansionDrawer {
 
         val localStyle = drawStyle.copy()
 
-        shader.uniform("strokeMult", (drawStyle.strokeWeight + fringeScale*2.0)/(fringeScale*2.0))
+        shader.uniform("strokeMult", -1.0)
         shader.uniform("strokeFillFactor", 0.0)
         commands.forEach { command ->
 
@@ -76,8 +76,8 @@ internal class ExpansionDrawer {
 
             val localStyle = drawStyle
             val vertexCount = commands.last().let { it.vertexOffset + it.vertexCount }
-
-            shader.uniform("strokeMult", (drawStyle.strokeWeight + fringeScale*2.0)/(fringeScale*2.0))
+            val fs = fringeScale
+            shader.uniform("strokeMult", (drawStyle.strokeWeight*0.5 + fs*0.5 ) / (fs) )
             shader.uniform("strokeFillFactor", 0.0)
 
             shader.uniform("bounds", Vector4(-1000.0, -1000.0, 2000.0, 2000.0))
