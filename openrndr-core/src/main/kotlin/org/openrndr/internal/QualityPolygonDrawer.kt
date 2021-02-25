@@ -11,9 +11,8 @@ class QualityPolygonDrawer {
                     drawStyle: DrawStyle,
                     loops: List<List<Vector2>>,
                     corners: List<List<Boolean>>,
-                    fringeWidth: Double = 1.0) {
+                    fringeWidth: Double) {
 
-        val ratio = 1.0
         if (drawStyle.fill != null) {
             val path = Path.fromLineLoops(loops.mapIndexed { index, it ->
                 it.let { it.subList(0, it.size) }

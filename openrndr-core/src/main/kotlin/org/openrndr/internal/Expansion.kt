@@ -560,7 +560,7 @@ internal class Path {
             if (contours.size > 1) {
                 convex = false
             }
-            val aa = fringeWidth
+            val aa = fringeWidth / 4.0
             val woff = 0.5 * aa
             val generateFringe = w > 0.0
             val offset = 0.0

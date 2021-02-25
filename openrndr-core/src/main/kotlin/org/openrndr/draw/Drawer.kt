@@ -632,18 +632,20 @@ class Drawer(val driver: Driver) {
      */
     fun shape(shape: Shape) {
         val distanceTolerance = 0.5 / (modelViewScaling * log2(strokeWeight).coerceAtLeast(1.0))
+        val fringeWidth = 1.0 / modelViewScaling
         if (abs(modelViewScaling) < 1E-6){
             return
         }
 
-        val fringeWidth = 1.0 / modelViewScaling
         if (RenderTarget.active.hasDepthBuffer) {
-
             when (shape.topology) {
                 ShapeTopology.CLOSED -> {
                     val closedPC = shape.contours.map { it.adaptivePositionsAndCorners(distanceTolerance) }
                     val closedP = closedPC.map { it.first }
                     val closedC = closedPC.map { it.second }
+
+
+
                     qualityPolygonDrawer.drawPolygon(context, drawStyle,
                             closedP, closedC, fringeWidth)
                 }

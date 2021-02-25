@@ -31,8 +31,8 @@ internal class ExpansionDrawer {
         Driver.instance.setState(drawStyle)
 
         val localStyle = drawStyle.copy()
-
-        shader.uniform("strokeMult", -1.0)
+        val fs = fringeScale
+        shader.uniform("strokeMult", (drawStyle.strokeWeight*0.5 + fs*0.5 ) / (fs) )
         shader.uniform("strokeFillFactor", 0.0)
         commands.forEach { command ->
 
