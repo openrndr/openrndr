@@ -39,8 +39,8 @@ data class Rectangle(val corner: Vector2, val width: Double, val height: Double 
     }
 
     /**
-     * Returns a position for parameterized values [u] and [v] between `0.0` and `1.0`
-     * where (`0.5`, `0.5`) is the center of the rectangle.
+     * Returns a position for a parameterized [uv] value between (`0.0`, `0.0`)
+     * and (`1.0`, `1.0`) where (`0.5`, `0.5`) is the center of the rectangle.
      */
     fun position(uv: Vector2): Vector2 {
         return corner + uv * dimensions
@@ -94,7 +94,7 @@ data class Rectangle(val corner: Vector2, val width: Double, val height: Double 
         return Rectangle(nd, width * scale, height * scaleY)
     }
 
-    @Deprecated("use scale instead")
+    @Deprecated("use scale instead", ReplaceWith("scale(scale, scaleY)"))
     fun scaled(scale: Double, scaleY: Double = scale): Rectangle {
         return Rectangle(corner, width * scale, height * scaleY)
     }
@@ -124,6 +124,17 @@ data class Rectangle(val corner: Vector2, val width: Double, val height: Double 
                 point.x < corner.x + width &&
                 point.y >= corner.y &&
                 point.y < corner.y + height)
+    }
+
+    /**
+     * Tests if the **areas** of two rectangles intersect.
+     */
+    fun intersects(other: Rectangle): Boolean {
+        val above = y + height < other.y
+        val below = y > other.y + other.height
+        val rightOf = x > other.x + other.width
+        val leftOf = x + width < other.x
+        return !(above || below || leftOf || rightOf)
     }
 
     companion object {
@@ -160,10 +171,8 @@ data class Rectangle(val corner: Vector2, val width: Double, val height: Double 
 }
 
 /** calculates [Rectangle]-bounds for a list of [Vector2] instances */
-@Deprecated("use List<Vector2>.bounds instead")
-fun vector2Bounds(points: List<Vector2>): Rectangle {
-    return points.bounds
-}
+@Deprecated("use List<Vector2>.bounds instead", ReplaceWith("points.bounds"))
+fun vector2Bounds(points: List<Vector2>) = points.bounds
 
 /**
  * Calculates [Rectangle]-bounds from a [List] of [Vector2] instances.
@@ -187,7 +196,9 @@ val List<Vector2>.bounds: Rectangle
     }
 
 /** calculates [Rectangle]-bounds for a list of [Rectangle] instances */
-@Deprecated("use List<Rectangle>.bounds instead")
+@Deprecated("use List<Rectangle>.bounds instead",
+    ReplaceWith("rectangles.bounds")
+)
 fun rectangleBounds(rectangles: List<Rectangle>): Rectangle {
     return rectangles.bounds
 }
@@ -212,13 +223,10 @@ val List<Rectangle>.bounds: Rectangle
     }
 
 /** Determines whether or not rectangles [a] and [b] intersect. */
-fun intersects(a: Rectangle, b: Rectangle): Boolean {
-    val above = a.y + a.height < b.y
-    val below = a.y > b.y + b.height
-    val rightOf = a.x > b.x + b.width
-    val leftOf = a.x + a.width < b.x
-    return !(above || below || leftOf || rightOf)
-}
+@Deprecated("use Rectangle.intersects(Rectangle) instead",
+    ReplaceWith("a.intersects(b)")
+)
+fun intersects(a: Rectangle, b: Rectangle) = a.intersects(b)
 
 /**
  * Remaps [Vector2] from a position on the [sourceRectangle] to

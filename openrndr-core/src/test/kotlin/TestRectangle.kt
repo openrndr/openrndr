@@ -34,6 +34,7 @@ object TestRectangle : Spek({
             c.polarity `should be equal to` YPolarity.CW_NEGATIVE_Y
         }
     }
+
     describe("A specific rectangle's contour") {
         // testing for issue described in https://github.com/openrndr/openrndr/issues/135
         val c = Rectangle(100.0, 100.0, 300.0, 300.0).contour
@@ -58,6 +59,23 @@ object TestRectangle : Spek({
                 p.x `should be less or equal to` 400.0 + 1E-6
                 p.y `should be less or equal to` 400.0 + 1E-6
             }
+        }
+    }
+
+    describe("A rectangle") {
+        val a = Rectangle.fromCenter(Vector2.ZERO, 50.0)
+        val b = Rectangle.fromCenter(Vector2.ZERO, 100.0)
+        val c = Rectangle(400.0, 400.0, 50.0)
+        val d = Rectangle(410.0, 410.0, 50.0)
+
+        it("intersects other rectangles") {
+            a.intersects(b) `should be equal to` true
+            b.intersects(a) `should be equal to` true
+            c.intersects(d) `should be equal to` true
+        }
+
+        it("doesn't intersect other rectangles") {
+            a.intersects(c) `should be equal to` false
         }
     }
 })
