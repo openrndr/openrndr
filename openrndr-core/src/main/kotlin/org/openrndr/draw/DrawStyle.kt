@@ -338,42 +338,48 @@ enum class KernMode {
     METRIC
 }
 
+enum class TextSettingMode {
+    PIXEL,
+    SUBPIXEL
+}
+
 data class DrawStyle(
-        /** Clipping rectangle, set to null for no clipping */
+    /** Clipping rectangle, set to null for no clipping */
         var clip: Rectangle? = null,
 
-        /** Fill color, set to null for no fill */
+    /** Fill color, set to null for no fill */
         var fill: ColorRGBa? = ColorRGBa.WHITE,
 
-        /** Stroke color, set to null for no stroke */
+    /** Stroke color, set to null for no stroke */
         var stroke: ColorRGBa? = ColorRGBa.BLACK,
 
-        var lineCap: LineCap = LineCap.BUTT,
-        var lineJoin: LineJoin = LineJoin.MITER,
+    var lineCap: LineCap = LineCap.BUTT,
+    var lineJoin: LineJoin = LineJoin.MITER,
 
-        var strokeWeight: Double = 1.0,
-        var smooth: Boolean = true,
+    var strokeWeight: Double = 1.0,
+    var smooth: Boolean = true,
 
-        var quality: DrawQuality = DrawQuality.QUALITY,
+    var quality: DrawQuality = DrawQuality.QUALITY,
 
-        var depthTestPass: DepthTestPass = DepthTestPass.ALWAYS,
-        var depthWrite: Boolean = false,
-        var blendMode: BlendMode = BlendMode.OVER,
-        var cullTestPass: CullTestPass = CullTestPass.ALWAYS,
-        var channelWriteMask: ChannelMask = ChannelMask(red = true, green = true, blue = true, alpha = true),
+    var depthTestPass: DepthTestPass = DepthTestPass.ALWAYS,
+    var depthWrite: Boolean = false,
+    var blendMode: BlendMode = BlendMode.OVER,
+    var cullTestPass: CullTestPass = CullTestPass.ALWAYS,
+    var channelWriteMask: ChannelMask = ChannelMask(red = true, green = true, blue = true, alpha = true),
 
-        /** Use alpha to coverage in rendering, used in multi-sampling modes */
+    /** Use alpha to coverage in rendering, used in multi-sampling modes */
         var alphaToCoverage: Boolean = false,
 
-        var shadeStyle: ShadeStyle? = null,
-        var fontMap: FontMap? = null,
-        var kerning: KernMode = KernMode.METRIC,
+    var shadeStyle: ShadeStyle? = null,
+    var fontMap: FontMap? = null,
+    var kerning: KernMode = KernMode.METRIC,
+    var textSetting: TextSettingMode = TextSettingMode.PIXEL,
 
-        var stencil: StencilStyle = StencilStyle(),
-        var frontStencil: StencilStyle = stencil,
-        var backStencil: StencilStyle = stencil,
+    var stencil: StencilStyle = StencilStyle(),
+    var frontStencil: StencilStyle = stencil,
+    var backStencil: StencilStyle = stencil,
 
-        var colorMatrix: Matrix55 = Matrix55.IDENTITY
+    var colorMatrix: Matrix55 = Matrix55.IDENTITY
 ) {
 
     fun applyToShader(shader: Shader) {

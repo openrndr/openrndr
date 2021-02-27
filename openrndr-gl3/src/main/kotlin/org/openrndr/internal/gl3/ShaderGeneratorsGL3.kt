@@ -529,6 +529,7 @@ void main(void) {
     }
 
     float imageMap = texture(image, va_texCoord0).r;
+    
     vec4 x_fill = vec4(u_fill.rgb,u_fill.a * imageMap);
     vec4 x_stroke = u_stroke;
     {

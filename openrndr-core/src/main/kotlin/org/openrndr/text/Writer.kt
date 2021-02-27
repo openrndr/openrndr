@@ -25,8 +25,10 @@ class WriteStyle {
 class Writer(val drawerRef: Drawer?) {
 
     var cursor = Cursor()
-    var box = Rectangle(Vector2.ZERO, drawerRef?.width?.toDouble() ?: Double.POSITIVE_INFINITY, drawerRef?.height?.toDouble()
-            ?: Double.POSITIVE_INFINITY)
+    var box = Rectangle(
+        Vector2.ZERO, drawerRef?.width?.toDouble() ?: Double.POSITIVE_INFINITY, drawerRef?.height?.toDouble()
+            ?: Double.POSITIVE_INFINITY
+    )
         set(value) {
             field = value
             cursor.x = value.corner.x
@@ -60,14 +62,14 @@ class Writer(val drawerRef: Drawer?) {
         get() {
             return drawerRef?.drawStyle ?: field
         }
-        set(value: DrawStyle) {
+        set(value) {
             field = drawStyle
         }
 
     fun newLine() {
         cursor.x = box.corner.x
         cursor.y += /*(drawer.drawStyle.fontMap?.height ?: 0.0)*/ +(drawStyle.fontMap?.leading
-                ?: 0.0) + style.leading
+            ?: 0.0) + style.leading
     }
 
     fun gaplessNewLine() {
@@ -81,8 +83,8 @@ class Writer(val drawerRef: Drawer?) {
     }
 
     fun textWidth(text: String): Double =
-            text.sumByDouble { (drawStyle.fontMap as FontImageMap).glyphMetrics[it]?.advanceWidth ?: 0.0 } +
-                    (text.length - 1).coerceAtLeast(0) * style.tracking
+        text.sumByDouble { (drawStyle.fontMap as FontImageMap).glyphMetrics[it]?.advanceWidth ?: 0.0 } +
+                (text.length - 1).coerceAtLeast(0) * style.tracking
 
     fun text(text: String, visible: Boolean = true) {
         // Triggers loading the default font (if needed) by accessing .fontMap
@@ -94,7 +96,17 @@ class Writer(val drawerRef: Drawer?) {
         if (visible) {
             drawerRef?.let { d ->
                 val renderer = d.fontImageMapDrawer
-                renderTokens.forEach { renderer.queueText(d.drawStyle.fontMap!!, it.token, it.x, it.y, style.tracking) }
+                renderTokens.forEach {
+                    renderer.queueText(
+                        fontMap = d.drawStyle.fontMap!!,
+                        text = it.token,
+                        x = it.x,
+                        y = it.y,
+                        tracking = style.tracking,
+                        kerning = drawStyle.kerning,
+                        textSetting = drawStyle.textSetting
+                    )
+                }
                 renderer.flush(d.context, d.drawStyle)
             }
         }
@@ -141,11 +153,19 @@ class Writer(val drawerRef: Drawer?) {
                             localCursor.y += verticalSpace
                             localCursor.x = box.x
 
-                            emitToken(localCursor, renderTokens, RenderToken(token, localCursor.x, localCursor.y, tokenWidth, style.tracking))
+                            emitToken(
+                                localCursor,
+                                renderTokens,
+                                RenderToken(token, localCursor.x, localCursor.y, tokenWidth, style.tracking)
+                            )
                         } else {
                             if (!mustFit && style.ellipsis != null && cursor.y <= box.y + box.height) {
-                                emitToken(localCursor, renderTokens, RenderToken(style.ellipsis
-                                        ?: "", localCursor.x, localCursor.y, tokenWidth, style.tracking))
+                                emitToken(
+                                    localCursor, renderTokens, RenderToken(
+                                        style.ellipsis
+                                            ?: "", localCursor.x, localCursor.y, tokenWidth, style.tracking
+                                    )
+                                )
                                 break@tokenLoop
                             } else {
                                 fits = false
@@ -176,16 +196,16 @@ class Writer(val drawerRef: Drawer?) {
     }
 }
 
-fun <T> writer(drawer: Drawer, f: Writer.() -> T) : T {
+fun <T> writer(drawer: Drawer, f: Writer.() -> T): T {
     val writer = Writer(drawer)
     return writer.f()
 }
 
-fun <T> Program.writer(f: Writer.() -> T) : T {
+fun <T> Program.writer(f: Writer.() -> T): T {
     return writer(drawer, f)
 }
 
 @JvmName("drawerWriter")
-fun <T> Drawer.writer(f: Writer.() -> T) : T {
+fun <T> Drawer.writer(f: Writer.() -> T): T {
     return writer(this, f)
 }

@@ -18,7 +18,12 @@ import java.nio.ByteOrder
 private val logger = KotlinLogging.logger {}
 
 class FontImageMapManagerStbTruetype : FontMapManager() {
-    override fun fontMapFromUrl(url: String, size: Double, characterSet: Set<Char>, contentScale: Double): FontImageMap {
+    override fun fontMapFromUrl(
+        url: String,
+        size: Double,
+        characterSet: Set<Char>,
+        contentScale: Double
+    ): FontImageMap {
         logger.debug { "content scale $contentScale" }
         var packSize = 256
 
@@ -40,8 +45,8 @@ class FontImageMapManagerStbTruetype : FontMapManager() {
 
         val status = stbtt_InitFont(info, bb)
 
-        if (!status) {
-            throw RuntimeException("font error")
+        require(status) {
+            "font error"
         }
 
         val scale = (stbtt_ScaleForPixelHeight(info, (size * contentScale).toFloat()))
@@ -61,14 +66,25 @@ class FontImageMapManagerStbTruetype : FontMapManager() {
             lineGap = pLineGap.get(0) * scale * 1.0
         }
 
-        val glyphIndices = characterSet.associate { Pair(it, stbtt_FindGlyphIndex(info, it.toInt())) }
+        val glyphIndices = characterSet.associateWith { stbtt_FindGlyphIndex(info, it.toInt()) }
         val glyphDimensions = characterSet.associate { c ->
             stackPush().use {
                 val px0 = it.mallocInt(1)
                 val py0 = it.mallocInt(1)
                 val px1 = it.mallocInt(1)
                 val py1 = it.mallocInt(1)
-                stbtt_GetGlyphBitmapBoxSubpixel(info, glyphIndices.getValue(c), scale, scale, 0.0f, 0.0f, px0, py0, px1, py1)
+                stbtt_GetGlyphBitmapBoxSubpixel(
+                    info,
+                    glyphIndices.getValue(c),
+                    scale,
+                    scale,
+                    0.0f,
+                    0.0f,
+                    px0,
+                    py0,
+                    px1,
+                    py1
+                )
                 Pair(c, IntVector2(px1.get() - px0.get(), py1.get() - py0.get()))
             }
         }
@@ -100,7 +116,12 @@ class FontImageMapManagerStbTruetype : FontMapManager() {
             val target = packer.insert(root, IntRectangle(0, 0, it.value.x + 2 * sanding, it.value.y + 2 * sanding))
 
             target?.let { t ->
-                map[it.key] = IntRectangle(t.area.x + sanding, t.area.y + sanding, t.area.width - 2 * sanding , t.area.height - 2 * sanding)
+                map[it.key] = IntRectangle(
+                    t.area.x + sanding,
+                    t.area.y + sanding,
+                    t.area.width - 2 * sanding,
+                    t.area.height - 2 * sanding
+                )
 
                 val glyphIndex = glyphIndices[it.key]!!
                 var advanceWidth = 0
@@ -126,11 +147,26 @@ class FontImageMapManagerStbTruetype : FontMapManager() {
                     x0 = px0.get(0); y0 = py0.get(0); x1 = px1.get(0); y1 = py1.get(0)
                 }
                 val ascale = scale / contentScale
-                glyphMetrics[it.key] = GlyphMetrics(advanceWidth * ascale, leftBearing * ascale, x0.toDouble(), y0.toDouble())
-
+                glyphMetrics[it.key] = GlyphMetrics(
+                    advanceWidth = advanceWidth * ascale,
+                    leftSideBearing = leftBearing * ascale,
+                    xBitmapShift = x0.toDouble(),
+                    yBitmapShift = y0.toDouble()
+                )
                 (bitmap as Buffer).rewind()
                 (bitmap as Buffer).position((sanding + t.area.y) * packSize + sanding + t.area.x)
-                stbtt_MakeGlyphBitmapSubpixel(info, bitmap, x1 - x0, y1 - y0, packSize, scale, scale, 0.0f, 0.0f, glyphIndex)
+                stbtt_MakeGlyphBitmapSubpixel(
+                    info,
+                    bitmap,
+                    x1 - x0,
+                    y1 - y0,
+                    packSize,
+                    scale,
+                    scale,
+                    0.0f,
+                    0.0f,
+                    glyphIndex
+                )
             }
         }
         logger.debug { "uploading bitmap to colorbuffer" }
@@ -138,14 +174,25 @@ class FontImageMapManagerStbTruetype : FontMapManager() {
         image.write(bitmap)
 
         val leading = ascent - descent + lineGap
-        return FontImageMap(image, map, glyphMetrics, size, contentScale, ascent / contentScale, descent / contentScale, (ascent + descent) / contentScale, leading / contentScale, url).apply {
+        return FontImageMap(
+            image,
+            map,
+            glyphMetrics,
+            size,
+            contentScale,
+            ascent / contentScale,
+            descent / contentScale,
+            (ascent + descent) / contentScale,
+            leading / contentScale,
+            url
+        ).apply {
             for (outer in characterSet) {
                 for (inner in characterSet) {
                     val outerGlyph = glyphIndices[outer]
                     val innerGlyph = glyphIndices[inner]
                     if (outerGlyph != null && innerGlyph != null) {
                         val kernInfo = stbtt_GetGlyphKernAdvance(info, outerGlyph, innerGlyph)
-                        kerningTable[CharacterPair(outer, inner)] = kernInfo * (scale/contentScale)
+                        kerningTable[CharacterPair(outer, inner)] = kernInfo * (scale / contentScale)
                     }
                 }
             }
