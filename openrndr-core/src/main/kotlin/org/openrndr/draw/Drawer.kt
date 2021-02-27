@@ -962,9 +962,14 @@ class Drawer(val driver: Driver) {
      * Draws line strips with 2d coordinates and stroke weights per strip
      */
     fun lineStrips(strips: List<List<Vector2>>, weights: List<Double>) {
+        val fringeWidth = 1.0 / modelViewScaling
+        if (abs(modelViewScaling) < 1E-6){
+            return
+        }
+
         when (drawStyle.quality) {
             DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineLoops(context, drawStyle, strips)
-            DrawQuality.QUALITY -> qualityLineDrawer.drawLineStrips(context, drawStyle, strips, strips.map { it.map { true } }, weights)
+            DrawQuality.QUALITY -> qualityLineDrawer.drawLineStrips(context, drawStyle, strips, strips.map { it.map { true } }, weights, fringeWidth )
         }
     }
 

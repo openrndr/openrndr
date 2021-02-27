@@ -12,23 +12,26 @@ class QualityLineDrawer {
                        strips: List<List<Vector2>>,
                        corners: List<List<Boolean>>,
                        fringeWidth: Double) {
+        val fw = if (drawStyle.smooth) fringeWidth else 0.0
         val expansions = strips.mapIndexed { index, it ->
             val path = Path.fromLineStrip(it, corners[index], false)
-            path.expandStroke(fringeWidth, drawStyle.strokeWeight / 2.0, drawStyle.lineCap, drawStyle.lineJoin, 100.0)
+            path.expandStroke(fw, drawStyle.strokeWeight / 2.0, drawStyle.lineCap, drawStyle.lineJoin, drawStyle.miterLimit)
         }
-        expansionDrawer.renderStrokes(drawContext, drawStyle, expansions, fringeWidth)
+        expansionDrawer.renderStrokes(drawContext, drawStyle, expansions, fw)
     }
 
     fun drawLineStrips(drawContext: DrawContext,
                        drawStyle: DrawStyle,
                        strips: List<List<Vector2>>,
                        corners: List<List<Boolean>>,
-                       weights: List<Double>, fringeWidth: Double = 1.0) {
+                       weights: List<Double>,
+                       fringeWidth: Double) {
+        val fw = if (drawStyle.smooth) fringeWidth else 0.0
         val expansions = strips.mapIndexed { index, it ->
             val path = Path.fromLineStrip(it, corners[index], false)
-            path.expandStroke(fringeWidth, weights[index] / 2.0, drawStyle.lineCap, drawStyle.lineJoin, 100.0)
+            path.expandStroke(fw, weights[index] / 2.0, drawStyle.lineCap, drawStyle.lineJoin, drawStyle.miterLimit)
         }
-        expansionDrawer.renderStrokes(drawContext, drawStyle, expansions, fringeWidth)
+        expansionDrawer.renderStrokes(drawContext, drawStyle, expansions, fw)
     }
 
     fun drawLineLoops(drawContext: DrawContext,
@@ -36,11 +39,12 @@ class QualityLineDrawer {
                       strips: List<List<Vector2>>,
                       corners: List<List<Boolean>>,
                       fringeWidth: Double = 1.0) {
+        val fw = if (drawStyle.smooth) fringeWidth else 0.0
         val expansions = strips.mapIndexed { index, it ->
             val path = Path.fromLineStrip(it, corners[index], true)
-            path.expandStroke(fringeWidth, drawStyle.strokeWeight / 2.0, drawStyle.lineCap, drawStyle.lineJoin, 100.0)
+            path.expandStroke(fw, drawStyle.strokeWeight / 2.0, drawStyle.lineCap, drawStyle.lineJoin, drawStyle.miterLimit)
         }
-        expansionDrawer.renderStrokes(drawContext, drawStyle, expansions, fringeWidth)
+        expansionDrawer.renderStrokes(drawContext, drawStyle, expansions, fw)
     }
 
     fun drawLineLoops(drawContext: DrawContext,
@@ -48,10 +52,11 @@ class QualityLineDrawer {
                       strips: List<List<Vector2>>,
                       corners: List<List<Boolean>>,
                       weights: List<Double>, fringeWidth: Double = 1.0) {
+        val fw = if (drawStyle.smooth) fringeWidth else 0.0
         val expansions = strips.mapIndexed { index, it ->
             val path = Path.fromLineStrip(it, corners[index], true)
-            path.expandStroke(fringeWidth, weights[index] / 2.0, drawStyle.lineCap, drawStyle.lineJoin, 100.0)
+            path.expandStroke(fw, weights[index] / 2.0, drawStyle.lineCap, drawStyle.lineJoin, drawStyle.miterLimit)
         }
-        expansionDrawer.renderStrokes(drawContext, drawStyle, expansions, fringeWidth)
+        expansionDrawer.renderStrokes(drawContext, drawStyle, expansions, fw)
     }
 }
