@@ -216,13 +216,17 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
 
         logger.debug { "creating window" }
 
+        if (configuration.windowTransparent) {
+            glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, 1)
+        }
+
+
         val versions = DriverGL3.candidateVersions()
         var versionIndex = 0
         while (window == NULL && versionIndex < versions.size) {
 
             glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, versions[versionIndex].majorVersion)
             glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, versions[versionIndex].minorVersion)
-
 
             window = if (configuration.fullscreen == Fullscreen.DISABLED) {
                 val adjustedWidth =

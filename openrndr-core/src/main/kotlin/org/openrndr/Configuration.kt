@@ -140,6 +140,11 @@ class Configuration {
     var windowSetIcon: Boolean = true
 
     /**
+     * Should the window be transparent
+     */
+    var windowTransparent : Boolean = false
+
+    /**
      * Should the application be run in headless mode?
      */
     var headless: Boolean = false
