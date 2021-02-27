@@ -56,8 +56,17 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
             if (value) {
                 glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL)
             } else {
-                glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN)
+                when (cursorHideMode) {
+                    MouseCursorHideMode.HIDE -> glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN)
+                    MouseCursorHideMode.DISABLE -> glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED)
+                }
             }
+        }
+
+    override var cursorHideMode: MouseCursorHideMode = MouseCursorHideMode.HIDE
+        set(value) {
+            field = value
+            cursorVisible = cursorVisible
         }
 
     private val cursorCache by lazy { mutableMapOf<CursorType, Long>() }
@@ -86,13 +95,16 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
             val h = IntArray(1)
             glfwGetWindowSize(window, w, h)
             return Vector2(
-                    if (fixWindowSize) (w[0].toDouble() / program.window.scale.x) else w[0].toDouble(),
-                    if (fixWindowSize) (h[0].toDouble() / program.window.scale.y) else h[0].toDouble())
+                if (fixWindowSize) (w[0].toDouble() / program.window.scale.x) else w[0].toDouble(),
+                if (fixWindowSize) (h[0].toDouble() / program.window.scale.y) else h[0].toDouble()
+            )
         }
         set(value) {
-            glfwSetWindowSize(window,
-                    if (fixWindowSize) (value.x * program.window.scale.x).toInt() else value.x.toInt(),
-                    if (fixWindowSize) (value.y * program.window.scale.y).toInt() else value.y.toInt())
+            glfwSetWindowSize(
+                window,
+                if (fixWindowSize) (value.x * program.window.scale.x).toInt() else value.x.toInt(),
+                if (fixWindowSize) (value.y * program.window.scale.y).toInt() else value.y.toInt()
+            )
 
         }
 
@@ -103,13 +115,16 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
             val y = IntArray(1)
             glfwGetWindowPos(window, x, y)
             return Vector2(
-                    if (fixWindowSize) (x[0].toDouble() / program.window.scale.x) else x[0].toDouble(),
-                    if (fixWindowSize) (y[0].toDouble() / program.window.scale.y) else y[0].toDouble())
+                if (fixWindowSize) (x[0].toDouble() / program.window.scale.x) else x[0].toDouble(),
+                if (fixWindowSize) (y[0].toDouble() / program.window.scale.y) else y[0].toDouble()
+            )
         }
         set(value) {
-            glfwSetWindowPos(window,
-                    if (fixWindowSize) (value.x * program.window.scale.x).toInt() else value.x.toInt(),
-                    if (fixWindowSize) (value.y * program.window.scale.y).toInt() else value.y.toInt())
+            glfwSetWindowPos(
+                window,
+                if (fixWindowSize) (value.x * program.window.scale.x).toInt() else value.x.toInt(),
+                if (fixWindowSize) (value.y * program.window.scale.y).toInt() else value.y.toInt()
+            )
         }
 
     override var clipboardContents: String?
@@ -179,15 +194,24 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         }
 
         val xscale = FloatArray(1)
-        val yscale = FloatArray(1)
-        glfwGetMonitorContentScale(glfwGetPrimaryMonitor(), xscale, yscale)
+
+
+        run {
+            val yscale = FloatArray(1)
+            glfwGetMonitorContentScale(glfwGetPrimaryMonitor(), xscale, yscale)
+            logger.debug { "content scale ${xscale[0]} ${yscale[0]}" }
+            if (xscale[0] != yscale[0]) {
+                logger.debug {
+                    """non uni-form scaling factors: ${xscale[0]} ${yscale[0]}"""
+                }
+            }
+        }
+
 
         if (configuration.fullscreen == Fullscreen.SET_DISPLAY_MODE) {
             xscale[0] = 1.0f
-            yscale[0] = 1.0f
         }
 
-        logger.debug { "content scale ${xscale[0]} ${yscale[0]}" }
         program.window.scale = Vector2(xscale[0].toDouble(), xscale[0].toDouble())
 
         logger.debug { "creating window" }
@@ -201,12 +225,16 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
 
 
             window = if (configuration.fullscreen == Fullscreen.DISABLED) {
-                val adjustedWidth = if (fixWindowSize) (xscale[0] * configuration.width).toInt() else configuration.width
-                val adjustedHeight = if (fixWindowSize) (xscale[0] * configuration.height).toInt() else configuration.height
+                val adjustedWidth =
+                    if (fixWindowSize) (xscale[0] * configuration.width).toInt() else configuration.width
+                val adjustedHeight =
+                    if (fixWindowSize) (xscale[0] * configuration.height).toInt() else configuration.height
 
-                glfwCreateWindow(adjustedWidth,
-                        adjustedHeight,
-                        configuration.title, NULL, primaryWindow)
+                glfwCreateWindow(
+                    adjustedWidth,
+                    adjustedHeight,
+                    configuration.title, NULL, primaryWindow
+                )
 
             } else {
                 logger.info { "creating fullscreen window" }
@@ -223,9 +251,11 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
                         throw RuntimeException("failed to determine current video mode")
                     }
                 }
-                glfwCreateWindow(requestWidth,
-                        requestHeight,
-                        configuration.title, glfwGetPrimaryMonitor(), primaryWindow)
+                glfwCreateWindow(
+                    requestWidth,
+                    requestHeight,
+                    configuration.title, glfwGetPrimaryMonitor(), primaryWindow
+                )
             }
             versionIndex++
         }
@@ -244,7 +274,8 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
             (buf as Buffer).flip()
 
             stackPush().use {
-                glfwSetWindowIcon(window, GLFWImage.mallocStack(1, it)
+                glfwSetWindowIcon(
+                    window, GLFWImage.mallocStack(1, it)
                         .width(128)
                         .height(128)
                         .pixels(buf)
@@ -270,16 +301,18 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
                 if (vidmode != null) {
                     // Center the window
                     glfwSetWindowPos(
-                            window,
-                            (vidmode.width() - pWidth.get(0)) / 2,
-                            (vidmode.height() - pHeight.get(0)) / 2
+                        window,
+                        (vidmode.width() - pWidth.get(0)) / 2,
+                        (vidmode.height() - pHeight.get(0)) / 2
                     )
                 }
             } else {
                 configuration.position?.let {
-                    glfwSetWindowPos(window,
-                            it.x,
-                            it.y)
+                    glfwSetWindowPos(
+                        window,
+                        it.x,
+                        it.y
+                    )
                 }
             }
             Unit
@@ -313,7 +346,14 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
 
             if (readyFrames > 0) {
                 setupSizes()
-                program.window.sized.trigger(WindowEvent(WindowEventType.RESIZED, program.window.position, program.window.size, true))
+                program.window.sized.trigger(
+                    WindowEvent(
+                        WindowEventType.RESIZED,
+                        program.window.position,
+                        program.window.size,
+                        true
+                    )
+                )
             }
 
             readyFrames++
@@ -321,7 +361,14 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
 
         glfwSetWindowPosCallback(window) { _, x, y ->
             logger.trace { "window ($window) has moved to $x $y" }
-            program.window.moved.trigger(WindowEvent(WindowEventType.MOVED, Vector2(x.toDouble(), y.toDouble()), Vector2(0.0, 0.0), true))
+            program.window.moved.trigger(
+                WindowEvent(
+                    WindowEventType.MOVED,
+                    Vector2(x.toDouble(), y.toDouble()),
+                    Vector2(0.0, 0.0),
+                    true
+                )
+            )
         }
 
         glfwSetWindowFocusCallback(window) { _, focused ->
@@ -329,29 +376,48 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
             windowFocused = focused
             if (focused) {
                 program.window.focused.trigger(
-                        WindowEvent(WindowEventType.FOCUSED, program.window.position, program.window.size, true))
+                    WindowEvent(WindowEventType.FOCUSED, program.window.position, program.window.size, true)
+                )
             } else {
                 program.window.unfocused.trigger(
-                        WindowEvent(WindowEventType.FOCUSED, program.window.position, program.window.size, false))
+                    WindowEvent(WindowEventType.FOCUSED, program.window.position, program.window.size, false)
+                )
             }
         }
 
         glfwSetWindowCloseCallback(window) { window ->
             logger.debug { "window ($window) closed" }
-            program.window.closed.trigger(WindowEvent(WindowEventType.CLOSED, program.window.position, program.window.size, focused = true))
+            program.window.closed.trigger(
+                WindowEvent(
+                    WindowEventType.CLOSED,
+                    program.window.position,
+                    program.window.size,
+                    focused = true
+                )
+            )
             exitRequested = true
         }
 
         logger.debug { "showing window" }
 
         run {
-            val adjustedMinimumWidth = if (fixWindowSize) (xscale[0] * configuration.minimumWidth).toInt() else configuration.minimumWidth
-            val adjustedMinimumHeight = if (fixWindowSize) (xscale[0] * configuration.minimumHeight).toInt() else configuration.minimumHeight
+            val adjustedMinimumWidth =
+                if (fixWindowSize) (xscale[0] * configuration.minimumWidth).toInt() else configuration.minimumWidth
+            val adjustedMinimumHeight =
+                if (fixWindowSize) (xscale[0] * configuration.minimumHeight).toInt() else configuration.minimumHeight
 
-            val adjustedMaximumWidth = if (fixWindowSize && configuration.maximumWidth != Int.MAX_VALUE) (xscale[0] * configuration.maximumWidth).toInt() else configuration.maximumWidth
-            val adjustedMaximumHeight = if (fixWindowSize && configuration.maximumHeight != Int.MAX_VALUE) (xscale[0] * configuration.maximumHeight).toInt() else configuration.maximumHeight
+            val adjustedMaximumWidth =
+                if (fixWindowSize && configuration.maximumWidth != Int.MAX_VALUE) (xscale[0] * configuration.maximumWidth).toInt() else configuration.maximumWidth
+            val adjustedMaximumHeight =
+                if (fixWindowSize && configuration.maximumHeight != Int.MAX_VALUE) (xscale[0] * configuration.maximumHeight).toInt() else configuration.maximumHeight
 
-            glfwSetWindowSizeLimits(window, adjustedMinimumWidth, adjustedMinimumHeight, adjustedMaximumWidth, adjustedMaximumHeight)
+            glfwSetWindowSizeLimits(
+                window,
+                adjustedMinimumWidth,
+                adjustedMinimumHeight,
+                adjustedMaximumWidth,
+                adjustedMaximumHeight
+            )
         }
 
         Animatable.clock(object : Clock {
@@ -366,14 +432,13 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
     }
 
 
-
     private fun createPrimaryWindow() {
         if (primaryWindow == NULL) {
             glfwSetErrorCallback(GLFWErrorCallback.create { error, description ->
                 logger.debug(
-                        "LWJGL Error - Code: {}, Description: {}",
-                        Integer.toHexString(error),
-                        GLFWErrorCallback.getDescription(description)
+                    "LWJGL Error - Code: {}, Description: {}",
+                    Integer.toHexString(error),
+                    GLFWErrorCallback.getDescription(description)
                 )
             })
             if (!glfwInit()) {
@@ -452,8 +517,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         var lastMouseButtonDown = MouseButton.NONE
         val modifiers = mutableSetOf<KeyModifier>()
 
-        glfwSetKeyCallback(window) { _, key, scancode, action, mods ->
-
+        glfwSetKeyCallback(window) { _, key, scancode, action, _ ->
             val name = when (key) {
                 GLFW_KEY_SPACE -> "space"
                 GLFW_KEY_ENTER -> "enter"
@@ -551,26 +615,67 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
 
         var down = false
         glfwSetScrollCallback(window) { _, xoffset, yoffset ->
-            program.mouse.scrolled.trigger(MouseEvent(program.mouse.position, Vector2(xoffset, yoffset), Vector2.ZERO, MouseEventType.SCROLLED, MouseButton.NONE, modifiers))
+            program.mouse.scrolled.trigger(
+                MouseEvent(
+                    program.mouse.position,
+                    Vector2(xoffset, yoffset),
+                    Vector2.ZERO,
+                    MouseEventType.SCROLLED,
+                    MouseButton.NONE,
+                    modifiers
+                )
+            )
         }
 
         glfwSetWindowIconifyCallback(window) { _, iconified ->
             if (iconified) {
-                program.window.minimized.trigger(WindowEvent(WindowEventType.MINIMIZED, Vector2.ZERO, Vector2.ZERO, false))
+                program.window.minimized.trigger(
+                    WindowEvent(
+                        WindowEventType.MINIMIZED,
+                        Vector2.ZERO,
+                        Vector2.ZERO,
+                        false
+                    )
+                )
             } else {
-                program.window.restored.trigger(WindowEvent(WindowEventType.RESTORED, program.window.position, program.window.size, true))
+                program.window.restored.trigger(
+                    WindowEvent(
+                        WindowEventType.RESTORED,
+                        program.window.position,
+                        program.window.size,
+                        true
+                    )
+                )
             }
         }
 
         glfwSetCursorEnterCallback(window) { _, entered ->
             if (entered) {
-                program.mouse.entered.trigger(MouseEvent(program.mouse.position, Vector2.ZERO, Vector2.ZERO, MouseEventType.ENTERED, MouseButton.NONE, emptySet()))
+                program.mouse.entered.trigger(
+                    MouseEvent(
+                        program.mouse.position,
+                        Vector2.ZERO,
+                        Vector2.ZERO,
+                        MouseEventType.ENTERED,
+                        MouseButton.NONE,
+                        emptySet()
+                    )
+                )
             } else {
-                program.mouse.exited.trigger(MouseEvent(program.mouse.position, Vector2.ZERO, Vector2.ZERO, MouseEventType.EXITED, MouseButton.NONE, emptySet()))
+                program.mouse.exited.trigger(
+                    MouseEvent(
+                        program.mouse.position,
+                        Vector2.ZERO,
+                        Vector2.ZERO,
+                        MouseEventType.EXITED,
+                        MouseButton.NONE,
+                        emptySet()
+                    )
+                )
             }
         }
 
-        glfwSetMouseButtonCallback(window) { _, button, action, mods ->
+        glfwSetMouseButtonCallback(window) { _, button, action, _ ->
             val mouseButton = when (button) {
                 GLFW_MOUSE_BUTTON_LEFT -> MouseButton.LEFT
                 GLFW_MOUSE_BUTTON_RIGHT -> MouseButton.RIGHT
@@ -587,7 +692,14 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
                 lastDragPosition = program.mouse.position
                 lastMouseButtonDown = mouseButton
                 program.mouse.buttonDown.trigger(
-                        MouseEvent(program.mouse.position, Vector2.ZERO, Vector2.ZERO, MouseEventType.BUTTON_DOWN, mouseButton, modifiers)
+                    MouseEvent(
+                        program.mouse.position,
+                        Vector2.ZERO,
+                        Vector2.ZERO,
+                        MouseEventType.BUTTON_DOWN,
+                        mouseButton,
+                        modifiers
+                    )
                 )
                 program.mouse.pressedButtons.add(mouseButton)
                 buttonsDown.set(button, true)
@@ -596,7 +708,14 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
             if (action == GLFW_RELEASE) {
                 down = false
                 program.mouse.buttonUp.trigger(
-                        MouseEvent(program.mouse.position, Vector2.ZERO, Vector2.ZERO, MouseEventType.BUTTON_UP, mouseButton, modifiers)
+                    MouseEvent(
+                        program.mouse.position,
+                        Vector2.ZERO,
+                        Vector2.ZERO,
+                        MouseEventType.BUTTON_UP,
+                        mouseButton,
+                        modifiers
+                    )
                 )
                 program.mouse.pressedButtons.remove(mouseButton)
                 buttonsDown.set(button, false)
@@ -607,10 +726,23 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
             val position = if (fixWindowSize) Vector2(xpos, ypos) / program.window.scale else Vector2(xpos, ypos)
             logger.trace { "mouse moved $xpos $ypos -- $position" }
             realCursorPosition = position
-            program.mouse.moved.trigger(MouseEvent(position, Vector2.ZERO, Vector2.ZERO, MouseEventType.MOVED, MouseButton.NONE, modifiers))
+            program.mouse.moved.trigger(
+                MouseEvent(
+                    position,
+                    Vector2.ZERO,
+                    Vector2.ZERO,
+                    MouseEventType.MOVED,
+                    MouseButton.NONE,
+                    modifiers
+                )
+            )
             if (down) {
-                program.mouse.dragged.trigger(MouseEvent(position, Vector2.ZERO, position - lastDragPosition,
-                        MouseEventType.DRAGGED, lastMouseButtonDown, modifiers))
+                program.mouse.dragged.trigger(
+                    MouseEvent(
+                        position, Vector2.ZERO, position - lastDragPosition,
+                        MouseEventType.DRAGGED, lastMouseButtonDown, modifiers
+                    )
+                )
                 lastDragPosition = position
             }
         }
@@ -639,11 +771,9 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         logger.info { "OpenGL version: ${glGetString(GL_VERSION)}" }
 
         if (configuration.hideCursor) {
-            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN)
+            cursorVisible = false
         }
-        if (configuration.disableCursor) {
-            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED)
-        }
+        cursorHideMode = configuration.cursorHideMode
 
         if (configuration.vsync) {
             if (glfwExtensionSupported("GLX_EXT_swap_control_tear") || glfwExtensionSupported("WGL_EXT_swap_control_tear")) {
@@ -652,7 +782,6 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
                 glfwSwapInterval(1)
             }
         }
-
 
         logger.debug { "calling program.setup" }
         var setupException: Throwable? = null
@@ -744,6 +873,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
     private fun drawFrame(): Throwable? {
         setupSizes()
         glBindVertexArray(vaos[0])
+        @Suppress("DEPRECATION")
         program.drawer.reset()
         program.drawer.ortho()
         deliverEvents()
@@ -774,23 +904,6 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         //program.window.size = Vector2(program.width.toDouble(), program.height.toDouble())
         program.drawer.width = program.width
         program.drawer.height = program.height
-    }
-
-    private fun modifierSet(mods: Int): Set<KeyModifier> {
-        val modifiers = mutableSetOf<KeyModifier>()
-        if (mods and GLFW_MOD_SHIFT != 0) {
-            modifiers.add(KeyModifier.SHIFT)
-        }
-        if (mods and GLFW_MOD_ALT != 0) {
-            modifiers.add(KeyModifier.ALT)
-        }
-        if (mods and GLFW_MOD_CONTROL != 0) {
-            modifiers.add(KeyModifier.CTRL)
-        }
-        if (mods and GLFW_MOD_SUPER != 0) {
-            modifiers.add(KeyModifier.SUPER)
-        }
-        return modifiers
     }
 
     override fun exit() {

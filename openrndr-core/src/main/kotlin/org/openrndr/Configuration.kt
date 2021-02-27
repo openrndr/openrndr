@@ -38,6 +38,11 @@ sealed class WindowMultisample {
     data class SampleCount(val count: Int) : WindowMultisample()
 }
 
+enum class MouseCursorHideMode {
+    HIDE,
+    DISABLE
+}
+
 class Configuration {
 
     /**
@@ -104,9 +109,9 @@ class Configuration {
     var hideCursor = false
 
     /**
-     * Should the cursor be disabled? (i.e. hidden and captured by the window)
+     * If the cursor is hidden in what way should it be hidden?
      */
-    var disableCursor = false
+    var cursorHideMode = MouseCursorHideMode.HIDE
 
     /**
      * The window position. The window will be placed in the center of the primary screen when set to null

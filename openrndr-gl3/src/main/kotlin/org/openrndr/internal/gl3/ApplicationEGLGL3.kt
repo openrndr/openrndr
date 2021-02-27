@@ -17,6 +17,8 @@ import org.openrndr.math.Vector2
 class ApplicationEGLGL3(private val program: Program, private val configuration: Configuration) : Application() {
 
     override var cursorVisible: Boolean = false
+    override var cursorHideMode: MouseCursorHideMode = MouseCursorHideMode.HIDE
+
     override var cursorType: CursorType = CursorType.ARROW_CURSOR
 
 

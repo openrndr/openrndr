@@ -62,6 +62,12 @@ class Mouse(private val application: () -> Application) {
             application().cursorVisible = value
         }
 
+    var cursorHideMode: MouseCursorHideMode
+        get() = application().cursorHideMode
+        set(value) {
+            application().cursorHideMode = value
+        }
+
     /**
      * specifies the active cursor type, default is [CursorType.ARROW_CURSOR]
      */

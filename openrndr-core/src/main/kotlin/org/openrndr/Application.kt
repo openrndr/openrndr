@@ -85,6 +85,7 @@ abstract class Application {
     abstract var windowSize: Vector2
     abstract var cursorPosition: Vector2
     abstract var cursorVisible: Boolean
+    abstract var cursorHideMode: MouseCursorHideMode
     abstract var cursorType: CursorType
 
     abstract val seconds: Double
