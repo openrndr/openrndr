@@ -13,11 +13,19 @@ class QualityLineDrawer {
                        corners: List<List<Boolean>>,
                        fringeWidth: Double) {
         val fw = if (drawStyle.smooth) fringeWidth else 0.0
-        val expansions = strips.mapIndexed { index, it ->
-            val path = Path.fromLineStrip(it, corners[index], false)
-            path.expandStroke(fw, drawStyle.strokeWeight / 2.0, drawStyle.lineCap, drawStyle.lineJoin, drawStyle.miterLimit)
+        if (drawStyle.stroke != null && drawStyle.strokeWeight > 0.0) {
+            val expansions = strips.mapIndexed { index, it ->
+                val path = Path.fromLineStrip(it, corners[index], false)
+                path.expandStroke(
+                    fw,
+                    drawStyle.strokeWeight / 2.0,
+                    drawStyle.lineCap,
+                    drawStyle.lineJoin,
+                    drawStyle.miterLimit
+                )
+            }
+            expansionDrawer.renderStrokes(drawContext, drawStyle, expansions, fw)
         }
-        expansionDrawer.renderStrokes(drawContext, drawStyle, expansions, fw)
     }
 
     fun drawLineStrips(drawContext: DrawContext,
@@ -27,11 +35,13 @@ class QualityLineDrawer {
                        weights: List<Double>,
                        fringeWidth: Double) {
         val fw = if (drawStyle.smooth) fringeWidth else 0.0
-        val expansions = strips.mapIndexed { index, it ->
-            val path = Path.fromLineStrip(it, corners[index], false)
-            path.expandStroke(fw, weights[index] / 2.0, drawStyle.lineCap, drawStyle.lineJoin, drawStyle.miterLimit)
+        if (drawStyle.stroke != null && drawStyle.strokeWeight > 0.0) {
+            val expansions = strips.mapIndexed { index, it ->
+                val path = Path.fromLineStrip(it, corners[index], false)
+                path.expandStroke(fw, weights[index] / 2.0, drawStyle.lineCap, drawStyle.lineJoin, drawStyle.miterLimit)
+            }
+            expansionDrawer.renderStrokes(drawContext, drawStyle, expansions, fw)
         }
-        expansionDrawer.renderStrokes(drawContext, drawStyle, expansions, fw)
     }
 
     fun drawLineLoops(drawContext: DrawContext,
@@ -40,11 +50,19 @@ class QualityLineDrawer {
                       corners: List<List<Boolean>>,
                       fringeWidth: Double = 1.0) {
         val fw = if (drawStyle.smooth) fringeWidth else 0.0
-        val expansions = strips.mapIndexed { index, it ->
-            val path = Path.fromLineStrip(it, corners[index], true)
-            path.expandStroke(fw, drawStyle.strokeWeight / 2.0, drawStyle.lineCap, drawStyle.lineJoin, drawStyle.miterLimit)
+        if (drawStyle.stroke != null && drawStyle.strokeWeight > 0) {
+            val expansions = strips.mapIndexed { index, it ->
+                val path = Path.fromLineStrip(it, corners[index], true)
+                path.expandStroke(
+                    fw,
+                    drawStyle.strokeWeight / 2.0,
+                    drawStyle.lineCap,
+                    drawStyle.lineJoin,
+                    drawStyle.miterLimit
+                )
+            }
+            expansionDrawer.renderStrokes(drawContext, drawStyle, expansions, fw)
         }
-        expansionDrawer.renderStrokes(drawContext, drawStyle, expansions, fw)
     }
 
     fun drawLineLoops(drawContext: DrawContext,
@@ -53,10 +71,12 @@ class QualityLineDrawer {
                       corners: List<List<Boolean>>,
                       weights: List<Double>, fringeWidth: Double = 1.0) {
         val fw = if (drawStyle.smooth) fringeWidth else 0.0
-        val expansions = strips.mapIndexed { index, it ->
-            val path = Path.fromLineStrip(it, corners[index], true)
-            path.expandStroke(fw, weights[index] / 2.0, drawStyle.lineCap, drawStyle.lineJoin, drawStyle.miterLimit)
+        if (drawStyle.stroke != null && drawStyle.strokeWeight > 0.0) {
+            val expansions = strips.mapIndexed { index, it ->
+                val path = Path.fromLineStrip(it, corners[index], true)
+                path.expandStroke(fw, weights[index] / 2.0, drawStyle.lineCap, drawStyle.lineJoin, drawStyle.miterLimit)
+            }
+            expansionDrawer.renderStrokes(drawContext, drawStyle, expansions, fw)
         }
-        expansionDrawer.renderStrokes(drawContext, drawStyle, expansions, fw)
     }
 }

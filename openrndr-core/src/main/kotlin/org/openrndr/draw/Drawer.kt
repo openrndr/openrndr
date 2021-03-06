@@ -643,11 +643,9 @@ class Drawer(val driver: Driver) {
                     val closedPC = shape.contours.map { it.adaptivePositionsAndCorners(distanceTolerance) }
                     val closedP = closedPC.map { it.first }
                     val closedC = closedPC.map { it.second }
-
-
-
                     qualityPolygonDrawer.drawPolygon(context, drawStyle,
                             closedP, closedC, fringeWidth)
+                    qualityLineDrawer.drawLineLoops(context, drawStyle, closedP, closedC, fringeWidth)
                 }
                 ShapeTopology.OPEN -> {
                     val openPC = shape.openContours.map { it.adaptivePositionsAndCorners(distanceTolerance) }
