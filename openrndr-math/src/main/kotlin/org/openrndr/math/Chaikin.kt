@@ -5,23 +5,27 @@ package org.openrndr.math
  *
  * [Interactive Demo](https://observablehq.com/@infowantstobeseen/chaikins-curves)
  *
- * @param polyline
- * @param iterations
+ * @param polyline a list of vectors describing the polyline
+ * @param iterations the number of times to approximate
+ * @param closed when the polyline is supposed to be a closed shape
  */
-fun chaikinSmooth(polyline: List<Vector2>, iterations: Int = 1): List<Vector2> {
+fun chaikinSmooth(polyline: List<Vector2>, iterations: Int = 1, closed: Boolean = false): List<Vector2> {
     if (iterations <= 0) {
         return polyline
     }
 
     val output = mutableListOf<Vector2>()
 
-    if (polyline.isNotEmpty()) {
+    if (!closed && polyline.isNotEmpty()) {
         output.add(polyline.first().copy())
     }
 
-    for (i in 0 until polyline.size - 1) {
+    val count = if (closed) polyline.size else polyline.size - 1
+
+    for (i in 0 until count) {
         val p0 = polyline[i]
-        val p1 = polyline[i + 1]
+        val p1 = polyline[(i + 1) % polyline.size]
+
         val p0x = p0.x
         val p0y = p0.y
         val p1x = p1.x
@@ -34,9 +38,9 @@ fun chaikinSmooth(polyline: List<Vector2>, iterations: Int = 1): List<Vector2> {
         output.add(R)
     }
 
-    if (polyline.isNotEmpty()) {
+    if (!closed && polyline.isNotEmpty()) {
         output.add(polyline.last().copy())
     }
 
-    return chaikinSmooth(output, iterations - 1)
+    return chaikinSmooth(output, iterations - 1, closed)
 }
