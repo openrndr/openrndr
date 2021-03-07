@@ -2,7 +2,6 @@ package org.openrndr.color
 
 import org.openrndr.math.Vector3
 import org.openrndr.math.Vector4
-import java.lang.NumberFormatException
 import kotlin.math.pow
 
 
@@ -22,13 +21,20 @@ enum class Linearity {
  * @param b blue between 0 and 1
  * @param a alpha between 0 and 1
  */
-data class ColorRGBa(val r: Double, val g: Double, val b: Double, val a: Double = 1.0, val linearity: Linearity = Linearity.UNKNOWN) :
-        ConvertibleToColorRGBa,
-        OpacifiableColor<ColorRGBa>,
-        ShadableColor<ColorRGBa>,
-        AlgebraicColor<ColorRGBa> {
+data class ColorRGBa(
+    val r: Double,
+    val g: Double,
+    val b: Double,
+    val a: Double = 1.0,
+    val linearity: Linearity = Linearity.UNKNOWN
+) :
+    ConvertibleToColorRGBa,
+    OpacifiableColor<ColorRGBa>,
+    ShadableColor<ColorRGBa>,
+    AlgebraicColor<ColorRGBa> {
 
-    operator fun invoke(r: Double = this.r, g: Double = this.g, b: Double = this.b, a: Double = this.a) = ColorRGBa(r, g, b, a)
+    operator fun invoke(r: Double = this.r, g: Double = this.g, b: Double = this.b, a: Double = this.a) =
+        ColorRGBa(r, g, b, a)
 
     enum class Component {
         R,
@@ -71,28 +77,28 @@ data class ColorRGBa(val r: Double, val g: Double, val b: Double, val a: Double 
         val PINK = fromHex(0xffc0cb)
 
         /** @suppress */
-        val BLACK = ColorRGBa(0.0, 0.0, 0.0, 1.0)
+        val BLACK = ColorRGBa(0.0, 0.0, 0.0, 1.0, Linearity.SRGB)
 
         /** @suppress */
-        val WHITE = ColorRGBa(1.0, 1.0, 1.0, 1.0)
+        val WHITE = ColorRGBa(1.0, 1.0, 1.0, 1.0, Linearity.SRGB)
 
         /** @suppress */
-        val RED = ColorRGBa(1.0, 0.0, 0.0, 1.0)
+        val RED = ColorRGBa(1.0, 0.0, 0.0, 1.0, Linearity.SRGB)
 
         /** @suppress */
-        val BLUE = ColorRGBa(0.0, 0.0, 1.0)
+        val BLUE = ColorRGBa(0.0, 0.0, 1.0, 1.0, Linearity.SRGB)
 
         /** @suppress */
-        val GREEN = ColorRGBa(0.0, 1.0, 0.0)
+        val GREEN = ColorRGBa(0.0, 1.0, 0.0, 1.0, Linearity.SRGB)
 
         /** @suppress */
-        val YELLOW = ColorRGBa(1.0, 1.0, 0.0)
+        val YELLOW = ColorRGBa(1.0, 1.0, 0.0, 1.0, Linearity.SRGB)
 
         /** @suppress */
-        val GRAY = ColorRGBa(0.5, 0.5, 0.5)
+        val GRAY = ColorRGBa(0.5, 0.5, 0.5, 1.0, Linearity.SRGB)
 
         /** @suppress */
-        val TRANSPARENT = ColorRGBa(0.0, 0.0, 0.0, 0.0)
+        val TRANSPARENT = ColorRGBa(0.0, 0.0, 0.0, 0.0, Linearity.SRGB)
 
         /**
          * Create a ColorRGBa object from a [Vector3]
@@ -133,7 +139,13 @@ data class ColorRGBa(val r: Double, val g: Double, val b: Double, val a: Double 
     /**
      * Copy of the the color with all of its fields clamped to `[0, 1]`
      */
-    val saturated get() = ColorRGBa(r.coerceIn(0.0, 1.0), g.coerceIn(0.0, 1.0), b.coerceIn(0.0, 1.0), a.coerceIn(0.0, 1.0))
+    val saturated
+        get() = ColorRGBa(
+            r.coerceIn(0.0, 1.0),
+            g.coerceIn(0.0, 1.0),
+            b.coerceIn(0.0, 1.0),
+            a.coerceIn(0.0, 1.0)
+        )
     val alphaMultiplied get() = ColorRGBa(r * a, g * a, b * a, a)
 
     /**
@@ -153,10 +165,10 @@ data class ColorRGBa(val r: Double, val g: Double, val b: Double, val a: Double 
      * luminance value is according to <a>https://www.w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef</a>
      */
     val luminance: Double
-        get() = when(linearity) {
-        Linearity.SRGB -> toLinear().luminance
-        else -> 0.2126 * r + 0.7152 * g + 0.0722 * b
-    }
+        get() = when (linearity) {
+            Linearity.SRGB -> toLinear().luminance
+            else -> 0.2126 * r + 0.7152 * g + 0.0722 * b
+        }
 
     /**
      * calculate the contrast value between this color and the given color
@@ -173,12 +185,16 @@ data class ColorRGBa(val r: Double, val g: Double, val b: Double, val a: Double 
     fun toXSVa(): ColorXSVa = ColorHSVa.fromRGBa(this.toSRGB()).toXSVa()
     fun toXSLa(): ColorXSLa = ColorHSLa.fromRGBa(this.toSRGB()).toXSLa()
     fun toXYZa(): ColorXYZa = ColorXYZa.fromRGBa(this.toLinear())
+
     @JvmOverloads
     fun toLABa(ref: ColorXYZa = ColorXYZa.NEUTRAL): ColorLABa = ColorLABa.fromRGBa(this.toLinear(), ref)
+
     @JvmOverloads
     fun toLUVa(ref: ColorXYZa = ColorXYZa.NEUTRAL): ColorLUVa = ColorLUVa.fromRGBa(this.toLinear(), ref)
+
     @JvmOverloads
     fun toLCHABa(ref: ColorXYZa = ColorXYZa.NEUTRAL): ColorLCHABa = toXYZa().toLABa(ref).toLCHABa()
+
     @JvmOverloads
     fun toLCHUVa(ref: ColorXYZa = ColorXYZa.NEUTRAL): ColorLCHUVa = toLUVa(ref).toLCHUVa()
 
@@ -231,6 +247,10 @@ data class ColorRGBa(val r: Double, val g: Double, val b: Double, val a: Double 
 
     override fun times(factor: Double) = copy(r = r * factor, g = g * factor, b = b * factor, a = a * factor)
 
+    override fun mix(other: ColorRGBa, factor: Double): ColorRGBa {
+        return mix(this, other, factor)
+    }
+
 }
 
 /**
@@ -238,11 +258,24 @@ data class ColorRGBa(val r: Double, val g: Double, val b: Double, val a: Double 
  */
 fun mix(left: ColorRGBa, right: ColorRGBa, x: Double): ColorRGBa {
     val sx = x.coerceIn(0.0, 1.0)
-    return ColorRGBa(
+
+    if (left.linearity == right.linearity) {
+        return ColorRGBa(
             (1.0 - sx) * left.r + sx * right.r,
             (1.0 - sx) * left.g + sx * right.g,
             (1.0 - sx) * left.b + sx * right.b,
-            (1.0 - sx) * left.a + sx * right.a)
+            (1.0 - sx) * left.a + sx * right.a,
+            linearity = left.linearity
+        )
+    } else {
+        return if (right.linearity == Linearity.LINEAR || right.linearity == Linearity.ASSUMED_LINEAR) {
+            mix(left.toLinear(), right.toLinear(), x)
+        } else if (right.linearity == Linearity.SRGB || right.linearity == Linearity.ASSUMED_SRGB) {
+            mix(left.toSRGB(), right.toSRGB(), x)
+        } else {
+            error("can't blend ${right.linearity} with ${left.linearity}")
+        }
+    }
 }
 
 /**
@@ -251,7 +284,7 @@ fun mix(left: ColorRGBa, right: ColorRGBa, x: Double): ColorRGBa {
  * @param g green in `[0,1]`
  * @param b blue in `[0,1]`
  */
-fun rgb(r: Double, g: Double = r, b: Double = r) = ColorRGBa(r, g, b)
+fun rgb(r: Double, g: Double = r, b: Double = r) = ColorRGBa(r, g, b, linearity = Linearity.SRGB)
 
 /**
  * Create a color in RGBa space
@@ -261,7 +294,7 @@ fun rgb(r: Double, g: Double = r, b: Double = r) = ColorRGBa(r, g, b)
  * @param b blue in `[0,1]`
  * @param a alpha in `[0,1]`
  */
-fun rgba(r: Double, g: Double, b: Double, a: Double) = ColorRGBa(r, g, b, a)
+fun rgba(r: Double, g: Double, b: Double, a: Double) = ColorRGBa(r, g, b, a, linearity = Linearity.SRGB)
 
 /**
  * Create color from a string encoded hex value
