@@ -383,6 +383,7 @@ void main(void) {
     {
         ${shadeStructure.fragmentTransform ?: ""}
     }
+    x_fill.rgb *= x_fill.a;
     ${if (!shadeStructure.suppressDefaultOutput) "o_color = x_fill;" else ""}
 }
 
