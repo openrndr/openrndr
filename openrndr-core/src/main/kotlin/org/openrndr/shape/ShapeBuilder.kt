@@ -331,6 +331,10 @@ class ContourBuilder(private val multipleContours: Boolean) {
         angleStart %= PI * 2
 
         val bezierPoints = arcToBeziers(angleStart, angleExtent)
+        if (bezierPoints.isEmpty()) {
+            return
+        }
+
         bezierPoints[bezierPoints.lastIndex] = Vector2(tx, ty)
 
         for (i in bezierPoints.indices) {
@@ -477,7 +481,11 @@ fun shape(f: ShapeBuilder.() -> Unit): Shape {
 fun contour(f: ContourBuilder.() -> Unit): ShapeContour {
     val cb = ContourBuilder(false)
     cb.f()
-    return cb.result.first()
+    return if (cb.result.isEmpty()) {
+        ShapeContour.EMPTY
+    } else {
+        cb.result.first()
+    }
 }
 
 /**
