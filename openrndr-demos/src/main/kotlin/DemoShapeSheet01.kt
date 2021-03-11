@@ -16,7 +16,6 @@ fun main() {
                 14.0
             )
             val rect = Rectangle(0.0, 0.0, 100.0, 100.0)
-
             extend {
 
                 fun drawContour(x: Int, y: Int, s: String, pre: () -> Unit) {
@@ -28,7 +27,6 @@ fun main() {
                         drawer.text(s, 0.0, 111.0)
                     }
                 }
-
                 fun drawShape(x: Int, y: Int, s: String, pre: () -> Unit) {
                     drawer.isolated {
                         pre()

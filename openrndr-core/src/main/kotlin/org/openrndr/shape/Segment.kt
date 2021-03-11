@@ -612,10 +612,10 @@ class Segment {
         val newStart = start + normal(0.0, polarity) * scale(0.0)
         val newEnd = end + normal(1.0, polarity) * scale(1.0)
 
-        val a = LineSegment(start + normal(0.0, polarity) * scale(0.0), start)
-        val b = LineSegment(end + normal(1.0, polarity) * scale(1.0), end)
+        val a = LineSegment(newStart, start)
+        val b = LineSegment(newEnd, end)
 
-        val o = intersection(a, b, 1000000000.0)
+        val o = intersection(a, b, 1E7)
 
         if (o != Vector2.INFINITY) {
             val newControls = control.mapIndexed { index, it ->
