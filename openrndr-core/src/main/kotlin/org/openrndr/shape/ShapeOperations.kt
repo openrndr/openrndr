@@ -631,7 +631,7 @@ fun intersections(a: ShapeContour, b: ShapeContour): List<ContourIntersection> {
     }
     return result.let {
         if (selfTest) {
-            it.distinctBy { intersection -> Pair(intersection.a.contourT, intersection.b.contourT) }
+            it.distinctBy { intersection -> Pair(intersection.a.contourT.toString().take(7), intersection.b.contourT.toString().take(7)) }
         } else {
             it
         }
