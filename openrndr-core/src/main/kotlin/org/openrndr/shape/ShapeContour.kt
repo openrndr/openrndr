@@ -10,9 +10,9 @@ import kotlin.math.sqrt
  * A [List] for managing a collection of [Segment]s.
  */
 data class ShapeContour(
-        val segments: List<Segment>,
-        val closed: Boolean,
-        val polarity: YPolarity = YPolarity.CW_NEGATIVE_Y
+    val segments: List<Segment>,
+    val closed: Boolean,
+    val polarity: YPolarity = YPolarity.CW_NEGATIVE_Y
 ) {
     companion object {
         /**
@@ -22,29 +22,49 @@ data class ShapeContour(
          */
         val EMPTY = ShapeContour(emptyList(), false)
 
+        fun fromSegments(
+            segments: List<Segment>,
+            closed: Boolean,
+            polarity: YPolarity = YPolarity.CW_NEGATIVE_Y,
+            distanceTolerance: Double = 1E-3,
+        ): ShapeContour {
+            if (segments.isEmpty()) {
+                return EMPTY
+            }
+            return ShapeContour(
+                segments.zipWithNext().map {
+                    val distance = it.first.end.squaredDistanceTo(it.second.start)
+                    require(distance < distanceTolerance) {
+                        "distance between segment end and start is $distance (max: $distanceTolerance)"
+                    }
+                    it.first.copy(end = it.second.start)
+                } + segments.last(), closed, polarity
+            )
+        }
+
         /** Creates a [ShapeContour] by converting [points] to [Segment]s. */
         fun fromPoints(
-                points: List<Vector2>,
-                closed: Boolean,
-                polarity: YPolarity = YPolarity.CW_NEGATIVE_Y
+            points: List<Vector2>,
+            closed: Boolean,
+            polarity: YPolarity = YPolarity.CW_NEGATIVE_Y
         ) =
-                if (!closed) {
-                    ShapeContour((0 until points.size - 1).map {
-                        Segment(
-                                points[it],
-                                points[it + 1]
-                        )
-                    }, closed, polarity)
-                } else {
-                    val d = (points.last() - points.first()).squaredLength
-                    val usePoints = if (d > 10E-6) points else points.dropLast(1)
-                    ShapeContour((usePoints.indices).map {
-                        Segment(
-                                usePoints[it],
-                                usePoints[(it + 1) % usePoints.size]
-                        )
-                    }, true, polarity)
-                }
+            if (!closed) {
+                ShapeContour((0 until points.size - 1).map {
+                    Segment(
+                        points[it],
+                        points[it + 1]
+                    )
+                }, closed, polarity)
+            } else {
+                val d = (points.last() - points.first()).squaredLength
+                val usePoints = if (d > 10E-6) points else points.dropLast(1)
+                ShapeContour((usePoints.indices).map {
+                    Segment(
+                        usePoints[it],
+                        usePoints[(it + 1) % usePoints.size]
+                    )
+                }, true, polarity)
+            }
     }
 
     /** Triangulates [ShapeContour] into a [List] of [Triangle]s. */
@@ -74,8 +94,8 @@ data class ShapeContour(
     val bounds by lazy {
         sampleLinear().segments.flatMap {
             listOf(
-                    it.start,
-                    it.end
+                it.start,
+                it.end
             )
         }.bounds
     }
@@ -132,10 +152,10 @@ data class ShapeContour(
         segments.addAll(this.segments)
         if ((this.segments[this.segments.size - 1].end - other.segments[0].start).length > epsilon) {
             segments.add(
-                    Segment(
-                            this.segments[this.segments.size - 1].end,
-                            other.segments[0].start
-                    )
+                Segment(
+                    this.segments[this.segments.size - 1].end,
+                    other.segments[0].start
+                )
             )
         }
         segments.addAll(other.segments)
@@ -144,7 +164,7 @@ data class ShapeContour(
 
     /** Returns true if given [point] lies inside the [ShapeContour]. */
     operator fun contains(point: Vector2): Boolean = closed && this.toRing2().test(
-            Vec2(point.x, point.y)
+        Vec2(point.x, point.y)
     ).inside
 
     /**
@@ -178,6 +198,45 @@ data class ShapeContour(
     /** Splits a [ShapeContour] with a [List] of [ShapeContour]s. */
     fun split(cutters: List<ShapeContour>) = split(this, cutters)
 
+
+    fun removeLoops(attempts: Int = 0, reverseOrder: Boolean = false): ShapeContour {
+        if (attempts > 10) {
+            //error("tried more than 10 times to remove loops")
+            println("tried more than 10 times to remove loops")
+            return this
+        }
+
+        if (this.closed) {
+            return this
+        } else {
+            val ints = intersections(this, this)
+            if (ints.isEmpty()) {
+                return this
+            } else {
+
+                val toFix = ints.minByOrNull { it.a.contourT }!!
+                val sorted = listOf(toFix.a.contourT, toFix.b.contourT).sorted()
+
+                val head = this.sub(0.0, sorted[0])
+                val tail = this.sub(sorted[1], 1.0)
+                val tailSegments = tail.segments.toMutableList()
+
+
+                if (head.segments.isEmpty()) {
+                    return tail
+                }
+                if (tail.segments.isEmpty()) {
+                    return head
+                }
+
+                tailSegments[0] = tailSegments.first().copy(start = head.segments.last().end)
+                val fixedTail = ShapeContour(tailSegments, closed = false)
+                return (head.removeLoops(attempts+1) + fixedTail.removeLoops(attempts+1))
+            }
+        }
+    }
+
+
     /**
      * Offsets a [ShapeContour]'s [Segment]s by given [distance].
      *
@@ -186,93 +245,125 @@ data class ShapeContour(
      * @param joinType Specifies how to join together the moved [Segment]s.
      */
     fun offset(distance: Double, joinType: SegmentJoin = SegmentJoin.ROUND): ShapeContour {
-        if (segments.size == 1) {
-            return ShapeContour(
-                    segments[0].offset(
-                            distance,
-                            yPolarity = polarity
-                    ), false, polarity
-            )
+        val offsets =
+            segments.map { it.offset(distance, yPolarity = polarity) }
+                .filter { it.isNotEmpty() }
+        val tempContours = offsets.map {
+            fromSegments(it, closed = false, distanceTolerance = 0.01)
+        }
+        val offsetContours = tempContours.map { it }.filter { it.length > 0.0 }.toMutableList()
+
+        for (i in 0 until offsetContours.size) {
+            offsetContours[i] = offsetContours[i].removeLoops()
         }
 
-        val offsets =
-                segments.map { it.offset(distance, yPolarity = polarity) }.filter { it.isNotEmpty() }
+        for (i in 0 until if (this.closed) offsetContours.size else offsetContours.size - 1) {
+            val i0 = i
+            val i1 = (i + 1) % (offsetContours.size)
+            val its = intersections(offsetContours[i0], offsetContours[i1])
+            if (its.size == 1) {
+                println(its[0])
+                offsetContours[i0] = offsetContours[i0].sub(0.0, its[0].a.contourT)
+                offsetContours[i1] = offsetContours[i1].sub(its[0].b.contourT, 1.0)
+            }
+        }
 
         if (offsets.isEmpty()) {
             return ShapeContour(emptyList(), false)
         }
 
+
         val startPoint = if (closed) offsets.last().last().end else offsets.first().first().start
 
-        return contour {
+        val candidateContour = contour {
             moveTo(startPoint)
-            for (offset in offsets) {
-                val mOffset = offset.toMutableList()
-                lastSegment?.let { ls ->
-                    val fs = offset.first()
-                    if (ls.type == SegmentType.LINEAR && fs.type == SegmentType.LINEAR) {
-                        val i = intersection(
-                                ls.start,
-                                ls.end,
-                                offset.first().start,
-                                offset.first().end
+            for (offsetContour in offsetContours) {
+                val delta = (offsetContour.position(0.0) - cursor)
+                val joinDistance = delta.length
+                if (joinDistance > 10e-6) {
+                    when (joinType) {
+                        SegmentJoin.BEVEL -> lineTo(offsetContour.position(0.0))
+                        SegmentJoin.ROUND -> arcTo(
+                            crx = joinDistance * 0.5 * sqrt(2.0),
+                            cry = joinDistance * 0.5 * sqrt(2.0),
+                            angle = 90.0,
+                            largeArcFlag = false,
+                            sweepFlag = true,
+                            end = offsetContour.position(0.0)
                         )
-                        if (i != Vector2.INFINITY && (i - ls.end).squaredLength > 10E-6) {
-                            undo()
-                            lineTo(i)
-                            lineTo(fs.end)
-                            mOffset.removeAt(0)
-                        }
-                    }
-                }
-                if (mOffset.isNotEmpty()) {
-                    val delta = (mOffset.first().start - cursor)
-                    val joinDistance = delta.length
-                    if (joinDistance > 10E-6) {
-                        when (joinType) {
-                            SegmentJoin.BEVEL -> lineTo(mOffset.first().start)
-                            SegmentJoin.ROUND -> arcTo(
-                                    crx = joinDistance * 0.5 * sqrt(2.0),
-                                    cry = joinDistance * 0.5 * sqrt(2.0),
-                                    angle = 90.0,
-                                    largeArcFlag = false,
-                                    sweepFlag = true,
-                                    end = mOffset.first().start
+                        SegmentJoin.MITER -> {
+                            val ls = lastSegment ?: offsetContours.last().segments.last()
+                            val fs = offsetContour.segments.first()
+                            val i = intersection(
+                                ls.end,
+                                ls.end + ls.direction(1.0),
+                                fs.start,
+                                fs.start - fs.direction(0.0),
+                                eps = 10E8
                             )
-                            SegmentJoin.MITER -> {
-                                val ls = lastSegment ?: offsets.last().last()
-                                val fs = mOffset.first()
-                                val i = intersection(
-                                        ls.end,
-                                        ls.end + ls.direction(1.0),
-                                        fs.start,
-                                        fs.start - fs.direction(0.0),
-                                        eps = 10E8
-                                )
-                                if (i !== Vector2.INFINITY) {
-                                    lineTo(i)
-                                    lineTo(fs.start)
-                                } else {
-                                    lineTo(fs.start)
-                                }
+                            if (i !== Vector2.INFINITY) {
+                                lineTo(i)
+                                lineTo(fs.start)
+                            } else {
+                                lineTo(fs.start)
                             }
                         }
                     }
-                    for (segment in mOffset) {
-                        val d = (segment.start - cursor).length
-                        if (d > 1.0) {
-                            // TODO: I am not sure if this should happen at all, and if it should, if this is
-                            // the best way to deal with it.
-                            lineTo(segment.start)
-                        }
-                        segment(segment)
-                    }
                 }
+                for (offsetSegment in offsetContour.segments) {
+                    segment(offsetSegment)
+                }
+
             }
             if (this@ShapeContour.closed) {
                 close()
             }
         }
+
+        val postProc = false
+
+        var final = candidateContour.removeLoops()
+
+        if (postProc && !final.empty) {
+            val head = Segment(
+                segments[0].start + segments[0].normal(0.0)
+                    .perpendicular(polarity) * 1000.0, segments[0].start
+            ).offset(distance).firstOrNull()?.copy(end = final.segments[0].start)?.contour
+
+            val tail = Segment(
+                segments.last().end,
+                segments.last().end - segments.last().normal(1.0)
+                    .perpendicular(polarity) * 1000.0
+            ).offset(distance).firstOrNull()?.copy(start = final.segments.last().end)?.contour
+
+            if (head != null) {
+                val headInts = intersections(final, head)
+                if (headInts.size == 1) {
+                    final = final.sub(headInts[0].a.contourT, 1.0)
+                }
+                if (headInts.size > 1) {
+                    val sInts = headInts.sortedByDescending { it.a.contourT }
+                    final = final.sub(sInts[0].a.contourT, 1.0)
+                }
+            }
+//            final = head + final
+//
+            if (tail != null) {
+                val tailInts = intersections(final, tail)
+                if (tailInts.size == 1) {
+                    final = final.sub(0.0, tailInts[0].a.contourT)
+                }
+                if (tailInts.size > 1) {
+                    val sInts = tailInts.sortedBy { it.a.contourT }
+                    final = final.sub(0.0, sInts[0].a.contourT)
+                }
+            }
+
+//            final = final + tail
+
+        }
+
+        return final
     }
 
     /** Returns true if [ShapeContour] doesn't contain any [Segment]s. */
@@ -428,14 +519,14 @@ data class ShapeContour(
      * Returns specified amount of points of equal distance from each other.
      */
     fun equidistantPositions(pointCount: Int) =
-            if (empty) {
-                emptyList()
-            } else {
-                sampleEquidistant(
-                        adaptivePositions(),
-                        pointCount + if (closed) 1 else 0
-                )
-            }
+        if (empty) {
+            emptyList()
+        } else {
+            sampleEquidistant(
+                adaptivePositions(),
+                pointCount + if (closed) 1 else 0
+            )
+        }
 
     /**
      * Adaptively samples the contour into a new [ShapeContour] of
@@ -445,11 +536,11 @@ data class ShapeContour(
      * @return A [ShapeContour] composed of linear [Segment]s
      */
     fun sampleLinear(distanceTolerance: Double = 0.5) =
-            if (empty) {
-                EMPTY
-            } else {
-                fromPoints(adaptivePositions(distanceTolerance), closed, polarity)
-            }
+        if (empty) {
+            EMPTY
+        } else {
+            fromPoints(adaptivePositions(distanceTolerance), closed, polarity)
+        }
 
     /** Samples the [ShapeContour] into equidistant linear [Segment]s. */
     fun sampleEquidistant(pointCount: Int): ShapeContour {
@@ -459,8 +550,8 @@ data class ShapeContour(
         val points = equidistantPositions(pointCount.coerceAtLeast(2))
         val segments = (0 until points.size - 1).map {
             Segment(
-                    points[it],
-                    points[it + 1]
+                points[it],
+                points[it + 1]
             )
         }
         return ShapeContour(segments, closed, polarity)
@@ -468,19 +559,19 @@ data class ShapeContour(
 
     /** Applies linear transformation to [ShapeContour]. */
     fun transform(transform: Matrix44) =
-            if (empty) {
-                EMPTY
+        if (empty) {
+            EMPTY
+        } else {
+            if (transform === Matrix44.IDENTITY) {
+                this
             } else {
-                if (transform === Matrix44.IDENTITY) {
-                    this
-                } else {
-                    ShapeContour(
-                            segments.map { it.transform(transform) },
-                            closed,
-                            polarity
-                    )
-                }
+                ShapeContour(
+                    segments.map { it.transform(transform) },
+                    closed,
+                    polarity
+                )
             }
+        }
 
     /**
      * Samples a new [ShapeContour] from the current [ShapeContour] starting at [startT] and ending at [endT].
@@ -604,7 +695,7 @@ data class ShapeContour(
      */
     fun nearest(point: Vector2): ContourPoint {
         val n = segments.map { it.nearest(point) }.minByOrNull { it.position.distanceTo(point) }
-                ?: error("no segments")
+            ?: error("no segments")
         val segmentIndex = segments.indexOf(n.segment)
         val t = (segmentIndex + n.segmentT) / segments.size
         return ContourPoint(this, t, n.segment, n.segmentT, n.position)
@@ -634,10 +725,10 @@ data class ShapeContour(
                 ShapeContour(segments, true, polarity)
             else
                 ShapeContour(
-                        segments + Segment(
-                                segments.last().end,
-                                segments.first().start
-                        ), true, polarity
+                    segments + Segment(
+                        segments.last().end,
+                        segments.first().start
+                    ), true, polarity
                 )
         }
 
@@ -648,9 +739,9 @@ data class ShapeContour(
      */
     val reversed
         get() = ShapeContour(
-                segments.map { it.reverse }.reversed(),
-                closed,
-                polarity
+            segments.map { it.reverse }.reversed(),
+            closed,
+            polarity
         )
 
     @Deprecated("complicated semantics")
@@ -669,20 +760,20 @@ data class ShapeContour(
                 val left = segments.last()
                 val right = segments.first()
                 fixedSegments.add(
-                        Segment(
-                                left.start,
-                                left.control,
-                                right.start
-                        )
+                    Segment(
+                        left.start,
+                        left.control,
+                        right.start
+                    )
                 )
             } else {
                 fixedSegments.add(segments.last())
             }
         }
         return ShapeContour(
-                if (segments.size > 1) fixedSegments else segments,
-                closed,
-                polarity
+            if (segments.size > 1) fixedSegments else segments,
+            closed,
+            polarity
         )
     }
 
@@ -722,4 +813,4 @@ val List<ShapeContour>.shape
  */
 @Suppress("unused")
 fun CatmullRomChain2.toContour(): ShapeContour =
-        ShapeContour(segments.map { it.toSegment() }, this.loop)
+    ShapeContour(segments.map { it.toSegment() }, this.loop)
