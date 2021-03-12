@@ -23,6 +23,7 @@ object TestEquations : Spek({
         val d = 3.0
         val solutions = Equations.solveCubic(a, b, c, d)
         val solutions2 = solveCubic(a, b, c, d)
+        solutions `should be equal to` solutions2
     }
 
 })
