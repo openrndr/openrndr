@@ -98,3 +98,14 @@ fun IntVector4.clamp(min : IntVector4, max : IntVector4) =
                 y.clamp(min.y, max.y),
                 z.clamp(min.z, max.z),
                 w.clamp(min.w, max.w))
+
+inline val Double.asRadians: Double get() = this * 0.017453292519943295
+inline val Double.asDegrees: Double get() = this * 57.29577951308232
+
+val Double.asExponent: Int get() = (
+        (this.toRawBits() and EXP_BIT_MASK shr SIGNIFICAND_WIDTH - 1) - EXP_BIAS
+        ).toInt()
+
+private const val EXP_BIT_MASK = 0x7FF0000000000000L
+private const val SIGNIFICAND_WIDTH = 53
+private const val EXP_BIAS = 1023
