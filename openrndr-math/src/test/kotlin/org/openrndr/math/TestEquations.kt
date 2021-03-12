@@ -1,7 +1,7 @@
 package org.openrndr.math
 
-import io.lacuna.artifex.utils.Equations
 import org.amshove.kluent.`should be equal to`
+import org.openrndr.math.test.Equations
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 
