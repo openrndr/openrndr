@@ -78,7 +78,7 @@ data class Quaternion(val x: Double, val y: Double, val z: Double, val w: Double
          * Construct [Quaternion] from a set of degrees
          */
         fun fromAngles(pitch: Double, roll: Double, yaw: Double) =
-                fromAnglesRadian(Math.toRadians(pitch), Math.toRadians(roll), Math.toRadians(yaw))
+                fromAnglesRadian(pitch.asRadians, roll.asRadians, yaw.asRadians)
 
         /**
          * Construct [Quaternion] from a set of arc lengths

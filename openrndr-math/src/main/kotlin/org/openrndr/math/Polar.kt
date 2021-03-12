@@ -1,6 +1,5 @@
 package org.openrndr.math
 
-import java.lang.Math.toDegrees
 import kotlin.math.atan2
 
 /**
@@ -24,7 +23,7 @@ data class Polar(val theta: Double, val radius: Double = 1.0) : LinearType<Polar
         fun fromVector(vector: Vector2): Polar {
             val r = vector.length
             return Polar(
-                    if (r == 0.0) 0.0 else toDegrees(atan2(vector.y, vector.x)),
+                    if (r == 0.0) 0.0 else atan2(vector.y, vector.x).asDegrees,
                     r
             )
         }

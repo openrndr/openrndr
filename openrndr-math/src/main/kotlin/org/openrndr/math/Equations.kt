@@ -1,8 +1,10 @@
 package org.openrndr.math
 
+import kotlin.math.*
+
 private const val DISCRIMINANT_EPSILON = 1e-10
 private const val SOLUTION_EPSILON = 1e-8
-private val MACHINE_EPSILON = Math.ulp(1.0)
+private val MACHINE_EPSILON = 1.0.ulp
 private const val EPSILON = 1e-14
 
 // adapted from https://github.com/paperjs/paper.js/blob/develop/src/util/Numerical.js
@@ -30,7 +32,7 @@ private fun split(n: Double): DoubleArray {
 private fun discriminant(a: Double, b: Double, c: Double): Double {
     var D = b * b - a * c
     val E = b * b + a * c
-    if (StrictMath.abs(D) * 3 < E) {
+    if (abs(D) * 3 < E) {
         val ad: DoubleArray = split(a)
         val bd: DoubleArray = split(b)
         val cd: DoubleArray = split(c)
@@ -44,7 +46,7 @@ private fun discriminant(a: Double, b: Double, c: Double): Double {
 }
 
 fun solveLinear(a: Double, b: Double, acc: DoubleArray): Int {
-    return if (StrictMath.abs(a) < EPSILON) {
+    return if (abs(a) < EPSILON) {
         0
     } else {
         acc[0] = -b / a
@@ -61,7 +63,7 @@ fun solveQuadratic(a: Double, b: Double, c: Double, acc: DoubleArray): Int {
     var a = a
     var b = b
     var c = c
-    if (StrictMath.abs(a) < EPSILON) {
+    if (abs(a) < EPSILON) {
         return solveLinear(b, c, acc)
     }
     b *= -0.5
@@ -71,7 +73,7 @@ fun solveQuadratic(a: Double, b: Double, c: Double, acc: DoubleArray): Int {
     c *= k
     val D = discriminant(a, b, c)
     return if (D >= -DISCRIMINANT_EPSILON) {
-        val Q: Double = if (D < 0) 0.0 else StrictMath.sqrt(D)
+        val Q: Double = if (D < 0) 0.0 else sqrt(D)
         val R = b + if (b < 0) -Q else Q
         if (R == 0.0) {
             acc[0] = c / a
@@ -86,7 +88,7 @@ fun solveQuadratic(a: Double, b: Double, c: Double, acc: DoubleArray): Int {
 
             // since the tolerance for the discriminant is fairly large, we check our work
             val y = a * x * x + -2 * b * x + c
-            if (StrictMath.abs(y) < SOLUTION_EPSILON) {
+            if (abs(y) < SOLUTION_EPSILON) {
                 acc[writeIdx++] = x
             }
         }
@@ -116,9 +118,9 @@ fun solveCubic(a: Double, b: Double, c: Double, d: Double, acc: DoubleArray): In
     var c2: Double
     var qd: Double
     var q: Double
-    if (StrictMath.abs(a) < EPSILON) {
+    if (abs(a) < EPSILON) {
         return solveQuadratic(b, c, d, acc)
-    } else if (StrictMath.abs(d) < EPSILON) {
+    } else if (abs(d) < EPSILON) {
         b1 = b
         c2 = c
         x = 0.0
@@ -129,10 +131,10 @@ fun solveCubic(a: Double, b: Double, c: Double, d: Double, acc: DoubleArray): In
         qd = (a * x + b1) * x + c2
         q = c2 * x + d
         val t = q / a
-        val r = StrictMath.pow(StrictMath.abs(t), 1 / 3.0)
-        val s = if (t < 0) (-1).toDouble() else 1.toDouble()
+        val r = abs(t).pow(1 / 3.0)
+        val s = if (t < 0) -1.0 else 1.0
         val td = -qd / a
-        val rd = if (td > 0) 1.324717957244746 * StrictMath.max(r, StrictMath.sqrt(td)) else r
+        val rd = if (td > 0) 1.324717957244746 * max(r, sqrt(td)) else r
         var x0 = x - s * rd
         if (x0 != x) {
             do {
@@ -143,7 +145,7 @@ fun solveCubic(a: Double, b: Double, c: Double, d: Double, acc: DoubleArray): In
                 q = c2 * x + d
                 x0 = if (qd == 0.0) x else x - q / (qd / (1 + MACHINE_EPSILON))
             } while (s * x0 > s * x)
-            if (StrictMath.abs(a) * x * x > StrictMath.abs(d / x)) {
+            if (abs(a) * x * x > abs(d / x)) {
                 c2 = -d / x
                 b1 = (c2 - c) / x
             }
@@ -156,7 +158,7 @@ fun solveCubic(a: Double, b: Double, c: Double, d: Double, acc: DoubleArray): In
         }
     }
     val y = a * x * x * x + b * x * x + c * x + d
-    if (StrictMath.abs(y) < SOLUTION_EPSILON) {
+    if (abs(y) < SOLUTION_EPSILON) {
         acc[solutions++] = x
     }
     return solutions

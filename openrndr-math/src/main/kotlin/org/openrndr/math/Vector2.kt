@@ -1,7 +1,6 @@
 package org.openrndr.math
 
 import java.io.Serializable
-import java.lang.Math.toRadians
 import kotlin.math.*
 
 enum class YPolarity {
@@ -66,7 +65,7 @@ data class Vector2(val x: Double, val y: Double) : Serializable, LinearType<Vect
      */
     fun rotate(degrees: Double, origin: Vector2 = ZERO): Vector2 {
         val p = this - origin
-        val a = toRadians(degrees)
+        val a = degrees.asRadians
 
         val w = Vector2(
                 p.x * cos(a) - p.y * sin(a),
@@ -156,7 +155,7 @@ data class Vector2(val x: Double, val y: Double) : Serializable, LinearType<Vect
         val INFINITY = Vector2(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY)
 
         fun fromPolar(polar: Polar): Vector2 {
-            val theta = toRadians(polar.theta)
+            val theta = polar.theta.asRadians
             val x = cos(theta)
             val y = sin(theta)
             return Vector2(x, y) * polar.radius
