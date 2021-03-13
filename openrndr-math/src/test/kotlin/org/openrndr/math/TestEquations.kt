@@ -1,7 +1,7 @@
 package org.openrndr.math
 
-import io.lacuna.artifex.utils.Equations
 import org.amshove.kluent.`should be equal to`
+import org.openrndr.math.test.Equations
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 
@@ -23,6 +23,7 @@ object TestEquations : Spek({
         val d = 3.0
         val solutions = Equations.solveCubic(a, b, c, d)
         val solutions2 = solveCubic(a, b, c, d)
+        solutions `should be equal to` solutions2
     }
 
 })

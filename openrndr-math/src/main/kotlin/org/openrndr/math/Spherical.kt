@@ -25,8 +25,8 @@ data class Spherical(val theta: Double, val phi: Double, val radius: Double) : L
         fun fromVector(vector: Vector3): Spherical {
             val r = vector.length
             return Spherical(
-                    if (r == 0.0) 0.0 else Math.toDegrees(atan2(vector.x, vector.z)),
-                    if (r == 0.0) 0.0 else Math.toDegrees(acos(clamp(vector.y / r, -1.0, 1.0))),
+                    if (r == 0.0) 0.0 else atan2(vector.x, vector.z).asDegrees,
+                    if (r == 0.0) 0.0 else acos(clamp(vector.y / r, -1.0, 1.0)).asDegrees,
                     r)
         }
     }
