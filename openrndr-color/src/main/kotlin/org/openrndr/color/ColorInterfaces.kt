@@ -58,6 +58,7 @@ interface OpacifiableColor<T> {
  * interface for algebraic color
  */
 interface AlgebraicColor<T : AlgebraicColor<T>> : LinearType<T> {
-    override operator fun div(factor: Double): T = times(1.0 / factor)
-    fun mix(other: T, factor: Double): T = ((this * (1.0 - factor)) as AlgebraicColor<T>) + (other as AlgebraicColor<T> * factor)
+    override operator fun div(scale: Double): T = times(1.0 / scale)
+    fun mix(other: T, factor: Double): T =
+        ((this * (1.0 - factor)) as AlgebraicColor<T>) + (other as AlgebraicColor<T> * factor)
 }

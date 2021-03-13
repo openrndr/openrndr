@@ -2,13 +2,17 @@ package org.openrndr.color
 
 import kotlin.math.pow
 
-data class ColorLABa(val l: Double, val a: Double, val b: Double, val alpha: Double = 1.0, val ref: ColorXYZa = ColorXYZa.NEUTRAL):
-ConvertibleToColorRGBa,
-        OpacifiableColor<ColorLABa>,
-        ShadableColor<ColorLABa>,
-        AlgebraicColor<ColorLABa>
-
-{
+data class ColorLABa(
+    val l: Double,
+    val a: Double,
+    val b: Double,
+    val alpha: Double = 1.0,
+    val ref: ColorXYZa = ColorXYZa.NEUTRAL
+) :
+    ConvertibleToColorRGBa,
+    OpacifiableColor<ColorLABa>,
+    ShadableColor<ColorLABa>,
+    AlgebraicColor<ColorLABa> {
 
     companion object {
         fun fromXYZa(xyz: ColorXYZa, ref: ColorXYZa): ColorLABa {
@@ -24,7 +28,7 @@ ConvertibleToColorRGBa,
         }
 
         fun fromRGBa(rgba: ColorRGBa, ref: ColorXYZa = ColorXYZa.NEUTRAL) =
-                fromXYZa(ColorXYZa.fromRGBa(rgba), ref)
+            fromXYZa(ColorXYZa.fromRGBa(rgba), ref)
     }
 
     fun toXYZa(): ColorXYZa {
@@ -72,9 +76,14 @@ ConvertibleToColorRGBa,
     override fun opacify(factor: Double) = copy(alpha = alpha * factor)
     override fun shade(factor: Double) = copy(l = l * factor)
 
-    override fun plus(other: ColorLABa) = copy(l = l + other.l, a = a + other.a, b = b + other.b, alpha = alpha + other.alpha)
-    override fun minus(other: ColorLABa) = copy(l = l - other.l, a = a  -other.a, b = b - other.b, alpha = alpha - other.alpha)
-    override fun times(factor: Double): ColorLABa = copy(l = l * factor, a = a * factor, b = b * factor, alpha = alpha * factor)
+    override fun plus(right: ColorLABa) =
+        copy(l = l + right.l, a = a + right.a, b = b + right.b, alpha = alpha + right.alpha)
+
+    override fun minus(right: ColorLABa) =
+        copy(l = l - right.l, a = a - right.a, b = b - right.b, alpha = alpha - right.alpha)
+
+    override fun times(scale: Double): ColorLABa =
+        copy(l = l * scale, a = a * scale, b = b * scale, alpha = alpha * scale)
 }
 
 private fun f(t: Double): Double {

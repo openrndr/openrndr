@@ -1,9 +1,9 @@
 package org.openrndr.color
 
+import org.openrndr.math.Matrix55
 import org.openrndr.math.Vector3
 import org.openrndr.math.Vector4
 import kotlin.math.pow
-
 
 enum class Linearity {
     UNKNOWN,
@@ -241,11 +241,11 @@ data class ColorRGBa(
         return result
     }
 
-    override fun plus(other: ColorRGBa) = copy(r = r + other.r, g = g + other.g, b = b + other.b, a = a + other.a)
+    override fun plus(right: ColorRGBa) = copy(r = r + right.r, g = g + right.g, b = b + right.b, a = a + right.a)
 
-    override fun minus(other: ColorRGBa) = copy(r = r - other.r, g = g - other.g, b = b - other.b, a = a - other.a)
+    override fun minus(right: ColorRGBa) = copy(r = r - right.r, g = g - right.g, b = b - right.b, a = a - right.a)
 
-    override fun times(factor: Double) = copy(r = r * factor, g = g * factor, b = b * factor, a = a * factor)
+    override fun times(scale: Double) = copy(r = r * scale, g = g * scale, b = b * scale, a = a * scale)
 
     override fun mix(other: ColorRGBa, factor: Double): ColorRGBa {
         return mix(this, other, factor)
@@ -301,3 +301,12 @@ fun rgba(r: Double, g: Double, b: Double, a: Double) = ColorRGBa(r, g, b, a, lin
  * @param hex string encoded hex value, for example `"ffc0cd"`
  */
 fun rgb(hex: String) = ColorRGBa.fromHex(hex)
+
+operator fun Matrix55.times(color: ColorRGBa): ColorRGBa {
+    return color.copy(
+        r = color.r * c0r0 + color.g * c1r0 + color.b * c2r0 + color.a * c3r0 + c4r0,
+        g = color.r * c0r1 + color.g * c1r1 + color.b * c2r1 + color.a * c3r1 + c4r1,
+        b = color.r * c0r2 + color.g * c1r2 + color.b * c2r2 + color.a * c3r2 + c4r2,
+        a = color.r * c0r3 + color.g * c1r3 + color.b * c2r3 + color.a * c3r3 + c4r3
+    )
+}

@@ -1,6 +1,12 @@
 package org.openrndr.color
 
-data class ColorLSHABa(val l: Double, val s: Double, val h: Double, val alpha: Double = 1.0, val ref: ColorXYZa = ColorXYZa.NEUTRAL) {
+data class ColorLSHABa(
+    val l: Double,
+    val s: Double,
+    val h: Double,
+    val alpha: Double = 1.0,
+    val ref: ColorXYZa = ColorXYZa.NEUTRAL
+) {
     companion object {
         fun fromLCHABa(lcha: ColorLCHABa): ColorLSHABa {
             val maxC = ColorLCHABa.findMaxChroma(lcha.l, lcha.h, lcha.ref)
@@ -23,10 +29,4 @@ data class ColorLSHABa(val l: Double, val s: Double, val h: Double, val alpha: D
     fun shiftLuminosity(shift: Double) = copy(l = l + shift)
 
     val saturated get() = copy(s = s.coerceIn(0.0, 1.0))
-}
-
-fun main(args: Array<String>) {
-    val c = ColorLCHABa.findMaxChroma(60.3, 2.0, ColorXYZa.NEUTRAL)
-    println(ColorLCHABa(60.3, c, 2.0, 1.0, ColorXYZa.NEUTRAL).toRGBa())
-
 }

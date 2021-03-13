@@ -2,13 +2,13 @@ package org.openrndr.color
 
 import org.openrndr.math.mixAngle
 
-data class ColorXSLa(val x: Double, val s: Double, val l: Double, val a: Double):
-        ConvertibleToColorRGBa,
-        ShadableColor<ColorXSLa>,
-        HueShiftableColor<ColorXSLa>,
-        SaturatableColor<ColorXSLa>,
-        OpacifiableColor<ColorXSLa>,
-        AlgebraicColor<ColorXSLa> {
+data class ColorXSLa(val x: Double, val s: Double, val l: Double, val a: Double) :
+    ConvertibleToColorRGBa,
+    ShadableColor<ColorXSLa>,
+    HueShiftableColor<ColorXSLa>,
+    SaturatableColor<ColorXSLa>,
+    OpacifiableColor<ColorXSLa>,
+    AlgebraicColor<ColorXSLa> {
 
     companion object {
         fun fromHSLa(hsla: ColorHSLa): ColorXSLa {
@@ -55,9 +55,9 @@ data class ColorXSLa(val x: Double, val s: Double, val l: Double, val a: Double)
     override fun shade(factor: Double) = copy(l = l * factor)
     override fun opacify(factor: Double) = copy(a = a * factor)
 
-    override fun plus(other: ColorXSLa) = copy(x = x + other.x, s = s + other.s, l = l + other.l, a = a + other.a)
-    override fun minus(other: ColorXSLa) = copy(x = x - other.x, s = s - other.s, l = l - other.l, a = a - other.a)
-    override fun times(factor: Double) = copy(x = x * factor, s = s * factor, l = l * factor, a = a * factor)
+    override fun plus(right: ColorXSLa) = copy(x = x + right.x, s = s + right.s, l = l + right.l, a = a + right.a)
+    override fun minus(right: ColorXSLa) = copy(x = x - right.x, s = s - right.s, l = l - right.l, a = a - right.a)
+    override fun times(scale: Double) = copy(x = x * scale, s = s * scale, l = l * scale, a = a * scale)
 
     override fun mix(other: ColorXSLa, factor: Double) = mix(this, other, factor)
 }
@@ -76,8 +76,9 @@ private fun map(x: Double, a: Double, b: Double, c: Double, d: Double): Double {
 fun mix(left: ColorXSLa, right: ColorXSLa, x: Double): ColorXSLa {
     val sx = x.coerceIn(0.0, 1.0)
     return ColorXSLa(
-            mixAngle(left.x, right.x, sx),
-            (1.0 - sx) * left.s + sx * right.s,
-            (1.0 - sx) * left.l + sx * right.l,
-            (1.0 - sx) * left.a + sx * right.a)
+        mixAngle(left.x, right.x, sx),
+        (1.0 - sx) * left.s + sx * right.s,
+        (1.0 - sx) * left.l + sx * right.l,
+        (1.0 - sx) * left.a + sx * right.a
+    )
 }

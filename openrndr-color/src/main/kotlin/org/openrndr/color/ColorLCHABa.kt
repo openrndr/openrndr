@@ -6,14 +6,18 @@ import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.sqrt
 
-data class ColorLCHABa(val l: Double, val c: Double, val h: Double, val alpha: Double = 1.0, val ref: ColorXYZa = ColorXYZa.NEUTRAL):
+data class ColorLCHABa(
+    val l: Double,
+    val c: Double,
+    val h: Double,
+    val alpha: Double = 1.0,
+    val ref: ColorXYZa = ColorXYZa.NEUTRAL
+) :
     ConvertibleToColorRGBa,
     ShadableColor<ColorLCHABa>,
     OpacifiableColor<ColorLCHABa>,
     HueShiftableColor<ColorLCHABa>,
-    AlgebraicColor<ColorLCHABa>
-
-{
+    AlgebraicColor<ColorLCHABa> {
     companion object {
         fun findMaxChroma(l: Double, h: Double, ref: ColorXYZa): Double {
             var left = 0.0
@@ -72,7 +76,6 @@ data class ColorLCHABa(val l: Double, val c: Double, val h: Double, val alpha: D
     }
 
 
-
     fun toLABa(): ColorLABa {
         val a = c * cos(Math.toRadians(h))
         val b = c * sin(Math.toRadians(h))
@@ -89,17 +92,22 @@ data class ColorLCHABa(val l: Double, val c: Double, val h: Double, val alpha: D
     override fun shade(factor: Double) = copy(l = l * factor)
     override fun shiftHue(shiftInDegrees: Double) = copy(h = h + shiftInDegrees)
 
-    override fun plus(other: ColorLCHABa) = copy(l = l + other.l, c = c + other.c, h = h + other.h, alpha = alpha + other.alpha)
-    override fun minus(other: ColorLCHABa) = copy(l = l - other.l, c = c  -other.c, h = h - other.h, alpha = alpha - other.alpha)
-    override fun times(factor: Double)= copy(l = l * factor, c = c * factor, h = h * factor, alpha = alpha * factor)
+    override fun plus(right: ColorLCHABa) =
+        copy(l = l + right.l, c = c + right.c, h = h + right.h, alpha = alpha + right.alpha)
+
+    override fun minus(right: ColorLCHABa) =
+        copy(l = l - right.l, c = c - right.c, h = h - right.h, alpha = alpha - right.alpha)
+
+    override fun times(scale: Double) = copy(l = l * scale, c = c * scale, h = h * scale, alpha = alpha * scale)
     override fun mix(other: ColorLCHABa, factor: Double) = mix(this, other, factor)
 }
 
 fun mix(left: ColorLCHABa, right: ColorLCHABa, x: Double): ColorLCHABa {
     val sx = x.coerceIn(0.0, 1.0)
     return ColorLCHABa(
-            (1.0 - sx) * left.l + sx * right.l,
-            (1.0 - sx) * left.c + sx * right.c,
-            mixAngle(left.h, right.h, sx),
-            (1.0 - sx) * left.alpha + sx * right.alpha)
+        (1.0 - sx) * left.l + sx * right.l,
+        (1.0 - sx) * left.c + sx * right.c,
+        mixAngle(left.h, right.h, sx),
+        (1.0 - sx) * left.alpha + sx * right.alpha
+    )
 }

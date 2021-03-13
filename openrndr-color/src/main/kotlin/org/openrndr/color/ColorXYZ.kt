@@ -3,10 +3,11 @@ package org.openrndr.color
 import kotlin.math.min
 
 data class ColorXYZa(val x: Double, val y: Double, val z: Double, val a: Double = 1.0) :
-        ConvertibleToColorRGBa,
-        OpacifiableColor<ColorXYZa>,
-        AlgebraicColor<ColorXYZa> {
+    ConvertibleToColorRGBa,
+    OpacifiableColor<ColorXYZa>,
+    AlgebraicColor<ColorXYZa> {
 
+    @Suppress("unused")
     companion object {
         val SO2_A = ColorXYZa(109.83, 100.0, 35.55)
         val SO2_C = ColorXYZa(98.04, 100.0, 118.11)
@@ -28,13 +29,14 @@ data class ColorXYZa(val x: Double, val y: Double, val z: Double, val a: Double 
         val SO10_D60 = ColorXYZa(95.21, 100.0, 99.60)
         val SO10_D75 = ColorXYZa(94.45, 100.0, 120.70)
 
-        val NEUTRAL = ColorXYZa.fromRGBa(ColorRGBa(1.0, 1.0, 1.0))
+        val NEUTRAL = fromRGBa(ColorRGBa(1.0, 1.0, 1.0, linearity = Linearity.LINEAR))
 
         fun fromRGBa(rgba: ColorRGBa): ColorXYZa {
-            val x = 0.4124 * rgba.r + 0.3576 * rgba.g + 0.1805 * rgba.b
-            val y = 0.2126 * rgba.r + 0.7152 * rgba.g + 0.0722 * rgba.b
-            val z = 0.0193 * rgba.r + 0.1192 * rgba.g + 0.9505 * rgba.b
-            return ColorXYZa(x, y, z, rgba.a)
+            val linear = rgba.toLinear()
+            val x = 0.4124 * linear.r + 0.3576 * linear.g + 0.1805 * linear.b
+            val y = 0.2126 * linear.r + 0.7152 * linear.g + 0.0722 * linear.b
+            val z = 0.0193 * linear.r + 0.1192 * linear.g + 0.9505 * linear.b
+            return ColorXYZa(x, y, z, linear.a)
         }
     }
 
@@ -51,8 +53,8 @@ data class ColorXYZa(val x: Double, val y: Double, val z: Double, val a: Double 
 
     fun toHSVa(): ColorHSVa = toRGBa().toHSVa()
     fun toHSLa(): ColorHSLa = toRGBa().toHSLa()
-    override fun plus(other: ColorXYZa) = copy(x = x + other.x, y = y + other.y, z = z + other.z, a = a + other.a)
-    override fun minus(other: ColorXYZa) = copy(x = x - other.x, y = y - other.y, z = z - other.z, a = a - other.a)
-    override fun times(factor: Double): ColorXYZa = copy(x = x * factor, y = y * factor, z = z * factor, a = a * factor)
+    override fun plus(right: ColorXYZa) = copy(x = x + right.x, y = y + right.y, z = z + right.z, a = a + right.a)
+    override fun minus(right: ColorXYZa) = copy(x = x - right.x, y = y - right.y, z = z - right.z, a = a - right.a)
+    override fun times(scale: Double): ColorXYZa = copy(x = x * scale, y = y * scale, z = z * scale, a = a * scale)
     override fun opacify(factor: Double) = copy(a = a * factor)
 }

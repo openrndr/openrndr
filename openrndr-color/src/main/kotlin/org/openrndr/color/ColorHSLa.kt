@@ -30,12 +30,13 @@ data class ColorHSLa(val h: Double, val s: Double, val l: Double, val a: Double 
 
     companion object {
         fun fromRGBa(rgb: ColorRGBa): ColorHSLa {
-            val min = if (rgb.r <= rgb.b && rgb.r <= rgb.g) {
-                rgb.r
-            } else if (rgb.g <= rgb.b && rgb.g <= rgb.r) {
-                rgb.g
-            } else if (rgb.b <= rgb.r && rgb.b <= rgb.g) {
-                rgb.b
+            val srgb = rgb.toSRGB()
+            val min = if (srgb.r <= srgb.b && srgb.r <= srgb.g) {
+                srgb.r
+            } else if (srgb.g <= srgb.b && srgb.g <= srgb.r) {
+                srgb.g
+            } else if (srgb.b <= srgb.r && srgb.b <= srgb.g) {
+                srgb.b
             } else {
                 0.0
             }
@@ -43,15 +44,15 @@ data class ColorHSLa(val h: Double, val s: Double, val l: Double, val a: Double 
             val max: Double
             val maxArg: ColorRGBa.Component
 
-            if (rgb.r >= rgb.b && rgb.r >= rgb.g) {
+            if (srgb.r >= srgb.b && srgb.r >= srgb.g) {
                 maxArg = ColorRGBa.Component.R
-                max = rgb.r
-            } else if (rgb.g >= rgb.b && rgb.g >= rgb.r) {
+                max = srgb.r
+            } else if (srgb.g >= srgb.b && srgb.g >= srgb.r) {
                 maxArg = ColorRGBa.Component.G
-                max = rgb.g
+                max = srgb.g
             } else {
                 maxArg = ColorRGBa.Component.B
-                max = rgb.b
+                max = srgb.b
             }
 
             val l = (max + min) / 2.0
@@ -64,13 +65,13 @@ data class ColorHSLa(val h: Double, val s: Double, val l: Double, val a: Double 
                 val d = max - min
                 s = if (l > 0.5) d / (2.0 - max - min) else d / (max + min)
                 h = when (maxArg) {
-                    ColorRGBa.Component.R -> 60.0 * ((rgb.g - rgb.b) / d + if (rgb.g < rgb.b) 6 else 0)
-                    ColorRGBa.Component.G -> 60.0 * ((rgb.b - rgb.r) / d + 2.0)
-                    ColorRGBa.Component.B -> 60.0 * ((rgb.r - rgb.g) / d + 4.0)
+                    ColorRGBa.Component.R -> 60.0 * ((srgb.g - srgb.b) / d + if (srgb.g < srgb.b) 6 else 0)
+                    ColorRGBa.Component.G -> 60.0 * ((srgb.b - srgb.r) / d + 2.0)
+                    ColorRGBa.Component.B -> 60.0 * ((srgb.r - srgb.g) / d + 4.0)
                     ColorRGBa.Component.a -> 0.0
                 }
             }
-            return ColorHSLa(h, s, l, rgb.a)
+            return ColorHSLa(h, s, l, srgb.a)
         }
     }
 

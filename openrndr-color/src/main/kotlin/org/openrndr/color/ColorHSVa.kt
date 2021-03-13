@@ -4,6 +4,7 @@ package org.openrndr.color
 
 import org.openrndr.math.mixAngle
 import org.openrndr.math.mod
+import kotlin.math.floor
 
 
 /**
@@ -27,33 +28,34 @@ data class ColorHSVa(val h: Double, val s: Double, val v: Double, val a: Double 
 
     companion object {
         fun fromRGBa(rgb: ColorRGBa): ColorHSVa {
+            val srgb = rgb.toSRGB()
             var min = Double.POSITIVE_INFINITY
             var max = Double.NEGATIVE_INFINITY
 
             var h: Double
             var maxArg: ColorRGBa.Component? = null
 
-            if (rgb.r <= rgb.b && rgb.r <= rgb.g) {
-                min = rgb.r
+            if (srgb.r <= srgb.b && srgb.r <= srgb.g) {
+                min = srgb.r
             }
-            if (rgb.g <= rgb.b && rgb.g <= rgb.r) {
-                min = rgb.g
+            if (srgb.g <= srgb.b && srgb.g <= srgb.r) {
+                min = srgb.g
             }
-            if (rgb.b <= rgb.r && rgb.b <= rgb.g) {
-                min = rgb.b
+            if (srgb.b <= srgb.r && srgb.b <= srgb.g) {
+                min = srgb.b
             }
 
-            if (rgb.r >= rgb.b && rgb.r >= rgb.g) {
+            if (srgb.r >= srgb.b && srgb.r >= srgb.g) {
                 maxArg = ColorRGBa.Component.R
-                max = rgb.r
+                max = srgb.r
             }
-            if (rgb.g >= rgb.b && rgb.g >= rgb.r) {
+            if (srgb.g >= srgb.b && srgb.g >= srgb.r) {
                 maxArg = ColorRGBa.Component.G
-                max = rgb.g
+                max = srgb.g
             }
-            if (rgb.b >= rgb.r && rgb.b >= rgb.g) {
+            if (srgb.b >= srgb.r && srgb.b >= srgb.g) {
                 maxArg = ColorRGBa.Component.B
-                max = rgb.b
+                max = srgb.b
             }
 
             val s: Double
@@ -65,20 +67,20 @@ data class ColorHSVa(val h: Double, val s: Double, val v: Double, val a: Double 
                 // r = g = b = 0		// s = 0, v is undefined
                 s = 0.0
                 h = 0.0
-                return ColorHSVa(h, s, v, rgb.a)
+                return ColorHSVa(h, s, v, srgb.a)
             }
             if (maxArg == ColorRGBa.Component.R) {
-                h = (rgb.g - rgb.b) / delta        // between yellow & magenta
+                h = (srgb.g - srgb.b) / delta        // between yellow & magenta
             } else if (maxArg == ColorRGBa.Component.G) {
-                h = 2 + (rgb.b - rgb.r) / delta    // between cyan & yellow
+                h = 2 + (srgb.b - srgb.r) / delta    // between cyan & yellow
             } else {
-                h = 4 + (rgb.r - rgb.g) / delta    // between magenta & cyan
+                h = 4 + (srgb.r - srgb.g) / delta    // between magenta & cyan
             }
             h *= 60.0                // degrees
             if (h < 0) {
                 h += 360.0
             }
-            return ColorHSVa(h, s, v, rgb.a)
+            return ColorHSVa(h, s, v, srgb.a)
         }
     }
 
@@ -104,9 +106,8 @@ data class ColorHSVa(val h: Double, val s: Double, val v: Double, val a: Double 
         val b: Double
         val hsv = this
 
-
         val sh = mod(hsv.h, 360.0) / 60            // sector 0 to 5
-        i = Math.floor(sh).toInt()
+        i = floor(sh).toInt()
         f = sh - i            // factorial part of h
         val p = hsv.v * (1 - hsv.s)
         val q = hsv.v * (1 - hsv.s * f)

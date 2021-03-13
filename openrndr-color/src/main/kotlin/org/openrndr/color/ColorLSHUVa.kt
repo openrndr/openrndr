@@ -1,7 +1,13 @@
 package org.openrndr.color
 
 
-data class ColorLSHUVa(val l: Double, val s: Double, val h: Double, val alpha: Double = 1.0, val ref: ColorXYZa = ColorXYZa.NEUTRAL) {
+data class ColorLSHUVa(
+    val l: Double,
+    val s: Double,
+    val h: Double,
+    val alpha: Double = 1.0,
+    val ref: ColorXYZa = ColorXYZa.NEUTRAL
+) {
 
     companion object {
         fun fromLCHUVa(lcha: ColorLCHUVa): ColorLSHUVa {
