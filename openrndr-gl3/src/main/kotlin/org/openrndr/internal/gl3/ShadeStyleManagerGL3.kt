@@ -8,19 +8,25 @@ import org.openrndr.measure
 
 private val logger = KotlinLogging.logger {}
 
-class ShadeStyleManagerGL3(name: String,
-                           val vsGenerator: (ShadeStructure) -> String,
-                           val tcsGenerator: ((ShadeStructure) -> String)?,
-                           val tesGenerator: ((ShadeStructure) -> String)?,
-                           val gsGenerator: ((ShadeStructure) -> String)?,
-                           val fsGenerator: (ShadeStructure) -> String) : ShadeStyleManager(name) {
+class ShadeStyleManagerGL3(
+    name: String,
+    val vsGenerator: (ShadeStructure) -> String,
+    val tcsGenerator: ((ShadeStructure) -> String)?,
+    val tesGenerator: ((ShadeStructure) -> String)?,
+    val gsGenerator: ((ShadeStructure) -> String)?,
+    val fsGenerator: (ShadeStructure) -> String
+) : ShadeStyleManager(name) {
 
     private var defaultShader: Shader? = null
     private val shaders = mutableMapOf<ShadeStructure, Shader>()
 
-    override fun shader(style: ShadeStyle?, vertexFormats: List<VertexFormat>, instanceFormats: List<VertexFormat>): Shader {
+    override fun shader(
+        style: ShadeStyle?,
+        vertexFormats: List<VertexFormat>,
+        instanceFormats: List<VertexFormat>
+    ): Shader {
         val outputInstanceFormats = instanceFormats + (style?.attributes
-                ?: emptyList<VertexBuffer>()).map { it.vertexFormat }
+            ?: emptyList<VertexBuffer>()).map { it.vertexFormat }
 
         if (style == null) {
             return measure("default-shader") {
@@ -28,10 +34,13 @@ class ShadeStyleManagerGL3(name: String,
                     logger.debug { "creating default shader" }
                     val structure = structureFromShadeStyle(style, vertexFormats, outputInstanceFormats)
                     defaultShader = Shader.createFromCode(
-                            vsCode = vsGenerator(structure),
-                            fsCode = fsGenerator(structure),
-                            name = "shade-style-default:$name",
-                            session = Session.root
+                        vsCode = vsGenerator(structure),
+                        tcsCode = tcsGenerator?.invoke(structure),
+                        tesCode = tesGenerator?.invoke(structure),
+                        gsCode = gsGenerator?.invoke(structure),
+                        fsCode = fsGenerator(structure),
+                        name = "shade-style-default:$name",
+                        session = Session.root
                     )
                     (defaultShader as ShaderGL3).userShader = false
                 }
@@ -43,13 +52,13 @@ class ShadeStyleManagerGL3(name: String,
                 val shader = shaders.getOrPut(structure) {
                     try {
                         Shader.createFromCode(
-                                vsCode = vsGenerator(structure),
-                                tcsCode = tcsGenerator?.invoke(structure),
-                                tesCode = tesGenerator?.invoke(structure),
-                                gsCode = gsGenerator?.invoke(structure),
-                                fsCode  = fsGenerator(structure),
-                                name ="shade-style-custom:$name-${structure.hashCode()}",
-                                session = Session.root
+                            vsCode = vsGenerator(structure),
+                            tcsCode = tcsGenerator?.invoke(structure),
+                            tesCode = tesGenerator?.invoke(structure),
+                            gsCode = gsGenerator?.invoke(structure),
+                            fsCode = fsGenerator(structure),
+                            name = "shade-style-custom:$name-${structure.hashCode()}",
+                            session = Session.root
                         )
                     } catch (e: Throwable) {
                         if (System.getProperties().containsKey("org.openrndr.ignoreShadeStyleErrors")) {
@@ -130,7 +139,7 @@ class ShadeStyleManagerGL3(name: String,
                                 imageIndex++
                             }
                             is DoubleArray -> {
-                                shader.uniform("p_${it.key}", value.map { it.toFloat()  }.toFloatArray())
+                                shader.uniform("p_${it.key}", value.map { it.toFloat() }.toFloatArray())
                             }
                             is IntArray -> {
                                 shader.uniform("p_${it.key}", value)
