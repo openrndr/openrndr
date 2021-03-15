@@ -63,7 +63,7 @@ class VertexBufferGL3(val buffer: Int, override val vertexFormat: VertexFormat, 
             val buffer = glGenBuffers()
             checkGLErrors()
             logger.debug {
-                "created new vertex buffer with id ${buffer}"
+                "created new vertex buffer[buffer=${buffer}, vertexCount=${vertexCount}, vertexFormat=${vertexFormat}]"
             }
             glBindBuffer(GL_ARRAY_BUFFER, buffer)
             checkGLErrors()
