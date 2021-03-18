@@ -42,5 +42,5 @@ tailrec fun chaikinSmooth(
                 polyline.last().copy()
     }
 
-    return chaikinSmooth(result, iterations - 1, closed)
+    return chaikinSmooth(result, iterations - 1, closed, bias)
 }
