@@ -1,9 +1,12 @@
 package org.openrndr.color
 
+import org.openrndr.math.CastableToVector4
+import org.openrndr.math.Vector4
 import kotlin.math.min
 
 data class ColorXYZa(val x: Double, val y: Double, val z: Double, val a: Double = 1.0) :
     ConvertibleToColorRGBa,
+    CastableToVector4,
     OpacifiableColor<ColorXYZa>,
     AlgebraicColor<ColorXYZa> {
 
@@ -57,4 +60,6 @@ data class ColorXYZa(val x: Double, val y: Double, val z: Double, val a: Double 
     override fun minus(right: ColorXYZa) = copy(x = x - right.x, y = y - right.y, z = z - right.z, a = a - right.a)
     override fun times(scale: Double): ColorXYZa = copy(x = x * scale, y = y * scale, z = z * scale, a = a * scale)
     override fun opacify(factor: Double) = copy(a = a * factor)
+
+    override fun toVector4() = Vector4(x, y, z, a)
 }

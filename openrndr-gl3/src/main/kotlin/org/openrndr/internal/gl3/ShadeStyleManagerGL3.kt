@@ -146,7 +146,7 @@ class ShadeStyleManagerGL3(
                             }
                             is Array<*> -> {
                                 require(value.isNotEmpty())
-                                when (value.first()!!) {
+                                when (value.firstOrNull()) {
                                     is Matrix44 -> {
                                         @Suppress("UNCHECKED_CAST")
                                         shader.uniform("p_${it.key}", value as Array<Matrix44>)
@@ -171,7 +171,16 @@ class ShadeStyleManagerGL3(
                                         @Suppress("UNCHECKED_CAST")
                                         shader.uniform("p_${it.key}", value as Array<Vector2>)
                                     }
+                                    is CastableToVector4 -> {
+                                        @Suppress("UNCHECKED_CAST")
+                                        shader.uniform("p_${it.key}", (value as Array<CastableToVector4>).map {
+                                            it.toVector4()
+                                        }.toTypedArray() )
+                                    }
                                 }
+                            }
+                            is CastableToVector4 -> {
+                                shader.uniform("p_${it.key}", value.toVector4())
                             }
                             else -> {
                                 throw RuntimeException("unsupported value type ${value::class}")

@@ -1,10 +1,13 @@
 package org.openrndr.color
 
+import org.openrndr.math.CastableToVector4
+import org.openrndr.math.Vector4
 import kotlin.math.pow
 
 @Suppress("unused", "UNUSED_PARAMETER")
 data class ColorLUVa(val l: Double, val u: Double, val v: Double, val alpha: Double = 1.0, val ref: ColorXYZa) :
     ConvertibleToColorRGBa,
+    CastableToVector4,
     OpacifiableColor<ColorLUVa>,
     ShadableColor<ColorLUVa>,
     AlgebraicColor<ColorLUVa> {
@@ -67,4 +70,6 @@ data class ColorLUVa(val l: Double, val u: Double, val v: Double, val alpha: Dou
         copy(l = l - right.l, u = u - right.u, v = v - right.v, alpha = alpha - right.alpha)
 
     override fun times(scale: Double) = copy(l = l * scale, u = u * scale, v = v * scale, alpha = alpha * scale)
+
+    override fun toVector4() = Vector4(l, u, v, alpha)
 }

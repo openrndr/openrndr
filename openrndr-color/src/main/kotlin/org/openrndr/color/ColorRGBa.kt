@@ -1,5 +1,6 @@
 package org.openrndr.color
 
+import org.openrndr.math.CastableToVector4
 import org.openrndr.math.Matrix55
 import org.openrndr.math.Vector3
 import org.openrndr.math.Vector4
@@ -29,6 +30,7 @@ data class ColorRGBa(
     val linearity: Linearity = Linearity.UNKNOWN
 ) :
     ConvertibleToColorRGBa,
+    CastableToVector4,
     OpacifiableColor<ColorRGBa>,
     ShadableColor<ColorRGBa>,
     AlgebraicColor<ColorRGBa> {
@@ -250,7 +252,7 @@ data class ColorRGBa(
     override fun mix(other: ColorRGBa, factor: Double): ColorRGBa {
         return mix(this, other, factor)
     }
-
+    override fun toVector4(): Vector4 = Vector4(r, g, b, a)
 }
 
 /**
