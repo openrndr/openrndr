@@ -12,18 +12,24 @@ buildscript {
 }
 
 plugins {
-    id 'org.jetbrains.kotlin.jvm' version '1.4.31'
+    // remember to update all the versions here when upgrading kotlin version
+    id 'org.jetbrains.kotlin.jvm'                  version '1.4.31' apply false
+    id 'org.jetbrains.kotlin.plugin.serialization' version '1.4.31' apply false
 }
 
 apply plugin: 'org.jetbrains.dokka'
 
 project.ext {
+    kotlinVersion = '1.4.31'
+    kotlinxSerializationVersion = '1.1.0' // check out kotlin releases to keep it in sync
     lwjglVersion = '3.2.3'
     javacpp_version = '1.5.4'
     ffmpeg_version = "4.3.1-$javacpp_version"
-    kotlinVersion = '1.4.31'
     spekVersion = '2.0.15'
+    kluentVersion = '1.65'
     jsoupVersion = '1.13.1'
+    kotestVersion = '4.4.3'
+    junitJupiterVersion = '5.7.1'
 }
 
 dokka {
@@ -68,9 +74,6 @@ dokka {
 }
 
 allprojects {
-    apply plugin: 'idea'
-    apply plugin: 'java'
-    apply plugin: 'kotlin'
 
     group 'org.openrndr'
 
@@ -80,14 +83,23 @@ allprojects {
             url "https://dl.bintray.com/spekframework/spek"
         }
     }
+}
+
+configure(allprojects.findAll { it.name != "openrndr-math" }) {
+    apply plugin: 'idea'
+    apply plugin: 'java'
+    apply plugin: 'kotlin'
 
     dependencies {
+        // Note: kotlin-logging-jvm and kotlinx-coroutines-core are loaded
+        // too early and their versions cannot be parametrized
         implementation 'io.github.microutils:kotlin-logging-jvm:2.0.4'
         implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2'
+
         implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"
 
         testImplementation "org.spekframework.spek2:spek-dsl-jvm:$spekVersion"
-        testImplementation "org.amshove.kluent:kluent:1.65"
+        testImplementation "org.amshove.kluent:kluent:$kluentVersion"
         testImplementation "org.jetbrains.kotlin:kotlin-test:$kotlinVersion"
         testRuntimeOnly "org.spekframework.spek2:spek-runner-junit5:$spekVersion"
         testRuntimeOnly "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"
@@ -106,6 +118,10 @@ allprojects {
 
     javadoc {
         options.addBooleanOption 'Xdoclint:none', true
+    }
+
+    tasks.withType(org.jetbrains.kotlin.gradle.tasks.AbstractKotlinCompile).all {
+        kotlinOptions.freeCompilerArgs += ["-Xuse-experimental=kotlinx.coroutines.InternalCoroutinesApi"]
     }
 }
 
@@ -132,12 +148,6 @@ configure(allprojects.findAll { it.name != "openrndr-demos" }) {
             moniker 'Edwin Jakobs'
             github 'edwinRNDR'
         }
-    }
-}
-
-configure(subprojects) {
-    tasks.withType(org.jetbrains.kotlin.gradle.tasks.AbstractKotlinCompile).all {
-        kotlinOptions.freeCompilerArgs += ["-Xuse-experimental=kotlinx.coroutines.InternalCoroutinesApi"]
     }
 }
 
