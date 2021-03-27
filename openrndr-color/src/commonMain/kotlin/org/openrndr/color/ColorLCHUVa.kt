@@ -1,10 +1,9 @@
 package org.openrndr.color
 
+import org.openrndr.math.asDegrees
+import org.openrndr.math.asRadians
 import org.openrndr.math.mixAngle
-import kotlin.math.atan2
-import kotlin.math.cos
-import kotlin.math.sin
-import kotlin.math.sqrt
+import kotlin.math.*
 
 data class ColorLCHUVa(
     val l: Double,
@@ -26,9 +25,9 @@ data class ColorLCHUVa(
             var h = atan2(luva.v, luva.u)
 
             if (h < 0) {
-                h += Math.PI * 2
+                h += PI * 2
             }
-            h = Math.toDegrees(h)
+            h = h.asDegrees
             return ColorLCHUVa(l, c, h, luva.alpha, luva.ref)
         }
 
@@ -75,8 +74,8 @@ data class ColorLCHUVa(
 
 
     fun toLUVa(): ColorLUVa {
-        val u = c * cos(Math.toRadians(h))
-        val v = c * sin(Math.toRadians(h))
+        val u = c * cos(h.asRadians)
+        val v = c * sin(h.asRadians)
         return ColorLUVa(l, u, v, alpha, ref)
     }
 

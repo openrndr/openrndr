@@ -1,6 +1,5 @@
 plugins {
     kotlin("multiplatform")
-    kotlin("plugin.serialization")
 }
 
 val kotlinxSerializationVersion:    String by rootProject.extra
@@ -26,6 +25,7 @@ kotlin {
 
     val hostOs = System.getProperty("os.name")
     val isMingwX64 = hostOs.startsWith("Windows")
+    @Suppress("UNUSED_VARIABLE")
     val nativeTarget = when {
         hostOs == "Mac OS X" -> macosX64("native")
         hostOs == "Linux" -> linuxX64("native")
@@ -35,40 +35,46 @@ kotlin {
 
     sourceSets {
 
+        @Suppress("UNUSED_VARIABLE")
         val commonMain by getting {
             dependencies {
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$kotlinxSerializationVersion")
+                implementation(project(":openrndr-math"))
             }
         }
+        @Suppress("UNUSED_VARIABLE")
         val commonTest by getting {
             dependencies {
                 implementation(kotlin("test-common"))
                 implementation(kotlin("test-annotations-common"))
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinxSerializationVersion")
                 implementation("io.kotest:kotest-assertions-core:$kotestVersion")
             }
         }
 
+        @Suppress("UNUSED_VARIABLE")
         val jvmMain by getting
+        @Suppress("UNUSED_VARIABLE")
         val jvmTest by getting {
             dependencies {
                 implementation(kotlin("test-common"))
                 implementation(kotlin("test-annotations-common"))
                 implementation(kotlin("test-junit5"))
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinxSerializationVersion")
                 runtimeOnly("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
                 runtimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
             }
         }
 
+        @Suppress("UNUSED_VARIABLE")
         val jsMain by getting
+        @Suppress("UNUSED_VARIABLE")
         val jsTest by getting {
             dependencies {
                 implementation(kotlin("test-js"))
             }
         }
 
+        @Suppress("UNUSED_VARIABLE")
         val nativeMain by getting
+        @Suppress("UNUSED_VARIABLE")
         val nativeTest by getting
 
     }

@@ -4,6 +4,7 @@ import org.openrndr.math.CastableToVector4
 import org.openrndr.math.Matrix55
 import org.openrndr.math.Vector3
 import org.openrndr.math.Vector4
+import kotlin.jvm.JvmOverloads
 import kotlin.math.pow
 
 enum class Linearity {

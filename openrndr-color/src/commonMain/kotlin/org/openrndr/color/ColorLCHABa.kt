@@ -1,10 +1,9 @@
 package org.openrndr.color
 
+import org.openrndr.math.asDegrees
+import org.openrndr.math.asRadians
 import org.openrndr.math.mixAngle
-import kotlin.math.atan2
-import kotlin.math.cos
-import kotlin.math.sin
-import kotlin.math.sqrt
+import kotlin.math.*
 
 data class ColorLCHABa(
     val l: Double,
@@ -66,10 +65,10 @@ data class ColorLCHABa(
             var h = atan2(laba.b, laba.a)
 
             if (h < 0) {
-                h += Math.PI * 2
+                h += PI * 2
             }
 
-            h = Math.toDegrees(h)
+            h = h.asDegrees
 
             return ColorLCHABa(l, c, h, laba.alpha, laba.ref)
         }
@@ -77,8 +76,8 @@ data class ColorLCHABa(
 
 
     fun toLABa(): ColorLABa {
-        val a = c * cos(Math.toRadians(h))
-        val b = c * sin(Math.toRadians(h))
+        val a = c * cos(h.asRadians)
+        val b = c * sin(h.asRadians)
         return ColorLABa(l, a, b, alpha, ref)
     }
 
