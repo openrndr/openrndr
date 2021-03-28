@@ -85,7 +85,12 @@ allprojects {
     }
 }
 
-configure(allprojects.findAll { it.name != "openrndr-math" }) {
+def multiplatformModules = [
+    "openrndr-math",
+    "openrndr-color"
+]
+
+configure(allprojects.findAll { !multiplatformModules.contains(it.name) }) {
     apply plugin: 'idea'
     apply plugin: 'java'
     apply plugin: 'kotlin'

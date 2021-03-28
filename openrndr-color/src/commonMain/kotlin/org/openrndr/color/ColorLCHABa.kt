@@ -1,12 +1,11 @@
 package org.openrndr.color
 
+import org.openrndr.math.asDegrees
+import org.openrndr.math.asRadians
 import org.openrndr.math.mixAngle
-import kotlin.math.atan2
-import kotlin.math.cos
-import kotlin.math.sin
-import kotlin.math.sqrt
+import kotlin.math.*
 
-data class ColorLCHUVa(
+data class ColorLCHABa(
     val l: Double,
     val c: Double,
     val h: Double,
@@ -14,24 +13,11 @@ data class ColorLCHUVa(
     val ref: ColorXYZa = ColorXYZa.NEUTRAL
 ) :
     ConvertibleToColorRGBa,
-    ShadableColor<ColorLCHUVa>,
-    OpacifiableColor<ColorLCHUVa>,
-    HueShiftableColor<ColorLCHUVa>,
-    AlgebraicColor<ColorLCHUVa> {
-
+    ShadableColor<ColorLCHABa>,
+    OpacifiableColor<ColorLCHABa>,
+    HueShiftableColor<ColorLCHABa>,
+    AlgebraicColor<ColorLCHABa> {
     companion object {
-        fun fromLUVa(luva: ColorLUVa): ColorLCHUVa {
-            val l = luva.l
-            val c = sqrt(luva.u * luva.u + luva.v * luva.v)
-            var h = atan2(luva.v, luva.u)
-
-            if (h < 0) {
-                h += Math.PI * 2
-            }
-            h = Math.toDegrees(h)
-            return ColorLCHUVa(l, c, h, luva.alpha, luva.ref)
-        }
-
         fun findMaxChroma(l: Double, h: Double, ref: ColorXYZa): Double {
             var left = 0.0
             var right = 2000.0
@@ -42,10 +28,10 @@ data class ColorLCHUVa(
                     return bestGuess
                 }
 
-                val leftTry = ColorLCHUVa(l, left, h, 1.0, ref)
-                val rightTry = ColorLCHUVa(l, right, h, 1.0, ref)
+                val leftTry = ColorLCHABa(l, left, h, 1.0, ref)
+                val rightTry = ColorLCHABa(l, right, h, 1.0, ref)
                 val middle = (left + right) / 2
-                val middleTry = ColorLCHUVa(l, middle, h, 1.0, ref)
+                val middleTry = ColorLCHABa(l, middle, h, 1.0, ref)
 
                 val leftValid = leftTry.toRGBa().let { it.minValue >= 0 && it.maxValue <= 1.0 }
                 val rightValid = rightTry.toRGBa().let { it.minValue >= 0 && it.maxValue <= 1.0 }
@@ -71,36 +57,53 @@ data class ColorLCHUVa(
                 }
             }
         }
+
+
+        fun fromLABa(laba: ColorLABa): ColorLCHABa {
+            val l = laba.l
+            val c = sqrt(laba.a * laba.a + laba.b * laba.b)
+            var h = atan2(laba.b, laba.a)
+
+            if (h < 0) {
+                h += PI * 2
+            }
+
+            h = h.asDegrees
+
+            return ColorLCHABa(l, c, h, laba.alpha, laba.ref)
+        }
     }
 
 
-    fun toLUVa(): ColorLUVa {
-        val u = c * cos(Math.toRadians(h))
-        val v = c * sin(Math.toRadians(h))
-        return ColorLUVa(l, u, v, alpha, ref)
+    fun toLABa(): ColorLABa {
+        val a = c * cos(h.asRadians)
+        val b = c * sin(h.asRadians)
+        return ColorLABa(l, a, b, alpha, ref)
     }
 
-    fun toLSHUVa() = ColorLSHUVa.fromLCHUVa(this)
-    override fun toRGBa() = toLUVa().toRGBa()
+    fun toXYZa(): ColorXYZa = toLABa().toXYZa()
+
+    override fun toRGBa(): ColorRGBa = toLABa().toXYZa().toRGBa()
+
+    fun toLSHABa() = ColorLSHABa.fromLCHABa(this)
 
     override fun opacify(factor: Double) = copy(alpha = alpha * factor)
     override fun shade(factor: Double) = copy(l = l * factor)
     override fun shiftHue(shiftInDegrees: Double) = copy(h = h + shiftInDegrees)
 
-    override fun plus(right: ColorLCHUVa) =
+    override fun plus(right: ColorLCHABa) =
         copy(l = l + right.l, c = c + right.c, h = h + right.h, alpha = alpha + right.alpha)
 
-    override fun minus(right: ColorLCHUVa) =
+    override fun minus(right: ColorLCHABa) =
         copy(l = l - right.l, c = c - right.c, h = h - right.h, alpha = alpha - right.alpha)
 
     override fun times(scale: Double) = copy(l = l * scale, c = c * scale, h = h * scale, alpha = alpha * scale)
-    override fun mix(other: ColorLCHUVa, factor: Double) = mix(this, other, factor)
+    override fun mix(other: ColorLCHABa, factor: Double) = mix(this, other, factor)
 }
 
-
-fun mix(left: ColorLCHUVa, right: ColorLCHUVa, x: Double): ColorLCHUVa {
+fun mix(left: ColorLCHABa, right: ColorLCHABa, x: Double): ColorLCHABa {
     val sx = x.coerceIn(0.0, 1.0)
-    return ColorLCHUVa(
+    return ColorLCHABa(
         (1.0 - sx) * left.l + sx * right.l,
         (1.0 - sx) * left.c + sx * right.c,
         mixAngle(left.h, right.h, sx),
