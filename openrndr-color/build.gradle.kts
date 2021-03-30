@@ -23,6 +23,8 @@ kotlin {
         nodejs()
     }
 
+    // native part switched off for now as it's quite unstable at the beginning on 2021
+    /*
     val hostOs = System.getProperty("os.name")
     val isMingwX64 = hostOs.startsWith("Windows")
     @Suppress("UNUSED_VARIABLE")
@@ -32,6 +34,7 @@ kotlin {
         isMingwX64 -> mingwX64("native")
         else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
     }
+     */
 
     sourceSets {
 
@@ -72,11 +75,13 @@ kotlin {
             }
         }
 
+    // native part switched off for now as it's quite unstable at the beginning on 2021
+    /*
         @Suppress("UNUSED_VARIABLE")
         val nativeMain by getting
         @Suppress("UNUSED_VARIABLE")
         val nativeTest by getting
-
+     */
     }
 
 }

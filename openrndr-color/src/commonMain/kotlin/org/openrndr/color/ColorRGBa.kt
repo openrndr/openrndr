@@ -23,6 +23,7 @@ enum class Linearity {
  * @param b blue between 0 and 1
  * @param a alpha between 0 and 1
  */
+@Suppress("EqualsOrHashCode") // generated equals() is ok, only hashCode() needs to be overridden
 data class ColorRGBa(
     val r: Double,
     val g: Double,
@@ -116,7 +117,6 @@ data class ColorRGBa(
         /**
          * Create a ColorRGBa object from a [Vector4]
          * @param vector input vector, `[x, y, z, w]` is mapped to `[r, g, b, a]`
-         * @param alpha optional alpha value, default is 1.0
          */
         fun fromVector(vector: Vector4): ColorRGBa {
             return ColorRGBa(vector.x, vector.y, vector.z, vector.w)
