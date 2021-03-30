@@ -2,6 +2,7 @@ import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 
 buildscript {
     repositories {
+        mavenCentral() // new artifacts minght no longer be published to jcentral()
         jcenter()
     }
     dependencies {
@@ -20,14 +21,16 @@ plugins {
 apply plugin: 'org.jetbrains.dokka'
 
 /*
-  Note: check out the latest Kotlin release docs to keep it in sync:
+  Note: check out the latest Kotlin release docs to keep all in sync:
 
   https://kotlinlang.org/docs/releases.html#release-details
- */
+
+  Warning: coroutines and logging cannot be parametrized with project.ext
+  see below!
+*/
 project.ext {
     kotlinVersion = '1.4.32'
-    kotlinxSerializationVersion = '1.1.0' // keep in sync with kotlin version
-    kotlinxCoroutinesVersion = '1.4.3'    // keep in sync with kotlin version
+    kotlinxSerializationVersion = '1.1.0'
     lwjglVersion = '3.2.3'
     javacpp_version = '1.5.4'
     ffmpeg_version = "4.3.1-$javacpp_version"
@@ -105,7 +108,7 @@ configure(allprojects.findAll { !multiplatformModules.contains(it.name) }) {
         // Note: kotlin-logging and kotlinx-coroutines-core are loaded
         // too early and their versions cannot be parametrized
         implementation 'io.github.microutils:kotlin-logging:2.0.6'
-        implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxCoroutinesVersion'
+        implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.3'
 
         implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
 
