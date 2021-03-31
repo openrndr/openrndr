@@ -28,9 +28,9 @@ include 'openrndr-application',
 		'openrndr-jvm:openrndr-openal-natives-linux-arm64',
 		'openrndr-jvm:openrndr-openal-natives-macos',
 		'openrndr-jvm:openrndr-openal-natives-windows',
+		'openrndr-jvm:openrndr-adopted-artifex',
+		'openrndr-jvm:openrndr-tessellation',
 		'openrndr-extensions',
-		'openrndr-adopted-artifex',
 		'openrndr-nullgl',
-		'openrndr-tessellation',
 		'openrndr-utils'
 

@@ -57,8 +57,8 @@ kotlin {
         @Suppress("UNUSED_VARIABLE")
         val jvmMain by getting {
             dependencies {
-                implementation(project(":openrndr-tessellation"))
-                implementation(project(":openrndr-adopted-artifex"))
+                implementation(project(":openrndr-jvm:openrndr-tessellation"))
+                implementation(project(":openrndr-jvm:openrndr-adopted-artifex"))
             }
 
         }
