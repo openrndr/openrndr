@@ -10,10 +10,10 @@ object TestDrawLineSegments : Spek({
                 program {
                     val segments = List(10) {
                         LineSegment(
-                                (it * 1001.0) % width,
-                                (it * 1337.0) % height,
-                                (it * 6502.0) % width,
-                                (it * 4004.0) % height
+                            (it * 1001.0) % width,
+                            (it * 1337.0) % height,
+                            (it * 6502.0) % width,
+                            (it * 4004.0) % height
                         )
                     }
                     extend {
@@ -45,10 +45,10 @@ object TestDrawLineSegments : Spek({
                 program {
                     val segments = List(1) {
                         LineSegment(
-                                (it * 1001.0) % width,
-                                (it * 1337.0) % height,
-                                (it * 6502.0) % width,
-                                (it * 4004.0) % height
+                            (it * 1001.0) % width,
+                            (it * 1337.0) % height,
+                            (it * 6502.0) % width,
+                            (it * 4004.0) % height
                         )
                     }
                     extend {

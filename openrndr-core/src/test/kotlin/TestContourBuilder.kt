@@ -9,7 +9,7 @@ import java.lang.IllegalArgumentException
 
 object TestContourBuilder : Spek({
 
-    describe("single segment contours") {
+    describe("single segment org.openrndr.shape.contours") {
         it("support a single line segment") {
             val c = contour {
                 moveTo(0.0, 0.0)
@@ -140,8 +140,8 @@ object TestContourBuilder : Spek({
             } `should throw` IllegalArgumentException::class
         }
     }
-    describe("multiple contours made with contours {}") {
-        it("supports multiple open contours") {
+    describe("multiple org.openrndr.shape.contours made with org.openrndr.shape.contours {}") {
+        it("supports multiple open org.openrndr.shape.contours") {
             val c = contours {
                 moveTo(0.0, 0.0)
                 lineTo(200.0, 200.0)
@@ -168,8 +168,8 @@ object TestContourBuilder : Spek({
                 moveTo(0.0, 0.0)
                 lineTo(100.0, 100.0)
                 moveTo(200.0, 200.0)
-                lineTo(300.0,200.0)
-                lineTo(200.0,300.0)
+                lineTo(300.0, 200.0)
+                lineTo(200.0, 300.0)
                 close()
             }
             c.size `should be equal to` 2
@@ -182,8 +182,8 @@ object TestContourBuilder : Spek({
         it("supports a closed contour followed by an open contour") {
             val c = contours {
                 moveTo(200.0, 200.0)
-                lineTo(300.0,200.0)
-                lineTo(200.0,300.0)
+                lineTo(300.0, 200.0)
+                lineTo(200.0, 300.0)
                 close()
                 moveTo(0.0, 0.0)
                 lineTo(100.0, 100.0)
@@ -195,15 +195,15 @@ object TestContourBuilder : Spek({
             c[1].segments.size `should be equal to` 1
         }
 
-        it("supports multiple open contours") {
+        it("supports multiple open org.openrndr.shape.contours") {
             val c = contours {
                 moveTo(200.0, 200.0)
-                lineTo(300.0,200.0)
-                lineTo(200.0,300.0)
+                lineTo(300.0, 200.0)
+                lineTo(200.0, 300.0)
                 close()
                 moveTo(200.0, 200.0)
-                lineTo(300.0,200.0)
-                lineTo(200.0,300.0)
+                lineTo(300.0, 200.0)
+                lineTo(200.0, 300.0)
                 close()
             }
             c.size `should be equal to` 2

@@ -1,4 +1,4 @@
 dependencies {
-    implementation project(":openrndr-core")
+    implementation project(":openrndr-application")
     implementation project(":openrndr-event")
 }

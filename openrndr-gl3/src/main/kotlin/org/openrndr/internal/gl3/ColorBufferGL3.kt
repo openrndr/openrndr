@@ -10,7 +10,6 @@ import org.lwjgl.opengl.ARBTextureCompressionBPTC.*
 import org.lwjgl.opengl.EXTTextureCompressionS3TC.*
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic.GL_TEXTURE_MAX_ANISOTROPY_EXT
 import org.lwjgl.opengl.EXTTextureSRGB.*
-import org.lwjgl.opengl.GL13C
 import org.lwjgl.opengl.GL33C.*
 import org.lwjgl.opengl.GL42C.glTexStorage2D
 import org.lwjgl.opengl.GL43C
@@ -302,12 +301,12 @@ class ColorBufferGL3(val target: Int,
     }
 
     override fun copyTo(
-            target: ColorBuffer,
-            fromLevel: Int,
-            toLevel: Int,
-            sourceRectangle: IntRectangle,
-            targetRectangle: IntRectangle,
-            filter: MagnifyingFilter
+        target: ColorBuffer,
+        fromLevel: Int,
+        toLevel: Int,
+        sourceRectangle: IntRectangle,
+        targetRectangle: IntRectangle,
+        filter: MagnifyingFilter
     ) {
         checkDestroyed()
 

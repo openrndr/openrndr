@@ -2,7 +2,6 @@ package org.openrndr.math
 
 import org.amshove.kluent.`should be equal to`
 import org.amshove.kluent.`should have key`
-import org.amshove.kluent.`should not be in`
 import org.openrndr.resourceUrl
 import org.openrndr.shape.ShapeTopology
 import org.openrndr.shape.Winding
@@ -42,7 +41,7 @@ object TestSVGLoader : Spek({
         val composition = loadSVG(resourceUrl("/svg/text-001.svg"))
         composition.findShapes().all { it.shape.contours.all { it.closed } } `should be equal to` true
     }
-    describe("the svg file 'open-compound.svg'") {
+    describe("the svg file 'open-org.openrndr.shape.compound.svg'") {
         val composition = loadSVG(resourceUrl("/svg/open-compound.svg"))
         composition.findShapes()[0].shape.topology `should be equal to` ShapeTopology.OPEN
         composition.findShapes().all { node -> node.shape.contours.all { it.closed } } `should be equal to` false
@@ -51,8 +50,8 @@ object TestSVGLoader : Spek({
     describe("the svg file 'patterns-2.svg'") {
         val composition = loadSVG(resourceUrl("/svg/patterns-2.svg"))
         triangulate(composition.findShapes()[0].shape)
-//        composition.findShapes()[0].shape.topology `should be equal to` ShapeTopology.OPEN
-//        composition.findShapes().all { node -> node.shape.contours.all { it.closed } } `should be equal to` false
+//        composition.org.openrndr.shape.findShapes()[0].shape.topology `should be equal to` org.openrndr.shape.ShapeTopology.OPEN
+//        composition.org.openrndr.shape.findShapes().all { node -> node.shape.org.openrndr.shape.contours.all { it.closed } } `should be equal to` false
     }
 
     describe("the svg file 'delta.svg'") {

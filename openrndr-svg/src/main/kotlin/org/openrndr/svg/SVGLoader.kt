@@ -1,5 +1,14 @@
 package org.openrndr.svg
 
+import org.openrndr.shape.CompositionColor
+import org.openrndr.shape.CompositionNode
+import org.openrndr.shape.CompositionStrokeWeight
+import org.openrndr.shape.GroupNode
+import org.openrndr.shape.ImageNode
+import org.openrndr.shape.InheritColor
+import org.openrndr.shape.InheritStrokeWeight
+import org.openrndr.shape.ShapeNode
+import org.openrndr.shape.StrokeWeight
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import org.jsoup.parser.Parser
@@ -637,7 +646,7 @@ internal class SVGLoader {
         val y = e.attr("y").toDoubleOrNull()
         val imageData = e.attr("xlink:href")
 //        val image = ColorBuffer.fromUrl(imageData)
-//        val imageNode = ImageNode(image, width ?: image.width.toDouble(), height ?: image.height.toDouble())
+//        val imageNode = org.openrndr.shape.ImageNode(image, width ?: image.width.toDouble(), height ?: image.height.toDouble())
         val image = SVGImage(imageData, x, y, width, height)
         image.parseTransform(e)
         group.elements.add(image)

@@ -47,15 +47,15 @@ object TestShape : Spek({
             }
         }
 
-        it("should have 2 contours") {
+        it("should have 2 org.openrndr.shape.contours") {
             s.contours.size `should be equal to` 2
         }
 
-        it ("all contours should be closed") {
+        it ("all org.openrndr.shape.contours should be closed") {
             s.contours.all { it.closed } `should be equal to` true
         }
 
-        it ("all contours have negative polarity") {
+        it ("all org.openrndr.shape.contours have negative polarity") {
             s.contours.all { it.polarity == YPolarity.CW_NEGATIVE_Y } `should be equal to` true
         }
 

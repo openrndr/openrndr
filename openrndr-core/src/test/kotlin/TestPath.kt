@@ -3,7 +3,6 @@ import org.openrndr.shape.Path3D
 import org.openrndr.shape.path3D
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
-import kotlin.test.assertEquals
 
 object TestPath : Spek({
 

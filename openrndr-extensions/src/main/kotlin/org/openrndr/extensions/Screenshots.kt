@@ -5,11 +5,9 @@ import org.openrndr.Program
 import org.openrndr.draw.*
 import org.openrndr.extensions.CreateScreenshot.*
 import java.io.File
-import java.time.LocalDateTime
 import mu.KotlinLogging
 import org.openrndr.events.Event
 import org.openrndr.utils.namedTimestamp
-import kotlin.math.max
 
 private val logger = KotlinLogging.logger {}
 
@@ -192,7 +190,7 @@ open class Screenshots : Extension {
                     drawer.image(it.colorBuffer(0), it.colorBuffer(0).bounds, drawer.bounds)
                 } else {
                     target?.let { rt ->
-                        rt.colorBuffer(0).resolveTo(resolved)
+                        rt.colorBuffer(0).copyTo(resolved)
                         resolved.saveToFile(targetFile, async = async)
                         drawer.image(resolved, resolved.bounds, drawer.bounds)
                     }

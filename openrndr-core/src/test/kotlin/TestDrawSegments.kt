@@ -11,12 +11,18 @@ object TestDrawSegments : Spek({
                 program {
                     val segments = List(10) {
                         Segment(
-                                Vector2((it * 1001.0) % width,
-                                        (it * 1337.0) % height),
-                                Vector2((it * 3333.0) % width,
-                                        (it * 5555.0) % height),
-                                Vector2((it * 6502.0) % width,
-                                        (it * 4004.0) % height)
+                            Vector2(
+                                (it * 1001.0) % width,
+                                (it * 1337.0) % height
+                            ),
+                            Vector2(
+                                (it * 3333.0) % width,
+                                (it * 5555.0) % height
+                            ),
+                            Vector2(
+                                (it * 6502.0) % width,
+                                (it * 4004.0) % height
+                            )
                         )
                     }
                     extend {
@@ -34,12 +40,18 @@ object TestDrawSegments : Spek({
                 program {
                     val segments = List(1) {
                         Segment(
-                                Vector2((it * 1001.0) % width,
-                                        (it * 1337.0) % height),
-                                Vector2((it * 3333.0) % width,
-                                        (it * 5555.0) % height),
-                                Vector2((it * 6502.0) % width,
-                                        (it * 4004.0) % height)
+                            Vector2(
+                                (it * 1001.0) % width,
+                                (it * 1337.0) % height
+                            ),
+                            Vector2(
+                                (it * 3333.0) % width,
+                                (it * 5555.0) % height
+                            ),
+                            Vector2(
+                                (it * 6502.0) % width,
+                                (it * 4004.0) % height
+                            )
                         )
                     }
                     extend {

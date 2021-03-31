@@ -7,7 +7,7 @@ buildscript {
     }
     dependencies {
         classpath "org.jetbrains.dokka:dokka-gradle-plugin:0.10.1"
-        classpath "com.netflix.nebula:nebula-publishing-plugin:17.3.0"
+        classpath "com.netflix.nebula:nebula-publishing-plugin:17.3.2"
         classpath "com.netflix.nebula:nebula-release-plugin:15.3.1"
     }
 }
@@ -96,7 +96,12 @@ allprojects {
 
 def multiplatformModules = [
     "openrndr-math",
-    "openrndr-color"
+    "openrndr-color",
+    "openrndr-utils",
+    "openrndr-shape",
+    "openrndr-binpack"
+
+
 ]
 
 configure(allprojects.findAll { !multiplatformModules.contains(it.name) }) {

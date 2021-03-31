@@ -1,14 +1,16 @@
 import org.amshove.kluent.`should be equal to`
-import org.openrndr.math.Vector2
 import org.openrndr.math.YPolarity
-import org.openrndr.shape.*
+import org.openrndr.shape.Circle
+import org.openrndr.shape.Rectangle
+import org.openrndr.shape.Winding
+import org.openrndr.shape.compound
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 
 object TestCompoundBuilder : Spek({
     val width = 640
     val height = 480
-    describe("a simple union compound") {
+    describe("a simple org.openrndr.shape.union org.openrndr.shape.compound") {
         val sc = compound {
             union {
                 shape(Circle(185.0, height / 2.0 - 80.0, 100.0).shape)
@@ -32,7 +34,7 @@ object TestCompoundBuilder : Spek({
         }
     }
 
-    describe("a simple difference compound") {
+    describe("a simple difference org.openrndr.shape.compound") {
         // -- shape difference
         val sc = compound {
             difference {
@@ -57,7 +59,7 @@ object TestCompoundBuilder : Spek({
         }
     }
 
-    describe("a simple intersection compound") {
+    describe("a simple intersection org.openrndr.shape.compound") {
         // -- shape difference
         val sc = compound {
             intersection {
@@ -82,7 +84,7 @@ object TestCompoundBuilder : Spek({
         }
     }
 
-    describe("a disjunct intersection compound") {
+    describe("a disjunct intersection org.openrndr.shape.compound") {
         val sc = compound {
             intersection {
                 shape(Circle(385.0, height / 2.0 - 80.0, 100.0).shape)

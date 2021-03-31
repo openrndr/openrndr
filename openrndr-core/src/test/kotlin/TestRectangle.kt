@@ -14,7 +14,7 @@ object TestRectangle : Spek({
         val width = 200.0
 
         it("has default height equal to width") {
-            Rectangle(50.0,50.0, width).height `should be equal to` width
+            Rectangle(50.0, 50.0, width).height `should be equal to` width
             Rectangle.fromCenter(Vector2.ZERO, width).height `should be equal to` width
             Rectangle(Vector2.ZERO, width).height `should be equal to` width
         }
@@ -22,7 +22,7 @@ object TestRectangle : Spek({
 
     describe("A rectangle's contour") {
 
-        val c = Rectangle(50.0,50.0, 200.0, 200.0).contour
+        val c = Rectangle(50.0, 50.0, 200.0, 200.0).contour
         it("is closed") {
             c.closed `should be equal to` true
         }

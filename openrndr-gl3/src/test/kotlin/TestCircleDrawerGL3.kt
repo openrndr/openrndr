@@ -18,7 +18,7 @@ object TestCircleDrawerGL3 : Spek({
             program.drawer.circle(Vector2(0.0, 0.0), 40.0)
 
             program.drawer.circles((0..20000).map {
-                Circle(Vector2(Math.random(), Math.random()), Math.random()*20.0)
+                Circle(Vector2(Math.random(), Math.random()), Math.random() * 20.0)
             })
             program.drawer.circle(Vector2(0.0, 0.0), 40.0)
         }

@@ -1,8 +1,10 @@
 rootProject.name = 'openrndr'
 
-include 'openrndr-core',
+include 'openrndr-application',
+		'openrndr-core',
 		'openrndr-demos',
 		'openrndr-dialogs',
+		'openrndr-draw',
         'openrndr-gl3',
 		'openrndr-gl3-natives-linux-x64',
 		'openrndr-gl3-natives-linux-arm64',
@@ -26,7 +28,9 @@ include 'openrndr-core',
 		'openrndr-ffmpeg-natives-macos',
 		'openrndr-ffmpeg-natives-linux-x64',
 		'openrndr-ffmpeg-natives-linux-arm64',
-//        'openrndr-shadestyle-parser',
 		'openrndr-extensions',
 		'openrndr-adopted-artifex',
-		'openrndr-nullgl'
+		'openrndr-nullgl',
+		'openrndr-tessellation',
+		'openrndr-utils'
+

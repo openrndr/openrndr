@@ -8,7 +8,7 @@ import org.spekframework.spek2.style.specification.describe
 
 object TestShapeContour : Spek({
 
-    describe("two equivalent contours") {
+    describe("two equivalent org.openrndr.shape.contours") {
         val a = Circle(40.0, 40.0, 100.0).contour
         val b = Circle(40.0, 40.0, 100.0).contour
         it("should be equal") {
@@ -16,7 +16,7 @@ object TestShapeContour : Spek({
         }
     }
 
-    describe("two non-equivalent contours") {
+    describe("two non-equivalent org.openrndr.shape.contours") {
         val a = Circle(40.0, 40.0, 100.0).contour
         val b = Circle(40.0, 80.0, 100.0).contour
         it("should not be equal") {

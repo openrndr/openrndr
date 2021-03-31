@@ -1,5 +1,11 @@
 package org.openrndr.svg
 
+import org.openrndr.shape.CompositionNode
+import org.openrndr.shape.GroupNode
+import org.openrndr.shape.ImageNode
+import org.openrndr.shape.ShapeNode
+import org.openrndr.shape.StrokeWeight
+import org.openrndr.shape.TextNode
 import org.jsoup.nodes.Entities
 import org.openrndr.color.ColorRGBa
 import org.openrndr.math.Matrix44

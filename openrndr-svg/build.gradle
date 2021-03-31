@@ -1,6 +1,6 @@
 dependencies {
+    implementation project(":openrndr-application")
     implementation project(":openrndr-math")
-    implementation project(":openrndr-core")
     implementation project(":openrndr-color")
     testRuntime project(":openrndr-nullgl")
     implementation "org.jsoup:jsoup:$jsoupVersion"

@@ -19,7 +19,7 @@
   <defs
      id="defs2">
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5946"
        is_visible="true"
        steps="1"
@@ -31,7 +31,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5942"
        is_visible="true"
        steps="1"
@@ -43,7 +43,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5934"
        is_visible="true"
        steps="1"
@@ -55,7 +55,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5930"
        is_visible="true"
        steps="1"
@@ -67,7 +67,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5926"
        is_visible="true"
        steps="1"
@@ -79,7 +79,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5922"
        is_visible="true"
        steps="1"
@@ -91,7 +91,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5918"
        is_visible="true"
        steps="1"
@@ -103,7 +103,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5914"
        is_visible="true"
        steps="1"
@@ -115,7 +115,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5902"
        is_visible="true"
        steps="1"
@@ -127,7 +127,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5898"
        is_visible="true"
        steps="1"
@@ -139,7 +139,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5894"
        is_visible="true"
        steps="1"
@@ -151,7 +151,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5886"
        is_visible="true"
        steps="1"
@@ -163,7 +163,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5882"
        is_visible="true"
        steps="1"
@@ -175,7 +175,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5878"
        is_visible="true"
        steps="1"
@@ -187,7 +187,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5874"
        is_visible="true"
        steps="1"
@@ -199,7 +199,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5870"
        is_visible="true"
        steps="1"
@@ -211,7 +211,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5866"
        is_visible="true"
        steps="1"
@@ -223,7 +223,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5862"
        is_visible="true"
        steps="1"
@@ -235,7 +235,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5858"
        is_visible="true"
        steps="1"
@@ -247,7 +247,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5850"
        is_visible="true"
        steps="1"
@@ -259,7 +259,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5838"
        is_visible="true"
        steps="1"
@@ -271,7 +271,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5834"
        is_visible="true"
        steps="1"
@@ -283,7 +283,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5830"
        is_visible="true"
        steps="1"
@@ -295,7 +295,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5826"
        is_visible="true"
        steps="1"
@@ -307,7 +307,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5822"
        is_visible="true"
        steps="1"
@@ -319,7 +319,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5818"
        is_visible="true"
        steps="1"
@@ -331,7 +331,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5814"
        is_visible="true"
        steps="1"
@@ -343,7 +343,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5810"
        is_visible="true"
        steps="1"
@@ -355,7 +355,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5806"
        is_visible="true"
        steps="1"
@@ -367,7 +367,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5802"
        is_visible="true"
        steps="1"
@@ -379,7 +379,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5798"
        is_visible="true"
        steps="1"
@@ -391,7 +391,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5790"
        is_visible="true"
        steps="1"
@@ -403,7 +403,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5786"
        is_visible="true"
        steps="1"
@@ -415,7 +415,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5782"
        is_visible="true"
        steps="1"
@@ -427,7 +427,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5778"
        is_visible="true"
        steps="1"
@@ -439,7 +439,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5774"
        is_visible="true"
        steps="1"
@@ -451,7 +451,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5770"
        is_visible="true"
        steps="1"
@@ -463,7 +463,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5766"
        is_visible="true"
        steps="1"
@@ -475,7 +475,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5754"
        is_visible="true"
        steps="1"
@@ -487,7 +487,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5750"
        is_visible="true"
        steps="1"
@@ -499,7 +499,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5738"
        is_visible="true"
        steps="1"
@@ -511,7 +511,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5734"
        is_visible="true"
        steps="1"
@@ -523,7 +523,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5730"
        is_visible="true"
        steps="1"
@@ -535,7 +535,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5726"
        is_visible="true"
        steps="1"
@@ -547,7 +547,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5718"
        is_visible="true"
        steps="1"
@@ -559,7 +559,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5714"
        is_visible="true"
        steps="1"
@@ -571,7 +571,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5710"
        is_visible="true"
        steps="1"
@@ -583,7 +583,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5706"
        is_visible="true"
        steps="1"
@@ -595,7 +595,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5702"
        is_visible="true"
        steps="1"
@@ -607,7 +607,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5698"
        is_visible="true"
        steps="1"
@@ -619,7 +619,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5682"
        is_visible="true"
        steps="1"
@@ -631,7 +631,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5678"
        is_visible="true"
        steps="1"
@@ -643,7 +643,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5674"
        is_visible="true"
        steps="1"
@@ -655,7 +655,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5670"
        is_visible="true"
        steps="1"
@@ -667,7 +667,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5666"
        is_visible="true"
        steps="1"
@@ -679,7 +679,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5658"
        is_visible="true"
        steps="1"
@@ -691,7 +691,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5650"
        is_visible="true"
        steps="1"
@@ -703,7 +703,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5646"
        is_visible="true"
        steps="1"
@@ -715,7 +715,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5642"
        is_visible="true"
        steps="1"
@@ -727,7 +727,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5638"
        is_visible="true"
        steps="1"
@@ -739,7 +739,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5634"
        is_visible="true"
        steps="1"
@@ -751,7 +751,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5630"
        is_visible="true"
        steps="1"
@@ -763,7 +763,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5626"
        is_visible="true"
        steps="1"
@@ -775,7 +775,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5622"
        is_visible="true"
        steps="1"
@@ -787,7 +787,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5618"
        is_visible="true"
        steps="1"
@@ -799,7 +799,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5614"
        is_visible="true"
        steps="1"
@@ -811,7 +811,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5610"
        is_visible="true"
        steps="1"
@@ -823,7 +823,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5606"
        is_visible="true"
        steps="1"
@@ -835,7 +835,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5602"
        is_visible="true"
        steps="1"
@@ -847,7 +847,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5598"
        is_visible="true"
        steps="1"
@@ -859,7 +859,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5594"
        is_visible="true"
        steps="1"
@@ -871,7 +871,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5590"
        is_visible="true"
        steps="1"
@@ -883,7 +883,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5586"
        is_visible="true"
        steps="1"
@@ -895,7 +895,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5582"
        is_visible="true"
        steps="1"
@@ -907,7 +907,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5578"
        is_visible="true"
        steps="1"
@@ -919,7 +919,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5574"
        is_visible="true"
        steps="1"
@@ -931,7 +931,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect5570"
        is_visible="true"
        steps="1"
@@ -943,7 +943,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect4813"
        is_visible="true"
        steps="1"
@@ -955,7 +955,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect4809"
        is_visible="true"
        steps="1"
@@ -967,7 +967,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect4797"
        is_visible="true"
        steps="1"
@@ -979,7 +979,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect4793"
        is_visible="true"
        steps="1"
@@ -991,7 +991,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect4781"
        is_visible="true"
        steps="1"
@@ -1003,7 +1003,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect4777"
        is_visible="true"
        steps="1"
@@ -1015,7 +1015,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect4773"
        is_visible="true"
        steps="1"
@@ -1027,7 +1027,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect4769"
        is_visible="true"
        steps="1"
@@ -1039,7 +1039,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect4765"
        is_visible="true"
        steps="1"
@@ -1051,7 +1051,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect4761"
        is_visible="true"
        steps="1"
@@ -1063,7 +1063,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect4757"
        is_visible="true"
        steps="1"
@@ -1075,7 +1075,7 @@
        simplifyindividualpaths="false"
        simplifyJustCoalesce="false" />
     <inkscape:path-effect
-       effect="simplify"
+       effect="org.openrndr.shape.simplify"
        id="path-effect4753"
        is_visible="true"
        steps="1"
