@@ -13,9 +13,9 @@ dependencies {
     implementation "org.lwjgl:lwjgl-egl:$lwjglVersion"
     implementation "org.lwjgl:lwjgl-tinyexr:$lwjglVersion"
 
-    testRuntimeOnly project(":openrndr-gl3-natives-windows")
-    testRuntimeOnly project(":openrndr-gl3-natives-macos")
-    testRuntimeOnly project(":openrndr-gl3-natives-linux-x64")
+    testRuntimeOnly project(":openrndr-jvm:openrndr-gl3-natives-windows")
+    testRuntimeOnly project(":openrndr-jvm:openrndr-gl3-natives-macos")
+    testRuntimeOnly project(":openrndr-jvm:openrndr-gl3-natives-linux-x64")
     testRuntimeOnly 'org.slf4j:slf4j-simple:1.7.30'
 }
 

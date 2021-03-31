@@ -5,9 +5,9 @@ dependencies {
     implementation "org.lwjgl:lwjgl:$lwjglVersion"
     implementation "org.lwjgl:lwjgl-openal:$lwjglVersion"
 
-    testRuntimeOnly project(":openrndr-openal-natives-windows")
-    testRuntimeOnly project(":openrndr-openal-natives-macos")
-    testRuntimeOnly project(":openrndr-openal-natives-linux-x64")
+    testRuntimeOnly project(":openrndr-jvm:openrndr-openal-natives-windows")
+    testRuntimeOnly project(":openrndr-jvm:openrndr-openal-natives-macos")
+    testRuntimeOnly project(":openrndr-jvm:openrndr-openal-natives-linux-x64")
     testRuntimeOnly 'org.slf4j:slf4j-simple:1.7.5'
 }
 

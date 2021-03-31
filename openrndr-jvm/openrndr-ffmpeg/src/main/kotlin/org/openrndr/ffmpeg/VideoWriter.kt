@@ -8,7 +8,6 @@ import java.io.IOException
 import java.io.OutputStream
 import java.nio.Buffer
 import java.nio.ByteBuffer
-import java.nio.ByteOrder
 import java.nio.channels.Channels
 import java.nio.channels.WritableByteChannel
 import java.util.*

@@ -125,7 +125,7 @@ internal class AudioDecoder(
 //
 //            if (ret < 0) {
 //                if (ret != AVERROR_EOF)
-//                    org.openrndr.ffmpeg.logger.debug { "error in avcodec_send_packet: $ret" }
+//                    logger.debug { "error in avcodec_send_packet: $ret" }
 //                return
 //            }
 //
@@ -157,7 +157,7 @@ internal class AudioDecoder(
 //                            val buffer = av_buffer_alloc(audioFrameSize)!!
 //                            val ts = (audioFrame.best_effort_timestamp()) * av_q2d(audioCodecContext.time_base())
 //                            memcpy(buffer.data(), data()[0], audioFrameSize.toLong())
-//                            audioQueue.push(org.openrndr.ffmpeg.AudioFrame(buffer, 0, audioFrameSize, ts))
+//                            audioQueue.push(AudioFrame(buffer, 0, audioFrameSize, ts))
 //                        }
 //                    } else println("there was an error: $result")
 //                    result.checkAVError()
