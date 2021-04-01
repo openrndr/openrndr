@@ -6,5 +6,5 @@ dependencies {
     api project(":openrndr-event")
     api project(":openrndr-animatable")
     implementation project(":openrndr-application")
-    testRuntime project(":openrndr-nullgl")
+    testRuntimeOnly project(":openrndr-nullgl")
 }

@@ -7,7 +7,7 @@ buildscript {
     }
     dependencies {
         classpath "org.jetbrains.dokka:dokka-gradle-plugin:0.10.1"
-        classpath "com.netflix.nebula:nebula-publishing-plugin:17.3.2"
+//        classpath "com.netflix.nebula:nebula-publishing-plugin:17.3.2"
         classpath "com.netflix.nebula:nebula-release-plugin:15.3.1"
     }
 }
@@ -146,12 +146,12 @@ configure(allprojects.findAll { !multiplatformModules.contains(it.name) }) {
 }
 
 configure(allprojects.findAll { it.name != "openrndr-demos" }) {
-    apply plugin: 'nebula.contacts'
+//    apply plugin: 'nebula.contacts'
 
     // -- work-around for problem with nebula.info on arm64, which is currently not used a build host platform
     def arch = new DefaultNativePlatform("current").architecture.name
     if (arch != 'aarch64') {
-        apply plugin: 'nebula.info'
+//        apply plugin: 'nebula.info'
     }
 //    apply plugin: 'nebula.dependency-lock'
 
@@ -159,15 +159,17 @@ configure(allprojects.findAll { it.name != "openrndr-demos" }) {
     // selectively apply only the bintray plugin, snapshots are not published
     // nebula-bintray needs to happened after nebula-release since version isn't lazy in the bintray extension
 
-    apply plugin: 'nebula.maven-publish'
-    apply plugin: 'nebula.source-jar'
-    apply plugin: 'nebula.javadoc-jar'
+    apply plugin: 'maven-publish'
 
-    contacts {
-        'edwin@openrndr.org' {
-            moniker 'Edwin Jakobs'
-            github 'edwinRNDR'
-        }
-    }
+//    apply plugin: 'nebula.maven-publish'
+    //apply plugin: 'nebula.source-jar'
+    //apply plugin: 'nebula.javadoc-jar'
+
+//    contacts {
+//        'edwin@openrndr.org' {
+//            moniker 'Edwin Jakobs'
+//            github 'edwinRNDR'
+//        }
+//    }
 }
 
