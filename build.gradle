@@ -95,14 +95,15 @@ allprojects {
 }
 
 def multiplatformModules = [
+        "openrndr-event",
     "openrndr-math",
     "openrndr-color",
     "openrndr-utils",
     "openrndr-shape",
-    "openrndr-binpack"
-
-
+    "openrndr-binpack",
+    "openrndr-animatable"
 ]
+
 
 configure(allprojects.findAll { !multiplatformModules.contains(it.name) }) {
     apply plugin: 'idea'
