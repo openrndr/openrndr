@@ -31,18 +31,18 @@ abstract class PropertyAnimationKey<T>(
      */
     val endInNs get() = (startInNs + durationInNs)
 
-    var animationState = AnimationKey.AnimationState.Queued
+    var animationState = AnimationState.Queued
         private set
 
     internal fun play() {
-        if (animationState != AnimationKey.AnimationState.Playing) {
+        if (animationState != AnimationState.Playing) {
             this.startValue = property.get()
-            animationState = AnimationKey.AnimationState.Playing
+            animationState = AnimationState.Playing
         }
     }
 
     internal fun stop() {
-        animationState = AnimationKey.AnimationState.Stopped
+        animationState = AnimationState.Stopped
     }
 
     internal abstract fun applyToProperty(t: Double)
@@ -56,8 +56,6 @@ internal class LinearTypeAnimationKey<T : LinearType<T>>(
         easing: Easing
 ) : PropertyAnimationKey<T>(property, targetValue, durationInNs, startInNs, easing) {
     override var startValue: T? = null
-
-
 
     override fun applyToProperty(t: Double) {
         val et = easing.easer.ease(t, 0.0, 1.0, 1.0)

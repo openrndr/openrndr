@@ -25,6 +25,12 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 private val globalAnimator by lazy { Animatable() }
 
+enum class AnimationState {
+    Queued,
+    Playing,
+    Stopped
+}
+
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 open class Animatable {
 
@@ -202,7 +208,6 @@ open class Animatable {
 
     internal var lastTimeInNs = createAtTimeInNs
 
-    private var animationKeys: MutableList<AnimationKey>? = mutableListOf()
     private var propertyAnimationKeys: MutableList<PropertyAnimationKey<*>> = mutableListOf()
 
     private var stage: String? = null
@@ -257,21 +262,7 @@ open class Animatable {
      * @return `true` iff animations are cued.
      */
     fun hasAnimations(): Boolean {
-        return (animationKeys?.size ?: 0) + propertyAnimationKeys.size != 0
-    }
-
-    /**
-     * Queries if animations matching any of the given variables are cued.
-     * @param variables
-     * @return `true` iff animations matching any of the given variables are cued.
-     */
-    @Deprecated("use property based API")
-    fun hasAnimations(vararg variables: String): Boolean {
-        val variableSet = HashSet<String>()
-        for (variable in variables) {
-            variableSet.add(variable)
-        }
-        return animationKeys?.any { variableSet.contains(it.variable) } ?: false
+        return propertyAnimationKeys.size != 0
     }
 
     /**
@@ -279,7 +270,6 @@ open class Animatable {
      * @return `this` for easy animation chaining
      */
     fun cancel() {
-        animationKeys?.clear()
         propertyAnimationKeys.clear()
         createAtTimeInNs = lastTimeInNs
     }
@@ -304,9 +294,6 @@ open class Animatable {
     fun updateAnimation(timeInNs: Long = clock.timeNanos) {
         lastTimeInNs = timeInNs
         createAtTimeInNs = lastTimeInNs
-        if (animationKeys == null) {
-            animationKeys = mutableListOf()
-        }
         updatePropertyAnimations(timeInNs)
     }
 
@@ -316,11 +303,11 @@ open class Animatable {
 
         for (key in propertyAnimationKeys) {
             if (key.startInNs <= timeInNs) { // && key.start + key.duration >= time) {
-                if (key.animationState == AnimationKey.AnimationState.Queued) {
+                if (key.animationState == AnimationState.Queued) {
                     key.play()
                 }
 
-                if (key.animationState == AnimationKey.AnimationState.Playing) {
+                if (key.animationState == AnimationState.Playing) {
                     var dt = (timeInNs - key.startInNs).toDouble()
 
                     if (key.durationInNs > 0) {
@@ -337,7 +324,7 @@ open class Animatable {
                     }
                     key.applyToProperty(dt)
                 }
-                if (key.animationState == AnimationKey.AnimationState.Stopped) {
+                if (key.animationState == AnimationState.Stopped) {
                     triggers.add(key.completed)
                     toRemove.add(key)
                 }
@@ -363,7 +350,7 @@ open class Animatable {
      * @return number of playing plus queued animations
      */
     fun animationCount(): Int {
-        return animationKeys!!.size + propertyAnimationKeys.size
+        return propertyAnimationKeys.size
     }
 
     companion object {
