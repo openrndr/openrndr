@@ -1,0 +1,7 @@
+package org.openrndr
+
+class CharacterEvent(val character: Char, val modifiers: Set<KeyModifier>, var propagationCancelled: Boolean = false) {
+        fun cancelPropagation() {
+            propagationCancelled = true
+        }
+    }

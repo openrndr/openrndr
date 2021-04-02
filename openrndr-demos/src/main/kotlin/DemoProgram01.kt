@@ -8,6 +8,7 @@ fun main() {
         program {
             extend {
                 drawer.clear(ColorRGBa.PINK)
+                drawer.circle(width/2.0, height/2.0, 100.0)
             }
         }
     }

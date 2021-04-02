@@ -605,7 +605,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         }
 
         glfwSetCharCallback(window) { _, codepoint ->
-            program.keyboard.character.trigger(Program.CharacterEvent(codepoint.toChar(), emptySet()))
+            program.keyboard.character.trigger(CharacterEvent(codepoint.toChar(), emptySet()))
         }
 
         glfwSetDropCallback(window) { _, count, names ->
@@ -614,7 +614,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
             val files = (0 until count).map {
                 File(pointers.getStringUTF8(it))
             }
-            program.window.drop.trigger(DropEvent(program.mouse.position, files))
+            program.window.drop.trigger(DropEvent(program.mouse.position, files.map { it.toString() }))
         }
 
         var down = false

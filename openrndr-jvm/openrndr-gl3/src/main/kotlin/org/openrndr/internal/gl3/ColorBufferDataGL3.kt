@@ -322,7 +322,7 @@ class ColorBufferDataGL3(
             buffer.put(byteArray)
             (buffer as Buffer).rewind()
 
-            return fromByteBuffer(buffer, filename, formatHint = ImageFileFormat.guessFromExtension(file))
+            return fromByteBuffer(buffer, filename, formatHint = ImageFileFormat.guessFromExtension(file.extension))
         }
     }
 }

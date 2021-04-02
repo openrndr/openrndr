@@ -5,7 +5,7 @@ import org.openrndr.draw.*
 import org.openrndr.math.*
 import java.nio.ByteBuffer
 
-class BufferWriterNullGL : BufferWriter {
+class BufferWriterNullGL : BufferWriter() {
     override fun write(v: Int) {
 
     }
@@ -65,6 +65,10 @@ class BufferWriterNullGL : BufferWriter {
 
     }
 
+    override fun write(vararg v: Vector3) {
+
+    }
+
     override fun rewind() {
     }
     override var position: Int = 0
@@ -87,7 +91,7 @@ class VertexBufferShadowNullGL(override val vertexBuffer: VertexBuffer) : Vertex
     }
 }
 
-class VertexBufferNullGL(override val vertexFormat: VertexFormat, override val vertexCount: Int, override val session: Session?) : VertexBuffer {
+class VertexBufferNullGL(override val vertexFormat: VertexFormat, override val vertexCount: Int, override val session: Session?) : VertexBuffer() {
     override val shadow: VertexBufferShadow
         get() = VertexBufferShadowNullGL(this)
 

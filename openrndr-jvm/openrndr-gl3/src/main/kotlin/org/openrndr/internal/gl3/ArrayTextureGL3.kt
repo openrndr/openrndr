@@ -15,7 +15,7 @@ class ArrayTextureGL3(val target: Int,
                       override val format: ColorFormat,
                       override val type: ColorType,
                       override val levels: Int,
-                      override val session: Session?) : ArrayTexture {
+                      override val session: Session?) : ArrayTexture() {
 
     companion object {
         fun create(width: Int, height: Int, layers: Int, format: ColorFormat, type: ColorType, levels: Int, session: Session?): ArrayTextureGL3 {

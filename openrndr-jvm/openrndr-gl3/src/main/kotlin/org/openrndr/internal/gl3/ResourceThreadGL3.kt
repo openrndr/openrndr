@@ -31,7 +31,7 @@ class ResourceThreadGL3 : ResourceThread {
             thread(isDaemon = true, name = "ResourceThread") {
                 GLFW.glfwMakeContextCurrent(contextWindow)
                 GL.createCapabilities()
-                Driver.instance.clear(ColorRGBa.BLACK)
+                Driver.instance.clear(0.0, 0.0, 0.0, 1.0)
                 f()
                 GLFW.glfwDestroyWindow(contextWindow)
             }

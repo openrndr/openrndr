@@ -370,6 +370,7 @@ class VideoPlayerFFMPEG private constructor(
                 PlatformType.WINDOWS -> ("dshow" to "video=$deviceName")
                 PlatformType.MAC -> ("avfoundation" to deviceName)
                 PlatformType.GENERIC -> ("video4linux2" to deviceName)
+                else -> error("unsupported platform ${Platform.type}")
             }
             val file = AVFile(configuration, properDeviceName, mode, format, frameRate, imageWidth, imageHeight)
             return VideoPlayerFFMPEG(file, mode, configuration)
@@ -383,6 +384,7 @@ class VideoPlayerFFMPEG private constructor(
                 PlatformType.WINDOWS -> listDeviceNames()[0]
                 PlatformType.MAC -> "0"
                 PlatformType.GENERIC -> "/dev/video0"
+                else -> error("unsupporte platform ${Platform.type}")
             }
         }
 
@@ -412,6 +414,7 @@ class VideoPlayerFFMPEG private constructor(
                 PlatformType.WINDOWS -> ("gdigrab" to screenName)
                 PlatformType.MAC -> ("avfoundation" to screenName)
                 PlatformType.GENERIC -> ("x11grab" to screenName)
+                else -> error("unsupported platform ${Platform.type}")
             }
             val file = AVFile(configuration, properDeviceName, mode, format, frameRate, imageWidth, imageHeight)
             return VideoPlayerFFMPEG(file, mode, configuration)
@@ -425,6 +428,7 @@ class VideoPlayerFFMPEG private constructor(
                 PlatformType.WINDOWS -> "desktop"
                 PlatformType.MAC -> "1:0"
                 PlatformType.GENERIC -> ":1"
+                else -> error("unsupported platform ${Platform.type}")
             }
         }
     }

@@ -45,7 +45,7 @@ class VertexBufferShadowGL3(override val vertexBuffer: VertexBufferGL3) : Vertex
     }
 }
 
-class VertexBufferGL3(val buffer: Int, override val vertexFormat: VertexFormat, override val vertexCount: Int, override val session: Session?) : VertexBuffer {
+class VertexBufferGL3(val buffer: Int, override val vertexFormat: VertexFormat, override val vertexCount: Int, override val session: Session?) : VertexBuffer() {
 
     internal val bufferHash = bufferId.getAndAdd(1)
     internal var realShadow: VertexBufferShadowGL3? = null

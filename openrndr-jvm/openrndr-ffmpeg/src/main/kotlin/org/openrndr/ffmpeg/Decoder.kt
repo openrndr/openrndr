@@ -80,6 +80,7 @@ internal class Decoder(private val statistics: VideoStatistics,
                     PlatformType.WINDOWS -> arrayListOf(AV_HWDEVICE_TYPE_D3D11VA, AV_HWDEVICE_TYPE_DXVA2, AV_HWDEVICE_TYPE_QSV)
                     PlatformType.MAC -> arrayListOf(AV_HWDEVICE_TYPE_VIDEOTOOLBOX)
                     PlatformType.GENERIC -> arrayListOf(AV_HWDEVICE_TYPE_VAAPI)
+                    else -> error("unsupported platform ${Platform.type}")
                 }.reversed()
 
                 val foundHW = mutableListOf<Int>()

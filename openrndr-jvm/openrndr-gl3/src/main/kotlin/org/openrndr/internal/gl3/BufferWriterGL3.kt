@@ -8,7 +8,7 @@ import java.nio.Buffer
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
-class BufferWriterGL3(val buffer: ByteBuffer, val elementSize: Int = 1) : BufferWriter {
+class BufferWriterGL3(val buffer: ByteBuffer, val elementSize: Int = 1) : BufferWriter() {
     init {
         buffer.order(ByteOrder.nativeOrder())
     }
@@ -22,6 +22,12 @@ class BufferWriterGL3(val buffer: ByteBuffer, val elementSize: Int = 1) : Buffer
         (sourceBuffer as Buffer).limit(sourceOffset + sourceSizeInBytes)
         buffer.put(sourceBuffer)
         (sourceBuffer as Buffer).limit(sourceBuffer.capacity())
+    }
+
+    override fun write(vararg v: Vector3) {
+        for (i in v) {
+            write(i)
+        }
     }
 
     override fun write(v: Byte) {

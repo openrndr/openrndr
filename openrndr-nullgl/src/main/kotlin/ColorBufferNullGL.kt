@@ -6,7 +6,7 @@ import org.openrndr.shape.IntRectangle
 import java.io.File
 import java.nio.ByteBuffer
 
-class ColorBufferNullGL(override val width: Int, override val height: Int, override val contentScale: Double, override val format: ColorFormat, override val type: ColorType, override val levels: Int, override val multisample: BufferMultisample, override val session: Session?) : ColorBuffer {
+class ColorBufferNullGL(override val width: Int, override val height: Int, override val contentScale: Double, override val format: ColorFormat, override val type: ColorType, override val levels: Int, override val multisample: BufferMultisample, override val session: Session?) : ColorBuffer() {
 
     override fun saveToFile(file: File, imageFileFormat: ImageFileFormat, async: Boolean) {
 

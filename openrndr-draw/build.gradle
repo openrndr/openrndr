@@ -1,6 +1,0 @@
-dependencies {
-    api project(":openrndr-math")
-    api project(":openrndr-color")
-    api project(":openrndr-shape")
-    api project(":openrndr-event")
-}

@@ -10,5 +10,5 @@ internal class FilterTools
 //}
 
 internal fun filterFragmentUrl(resourceId: String): String {
-    return resourceUrl("gl3/$resourceId", FilterTools::class.java)
+    return resourceUrl("gl3/$resourceId", FilterTools::class)
 }

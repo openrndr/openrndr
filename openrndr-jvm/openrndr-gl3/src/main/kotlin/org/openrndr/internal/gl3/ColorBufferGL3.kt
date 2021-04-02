@@ -130,7 +130,7 @@ class ColorBufferGL3(val target: Int,
                      override val type: ColorType,
                      override val levels: Int,
                      override val multisample: BufferMultisample,
-                     override val session: Session?) : ColorBuffer {
+                     override val session: Session?) : ColorBuffer() {
 
 
     private var destroyed = false
