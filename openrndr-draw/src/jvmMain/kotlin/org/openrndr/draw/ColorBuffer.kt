@@ -1,6 +1,7 @@
 @file:JvmName("ColorBufferJVM")
 package org.openrndr.draw
 
+import kotlinx.coroutines.runBlocking
 import org.openrndr.color.ColorRGBa
 import org.openrndr.internal.Driver
 import org.openrndr.math.Vector2
@@ -207,8 +208,9 @@ actual abstract class ColorBuffer {
          * @see loadImage
          */
         fun fromUrl(url: String, formatHint: ImageFileFormat? = null, session: Session? = Session.active): ColorBuffer {
-            val colorBuffer = Driver.instance.createColorBufferFromUrl(url, formatHint, session)
-            return colorBuffer
+            return runBlocking {
+                Driver.instance.createColorBufferFromUrl(url, formatHint, session)
+            }
         }
 
         /**
@@ -219,9 +221,9 @@ actual abstract class ColorBuffer {
          * @see loadImage
          */
         fun fromFile(file: File, formatHint: ImageFileFormat? = null, session: Session? = Session.active): ColorBuffer {
-            val colorBuffer =
+            return runBlocking {
                 Driver.instance.createColorBufferFromFile(file.absolutePath, formatHint = formatHint, session)
-            return colorBuffer
+            }
         }
 
         /**
@@ -232,8 +234,9 @@ actual abstract class ColorBuffer {
          * @see loadImage
          */
         fun fromFile(filename: String, formatHint: ImageFileFormat?, session: Session? = Session.active): ColorBuffer {
-            val colorBuffer = Driver.instance.createColorBufferFromFile(filename, formatHint = formatHint, session)
-            return colorBuffer
+            return runBlocking {
+                Driver.instance.createColorBufferFromFile(filename, formatHint = formatHint, session)
+            }
         }
 
         /**
@@ -319,7 +322,7 @@ actual abstract class ColorBuffer {
 /**
  * load an image from a file or url encoded as [String], also accepts base64 encoded data urls
  */
-fun loadImage(fileOrUrl: String, formatHint: ImageFileFormat? = null, session: Session? = Session.active): ColorBuffer {
+actual fun loadImage(fileOrUrl: String, formatHint: ImageFileFormat?, session: Session?): ColorBuffer {
     return try {
         if (!fileOrUrl.startsWith("data:")) {
             URL(fileOrUrl)
@@ -345,4 +348,14 @@ fun loadImage(file: File, formatHint: ImageFileFormat? = null, session: Session?
  */
 fun loadImage(url: URL, formatHint: ImageFileFormat?, session: Session? = Session.active): ColorBuffer {
     return ColorBuffer.fromUrl(url.toExternalForm(), formatHint, session)
+}
+
+actual suspend fun loadImageSuspend(
+    fileOrUrl: String,
+    formatHint: ImageFileFormat?,
+    session: Session?
+): ColorBuffer {
+    return runBlocking {
+        loadImage(fileOrUrl, formatHint, session)
+    }
 }

@@ -107,7 +107,7 @@ actual interface Driver {
         session: Session?
     ): ColorBuffer
 
-    actual fun createColorBufferFromUrl(
+    actual suspend fun createColorBufferFromUrl(
         url: String,
         formatHint: ImageFileFormat?,
         session: Session?

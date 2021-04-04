@@ -104,7 +104,9 @@ def multiplatformModules = [
     "openrndr-shape",
     "openrndr-binpack",
     "openrndr-animatable",
-    "openrndr-draw"
+    "openrndr-draw",
+    "openrndr-webgl",
+        "openrndr-extensions"
 ]
 
 

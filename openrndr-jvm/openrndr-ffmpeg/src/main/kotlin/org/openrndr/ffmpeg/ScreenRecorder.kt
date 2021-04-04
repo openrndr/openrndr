@@ -114,7 +114,8 @@ class ScreenRecorder : Extension {
                 val lresolved = resolved
                 if (lresolved != null) {
                     // TODO restore to default arguments when Kotlin MPP support is there
-                    frame.colorBuffer(0).copyTo(lresolved)
+                        error("huh")
+                    //frame.colorBuffer(0).copyTo(lresolved)
                     videoWriter.frame(lresolved)
                 } else {
                     videoWriter.frame(frame.colorBuffer(0))

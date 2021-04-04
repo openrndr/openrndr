@@ -12,8 +12,7 @@ enum class BufferTextureFileFormat(val extension: String) {
     ORB("orb")
 }
 
-actual interface BufferTexture {
-
+actual abstract class BufferTexture {
     companion object {
         fun create(elementCount: Int, format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.FLOAT32, session: Session? = Session.active): BufferTexture {
             val bufferTexture = Driver.instance.createBufferTexture(elementCount, format, type)
@@ -33,8 +32,8 @@ actual interface BufferTexture {
         return count
     }
 
-    fun read(target: ByteBuffer, offset: Int = 0, elementReadCount: Int = this.elementCount)
-    fun write(source: ByteBuffer, offset: Int = 0, elementWriteCount: Int = this.elementCount)
+    abstract fun read(target: ByteBuffer, offset: Int = 0, elementReadCount: Int = this.elementCount)
+    abstract fun write(source: ByteBuffer, offset: Int = 0, elementWriteCount: Int = this.elementCount)
 
     fun saveToFile(file: File, fileFormat: BufferTextureFileFormat = BufferTextureFileFormat.ORB) {
         val buffer = ByteBuffer.allocateDirect(elementCount * format.componentCount * type.componentSize)
@@ -56,17 +55,17 @@ actual interface BufferTexture {
         raf.close()
     }
 
-    actual val session: Session?
-    actual val shadow: BufferTextureShadow
-    actual val format: ColorFormat
-    actual val type: ColorType
-    actual val elementCount: Int
-    actual fun destroy()
+    actual abstract val session: Session?
+    actual abstract val shadow: BufferTextureShadow
+    actual abstract val format: ColorFormat
+    actual abstract val type: ColorType
+    actual abstract val elementCount: Int
+    actual abstract fun destroy()
 
     /**
      * bind the BufferTexture to a texture unit
      */
-    actual fun bind(unit: Int)
+    actual abstract fun bind(unit: Int)
 }
 
 /**

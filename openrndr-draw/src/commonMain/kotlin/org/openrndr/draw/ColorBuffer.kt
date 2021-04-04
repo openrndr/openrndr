@@ -59,7 +59,6 @@ enum class MagnifyingFilter {
 expect abstract class ColorBuffer {
     abstract val session: Session?
 
-
     /** the width of the [ColorBuffer] in device units */
     abstract val width: Int
 
@@ -85,8 +84,6 @@ expect abstract class ColorBuffer {
     /** the multisampling method used for this [ColorBuffer] */
     abstract val multisample: BufferMultisample
 
-
-
     /** the width of the [ColorBuffer] in pixels */
     val effectiveWidth: Int
 
@@ -94,7 +91,6 @@ expect abstract class ColorBuffer {
     val effectiveHeight: Int
 
     val bounds: Rectangle
-
 
     /** permanently destroy the underlying [ColorBuffer] resources, [ColorBuffer] can not be used after it is destroyed */
     abstract fun destroy()
@@ -127,6 +123,7 @@ expect abstract class ColorBuffer {
     abstract var flipV: Boolean
 
 
+    /*
     abstract fun copyTo(
         target: ColorBuffer,
         fromLevel: Int = 0,
@@ -143,6 +140,16 @@ expect abstract class ColorBuffer {
             sourceRectangle.width,
             sourceRectangle.height
         ),
+        filter: MagnifyingFilter = MagnifyingFilter.NEAREST
+    )
+     */
+    // TODO restore default arguments when https://youtrack.jetbrains.com/issue/KT-45542 is fixed
+    abstract fun copyTo(
+        target: ColorBuffer,
+        fromLevel: Int = 0,
+        toLevel: Int = 0,
+        sourceRectangle: IntRectangle,
+        targetRectangle: IntRectangle,
         filter: MagnifyingFilter = MagnifyingFilter.NEAREST
     )
 
@@ -182,3 +189,12 @@ fun colorBuffer(
 ): ColorBuffer {
     return Driver.instance.createColorBuffer(width, height, contentScale, format, type, multisample, levels, session)
 }
+
+
+
+/**
+ * load an image from a file or url encoded as [String], also accepts base64 encoded data urls
+ */
+expect fun loadImage(fileOrUrl: String, formatHint: ImageFileFormat? = null, session: Session? = Session.active): ColorBuffer
+
+expect suspend fun loadImageSuspend(fileOrUrl: String, formatHint: ImageFileFormat? = null, session: Session? = Session.active): ColorBuffer

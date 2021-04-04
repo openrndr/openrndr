@@ -47,7 +47,7 @@ class DriverNullGL: Driver {
         return ColorBufferNullGL(width, height, contentScale, format, type, levels, multisample, session)
     }
 
-    override fun createColorBufferFromUrl(url: String, formatHint: ImageFileFormat?, session: Session?): ColorBuffer {
+    override suspend fun createColorBufferFromUrl(url: String, formatHint: ImageFileFormat?, session: Session?): ColorBuffer {
         return ColorBufferNullGL(256, 256, 1.0, ColorFormat.RGBa, ColorType.UINT8, -1, BufferMultisample.Disabled, session)
     }
 

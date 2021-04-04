@@ -1,5 +1,6 @@
 package org.openrndr.draw
 
+import org.openrndr.internal.Driver
 import org.openrndr.shape.IntRectangle
 import org.openrndr.shape.Rectangle
 
@@ -45,13 +46,14 @@ actual abstract class ColorBuffer {
 
     /** the width of the [ColorBuffer] in pixels */
     actual val effectiveWidth: Int
-        get() = TODO("Not yet implemented")
+        get() = (width * contentScale).toInt()
 
     /** the height of the [ColorBuffer] in pixels */
     actual val effectiveHeight: Int
-        get() = TODO("Not yet implemented")
+        get() = (height * contentScale).toInt()
+
     actual val bounds: Rectangle
-        get() = TODO("Not yet implemented")
+        get() = Rectangle(0.0, 0.0, width.toDouble(), height.toDouble())
 
     /** permanently destroy the underlying [ColorBuffer] resources, [ColorBuffer] can not be used after it is destroyed */
     actual abstract fun destroy()
@@ -93,4 +95,23 @@ actual abstract class ColorBuffer {
     )
 
 
+}
+
+/**
+ * load an image from a file or url encoded as [String], also accepts base64 encoded data urls
+ */
+actual fun loadImage(
+    fileOrUrl: String,
+    formatHint: ImageFileFormat?,
+    session: Session?
+): ColorBuffer {
+    error("use loadImageSuspend")
+}
+
+actual suspend fun loadImageSuspend(
+    fileOrUrl: String,
+    formatHint: ImageFileFormat?,
+    session: Session?
+): ColorBuffer {
+    return Driver.instance.createColorBufferFromUrl(fileOrUrl, null, session)
 }

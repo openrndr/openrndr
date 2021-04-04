@@ -105,7 +105,7 @@ actual interface Driver {
         session: Session?
     ): ColorBuffer
 
-    actual fun createColorBufferFromUrl(
+    actual suspend fun createColorBufferFromUrl(
         url: String,
         formatHint: ImageFileFormat?,
         session: Session?
@@ -247,20 +247,10 @@ actual interface Driver {
     actual fun internalShaderResource(resourceId: String): String
 
     actual companion object {
-
-//        = null
-//            set(value) {
-//                logger.debug {"setting driver instance to $value" }
-//                field = value
-//            }
-
-        //        get() = driver ?: error("No graphical context has been set up yet.")
-        actual var driver: Driver?
-            get() = TODO("Not yet implemented")
-            set(value) {}
+        actual var driver: Driver? = null
         actual val instance: Driver
-            get() = TODO("Not yet implemented")
+            get() {
+                return driver ?: error("no active driver")
+            }
     }
-
-
 }

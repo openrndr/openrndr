@@ -1,5 +1,7 @@
 package org.openrndr.draw
 
+import org.openrndr.internal.Driver
+
 actual abstract class VertexBuffer {
     actual abstract val session: Session?
     actual abstract val vertexFormat: VertexFormat
@@ -24,7 +26,7 @@ actual abstract class VertexBuffer {
             vertexCount: Int,
             session: Session?
         ): VertexBuffer {
-            TODO("Not yet implemented")
+            return Driver.instance.createDynamicVertexBuffer(format, vertexCount, session)
         }
 
         actual fun createFromFloats(
@@ -35,5 +37,7 @@ actual abstract class VertexBuffer {
             TODO("Not yet implemented")
         }
     }
+
+    abstract fun write(data: FloatArray)
 
 }

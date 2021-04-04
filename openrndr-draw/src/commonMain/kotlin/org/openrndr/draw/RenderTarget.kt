@@ -2,6 +2,7 @@ package org.openrndr.draw
 
 import org.openrndr.color.ColorRGBa
 import org.openrndr.internal.Driver
+import org.openrndr.shape.IntRectangle
 import org.openrndr.draw.colorBuffer as _colorBuffer
 import org.openrndr.draw.depthBuffer as _depthBuffer
 
@@ -228,7 +229,20 @@ interface RenderTarget {
         require((to.depthBuffer == null) == (depthBuffer == null))
         for (i in colorAttachments.indices) {
             when (val a = colorAttachments[i]) {
-                is ColorBufferAttachment -> a.colorBuffer.copyTo((to.colorAttachments[i] as ColorBufferAttachment).colorBuffer)
+                is ColorBufferAttachment -> {
+                    // TODO remove sourceRectangle and targetRectangle arguments when https://youtrack.jetbrains.com/issue/KT-45542 is fixed
+                    val sourceRectangle = IntRectangle(
+                    0,
+                    0,
+                    this.effectiveWidth / (1 shl 0),
+                    this.effectiveHeight / (1 shl 0)
+                    )
+                    val targetRectangle = IntRectangle(0,0, sourceRectangle.width, sourceRectangle.height)
+                    a.colorBuffer.copyTo((to.colorAttachments[i] as ColorBufferAttachment).colorBuffer, sourceRectangle = sourceRectangle, targetRectangle = targetRectangle)
+                }
+
+
+
             }
         }
         depthBuffer?.resolveTo((to.depthBuffer!!))

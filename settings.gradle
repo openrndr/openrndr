@@ -30,6 +30,7 @@ include 'openrndr-application',
 		'openrndr-jvm:openrndr-openal-natives-windows',
 		'openrndr-jvm:openrndr-adopted-artifex',
 		'openrndr-jvm:openrndr-tessellation',
+		'openrndr-js:openrndr-webgl',
 		'openrndr-extensions',
 		'openrndr-nullgl',
 		'openrndr-utils'

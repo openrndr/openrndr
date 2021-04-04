@@ -1,10 +1,13 @@
 package org.openrndr.draw
 
-expect interface BufferTextureShadow {
-    val bufferTexture: BufferTexture
+expect abstract class BufferTextureShadow {
+    abstract val bufferTexture: BufferTexture
 
-    fun upload(offset: Int = 0, sizeInBytes: Int = bufferTexture.elementCount * bufferTexture.format.componentCount * bufferTexture.type.componentSize )
-    fun download()
-    fun destroy()
+    //abstract fun upload(offset: Int = 0, sizeInBytes: Int = bufferTexture.elementCount * bufferTexture.format.componentCount * bufferTexture.type.componentSize )
+    // TODO restore default arguments when https://youtrack.jetbrains.com/issue/KT-45542 is fixed
+    abstract fun upload(offset: Int = 0, sizeInBytes : Int)
+
+    abstract fun download()
+    abstract fun destroy()
 
 }
