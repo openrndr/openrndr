@@ -338,7 +338,7 @@ class ComputeShaderGL43(val programObject: Int, val name: String = "compute_shad
     }
 
     companion object {
-        fun createFromCode(code: String): ComputeShaderGL43 {
+        fun createFromCode(code: String, name: String): ComputeShaderGL43 {
             val shaderObject = glCreateShader(GL_COMPUTE_SHADER)
             glShaderSource(shaderObject, code)
             checkGLErrors()
@@ -360,7 +360,7 @@ class ComputeShaderGL43(val programObject: Int, val name: String = "compute_shad
             checkGLErrors()
             checkProgramInfoLog(program, "compute shader")
 
-            return ComputeShaderGL43(program)
+            return ComputeShaderGL43(program, name)
         }
     }
 

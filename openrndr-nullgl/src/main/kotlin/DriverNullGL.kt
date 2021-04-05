@@ -19,7 +19,7 @@ class DriverNullGL: Driver {
         return ShaderNullGL(session)
     }
 
-    override fun createComputeShader(code: String, session: Session?): ComputeShader {
+    override fun createComputeShader(code: String, name: String, session: Session?): ComputeShader {
         TODO("Not yet implemented")
     }
 
