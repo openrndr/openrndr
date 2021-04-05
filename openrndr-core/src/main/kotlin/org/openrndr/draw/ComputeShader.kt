@@ -17,13 +17,13 @@ interface ComputeShader:ShaderImageBindings {
         /**
          * Create a compute shader from (GLSL) code as a String
          */
-        fun fromCode(code: String): ComputeShader = Driver.instance.createComputeShader(code)
+        fun fromCode(code: String, name: String): ComputeShader = Driver.instance.createComputeShader(code, name)
 
         /**
          * Create a compute shader from file
          */
-        fun fromFile(file: File): ComputeShader {
-            return fromCode(file.readText())
+        fun fromFile(file: File, name: String): ComputeShader {
+            return fromCode(file.readText(), name)
         }
     }
 

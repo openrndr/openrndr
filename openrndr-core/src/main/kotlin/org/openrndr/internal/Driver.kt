@@ -72,7 +72,7 @@ interface Driver {
         session: Session? = Session.active
     ): Shader
 
-    fun createComputeShader(code: String, session: Session? = Session.active): ComputeShader
+    fun createComputeShader(code: String, name: String, session: Session? = Session.active): ComputeShader
 
     fun createShadeStyleManager(
         name: String,
