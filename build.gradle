@@ -30,25 +30,21 @@ tasks.named("dokkaHtml")  {
     moduleName.set("openrndr")
     dokkaSourceSets {
 
-        named("main") { /* configure main source set */
+        named("main") {
             perPackageOption {
-                matchingRegex.set(".*gl3.*") // will match kotlin and all sub-packages of it
-                // All options are optional, default values are below:
+                matchingRegex.set(".*gl3.*")
                 suppress.set(true)
             }
             perPackageOption {
-                matchingRegex.set(".*internal*") // will match kotlin and all sub-packages of it
-                // All options are optional, default values are below:
+                matchingRegex.set(".*internal*")
                 suppress.set(true)
             }
             perPackageOption {
-                matchingRegex.set(".*artifex*") // will match kotlin and all sub-packages of it
-                // All options are optional, default values are below:
+                matchingRegex.set(".*artifex*")
                 suppress.set(true)
             }
             perPackageOption {
-                matchingRegex.set("io\\.lacuna.*") // will match kotlin and all sub-packages of it
-                // All options are optional, default values are below:
+                matchingRegex.set("io\\.lacuna.*")
                 suppress.set(true)
             }
         }
