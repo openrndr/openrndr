@@ -16,9 +16,15 @@ class DriverWebGL(val context: GL) : Driver {
         val instancedArrays by lazy {
             context.getExtension("ANGLE_instanced_arrays") as? ANGLEinstancedArrays
         }
+        val standardDerivatives by lazy {
+            context.getExtension("OES_standard_derivatives")
+        }
     }
 
-    val extensions = Extensions()
+    val extensions = Extensions().apply {
+        val b = standardDerivatives
+
+    }
 
     override val contextID: Long
         get() = context.hashCode().toLong()
@@ -55,7 +61,7 @@ class DriverWebGL(val context: GL) : Driver {
         fsGenerator: (ShadeStructure) -> String,
         session: Session?
     ): ShadeStyleManager {
-        TODO("Not yet implemented")
+        return ShadeStyleManagerWebGL(name, vsGenerator, fsGenerator, session)
     }
 
     override fun createRenderTarget(
@@ -260,6 +266,7 @@ class DriverWebGL(val context: GL) : Driver {
                                     context.vertexAttribPointer(attributeIndex + column + i * 3,
                                         3,
                                         item.type.glType(), false, format.size, item.offset + column * 12 + i * 48)
+                                    extensions.instancedArrays?.vertexAttribDivisorANGLE(attributeIndex + column + i * 3, divisor) ?: error("instancing not supported")
                                     attributeBindings++
                                 }
                             }
@@ -308,6 +315,7 @@ class DriverWebGL(val context: GL) : Driver {
         shader as ShaderWebGL
         setupFormat(vertexBuffers, emptyList(), shader)
         //context.drawElements(drawPrimitive.glType(), indexCount, indexBuffer.type.glType(), )
+        TODO()
     }
 
     override fun drawInstances(
@@ -322,10 +330,11 @@ class DriverWebGL(val context: GL) : Driver {
         verticesPerPatch: Int
     ) {
         shader as ShaderWebGL
-        setupFormat(vertexBuffers, emptyList(), shader)
+        setupFormat(vertexBuffers, instanceAttributes, shader)
         require(instanceOffset == 0) {
             "instance offsets are not supported"
         }
+        //console.log("drawing instances", vertexOffset, vertexCount, instanceCount)
         extensions.instancedArrays?.drawArraysInstancedANGLE(drawPrimitive.glType(), vertexOffset, vertexCount, instanceCount) ?: error("instancing not supported")
     }
 
@@ -497,12 +506,15 @@ class DriverWebGL(val context: GL) : Driver {
         get() = TODO("Not yet implemented")
     override val fontVectorMapManager: FontMapManager
         get() = TODO("Not yet implemented")
-    override val shaderGenerators: ShaderGenerators
-        get() = TODO("Not yet implemented")
+    override val shaderGenerators: ShaderGenerators by lazy {
+        ShaderGeneratorsWebGL()
+    }
+
     override val activeRenderTarget: RenderTargetWebGL
-        get() = TODO("Not yet implemented")
+        get() = RenderTargetWebGL.activeRenderTarget
 
     override fun finish() {
+        context.flush()
         context.finish()
     }
 

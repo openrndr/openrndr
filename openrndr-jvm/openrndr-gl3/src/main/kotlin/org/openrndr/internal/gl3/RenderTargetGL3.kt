@@ -16,7 +16,8 @@ private val active = mutableMapOf<Long, Stack<RenderTargetGL3>>()
 
 class NullRenderTargetGL3 : RenderTargetGL3(0, 640, 480, 1.0, BufferMultisample.Disabled, Session.root)
 
-class ProgramRenderTargetGL3(override val program: Program) : ProgramRenderTarget, RenderTargetGL3(glGetInteger(GL_FRAMEBUFFER_BINDING), 0, 0, 1.0, BufferMultisample.Disabled, Session.root) {
+class ProgramRenderTargetGL3(override val program: Program) : ProgramRenderTarget,
+    RenderTargetGL3(glGetInteger(GL_FRAMEBUFFER_BINDING), 0, 0, 1.0, BufferMultisample.Disabled, Session.root) {
     override val width: Int
         get() = program.window.size.x.toInt()
 
@@ -30,13 +31,14 @@ class ProgramRenderTargetGL3(override val program: Program) : ProgramRenderTarge
     override val hasDepthBuffer = true
 }
 
-open class RenderTargetGL3(val framebuffer: Int,
-                           override val width: Int,
-                           override val height: Int,
-                           override val contentScale: Double,
-                           override val multisample: BufferMultisample,
-                           override val session: Session?,
-                           private val thread: Thread = Thread.currentThread()
+open class RenderTargetGL3(
+    val framebuffer: Int,
+    override val width: Int,
+    override val height: Int,
+    override val contentScale: Double,
+    override val multisample: BufferMultisample,
+    override val session: Session?,
+    private val thread: Thread = Thread.currentThread()
 ) : RenderTarget {
     var destroyed = false
 
@@ -44,7 +46,13 @@ open class RenderTargetGL3(val framebuffer: Int,
     override var depthBuffer: DepthBuffer? = null
 
     companion object {
-        fun create(width: Int, height: Int, contentScale: Double = 1.0, multisample: BufferMultisample = BufferMultisample.Disabled, session: Session?): RenderTargetGL3 {
+        fun create(
+            width: Int,
+            height: Int,
+            contentScale: Double = 1.0,
+            multisample: BufferMultisample = BufferMultisample.Disabled,
+            session: Session?
+        ): RenderTargetGL3 {
             logger.trace { "created new render target ($width*$height) @ ${contentScale}x $multisample" }
             val framebuffer = glGenFramebuffers()
             return RenderTargetGL3(framebuffer, width, height, contentScale, multisample, session)
@@ -64,7 +72,8 @@ open class RenderTargetGL3(val framebuffer: Int,
 
     override fun colorBuffer(index: Int): ColorBuffer {
         require(!destroyed)
-        return (colorAttachments[index] as? ColorBufferAttachment)?.colorBuffer ?: error("attachment at $index is not a ColorBuffer")
+        return (colorAttachments[index] as? ColorBufferAttachment)?.colorBuffer
+            ?: error("attachment at $index is not a ColorBuffer")
     }
 
     override fun bind() {
@@ -136,7 +145,13 @@ open class RenderTargetGL3(val framebuffer: Int,
             throw IllegalArgumentException("buffer dimension mismatch. expected: ($width x $height @${colorBuffer.contentScale}x, got: (${colorBuffer.width / div} x ${colorBuffer.height / div} @${colorBuffer.contentScale}x level:${level})")
         }
         colorBuffer as ColorBufferGL3
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + colorAttachments.size, colorBuffer.target, colorBuffer.texture, level)
+        glFramebufferTexture2D(
+            GL_FRAMEBUFFER,
+            GL_COLOR_ATTACHMENT0 + colorAttachments.size,
+            colorBuffer.target,
+            colorBuffer.texture,
+            level
+        )
         debugGLErrors { null }
 
         colorAttachments.add(ColorBufferAttachment(colorAttachments.size, name, colorBuffer, level))
@@ -145,7 +160,7 @@ open class RenderTargetGL3(val framebuffer: Int,
             (active[context]?.peek() as RenderTargetGL3).bindTarget()
     }
 
-    override fun attach(arrayCubemap: ArrayCubemap, side: CubemapSide, layer: Int, level: Int, name:String?) {
+    override fun attach(arrayCubemap: ArrayCubemap, side: CubemapSide, layer: Int, level: Int, name: String?) {
         require(!destroyed)
         val context = glfwGetCurrentContext()
         bindTarget()
@@ -154,7 +169,13 @@ open class RenderTargetGL3(val framebuffer: Int,
             throw IllegalArgumentException("buffer dimension mismatch. expected: ($effectiveWidth x $effectiveHeight), got: (${arrayCubemap.width} x ${arrayCubemap.width}")
         }
         arrayCubemap as ArrayCubemapGL4
-        glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + colorAttachments.size, arrayCubemap.texture, level, layer * 6 + side.ordinal)
+        glFramebufferTextureLayer(
+            GL_FRAMEBUFFER,
+            GL_COLOR_ATTACHMENT0 + colorAttachments.size,
+            arrayCubemap.texture,
+            level,
+            layer * 6 + side.ordinal
+        )
         checkGLErrors { null }
 
         colorAttachments.add(ArrayCubemapAttachment(colorAttachments.size, name, arrayCubemap, side, layer, level))
@@ -169,17 +190,18 @@ open class RenderTargetGL3(val framebuffer: Int,
         val context = glfwGetCurrentContext()
         bindTarget()
         val effectiveWidth = (width * contentScale).toInt()
-        if (!(cubemap.width/div == effectiveWidth && cubemap.width/div == effectiveHeight)) {
+        if (!(cubemap.width / div == effectiveWidth && cubemap.width / div == effectiveHeight)) {
             throw IllegalArgumentException("buffer dimension mismatch. expected: ($effectiveWidth x $effectiveHeight), got: (${cubemap.width} x ${cubemap.width})")
         }
         cubemap as CubemapGL3
 
         glFramebufferTexture2D(
-                GL_FRAMEBUFFER,
-                GL_COLOR_ATTACHMENT0 + colorAttachments.size,
-                side.glTextureTarget,
-                cubemap.texture,
-                level)
+            GL_FRAMEBUFFER,
+            GL_COLOR_ATTACHMENT0 + colorAttachments.size,
+            side.glTextureTarget,
+            cubemap.texture,
+            level
+        )
 
         checkGLErrors { null }
 
@@ -203,7 +225,13 @@ open class RenderTargetGL3(val framebuffer: Int,
             throw IllegalArgumentException("buffer dimension mismatch. expected: ($effectiveWidth x $effectiveHeight), got: (${volumeTexture.width} x ${volumeTexture.height}")
         }
         volumeTexture as VolumeTextureGL3
-        glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + colorAttachments.size, volumeTexture.texture, level, layer)
+        glFramebufferTextureLayer(
+            GL_FRAMEBUFFER,
+            GL_COLOR_ATTACHMENT0 + colorAttachments.size,
+            volumeTexture.texture,
+            level,
+            layer
+        )
         debugGLErrors { null }
 
         colorAttachments.add(VolumeTextureAttachment(colorAttachments.size, name, volumeTexture, layer, level))
@@ -257,16 +285,17 @@ open class RenderTargetGL3(val framebuffer: Int,
         val context = glfwGetCurrentContext()
         bindTarget()
         val effectiveWidth = (width * contentScale).toInt()
-        if (!(cubemap.width/div == effectiveWidth && cubemap.width/div == effectiveHeight)) {
+        if (!(cubemap.width / div == effectiveWidth && cubemap.width / div == effectiveHeight)) {
             throw IllegalArgumentException("buffer dimension mismatch. expected: ($effectiveWidth x $effectiveHeight), got: (${cubemap.width} x ${cubemap.width})")
         }
         cubemap as CubemapGL3
 
         glFramebufferTexture(
-                GL_FRAMEBUFFER,
-                GL_COLOR_ATTACHMENT0 + colorAttachments.size,
-                cubemap.texture,
-                level)
+            GL_FRAMEBUFFER,
+            GL_COLOR_ATTACHMENT0 + colorAttachments.size,
+            cubemap.texture,
+            level
+        )
 
         checkGLErrors() { null }
 
@@ -299,7 +328,7 @@ open class RenderTargetGL3(val framebuffer: Int,
             (active[context]?.peek() as RenderTargetGL3).bindTarget()
     }
 
-    override fun attach(arrayTexture: ArrayTexture, layer: Int, level: Int, name:String?) {
+    override fun attach(arrayTexture: ArrayTexture, layer: Int, level: Int, name: String?) {
         require(!destroyed)
         val context = glfwGetCurrentContext()
         bindTarget()
@@ -311,7 +340,13 @@ open class RenderTargetGL3(val framebuffer: Int,
             throw IllegalArgumentException("buffer dimension mismatch. expected: ($effectiveWidth x $effectiveHeight), got: (${arrayTexture.width} x ${arrayTexture.height}")
         }
         arrayTexture as ArrayTextureGL3
-        glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + colorAttachments.size, arrayTexture.texture, level, layer)
+        glFramebufferTextureLayer(
+            GL_FRAMEBUFFER,
+            GL_COLOR_ATTACHMENT0 + colorAttachments.size,
+            arrayTexture.texture,
+            level,
+            layer
+        )
         debugGLErrors { null }
 
         colorAttachments.add(ArrayTextureAttachment(colorAttachments.size, name, arrayTexture, layer, level))
@@ -386,7 +421,13 @@ open class RenderTargetGL3(val framebuffer: Int,
             checkGLErrors { null }
 
             if (depthBuffer.hasStencil) {
-                glFramebufferTexture2D(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, depthBuffer.target, depthBuffer.texture, 0)
+                glFramebufferTexture2D(
+                    GL_FRAMEBUFFER,
+                    GL_STENCIL_ATTACHMENT,
+                    depthBuffer.target,
+                    depthBuffer.texture,
+                    0
+                )
                 checkGLErrors { null }
             }
             this.depthBuffer = depthBuffer

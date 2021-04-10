@@ -5,6 +5,8 @@ import org.openrndr.math.Vector2
 
 private val logger = KotlinLogging.logger {}
 
+var applicationFunc : ((Program, Configuration) -> Application)? = null
+
 /**
  * Application interface
  */
@@ -12,7 +14,9 @@ private val logger = KotlinLogging.logger {}
 actual abstract class Application {
     actual companion object {
         actual fun run(program: Program, configuration: Configuration) {
-            TODO("not implemented")
+            val application = applicationFunc?.invoke(program, configuration) ?: error("applicationFunc not set")
+            application.setup()
+            application.loop()
         }
 
         actual fun runAsync(program: Program, configuration: Configuration) {

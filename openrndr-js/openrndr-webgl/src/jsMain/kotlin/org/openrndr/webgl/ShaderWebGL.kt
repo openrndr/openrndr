@@ -26,9 +26,15 @@ class ShaderWebGL(
             return ShaderWebGL(context, program, session)
         }
     }
+    var userShader = false
+
 
     fun attributeIndex(name:String) : Int {
-        return context.getAttribLocation(program, name)
+        val index =  context.getAttribLocation(program, name)
+        if (index == -1) {
+            //console.warn("missing attribute $name")
+        }
+        return index
     }
 
     override val types: Set<ShaderType> = setOf(ShaderType.FRAGMENT, ShaderType.VERTEX)
@@ -42,7 +48,11 @@ class ShaderWebGL(
     }
 
     fun uniformIndex(uniform:String, query: Boolean = false) : WebGLUniformLocation? {
-        return context.getUniformLocation(program, uniform)
+        val index = context.getUniformLocation(program, uniform)
+        if (index == null) {
+            //console.warn("missing uniform $uniform")
+        }
+        return index
     }
 
     override fun hasUniform(name: String): Boolean {

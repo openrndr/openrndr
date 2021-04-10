@@ -295,7 +295,7 @@ private val logger = KotlinLogging.logger {}
 
 
 private var styleBlocks = mutableMapOf<Long, UniformBlock?>()
-private var useStyleBlock = true
+expect val useStyleBlock : Boolean
 
 data class DrawStyle(
     /** Clipping rectangle, set to null for no clipping */

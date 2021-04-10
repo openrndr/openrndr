@@ -1,5 +1,6 @@
 package org.openrndr.draw
 
+import org.khronos.webgl.Float32Array
 import org.openrndr.internal.Driver
 
 actual abstract class VertexBuffer {
@@ -17,7 +18,14 @@ actual abstract class VertexBuffer {
      */
     actual abstract fun destroy()
     actual fun put(elementOffset: Int, putter: BufferWriter.() -> Unit): Int {
-        TODO("Not yet implemented")
+        val w = shadow.writer()
+        w.rewind()
+        w.putter()
+        val count = w.positionElements
+
+        shadow.upload(0, w.position * 4)
+        w.rewind()
+        return count
     }
 
     actual companion object {
@@ -38,6 +46,7 @@ actual abstract class VertexBuffer {
         }
     }
 
-    abstract fun write(data: FloatArray)
+    abstract fun write(data: FloatArray, offset:Int, floatCount: Int)
+    abstract fun write(data: Float32Array, offset:Int, floatCount : Int)
 
 }

@@ -37,12 +37,12 @@ actual class ShadeStyleGLSL {
         /**
          * This granule is used inside the main() function of vertex shaders to set up
          * constants that are part of the shade style language.
-        */
+         */
         actual fun vertexMainConstants(
             instance: String,
             element: String
         ) = """
-        |    int c_instance = $instance;
+        |    int c_instance = int($instance);
         |    int c_element = $element;""".trimMargin()
 
         /**
@@ -51,12 +51,12 @@ actual class ShadeStyleGLSL {
          */
         actual val transformVaryingIn = """
             // <transform-varying-in> (ShadeStyleGLSL.kt)
-            in vec3 v_worldNormal;
-            in vec3 v_viewNormal;
-            in vec3 v_worldPosition;
-            in vec3 v_viewPosition;
-            in vec4 v_clipPosition;
-            flat in mat4 v_modelNormalMatrix;
+            varying vec3 v_worldNormal;
+            varying vec3 v_viewNormal;
+            varying vec3 v_worldPosition;
+            varying vec3 v_viewPosition;
+            varying vec4 v_clipPosition;
+            varying mat4 v_modelNormalMatrix;
             // </transform-varying-in>""".trimIndent()
 
         /**
@@ -65,13 +65,13 @@ actual class ShadeStyleGLSL {
          */
         actual val transformVaryingOut = """
             // <transform-varying-out> (ShadeStyleGLSL.kt)
-            out vec3 v_worldNormal;
-            out vec3 v_viewNormal;
-            out vec3 v_worldPosition;
-            out vec3 v_viewPosition;
-            out vec4 v_clipPosition;
+            varying vec3 v_worldNormal;
+            varying vec3 v_viewNormal;
+            varying vec3 v_worldPosition;
+            varying vec3 v_viewPosition;
+            varying vec4 v_clipPosition;
             
-            flat out mat4 v_modelNormalMatrix;
+            varying mat4 v_modelNormalMatrix;
             // </transform-varying-out>""".trimIndent()
 
         /**
@@ -131,31 +131,28 @@ actual class ShadeStyleGLSL {
         actual fun drawerUniforms(contextBlock: Boolean, styleBlock: Boolean) = """
             |// <drawer-uniforms($contextBlock, $styleBlock)> (ShadeStyleGLSL.kt)
             ${contextBlock.trueOrEmpty {
-                """
-                |layout(shared) uniform ContextBlock {
-                |    uniform mat4 u_modelNormalMatrix;
-                |    uniform mat4 u_modelMatrix;
-                |    uniform mat4 u_viewNormalMatrix;
-                |    uniform mat4 u_viewMatrix;
-                |    uniform mat4 u_projectionMatrix;
-                |    uniform float u_contentScale;
-                |    uniform vec2 u_viewDimensions;
-                |};"""
-                }
+            """
+                |    uniform highp mat4 u_modelNormalMatrix;
+                |    uniform highp mat4 u_modelMatrix;
+                |    uniform highp mat4 u_viewNormalMatrix;
+                |    uniform highp mat4 u_viewMatrix;
+                |    uniform highp mat4 u_projectionMatrix;
+                |    uniform highp float u_contentScale;
+                |    uniform highp vec2 u_viewDimensions;
+                |"""
             }
+        }
             ${styleBlock.trueOrEmpty {
-                """
-                |layout(shared) uniform StyleBlock {
-                |    uniform vec4 u_fill;
-                |    uniform vec4 u_stroke;
-                |    uniform float u_strokeWeight;
-                |    uniform float[25] u_colorMatrix;
-                |};"""
-                }
+            """
+                |    uniform highp vec4 u_fill;
+                |    uniform highp vec4 u_stroke;
+                |    uniform highp float u_strokeWeight;
+                |    uniform highp float[25] u_colorMatrix;"""
             }
+        }
             |// </drawer-uniforms>
             """.trimMargin()
-        }
+    }
 }
 
 private fun Boolean.trueOrEmpty(f: () -> String): String {

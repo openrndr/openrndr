@@ -1,5 +1,7 @@
 package org.openrndr.draw
 
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import org.openrndr.internal.Driver
 import org.openrndr.shape.IntRectangle
 import org.openrndr.shape.Rectangle
@@ -105,7 +107,11 @@ actual fun loadImage(
     formatHint: ImageFileFormat?,
     session: Session?
 ): ColorBuffer {
-    error("use loadImageSuspend")
+    val result = GlobalScope.launch {
+        loadImageSuspend(fileOrUrl, formatHint, session)
+    }
+    result.isCompleted
+
 }
 
 actual suspend fun loadImageSuspend(

@@ -1,6 +1,7 @@
 package org.openrndr.webgl
 
 import org.khronos.webgl.WebGLFramebuffer
+import org.openrndr.Program
 import org.openrndr.collections.pop
 import org.openrndr.collections.push
 import org.openrndr.color.ColorRGBa
@@ -9,9 +10,23 @@ import org.khronos.webgl.WebGLRenderingContext as GL
 
 private val active = ArrayDeque<RenderTargetWebGL>()
 
-class RenderTargetWebGL(
+class ProgramRenderTargetWebGL(context: GL, override val program: Program) : ProgramRenderTarget, RenderTargetWebGL( context, null, 0, 0, 1.0, BufferMultisample.Disabled, Session.root) {
+    override val width: Int
+        get() = program.window.size.x.toInt()
+
+    override val height: Int
+        get() = program.window.size.y.toInt()
+
+    override val contentScale: Double
+        get() = program.window.scale.x
+
+    override val hasColorAttachments = true
+    override val hasDepthBuffer = true
+}
+
+open class RenderTargetWebGL(
     val context: GL,
-    val framebuffer: WebGLFramebuffer,
+    val framebuffer: WebGLFramebuffer?,
     override val width: Int,
     override val height: Int,
     override val contentScale: Double,

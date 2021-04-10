@@ -41,6 +41,8 @@ sealed class WindowMultisample {
 
 class Configuration {
 
+    var canvasId = "openrndr-canvas"
+
     /**
      * The preferred window width
      */

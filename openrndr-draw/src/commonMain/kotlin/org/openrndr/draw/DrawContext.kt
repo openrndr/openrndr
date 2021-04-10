@@ -12,19 +12,13 @@ private var lastView = Matrix44.IDENTITY
 private var lastViewNormal = Matrix44.IDENTITY
 
 private var contextBlocks = mutableMapOf<Long, UniformBlock?>()
-private var useContextBlock = true
+expect val useContextBlock : Boolean
 
 private val logger = KotlinLogging.logger {}
 
 @Suppress("MemberVisibilityCanPrivate")
 data class DrawContext(val model: Matrix44, val view: Matrix44, val projection: Matrix44, val width: Int, val height: Int, val contentScale: Double) {
     fun applyToShader(shader: Shader) {
-
-        val contextBlock = contextBlocks.getOrPut(Driver.instance.contextID) {
-            logger.debug { "creating context block for ${Driver.instance.contextID}" }
-            shader.createBlock("ContextBlock")
-        }
-
         if (!useContextBlock) {
             if (shader.hasUniform("u_viewMatrix")) {
                 shader.uniform("u_viewMatrix", view)
@@ -58,6 +52,11 @@ data class DrawContext(val model: Matrix44, val view: Matrix44, val projection: 
                 shader.uniform("u_contentScale", contentScale)
             }
         } else {
+            val contextBlock = contextBlocks.getOrPut(Driver.instance.contextID) {
+                logger.debug { "creating context block for ${Driver.instance.contextID}" }
+                shader.createBlock("ContextBlock")
+            }
+
             contextBlock?.apply {
                 uniform("u_viewMatrix", view)
                 uniform("u_modelMatrix", model)
