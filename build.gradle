@@ -5,7 +5,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath "org.jetbrains.dokka:dokka-gradle-plugin:0.10.1"
+        classpath "org.jetbrains.dokka:dokka-gradle-plugin:1.4.30"
         classpath "com.netflix.nebula:nebula-publishing-plugin:17.3.0"
         classpath "com.netflix.nebula:nebula-release-plugin:15.1.0"
     }
@@ -26,46 +26,47 @@ project.ext {
     jsoupVersion = '1.13.1'
 }
 
-dokka {
-//
-    outputDirectory = "$buildDir/docs"
-    outputFormat = "html"
-//    includes = ['Module.md']
+tasks.named("dokkaHtml")  {
+    moduleName.set("openrndr")
+    dokkaSourceSets {
 
-
-    configuration {
-        moduleName = "$rootProject.name"
-        platform = "JVM"
-        skipDeprecated = true
-        includeNonPublic = false
-
-        disableAutoconfiguration = false
-
-        subProjects = ["openrndr-animatable", "openrndr-color", "openrndr-core", "openrndr-dialogs", "openrndr-event",
-                       "openrndr-extensions", "openrndr-filter", "openrndr-math", "openrndr-shape", "openrndr-svg"]
-
-        sourceLink {
-            url = "https://github.com/openrndr/openrndr/blob/master/openrndr-core/src/main/kotlin"
-            lineSuffix = "#L"
-        }
-        perPackageOption {
-            prefix = "org.openrndr.internal"
-            suppress = true
-        }
-        perPackageOption {
-            prefix = "org.openrndr.shape.tessellation"
-            suppress = true
-        }
-    }
-
-    if (!System.properties['os.name'].toLowerCase().contains('windows')) {
-        doLast {
-            exec {
-                executable "./dokka/postbuild.sh"
+        named("main") { /* configure main source set */
+            perPackageOption {
+                matchingRegex.set(".*gl3.*") // will match kotlin and all sub-packages of it
+                // All options are optional, default values are below:
+                suppress.set(true)
+            }
+            perPackageOption {
+                matchingRegex.set(".*internal*") // will match kotlin and all sub-packages of it
+                // All options are optional, default values are below:
+                suppress.set(true)
+            }
+            perPackageOption {
+                matchingRegex.set(".*artifex*") // will match kotlin and all sub-packages of it
+                // All options are optional, default values are below:
+                suppress.set(true)
+            }
+            perPackageOption {
+                matchingRegex.set("io\\.lacuna.*") // will match kotlin and all sub-packages of it
+                // All options are optional, default values are below:
+                suppress.set(true)
             }
         }
     }
+    outputDirectory.set(file("build/docs"))
+    includeNonPublic.set(false)
+    reportUndocumented.set(true)
+    skipEmptyPackages.set(true)
+    remoteUrl.set(uri("https://github.com/openrndr/openrndr/master/src/main/kotlin").toURL())
 }
+
+["openrndr-animatable", "openrndr-dialogs", "openrndr-filter", "openrndr-core", "openrndr-math", "openrndr-color", "openrndr-event"].each {
+
+    project(":$it") {
+        apply plugin: 'org.jetbrains.dokka'
+    }
+}
+
 
 allprojects {
     apply plugin: 'idea'
