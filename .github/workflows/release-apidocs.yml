@@ -21,6 +21,7 @@ jobs:
           git reset HEAD -- .
           git clean -df
           mv ../build/dokka/htmlMultiModule/* .
+          echo api.openrndr.org > CNAME
           git status
           git config --global user.email "actions@openrndr.org"
           git config --global user.name "OPENRNDR Actions"
