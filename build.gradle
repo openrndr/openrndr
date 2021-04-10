@@ -19,9 +19,9 @@ apply plugin: 'org.jetbrains.dokka'
 
 project.ext {
     lwjglVersion = '3.2.3'
-    javacpp_version = '1.5.4'
-    ffmpeg_version = "4.3.1-$javacpp_version"
-    kotlinVersion = '1.4.31'
+    javacpp_version = '1.5.5'
+    ffmpeg_version = "4.3.2-$javacpp_version"
+    kotlinVersion = '1.4.32'
     spekVersion = '2.0.15'
     jsoupVersion = '1.13.1'
 }
