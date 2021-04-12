@@ -147,7 +147,7 @@ actual class ShadeStyleGLSL {
                 |    uniform highp vec4 u_fill;
                 |    uniform highp vec4 u_stroke;
                 |    uniform highp float u_strokeWeight;
-                |    uniform highp float[25] u_colorMatrix;"""
+                |    uniform highp float u_colorMatrix[25];"""
             }
         }
             |// </drawer-uniforms>

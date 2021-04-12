@@ -53,16 +53,24 @@ open class RenderTargetWebGL(
     }
 
     override fun attach(colorBuffer: ColorBuffer, level: Int, name: String?) {
-        colorBuffer as ColorBufferWebGL
-        val div = 1 shl level
-        val effectiveWidth = (width * contentScale).toInt()
-        val effectiveHeight = (height * contentScale).toInt()
+        bound {
+            colorBuffer as ColorBufferWebGL
+            val div = 1 shl level
+            val effectiveWidth = (width * contentScale).toInt()
+            val effectiveHeight = (height * contentScale).toInt()
 
-        if (!(colorBuffer.effectiveWidth / div == effectiveWidth && colorBuffer.effectiveHeight / div == effectiveHeight)) {
-            error("buffer dimension mismatch. expected: ($width x $height @${colorBuffer.contentScale}x, got: (${colorBuffer.width / div} x ${colorBuffer.height / div} @${colorBuffer.contentScale}x level:${level})")
+            if (!(colorBuffer.effectiveWidth / div == effectiveWidth && colorBuffer.effectiveHeight / div == effectiveHeight)) {
+                error("buffer dimension mismatch. expected: ($width x $height @${colorBuffer.contentScale}x, got: (${colorBuffer.width / div} x ${colorBuffer.height / div} @${colorBuffer.contentScale}x level:${level})")
+            }
+            context.framebufferTexture2D(
+                GL.FRAMEBUFFER,
+                GL.COLOR_ATTACHMENT0 + colorAttachments.size,
+                colorBuffer.target,
+                colorBuffer.texture,
+                level
+            )
+            colorAttachments.add(ColorBufferAttachment(colorAttachments.size, name, colorBuffer, level))
         }
-        context.framebufferTexture2D(GL.FRAMEBUFFER, GL.COLOR_ATTACHMENT0 + colorAttachments.size, colorBuffer.target, colorBuffer.texture, level)
-        colorAttachments.add(ColorBufferAttachment(colorAttachments.size, name, colorBuffer, level))
     }
 
     override fun attach(depthBuffer: DepthBuffer) {
@@ -97,7 +105,11 @@ open class RenderTargetWebGL(
     }
 
     override fun detachColorAttachments() {
-        TODO("Not yet implemented")
+        bound {
+            for ((index, attachment) in colorAttachments.withIndex()) {
+                context.framebufferTexture2D(GL.FRAMEBUFFER, GL.COLOR_ATTACHMENT0 + index, GL.TEXTURE_2D, null, 0)
+            }
+        }
     }
 
     override fun detachColorBuffers() {
@@ -126,6 +138,12 @@ open class RenderTargetWebGL(
 
     override fun blendMode(index: Int, blendMode: BlendMode) {
         error("not supported")
+    }
+
+    private fun bound(function: () -> Unit) {
+        bind()
+        function()
+        unbind()
     }
 
     var bound = false

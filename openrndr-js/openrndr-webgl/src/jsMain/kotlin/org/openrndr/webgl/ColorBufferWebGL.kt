@@ -114,7 +114,13 @@ class ColorBufferWebGL(
             )
         }
 
-        suspend fun fromUrl(context: GL, url: String, session: Session? = Session.active): ColorBufferWebGL {
+        fun fromUrl(context: GL, url: String, session: Session? = Session.active): ColorBufferWebGL {
+            error("use fromUrlSuspend")
+            //val image = promiseImage(url).await()
+            //return fromImage(context, image, session)
+        }
+
+        suspend fun fromUrlSuspend(context: GL, url: String, session: Session? = Session.active): ColorBufferWebGL {
             val image = promiseImage(url).await()
             return fromImage(context, image, session)
         }

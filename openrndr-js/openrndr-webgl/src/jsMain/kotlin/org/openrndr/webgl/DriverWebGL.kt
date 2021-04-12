@@ -114,8 +114,13 @@ class DriverWebGL(val context: GL) : Driver {
         return ColorBufferWebGL.create(context, width, height, contentScale, format, type, multisample, levels, session)
     }
 
-    override suspend fun createColorBufferFromUrl(url: String, formatHint: ImageFileFormat?, session: Session?): ColorBuffer {
+    override fun createColorBufferFromUrl(url: String, formatHint: ImageFileFormat?, session: Session?): ColorBuffer {
         return ColorBufferWebGL.fromUrl(context, url, session)
+    }
+
+
+    override suspend fun createColorBufferFromUrlSuspend(url: String, formatHint: ImageFileFormat?, session: Session?): ColorBuffer {
+        return ColorBufferWebGL.fromUrlSuspend(context, url, session)
     }
 
     override fun createColorBufferFromFile(
@@ -519,7 +524,28 @@ class DriverWebGL(val context: GL) : Driver {
     }
 
     override fun internalShaderResource(resourceId: String): String {
-        TODO("Not yet implemented")
+        return when (resourceId) {
+            "filter.vert" -> {
+                """
+                attribute vec2 a_texCoord0;
+                attribute vec2 a_position;
+
+                uniform vec2 targetSize;
+                uniform vec2 padding;
+                uniform mat4 projectionMatrix;
+
+                varying mediump vec2 v_texCoord0;
+
+                void main() {
+                    v_texCoord0 = a_texCoord0;
+                    vec2 transformed = a_position * (targetSize - 2.0 * padding) + padding;
+                    gl_Position = projectionMatrix * vec4(transformed, 0.0, 1.0);
+                }
+                """
+            }
+            else -> error("unknown resource '$resourceId'")
+        }
+
     }
 }
 

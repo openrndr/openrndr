@@ -281,7 +281,13 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         }
     }
 
-    override suspend fun createColorBufferFromUrl(url: String, formatHint: ImageFileFormat?, session: Session?): ColorBuffer {
+    override fun createColorBufferFromUrl(url: String, formatHint: ImageFileFormat?, session: Session?): ColorBuffer {
+        val colorBuffer = ColorBufferGL3.fromUrl(url, formatHint, session)
+        session?.track(colorBuffer)
+        return colorBuffer
+    }
+
+    override suspend fun createColorBufferFromUrlSuspend(url: String, formatHint: ImageFileFormat?, session: Session?): ColorBuffer {
         val colorBuffer = ColorBufferGL3.fromUrl(url, formatHint, session)
         session?.track(colorBuffer)
         return colorBuffer

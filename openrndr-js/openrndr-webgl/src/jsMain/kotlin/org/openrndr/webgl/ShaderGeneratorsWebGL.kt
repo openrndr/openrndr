@@ -79,7 +79,6 @@ class ShaderGeneratorsWebGL : ShaderGenerators {
         |${shadeStructure.varyingIn ?: ""}
         |${transformVaryingIn}
         |${shadeStructure.outputs ?: ""}
-        |${if (!shadeStructure.suppressDefaultOutput) "out vec4 o_color;" else ""}
         |${shadeStructure.fragmentPreamble ?: ""}
         |varying vec3 v_boundsPosition;
         |
@@ -99,7 +98,7 @@ class ShaderGeneratorsWebGL : ShaderGenerators {
         |   }
         |   float div = x_fill.a != 0.0 ? x_fill.a : 1.0;
         |   x_fill.rgb /= div;
-        |   x_fill = colorTransform(x_fill, u_colorMatrix);
+        |   //x_fill = colorTransform(x_fill, u_colorMatrix);
         |   x_fill.rgb *= x_fill.a;
         |   gl_FragColor = x_fill;
         |}""".trimMargin()
@@ -363,7 +362,7 @@ void main() {
         |uniform vec2 targetSize;
         |uniform vec2 padding;
         |uniform mat4 projectionMatrix;
-        |out vec2 v_texCoord0;
+        |varying vec2 v_texCoord0;
         |void main() {
         |   v_texCoord0 = a_texCoord0;
         |   vec2 transformed = a_position * (targetSize - 2*padding) + padding;

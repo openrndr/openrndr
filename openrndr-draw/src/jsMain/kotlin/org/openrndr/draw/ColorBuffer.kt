@@ -107,10 +107,7 @@ actual fun loadImage(
     formatHint: ImageFileFormat?,
     session: Session?
 ): ColorBuffer {
-    val result = GlobalScope.launch {
-        loadImageSuspend(fileOrUrl, formatHint, session)
-    }
-    result.isCompleted
+    return Driver.instance.createColorBufferFromUrl(fileOrUrl, null, session)
 
 }
 

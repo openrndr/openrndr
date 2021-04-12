@@ -82,7 +82,13 @@ expect interface Driver {
         session: Session? = Session.active
     ): ColorBuffer
 
-    suspend fun createColorBufferFromUrl(
+    fun createColorBufferFromUrl(
+        url: String,
+        formatHint: ImageFileFormat? = null,
+        session: Session? = Session.active
+    ): ColorBuffer
+
+    suspend fun createColorBufferFromUrlSuspend(
         url: String,
         formatHint: ImageFileFormat? = null,
         session: Session? = Session.active

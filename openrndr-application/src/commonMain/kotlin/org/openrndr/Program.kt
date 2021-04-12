@@ -50,7 +50,7 @@ data class ProgramEvent(val type: ProgramEventType)
 The Program class, this is where most user implementations start
  **/
 //@ApplicationDslMarker
-open class Program {
+open class Program(val suspend: Boolean = false) {
     var width = 0
     var height = 0
 
