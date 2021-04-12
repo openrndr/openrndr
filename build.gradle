@@ -1,12 +1,13 @@
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 
+
 buildscript {
     repositories {
         jcenter()
     }
     dependencies {
         classpath "org.jetbrains.dokka:dokka-gradle-plugin:1.4.30"
-        classpath "com.netflix.nebula:nebula-publishing-plugin:17.3.0"
+//        classpath "com.netflix.nebula:nebula-publishing-plugin:17.3.0"
         classpath "com.netflix.nebula:nebula-release-plugin:15.1.0"
     }
 }
@@ -17,6 +18,9 @@ plugins {
 
 apply plugin: 'org.jetbrains.dokka'
 
+ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
+
+
 project.ext {
     lwjglVersion = '3.2.3'
     javacpp_version = '1.5.5'
@@ -26,7 +30,7 @@ project.ext {
     jsoupVersion = '1.13.1'
 }
 
-tasks.named("dokkaHtml")  {
+tasks.named("dokkaHtml") {
     moduleName.set("openrndr")
     dokkaSourceSets {
 
@@ -107,28 +111,68 @@ allprojects {
 }
 
 configure(allprojects.findAll { it.name != "openrndr-demos" }) {
-    apply plugin: 'nebula.contacts'
-
-    // -- work-around for problem with nebula.info on arm64, which is currently not used a build host platform
-    def arch = new DefaultNativePlatform("current").architecture.name
-    if (arch != 'aarch64') {
-        apply plugin: 'nebula.info'
-    }
-//    apply plugin: 'nebula.dependency-lock'
-
     apply plugin: 'nebula.release'
-    // selectively apply only the bintray plugin, snapshots are not published
-    // nebula-bintray needs to happened after nebula-release since version isn't lazy in the bintray extension
+    apply plugin: 'maven-publish'
+    apply plugin: 'signing'
 
-    apply plugin: 'nebula.maven-publish'
-    apply plugin: 'nebula.source-jar'
-    apply plugin: 'nebula.javadoc-jar'
+    java {
+        withJavadocJar()
+        withSourcesJar()
+    }
 
-    contacts {
-        'edwin@openrndr.org' {
-            moniker 'Edwin Jakobs'
-            github 'edwinRNDR'
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                from components.java
+                groupId = "org.openrndr"
+                artifactId = "$project.name"
+
+                description = "$project.name"
+                pom {
+                    name = "$project.name"
+                    description = "$project.name"
+                    url = 'http://openrndr.org'
+                    developers {
+                        developer {
+                            id = 'edwinjakobs'
+                            name = 'Edwin Jakobs'
+                            email = 'edwin@openrndr.org'
+                        }
+                    }
+                    license {
+                        licenses {
+                            license {
+                                name = 'BSD-2-Clause'
+                                url = 'https://github.com/openrndr/openrndr/blob/master/LICENSE'
+                                distribution = 'repo'
+                            }
+                        }
+                    }
+                    scm {
+                        connection = "scm:git:git@github.com:openrndr/openrndr.git"
+                        developerConnection = "scm:git:ssh://github.com/openrndr/openrndr.git"
+                        url = "https://github.com/openrndr/openrndr"
+                    }
+                }
+            }
         }
+        repositories {
+            maven {
+                credentials {
+                    username findProperty("ossrhUsername") ?: System.getenv("OSSRH_USERNAME")
+                    password findProperty("ossrhPassword") ?: System.getenv("OSSRH_PASSWORD")
+                }
+                if (!isReleaseVersion) {
+                    url "https://s01.oss.sonatype.org/content/repositories/snapshots"
+                } else {
+                    url "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2"
+                }
+            }
+        }
+    }
+    signing {
+        required { isReleaseVersion && gradle.taskGraph.hasTask("publish") }
+        sign publishing.publications.mavenJava
     }
 }
 
