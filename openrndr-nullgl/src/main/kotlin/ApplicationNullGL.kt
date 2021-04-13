@@ -75,4 +75,7 @@ class ApplicationNullGL(private val program: Program, private val configuration:
     override val seconds: Double
         get() = (startMS - System.currentTimeMillis()) / 1000.0
     override var presentationMode: PresentationMode = PresentationMode.AUTOMATIC
+    override var windowContentScale: Double
+        get() = 1.0
+        set(value) {}
 }

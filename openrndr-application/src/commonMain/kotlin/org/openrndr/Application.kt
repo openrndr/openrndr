@@ -44,6 +44,8 @@ expect abstract class Application {
 
     abstract var windowPosition: Vector2
     abstract var windowSize: Vector2
+    abstract var windowContentScale: Double
+
     abstract var cursorPosition: Vector2
     abstract var cursorVisible: Boolean
     abstract var cursorHideMode: MouseCursorHideMode

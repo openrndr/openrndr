@@ -44,4 +44,5 @@ actual abstract class Application {
     actual abstract val seconds: Double
 
     actual abstract var presentationMode: PresentationMode
+    actual abstract var windowContentScale: Double
 }

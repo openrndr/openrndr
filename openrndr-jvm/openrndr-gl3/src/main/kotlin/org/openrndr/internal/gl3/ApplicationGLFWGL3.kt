@@ -38,6 +38,14 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
             System.getProperty("os.name").contains("linux", true)
     private var setupCalled = false
     override var presentationMode: PresentationMode = PresentationMode.AUTOMATIC
+    override var windowContentScale: Double
+        get() {
+            val wcsx = FloatArray(1)
+            val wcsy = FloatArray(1)
+            glfwGetWindowContentScale(window, wcsx, wcsy)
+            return wcsx[0].toDouble()
+        }
+        set(value) {}
 
     private var realCursorPosition = Vector2(0.0, 0.0)
 
@@ -95,15 +103,15 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
             val h = IntArray(1)
             glfwGetWindowSize(window, w, h)
             return Vector2(
-                if (fixWindowSize) (w[0].toDouble() / program.window.scale.x) else w[0].toDouble(),
-                if (fixWindowSize) (h[0].toDouble() / program.window.scale.y) else h[0].toDouble()
+                if (fixWindowSize) (w[0].toDouble() / program.window.contentScale) else w[0].toDouble(),
+                if (fixWindowSize) (h[0].toDouble() / program.window.contentScale) else h[0].toDouble()
             )
         }
         set(value) {
             glfwSetWindowSize(
                 window,
-                if (fixWindowSize) (value.x * program.window.scale.x).toInt() else value.x.toInt(),
-                if (fixWindowSize) (value.y * program.window.scale.y).toInt() else value.y.toInt()
+                if (fixWindowSize) (value.x * program.window.contentScale).toInt() else value.x.toInt(),
+                if (fixWindowSize) (value.y * program.window.contentScale).toInt() else value.y.toInt()
             )
 
         }
@@ -115,15 +123,15 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
             val y = IntArray(1)
             glfwGetWindowPos(window, x, y)
             return Vector2(
-                if (fixWindowSize) (x[0].toDouble() / program.window.scale.x) else x[0].toDouble(),
-                if (fixWindowSize) (y[0].toDouble() / program.window.scale.y) else y[0].toDouble()
+                if (fixWindowSize) (x[0].toDouble() / program.window.contentScale) else x[0].toDouble(),
+                if (fixWindowSize) (y[0].toDouble() / program.window.contentScale) else y[0].toDouble()
             )
         }
         set(value) {
             glfwSetWindowPos(
                 window,
-                if (fixWindowSize) (value.x * program.window.scale.x).toInt() else value.x.toInt(),
-                if (fixWindowSize) (value.y * program.window.scale.y).toInt() else value.y.toInt()
+                if (fixWindowSize) (value.x * program.window.contentScale).toInt() else value.x.toInt(),
+                if (fixWindowSize) (value.y * program.window.contentScale).toInt() else value.y.toInt()
             )
         }
 
@@ -212,7 +220,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
             xscale[0] = 1.0f
         }
 
-        program.window.scale = Vector2(xscale[0].toDouble(), xscale[0].toDouble())
+        program.window.contentScale = xscale[0].toDouble()
 
         logger.debug { "creating window" }
 
@@ -727,7 +735,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         }
 
         glfwSetCursorPosCallback(window) { _, xpos, ypos ->
-            val position = if (fixWindowSize) Vector2(xpos, ypos) / program.window.scale else Vector2(xpos, ypos)
+            val position = if (fixWindowSize) Vector2(xpos, ypos) / program.window.contentScale else Vector2(xpos, ypos)
             logger.trace { "mouse moved $xpos $ypos -- $position" }
             realCursorPosition = position
             program.mouse.moved.trigger(
@@ -896,15 +904,15 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         val wcsx = FloatArray(1)
         val wcsy = FloatArray(1)
         glfwGetWindowContentScale(window, wcsx, wcsy)
-        program.window.scale = Vector2(wcsx[0].toDouble(), wcsy[0].toDouble())
+        program.window.contentScale = wcsx[0].toDouble()
 
         val fbw = IntArray(1)
         val fbh = IntArray(1)
         glfwGetFramebufferSize(window, fbw, fbh)
 
         glViewport(0, 0, fbw[0], fbh[0])
-        program.width = ceil(fbw[0] / program.window.scale.x).toInt()
-        program.height = ceil(fbh[0] / program.window.scale.y).toInt()
+        program.width = ceil(fbw[0] / program.window.contentScale).toInt()
+        program.height = ceil(fbh[0] / program.window.contentScale).toInt()
         //program.window.size = Vector2(program.width.toDouble(), program.height.toDouble())
         program.drawer.width = program.width
         program.drawer.height = program.height

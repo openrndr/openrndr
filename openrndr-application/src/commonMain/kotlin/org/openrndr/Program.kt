@@ -9,7 +9,7 @@ import org.openrndr.events.Event
 import org.openrndr.internal.Driver
 import org.openrndr.math.Vector2
 
-expect fun rootClassName() : String
+expect fun rootClassName(): String
 
 enum class WindowEventType {
     MOVED,
@@ -187,7 +187,11 @@ open class Program(val suspend: Boolean = false) {
                 application.windowSize = value
             }
 
-        var scale = Vector2(1.0, 1.0)
+        var contentScale
+            get() = application.windowContentScale
+            set(value) {
+                application.windowContentScale = value
+            }
 
         var presentationMode: PresentationMode
             get() = application.presentationMode
@@ -250,7 +254,6 @@ open class Program(val suspend: Boolean = false) {
     }
 
     val window = Window()
-
 
 
     val keyboard by lazy { Keyboard() }

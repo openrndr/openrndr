@@ -209,23 +209,19 @@ class DriverWebGL(val context: GL) : Driver {
     }
 
     override fun createDynamicIndexBuffer(elementCount: Int, type: IndexType, session: Session?): IndexBuffer {
-        TODO("Not yet implemented")
+        error("not supported")
     }
 
     override fun createShaderStorageBuffer(format: ShaderStorageFormat, session: Session?): ShaderStorageBuffer {
-        TODO("Not yet implemented")
+        error("not supported")
     }
-
 
     private fun setupFormat(vertexBuffer: List<VertexBuffer>, instanceAttributes: List<VertexBuffer>, shader: ShaderWebGL) {
         val scalarVectorTypes = setOf(
-//            VertexElementType.UINT8, VertexElementType.VECTOR2_UINT8, VertexElementType.VECTOR3_UINT8, VertexElementType.VECTOR4_UINT8,
-//            VertexElementType.INT8, VertexElementType.VECTOR2_INT8, VertexElementType.VECTOR3_INT8, VertexElementType.VECTOR4_INT8,
-//            VertexElementType.UINT16, VertexElementType.VECTOR2_UINT16, VertexElementType.VECTOR3_UINT16, VertexElementType.VECTOR4_UINT16,
-//            VertexElementType.INT16, VertexElementType.VECTOR2_INT16, VertexElementType.VECTOR3_INT16, VertexElementType.VECTOR4_INT16,
-//            VertexElementType.UINT32, VertexElementType.VECTOR2_UINT32, VertexElementType.VECTOR3_UINT32, VertexElementType.VECTOR4_UINT32,
-//            VertexElementType.INT32, VertexElementType.VECTOR2_INT32, VertexElementType.VECTOR3_INT32, VertexElementType.VECTOR4_INT32,
             VertexElementType.FLOAT32, VertexElementType.VECTOR2_FLOAT32, VertexElementType.VECTOR3_FLOAT32, VertexElementType.VECTOR4_FLOAT32)
+
+
+        var attribute0Used = false
 
         fun setupBuffer(buffer: VertexBuffer, divisor: Int = 0) {
             val prefix = if (divisor == 0) "a" else "i"
@@ -235,6 +231,9 @@ class DriverWebGL(val context: GL) : Driver {
             val format = buffer.vertexFormat
             for (item in format.items) {
                 val attributeIndex = shader.attributeIndex("${prefix}_${item.attribute}")
+                if (attributeIndex == 0) {
+                    attribute0Used = true
+                }
                 if (attributeIndex != -1) {
                     when (item.type) {
                         in scalarVectorTypes -> {
@@ -284,7 +283,7 @@ class DriverWebGL(val context: GL) : Driver {
             }
 
             if (attributeBindings > 16) {
-                throw RuntimeException("Maximum vertex attributes exceeded $attributeBindings (limit is 16)")
+                error("Maximum vertex attributes exceeded $attributeBindings (limit is 16)")
             }
         }
         vertexBuffer.forEach {
@@ -292,6 +291,10 @@ class DriverWebGL(val context: GL) : Driver {
         }
         instanceAttributes.forEach {
             setupBuffer(it, 1)
+        }
+
+        if (!attribute0Used) {
+            println("attribute 0 is not used")
         }
     }
 

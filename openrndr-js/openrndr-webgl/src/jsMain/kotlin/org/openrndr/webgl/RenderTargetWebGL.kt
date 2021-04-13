@@ -18,7 +18,7 @@ class ProgramRenderTargetWebGL(context: GL, override val program: Program) : Pro
         get() = program.window.size.y.toInt()
 
     override val contentScale: Double
-        get() = program.window.scale.x
+        get() = program.window.contentScale
 
     override val hasColorAttachments = true
     override val hasDepthBuffer = true
@@ -50,6 +50,7 @@ open class RenderTargetWebGL(
 
     fun bindTarget() {
         context.bindFramebuffer(GL.FRAMEBUFFER, framebuffer)
+        context.viewport(0, 0, effectiveWidth, effectiveHeight)
     }
 
     override fun attach(colorBuffer: ColorBuffer, level: Int, name: String?) {

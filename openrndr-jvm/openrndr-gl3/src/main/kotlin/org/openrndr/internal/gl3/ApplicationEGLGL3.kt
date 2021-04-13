@@ -156,4 +156,7 @@ class ApplicationEGLGL3(private val program: Program, private val configuration:
     override var presentationMode: PresentationMode
         get() = PresentationMode.AUTOMATIC
         set(value) {}
+    override var windowContentScale: Double
+        get() = 1.0
+        set(value) {}
 }

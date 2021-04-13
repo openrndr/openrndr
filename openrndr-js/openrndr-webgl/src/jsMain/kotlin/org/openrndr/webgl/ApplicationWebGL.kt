@@ -8,6 +8,8 @@ import org.openrndr.draw.Drawer
 import org.openrndr.internal.Driver
 import org.openrndr.math.Vector2
 import org.w3c.dom.HTMLCanvasElement
+import org.w3c.dom.events.UIEvent
+import kotlin.math.roundToInt
 
 val applicationWebGLInitializer = object {
     init {
@@ -35,18 +37,59 @@ class ApplicationWebGL(private val program: Program, private val configuration: 
         TODO("Not yet implemented")
     }
 
+    private var referenceTime: Double = 0.0
+
+    var canvas: HTMLCanvasElement? = null
+    var context: WebGLRenderingContext? = null
+    var defaultRenderTarget: ProgramRenderTargetWebGL? = null
     override fun setup() {
-        val canvas = document.getElementById(configuration.canvasId) as? HTMLCanvasElement ?: error("failed to get canvas #${configuration.canvasId}")
-        val context = canvas.getContext("webgl") as? WebGLRenderingContext ?: error("failed to create webgl context")
-        Driver.driver = DriverWebGL(context)
+        canvas = document.getElementById(configuration.canvasId) as? HTMLCanvasElement ?: error("failed to get canvas #${configuration.canvasId}")
+        context = canvas?.getContext("webgl") as? WebGLRenderingContext ?: error("failed to create webgl context")
+        Driver.driver = DriverWebGL(context?:error("no context"))
         program.drawer = Drawer(Driver.instance)
+        referenceTime = window.performance.now()
+
+        val dpr = window.devicePixelRatio
+
+        canvas?.width = (dpr * (canvas?.clientWidth?:error("no width"))).toInt()
+        canvas?.height = (dpr * (canvas?.clientHeight?:error("no height"))).toInt()
+
         program.setup()
 
-        val defaultRenderTarget = ProgramRenderTargetWebGL(context, program)
-        defaultRenderTarget.bind()
+
+
+        window.addEventListener("resize", {
+            println("resized window")
+            println("1: ${canvas?.parentElement?.clientWidth}x${canvas?.parentElement?.clientHeight}")
+            println("2: ${canvas?.clientWidth}x${canvas?.clientHeight}")
+            val dpr = window.devicePixelRatio
+
+            canvas?.width = (dpr * (canvas?.clientWidth?:error("no width"))).toInt()
+            canvas?.height = (dpr * (canvas?.clientHeight?:error("no height"))).toInt()
+
+        })
+
+        canvas?.addEventListener("resize", {
+            //it as UIEvent
+            println("resized canvas")
+
+        })
+
+        defaultRenderTarget = ProgramRenderTargetWebGL(context?:error("no context"), program)
+        defaultRenderTarget?.bind()
     }
 
     override fun loop() {
+        val dims = windowSize
+        program.width = dims.x.toInt()
+        program.height = dims.y.toInt()
+        program.drawer.width = dims.x.toInt()
+        program.drawer.height = dims.y.toInt()
+
+        program.drawer.reset()
+        program.drawer.ortho()
+
+        defaultRenderTarget?.bindTarget()
         program.drawImpl()
         window.requestAnimationFrame {
             loop()
@@ -63,8 +106,17 @@ class ApplicationWebGL(private val program: Program, private val configuration: 
         get() = TODO("Not yet implemented")
         set(value) {}
     override var windowSize: Vector2
-        get() = TODO("Not yet implemented")
-        set(value) {}
+        get() {
+            val width = canvas?.clientWidth?.toDouble()?:0.0
+            val height = canvas?.clientHeight?.toDouble()?:0.0
+            return Vector2(width, height)
+        }
+        set(value) {
+            error("not supported")
+        }
+
+
+
     override var cursorPosition: Vector2
         get() = TODO("Not yet implemented")
         set(value) {}
@@ -75,7 +127,13 @@ class ApplicationWebGL(private val program: Program, private val configuration: 
         get() = TODO("Not yet implemented")
         set(value) {}
     override var cursorType: CursorType = CursorType.ARROW_CURSOR
-    override val seconds: Double = 0.0
+    override val seconds: Double
+    get() {
+        return (window.performance.now() - referenceTime) / 1000.0
+    }
 
     override var presentationMode: PresentationMode = PresentationMode.AUTOMATIC
+    override var windowContentScale: Double
+        get() = window.devicePixelRatio
+        set(value) {}
 }

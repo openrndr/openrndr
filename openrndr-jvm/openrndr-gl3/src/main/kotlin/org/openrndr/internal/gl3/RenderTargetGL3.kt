@@ -25,7 +25,7 @@ class ProgramRenderTargetGL3(override val program: Program) : ProgramRenderTarge
         get() = program.window.size.y.toInt()
 
     override val contentScale: Double
-        get() = program.window.scale.x
+        get() = program.window.contentScale
 
     override val hasColorAttachments = true
     override val hasDepthBuffer = true
