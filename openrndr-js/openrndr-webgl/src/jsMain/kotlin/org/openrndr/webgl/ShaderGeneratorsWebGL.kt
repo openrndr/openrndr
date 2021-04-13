@@ -22,7 +22,6 @@ class ShaderGeneratorsWebGL : ShaderGenerators {
         |${primitiveTypes("d_vertex_buffer")}
         |${shadeStructure.buffers ?: ""}
         |${shadeStructure.uniforms ?: ""}
-        |layout(origin_upper_left) in vec4 gl_FragCoord;
 
         |uniform sampler2D image;
         |${drawerUniforms()}
@@ -40,8 +39,8 @@ class ShaderGeneratorsWebGL : ShaderGenerators {
         |       ${shadeStructure.fragmentTransform ?: ""}
         |    }
         ${if (!shadeStructure.suppressDefaultOutput) """
-            |    o_color = x_fill;
-            |    o_color.rgb *= o_color.a;""".trimMargin() else ""}
+            |    gl_FragColor = x_fill;
+            |    gl_FragColor.rgb *= gl_FragColor.a;""".trimMargin() else ""}
 |}""".trimMargin()
 
     override fun vertexBufferVertexShader(shadeStructure: ShadeStructure): String = """

@@ -56,25 +56,11 @@ class ApplicationWebGL(private val program: Program, private val configuration: 
 
         program.setup()
 
-
-
         window.addEventListener("resize", {
-            println("resized window")
-            println("1: ${canvas?.parentElement?.clientWidth}x${canvas?.parentElement?.clientHeight}")
-            println("2: ${canvas?.clientWidth}x${canvas?.clientHeight}")
             val dpr = window.devicePixelRatio
-
             canvas?.width = (dpr * (canvas?.clientWidth?:error("no width"))).toInt()
             canvas?.height = (dpr * (canvas?.clientHeight?:error("no height"))).toInt()
-
         })
-
-        canvas?.addEventListener("resize", {
-            //it as UIEvent
-            println("resized canvas")
-
-        })
-
         defaultRenderTarget = ProgramRenderTargetWebGL(context?:error("no context"), program)
         defaultRenderTarget?.bind()
     }
