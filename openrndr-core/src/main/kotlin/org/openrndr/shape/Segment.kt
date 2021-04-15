@@ -319,12 +319,13 @@ class Segment {
      * @param distanceTolerance The square of the maximal distance of each point from curve.
      * @return A pair of lists. The first list contains positions, the second list the points' normals.
      */
-    fun adaptivePositionsAndNormals(distanceTolerance: Double = 0.5): Pair<List<Vector2>, List<Vector2>> = when (control.size) {
-        0 -> Pair(listOf(start, end), listOf(end - start, end - start))
-        1 -> BezierQuadraticSampler2D().apply { this.distanceTolerance = distanceTolerance }.sample(start, control[0], end)
-        2 -> BezierCubicSampler2D().apply { this.distanceTolerance = distanceTolerance }.sample(start, control[0], control[1], end)
-        else -> throw RuntimeException("unsupported number of control points")
-    }
+    fun adaptivePositionsAndNormals(distanceTolerance: Double = 0.5): Pair<List<Vector2>, List<Vector2>> =
+        when (control.size) {
+            0 -> Pair(listOf(start, end), listOf(end - start, end - start))
+            1 -> BezierQuadraticSampler2D().apply { this.distanceTolerance = distanceTolerance }.sample(start, control[0], end)
+            2 -> BezierCubicSampler2D().apply { this.distanceTolerance = distanceTolerance }.sample(start, control[0], control[1], end)
+            else -> throw RuntimeException("unsupported number of control points")
+        }
 
     /**
      * Samples specified amount of points on the [Segment].
@@ -705,19 +706,19 @@ class Segment {
         }
 
     /**
-     * Samples a new [Segment] from the current [Segment] starting at [startT] and ending at [endT].
+     * Samples a new [Segment] from the current [Segment] starting at [t0] and ending at [t1].
      *
-     * @param startT The starting value of [t](https://pomax.github.io/bezierinfo/#explanation) in the range of `0.0` to `1.0`.
-     * @param endT The ending value of *t* in the range of `0.0` to `1.0`.
+     * @param t0 The starting value of [t](https://pomax.github.io/bezierinfo/#explanation) in the range of `0.0` to `1.0`.
+     * @param t1 The ending value of *t* in the range of `0.0` to `1.0`.
      */
-    fun sub(startT: Double, endT: Double): Segment {
+    fun sub(t0: Double, t1: Double): Segment {
         // ftp://ftp.fu-berlin.de/tex/CTAN/dviware/dvisvgm/src/Bezier.cpp
-        var z0 = startT
-        var z1 = endT
+        var z0 = t0
+        var z1 = t1
 
-        if (startT > endT) {
-            z1 = startT
-            z0 = endT
+        if (t0 > t1) {
+            z1 = t0
+            z0 = t1
         }
 
         return when {
