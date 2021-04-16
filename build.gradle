@@ -14,9 +14,9 @@ buildscript {
 
 plugins {
     // remember to update all the versions here when upgrading kotlin version
-    id 'org.jetbrains.kotlin.jvm'                  version '1.5.0-M2' apply false
-    id 'org.jetbrains.kotlin.multiplatform'        version '1.5.0-M2' apply false
-    id 'org.jetbrains.kotlin.plugin.serialization' version '1.5.0-M2' apply false
+    id 'org.jetbrains.kotlin.jvm'                  version '1.5.0-RC' apply false
+    id 'org.jetbrains.kotlin.multiplatform'        version '1.5.0-RC' apply false
+    id 'org.jetbrains.kotlin.plugin.serialization' version '1.5.0-RC' apply false
 }
 
 apply plugin: 'org.jetbrains.dokka'

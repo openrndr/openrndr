@@ -8,6 +8,7 @@ import org.openrndr.draw.Drawer
 import org.openrndr.internal.Driver
 import org.openrndr.math.Vector2
 import org.w3c.dom.HTMLCanvasElement
+import org.w3c.dom.events.MouseEvent as HtmlMouseEvent
 import org.w3c.dom.events.UIEvent
 import kotlin.math.roundToInt
 
@@ -61,6 +62,16 @@ class ApplicationWebGL(private val program: Program, private val configuration: 
             canvas?.width = (dpr * (canvas?.clientWidth?:error("no width"))).toInt()
             canvas?.height = (dpr * (canvas?.clientHeight?:error("no height"))).toInt()
         })
+
+        window.addEventListener("pointermove", {
+            it as HtmlMouseEvent
+            val x = it.clientX.toDouble()
+            val y = it.clientY.toDouble()
+            this.cursorPosition = Vector2(x, y)
+            program.mouse.moved.trigger(MouseEvent(cursorPosition, Vector2.ZERO, Vector2.ZERO, MouseEventType.MOVED, MouseButton.NONE, emptySet()))
+        })
+
+
         defaultRenderTarget = ProgramRenderTargetWebGL(context?:error("no context"), program)
         defaultRenderTarget?.bind()
     }
@@ -89,7 +100,7 @@ class ApplicationWebGL(private val program: Program, private val configuration: 
         get() = TODO("Not yet implemented")
         set(value) {}
     override var windowPosition: Vector2
-        get() = TODO("Not yet implemented")
+        get() = Vector2(0.0, 0.0)
         set(value) {}
     override var windowSize: Vector2
         get() {
@@ -101,11 +112,9 @@ class ApplicationWebGL(private val program: Program, private val configuration: 
             error("not supported")
         }
 
+    override var cursorPosition: Vector2 = Vector2(0.0, 0.0)
 
 
-    override var cursorPosition: Vector2
-        get() = TODO("Not yet implemented")
-        set(value) {}
     override var cursorVisible: Boolean
         get() = TODO("Not yet implemented")
         set(value) {}
