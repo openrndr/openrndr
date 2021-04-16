@@ -574,70 +574,70 @@ data class ShapeContour(
         }
 
     /**
-     * Samples a new [ShapeContour] from the current [ShapeContour] starting at [startT] and ending at [endT].
+     * Samples a new [ShapeContour] from the current [ShapeContour] starting at [t0] and ending at [t1].
      *
-     * @param startT Starting point in range `0.0` to less than `1.0`.
-     * @param endT Ending point in range `0.0` to less than `1.0`.
+     * @param t0 Starting point in range `0.0` to less than `1.0`.
+     * @param t1 Ending point in range `0.0` to less than `1.0`.
      * @return Subcontour
      */
-    fun sub(startT: Double, endT: Double): ShapeContour {
+    fun sub(t0: Double, t1: Double): ShapeContour {
         if (empty) {
             return EMPTY
         }
 
-        require(startT == startT) { "u0 is NaN" }
-        require(endT == endT) { "u1 is NaN" }
+        require(t0 == t0) { "t0 is NaN" }
+        require(t1 == t1) { "t1 is NaN" }
 
-        if (abs(startT - endT) < 10E-6) {
+        if (abs(t0 - t1) < 10E-6) {
             return EMPTY
         }
 
-        var t0 = startT
-        var t1 = endT
+        var u0 = t0
+        var u1 = t1
 
-        if (closed && (t1 < t0 || t1 > 1.0 || t0 > 1.0 || t0 < 0.0 || t1 < 0.0)) {
-            val diff = t1 - t0
-            t0 = mod(t0, 1.0)
+        if (closed && (u1 < u0 || u1 > 1.0 || u0 > 1.0 || u0 < 0.0 || u1 < 0.0)) {
+            val diff = u1 - u0
+            u0 = mod(u0, 1.0)
             if (abs(diff) < (1.0 - 10E-6)) {
                 return if (diff > 0.0) {
-                    t1 = t0 + diff
-                    if (t1 > 1.0) {
-                        sub(t0, 1.0) + sub(0.0, t1 - 1.0)
+                    u1 = u0 + diff
+                    if (u1 > 1.0) {
+                        sub(u0, 1.0) + sub(0.0, u1 - 1.0)
                     } else {
-                        sub(t0, t1)
+                        sub(u0, u1)
                     }
                 } else {
-                    t1 = t0 + diff
-                    if (t1 < 0) {
-                        sub(t1 + 1.0, 1.0) + sub(0.0, t0)
+                    u1 = u0 + diff
+                    if (u1 < 0) {
+                        sub(u1 + 1.0, 1.0) + sub(0.0, u0)
                     } else {
-                        sub(t1, t0)
+                        sub(u1, u0)
                     }
                 }
             } else {
-                t1 = if (diff < 0.0) {
-                    t0 - 1.0
+                u1 = if (diff < 0.0) {
+                    u0 - 1.0
                 } else {
-                    t0 + 1.0
+                    u0 + 1.0
                 }
-                if (t1 > 1.0) {
-                    return sub(t0, 1.0) + sub(0.0, t1 - 1.0)
+                if (u1 > 1.0) {
+                    return sub(u0, 1.0) + sub(0.0, u1 - 1.0)
                 }
-                if (t1 < 1.0) {
-                    return sub(t0, 1.0) + sub(0.0, t1 + 1.0)
+                if (u1 < 1.0) {
+                    return sub(u0, 1.0) + sub(0.0, u1 + 1.0)
                 }
             }
         }
 
-        t0 = t0.coerceIn(0.0, 1.0)
-        t1 = t1.coerceIn(0.0, 1.0)
+        u0 = u0.coerceIn(0.0, 1.0)
+        u1 = u1.coerceIn(0.0, 1.0)
 
-        var z0 = t0
-        var z1 = t1
+        var z0 = u0
+        var z1 = u1
 
-        if (t0 > t1) {
-            z0 = t1
-            z1 = t0
+        if (u0 > u1) {
+            z0 = u1
+            z1 = u0
         }
 
         val length = segments.size.toDouble()
@@ -650,7 +650,7 @@ data class ShapeContour(
         segment0 = min(segments.size - 1, segment0)
 
         val newSegments = mutableListOf<Segment>()
-        val epsilon = 0.000001
+        val epsilon = 10E-7
 
         for (s in segment0..segment1) {
             if (s == segment0 && s == segment1) {
