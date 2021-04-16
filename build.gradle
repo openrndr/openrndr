@@ -26,7 +26,7 @@ project.ext {
     javacpp_version = '1.5.5'
     ffmpeg_version = "4.3.2-$javacpp_version"
     kotlinVersion = '1.4.32'
-    spekVersion = '2.0.16'
+    spekVersion = '2.0.15'
     jsoupVersion = '1.13.1'
 }
 
