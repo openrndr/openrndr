@@ -66,6 +66,15 @@ class ComputeShaderGL43(val programObject: Int, val name: String = "compute_shad
                 }
                 GL43C.glBindImageTexture(image, colorBuffer.texture, 0, false, 0, imageBinding.access.gl(), colorBuffer.glFormat())
             }
+
+            is ArrayTextureImageBinding -> {
+                val arrayTexture = imageBinding.arrayTexture as ArrayTextureGL3
+                require(arrayTexture.format.componentCount != 3) {
+                    "color buffer has unsupported format (${imageBinding.arrayTexture.format}), only formats with 1, 2 or 4 components are supported"
+                }
+                GL43C.glBindImageTexture(image, arrayTexture.texture, imageBinding.level, false, 0, imageBinding.access.gl(), arrayTexture.glFormat())
+            }
+
             else -> error("unsupported binding")
         }
         val index = uniformIndex(name)
