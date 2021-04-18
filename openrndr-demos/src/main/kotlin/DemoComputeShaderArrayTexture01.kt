@@ -1,4 +1,5 @@
 
+import org.intellij.lang.annotations.Language
 import org.openrndr.application
 import org.openrndr.draw.*
 
@@ -21,6 +22,7 @@ fun main() {
                 ColorType.FLOAT32
             )
 
+            @Language("GLSL")
             val arrayComp = ComputeShader.fromCode("""
 #version 450
 layout(local_size_x = 1) in;
