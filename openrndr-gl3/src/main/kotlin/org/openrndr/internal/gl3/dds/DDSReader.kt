@@ -359,6 +359,7 @@ private const val DDS_MAGIC = 0x20534444
 
 fun loadDDS(file: InputStream): DDSData {
     val ba = ByteArray(file.available())
+    file.read(ba)
     return loadDDS(newByteBuffer(ba))
 }
 
@@ -374,7 +375,7 @@ fun loadDDS(data: ByteBuffer): DDSData {
 
         val magic = newByteBuffer(bMagic).int
         if (magic != DDS_MAGIC) {
-            throw RuntimeException("mismatch in magic word, not a dds file")
+            throw RuntimeException("mismatch in magic word, not a dds file ($magic != $DDS_MAGIC)")
         }
 
         val bHeader = ByteArray(124)
@@ -441,7 +442,7 @@ fun loadDDS(data: ByteBuffer): DDSData {
             return when (type) {
                 ColorType.DXT1 -> (width * height) / 2
                 ColorType.DXT3, ColorType.DXT5 -> (width * height)
-                else -> (header.pitchOrLinearSize * header.height) shl level
+                else -> (header.pitchOrLinearSize * header.height) / (div * div)
             }
         }
         val primarySize = size(0)
