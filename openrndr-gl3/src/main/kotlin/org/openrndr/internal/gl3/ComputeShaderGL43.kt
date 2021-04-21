@@ -25,16 +25,16 @@ class ComputeShaderGL43(val programObject: Int, val name: String = "compute_shad
     private var destroyed = false
     private val uniforms: MutableMap<String, Int> = hashMapOf()
     private fun uniformIndex(uniform: String, query: Boolean = false): Int =
-            uniforms.getOrPut(uniform) {
-                val location = glGetUniformLocation(programObject, uniform)
-                debugGLErrors()
-                if (location == -1 && !query) {
-                    logger.warn {
-                        "Shader '${name}' does not have a uniform called '$uniform'"
-                    }
+        uniforms.getOrPut(uniform) {
+            val location = glGetUniformLocation(programObject, uniform)
+            debugGLErrors()
+            if (location == -1 && !query) {
+                logger.warn {
+                    "Shader '${name}' does not have a uniform called '$uniform'"
                 }
-                location
             }
+            location
+        }
 
     override fun execute(width: Int, height: Int, depth: Int) {
 
@@ -64,7 +64,15 @@ class ComputeShaderGL43(val programObject: Int, val name: String = "compute_shad
                 require(colorBuffer.format.componentCount != 3) {
                     "color buffer has unsupported format (${imageBinding.colorBuffer.format}), only formats with 1, 2 or 4 components are supported"
                 }
-                GL43C.glBindImageTexture(image, colorBuffer.texture, 0, false, 0, imageBinding.access.gl(), colorBuffer.glFormat())
+                GL43C.glBindImageTexture(
+                    image,
+                    colorBuffer.texture,
+                    0,
+                    false,
+                    0,
+                    imageBinding.access.gl(),
+                    colorBuffer.glFormat()
+                )
             }
             else -> error("unsupported binding")
         }
@@ -72,7 +80,6 @@ class ComputeShaderGL43(val programObject: Int, val name: String = "compute_shad
         GL43C.glUniform1i(index, image)
         checkGLErrors()
     }
-
 
 
     private val ssbo = glGenBuffers()
@@ -84,6 +91,25 @@ class ComputeShaderGL43(val programObject: Int, val name: String = "compute_shad
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
         checkGLErrors()
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, index, vertexBuffer.buffer)
+        checkGLErrors()
+
+        val blockIndex = glGetProgramResourceIndex(programObject, GL_SHADER_STORAGE_BLOCK, name)
+        if (blockIndex >= 0) {
+            glShaderStorageBlockBinding(programObject, blockIndex, index)
+        } else {
+            logger.warn { "no such program resource: $name" }
+        }
+
+
+    }
+
+    override fun buffer(name: String, shaderStorageBuffer: ShaderStorageBuffer) {
+        val index = storageIndex.getOrPut(name) { storageIndex.size + 8 }
+
+        shaderStorageBuffer as ShaderStorageBufferGL43
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
+        checkGLErrors()
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, index, shaderStorageBuffer.buffer)
         checkGLErrors()
 
         val blockIndex = glGetProgramResourceIndex(programObject, GL_SHADER_STORAGE_BLOCK, name)
@@ -171,6 +197,36 @@ class ComputeShaderGL43(val programObject: Int, val name: String = "compute_shad
         }
     }
 
+    override fun uniform(name: String, value: IntVector2) {
+        bound {
+            val index = uniformIndex(name)
+            if (index != -1) {
+                glUniform2i(index, value.x, value.y)
+                postUniformCheck(name, index, value)
+            }
+        }
+    }
+
+    override fun uniform(name: String, value: IntVector3) {
+        bound {
+            val index = uniformIndex(name)
+            if (index != -1) {
+                glUniform3i(index, value.x, value.y, value.z)
+                postUniformCheck(name, index, value)
+            }
+        }
+    }
+
+    override fun uniform(name: String, value: IntVector4) {
+        bound {
+            val index = uniformIndex(name)
+            if (index != -1) {
+                glUniform4i(index, value.x, value.y, value.z, value.w)
+                postUniformCheck(name, index, value)
+            }
+        }
+    }
+
     override fun uniform(name: String, value: Boolean) {
         bound {
             val index = uniformIndex(name)
@@ -234,6 +290,63 @@ class ComputeShaderGL43(val programObject: Int, val name: String = "compute_shad
         }
     }
 
+    override fun uniform(name: String, value: Array<IntVector4>) {
+        bound {
+            val index = uniformIndex(name)
+            if (index != -1) {
+                logger.trace { "Setting uniform '$name' to $value" }
+
+                val intValues = IntArray(value.size * 4)
+                for (i in value.indices) {
+                    intValues[i * 4] = value[i].x
+                    intValues[i * 4 + 1] = value[i].y
+                    intValues[i * 4 + 2] = value[i].z
+                    intValues[i * 4 + 3] = value[i].w
+                }
+
+                glUniform4iv(index, intValues)
+                postUniformCheck(name, index, value)
+            }
+        }
+    }
+
+    override fun uniform(name: String, value: Array<IntVector3>) {
+        bound {
+            val index = uniformIndex(name)
+            if (index != -1) {
+                logger.trace { "Setting uniform '$name' to $value" }
+
+                val intValues = IntArray(value.size * 3)
+                for (i in value.indices) {
+                    intValues[i * 3] = value[i].x
+                    intValues[i * 3 + 1] = value[i].y
+                    intValues[i * 3 + 2] = value[i].z
+                }
+
+                glUniform3iv(index, intValues)
+                postUniformCheck(name, index, value)
+            }
+        }
+    }
+
+    override fun uniform(name: String, value: Array<IntVector2>) {
+        bound {
+            val index = uniformIndex(name)
+            if (index != -1) {
+                logger.trace { "Setting uniform '$name' to $value" }
+
+                val intValues = IntArray(value.size * 3)
+                for (i in value.indices) {
+                    intValues[i * 2] = value[i].x
+                    intValues[i * 2 + 1] = value[i].y
+                }
+
+                glUniform2iv(index, intValues)
+                postUniformCheck(name, index, value)
+            }
+        }
+    }
+
     override fun uniform(name: String, value: Array<Vector2>) {
         bound {
             val index = uniformIndex(name)
@@ -241,7 +354,7 @@ class ComputeShaderGL43(val programObject: Int, val name: String = "compute_shad
                 logger.trace { "Setting uniform '$name' to $value" }
 
                 val floatValues = FloatArray(value.size * 2)
-                for (i in 0 until value.size) {
+                for (i in value.indices) {
                     floatValues[i * 2] = value[i].x.toFloat()
                     floatValues[i * 2 + 1] = value[i].y.toFloat()
                 }
@@ -259,7 +372,7 @@ class ComputeShaderGL43(val programObject: Int, val name: String = "compute_shad
                 logger.trace { "Setting uniform '$name' to $value" }
 
                 val floatValues = FloatArray(value.size * 3)
-                for (i in 0 until value.size) {
+                for (i in value.indices) {
                     floatValues[i * 3] = value[i].x.toFloat()
                     floatValues[i * 3 + 1] = value[i].y.toFloat()
                     floatValues[i * 3 + 2] = value[i].z.toFloat()
@@ -277,7 +390,7 @@ class ComputeShaderGL43(val programObject: Int, val name: String = "compute_shad
                 logger.trace { "Setting uniform '$name' to $value" }
 
                 val floatValues = FloatArray(value.size * 4)
-                for (i in 0 until value.size) {
+                for (i in value.indices) {
                     floatValues[i * 4] = value[i].x.toFloat()
                     floatValues[i * 4 + 1] = value[i].y.toFloat()
                     floatValues[i * 4 + 2] = value[i].z.toFloat()
@@ -296,6 +409,17 @@ class ComputeShaderGL43(val programObject: Int, val name: String = "compute_shad
             if (index != -1) {
                 logger.trace { "Setting uniform '$name' to $value" }
                 glUniform1fv(index, value)
+                postUniformCheck(name, index, value)
+            }
+        }
+    }
+
+    override fun uniform(name: String, value: IntArray) {
+        bound {
+            val index = uniformIndex(name)
+            if (index != -1) {
+                logger.trace { "Setting uniform '$name' to $value" }
+                glUniform1iv(index, value)
                 postUniformCheck(name, index, value)
             }
         }

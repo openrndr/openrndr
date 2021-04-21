@@ -1,16 +1,63 @@
 package org.openrndr.internal.gl3
 
 import org.openrndr.color.ColorRGBa
-import org.openrndr.draw.BufferWriter
+import org.openrndr.draw.*
 import org.openrndr.math.*
 import java.nio.Buffer
 
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
-class BufferWriterGL3(val buffer: ByteBuffer, val elementSize: Int = 1) : BufferWriter {
+class BufferWriterStd430GL3(
+    val buffer: ByteBuffer,
+    val elements: List<ShaderStorageElement>,
+    val elementSize: Int = 1
+) : BufferWriterStd430 {
+    private var pointer = 0
+    private var element: ShaderStorageElement = elements[pointer]
+    private lateinit var member: ShaderStorageMember
+
     init {
         buffer.order(ByteOrder.nativeOrder())
+    }
+
+    private fun next() {
+        when (element){
+            is ShaderStorageMember -> {
+                member = element as ShaderStorageMember
+                pointer++
+
+                val index = elements.indexOf(element)
+
+                if (pointer >= (index + element.arraySize)) {
+                    pointer = index + 1
+                    element = elements[pointer % elements.size]
+                }
+            }
+            is ShaderStorageStruct -> {
+                val struct = element as ShaderStorageStruct
+                val index = elements.indexOf(element)
+
+                if (pointer >= (index + struct.arraySize * struct.members.size)) {
+                    pointer = index + 1
+                    element = elements[pointer % elements.size]
+                    next()
+                } else {
+                    val memberIdx = (pointer - index) % (struct.members.size)
+                    member = struct.members[memberIdx % struct.members.size]
+                    pointer++
+                }
+            }
+        }
+
+    }
+
+    private fun padding() {
+        next()
+
+        repeat(member.padding / 4) {
+            buffer.putInt(0)
+        }
     }
 
     override fun copyBuffer(sourceBuffer: ByteBuffer, sourceOffset: Int, sourceSizeInBytes: Int) {
@@ -24,27 +71,37 @@ class BufferWriterGL3(val buffer: ByteBuffer, val elementSize: Int = 1) : Buffer
         (sourceBuffer as Buffer).limit(sourceBuffer.capacity())
     }
 
+    override fun write(v: Boolean) {
+        buffer.putInt(if (v) 1 else 0)
+        padding()
+    }
+
     override fun write(v: Byte) {
         buffer.put(v)
+        padding()
     }
 
     override fun write(v: Short) {
         buffer.putShort(v)
+        padding()
     }
 
     override fun write(v: Int) {
         buffer.putInt(v)
+        padding()
     }
 
     override fun write(v: IntVector2) {
         buffer.putInt(v.x)
         buffer.putInt(v.y)
+        padding()
     }
 
     override fun write(v: IntVector3) {
         buffer.putInt(v.x)
         buffer.putInt(v.y)
         buffer.putInt(v.z)
+        padding()
     }
 
     override fun write(v: IntVector4) {
@@ -52,22 +109,20 @@ class BufferWriterGL3(val buffer: ByteBuffer, val elementSize: Int = 1) : Buffer
         buffer.putInt(v.y)
         buffer.putInt(v.z)
         buffer.putInt(v.w)
-    }
-
-    override fun write(a: FloatArray, offset: Int, size: Int) {
-        buffer.asFloatBuffer().put(a, offset, size)
-        (buffer as Buffer).position(buffer.position() + size * 4)
+        padding()
     }
 
     override fun write(v: Vector3) {
         buffer.putFloat(v.x.toFloat())
         buffer.putFloat(v.y.toFloat())
         buffer.putFloat(v.z.toFloat())
+        padding()
     }
 
     override fun write(v: Vector2) {
         buffer.putFloat(v.x.toFloat())
         buffer.putFloat(v.y.toFloat())
+        padding()
     }
 
     override fun write(v: Vector4) {
@@ -75,6 +130,7 @@ class BufferWriterGL3(val buffer: ByteBuffer, val elementSize: Int = 1) : Buffer
         buffer.putFloat(v.y.toFloat())
         buffer.putFloat(v.z.toFloat())
         buffer.putFloat(v.w.toFloat())
+        padding()
     }
 
     override fun write(v: Matrix33) {
@@ -90,6 +146,7 @@ class BufferWriterGL3(val buffer: ByteBuffer, val elementSize: Int = 1) : Buffer
         buffer.putFloat(v.c2r1.toFloat())
         buffer.putFloat(v.c2r2.toFloat())
 
+        padding()
     }
 
     override fun write(v: Matrix44) {
@@ -112,16 +169,25 @@ class BufferWriterGL3(val buffer: ByteBuffer, val elementSize: Int = 1) : Buffer
         buffer.putFloat(v.c3r1.toFloat())
         buffer.putFloat(v.c3r2.toFloat())
         buffer.putFloat(v.c3r3.toFloat())
+
+        padding()
+    }
+
+    override fun write(v: Double) {
+        buffer.putDouble(v)
+        padding()
     }
 
     override fun write(v: Float) {
         buffer.putFloat(v)
+        padding()
     }
 
     override fun write(x: Float, y: Float, z: Float) {
         buffer.putFloat(x)
         buffer.putFloat(y)
         buffer.putFloat(z)
+        padding()
     }
 
     override fun write(x: Float, y: Float, z: Float, w: Float) {
@@ -129,11 +195,13 @@ class BufferWriterGL3(val buffer: ByteBuffer, val elementSize: Int = 1) : Buffer
         buffer.putFloat(y)
         buffer.putFloat(z)
         buffer.putFloat(w)
+        padding()
     }
 
     override fun write(x: Float, y: Float) {
         buffer.putFloat(x)
         buffer.putFloat(y)
+        padding()
     }
 
     override fun write(v: ColorRGBa) {
@@ -141,6 +209,7 @@ class BufferWriterGL3(val buffer: ByteBuffer, val elementSize: Int = 1) : Buffer
         buffer.putFloat(v.g.toFloat())
         buffer.putFloat(v.b.toFloat())
         buffer.putFloat(v.a.toFloat())
+        padding()
     }
 
     override var position: Int

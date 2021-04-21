@@ -1,18 +1,52 @@
 package org.openrndr.internal.gl3
 
+import mu.KotlinLogging
+import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL11C
 import org.lwjgl.opengl.GL15C.glBufferSubData
 import org.lwjgl.opengl.GL30C
 import org.lwjgl.opengl.GL33C
 import org.lwjgl.opengl.GL43C
 import org.lwjgl.opengl.GL43C.*
-import org.openrndr.draw.Session
-import org.openrndr.draw.ShaderStorageBuffer
-import org.openrndr.draw.ShaderStorageFormat
+import org.openrndr.draw.*
+import java.nio.Buffer
 import java.nio.ByteBuffer
+import java.nio.ByteOrder
+
+private val logger = KotlinLogging.logger {}
+
+class ShaderStorageBufferShadowGL3(override val shaderStorageBuffer: ShaderStorageBufferGL43) : ShaderStorageBufferShadow {
+    val buffer: ByteBuffer =
+        BufferUtils.createByteBuffer(shaderStorageBuffer.format.size).apply {
+            order(ByteOrder.nativeOrder())
+        }
+
+    override fun upload(offset: Int, size: Int) {
+        logger.trace { "uploading shadow to shader storage buffer" }
+        (buffer as Buffer).rewind()
+        (buffer as Buffer).position(offset)
+        (buffer as Buffer).limit(offset + size)
+        shaderStorageBuffer.write(buffer)
+        (buffer as Buffer).limit(buffer.capacity())
+    }
+
+    override fun download() {
+        (buffer as Buffer).rewind()
+        shaderStorageBuffer.read(buffer)
+    }
+
+    override fun destroy() {
+        shaderStorageBuffer.realShadow = null
+    }
+
+    override fun writer(): BufferWriterStd430 {
+        return BufferWriterStd430GL3(buffer, shaderStorageBuffer.format.members, shaderStorageBuffer.format.size)
+    }
+}
 
 class ShaderStorageBufferGL43(val buffer: Int, override val format: ShaderStorageFormat, override val session: Session? = Session.active) : ShaderStorageBuffer {
 
+    internal var realShadow: ShaderStorageBufferShadowGL3? = null
     private var destroyed = false
 
     override fun bind(base: Int) {
@@ -23,10 +57,18 @@ class ShaderStorageBufferGL43(val buffer: Int, override val format: ShaderStorag
     override fun clear() {
         GL33C.glBindBuffer(GL43C.GL_SHADER_STORAGE_BUFFER, buffer)
         glClearBufferData(GL_SHADER_STORAGE_BUFFER, GL_R8UI, GL30C.GL_RED_INTEGER, GL11C.GL_UNSIGNED_BYTE, intArrayOf(0))
-
-
     }
 
+    override val shadow: ShaderStorageBufferShadow
+        get() {
+            if (destroyed) {
+                throw IllegalStateException("buffer is destroyed")
+            }
+            if (realShadow == null) {
+                realShadow = ShaderStorageBufferShadowGL3(this)
+            }
+            return realShadow!!
+        }
 
     override fun write(source: ByteBuffer, writeOffset: Int) {
         val allowed = format.size - writeOffset

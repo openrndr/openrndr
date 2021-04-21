@@ -81,6 +81,47 @@ enum class VertexElementType(val componentCount: Int, val sizeInBytes: Int) {
     MATRIX44_FLOAT32(16, 16 * 4),
 }
 
+
+/**
+ * Buffer member type enumeration
+ * based on https://sotrh.github.io/learn-wgpu/showcase/alignment/#alignments
+ * and
+ * https://www.oreilly.com/library/view/opengl-programming-guide/9780132748445/app09lev1sec3.html
+ */
+enum class BufferMemberType(val componentCount: Int, val sizeInBytes: Int, val alignmentInBytes: Int) {
+    UINT(1, 4, 4),
+    INT(1, 4, 4),
+    BOOLEAN(1, 4, 4),
+    FLOAT(1, 4, 4),
+
+    DOUBLE(1, 8, 8),
+
+    VECTOR2_BOOLEAN(2, 8, 8),
+    VECTOR2_INT(2, 8, 8),
+    VECTOR2_UINT(2, 8, 8),
+    VECTOR2_FLOAT(2, 8, 8),
+
+    VECTOR2_DOUBLE(2, 16, 16),
+
+    VECTOR3_BOOLEAN(2, 12, 16),
+    VECTOR3_INT(2, 12, 16),
+    VECTOR3_UINT(2, 12, 16),
+    VECTOR3_FLOAT(3, 12, 16),
+
+    VECTOR3_DOUBLE(3, 24, 32),
+
+    VECTOR4_BOOLEAN(2, 16, 16),
+    VECTOR4_INT(2, 16, 16),
+    VECTOR4_UINT(2, 16, 16),
+    VECTOR4_FLOAT(4, 16, 16),
+
+    VECTOR4_DOUBLE(4, 16, 32),
+
+    MATRIX22_FLOAT(4, 4 * 4, 8),
+    MATRIX33_FLOAT(9, 9 * 4, 16),
+    MATRIX44_FLOAT(16, 16 * 4, 16),
+}
+
 /**
  * Draw primitive type enumeration
  */
