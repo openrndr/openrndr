@@ -1,10 +1,12 @@
 package org.openrndr.webgl
 
 import kotlinx.coroutines.await
-import kotlinx.coroutines.yield
-import org.khronos.webgl.WebGLBuffer
+import org.khronos.webgl.ArrayBufferView
+import org.khronos.webgl.TexImageSource
+import org.khronos.webgl.WebGLFramebuffer
 import org.khronos.webgl.WebGLTexture
 import org.openrndr.draw.*
+import org.openrndr.internal.Driver
 import org.openrndr.shape.IntRectangle
 import org.w3c.dom.Image
 import kotlin.js.Promise
@@ -45,11 +47,25 @@ class ColorBufferWebGL(
             height: Int,
             contentScale: Double = 1.0,
             format: ColorFormat = ColorFormat.RGBa,
-            type: ColorType = ColorType.FLOAT32,
+            type: ColorType = ColorType.UINT8,
             multisample: BufferMultisample,
             levels: Int,
             session: Session?
         ): ColorBufferWebGL {
+
+            if (type == ColorType.FLOAT16) {
+                require((Driver.instance as DriverWebGL).capabilities.halfFloatTextures) {
+                    """no support for half float textures."""
+                }
+            }
+
+            if (type == ColorType.FLOAT32) {
+                require((Driver.instance as DriverWebGL).capabilities.floatTextures) {
+                    """no support for float textures"""
+                }
+            }
+
+
             val texture = context.createTexture() ?: error("failed to create texture")
             context.activeTexture(GL.TEXTURE0)
             when (multisample) {
@@ -71,14 +87,23 @@ class ColorBufferWebGL(
                     effectiveWidth / div,
                     effectiveHeight / div,
                     0,
-                    internalType,
-                    GL.UNSIGNED_BYTE,
+                    internalFormat,
+                    type.glType(),
                     null
                 )
             }
 
-            context.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MIN_FILTER, GL.LINEAR)
-            context.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MAG_FILTER, GL.LINEAR)
+            val caps = (Driver.instance as DriverWebGL).capabilities
+            if (type == ColorType.UINT8 ||
+                (type == ColorType.FLOAT16 && caps.halfFloatTexturesLinear) ||
+                (type == ColorType.FLOAT32 && caps.floatTexturesLinear)
+            ) {
+                context.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MIN_FILTER, GL.LINEAR)
+                context.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MAG_FILTER, GL.LINEAR)
+            } else {
+                context.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MIN_FILTER, GL.NEAREST)
+                context.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MAG_FILTER, GL.NEAREST)
+            }
             context.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_WRAP_S, GL.CLAMP_TO_EDGE)
             context.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_WRAP_T, GL.CLAMP_TO_EDGE)
             return ColorBufferWebGL(
@@ -101,7 +126,7 @@ class ColorBufferWebGL(
             context.activeTexture(GL.TEXTURE0)
             context.bindTexture(GL.TEXTURE_2D, texture)
             context.texImage2D(GL.TEXTURE_2D, 0, GL.RGBA, GL.RGBA, GL.UNSIGNED_BYTE, image)
-            if (log2(image.width.toDouble())%1.0 == 0.0 && log2(image.height.toDouble())%1.0 == 0.0) {
+            if (log2(image.width.toDouble()) % 1.0 == 0.0 && log2(image.height.toDouble()) % 1.0 == 0.0) {
                 context.generateMipmap(GL.TEXTURE_2D)
             }
             context.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MIN_FILTER, GL.LINEAR)
@@ -160,5 +185,44 @@ class ColorBufferWebGL(
 
     override fun copyTo(target: ArrayTexture, layer: Int, fromLevel: Int, toLevel: Int) {
         TODO("Not yet implemented")
+    }
+
+    override fun write(
+        source: TexImageSource,
+        x: Int,
+        y: Int,
+        width: Int,
+        height: Int,
+        level:Int
+    ) {
+        bind(0)
+        context.pixelStorei(GL.UNPACK_FLIP_Y_WEBGL, 1)
+        this.context.texSubImage2D(target, level, x, y, GL.RGBA, GL.UNSIGNED_BYTE, source)
+    }
+
+    override fun write(
+        source: ArrayBufferView,
+        x: Int,
+        y: Int,
+        width: Int,
+        height: Int,
+        level:Int
+    ) {
+        bind(0)
+        context.pixelStorei(GL.UNPACK_FLIP_Y_WEBGL, 1)
+        this.context.texSubImage2D(target, level, x, y, width, height, GL.RGBA, GL.UNSIGNED_BYTE, source)
+    }
+
+    private val readFrameBuffer by lazy {
+        context.createFramebuffer() ?: error("failed to create framebuffer")
+    }
+
+    override fun read(target: ArrayBufferView, x: Int, y: Int, width: Int, height: Int, level: Int) {
+        bind(0)
+        val current = context.getParameter(GL.FRAMEBUFFER_BINDING) as WebGLFramebuffer?
+        context.bindFramebuffer(GL.FRAMEBUFFER, readFrameBuffer)
+        context.framebufferTexture2D(GL.FRAMEBUFFER, GL.COLOR_ATTACHMENT0, this.target, texture,0)
+        context.readPixels(x, y, effectiveWidth, effectiveHeight, GL.RGBA, GL.UNSIGNED_BYTE, target)
+        context.bindFramebuffer(GL.FRAMEBUFFER, current)
     }
 }

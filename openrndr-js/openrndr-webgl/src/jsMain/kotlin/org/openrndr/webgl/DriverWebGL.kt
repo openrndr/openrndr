@@ -19,12 +19,61 @@ class DriverWebGL(val context: GL) : Driver {
         val standardDerivatives by lazy {
             context.getExtension("OES_standard_derivatives")
         }
+
+        val halfFloatTextures by lazy {
+            context.getExtension("OES_texture_half_float") as? OESTextureHalfFloat
+        }
+
+        val floatTextures by lazy {
+            context.getExtension("OES_texture_float") as? OESTextureFloat
+        }
+
+        val colorBufferHalfFloat by lazy {
+            context.getExtension("EXT_color_buffer_half_float") as? EXTColorBufferHalfFloat
+        }
+
+        val colorBufferFloat by lazy {
+            context.getExtension("WEBGL_color_buffer_float") as? WEBGLColorBufferFloat
+        }
+
+        val halfFloatTexturesLinear by lazy {
+            context.getExtension("OES_texture_half_float_linear") as? OESTextureHalfFloatLinear
+        }
+
+        val floatTexturesLinear by lazy {
+            context.getExtension("OES_texture_float_linear") as? OESTextureFloatLinear
+        }
+
+        val drawBuffers by lazy {
+            context.getExtension("WEBGL_draw_buffers") as? WEBGLDrawBuffers
+        }
     }
 
-    val extensions = Extensions().apply {
-        val b = standardDerivatives
+    data class Capabilities(
+        val instancedArrays : Boolean,
+        val standardDerivatives: Boolean,
+        val halfFloatTextures: Boolean,
+        val floatTextures: Boolean,
+        val colorBufferHalfFloat: Boolean,
+        val colorBufferFloat: Boolean,
+        val halfFloatTexturesLinear: Boolean,
+        val floatTexturesLinear: Boolean,
+        val drawBuffers: Boolean
+    )
 
-    }
+    val extensions = Extensions()
+
+    val capabilities = Capabilities(
+        instancedArrays = extensions.instancedArrays != null,
+        standardDerivatives = extensions.standardDerivatives != null,
+        halfFloatTextures = extensions.halfFloatTextures != null,
+        floatTextures = extensions.floatTextures != null,
+        colorBufferHalfFloat = extensions.colorBufferHalfFloat != null,
+        colorBufferFloat = extensions.colorBufferFloat != null,
+        halfFloatTexturesLinear = extensions.halfFloatTexturesLinear != null,
+        floatTexturesLinear = extensions.floatTexturesLinear != null,
+        drawBuffers = extensions.drawBuffers != null
+    )
 
     override val contextID: Long
         get() = context.hashCode().toLong()
@@ -554,3 +603,30 @@ class DriverWebGL(val context: GL) : Driver {
 
 
 
+internal fun ColorFormat.glFormat(): Int {
+    return when (this) {
+        ColorFormat.R -> GL.LUMINANCE
+        ColorFormat.RG -> GL.LUMINANCE_ALPHA
+        ColorFormat.RGB -> GL.RGB
+        ColorFormat.RGBa -> GL.RGBA
+        ColorFormat.sRGB -> GL.RGB
+        ColorFormat.sRGBa -> GL.RGBA
+        ColorFormat.BGR -> error("BGR not supported")
+        ColorFormat.BGRa -> error("BGRa not supported")
+    }
+}
+
+internal fun ColorType.glType(): Int {
+    return when (this) {
+        ColorType.UINT8, ColorType.UINT8_INT -> GL.UNSIGNED_BYTE
+        ColorType.SINT8_INT -> GL.BYTE
+        ColorType.UINT16, ColorType.UINT16_INT -> GL.UNSIGNED_SHORT
+        ColorType.SINT16_INT -> GL.SHORT
+        ColorType.UINT32_INT -> GL.UNSIGNED_INT
+        ColorType.SINT32_INT -> GL.INT
+        ColorType.FLOAT16 -> HALF_FLOAT_OES
+        ColorType.FLOAT32 -> GL.FLOAT
+        ColorType.DXT1, ColorType.DXT3, ColorType.DXT5,
+        ColorType.BPTC_UNORM, ColorType.BPTC_FLOAT, ColorType.BPTC_UFLOAT -> throw RuntimeException("gl type of compressed types cannot be queried")
+    }
+}

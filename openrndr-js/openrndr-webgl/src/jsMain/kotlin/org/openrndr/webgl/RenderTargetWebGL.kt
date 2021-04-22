@@ -6,6 +6,7 @@ import org.openrndr.collections.pop
 import org.openrndr.collections.push
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
+import org.openrndr.internal.Driver
 import org.khronos.webgl.WebGLRenderingContext as GL
 
 private val active = ArrayDeque<RenderTargetWebGL>()
@@ -54,24 +55,31 @@ open class RenderTargetWebGL(
     }
 
     override fun attach(colorBuffer: ColorBuffer, level: Int, name: String?) {
-        bound {
-            colorBuffer as ColorBufferWebGL
-            val div = 1 shl level
-            val effectiveWidth = (width * contentScale).toInt()
-            val effectiveHeight = (height * contentScale).toInt()
-
-            if (!(colorBuffer.effectiveWidth / div == effectiveWidth && colorBuffer.effectiveHeight / div == effectiveHeight)) {
-                error("buffer dimension mismatch. expected: ($width x $height @${colorBuffer.contentScale}x, got: (${colorBuffer.width / div} x ${colorBuffer.height / div} @${colorBuffer.contentScale}x level:${level})")
-            }
-            context.framebufferTexture2D(
-                GL.FRAMEBUFFER,
-                GL.COLOR_ATTACHMENT0 + colorAttachments.size,
-                colorBuffer.target,
-                colorBuffer.texture,
-                level
-            )
-            colorAttachments.add(ColorBufferAttachment(colorAttachments.size, name, colorBuffer, level))
+        bindTarget()
+        val caps = (Driver.instance as DriverWebGL).capabilities
+        if (colorBuffer.type == ColorType.FLOAT16) {
+            require(caps.colorBufferHalfFloat)
         }
+        if (colorBuffer.type == ColorType.FLOAT32) {
+            require(caps.colorBufferFloat)
+        }
+        colorBuffer as ColorBufferWebGL
+        val div = 1 shl level
+        val effectiveWidth = (width * contentScale).toInt()
+        val effectiveHeight = (height * contentScale).toInt()
+
+        if (!(colorBuffer.effectiveWidth / div == effectiveWidth && colorBuffer.effectiveHeight / div == effectiveHeight)) {
+            error("buffer dimension mismatch. expected: ($width x $height @${colorBuffer.contentScale}x, got: (${colorBuffer.width / div} x ${colorBuffer.height / div} @${colorBuffer.contentScale}x level:${level})")
+        }
+        context.framebufferTexture2D(
+            GL.FRAMEBUFFER,
+            GL.COLOR_ATTACHMENT0 + colorAttachments.size,
+            colorBuffer.target,
+            colorBuffer.texture,
+            level
+        )
+        colorAttachments.add(ColorBufferAttachment(colorAttachments.size, name, colorBuffer, level))
+
     }
 
     override fun attach(depthBuffer: DepthBuffer) {
@@ -152,6 +160,7 @@ open class RenderTargetWebGL(
         if (bound) {
             throw RuntimeException("already bound")
         } else {
+            console.log("pushing $this (${active.size})")
             active.push(this)
             bindTarget()
         }
@@ -159,7 +168,9 @@ open class RenderTargetWebGL(
 
     override fun unbind() {
         if (!bound) {
-            active.pop()
+            console.log("popping (${active.size})")
+            val popped = active.pop()
+            console.log("popped $popped")
             val previous = active.last()
             previous as RenderTargetWebGL
             previous.bindTarget()

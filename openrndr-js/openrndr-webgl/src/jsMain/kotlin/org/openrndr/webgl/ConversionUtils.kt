@@ -97,6 +97,10 @@ internal fun internalFormat(format: ColorFormat, type: ColorType): Pair<Int, Int
     val entries = arrayOf(
         ConversionEntry(ColorFormat.RGB, ColorType.UINT8, GL.RGB, GL.RGB),
         ConversionEntry(ColorFormat.RGBa, ColorType.UINT8, GL.RGBA, GL.RGBA),
+        ConversionEntry(ColorFormat.RGB, ColorType.FLOAT16, GL.RGB, HALF_FLOAT_OES),
+        ConversionEntry(ColorFormat.RGBa, ColorType.FLOAT16, GL.RGBA, HALF_FLOAT_OES),
+        ConversionEntry(ColorFormat.RGB, ColorType.FLOAT32, GL.RGB, GL.FLOAT),
+        ConversionEntry(ColorFormat.RGBa, ColorType.FLOAT32, GL.RGBA, GL.FLOAT),
     )
     for (entry in entries) {
         if (entry.format === format && entry.type === type) {

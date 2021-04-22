@@ -2,9 +2,12 @@ package org.openrndr.draw
 
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import org.khronos.webgl.ArrayBufferView
+import org.khronos.webgl.TexImageSource
 import org.openrndr.internal.Driver
 import org.openrndr.shape.IntRectangle
 import org.openrndr.shape.Rectangle
+import org.w3c.dom.CanvasRenderingContext2D
 
 actual abstract class ColorBuffer {
 
@@ -96,6 +99,32 @@ actual abstract class ColorBuffer {
         toLevel: Int
     )
 
+    abstract fun write(
+        source: TexImageSource,
+        x: Int = 0,
+        y: Int = 0,
+        width: Int = this.effectiveWidth,
+        height: Int = this.effectiveHeight,
+        level: Int = 0
+    )
+
+    abstract fun write(
+        source: ArrayBufferView,
+        x: Int = 0,
+        y: Int = 0,
+        width: Int = this.effectiveWidth,
+        height: Int = this.effectiveHeight,
+        level: Int = 0
+    )
+
+    abstract fun read(
+        target: ArrayBufferView,
+        x: Int,
+        y: Int,
+        width: Int = this.effectiveWidth,
+        height: Int = this.effectiveHeight,
+        level: Int = 0
+    )
 
 }
 
