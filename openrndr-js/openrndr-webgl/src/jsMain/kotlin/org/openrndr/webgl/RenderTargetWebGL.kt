@@ -160,7 +160,6 @@ open class RenderTargetWebGL(
         if (bound) {
             throw RuntimeException("already bound")
         } else {
-            console.log("pushing $this (${active.size})")
             active.push(this)
             bindTarget()
         }
@@ -168,9 +167,7 @@ open class RenderTargetWebGL(
 
     override fun unbind() {
         if (!bound) {
-            console.log("popping (${active.size})")
             val popped = active.pop()
-            console.log("popped $popped")
             val previous = active.last()
             previous as RenderTargetWebGL
             previous.bindTarget()
