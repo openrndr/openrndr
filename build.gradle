@@ -30,7 +30,7 @@ apply plugin: 'org.jetbrains.dokka'
   see below!
 */
 project.ext {
-    kotlinVersion = '1.5.0-M2'
+    kotlinVersion = '1.5.0-RC'
     kotlinxSerializationVersion = '1.1.0'
     lwjglVersion = '3.2.3'
     javacpp_version = '1.5.4'
@@ -106,7 +106,8 @@ def multiplatformModules = [
     "openrndr-animatable",
     "openrndr-draw",
     "openrndr-webgl",
-        "openrndr-extensions"
+    "openrndr-extensions",
+    "openrndr-dds"
 ]
 
 

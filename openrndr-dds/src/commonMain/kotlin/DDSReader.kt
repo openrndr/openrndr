@@ -1,4 +1,4 @@
-package org.openrndr.internal.gl3.dds
+package org.openrndr.dds
 
 /**
  * DDS reader
@@ -7,12 +7,8 @@ package org.openrndr.internal.gl3.dds
  * E. Jakobs
  */
 
-import org.openrndr.draw.ColorFormat
-import org.openrndr.draw.ColorType
-import java.io.InputStream
-import java.nio.Buffer
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
+import org.openrndr.draw.*
+import org.openrndr.utils.buffer.MPPBuffer
 
 private const val DDPF_ALPHAPIXELS = 0x1
 private const val DDPF_ALPHA = 0x2
@@ -21,7 +17,8 @@ private const val DDPF_RGB = 0x40
 private const val DDPF_YUV = 0x200
 private const val DDPF_LUMINANCE = 0x20000
 
-class DDSPixelFormat(header: ByteBuffer) {
+
+class DDSPixelFormat(header: MPPBuffer) {
     var dwSize: Int = 0
     var dwFlags: Int = 0
     var dwFourCC: Int = 0
@@ -68,9 +65,9 @@ class DDSPixelFormat(header: ByteBuffer) {
     }
 
     private fun createFourCCString(fourCC: Int): String {
-        val fourCCString = ByteArray(DDPF_FOURCC)
-        for (i in fourCCString.indices) fourCCString[i] = (fourCC shr i * 8).toByte()
-        return String(fourCCString)
+        val fourCCString = CharArray(DDPF_FOURCC)
+        for (i in fourCCString.indices) fourCCString[i] = (fourCC shr i * 8).toChar()
+        return fourCCString.concatToString()
     }
 }
 
@@ -208,7 +205,7 @@ private const val DXGI_FORMAT_V208 = 131
 private const val DXGI_FORMAT_V408 = 132
 private const val DXGI_FORMAT_FORCE_UINT = 0xffffffff
 
-private class DDSHeaderDXT10(header: ByteBuffer) {
+private class DDSHeaderDXT10(header: MPPBuffer) {
     var dxgiFormat: Int = 0
     var resourceDimension: Int = 0
     var miscFlag: Int = 0
@@ -246,7 +243,7 @@ private const val DDSCAPS2_CUBEMAP_POSITIVEZ = 0x4000
 private const val DDSCAPS2_CUBEMAP_NEGATIVEZ = 0x8000
 private const val DDSCAPS2_VOLUME = 0x200000
 
-private class DDSHeader(header: ByteBuffer) {
+private class DDSHeader(header: MPPBuffer) {
     var size: Int = 0
     var flags: Int = 0
     var height: Int = 0
@@ -286,25 +283,25 @@ private class DDSHeader(header: ByteBuffer) {
             throw RuntimeException("Expected header size of 124 bytes (is ${header.capacity()} bytes")
         }
 
-        size = header.getInt()
-        flags = header.getInt()
-        height = header.getInt()
-        width = header.getInt()
-        pitchOrLinearSize = header.getInt()
-        depth = header.getInt()
-        mipmapCount = header.getInt()
+        size = header.int
+        flags = header.int
+        height = header.int
+        width = header.int
+        pitchOrLinearSize = header.int
+        depth = header.int
+        mipmapCount = header.int
 
         for (i in reserved.indices) {
-            reserved[i] = header.getInt()
+            reserved[i] = header.int
         }
 
         pixelFormat = DDSPixelFormat(header)
 
-        caps = header.getInt()
-        caps2 = header.getInt()
-        caps3 = header.getInt()
-        caps4 = header.getInt()
-        reserved2 = header.getInt()
+        caps = header.int
+        caps2 = header.int
+        caps3 = header.int
+        caps4 = header.int
+        reserved2 = header.int
 
         hasFlagCaps = flags and DDSD_CAPS == DDSD_CAPS
         hasFlagHeight = flags and DDSD_HEIGHT == DDSD_HEIGHT
@@ -342,44 +339,92 @@ private class DDSHeader(header: ByteBuffer) {
 
 }
 
-class DDSData(val format: ColorFormat, val type: ColorType, val width: Int, val height: Int, val mipmaps: Int, val cubeMap: Boolean, val bdata: List<ByteBuffer>, val bdata2: List<ByteBuffer>, val flipV: Boolean) {
-    fun image(level: Int): ByteBuffer {
+private const val DDS_MAGIC = 0x20534444
+
+data class DDSData(
+    val format: ColorFormat,
+    val type: ColorType,
+    val width: Int,
+    val height: Int,
+    val mipmaps: Int,
+    val cubeMap: Boolean,
+    val bdata: List<MPPBuffer>,
+    val bdata2: List<MPPBuffer>,
+    val flipV: Boolean
+) {
+    fun image(level: Int): MPPBuffer {
         return if (level == 0) bdata[0] else bdata2[level - 1]
     }
 
-    fun sidePX(level: Int = 0): ByteBuffer = if (level == 0) bdata[0] else bdata2[(level - 1) + 0 * (mipmaps - 1)]
-    fun sideNX(level: Int = 0): ByteBuffer = if (level == 0) bdata[1] else bdata2[(level - 1) + 1 * (mipmaps - 1)]
-    fun sidePY(level: Int = 0): ByteBuffer = if (level == 0) bdata[2] else bdata2[(level - 1) + 2 * (mipmaps - 1)]
-    fun sideNY(level: Int = 0): ByteBuffer = if (level == 0) bdata[3] else bdata2[(level - 1) + 3 * (mipmaps - 1)]
-    fun sidePZ(level: Int = 0): ByteBuffer = if (level == 0) bdata[4] else bdata2[(level - 1) + 4 * (mipmaps - 1)]
-    fun sideNZ(level: Int = 0): ByteBuffer = if (level == 0) bdata[5] else bdata2[(level - 1) + 5 * (mipmaps - 1)]
+    fun sidePX(level: Int = 0): MPPBuffer = if (level == 0) bdata[0] else bdata2[(level - 1) + 0 * (mipmaps - 1)]
+    fun sideNX(level: Int = 0): MPPBuffer = if (level == 0) bdata[1] else bdata2[(level - 1) + 1 * (mipmaps - 1)]
+    fun sidePY(level: Int = 0): MPPBuffer = if (level == 0) bdata[2] else bdata2[(level - 1) + 2 * (mipmaps - 1)]
+    fun sideNY(level: Int = 0): MPPBuffer = if (level == 0) bdata[3] else bdata2[(level - 1) + 3 * (mipmaps - 1)]
+    fun sidePZ(level: Int = 0): MPPBuffer = if (level == 0) bdata[4] else bdata2[(level - 1) + 4 * (mipmaps - 1)]
+    fun sideNZ(level: Int = 0): MPPBuffer = if (level == 0) bdata[5] else bdata2[(level - 1) + 5 * (mipmaps - 1)]
+
+    fun side(cubemapSide: CubemapSide, level: Int) =
+        when (cubemapSide) {
+            CubemapSide.POSITIVE_X -> sidePX(level)
+            CubemapSide.POSITIVE_Y -> sidePY(level)
+            CubemapSide.POSITIVE_Z -> sidePZ(level)
+            CubemapSide.NEGATIVE_X -> sideNX(level)
+            CubemapSide.NEGATIVE_Y -> sideNY(level)
+            CubemapSide.NEGATIVE_Z -> sideNZ(level)
+        }
+
+    fun toColorBuffer(session: Session? = Session.active): ColorBuffer {
+        require(!cubeMap)
+        val cb = colorBuffer(width, height, 1.0, format, type, levels = mipmaps).apply {
+            this.flipV = this@DDSData.flipV
+        }
+        for (level in 0 until mipmaps) {
+            val div = 1 shl level
+            cb.write(image(0), format, type, width = width / div, height = height / div, level = level)
+        }
+        return cb
+    }
+
+    fun toCubemap(session: Session? = Session.active): Cubemap {
+        require(cubeMap)
+        val cm = cubemap(width, format, type, mipmaps, session)
+        for (level in 0 until mipmaps) {
+            val levelWidth = width / (1 shl level)
+            for (side in CubemapSide.values()) {
+                println("side: $side, level: $level")
+                cm.write(side, side(side, level), format, type, x = 0, y = 0, width = levelWidth, height = levelWidth, level = level)
+            }
+        }
+
+        if (mipmaps == 1) {
+            cm.generateMipmaps()
+        }
+
+        cm.filter(MinifyingFilter.LINEAR, MagnifyingFilter.LINEAR)
+        return cm
+    }
+
 }
 
-private const val DDS_MAGIC = 0x20534444
 
-fun loadDDS(file: InputStream): DDSData {
-    val ba = ByteArray(file.available())
-    return loadDDS(newByteBuffer(ba))
-}
-
-fun loadDDS(data: ByteBuffer): DDSData {
-    val primarySurfaces = mutableListOf<ByteBuffer>()
-    val secondarySurfaces = mutableListOf<ByteBuffer>()
+fun loadDDS(data: MPPBuffer, bgrIsRgb: Boolean = false): DDSData {
+    val primarySurfaces = mutableListOf<MPPBuffer>()
+    val secondarySurfaces = mutableListOf<MPPBuffer>()
 
     run {
-        val fis = data
-        var totalByteCount = fis.capacity()
+        val inputData = data
+        var totalByteCount = inputData.capacity()
         val bMagic = ByteArray(4)
-        fis.get(bMagic)
+        inputData.get(bMagic)
 
-        val magic = newByteBuffer(bMagic).int
+        val magic = MPPBuffer.createFrom(bMagic).int
         if (magic != DDS_MAGIC) {
             throw RuntimeException("mismatch in magic word, not a dds file")
         }
 
         val bHeader = ByteArray(124)
-        fis.get(bHeader)
-        val header = DDSHeader(newByteBuffer(bHeader))
+        inputData.get(bHeader)
+        val header = DDSHeader(MPPBuffer.createFrom(bHeader))
 
         val format: ColorFormat
         val type: ColorType
@@ -399,8 +444,8 @@ fun loadDDS(data: ByteBuffer): DDSData {
             format = ColorFormat.RGBa
         } else if (header.pixelFormat.sFourCC.equals("DX10", ignoreCase = true)) {
             val dxt10HeaderArray = ByteArray(20)
-            fis.get(dxt10HeaderArray)
-            val dxt10Header = DDSHeaderDXT10(newByteBuffer(dxt10HeaderArray))
+            inputData.get(dxt10HeaderArray)
+            val dxt10Header = DDSHeaderDXT10(MPPBuffer.createFrom(dxt10HeaderArray))
 
             when (dxt10Header.dxgiFormat) {
                 DXGI_FORMAT_R16G16B16A16_FLOAT -> {
@@ -416,7 +461,7 @@ fun loadDDS(data: ByteBuffer): DDSData {
                 }
             }
         } else if (header.pixelFormat.dwRGBBitCount == 24 && header.pixelFormat.dwRBitMask == (0xff0000) && header.pixelFormat.dwGBitMask == 0x00ff00 && header.pixelFormat.dwBBitMask == 0x0000ff) {
-            format = ColorFormat.BGR
+            format = if (bgrIsRgb) ColorFormat.RGB else ColorFormat.BGR
             type = ColorType.UINT8
         } else {
             throw RuntimeException("unknown and/or unsupported format ${header.pixelFormat.sFourCC}")
@@ -434,7 +479,7 @@ fun loadDDS(data: ByteBuffer): DDSData {
             isCubeMap = false
         }
 
-        fun size(level:Int) : Int {
+        fun size(level: Int): Int {
             val div = (1 shl level)
             val width = header.width / div
             val height = header.height / div
@@ -444,37 +489,42 @@ fun loadDDS(data: ByteBuffer): DDSData {
                 else -> (header.pitchOrLinearSize * header.height) shl level
             }
         }
+
         val primarySize = size(0)
 
         require(primarySize > 0) {
             """size of surface is 0 bytes ${header}"""
         }
         for (i in 0 until surfaceCount) {
-            require(fis.remaining() >= primarySize) {
-                "source byte buffer only has ${fis.remaining()} bytes left, need $primarySize, $format/$type"
+            require(inputData.remaining() >= primarySize) {
+                "source byte buffer only has ${inputData.remaining()} bytes left, need $primarySize, $format/$type"
             }
             val bytes = ByteArray(primarySize)
-            fis.get(bytes)
+            inputData.get(bytes)
             totalByteCount -= bytes.size
-            primarySurfaces.add(newByteBuffer(bytes))
+            primarySurfaces.add(MPPBuffer.createFrom(bytes))
 
             if (header.hasFlagMipMapCount) {
                 for (level in 1 until header.mipmapCount) {
                     val secondarySize = size(level)
                     val bytes2 = ByteArray(secondarySize)
-                    fis.get(bytes2)
+                    inputData.get(bytes2)
                     totalByteCount -= bytes2.size
-                    secondarySurfaces.add(newByteBuffer(bytes2))
+                    secondarySurfaces.add(MPPBuffer.createFrom(bytes2))
                 }
             }
         }
-        return DDSData(format, type, header.width, header.height, header.mipmapCount, isCubeMap, primarySurfaces, secondarySurfaces, true)
+        return DDSData(
+            format,
+            type,
+            header.width,
+            header.height,
+            header.mipmapCount,
+            isCubeMap,
+            primarySurfaces,
+            secondarySurfaces,
+            true
+        )
     }
 }
 
-private fun newByteBuffer(data: ByteArray): ByteBuffer {
-    val buffer = ByteBuffer.allocateDirect(data.size).order(ByteOrder.nativeOrder())
-    buffer.put(data)
-    (buffer as Buffer).flip()
-    return buffer
-}

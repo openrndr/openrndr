@@ -33,5 +33,6 @@ include 'openrndr-application',
 		'openrndr-js:openrndr-webgl',
 		'openrndr-extensions',
 		'openrndr-nullgl',
-		'openrndr-utils'
+		'openrndr-utils',
+		'openrndr-dds'
 
