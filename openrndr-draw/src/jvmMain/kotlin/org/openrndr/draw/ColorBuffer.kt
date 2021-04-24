@@ -7,6 +7,7 @@ import org.openrndr.internal.Driver
 import org.openrndr.math.Vector2
 import org.openrndr.shape.IntRectangle
 import org.openrndr.shape.Rectangle
+import org.openrndr.utils.buffer.MPPBuffer
 import java.io.File
 import java.io.InputStream
 import java.net.MalformedURLException
@@ -317,6 +318,18 @@ actual abstract class ColorBuffer {
      * should the v coordinate be flipped because the [ColorBuffer] contents are stored upside-down?
      */
     actual abstract var flipV: Boolean
+
+
+    actual abstract fun write(
+        sourceBuffer: MPPBuffer,
+        sourceFormat: ColorFormat,
+        sourceType: ColorType,
+        x: Int,
+        y: Int,
+        width: Int,
+        height: Int,
+        level: Int
+    )
 }
 
 /**

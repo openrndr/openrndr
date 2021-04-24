@@ -207,7 +207,7 @@ class DriverWebGL(val context: GL) : Driver {
         type: ColorType,
         session: Session?
     ): BufferTexture {
-        TODO("Not yet implemented")
+        error("not supported")
     }
 
     override fun createCubemap(
@@ -217,7 +217,7 @@ class DriverWebGL(val context: GL) : Driver {
         levels: Int,
         session: Session?
     ): Cubemap {
-        TODO("Not yet implemented")
+        return CubemapWebGL.create(context, width, format, type, levels, session)
     }
 
     override fun createCubemapFromUrls(urls: List<String>, formatHint: ImageFileFormat?, session: Session?): Cubemap {

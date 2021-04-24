@@ -485,4 +485,3 @@ open class RenderTargetGL3(
         return "RenderTargetGL3(framebuffer=$framebuffer, width=$width, height=$height, contentScale=$contentScale, multisample=$multisample, session=$session, destroyed=$destroyed, colorAttachments=$colorAttachments, depthBuffer=$depthBuffer)"
     }
 }
-

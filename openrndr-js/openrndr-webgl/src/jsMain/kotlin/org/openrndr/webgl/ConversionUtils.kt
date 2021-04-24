@@ -6,6 +6,24 @@ import org.openrndr.draw.*
 import org.openrndr.math.*
 import org.khronos.webgl.WebGLRenderingContext as GL
 
+internal fun MinifyingFilter.toGLFilter(): Int {
+    return when (this) {
+        MinifyingFilter.NEAREST -> GL.NEAREST
+        MinifyingFilter.LINEAR -> GL.LINEAR
+        MinifyingFilter.LINEAR_MIPMAP_LINEAR -> GL.LINEAR_MIPMAP_LINEAR
+        MinifyingFilter.LINEAR_MIPMAP_NEAREST -> GL.LINEAR_MIPMAP_NEAREST
+        MinifyingFilter.NEAREST_MIPMAP_LINEAR -> GL.NEAREST_MIPMAP_LINEAR
+        MinifyingFilter.NEAREST_MIPMAP_NEAREST -> GL.NEAREST_MIPMAP_NEAREST
+    }
+}
+
+internal fun MagnifyingFilter.toGLFilter(): Int {
+    return when (this) {
+        MagnifyingFilter.NEAREST -> GL.NEAREST
+        MagnifyingFilter.LINEAR -> GL.LINEAR
+    }
+}
+
 internal fun float32Array(vararg floats: Float): Float32Array {
     return Float32Array(floats.toTypedArray())
 }
@@ -101,6 +119,11 @@ internal fun internalFormat(format: ColorFormat, type: ColorType): Pair<Int, Int
         ConversionEntry(ColorFormat.RGBa, ColorType.FLOAT16, GL.RGBA, HALF_FLOAT_OES),
         ConversionEntry(ColorFormat.RGB, ColorType.FLOAT32, GL.RGB, GL.FLOAT),
         ConversionEntry(ColorFormat.RGBa, ColorType.FLOAT32, GL.RGBA, GL.FLOAT),
+
+        ConversionEntry(ColorFormat.RGB, ColorType.DXT1, COMPRESSED_RGB_S3TC_DXT1_EXT, GL.RGB),
+        ConversionEntry(ColorFormat.RGBa, ColorType.DXT1, COMPRESSED_RGBA_S3TC_DXT1_EXT, GL.RGBA),
+        ConversionEntry(ColorFormat.RGBa, ColorType.DXT3, COMPRESSED_RGBA_S3TC_DXT3_EXT, GL.RGBA),
+        ConversionEntry(ColorFormat.RGBa, ColorType.DXT5, COMPRESSED_RGBA_S3TC_DXT5_EXT, GL.RGBA)
     )
     for (entry in entries) {
         if (entry.format === format && entry.type === type) {

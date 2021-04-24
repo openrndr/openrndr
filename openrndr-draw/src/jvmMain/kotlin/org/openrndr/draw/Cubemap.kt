@@ -2,6 +2,7 @@ package org.openrndr.draw
 
 import org.openrndr.internal.Driver
 import org.openrndr.math.Vector3
+import org.openrndr.utils.buffer.MPPBuffer
 import java.io.File
 import java.net.MalformedURLException
 import java.net.URL
@@ -61,11 +62,17 @@ actual interface Cubemap {
     actual fun bind(textureUnit: Int)
     actual fun generateMipmaps()
     actual fun destroy()
-}
-
-fun cubemap(width: Int, format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.UINT8, levels: Int = 1, session: Session? = Session.active): Cubemap {
-    val cubemap = Cubemap.create(width, format, type, levels, session)
-    return cubemap
+    actual fun write(
+        side: CubemapSide,
+        source: MPPBuffer,
+        sourceFormat: ColorFormat,
+        sourceType: ColorType,
+        x: Int,
+        y: Int,
+        width: Int,
+        height: Int,
+        level: Int
+    )
 }
 
 fun loadCubemap(fileOrUrl: String, formatHint: ImageFileFormat?, session: Session? = Session.active): Cubemap {

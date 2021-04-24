@@ -1,6 +1,7 @@
 package org.openrndr.draw
 
 import org.openrndr.internal.Driver
+import org.openrndr.utils.buffer.MPPBuffer
 import java.nio.ByteBuffer
 
 actual abstract class VertexBuffer {
@@ -40,6 +41,7 @@ actual abstract class VertexBuffer {
         w.rewind()
         return count
     }
+
     actual abstract val vertexFormat: VertexFormat
     actual abstract val vertexCount: Int
 
@@ -52,4 +54,10 @@ actual abstract class VertexBuffer {
      * Destroy the vertex buffer
      */
     actual abstract fun destroy()
+    actual abstract fun write(
+        source: MPPBuffer,
+        targetByteOffset: Int,
+        sourceByteOffset: Int,
+        byteLength: Int
+    )
 }

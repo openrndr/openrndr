@@ -1,6 +1,10 @@
+@file:JvmName("CubemapFunctions")
 package org.openrndr.draw
 
+import org.openrndr.internal.Driver
 import org.openrndr.math.Vector3
+import org.openrndr.utils.buffer.MPPBuffer
+import kotlin.jvm.JvmName
 
 enum class CubemapSide(val forward: Vector3, val up: Vector3) {
     POSITIVE_X(Vector3.UNIT_X, -Vector3.UNIT_Y),
@@ -31,4 +35,26 @@ expect interface Cubemap {
     fun bind(textureUnit: Int = 0)
     fun generateMipmaps()
     fun destroy()
+
+    fun write(
+        side: CubemapSide,
+        source: MPPBuffer,
+        sourceFormat: ColorFormat,
+        sourceType: ColorType,
+        x: Int,
+        y: Int,
+        width: Int,
+        height: Int,
+        level: Int
+    )
+}
+
+fun cubemap(
+    width: Int,
+    format: ColorFormat = ColorFormat.RGBa,
+    type: ColorType = ColorType.UINT8,
+    levels: Int = 1,
+    session: Session? = Session.active
+) : Cubemap {
+    return Driver.instance.createCubemap(width, format, type, levels, session)
 }

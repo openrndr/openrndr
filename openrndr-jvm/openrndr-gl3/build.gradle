@@ -3,6 +3,7 @@ dependencies {
     implementation project(":openrndr-draw")
     implementation project(":openrndr-shape")
     implementation project(":openrndr-binpack")
+    implementation project(":openrndr-dds")
 
     implementation "org.lwjgl:lwjgl:$lwjglVersion"
     implementation "org.lwjgl:lwjgl-glfw:$lwjglVersion"

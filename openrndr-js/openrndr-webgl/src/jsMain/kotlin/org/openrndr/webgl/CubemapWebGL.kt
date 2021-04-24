@@ -2,9 +2,11 @@ package org.openrndr.webgl
 
 import org.khronos.webgl.ArrayBufferView
 import org.khronos.webgl.TexImageSource
+import org.khronos.webgl.Uint8Array
 import org.khronos.webgl.WebGLRenderingContext as GL
 import org.khronos.webgl.WebGLTexture
 import org.openrndr.draw.*
+import org.openrndr.utils.buffer.MPPBuffer
 
 class CubemapWebGL(
     val context: GL,
@@ -65,7 +67,8 @@ class CubemapWebGL(
     }
 
     override fun filter(min: MinifyingFilter, mag: MagnifyingFilter) {
-        TODO("Not yet implemented")
+        context.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MIN_FILTER, min.toGLFilter())
+        context.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MAG_FILTER, mag.toGLFilter())
     }
 
     override fun bind(textureUnit: Int) {
@@ -74,6 +77,8 @@ class CubemapWebGL(
     }
 
     override fun generateMipmaps() {
+        bind(0)
+        context.generateMipmap(target)
 
     }
 
@@ -109,7 +114,48 @@ class CubemapWebGL(
         height: Int,
         level: Int
     ) {
-        context.texSubImage2D(side.glTextureTarget, level, x, y, width, height, sourceFormat.glFormat(), sourceType.glType(), source)
+
+        val u8Source = Uint8Array(source.buffer)
+
+        if (!sourceType.compressed) {
+            context.texSubImage2D(
+                side.glTextureTarget,
+                level,
+                x,
+                y,
+                width,
+                height,
+                sourceFormat.glFormat(),
+                sourceType.glType(),
+                u8Source
+            )
+        } else {
+            context.compressedTexSubImage2D(
+                side.glTextureTarget,
+                level,
+                x,
+                y,
+                width,
+                height,
+                sourceType.glType(),
+                source
+            )
+
+        }
+    }
+
+    override fun write(
+        side: CubemapSide,
+        source: MPPBuffer,
+        sourceFormat: ColorFormat,
+        sourceType: ColorType,
+        x: Int,
+        y: Int,
+        width: Int,
+        height: Int,
+        level: Int
+    ) {
+        write(side, source.dataView, sourceFormat, sourceType, x, y, width, height, level)
     }
 }
 

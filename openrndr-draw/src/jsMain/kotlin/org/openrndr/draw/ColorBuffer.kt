@@ -7,6 +7,7 @@ import org.khronos.webgl.TexImageSource
 import org.openrndr.internal.Driver
 import org.openrndr.shape.IntRectangle
 import org.openrndr.shape.Rectangle
+import org.openrndr.utils.buffer.MPPBuffer
 import org.w3c.dom.CanvasRenderingContext2D
 
 actual abstract class ColorBuffer {
@@ -110,6 +111,8 @@ actual abstract class ColorBuffer {
 
     abstract fun write(
         source: ArrayBufferView,
+        sourceFormat: ColorFormat,
+        sourceType: ColorType,
         x: Int = 0,
         y: Int = 0,
         width: Int = this.effectiveWidth,
@@ -124,6 +127,17 @@ actual abstract class ColorBuffer {
         width: Int = this.effectiveWidth,
         height: Int = this.effectiveHeight,
         level: Int = 0
+    )
+
+    actual abstract fun write(
+        sourceBuffer: MPPBuffer,
+        sourceFormat: ColorFormat,
+        sourceType: ColorType,
+        x: Int,
+        y: Int,
+        width: Int,
+        height: Int,
+        level: Int
     )
 
 }

@@ -3,6 +3,7 @@ package org.openrndr.webgl
 import org.khronos.webgl.Float32Array
 import org.khronos.webgl.WebGLBuffer
 import org.openrndr.draw.*
+import org.openrndr.utils.buffer.MPPBuffer
 import org.khronos.webgl.WebGLRenderingContext as GL
 
 
@@ -80,7 +81,15 @@ class VertexBufferWebGL(
 
     override fun write(data: Float32Array, offset:Int, floatCount: Int) {
         bind()
-        context.bufferSubData(GL.ARRAY_BUFFER, 0, data.subarray(0, floatCount))
+        context.bufferSubData(GL.ARRAY_BUFFER, offset, data.subarray(0, floatCount))
+        unbind()
+    }
+
+    override fun write(source: MPPBuffer, targetByteOffset: Int, sourceByteOffset: Int, byteLength: Int) {
+        bind()
+        context.bufferSubData(GL.ARRAY_BUFFER, targetByteOffset,
+            source.dataView.buffer.slice(sourceByteOffset, sourceByteOffset+byteLength)
+            )
         unbind()
     }
 

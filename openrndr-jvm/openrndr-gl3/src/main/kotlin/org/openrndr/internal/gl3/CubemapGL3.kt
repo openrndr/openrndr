@@ -1,8 +1,9 @@
 package org.openrndr.internal.gl3
 
 import org.lwjgl.opengl.GL33C.*
+import org.openrndr.dds.loadDDS
 import org.openrndr.draw.*
-import org.openrndr.internal.gl3.dds.loadDDS
+import org.openrndr.utils.buffer.MPPBuffer
 import java.net.URL
 import java.nio.Buffer
 import java.nio.ByteBuffer
@@ -88,24 +89,7 @@ class CubemapGL3(val texture: Int, override val width: Int, override val type: C
                 checkGLErrors()
 
                 val data = loadDDS(URL(url).openStream())
-
-                val cubemap = create(data.width, data.format, data.type, data.mipmaps, session)
-
-                for (level in 0 until data.mipmaps) {
-                    (data.sidePX(level) as Buffer).rewind()
-                    (data.sideNX(level) as Buffer).rewind()
-                    (data.sidePY(level) as Buffer).rewind()
-                    (data.sideNY(level) as Buffer).rewind()
-                    (data.sidePZ(level) as Buffer).rewind()
-                    (data.sideNZ(level) as Buffer).rewind()
-
-                    cubemap.write(CubemapSide.POSITIVE_X, data.sidePX(level), level = level)
-                    cubemap.write(CubemapSide.NEGATIVE_X, data.sideNX(level), level = level)
-                    cubemap.write(CubemapSide.POSITIVE_Y, data.sidePY(level), level = level)
-                    cubemap.write(CubemapSide.NEGATIVE_Y, data.sideNY(level), level = level)
-                    cubemap.write(CubemapSide.POSITIVE_Z, data.sidePZ(level), level = level)
-                    cubemap.write(CubemapSide.NEGATIVE_Z, data.sideNZ(level), level = level)
-                }
+                val cubemap = data.toCubemap(session) as CubemapGL3
                 if (data.mipmaps == 1) {
                     cubemap.generateMipmaps()
                 }
@@ -280,6 +264,20 @@ class CubemapGL3(val texture: Int, override val width: Int, override val type: C
             (source as Buffer).rewind()
         }
 
+    }
+
+    override fun write(
+        side: CubemapSide,
+        source: MPPBuffer,
+        sourceFormat: ColorFormat,
+        sourceType: ColorType,
+        x: Int,
+        y: Int,
+        width: Int,
+        height: Int,
+        level: Int
+    ) {
+        write(side, source.byteBuffer, sourceFormat, sourceType, level)
     }
 
     override fun bind(textureUnit: Int) {

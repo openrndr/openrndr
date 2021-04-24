@@ -2,6 +2,7 @@ package org.openrndr.draw
 
 import org.khronos.webgl.Float32Array
 import org.openrndr.internal.Driver
+import org.openrndr.utils.buffer.MPPBuffer
 
 actual abstract class VertexBuffer {
     actual abstract val session: Session?
@@ -48,5 +49,11 @@ actual abstract class VertexBuffer {
 
     abstract fun write(data: FloatArray, offset:Int, floatCount: Int)
     abstract fun write(data: Float32Array, offset:Int, floatCount : Int)
+    actual abstract fun write(
+        source: MPPBuffer,
+        targetByteOffset: Int,
+        sourceByteOffset: Int,
+        byteLength: Int
+    )
 
 }

@@ -1,5 +1,6 @@
 package org.openrndr.webgl
 
+import WebGLRenderingFixedCompressedTexImage
 import kotlinx.coroutines.await
 import org.khronos.webgl.ArrayBufferView
 import org.khronos.webgl.TexImageSource
@@ -8,6 +9,7 @@ import org.khronos.webgl.WebGLTexture
 import org.openrndr.draw.*
 import org.openrndr.internal.Driver
 import org.openrndr.shape.IntRectangle
+import org.openrndr.utils.buffer.MPPBuffer
 import org.w3c.dom.Image
 import kotlin.js.Promise
 import kotlin.math.log2
@@ -52,20 +54,16 @@ class ColorBufferWebGL(
             levels: Int,
             session: Session?
         ): ColorBufferWebGL {
-
             if (type == ColorType.FLOAT16) {
                 require((Driver.instance as DriverWebGL).capabilities.halfFloatTextures) {
                     """no support for half float textures."""
                 }
             }
-
             if (type == ColorType.FLOAT32) {
                 require((Driver.instance as DriverWebGL).capabilities.floatTextures) {
                     """no support for float textures"""
                 }
             }
-
-
             val texture = context.createTexture() ?: error("failed to create texture")
             context.activeTexture(GL.TEXTURE0)
             when (multisample) {
@@ -78,19 +76,38 @@ class ColorBufferWebGL(
                 //context.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MAX_LEVEL, levels - 1)
             }
             val (internalFormat, internalType) = internalFormat(format, type)
-            for (level in 0 until levels) {
-                val div = 1 shl level
-                context.texImage2D(
-                    GL.TEXTURE_2D,
-                    level,
-                    internalFormat,
-                    effectiveWidth / div,
-                    effectiveHeight / div,
-                    0,
-                    internalFormat,
-                    type.glType(),
-                    null
-                )
+
+
+
+            if (!type.compressed) {
+                for (level in 0 until levels) {
+                    val div = 1 shl level
+                    context.texImage2D(
+                        GL.TEXTURE_2D,
+                        level,
+                        internalFormat,
+                        effectiveWidth / div,
+                        effectiveHeight / div,
+                        0,
+                        internalFormat,
+                        type.glType(),
+                        null
+                    )
+                }
+            } else {
+                for (level in 0 until levels) {
+                    val div = 1 shl level
+                    val fcontext = context as? WebGLRenderingFixedCompressedTexImage ?: error("cast failed")
+                    fcontext.compressedTexImage2D(
+                        GL.TEXTURE_2D,
+                        level,
+                        internalFormat,
+                        effectiveWidth / div,
+                        effectiveHeight / div,
+                        0,
+                        null
+                    )
+                }
             }
 
             val caps = (Driver.instance as DriverWebGL).capabilities
@@ -195,6 +212,7 @@ class ColorBufferWebGL(
         height: Int,
         level:Int
     ) {
+        require(!type.compressed)
         bind(0)
         context.pixelStorei(GL.UNPACK_FLIP_Y_WEBGL, 1)
         this.context.texSubImage2D(target, level, x, y, GL.RGBA, GL.UNSIGNED_BYTE, source)
@@ -202,15 +220,54 @@ class ColorBufferWebGL(
 
     override fun write(
         source: ArrayBufferView,
+        sourceFormat: ColorFormat,
+        sourceType: ColorType,
         x: Int,
         y: Int,
         width: Int,
         height: Int,
-        level:Int
+        level: Int
     ) {
         bind(0)
         context.pixelStorei(GL.UNPACK_FLIP_Y_WEBGL, 1)
-        this.context.texSubImage2D(target, level, x, y, width, height, GL.RGBA, GL.UNSIGNED_BYTE, source)
+
+        if (!sourceType.compressed) {
+            this.context.texSubImage2D(
+                target,
+                level,
+                x,
+                y,
+                width,
+                height,
+                sourceFormat.glFormat(),
+                sourceType.glType(),
+                source
+            )
+        } else {
+            this.context.compressedTexSubImage2D(
+                target,
+                level,
+                x,
+                y,
+                width,
+                height,
+                sourceType.glType(),
+                source
+            )
+        }
+    }
+
+    override fun write(
+        sourceBuffer: MPPBuffer,
+        sourceFormat: ColorFormat,
+        sourceType: ColorType,
+        x: Int,
+        y: Int,
+        width: Int,
+        height: Int,
+        level: Int
+    ) {
+        write(sourceBuffer.dataView, sourceFormat, sourceType, x, y, width, height, level)
     }
 
     private val readFrameBuffer by lazy {

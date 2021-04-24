@@ -11,7 +11,7 @@ import org.lwjgl.util.tinyexr.TinyEXR
 import org.openrndr.draw.ColorFormat
 import org.openrndr.draw.ColorType
 import org.openrndr.draw.ImageFileFormat
-import org.openrndr.internal.gl3.dds.loadDDS
+import org.openrndr.dds.loadDDS
 import java.io.File
 import java.io.InputStream
 import java.net.URL
@@ -226,8 +226,8 @@ class ColorBufferDataGL3(
                     data.format,
                     data.type,
                     data.flipV,
-                    data.image(0),
-                    (1 until data.mipmaps).map { data.image(it) }
+                    data.image(0).byteBuffer,
+                    (1 until data.mipmaps).map { data.image(it).byteBuffer }
                 )
 
             } else if (assumedFormat == ImageFileFormat.EXR) {

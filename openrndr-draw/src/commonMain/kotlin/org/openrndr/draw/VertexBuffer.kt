@@ -1,5 +1,7 @@
 package org.openrndr.draw
 
+import org.openrndr.utils.buffer.MPPBuffer
+
 
 expect abstract class VertexBuffer {
     abstract val session: Session?
@@ -17,6 +19,13 @@ expect abstract class VertexBuffer {
     abstract fun destroy()
 
     fun put(elementOffset: Int = 0, putter: BufferWriter.() -> Unit): Int
+
+    abstract fun write(
+        source: MPPBuffer,
+        targetByteOffset: Int = 0,
+        sourceByteOffset: Int = 0,
+        byteLength: Int = source.capacity()
+    )
 
     companion object {
         fun createDynamic(format: VertexFormat, vertexCount: Int, session: Session? = Session.active): VertexBuffer

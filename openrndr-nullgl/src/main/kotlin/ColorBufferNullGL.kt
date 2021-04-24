@@ -3,6 +3,7 @@ package org.openrndr.internal.nullgl
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
 import org.openrndr.shape.IntRectangle
+import org.openrndr.utils.buffer.MPPBuffer
 import java.io.File
 import java.nio.ByteBuffer
 
@@ -25,6 +26,19 @@ class ColorBufferNullGL(override val width: Int, override val height: Int, overr
     }
 
     override fun write(sourceBuffer: ByteBuffer, sourceFormat: ColorFormat, sourceType: ColorType, level: Int) {
+
+    }
+
+    override fun write(
+        sourceBuffer: MPPBuffer,
+        sourceFormat: ColorFormat,
+        sourceType: ColorType,
+        x: Int,
+        y: Int,
+        width: Int,
+        height: Int,
+        level: Int
+    ) {
 
     }
 

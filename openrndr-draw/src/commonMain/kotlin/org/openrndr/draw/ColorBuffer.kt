@@ -3,6 +3,7 @@ package org.openrndr.draw
 import org.openrndr.internal.Driver
 import org.openrndr.shape.IntRectangle
 import org.openrndr.shape.Rectangle
+import org.openrndr.utils.buffer.MPPBuffer
 
 
 /**
@@ -113,6 +114,7 @@ expect abstract class ColorBuffer {
     abstract fun generateMipmaps()
 
 
+    abstract fun write(sourceBuffer: MPPBuffer, sourceFormat: ColorFormat, sourceType: ColorType, x:Int = 0, y:Int = 0, width:Int, height:Int, level:Int = 0)
 
     /** the (unitless?) degree of anisotropy to be used in filtering */
     abstract var anisotropy: Double

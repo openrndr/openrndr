@@ -94,7 +94,7 @@ internal class Decoder(private val statistics: VideoStatistics,
 
                 hwType = (foundHW.map { Pair(it, preferredHW.indexOf(it)) })
                         .filter { it.second >= 0 }
-                        .maxBy { it.second }
+                        .maxByOrNull { it.second }
                         ?.first ?: AV_HWDEVICE_TYPE_NONE
 
                 if (hwType != AV_HWDEVICE_TYPE_NONE) {

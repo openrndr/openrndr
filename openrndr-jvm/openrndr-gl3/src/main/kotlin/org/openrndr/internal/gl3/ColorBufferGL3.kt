@@ -29,6 +29,7 @@ import org.openrndr.draw.BufferMultisample.Disabled
 import org.openrndr.draw.BufferMultisample.SampleCount
 import org.openrndr.internal.Driver
 import org.openrndr.shape.IntRectangle
+import org.openrndr.utils.buffer.MPPBuffer
 import java.io.File
 import java.io.InputStream
 import java.nio.Buffer
@@ -603,6 +604,19 @@ class ColorBufferGL3(val target: Int,
         } else {
             throw IllegalArgumentException("multisample targets cannot be written to")
         }
+    }
+
+    override fun write(
+        sourceBuffer: MPPBuffer,
+        sourceFormat: ColorFormat,
+        sourceType: ColorType,
+        x: Int,
+        y: Int,
+        width: Int,
+        height: Int,
+        level: Int
+    ) {
+        write(sourceBuffer.byteBuffer, sourceFormat, sourceType, level = level)
     }
 
 

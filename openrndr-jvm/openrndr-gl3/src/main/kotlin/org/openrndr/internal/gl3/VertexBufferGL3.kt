@@ -6,6 +6,7 @@ import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL33C.*
 import org.lwjgl.system.MemoryUtil.NULL
 import org.openrndr.draw.*
+import org.openrndr.utils.buffer.MPPBuffer
 import java.nio.Buffer
 
 import java.nio.ByteBuffer
@@ -117,6 +118,12 @@ class VertexBufferGL3(val buffer: Int, override val vertexFormat: VertexFormat, 
             temp.put(data)
             write(temp, offset)
         }
+    }
+
+    override fun write(source: MPPBuffer, targetByteOffset: Int, sourceByteOffset: Int, byteLength: Int) {
+        source.byteBuffer.position(sourceByteOffset)
+        source.byteBuffer.limit(sourceByteOffset + byteLength)
+        write(source.byteBuffer, targetByteOffset)
     }
 
     override fun read(data: ByteBuffer, offset: Int) {
