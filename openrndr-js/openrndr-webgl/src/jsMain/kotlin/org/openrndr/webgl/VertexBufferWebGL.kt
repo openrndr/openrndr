@@ -88,7 +88,7 @@ class VertexBufferWebGL(
     override fun write(source: MPPBuffer, targetByteOffset: Int, sourceByteOffset: Int, byteLength: Int) {
         bind()
         context.bufferSubData(GL.ARRAY_BUFFER, targetByteOffset,
-            source.dataView.buffer.slice(sourceByteOffset, sourceByteOffset+byteLength)
+            source.dataView
             )
         unbind()
     }

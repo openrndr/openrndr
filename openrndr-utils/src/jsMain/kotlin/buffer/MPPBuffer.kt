@@ -82,17 +82,17 @@ actual class MPPBuffer(val dataView: DataView) {
     }
 
     actual fun putFloat(float: Float) {
-        dataView.setFloat32(offset, float)
+        dataView.setFloat32(offset, float, littleEndian = true)
         offset += 4
     }
 
     actual fun putDouble(double: Double) {
-        dataView.setFloat64(offset, double)
+        dataView.setFloat64(offset, double, littleEndian = true)
         offset += 8
     }
 
     actual fun putInt(int: Int) {
-        dataView.setInt32(offset, int)
+        dataView.setInt32(offset, int, littleEndian = true)
         offset += 4
     }
 
