@@ -63,12 +63,47 @@ class ApplicationWebGL(private val program: Program, private val configuration: 
             canvas?.height = (dpr * (canvas?.clientHeight?:error("no height"))).toInt()
         })
 
+
+        var lastDragPosition = Vector2.ZERO
+        var down = false
+        window.addEventListener("mousedown", {
+            it as HtmlMouseEvent
+            down = true
+            val x = it.clientX.toDouble()
+            val y = it.clientY.toDouble()
+            lastDragPosition = Vector2(x, y)
+        })
+
+        window.addEventListener("mouseup", {
+            down = false
+        })
+
         window.addEventListener("pointermove", {
             it as HtmlMouseEvent
             val x = it.clientX.toDouble()
             val y = it.clientY.toDouble()
             this.cursorPosition = Vector2(x, y)
             program.mouse.moved.trigger(MouseEvent(cursorPosition, Vector2.ZERO, Vector2.ZERO, MouseEventType.MOVED, MouseButton.NONE, emptySet()))
+        })
+
+        window.addEventListener("mousemove", {
+            if (down) {
+                it as HtmlMouseEvent
+                val x = it.clientX.toDouble()
+                val y = it.clientY.toDouble()
+                this.cursorPosition = Vector2(x, y)
+                program.mouse.dragged.trigger(
+                    MouseEvent(
+                        cursorPosition,
+                        Vector2.ZERO,
+                        this.cursorPosition - lastDragPosition,
+                        MouseEventType.MOVED,
+                        MouseButton.NONE,
+                        emptySet()
+                    )
+                )
+                lastDragPosition = this.cursorPosition
+            }
         })
 
 
