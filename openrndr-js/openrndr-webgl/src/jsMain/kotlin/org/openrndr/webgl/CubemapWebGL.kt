@@ -67,6 +67,7 @@ class CubemapWebGL(
     }
 
     override fun filter(min: MinifyingFilter, mag: MagnifyingFilter) {
+        bind(0)
         context.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MIN_FILTER, min.toGLFilter())
         context.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MAG_FILTER, mag.toGLFilter())
     }
