@@ -2,6 +2,10 @@ package org.openrndr.webgl
 
 import org.khronos.webgl.WebGLRenderingContext
 
+
+external interface OESStandardDerivatives
+const val FRAGMENT_SHADER_DERIVATIVE_HINT_OES = 0x8b8b
+
 external interface ANGLEinstancedArrays {
     fun vertexAttribDivisorANGLE(index: Int, divisor: Int)
     fun drawArraysInstancedANGLE(mode: Int, first: Int, count: Int, primcount: Int)

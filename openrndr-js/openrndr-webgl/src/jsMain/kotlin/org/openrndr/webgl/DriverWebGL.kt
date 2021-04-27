@@ -17,7 +17,7 @@ class DriverWebGL(val context: GL) : Driver {
             context.getExtension("ANGLE_instanced_arrays") as? ANGLEinstancedArrays
         }
         val standardDerivatives by lazy {
-            context.getExtension("OES_standard_derivatives")
+            context.getExtension("OES_standard_derivatives") as? OESStandardDerivatives
         }
 
         val halfFloatTextures by lazy {
@@ -72,7 +72,7 @@ class DriverWebGL(val context: GL) : Driver {
         colorBufferFloat = extensions.colorBufferFloat != null,
         halfFloatTexturesLinear = extensions.halfFloatTexturesLinear != null,
         floatTexturesLinear = extensions.floatTexturesLinear != null,
-        drawBuffers = extensions.drawBuffers != null
+        drawBuffers = extensions.drawBuffers != null,
     )
 
     override val contextID: Long
