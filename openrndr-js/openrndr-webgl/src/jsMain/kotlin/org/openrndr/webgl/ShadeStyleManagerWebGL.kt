@@ -72,10 +72,15 @@ class ShadeStyleManagerWebGL(
                 run {
                     for (it in style.parameterValues.entries) {
                         when (val value = it.value) {
+                            is Float -> {
+                                shader.uniform("p_${it.key}", value)
+                            }
+                            is Double -> {
+                                shader.uniform("p_${it.key}", value.toFloat())
+                            }
                             is Boolean -> shader.uniform("p_${it.key}", value)
                             is Int -> shader.uniform("p_${it.key}", value)
-                            is Float -> shader.uniform("p_${it.key}", value)
-                            is Double -> shader.uniform("p_${it.key}", value)
+
                             is Matrix44 -> shader.uniform("p_${it.key}", value)
                             is Matrix33 -> shader.uniform("p_${it.key}", value)
                             is Vector4 -> shader.uniform("p_${it.key}", value)

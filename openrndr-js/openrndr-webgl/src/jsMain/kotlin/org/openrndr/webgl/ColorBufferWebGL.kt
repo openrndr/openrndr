@@ -282,4 +282,10 @@ class ColorBufferWebGL(
         context.readPixels(x, y, effectiveWidth, effectiveHeight, GL.RGBA, GL.UNSIGNED_BYTE, target)
         context.bindFramebuffer(GL.FRAMEBUFFER, current)
     }
+
+    override fun filter(filterMin: MinifyingFilter, filterMag: MagnifyingFilter) {
+        bind(0)
+        context.texParameteri(target, GL.TEXTURE_MIN_FILTER, filterMin.toGLFilter())
+        context.texParameteri(target, GL.TEXTURE_MAG_FILTER, filterMag.toGLFilter())
+    }
 }

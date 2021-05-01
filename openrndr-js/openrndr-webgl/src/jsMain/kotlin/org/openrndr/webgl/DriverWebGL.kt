@@ -47,6 +47,10 @@ class DriverWebGL(val context: GL) : Driver {
         val drawBuffers by lazy {
             context.getExtension("WEBGL_draw_buffers") as? WEBGLDrawBuffers
         }
+
+        val depthTexture by lazy {
+            context.getExtension("WEBGL_depth_texture") as? WEBGLDepthTexture
+        }
     }
 
     data class Capabilities(
@@ -58,7 +62,8 @@ class DriverWebGL(val context: GL) : Driver {
         val colorBufferFloat: Boolean,
         val halfFloatTexturesLinear: Boolean,
         val floatTexturesLinear: Boolean,
-        val drawBuffers: Boolean
+        val drawBuffers: Boolean,
+        val depthTexture: Boolean
     )
 
     val extensions = Extensions()
@@ -73,6 +78,7 @@ class DriverWebGL(val context: GL) : Driver {
         halfFloatTexturesLinear = extensions.halfFloatTexturesLinear != null,
         floatTexturesLinear = extensions.floatTexturesLinear != null,
         drawBuffers = extensions.drawBuffers != null,
+        depthTexture = extensions.depthTexture != null,
     )
 
     override val contextID: Long
@@ -198,7 +204,7 @@ class DriverWebGL(val context: GL) : Driver {
         multisample: BufferMultisample,
         session: Session?
     ): DepthBuffer {
-        TODO("Not yet implemented")
+        return DepthBufferWebGL.create(context, width, height, format, multisample, session)
     }
 
     override fun createBufferTexture(

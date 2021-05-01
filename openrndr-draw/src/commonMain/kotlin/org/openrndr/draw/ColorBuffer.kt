@@ -125,6 +125,9 @@ expect abstract class ColorBuffer {
     abstract var flipV: Boolean
 
 
+    abstract fun filter(filterMin: MinifyingFilter, filterMag: MagnifyingFilter)
+
+
     /*
     abstract fun copyTo(
         target: ColorBuffer,

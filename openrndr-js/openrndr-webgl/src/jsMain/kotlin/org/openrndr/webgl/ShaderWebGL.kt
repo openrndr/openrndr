@@ -124,7 +124,7 @@ class ShaderWebGL(
     }
 
     override fun uniform(name: String, value: Float) {
-        context.uniform1f(uniformIndex(name), value.toFloat())
+        context.uniform1f(uniformIndex(name), value)
     }
 
     override fun uniform(name: String, value: Int) {

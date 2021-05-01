@@ -74,6 +74,10 @@ class ColorBufferNullGL(override val width: Int, override val height: Int, overr
     override val shadow: ColorBufferShadow
         get() = TODO("Not yet implemented")
 
+    override fun filter(filterMin: MinifyingFilter, filterMag: MagnifyingFilter) {
+
+    }
+
     override var anisotropy = 0.0
 
 

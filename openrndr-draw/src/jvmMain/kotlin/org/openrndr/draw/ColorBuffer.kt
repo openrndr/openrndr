@@ -151,10 +151,7 @@ actual abstract class ColorBuffer {
     /**
      * sets the [ColorBuffer] filter for minifying and magnification
      */
-    fun filter(filterMin: MinifyingFilter, filterMag: MagnifyingFilter) {
-        this.filterMin = filterMin
-        this.filterMag = filterMag
-    }
+    actual abstract fun filter(filterMin: MinifyingFilter, filterMag: MagnifyingFilter)
 
     /**
      * check if this [ColorBuffer] is equivalent to [other]

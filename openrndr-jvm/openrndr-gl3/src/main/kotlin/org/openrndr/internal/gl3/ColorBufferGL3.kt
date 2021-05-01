@@ -553,6 +553,11 @@ class ColorBufferGL3(val target: Int,
             }
         }
 
+    override fun filter(filterMin: MinifyingFilter, filterMag: MagnifyingFilter) {
+        this.filterMin = filterMin
+        this.filterMag = filterMag
+    }
+
     var realShadow: ColorBufferShadow? = null
 
     override fun write(sourceBuffer: ByteBuffer, sourceFormat: ColorFormat, sourceType: ColorType, level: Int) {

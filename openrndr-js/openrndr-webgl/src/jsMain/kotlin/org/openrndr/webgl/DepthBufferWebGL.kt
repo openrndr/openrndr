@@ -27,8 +27,8 @@ class DepthBufferWebGL(
         ): DepthBufferWebGL {
             val buffer = context.createRenderbuffer() ?: error("buffer creation failed")
             context.bindRenderbuffer(GL.RENDERBUFFER, buffer)
-            context.renderbufferStorage(GL.RENDERBUFFER, GL.DEPTH_STENCIL, width, height)
-            return DepthBufferWebGL(context, buffer, width, height, DepthFormat.DEPTH24_STENCIL8, multisample, session)
+            context.renderbufferStorage(GL.RENDERBUFFER, GL.DEPTH_COMPONENT16, width, height)
+            return DepthBufferWebGL(context, buffer, width, height, DepthFormat.DEPTH16, multisample, session)
         }
     }
 

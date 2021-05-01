@@ -3,6 +3,7 @@ package org.openrndr.internal.nullgl
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
 import org.openrndr.math.*
+import org.openrndr.utils.buffer.MPPBuffer
 import java.nio.ByteBuffer
 
 class BufferWriterNullGL : BufferWriter() {
@@ -96,6 +97,10 @@ class VertexBufferNullGL(override val vertexFormat: VertexFormat, override val v
         get() = VertexBufferShadowNullGL(this)
 
     override fun write(data: ByteBuffer, offset: Int) {
+    }
+
+    override fun write(source: MPPBuffer, targetByteOffset: Int, sourceByteOffset: Int, byteLength: Int) {
+        TODO("Not yet implemented")
     }
 
     override fun read(data: ByteBuffer, offset: Int) {

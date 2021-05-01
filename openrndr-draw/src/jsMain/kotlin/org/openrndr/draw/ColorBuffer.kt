@@ -140,6 +140,11 @@ actual abstract class ColorBuffer {
         level: Int
     )
 
+    actual abstract fun filter(
+        filterMin: MinifyingFilter,
+        filterMag: MagnifyingFilter
+    )
+
 }
 
 /**
