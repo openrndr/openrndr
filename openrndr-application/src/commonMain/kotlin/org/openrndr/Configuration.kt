@@ -155,8 +155,10 @@ class Configuration {
     /**
      * Should the program wait for vertical retrace?
      */
-
     var vsync = true
+
+    var maxContentScale = 10.0
+
 }
 
 /**
