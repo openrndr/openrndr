@@ -198,7 +198,8 @@ class Path3D(val segments: List<Segment3D>, val closed: Boolean) {
      * @return a projected point that lies on the contour
      */
     fun project(point: Vector3): PathProjection3D {
-        val nearest = segments.mapIndexed { index, it -> Pair(index, it.project(point)) }.minBy { it.second.distance }!!
+        val nearest = segments.mapIndexed { index, it -> Pair(index, it.project(point)) }
+            .minByOrNull { it.second.distance }!!
 
         return PathProjection3D(nearest.second, (nearest.first + nearest.second.projection) /
                 segments.size, nearest.second.distance, nearest.second.point)
