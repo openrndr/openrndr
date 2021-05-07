@@ -1,12 +1,8 @@
-package org.openrndr.text
+package org.openrndr.draw
 
-import org.openrndr.Program
-import org.openrndr.draw.DrawStyle
-import org.openrndr.draw.Drawer
-import org.openrndr.draw.FontImageMap
 import org.openrndr.math.Vector2
 import org.openrndr.shape.Rectangle
-import java.util.*
+import kotlin.jvm.JvmName
 
 class Cursor(var x: Double = 0.0, var y: Double = 0.0) {
     constructor(cursor: Cursor) : this(cursor.x, cursor.y)
@@ -23,7 +19,6 @@ class WriteStyle {
 
 @Suppress("unused", "UNUSED_PARAMETER")
 class Writer(val drawerRef: Drawer?) {
-
     var cursor = Cursor()
     var box = Rectangle(
         Vector2.ZERO, drawerRef?.width?.toDouble() ?: Double.POSITIVE_INFINITY, drawerRef?.height?.toDouble()
@@ -36,7 +31,7 @@ class Writer(val drawerRef: Drawer?) {
         }
 
     var style = WriteStyle()
-    val styleStack = Stack<WriteStyle>()
+    val styleStack = ArrayDeque<WriteStyle>()
 
 
     var leading
@@ -138,7 +133,7 @@ class Writer(val drawerRef: Drawer?) {
                     localCursor.x = box.corner.x
                     localCursor.y += verticalSpace
                 } else {
-                    val tokenWidth = token.sumByDouble {
+                    val tokenWidth = token.sumOf {
                         font.glyphMetrics[it]?.advanceWidth ?: 0.0
                     } + style.tracking * token.length
                     if (localCursor.x + tokenWidth < box.x + box.width && localCursor.y <= box.y + box.height) run {
@@ -201,9 +196,9 @@ fun <T> writer(drawer: Drawer, f: Writer.() -> T): T {
     return writer.f()
 }
 
-fun <T> Program.writer(f: Writer.() -> T): T {
-    return writer(drawer, f)
-}
+//fun <T> Program.writer(f: Writer.() -> T): T {
+//    return writer(drawer, f)
+//}
 
 @JvmName("drawerWriter")
 fun <T> Drawer.writer(f: Writer.() -> T): T {

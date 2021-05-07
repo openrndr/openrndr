@@ -2,21 +2,19 @@ import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 
 buildscript {
     repositories {
-        mavenCentral() // new artifacts minght no longer be published to jcentral()
-        jcenter()
+        mavenCentral()
     }
     dependencies {
         classpath "org.jetbrains.dokka:dokka-gradle-plugin:0.10.1"
-//        classpath "com.netflix.nebula:nebula-publishing-plugin:17.3.2"
         classpath "com.netflix.nebula:nebula-release-plugin:15.3.1"
     }
 }
 
 plugins {
     // remember to update all the versions here when upgrading kotlin version
-    id 'org.jetbrains.kotlin.jvm'                  version '1.5.0-RC' apply false
-    id 'org.jetbrains.kotlin.multiplatform'        version '1.5.0-RC' apply false
-    id 'org.jetbrains.kotlin.plugin.serialization' version '1.5.0-RC' apply false
+    id 'org.jetbrains.kotlin.jvm' version '1.5.0' apply false
+    id 'org.jetbrains.kotlin.multiplatform' version '1.5.0' apply false
+    id 'org.jetbrains.kotlin.plugin.serialization' version '1.5.0' apply false
 }
 
 apply plugin: 'org.jetbrains.dokka'
@@ -30,7 +28,10 @@ apply plugin: 'org.jetbrains.dokka'
   see below!
 */
 project.ext {
-    kotlinVersion = '1.5.0-RC'
+    kotlinApiVersion = '1.4'
+    kotlinLanguageVersion = '1.4'
+    kotlinVersion = '1.5.0'
+    kotlinLoggingVersion = '2.0.6'
     kotlinxSerializationVersion = '1.1.0'
     lwjglVersion = '3.2.3'
     javacpp_version = '1.5.4'
@@ -84,30 +85,39 @@ dokka {
 }
 
 allprojects {
-
     group 'org.openrndr'
-
     repositories {
-        jcenter()
-        maven {
-            url "https://dl.bintray.com/spekframework/spek"
-        }
+        mavenCentral()
     }
 }
 
 def multiplatformModules = [
-    "openrndr-application",
-    "openrndr-event",
-    "openrndr-math",
-    "openrndr-color",
-    "openrndr-utils",
-    "openrndr-shape",
-    "openrndr-binpack",
-    "openrndr-animatable",
-    "openrndr-draw",
-    "openrndr-webgl",
-    "openrndr-extensions",
-    "openrndr-dds"
+        "openrndr-application",
+        "openrndr-event",
+        "openrndr-math",
+        "openrndr-color",
+        "openrndr-utils",
+        "openrndr-shape",
+        "openrndr-binpack",
+        "openrndr-animatable",
+        "openrndr-draw",
+        "openrndr-webgl",
+        "openrndr-extensions",
+        "openrndr-dds",
+        "openrndr-openal",
+        "openrndr-openal-natives-linux-arm64",
+        "openrndr-openal-natives-linux-x64",
+        "openrndr-openal-natives-macos",
+        "openrndr-openal-natives-windows",
+        "openrndr-gl3",
+        "openrndr-gl3-natives-linux-arm64",
+        "openrndr-gl3-natives-linux-x64",
+        "openrndr-gl3-natives-macos",
+        "openrndr-gl3-natives-windows",
+        "openrndr-tessellation",
+        "openrndr-svg"
+
+
 ]
 
 
@@ -115,6 +125,7 @@ configure(allprojects.findAll { !multiplatformModules.contains(it.name) }) {
     apply plugin: 'idea'
     apply plugin: 'java'
     apply plugin: 'kotlin'
+
 
     dependencies {
         // Note: kotlin-logging and kotlinx-coroutines-core are loaded
@@ -149,33 +160,15 @@ configure(allprojects.findAll { !multiplatformModules.contains(it.name) }) {
     tasks.withType(org.jetbrains.kotlin.gradle.tasks.AbstractKotlinCompile).all {
         kotlinOptions.freeCompilerArgs += ["-Xuse-experimental=kotlinx.coroutines.InternalCoroutinesApi"]
     }
+
+
 }
 
 configure(allprojects.findAll { it.name != "openrndr-demos" }) {
-//    apply plugin: 'nebula.contacts'
-
-    // -- work-around for problem with nebula.info on arm64, which is currently not used a build host platform
-    def arch = new DefaultNativePlatform("current").architecture.name
-    if (arch != 'aarch64') {
-//        apply plugin: 'nebula.info'
-    }
-//    apply plugin: 'nebula.dependency-lock'
-
-    apply plugin: 'nebula.release'
-    // selectively apply only the bintray plugin, snapshots are not published
-    // nebula-bintray needs to happened after nebula-release since version isn't lazy in the bintray extension
 
     apply plugin: 'maven-publish'
 
-//    apply plugin: 'nebula.maven-publish'
-    //apply plugin: 'nebula.source-jar'
-    //apply plugin: 'nebula.javadoc-jar'
+    apply plugin: 'nebula.release'
 
-//    contacts {
-//        'edwin@openrndr.org' {
-//            moniker 'Edwin Jakobs'
-//            github 'edwinRNDR'
-//        }
-//    }
+
 }
-

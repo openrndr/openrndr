@@ -1,6 +1,0 @@
-project.ext.lwjglNatives = "natives-linux"
-
-dependencies {
-    runtimeOnly "org.lwjgl:lwjgl:$lwjglVersion:$lwjglNatives"
-    runtimeOnly "org.lwjgl:lwjgl-openal:$lwjglVersion:$lwjglNatives"
-}

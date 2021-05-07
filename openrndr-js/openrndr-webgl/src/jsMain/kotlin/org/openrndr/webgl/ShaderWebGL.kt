@@ -47,7 +47,7 @@ class ShaderWebGL(
         context.useProgram(null as WebGLProgram?)
     }
 
-    fun uniformIndex(uniform:String, query: Boolean = false) : WebGLUniformLocation? {
+    fun uniformIndex(uniform:String) : WebGLUniformLocation? {
         val index = context.getUniformLocation(program, uniform)
         if (index == null) {
             //console.warn("missing uniform $uniform")
@@ -56,7 +56,7 @@ class ShaderWebGL(
     }
 
     override fun hasUniform(name: String): Boolean {
-        return uniformIndex(name, query = true) != null
+        return uniformIndex(name) != null
     }
 
     override fun createBlock(blockName: String): UniformBlock? {

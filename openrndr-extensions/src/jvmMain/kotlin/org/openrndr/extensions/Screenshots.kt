@@ -47,12 +47,12 @@ open class Screenshots : Extension {
     /**
      * Event that is triggered just before drawing the contents for the screenshot
      */
-    val beforeScreenshot = Event<ScreenshotEvent>()
+    val beforeScreenshot = Event<ScreenshotEvent>("before-screenshot", postpone = false)
 
     /**
      * Event that is triggered after contents have been drawn and the screenshot has been committed to file
      */
-    val afterScreenshot = Event<ScreenshotEvent>()
+    val afterScreenshot = Event<ScreenshotEvent>("after-screenshot", postpone = false)
 
     override var enabled: Boolean = true
 
@@ -190,7 +190,8 @@ open class Screenshots : Extension {
                     drawer.image(it.colorBuffer(0), it.colorBuffer(0).bounds, drawer.bounds)
                 } else {
                     target?.let { rt ->
-                        rt.colorBuffer(0).copyTo(resolved)
+                        TODO("wait for bug to fixed")
+                        //rt.colorBuffer(0).copyTo(resolved)
                         resolved.saveToFile(targetFile, async = async)
                         drawer.image(resolved, resolved.bounds, drawer.bounds)
                     }

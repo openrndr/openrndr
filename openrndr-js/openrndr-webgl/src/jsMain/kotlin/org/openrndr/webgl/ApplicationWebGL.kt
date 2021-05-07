@@ -9,9 +9,7 @@ import org.openrndr.internal.Driver
 import org.openrndr.math.Vector2
 import org.w3c.dom.HTMLCanvasElement
 import org.w3c.dom.events.MouseEvent as HtmlMouseEvent
-import org.w3c.dom.events.UIEvent
 import kotlin.math.min
-import kotlin.math.roundToInt
 
 val applicationWebGLInitializer = object {
     init {
@@ -59,9 +57,9 @@ class ApplicationWebGL(private val program: Program, private val configuration: 
         program.setup()
 
         window.addEventListener("resize", {
-            val dpr = min(configuration.maxContentScale, window.devicePixelRatio)
-            canvas?.width = (dpr * (canvas?.clientWidth?:error("no width"))).toInt()
-            canvas?.height = (dpr * (canvas?.clientHeight?:error("no height"))).toInt()
+            val resizeDpr = min(configuration.maxContentScale, window.devicePixelRatio)
+            canvas?.width = (resizeDpr * (canvas?.clientWidth?:error("no width"))).toInt()
+            canvas?.height = (resizeDpr * (canvas?.clientHeight?:error("no height"))).toInt()
         })
 
 

@@ -3,9 +3,10 @@ plugins {
     kotlin("plugin.serialization")
 }
 
-val kotlinxSerializationVersion:    String by rootProject.extra
-val kotestVersion:                  String by rootProject.extra
-val junitJupiterVersion:            String by rootProject.extra
+val kotlinxSerializationVersion: String by rootProject.extra
+val kotestVersion: String by rootProject.extra
+val junitJupiterVersion: String by rootProject.extra
+val kotlinLogginVersion: String by rootProject.extra
 
 kotlin {
 
@@ -43,6 +44,7 @@ kotlin {
 //                implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$kotlinxSerializationVersion")
             }
         }
+
         @Suppress("UNUSED_VARIABLE")
         val commonTest by getting {
             dependencies {
@@ -54,7 +56,12 @@ kotlin {
         }
 
         @Suppress("UNUSED_VARIABLE")
-        val jvmMain by getting
+        val jvmMain by getting {
+            dependencies {
+                implementation("io.github.microutils:kotlin-logging:2.0.6")
+            }
+        }
+
         @Suppress("UNUSED_VARIABLE")
         val jvmTest by getting {
             dependencies {
@@ -64,6 +71,7 @@ kotlin {
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinxSerializationVersion")
                 runtimeOnly("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
                 runtimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
+
             }
         }
 
@@ -76,13 +84,13 @@ kotlin {
 //            }
 //        }
 
-    // native part switched off for now as it's quite unstable at the beginning on 2021
-    /*
-        @Suppress("UNUSED_VARIABLE")
-        val nativeMain by getting
-        @Suppress("UNUSED_VARIABLE")
-        val nativeTest by getting
-     */
+        // native part switched off for now as it's quite unstable at the beginning on 2021
+        /*
+            @Suppress("UNUSED_VARIABLE")
+            val nativeMain by getting
+            @Suppress("UNUSED_VARIABLE")
+            val nativeTest by getting
+         */
     }
 
 }
