@@ -233,6 +233,8 @@ internal class Decoder(private val statistics: VideoStatistics,
             if (packetResult == AVERROR_EOF) {
                 reachedEndOfFile()
                 Thread.sleep(50)
+            } else if (packetResult < 0) {
+                return
             }
 
             if (packet != null) {
