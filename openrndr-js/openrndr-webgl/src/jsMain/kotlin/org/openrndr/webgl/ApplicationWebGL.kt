@@ -42,7 +42,7 @@ class ApplicationWebGL(private val program: Program, private val configuration: 
     var canvas: HTMLCanvasElement? = null
     var context: WebGLRenderingContext? = null
     var defaultRenderTarget: ProgramRenderTargetWebGL? = null
-    override fun setup() {
+    override suspend fun setup() {
         canvas = document.getElementById(configuration.canvasId) as? HTMLCanvasElement ?: error("failed to get canvas #${configuration.canvasId}")
         context = canvas?.getContext("webgl") as? WebGLRenderingContext ?: error("failed to create webgl context")
         Driver.driver = DriverWebGL(context?:error("no context"))

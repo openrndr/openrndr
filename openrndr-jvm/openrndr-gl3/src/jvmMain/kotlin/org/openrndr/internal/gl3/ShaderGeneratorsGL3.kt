@@ -308,8 +308,7 @@ void main() {
     va_position = x_position;
     ${postVertexTransform}
     gl_Position = v_clipPosition;
-}
-    """
+}"""
 
 
     override fun circleFragmentShader(shadeStructure: ShadeStructure): String = """#version ${glslVersion()}

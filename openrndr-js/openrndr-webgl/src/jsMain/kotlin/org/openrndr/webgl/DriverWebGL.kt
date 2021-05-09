@@ -2,9 +2,7 @@ package org.openrndr.webgl
 
 import org.khronos.webgl.WebGLRenderingContext as GL
 import org.openrndr.draw.*
-import org.openrndr.internal.Driver
-import org.openrndr.internal.FontMapManager
-import org.openrndr.internal.ShaderGenerators
+import org.openrndr.internal.*
 
 
 class DriverWebGL(val context: GL) : Driver {
@@ -149,11 +147,11 @@ class DriverWebGL(val context: GL) : Driver {
         levels: Int,
         session: Session?
     ): ArrayTexture {
-        TODO("Not yet implemented")
+        error("not supported")
     }
 
     override fun createAtomicCounterBuffer(counterCount: Int, session: Session?): AtomicCounterBuffer {
-        TODO("Not yet implemented")
+        error("not supported")
     }
 
     override fun createColorBuffer(
@@ -247,7 +245,7 @@ class DriverWebGL(val context: GL) : Driver {
         levels: Int,
         session: Session?
     ): VolumeTexture {
-        TODO("Not yet implemented")
+        error("not supported")
     }
 
     override fun clear(r: Double, g: Double, b: Double, a: Double) {
@@ -603,8 +601,10 @@ class DriverWebGL(val context: GL) : Driver {
             }
             else -> error("unknown resource '$resourceId'")
         }
-
     }
+
+    override val shaderLanguage: ShaderLanguage
+        get() = WebGLSL("100")
 }
 
 

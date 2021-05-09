@@ -264,5 +264,7 @@ actual interface Driver {
 
     actual val fontImageMapManager: FontMapManager
     actual val fontVectorMapManager: FontMapManager
+    actual val shaderLanguage: ShaderLanguage
+
 
 }

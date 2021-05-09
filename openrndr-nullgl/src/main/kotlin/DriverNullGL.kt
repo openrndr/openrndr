@@ -1,10 +1,7 @@
 package org.openrndr.internal.nullgl
 
 import org.openrndr.draw.*
-import org.openrndr.internal.Driver
-import org.openrndr.internal.FontMapManager
-import org.openrndr.internal.ResourceThread
-import org.openrndr.internal.ShaderGenerators
+import org.openrndr.internal.*
 import java.io.InputStream
 import java.nio.Buffer
 import java.nio.ByteBuffer
@@ -191,6 +188,10 @@ class DriverNullGL: Driver {
         get() = TODO("Not yet implemented")
     override val fontVectorMapManager: FontMapManager
         get() = TODO("Not yet implemented")
+    override val shaderLanguage: ShaderLanguage
+        get() {
+            return GLSL("330 core")
+        }
     override val shaderGenerators: ShaderGenerators = ShaderGeneratorsNullGL()
 
     override val activeRenderTarget: RenderTarget

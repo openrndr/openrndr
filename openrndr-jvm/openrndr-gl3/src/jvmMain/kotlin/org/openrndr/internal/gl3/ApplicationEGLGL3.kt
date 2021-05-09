@@ -1,5 +1,6 @@
 package org.openrndr.internal.gl3
 
+import kotlinx.coroutines.runBlocking
 import org.lwjgl.BufferUtils
 import org.lwjgl.egl.EGL15.*
 import org.lwjgl.opengl.GL
@@ -48,7 +49,7 @@ class ApplicationEGLGL3(private val program: Program, private val configuration:
         exitRequested = true
     }
 
-    override fun setup() {
+    override suspend fun setup() {
         val display = eglGetDisplay(EGL_DEFAULT_DISPLAY)
         println("display $display")
         val major = BufferUtils.createIntBuffer(1)
@@ -114,7 +115,9 @@ class ApplicationEGLGL3(private val program: Program, private val configuration:
             val defaultRenderTarget = ProgramRenderTargetGL3(program)
             defaultRenderTarget.bind()
             program.drawer = Drawer(driver)
-            program.setup()
+            runBlocking {
+                program.setup()
+            }
 
         }
     }

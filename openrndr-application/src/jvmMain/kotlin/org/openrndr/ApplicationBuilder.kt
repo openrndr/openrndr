@@ -72,7 +72,7 @@ private fun restartJVM(): Boolean {
     return true
 }
 
-actual fun application(build: ApplicationBuilder.() -> Unit) {
+actual suspend fun application(build: ApplicationBuilder.() -> Unit) {
     if (!restartJVM()) {
         installUncaughtExceptionHandler()
         val applicationBuilder = ApplicationBuilder().apply { build() }

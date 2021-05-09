@@ -13,7 +13,7 @@ var applicationFunc : ((Program, Configuration) -> Application)? = null
 @ApplicationDslMarker
 actual abstract class Application {
     actual companion object {
-        actual fun run(program: Program, configuration: Configuration) {
+        actual suspend fun run(program: Program, configuration: Configuration) {
             val application = applicationFunc?.invoke(program, configuration) ?: error("applicationFunc not set")
             application.setup()
             application.loop()
@@ -28,7 +28,7 @@ actual abstract class Application {
     actual abstract fun requestFocus()
 
     actual abstract fun exit()
-    actual abstract fun setup()
+    actual abstract suspend fun setup()
 
     actual abstract fun loop()
     actual abstract var clipboardContents: String?

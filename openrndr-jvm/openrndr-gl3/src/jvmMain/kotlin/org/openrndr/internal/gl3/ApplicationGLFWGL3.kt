@@ -1,5 +1,6 @@
 package org.openrndr.internal.gl3
 
+import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import org.lwjgl.BufferUtils
 import org.lwjgl.PointerBuffer
@@ -170,7 +171,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         createPrimaryWindow()
     }
 
-    override fun setup() {
+    override suspend fun setup() {
         glfwDefaultWindowHints()
         glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE)
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE)
@@ -798,7 +799,9 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         logger.debug { "calling program.setup" }
         var setupException: Throwable? = null
         try {
-            program.setup()
+            runBlocking {
+                program.setup()
+            }
         } catch (t: Throwable) {
             setupException = t
         }

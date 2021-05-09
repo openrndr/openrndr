@@ -1,10 +1,14 @@
 @file:JvmName("DriverJVM")
+
 package org.openrndr.internal
 
-import mu.KotlinLogging
 import org.openrndr.draw.*
 import kotlin.jvm.JvmName
 
+
+sealed class ShaderLanguage
+class GLSL(val version: String) : ShaderLanguage()
+class WebGLSL(val version: String) : ShaderLanguage()
 
 /**
  * Driver interface. This is the internal interface
@@ -231,6 +235,9 @@ expect interface Driver {
     fun finish()
 
     fun internalShaderResource(resourceId: String): String
+
+
+    val shaderLanguage: ShaderLanguage
 
     companion object {
         var driver: Driver?

@@ -11,9 +11,9 @@ class ApplicationBuilder internal constructor(){
         configuration.init()
     }
 
-    fun program(init: Program.() -> Unit) {
+    fun program(init: suspend Program.() -> Unit) {
         program = object : Program() {
-            override fun setup() {
+            override suspend fun setup() {
                 init()
             }
         }
@@ -36,5 +36,5 @@ class ApplicationBuilder internal constructor(){
  * Runs [programFunction] as an application using [configuration], this provides a more functional flavored way of
  * writing applications.
  */
-expect fun application(build: ApplicationBuilder.() -> Unit)
+expect suspend fun application(build: ApplicationBuilder.() -> Unit)
 

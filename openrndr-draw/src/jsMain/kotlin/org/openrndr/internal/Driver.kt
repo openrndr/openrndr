@@ -260,5 +260,7 @@ actual interface Driver {
             }
     }
 
+    actual val shaderLanguage: ShaderLanguage
+
 
 }

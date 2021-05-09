@@ -135,20 +135,70 @@ class ShaderGeneratorsWebGL : ShaderGenerators {
         |}""".trimMargin()
 
     override fun imageArrayTextureFragmentShader(shadeStructure: ShadeStructure): String {
-        TODO("Not yet implemented")
+        error("not supported")
     }
 
     override fun imageArrayTextureVertexShader(shadeStructure: ShadeStructure): String {
-        TODO("Not yet implemented")
+        error("not supported")
     }
 
-    override fun pointFragmentShader(shadeStructure: ShadeStructure): String {
-        TODO("Not yet implemented")
-    }
+    override fun pointFragmentShader(shadeStructure: ShadeStructure): String = """
+        |precision highp float;
+        |${primitiveTypes("d_circle")}
+        |${shadeStructure.buffers ?: ""}
+        |${shadeStructure.uniforms ?: ""}
 
-    override fun pointVertexShader(shadeStructure: ShadeStructure): String {
-        TODO("Not yet implemented")
+        |${drawerUniforms(styleBlock = false)}
+        |${shadeStructure.varyingIn ?: ""}
+        |${transformVaryingIn}
+
+        |${shadeStructure.fragmentPreamble ?: ""}
+        |varying vec3 v_boundsSize;
+        |void main(void) {
+            ${
+                fragmentMainConstants(boundsPosition = "vec3(0.0, 0.0, 0.0)",
+                    boundsSize = "v_boundsSize")
+            }
+
+        |   vec4 x_fill = vi_fill;
+        |   vec4 x_stroke = vi_stroke;
+        |   {
+        |       ${shadeStructure.fragmentTransform ?: ""}
+        |   }
+        |   x_fill.rgb *= x_fill.a;
+        |   gl_FragColor = x_fill;
+        |}""".trimMargin()
+
+    override fun pointVertexShader(shadeStructure: ShadeStructure): String = """
+${primitiveTypes("d_point")}
+${shadeStructure.buffers ?: ""}
+${drawerUniforms(styleBlock = false)}
+${shadeStructure.attributes ?: ""}
+${shadeStructure.uniforms ?: ""}
+${shadeStructure.varyingOut ?: ""}
+${ShadeStyleGLSL.transformVaryingOut}
+
+${shadeStructure.vertexPreamble ?: ""}
+
+//flat out int v_instance;
+out vec3 v_boundsSize;
+void main() {
+    //v_instance = 0;
+    ${ShadeStyleGLSL.vertexMainConstants()}
+    ${shadeStructure.varyingBridge ?: ""}
+
+    v_boundsSize = vec3(0, 0.0, 0.0);
+    ${ShadeStyleGLSL.preVertexTransform}
+    vec3 x_normal = vec3(0.0, 0.0, 1.0);
+    vec3 x_position = a_position  + i_offset;
+    {
+        ${shadeStructure.vertexTransform ?: ""}
     }
+    va_position = x_position;
+    ${ShadeStyleGLSL.postVertexTransform}
+    gl_Position = v_clipPosition;
+}|        
+        """.trimMargin()
 
     override fun circleFragmentShader(shadeStructure: ShadeStructure): String = """
 #extension GL_OES_standard_derivatives : enable        

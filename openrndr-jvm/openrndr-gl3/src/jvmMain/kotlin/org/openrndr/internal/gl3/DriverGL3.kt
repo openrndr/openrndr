@@ -5,10 +5,7 @@ import org.lwjgl.glfw.GLFW
 import org.lwjgl.opengl.*
 import org.lwjgl.opengl.GL40C.*
 import org.openrndr.draw.*
-import org.openrndr.internal.Driver
-import org.openrndr.internal.FontMapManager
-import org.openrndr.internal.ResourceThread
-import org.openrndr.internal.ShaderGenerators
+import org.openrndr.internal.*
 import org.openrndr.math.Matrix33
 import org.openrndr.math.Matrix44
 import org.openrndr.measure
@@ -41,6 +38,11 @@ inline fun DriverVersionGL.require(minimum: DriverVersionGL) {
 }
 
 class DriverGL3(val version: DriverVersionGL) : Driver {
+
+    override val shaderLanguage: ShaderLanguage
+    get() {
+        return GLSL(version.glslVersion)
+    }
 
     companion object {
         fun candidateVersions(): List<DriverVersionGL> {
