@@ -132,6 +132,7 @@ enum class DrawPrimitive {
     POINTS,
     LINES,
     LINE_STRIP,
+    LINE_LOOP,
     PATCHES
 }
 

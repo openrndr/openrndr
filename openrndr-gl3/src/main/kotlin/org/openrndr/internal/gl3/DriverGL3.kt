@@ -11,6 +11,7 @@ import org.openrndr.internal.ResourceThread
 import org.openrndr.internal.ShaderGenerators
 import org.openrndr.math.Matrix33
 import org.openrndr.math.Matrix44
+
 import org.openrndr.measure
 import java.io.InputStream
 import java.math.BigInteger
@@ -959,6 +960,7 @@ private fun DrawPrimitive.glType(): Int {
         DrawPrimitive.POINTS -> GL_POINTS
         DrawPrimitive.LINES -> GL_LINES
         DrawPrimitive.LINE_STRIP -> GL_LINE_STRIP
+        DrawPrimitive.LINE_LOOP -> GL_LINE_LOOP
         DrawPrimitive.TRIANGLE_STRIP -> GL_TRIANGLE_STRIP
         DrawPrimitive.PATCHES -> GL_PATCHES
     }
