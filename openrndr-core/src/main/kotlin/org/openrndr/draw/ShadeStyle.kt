@@ -417,11 +417,17 @@ open class ShadeStyle {
                             is IntVector4 -> {
                                 "IntVector4, ${value.size}"
                             }
+                            is CastableToVector4 -> {
+                                "Vector4, ${value.size}"
+                            }
                             else -> error("unsupported array type ${(value.first()!!)::class}")
                         }
                     } else {
                         error("empty array")
                     }
+                }
+                is CastableToVector4 -> {
+                    "Vector4"
                 }
                 else -> error("unsupported type ${value::class}")
             }

@@ -143,13 +143,19 @@ class ColorBufferGL3(val target: Int,
 
     companion object {
         fun fromColorBufferData(data: ColorBufferDataGL3, session: Session?): ColorBuffer {
-            val cb = create(data.width, data.height, 1.0, data.format, data.type, Disabled, 1, session)
+            val cb = create(data.width, data.height, 1.0, data.format, data.type, Disabled, 1 + data.mipmapData.size, session)
             return cb.apply {
                 this.flipV = data.flipV
                 val d = data.data
                 if (d != null) {
                     cb.write(d)
-                    cb.generateMipmaps()
+                    if (data.mipmapData.isEmpty()) {
+                        cb.generateMipmaps()
+                    } else {
+                        for (i in data.mipmapData.indices) {
+                            cb.write(data.mipmapData[i], level = i + 1)
+                        }
+                    }
                 } else {
                     throw RuntimeException("data is null")
                 }
@@ -417,6 +423,8 @@ class ColorBufferGL3(val target: Int,
         debugGLErrors() {
             "leaking error"
         }
+        require(fromLevel < this.levels) { """requested to copy from mipmap level $fromLevel, but source colorbuffer has $levels mipmap levels."""}
+        require(toLevel < target.levels) { """requested to copy to mipmap level $toLevel, but target array texture only has $levels mipmap levels."""}
 
         if (!type.compressed) {
             checkDestroyed()

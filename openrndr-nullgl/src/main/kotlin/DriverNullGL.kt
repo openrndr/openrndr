@@ -19,7 +19,7 @@ class DriverNullGL: Driver {
         return ShaderNullGL(session)
     }
 
-    override fun createComputeShader(code: String, session: Session?): ComputeShader {
+    override fun createComputeShader(code: String, name: String, session: Session?): ComputeShader {
         TODO("Not yet implemented")
     }
 
@@ -119,19 +119,55 @@ class DriverNullGL: Driver {
         TODO("Not yet implemented")
     }
 
-    override fun drawVertexBuffer(shader: Shader, vertexBuffers: List<VertexBuffer>, drawPrimitive: DrawPrimitive, vertexOffset: Int, vertexCount: Int) {
+    override fun drawVertexBuffer(
+        shader: Shader,
+        vertexBuffers: List<VertexBuffer>,
+        drawPrimitive: DrawPrimitive,
+        vertexOffset: Int,
+        vertexCount: Int,
+        verticesPerPatch: Int
+    ) {
 
     }
 
-    override fun drawIndexedVertexBuffer(shader: Shader, indexBuffer: IndexBuffer, vertexBuffers: List<VertexBuffer>, drawPrimitive: DrawPrimitive, indexOffset: Int, indexCount: Int) {
+    override fun drawIndexedVertexBuffer(
+        shader: Shader,
+        indexBuffer: IndexBuffer,
+        vertexBuffers: List<VertexBuffer>,
+        drawPrimitive: DrawPrimitive,
+        indexOffset: Int,
+        indexCount: Int,
+        verticesPerPatch: Int
+    ) {
 
     }
 
-    override fun drawInstances(shader: Shader, vertexBuffers: List<VertexBuffer>, instanceAttributes: List<VertexBuffer>, drawPrimitive: DrawPrimitive, vertexOffset: Int, vertexCount: Int, instanceOffset: Int, instanceCount: Int) {
+    override fun drawInstances(
+        shader: Shader,
+        vertexBuffers: List<VertexBuffer>,
+        instanceAttributes: List<VertexBuffer>,
+        drawPrimitive: DrawPrimitive,
+        vertexOffset: Int,
+        vertexCount: Int,
+        instanceOffset: Int,
+        instanceCount: Int,
+        verticesPerPatch: Int
+    ) {
 
     }
 
-    override fun drawIndexedInstances(shader: Shader, indexBuffer: IndexBuffer, vertexBuffers: List<VertexBuffer>, instanceAttributes: List<VertexBuffer>, drawPrimitive: DrawPrimitive, indexOffset: Int, indexCount: Int, instanceOffset: Int, instanceCount: Int) {
+    override fun drawIndexedInstances(
+        shader: Shader,
+        indexBuffer: IndexBuffer,
+        vertexBuffers: List<VertexBuffer>,
+        instanceAttributes: List<VertexBuffer>,
+        drawPrimitive: DrawPrimitive,
+        indexOffset: Int,
+        indexCount: Int,
+        instanceOffset: Int,
+        instanceCount: Int,
+        verticesPerPatch: Int
+    ) {
 
     }
 

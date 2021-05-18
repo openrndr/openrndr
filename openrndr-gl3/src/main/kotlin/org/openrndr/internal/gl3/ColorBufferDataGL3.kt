@@ -21,7 +21,16 @@ import java.nio.ByteOrder
 import java.nio.ShortBuffer
 import java.util.*
 
-class ColorBufferDataGL3(val width: Int, val height: Int, val format: ColorFormat, val type: ColorType, val flipV: Boolean, var data: ByteBuffer?, var destroyFunction: ((ByteBuffer) -> Unit)? = null) {
+class ColorBufferDataGL3(
+    val width: Int,
+    val height: Int,
+    val format: ColorFormat,
+    val type: ColorType,
+    val flipV: Boolean,
+    var data: ByteBuffer?,
+    val mipmapData: List<ByteBuffer> = emptyList(),
+    var destroyFunction: ((ByteBuffer) -> Unit)? = null
+) {
     fun destroy() {
         val localData = data
         if (localData != null) {
@@ -209,9 +218,17 @@ class ColorBufferDataGL3(val width: Int, val height: Int, val format: ColorForma
                 val data = loadDDS(buffer)
                 val buffer = data.image(0)
                 require(buffer.remaining() > 0) {
-                    "image buffer ${buffer} has no remaining bytes"
+                    "image buffer $buffer has no remaining bytes"
                 }
-                return ColorBufferDataGL3(data.width, data.height,data.format, data.type, data.flipV, data.image(0))
+                return ColorBufferDataGL3(
+                    data.width,
+                    data.height,
+                    data.format,
+                    data.type,
+                    data.flipV,
+                    data.image(0),
+                    (1 until data.mipmaps).map { data.image(it) }
+                )
 
             } else if (assumedFormat == ImageFileFormat.EXR) {
                 val exrHeader = EXRHeader.create()

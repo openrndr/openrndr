@@ -12,7 +12,7 @@ jobs:
         with:
           java-version: 8
       - name: Build apidocs
-        run: ./gradlew dokka
+        run: ./gradlew dokkaHtmlMultiModule -Dorg.gradle.jvmargs=-Xmx1536M
       - name: Publish to gh-pages
         run: |
           git worktree add --detach docs-temp
@@ -20,7 +20,8 @@ jobs:
           git checkout --orphan gh-pages
           git reset HEAD -- .
           git clean -df
-          mv ../build/docs/openrndr/* .
+          mv ../build/dokka/htmlMultiModule/* .
+          echo api.openrndr.org > CNAME
           git status
           git config --global user.email "actions@openrndr.org"
           git config --global user.name "OPENRNDR Actions"

@@ -11,6 +11,7 @@ import org.openrndr.internal.ResourceThread
 import org.openrndr.internal.ShaderGenerators
 import org.openrndr.math.Matrix33
 import org.openrndr.math.Matrix44
+
 import org.openrndr.measure
 import java.io.InputStream
 import java.math.BigInteger
@@ -193,9 +194,9 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         }
     }
 
-    override fun createComputeShader(code: String, session: Session?): ComputeShader {
+    override fun createComputeShader(code: String, name: String, session: Session?): ComputeShader {
         version.require(DriverVersionGL.VERSION_4_3)
-        return ComputeShaderGL43.createFromCode(code)
+        return ComputeShaderGL43.createFromCode(code, name)
     }
 
     override fun createAtomicCounterBuffer(counterCount: Int, session: Session?): AtomicCounterBuffer {
@@ -340,13 +341,22 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         }
     }
 
-    override fun drawVertexBuffer(shader: Shader, vertexBuffers: List<VertexBuffer>, drawPrimitive: DrawPrimitive, vertexOffset: Int, vertexCount: Int) {
+    override fun drawVertexBuffer(
+        shader: Shader,
+        vertexBuffers: List<VertexBuffer>,
+        drawPrimitive: DrawPrimitive,
+        vertexOffset: Int,
+        vertexCount: Int,
+        verticesPerPatch: Int
+    ) {
         debugGLErrors {
             "a pre-existing GL error occurred before Driver.drawVertexBuffer "
         }
 
         if (drawPrimitive == DrawPrimitive.PATCHES) {
-            glPatchParameteri(GL_PATCH_VERTICES, 4)
+            if (Driver.glVersion >= DriverVersionGL.VERSION_4_1) {
+                glPatchParameteri(GL_PATCH_VERTICES, verticesPerPatch)
+            }
         }
 
         shader as ShaderGL3
@@ -393,10 +403,25 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         glBindVertexArray(defaultVAO)
     }
 
-    override fun drawIndexedVertexBuffer(shader: Shader, indexBuffer: IndexBuffer, vertexBuffers: List<VertexBuffer>, drawPrimitive: DrawPrimitive, indexOffset: Int, indexCount: Int) {
+    override fun drawIndexedVertexBuffer(
+        shader: Shader,
+        indexBuffer: IndexBuffer,
+        vertexBuffers: List<VertexBuffer>,
+        drawPrimitive: DrawPrimitive,
+        indexOffset: Int,
+        indexCount: Int,
+        verticesPerPatch: Int
+    ) {
 
         shader as ShaderGL3
         indexBuffer as IndexBufferGL3
+
+        if (drawPrimitive == DrawPrimitive.PATCHES) {
+            if (Driver.glVersion >= DriverVersionGL.VERSION_4_1) {
+                glPatchParameteri(GL_PATCH_VERTICES, verticesPerPatch)
+            }
+        }
+
 
         measure("DriverGL3.drawIndexedVertexBuffer") {
             // -- find or create a VAO for our shader + vertex buffers combination
@@ -451,9 +476,25 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         }
     }
 
-    override fun drawInstances(shader: Shader, vertexBuffers: List<VertexBuffer>, instanceAttributes: List<VertexBuffer>, drawPrimitive: DrawPrimitive, vertexOffset: Int, vertexCount: Int, instanceOffset: Int, instanceCount: Int) {
+    override fun drawInstances(
+        shader: Shader,
+        vertexBuffers: List<VertexBuffer>,
+        instanceAttributes: List<VertexBuffer>,
+        drawPrimitive: DrawPrimitive,
+        vertexOffset: Int,
+        vertexCount: Int,
+        instanceOffset: Int,
+        instanceCount: Int,
+        verticesPerPatch: Int
+    ) {
         require(instanceOffset == 0 || Driver.glVersion >= DriverVersionGL.VERSION_4_2) {
             "non-zero instance offsets require OpenGL 4.2 (current config: ${Driver.glVersion.versionString})"
+        }
+
+        if (drawPrimitive == DrawPrimitive.PATCHES) {
+            if (Driver.glVersion >= DriverVersionGL.VERSION_4_1) {
+                glPatchParameteri(GL_PATCH_VERTICES, verticesPerPatch)
+            }
         }
 
         // -- find or create a VAO for our shader + vertex buffers + instance buffers combination
@@ -501,12 +542,28 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         glBindVertexArray(defaultVAO)
     }
 
-    override fun drawIndexedInstances(shader: Shader, indexBuffer: IndexBuffer, vertexBuffers: List<VertexBuffer>, instanceAttributes: List<VertexBuffer>, drawPrimitive: DrawPrimitive, indexOffset: Int, indexCount: Int,
-                                      instanceOffset: Int, instanceCount: Int) {
-
+    override fun drawIndexedInstances(
+        shader: Shader,
+        indexBuffer: IndexBuffer,
+        vertexBuffers: List<VertexBuffer>,
+        instanceAttributes: List<VertexBuffer>,
+        drawPrimitive: DrawPrimitive,
+        indexOffset: Int,
+        indexCount: Int,
+        instanceOffset: Int,
+        instanceCount: Int,
+        verticesPerPatch: Int
+    ) {
         require(instanceOffset == 0 || Driver.glVersion >= DriverVersionGL.VERSION_4_2) {
             "non-zero instance offsets require OpenGL 4.2 (current config: ${Driver.glVersion.versionString})"
         }
+
+        if (drawPrimitive == DrawPrimitive.PATCHES) {
+            if (Driver.glVersion >= DriverVersionGL.VERSION_4_1) {
+                glPatchParameteri(GL_PATCH_VERTICES, verticesPerPatch)
+            }
+        }
+
 
         // -- find or create a VAO for our shader + vertex buffers + instance buffers combination
         val hash = hash(shader as ShaderGL3, vertexBuffers, instanceAttributes)
@@ -903,6 +960,7 @@ private fun DrawPrimitive.glType(): Int {
         DrawPrimitive.POINTS -> GL_POINTS
         DrawPrimitive.LINES -> GL_LINES
         DrawPrimitive.LINE_STRIP -> GL_LINE_STRIP
+        DrawPrimitive.LINE_LOOP -> GL_LINE_LOOP
         DrawPrimitive.TRIANGLE_STRIP -> GL_TRIANGLE_STRIP
         DrawPrimitive.PATCHES -> GL_PATCHES
     }

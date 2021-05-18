@@ -1,5 +1,5 @@
-[![Build Status](https://travis-ci.org/openrndr/openrndr.svg?branch=master)](https://travis-ci.org/openrndr/openrndr)
-[![Download](https://api.bintray.com/packages/openrndr/openrndr/openrndr/images/download.svg) ](https://bintray.com/openrndr/openrndr/openrndr/_latestVersion)
+[![Download](https://maven-badges.herokuapp.com/maven-central/org.openrndr/openrndr/badge.svg)](https://mvnrepository.com/artifact/org.openrndr/openrndr-core)
+![Build status](https://github.com/openrndr/openrndr/actions/workflows/build-on-commit.yml/badge.svg)
 [![Awesome Kotlin Badge](https://kotlin.link/awesome-kotlin.svg)](https://github.com/KotlinBy/awesome-kotlin)
 [<img src="https://img.shields.io/badge/slack-@openrndr-yellow.svg?logo=slack">](https://openrndr.slack.com/) 
 

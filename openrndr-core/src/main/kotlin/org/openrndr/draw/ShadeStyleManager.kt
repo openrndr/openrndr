@@ -35,6 +35,14 @@ abstract class ShadeStyleManager(val name: String) {
         }
     }
 
-    abstract fun shader(style: ShadeStyle?, vertexFormats: List<VertexFormat>, instanceFormats: List<VertexFormat> = emptyList()): Shader
-    fun shader(style: ShadeStyle?, format: VertexFormat): Shader = shader(style, listOf(format), emptyList())
+    abstract fun shader(
+        style: ShadeStyle?,
+        vertexFormats: List<VertexFormat>,
+        instanceFormats: List<VertexFormat> = emptyList()
+    ): Shader
+
+    fun shader(
+        style: ShadeStyle?,
+        format: VertexFormat
+    ): Shader = shader(style, listOf(format), emptyList())
 }

@@ -11,7 +11,6 @@ interface ConvertibleToColorRGBa {
      */
     fun toRGBa(): ColorRGBa
 }
-
 /**
  * interface for shadable colors
  */
@@ -53,6 +52,7 @@ interface OpacifiableColor<T> {
      */
     fun opacify(factor: Double): T
 }
+
 
 /**
  * interface for algebraic color

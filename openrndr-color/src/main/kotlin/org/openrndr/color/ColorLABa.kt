@@ -1,5 +1,7 @@
 package org.openrndr.color
 
+import org.openrndr.math.CastableToVector4
+import org.openrndr.math.Vector4
 import kotlin.math.pow
 
 data class ColorLABa(
@@ -10,6 +12,7 @@ data class ColorLABa(
     val ref: ColorXYZa = ColorXYZa.NEUTRAL
 ) :
     ConvertibleToColorRGBa,
+    CastableToVector4,
     OpacifiableColor<ColorLABa>,
     ShadableColor<ColorLABa>,
     AlgebraicColor<ColorLABa> {
@@ -84,6 +87,9 @@ data class ColorLABa(
 
     override fun times(scale: Double): ColorLABa =
         copy(l = l * scale, a = a * scale, b = b * scale, alpha = alpha * scale)
+
+    override fun toVector4() = Vector4(l, a, b, alpha)
+
 }
 
 private fun f(t: Double): Double {

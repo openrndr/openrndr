@@ -266,8 +266,8 @@ fun prune(node: PackNode) {
             node.children = emptyList()
             node.parent?.let { prune(it) }
         } else {
-            val mx = node.children.map { it.freeArea.x }.max() ?: node.freeArea.x
-            val my = node.children.map { it.freeArea.y }.max() ?: node.freeArea.y
+            val mx = node.children.map { it.freeArea.x }.maxOrNull() ?: node.freeArea.x
+            val my = node.children.map { it.freeArea.y }.maxOrNull() ?: node.freeArea.y
 
             if (mx != node.freeArea.x || my != node.freeArea.y) {
                 node.freeArea = IntVector2(mx, my)
@@ -300,8 +300,8 @@ class IntPacker(
                 if (node.children[i].freeArea.x >= rectangle.width && node.children[i].freeArea.y >= rectangle.height) {
                     newNode = insert(node.children[i], rectangle, data) //children[i].insert(rect, id);
 
-                    val mx = node.children.map { it.freeArea.x }.max() ?: node.freeArea.x
-                    val my = node.children.map { it.freeArea.y }.max() ?: node.freeArea.y
+                    val mx = node.children.map { it.freeArea.x }.maxOrNull() ?: node.freeArea.x
+                    val my = node.children.map { it.freeArea.y }.maxOrNull() ?: node.freeArea.y
                     node.freeArea = IntVector2(mx, my)
 
                     if (newNode != null)
@@ -309,8 +309,8 @@ class IntPacker(
                 }
             }
 
-            val mx = node.children.map { it.freeArea.x }.max() ?: node.freeArea.x
-            val my = node.children.map { it.freeArea.y }.max() ?: node.freeArea.y
+            val mx = node.children.map { it.freeArea.x }.maxOrNull() ?: node.freeArea.x
+            val my = node.children.map { it.freeArea.y }.maxOrNull() ?: node.freeArea.y
             node.freeArea = IntVector2(mx, my)
 
             return null
@@ -340,8 +340,8 @@ class IntPacker(
                     } else {
                         node.children = splitter.split(node, rectangle)
                         val result = insert(node.children[0], rectangle, data)
-                        val mx = node.children.map { it.freeArea.x }.max() ?: node.freeArea.x
-                        val my = node.children.map { it.freeArea.y }.max() ?: node.freeArea.y
+                        val mx = node.children.map { it.freeArea.x }.maxOrNull() ?: node.freeArea.x
+                        val my = node.children.map { it.freeArea.y }.maxOrNull() ?: node.freeArea.y
                         node.freeArea = IntVector2(mx, my)
                         return result
                     }

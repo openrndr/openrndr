@@ -4,6 +4,14 @@ package org.openrndr.internal.gl3
 
 import org.intellij.lang.annotations.Language
 import org.openrndr.draw.ShadeStructure
+import org.openrndr.draw.ShadeStyleGLSL.Companion.drawerUniforms
+import org.openrndr.draw.ShadeStyleGLSL.Companion.fragmentMainConstants
+import org.openrndr.draw.ShadeStyleGLSL.Companion.postVertexTransform
+import org.openrndr.draw.ShadeStyleGLSL.Companion.preVertexTransform
+import org.openrndr.draw.ShadeStyleGLSL.Companion.primitiveTypes
+import org.openrndr.draw.ShadeStyleGLSL.Companion.transformVaryingIn
+import org.openrndr.draw.ShadeStyleGLSL.Companion.transformVaryingOut
+import org.openrndr.draw.ShadeStyleGLSL.Companion.vertexMainConstants
 import org.openrndr.internal.Driver
 import org.openrndr.internal.ShaderGenerators
 
@@ -18,123 +26,6 @@ private val rotate2 = """mat2 rotate2(float rotationInDegrees) {
 }
 """.trimIndent()
 
-
-@Language("GLSL")
-private fun primitiveTypes(type: String) = """
-// -- primitiveTypes
-#define d_vertex_buffer 0
-#define d_image 1
-#define d_circle 2
-#define d_rectangle 3
-#define d_font_image_map 4
-#define d_expansion 5
-#define d_fast_line 6
-#define d_mesh_line 7
-#define d_point 8
-#define d_primitive $type
-"""
-
-@Language("GLSL")
-fun vertexConstants(instance: String = "gl_InstanceID", element: String = "0") = """
-|    int c_instance = $instance;
-|    int c_element = $element;
-""".trimMargin()
-
-@Language("GLSL")
-fun fragmentConstants(
-        instance: String = "v_instance",
-        element: String = "0",
-        screenPosition: String = "gl_FragCoord.xy / u_contentScale",
-        contourPosition: String = "0",
-        boundsPosition: String = "vec3(0.0)",
-        boundsSize: String = "vec3(0.0)") = """
-|    // -- fragmentConstants
-|    int c_instance = $instance;
-|    int c_element = $element;
-|    vec2 c_screenPosition = $screenPosition;
-|    float c_contourPosition = $contourPosition;
-|    vec3 c_boundsPosition = $boundsPosition;
-|    vec3 c_boundsSize = $boundsSize;
-""".trimMargin()
-
-private fun Boolean.trueOrEmpty(f: () -> String): String {
-    return if (this) f() else ""
-}
-
-@Language("GLSL")
-private fun drawerUniforms(contextBlock: Boolean = true, styleBlock: Boolean = true) = """
-// -- drawerUniforms($contextBlock, $styleBlock)    
-
-${
-    contextBlock.trueOrEmpty {
-        """layout(shared) uniform ContextBlock {
-    uniform mat4 u_modelNormalMatrix;
-    uniform mat4 u_modelMatrix;
-    uniform mat4 u_viewNormalMatrix;
-    uniform mat4 u_viewMatrix;
-    uniform mat4 u_projectionMatrix;
-    uniform float u_contentScale;
-    uniform vec2 u_viewDimensions;
-};"""
-    }
-}
-${
-    styleBlock.trueOrEmpty {
-        """
-
-layout(shared) uniform StyleBlock {
-    uniform vec4 u_fill;
-    uniform vec4 u_stroke;
-    uniform float u_strokeWeight;
-    uniform float[25] u_colorMatrix;
-};
-"""
-    }
-}
-"""
-
-@Language("GLSL")
-private const val transformVaryingOut = """
-// -- transformVaryingOut    
-out vec3 v_worldNormal;
-out vec3 v_viewNormal;
-out vec3 v_worldPosition;
-out vec3 v_viewPosition;
-out vec4 v_clipPosition;
-
-flat out mat4 v_modelNormalMatrix;
-"""
-
-@Language("GLSL")
-private const val transformVaryingIn = """
-// -- transformVaryingIn
-in vec3 v_worldNormal;
-in vec3 v_viewNormal;
-in vec3 v_worldPosition;
-in vec3 v_viewPosition;
-in vec4 v_clipPosition;
-flat in mat4 v_modelNormalMatrix;
-"""
-
-@Language("GLSL")
-private const val preTransform = """
-    // -- preTransform
-    mat4 x_modelMatrix = u_modelMatrix;
-    mat4 x_viewMatrix = u_viewMatrix;
-    mat4 x_modelNormalMatrix = u_modelNormalMatrix;
-    mat4 x_viewNormalMatrix = u_viewNormalMatrix;
-    mat4 x_projectionMatrix = u_projectionMatrix;
-"""
-
-private const val postTransform = """
-    // -- postTransform
-    v_worldNormal = (x_modelNormalMatrix * vec4(x_normal,0.0)).xyz;
-    v_viewNormal = (x_viewNormalMatrix * vec4(v_worldNormal,0.0)).xyz;
-    v_worldPosition = (x_modelMatrix * vec4(x_position, 1.0)).xyz;
-    v_viewPosition = (x_viewMatrix * vec4(v_worldPosition, 1.0)).xyz;
-    v_clipPosition = x_projectionMatrix * vec4(v_viewPosition, 1.0);
-    v_modelNormalMatrix = x_modelNormalMatrix;
-"""
 
 class ShaderGeneratorsGL3 : ShaderGenerators {
     override fun vertexBufferFragmentShader(shadeStructure: ShadeStructure): String = """|#version ${glslVersion()}
@@ -155,7 +46,7 @@ class ShaderGeneratorsGL3 : ShaderGenerators {
 |flat in int v_instance;
 
 |void main(void) {
-|    ${fragmentConstants(element = "v_instance")}
+|    ${fragmentMainConstants(element = "v_instance")}
 |    vec4 x_fill = u_fill;
 |    vec4 x_stroke = u_stroke;
 |    {
@@ -182,17 +73,17 @@ ${shadeStructure.vertexPreamble ?: ""}
 flat out int v_instance;
 void main() {
     int instance = gl_InstanceID; // this will go use c_instance instead
-${vertexConstants()}
+${vertexMainConstants()}
 ${shadeStructure.varyingBridge ?: ""}
     vec3 x_normal = vec3(0.0, 0.0, 0.0);
     ${if (shadeStructure.attributes?.contains("vec3 a_normal;") == true) "x_normal = a_normal;" else ""}
     vec3 x_position = a_position;
 
-    ${preTransform}
+    ${preVertexTransform}
     {
         ${shadeStructure.vertexTransform ?: ""}
     }
-    ${postTransform}
+    ${postVertexTransform}
 
     v_instance = instance;
     gl_Position = v_clipPosition;
@@ -227,7 +118,7 @@ vec4 colorTransform(vec4 color, float[25] matrix) {
 }
 
 void main(void) {
-    ${fragmentConstants(boundsPosition = "v_boundsPosition")}
+    ${fragmentMainConstants(boundsPosition = "v_boundsPosition")}
     vec4 x_fill = texture(image, va_texCoord0);
     vec4 x_stroke = u_stroke;
     {
@@ -258,9 +149,9 @@ flat out int v_instance;
 out vec3 v_boundsPosition;
 void main() {
     v_instance = gl_InstanceID;
-    ${vertexConstants()}
+    ${vertexMainConstants()}
     ${shadeStructure.varyingBridge ?: ""}
-    ${preTransform}
+    ${preVertexTransform}
     vec3 x_normal = a_normal;
     vec3 x_position = a_position;
     x_position.xy = a_position.xy * i_target.zw + i_target.xy;
@@ -272,7 +163,7 @@ void main() {
     {
         ${shadeStructure.vertexTransform ?: ""}
     }
-    ${postTransform}
+    ${postVertexTransform}
     gl_Position = v_clipPosition;
 }
 """
@@ -304,7 +195,7 @@ vec4 colorTransform(vec4 color, float[25] matrix) {
 }
 
 void main(void) {
-    ${fragmentConstants(boundsPosition = "v_boundsPosition")}
+    ${fragmentMainConstants(boundsPosition = "v_boundsPosition")}
     vec4 x_fill = texture(image, vec3(va_texCoord0, v_layer*1.0));
     vec4 x_stroke = u_stroke;
     {
@@ -336,9 +227,9 @@ flat out int v_layer;
 out vec3 v_boundsPosition;
 void main() {
     v_instance = gl_InstanceID;
-    ${vertexConstants()}
+    ${vertexMainConstants()}
     ${shadeStructure.varyingBridge ?: ""}
-    ${preTransform}
+    ${preVertexTransform}
     vec3 x_normal = a_normal;
     vec3 x_position = a_position;
     x_position.xy = a_position.xy * i_target.zw + i_target.xy;
@@ -351,7 +242,7 @@ void main() {
     {
         ${shadeStructure.vertexTransform ?: ""}
     }
-    ${postTransform}
+    ${postVertexTransform}
     gl_Position = v_clipPosition;
 }
 """
@@ -374,7 +265,7 @@ flat in int v_instance;
 in vec3 v_boundsSize;
 void main(void) {
     ${
-        fragmentConstants(boundsPosition = "vec3(0.0, 0.0, 0.0)",
+        fragmentMainConstants(boundsPosition = "vec3(0.0, 0.0, 0.0)",
                 boundsSize = "v_boundsSize")
     }
 
@@ -404,18 +295,18 @@ flat out int v_instance;
 out vec3 v_boundsSize;
 void main() {
     v_instance = gl_InstanceID;
-    ${vertexConstants()}
+    ${vertexMainConstants()}
     ${shadeStructure.varyingBridge ?: ""}
 
     v_boundsSize = vec3(0, 0.0, 0.0);
-    ${preTransform}
+    ${preVertexTransform}
     vec3 x_normal = vec3(0.0, 0.0, 1.0);
     vec3 x_position = a_position  + i_offset;
     {
         ${shadeStructure.vertexTransform ?: ""}
     }
     va_position = x_position;
-    ${postTransform}
+    ${postVertexTransform}
     gl_Position = v_clipPosition;
 }
     """
@@ -439,7 +330,7 @@ flat in int v_instance;
 in vec3 v_boundsSize;
 void main(void) {
     ${
-        fragmentConstants(boundsPosition = "vec3(va_texCoord0, 0.0)",
+        fragmentMainConstants(boundsPosition = "vec3(va_texCoord0, 0.0)",
                 boundsSize = "v_boundsSize")
     }
     float smoothFactor = 3.0;
@@ -485,18 +376,18 @@ flat out int v_instance;
 out vec3 v_boundsSize;
 void main() {
     v_instance = gl_InstanceID;
-    ${vertexConstants()}
+    ${vertexMainConstants()}
     ${shadeStructure.varyingBridge ?: ""}
 
     v_boundsSize = vec3(i_radius.xy, 0.0);
-    ${preTransform}
+    ${preVertexTransform}
     vec3 x_normal = a_normal;
     vec3 x_position = vec3(a_position.xy * i_radius, 0.0) + i_offset;
     {
         ${shadeStructure.vertexTransform ?: ""}
     }
     va_position = x_position;
-    ${postTransform}
+    ${postVertexTransform}
     gl_Position = v_clipPosition;
 
 }
@@ -522,7 +413,7 @@ ${shadeStructure.fragmentPreamble ?: ""}
 
 void main(void) {
     ${
-        fragmentConstants(
+        fragmentMainConstants(
                 element = "v_element",
                 instance = "v_instance",
                 boundsPosition = "vec3(va_bounds.xy, 0.0)",
@@ -556,19 +447,19 @@ flat out int v_instance;
 flat out int v_element;
 
 void main() {
-    ${vertexConstants("int(a_position.z)")}
+    ${vertexMainConstants("int(a_position.z)")}
     vec3 decodedPosition = vec3(a_position.xy, 0.0);
     v_element = int(a_position.z);
     v_instance = int(a_instance);
 
     ${shadeStructure.varyingBridge ?: ""}
-    ${preTransform}
+    ${preVertexTransform}
     vec3 x_normal = vec3(0.0, 0.0, 1.0);
     vec3 x_position = decodedPosition;
     {
         ${shadeStructure.vertexTransform ?: ""}
     }
-    ${postTransform}
+    ${postVertexTransform}
     gl_Position = v_clipPosition;
 }
             """
@@ -592,7 +483,7 @@ in vec3 v_boundsSize;
 
 void main(void) {
     ${
-        fragmentConstants(
+        fragmentMainConstants(
                 boundsPosition = "vec3(va_texCoord0, 0.0)",
                 boundsSize = "v_boundsSize")
     }
@@ -641,9 +532,9 @@ ${rotate2}
 
 void main() {
     v_instance =  gl_InstanceID;
-    ${vertexConstants()}
+    ${vertexMainConstants()}
     ${shadeStructure.varyingBridge ?: ""}
-    ${preTransform}
+    ${preVertexTransform}
     vec3 x_normal = vec3(0.0, 0.0, 1.0);
     vec2 rotatedPosition = rotate2(i_rotation) * (( a_position.xy - vec2(0.5) ) * i_dimensions) + vec2(0.5) * i_dimensions;
       
@@ -652,12 +543,11 @@ void main() {
     {
         ${shadeStructure.vertexTransform ?: ""}
     }
-    ${postTransform}
+    ${postVertexTransform}
     gl_Position = v_clipPosition;
     }
     """
 
-    @Language("GLSL", prefix = "void () {", suffix = "}")
     override fun expansionFragmentShader(shadeStructure: ShadeStructure): String = """#version ${glslVersion()}
 ${primitiveTypes("d_expansion")}
 ${shadeStructure.buffers ?: ""}
@@ -686,7 +576,7 @@ float strokeMask() {
 
 void main(void) {
     ${
-        fragmentConstants(boundsPosition = "vec3(v_objectPosition.xy - bounds.xy, 0.0) / vec3(bounds.zw,1.0)",
+        fragmentMainConstants(boundsPosition = "vec3(v_objectPosition.xy - bounds.xy, 0.0) / vec3(bounds.zw,1.0)",
                 boundsSize = "vec3(bounds.zw, 0.0)",
                 contourPosition = "va_vertexOffset"
         )
@@ -732,18 +622,18 @@ flat out int v_instance;
 
 void main() {
     v_instance = 0;
-    ${vertexConstants()}
+    ${vertexMainConstants()}
     ${shadeStructure.varyingBridge ?: ""}
     v_objectPosition = vec3(a_position, 0.0);
     v_ftcoord = a_texCoord0;
 
     vec3 x_position = vec3(a_position, 0.0);
     vec3 x_normal = vec3(0.0, 0.0, 1.0);
-    $preTransform
+    $preVertexTransform
     {
         ${shadeStructure.vertexTransform ?: ""}
     }
-    $postTransform
+    $postVertexTransform
 
     gl_Position = v_clipPosition;
 }
@@ -765,7 +655,7 @@ ${if (!shadeStructure.suppressDefaultOutput) "out vec4 o_color;" else ""}
 ${shadeStructure.fragmentPreamble ?: ""}
 
 void main(void) {
-    ${fragmentConstants()}
+    ${fragmentMainConstants()}
     vec4 x_fill = u_fill;
     vec4 x_stroke = u_stroke;
     {
@@ -795,15 +685,15 @@ flat out int v_instance;
 
 void main() {
     v_instance = gl_InstanceID;
-    ${vertexConstants()}
+    ${vertexMainConstants()}
     ${shadeStructure.varyingBridge ?: ""}
-    $preTransform
+    $preVertexTransform
     vec3 x_normal = vec3(0.0, 0.0, 1.0);
     vec3 x_position = a_position;
     {
         ${shadeStructure.vertexTransform ?: ""}
     }
-    $postTransform
+    $postVertexTransform
     gl_Position = v_clipPosition;
 }
 """
@@ -824,7 +714,7 @@ void main() {
         |flat in int v_instance;
         |${if (!shadeStructure.suppressDefaultOutput) "out vec4 o_color;" else ""}
         |void main(void) {
-        |   ${fragmentConstants()}
+        |   ${fragmentMainConstants()}
         |   vec4 x_fill = u_fill;
         |   vec4 x_stroke = va_color;
         |   {
@@ -859,15 +749,15 @@ void main() {
         |
         |void main() {
         |   v_instance = gl_InstanceID;
-        |   ${vertexConstants(element = "int(a_element)")}
+        |   ${vertexMainConstants(element = "int(a_element)")}
         |   ${shadeStructure.varyingBridge ?: ""}
-        |   $preTransform
+        |   $preVertexTransform
         |   vec3 x_normal = vec3(0.0, 0.0, 1.0);
         |   vec3 x_position = a_position;
         |   {
         |       ${shadeStructure.vertexTransform ?: ""}
         |   }
-        |   $postTransform
+        |   $postVertexTransform
         |   float aspect = u_viewDimensions.x / u_viewDimensions.y;
         |   vec2 pixelWidthRatio = 1.0 / (u_viewDimensions);
         |   mat4 pvm = x_projectionMatrix * x_viewMatrix * x_modelMatrix;
@@ -939,7 +829,7 @@ void main() {
         |// -- shadeStructure.fragmentPreamble
         |${shadeStructure.fragmentPreamble ?: ""}
         |void main() {
-        |   ${fragmentConstants(instance = "0", screenPosition = "v_texCoord0")}
+        |   ${fragmentMainConstants(instance = "0", screenPosition = "v_texCoord0")}
         |   vec4 x_fill = texture(tex0, v_texCoord0);
         |   vec4 x_stroke = vec4(0.0);
         |   {
