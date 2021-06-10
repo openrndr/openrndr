@@ -376,13 +376,104 @@ void main() {
     }
     """
 
-    override fun expansionFragmentShader(shadeStructure: ShadeStructure): String {
-        TODO("Not yet implemented")
+    override fun expansionFragmentShader(shadeStructure: ShadeStructure): String = """
+precision highp float;        
+${primitiveTypes("d_expansion")}
+${shadeStructure.buffers ?: ""}
+${shadeStructure.uniforms ?: ""}
+//layout(origin_upper_left) in vec4 gl_FragCoord;
+${drawerUniforms()}
+${shadeStructure.varyingIn ?: ""}
+${transformVaryingIn}
+//flat in int v_instance;
+uniform float strokeMult;
+uniform float strokeThr;
+uniform float strokeFillFactor;
+uniform sampler2D tex;
+uniform vec4 bounds;
+
+varying vec3 v_objectPosition;
+varying vec2 v_ftcoord;
+//${if (!shadeStructure.suppressDefaultOutput) "out vec4 o_color;" else ""}
+
+${shadeStructure.fragmentPreamble ?: ""}
+
+float strokeMask() {
+	//return pow(min(1.0, (1.0-abs(v_ftcoord.x*2.0-1.0)*strokeMult)) * min(1.0, v_ftcoord.y), 1.0);
+    return smoothstep(0.0, 1.0, (1.0-abs(v_ftcoord.x*2.0-1.0))*strokeMult) * smoothstep(0.0, 1.0, v_ftcoord.y);
+}
+
+void main(void) {
+    ${
+        fragmentMainConstants(boundsPosition = "vec3(v_objectPosition.xy - bounds.xy, 0.0) / vec3(bounds.zw,1.0)",
+            boundsSize = "vec3(bounds.zw, 0.0)",
+            contourPosition = "va_vertexOffset",
+            instance = "0"
+        
+        )
     }
 
-    override fun expansionVertexShader(shadeStructure: ShadeStructure): String {
-        TODO("Not yet implemented")
+	float strokeAlpha = strokeMask();
+
+    vec4 x_stroke = u_stroke;
+    vec4 x_fill = u_fill;
+
+    { ${shadeStructure.fragmentTransform ?: ""} }
+
+    vec4 color = mix(x_stroke, x_fill, strokeFillFactor)  * vec4(1, 1, 1, strokeAlpha);
+    vec4 result = color;
+
+    if (strokeAlpha < strokeThr) {
+	    discard;
+	}
+
+    vec4 final = result;
+	final = result;
+	final.rgb *= final.a;
+    ${if (!shadeStructure.suppressDefaultOutput) "gl_FragColor = final;" else ""}
+}        
+    """
+
+    override fun expansionVertexShader(shadeStructure: ShadeStructure): String = """
+precision highp float;        
+        
+${primitiveTypes("d_expansion")}
+${shadeStructure.buffers ?: ""}
+${drawerUniforms()}
+${shadeStructure.uniforms ?: ""}
+${shadeStructure.attributes}
+${shadeStructure.varyingOut ?: ""}
+${ShadeStyleGLSL.transformVaryingOut}
+
+${shadeStructure.vertexPreamble ?: ""}
+
+varying vec2 v_ftcoord;
+varying float v_offset;
+
+varying vec3 v_objectPosition;
+//flat out int v_instance;
+float v_instance;
+
+void main() {
+    //v_instance = 0;
+    ${ShadeStyleGLSL.vertexMainConstants(instance = "0")}
+    ${shadeStructure.varyingBridge ?: ""}
+    v_objectPosition = vec3(a_position, 0.0);
+    v_ftcoord = a_texCoord0;
+
+    vec3 x_position = vec3(a_position, 0.0);
+    vec3 x_normal = vec3(0.0, 0.0, 1.0);
+    ${ShadeStyleGLSL.preVertexTransform}
+    {
+        ${shadeStructure.vertexTransform ?: ""}
     }
+    ${ShadeStyleGLSL.postVertexTransform}
+
+    gl_Position = v_clipPosition;
+}        
+    """.trimIndent()
+
+
 
     override fun fastLineFragmentShader(shadeStructure: ShadeStructure): String {
         TODO("Not yet implemented")
