@@ -181,7 +181,9 @@ interface ColorBuffer {
     /**
      * resolves contents to a non-multisampled color buffer
      */
-    @Deprecated("functionality is merged into copyTo")
+    @Deprecated("functionality is merged into copyTo",
+        ReplaceWith("copyTo(target, fromLevel, toLevel)")
+    )
     fun resolveTo(target: ColorBuffer, fromLevel: Int = 0, toLevel: Int = 0) {
         copyTo(target, fromLevel, toLevel)
     }
@@ -302,7 +304,7 @@ interface ColorBuffer {
     companion object {
         /**
          * create a [ColorBuffer] from a [File] containing a formatted image
-         * @param file a [File] containing a formatted image
+         * @param url the location of a formatted image
          * @param formatHint an optional [ImageFileFormat] hint, default is null
          * @param session the [Session] under which the [ColorBuffer] should be created, default is [Session.active]
          * @see loadImage
@@ -356,8 +358,8 @@ interface ColorBuffer {
          * create a [ColorBuffer] from a [ByteArray] containing a formatted image (meaning any of the formats in [ImageFileFormat])
          * @param bytes a [ByteArray] containing a formatted image
          * @param offset offset used for reading from [bytes], default is 0
-         * @param length number of bytes to be used from [bytes], default is [bytes.size]
-         * @param formatHint an optiononal [ImageFileFormat] hint, default is nuull
+         * @param length number of bytes to be used from [bytes], default is bytes.size
+         * @param formatHint an optional [ImageFileFormat] hint, default is null
          */
         @Suppress("UNUSED_PARAMETER")
         fun fromArray(

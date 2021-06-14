@@ -131,7 +131,7 @@ class ColorBufferDataGL3(
                     8 -> Pair(STBImage.stbi_load_from_memory(buffer, wa, ha, ca, 0)
                             ?:error("stbi_load returned null"), null as ShortBuffer?)
                     16 -> Pair(null as ByteBuffer?, STBImage.stbi_load_16_from_memory(buffer, wa, ha, ca, 0)
-                            ?:error("stdi_load returned null"))
+                            ?:error("stbi_load returned null"))
                     else -> error("unsupported bits per channel: $bitsPerChannel")
                 }
 
