@@ -1,3 +1,4 @@
+import kotlinx.coroutines.runBlocking
 import org.lwjgl.BufferUtils
 import org.openrndr.Configuration
 import org.openrndr.Program
@@ -15,7 +16,7 @@ object TestVertexBufferGL3 : Spek({
     describe("a program") {
         val program = Program()
         val app = ApplicationGLFWGL3(program, Configuration())
-        app.setup()
+        runBlocking { app.setup() }
         app.preloop()
 
         describe("a vertex buffer") {

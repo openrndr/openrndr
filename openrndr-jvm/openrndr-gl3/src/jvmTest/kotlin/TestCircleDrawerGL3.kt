@@ -1,4 +1,5 @@
 
+import kotlinx.coroutines.runBlocking
 import org.openrndr.Configuration
 import org.openrndr.Program
 import org.openrndr.internal.gl3.ApplicationGLFWGL3
@@ -11,7 +12,7 @@ object TestCircleDrawerGL3 : Spek({
     describe("a program") {
         val program = Program()
         val app = ApplicationGLFWGL3(program, Configuration())
-        app.setup()
+        runBlocking { app.setup() }
         app.preloop()
 
         describe("a circle drawer") {

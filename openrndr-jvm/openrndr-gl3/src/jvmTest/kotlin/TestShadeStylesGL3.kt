@@ -1,4 +1,5 @@
 
+import kotlinx.coroutines.runBlocking
 import org.openrndr.Configuration
 import org.openrndr.Program
 import org.openrndr.draw.*
@@ -13,7 +14,7 @@ object TestShadeStylesGL3 : Spek({
     describe("a program") {
         val p = Program()
         val app = ApplicationGLFWGL3(p, Configuration())
-        app.setup()
+        runBlocking { app.setup() }
         app.preloop()
         val vbgl3 = VertexBufferGL3.createDynamic(vertexFormat {
             position(3)

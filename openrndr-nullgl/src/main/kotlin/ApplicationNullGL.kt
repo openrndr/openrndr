@@ -1,5 +1,6 @@
 package org.openrndr.internal.nullgl
 
+import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import org.openrndr.*
 
@@ -32,9 +33,8 @@ class ApplicationNullGL(private val program: Program, private val configuration:
         exitRequested = true
     }
 
-    override fun setup() {
+    override suspend fun setup() {
         logger.debug { "entering setup" }
-
     }
 
     override fun loop() {
@@ -46,7 +46,7 @@ class ApplicationNullGL(private val program: Program, private val configuration:
         logger.debug { "calling program.setup" }
         var setupException: Throwable? = null
         try {
-            program.setup()
+            runBlocking { program.setup() }
         } catch (t: Throwable) {
             setupException = t
         }

@@ -1,4 +1,5 @@
 import org.openrndr.application
+import org.openrndr.applicationSynchronous
 import org.openrndr.shape.LineSegment
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
@@ -6,7 +7,7 @@ import org.spekframework.spek2.style.specification.describe
 object TestDrawLineSegments : Spek({
     describe("drawing multiple lineSegments using a List of LineSegment") {
         it("should not throw exceptions") {
-            application {
+            applicationSynchronous {
                 program {
                     val segments = List(10) {
                         LineSegment(
@@ -27,7 +28,7 @@ object TestDrawLineSegments : Spek({
 
     describe("drawing a single line segment") {
         it("should not throw exceptions") {
-            application {
+            applicationSynchronous {
                 program {
                     extend {
                         val ls = LineSegment(0.0, 0.0, 50.0, 50.0)
@@ -41,7 +42,7 @@ object TestDrawLineSegments : Spek({
 
     describe("drawing one lineSegment using a List of LineSegment") {
         it("should not throw exceptions") {
-            application {
+            applicationSynchronous {
                 program {
                     val segments = List(1) {
                         LineSegment(

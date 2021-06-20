@@ -1,5 +1,6 @@
 package org.openrndr
 
+import kotlinx.coroutines.runBlocking
 import org.openrndr.exceptions.installUncaughtExceptionHandler
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -72,10 +73,22 @@ private fun restartJVM(): Boolean {
     return true
 }
 
+
+
 actual suspend fun application(build: ApplicationBuilder.() -> Unit) {
     if (!restartJVM()) {
         installUncaughtExceptionHandler()
         val applicationBuilder = ApplicationBuilder().apply { build() }
         application(applicationBuilder.program, applicationBuilder.configuration)
+    }
+}
+
+actual fun applicationSynchronous(build: ApplicationBuilder.() -> Unit) {
+    if (!restartJVM()) {
+        installUncaughtExceptionHandler()
+        val applicationBuilder = ApplicationBuilder().apply { build() }
+        runBlocking {
+            application(applicationBuilder.program, applicationBuilder.configuration)
+        }
     }
 }

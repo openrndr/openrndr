@@ -38,3 +38,10 @@ class ApplicationBuilder internal constructor(){
  */
 expect suspend fun application(build: ApplicationBuilder.() -> Unit)
 
+
+/**
+ * Runs [programFunction] as an application using [configuration], this provides a more functional flavored way of
+ * writing applications.
+ */
+expect fun applicationSynchronous(build: ApplicationBuilder.() -> Unit)
+
