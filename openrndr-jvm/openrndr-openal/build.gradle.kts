@@ -29,13 +29,13 @@ kotlin {
                 implementation("io.github.microutils:kotlin-logging:$kotlinLoggingVersion")
             }
         }
-        val jvmTest by getting {
-            dependencies {
-                runtimeOnly(project (":openrndr-jvm:openrndr-openal-natives-windows"))
-                runtimeOnly(project (":openrndr-jvm:openrndr-openal-natives-macos"))
-                runtimeOnly(project (":openrndr-jvm:openrndr-openal-natives-linux-x64"))
-                runtimeOnly("org.slf4j:slf4j-simple:1.7.5")
-            }
-        }
+//        val jvmTest by getting {
+//            dependencies {
+//                runtimeOnly(project (":openrndr-jvm:openrndr-openal-natives-windows"))
+//                runtimeOnly(project (":openrndr-jvm:openrndr-openal-natives-macos"))
+//                runtimeOnly(project (":openrndr-jvm:openrndr-openal-natives-linux-x64"))
+//                runtimeOnly("org.slf4j:slf4j-simple:1.7.5")
+//            }
+//        }
     }
 }
