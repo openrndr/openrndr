@@ -65,7 +65,7 @@ object TestColorBufferShadowGL3 : Spek({
                 colorBuffer(cb)
             }
             program.drawer.withTarget(rt) {
-                background(ColorRGBa(127/256.0, 0.0, 0.0, 1.0))
+                clear(ColorRGBa(127/256.0, 0.0, 0.0, 1.0))
             }
             cb.shadow.download()
             it("should be able to read all pixels correctly ") {
