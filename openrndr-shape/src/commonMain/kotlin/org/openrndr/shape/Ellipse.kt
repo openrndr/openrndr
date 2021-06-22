@@ -36,5 +36,27 @@ data class Ellipse(val center: Vector2, val xRadius: Double, val yRadius: Double
     operator fun minus(right: Ellipse) =
         Ellipse(center - right.center, xRadius - right.xRadius, yRadius - right.yRadius)
 
+    val contour: ShapeContour
+        get() {
+            val x = center.x - xRadius
+            val y = center.y - yRadius
+            val width = xRadius * 2.0
+            val height = yRadius * 2.0
+            val kappa = 0.5522848
+            val ox = width / 2 * kappa        // control point offset horizontal
+            val oy = height / 2 * kappa        // control point offset vertical
+            val xe = x + width        // x-end
+            val ye = y + height        // y-end
+            val xm = x + width / 2        // x-middle
+            val ym = y + height / 2       // y-middle
 
+            return contour {
+                moveTo(Vector2(x, ym))
+                curveTo(Vector2(x, ym - oy), Vector2(xm - ox, y), Vector2(xm, y))
+                curveTo(Vector2(xm + ox, y), Vector2(xe, ym - oy), Vector2(xe, ym))
+                curveTo(Vector2(xe, ym + oy), Vector2(xm + ox, ye), Vector2(xm, ye))
+                curveTo(Vector2(xm - ox, ye), Vector2(x, ym + oy), Vector2(x, ym))
+                close()
+            }
+        }
 }
