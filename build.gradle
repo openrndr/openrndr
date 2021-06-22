@@ -116,8 +116,6 @@ def multiplatformModules = [
         "openrndr-gl3-natives-windows",
         "openrndr-tessellation",
         "openrndr-svg"
-
-
 ]
 
 
@@ -125,7 +123,16 @@ configure(allprojects.findAll { !multiplatformModules.contains(it.name) }) {
     apply plugin: 'idea'
     apply plugin: 'java'
     apply plugin: 'kotlin'
+    apply plugin: 'maven-publish'
 
+
+    publishing {
+        publications {
+            maven(MavenPublication) {
+                from components.java
+            }
+        }
+    }
 
     dependencies {
         // Note: kotlin-logging and kotlinx-coroutines-core are loaded
@@ -165,10 +172,6 @@ configure(allprojects.findAll { !multiplatformModules.contains(it.name) }) {
 }
 
 configure(allprojects.findAll { it.name != "openrndr-demos" }) {
-
     apply plugin: 'maven-publish'
-
     apply plugin: 'nebula.release'
-
-
 }
