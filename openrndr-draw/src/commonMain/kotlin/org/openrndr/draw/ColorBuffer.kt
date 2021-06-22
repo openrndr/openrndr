@@ -128,7 +128,7 @@ expect abstract class ColorBuffer {
     abstract fun filter(filterMin: MinifyingFilter, filterMag: MagnifyingFilter)
 
 
-    /*
+
     abstract fun copyTo(
         target: ColorBuffer,
         fromLevel: Int = 0,
@@ -147,16 +147,16 @@ expect abstract class ColorBuffer {
         ),
         filter: MagnifyingFilter = MagnifyingFilter.NEAREST
     )
-     */
+
     // TODO restore default arguments when https://youtrack.jetbrains.com/issue/KT-45542 is fixed
-    abstract fun copyTo(
-        target: ColorBuffer,
-        fromLevel: Int = 0,
-        toLevel: Int = 0,
-        sourceRectangle: IntRectangle,
-        targetRectangle: IntRectangle,
-        filter: MagnifyingFilter = MagnifyingFilter.NEAREST
-    )
+//    abstract fun copyTo(
+//        target: ColorBuffer,
+//        fromLevel: Int = 0,
+//        toLevel: Int = 0,
+//        sourceRectangle: IntRectangle,
+//        targetRectangle: IntRectangle,
+//        filter: MagnifyingFilter = MagnifyingFilter.NEAREST
+//    )
 
 
     /**
