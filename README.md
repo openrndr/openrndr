@@ -1,8 +1,3 @@
-[![Build Status](https://travis-ci.org/openrndr/openrndr.svg?branch=master)](https://travis-ci.org/openrndr/openrndr)
-[![Download](https://api.bintray.com/packages/openrndr/openrndr/openrndr/images/download.svg) ](https://bintray.com/openrndr/openrndr/openrndr/_latestVersion)
-[![Awesome Kotlin Badge](https://kotlin.link/awesome-kotlin.svg)](https://github.com/KotlinBy/awesome-kotlin)
-[<img src="https://img.shields.io/badge/slack-@openrndr-yellow.svg?logo=slack">](https://openrndr.slack.com/) 
-
 # OPENRNDR 0.4 (development branch)
 
 A Kotlin/JVM and Kotlin/JS library for creative coding, real-time and interactive graphics. Can currently be used on Windows, macOS and Linux/x64 to create stand alone graphical applications.
@@ -41,16 +36,5 @@ Note that OPENRNDR does not depend on anything that is not on Maven Central, bui
 In order to use the OPENRNDR build from your applications one has to install OPENRNDR's Maven artifacts in the local Maven repository.
 
 ```sh
-./gradlew -Prelease.version=0.5.0-SNAPSHOT publishToMavenLocal
-```
-
-## Building OPENRNDR from IntelliJ
-
-This should be as easy as importing the Gradle project into IntelliJ.
-
-On a macOS or linux system that has IntelliJ's command line tools installed one can run
-
-```sh
-cd <path-to-checkout>
-idea .
+./gradlew -Prelease.version=0.5.1-SNAPSHOT publishToMavenLocal
 ```
