@@ -12,9 +12,9 @@ buildscript {
 
 plugins {
     // remember to update all the versions here when upgrading kotlin version
-    id 'org.jetbrains.kotlin.jvm' version '1.5.10' apply false
-    id 'org.jetbrains.kotlin.multiplatform' version '1.5.10' apply false
-    id 'org.jetbrains.kotlin.plugin.serialization' version '1.5.10' apply false
+    id 'org.jetbrains.kotlin.jvm' version '1.5.20' apply false
+    id 'org.jetbrains.kotlin.multiplatform' version '1.5.20' apply false
+    id 'org.jetbrains.kotlin.plugin.serialization' version '1.5.20' apply false
 }
 
 apply plugin: 'org.jetbrains.dokka'
@@ -29,8 +29,9 @@ apply plugin: 'org.jetbrains.dokka'
 */
 project.ext {
     kotlinApiVersion = '1.4'
+    kotlinJvmTarget = '1.8'
     kotlinLanguageVersion = '1.4'
-    kotlinVersion = '1.5.10'
+    kotlinVersion = '1.5.20'
     kotlinLoggingVersion = '2.0.6'
     kotlinxSerializationVersion = '1.1.0'
     lwjglVersion = '3.2.3'
@@ -93,6 +94,7 @@ allprojects {
 
 def multiplatformModules = [
         "openrndr-application",
+        "openrndr-filter",
         "openrndr-event",
         "openrndr-math",
         "openrndr-color",
