@@ -252,6 +252,8 @@ actual interface Driver {
     actual fun finish()
     actual fun internalShaderResource(resourceId: String): String
 
+    actual fun shaderConfiguration(): String
+
     actual companion object {
         actual var driver: Driver? = null
         actual val instance: Driver

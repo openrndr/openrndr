@@ -605,6 +605,15 @@ class DriverWebGL(val context: GL) : Driver {
 
     override val shaderLanguage: ShaderLanguage
         get() = WebGLSL("100")
+
+
+    override fun shaderConfiguration(): String {
+        return """
+            #define OR_GL_FRAGCOORD
+            #define OR_VARYINGS
+            #define OR_WEBGL1
+        """.trimIndent()
+    }
 }
 
 

@@ -288,4 +288,11 @@ class ColorBufferWebGL(
         context.texParameteri(target, GL.TEXTURE_MIN_FILTER, filterMin.toGLFilter())
         context.texParameteri(target, GL.TEXTURE_MAG_FILTER, filterMag.toGLFilter())
     }
+
+    override var wrapU: WrapMode
+        get() = TODO("Not yet implemented")
+        set(value) {}
+    override var wrapV: WrapMode
+        get() = TODO("Not yet implemented")
+        set(value) {}
 }

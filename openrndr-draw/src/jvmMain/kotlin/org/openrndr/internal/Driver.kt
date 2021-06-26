@@ -252,6 +252,8 @@ actual interface Driver {
     actual fun finish()
     actual fun internalShaderResource(resourceId: String): String
 
+
+
     actual companion object {
         actual var driver: Driver? = null
             set(value) {
@@ -266,5 +268,6 @@ actual interface Driver {
     actual val fontVectorMapManager: FontMapManager
     actual val shaderLanguage: ShaderLanguage
 
+    actual fun shaderConfiguration(): String
 
 }

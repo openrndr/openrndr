@@ -106,7 +106,6 @@ actual abstract class ColorBuffer {
         return cropped
     }
 
-
     /**
      * copies contents to a target color buffer
      * @param target the color buffer to which contents will be copied
@@ -135,14 +134,13 @@ actual abstract class ColorBuffer {
     abstract fun fill(color: ColorRGBa)
 
     /** the wrapping mode to use in the horizontal direction */
-    abstract var wrapU: WrapMode
+    actual abstract var wrapU: WrapMode
 
     /** the wrapping mode to use in the vertical direction */
-    abstract var wrapV: WrapMode
+    actual abstract var wrapV: WrapMode
 
     /** the filter to use when displaying at sizes smaller than the original */
     abstract var filterMin: MinifyingFilter
-
     /** the filter to use when display at sizes larger than the original */
     abstract var filterMag: MagnifyingFilter
 
@@ -152,50 +150,6 @@ actual abstract class ColorBuffer {
      * sets the [ColorBuffer] filter for minifying and magnification
      */
     actual abstract fun filter(filterMin: MinifyingFilter, filterMag: MagnifyingFilter)
-
-    /**
-     * check if this [ColorBuffer] is equivalent to [other]
-     * @param other the [ColorBuffer] to check against
-     * @param ignoreWidth ignore [ColorBuffer.width] in check when true
-     * @param ignoreHeight ignore [ColorBuffer.height] in check when true
-     * @param ignoreLevels ignore [ColorBuffer.levels] in check when true
-     * @param ignoreContentScale ignore [ColorBuffer.contentScale] when true
-     * @param ignoreMultisample ignore [ColorBuffer.multisample] in check when true
-     * @param ignoreLevels ignore [ColorBuffer.levels] in check when true
-     */
-    fun isEquivalentTo(
-        other: ColorBuffer,
-        ignoreWidth: Boolean = false,
-        ignoreHeight: Boolean = false,
-        ignoreContentScale: Boolean = false,
-        ignoreFormat: Boolean = false,
-        ignoreType: Boolean = false,
-        ignoreMultisample: Boolean = false,
-        ignoreLevels: Boolean = false
-    ): Boolean {
-        return (ignoreWidth || width == other.width) &&
-                (ignoreHeight || height == other.height) &&
-                (ignoreContentScale || contentScale == other.contentScale) &&
-                (ignoreFormat || format == other.format) &&
-                (ignoreType || type == other.type) &&
-                (ignoreMultisample || multisample == other.multisample) &&
-                (ignoreLevels || levels == other.levels)
-    }
-
-    /**
-     * create an equivalent [ColorBuffer], with the option to override attributes
-     */
-    fun createEquivalent(
-        width: Int = this.width,
-        height: Int = this.height,
-        contentScale: Double = this.contentScale,
-        format: ColorFormat = this.format,
-        type: ColorType = this.type,
-        multisample: BufferMultisample = this.multisample,
-        levels: Int = this.levels
-    ): ColorBuffer {
-        return colorBuffer(width, height, contentScale, format, type, multisample, levels)
-    }
 
     companion object {
         /**

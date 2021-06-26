@@ -208,4 +208,8 @@ class DriverNullGL: Driver {
         return "mock"
     }
 
+    override fun shaderConfiguration(): String = ""
+
+
+
 }

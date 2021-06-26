@@ -125,6 +125,12 @@ expect abstract class ColorBuffer {
     abstract var flipV: Boolean
 
 
+    /** the wrapping mode to use in the horizontal direction */
+    abstract var wrapU: WrapMode
+
+    /** the wrapping mode to use in the vertical direction */
+    abstract var wrapV: WrapMode
+
     abstract fun filter(filterMin: MinifyingFilter, filterMag: MagnifyingFilter)
 
 
@@ -157,6 +163,7 @@ expect abstract class ColorBuffer {
 //        targetRectangle: IntRectangle,
 //        filter: MagnifyingFilter = MagnifyingFilter.NEAREST
 //    )
+
 
 
     /**
@@ -196,6 +203,50 @@ fun colorBuffer(
 }
 
 
+/**
+ * check if this [ColorBuffer] is equivalent to [other]
+ * @param other the [ColorBuffer] to check against
+ * @param ignoreWidth ignore [ColorBuffer.width] in check when true
+ * @param ignoreHeight ignore [ColorBuffer.height] in check when true
+ * @param ignoreLevels ignore [ColorBuffer.levels] in check when true
+ * @param ignoreContentScale ignore [ColorBuffer.contentScale] when true
+ * @param ignoreMultisample ignore [ColorBuffer.multisample] in check when true
+ * @param ignoreLevels ignore [ColorBuffer.levels] in check when true
+ */
+fun ColorBuffer.isEquivalentTo(
+    other: ColorBuffer,
+    ignoreWidth: Boolean = false,
+    ignoreHeight: Boolean = false,
+    ignoreContentScale: Boolean = false,
+    ignoreFormat: Boolean = false,
+    ignoreType: Boolean = false,
+    ignoreMultisample: Boolean = false,
+    ignoreLevels: Boolean = false
+): Boolean {
+    return (ignoreWidth || width == other.width) &&
+            (ignoreHeight || height == other.height) &&
+            (ignoreContentScale || contentScale == other.contentScale) &&
+            (ignoreFormat || format == other.format) &&
+            (ignoreType || type == other.type) &&
+            (ignoreMultisample || multisample == other.multisample) &&
+            (ignoreLevels || levels == other.levels)
+}
+
+
+/**
+ * create an equivalent [ColorBuffer], with the option to override attributes
+ */
+fun ColorBuffer.createEquivalent(
+    width: Int = this.width,
+    height: Int = this.height,
+    contentScale: Double = this.contentScale,
+    format: ColorFormat = this.format,
+    type: ColorType = this.type,
+    multisample: BufferMultisample = this.multisample,
+    levels: Int = this.levels
+): ColorBuffer {
+    return colorBuffer(width, height, contentScale, format, type, multisample, levels)
+}
 
 /**
  * load an image from a file or url encoded as [String], also accepts base64 encoded data urls

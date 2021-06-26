@@ -44,6 +44,12 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         return GLSL(version.glslVersion)
     }
 
+    override fun shaderConfiguration(): String = """
+        #version ${version.glslVersion}
+        #define OR_IN_OUT
+        #define OR_GL
+    """.trimIndent()
+
     companion object {
         fun candidateVersions(): List<DriverVersionGL> {
             val property = System.getProperty("org.openrndr.gl3.version", "all")
@@ -905,10 +911,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
                 }
                 cached.cullTestPass = drawStyle.cullTestPass
             }
-
-
             debugGLErrors()
-            //dirty = false
         }
     }
 

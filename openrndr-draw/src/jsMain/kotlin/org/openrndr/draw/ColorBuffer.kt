@@ -145,6 +145,12 @@ actual abstract class ColorBuffer {
         filterMag: MagnifyingFilter
     )
 
+    /** the wrapping mode to use in the horizontal direction */
+    actual abstract var wrapU: WrapMode
+
+    /** the wrapping mode to use in the vertical direction */
+    actual abstract var wrapV: WrapMode
+
 }
 
 /**

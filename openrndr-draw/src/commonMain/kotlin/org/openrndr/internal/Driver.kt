@@ -14,9 +14,7 @@ class WebGLSL(val version: String) : ShaderLanguage()
  * Driver interface. This is the internal interface
  */
 expect interface Driver {
-
     val contextID: Long
-
     /**
      * Create a shader from code
      * @param vsCode vertex shader code
@@ -205,7 +203,6 @@ expect interface Driver {
         indexOffset: Int, indexCount: Int, verticesPerPatch: Int = 0
     )
 
-
     fun drawInstances(
         shader: Shader, vertexBuffers: List<VertexBuffer>,
         instanceAttributes: List<VertexBuffer>,
@@ -236,6 +233,7 @@ expect interface Driver {
 
     fun internalShaderResource(resourceId: String): String
 
+    fun shaderConfiguration() : String
 
     val shaderLanguage: ShaderLanguage
 
