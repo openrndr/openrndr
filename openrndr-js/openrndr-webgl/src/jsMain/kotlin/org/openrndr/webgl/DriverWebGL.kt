@@ -609,14 +609,13 @@ class DriverWebGL(val context: GL) : Driver {
 
     override fun shaderConfiguration(): String {
         return """
-            #define OR_GL_FRAGCOORD
+            precision highp float;
+            #define OR_GL_FRAGCOLOR
             #define OR_VARYINGS
             #define OR_WEBGL1
         """.trimIndent()
     }
 }
-
-
 
 internal fun ColorFormat.glFormat(): Int {
     return when (this) {
