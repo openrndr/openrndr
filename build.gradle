@@ -8,12 +8,12 @@ buildscript {
     dependencies {
         classpath "org.jetbrains.dokka:dokka-gradle-plugin:1.4.32"
 //        classpath "com.netflix.nebula:nebula-publishing-plugin:17.3.0"
-        classpath "com.netflix.nebula:nebula-release-plugin:15.1.0"
+        classpath "com.netflix.nebula:nebula-release-plugin:15.3.1"
     }
 }
 
 plugins {
-    id 'org.jetbrains.kotlin.jvm' version '1.5.0'
+    id 'org.jetbrains.kotlin.jvm' version '1.5.20'
 }
 
 apply plugin: 'org.jetbrains.dokka'
@@ -25,7 +25,7 @@ project.ext {
     lwjglVersion = '3.2.3'
     javacpp_version = '1.5.5'
     ffmpeg_version = "4.3.2-$javacpp_version"
-    kotlinVersion = '1.5.0'
+    kotlinVersion = '1.5.20'
     spekVersion = '2.0.15'
     jsoupVersion = '1.13.1'
 }
@@ -81,7 +81,7 @@ allprojects {
 
     dependencies {
         implementation 'io.github.microutils:kotlin-logging-jvm:2.0.6'
-        implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.0-RC'
+        implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.0'
         implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"
 
         testImplementation "org.spekframework.spek2:spek-dsl-jvm:$spekVersion"
