@@ -1,0 +1,23 @@
+$dokka.format:html-v1
+$dokka.linkExtension:html
+$dokka.location:org.openrndr.events////PointingToDeclaration/openrndr-event/org.openrndr.events/index.html
+$dokka.location:org.openrndr.events//listen/kotlin.collections.Iterable[org.openrndr.events.Event[TypeParam(bounds=[kotlin.Any])]]#kotlin.Function1[TypeParam(bounds=[kotlin.Any]),kotlin.Unit]/PointingToDeclaration/openrndr-event/org.openrndr.events/listen.html
+$dokka.location:org.openrndr.events/Event///PointingToDeclaration/openrndr-event/org.openrndr.events/-event/index.html
+$dokka.location:org.openrndr.events/Event/Event/#kotlin.String#kotlin.Boolean/PointingToDeclaration/openrndr-event/org.openrndr.events/-event/-event.html
+$dokka.location:org.openrndr.events/Event/cancel/#kotlin.Function1[TypeParam(bounds=[kotlin.Any?]),kotlin.Unit]/PointingToDeclaration/openrndr-event/org.openrndr.events/-event/cancel.html
+$dokka.location:org.openrndr.events/Event/deliver/#/PointingToDeclaration/openrndr-event/org.openrndr.events/-event/deliver.html
+$dokka.location:org.openrndr.events/Event/listen/#kotlin.Function1[TypeParam(bounds=[kotlin.Any?]),kotlin.Unit]/PointingToDeclaration/openrndr-event/org.openrndr.events/-event/listen.html
+$dokka.location:org.openrndr.events/Event/listen/#org.openrndr.events.Event[TypeParam(bounds=[kotlin.Any?])]/PointingToDeclaration/openrndr-event/org.openrndr.events/-event/listen.html
+$dokka.location:org.openrndr.events/Event/listenOnce/#kotlin.Function1[TypeParam(bounds=[kotlin.Any?]),kotlin.Unit]/PointingToDeclaration/openrndr-event/org.openrndr.events/-event/listen-once.html
+$dokka.location:org.openrndr.events/Event/listenOnce/#org.openrndr.events.Event[TypeParam(bounds=[kotlin.Any?])]/PointingToDeclaration/openrndr-event/org.openrndr.events/-event/listen-once.html
+$dokka.location:org.openrndr.events/Event/listeners/#/PointingToDeclaration/openrndr-event/org.openrndr.events/-event/listeners.html
+$dokka.location:org.openrndr.events/Event/name/#/PointingToDeclaration/openrndr-event/org.openrndr.events/-event/name.html
+$dokka.location:org.openrndr.events/Event/onNext/#TypeParam(bounds=[kotlin.Any?])/PointingToDeclaration/openrndr-event/org.openrndr.events/-event/on-next.html
+$dokka.location:org.openrndr.events/Event/postpone/#/PointingToDeclaration/openrndr-event/org.openrndr.events/-event/postpone.html
+$dokka.location:org.openrndr.events/Event/postpone/#kotlin.Boolean/PointingToDeclaration/openrndr-event/org.openrndr.events/-event/postpone.html
+$dokka.location:org.openrndr.events/Event/subscribe/#kotlin.Function1[TypeParam(bounds=[kotlin.Any?]),kotlin.Unit]/PointingToDeclaration/openrndr-event/org.openrndr.events/-event/subscribe.html
+$dokka.location:org.openrndr.events/Event/timeSinceLastTrigger/#/PointingToDeclaration/openrndr-event/org.openrndr.events/-event/time-since-last-trigger.html
+$dokka.location:org.openrndr.events/Event/trigger/#TypeParam(bounds=[kotlin.Any?])/PointingToDeclaration/openrndr-event/org.openrndr.events/-event/trigger.html
+$dokka.location:org.openrndr.events/Event/triggerCount/#/PointingToDeclaration/openrndr-event/org.openrndr.events/-event/trigger-count.html
+org.openrndr.events
+

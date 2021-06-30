@@ -1,0 +1,1 @@
+sourceset_dependencies = '{":openrndr-event:dokkaHtmlPartial/main":[],":openrndr-math:dokkaHtmlPartial/main":[],":openrndr-core:dokkaHtmlPartial/main":[],":openrndr-color:dokkaHtmlPartial/main":[],":openrndr-filter:dokkaHtmlPartial/main":[],":openrndr-dialogs:dokkaHtmlPartial/main":[],":openrndr-animatable:dokkaHtmlPartial/main":[]}'

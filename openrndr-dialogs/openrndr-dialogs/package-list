@@ -1,0 +1,16 @@
+$dokka.format:html-v1
+$dokka.linkExtension:html
+$dokka.location:org.openrndr.dialogs////PointingToDeclaration/openrndr-dialogs/org.openrndr.dialogs/index.html
+$dokka.location:org.openrndr.dialogs//getDefaultPathForContext/#kotlin.String#kotlin.String/PointingToDeclaration/openrndr-dialogs/org.openrndr.dialogs/get-default-path-for-context.html
+$dokka.location:org.openrndr.dialogs//openFileDialog/#kotlin.String#kotlin.String#kotlin.Function1[java.io.File,kotlin.Unit]/PointingToDeclaration/openrndr-dialogs/org.openrndr.dialogs/open-file-dialog.html
+$dokka.location:org.openrndr.dialogs//openFileDialog/#kotlin.String#kotlin.String#kotlin.collections.List[kotlin.Pair[kotlin.String,kotlin.collections.List[kotlin.String]]]#kotlin.Function1[java.io.File,kotlin.Unit]/PointingToDeclaration/openrndr-dialogs/org.openrndr.dialogs/open-file-dialog.html
+$dokka.location:org.openrndr.dialogs//openFileDialog/#kotlin.String#kotlin.String#kotlin.collections.List[kotlin.String]#kotlin.Function1[java.io.File,kotlin.Unit]/PointingToDeclaration/openrndr-dialogs/org.openrndr.dialogs/open-file-dialog.html
+$dokka.location:org.openrndr.dialogs//openFilesDialog/#kotlin.String#kotlin.String#kotlin.Function1[kotlin.collections.List[java.io.File],kotlin.Unit]/PointingToDeclaration/openrndr-dialogs/org.openrndr.dialogs/open-files-dialog.html
+$dokka.location:org.openrndr.dialogs//openFilesDialog/#kotlin.String#kotlin.String#kotlin.collections.List[kotlin.Pair[kotlin.String,kotlin.collections.List[kotlin.String]]]#kotlin.Function1[kotlin.collections.List[java.io.File],kotlin.Unit]/PointingToDeclaration/openrndr-dialogs/org.openrndr.dialogs/open-files-dialog.html
+$dokka.location:org.openrndr.dialogs//openFilesDialog/#kotlin.String#kotlin.String#kotlin.collections.List[kotlin.String]#kotlin.Function1[kotlin.collections.List[java.io.File],kotlin.Unit]/PointingToDeclaration/openrndr-dialogs/org.openrndr.dialogs/open-files-dialog.html
+$dokka.location:org.openrndr.dialogs//openFolderDialog/#kotlin.String#kotlin.String#kotlin.Function1[java.io.File,kotlin.Unit]/PointingToDeclaration/openrndr-dialogs/org.openrndr.dialogs/open-folder-dialog.html
+$dokka.location:org.openrndr.dialogs//saveFileDialog/#kotlin.String#kotlin.String#kotlin.String?#kotlin.collections.List[kotlin.Pair[kotlin.String,kotlin.collections.List[kotlin.String]]]#kotlin.Function1[java.io.File,kotlin.Unit]/PointingToDeclaration/openrndr-dialogs/org.openrndr.dialogs/save-file-dialog.html
+$dokka.location:org.openrndr.dialogs//saveFileDialog/#kotlin.String#kotlin.String#kotlin.String?#kotlin.collections.List[kotlin.String]#kotlin.Function1[java.io.File,kotlin.Unit]/PointingToDeclaration/openrndr-dialogs/org.openrndr.dialogs/save-file-dialog.html
+$dokka.location:org.openrndr.dialogs//setDefaultPathForContext/#kotlin.String#kotlin.String#java.io.File/PointingToDeclaration/openrndr-dialogs/org.openrndr.dialogs/set-default-path-for-context.html
+org.openrndr.dialogs
+

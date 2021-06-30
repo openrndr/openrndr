@@ -1,0 +1,14 @@
+$dokka.format:html-v1
+$dokka.linkExtension:html
+$dokka.location:org.openrndr.filter.color////PointingToDeclaration/openrndr-filter/org.openrndr.filter.color/index.html
+$dokka.location:org.openrndr.filter.color//delinearize/#/PointingToDeclaration/openrndr-filter/org.openrndr.filter.color/delinearize.html
+$dokka.location:org.openrndr.filter.color//hybridLogGamma/#/PointingToDeclaration/openrndr-filter/org.openrndr.filter.color/hybrid-log-gamma.html
+$dokka.location:org.openrndr.filter.color//linearize/#/PointingToDeclaration/openrndr-filter/org.openrndr.filter.color/linearize.html
+$dokka.location:org.openrndr.filter.color/Delinearize///PointingToDeclaration/openrndr-filter/org.openrndr.filter.color/-delinearize/index.html
+$dokka.location:org.openrndr.filter.color/Delinearize/Delinearize/#/PointingToDeclaration/openrndr-filter/org.openrndr.filter.color/-delinearize/-delinearize.html
+$dokka.location:org.openrndr.filter.color/HybridLogGamma///PointingToDeclaration/openrndr-filter/org.openrndr.filter.color/-hybrid-log-gamma/index.html
+$dokka.location:org.openrndr.filter.color/HybridLogGamma/HybridLogGamma/#/PointingToDeclaration/openrndr-filter/org.openrndr.filter.color/-hybrid-log-gamma/-hybrid-log-gamma.html
+$dokka.location:org.openrndr.filter.color/Linearize///PointingToDeclaration/openrndr-filter/org.openrndr.filter.color/-linearize/index.html
+$dokka.location:org.openrndr.filter.color/Linearize/Linearize/#/PointingToDeclaration/openrndr-filter/org.openrndr.filter.color/-linearize/-linearize.html
+org.openrndr.filter.color
+
