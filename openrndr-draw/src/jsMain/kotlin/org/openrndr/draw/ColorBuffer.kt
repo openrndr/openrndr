@@ -86,6 +86,13 @@ actual abstract class ColorBuffer {
         filter: MagnifyingFilter
     )
 
+    actual abstract fun copyTo(
+        target: ColorBuffer,
+        fromLevel: Int,
+        toLevel: Int,
+        filter: MagnifyingFilter
+    )
+
     /**
      * copies contents to a target array texture
      * @param target the color buffer to which contents will be copied

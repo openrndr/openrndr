@@ -124,6 +124,13 @@ actual abstract class ColorBuffer {
         filter: MagnifyingFilter
     )
 
+    actual abstract fun copyTo(
+        target: ColorBuffer,
+        fromLevel: Int,
+        toLevel: Int,
+        filter: MagnifyingFilter
+    )
+
     actual abstract fun copyTo(target: ArrayTexture, layer: Int, fromLevel: Int, toLevel: Int)
 
 

@@ -48,64 +48,64 @@ enum class TextureStorageModeGL {
 
 internal fun internalFormat(format: ColorFormat, type: ColorType): Pair<Int, Int> {
     val entries = arrayOf(
-            ConversionEntry(ColorFormat.R, ColorType.UINT8, GL_R8, GL_RED),
-            ConversionEntry(ColorFormat.R, ColorType.UINT8_INT, GL_R8UI, GL_RED_INTEGER),
-            ConversionEntry(ColorFormat.R, ColorType.SINT8_INT, GL_R8I, GL_RED_INTEGER),
-            ConversionEntry(ColorFormat.R, ColorType.UINT16, GL_R16, GL_RED),
-            ConversionEntry(ColorFormat.R, ColorType.UINT16_INT, GL_R16UI, GL_RED_INTEGER),
-            ConversionEntry(ColorFormat.R, ColorType.SINT16_INT, GL_RG16I, GL_RED_INTEGER),
-            ConversionEntry(ColorFormat.R, ColorType.UINT32_INT, GL_R32UI, GL_RED_INTEGER),
-            ConversionEntry(ColorFormat.R, ColorType.SINT32_INT, GL_RG32I, GL_RED_INTEGER),
+        ConversionEntry(ColorFormat.R, ColorType.UINT8, GL_R8, GL_RED),
+        ConversionEntry(ColorFormat.R, ColorType.UINT8_INT, GL_R8UI, GL_RED_INTEGER),
+        ConversionEntry(ColorFormat.R, ColorType.SINT8_INT, GL_R8I, GL_RED_INTEGER),
+        ConversionEntry(ColorFormat.R, ColorType.UINT16, GL_R16, GL_RED),
+        ConversionEntry(ColorFormat.R, ColorType.UINT16_INT, GL_R16UI, GL_RED_INTEGER),
+        ConversionEntry(ColorFormat.R, ColorType.SINT16_INT, GL_RG16I, GL_RED_INTEGER),
+        ConversionEntry(ColorFormat.R, ColorType.UINT32_INT, GL_R32UI, GL_RED_INTEGER),
+        ConversionEntry(ColorFormat.R, ColorType.SINT32_INT, GL_RG32I, GL_RED_INTEGER),
 
-            ConversionEntry(ColorFormat.R, ColorType.FLOAT16, GL_R16F, GL_RED),
-            ConversionEntry(ColorFormat.R, ColorType.FLOAT32, GL_R32F, GL_RED),
+        ConversionEntry(ColorFormat.R, ColorType.FLOAT16, GL_R16F, GL_RED),
+        ConversionEntry(ColorFormat.R, ColorType.FLOAT32, GL_R32F, GL_RED),
 
-            ConversionEntry(ColorFormat.RG, ColorType.UINT8, GL_RG8, GL_RG),
-            ConversionEntry(ColorFormat.RG, ColorType.UINT8_INT, GL_RG8UI, GL_RG_INTEGER),
-            ConversionEntry(ColorFormat.RG, ColorType.SINT16_INT, GL_RG16I, GL_RG_INTEGER),
-            ConversionEntry(ColorFormat.RG, ColorType.SINT32_INT, GL_RG32I, GL_RG_INTEGER),
-            ConversionEntry(ColorFormat.RG, ColorType.UINT16, GL_RG16, GL_RG),
-            ConversionEntry(ColorFormat.RG, ColorType.UINT16_INT, GL_RG16UI, GL_RG_INTEGER),
-            ConversionEntry(ColorFormat.RG, ColorType.UINT32_INT, GL_RG32UI, GL_RG_INTEGER),
+        ConversionEntry(ColorFormat.RG, ColorType.UINT8, GL_RG8, GL_RG),
+        ConversionEntry(ColorFormat.RG, ColorType.UINT8_INT, GL_RG8UI, GL_RG_INTEGER),
+        ConversionEntry(ColorFormat.RG, ColorType.SINT16_INT, GL_RG16I, GL_RG_INTEGER),
+        ConversionEntry(ColorFormat.RG, ColorType.SINT32_INT, GL_RG32I, GL_RG_INTEGER),
+        ConversionEntry(ColorFormat.RG, ColorType.UINT16, GL_RG16, GL_RG),
+        ConversionEntry(ColorFormat.RG, ColorType.UINT16_INT, GL_RG16UI, GL_RG_INTEGER),
+        ConversionEntry(ColorFormat.RG, ColorType.UINT32_INT, GL_RG32UI, GL_RG_INTEGER),
 
-            ConversionEntry(ColorFormat.RG, ColorType.FLOAT16, GL_RG16F, GL_RG),
-            ConversionEntry(ColorFormat.RG, ColorType.FLOAT32, GL_RG32F, GL_RG),
+        ConversionEntry(ColorFormat.RG, ColorType.FLOAT16, GL_RG16F, GL_RG),
+        ConversionEntry(ColorFormat.RG, ColorType.FLOAT32, GL_RG32F, GL_RG),
 
-            ConversionEntry(ColorFormat.RGB, ColorType.UINT8, GL_RGB8, GL_RGB),
-            ConversionEntry(ColorFormat.RGB, ColorType.UINT8_INT, GL_RGB8UI, GL_RGB_INTEGER),
-            ConversionEntry(ColorFormat.RGB, ColorType.UINT16, GL_RGB16, GL_RGB),
-            ConversionEntry(ColorFormat.RGB, ColorType.UINT16_INT, GL_RGB16UI, GL_RGB_INTEGER),
-            ConversionEntry(ColorFormat.RGB, ColorType.UINT32_INT, GL_RGB32UI, GL_RGB_INTEGER),
-            ConversionEntry(ColorFormat.RGB, ColorType.SINT16_INT, GL_RGB16I, GL_RGB_INTEGER),
-            ConversionEntry(ColorFormat.RGB, ColorType.SINT32_INT, GL_RGB32I, GL_RGB_INTEGER),
-            ConversionEntry(ColorFormat.RGB, ColorType.FLOAT16, GL_RGB16F, GL_RGB),
-            ConversionEntry(ColorFormat.RGB, ColorType.FLOAT32, GL_RGB32F, GL_RGB),
-            ConversionEntry(ColorFormat.BGR, ColorType.UINT8, GL_RGB8, GL_BGR),
+        ConversionEntry(ColorFormat.RGB, ColorType.UINT8, GL_RGB8, GL_RGB),
+        ConversionEntry(ColorFormat.RGB, ColorType.UINT8_INT, GL_RGB8UI, GL_RGB_INTEGER),
+        ConversionEntry(ColorFormat.RGB, ColorType.UINT16, GL_RGB16, GL_RGB),
+        ConversionEntry(ColorFormat.RGB, ColorType.UINT16_INT, GL_RGB16UI, GL_RGB_INTEGER),
+        ConversionEntry(ColorFormat.RGB, ColorType.UINT32_INT, GL_RGB32UI, GL_RGB_INTEGER),
+        ConversionEntry(ColorFormat.RGB, ColorType.SINT16_INT, GL_RGB16I, GL_RGB_INTEGER),
+        ConversionEntry(ColorFormat.RGB, ColorType.SINT32_INT, GL_RGB32I, GL_RGB_INTEGER),
+        ConversionEntry(ColorFormat.RGB, ColorType.FLOAT16, GL_RGB16F, GL_RGB),
+        ConversionEntry(ColorFormat.RGB, ColorType.FLOAT32, GL_RGB32F, GL_RGB),
+        ConversionEntry(ColorFormat.BGR, ColorType.UINT8, GL_RGB8, GL_BGR),
 
-            ConversionEntry(ColorFormat.RGBa, ColorType.UINT8, GL_RGBA8, GL_RGBA),
-            ConversionEntry(ColorFormat.RGBa, ColorType.UINT8_INT, GL_RGBA8UI, GL_RGBA_INTEGER),
-            ConversionEntry(ColorFormat.RGBa, ColorType.UINT16, GL_RGBA16, GL_RGBA),
-            ConversionEntry(ColorFormat.RGBa, ColorType.UINT16_INT, GL_RGBA16UI, GL_RGBA_INTEGER),
-            ConversionEntry(ColorFormat.RGBa, ColorType.SINT16_INT, GL_RGBA16I, GL_RGBA_INTEGER),
-            ConversionEntry(ColorFormat.RGBa, ColorType.UINT32_INT, GL_RGBA32UI, GL_RGBA_INTEGER),
-            ConversionEntry(ColorFormat.RGBa, ColorType.SINT32_INT, GL_RGBA32I, GL_RGBA_INTEGER),
-            ConversionEntry(ColorFormat.RGBa, ColorType.FLOAT16, GL_RGBA16F, GL_RGBA),
-            ConversionEntry(ColorFormat.RGBa, ColorType.FLOAT32, GL_RGBA32F, GL_RGBA),
+        ConversionEntry(ColorFormat.RGBa, ColorType.UINT8, GL_RGBA8, GL_RGBA),
+        ConversionEntry(ColorFormat.RGBa, ColorType.UINT8_INT, GL_RGBA8UI, GL_RGBA_INTEGER),
+        ConversionEntry(ColorFormat.RGBa, ColorType.UINT16, GL_RGBA16, GL_RGBA),
+        ConversionEntry(ColorFormat.RGBa, ColorType.UINT16_INT, GL_RGBA16UI, GL_RGBA_INTEGER),
+        ConversionEntry(ColorFormat.RGBa, ColorType.SINT16_INT, GL_RGBA16I, GL_RGBA_INTEGER),
+        ConversionEntry(ColorFormat.RGBa, ColorType.UINT32_INT, GL_RGBA32UI, GL_RGBA_INTEGER),
+        ConversionEntry(ColorFormat.RGBa, ColorType.SINT32_INT, GL_RGBA32I, GL_RGBA_INTEGER),
+        ConversionEntry(ColorFormat.RGBa, ColorType.FLOAT16, GL_RGBA16F, GL_RGBA),
+        ConversionEntry(ColorFormat.RGBa, ColorType.FLOAT32, GL_RGBA32F, GL_RGBA),
 
-            ConversionEntry(ColorFormat.sRGB, ColorType.UINT8, GL_SRGB8, GL_RGB),
-            ConversionEntry(ColorFormat.sRGBa, ColorType.UINT8, GL_SRGB8_ALPHA8, GL_RGBA),
-            ConversionEntry(ColorFormat.RGBa, ColorType.DXT1, GL_COMPRESSED_RGBA_S3TC_DXT1_EXT, GL_RGBA),
-            ConversionEntry(ColorFormat.RGBa, ColorType.DXT3, GL_COMPRESSED_RGBA_S3TC_DXT3_EXT, GL_RGBA),
-            ConversionEntry(ColorFormat.RGBa, ColorType.DXT5, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, GL_RGBA),
-            ConversionEntry(ColorFormat.RGB, ColorType.DXT1, GL_COMPRESSED_RGB_S3TC_DXT1_EXT, GL_RGBA),
-            ConversionEntry(ColorFormat.sRGBa, ColorType.DXT1, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT, GL_RGBA),
-            ConversionEntry(ColorFormat.sRGBa, ColorType.DXT3, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT, GL_RGBA),
-            ConversionEntry(ColorFormat.sRGBa, ColorType.DXT5, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT, GL_RGBA),
-            ConversionEntry(ColorFormat.sRGB, ColorType.DXT1, GL_COMPRESSED_SRGB_S3TC_DXT1_EXT, GL_RGBA),
-            ConversionEntry(ColorFormat.RGBa, ColorType.BPTC_UNORM, GL_COMPRESSED_RGBA_BPTC_UNORM_ARB, GL_RGBA),
-            ConversionEntry(ColorFormat.sRGBa, ColorType.BPTC_UNORM, GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM_ARB, GL_RGBA),
-            ConversionEntry(ColorFormat.RGB, ColorType.BPTC_FLOAT, GL_COMPRESSED_RGB_BPTC_SIGNED_FLOAT_ARB, GL_RGBA),
-            ConversionEntry(ColorFormat.RGB, ColorType.BPTC_UFLOAT, GL_COMPRESSED_RGB_BPTC_UNSIGNED_FLOAT_ARB, GL_RGBA)
+        ConversionEntry(ColorFormat.sRGB, ColorType.UINT8, GL_SRGB8, GL_RGB),
+        ConversionEntry(ColorFormat.sRGBa, ColorType.UINT8, GL_SRGB8_ALPHA8, GL_RGBA),
+        ConversionEntry(ColorFormat.RGBa, ColorType.DXT1, GL_COMPRESSED_RGBA_S3TC_DXT1_EXT, GL_RGBA),
+        ConversionEntry(ColorFormat.RGBa, ColorType.DXT3, GL_COMPRESSED_RGBA_S3TC_DXT3_EXT, GL_RGBA),
+        ConversionEntry(ColorFormat.RGBa, ColorType.DXT5, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, GL_RGBA),
+        ConversionEntry(ColorFormat.RGB, ColorType.DXT1, GL_COMPRESSED_RGB_S3TC_DXT1_EXT, GL_RGBA),
+        ConversionEntry(ColorFormat.sRGBa, ColorType.DXT1, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT, GL_RGBA),
+        ConversionEntry(ColorFormat.sRGBa, ColorType.DXT3, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT, GL_RGBA),
+        ConversionEntry(ColorFormat.sRGBa, ColorType.DXT5, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT, GL_RGBA),
+        ConversionEntry(ColorFormat.sRGB, ColorType.DXT1, GL_COMPRESSED_SRGB_S3TC_DXT1_EXT, GL_RGBA),
+        ConversionEntry(ColorFormat.RGBa, ColorType.BPTC_UNORM, GL_COMPRESSED_RGBA_BPTC_UNORM_ARB, GL_RGBA),
+        ConversionEntry(ColorFormat.sRGBa, ColorType.BPTC_UNORM, GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM_ARB, GL_RGBA),
+        ConversionEntry(ColorFormat.RGB, ColorType.BPTC_FLOAT, GL_COMPRESSED_RGB_BPTC_SIGNED_FLOAT_ARB, GL_RGBA),
+        ConversionEntry(ColorFormat.RGB, ColorType.BPTC_UFLOAT, GL_COMPRESSED_RGB_BPTC_UNSIGNED_FLOAT_ARB, GL_RGBA)
     )
     for (entry in entries) {
         if (entry.format === format && entry.type === type) {
@@ -121,17 +121,19 @@ private val IntProgression.size: Int
     }
 
 @Suppress("MemberVisibilityCanBePrivate")
-class ColorBufferGL3(val target: Int,
-                     val texture: Int,
-                     val storageMode: TextureStorageModeGL,
-                     override val width: Int,
-                     override val height: Int,
-                     override val contentScale: Double,
-                     override val format: ColorFormat,
-                     override val type: ColorType,
-                     override val levels: Int,
-                     override val multisample: BufferMultisample,
-                     override val session: Session?) : ColorBuffer() {
+class ColorBufferGL3(
+    val target: Int,
+    val texture: Int,
+    val storageMode: TextureStorageModeGL,
+    override val width: Int,
+    override val height: Int,
+    override val contentScale: Double,
+    override val format: ColorFormat,
+    override val type: ColorType,
+    override val levels: Int,
+    override val multisample: BufferMultisample,
+    override val session: Session?
+) : ColorBuffer() {
 
 
     private var destroyed = false
@@ -143,7 +145,16 @@ class ColorBufferGL3(val target: Int,
 
     companion object {
         fun fromColorBufferData(data: ColorBufferDataGL3, session: Session?): ColorBuffer {
-            val cb = create(data.width, data.height, 1.0, data.format, data.type, Disabled, 1 + data.mipmapData.size, session)
+            val cb = create(
+                data.width,
+                data.height,
+                1.0,
+                data.format,
+                data.type,
+                Disabled,
+                1 + data.mipmapData.size,
+                session
+            )
             return cb.apply {
                 this.flipV = data.flipV
                 val d = data.data
@@ -175,29 +186,48 @@ class ColorBufferGL3(val target: Int,
             return fromColorBufferData(data, session)
         }
 
-        fun fromStream(stream: InputStream, name: String?, formatHint: ImageFileFormat?, session: Session?): ColorBuffer {
+        fun fromStream(
+            stream: InputStream,
+            name: String?,
+            formatHint: ImageFileFormat?,
+            session: Session?
+        ): ColorBuffer {
             val data = ColorBufferDataGL3.fromStream(stream, name)
             return fromColorBufferData(data, session)
         }
 
-        fun fromArray(array: ByteArray, offset: Int = 0, length: Int = array.size, name: String?, formatHint: ImageFileFormat?, session: Session?): ColorBuffer {
+        fun fromArray(
+            array: ByteArray,
+            offset: Int = 0,
+            length: Int = array.size,
+            name: String?,
+            formatHint: ImageFileFormat?,
+            session: Session?
+        ): ColorBuffer {
             val data = ColorBufferDataGL3.fromArray(array, offset, length, name, formatHint)
             return fromColorBufferData(data, session)
         }
 
-        fun fromBuffer(buffer: ByteBuffer, name: String?, formatHint: ImageFileFormat?, session: Session?): ColorBuffer {
+        fun fromBuffer(
+            buffer: ByteBuffer,
+            name: String?,
+            formatHint: ImageFileFormat?,
+            session: Session?
+        ): ColorBuffer {
             val data = ColorBufferDataGL3.fromByteBuffer(buffer, name, formatHint)
             return fromColorBufferData(data, session)
         }
 
-        fun create(width: Int,
-                   height: Int,
-                   contentScale: Double = 1.0,
-                   format: ColorFormat = ColorFormat.RGBa,
-                   type: ColorType = ColorType.FLOAT32,
-                   multisample: BufferMultisample,
-                   levels: Int,
-                   session: Session?): ColorBufferGL3 {
+        fun create(
+            width: Int,
+            height: Int,
+            contentScale: Double = 1.0,
+            format: ColorFormat = ColorFormat.RGBa,
+            type: ColorType = ColorType.FLOAT32,
+            multisample: BufferMultisample,
+            levels: Int,
+            session: Session?
+        ): ColorBufferGL3 {
             val (internalFormat, internalType) = internalFormat(format, type)
             if (width <= 0 || height <= 0) {
                 throw Exception("cannot create ColorBuffer with dimensions: ${width}x$height")
@@ -236,8 +266,25 @@ class ColorBufferGL3(val target: Int,
                         val div = 1 shl level
                         when (multisample) {
                             Disabled ->
-                                glTexImage2D(GL_TEXTURE_2D, level, internalFormat, effectiveWidth / div, effectiveHeight / div, 0, internalType, GL_UNSIGNED_BYTE, nullBB)
-                            is SampleCount -> glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, multisample.sampleCount.coerceAtMost(glGetInteger(GL_MAX_COLOR_TEXTURE_SAMPLES)), internalFormat, effectiveWidth / div, effectiveHeight / div, true)
+                                glTexImage2D(
+                                    GL_TEXTURE_2D,
+                                    level,
+                                    internalFormat,
+                                    effectiveWidth / div,
+                                    effectiveHeight / div,
+                                    0,
+                                    internalType,
+                                    GL_UNSIGNED_BYTE,
+                                    nullBB
+                                )
+                            is SampleCount -> glTexImage2DMultisample(
+                                GL_TEXTURE_2D_MULTISAMPLE,
+                                multisample.sampleCount.coerceAtMost(glGetInteger(GL_MAX_COLOR_TEXTURE_SAMPLES)),
+                                internalFormat,
+                                effectiveWidth / div,
+                                effectiveHeight / div,
+                                true
+                            )
                         }
                     }
                 }
@@ -245,7 +292,14 @@ class ColorBufferGL3(val target: Int,
                     when (multisample) {
                         Disabled ->
                             glTexStorage2D(GL_TEXTURE_2D, levels, internalFormat, effectiveWidth, effectiveHeight)
-                        is SampleCount -> glTexStorage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, multisample.sampleCount.coerceAtMost(glGetInteger(GL_MAX_COLOR_TEXTURE_SAMPLES)), internalFormat, effectiveWidth, effectiveHeight, true)
+                        is SampleCount -> glTexStorage2DMultisample(
+                            GL_TEXTURE_2D_MULTISAMPLE,
+                            multisample.sampleCount.coerceAtMost(glGetInteger(GL_MAX_COLOR_TEXTURE_SAMPLES)),
+                            internalFormat,
+                            effectiveWidth,
+                            effectiveHeight,
+                            true
+                        )
                     }
                 }
             }
@@ -270,7 +324,19 @@ class ColorBufferGL3(val target: Int,
                 checkGLErrors()
             }
 
-            return ColorBufferGL3(target, texture, storageMode, width, height, contentScale, format, type, levels, multisample, session)
+            return ColorBufferGL3(
+                target,
+                texture,
+                storageMode,
+                width,
+                height,
+                contentScale,
+                format,
+                type,
+                levels,
+                multisample,
+                session
+            )
         }
     }
 
@@ -301,6 +367,22 @@ class ColorBufferGL3(val target: Int,
         }
     }
 
+    override fun copyTo(target: ColorBuffer, fromLevel: Int, toLevel: Int, filter: MagnifyingFilter) {
+        val sourceRectangle: IntRectangle = IntRectangle(
+            0,
+            0,
+            this.effectiveWidth / (1 shl fromLevel),
+            this.effectiveHeight / (1 shl fromLevel)
+        )
+        val targetRectangle: IntRectangle = IntRectangle(
+            0,
+            0,
+            sourceRectangle.width,
+            sourceRectangle.height
+        )
+        copyTo(target, fromLevel, toLevel, sourceRectangle, targetRectangle, filter)
+    }
+
     override fun copyTo(
         target: ColorBuffer,
         fromLevel: Int,
@@ -315,23 +397,24 @@ class ColorBufferGL3(val target: Int,
         val toDiv = 1 shl toLevel
         val refRectangle = IntRectangle(0, 0, effectiveWidth / fromDiv, effectiveHeight / fromDiv)
 
-        val useTexSubImage = target.type.compressed || (refRectangle == sourceRectangle && refRectangle == targetRectangle && multisample == target.multisample)
+        val useTexSubImage =
+            target.type.compressed || (refRectangle == sourceRectangle && refRectangle == targetRectangle && multisample == target.multisample)
 
         if (!useTexSubImage) {
             val readTarget = renderTarget(
-                    width / fromDiv,
-                    height / fromDiv,
-                    contentScale,
-                    multisample = multisample
+                width / fromDiv,
+                height / fromDiv,
+                contentScale,
+                multisample = multisample
             ) {
                 colorBuffer(this@ColorBufferGL3, fromLevel)
             } as RenderTargetGL3
 
             val writeTarget = renderTarget(
-                    target.width / toDiv,
-                    target.height / toDiv,
-                    target.contentScale,
-                    multisample = target.multisample
+                target.width / toDiv,
+                target.height / toDiv,
+                target.contentScale,
+                multisample = target.multisample
             ) {
                 colorBuffer(target, toLevel)
             } as RenderTargetGL3
@@ -357,7 +440,18 @@ class ColorBufferGL3(val target: Int,
                 return target.effectiveHeight / toDiv - y
             }
 
-            glBlitFramebuffer(ssx, sflip(ssy), sex, sflip(sey), tsx, tflip(tsy), tex, tflip(tey), GL_COLOR_BUFFER_BIT, filter.toGLFilter())
+            glBlitFramebuffer(
+                ssx,
+                sflip(ssy),
+                sex,
+                sflip(sey),
+                tsx,
+                tflip(tsy),
+                tex,
+                tflip(tey),
+                GL_COLOR_BUFFER_BIT,
+                filter.toGLFilter()
+            )
             writeTarget.unbind()
 
             writeTarget.detachColorAttachments()
@@ -370,7 +464,8 @@ class ColorBufferGL3(val target: Int,
                 "cropped or scaled copyTo is not allowed with the selected color buffers: ${this} -> ${target}"
             }
 
-            val useFrameBufferCopy = true // Driver.glVersion < DriverVersionGL.VERSION_4_3 || (type != target.type || format != target.format)
+            val useFrameBufferCopy =
+                true // Driver.glVersion < DriverVersionGL.VERSION_4_3 || (type != target.type || format != target.format)
 
             if (useFrameBufferCopy) {
                 checkDestroyed()
@@ -383,7 +478,16 @@ class ColorBufferGL3(val target: Int,
                 glReadBuffer(GL_COLOR_ATTACHMENT0)
                 debugGLErrors()
                 target.bound {
-                    glCopyTexSubImage2D(target.target, toLevel, 0, 0, 0, 0, target.effectiveWidth / toDiv, target.effectiveHeight / toDiv)
+                    glCopyTexSubImage2D(
+                        target.target,
+                        toLevel,
+                        0,
+                        0,
+                        0,
+                        0,
+                        target.effectiveWidth / toDiv,
+                        target.effectiveHeight / toDiv
+                    )
                     debugGLErrors() {
                         when (it) {
                             GL_INVALID_VALUE -> "level ($toLevel) less than 0, effective target is GL_TEXTURE_RECTANGLE (${target.target == GL_TEXTURE_RECTANGLE} and level is not 0"
@@ -398,21 +502,21 @@ class ColorBufferGL3(val target: Int,
             } else {
                 target as ColorBufferGL3
                 GL43C.glCopyImageSubData(
-                        texture,
-                        this.target,
-                        fromLevel,
-                        0,
-                        0,
-                        0,
-                        target.texture,
-                        target.target,
-                        toLevel,
-                        0,
-                        0,
-                        0,
-                        effectiveWidth,
-                        effectiveHeight,
-                        1
+                    texture,
+                    this.target,
+                    fromLevel,
+                    0,
+                    0,
+                    0,
+                    target.texture,
+                    target.target,
+                    toLevel,
+                    0,
+                    0,
+                    0,
+                    effectiveWidth,
+                    effectiveHeight,
+                    1
                 )
                 debugGLErrors()
             }
@@ -423,8 +527,8 @@ class ColorBufferGL3(val target: Int,
         debugGLErrors() {
             "leaking error"
         }
-        require(fromLevel < this.levels) { """requested to copy from mipmap level $fromLevel, but source colorbuffer has $levels mipmap levels."""}
-        require(toLevel < target.levels) { """requested to copy to mipmap level $toLevel, but target array texture only has $levels mipmap levels."""}
+        require(fromLevel < this.levels) { """requested to copy from mipmap level $fromLevel, but source colorbuffer has $levels mipmap levels.""" }
+        require(toLevel < target.levels) { """requested to copy to mipmap level $toLevel, but target array texture only has $levels mipmap levels.""" }
 
         if (!type.compressed) {
             checkDestroyed()
@@ -441,7 +545,17 @@ class ColorBufferGL3(val target: Int,
             debugGLErrors()
 
             target.bound {
-                glCopyTexSubImage3D(target.target, toLevel, 0, 0, layer, 0, 0, target.width / toDiv, target.height / toDiv)
+                glCopyTexSubImage3D(
+                    target.target,
+                    toLevel,
+                    0,
+                    0,
+                    layer,
+                    0,
+                    0,
+                    target.width / toDiv,
+                    target.height / toDiv
+                )
                 debugGLErrors() {
                     when (it) {
                         GL_INVALID_FRAMEBUFFER_OPERATION -> "the object bound to GL_READ_FRAMEBUFFER_BINDING is not framebuffer complete."
@@ -458,7 +572,23 @@ class ColorBufferGL3(val target: Int,
                 if (Driver.glVersion >= DriverVersionGL.VERSION_4_3) {
                     val tgl = target as ArrayTextureGL3
                     val fromDiv = 1 shl fromLevel
-                    glCopyImageSubData(texture, this.target, fromLevel, 0, 0, 0, tgl.texture, tgl.target, toLevel, 0, 0, layer, effectiveWidth / fromDiv, effectiveHeight / fromDiv, 1)
+                    glCopyImageSubData(
+                        texture,
+                        this.target,
+                        fromLevel,
+                        0,
+                        0,
+                        0,
+                        tgl.texture,
+                        tgl.target,
+                        toLevel,
+                        0,
+                        0,
+                        layer,
+                        effectiveWidth / fromDiv,
+                        effectiveHeight / fromDiv,
+                        1
+                    )
                 } else {
                     val copyBuffer = MemoryUtil.memAlloc(bufferSize(fromLevel).toInt())
                     try {
@@ -495,7 +625,13 @@ class ColorBufferGL3(val target: Int,
                 writeTarget.destroy()
             }
             else -> {
-                GL44C.glClearTexImage(texture, 0, ColorFormat.RGBa.glFormat(), ColorType.FLOAT32.glType(), floatColorData)
+                GL44C.glClearTexImage(
+                    texture,
+                    0,
+                    ColorFormat.RGBa.glFormat(),
+                    ColorType.FLOAT32.glType(),
+                    floatColorData
+                )
                 debugGLErrors()
             }
         }
@@ -572,7 +708,8 @@ class ColorBufferGL3(val target: Int,
             throw IllegalArgumentException("buffer is not a direct buffer.")
         }
         if (!sourceType.compressed) {
-            val bytesNeeded = sourceFormat.componentCount * sourceType.componentSize * (effectiveWidth / div) * (effectiveHeight / div)
+            val bytesNeeded =
+                sourceFormat.componentCount * sourceType.componentSize * (effectiveWidth / div) * (effectiveHeight / div)
             require(bytesNeeded <= sourceBuffer.remaining()) {
                 "write requires $bytesNeeded bytes, buffer only has ${sourceBuffer.remaining()} bytes left, buffer capacity is ${sourceBuffer.capacity()}"
             }
@@ -591,7 +728,16 @@ class ColorBufferGL3(val target: Int,
                 glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
 
                 if (sourceType.compressed) {
-                    glCompressedTexSubImage2D(target, level, 0, 0, width / div, height / div, compressedType(sourceFormat, sourceType), sourceBuffer)
+                    glCompressedTexSubImage2D(
+                        target,
+                        level,
+                        0,
+                        0,
+                        width / div,
+                        height / div,
+                        compressedType(sourceFormat, sourceType),
+                        sourceBuffer
+                    )
                     debugGLErrors {
                         when (it) {
                             GL_INVALID_VALUE -> "data size mismatch? ${sourceBuffer.remaining()}"
@@ -599,7 +745,17 @@ class ColorBufferGL3(val target: Int,
                         }
                     }
                 } else {
-                    glTexSubImage2D(target, level, 0, 0, width / div, height / div, sourceFormat.glFormat(), sourceType.glType(), sourceBuffer)
+                    glTexSubImage2D(
+                        target,
+                        level,
+                        0,
+                        0,
+                        width / div,
+                        height / div,
+                        sourceFormat.glFormat(),
+                        sourceType.glType(),
+                        sourceBuffer
+                    )
                     debugGLErrors()
                 }
                 glPixelStorei(GL_UNPACK_ALIGNMENT, currentPack[0])
@@ -671,7 +827,8 @@ class ColorBufferGL3(val target: Int,
                 runBlocking {
                     val job = GlobalScope.launch {
                         if (!flipV) {
-                            val flippedPixels = BufferUtils.createByteBuffer(effectiveWidth * effectiveHeight * format.componentCount)
+                            val flippedPixels =
+                                BufferUtils.createByteBuffer(effectiveWidth * effectiveHeight * format.componentCount)
                             (flippedPixels as Buffer).rewind()
                             val stride = effectiveWidth * format.componentCount
                             val row = ByteArray(stride)
@@ -688,13 +845,15 @@ class ColorBufferGL3(val target: Int,
 
                         when (imageFileFormat) {
                             ImageFileFormat.JPG -> STBImageWrite.stbi_write_jpg(
-                                    file.absolutePath,
-                                    effectiveWidth, effectiveHeight,
-                                    format.componentCount, pixels, 90)
+                                file.absolutePath,
+                                effectiveWidth, effectiveHeight,
+                                format.componentCount, pixels, 90
+                            )
                             ImageFileFormat.PNG -> STBImageWrite.stbi_write_png(
-                                    file.absolutePath,
-                                    effectiveWidth, effectiveHeight,
-                                    format.componentCount, pixels, effectiveWidth * format.componentCount)
+                                file.absolutePath,
+                                effectiveWidth, effectiveHeight,
+                                format.componentCount, pixels, effectiveWidth * format.componentCount
+                            )
                             else -> error("format not supported")
                         }
                     }
@@ -717,19 +876,29 @@ class ColorBufferGL3(val target: Int,
                 exrHeader.num_channels(3)
 
                 val exrChannels = EXRChannelInfo.calloc(3)
-                exrChannels[0].name(ByteBuffer.allocateDirect(2).apply { put('B'.toByte()); put(0.toByte()); (this as Buffer).rewind() })
-                exrChannels[1].name(ByteBuffer.allocateDirect(2).apply { put('G'.toByte()); put(0.toByte()); (this as Buffer).rewind() })
-                exrChannels[2].name(ByteBuffer.allocateDirect(2).apply { put('R'.toByte()); put(0.toByte()); (this as Buffer).rewind() })
+                exrChannels[0].name(
+                    ByteBuffer.allocateDirect(2)
+                        .apply { put('B'.toByte()); put(0.toByte()); (this as Buffer).rewind() })
+                exrChannels[1].name(
+                    ByteBuffer.allocateDirect(2)
+                        .apply { put('G'.toByte()); put(0.toByte()); (this as Buffer).rewind() })
+                exrChannels[2].name(
+                    ByteBuffer.allocateDirect(2)
+                        .apply { put('R'.toByte()); put(0.toByte()); (this as Buffer).rewind() })
 
                 exrHeader.channels(exrChannels)
 
-                val data = ByteBuffer.allocateDirect(type.componentSize * 3 * effectiveWidth * effectiveHeight).order(ByteOrder.nativeOrder())
+                val data = ByteBuffer.allocateDirect(type.componentSize * 3 * effectiveWidth * effectiveHeight)
+                    .order(ByteOrder.nativeOrder())
                 (data as Buffer).rewind()
                 read(data, targetFormat = ColorFormat.RGB)
                 (data as Buffer).rewind()
-                val bBuffer = ByteBuffer.allocateDirect(effectiveWidth * effectiveHeight * 4).order(ByteOrder.nativeOrder())
-                val gBuffer = ByteBuffer.allocateDirect(effectiveWidth * effectiveHeight * 4).order(ByteOrder.nativeOrder())
-                val rBuffer = ByteBuffer.allocateDirect(effectiveWidth * effectiveHeight * 4).order(ByteOrder.nativeOrder())
+                val bBuffer =
+                    ByteBuffer.allocateDirect(effectiveWidth * effectiveHeight * 4).order(ByteOrder.nativeOrder())
+                val gBuffer =
+                    ByteBuffer.allocateDirect(effectiveWidth * effectiveHeight * 4).order(ByteOrder.nativeOrder())
+                val rBuffer =
+                    ByteBuffer.allocateDirect(effectiveWidth * effectiveHeight * 4).order(ByteOrder.nativeOrder())
 
                 // -- de-interleave and flip data
                 for (y in 0 until height) {
@@ -829,13 +998,15 @@ class ColorBufferGL3(val target: Int,
 
         when (imageFileFormat) {
             ImageFileFormat.JPG -> STBImageWrite.stbi_write_jpg_to_func(
-                    writeFunc, 0L,
-                    effectiveWidth, effectiveHeight,
-                    format.componentCount, pixels, 90)
+                writeFunc, 0L,
+                effectiveWidth, effectiveHeight,
+                format.componentCount, pixels, 90
+            )
             ImageFileFormat.PNG -> STBImageWrite.stbi_write_png_to_func(
-                    writeFunc, 0L,
-                    effectiveWidth, effectiveHeight,
-                    format.componentCount, pixels, effectiveWidth * format.componentCount)
+                writeFunc, 0L,
+                effectiveWidth, effectiveHeight,
+                format.componentCount, pixels, effectiveWidth * format.componentCount
+            )
             else -> {
                 // do nothing
             }

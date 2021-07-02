@@ -189,6 +189,23 @@ class ColorBufferWebGL(
 
     override var flipV: Boolean = false
 
+    override fun copyTo(target: ColorBuffer, fromLevel: Int, toLevel: Int, filter: MagnifyingFilter) {
+        val sourceRectangle: IntRectangle = IntRectangle(
+            0,
+            0,
+            this.effectiveWidth / (1 shl fromLevel),
+            this.effectiveHeight / (1 shl fromLevel)
+        )
+        val targetRectangle: IntRectangle = IntRectangle(
+            0,
+            0,
+            sourceRectangle.width,
+            sourceRectangle.height
+        )
+        copyTo(target, fromLevel, toLevel, sourceRectangle, targetRectangle, filter)
+    }
+
+
     override fun copyTo(
         target: ColorBuffer,
         fromLevel: Int,

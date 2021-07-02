@@ -135,35 +135,41 @@ expect abstract class ColorBuffer {
 
 
 
-    abstract fun copyTo(
-        target: ColorBuffer,
-        fromLevel: Int = 0,
-        toLevel: Int = 0,
-        sourceRectangle: IntRectangle = IntRectangle(
-            0,
-            0,
-            this.effectiveWidth / (1 shl fromLevel),
-            this.effectiveHeight / (1 shl fromLevel)
-        ),
-        targetRectangle: IntRectangle = IntRectangle(
-            0,
-            0,
-            sourceRectangle.width,
-            sourceRectangle.height
-        ),
-        filter: MagnifyingFilter = MagnifyingFilter.NEAREST
-    )
-
-    // TODO restore default arguments when https://youtrack.jetbrains.com/issue/KT-45542 is fixed
 //    abstract fun copyTo(
 //        target: ColorBuffer,
 //        fromLevel: Int = 0,
 //        toLevel: Int = 0,
-//        sourceRectangle: IntRectangle,
-//        targetRectangle: IntRectangle,
+//        sourceRectangle: IntRectangle = IntRectangle(
+//            0,
+//            0,
+//            this.effectiveWidth / (1 shl fromLevel),
+//            this.effectiveHeight / (1 shl fromLevel)
+//        ),
+//        targetRectangle: IntRectangle = IntRectangle(
+//            0,
+//            0,
+//            sourceRectangle.width,
+//            sourceRectangle.height
+//        ),
 //        filter: MagnifyingFilter = MagnifyingFilter.NEAREST
 //    )
 
+    // TODO restore default arguments when https://youtrack.jetbrains.com/issue/KT-45542 is fixed
+    abstract fun copyTo(
+        target: ColorBuffer,
+        fromLevel: Int = 0,
+        toLevel: Int = 0,
+        sourceRectangle: IntRectangle,
+        targetRectangle: IntRectangle,
+        filter: MagnifyingFilter = MagnifyingFilter.NEAREST
+    )
+
+    abstract fun copyTo(
+        target: ColorBuffer,
+        fromLevel: Int = 0,
+        toLevel: Int = 0,
+        filter: MagnifyingFilter = MagnifyingFilter.NEAREST
+    )
 
 
     /**
