@@ -613,6 +613,7 @@ class DriverWebGL(val context: GL) : Driver {
             #define OR_GL_FRAGCOLOR
             #define OR_VARYINGS
             #define OR_WEBGL1
+            #define OR_GL_TEXTURE2D
         """.trimIndent()
     }
 }

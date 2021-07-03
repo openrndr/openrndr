@@ -37,27 +37,36 @@ open class Filter(private val shader: Shader? = null, private val watcher: Shade
     var depthBufferOut: DepthBuffer? = null
 
     companion object {
-        val filterVertexCode = """
-// openrndr - gl3 - filter.vert
+        val filterVertexCode: String
+            get() {
+                return Driver.instance.shaderConfiguration() + """
 
-#version 330
-
+#ifdef OR_IN_OUT
 in vec2 a_texCoord0;
 in vec2 a_position;
+#else
+attribute vec2 a_texCoord0;
+attribute vec2 a_position;
+#endif
 
 uniform vec2 targetSize;
 uniform vec2 padding;
 uniform mat4 projectionMatrix;
 
+#ifdef OR_IN_OUT
 out vec2 v_texCoord0;
+#else
+varying vec2 v_texCoord0;
+#endif
 
 void main() {
     v_texCoord0 = a_texCoord0;
-    vec2 transformed = a_position * (targetSize - 2*padding) + padding;
+    vec2 transformed = a_position * (targetSize - 2.0 * padding) + padding;
     gl_Position = projectionMatrix * vec4(transformed, 0.0, 1.0);
 }"""
-    }
 
+            }
+    }
 
 //    fun apply(source: RenderTarget, target: RenderTarget) {
 //        apply(source.colorBuffers.toTypedArray(), target)
@@ -115,11 +124,15 @@ void main() {
         source.forEachIndexed { index, colorBuffer ->
             colorBuffer.bind(index)
             shader.uniform("tex$index", index)
+            shader.uniform("textureSize$index", Vector2(colorBuffer.effectiveWidth.toDouble(), colorBuffer.effectiveHeight.toDouble()))
         }
 
         Driver.instance.setState(filterDrawStyle)
 
-        shader.uniform("projectionMatrix", ortho(0.0, target.width.toDouble(), target.height.toDouble(), 0.0, -1.0, 1.0))
+        shader.uniform(
+            "projectionMatrix",
+            ortho(0.0, target.width.toDouble(), target.height.toDouble(), 0.0, -1.0, 1.0)
+        )
         shader.uniform("targetSize", Vector2(target.width.toDouble(), target.height.toDouble()))
         shader.uniform("padding", Vector2(padding.toDouble(), padding.toDouble()))
 
@@ -127,9 +140,9 @@ void main() {
         parameters.forEach { (uniform, value) ->
             @Suppress("UNCHECKED_CAST")
             when (value) {
+                is Double -> shader.uniform(uniform, value.toFloat())
                 is Boolean -> shader.uniform(uniform, value)
                 is Float -> shader.uniform(uniform, value)
-                is Double -> shader.uniform(uniform, value.toFloat())
                 is Matrix44 -> shader.uniform(uniform, value)
                 is Vector2 -> shader.uniform(uniform, value)
                 is Vector3 -> shader.uniform(uniform, value)
@@ -164,6 +177,7 @@ void main() {
 
                 is ColorBuffer -> {
                     shader.uniform("$uniform", textureIndex)
+                    shader.uniform("textureSize$textureIndex", Vector2(value.effectiveWidth.toDouble(), value.effectiveHeight.toDouble()))
                     value.bind(textureIndex)
                     textureIndex++
                 }
