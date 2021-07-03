@@ -126,7 +126,9 @@ open class RenderTargetWebGL(
     }
 
     override fun detachDepthBuffer() {
-        TODO("Not yet implemented")
+        bound {
+            context.framebufferRenderbuffer(GL.FRAMEBUFFER, GL.DEPTH_ATTACHMENT, GL.RENDERBUFFER, null)
+        }
     }
 
     override fun destroy() {

@@ -20,7 +20,7 @@ val applicationWebGLInitializer = object {
     }
 }
 
-class ApplicationWebGL(private val program: Program, private val configuration: Configuration) : Application(){
+class ApplicationWebGL(private val program: Program, private val configuration: Configuration) : Application() {
     init {
         program.application = this
     }
@@ -43,23 +43,36 @@ class ApplicationWebGL(private val program: Program, private val configuration: 
     var context: WebGLRenderingContext? = null
     var defaultRenderTarget: ProgramRenderTargetWebGL? = null
     override suspend fun setup() {
-        canvas = document.getElementById(configuration.canvasId) as? HTMLCanvasElement ?: error("failed to get canvas #${configuration.canvasId}")
+        canvas = document.getElementById(configuration.canvasId) as? HTMLCanvasElement
+            ?: error("failed to get canvas #${configuration.canvasId}")
         context = canvas?.getContext("webgl") as? WebGLRenderingContext ?: error("failed to create webgl context")
-        Driver.driver = DriverWebGL(context?:error("no context"))
+        Driver.driver = DriverWebGL(context ?: error("no context"))
         program.drawer = Drawer(Driver.instance)
         referenceTime = window.performance.now()
 
         val dpr = min(configuration.maxContentScale, window.devicePixelRatio)
 
-        canvas?.width = (dpr * (canvas?.clientWidth?:error("no width"))).toInt()
-        canvas?.height = (dpr * (canvas?.clientHeight?:error("no height"))).toInt()
+        canvas?.width = (dpr * (canvas?.clientWidth ?: error("no width"))).toInt()
+        canvas?.height = (dpr * (canvas?.clientHeight ?: error("no height"))).toInt()
 
         program.setup()
 
         window.addEventListener("resize", {
             val resizeDpr = min(configuration.maxContentScale, window.devicePixelRatio)
-            canvas?.width = (resizeDpr * (canvas?.clientWidth?:error("no width"))).toInt()
-            canvas?.height = (resizeDpr * (canvas?.clientHeight?:error("no height"))).toInt()
+            canvas?.width = (resizeDpr * (canvas?.clientWidth ?: error("no width"))).toInt()
+            canvas?.height = (resizeDpr * (canvas?.clientHeight ?: error("no height"))).toInt()
+
+            val newWidth = canvas?.clientWidth?.toDouble() ?: error("no canvas")
+            val newHeight = canvas?.clientHeight?.toDouble() ?: error("no canvas")
+
+            program.window.sized.trigger(
+                WindowEvent(
+                    WindowEventType.RESIZED,
+                    Vector2(0.0, 0.0),
+                    Vector2(newWidth, newHeight),
+                    true
+                )
+            )
         })
 
 
@@ -82,7 +95,16 @@ class ApplicationWebGL(private val program: Program, private val configuration: 
             val x = it.clientX.toDouble()
             val y = it.clientY.toDouble()
             this.cursorPosition = Vector2(x, y)
-            program.mouse.moved.trigger(MouseEvent(cursorPosition, Vector2.ZERO, Vector2.ZERO, MouseEventType.MOVED, MouseButton.NONE, emptySet()))
+            program.mouse.moved.trigger(
+                MouseEvent(
+                    cursorPosition,
+                    Vector2.ZERO,
+                    Vector2.ZERO,
+                    MouseEventType.MOVED,
+                    MouseButton.NONE,
+                    emptySet()
+                )
+            )
         })
 
         window.addEventListener("mousemove", {
@@ -106,7 +128,7 @@ class ApplicationWebGL(private val program: Program, private val configuration: 
         })
 
 
-        defaultRenderTarget = ProgramRenderTargetWebGL(context?:error("no context"), program)
+        defaultRenderTarget = ProgramRenderTargetWebGL(context ?: error("no context"), program)
         defaultRenderTarget?.bind()
     }
 
@@ -138,8 +160,8 @@ class ApplicationWebGL(private val program: Program, private val configuration: 
         set(value) {}
     override var windowSize: Vector2
         get() {
-            val width = canvas?.clientWidth?.toDouble()?:0.0
-            val height = canvas?.clientHeight?.toDouble()?:0.0
+            val width = canvas?.clientWidth?.toDouble() ?: 0.0
+            val height = canvas?.clientHeight?.toDouble() ?: 0.0
             return Vector2(width, height)
         }
         set(value) {
@@ -157,9 +179,9 @@ class ApplicationWebGL(private val program: Program, private val configuration: 
         set(value) {}
     override var cursorType: CursorType = CursorType.ARROW_CURSOR
     override val seconds: Double
-    get() {
-        return (window.performance.now() - referenceTime) / 1000.0
-    }
+        get() {
+            return (window.performance.now() - referenceTime) / 1000.0
+        }
 
     override var presentationMode: PresentationMode = PresentationMode.AUTOMATIC
     override var windowContentScale: Double
