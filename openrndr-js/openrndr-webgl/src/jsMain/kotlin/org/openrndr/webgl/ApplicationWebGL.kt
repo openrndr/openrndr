@@ -2,6 +2,7 @@ package org.openrndr.webgl
 
 import kotlinx.browser.document
 import kotlinx.browser.window
+import org.khronos.webgl.WebGLContextAttributes
 import org.khronos.webgl.WebGLRenderingContext
 import org.openrndr.*
 import org.openrndr.draw.Drawer
@@ -45,7 +46,8 @@ class ApplicationWebGL(private val program: Program, private val configuration: 
     override suspend fun setup() {
         canvas = document.getElementById(configuration.canvasId) as? HTMLCanvasElement
             ?: error("failed to get canvas #${configuration.canvasId}")
-        context = canvas?.getContext("webgl") as? WebGLRenderingContext ?: error("failed to create webgl context")
+        val contextAttributes = WebGLContextAttributes(stencil = true)
+        context = canvas?.getContext("webgl", contextAttributes) as? WebGLRenderingContext ?: error("failed to create webgl context")
         Driver.driver = DriverWebGL(context ?: error("no context"))
         program.drawer = Drawer(Driver.instance)
         referenceTime = window.performance.now()
