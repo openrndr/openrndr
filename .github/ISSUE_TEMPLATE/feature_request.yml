@@ -1,0 +1,54 @@
+name: "Feature Request"
+description: "Suggest an idea or general improvement."
+title: ""
+labels: ["enhancement"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for taking the time to suggest a new feature! Please fill out this form as completely as possible.
+  - type: textarea
+    attributes:
+      label: Motivation
+      description: |
+        A quick, clear and concise description of what the problem is.
+
+        **Please include links to relevant issues, Slack convos, and anything else.**
+      placeholder: I want to be able to...
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Proposed Solution
+      description: Your take on one (or more) possible solution(s) to problem.
+      value: |
+        ### Possible solutions
+
+        ### Alternatives considered
+
+        ### Risks, downsides, and/or tradeoffs
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Detailed Design
+      description: |
+        🛑 **Just looking for feedback on an idea? Leave this section blank.**
+
+        Otherwise, explain the exact steps required to implement this change.
+        Include specific details that would help someone implement this feature.
+  - type: textarea
+    attributes:
+      label: Open Questions
+      description: |
+        Are there any open questions remaining? List them here.
+  - type: checkboxes
+    attributes:
+      label: Help make it happen!
+      description: "Feature requests with contributing authors are much more likely to get done!"
+      options:
+        - label: I am willing to submit a PR to implement this change.
+        - label: I am willing to submit a PR to implement this change, but would need some guidance.
+        - label: I am not willing to submit a PR to implement this change.
+    validations:
+      required: true
