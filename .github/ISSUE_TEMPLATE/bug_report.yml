@@ -1,0 +1,41 @@
+name: "Bug Report"
+description: Report an issue or possible bug
+title: ""
+labels: ["bug"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: Thank you for taking the time to file a bug report! Please fill out this form as completely as possible.
+  - type: input
+    attributes:
+      label: Operating System
+      placeholder: Mac, Windows, Linux
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: OPENRNDR version
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Java version
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Describe the Bug
+      description: A clear and concise description of what the bug is.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Steps to Reproduce
+      description: Describe the steps taken or paste/link a minimal code example that we can reproduce ourselves.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Screenshots (Optional)
+      description: Link or drag & drop images showcasing the bug.
