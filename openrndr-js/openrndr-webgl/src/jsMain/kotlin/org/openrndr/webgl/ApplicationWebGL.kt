@@ -132,8 +132,11 @@ class ApplicationWebGL(private val program: Program, private val configuration: 
         defaultRenderTarget = ProgramRenderTargetWebGL(context ?: error("no context"), program)
         defaultRenderTarget?.bind()
 
-        program.setup()
 
+        val dims = windowSize
+        program.width = dims.x.toInt()
+        program.height = dims.y.toInt()
+        program.setup()
     }
 
     override fun loop() {
