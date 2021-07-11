@@ -57,7 +57,6 @@ class ApplicationWebGL(private val program: Program, private val configuration: 
         canvas?.width = (dpr * (canvas?.clientWidth ?: error("no width"))).toInt()
         canvas?.height = (dpr * (canvas?.clientHeight ?: error("no height"))).toInt()
 
-        program.setup()
 
         window.addEventListener("resize", {
             val resizeDpr = min(configuration.maxContentScale, window.devicePixelRatio)
@@ -132,6 +131,9 @@ class ApplicationWebGL(private val program: Program, private val configuration: 
 
         defaultRenderTarget = ProgramRenderTargetWebGL(context ?: error("no context"), program)
         defaultRenderTarget?.bind()
+
+        program.setup()
+
     }
 
     override fun loop() {
