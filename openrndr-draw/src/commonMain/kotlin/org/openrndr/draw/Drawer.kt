@@ -93,8 +93,8 @@ class Drawer(val driver: Driver) {
     private val viewStack = ArrayDeque<Matrix44>()
     private val projectionStack = ArrayDeque<Matrix44>()
 
-    var width: Int = 0
-    var height: Int = 0
+    val width: Int get() = RenderTarget.active.width
+    val height: Int get() = RenderTarget.active.height
 
     private var modelViewScaling = 1.0
 
@@ -1151,11 +1151,6 @@ class Drawer(val driver: Driver) {
         if (fontMap is FontImageMap) {
             fontImageMapDrawer.drawTexts(context, drawStyle, texts, positions)
         }
-    }
-
-    fun size(width: Int, height: Int) {
-        this.width = width
-        this.height = height
     }
 
     /**

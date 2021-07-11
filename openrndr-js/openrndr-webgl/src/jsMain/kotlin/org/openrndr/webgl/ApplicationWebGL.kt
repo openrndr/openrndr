@@ -138,8 +138,6 @@ class ApplicationWebGL(private val program: Program, private val configuration: 
         val dims = windowSize
         program.width = dims.x.toInt()
         program.height = dims.y.toInt()
-        program.drawer.width = dims.x.toInt()
-        program.drawer.height = dims.y.toInt()
 
         program.drawer.reset()
         program.drawer.ortho()

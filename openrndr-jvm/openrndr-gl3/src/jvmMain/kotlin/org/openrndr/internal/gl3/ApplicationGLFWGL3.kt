@@ -916,9 +916,6 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         glViewport(0, 0, fbw[0], fbh[0])
         program.width = ceil(fbw[0] / program.window.contentScale).toInt()
         program.height = ceil(fbh[0] / program.window.contentScale).toInt()
-        //program.window.size = Vector2(program.width.toDouble(), program.height.toDouble())
-        program.drawer.width = program.width
-        program.drawer.height = program.height
     }
 
     override fun exit() {
