@@ -566,5 +566,5 @@ val List<ShapeContour>.shape
  * Converts chain to a [ShapeContour].
  */
 @Suppress("unused")
-fun CatmullRomChain2.toContour(): ShapeContour =
+fun CatmulRomChain2.toContour(): ShapeContour =
     ShapeContour(segments.map { it.toSegment() }, this.loop)

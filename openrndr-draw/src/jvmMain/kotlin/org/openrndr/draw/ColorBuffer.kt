@@ -161,7 +161,7 @@ actual abstract class ColorBuffer {
     companion object {
         /**
          * create a [ColorBuffer] from a [File] containing a formatted image
-         * @param file a [File] containing a formatted image
+         * @param url the location of a formatted image
          * @param formatHint an optional [ImageFileFormat] hint, default is null
          * @param session the [Session] under which the [ColorBuffer] should be created, default is [Session.active]
          * @see loadImage
@@ -223,7 +223,7 @@ actual abstract class ColorBuffer {
          * @param bytes a [ByteArray] containing a formatted image
          * @param offset offset used for reading from [bytes], default is 0
          * @param length number of bytes to be used from [bytes], default is [bytes.size]
-         * @param formatHint an optiononal [ImageFileFormat] hint, default is nuull
+         * @param formatHint an optional [ImageFileFormat] hint, default is null
          */
         @Suppress("UNUSED_PARAMETER")
         fun fromArray(

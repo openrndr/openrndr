@@ -7,7 +7,7 @@ interface Easer {
     fun ease(t: Double, b: Double, c: Double, d: Double): Double
 }
 
-enum class Easing(val easer:Easer) {
+enum class Easing(val easer: Easer) {
     None(Linear()),
     SineIn(SineIn()),
     SineOut(SineOut()),
@@ -36,7 +36,7 @@ class BackIn : Easer {
 
     override fun ease(t: Double, b: Double, c: Double, d: Double): Double {
         val s = 1.70158
-        val td = t/d
+        val td = t / d
         return c * (td) * td * ((s + 1) * td - s) + b
     }
 }
@@ -52,7 +52,7 @@ class ExpoIn : Easer {
     }
 
     override fun ease(t: Double, b: Double, c: Double, d: Double): Double =
-            if (t == 0.0) b else c * 2.0.pow(10 * (t / d - 1)) + b
+        if (t == 0.0) b else c * 2.0.pow(10 * (t / d - 1)) + b
 }
 
 class SineOut : Easer {
@@ -61,7 +61,9 @@ class SineOut : Easer {
 }
 
 class SineIn : Easer {
-    override fun velocity(t: Double, b: Double, c: Double, d: Double): Double = -PI * c * sin(PI * t / (2 * d)) / (2 * d)
+    override fun velocity(t: Double, b: Double, c: Double, d: Double): Double =
+        -PI * c * sin(PI * t / (2 * d)) / (2 * d)
+
     override fun ease(t: Double, b: Double, c: Double, d: Double): Double = -c * cos(t / d * (PI / 2)) + c + b
 }
 
@@ -70,7 +72,7 @@ class SineInOut : Easer {
     override fun ease(t: Double, b: Double, c: Double, d: Double): Double = -c / 2 * (cos(PI * t / d) - 1) + b
 }
 
-class CubicIn: Easer {
+class CubicIn : Easer {
     override fun velocity(t: Double, b: Double, c: Double, d: Double): Double = 3.0 * c * t * t / (d * d * d)
 
     override fun ease(t: Double, b: Double, c: Double, d: Double): Double {
@@ -79,10 +81,10 @@ class CubicIn: Easer {
     }
 }
 
-class CubicOut: Easer {
+class CubicOut : Easer {
     override fun ease(t: Double, b: Double, c: Double, d: Double): Double {
-        val td = t / d - 1.0;
-        return c * (td * td *td  + 1) + b
+        val td = t / d - 1.0
+        return c * (td * td * td + 1) + b
     }
 
     override fun velocity(t: Double, b: Double, c: Double, d: Double): Double {
@@ -90,7 +92,7 @@ class CubicOut: Easer {
     }
 }
 
-class CubicInOut: Easer {
+class CubicInOut : Easer {
     override fun velocity(t: Double, b: Double, c: Double, d: Double): Double {
         return if (t / (d / 2) < 1) {
             12.0 * c * t * t / (d * d * d)
@@ -100,27 +102,28 @@ class CubicInOut: Easer {
     }
 
     override fun ease(t: Double, b: Double, c: Double, d: Double): Double {
-        val td = t / (d/2)
+        val td = t / (d / 2)
         val td2 = td - 2.0
         return if (td < 1) c / 2 * td * td * td + b else c / 2 * (td2 * td2 * td2 + 2) + b
     }
 }
 
-class QuadIn: Easer {
+class QuadIn : Easer {
     override fun velocity(t: Double, b: Double, c: Double, d: Double): Double = 2.0 * c * t / (d * d)
-    override fun ease(t: Double, b: Double, c: Double, d: Double): Double = c * (t/d) * (t/d) + b
+    override fun ease(t: Double, b: Double, c: Double, d: Double): Double = c * (t / d) * (t / d) + b
 }
 
-class QuadOut: Easer {
+class QuadOut : Easer {
     override fun velocity(t: Double, b: Double, c: Double, d: Double): Double {
-        return -2.0 * c * (d - t) / (d * d)    }
+        return -2.0 * c * (d - t) / (d * d)
+    }
 
     override fun ease(t: Double, b: Double, c: Double, d: Double): Double {
-        return -c * (t/d) * (t/d - 2) + b
+        return -c * (t / d) * (t / d - 2) + b
     }
 }
 
-class QuadInOut: Easer {
+class QuadInOut : Easer {
     override fun velocity(t: Double, b: Double, c: Double, d: Double): Double {
         return if (t / (d / 2) < 1) {
             4.0 * c * t / (d * d)
@@ -130,16 +133,16 @@ class QuadInOut: Easer {
     }
 
     override fun ease(t: Double, b: Double, c: Double, d: Double): Double {
-        val td = t/(d/2)
+        val td = t / (d / 2)
         return if (td < 1) {
             c / 2 * td * td + b
         } else {
-            -c / 2 * ((td-1) * (td - 3) - 1) + b
+            -c / 2 * ((td - 1) * (td - 3) - 1) + b
         }
     }
 }
 
-class QuartIn: Easer {
+class QuartIn : Easer {
     override fun velocity(t: Double, b: Double, c: Double, d: Double): Double {
         return 4.0 * c * (t * t * t) / (d * d * d * d)
     }
@@ -150,7 +153,7 @@ class QuartIn: Easer {
     }
 }
 
-class QuartOut: Easer {
+class QuartOut : Easer {
     override fun ease(t: Double, b: Double, c: Double, d: Double): Double {
         val td = t / d - 1
         return -c * (td * td * td * td - 1) + b
@@ -161,7 +164,7 @@ class QuartOut: Easer {
     }
 }
 
-class QuartInOut: Easer {
+class QuartInOut : Easer {
     override fun velocity(t: Double, b: Double, c: Double, d: Double): Double {
         return if (t / (d / 2) < 1) {
             32.0 * c * t * t * t / (d * d * d * d)
@@ -171,10 +174,9 @@ class QuartInOut: Easer {
     }
 
     override fun ease(t: Double, b: Double, c: Double, d: Double): Double {
-        val td = t/(d/2)
+        val td = t / (d / 2)
         val td2 = td - 2.0
 
-        return if(td < 1) c / 2 * td * td * td * td + b else -c / 2 * (td2 * td2 * td2 * td2 - 2) + b
+        return if (td < 1) c / 2 * td * td * td * td + b else -c / 2 * (td2 * td2 * td2 * td2 - 2) + b
     }
-
 }

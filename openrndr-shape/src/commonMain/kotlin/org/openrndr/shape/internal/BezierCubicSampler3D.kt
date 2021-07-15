@@ -13,7 +13,7 @@ internal class BezierCubicSampler3D {
     fun sample(x1: Vector3, x2: Vector3, x3: Vector3, x4: Vector3): Pair<List<Vector3>, List<Vector3>> {
         distanceToleranceSquare = distanceTolerance * distanceTolerance
         points.clear()
-        points.add(x1);
+        points.add(x1)
         sample(x1, x2, x3, x4, 0)
         points.add(x4); direction.add(x4 - x3)
         return Pair(points, direction)

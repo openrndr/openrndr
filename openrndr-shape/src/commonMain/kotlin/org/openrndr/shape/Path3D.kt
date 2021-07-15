@@ -1,7 +1,7 @@
 package org.openrndr.shape
 
-import org.openrndr.math.CatmullRom3
-import org.openrndr.math.CatmullRomChain3
+import org.openrndr.math.CatmulRom3
+import org.openrndr.math.CatmulRomChain3
 import org.openrndr.math.Matrix44
 import org.openrndr.math.Vector3
 import kotlin.math.abs
@@ -258,7 +258,7 @@ class Path3D(val segments: List<Segment3D>, val closed: Boolean) {
 }
 
 
-fun CatmullRom3.toSegment(): Segment3D {
+fun CatmulRom3.toSegment(): Segment3D {
     val d1a2 = (p1 - p0).length.pow(2 * alpha)
     val d2a2 = (p2 - p1).length.pow(2 * alpha)
     val d3a2 = (p3 - p2).length.pow(2 * alpha)
@@ -274,4 +274,4 @@ fun CatmullRom3.toSegment(): Segment3D {
     return Segment3D(b0, b1, b2, b3)
 }
 
-fun CatmullRomChain3.toPath3D(): Path3D = Path3D(segments.map { it.toSegment() }, this.loop)
+fun CatmulRomChain3.toPath3D(): Path3D = Path3D(segments.map { it.toSegment() }, this.loop)

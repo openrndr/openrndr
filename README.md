@@ -1,6 +1,6 @@
 # OPENRNDR 0.4 (development branch)
 
-A Kotlin/JVM and Kotlin/JS library for creative coding, real-time and interactive graphics. Can currently be used on Windows, macOS and Linux/x64 to create stand alone graphical applications.
+A Kotlin/JVM and Kotlin/JS library for creative coding, real-time and interactive graphics. Can currently be used on Windows, macOS and Linux/x64 to create standalone graphical applications.
 
 Basics and use are further explained in the [OPENRNDR guide](https://guide.openrndr.org).
 
@@ -14,7 +14,7 @@ Join us on the [OPENRNDR forum](https://openrndr.discourse.group) for questions,
 
 ## Using OPENRNDR
 
-You are adivsed to use the [OPENRNDR template](https://github.com/openrndr/openrndr-template) which provides a quick start to using the library.
+You are advised to use the [OPENRNDR template](https://github.com/openrndr/openrndr-template) which provides a quick start to using the library.
 
 Instructions for using the Kotlin/JS version of OPENRNDR are missing. Some examples will be published soon.
 
