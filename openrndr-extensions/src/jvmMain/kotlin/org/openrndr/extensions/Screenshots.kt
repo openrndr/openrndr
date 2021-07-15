@@ -190,13 +190,17 @@ open class Screenshots : Extension {
                     drawer.image(it.colorBuffer(0), it.colorBuffer(0).bounds, drawer.bounds)
                 } else {
                     target?.let { rt ->
-                        TODO("wait for bug to fixed")
-                        //rt.colorBuffer(0).copyTo(resolved)
+                        rt.colorBuffer(0).copyTo(resolved, 0, 0, MagnifyingFilter.NEAREST)
                         resolved.saveToFile(targetFile, async = async)
                         drawer.image(resolved, resolved.bounds, drawer.bounds)
                     }
                 }
-                logger.info("[Screenshots] saved to: ${targetFile.relativeTo(File("."))}")
+                val savedTo = try {
+                    targetFile.relativeTo(File("."))
+                } catch(e: IllegalArgumentException) {
+                    targetFile
+                }
+                logger.info("[Screenshots] saved to: $savedTo")
                 afterScreenshot.trigger(ScreenshotEvent(fn.dropLast(4)))
             }
 
