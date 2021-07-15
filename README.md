@@ -1,5 +1,8 @@
 # OPENRNDR 0.4 (development branch)
 
+[![Download](https://maven-badges.herokuapp.com/maven-central/org.openrndr/openrndr/badge.svg)](https://mvnrepository.com/artifact/org.openrndr/openrndr-core)
+![Build status](https://github.com/openrndr/openrndr/actions/workflows/build-on-commit.yml/badge.svg)
+
 A Kotlin/JVM and Kotlin/JS library for creative coding, real-time and interactive graphics. Can currently be used on Windows, macOS and Linux/x64 to create standalone graphical applications.
 
 Basics and use are further explained in the [OPENRNDR guide](https://guide.openrndr.org).
