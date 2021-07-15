@@ -79,7 +79,9 @@ fun DrawPrimitive.glType(): Int = when (this) {
     DrawPrimitive.TRIANGLE_STRIP -> GL.TRIANGLE_STRIP
     DrawPrimitive.LINES -> GL.LINES
     DrawPrimitive.LINE_STRIP -> GL.LINE_STRIP
-    else -> error("unsupported primitive type $this")
+    DrawPrimitive.LINE_LOOP -> GL.LINE_LOOP
+    DrawPrimitive.POINTS -> GL.POINTS
+    DrawPrimitive.PATCHES -> error("not supported")
 }
 
 internal fun glStencilTest(test: StencilTest): Int {
