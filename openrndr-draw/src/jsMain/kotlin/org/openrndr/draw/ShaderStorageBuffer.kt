@@ -6,4 +6,9 @@ actual interface ShaderStorageBuffer {
     actual fun clear()
     actual fun bind(base: Int)
     actual fun destroy()
+    actual val shadow: ShaderStorageBufferShadow
+    actual fun put(
+        elementOffset: Int,
+        putter: BufferWriterStd430.() -> Unit
+    ): Int
 }

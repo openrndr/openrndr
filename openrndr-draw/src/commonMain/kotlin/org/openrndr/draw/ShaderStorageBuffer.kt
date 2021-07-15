@@ -7,9 +7,15 @@ expect interface ShaderStorageBuffer {
     val session: Session?
     val format: ShaderStorageFormat
 
+    /* Gives a read/write shadow for the shader storage buffer
+    */
+    val shadow: ShaderStorageBufferShadow
+
     fun clear()
     fun bind(base: Int)
     fun destroy()
+
+    fun put(elementOffset: Int = 0, putter: BufferWriterStd430.() -> Unit) : Int
 }
 
 interface ShaderStorageElement {

@@ -6,9 +6,7 @@ import org.lwjgl.opengl.GL30C
 import org.lwjgl.opengl.GL33C
 import org.lwjgl.opengl.GL43C
 import org.lwjgl.opengl.GL43C.*
-import org.openrndr.draw.Session
-import org.openrndr.draw.ShaderStorageBuffer
-import org.openrndr.draw.ShaderStorageFormat
+import org.openrndr.draw.*
 import java.nio.ByteBuffer
 
 class ShaderStorageBufferGL43(val buffer: Int, override val format: ShaderStorageFormat, override val session: Session? = Session.active) : ShaderStorageBuffer {
@@ -57,6 +55,32 @@ class ShaderStorageBufferGL43(val buffer: Int, override val format: ShaderStorag
         }
     }
 
+    override fun put(elementOffset: Int, putter: BufferWriterStd430.() -> Unit): Int {
+        val w = shadow.writer()
+        w.rewind()
+        w.positionElements = elementOffset
+        w.putter()
+        if (w.position % format.size != 0) {
+            throw RuntimeException("incomplete members written. likely violating the specified shaders storage format $format")
+        }
+        val count = w.positionElements
+        shadow.uploadElements(elementOffset, count)
+        w.rewind()
+        return count
+    }
+
+
+    internal var realShadow: ShaderStorageBufferShadowGL3? = null
+    override val shadow: ShaderStorageBufferShadow
+        get() {
+            if (destroyed) {
+                throw IllegalStateException("buffer is destroyed")
+            }
+            if (realShadow == null) {
+                realShadow = ShaderStorageBufferShadowGL3(this)
+            }
+            return realShadow!!
+        }
     companion object {
         fun create(format: ShaderStorageFormat, session: Session?) : ShaderStorageBufferGL43 {
             val ssbo = GL33C.glGenBuffers()

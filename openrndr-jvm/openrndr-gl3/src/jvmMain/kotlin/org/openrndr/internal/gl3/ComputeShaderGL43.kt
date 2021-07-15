@@ -57,28 +57,29 @@ class ComputeShaderGL43(val programObject: Int, val name: String = "compute_shad
 
     override fun image(name: String, image: Int, imageBinding: ImageBinding) {
         require((Driver.instance as DriverGL3).version >= DriverVersionGL.VERSION_4_3)
-
-        when (imageBinding) {
-            is ColorBufferImageBinding -> {
-                val colorBuffer = imageBinding.colorBuffer as ColorBufferGL3
-                require(colorBuffer.format.componentCount != 3) {
-                    "color buffer has unsupported format (${imageBinding.colorBuffer.format}), only formats with 1, 2 or 4 components are supported"
+        bound {
+            when (imageBinding) {
+                is ColorBufferImageBinding -> {
+                    val colorBuffer = imageBinding.colorBuffer as ColorBufferGL3
+                    require(colorBuffer.format.componentCount != 3) {
+                        "color buffer has unsupported format (${imageBinding.colorBuffer.format}), only formats with 1, 2 or 4 components are supported"
+                    }
+                    GL43C.glBindImageTexture(
+                        image,
+                        colorBuffer.texture,
+                        0,
+                        false,
+                        0,
+                        imageBinding.access.gl(),
+                        colorBuffer.glFormat()
+                    )
                 }
-                GL43C.glBindImageTexture(
-                    image,
-                    colorBuffer.texture,
-                    0,
-                    false,
-                    0,
-                    imageBinding.access.gl(),
-                    colorBuffer.glFormat()
-                )
+                else -> error("unsupported binding")
             }
-            else -> error("unsupported binding")
+            val index = uniformIndex(name)
+            glUniform1i(index, image)
+            checkGLErrors()
         }
-        val index = uniformIndex(name)
-        GL43C.glUniform1i(index, image)
-        checkGLErrors()
     }
 
 
@@ -86,40 +87,40 @@ class ComputeShaderGL43(val programObject: Int, val name: String = "compute_shad
     private val storageIndex = mutableMapOf<String, Int>()
 
     override fun buffer(name: String, vertexBuffer: VertexBuffer) {
-        val index = storageIndex.getOrPut(name) { storageIndex.size + 8 }
-        vertexBuffer as VertexBufferGL3
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
-        checkGLErrors()
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, index, vertexBuffer.buffer)
-        checkGLErrors()
+        bound {
+            val index = storageIndex.getOrPut(name) { storageIndex.size + 8 }
+            vertexBuffer as VertexBufferGL3
+            glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
+            checkGLErrors()
+            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, index, vertexBuffer.buffer)
+            checkGLErrors()
 
-        val blockIndex = glGetProgramResourceIndex(programObject, GL_SHADER_STORAGE_BLOCK, name)
-        if (blockIndex >= 0) {
-            glShaderStorageBlockBinding(programObject, blockIndex, index)
-        } else {
-            logger.warn { "no such program resource: $name" }
+            val blockIndex = glGetProgramResourceIndex(programObject, GL_SHADER_STORAGE_BLOCK, name)
+            if (blockIndex >= 0) {
+                glShaderStorageBlockBinding(programObject, blockIndex, index)
+            } else {
+                logger.warn { "no such program resource: $name" }
+            }
         }
-
-
     }
 
     override fun buffer(name: String, shaderStorageBuffer: ShaderStorageBuffer) {
-        val index = storageIndex.getOrPut(name) { storageIndex.size + 8 }
+        bound {
+            val index = storageIndex.getOrPut(name) { storageIndex.size + 8 }
 
-        shaderStorageBuffer as ShaderStorageBufferGL43
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
-        checkGLErrors()
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, index, shaderStorageBuffer.buffer)
-        checkGLErrors()
+            shaderStorageBuffer as ShaderStorageBufferGL43
+            glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
+            checkGLErrors()
+            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, index, shaderStorageBuffer.buffer)
+            checkGLErrors()
 
-        val blockIndex = glGetProgramResourceIndex(programObject, GL_SHADER_STORAGE_BLOCK, name)
-        if (blockIndex >= 0) {
-            glShaderStorageBlockBinding(programObject, blockIndex, index)
-        } else {
-            logger.warn { "no such program resource: $name" }
+            val blockIndex = glGetProgramResourceIndex(programObject, GL_SHADER_STORAGE_BLOCK, name)
+            if (blockIndex >= 0) {
+                glShaderStorageBlockBinding(programObject, blockIndex, index)
+            } else {
+                logger.warn { "no such program resource: $name" }
+            }
         }
-
-
     }
 
     override fun counters(bindingIndex: Int, counterBuffer: AtomicCounterBuffer) {

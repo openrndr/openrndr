@@ -1,6 +1,5 @@
 package org.openrndr.draw
 
-import org.openrndr.internal.Driver
 import java.nio.ByteBuffer
 
 actual interface ShaderStorageBuffer {
@@ -13,8 +12,8 @@ actual interface ShaderStorageBuffer {
     actual fun bind(base: Int)
     actual fun destroy()
 
-
-
+    actual fun put(elementOffset: Int, putter: BufferWriterStd430.() -> Unit): Int
+    actual val shadow: ShaderStorageBufferShadow
 }
 
 

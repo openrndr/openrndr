@@ -273,11 +273,3 @@ private val VertexElementType.glslVaryingQualifier: String
         }
     }
 
-private val ShaderStorageFormat.glslLayout: String
-    get() = items.map {
-        if (it.arraySize == 1) {
-            "${it.type.glslType} ${it.member};"
-        } else {
-            "${it.type.glslType}[${it.arraySize}] ${it.member};"
-        }
-    }.joinToString("\n")
