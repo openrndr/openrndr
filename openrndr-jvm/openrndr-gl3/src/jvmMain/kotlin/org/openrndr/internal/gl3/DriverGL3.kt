@@ -201,9 +201,9 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         }
     }
 
-    override fun createComputeShader(code: String, session: Session?): ComputeShader {
+    override fun createComputeShader(code: String, name: String, session: Session?): ComputeShader {
         version.require(DriverVersionGL.VERSION_4_3)
-        return ComputeShaderGL43.createFromCode(code)
+        return ComputeShaderGL43.createFromCode(code, name)
     }
 
     override fun createAtomicCounterBuffer(counterCount: Int, session: Session?): AtomicCounterBuffer {

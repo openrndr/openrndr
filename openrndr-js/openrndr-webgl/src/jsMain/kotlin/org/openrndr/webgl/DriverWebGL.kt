@@ -101,8 +101,8 @@ class DriverWebGL(val context: GL) : Driver {
 
     }
 
-    override fun createComputeShader(code: String, session: Session?): ComputeShader {
-        TODO("Not yet implemented")
+    override fun createComputeShader(code: String, name: String, session: Session?): ComputeShader {
+        error("not supported")
     }
 
     override fun createShadeStyleManager(

@@ -17,7 +17,7 @@ interface ComputeShader: ShaderImageBindings {
         /**
          * Create a compute shader from (GLSL) code as a String
          */
-        fun fromCode(code: String): ComputeShader = Driver.instance.createComputeShader(code)
+        fun fromCode(code: String, name: String): ComputeShader = Driver.instance.createComputeShader(code, name)
     }
 
     fun buffer(name:String, vertexBuffer: VertexBuffer)

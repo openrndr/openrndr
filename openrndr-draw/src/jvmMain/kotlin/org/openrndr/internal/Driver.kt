@@ -51,6 +51,7 @@ actual interface Driver {
 
     actual fun createComputeShader(
         code: String,
+        name: String,
         session: Session?
     ): ComputeShader
 
