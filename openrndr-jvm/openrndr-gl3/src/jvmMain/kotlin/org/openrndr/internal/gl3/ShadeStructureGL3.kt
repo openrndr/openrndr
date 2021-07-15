@@ -251,6 +251,41 @@ private val ShadeStyleOutput.glslType: String
         }
     }
 
+private val BufferMemberType.glslType: String
+    get() {
+        return when (this) {
+            BufferMemberType.BOOLEAN -> "bool"
+            BufferMemberType.INT -> "int"
+            BufferMemberType.UINT -> "uint"
+            BufferMemberType.FLOAT -> "float"
+            BufferMemberType.DOUBLE -> "double"
+
+            BufferMemberType.VECTOR2_UINT -> "uvec2"
+            BufferMemberType.VECTOR2_BOOLEAN -> "bvec2"
+            BufferMemberType.VECTOR2_INT -> "ivec2"
+            BufferMemberType.VECTOR2_FLOAT -> "vec2"
+            BufferMemberType.VECTOR2_DOUBLE -> "dvec2"
+
+            BufferMemberType.VECTOR3_UINT -> "uvec3"
+            BufferMemberType.VECTOR3_BOOLEAN -> "bvec3"
+            BufferMemberType.VECTOR3_INT -> "ivec3"
+            BufferMemberType.VECTOR3_FLOAT -> "vec3"
+            BufferMemberType.VECTOR3_DOUBLE -> "dvec3"
+
+            BufferMemberType.VECTOR4_UINT -> "uvec4"
+            BufferMemberType.VECTOR4_BOOLEAN -> "bvec4"
+            BufferMemberType.VECTOR4_INT -> "ivec4"
+            BufferMemberType.VECTOR4_FLOAT -> "vec4"
+            BufferMemberType.VECTOR4_DOUBLE -> "dvec4"
+
+            BufferMemberType.MATRIX22_FLOAT -> "mat2"
+            BufferMemberType.MATRIX33_FLOAT -> "mat3"
+            BufferMemberType.MATRIX44_FLOAT -> "mat4"
+        }
+    }
+
+
+
 
 private val VertexElementType.glslType: String
     get() {
@@ -288,11 +323,25 @@ private val VertexElementType.glslVaryingQualifier: String
         }
     }
 
+
 private val ShaderStorageFormat.glslLayout: String
-    get() = items.map {
-        if (it.arraySize == 1) {
-            "${it.type.glslType} ${it.attribute};"
-        } else {
-            "${it.type.glslType}[${it.arraySize}] ${it.attribute};"
+    get() = members.joinToString("\n") {
+        when (it) {
+            is ShaderStorageMember -> {
+                if (it.arraySize == 1) {
+                    "${it.type.glslType} ${it.member};"
+                } else {
+                    "${it.type.glslType}[${it.arraySize}] ${it.member};"
+                }
+            }
+            is ShaderStorageStruct -> {
+                if (it.arraySize == 1) {
+                    "${it.structName} ${it.member};"
+                } else {
+                    "${it.structName}[${it.arraySize}] ${it.member};"
+                }
+            }
+            else -> ""
         }
-    }.joinToString("\n")
+    }
+
