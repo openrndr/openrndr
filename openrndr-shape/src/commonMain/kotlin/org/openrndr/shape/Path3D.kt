@@ -97,53 +97,53 @@ class Path3D(val segments: List<Segment3D>, val closed: Boolean) {
      * @param u1 ending point in [0, 1)
      * @return sub contour
      */
-    fun sub(u0: Double, u1: Double): Path3D {
-        var t0 = u0
-        var t1 = u1
+    fun sub(t0: Double, t1: Double): Path3D {
+        var u0 = t0
+        var u1 = t1
 
-        if (closed && (t1 < t0 || t1 > 1.0 || t0 > 1.0 || t0 < 0.0 || t1 < 0.0)) {
-            val diff = t1 - t0
-            t0 = mod(t0, 1.0)
-            if (abs(diff) < 0.9999999999999998) {
+        if (closed && (u1 < u0 || u1 > 1.0 || u0 > 1.0 || u0 < 0.0 || u1 < 0.0)) {
+            val diff = u1 - u0
+            u0 = mod(u0, 1.0)
+            if (abs(diff) < 1.0 - 2.0 * 10E-17) {
                 return if (diff > 0.0) {
-                    t1 = t0 + diff
-                    if (t1 > 1.0) {
-                        sub(t0, 1.0) + sub(0.0, t1 - 1.0)
+                    u1 = u0 + diff
+                    if (u1 > 1.0) {
+                        sub(u0, 1.0) + sub(0.0, u1 - 1.0)
                     } else {
-                        sub(t0, t1)
+                        sub(u0, u1)
                     }
                 } else {
-                    t1 = t0 + diff
-                    if (t1 < 0) {
-                        sub(t1 + 1.0, 1.0) + sub(0.0, t0)
+                    u1 = u0 + diff
+                    if (u1 < 0) {
+                        sub(u1 + 1.0, 1.0) + sub(0.0, u0)
                     } else {
-                        sub(t1, t0)
+                        sub(u1, u0)
                     }
                 }
             } else {
-                t1 = if (diff < 0.0) {
-                    t0 - 1.0
+                u1 = if (diff < 0.0) {
+                    u0 - 1.0
                 } else {
-                    t0 + 1.0
+                    u0 + 1.0
                 }
-                if (t1 > 1.0) {
-                    return sub(t0, 1.0) + sub(0.0, t1 - 1.0)
+                if (u1 > 1.0) {
+                    return sub(u0, 1.0) + sub(0.0, u1 - 1.0)
                 }
-                if (t1 < 1.0) {
-                    return sub(t0, 1.0) + sub(0.0, t1 + 1.0)
+                if (u1 < 1.0) {
+                    return sub(u0, 1.0) + sub(0.0, u1 + 1.0)
                 }
             }
         }
 
-        t0 = t0.coerceIn(0.0, 1.0)
-        t1 = t1.coerceIn(0.0, 1.0)
+        u0 = u0.coerceIn(0.0, 1.0)
+        u1 = u1.coerceIn(0.0, 1.0)
 
-        var z0 = t0
-        var z1 = t1
+        var z0 = u0
+        var z1 = u1
 
-        if (t0 > t1) {
-            z0 = t1
-            z1 = t0
+        if (u0 > u1) {
+            z0 = u1
+            z1 = u0
         }
 
         val length = segments.size.toDouble()
