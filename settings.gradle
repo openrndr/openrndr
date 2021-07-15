@@ -34,5 +34,7 @@ include 'openrndr-application',
 		'openrndr-extensions',
 		'openrndr-nullgl',
 		'openrndr-utils',
-		'openrndr-dds'
+		'openrndr-dds',
+		'openrndr-kartifex'
+
 

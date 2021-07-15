@@ -2,12 +2,7 @@ plugins {
     kotlin("multiplatform")
 }
 
-repositories {
-    mavenCentral()
-}
-
 val kotlinxSerializationVersion: String by rootProject.extra
-val kotlinxCoroutinesVersion: String by rootProject.extra
 val kotestVersion: String by rootProject.extra
 val junitJupiterVersion: String by rootProject.extra
 
@@ -28,14 +23,12 @@ kotlin {
         nodejs()
     }
 
+
     sourceSets {
         @Suppress("UNUSED_VARIABLE")
         val commonMain by getting {
             dependencies {
-                api(project(":openrndr-math"))
-                api(project(":openrndr-draw"))
-                api(project(":openrndr-animatable"))
-                implementation("io.github.microutils:kotlin-logging:2.0.6")
+
             }
         }
 
@@ -48,13 +41,6 @@ kotlin {
             }
         }
 
-        @Suppress("UNUSED_VARIABLE")
-        val jvmMain by getting {
-            dependencies {
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxCoroutinesVersion")
-            }
-
-        }
 
         @Suppress("UNUSED_VARIABLE")
         val jvmTest by getting {
@@ -62,14 +48,10 @@ kotlin {
                 implementation(kotlin("test-common"))
                 implementation(kotlin("test-annotations-common"))
                 implementation(kotlin("test-junit5"))
-                implementation("org.amshove.kluent:kluent:1.65")
                 runtimeOnly("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
                 runtimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
             }
         }
-
-        @Suppress("UNUSED_VARIABLE")
-        val jsMain by getting
 
         @Suppress("UNUSED_VARIABLE")
         val jsTest by getting {
@@ -77,5 +59,13 @@ kotlin {
                 implementation(kotlin("test-js"))
             }
         }
+
+        // native part switched off for now as it's quite unstable at the beginning on 2021
+        /*
+            @Suppress("UNUSED_VARIABLE")
+            val nativeMain by getting
+            @Suppress("UNUSED_VARIABLE")
+            val nativeTest by getting
+         */
     }
 }

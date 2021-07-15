@@ -34,6 +34,7 @@ project.ext {
     kotlinVersion = '1.5.20'
     kotlinLoggingVersion = '2.0.6'
     kotlinxSerializationVersion = '1.1.0'
+    kotlinxCoroutinesVersion = '1.5.0'
     lwjglVersion = '3.2.3'
     javacpp_version = '1.5.4'
     ffmpeg_version = "4.3.1-$javacpp_version"
@@ -117,7 +118,8 @@ def multiplatformModules = [
         "openrndr-gl3-natives-macos",
         "openrndr-gl3-natives-windows",
         "openrndr-tessellation",
-        "openrndr-svg"
+        "openrndr-svg",
+        "openrndr-kartifex"
 ]
 
 
@@ -140,7 +142,7 @@ configure(allprojects.findAll { !multiplatformModules.contains(it.name) }) {
         // Note: kotlin-logging and kotlinx-coroutines-core are loaded
         // too early and their versions cannot be parametrized
         implementation 'io.github.microutils:kotlin-logging:2.0.6'
-        implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.3'
+        implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxCoroutinesVersion"
 
         implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
 
