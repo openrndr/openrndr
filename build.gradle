@@ -12,9 +12,9 @@ buildscript {
 
 plugins {
     // remember to update all the versions here when upgrading kotlin version
-    id 'org.jetbrains.kotlin.jvm' version '1.5.20' apply false
-    id 'org.jetbrains.kotlin.multiplatform' version '1.5.20' apply false
-    id 'org.jetbrains.kotlin.plugin.serialization' version '1.5.20' apply false
+    id 'org.jetbrains.kotlin.jvm' version '1.5.21' apply false
+    id 'org.jetbrains.kotlin.multiplatform' version '1.5.21' apply false
+    id 'org.jetbrains.kotlin.plugin.serialization' version '1.5.21' apply false
 }
 
 apply plugin: 'org.jetbrains.dokka'
@@ -31,13 +31,13 @@ project.ext {
     kotlinApiVersion = '1.4'
     kotlinJvmTarget = '1.8'
     kotlinLanguageVersion = '1.4'
-    kotlinVersion = '1.5.20'
+    kotlinVersion = '1.5.21'
     kotlinLoggingVersion = '2.0.6'
-    kotlinxSerializationVersion = '1.1.0'
+    kotlinxSerializationVersion = '1.2.1'
     kotlinxCoroutinesVersion = '1.5.0'
     lwjglVersion = '3.2.3'
-    javacpp_version = '1.5.4'
-    ffmpeg_version = "4.3.1-$javacpp_version"
+    javacpp_version = '1.5.5'
+    ffmpeg_version = "4.3.2-$javacpp_version"
     spekVersion = '2.0.15'
     kluentVersion = '1.65'
     jsoupVersion = '1.13.1'
