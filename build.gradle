@@ -19,6 +19,8 @@ plugins {
 
 apply plugin: 'org.jetbrains.dokka'
 
+ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
+
 /*
   Note: check out the latest Kotlin release docs to keep all in sync:
 
@@ -137,15 +139,6 @@ configure(allprojects.findAll { !multiplatformModules.contains(it.name) }) {
     apply plugin: 'kotlin'
     apply plugin: 'maven-publish'
 
-
-    publishing {
-        publications {
-            maven(MavenPublication) {
-                from components.java
-            }
-        }
-    }
-
     dependencies {
         // Note: kotlin-logging and kotlinx-coroutines-core are loaded
         // too early and their versions cannot be parametrized
@@ -179,11 +172,112 @@ configure(allprojects.findAll { !multiplatformModules.contains(it.name) }) {
     tasks.withType(org.jetbrains.kotlin.gradle.tasks.AbstractKotlinCompile).all {
         kotlinOptions.freeCompilerArgs += ["-Xuse-experimental=kotlinx.coroutines.InternalCoroutinesApi"]
     }
+}
+
+configure(allprojects.findAll { multiplatformModules.contains(it.name) }) {
+    apply plugin: 'maven-publish'
+    apply plugin: 'signing'
 
 
+    def publicationsFromMainHost = ["jvm", "js"] + "kotlinMultiplatform"
+
+    publishing {
+//        publications {
+//
+//            matching { it.name in publicationsFromMainHost }.all { targetPublication ->
+//                tasks.withType(AbstractPublishToMaven)
+//                        .matching { it.publication == targetPublication }
+//                        .configureEach { onlyIf { findProperty("isMainHost") == "true" } }
+//            }
+//        }
+
+        repositories {
+            maven {
+                credentials {
+                    username findProperty("ossrhUsername") ?: System.getenv("OSSRH_USERNAME")
+                    password findProperty("ossrhPassword") ?: System.getenv("OSSRH_PASSWORD")
+                }
+                if (!isReleaseVersion) {
+                    url "https://s01.oss.sonatype.org/content/repositories/snapshots"
+                } else {
+                    url "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2"
+                }
+            }
+        }
+    }
+
+    signing {
+        required { isReleaseVersion && gradle.taskGraph.hasTask("publish") }
+        sign publishing.publications
+    }
+}
+
+configure(allprojects.findAll { it.name != "openrndr-demos" && (!multiplatformModules.contains(it.name)) }) {
+    apply plugin: 'nebula.release'
+    apply plugin: 'maven-publish'
+    apply plugin: 'signing'
+
+    java {
+        withJavadocJar()
+        withSourcesJar()
+    }
+
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                from components.java
+                groupId = "org.openrndr"
+                artifactId = "$project.name"
+                description = "$project.name"
+                pom {
+                    name = "$project.name"
+                    description = "$project.name"
+                    url = 'https://openrndr.org'
+                    developers {
+                        developer {
+                            id = 'edwinjakobs'
+                            name = 'Edwin Jakobs'
+                            email = 'edwin@openrndr.org'
+                        }
+                    }
+                    license {
+                        licenses {
+                            license {
+                                name = 'BSD-2-Clause'
+                                url = 'https://github.com/openrndr/openrndr/blob/master/LICENSE'
+                                distribution = 'repo'
+                            }
+                        }
+                    }
+                    scm {
+                        connection = "scm:git:git@github.com:openrndr/openrndr.git"
+                        developerConnection = "scm:git:ssh://github.com/openrndr/openrndr.git"
+                        url = "https://github.com/openrndr/openrndr"
+                    }
+                }
+            }
+        }
+        repositories {
+            maven {
+                credentials {
+                    username findProperty("ossrhUsername") ?: System.getenv("OSSRH_USERNAME")
+                    password findProperty("ossrhPassword") ?: System.getenv("OSSRH_PASSWORD")
+                }
+                if (!isReleaseVersion) {
+                    url "https://s01.oss.sonatype.org/content/repositories/snapshots"
+                } else {
+                    url "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2"
+                }
+            }
+        }
+    }
+    signing {
+        required { isReleaseVersion && gradle.taskGraph.hasTask("publish") }
+        sign publishing.publications.mavenJava
+    }
 }
 
 configure(allprojects.findAll { it.name != "openrndr-demos" }) {
-    apply plugin: 'maven-publish'
+    //apply plugin: 'maven-publish'
     apply plugin: 'nebula.release'
 }

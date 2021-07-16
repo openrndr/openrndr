@@ -1,0 +1,27 @@
+name: Release to Maven Central
+on:
+  push:
+    tags:
+      - v[0-9].[0-9]+.[0-9]+
+jobs:
+  build:
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: Get the version
+        id: get_version
+        run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\/v/}
+      - uses: actions/setup-java@v1
+        with:
+          java-version: 15
+      - name: Build and publish to local maven
+        run: ./gradlew -Prelease.useLastTag=true build
+      - name: Decode
+        run: |
+          echo "${{secrets.SIGNING_SECRET_KEY_RING_FILE}}" > ~/.gradle/secring.gpg.b64
+          base64 -d ~/.gradle/secring.gpg.b64 > ~/.gradle/secring.gpg
+      - name: Publish
+        run: ./gradlew publish -Prelease.useLastTag=true -Psigning.keyId=${{secrets.SIGNING_KEY_ID}} -Psigning.password=${{secrets.SIGNING_KEY_PASSWORD}} -Psigning.secretKeyRingFile=$(echo ~/.gradle/secring.gpg) --max-workers=1
+        env:
+          OSSRH_USERNAME: ${{secrets.OSSRH_USERNAME}}
+          OSSRH_PASSWORD: ${{secrets.OSSRH_PASSWORD}}
