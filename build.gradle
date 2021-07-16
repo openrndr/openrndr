@@ -5,7 +5,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath "org.jetbrains.dokka:dokka-gradle-plugin:0.10.1"
+        classpath "org.jetbrains.dokka:dokka-gradle-plugin:1.5.0"
         classpath "com.netflix.nebula:nebula-release-plugin:15.3.1"
     }
 }
@@ -45,46 +45,54 @@ project.ext {
     junitJupiterVersion = '5.7.1'
 }
 
-dokka {
-//
-    outputDirectory = "$buildDir/docs"
-    outputFormat = "html"
-//    includes = ['Module.md']
+tasks.named("dokkaHtml") {
+    moduleName.set("openrndr")
+    dokkaSourceSets {
 
+        named("main") { /* configure main source set */
+            perPackageOption {
+                matchingRegex.set(".*gl3.*")
+                suppress.set(true)
+            }
+            perPackageOption {
+                matchingRegex.set(".*internal*")
+                suppress.set(true)
+            }
+            perPackageOption {
+                matchingRegex.set(".*artifex*")
+                suppress.set(true)
+            }
+            perPackageOption {
+                matchingRegex.set("io\\.lacuna.*")
+                suppress.set(true)
+            }
 
-    configuration {
-        moduleName = "$rootProject.name"
-        platform = "JVM"
-        skipDeprecated = true
-        includeNonPublic = false
-
-        disableAutoconfiguration = false
-
-        subProjects = ["openrndr-animatable", "openrndr-color", "openrndr-core", "openrndr-dialogs", "openrndr-event",
-                       "openrndr-extensions", "openrndr-filter", "openrndr-math", "openrndr-shape", "openrndr-svg"]
-
-        sourceLink {
-            url = "https://github.com/openrndr/openrndr/blob/master/openrndr-core/src/main/kotlin"
-            lineSuffix = "#L"
         }
-        perPackageOption {
-            prefix = "org.openrndr.internal"
-            suppress = true
-        }
-        perPackageOption {
-            prefix = "org.openrndr.shape.tessellation"
-            suppress = true
-        }
+        skipDeprecated.set(true)
+        skipEmptyPackages.set(true)
+        remoteUrl.set(uri("https://github.com/openrndr/openrndr/master/src/main/kotlin").toURL())
     }
 
-    if (!System.properties['os.name'].toLowerCase().contains('windows')) {
-        doLast {
-            exec {
-                executable "./dokka/postbuild.sh"
-            }
-        }
+
+}
+
+["openrndr-animatable",
+ "openrndr-draw",
+ "openrndr-dds",
+ "openrndr-filter",
+ "openrndr-core",
+ "openrndr-math",
+ "openrndr-color",
+ "openrndr-event",
+ "openrndr-shape",
+ "openrndr-utils",
+].each {
+
+    project(":$it") {
+        apply plugin: 'org.jetbrains.dokka'
     }
 }
+
 
 allprojects {
     group 'org.openrndr'
