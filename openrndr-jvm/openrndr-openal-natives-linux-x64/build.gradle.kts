@@ -2,7 +2,7 @@ plugins {
     kotlin("jvm")
 }
 
-val lwjglNatives = "natives-windows"
+val lwjglNatives = "natives-linux"
 val lwjglVersion: String by rootProject.extra
 
 dependencies {

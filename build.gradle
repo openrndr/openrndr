@@ -118,15 +118,7 @@ def multiplatformModules = [
         "openrndr-extensions",
         "openrndr-dds",
         "openrndr-openal",
-        "openrndr-openal-natives-linux-arm64",
-        "openrndr-openal-natives-linux-x64",
-        "openrndr-openal-natives-macos",
-        "openrndr-openal-natives-windows",
         "openrndr-gl3",
-        "openrndr-gl3-natives-linux-arm64",
-        "openrndr-gl3-natives-linux-x64",
-        "openrndr-gl3-natives-macos",
-        "openrndr-gl3-natives-windows",
         "openrndr-tessellation",
         "openrndr-svg",
         "openrndr-kartifex"
@@ -174,7 +166,9 @@ configure(allprojects.findAll { !multiplatformModules.contains(it.name) }) {
     }
 }
 
-configure(allprojects.findAll { multiplatformModules.contains(it.name) }) {
+def doNotPublish = ["openrndr-demos", "openrndr-kartifex"]
+
+configure(allprojects.findAll { multiplatformModules.contains(it.name) && !doNotPublish.contains(it.name) }) {
     apply plugin: 'maven-publish'
     apply plugin: 'signing'
 
@@ -212,7 +206,8 @@ configure(allprojects.findAll { multiplatformModules.contains(it.name) }) {
     }
 }
 
-configure(allprojects.findAll { it.name != "openrndr-demos" && (!multiplatformModules.contains(it.name)) }) {
+
+configure(allprojects.findAll { !doNotPublish.contains(it.name) && (!multiplatformModules.contains(it.name)) }) {
     apply plugin: 'nebula.release'
     apply plugin: 'maven-publish'
     apply plugin: 'signing'
