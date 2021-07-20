@@ -1,4 +1,4 @@
-# OPENRNDR 0.4 (development branch)
+# OPENRNDR 0.4
 
 [![Download](https://maven-badges.herokuapp.com/maven-central/org.openrndr/openrndr/badge.svg)](https://mvnrepository.com/artifact/org.openrndr/openrndr-core)
 ![Build status](https://github.com/openrndr/openrndr/actions/workflows/build-on-commit.yml/badge.svg)
@@ -7,19 +7,13 @@ A Kotlin/JVM and Kotlin/JS library for creative coding, real-time and interactiv
 
 Basics and use are further explained in the [OPENRNDR guide](https://guide.openrndr.org).
 
-## Community
-
-Visit the [OPENRNDR website](https://openrndr.org) for the latest news on OPENRNDR, showcases and events 
-
-Join us on the [OPENRNDR forum](https://openrndr.discourse.group) for questions, tutorials and showcases.
-
-.. or if you prefer a more direct and chatty way of conversation talk to us the [OPENRNDR Slack](https://communityinviter.com/apps/openrndr/openrndr)
-
 ## Using OPENRNDR
 
 You are advised to use the [OPENRNDR template](https://github.com/openrndr/openrndr-template) which provides a quick start to using the library.
 
-Instructions for using the Kotlin/JS version of OPENRNDR are missing. Some examples will be published soon.
+OPENRNDR's Javascript/WebGL is still experimental and under development. However, if you feel like trying it you should use the 
+[OPENRNDR JS template](https://github.com/openrndr/openrndr-js-template).
+
 
 ## Building OPENRNDR
 
@@ -41,3 +35,13 @@ In order to use the OPENRNDR build from your applications one has to install OPE
 ```sh
 ./gradlew -Prelease.version=0.5.1-SNAPSHOT publishToMavenLocal
 ```
+
+## Community
+
+Visit the [OPENRNDR website](https://openrndr.org) for the latest news on OPENRNDR, showcases and events 
+
+Join us on the [OPENRNDR forum](https://openrndr.discourse.group) for questions, tutorials and showcases.
+
+.. or if you prefer a more direct and chatty way of conversation talk to us the [OPENRNDR Slack](https://communityinviter.com/apps/openrndr/openrndr)
+
+
