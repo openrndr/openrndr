@@ -426,7 +426,7 @@ class ComputeShaderGL43(val programObject: Int, val name: String = "compute_shad
         }
     }
 
-    private fun postUniformCheck(name: String, index: Int, value: Any) {
+    private fun postUniformCheck(name: String, index: Int, @Suppress("UNUSED_PARAMETER") value: Any) {
         debugGLErrors {
             val currentProgram = glGetInteger(GL_CURRENT_PROGRAM)
 

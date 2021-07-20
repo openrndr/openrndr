@@ -50,7 +50,7 @@ class CubemapGL3(val texture: Int, override val width: Int, override val type: C
 
             val effectiveWidth = width
             val effectiveHeight = width
-            val (internalFormat, internalType) = internalFormat(format, type)
+            val (internalFormat, _) = internalFormat(format, type)
 
 
             for (side in CubemapSide.values()) {
@@ -79,7 +79,7 @@ class CubemapGL3(val texture: Int, override val width: Int, override val type: C
 
         fun fromUrl(url: String, formatHint: ImageFileFormat?, session: Session?): CubemapGL3 {
             glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS)
-            if (url.endsWith(".dds")) {
+            if (url.endsWith(".dds") || formatHint==ImageFileFormat.DDS) {
                 val textures = IntArray(1)
                 glGenTextures(textures)
                 checkGLErrors()
@@ -111,7 +111,7 @@ class CubemapGL3(val texture: Int, override val width: Int, override val type: C
 
             urls.forEachIndexed { index, it ->
                 val data = ColorBufferDataGL3.fromUrl(it, formatHint)
-                val (internalFormat, internalType) = internalFormat(data.format, data.type)
+                val (internalFormat, _) = internalFormat(data.format, data.type)
                 val nullBB: ByteBuffer? = null
 
                 glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + index, 0, internalFormat, data.width, data.height, 0, data.format.glFormat(), data.type.glType(), nullBB)

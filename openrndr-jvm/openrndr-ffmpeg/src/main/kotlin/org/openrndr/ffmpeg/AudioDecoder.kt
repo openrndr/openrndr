@@ -45,8 +45,8 @@ internal data class AudioDecoderOutput(
         val sampleFormat: Long)
 
 internal class AudioDecoder(
-        private val audioCodecContext: AVCodecContext,
-        output: AudioDecoderOutput
+    private val audioCodecContext: AVCodecContext,
+    @Suppress("UNUSED_PARAMETER") output: AudioDecoderOutput
 ) {
     private val audioFrame = av_frame_alloc()
 
@@ -119,7 +119,7 @@ internal class AudioDecoder(
     fun decodeAudioPacket(packet: AVPacket) {
         val frameFinished = IntArray(1)
         while (packet.size() > 0) {
-            val size = avcodec_decode_audio4(audioCodecContext, audioFrame, frameFinished, packet)
+            @Suppress("DEPRECATION") val size = avcodec_decode_audio4(audioCodecContext, audioFrame, frameFinished, packet)
 //
 //            var ret = avcodec.avcodec_send_packet(audioCodecContext, packet)
 //

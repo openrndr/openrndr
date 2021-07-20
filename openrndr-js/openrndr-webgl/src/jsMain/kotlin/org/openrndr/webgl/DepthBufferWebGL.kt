@@ -21,7 +21,7 @@ class DepthBufferWebGL(
             context: GL,
             width: Int,
             height: Int,
-            format: DepthFormat,
+            @Suppress("UNUSED_PARAMETER") format: DepthFormat,
             multisample: BufferMultisample,
             session: Session?
         ): DepthBufferWebGL {

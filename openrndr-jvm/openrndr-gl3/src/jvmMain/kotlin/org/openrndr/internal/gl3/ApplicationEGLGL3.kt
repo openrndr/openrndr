@@ -131,6 +131,7 @@ class ApplicationEGLGL3(private val program: Program, private val configuration:
 
         while (!exitRequested) {
             glBindVertexArray(vaos[0])
+            @Suppress("DEPRECATION")
             program.drawer.reset()
             program.drawer.ortho()
             program.drawImpl()

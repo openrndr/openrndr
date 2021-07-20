@@ -211,7 +211,7 @@ class Path3D(val segments: List<Segment3D>, val closed: Boolean) {
 
     val reversed get() = Path3D(segments.map { it.reverse }.reversed(), closed)
 
-    val length get() = segments.sumByDouble { it.length }
+    val length get() = segments.sumOf { it.length }
 
 
     fun map(closed: Boolean = this.closed, mapper: (Segment3D) -> Segment3D): Path3D {
@@ -245,7 +245,7 @@ class Path3D(val segments: List<Segment3D>, val closed: Boolean) {
         other as Path3D
 
         if (segments != (other as Path3D).segments) return false
-        if (closed != (other as Path3D).closed) return false
+        if (closed != other.closed) return false
 
         return true
     }

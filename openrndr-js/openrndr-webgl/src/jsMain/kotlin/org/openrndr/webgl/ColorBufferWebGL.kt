@@ -16,7 +16,7 @@ import kotlin.math.log2
 import org.khronos.webgl.WebGLRenderingContext as GL
 
 internal fun promiseImage(url: String): Promise<Image> {
-    return Promise<Image>() { resolve, reject ->
+    return Promise<Image>() { resolve, _ ->
         val image = Image()
         image.addEventListener("load", {
             resolve(image)
@@ -75,7 +75,7 @@ class ColorBufferWebGL(
             if (levels > 1) {
                 //context.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MAX_LEVEL, levels - 1)
             }
-            val (internalFormat, internalType) = internalFormat(format, type)
+            val (internalFormat, _) = internalFormat(format, type)
 
 
 
@@ -97,6 +97,7 @@ class ColorBufferWebGL(
             } else {
                 for (level in 0 until levels) {
                     val div = 1 shl level
+                    @Suppress("UNCHECKED_CAST_TO_EXTERNAL_INTERFACE")
                     val fcontext = context as? WebGLRenderingFixedCompressedTexImage ?: error("cast failed")
                     fcontext.compressedTexImage2D(
                         GL.TEXTURE_2D,
@@ -156,6 +157,7 @@ class ColorBufferWebGL(
             )
         }
 
+        @Suppress("UNUSED_PARAMETER")
         fun fromUrl(context: GL, url: String, session: Session? = Session.active): ColorBufferWebGL {
             error("use fromUrlSuspend")
             //val image = promiseImage(url).await()
@@ -185,7 +187,7 @@ class ColorBufferWebGL(
 
     override var anisotropy: Double
         get() = TODO("Not yet implemented")
-        set(value) {}
+        set(_) {}
 
     override var flipV: Boolean = false
 
@@ -308,8 +310,8 @@ class ColorBufferWebGL(
 
     override var wrapU: WrapMode
         get() = TODO("Not yet implemented")
-        set(value) {}
+        set(_) {}
     override var wrapV: WrapMode
         get() = TODO("Not yet implemented")
-        set(value) {}
+        set(_) {}
 }

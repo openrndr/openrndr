@@ -135,6 +135,7 @@ open class Animatable {
     /**
      * the last queued or active animation group for [Unit] property, or null if no animations are available
      */
+    @Suppress("UNCHECKED_CAST")
     val KMutableProperty0<Unit>.last: PropertyAnimationKey<Unit>?
         @JvmName("lastUnitProperty")
         get() = propertyAnimationKeys.findLast { it.property == this } as PropertyAnimationKey<Unit>?
@@ -142,6 +143,7 @@ open class Animatable {
     /**
      * the last queued or active animation for [LinearType] property, or null if no animations are available
      */
+    @Suppress("UNCHECKED_CAST")
     val <T : LinearType<T>> KMutableProperty0<T>.last: PropertyAnimationKey<T>?
         @JvmName("lastLinearTypeProperty")
         get() = propertyAnimationKeys.findLast { it.property == this } as PropertyAnimationKey<T>?
@@ -149,6 +151,7 @@ open class Animatable {
     /**
      * the last queued or active animation for [Double] property, or null if no animations are available
      */
+    @Suppress("UNCHECKED_CAST")
     val KMutableProperty0<Double>.last: PropertyAnimationKey<Double>?
         @JvmName("lastDoubleProperty")
         get() = propertyAnimationKeys.findLast { it.property == this } as PropertyAnimationKey<Double>?

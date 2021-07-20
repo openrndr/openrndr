@@ -113,9 +113,7 @@ class ScreenRecorder : Extension {
             if (frameIndex < maximumFrames + frameSkip && (frameIndex - frameSkip) / frameRate.toDouble() < maximumDuration) {
                 val lresolved = resolved
                 if (lresolved != null) {
-                    // TODO restore to default arguments when Kotlin MPP support is there
-                        error("huh")
-                    //frame.colorBuffer(0).copyTo(lresolved)
+                    frame.colorBuffer(0).copyTo(lresolved)
                     videoWriter.frame(lresolved)
                 } else {
                     videoWriter.frame(frame.colorBuffer(0))

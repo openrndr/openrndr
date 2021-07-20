@@ -45,9 +45,9 @@ fun report() {
     println("total runtime: ${profilingRuntime}")
     println("--------------------------------------")
     for (name in measuredTime.keys) {
-        val timeMS = measuredTime[name]!!/1E6
-        val timePercentage = 100.0 * (timeMS/profilingRuntime)
-        val timePercentageClean = String.format("%.2f", timePercentage)
+        //val timeMS = measuredTime[name]!!/1E6
+        //val timePercentage = 100.0 * (timeMS/profilingRuntime)
+        //val timePercentageClean = String.format("%.2f", timePercentage)
 
         val average = (measuredTime[name]!!.toDouble() / measuredHits[name]!!.toDouble()) / 1000000.0
 

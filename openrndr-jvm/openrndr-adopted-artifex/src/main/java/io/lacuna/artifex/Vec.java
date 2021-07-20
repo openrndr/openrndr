@@ -22,6 +22,8 @@ public interface Vec<T extends Vec<T>> extends Comparable<T> {
   DoubleBinaryOperator DIV = (a, b) -> a / b;
   DoubleBinaryOperator DELTA = (a, b) -> Math.abs(a - b);
 
+
+
   static Vec2 from(Point2D p) {
     return new Vec2(p.getX(), p.getY());
   }

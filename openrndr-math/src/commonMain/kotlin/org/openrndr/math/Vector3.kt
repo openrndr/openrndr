@@ -69,13 +69,13 @@ data class Vector3(val x: Double, val y: Double, val z: Double) : LinearType<Vec
     }
 
     operator fun unaryMinus() = Vector3(-x, -y, -z)
-    override operator fun plus(v: Vector3) = Vector3(x + v.x, y + v.y, z + v.z)
+    override operator fun plus(right: Vector3) = Vector3(x + right.x, y + right.y, z + right.z)
     operator fun plus(d: Double) = Vector3(x + d, y + d, z + d)
-    override operator fun minus(v: Vector3) = Vector3(x - v.x, y - v.y, z - v.z)
+    override operator fun minus(right: Vector3) = Vector3(x - right.x, y - right.y, z - right.z)
     operator fun minus(d: Double) = Vector3(x - d, y - d, z - d)
     operator fun times(v: Vector3) = Vector3(x * v.x, y * v.y, z * v.z)
-    override operator fun times(s: Double) = Vector3(x * s, y * s, z * s)
-    override operator fun div(s: Double) = Vector3(x / s, y / s, z / s)
+    override operator fun times(scale: Double) = Vector3(x * scale, y * scale, z * scale)
+    override operator fun div(scale: Double) = Vector3(x / scale, y / scale, z / scale)
     operator fun div(v: Vector3) = Vector3(x / v.x, y / v.y, z / v.z)
 
     /** Calculates a dot product between this [Vector2] and [v]. */

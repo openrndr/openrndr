@@ -144,6 +144,7 @@ class ApplicationWebGL(private val program: Program, private val configuration: 
         program.width = dims.x.toInt()
         program.height = dims.y.toInt()
 
+        @Suppress("DEPRECATION")
         program.drawer.reset()
         program.drawer.ortho()
 
@@ -156,20 +157,20 @@ class ApplicationWebGL(private val program: Program, private val configuration: 
 
     override var clipboardContents: String?
         get() = TODO("Not yet implemented")
-        set(value) {}
+        set(_) {}
     override var windowTitle: String
         get() = TODO("Not yet implemented")
-        set(value) {}
+        set(_) {}
     override var windowPosition: Vector2
         get() = Vector2(0.0, 0.0)
-        set(value) {}
+        set(_) {}
     override var windowSize: Vector2
         get() {
             val width = canvas?.clientWidth?.toDouble() ?: 0.0
             val height = canvas?.clientHeight?.toDouble() ?: 0.0
             return Vector2(width, height)
         }
-        set(value) {
+        set(_) {
             error("not supported")
         }
 
@@ -178,10 +179,10 @@ class ApplicationWebGL(private val program: Program, private val configuration: 
 
     override var cursorVisible: Boolean
         get() = TODO("Not yet implemented")
-        set(value) {}
+        set(_) {}
     override var cursorHideMode: MouseCursorHideMode
         get() = TODO("Not yet implemented")
-        set(value) {}
+        set(_) {}
     override var cursorType: CursorType = CursorType.ARROW_CURSOR
     override val seconds: Double
         get() {
@@ -191,5 +192,5 @@ class ApplicationWebGL(private val program: Program, private val configuration: 
     override var presentationMode: PresentationMode = PresentationMode.AUTOMATIC
     override var windowContentScale: Double
         get() = min(configuration.maxContentScale, window.devicePixelRatio)
-        set(value) {}
+        set(_) {}
 }

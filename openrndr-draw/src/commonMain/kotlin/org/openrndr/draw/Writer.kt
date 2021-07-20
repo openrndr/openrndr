@@ -78,7 +78,7 @@ class Writer(val drawerRef: Drawer?) {
     }
 
     fun textWidth(text: String): Double =
-        text.sumByDouble { (drawStyle.fontMap as FontImageMap).glyphMetrics[it]?.advanceWidth ?: 0.0 } +
+        text.sumOf { (drawStyle.fontMap as FontImageMap).glyphMetrics[it]?.advanceWidth ?: 0.0 } +
                 (text.length - 1).coerceAtLeast(0) * style.tracking
 
     fun text(text: String, visible: Boolean = true) {

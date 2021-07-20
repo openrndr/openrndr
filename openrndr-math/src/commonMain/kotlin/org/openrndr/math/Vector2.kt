@@ -126,16 +126,16 @@ data class Vector2(val x: Double, val y: Double) : LinearType<Vector2> {
 
     operator fun unaryMinus() = Vector2(-x, -y)
 
-    override operator fun plus(vector2: Vector2) = Vector2(x + vector2.x, y + vector2.y)
+    override operator fun plus(right: Vector2) = Vector2(x + right.x, y + right.y)
     operator fun plus(d: Double) = Vector2(x + d, y + d)
 
-    override operator fun minus(vector2: Vector2) = Vector2(x - vector2.x, y - vector2.y)
+    override operator fun minus(right: Vector2) = Vector2(x - right.x, y - right.y)
     operator fun minus(d: Double) = Vector2(x - d, y - d)
 
-    override operator fun times(d: Double) = Vector2(x * d, y * d)
+    override operator fun times(scale: Double) = Vector2(x * scale, y * scale)
     operator fun times(v: Vector2) = Vector2(x * v.x, y * v.y)
 
-    override operator fun div(d: Double) = Vector2(x / d, y / d)
+    override operator fun div(scale: Double) = Vector2(x / scale, y / scale)
     operator fun div(d: Vector2) = Vector2(x / d.x, y / d.y)
 
     /** Calculates the Euclidean distance to [other]. */

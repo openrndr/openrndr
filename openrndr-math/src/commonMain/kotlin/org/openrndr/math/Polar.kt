@@ -37,10 +37,10 @@ data class Polar(val theta: Double, val radius: Double = 1.0) : LinearType<Polar
             return Vector2.fromPolar(this)
         }
 
-    override operator fun plus(s: Polar) = Polar(theta + s.theta, radius + s.radius)
-    override operator fun minus(s: Polar) = Polar(theta - s.theta, radius - s.radius)
-    operator fun times(s: Polar) = Polar(theta * s.theta, radius * s.radius)
+    override operator fun plus(right: Polar) = Polar(theta + right.theta, radius + right.radius)
+    override operator fun minus(right: Polar) = Polar(theta - right.theta, radius - right.radius)
+    operator fun times(scale: Polar) = Polar(theta * scale.theta, radius * scale.radius)
 
-    override operator fun times(s: Double) = Polar(theta * s, radius * s)
-    override operator fun div(s: Double) = Polar(theta / s, radius / s)
+    override operator fun times(scale: Double) = Polar(theta * scale, radius * scale)
+    override operator fun div(scale: Double) = Polar(theta / scale, radius / scale)
 }

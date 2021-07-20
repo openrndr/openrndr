@@ -66,8 +66,6 @@ class ShadeStyleManagerWebGL(
                 shader.begin()
                 var textureIndex = 2
                 var imageIndex = 0
-                var bufferIndex = 2
-
 
                 run {
                     for (it in style.parameterValues.entries) {

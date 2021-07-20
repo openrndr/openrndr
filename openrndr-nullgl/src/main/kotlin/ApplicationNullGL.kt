@@ -63,7 +63,7 @@ class ApplicationNullGL(private val program: Program, private val configuration:
 
     override var clipboardContents: String?
         get() = TODO("Not yet implemented")
-        set(value) {}
+        set(_) {}
     override var windowTitle = "nulllgl window"
     override var windowPosition = Vector2.ZERO
     override var windowSize = Vector2(640.0, 480.0)
@@ -77,5 +77,5 @@ class ApplicationNullGL(private val program: Program, private val configuration:
     override var presentationMode: PresentationMode = PresentationMode.AUTOMATIC
     override var windowContentScale: Double
         get() = 1.0
-        set(value) {}
+        set(_) {}
 }

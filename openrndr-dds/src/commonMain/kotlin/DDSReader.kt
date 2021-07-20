@@ -375,7 +375,7 @@ data class DDSData(
 
     fun toColorBuffer(session: Session? = Session.active): ColorBuffer {
         require(!cubeMap)
-        val cb = colorBuffer(width, height, 1.0, format, type, levels = mipmaps).apply {
+        val cb = colorBuffer(width, height, 1.0, format, type, levels = mipmaps, session = session).apply {
             this.flipV = this@DDSData.flipV
         }
         for (level in 0 until mipmaps) {

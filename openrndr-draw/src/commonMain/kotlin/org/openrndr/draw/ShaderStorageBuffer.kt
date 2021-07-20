@@ -117,7 +117,7 @@ class ShaderStorageFormat {
     }
 
     fun commit() {
-        val memberCount = members.sumBy { if (it is ShaderStorageStruct) it.members.size else 1 }
+        val memberCount = members.sumOf { if (it is ShaderStorageStruct) it.members.size else 1 }
         val paddings = IntArray(memberCount)
         var largestAlign = 0
         var ints = 0

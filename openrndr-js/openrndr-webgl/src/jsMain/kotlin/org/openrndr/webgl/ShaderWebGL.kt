@@ -16,7 +16,7 @@ class ShaderWebGL(
             context: GL,
             vertexShader: VertexShaderWebGL,
             fragmentShader: FragmentShaderWebGL,
-            name: String,
+            @Suppress("UNUSED_PARAMETER") name: String,
             session: Session?
         ): ShaderWebGL {
             val program = context.createProgram() ?: error("failed to create program")

@@ -37,9 +37,9 @@ data class Spherical(val theta: Double, val phi: Double, val radius: Double) : L
             return Vector3.fromSpherical(this)
         }
 
-    override operator fun plus(s: Spherical) = Spherical(theta + s.theta, phi + s.phi, radius + s.radius)
-    override operator fun minus(s: Spherical) = Spherical(theta - s.theta, phi - s.phi, radius - s.radius)
-    operator fun times(s: Spherical) = Spherical(theta * s.theta, phi * s.phi, radius * s.radius)
-    override operator fun times(s: Double) = Spherical(theta * s, phi * s, radius * s)
-    override operator fun div(s: Double) = Spherical(theta / s, phi / s, radius / s)
+    override operator fun plus(right: Spherical) = Spherical(theta + right.theta, phi + right.phi, radius + right.radius)
+    override operator fun minus(right: Spherical) = Spherical(theta - right.theta, phi - right.phi, radius - right.radius)
+    operator fun times(scale: Spherical) = Spherical(theta * scale.theta, phi * scale.phi, radius * scale.radius)
+    override operator fun times(scale: Double) = Spherical(theta * scale, phi * scale, radius * scale)
+    override operator fun div(scale: Double) = Spherical(theta / scale, phi / scale, radius / scale)
 }

@@ -306,7 +306,7 @@ object TestSegment : Spek({
         }
 
         describe("has evaluable reduction") {
-            val reduced = segment.reduced()
+            segment.reduced()
 
             println("number of segments in reduction: ${segment.reduced().size}")
 

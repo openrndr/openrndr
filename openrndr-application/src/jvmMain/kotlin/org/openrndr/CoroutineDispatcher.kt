@@ -64,13 +64,15 @@ actual class Dispatcher : MainCoroutineDispatcher(), Delay {
             for ((_, continuation) in toDo) {
                 with(continuation) {
                     logger.trace { "resuming $continuation" }
+                    @Suppress("EXPERIMENTAL_API_USAGE")
                     resumeUndispatched(Unit)
                 }
             }
         }
     }
 }
+@Suppress("EXPERIMENTAL_API_USAGE")
 fun Dispatcher.launch(start: CoroutineStart = CoroutineStart.DEFAULT,
-        block: suspend CoroutineScope.() -> Unit
+                      block: suspend CoroutineScope.() -> Unit
 ): Job = GlobalScope.launch(this, start, block)
 

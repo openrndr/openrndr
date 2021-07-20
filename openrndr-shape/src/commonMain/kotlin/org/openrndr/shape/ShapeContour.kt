@@ -77,7 +77,7 @@ data class ShapeContour(
     val shape get() = Shape(listOf(this))
 
     /** Calculates approximate Euclidean length of the contour. */
-    val length by lazy { segments.sumByDouble { it.length } }
+    val length by lazy { segments.sumOf { it.length } }
 
     /** Calculates the bounding box of the contour as [Rectangle]. */
     val bounds by lazy {

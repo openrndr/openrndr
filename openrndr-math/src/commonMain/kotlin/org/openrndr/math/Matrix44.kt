@@ -129,23 +129,23 @@ data class Matrix44(
 
     /**
      * Matrix addition
-     * @param o the other matrix
+     * @param right the other matrix
      */
-    override operator fun plus(o: Matrix44) = Matrix44(
-            c0r0 + o.c0r0, c1r0 + o.c1r0, c2r0 + o.c2r0, c3r0 + o.c3r0,
-            c0r1 + o.c0r1, c1r1 + o.c1r1, c2r1 + o.c2r1, c3r1 + o.c3r1,
-            c0r2 + o.c0r2, c1r2 + o.c1r2, c2r2 + o.c2r2, c3r2 + o.c3r2,
-            c0r3 + o.c0r3, c1r3 + o.c1r3, c2r3 + o.c2r3, c3r3 + o.c3r3)
+    override operator fun plus(right: Matrix44) = Matrix44(
+            c0r0 + right.c0r0, c1r0 + right.c1r0, c2r0 + right.c2r0, c3r0 + right.c3r0,
+            c0r1 + right.c0r1, c1r1 + right.c1r1, c2r1 + right.c2r1, c3r1 + right.c3r1,
+            c0r2 + right.c0r2, c1r2 + right.c1r2, c2r2 + right.c2r2, c3r2 + right.c3r2,
+            c0r3 + right.c0r3, c1r3 + right.c1r3, c2r3 + right.c2r3, c3r3 + right.c3r3)
 
     /**
      * Matrix subtraction
-     * @param o the other matrix
+     * @param right the other matrix
      */
-    override operator fun minus(o: Matrix44) = Matrix44(
-            c0r0 - o.c0r0, c1r0 - o.c1r0, c2r0 - o.c2r0, c3r0 - o.c3r0,
-            c0r1 - o.c0r1, c1r1 - o.c1r1, c2r1 - o.c2r1, c3r1 - o.c3r1,
-            c0r2 - o.c0r2, c1r2 - o.c1r2, c2r2 - o.c2r2, c3r2 - o.c3r2,
-            c0r3 - o.c0r3, c1r3 - o.c1r3, c2r3 - o.c2r3, c3r3 - o.c3r3)
+    override operator fun minus(right: Matrix44) = Matrix44(
+            c0r0 - right.c0r0, c1r0 - right.c1r0, c2r0 - right.c2r0, c3r0 - right.c3r0,
+            c0r1 - right.c0r1, c1r1 - right.c1r1, c2r1 - right.c2r1, c3r1 - right.c3r1,
+            c0r2 - right.c0r2, c1r2 - right.c1r2, c2r2 - right.c2r2, c3r2 - right.c3r2,
+            c0r3 - right.c0r3, c1r3 - right.c1r3, c2r3 - right.c2r3, c3r3 - right.c3r3)
 
 
     /**
@@ -182,15 +182,15 @@ data class Matrix44(
     /**
      * Multiplies all the elements in the 4x4 matrix with a scalar
      */
-    override operator fun times(s: Double) = Matrix44(s * c0r0, s * c1r0, s * c2r0, s * c3r0,
-            s * c0r1, s * c1r1, s * c2r1, s * c3r1,
-            s * c0r2, s * c1r2, s * c2r2, s * c3r2,
-            s * c0r3, s * c1r3, s * c2r3, s * c3r3)
+    override operator fun times(scale: Double) = Matrix44(scale * c0r0, scale * c1r0, scale * c2r0, scale * c3r0,
+            scale * c0r1, scale * c1r1, scale * c2r1, scale * c3r1,
+            scale * c0r2, scale * c1r2, scale * c2r2, scale * c3r2,
+            scale * c0r3, scale * c1r3, scale * c2r3, scale * c3r3)
 
-    override operator fun div(s: Double) = Matrix44(s / c0r0, s / c1r0, s / c2r0, s / c3r0,
-            s / c0r1, s / c1r1, s / c2r1, s / c3r1,
-            s / c0r2, s / c1r2, s / c2r2, s / c3r2,
-            s / c0r3, s / c1r3, s / c2r3, s / c3r3)
+    override operator fun div(scale: Double) = Matrix44(scale / c0r0, scale / c1r0, scale / c2r0, scale / c3r0,
+            scale / c0r1, scale / c1r1, scale / c2r1, scale / c3r1,
+            scale / c0r2, scale / c1r2, scale / c2r2, scale / c3r2,
+            scale / c0r3, scale / c1r3, scale / c2r3, scale / c3r3)
 
 
     /**

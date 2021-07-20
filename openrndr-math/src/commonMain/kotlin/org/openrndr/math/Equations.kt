@@ -49,6 +49,7 @@ fun solveLinear(a: Double, b: Double): DoubleArray {
     return trim(acc, solveLinear(a, b, acc))
 }
 
+@Suppress("NAME_SHADOWING")
 fun solveQuadratic(a: Double, b: Double, c: Double, acc: DoubleArray): Int {
     var a = a
     var b = b
@@ -93,6 +94,7 @@ fun solveQuadratic(a: Double, b: Double, c: Double): DoubleArray {
     return trim(acc, solveQuadratic(a, b, c, acc))
 }
 
+@Suppress("NAME_SHADOWING")
 fun solveCubic(a: Double, b: Double, c: Double, d: Double, acc: DoubleArray): Int {
     var a = a
     var b = b

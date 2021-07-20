@@ -56,14 +56,14 @@ data class Vector4(val x: Double, val y: Double, val z: Double, val w: Double) :
 
     operator fun unaryMinus() = Vector4(-x, -y, -z, -w)
 
-    override operator fun plus(v: Vector4) = Vector4(x + v.x, y + v.y, z + v.z, w + v.w)
+    override operator fun plus(right: Vector4) = Vector4(x + right.x, y + right.y, z + right.z, w + right.w)
     operator fun plus(d: Double) = Vector4(x + d, y + d, z + d, w + d)
-    override operator fun minus(v: Vector4) = Vector4(x - v.x, y - v.y, z - v.z, w - v.w)
+    override operator fun minus(right: Vector4) = Vector4(x - right.x, y - right.y, z - right.z, w - right.w)
     operator fun minus(d: Double) = Vector4(x - d, y - d, z - d, w - d)
     operator fun times(v: Vector4) = Vector4(x * v.x, y * v.y, z * v.z, w * v.w)
-    override operator fun times(s: Double) = Vector4(x * s, y * s, z * s, w * s)
+    override operator fun times(scale: Double) = Vector4(x * scale, y * scale, z * scale, w * scale)
     operator fun div(v: Vector4) = Vector4(x / v.x, y / v.y, z / v.z, w / v.w)
-    override operator fun div(s: Double) = Vector4(x / s, y / s, z / s, w / s)
+    override operator fun div(scale: Double) = Vector4(x / scale, y / scale, z / scale, w / scale)
 
     operator fun get(i: Int): Double {
         return when (i) {

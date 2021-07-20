@@ -568,7 +568,6 @@ public class Intersections {
   }
 
   public static Vec2[] lineLine(Line2 a, Line2 b) {
-
     Vec2 av = a.end().sub(a.start());
     Vec2 bv = b.end().sub(b.start());
 

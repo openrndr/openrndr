@@ -47,7 +47,7 @@ open class RenderTargetWebGL(
     }
 
     override val colorAttachments: MutableList<ColorAttachment> = mutableListOf()
-    override val depthBuffer: DepthBuffer? = null as DepthBuffer?
+    override val depthBuffer: DepthBuffer? = null
 
     fun bindTarget() {
         context.bindFramebuffer(GL.FRAMEBUFFER, framebuffer)
@@ -115,7 +115,7 @@ open class RenderTargetWebGL(
 
     override fun detachColorAttachments() {
         bound {
-            for ((index, attachment) in colorAttachments.withIndex()) {
+            for ((index, _) in colorAttachments.withIndex()) {
                 context.framebufferTexture2D(GL.FRAMEBUFFER, GL.COLOR_ATTACHMENT0 + index, GL.TEXTURE_2D, null, 0)
             }
         }
@@ -169,9 +169,8 @@ open class RenderTargetWebGL(
 
     override fun unbind() {
         if (!bound) {
-            val popped = active.pop()
+            active.pop()
             val previous = active.last()
-            previous as RenderTargetWebGL
             previous.bindTarget()
         } else {
             throw RuntimeException("target not bound")

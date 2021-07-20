@@ -52,7 +52,7 @@ class VertexFormat {
      * Adds a custom attribute to the [VertexFormat]
      */
     fun attribute(name: String, type: VertexElementType, arraySize: Int = 1) {
-        val offset = items.sumBy { it.arraySize * it.type.sizeInBytes }
+        val offset = items.sumOf { it.arraySize * it.type.sizeInBytes }
         val item = VertexElement(name, offset, type, arraySize)
         items.add(item)
         vertexSize += type.sizeInBytes * arraySize

@@ -124,8 +124,8 @@ class FontImageMapManagerStbTruetype : FontMapManager() {
                 )
 
                 val glyphIndex = glyphIndices[it.key]!!
-                var advanceWidth = 0
-                var leftBearing = 0
+                var advanceWidth: Int
+                var leftBearing: Int
                 stackPush().use { stack ->
                     val pAdvanceWidth = stack.mallocInt(1)
                     val pLeftBearing = stack.mallocInt(1)
@@ -134,10 +134,10 @@ class FontImageMapManagerStbTruetype : FontMapManager() {
                     leftBearing = pLeftBearing.get(0)
                 }
 
-                var x0 = 0
-                var y0 = 0
-                var x1 = 0
-                var y1 = 0
+                var x0: Int
+                var y0: Int
+                var x1: Int
+                var y1: Int
                 stackPush().use { stack ->
                     val px0 = stack.mallocInt(1)
                     val py0 = stack.mallocInt(1)

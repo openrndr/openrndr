@@ -79,7 +79,7 @@ data class ColorHSLa(val h: Double, val s: Double, val l: Double, val a: Double 
     override fun saturate(factor: Double) = copy(s = s * factor)
     override fun shade(factor: Double) = copy(l = l * factor)
 
-    override fun mix(other: ColorHSLa, x: Double) = mix(this, other, x)
+    override fun mix(other: ColorHSLa, factor: Double) = mix(this, other, factor)
 
     val unit get() = copy(h = ((h % 360) + 360) % 360)
 
@@ -107,9 +107,9 @@ data class ColorHSLa(val h: Double, val s: Double, val l: Double, val a: Double 
      * convert to [ColorXSLa]
      */
     fun toXSLa() = ColorXSLa.fromHSLa(this)
-    override fun plus(other: ColorHSLa) = copy(h = h + other.h, s = s + other.s, l = l + other.l, a = a + other.a)
-    override fun minus(other: ColorHSLa) = copy(h = h - other.h, s = s - other.s, l = l - other.l, a = a - other.a)
-    override fun times(factor: Double) = copy(h = h * factor, s = s * factor, l = l * factor, a = a * factor)
+    override fun plus(right: ColorHSLa) = copy(h = h + right.h, s = s + right.s, l = l + right.l, a = a + right.a)
+    override fun minus(right: ColorHSLa) = copy(h = h - right.h, s = s - right.s, l = l - right.l, a = a - right.a)
+    override fun times(scale: Double) = copy(h = h * scale, s = s * scale, l = l * scale, a = a * scale)
 
 }
 

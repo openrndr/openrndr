@@ -170,10 +170,10 @@ private fun mapTypeToUniform(type: String, name: String): String {
         "VolumeTexture_SINT" -> "$u isampler3D p_$name;"
         "Image2D", "Image3D", "ImageCube", "Image2DArray", "ImageBuffer", "ImageCubeArray" -> {
             val sampler = tokens[0].take(1).toLowerCase() + tokens[0].drop(1)
-            val format = ColorFormat.valueOf(tokens[1])
-            val type = ColorType.valueOf(tokens[2])
+            val colorFormat = ColorFormat.valueOf(tokens[1])
+            val colorType = ColorType.valueOf(tokens[2])
             val access = ImageAccess.valueOf(tokens[3])
-            val layout = imageLayout(format, type)
+            val layout = imageLayout(colorFormat, colorType)
             when (access) {
                 ImageAccess.READ, ImageAccess.READ_WRITE -> "layout($layout) $u $sampler p_$name;"
                 ImageAccess.WRITE -> "writeonly $u $sampler p_$name"

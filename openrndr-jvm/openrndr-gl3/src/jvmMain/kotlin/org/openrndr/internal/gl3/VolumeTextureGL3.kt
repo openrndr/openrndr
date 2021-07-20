@@ -121,7 +121,7 @@ class VolumeTextureGL3(val texture: Int,
             GL33C.glGenTextures(textures)
             GL33C.glActiveTexture(GL33C.GL_TEXTURE0)
             GL33C.glBindTexture(GL33C.GL_TEXTURE_3D, textures[0])
-            val (internalFormat, internalType) = internalFormat(format, type)
+            val (internalFormat, _) = internalFormat(format, type)
 
             val version = (Driver.instance as DriverGL3).version
 

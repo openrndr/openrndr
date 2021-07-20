@@ -10,6 +10,7 @@ class DriverWebGL(val context: GL) : Driver {
         Driver.driver = this
     }
 
+    @Suppress("UNCHECKED_CAST_TO_EXTERNAL_INTERFACE")
     inner class Extensions {
         val instancedArrays by lazy {
             context.getExtension("ANGLE_instanced_arrays") as? ANGLEinstancedArrays

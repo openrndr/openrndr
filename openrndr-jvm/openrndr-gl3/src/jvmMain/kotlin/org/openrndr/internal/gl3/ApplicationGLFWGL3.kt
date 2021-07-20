@@ -46,7 +46,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
             glfwGetWindowContentScale(window, wcsx, wcsy)
             return wcsx[0].toDouble()
         }
-        set(value) {}
+        set(_) {}
 
     private var realCursorPosition = Vector2(0.0, 0.0)
 

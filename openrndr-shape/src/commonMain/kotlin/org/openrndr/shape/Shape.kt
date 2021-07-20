@@ -172,7 +172,7 @@ class Shape(val contours: List<ShapeContour>) {
         } else {
             val (cw, ccw) = closedContours.partition { it.winding == winding }
             val candidates = cw.map { outer ->
-                val cs = ccw.filter { intersects(it.bounds, outer.bounds) }
+                val cs = ccw.filter { it.bounds.intersects(outer.bounds) }
                 listOf(outer) + cs
             }
             (candidates + openContours.map { listOf(it) }).map { Shape(it) }

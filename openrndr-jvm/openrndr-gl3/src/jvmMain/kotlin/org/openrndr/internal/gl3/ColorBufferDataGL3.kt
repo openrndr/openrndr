@@ -82,7 +82,7 @@ class ColorBufferDataGL3(
             return fromByteBuffer(buffer, name, formatHint)
         }
 
-        fun fromByteBuffer(buffer: ByteBuffer, name: String? = null, formatHint: ImageFileFormat? = null): ColorBufferDataGL3 {
+        fun fromByteBuffer(buffer: ByteBuffer, @Suppress("UNUSED_PARAMETER") name: String? = null, formatHint: ImageFileFormat? = null): ColorBufferDataGL3 {
             var assumedFormat = ImageFileFormat.PNG
 
             if (formatHint != null) {
@@ -216,9 +216,9 @@ class ColorBufferDataGL3(
 
             } else if (assumedFormat == ImageFileFormat.DDS) {
                 val data = loadDDS(buffer)
-                val buffer = data.image(0)
-                require(buffer.remaining() > 0) {
-                    "image buffer $buffer has no remaining bytes"
+                val readBuffer = data.image(0)
+                require(readBuffer.remaining() > 0) {
+                    "image buffer $readBuffer has no remaining bytes"
                 }
                 return ColorBufferDataGL3(
                     data.width,

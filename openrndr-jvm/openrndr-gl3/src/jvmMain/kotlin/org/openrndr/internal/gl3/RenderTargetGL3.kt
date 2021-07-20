@@ -464,7 +464,7 @@ open class RenderTargetGL3(
     override fun detachColorAttachments() {
         require(!destroyed)
         bound {
-            for ((index, attachment) in colorAttachments.withIndex()) {
+            for ((index, _) in colorAttachments.withIndex()) {
                 glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + index, GL_TEXTURE_2D, 0, 0)
             }
         }

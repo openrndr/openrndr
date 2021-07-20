@@ -14,6 +14,7 @@ object Scalars {
         return abs(a - b) < epsilon
     }
 
+    @Suppress("NAME_SHADOWING")
     fun angleEquals(t0: Double, t1: Double, epsilon: Double): Boolean {
         var t0 = t0
         var t1 = t1

@@ -143,7 +143,7 @@ object TestShapeContour : Spek({
 
         it("can be offset with miter joins") {
             for (i in -100 until 100) {
-                val offset = curve.offset(i * 1.0, SegmentJoin.MITER)
+                curve.offset(i * 1.0, SegmentJoin.MITER)
             }
         }
 
@@ -228,7 +228,7 @@ object TestShapeContour : Spek({
         }
 
         it("it can be subbed from -0.1 to 0.0") {
-            val s = curve.sub(-0.1, 0.0)
+            curve.sub(-0.1, 0.0)
         }
 
         it("it can be subbed from -2.0 to -1.0") {
@@ -242,7 +242,7 @@ object TestShapeContour : Spek({
 
         }
         it("it can be subbed from -1 to -1") {
-            val s = curve.sub(-1.0, -1.0)
+            curve.sub(-1.0, -1.0)
 
         }
         it("it can be subbed from 0.0 to 0.001 ") {

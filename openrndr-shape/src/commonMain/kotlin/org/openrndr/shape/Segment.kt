@@ -1003,7 +1003,7 @@ class Segment {
 }
 
 private fun sumDifferences(points: List<Vector2>) =
-        (0 until points.size - 1).sumByDouble { (points[it] - points[it + 1]).length }
+        (0 until points.size - 1).sumOf { (points[it] - points[it + 1]).length }
 
 /** Converts spline to a [Segment]. */
 fun CatmulRom2.toSegment(): Segment {

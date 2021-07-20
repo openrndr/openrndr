@@ -11,5 +11,6 @@ class LinearRange<T : LinearType<T>>(val start: T, val end: T) {
 }
 
 private operator fun <T : LinearType<T>> LinearType<T>.rangeTo(end: T) : LinearRange<T> {
+    @Suppress("UNCHECKED_CAST")
     return LinearRange(this as T, end)
 }

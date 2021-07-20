@@ -181,7 +181,7 @@ class ColorBufferGL3(
             return fromColorBufferData(data, session)
         }
 
-        fun fromFile(filename: String, formatHint: ImageFileFormat?, session: Session?): ColorBuffer {
+        fun fromFile(filename: String, @Suppress("UNUSED_PARAMETER") formatHint: ImageFileFormat?, session: Session?): ColorBuffer {
             val data = ColorBufferDataGL3.fromFile(filename)
             return fromColorBufferData(data, session)
         }
@@ -189,7 +189,7 @@ class ColorBufferGL3(
         fun fromStream(
             stream: InputStream,
             name: String?,
-            formatHint: ImageFileFormat?,
+            @Suppress("UNUSED_PARAMETER") formatHint: ImageFileFormat?,
             session: Session?
         ): ColorBuffer {
             val data = ColorBufferDataGL3.fromStream(stream, name)
@@ -825,7 +825,7 @@ class ColorBufferGL3(
                 (pixels as Buffer).rewind()
 
                 runBlocking {
-                    val job = GlobalScope.launch {
+                    @Suppress("EXPERIMENTAL_API_USAGE") val job = GlobalScope.launch {
                         if (!flipV) {
                             val flippedPixels =
                                 BufferUtils.createByteBuffer(effectiveWidth * effectiveHeight * format.componentCount)

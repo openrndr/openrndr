@@ -255,7 +255,11 @@ actual abstract class ColorBuffer {
             formatHint: ImageFileFormat?,
             session: Session? = Session.active
         ): ColorBuffer {
-            val colorBuffer = Driver.instance.createColorBufferFromBuffer(bytes, session = session)
+            val colorBuffer = Driver.instance.createColorBufferFromBuffer(
+                bytes,
+                formatHint = formatHint,
+                session = session
+            )
             return colorBuffer
         }
     }

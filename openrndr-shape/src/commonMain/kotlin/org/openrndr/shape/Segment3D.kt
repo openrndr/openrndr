@@ -5,7 +5,7 @@ import org.openrndr.shape.internal.BezierCubicSampler3D
 import org.openrndr.shape.internal.BezierQuadraticSampler3D
 
 private fun sumDifferences(points: List<Vector3>) =
-        (0 until points.size - 1).sumByDouble { (points[it] - points[it + 1]).length }
+        (0 until points.size - 1).sumOf { (points[it] - points[it + 1]).length }
 
 
 class SegmentProjection3D(val segment: Segment3D, val projection: Double, val distance: Double, val point: Vector3)

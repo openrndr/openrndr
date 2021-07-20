@@ -284,7 +284,7 @@ open class GroupNode(val children: MutableList<CompositionNode> = mutableListOf(
  */
 val DefaultCompositionBounds = Rectangle(0.0, 0.0, 2676.0, 2048.0)
 
-@Deprecated("complicated semantics")
+
 class GroupNodeStop(children: MutableList<CompositionNode>) : GroupNode(children)
 
 /**
@@ -407,7 +407,6 @@ class UserData<T : Any>(
     }
 }
 
-@Deprecated("complicated semantics")
 fun CompositionNode.filter(filter: (CompositionNode) -> Boolean): CompositionNode? {
     val f = filter(this)
 
@@ -436,7 +435,6 @@ fun CompositionNode.filter(filter: (CompositionNode) -> Boolean): CompositionNod
     }
 }
 
-@Deprecated("complicated semantics")
 fun CompositionNode.map(mapper: (CompositionNode) -> CompositionNode): CompositionNode {
     val r = mapper(this)
     return when (r) {

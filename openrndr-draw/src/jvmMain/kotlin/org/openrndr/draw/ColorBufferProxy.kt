@@ -87,14 +87,14 @@ data class ColorBufferProxy(val url: String, val loader: ColorBufferLoader, val 
     }
 }
 
-fun imageProxy(file: File, queue: Boolean = true, persistent: Boolean = false): ColorBufferProxy {
+fun imageProxy(file: File, @Suppress("UNUSED_PARAMETER") queue: Boolean = true, persistent: Boolean = false): ColorBufferProxy {
     return imageProxy(file.toString(), persistent)
 }
 
 fun imageProxy(fileOrUrl: String, queue: Boolean = true, persistent: Boolean = false): ColorBufferProxy {
     return try {
         if (!fileOrUrl.startsWith("data:")) {
-            val url = URL(fileOrUrl)
+            URL(fileOrUrl)
             colorBufferLoader.loadFromUrl(fileOrUrl, queue, persistent)
         } else {
             error("data scheme not supported")

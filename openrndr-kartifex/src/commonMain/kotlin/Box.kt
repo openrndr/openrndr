@@ -126,6 +126,7 @@ abstract class Box<T : Vec<T>, U : Box<T, U>> {
 
     fun expand(v: T): U {
         if (isEmpty) {
+            @Suppress("UNCHECKED_CAST")
             return this as U
         }
         val nLower: T = lower().sub(v)

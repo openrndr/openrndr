@@ -8,7 +8,6 @@ import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 
 object TestCompoundBuilder : Spek({
-    val width = 640
     val height = 480
     describe("a simple org.openrndr.shape.union org.openrndr.shape.compound") {
         val sc = compound {

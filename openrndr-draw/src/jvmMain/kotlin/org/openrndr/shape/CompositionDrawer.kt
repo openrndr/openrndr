@@ -211,7 +211,7 @@ class CompositionDrawer(documentBounds: Rectangle = DefaultCompositionBounds,
         var from = shape
 
         for (subtract in shapes) {
-            if (intersects(shape.bounds, subtract.shape.bounds)) {
+            if (shape.bounds.intersects(subtract.shape.bounds)) {
                 from = difference(from, subtract.shape)
             }
         }
@@ -251,7 +251,7 @@ class CompositionDrawer(documentBounds: Rectangle = DefaultCompositionBounds,
         mergeThreshold: Double = 0.5
     ): List<ShapeNodeIntersection> {
         val result = searchFrom.findShapes().pflatMap { node ->
-            if (intersects(node.bounds, contour.bounds)) {
+            if (node.bounds.intersects(contour.bounds)) {
                 node.shape.contours.flatMap {
                     intersections(contour, it).map {
                         ShapeNodeIntersection(node, it)
@@ -267,7 +267,6 @@ class CompositionDrawer(documentBounds: Rectangle = DefaultCompositionBounds,
                 it
             }
         }
-        val end = System.currentTimeMillis()
         return result
     }
 
@@ -330,11 +329,11 @@ class CompositionDrawer(documentBounds: Rectangle = DefaultCompositionBounds,
                         val shapeNodes = (if (!clipMode.grouped) composition.findShapes() else cursor.findShapes())
                         var toInsert = shape
                         val inverse = model.inversed
-                        for (shapeNode in shapeNodes) {
+                        for (node in shapeNodes) {
                             if (toInsert.empty) {
                                 break
                             } else {
-                                toInsert = difference(toInsert, shapeNode.effectiveShape.transform(inverse))
+                                toInsert = difference(toInsert, node.effectiveShape.transform(inverse))
                             }
                         }
                         toInsert

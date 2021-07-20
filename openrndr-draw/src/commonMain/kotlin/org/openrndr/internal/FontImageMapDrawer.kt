@@ -63,7 +63,7 @@ class FontImageMapDrawer {
 
             var instance = 0
 
-            for ((text, position) in (texts zip positions)) {
+            for ((text, _) in (texts zip positions)) {
                 var cursorX = 0.0
                 var cursorY = 0.0
 

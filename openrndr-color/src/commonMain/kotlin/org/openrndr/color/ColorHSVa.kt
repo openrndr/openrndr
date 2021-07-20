@@ -155,9 +155,9 @@ data class ColorHSVa(val h: Double, val s: Double, val v: Double, val a: Double 
 
     }
 
-    override fun plus(other: ColorHSVa) = copy(h = h + other.h, s = s + other.s, v = v + other.v, a = a + other.a)
-    override fun minus(other: ColorHSVa) = copy(h = h - other.h, s = s - other.s, v = v - other.v, a = a - other.a)
-    override fun times(factor: Double) = copy(h = h * factor, s = s * factor, v = v * factor, a = a * factor)
+    override fun plus(right: ColorHSVa) = copy(h = h + right.h, s = s + right.s, v = v + right.v, a = a + right.a)
+    override fun minus(right: ColorHSVa) = copy(h = h - right.h, s = s - right.s, v = v - right.v, a = a - right.a)
+    override fun times(scale: Double) = copy(h = h * scale, s = s * scale, v = v * scale, a = a * scale)
 
     fun toXSVa(): ColorXSVa {
         return ColorXSVa.fromHSVa(this)

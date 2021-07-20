@@ -35,7 +35,7 @@ actual abstract class BufferTexture {
     abstract fun read(target: ByteBuffer, offset: Int = 0, elementReadCount: Int = this.elementCount)
     abstract fun write(source: ByteBuffer, offset: Int = 0, elementWriteCount: Int = this.elementCount)
 
-    fun saveToFile(file: File, fileFormat: BufferTextureFileFormat = BufferTextureFileFormat.ORB) {
+    fun saveToFile(file: File, @Suppress("UNUSED_PARAMETER") fileFormat: BufferTextureFileFormat = BufferTextureFileFormat.ORB) {
         val buffer = ByteBuffer.allocateDirect(elementCount * format.componentCount * type.componentSize)
         val header = ByteBuffer.allocateDirect(12)
         header.order(ByteOrder.nativeOrder())
@@ -93,7 +93,9 @@ fun loadBufferTexture(fileOrUrl: String, formatHint: BufferTextureFileFormat? = 
  * @param formatHint a format hint for the loader
  * @param session the session to which the buffer texture will be registered
  */
-fun loadBufferTexture(file: File, formatHint: BufferTextureFileFormat? = BufferTextureFileFormat.ORB, session: Session? = Session.active) : BufferTexture {
+fun loadBufferTexture(file: File,
+                      @Suppress("UNUSED_PARAMETER") formatHint: BufferTextureFileFormat? = BufferTextureFileFormat.ORB,
+                      session: Session? = Session.active) : BufferTexture {
     require(file.exists()) {
         "file ${file.absolutePath} does not exist"
     }
@@ -124,7 +126,7 @@ fun loadBufferTexture(file: File, formatHint: BufferTextureFileFormat? = BufferT
  *  @param formatHint a format hint for the loader
  *  @param session the session the buffer texture will be created in
  */
-fun loadBufferTexture(url: URL, formatHint: BufferTextureFileFormat? = BufferTextureFileFormat.ORB, session: Session? = Session.active) : BufferTexture {
+fun loadBufferTexture(url: URL, @Suppress("UNUSED_PARAMETER") formatHint: BufferTextureFileFormat? = BufferTextureFileFormat.ORB, session: Session? = Session.active) : BufferTexture {
     val stream = url.openStream()
     val headerData = ByteArray(12)
     stream.read(headerData)
