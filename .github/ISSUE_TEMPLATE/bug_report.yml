@@ -1,6 +1,6 @@
-name: "Bug Report"
+name: "Bug report"
 description: Report an issue or possible bug
-title: ""
+title: "Bug report:"
 labels: ["bug"]
 assignees: []
 body:
