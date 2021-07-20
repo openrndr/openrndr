@@ -1,6 +1,6 @@
-name: "Feature Request"
+name: "Feature request"
 description: "Suggest an idea or general improvement."
-title: ""
+title: "Feature request:"
 labels: ["enhancement"]
 assignees: []
 body:
