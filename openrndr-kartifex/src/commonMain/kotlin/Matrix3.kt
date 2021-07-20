@@ -114,10 +114,10 @@ class Matrix3 {
         return hash
     }
 
-    override fun equals(obj: Any?): Boolean {
-        return if (this === obj) {
+    override fun equals(other: Any?): Boolean {
+        return if (this === other) {
             true
-        } else if (obj is Matrix3) {
+        } else if (other is Matrix3) {
             TODO("")
             //java.util.Arrays.equals(elements, obj.elements)
         } else {
