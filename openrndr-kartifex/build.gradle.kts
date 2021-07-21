@@ -38,6 +38,7 @@ kotlin {
                 implementation(kotlin("test-common"))
                 implementation(kotlin("test-annotations-common"))
                 implementation("io.kotest:kotest-assertions-core:$kotestVersion")
+
             }
         }
 
@@ -50,6 +51,7 @@ kotlin {
                 implementation(kotlin("test-junit5"))
                 runtimeOnly("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
                 runtimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
+                implementation("io.lacuna:artifex:0.1.0-alpha1")
             }
         }
 
