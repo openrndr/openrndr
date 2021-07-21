@@ -62,13 +62,13 @@ class DirectedGraph<V, E>(
     }
 
     fun edge(from: V, to: V): E {
-        val m = out.get(from) ?: error("no such edge")
-        val e = m.get(to) ?: error("no such edge")
+        val m = out[from] ?: error("no such edge")
+        val e = m[to] ?: error("no such edge")
         return e
     }
 
     fun `in`(vertex: V): Set<V> {
-        val s: Set<V>? = `in`.get(vertex)
+        val s: Set<V>? = `in`[vertex]
         return if (s == null) {
             if (out.contains(vertex)) {
                 emptySet()
@@ -81,100 +81,28 @@ class DirectedGraph<V, E>(
     }
 
     fun out(vertex: V): Set<V> {
-        return out.get(vertex)?.keys ?: error("no such vertex")
+        return out[vertex]?.keys ?: error("no such vertex")
     }
 
     fun link(from: V, to:V, edge: E) = link(from, to, edge) { _, b -> b }
 
     fun link(from: V, to: V, edge: E, merge: (E, E) -> E) {
+        add(from)
+        add(to)
         val e: E? = (out[from] ?: error("no from vertex"))[to]
         if (e == null) {
             out[from]!![to] = edge
         } else {
             out[from]!![to] = merge(e, edge)
         }
-        (`in`[to] ?: error("no to vertex")).add(from)
+        out.getOrPut(to) { mutableMapOf() }
+        `in`.getOrPut(to) { mutableSetOf() }.add(from)
     }
 
     fun unlink(from: V, to: V) {
         (out[from] ?: error("no from vertex")).remove(to)
+        (`in`[to]!!.remove(from))
     }
-
-//    fun <U> mapEdges(f: (IEdge<V,E>) -> U): DirectedGraph<V, U> {
-//        return DirectedGraph(
-//            isLinear,
-//            out.mapValues { u, m ->
-//                m { v, e -> f(e,u,v) }
-//            },
-//            `in`
-//        )
-//    }
-//
-//    fun link(from: V, to: V, edge: E, merge: (E,E)->E): DirectedGraph<V, E> {
-//        val editor = if (isLinear) editor else Any()
-//        var outPrime: Map<V, Map<V, E>> = out.update(from,
-//            { m ->
-//                if (m == null) {
-//                    m = io.lacuna.bifurcan.Map<V, E>(out.keyHash(), out.keyEquality())
-//                }
-//                m.put(to, edge, merge, editor)
-//            }, editor
-//        )
-//        outPrime = outPrime.update(to, UnaryOperator<io.lacuna.bifurcan.Map<V, E>> { m: io.lacuna.bifurcan.Map<V, E>? ->
-//            if (m == null) {
-//                m = io.lacuna.bifurcan.Map<V, E>(out.keyHash(), out.keyEquality())
-//            }
-//            m
-//        }, editor)
-//        val inPrime: io.lacuna.bifurcan.Map<V, io.lacuna.bifurcan.Set<V>> = `in`.update(to,
-//            UnaryOperator<io.lacuna.bifurcan.Set<V>> { s: io.lacuna.bifurcan.Set<V>? ->
-//                if (s == null) {
-//                    s = io.lacuna.bifurcan.Set<V>(out.keyHash(), out.keyEquality())
-//                }
-//                s.add(from, editor)
-//            }, editor
-//        )
-//        return if (isLinear) {
-//            out = outPrime
-//            `in` = inPrime
-//            this
-//        } else {
-//            DirectedGraph(false, outPrime, inPrime)
-//        }
-//    }
-//
-//    override fun unlink(from: V, to: V): DirectedGraph<V, E> {
-//        return if (out.get(from)
-//                .map<Boolean>(java.util.function.Function<io.lacuna.bifurcan.Map<V, E>, Boolean> { m: io.lacuna.bifurcan.Map<V, E> ->
-//                    m.contains(
-//                        to
-//                    )
-//                }).orElse(false)
-//        ) {
-//            val editor = if (isLinear) editor else Any()
-//            val outPrime: io.lacuna.bifurcan.Map<V, io.lacuna.bifurcan.Map<V, E>> = out.update(from,
-//                UnaryOperator<io.lacuna.bifurcan.Map<V, E>> { m: io.lacuna.bifurcan.Map<V, E> ->
-//                    m.remove(
-//                        to,
-//                        editor
-//                    )
-//                }, editor
-//            )
-//            val inPrime: io.lacuna.bifurcan.Map<V, io.lacuna.bifurcan.Set<V>> = `in`.update(to,
-//                UnaryOperator<io.lacuna.bifurcan.Set<V>> { s: io.lacuna.bifurcan.Set<V> -> s.remove(from, editor) },
-//                editor
-//            )
-//            if (isLinear) {
-//                out = outPrime
-//                `in` = inPrime
-//                this
-//            } else {
-//                DirectedGraph(false, outPrime, inPrime)
-//            }
-//        } else {
-//            this
-//        }
-//    }
 
     fun add(vertex: V): DirectedGraph<V, E> {
         return if (out.contains(vertex)) {
@@ -196,31 +124,6 @@ class DirectedGraph<V, E>(
         }
         return this
     }
-
-//    override fun merge(graph: IGraph<V, E>, merge: BinaryOperator<E>): DirectedGraph<V, E> {
-//        return if (graph is DirectedGraph<*, *>) {
-//            val g = graph as DirectedGraph<V, E>
-//            DirectedGraph(
-//                isLinear,
-//                out.merge(g.out,
-//                    BinaryOperator<io.lacuna.bifurcan.Map<V, E>> { a: io.lacuna.bifurcan.Map<V, E>, b: io.lacuna.bifurcan.Map<V, E>? ->
-//                        a.merge(
-//                            b,
-//                            merge
-//                        )
-//                    }),
-//                `in`.merge(
-//                    g.`in`,
-//                    BinaryOperator<io.lacuna.bifurcan.Set<V>> { obj: io.lacuna.bifurcan.Set, s: ISet<V>? ->
-//                        obj.union(
-//                            s
-//                        )
-//                    })
-//            )
-//        } else {
-//            io.lacuna.bifurcan.Graphs.merge(this, graph, merge)
-//        }
-//    }
 
     fun select(vertices: Set<V>): DirectedGraph<V, E> {
         return DirectedGraph(
@@ -290,7 +193,7 @@ object Graphs {
                 // traverse deeper
                 if (branches.last().hasNext()) {
                     val w: V = branches.last().next()
-                    var ws: TarjanState? = state.get(w)
+                    var ws: TarjanState? = state[w]
                     if (ws == null) {
                         ws = TarjanState(state.size)
                         state.put(w, ws)
@@ -298,7 +201,7 @@ object Graphs {
                         path.add(w)
                         branches.add(graph.out(w).iterator())
                     } else if (ws.onStack) {
-                        val vs: TarjanState = state.get(path.last())!!
+                        val vs: TarjanState = state[path.last()]!!
                         vs.lowlink = min(vs.lowlink, ws.index)
                     }
 
@@ -306,12 +209,12 @@ object Graphs {
                 } else {
                     branches.removeLast()
                     val w: V = path.removeLast()
-                    val ws: TarjanState = state.get(w)!!
+                    val ws: TarjanState = state[w]!!
 
                     // update predecessor's lowlink, if they exist
                     if (path.size > 0) {
                         val v: V = path.last()
-                        val vs: TarjanState = state.get(v)!!
+                        val vs: TarjanState = state[v]!!
                         vs.lowlink = min(vs.lowlink, ws.lowlink)
                     }
 
@@ -319,13 +222,13 @@ object Graphs {
                     if (ws.lowlink == ws.index) {
                         if (!includeSingletons && stack.last() === w) {
                             stack.removeLast()
-                            state.get(w)!!.onStack = false
+                            state[w]!!.onStack = false
                         } else {
                             val group = mutableSetOf<V>()
                             while (true) {
                                 val x: V = stack.removeLast()
                                 group.add(x)
-                                state.get(x)!!.onStack = false
+                                state[x]!!.onStack = false
                                 if (x === w) {
                                     break
                                 }
@@ -411,21 +314,13 @@ object Graphs {
                                 val u: V = stack.removeLast()
                                 if (blocked.contains(u)) {
                                     blocked.remove(u)
-                                    blocking.get(u) ?: emptySet<V>()
-                                        .forEach { value: V ->
-                                            stack.addLast(
-                                                value
-                                            )
-                                        }
+                                    blocking[u] ?: emptySet<V>()
+                                        .forEach { value: V -> stack.addLast(value) }
                                     blocking.remove(u)
                                 }
                             }
                         } else {
-                            graph.out(v).forEach { u: V ->
-                                blocking.getOrPut(u) {
-                                    mutableSetOf()
-                                }.add(v)
-                            }
+                            graph.out(v).forEach { u: V -> blocking.getOrPut(u) { mutableSetOf() }.add(v) }
                         }
                         branches.removeLast()
                     }
@@ -511,16 +406,13 @@ object Graphs {
         accept: (V) -> Boolean,
         cost: (IEdge<V, E>) -> Double
     ): List<V>? {
-        val originStates: MutableMap<V, MutableMap<V, ShortestPathState<V>>> =
-            mutableMapOf()// LinearMap<V, IMap<V, ShortestPathState<V>>>()
-        val queue = PriorityQueue<ShortestPathState<V>>(
-            compareBy { it.distance })
+        val originStates = mutableMapOf<V, MutableMap<V, ShortestPathState<V>>>()
+        val queue = PriorityQueue<ShortestPathState<V>>(compareBy { it.distance })
 
         for (v in start) {
             if (graph.vertices().contains(v)) {
                 val init = ShortestPathState(v)
-                (originStates.getOrPut(v) { mutableMapOf<V, ShortestPathState<V>>() })
-                    .put(v, init)
+                (originStates.getOrPut(v) { mutableMapOf() })[v] = init
                 queue.add(init)
             }
         }
@@ -530,8 +422,8 @@ object Graphs {
             if (curr == null) {
                 return null
             }
-            val states: MutableMap<V, ShortestPathState<V>> = originStates.get(curr.origin) ?: error("no state")
-            if (states.get(curr.node) !== curr) {
+            val states: MutableMap<V, ShortestPathState<V>> = originStates[curr.origin] ?: error("no state")
+            if (states[curr.node] !== curr) {
                 continue
             } else if (curr.prev != null && accept(curr.node)) {
                 return curr.path()
@@ -540,11 +432,11 @@ object Graphs {
                 val edge: Double =
                     cost(Edge(graph.edge(curr.node, v), curr.node, v))
                 require(edge >= 0) { "negative edge weights are unsupported" }
-                var next: ShortestPathState<V>? = states.get(v)
-                if (next == null) {
-                    next = ShortestPathState(v, curr, edge)
+                var next: ShortestPathState<V>? = states[v]
+                next = if (next == null) {
+                    ShortestPathState(v, curr, edge)
                 } else if (curr.distance + edge < next.distance) {
-                    next = ShortestPathState(v, curr, edge)
+                    ShortestPathState(v, curr, edge)
                 } else {
                     continue
                 }
