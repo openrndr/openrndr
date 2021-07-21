@@ -1,9 +1,12 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
     kotlin("multiplatform")
 }
 
 val lwjglVersion: String by rootProject.extra
 val kotlinLanguageVersion: String by rootProject.extra
+val kotlinLoggingVersion: String by rootProject.extra
 val kotlinApiVersion: String by rootProject.extra
 val jsoupVersion: String by rootProject.extra
 val kluentVersion: String by rootProject.extra
@@ -13,8 +16,8 @@ kotlin {
     jvm {
         compilations.all {
             kotlinOptions.jvmTarget = "1.8"
-            kotlinOptions.apiVersion = kotlinApiVersion
-            kotlinOptions.languageVersion = kotlinLanguageVersion
+            kotlinOptions.apiVersion = "1.5"
+            kotlinOptions.languageVersion = "1.5"
         }
         testRuns["test"].executionTask.configure {
             useJUnitPlatform()
@@ -29,6 +32,7 @@ kotlin {
                 implementation(project(":openrndr-math"))
                 implementation(project(":openrndr-color"))
                 implementation("org.jsoup:jsoup:$jsoupVersion")
+                implementation("io.github.microutils:kotlin-logging:$kotlinLoggingVersion")
             }
         }
 
@@ -45,7 +49,3 @@ kotlin {
         }
     }
 }
-
-
-
-
