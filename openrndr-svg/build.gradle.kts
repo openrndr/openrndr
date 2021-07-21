@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 plugins {
     kotlin("multiplatform")
 }
@@ -7,6 +5,7 @@ plugins {
 val lwjglVersion: String by rootProject.extra
 val kotlinLanguageVersion: String by rootProject.extra
 val kotlinLoggingVersion: String by rootProject.extra
+val kotlinJvmTarget: String by rootProject.extra
 val kotlinApiVersion: String by rootProject.extra
 val jsoupVersion: String by rootProject.extra
 val kluentVersion: String by rootProject.extra
@@ -15,9 +14,9 @@ val spekVersion: String by rootProject.extra
 kotlin {
     jvm {
         compilations.all {
-            kotlinOptions.jvmTarget = "1.8"
-            kotlinOptions.apiVersion = "1.5"
-            kotlinOptions.languageVersion = "1.5"
+            kotlinOptions.jvmTarget = kotlinJvmTarget
+            kotlinOptions.apiVersion = kotlinApiVersion
+            kotlinOptions.languageVersion = kotlinLanguageVersion
         }
         testRuns["test"].executionTask.configure {
             useJUnitPlatform()

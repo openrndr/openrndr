@@ -3,15 +3,18 @@ plugins {
 }
 
 val lwjglVersion: String by rootProject.extra
+val kotlinJvmTarget: String by rootProject.extra
 val kotlinLanguageVersion: String by rootProject.extra
 val kotlinApiVersion: String by rootProject.extra
 val kluentVersion: String by rootProject.extra
-val spekVersion:String by rootProject.extra
+val spekVersion: String by rootProject.extra
+val kotlinLoggingVersion: String by rootProject.extra
+val kotlinxCoroutinesVersion: String by rootProject.extra
 
 kotlin {
     jvm {
         compilations.all {
-            kotlinOptions.jvmTarget = "1.8"
+            kotlinOptions.jvmTarget = kotlinJvmTarget
             kotlinOptions.apiVersion = kotlinApiVersion
             kotlinOptions.languageVersion = kotlinLanguageVersion
         }
@@ -29,9 +32,9 @@ kotlin {
                 implementation(project(":openrndr-shape"))
                 implementation(project(":openrndr-binpack"))
                 implementation(project(":openrndr-dds"))
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.0-RC")
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxCoroutinesVersion")
 
-                implementation("io.github.microutils:kotlin-logging:2.0.6")
+                implementation("io.github.microutils:kotlin-logging:$kotlinLoggingVersion")
                 implementation("org.lwjgl:lwjgl:$lwjglVersion")
                 implementation("org.lwjgl:lwjgl-glfw:$lwjglVersion")
                 implementation("org.lwjgl:lwjgl-jemalloc:$lwjglVersion")

@@ -6,13 +6,16 @@ val kotlinxSerializationVersion: String by rootProject.extra
 val kotlinxCoroutinesVersion: String by rootProject.extra
 val kotestVersion: String by rootProject.extra
 val junitJupiterVersion: String by rootProject.extra
+val kotlinApiVersion: String by rootProject.extra
+val kotlinJvmTarget: String by rootProject.extra
+val kotlinLoggingVersion: String by rootProject.extra
 
 kotlin {
 
     jvm {
         compilations.all {
-            kotlinOptions.jvmTarget = "1.8"
-            kotlinOptions.apiVersion = "1.4"
+            kotlinOptions.jvmTarget = kotlinJvmTarget
+            kotlinOptions.apiVersion = kotlinApiVersion
         }
         testRuns["test"].executionTask.configure {
             useJUnitPlatform()
@@ -46,7 +49,7 @@ kotlin {
                 api(project(":openrndr-shape"))
                 api(project(":openrndr-event"))
                 implementation(project(":openrndr-utils"))
-                implementation("io.github.microutils:kotlin-logging:2.0.6")
+                implementation("io.github.microutils:kotlin-logging:$kotlinLoggingVersion")
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxCoroutinesVersion")
             }
         }
