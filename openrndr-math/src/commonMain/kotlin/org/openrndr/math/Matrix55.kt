@@ -87,5 +87,14 @@ data class Matrix55(
             c0r3 * s, c1r3 * s, c2r3 * s, c3r3 * s, c4r3 * s,
             c0r4 * s, c1r4 * s, c2r4 * s, c3r4 * s, c4r4 * s)
 
+    // @formatter:off
+    override fun toString(): String =
+        """$c0r0, $c1r0, $c2r0, $c3r0, $c4r0,
+           $c0r1, $c1r1, $c2r1, $c3r1, $c4r1,
+           $c0r2, $c1r2, $c2r2, $c3r2, $c4r2,
+           $c0r3, $c1r3, $c2r3, $c3r3, $c4r3,
+           $c0r4, $c1r4, $c2r4, $c3r4, $c4r4""".trimIndent()
+    // @formatter:on
+
 }
 

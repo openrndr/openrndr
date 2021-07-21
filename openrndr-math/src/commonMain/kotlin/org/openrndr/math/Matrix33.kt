@@ -112,7 +112,7 @@ data class Matrix33(
             this.c0r2 * mat.c2r0 + this.c1r2 * mat.c2r1 + this.c2r2 * mat.c2r2)
 
     override fun toString(): String =
-            "${c0r0}, ${c1r0}, ${c2r0}\n${c0r1}, ${c1r1}, ${c2r1}\n${c0r2}, ${c1r2}, ${c2r2}\n"
+            "$c0r0, $c1r0, $c2r0,\n$c0r1, $c1r1, $c2r1,\n$c0r2, $c1r2, $c2r2"
 }
 
 operator fun Double.times(m: Matrix33) = m * this
