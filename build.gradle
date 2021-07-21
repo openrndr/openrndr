@@ -30,9 +30,9 @@ ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
   see below!
 */
 project.ext {
-    kotlinApiVersion = '1.4'
+    kotlinApiVersion = '1.5'
     kotlinJvmTarget = '1.8'
-    kotlinLanguageVersion = '1.4'
+    kotlinLanguageVersion = '1.5'
     kotlinVersion = '1.5.21'
     kotlinLoggingVersion = '2.0.6'
     kotlinxSerializationVersion = '1.2.1'

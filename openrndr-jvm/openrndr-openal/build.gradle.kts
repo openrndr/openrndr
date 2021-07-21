@@ -6,11 +6,12 @@ val lwjglVersion: String by rootProject.extra
 val kotlinLanguageVersion: String by rootProject.extra
 val kotlinApiVersion: String by rootProject.extra
 val kotlinLoggingVersion: String by rootProject.extra
+val kotlinJvmTarget: String by rootProject.extra
 
 kotlin {
     jvm {
         compilations.all {
-            kotlinOptions.jvmTarget = "1.8"
+            kotlinOptions.jvmTarget = kotlinJvmTarget
             kotlinOptions.apiVersion = kotlinApiVersion
             kotlinOptions.languageVersion = kotlinLanguageVersion
         }
@@ -22,8 +23,8 @@ kotlin {
     sourceSets {
         val jvmMain by getting {
             dependencies {
-                implementation(project (":openrndr-core"))
-                implementation(project (":openrndr-math"))
+                implementation(project(":openrndr-core"))
+                implementation(project(":openrndr-math"))
                 implementation("org.lwjgl:lwjgl:$lwjglVersion")
                 implementation("org.lwjgl:lwjgl-openal:$lwjglVersion")
                 implementation("io.github.microutils:kotlin-logging:$kotlinLoggingVersion")

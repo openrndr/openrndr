@@ -10,13 +10,17 @@ val kotlinxSerializationVersion: String by rootProject.extra
 val kotlinxCoroutinesVersion: String by rootProject.extra
 val kotestVersion: String by rootProject.extra
 val junitJupiterVersion: String by rootProject.extra
+val kotlinApiVersion: String by rootProject.extra
+val kotlinJvmTarget: String by rootProject.extra
+val kotlinLoggingVersion: String by rootProject.extra
+val kluentVersion: String by rootProject.extra
 
 kotlin {
 
     jvm {
         compilations.all {
-            kotlinOptions.jvmTarget = "1.8"
-            kotlinOptions.apiVersion = "1.4"
+            kotlinOptions.jvmTarget = kotlinJvmTarget
+            kotlinOptions.apiVersion = kotlinApiVersion
         }
         testRuns["test"].executionTask.configure {
             useJUnitPlatform()
@@ -35,7 +39,7 @@ kotlin {
                 api(project(":openrndr-math"))
                 api(project(":openrndr-draw"))
                 api(project(":openrndr-animatable"))
-                implementation("io.github.microutils:kotlin-logging:2.0.6")
+                implementation("io.github.microutils:kotlin-logging:$kotlinLoggingVersion")
             }
         }
 
@@ -62,7 +66,7 @@ kotlin {
                 implementation(kotlin("test-common"))
                 implementation(kotlin("test-annotations-common"))
                 implementation(kotlin("test-junit5"))
-                implementation("org.amshove.kluent:kluent:1.65")
+                implementation("org.amshove.kluent:kluent:$kluentVersion")
                 runtimeOnly("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
                 runtimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
             }

@@ -2,16 +2,18 @@ plugins {
     kotlin("multiplatform")
 }
 
-val kotlinxSerializationVersion:    String by rootProject.extra
-val kotestVersion:                  String by rootProject.extra
-val junitJupiterVersion:            String by rootProject.extra
+val kotlinxSerializationVersion: String by rootProject.extra
+val kotestVersion: String by rootProject.extra
+val junitJupiterVersion: String by rootProject.extra
+val kotlinApiVersion: String by rootProject.extra
+val kotlinJvmTarget: String by rootProject.extra
 
 kotlin {
 
     jvm {
         compilations.all {
-            kotlinOptions.jvmTarget = "1.8"
-            kotlinOptions.apiVersion = "1.4"
+            kotlinOptions.jvmTarget = kotlinJvmTarget
+            kotlinOptions.apiVersion = kotlinApiVersion
         }
         testRuns["test"].executionTask.configure {
             useJUnitPlatform()
@@ -44,6 +46,7 @@ kotlin {
                 api(project(":openrndr-event"))
             }
         }
+
         @Suppress("UNUSED_VARIABLE")
         val commonTest by getting {
             dependencies {
@@ -59,6 +62,7 @@ kotlin {
             }
 
         }
+
         @Suppress("UNUSED_VARIABLE")
         val jvmTest by getting {
             dependencies {
@@ -72,6 +76,7 @@ kotlin {
 
         @Suppress("UNUSED_VARIABLE")
         val jsMain by getting
+
         @Suppress("UNUSED_VARIABLE")
         val jsTest by getting {
             dependencies {
