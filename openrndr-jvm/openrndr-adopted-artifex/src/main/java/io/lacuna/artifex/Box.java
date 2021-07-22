@@ -5,7 +5,7 @@ import java.util.function.DoublePredicate;
 
 import static io.lacuna.artifex.Interval.interval;
 import static io.lacuna.artifex.Vec.vec;
-import static io.lacuna.artifex.utils.Scalars.max;
+import static io.lacuna.artifex.utils.ScalarsAdopted.max;
 
 /**
  * @author ztellman

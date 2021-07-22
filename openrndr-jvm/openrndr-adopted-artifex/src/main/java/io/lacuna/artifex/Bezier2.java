@@ -14,8 +14,8 @@ import static io.lacuna.artifex.Vec.vec;
 import static io.lacuna.artifex.Vec2.cross;
 import static io.lacuna.artifex.utils.Equations.solveCubic;
 import static io.lacuna.artifex.utils.Equations.solveQuadratic;
-import static io.lacuna.artifex.utils.Scalars.EPSILON;
-import static io.lacuna.artifex.utils.Scalars.inside;
+import static io.lacuna.artifex.utils.ScalarsAdopted.EPSILON;
+import static io.lacuna.artifex.utils.ScalarsAdopted.inside;
 import static java.lang.Math.*;
 
 /**

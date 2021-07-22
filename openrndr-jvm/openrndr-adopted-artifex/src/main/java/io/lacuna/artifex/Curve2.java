@@ -5,8 +5,6 @@ import io.lacuna.artifex.utils.Intersections;
 import java.util.Arrays;
 
 import static io.lacuna.artifex.Box.box;
-import static io.lacuna.artifex.Vec2.cross;
-import static io.lacuna.artifex.utils.Scalars.EPSILON;
 import static java.lang.Math.abs;
 
 /**

@@ -1,7 +1,7 @@
 package io.lacuna.artifex.utils;
 
-import static io.lacuna.artifex.utils.Scalars.EPSILON;
-import static io.lacuna.artifex.utils.Scalars.MACHINE_EPSILON;
+import static io.lacuna.artifex.utils.ScalarsAdopted.EPSILON;
+import static io.lacuna.artifex.utils.ScalarsAdopted.MACHINE_EPSILON;
 import static java.lang.StrictMath.*;
 
 /**
@@ -74,14 +74,13 @@ public class Equations {
   }
 
   public static int solveQuadratic(double a, double b, double c, double[] acc) {
-
     if (abs(a) < EPSILON) {
       return solveLinear(b, c, acc);
     }
 
     b *= -0.5;
 
-    double k = Scalars.normalizationFactor(a, b, c);
+    double k = ScalarsAdopted.normalizationFactor3(a, b, c);
     a *= k;
     b *= k;
     c *= k;
@@ -124,7 +123,7 @@ public class Equations {
 
   public static int solveCubic(double a, double b, double c, double d, double[] acc) {
 
-    double k = Scalars.normalizationFactor(a, b, c, d);
+    double k = ScalarsAdopted.normalizationFactor4(a, b, c, d);
     a *= k;
     b *= k;
     c *= k;

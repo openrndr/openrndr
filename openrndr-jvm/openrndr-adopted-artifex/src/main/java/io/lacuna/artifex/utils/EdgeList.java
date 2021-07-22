@@ -4,12 +4,8 @@ import io.lacuna.artifex.*;
 import io.lacuna.bifurcan.*;
 
 import java.util.Iterator;
-import java.util.Objects;
-import java.util.function.IntPredicate;
 
 import static io.lacuna.artifex.Vec.vec;
-import static io.lacuna.artifex.utils.Scalars.EPSILON;
-import static io.lacuna.artifex.utils.Scalars.angleEquals;
 
 /**
  * An implementation of a doubly-connected edge list.  Since this is an inherently mutable data structure, it is

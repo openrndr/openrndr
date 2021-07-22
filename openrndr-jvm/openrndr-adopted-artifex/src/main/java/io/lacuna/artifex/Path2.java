@@ -9,7 +9,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static io.lacuna.artifex.Vec.vec;
-import static io.lacuna.artifex.utils.Scalars.EPSILON;
+import static io.lacuna.artifex.utils.ScalarsAdopted.EPSILON;
 
 /**
  * @author ztellman

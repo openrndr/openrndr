@@ -15,7 +15,7 @@ import static io.lacuna.artifex.Line2.line;
 import static io.lacuna.artifex.Vec.dot;
 import static io.lacuna.artifex.Vec.vec;
 import static io.lacuna.artifex.Vec2.cross;
-import static io.lacuna.artifex.utils.Scalars.EPSILON;
+import static io.lacuna.artifex.utils.ScalarsAdopted.EPSILON;
 import static java.lang.Math.*;
 
 /**
@@ -261,7 +261,7 @@ public class Intersections {
             lo = min(lo, min(a.x, b.x));
             hi = max(lo, max(a.x, b.x));
           } else {
-            double t = Scalars.lerp(a.x, b.x, (y - a.y) / (b.y - a.y));
+            double t = ScalarsAdopted.lerp(a.x, b.x, (y - a.y) / (b.y - a.y));
             lo = min(lo, t);
             hi = max(hi, t);
           }
@@ -447,9 +447,9 @@ public class Intersections {
   // post-processing
 
   public static double round(double n, double epsilon) {
-    if (Scalars.equals(n, 0, epsilon)) {
+    if (ScalarsAdopted.equals(n, 0, epsilon)) {
       return 0;
-    } else if (Scalars.equals(n, 1, epsilon)) {
+    } else if (ScalarsAdopted.equals(n, 1, epsilon)) {
       return 1;
     } else {
       return n;
@@ -463,8 +463,8 @@ public class Intersections {
 
     for (int i = 0; i < MAX_CUBIC_CUBIC_INTERSECTIONS + 1; i++) {
       double t = (double) i / MAX_CUBIC_CUBIC_INTERSECTIONS;
-      Vec2 pa = a.position(Scalars.lerp(is[0].x, is[1].x, t));
-      Vec2 pb = b.position(Scalars.lerp(is[0].y, is[1].y, t));
+      Vec2 pa = a.position(ScalarsAdopted.lerp(is[0].x, is[1].x, t));
+      Vec2 pb = b.position(ScalarsAdopted.lerp(is[0].y, is[1].y, t));
       if (!Vec.equals(pa, pb, SPATIAL_EPSILON)) {
         return false;
       }
@@ -496,7 +496,7 @@ public class Intersections {
       Arrays.sort(intersections, 0, limit, Comparator.comparingDouble(v -> v.y));
       for (readIdx = 0, writeIdx = -1; readIdx < limit; readIdx++) {
         Vec2 i = intersections[readIdx];
-        if (writeIdx < 0 || !Scalars.equals(intersections[writeIdx].y, i.y, EPSILON)) {
+        if (writeIdx < 0 || !ScalarsAdopted.equals(intersections[writeIdx].y, i.y, EPSILON)) {
           intersections[++writeIdx] = i;
         }
       }
@@ -508,7 +508,7 @@ public class Intersections {
       Arrays.sort(intersections, 0, limit, Comparator.comparingDouble(v -> v.x));
       for (readIdx = 0, writeIdx = -1; readIdx < limit; readIdx++) {
         Vec2 i = intersections[readIdx];
-        if (writeIdx < 0 || !Scalars.equals(intersections[writeIdx].x, i.x, EPSILON)) {
+        if (writeIdx < 0 || !ScalarsAdopted.equals(intersections[writeIdx].x, i.x, EPSILON)) {
           intersections[++writeIdx] = i;
         }
       }
@@ -603,7 +603,7 @@ public class Intersections {
       dot(n, c) + cross(p.start(), p.end()));
 
     Vec2[] result = new Vec2[roots.length];
-    if (Scalars.equals(dir.x, 0, EPSILON)) {
+    if (ScalarsAdopted.equals(dir.x, 0, EPSILON)) {
       double y0 = p.start().y;
       for (int i = 0; i < roots.length; i++) {
         double t = roots[i];

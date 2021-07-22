@@ -10,7 +10,7 @@ import java.util.List;
 
 import static io.lacuna.artifex.Vec.*;
 import static io.lacuna.artifex.Vec2.cross;
-import static io.lacuna.artifex.utils.Scalars.clamp;
+import static io.lacuna.artifex.utils.ScalarsAdopted.clamp;
 import static java.lang.Math.*;
 
 /**

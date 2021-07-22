@@ -7,7 +7,7 @@ import static java.lang.StrictMath.max;
 /**
  * @author ztellman
  */
-public class Scalars {
+public class ScalarsAdopted {
 
   public static final double MACHINE_EPSILON = Math.ulp(1.0);
   public static final double EPSILON = 1e-14;
@@ -53,12 +53,12 @@ public class Scalars {
     }
   }
 
-  public static double normalizationFactor(double a, double b, double c, double d) {
+  public static double normalizationFactor4(double a, double b, double c, double d) {
     double exponent = getExponent(max(max(a, b), max(c, d)));
     return (exponent < -8 || exponent > 8) ? Math.pow(2, -exponent) : 1;
   }
 
-  public static double normalizationFactor(double a, double b, double c) {
+  public static double normalizationFactor3(double a, double b, double c) {
     double maxValue = max(a, b, c);
     if(maxValue == 0.0) {
       maxValue = min(a, b, c);
@@ -67,7 +67,7 @@ public class Scalars {
     return (exponent < -8 || exponent > 8) ? Math.pow(2, -exponent) : 1;
   }
 
-  public static double normalizationFactor(double a, double b) {
+  public static double normalizationFactor2(double a, double b) {
     double exponent = getExponent(max(a, b));
     return (exponent < -8 || exponent > 8) ? Math.pow(2, -exponent) : 1;
   }

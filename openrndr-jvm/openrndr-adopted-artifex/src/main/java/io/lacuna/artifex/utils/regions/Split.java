@@ -2,7 +2,7 @@ package io.lacuna.artifex.utils.regions;
 
 import io.lacuna.artifex.*;
 import io.lacuna.artifex.utils.DoubleAccumulator;
-import io.lacuna.artifex.utils.Scalars;
+import io.lacuna.artifex.utils.ScalarsAdopted;
 import io.lacuna.artifex.utils.SweepQueue;
 import io.lacuna.bifurcan.*;
 
@@ -140,10 +140,10 @@ public class Split {
     for (int i = 0; i < ts.length; i++) {
       double t0 = result.size() == 0 ? 0 : result.last();
       double t1 = ts[i];
-      if (Scalars.equals(t0, t1, PARAMETRIC_EPSILON)
+      if (ScalarsAdopted.equals(t0, t1, PARAMETRIC_EPSILON)
         || Vec.equals(c.position(t0), c.position(t1), SPATIAL_EPSILON)) {
         union.join(c.position(t0), c.position(t1));
-      } else if (Scalars.equals(t1, 1, PARAMETRIC_EPSILON)
+      } else if (ScalarsAdopted.equals(t1, 1, PARAMETRIC_EPSILON)
         || Vec.equals(c.position(t1), c.end(), SPATIAL_EPSILON)) {
         union.join(c.position(t1), c.end());
       } else {

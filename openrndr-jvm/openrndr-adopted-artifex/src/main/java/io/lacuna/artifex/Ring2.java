@@ -9,7 +9,6 @@ import java.util.Comparator;
 
 import static io.lacuna.artifex.Vec.vec;
 import static io.lacuna.artifex.utils.Intersections.*;
-import static io.lacuna.artifex.utils.Scalars.EPSILON;
 import static java.lang.Math.abs;
 import static java.lang.Math.signum;
 

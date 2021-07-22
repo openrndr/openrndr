@@ -1,7 +1,6 @@
 package io.lacuna.artifex;
 
 import io.lacuna.artifex.utils.Hashes;
-import io.lacuna.artifex.utils.Scalars;
 
 import java.util.Comparator;
 import java.util.function.DoubleBinaryOperator;
@@ -9,9 +8,6 @@ import java.util.function.DoublePredicate;
 import java.util.function.DoubleUnaryOperator;
 
 import static io.lacuna.artifex.Vec.dot;
-import static io.lacuna.artifex.utils.Scalars.EPSILON;
-import static io.lacuna.artifex.utils.Scalars.normalizationFactor;
-import static java.lang.Math.acos;
 import static java.lang.Math.atan2;
 
 /**

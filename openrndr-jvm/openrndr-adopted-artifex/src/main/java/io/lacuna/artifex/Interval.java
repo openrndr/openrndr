@@ -1,14 +1,12 @@
 package io.lacuna.artifex;
 
 import io.lacuna.artifex.utils.Hashes;
-import io.lacuna.artifex.utils.Scalars;
+import io.lacuna.artifex.utils.ScalarsAdopted;
 
-import java.util.function.DoubleFunction;
 import java.util.function.DoubleUnaryOperator;
 
 import static java.lang.Double.NEGATIVE_INFINITY;
 import static java.lang.Double.POSITIVE_INFINITY;
-import static java.lang.Math.PI;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 
@@ -118,7 +116,7 @@ public class Interval {
   }
 
   public double lerp(double t) {
-    return t == 1 ? hi : Scalars.lerp(lo, hi, t);
+    return t == 1 ? hi : ScalarsAdopted.lerp(lo, hi, t);
   }
 
   public Interval lerp(Interval i) {

@@ -5,7 +5,7 @@ import io.lacuna.bifurcan.LinearSet;
 
 import java.util.*;
 
-import static io.lacuna.artifex.utils.Scalars.EPSILON;
+import static io.lacuna.artifex.utils.ScalarsAdopted.EPSILON;
 import static java.lang.Math.*;
 
 /**

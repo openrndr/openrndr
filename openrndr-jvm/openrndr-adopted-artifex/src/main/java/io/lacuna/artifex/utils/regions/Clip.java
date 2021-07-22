@@ -3,7 +3,6 @@ package io.lacuna.artifex.utils.regions;
 import io.lacuna.artifex.*;
 import io.lacuna.artifex.Ring2.Result;
 import io.lacuna.artifex.utils.Combinatorics;
-import io.lacuna.artifex.utils.Scalars;
 import io.lacuna.bifurcan.*;
 
 import java.util.Comparator;
