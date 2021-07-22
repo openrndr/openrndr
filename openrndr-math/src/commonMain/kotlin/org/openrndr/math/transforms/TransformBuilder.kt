@@ -34,7 +34,7 @@ class TransformBuilder(baseTransform: Matrix44 = Matrix44.IDENTITY) {
         transform *= Matrix44.scale(scale, scale, scale)
     }
 
-    fun scale(scaleX: Double, scaleY: Double, scaleZ: Double) {
+    fun scale(scaleX: Double, scaleY: Double, scaleZ: Double = 1.0) {
         transform *= Matrix44.scale(scaleX, scaleY, scaleZ)
     }
 
