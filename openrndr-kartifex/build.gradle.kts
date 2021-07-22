@@ -53,7 +53,9 @@ kotlin {
                 implementation(kotlin("test-junit5"))
                 runtimeOnly("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
                 runtimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
-                implementation("io.lacuna:artifex:0.1.0-alpha1")
+                //implementation("io.lacuna:artifex:0.1.0-alpha1")
+                //implementation("org.openrndr:openrndr-adopted-artifex:0.3.58")
+                implementation(project(":openrndr-jvm:openrndr-adopted-artifex"))
             }
         }
 

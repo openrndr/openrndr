@@ -65,8 +65,7 @@ class DoubleAccumulator {
 
     fun toArray(): DoubleArray {
         val result = DoubleArray(size())
-        //System.arraycopy(values, 0, result, 0, size())
-        values.copyInto(result)
+        values.copyInto(result, 0, 0, size())
         return result
     }
 
