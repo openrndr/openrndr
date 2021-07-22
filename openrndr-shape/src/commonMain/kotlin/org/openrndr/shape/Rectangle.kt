@@ -12,7 +12,7 @@ import kotlin.math.min
 /**
  * Creates a new [Rectangle].
  *
- * Also see [OrientedRectangle] and [IntRectangle].
+ * Also see [IntRectangle].
  */
 data class Rectangle(val corner: Vector2, val width: Double, val height: Double = width) {
 

@@ -5,7 +5,7 @@ import org.openrndr.math.Vector2
 /**
  * Creates a new [Ellipse].
  *
- * Also see [OrientedEllipse] and [Circle].
+ * Also see [Circle].
  *
  * @param xRadius Horizontal radius.
  * @param yRadius Vertical radius.
