@@ -1,8 +1,8 @@
 package org.openrndr.kartifex.utils.regions
 
-import io.lacuna.artifex.utils.Scalars
 import org.openrndr.kartifex.*
 import org.openrndr.kartifex.utils.Intersections
+import org.openrndr.kartifex.utils.Scalars
 import org.openrndr.kartifex.utils.SweepQueue
 import utils.DoubleAccumulator
 
@@ -25,12 +25,12 @@ object Split {
                 cs[1 - idx] = c
                 val ts = cs[0]!!.intersections(cs[1]!!)
                 for (i in ts.indices) {
-                    val t0: Double = ts[i].x
-                    val t1: Double = ts[i].y
+                    val t0 = ts[i].x
+                    val t1 = ts[i].y
                     intersections[cs[0]]?.add(t0)
                     intersections[cs[1]]?.add(t1)
-                    val p0: Vec2 = cs[0]!!.position(t0)
-                    val p1: Vec2 = cs[1]!!.position(t1)
+                    val p0 = cs[0]!!.position(t0)
+                    val p1 = cs[1]!!.position(t1)
                     union.join(p0, p1)
                 }
             }
@@ -50,11 +50,11 @@ object Split {
         acc: DoubleAccumulator,
         union: VertexUnion
     ): DoubleAccumulator {
-        val ts: DoubleArray = acc.toArray()
+        val ts = acc.toArray()
         ts.sort()
         val result = DoubleAccumulator()
         for (i in ts.indices) {
-            val t0: Double = if (result.size() == 0) 0.0 else result.last()
+            val t0 = if (result.size() == 0) 0.0 else result.last()
             val t1 = ts[i]
             if (Scalars.equals(t0, t1, Intersections.PARAMETRIC_EPSILON)
                 || Vec.equals(c.position(t0), c.position(t1), Intersections.SPATIAL_EPSILON)
@@ -76,9 +76,9 @@ object Split {
         splits: Map<Curve2, DoubleAccumulator>,
         union: VertexUnion
     ): Ring2? {
-        val curves: MutableList<Curve2> = mutableListOf()
+        val curves = mutableListOf<Curve2>()
         for (c in r.curves) {
-            val acc: DoubleAccumulator = splits[c]!!
+            val acc = splits[c]!!
             for (cp in c.split(acc.toArray())) {
                 val cpa = union.adjust(cp)
                 if (cpa != null) {
@@ -94,19 +94,21 @@ object Split {
             for (c in r.curves) {
                 // TODO EJ: determine if taking the extends of the bounding box of the curve is the better solution
                 queue.add(c, c.start().x, c.end().x)
+                    //val bounds = c.bounds()
+                //queue.add(c, bounds.lx, bounds.width() + bounds.lx)
             }
         }
     }
 
     internal class VertexUnion {
-        private val parent: MutableMap<Vec2, Vec2> = mutableMapOf()
-        private val roots: MutableSet<Vec2> = mutableSetOf()
+        private val parent = mutableMapOf<Vec2, Vec2>()
+        private val roots = mutableSetOf<Vec2>()
         fun join(a: Vec2, b: Vec2) {
             @Suppress("NAME_SHADOWING") var a: Vec2 = a
             @Suppress("NAME_SHADOWING") var b: Vec2 = b
             a = adjust(a)
             b = adjust(b)
-            val cmp: Int = a.compareTo(b)
+            val cmp = a.compareTo(b)
             when {
                 cmp < 0 -> {
                     parent[b] = a
@@ -123,9 +125,9 @@ object Split {
         }
 
         fun adjust(p: Vec2): Vec2 {
-            var curr: Vec2 = p
+            var curr = p
             while (true) {
-                val next: Vec2? = parent[curr]
+                val next = parent[curr]
                 if (next == null) {
                     if (curr != p) {
                         parent[p] = curr
@@ -137,8 +139,8 @@ object Split {
         }
 
         fun adjust(c: Curve2): Curve2? {
-            val start: Vec2 = adjust(c.start())
-            val end: Vec2 = adjust(c.end())
+            val start = adjust(c.start())
+            val end = adjust(c.end())
             return if (start == end) null else c.endpoints(start, end)
         }
 

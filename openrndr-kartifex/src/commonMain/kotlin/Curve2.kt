@@ -17,13 +17,9 @@ interface Curve2 {
      */
     fun signedArea(): Double
     fun length(): Double
-    fun start(): Vec2 {
-        return position(0.0)
-    }
+    fun start() = position(0.0)
 
-    fun end(): Vec2 {
-        return position(1.0)
-    }
+    fun end() = position(1.0)
 
     /**
      * @return an updated curve with the specified endpoints.
@@ -47,9 +43,7 @@ interface Curve2 {
      * @param interval the parametric range
      * @return the curve within [interval.lo, interval.hi]
      */
-    fun range(interval: Interval): Curve2 {
-        return range(interval.lo, interval.hi)
-    }
+    fun range(interval: Interval) = range(interval.lo, interval.hi)
 
     /**
      * @param tMin the lower parametric bound
@@ -60,14 +54,11 @@ interface Curve2 {
         require(tMin != tMax) { "range must be non-zero" }
         require(tMax >= tMin) { "tMin must be less than tMax" }
 
-        return if (tMin == 0.0 && tMax == 1.0) {
-            this
-        } else if (tMin == 0.0) {
-            split(tMax)[0]
-        } else if (tMax == 1.0) {
-            split(tMin)[1]
-        } else {
-            split(tMin)[1].split((tMax - tMin) / (1 - tMin))[0].endpoints(position(tMin), position(tMax))
+        return when {
+            tMin == 0.0 && tMax == 1.0 -> this
+            tMin == 0.0 -> split(tMax)[0]
+            tMax == 1.0 -> split(tMin)[1]
+            else -> split(tMin)[1].split((tMax - tMin) / (1 - tMin))[0].endpoints(position(tMin), position(tMax))
         }
     }
 
@@ -141,7 +132,5 @@ interface Curve2 {
     fun reverse(): Curve2
     fun inflections(): DoubleArray
 
-    fun intersections(c: Curve2): Array<Vec2> {
-        return Intersections.intersections(this, c)
-    }
+    fun intersections(c: Curve2) = Intersections.intersections(this, c)
 }

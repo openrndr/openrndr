@@ -1,6 +1,7 @@
 package org.openrndr.kartifex
 
-import io.lacuna.artifex.utils.Scalars
+
+import org.openrndr.kartifex.utils.Scalars
 import kotlin.math.*
 
 interface Vec<T : Vec<T>> : Comparable<T> {

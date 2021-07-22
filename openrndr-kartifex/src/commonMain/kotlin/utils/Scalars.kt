@@ -1,4 +1,4 @@
-package io.lacuna.artifex.utils
+package org.openrndr.kartifex.utils
 
 import kotlin.math.PI
 import kotlin.math.abs
@@ -100,22 +100,33 @@ object Scalars {
     }
 
     fun normalizationFactor(a: Double, b: Double, c: Double, d: Double): Double {
-        val exponent: Double = getExponent(max(max(a, b), max(c, d))).toDouble()
-        return if (exponent < -8 || exponent > 8) 2.0.pow(-exponent) else 1.0
+        val maxValue = max(max(a, b), max(c, d))
+        return if (maxValue == 0.0) {
+            1.0
+        } else {
+            val exponent: Double = getExponent(maxValue).toDouble()
+            if (exponent < -8 || exponent > 8) 2.0.pow(-exponent) else 1.0
+        }
     }
 
     fun normalizationFactor(a: Double, b: Double, c: Double): Double {
-        var maxValue = max(a, b, c)
-        if (maxValue == 0.0) {
-            maxValue = min(a, b, c)
+        val maxValue = max(a, b, c)
+        return if (maxValue == 0.0) {
+            1.0
+        } else {
+            val exponent = getExponent(maxValue).toDouble()
+            if (exponent < -8 || exponent > 8) 2.0.pow(-exponent) else 1.0
         }
-        val exponent: Double = getExponent(maxValue).toDouble()
-        return if (exponent < -8 || exponent > 8) 2.0.pow(-exponent) else 1.0
     }
 
     fun normalizationFactor(a: Double, b: Double): Double {
-        val exponent: Double = getExponent(max(a, b)).toDouble()
-        return if (exponent < -8 || exponent > 8) 2.0.pow(-exponent) else 1.0
+        val maxValue = max(a,b)
+        return if (maxValue == 0.0) {
+            1.0
+        } else {
+            val exponent: Double = getExponent(maxValue).toDouble()
+            if (exponent < -8 || exponent > 8) 2.0.pow(-exponent) else 1.0
+        }
     }
 
     fun max(a: Double, b: Double): Double {

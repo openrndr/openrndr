@@ -1,6 +1,5 @@
 package org.openrndr.kartifex.utils
 
-import io.lacuna.artifex.utils.Scalars
 import org.openrndr.kartifex.*
 import kotlin.jvm.JvmName
 import kotlin.math.*
@@ -28,7 +27,7 @@ object Intersections {
     const val FAT_LINE_SPATIAL_EPSILON = 1e-6
 
     const val PARAMETRIC_EPSILON = 1e-6
-    const val SPATIAL_EPSILON = 1e-10
+    const val SPATIAL_EPSILON = 1e-6
 
     const val MAX_CUBIC_CUBIC_INTERSECTIONS = 9
 
@@ -433,12 +432,16 @@ object Intersections {
         b: Vec2,
         c: Curve2
     ): Array<Vec2> {
-        return if (c is Bezier2.QuadraticBezier2) {
-            convexHull(a, b, c)
-        } else if (c is Bezier2.CubicBezier2) {
-            convexHull(a, b, c)
-        } else {
-            throw IllegalStateException()
+        return when (c) {
+            is Bezier2.QuadraticBezier2 -> {
+                convexHull(a, b, c)
+            }
+            is Bezier2.CubicBezier2 -> {
+                convexHull(a, b, c)
+            }
+            else -> {
+                throw IllegalStateException()
+            }
         }
     }
 
@@ -469,7 +472,11 @@ object Intersections {
                 }
             }
         }
-        return if (hi < lo) Interval.EMPTY else Interval.interval(lo, hi)
+        return if (hi < lo) {
+            Interval.EMPTY
+        } else {
+            Interval.interval(lo, hi)
+        }
     }
 
     fun quantize(t: Interval): Interval {
@@ -505,13 +512,14 @@ object Intersections {
         }
     }
 
-    fun clip(
+    fun clipFatline(
         subject: FatLine,
         clipper: FatLine
     ): FatLine? {
-        val hull: Array<Vec2> = convexHull(clipper.range.start(), clipper.range.end(), subject.range)
-        val normalized: Interval =
-            clipHull(clipper._line.expand(FAT_LINE_SPATIAL_EPSILON), hull)
+        val hull = convexHull(clipper.range.start(), clipper.range.end(), subject.range)
+
+        val expanded = clipper._line.expand(FAT_LINE_SPATIAL_EPSILON)
+        val normalized = clipHull(expanded, hull)
         return if (normalized.isEmpty) null else FatLine(
             subject.curve,
             subject.t.lerp(normalized)
@@ -550,6 +558,11 @@ object Intersections {
         fun line(): Line2 {
             return Line2.line(range.start(), range.end())
         }
+
+        override fun toString(): String {
+            return "FatLine(curve=$curve, range=$range, t=$t, _line=$_line, isFlat=$isFlat)"
+        }
+
 
         companion object {
             fun from(c: Curve2): Array<FatLine> {
@@ -619,9 +632,8 @@ object Intersections {
 
     fun fatLineCurveCurve(a: Curve2, b: Curve2): Array<Vec2> {
         val queue = ArrayDeque<FatLine>()
-        val `as`: Array<FatLine> = FatLine.from(a)
-        val bs: Array<FatLine> =
-            FatLine.from(b)
+        val `as` = FatLine.from(a)
+        val bs = FatLine.from(b)
         for (ap in `as`) {
             for (bp in bs) {
                 queue.apply {
@@ -634,7 +646,6 @@ object Intersections {
         var collinearCheck = false
         val acc = ArrayDeque<Vec2>()
         while (queue.size > 0) {
-
             // if it's taking a while, check once (and only once) if they're collinear
             if (iterations > 32 && !collinearCheck) {
                 collinearCheck = true
@@ -644,8 +655,8 @@ object Intersections {
                     return `is`
                 }
             }
-            var lb: FatLine = queue.removeLast()
-            var la: FatLine = queue.removeLast()
+            var lb = queue.removeLast()
+            var la = queue.removeLast()
             while (true) {
                 iterations++
                 if (!la.intersects(lb)) {
@@ -659,15 +670,11 @@ object Intersections {
                 val bSize: Double = lb.t.size()
 
                 // use a to clip b
-                val lbPrime: FatLine =
-                    clip(lb, la)
-                        ?: break
+                val lbPrime = clipFatline(lb, la) ?: break
                 lb = lbPrime
 
                 // use b to clip a
-                val laPrime: FatLine =
-                    clip(la, lb)
-                        ?: break
+                val laPrime: FatLine = clipFatline(la, lb) ?: break
                 la = laPrime
                 val ka: Double = la.t.size() / aSize
                 val kb: Double = lb.t.size() / bSize

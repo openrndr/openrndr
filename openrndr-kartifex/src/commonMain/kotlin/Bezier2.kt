@@ -1,26 +1,14 @@
 package org.openrndr.kartifex
 
-import io.lacuna.artifex.utils.Scalars
 import org.openrndr.kartifex.utils.Equations
+import org.openrndr.kartifex.utils.Scalars
 import utils.DoubleAccumulator
 import kotlin.math.abs
 import kotlin.math.max
 
-/**
- * @author ztellman
- */
 object Bezier2 {
-    fun curve(p0: Vec2, p1: Vec2): Curve2 {
-        return Line2.line(p0, p1)
-    }
-
-    fun curve(
-        p0: Vec2,
-        p1: Vec2,
-        p2: Vec2
-    ): Curve2 {
-        return QuadraticBezier2(p0, p1, p2)
-    }
+    fun curve(p0: Vec2, p1: Vec2) = Line2.line(p0, p1)
+    fun curve(p0: Vec2, p1: Vec2, p2: Vec2) = QuadraticBezier2(p0, p1, p2)
 
     fun curve(
         p0: Vec2,
@@ -232,8 +220,9 @@ object Bezier2 {
         }
 
         override fun toString(): String {
-            return "p0=$p0, p1=$p1, p2=$p2"
+            return "QuadraticBezier2(p0=$p0, p1=$p1, p2=$p2)"
         }
+
 
         init {
             this.p0 = p0
@@ -439,9 +428,7 @@ object Bezier2 {
             return acc.toArray()
         }
 
-        override fun toString(): String {
-            return "p0=$p0, p1=$p1, p2=$p2, p3=$p3"
-        }
+
 
         /// approximate as quadratic
         private fun error(): Double {
@@ -483,6 +470,10 @@ object Bezier2 {
                 }
             }
             return result.toTypedArray()
+        }
+
+        override fun toString(): String {
+            return "CubicBezier2(p0=$p0, p1=$p1, p2=$p2, p3=$p3)"
         }
 
         companion object {

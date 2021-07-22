@@ -1,6 +1,7 @@
 package org.openrndr.kartifex
 
-import io.lacuna.artifex.utils.Scalars
+
+import org.openrndr.kartifex.utils.Scalars
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt

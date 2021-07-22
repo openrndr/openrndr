@@ -1,6 +1,7 @@
 package org.openrndr.kartifex
 
-import io.lacuna.artifex.utils.Scalars
+import org.openrndr.kartifex.utils.Scalars
+
 
 class Path2 {
     private val curves: Array<Curve2>
@@ -15,7 +16,7 @@ class Path2 {
 
     constructor(cs: Iterable<Curve2>) {
         val l = ArrayDeque<Curve2>()
-        var bounds: Box2 = Box2.EMPTY
+        var bounds = Box2.EMPTY
         for (a in cs) {
             for (b in a.split(a.inflections())) {
                 l.addLast(b)
@@ -34,29 +35,23 @@ class Path2 {
         }
     }
 
-    fun reverse(): Path2 {
-        return Path2(curves.map {
-            it.reverse()
-        }.reversed())
-    }
+    fun reverse() = Path2(curves.map {
+        it.reverse()
+    }.reversed())
 
-    fun curves(): Array<Curve2> {
-        return curves
-    }
+    fun curves(): Array<Curve2> = curves
 
-    fun bounds(): Box2 {
-        return bounds
-    }
+    fun bounds(): Box2 = bounds
 
     fun vertices(error: Double): Iterable<Vec2> {
-        val result: MutableList<Vec2> = mutableListOf()
+        val result = mutableListOf<Vec2>()
         for (c in curves) {
-            val segments: Array<Vec2> = c.subdivide(error)
+            val segments = c.subdivide(error)
             if (result.isEmpty()) {
                 result.addAll(segments)
             } else {
-                val t1: Vec2 = result[result.size - 1].sub(result[result.size - 2]).norm()
-                val t2: Vec2 = segments[1].sub(segments[0]).norm()
+                val t1 = result[result.size - 1].sub(result[result.size - 2]).norm()
+                val t2 = segments[1].sub(segments[0]).norm()
                 if (Vec.equals(t1, t2, Scalars.EPSILON)) {
                     result.removeAt(result.size - 1)
                 }
@@ -69,9 +64,7 @@ class Path2 {
     }
 
     companion object {
-        fun of(vararg curves: Curve2): Path2 {
-            return Path2(curves.toList())
-        }
+        fun of(vararg curves: Curve2) = Path2(curves.toList())
 
         fun linear(vararg vertices: Vec2): Path2 {
             val segments = mutableListOf<Curve2>()

@@ -17,7 +17,14 @@ A decision was made to not use Zachary's [Bifurcan](https://github.com/lacuna/bi
 the standard Kotlin container classes instead. This may cause a difference in performance
 but should not affect precision. 
 
+## Port variance
+
+The implementations of `Scalar.normalizationFactor` have been adjusted to address [an Artifex issue](https://github.com/lacuna/artifex/issues/3) in which intersections are not detected.
+
+Artifex sets `Intersections.SPATIAL_EPSILON = 1e-10`. In order to address missed intersections between cubic bezier curves that value
+has been increased to `1e-6`. [Relevant Artifex issue](https://github.com/lacuna/artifex/issues/4)
+
 ## Validation
 
-This port has not been validated. Unit tests will be made.
+This port has not been fully validated. Unit tests that lightly compare the outputs of Artifex and Kartifex can be found under [src/jvmTest](src/jvmTest)
 
