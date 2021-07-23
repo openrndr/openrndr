@@ -12,7 +12,7 @@ import kotlin.math.abs
  *
  * Alternatively, see [Ellipse].
  */
-data class Circle(val center: Vector2, val radius: Double) {
+data class Circle(val center: Vector2, val radius: Double): Movable, Scalable1D {
     constructor(x: Double, y: Double, radius: Double) : this(Vector2(x, y), radius)
 
     companion object {
@@ -57,17 +57,40 @@ data class Circle(val center: Vector2, val radius: Double) {
         }
     }
 
+    /** The top-left corner of the [Circle]. */
+    val corner: Vector2
+        get() = center - scale
+
+    override val scale: Vector2
+        get() = Vector2(radius)
+
     /** Creates a new [Circle] with the current [center] offset by [offset]. */
+    @Deprecated("Vague naming", ReplaceWith("movedBy(offset)"))
     fun moved(offset: Vector2): Circle = Circle(center + offset, radius)
 
-    /** Creates a new [Circle] with center at [position]. */
-    fun movedTo(position: Vector2): Circle = Circle(position, radius)
+    override fun movedBy(offset: Vector2): Circle = Circle(center + offset, radius)
 
-    /** Creates a new [Circle] with scale specified by a multiplier for the current radius. */
+    /** Creates a new [Circle] with center at [center]. */
+    @Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE")
+    override fun movedTo(center: Vector2) = Circle(center, radius)
+
+    /** Creates a new [Circle] with the [scale] specified as a multiplier for the current radius. */
+    @Deprecated("Vague naming", ReplaceWith("scaledBy(scale)"))
     fun scaled(scale: Double): Circle = Circle(center, radius * scale)
 
-    /** Creates a new [Circle] at the same position with given radius. */
-    fun scaledTo(fitRadius: Double) = Circle(center, fitRadius)
+    override fun scaledBy(scale: Double, uAnchor: Double, vAnchor: Double): Circle {
+        val d = corner - position(uAnchor, vAnchor)
+        val nd = position(uAnchor, vAnchor) + d * Vector2(scale)
+        return Circle(nd, radius * scale)
+    }
+
+    /** Creates a new [Circle] at the same position with the given [radius]. */
+    @Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE")
+    override fun scaledTo(radius: Double) = Circle(center, radius)
+
+    override fun position(u: Double, v: Double): Vector2 {
+        return corner + Vector2(u * radius, v * radius)
+    }
 
     /** Returns true if given [point] lies inside the [Shape]. */
     fun contains(point: Vector2): Boolean = point.minus(center).squaredLength < radius * radius

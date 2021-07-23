@@ -10,21 +10,39 @@ import org.openrndr.math.Vector2
  * @param xRadius Horizontal radius.
  * @param yRadius Vertical radius.
  */
-data class Ellipse(val center: Vector2, val xRadius: Double, val yRadius: Double) {
+data class Ellipse(val center: Vector2, val xRadius: Double, val yRadius: Double): Movable, Scalable2D {
     constructor(x: Double, y: Double, xRadius: Double, yRadius: Double) : this(Vector2(x, y), xRadius, yRadius)
 
+    /** The top-left corner of the [Ellipse]. */
+    val corner: Vector2
+        get() = center - scale
+
+    override val scale: Vector2
+        get() = Vector2(xRadius, yRadius)
+
     /** Creates a new [Ellipse] with the current [center] offset by [offset] with the same radii. */
-    fun moved(offset: Vector2): Ellipse = Ellipse(center + offset, xRadius, yRadius)
+    override fun movedBy(offset: Vector2) = Ellipse(center + offset, xRadius, yRadius)
 
-    /** Creates a new [Ellipse] with center at [position] with the same radii. */
-    fun movedTo(position: Vector2): Ellipse = Ellipse(position, xRadius, yRadius)
+    /** Creates a new [Ellipse] with the center at [position] with the same radii. */
+    override fun movedTo(position: Vector2) = Ellipse(position, xRadius, yRadius)
 
-    /** Creates a new [Ellipse] with scale specified by multipliers for the current radii. */
-    fun scaled(xScale: Double, yScale: Double = xScale): Ellipse =
-        Ellipse(center, xRadius * xScale, yRadius * yScale)
+    /** Creates a new [Ellipse] with the scale specified as multipliers for the current radii. */
+    override fun scaledBy(xScale: Double, yScale: Double, uAnchor: Double, vAnchor: Double): Ellipse {
+        val d = corner - position(uAnchor, vAnchor)
+        val nd = position(uAnchor, vAnchor) + d * Vector2(xScale, yScale)
+        return Ellipse(nd, xRadius * xScale, yRadius * yScale)
+    }
 
-    /** Creates a new [Ellipse] at the same position with given radii. */
-    fun scaledTo(xFitRadius: Double, yFitRadius: Double = xFitRadius) = Ellipse(center, xFitRadius, yFitRadius)
+    override fun scaledBy(scale: Double, uAnchor: Double, vAnchor: Double) =
+        scaledBy(scale, scale, uAnchor, vAnchor)
+
+    /** Creates a new [Ellipse] at the same position with the given radii. */
+    @Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE")
+    override fun scaledTo(xRadius: Double, yRadius: Double) = Ellipse(center, xRadius, yRadius)
+
+    /** Creates a new [Ellipse] at the same position with equal radii. */
+    @Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE")
+    override fun scaledTo(radius: Double) = scaledTo(radius, radius)
 
     operator fun times(scale: Double) = Ellipse(center * scale, xRadius * scale, yRadius * scale)
 
@@ -35,6 +53,10 @@ data class Ellipse(val center: Vector2, val xRadius: Double, val yRadius: Double
 
     operator fun minus(right: Ellipse) =
         Ellipse(center - right.center, xRadius - right.xRadius, yRadius - right.yRadius)
+
+    override fun position(u: Double, v: Double): Vector2 {
+        return corner + Vector2(u * xRadius, v * yRadius)
+    }
 
     val contour: ShapeContour
         get() {
