@@ -166,7 +166,7 @@ configure(allprojects.findAll { !multiplatformModules.contains(it.name) }) {
     }
 }
 
-def doNotPublish = ["openrndr-demos", "openrndr-kartifex"]
+def doNotPublish = ["openrndr-demos"]
 
 configure(allprojects.findAll { multiplatformModules.contains(it.name) && !doNotPublish.contains(it.name) }) {
     apply plugin: 'maven-publish'
