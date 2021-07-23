@@ -1,6 +1,6 @@
 package org.openrndr.shape
 
-import io.lacuna.artifex.Vec2
+import org.openrndr.kartifex.Vec2
 import org.openrndr.math.Vector2
 import kotlin.math.sqrt
 

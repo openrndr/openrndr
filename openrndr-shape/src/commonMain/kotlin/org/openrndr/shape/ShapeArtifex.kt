@@ -1,9 +1,11 @@
 package org.openrndr.shape
 
-import io.lacuna.artifex.*
-import io.lacuna.artifex.utils.Intersections
+
+import org.openrndr.kartifex.*
+import org.openrndr.kartifex.utils.Intersections
 import org.openrndr.math.Vector2
 import org.openrndr.math.YPolarity
+import kotlin.jvm.JvmName
 import kotlin.math.abs
 
 private fun Vector2.toVec2(): Vec2 {

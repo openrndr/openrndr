@@ -80,9 +80,7 @@ class DirectedGraph<V, E>(
         }
     }
 
-    fun out(vertex: V): Set<V> {
-        return out[vertex]?.keys ?: error("no such vertex")
-    }
+    fun out(vertex: V): Set<V> = out[vertex]?.keys ?: error("no such vertex $vertex")
 
     fun link(from: V, to:V, edge: E) = link(from, to, edge) { _, b -> b }
 
@@ -114,22 +112,35 @@ class DirectedGraph<V, E>(
         }
     }
 
-    fun remove(vertex: V): DirectedGraph<V, E> {
-        if (out.contains(vertex)) {
-            for (v in out[vertex]!!.keys) {
-                `in`[v]?.remove(vertex)
-            }
-            out.remove(vertex)
-            `in`.remove(vertex)
-        }
-        return this
-    }
 
-    fun select(vertices: Set<V>): DirectedGraph<V, E> {
-        return DirectedGraph(
-            out.filter { it.key in vertices }.toMutableMap(),
-            `in`.filter { it.key in vertices }.toMutableMap()
-        )
+//    fun remove(vertex: V): DirectedGraph<V, E> {
+//
+//
+//        if (out.contains(vertex)) {
+//            for (v in out[vertex]!!.keys) {
+//                out[v]?.remove(vertex)
+//            }
+//            out.remove(vertex)
+//
+//        }
+//        `in`.remove(vertex)
+//        return this
+//    }
+
+    fun select(selection: Set<V>): DirectedGraph<V, E> {
+        val newOut = mutableMapOf<V, MutableMap<V,E>>()
+        val newIn = mutableMapOf<V, MutableSet<V>>()
+        for (entry in out.entries) {
+            if (entry.key in selection) {
+                newOut[entry.key] = entry.value.filterKeys { key -> key in selection }.toMutableMap()
+            }
+        }
+        for (entry in `in`.entries) {
+            if (entry.key in selection) {
+                newIn[entry.key] = entry.value.filter { it -> it in selection }.toMutableSet()
+            }
+        }
+        return DirectedGraph(newOut, newIn)
     }
 
 //    fun transpose(): DirectedGraph<V, E> {
@@ -248,7 +259,7 @@ object Graphs {
         includeSingletons: Boolean
     ): List<DirectedGraph<V, E>> {
         val result = mutableListOf<DirectedGraph<V, E>>()
-        Graphs.stronglyConnectedComponents(graph, includeSingletons)
+        stronglyConnectedComponents(graph, includeSingletons)
             .forEach { s ->
                 result.add(
                     graph.select(s)
@@ -272,10 +283,10 @@ object Graphs {
             if (subgraph.vertices()
                     .all { v: V -> subgraph.out(v).size == 1 }
             ) {
-                val seed: V = subgraph.vertices().first()
+                val seed: V = subgraph.vertices().iterator().next()
+                subgraph.out(seed)
                 result.add(
-                    bfsVertices(seed) { vertex: V -> subgraph.out(vertex) }.asSequence().toList()
-                            + listOf(seed)
+                    bfsVertices(seed) { vertex: V -> subgraph.out(vertex) }.asSequence().toList()+ listOf(seed)
                 )
                 continue
             }

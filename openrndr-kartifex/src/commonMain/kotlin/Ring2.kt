@@ -65,9 +65,9 @@ class Ring2 {
         curves[lastIdx] = curves[lastIdx].endpoints(curves[lastIdx].start(), curves[0].start())
     }
 
-//    fun region(): Region2 {
-//        return Region2(LinearList.of<Ring2>(this))
-//    }
+    fun region(): Region2 {
+        return Region2(listOf(this))
+    }
 
     fun path(): Path2 {
         return Path2(this)

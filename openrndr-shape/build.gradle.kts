@@ -45,6 +45,7 @@ kotlin {
                 api(project(":openrndr-math"))
                 api(project(":openrndr-color"))
                 api(project(":openrndr-utils"))
+                implementation(project(":openrndr-kartifex"))
             }
         }
 
@@ -61,7 +62,7 @@ kotlin {
         val jvmMain by getting {
             dependencies {
                 implementation(project(":openrndr-jvm:openrndr-tessellation"))
-                implementation(project(":openrndr-jvm:openrndr-adopted-artifex"))
+
             }
 
         }
