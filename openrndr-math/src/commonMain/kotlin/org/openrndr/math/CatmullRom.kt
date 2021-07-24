@@ -16,7 +16,7 @@ private const val almostOne = 0.99999999
  * @param alpha The *tension* of the curve.
  *      Use `0.0` for the uniform spline, `0.5` for the centripetal spline, `1.0` for the chordal spline.
  */
-class CatmulRom1(val p0: Double, val p1: Double, val p2: Double, val p3: Double, val alpha: Double = 0.5) {
+class CatmullRom1(val p0: Double, val p1: Double, val p2: Double, val p3: Double, val alpha: Double = 0.5) {
     /** Value of t for p0. */
     val t0: Double = 0.0
     /** Value of t for p1. */
@@ -57,16 +57,16 @@ class CatmulRom1(val p0: Double, val p1: Double, val p2: Double, val p3: Double,
 /**
  * Calculates the 1D Catmull–Rom spline for a chain of points and returns the combined curve.
  *
- * For more details, see [CatmulRom1].
+ * For more details, see [CatmullRom1].
  *
- * @param points The [List] of 1D points where [CatmulRom1] is applied in groups of 4.
+ * @param points The [List] of 1D points where [CatmullRom1] is applied in groups of 4.
  * @param alpha The *tension* of the curve.
  *      Use `0.0` for the uniform spline, `0.5` for the centripetal spline, `1.0` for the chordal spline.
  * @param loop Whether or not to connect the first and last point so it forms a closed shape.
  */
 class CatmullRomChain1(points: List<Double>, alpha: Double = 0.5, val loop: Boolean = false) {
     val segments = if (!loop) points.windowed(4, 1).map {
-        CatmulRom1(it[0], it[1], it[2], it[3], alpha)
+        CatmullRom1(it[0], it[1], it[2], it[3], alpha)
     } else {
         val cleanPoints = if (loop && abs(points.first() - (points.last())) <= 1.0E-6) {
             points.dropLast(1)
@@ -74,7 +74,7 @@ class CatmullRomChain1(points: List<Double>, alpha: Double = 0.5, val loop: Bool
             points
         }
         (cleanPoints + cleanPoints.take(3)).windowed(4, 1).map {
-            CatmulRom1(it[0], it[1], it[2], it[3], alpha)
+            CatmullRom1(it[0], it[1], it[2], it[3], alpha)
         }
     }
 
@@ -104,7 +104,7 @@ class CatmullRomChain1(points: List<Double>, alpha: Double = 0.5, val loop: Bool
  * @param alpha The *tension* of the curve.
  *      Use `0.0` for the uniform spline, `0.5` for the centripetal spline, `1.0` for the chordal spline.
  */
-class CatmulRom2(val p0: Vector2, val p1: Vector2, val p2: Vector2, val p3: Vector2, val alpha: Double = 0.5) {
+class CatmullRom2(val p0: Vector2, val p1: Vector2, val p2: Vector2, val p3: Vector2, val alpha: Double = 0.5) {
     /** Value of t for p0. */
     val t0: Double = 0.0
     /** Value of t for p1. */
@@ -138,14 +138,14 @@ class CatmulRom2(val p0: Vector2, val p1: Vector2, val p2: Vector2, val p3: Vect
 /**
  * Calculates the 2D Catmull–Rom spline for a chain of points and returns the combined curve.
  *
- * For more details, see [CatmulRom2].
+ * For more details, see [CatmullRom2].
  *
- * @param points The [List] of 2D points where [CatmulRom2] is applied in groups of 4.
+ * @param points The [List] of 2D points where [CatmullRom2] is applied in groups of 4.
  * @param alpha The *tension* of the curve.
  *      Use `0.0` for the uniform spline, `0.5` for the centripetal spline, `1.0` for the chordal spline.
  * @param loop Whether or not to connect the first and last point so it forms a closed shape.
  */
-class CatmulRomChain2(points: List<Vector2>, alpha: Double = 0.5, val loop: Boolean = false) {
+class CatmullRomChain2(points: List<Vector2>, alpha: Double = 0.5, val loop: Boolean = false) {
     val segments = if (!loop) {
         val startPoints = points.take(2)
         val endPoints = points.takeLast(2)
@@ -154,7 +154,7 @@ class CatmulRomChain2(points: List<Vector2>, alpha: Double = 0.5, val loop: Bool
         val mirrorEnd = endPoints.last() + (endPoints.last() - endPoints.first()).normalized
 
         (listOf(mirrorStart) + points + listOf(mirrorEnd)).windowed(4, 1).map {
-            CatmulRom2(it[0], it[1], it[2], it[3], alpha)
+            CatmullRom2(it[0], it[1], it[2], it[3], alpha)
         }
     } else {
         val cleanPoints = if (loop && points.first().distanceTo(points.last()) <= 1.0E-6) {
@@ -163,7 +163,7 @@ class CatmulRomChain2(points: List<Vector2>, alpha: Double = 0.5, val loop: Bool
             points
         }
         (cleanPoints + cleanPoints.take(3)).windowed(4, 1).map {
-            CatmulRom2(it[0], it[1], it[2], it[3], alpha)
+            CatmullRom2(it[0], it[1], it[2], it[3], alpha)
         }
     }
 
@@ -199,7 +199,7 @@ class CatmulRomChain2(points: List<Vector2>, alpha: Double = 0.5, val loop: Bool
  * @param alpha The *tension* of the curve.
  *      Use `0.0` for the uniform spline, `0.5` for the centripetal spline, `1.0` for the chordal spline.
  */
-class CatmulRom3(val p0: Vector3, val p1: Vector3, val p2: Vector3, val p3: Vector3, val alpha: Double = 0.5) {
+class CatmullRom3(val p0: Vector3, val p1: Vector3, val p2: Vector3, val p3: Vector3, val alpha: Double = 0.5) {
     /** Value of t for p0. */
     val t0: Double = 0.0
     /** Value of t for p1. */
@@ -233,14 +233,14 @@ class CatmulRom3(val p0: Vector3, val p1: Vector3, val p2: Vector3, val p3: Vect
 /**
  * Calculates the 3D Catmull–Rom spline for a chain of points and returns the combined curve.
  *
- * For more details, see [CatmulRom3].
+ * For more details, see [CatmullRom3].
  *
- * @param points The [List] of 3D points where [CatmulRom3] is applied in groups of 4.
+ * @param points The [List] of 3D points where [CatmullRom3] is applied in groups of 4.
  * @param alpha The *tension* of the curve.
  *      Use `0.0` for the uniform spline, `0.5` for the centripetal spline, `1.0` for the chordal spline.
  * @param loop Whether or not to connect the first and last point so it forms a closed shape.
  */
-class CatmulRomChain3(points: List<Vector3>, alpha: Double = 0.5, val loop: Boolean = false) {
+class CatmullRomChain3(points: List<Vector3>, alpha: Double = 0.5, val loop: Boolean = false) {
     val segments = if (!loop) {
         val startPoints = points.take(2)
         val endPoints = points.takeLast(2)
@@ -249,7 +249,7 @@ class CatmulRomChain3(points: List<Vector3>, alpha: Double = 0.5, val loop: Bool
         val mirrorEnd = endPoints.last() + (endPoints.last() - endPoints.first()).normalized
 
         (listOf(mirrorStart) + points + listOf(mirrorEnd)).windowed(4, 1).map {
-            CatmulRom3(it[0], it[1], it[2], it[3], alpha)
+            CatmullRom3(it[0], it[1], it[2], it[3], alpha)
         }
     } else {
         val cleanPoints = if (loop && points.first().distanceTo(points.last()) <= 1.0E-6) {
@@ -258,7 +258,7 @@ class CatmulRomChain3(points: List<Vector3>, alpha: Double = 0.5, val loop: Bool
             points
         }
         (cleanPoints + cleanPoints + cleanPoints.take(3)).windowed(4, 1).map {
-            CatmulRom3(it[0], it[1], it[2], it[3], alpha)
+            CatmullRom3(it[0], it[1], it[2], it[3], alpha)
         }
     }
 

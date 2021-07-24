@@ -1006,7 +1006,7 @@ private fun sumDifferences(points: List<Vector2>) =
         (0 until points.size - 1).sumOf { (points[it] - points[it + 1]).length }
 
 /** Converts spline to a [Segment]. */
-fun CatmulRom2.toSegment(): Segment {
+fun CatmullRom2.toSegment(): Segment {
     val d1a2 = (p1 - p0).length.pow(2 * alpha)
     val d2a2 = (p2 - p1).length.pow(2 * alpha)
     val d3a2 = (p3 - p2).length.pow(2 * alpha)
