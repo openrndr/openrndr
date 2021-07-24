@@ -22,8 +22,15 @@ but should not affect precision.
 The implementations of `Scalar.normalizationFactor` have been adjusted to address [an Artifex issue](https://github.com/lacuna/artifex/issues/3) in which intersections are not detected.
 
 Artifex sets `Intersections.SPATIAL_EPSILON = 1e-10`. In order to address missed intersections between cubic bezier curves that value
-has been increased to `1e-6`. [Relevant Artifex issue](https://github.com/lacuna/artifex/issues/4)
+has been increased to `1e-5`. [Relevant Artifex issue](https://github.com/lacuna/artifex/issues/4)
 
+All constants that have been adjusted:
+```
+FAT_LINE_PARAMETRIC_RESOLUTION = 1e-5
+FAT_LINE_SPATIAL_EPSILON = 1e-5
+PARAMETRIC_EPSILON = 1e-5
+SPATIAL_EPSILON = 1e-5 
+```
 ## Validation
 
 This port has not been fully validated. Unit tests that lightly compare the outputs of Artifex and Kartifex can be found under [src/jvmTest](src/jvmTest)

@@ -2,6 +2,7 @@ package org.openrndr.kartifex.utils.regions
 
 import org.openrndr.kartifex.*
 import org.openrndr.kartifex.utils.Intersections
+import org.openrndr.kartifex.utils.Intersections.SPATIAL_EPSILON
 import org.openrndr.kartifex.utils.Scalars
 import org.openrndr.kartifex.utils.SweepQueue
 import utils.DoubleAccumulator
@@ -94,8 +95,16 @@ object Split {
             for (c in r.curves) {
                 // TODO EJ: determine if taking the extends of the bounding box of the curve is the better solution
                 queue.add(c, c.start().x, c.end().x)
-                    //val bounds = c.bounds()
-                //queue.add(c, bounds.lx, bounds.width() + bounds.lx)
+//                val bounds = c.bounds()
+//                if (!c.isFlat(SPATIAL_EPSILON)) {
+//                    val cs = c.split(c.inflections())
+//                    for (s in cs) {
+//                        queue.add(s, s.bounds().lower().x, s.bounds().upper().x)
+//                    }
+//                } else {
+//                    queue.add(c, bounds.lower().x, bounds.upper().x)
+//                }
+
             }
         }
     }
@@ -139,8 +148,12 @@ object Split {
         }
 
         fun adjust(c: Curve2): Curve2? {
+            val bounds =c.bounds()
+
             val start = adjust(c.start())
             val end = adjust(c.end())
+            //val start = adjust(bounds.lower())
+            //val end = adjust(bounds.upper())
             return if (start == end) null else c.endpoints(start, end)
         }
 

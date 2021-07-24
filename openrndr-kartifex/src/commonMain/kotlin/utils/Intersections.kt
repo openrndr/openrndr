@@ -23,11 +23,11 @@ fun <T> sort(a: Array<T>, start: Int = 0, end: Int = a.size, selector: (T) -> Do
 
 object Intersections {
     // utilities
-    const val FAT_LINE_PARAMETRIC_RESOLUTION = 1e-7
-    const val FAT_LINE_SPATIAL_EPSILON = 1e-6
+    const val FAT_LINE_PARAMETRIC_RESOLUTION = 1e-5
+    const val FAT_LINE_SPATIAL_EPSILON = 1e-5
 
-    const val PARAMETRIC_EPSILON = 1e-6
-    const val SPATIAL_EPSILON = 1e-6
+    const val PARAMETRIC_EPSILON = 1e-5
+    const val SPATIAL_EPSILON = 1e-5
 
     const val MAX_CUBIC_CUBIC_INTERSECTIONS = 9
 
