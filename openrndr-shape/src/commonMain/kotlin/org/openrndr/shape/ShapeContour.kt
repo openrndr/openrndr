@@ -1,6 +1,7 @@
 package org.openrndr.shape
 
 import org.openrndr.math.*
+import kotlin.jvm.JvmOverloads
 import kotlin.math.abs
 import kotlin.math.min
 
@@ -20,6 +21,7 @@ data class ShapeContour(
          */
         val EMPTY = ShapeContour(emptyList(), false)
 
+        @JvmOverloads
         fun fromSegments(
             segments: List<Segment>,
             closed: Boolean,
@@ -41,6 +43,7 @@ data class ShapeContour(
         }
 
         /** Creates a [ShapeContour] by converting [points] to [Segment]s. */
+        @JvmOverloads
         fun fromPoints(
             points: List<Vector2>,
             closed: Boolean,
