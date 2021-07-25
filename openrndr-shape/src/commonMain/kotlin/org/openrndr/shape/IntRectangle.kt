@@ -7,7 +7,7 @@ import org.openrndr.math.IntVector2
  *
  * Uses [IntVector2]s which require whole numbers (integers) for position and dimensions.
  *
- * Also see [Rectangle] and [OrientedRectangle].
+ * Also see [Rectangle].
  */
 @Suppress("MemberVisibilityCanBePrivate", "unused")
 data class IntRectangle(val corner: IntVector2, val width: Int, val height: Int) {

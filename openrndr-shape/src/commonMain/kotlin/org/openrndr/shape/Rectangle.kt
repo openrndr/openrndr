@@ -12,9 +12,9 @@ import kotlin.math.min
 /**
  * Creates a new [Rectangle].
  *
- * Also see [OrientedRectangle] and [IntRectangle].
+ * Also see [IntRectangle].
  */
-data class Rectangle(val corner: Vector2, val width: Double, val height: Double = width) {
+data class Rectangle(val corner: Vector2, val width: Double, val height: Double = width) : Movable, Scalable2D {
 
     constructor(x: Double, y: Double, width: Double, height: Double = width) :
             this(Vector2(x, y), width, height)
@@ -31,20 +31,11 @@ data class Rectangle(val corner: Vector2, val width: Double, val height: Double 
     val dimensions: Vector2
         get() = Vector2(width, height)
 
-    /**
-     * Returns a position for parameterized values [u] and [v] between `0.0` and `1.0`
-     * where (`0.5`, `0.5`) is the center of the rectangle.
-     */
-    fun position(u: Double, v: Double): Vector2 {
-        return corner + Vector2(u * width, v * height)
-    }
+    override val scale: Vector2
+        get() = dimensions
 
-    /**
-     * Returns a position for a parameterized [uv] value between (`0.0`, `0.0`)
-     * and (`1.0`, `1.0`) where (`0.5`, `0.5`) is the center of the rectangle.
-     */
-    fun position(uv: Vector2): Vector2 {
-        return corner + uv * dimensions
+    override fun position(u: Double, v: Double): Vector2 {
+        return corner + Vector2(u * width, v * height)
     }
 
     /** The [x]-coordinate of the top-left corner. */
@@ -89,13 +80,12 @@ data class Rectangle(val corner: Vector2, val width: Double, val height: Double 
      * @param anchorU x coordinate of the scaling anchor in u parameter space, default is 0.5 (center)
      * @param anchorV y coordinate of the scaling anchor in v parameter space, default is 0.5 (center)
      */
+    @Deprecated("Vague naming", ReplaceWith("scaledBy(scale, scaleY)"))
     fun scale(scale: Double, scaleY: Double = scale, anchorU: Double = 0.5, anchorV: Double = 0.5): Rectangle {
-        val d = corner - position(anchorU, anchorV)
-        val nd = position(anchorU, anchorV) + d * Vector2(scale, scaleY)
-        return Rectangle(nd, width * scale, height * scaleY)
+        return scaledBy(scale, scaleY, anchorU, anchorV) as Rectangle
     }
 
-    @Deprecated("use scale instead", ReplaceWith("scale(scale, scaleY)"))
+    @Deprecated("Doesn't account for anchor placement", ReplaceWith("scaledBy(scale, scaleY)"))
     fun scaled(scale: Double, scaleY: Double = scale): Rectangle {
         return Rectangle(corner, width * scale, height * scaleY)
     }
@@ -113,9 +103,27 @@ data class Rectangle(val corner: Vector2, val width: Double, val height: Double 
     }
 
     /** Creates a new [Rectangle] with the same size but the current position offset by [offset] amount. */
+    @Deprecated("Vague naming", ReplaceWith("movedBy(offset)"))
     fun moved(offset: Vector2): Rectangle {
         return Rectangle(corner + offset, width, height)
     }
+
+    override fun movedBy(offset: Vector2): Movable = Rectangle(corner + offset, width, height)
+
+    override fun movedTo(position: Vector2): Movable = Rectangle(position, width, height)
+
+    override fun scaledBy(xScale: Double, yScale: Double, uAnchor: Double, vAnchor: Double): Scalable2D {
+        val d = corner - position(uAnchor, vAnchor)
+        val nd = position(uAnchor, vAnchor) + d * Vector2(xScale, yScale)
+        return Rectangle(nd, width * xScale, height * yScale)
+    }
+
+    override fun scaledBy(scale: Double, uAnchor: Double, vAnchor: Double): Scalable1D =
+        scaledBy(scale, scale, uAnchor, vAnchor)
+
+    override fun scaledTo(width: Double, height: Double): Scalable2D = Rectangle(corner, width, height)
+
+    override fun scaledTo(size: Double): Scalable1D = scaledTo(size, size)
 
     /**
      * Returns true if given [point] is inside the [Rectangle].
