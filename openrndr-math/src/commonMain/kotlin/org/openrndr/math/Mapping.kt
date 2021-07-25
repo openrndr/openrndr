@@ -3,18 +3,17 @@
 package org.openrndr.math
 
 import kotlin.jvm.JvmName
-import kotlin.math.max
-import kotlin.math.min
+import kotlin.math.*
 
 /**
- * Linearly maps a value, which is given in the before domain to a value in the after domain
- * @param beforeLeft the left value of the before domain
- * @param beforeRight the right value of the before domain
- * @param afterLeft the left value of the after domain
- * @param afterRight the right value of the after domain
- * @param value the value to map from the before domain to the after domain
- * @param clamp constrain the result to [afterLeft, afterRight]
- * @return a value in the after domain
+ * Linearly maps a value, which is given in the before domain to a value in the after domain.
+ * @param beforeLeft the lowest value of the before range
+ * @param beforeRight the highest value of the before range
+ * @param afterLeft the lowest value of the after range
+ * @param afterRight the highest value of the after range
+ * @param value the value to be mapped
+ * @param clamp constrain the result to the after range
+ * @return a value in the after range
  */
 fun map(beforeLeft: Double, beforeRight: Double,
         afterLeft: Double, afterRight: Double,
@@ -34,13 +33,28 @@ fun map(beforeLeft: Double, beforeRight: Double,
 }
 
 /**
+ * Linearly maps a value, which is given in the before domain to a value in the after domain.
+ * @param before the before range
+ * @param after the after range
+ * @param value the value to be mapped
+ * @param clamp constrain the result to the [after] range
+ * @return a value in the [after] range
+ */
+fun map(
+    before: ClosedFloatingPointRange<Double>,
+    after: ClosedFloatingPointRange<Double>,
+    value: Double,
+    clamp: Boolean = false
+): Double = map(before.start, before.endInclusive, after.start, after.endInclusive, value, clamp)
+
+/**
  * Linearly maps a value, which is given in the before domain to a value in the after domain
- * @param beforeLeft the left value of the before domain
- * @param beforeRight the right value of the before domain
- * @param afterLeft the left value of the after domain
- * @param afterRight the right value of the after domain
- * @param clamp constrain the result to [afterLeft, afterRight]
- * @return a value in the after domain
+ * @param beforeLeft the lowest value of the before range
+ * @param beforeRight the highest value of the before range
+ * @param afterLeft the lowest value of the after range
+ * @param afterRight the highest value of the after range
+ * @param clamp constrain the result to the after range
+ * @return a value in the after range
  */
 @JvmName("doubleMap")
 fun Double.map(beforeLeft: Double, beforeRight: Double,
@@ -48,6 +62,19 @@ fun Double.map(beforeLeft: Double, beforeRight: Double,
                clamp: Boolean = false): Double {
     return map(beforeLeft, beforeRight, afterLeft, afterRight, this, clamp)
 }
+
+/**
+ * Linearly maps a value, which is given in the before domain to a value in the after domain.
+ * @param before the before range
+ * @param after the after range
+ * @param clamp constrain the result to the [after] range
+ * @return a value in the [after] range
+ */
+fun Double.map(
+    before: ClosedFloatingPointRange<Double>,
+    after: ClosedFloatingPointRange<Double>,
+    clamp: Boolean = false
+): Double = map(before, after, this, clamp)
 
 fun Vector2.map(beforeLeft: Vector2, beforeRight: Vector2,
                 afterLeft: Vector2, afterRight: Vector2,
