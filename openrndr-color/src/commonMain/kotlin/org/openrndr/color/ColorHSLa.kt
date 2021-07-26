@@ -3,11 +3,14 @@ package org.openrndr.color
 import org.openrndr.math.mixAngle
 
 /**
- * color in HSL space
- * @param h hue in degrees (0 .. 360)
- * @param s saturation (0.0 .. 1.0)
- * @param l lightness (0.0 .. 1.0)
- * @param a alpha (0.0. .. 1.0)
+ * The [HSL color space](https://en.wikipedia.org/wiki/HSL_and_HSV).
+ *
+ * @see ColorHSVa
+ *
+ * @param h hue in degrees, where a full rotation is 360.0 degrees
+ * @param s saturation as a percentage between 0.0 and 1.0
+ * @param l lightness/luminance as a percentage between 0.0 and 1.0
+ * @param a alpha as a percentage between 0.0 and 1.0
  */
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 data class ColorHSLa(val h: Double, val s: Double, val l: Double, val a: Double = 1.0) :
@@ -126,11 +129,12 @@ fun hsl(h: Double, s: Double, l: Double) = ColorHSLa(h, s, l)
 fun hsla(h: Double, s: Double, l: Double, a: Double) = ColorHSLa(h, s, l, a)
 
 /**
- * Mixes two colors in HSLa space
- * @param left the left hand ColorHSLa color
- * @param right the right hand ColorHSLa
- * @param x the mix amount
- * @return a mix of [left] and [right], x == 0.0 corresponds with left, x == 1.0 corresponds with right
+ * Weighted mix between two colors in the HSL color space.
+ * @param left the left-hand ColorHSLa to mix
+ * @param right the right-hand ColorHSLa to mix
+ * @param x the weighting of colors, a value 0.0 is equivalent to [left],
+ * 1.0 is equivalent to [right] and at 0.5 both colors contribute to the result equally
+ * @return a mix of [left] and [right] weighted by [x]
  */
 fun mix(left: ColorHSLa, right: ColorHSLa, x: Double): ColorHSLa {
     val sx = x.coerceIn(0.0, 1.0)

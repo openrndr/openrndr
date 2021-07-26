@@ -1,5 +1,11 @@
 package org.openrndr.color
 
+/**
+ * Based on [ColorLCHABa], but
+ * instead tries to use a normalized chroma.
+ *
+ * @see ColorLCHABa
+ */
 data class ColorLSHABa(
     val l: Double,
     val s: Double,

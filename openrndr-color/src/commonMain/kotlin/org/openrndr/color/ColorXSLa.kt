@@ -2,6 +2,14 @@ package org.openrndr.color
 
 import org.openrndr.math.mixAngle
 
+/**
+ * Practically identical to [ColorHSLa], but
+ * for mapping colors to classical painter's scheme
+ * of complementary colors.
+ *
+ * @see ColorHSLa
+ * @see ColorXSVa
+ */
 data class ColorXSLa(val x: Double, val s: Double, val l: Double, val a: Double) :
     ConvertibleToColorRGBa,
     ShadableColor<ColorXSLa>,
@@ -67,11 +75,11 @@ private fun map(x: Double, a: Double, b: Double, c: Double, d: Double): Double {
 }
 
 /**
- * Mixes two colors in XSLa space
- * @param left the left hand ColorXSLa color
- * @param right the right hand ColorXSLa
- * @param x the mix amount
- * @return a mix of [left] and [right], x == 0.0 corresponds with left, x == 1.0 corresponds with right
+ * Weighted mix between two colors in the XSL color space.
+ *
+ * @param x the weighting of colors, a value 0.0 is equivalent to [left],
+ * 1.0 is equivalent to [right] and at 0.5 both colors contribute to the result equally
+ * @return a mix of [left] and [right] weighted by [x]
  */
 fun mix(left: ColorXSLa, right: ColorXSLa, x: Double): ColorXSLa {
     val sx = x.coerceIn(0.0, 1.0)

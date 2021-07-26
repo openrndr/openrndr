@@ -1,5 +1,13 @@
 package org.openrndr.color
 
+/**
+ * The Yxy color space, also known as the
+ * [xyY color space](https://en.wikipedia.org/wiki/CIE_1931_color_space#CIE_xy_chromaticity_diagram_and_the_CIE_xyY_color_space).
+ * @param yy luminance of the color, in a range of 0.0 (darkest) to 100.0 (brightest)
+ * @param x first chromaticity coordinate, in a range of 0.0 to 1.0
+ * @param y second chromaticity coordinate, in a range of 0.0 to 1.0
+ */
+@Suppress("LocalVariableName")
 data class ColorYxya(val yy: Double, val x: Double, val y: Double, val a: Double = 1.0) {
     companion object {
         fun fromXYZa(xyza: ColorXYZa): ColorYxya {

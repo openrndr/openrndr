@@ -2,6 +2,7 @@ package org.openrndr.color
 
 import kotlin.math.pow
 
+@Deprecated("Used solely by the also-deprecated ColorATVa.")
 data class Hue(
     val name: Int,
     val lambda: Double,
@@ -67,6 +68,11 @@ val hues = listOf(
 
 fun findHue(id: Int): Hue? = hues.find { it.name == id }
 
+/**
+ * The little-known [Coloroid color space](https://en.wikipedia.org/wiki/Coloroid).
+ * There is a color atlas of [hues], but their source has not been digitized.
+ */
+@Deprecated("Largely unknown format with a practically unverifiable list of colors.")
 @Suppress("MemberVisibilityCanBePrivate", "unused")
 data class ColorATVa(val id: Int, val t: Double, val v: Double, val alpha: Double = 1.0) {
 

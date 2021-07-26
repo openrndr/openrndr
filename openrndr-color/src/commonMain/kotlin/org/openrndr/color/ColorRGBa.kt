@@ -16,12 +16,13 @@ enum class Linearity {
 }
 
 /**
- * color in RGBa space
+ * A generic RGB color space capable of representing
+ * both the linear and the sRGB color spaces.
  *
- * @param r red between 0 and 1
- * @param g green between 0 and 1
- * @param b blue between 0 and 1
- * @param a alpha between 0 and 1
+ * @param r red as a percentage between 0.0 and 1.0
+ * @param g green as a percentage between 0.0 and 1.0
+ * @param b blue as a percentage between 0.0 and 1.0
+ * @param a alpha as a percentage between 0.0 and 1.0
  */
 @Suppress("EqualsOrHashCode") // generated equals() is ok, only hashCode() needs to be overridden
 data class ColorRGBa(
@@ -257,7 +258,10 @@ data class ColorRGBa(
 }
 
 /**
- * Mixes two colors in RGBa space
+ * Weighted mix between two colors in the generic RGB color space.
+ * @param x the weighting of colors, a value 0.0 is equivalent to [left],
+ * 1.0 is equivalent to [right] and at 0.5 both colors contribute to the result equally
+ * @return a mix of [left] and [right] weighted by [x]
  */
 fun mix(left: ColorRGBa, right: ColorRGBa, x: Double): ColorRGBa {
     val sx = x.coerceIn(0.0, 1.0)

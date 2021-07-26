@@ -5,6 +5,18 @@ import org.openrndr.math.asRadians
 import org.openrndr.math.mixAngle
 import kotlin.math.*
 
+/**
+ * The [CIELChUV color space](https://en.wikipedia.org/wiki/CIELUV#Cylindrical_representation_(CIELCh))
+ * is the cylindrical representation of the CIELUV color space.
+ *
+ * @param l luminance, in a range of 0.0 (darkest) to 100.0 (brightest)
+ * @param c chroma
+ * @param h hue in degrees, where a full rotation is 360.0 degrees
+ * @param alpha alpha as a percentage between 0.0 and 1.0
+ * @param ref reference white against which the color values are calculated
+ *
+ * @see ColorLUVa
+ */
 data class ColorLCHUVa(
     val l: Double,
     val c: Double,
@@ -96,7 +108,13 @@ data class ColorLCHUVa(
     override fun mix(other: ColorLCHUVa, factor: Double) = mix(this, other, factor)
 }
 
-
+/**
+ * Weighted mix between two colors in the LChUV color space.
+ *
+ * @param x the weighting of colors, a value 0.0 is equivalent to [left],
+ * 1.0 is equivalent to [right] and at 0.5 both colors contribute to the result equally
+ * @return a mix of [left] and [right] weighted by [x]
+ */
 fun mix(left: ColorLCHUVa, right: ColorLCHUVa, x: Double): ColorLCHUVa {
     val sx = x.coerceIn(0.0, 1.0)
     return ColorLCHUVa(
