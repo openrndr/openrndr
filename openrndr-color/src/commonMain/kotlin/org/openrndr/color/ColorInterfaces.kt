@@ -2,60 +2,36 @@ package org.openrndr.color
 
 import org.openrndr.math.LinearType
 
-/**
- * interface for colors that can be converted to [ColorRGBa]
- */
 interface ConvertibleToColorRGBa {
-    /**
-     * convert to [ColorRGBa]
-     */
+    /** Convert into [ColorRGBa]. */
     fun toRGBa(): ColorRGBa
 }
-/**
- * interface for shadable colors
- */
+
 interface ShadableColor<T> {
-    /**
-     * shades the color by multiplication
-     * @param factor the shade factor
-     */
+    /** Multiply the shade by a factor. */
     fun shade(factor: Double): T
 }
 
-/**
- * interface for hue-shiftable colors
- */
 interface HueShiftableColor<T> {
     /**
-     * shift the hue by a given amount of degrees
+     * Shift the hue of a color by the given amount of degrees.
      * @param shiftInDegrees the hue shift in degrees
      */
     fun shiftHue(shiftInDegrees: Double): T
 }
 
-/**
- * interface for saturatable color
- */
 interface SaturatableColor<T> {
-    /**
-     * adjust saturation by multiplication
-     */
+    /** Multiply the saturation by a factor. */
     fun saturate(factor: Double): T
 }
 
-/**
- * interface for opacifable color
- */
 interface OpacifiableColor<T> {
-    /**
-     * adjust opacity by multiplication
-     */
+    /** Multiply the opacity by a factor */
     fun opacify(factor: Double): T
 }
 
-
 /**
- * interface for algebraic color
+ * Allows performing select algebraic operations on colors of this kind.
  */
 interface AlgebraicColor<T : AlgebraicColor<T>> : LinearType<T> {
     override operator fun div(scale: Double): T = times(1.0 / scale)

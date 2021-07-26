@@ -1,6 +1,11 @@
 package org.openrndr.color
 
-
+/**
+ * Based on [ColorLCHUVa], but
+ * instead tries to use a normalized chroma.
+ *
+ * @see ColorLCHUVa
+ */
 data class ColorLSHUVa(
     val l: Double,
     val s: Double,

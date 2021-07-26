@@ -8,12 +8,14 @@ import kotlin.math.floor
 
 
 /**
- * A color respresentation in HSVa space
+ * The [HSV color space](https://en.wikipedia.org/wiki/HSL_and_HSV).
  *
- * @param h hue in n * [0, 360)
- * @param s value in [0, 1]
- * @param v value in [0, 1]
- * @param a alpha in [0, 1]
+ * @see ColorHSLa
+ *
+ * @param h hue in degrees, where a full rotation is 360.0 degrees
+ * @param s saturation as a percentage between 0.0 and 1.0
+ * @param v value/brightness as a percentage between 0.0 and 1.0
+ * @param a alpha as a percentage between 0.0 and 1.0
  */
 @Suppress("unused")
 data class ColorHSVa(val h: Double, val s: Double, val v: Double, val a: Double = 1.0) :
@@ -168,11 +170,12 @@ fun hsv(h: Double, s: Double, v: Double) = ColorHSVa(h, s, v)
 fun hsva(h: Double, s: Double, v: Double, a: Double) = ColorHSVa(h, s, v, a)
 
 /**
- * Mixes two colors in HSVa space
- * @param left the left hand ColorHSVa color
- * @param right the right hand ColorHSVa
- * @param x the mix amount
- * @return a mix of [left] and [right], x == 0.0 corresponds with left, x == 1.0 corresponds with right
+ * Weighted mix between two colors in the HSVa color space.
+ * @param left the left-hand ColorHSVa to mix
+ * @param right the right-hand ColorHSVa to mix
+ * @param x the weighting of colors, a value 0.0 is equivalent to [left],
+ * 1.0 is equivalent to [right] and at 0.5 both colors contribute to the result equally
+ * @return a mix of [left] and [right] weighted by [x]
  */
 fun mix(left: ColorHSVa, right: ColorHSVa, x: Double): ColorHSVa {
     val sx = x.coerceIn(0.0, 1.0)

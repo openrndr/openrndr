@@ -5,6 +5,18 @@ import org.openrndr.math.asRadians
 import org.openrndr.math.mixAngle
 import kotlin.math.*
 
+/**
+ * The [CIELChAB color space](https://en.wikipedia.org/wiki/CIELAB_color_space#Cylindrical_model)
+ * is the cylindrical representation of the CIELAB color space.
+ *
+ * @param l luminance, in a range of 0.0 (darkest) to 100.0 (brightest)
+ * @param c chroma
+ * @param h hue in degrees, where a full rotation is 360.0 degrees
+ * @param alpha alpha as a percentage between 0.0 and 1.0
+ * @param ref reference white against which the color values are calculated
+ *
+ * @see ColorLABa
+ */
 data class ColorLCHABa(
     val l: Double,
     val c: Double,
@@ -101,6 +113,14 @@ data class ColorLCHABa(
     override fun mix(other: ColorLCHABa, factor: Double) = mix(this, other, factor)
 }
 
+/**
+ * Weighted mix between two colors in the LChAB color space.
+ * @param left the left-hand ColorLCHABa to mix
+ * @param right the right-hand ColorLCHABa to mix
+ * @param x the weighting of colors, a value 0.0 is equivalent to [left],
+ * 1.0 is equivalent to [right] and at 0.5 both colors contribute to the result equally
+ * @return a mix of [left] and [right] weighted by [x]
+ */
 fun mix(left: ColorLCHABa, right: ColorLCHABa, x: Double): ColorLCHABa {
     val sx = x.coerceIn(0.0, 1.0)
     return ColorLCHABa(

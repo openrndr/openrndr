@@ -4,6 +4,14 @@ import org.openrndr.math.CastableToVector4
 import org.openrndr.math.Vector4
 import kotlin.math.pow
 
+/**
+ * The [CIELUV color space](https://en.wikipedia.org/wiki/CIELUV)
+ * @param l luminance, in a range of 0.0 (darkest) to 100.0 (brightest)
+ * @param u unbounded chromaticity coordinate U
+ * @param v unbounded chromaticity coordinate V
+ * @param alpha alpha as a percentage between 0.0 and 1.0
+ * @param ref reference white against which the color values are calculated
+ */
 @Suppress("unused", "UNUSED_PARAMETER")
 data class ColorLUVa(val l: Double, val u: Double, val v: Double, val alpha: Double = 1.0, val ref: ColorXYZa) :
     ConvertibleToColorRGBa,

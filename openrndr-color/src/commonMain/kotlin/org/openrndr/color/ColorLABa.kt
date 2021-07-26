@@ -4,6 +4,18 @@ import org.openrndr.math.CastableToVector4
 import org.openrndr.math.Vector4
 import kotlin.math.pow
 
+/**
+ * The [CIELAB color space](https://en.wikipedia.org/wiki/CIELAB_color_space),
+ * more commonly known as Lab.
+ *
+ * @param l lightness, between 0.0 (black) and 100.0 (white)
+ * @param a unbounded a* axis, relative to the green–red opponent colors,
+ *          with negative values toward green and positive values toward red
+ * @param b unbounded b* axis, relative to the blue–yellow opponent colors,
+ *          with negative values toward blue and positive values toward yellow
+ * @param alpha alpha as a percentage between 0.0 and 1.0
+ * @param ref reference white against which the color values are calculated
+ */
 data class ColorLABa(
     val l: Double,
     val a: Double,
@@ -18,6 +30,7 @@ data class ColorLABa(
     AlgebraicColor<ColorLABa> {
 
     companion object {
+        // https://web.archive.org/web/20191228145700/http://eilv.cie.co.at/term/157
         fun fromXYZa(xyz: ColorXYZa, ref: ColorXYZa): ColorLABa {
             val x = xyz.x / ref.x
             val y = xyz.y / ref.y
