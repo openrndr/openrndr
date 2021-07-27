@@ -18,7 +18,9 @@ class QualityPolygonDrawer {
                 it.let { it.subList(0, it.size) }
                     .let { if (index == 0) it else it }
             }, corners)
-            val fw = if (drawStyle.smooth) fringeWidth / 2.0 else 0.0
+            val alpha = drawStyle.stroke?.a?:0.0
+            val fw = if (drawStyle.smooth) { fringeWidth * 1.5 * (1.0-alpha) }
+            else 0.0
             val fillExpansions = path.expandFill(fw, fw, drawStyle.lineJoin, 2.4)
             expansionDrawer.renderFill(drawContext, drawStyle, fillExpansions, path.convex, fw)
         }
