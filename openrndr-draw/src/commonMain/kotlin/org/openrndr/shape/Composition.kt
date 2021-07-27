@@ -70,7 +70,7 @@ sealed class CompositionNode {
     var stroke
         get() = style.stroke.value
         set(value) {
-            style.fill = when (value) {
+            style.stroke = when (value) {
                 null -> Paint.None
                 else -> Paint.RGB(value)
             }
