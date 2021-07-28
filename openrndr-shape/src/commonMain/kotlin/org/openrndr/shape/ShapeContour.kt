@@ -3,6 +3,7 @@ package org.openrndr.shape
 import org.openrndr.math.*
 import kotlin.math.abs
 import kotlin.math.min
+
 /**
  * A [List] for managing a collection of [Segment]s.
  */
@@ -529,18 +530,17 @@ data class ShapeContour(
      * If the distance between the beginning of the first and the finish of the last point is negligible (`<0.001`),
      * then no new [Segment]s are added.
      */
-    val close
-        get() = if (empty) EMPTY else {
-            if ((segments.last().end - segments.first().start).squaredLength < 10E-6)
-                ShapeContour(segments, true, polarity)
-            else
-                ShapeContour(
-                    segments + Segment(
-                        segments.last().end,
-                        segments.first().start
-                    ), true, polarity
-                )
-        }
+    fun close() = if (empty) EMPTY else {
+        if ((segments.last().end - segments.first().start).squaredLength < 10E-6)
+            ShapeContour(segments, true, polarity)
+        else
+            ShapeContour(
+                segments + Segment(
+                    segments.last().end,
+                    segments.first().start
+                ), true, polarity
+            )
+    }
 
     /**
      * Reverses the direction of [Segment]s and their order.
