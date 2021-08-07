@@ -104,7 +104,7 @@ class CompositionDrawer(documentBounds: CompositionDimensions = defaultCompositi
         set(value) = run { drawStyle.fillOpacity = value }
 
     var stroke
-        get() = drawStyle.fill?.opacify(drawStyle.strokeOpacity)?.opacify(drawStyle.opacity)
+        get() = drawStyle.stroke?.opacify(drawStyle.strokeOpacity)?.opacify(drawStyle.opacity)
         set(value) = run {
             drawStyle.stroke = value?.copy(a = 1.0)
             drawStyle.strokeOpacity = value?.a ?: 1.0
