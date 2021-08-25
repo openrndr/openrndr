@@ -241,6 +241,15 @@ class Segment3D {
                     end
                 )
             }
+            linear -> {
+                val delta = end - start
+                Segment3D(
+                    start,
+                    start + delta * (1.0 / 3.0),
+                    start + delta * (2.0 / 3.0),
+                    end
+                )
+            }
             else -> throw RuntimeException("cannot convert to cubic segment")
         }
 
