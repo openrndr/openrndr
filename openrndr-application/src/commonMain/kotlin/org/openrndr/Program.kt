@@ -46,6 +46,15 @@ enum class ProgramEventType {
  */
 data class ProgramEvent(val type: ProgramEventType)
 
+data class ProduceAssetsEvent(val origin: Any, val program: Program, val assetMetadata: AssetMetadata)
+
+data class AssetMetadata(
+    val programName: String,
+    val assetBaseName: String,
+    val assetProperties: Map<String, String>
+)
+
+
 /**
 The Program class, this is where most user implementations start
  **/
@@ -80,6 +89,13 @@ open class Program(val suspend: Boolean = false) {
      * clock function. defaults to returning the application time.
      */
     var clock = { application.seconds }
+
+    var assetProperties = mutableMapOf<String, String>()
+    var assetMetadata = {
+        AssetMetadata(this.name, namedTimestamp(), assetProperties)
+    }
+
+    val produceAssets = Event<ProduceAssetsEvent>()
 
     private var frameSeconds = 0.0
     private var deltaSeconds: Double = 0.0
@@ -295,3 +311,5 @@ open class Program(val suspend: Boolean = false) {
      */
     open fun draw() {}
 }
+
+expect fun Program.namedTimestamp(extension: String = "", path: String? = null): String

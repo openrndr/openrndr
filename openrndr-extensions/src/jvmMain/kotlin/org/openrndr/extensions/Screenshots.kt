@@ -6,8 +6,9 @@ import org.openrndr.draw.*
 import org.openrndr.extensions.CreateScreenshot.*
 import java.io.File
 import mu.KotlinLogging
+import org.openrndr.AssetMetadata
+import org.openrndr.ProduceAssetsEvent
 import org.openrndr.events.Event
-import org.openrndr.utils.namedTimestamp
 
 private val logger = KotlinLogging.logger {}
 
@@ -116,13 +117,33 @@ open class Screenshots : Extension {
 
     private var programRef: Program? = null
 
+    var screenshotTriggersProduceAssetsEvent = true
+    var listenToProduceAssetsEvent = true
+    var listenToKeyDownEvent = true
+
+
+    private var assetMetaData: AssetMetadata? = null
+
     override fun setup(program: Program) {
         programRef = program
-        program.keyboard.keyDown.listen {
-            if (!it.propagationCancelled) {
-                if (it.name == key) {
-                    trigger()
 
+        if (listenToProduceAssetsEvent) {
+            program.produceAssets.listen {
+                assetMetaData = it.assetMetadata
+                trigger()
+            }
+        }
+
+        if (listenToKeyDownEvent) {
+            program.keyboard.keyDown.listen {
+                if (!it.propagationCancelled) {
+                    if (it.name == key) {
+                        if (screenshotTriggersProduceAssetsEvent) {
+                            program.produceAssets.trigger(ProduceAssetsEvent(this, program, program.assetMetadata()))
+                        } else {
+                            trigger()
+                        }
+                    }
                 }
             }
         }
@@ -154,7 +175,11 @@ open class Screenshots : Extension {
 
             filename = when (val cs = createScreenshot) {
                 None -> throw IllegalStateException("")
-                AutoNamed -> if (name.isNullOrBlank()) program.namedTimestamp("png", folder) else name
+                AutoNamed -> {
+                    val parent = File(folder?:".")
+                    val fn = File(parent, "${(assetMetaData?:program.assetMetadata()).assetBaseName}.png").toString()
+                    if (name.isNullOrBlank()) fn else name
+                }
                 is Named -> cs.name
             }
 
@@ -200,7 +225,7 @@ open class Screenshots : Extension {
                 } catch(e: IllegalArgumentException) {
                     targetFile
                 }
-                logger.info("[Screenshots] saved to: $savedTo")
+                logger.info { "[Screenshots] saved to: $savedTo" }
                 afterScreenshot.trigger(ScreenshotEvent(fn.dropLast(4)))
             }
 

@@ -12,12 +12,16 @@ buildscript {
 
 plugins {
     // remember to update all the versions here when upgrading kotlin version
-    id 'org.jetbrains.kotlin.jvm' version '1.5.21' apply false
-    id 'org.jetbrains.kotlin.multiplatform' version '1.5.21' apply false
-    id 'org.jetbrains.kotlin.plugin.serialization' version '1.5.21' apply false
+    id 'org.jetbrains.kotlin.jvm' version '1.5.30' apply false
+    id 'org.jetbrains.kotlin.multiplatform' version '1.5.30' apply false
+    id 'org.jetbrains.kotlin.plugin.serialization' version '1.5.30' apply false
 }
 
-apply plugin: 'org.jetbrains.dokka'
+def dokkaHasIssues = true
+
+if (!dokkaHasIssues) {
+    apply plugin: 'org.jetbrains.dokka'
+}
 
 ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
 
@@ -33,7 +37,7 @@ project.ext {
     kotlinApiVersion = '1.5'
     kotlinJvmTarget = '1.8'
     kotlinLanguageVersion = '1.5'
-    kotlinVersion = '1.5.21'
+    kotlinVersion = '1.5.30'
     kotlinLoggingVersion = '2.0.6'
     kotlinxSerializationVersion = '1.2.1'
     kotlinxCoroutinesVersion = '1.5.0'
@@ -47,35 +51,37 @@ project.ext {
     junitJupiterVersion = '5.7.1'
 }
 
-tasks.named("dokkaHtml") {
-    moduleName.set("openrndr")
-    dokkaSourceSets {
+if (!dokkaHasIssues) {
+    tasks.named("dokkaHtml") {
+        moduleName.set("openrndr")
+        dokkaSourceSets {
 
-        named("main") { /* configure main source set */
-            perPackageOption {
-                matchingRegex.set(".*gl3.*")
-                suppress.set(true)
-            }
-            perPackageOption {
-                matchingRegex.set(".*internal*")
-                suppress.set(true)
-            }
-            perPackageOption {
-                matchingRegex.set(".*artifex*")
-                suppress.set(true)
-            }
-            perPackageOption {
-                matchingRegex.set("io\\.lacuna.*")
-                suppress.set(true)
-            }
+            named("main") { /* configure main source set */
+                perPackageOption {
+                    matchingRegex.set(".*gl3.*")
+                    suppress.set(true)
+                }
+                perPackageOption {
+                    matchingRegex.set(".*internal*")
+                    suppress.set(true)
+                }
+                perPackageOption {
+                    matchingRegex.set(".*artifex*")
+                    suppress.set(true)
+                }
+                perPackageOption {
+                    matchingRegex.set("io\\.lacuna.*")
+                    suppress.set(true)
+                }
 
+            }
+            skipDeprecated.set(true)
+            skipEmptyPackages.set(true)
+            remoteUrl.set(uri("https://github.com/openrndr/openrndr/master/src/main/kotlin").toURL())
         }
-        skipDeprecated.set(true)
-        skipEmptyPackages.set(true)
-        remoteUrl.set(uri("https://github.com/openrndr/openrndr/master/src/main/kotlin").toURL())
+
+
     }
-
-
 }
 
 ["openrndr-animatable",

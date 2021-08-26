@@ -3,7 +3,7 @@ package org.openrndr.ffmpeg
 import org.openrndr.Extension
 import org.openrndr.Program
 import org.openrndr.draw.*
-import org.openrndr.utils.namedTimestamp
+import org.openrndr.namedTimestamp
 import java.io.File
 
 /**
