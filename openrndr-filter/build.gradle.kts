@@ -27,8 +27,11 @@ kotlin {
         nodejs()
     }
     sourceSets {
+
+
         val shaderKotlin by creating {
             this.kotlin.srcDir("$projectDir/build/generated/shaderKotlin")
+
         }
 
         @Suppress("UNUSED_VARIABLE")
@@ -38,8 +41,9 @@ kotlin {
                 implementation("io.github.microutils:kotlin-logging:$kotlinLoggingVersion")
                 api(shaderKotlin.kotlin)
             }
+            this.dependsOn(shaderKotlin)
         }
-        commonMain.dependsOn(shaderKotlin)
+        //commonMain.dependsOn(shaderKotlin)
 
         @Suppress("UNUSED_VARIABLE")
         val commonTest by getting {
@@ -60,5 +64,11 @@ val embedShaders = tasks.register<EmbedShadersTask>("embedShaders") {
     namePrefix.set("filter_")
 }.get()
 
-tasks.getByName("compileKotlinJvm").dependsOn(embedShaders)
-tasks.getByName("compileKotlinJs").dependsOn(embedShaders)
+//sourceSets.getByName("shaderKotlin").com()//    (embedShaders)
+//tasks.getByName("compileKotlinJvm").dependsOn(embedShaders)
+//tasks.getByName("compileKotlinJs").dependsOn(embedShaders)
+//tasks.getByName("compileKotlinMetadata").dependsOn(embedShaders)
+//tasks.getByName("jvmSourcesJar").dependsOn(embedShaders)
+//tasks.getByName("sourcesJar").dependsOn(embedShaders)
+//tasks.getByName("jsMainClasses").dependsOn(embedShaders)
+//tasks.getByName("jvmMainClasses").dependsOn(embedShaders)
