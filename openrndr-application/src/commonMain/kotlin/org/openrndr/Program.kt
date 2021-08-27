@@ -46,6 +46,7 @@ enum class ProgramEventType {
  */
 data class ProgramEvent(val type: ProgramEventType)
 
+data class RequestAssetsEvent(val origin: Any, val program: Program)
 data class ProduceAssetsEvent(val origin: Any, val program: Program, val assetMetadata: AssetMetadata)
 
 data class AssetMetadata(
@@ -72,6 +73,7 @@ open class Program(val suspend: Boolean = false) {
 
     lateinit var application: Application
 
+
     /**
      * background color that is used to clear the background every frame
      */
@@ -95,7 +97,18 @@ open class Program(val suspend: Boolean = false) {
         AssetMetadata(this.name, namedTimestamp(), assetProperties)
     }
 
+    val requestAssets = Event<RequestAssetsEvent>()
     val produceAssets = Event<ProduceAssetsEvent>()
+
+    init {
+        requestAssets.listen {
+            produceAssets.trigger(
+                ProduceAssetsEvent(it.origin, it.program,
+                    assetMetadata())
+                )
+        }
+    }
+
 
     private var frameSeconds = 0.0
     private var deltaSeconds: Double = 0.0

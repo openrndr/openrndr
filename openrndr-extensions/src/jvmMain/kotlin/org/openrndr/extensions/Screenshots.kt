@@ -1,13 +1,10 @@
 package org.openrndr.extensions
 
-import org.openrndr.Extension
-import org.openrndr.Program
 import org.openrndr.draw.*
 import org.openrndr.extensions.CreateScreenshot.*
 import java.io.File
 import mu.KotlinLogging
-import org.openrndr.AssetMetadata
-import org.openrndr.ProduceAssetsEvent
+import org.openrndr.*
 import org.openrndr.events.Event
 
 private val logger = KotlinLogging.logger {}
@@ -117,7 +114,7 @@ open class Screenshots : Extension {
 
     private var programRef: Program? = null
 
-    var screenshotTriggersProduceAssetsEvent = true
+    var screenshotTriggersRequestAssetsEvent = true
     var listenToProduceAssetsEvent = true
     var listenToKeyDownEvent = true
 
@@ -138,8 +135,8 @@ open class Screenshots : Extension {
             program.keyboard.keyDown.listen {
                 if (!it.propagationCancelled) {
                     if (it.name == key) {
-                        if (screenshotTriggersProduceAssetsEvent) {
-                            program.produceAssets.trigger(ProduceAssetsEvent(this, program, program.assetMetadata()))
+                        if (screenshotTriggersRequestAssetsEvent) {
+                            program.requestAssets.trigger(RequestAssetsEvent(this, program))
                         } else {
                             trigger()
                         }

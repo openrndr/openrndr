@@ -10,6 +10,7 @@ import java.util.*
  *  The framework consists of
  *  - [ProduceAssetsEvent],
  *  - [AssetMetadata],
+ *  - [Program.requestAssets]
  *  - [Program.produceAssets]
  *  - [Program.assetMetadata]
  *  - [Program.assetProperties]
