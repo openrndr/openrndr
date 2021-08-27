@@ -1,11 +1,12 @@
 package org.openrndr.platform
 
 import java.io.File
+import java.util.*
 
 actual object Platform {
     private val driver : PlatformDriver = instantiateDriver()
     private fun instantiateDriver(): PlatformDriver {
-        val os = System.getProperty("os.name").toLowerCase()
+        val os = System.getProperty("os.name").lowercase(Locale.getDefault())
         return when {
             os.startsWith("windows") -> WindowsPlatformDriver()
             os.startsWith("mac") -> MacOSPlatformDriver()
@@ -15,7 +16,7 @@ actual object Platform {
 
     actual val type: PlatformType
         get() {
-            val os = System.getProperty("os.name").toLowerCase()
+            val os = System.getProperty("os.name").lowercase(Locale.getDefault())
             return when {
                 os.startsWith("windows") -> PlatformType.WINDOWS
                 os.startsWith("mac") -> PlatformType.MAC

@@ -11,7 +11,7 @@ enum class ImageFileFormat(val mimeType: String, val extensions: List<String>) {
 
     companion object {
         fun guessFromExtension(extension: String): ImageFileFormat {
-            return when (val candidate = extension.toLowerCase()) {
+            return when (val candidate = extension.lowercase()) {
                 "jpg", "jpeg" -> JPG
                 "png" -> PNG
                 "dds" -> DDS
