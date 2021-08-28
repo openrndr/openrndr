@@ -12,4 +12,6 @@ dependencies {
     runtimeOnly("org.lwjgl:lwjgl-opengl:$lwjglVersion:$lwjglNatives")
     runtimeOnly("org.lwjgl:lwjgl-stb:$lwjglVersion:$lwjglNatives")
     runtimeOnly("org.lwjgl:lwjgl-tinyexr:$lwjglVersion:$lwjglNatives")
+    runtimeOnly("org.lwjgl:lwjgl-nfd:$lwjglVersion:$lwjglNatives")
+
 }
