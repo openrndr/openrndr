@@ -4,7 +4,7 @@ import org.openrndr.draw.isolated
 import org.openrndr.draw.loadFont
 import org.openrndr.shape.Rectangle
 
-suspend fun main() {
+fun main() {
     application {
         configure {
             width = 860

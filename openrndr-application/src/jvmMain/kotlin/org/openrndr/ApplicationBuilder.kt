@@ -74,8 +74,7 @@ private fun restartJVM(): Boolean {
 }
 
 
-
-actual suspend fun application(build: ApplicationBuilder.() -> Unit) {
+actual fun application(build: ApplicationBuilder.() -> Unit) {
     if (!restartJVM()) {
         installUncaughtExceptionHandler()
         val applicationBuilder = ApplicationBuilder().apply { build() }
@@ -83,12 +82,10 @@ actual suspend fun application(build: ApplicationBuilder.() -> Unit) {
     }
 }
 
-actual fun applicationSynchronous(build: ApplicationBuilder.() -> Unit) {
+actual suspend fun applicationAsync(build: ApplicationBuilder.() -> Unit) {
     if (!restartJVM()) {
         installUncaughtExceptionHandler()
         val applicationBuilder = ApplicationBuilder().apply { build() }
-        runBlocking {
-            application(applicationBuilder.program, applicationBuilder.configuration)
-        }
+        applicationAsync(applicationBuilder.program, applicationBuilder.configuration)
     }
 }

@@ -1,7 +1,5 @@
 package org.openrndr
 
-import kotlin.jvm.JvmName
-
 @ApplicationDslMarker
 class ApplicationBuilder internal constructor(){
     internal val configuration = Configuration()
@@ -18,30 +16,18 @@ class ApplicationBuilder internal constructor(){
             }
         }
     }
-
-
-
-
-//    @JvmName("initCustom")
-//    inline fun <reified P:Program> program(program:P, crossinline init: P.() -> Unit) {
-//        this.program = program
-//        program.launch {
-//            program.init()
-//        }
-//    }
 }
 
+/**
+ * Runs [programFunction] as an application using [configuration], this provides a more functional flavored way of
+ * writing applications.
+ */
+expect fun application(build: ApplicationBuilder.() -> Unit)
+
 
 /**
  * Runs [programFunction] as an application using [configuration], this provides a more functional flavored way of
  * writing applications.
  */
-expect suspend fun application(build: ApplicationBuilder.() -> Unit)
-
-
-/**
- * Runs [programFunction] as an application using [configuration], this provides a more functional flavored way of
- * writing applications.
- */
-expect fun applicationSynchronous(build: ApplicationBuilder.() -> Unit)
+expect suspend fun applicationAsync(build: ApplicationBuilder.() -> Unit)
 

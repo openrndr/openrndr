@@ -13,14 +13,13 @@ var applicationFunc : ((Program, Configuration) -> Application)? = null
 @ApplicationDslMarker
 actual abstract class Application {
     actual companion object {
-        actual suspend fun run(program: Program, configuration: Configuration) {
+        actual fun run(program: Program, configuration: Configuration) {
+        }
+
+        actual suspend fun runAsync(program: Program, configuration: Configuration) {
             val application = applicationFunc?.invoke(program, configuration) ?: error("applicationFunc not set")
             application.setup()
             application.loop()
-        }
-
-        actual fun runAsync(program: Program, configuration: Configuration) {
-            TODO("not implemented")
         }
     }
 
@@ -45,4 +44,15 @@ actual abstract class Application {
 
     actual abstract var presentationMode: PresentationMode
     actual abstract var windowContentScale: Double
+}
+
+/**
+ * Runs [program] as an application using [configuration].
+ */
+actual fun application(program: Program, configuration: Configuration) {
+    error("use applicationAsync")
+}
+
+actual suspend fun applicationAsync(program: Program, configuration: Configuration) {
+    Application.run(program, configuration)
 }

@@ -1,4 +1,4 @@
-import org.openrndr.applicationSynchronous
+import org.openrndr.application
 import org.openrndr.color.ColorRGBa
 import org.openrndr.shape.Circle
 import org.openrndr.shape.intersections
@@ -10,7 +10,7 @@ import kotlin.math.cos
  * The demo reveals high computation time variance and cases in which intersections are missed.
  */
 
-fun main() = applicationSynchronous {
+fun main() = application {
     configure {
         width = 800
         height = 800

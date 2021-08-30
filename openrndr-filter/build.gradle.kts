@@ -19,7 +19,7 @@ val embedShaders = tasks.register<EmbedShadersTask>("embedShaders") {
     defaultPackage.set("org.openrndr.filter")
     defaultVisibility.set("")
     namePrefix.set("filter_")
-}
+}.get()
 
 kotlin {
     jvm {
@@ -37,15 +37,9 @@ kotlin {
     }
 
     sourceSets {
-        val shaderGlsl by creating {
-            this.kotlin.srcDir("$projectDir/src/shaders/glsl")
-        }
-
         val shaderKotlin by creating {
-            this.kotlin.srcDir("$projectDir/build/generated/shaderKotlin")
+            this.kotlin.srcDir(embedShaders.outputDir)
         }
-
-        shaderKotlin.dependsOn(shaderGlsl)
 
         @Suppress("UNUSED_VARIABLE")
         val commonMain by getting {
@@ -66,15 +60,5 @@ kotlin {
                 implementation("io.kotest:kotest-assertions-core:$kotestVersion")
             }
         }
-    }
-}
-tasks.getByName("compileKotlinJvm").dependsOn("embedShaders")
-tasks.getByName("compileKotlinJs").dependsOn("embedShaders")
-tasks.all {
-    if (this.name == "transformShaderGlslDependenciesMetadata") {
-        this.mustRunAfter("embedShaders")
-    }
-    if (this.name == "transformCommonMainDependenciesMetadata") {
-        this.mustRunAfter("embedShaders")
     }
 }

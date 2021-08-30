@@ -4,15 +4,15 @@ package org.openrndr
  * Runs [programFunction] as an application using [configuration], this provides a more functional flavored way of
  * writing applications.
  */
-actual suspend fun application(build: ApplicationBuilder.() -> Unit) {
-    val applicationBuilder = ApplicationBuilder().apply { build() }
-    application(applicationBuilder.program, applicationBuilder.configuration)
+actual fun application(build: ApplicationBuilder.() -> Unit) {
+    error("use applicationAsync")
 }
 
 /**
  * Runs [programFunction] as an application using [configuration], this provides a more functional flavored way of
  * writing applications.
  */
-actual fun applicationSynchronous(build: ApplicationBuilder.() -> Unit) {
-    error("not supported in Kotlin/JS mode")
+actual suspend fun applicationAsync(build: ApplicationBuilder.() -> Unit) {
+    val applicationBuilder = ApplicationBuilder().apply { build() }
+    applicationAsync(applicationBuilder.program, applicationBuilder.configuration)
 }

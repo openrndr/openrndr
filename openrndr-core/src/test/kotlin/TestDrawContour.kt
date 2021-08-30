@@ -1,5 +1,4 @@
 import org.openrndr.application
-import org.openrndr.applicationSynchronous
 import org.openrndr.shape.Circle
 import org.openrndr.shape.LineSegment
 import org.spekframework.spek2.Spek
@@ -8,7 +7,7 @@ import org.spekframework.spek2.style.specification.describe
 object TestVertexBufferGL3 : Spek({
     describe("drawing a single contour") {
         it("should not throw exceptions") {
-            applicationSynchronous {
+            application {
                 program {
                     extend {
                         drawer.contour(Circle(width / 2.0, height / 2.0, 100.0).contour)
@@ -21,7 +20,7 @@ object TestVertexBufferGL3 : Spek({
 
     describe("drawing org.openrndr.shape.contours with a single element") {
         it("should not throw exceptions") {
-            applicationSynchronous {
+            application {
                 program {
                     extend {
                         drawer.contours(listOf(Circle(width / 2.0, height / 2.0, 100.0).contour))
@@ -34,7 +33,7 @@ object TestVertexBufferGL3 : Spek({
 
     describe("drawing org.openrndr.shape.contours with the same closed contour twice") {
         it("should not throw exceptions") {
-            applicationSynchronous {
+            application {
                 program {
                     extend {
                         drawer.contours(
@@ -50,7 +49,7 @@ object TestVertexBufferGL3 : Spek({
 
     describe("drawing short open org.openrndr.shape.contours using org.openrndr.shape.contours()") {
         it("should not throw exceptions") {
-            applicationSynchronous {
+            application {
                 program {
                     extend {
                         drawer.contours(

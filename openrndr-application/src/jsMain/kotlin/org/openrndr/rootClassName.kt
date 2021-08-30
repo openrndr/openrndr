@@ -5,11 +5,6 @@ actual fun rootClassName(): String {
 }
 
 actual fun Program.namedTimestamp(extension: String, path: String?): String {
-    val computedPath = when {
-        path.isNullOrBlank() -> ""
-        path.endsWith("/") -> path
-        else -> "$path/"
-    }
     val ext = when {
         extension.isEmpty() -> ""
         extension.startsWith(".") -> extension

@@ -1,4 +1,4 @@
-import org.openrndr.applicationSynchronous
+import org.openrndr.application
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.isolated
 import org.openrndr.shape.Circle
@@ -7,7 +7,7 @@ import org.openrndr.shape.GroupNode
 import org.openrndr.shape.ShapeNode
 
 fun main() {
-    applicationSynchronous {
+    application {
         program {
             extend {
                 val shape = Circle(200.0, 200.0, 100.0).shape

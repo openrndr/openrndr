@@ -1,13 +1,13 @@
 package org.openrndr.demos
 
-import org.openrndr.applicationSynchronous
+import org.openrndr.application
 import org.openrndr.draw.colorBuffer
 import org.openrndr.filter.color.delinearize
 import org.openrndr.filter.color.hybridLogGamma
 import org.openrndr.filter.color.linearize
 
 fun main() {
-    applicationSynchronous {
+    application {
         program {
             val cb0 = colorBuffer(256, 256)
             val cb1 = colorBuffer(256, 256)

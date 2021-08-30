@@ -1,5 +1,4 @@
 import org.openrndr.application
-import org.openrndr.applicationSynchronous
 import org.openrndr.draw.isolated
 import org.openrndr.math.Polar
 import org.openrndr.shape.Circle
@@ -8,7 +7,7 @@ import org.openrndr.shape.intersection
 import org.openrndr.shape.union
 import kotlin.math.cos
 
-fun main() = applicationSynchronous {
+fun main() = application {
     configure {
         width = 800
         height = 800

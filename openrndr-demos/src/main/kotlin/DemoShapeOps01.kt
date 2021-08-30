@@ -5,7 +5,7 @@ import org.openrndr.shape.difference
 import org.openrndr.shape.intersection
 import org.openrndr.shape.union
 
-suspend fun main() = application {
+fun main() = application {
     configure {
         width = 800
         height = 800

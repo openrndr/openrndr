@@ -60,7 +60,7 @@ class ParameterSaver : Extension {
     }
 }
 
-fun main() = applicationSynchronous {
+fun main() = application {
     program {
         extend(UUIDNamer())
         extend(ParameterSaver())

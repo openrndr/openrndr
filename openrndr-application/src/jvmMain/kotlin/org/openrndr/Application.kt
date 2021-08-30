@@ -1,5 +1,6 @@
 package org.openrndr
 
+import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import org.openrndr.math.Vector2
 import kotlin.concurrent.thread
@@ -12,7 +13,7 @@ private val logger = KotlinLogging.logger {}
 @ApplicationDslMarker
 actual abstract class Application {
     actual companion object {
-        actual suspend fun run(program: Program, configuration: Configuration) {
+        actual fun run(program: Program, configuration: Configuration) {
             if (enableProfiling) {
                 Runtime.getRuntime().addShutdownHook(object : Thread() {
                     override fun run() {
@@ -23,18 +24,14 @@ actual abstract class Application {
 
             val c = applicationClass(configuration)
             val application = c.declaredConstructors[0].newInstance(program, configuration) as Application
-            application.setup()
+            runBlocking {
+                application.setup()
+            }
             application.loop()
         }
 
-        actual fun runAsync(program: Program, configuration: Configuration) {
-            TODO("not implemented")
-//            val c = applicationClass(configuration)
-//            val application = c.declaredConstructors[0].newInstance(program, configuration) as Application
-//            thread {
-//                application.setup()
-//                application.loop()
-//            }
+        actual suspend fun runAsync(program: Program, configuration: Configuration) {
+            error("use run")
         }
 
         private fun applicationClass(configuration: Configuration): Class<*> {
@@ -74,4 +71,15 @@ actual abstract class Application {
 
     actual abstract var presentationMode: PresentationMode
     actual abstract var windowContentScale: Double
+}
+
+/**
+ * Runs [program] as an application using [configuration].
+ */
+actual fun application(program: Program, configuration: Configuration) {
+    Application.run(program, configuration)
+}
+
+actual suspend fun applicationAsync(program: Program, configuration: Configuration) {
+    error("use application()")
 }
