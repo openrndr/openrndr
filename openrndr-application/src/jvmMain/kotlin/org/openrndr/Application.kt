@@ -3,9 +3,34 @@ package org.openrndr
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import org.openrndr.math.Vector2
-import kotlin.concurrent.thread
 
 private val logger = KotlinLogging.logger {}
+
+/**
+ * Application preload class
+ * [ApplicationPreload] can be used to configure [Application] and [Program] without changing
+ * user code.
+ *
+ * [Application.Companion.run] looks for a preload class on the class path, if found this class instantiated
+ * and used for configuration.
+ *
+ * The `org.openrndr.preloadclass` property can be used to set the name for the preload class,
+ * the default value is `org.openrndr.Preload`.
+ *
+ */
+open class ApplicationPreload {
+    /**
+     * called before passing the configuration to [Application]
+     * This can be used to override resolution and other configuration settings
+     */
+    open fun onConfiguration(configuration: Configuration) {}
+
+    /**
+     * called before setting up the [Program]
+     * This can be used to install extensions
+     */
+    open fun onProgramSetup(program: Program) {}
+}
 
 /**
  * Application interface
@@ -14,6 +39,21 @@ private val logger = KotlinLogging.logger {}
 actual abstract class Application {
     actual companion object {
         actual fun run(program: Program, configuration: Configuration) {
+            val preloadClassName =
+                (System.getProperties().get("org.openrndr.preloadclass") as? String) ?: "org.openrndr.Preload"
+            val preload = try {
+                val c = Application::class.java.classLoader.loadClass(preloadClassName) as Class<ApplicationPreload>
+                logger.info { "preload class found '$preloadClassName'" }
+                c.constructors.first().newInstance() as ApplicationPreload
+            } catch (e: ClassNotFoundException) {
+                logger.info { "no preload class found '$preloadClassName'" }
+                null
+            }
+            if (preload != null) {
+                preload.onConfiguration(configuration)
+                preload.onProgramSetup(program)
+            }
+
             if (enableProfiling) {
                 Runtime.getRuntime().addShutdownHook(object : Thread() {
                     override fun run() {
