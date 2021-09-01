@@ -42,8 +42,8 @@ project.ext {
     kotlinxSerializationVersion = '1.2.1'
     kotlinxCoroutinesVersion = '1.5.0'
     lwjglVersion = '3.2.3'
-    javacpp_version = '1.5.6'
-    ffmpeg_version = "4.4-$javacpp_version"
+    javacpp_version = '1.5.4'
+    ffmpeg_version = "4.3.1-$javacpp_version"
     spekVersion = '2.0.15'
     kluentVersion = '1.65'
     jsoupVersion = '1.13.1'
