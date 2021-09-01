@@ -1,13 +1,15 @@
 package org.openrndr.extensions
 
+import mu.KotlinLogging
+import org.openrndr.AssetMetadata
+import org.openrndr.Extension
+import org.openrndr.Program
+import org.openrndr.RequestAssetsEvent
 import org.openrndr.draw.*
+import org.openrndr.events.Event
 import org.openrndr.extensions.CreateScreenshot.*
 import java.io.File
-import mu.KotlinLogging
-import org.openrndr.*
-import org.openrndr.events.Event
 
-private val logger = KotlinLogging.logger {}
 
 internal sealed class CreateScreenshot {
     object None : CreateScreenshot()
@@ -41,6 +43,7 @@ data class ScreenshotEvent(val basename: String)
  * an extension that takes screenshots when [key] (default is spacebar) is pressed
  */
 open class Screenshots : Extension {
+    private val logger = KotlinLogging.logger {}
 
     /**
      * Event that is triggered just before drawing the contents for the screenshot
@@ -222,7 +225,7 @@ open class Screenshots : Extension {
                 } catch(e: IllegalArgumentException) {
                     targetFile
                 }
-                logger.info { "[Screenshots] saved to: $savedTo" }
+                logger.info { "screenshot saved to: '$savedTo'" }
                 afterScreenshot.trigger(ScreenshotEvent(fn.dropLast(4)))
             }
 
@@ -233,6 +236,7 @@ open class Screenshots : Extension {
             }
 
             if (quitAfterScreenshot) {
+                logger.info { "quitting after after taking screenshot" }
                 program.application.exit()
             }
         }
