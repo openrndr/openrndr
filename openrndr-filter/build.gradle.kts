@@ -1,8 +1,5 @@
-import Openrndr_embed_shaders_gradle.EmbedShadersTask
-
 plugins {
     kotlin("multiplatform")
-    id("openrndr.embed-shaders")
 }
 
 val kotlinxSerializationVersion: String by rootProject.extra
@@ -48,8 +45,7 @@ kotlin {
                 implementation("io.github.microutils:kotlin-logging:$kotlinLoggingVersion")
                 api(shaderKotlin.kotlin)
             }
-             dependsOn(shaderKotlin)
-
+            dependsOn(shaderKotlin)
         }
 
         @Suppress("UNUSED_VARIABLE")
