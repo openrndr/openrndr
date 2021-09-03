@@ -68,7 +68,7 @@ private fun Region2.toShapes(): List<Shape> {
             shapes.add(Shape(contours.reversed()))
         }
 
-        if (rings.size != shapes.sumBy { it.contours.size }) {
+        if (rings.size != shapes.sumOf { it.contours.size }) {
             throw RuntimeException("conversion broken")
         }
     }

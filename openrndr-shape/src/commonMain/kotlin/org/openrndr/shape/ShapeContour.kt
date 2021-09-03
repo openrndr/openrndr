@@ -10,7 +10,7 @@ data class ShapeContour(
     val segments: List<Segment>,
     val closed: Boolean,
     val polarity: YPolarity = YPolarity.CW_NEGATIVE_Y
-) {
+) : ShapeContourProvider {
     companion object {
         /**
          * An empty [ShapeContour] object.
@@ -553,6 +553,8 @@ data class ShapeContour(
             closed,
             polarity
         )
+    override val contour: ShapeContour
+        get() = this
 }
 
 /**

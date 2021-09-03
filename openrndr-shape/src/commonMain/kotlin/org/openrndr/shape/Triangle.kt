@@ -12,8 +12,7 @@ import kotlin.random.Random
 /**
  * Creates a simple three-point polygon.
  */
-data class Triangle(val x1: Vector2, val x2: Vector2, val x3: Vector2) {
-
+data class Triangle(val x1: Vector2, val x2: Vector2, val x3: Vector2) : ShapeProvider, ShapeContourProvider {
     /** Returns true if given [v] lies inside the [Triangle]. */
     operator fun contains(v: Vector2): Boolean {
         val x23 = x2 - x3
@@ -41,9 +40,11 @@ data class Triangle(val x1: Vector2, val x2: Vector2, val x3: Vector2) {
     }
 
     /** Returns [ShapeContour] representation of the [Triangle]. */
-    val contour: ShapeContour
+    override val contour: ShapeContour
         get() = ShapeContour.fromPoints(listOf(x1, x2, x3), closed = true)
 
+    override val shape: Shape
+        get() = Shape(listOf(contour))
     /** Generates a random point that lies inside the [Triangle]. */
     fun randomPoint(random: Random = Random.Default): Vector2 {
         val u = random.nextDouble()

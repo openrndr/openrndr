@@ -10,7 +10,7 @@ import org.openrndr.math.Vector2
  * @param xRadius Horizontal radius.
  * @param yRadius Vertical radius.
  */
-data class Ellipse(val center: Vector2, val xRadius: Double, val yRadius: Double): Movable, Scalable2D {
+data class Ellipse(val center: Vector2, val xRadius: Double, val yRadius: Double): Movable, Scalable2D, ShapeProvider, ShapeContourProvider {
     constructor(x: Double, y: Double, xRadius: Double, yRadius: Double) : this(Vector2(x, y), xRadius, yRadius)
 
     /** The top-left corner of the [Ellipse]. */
@@ -58,7 +58,8 @@ data class Ellipse(val center: Vector2, val xRadius: Double, val yRadius: Double
         return corner + Vector2(u * xRadius, v * yRadius)
     }
 
-    val contour: ShapeContour
+    override val shape: Shape = Shape(listOf(contour))
+    override val contour: ShapeContour
         get() {
             val x = center.x - xRadius
             val y = center.y - yRadius

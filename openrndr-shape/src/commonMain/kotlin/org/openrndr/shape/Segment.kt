@@ -10,7 +10,7 @@ import kotlin.math.*
  * or a Bézier curve path between two anchor points
  * (and up to two control points for curvature).
  */
-class Segment {
+class Segment : ShapeContourProvider {
     /** The start point of the [Segment]. */
     val start: Vector2
 
@@ -997,7 +997,7 @@ class Segment {
         }
     }
 
-    val contour: ShapeContour
+    override val contour: ShapeContour
         get() = ShapeContour(listOf(this), false)
 
 }

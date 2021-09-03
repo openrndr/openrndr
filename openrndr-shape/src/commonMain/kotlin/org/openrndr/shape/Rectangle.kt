@@ -14,7 +14,7 @@ import kotlin.math.min
  *
  * Also see [IntRectangle].
  */
-data class Rectangle(val corner: Vector2, val width: Double, val height: Double = width) : Movable, Scalable2D {
+data class Rectangle(val corner: Vector2, val width: Double, val height: Double = width) : Movable, Scalable2D, ShapeProvider, ShapeContourProvider {
 
     constructor(x: Double, y: Double, width: Double, height: Double = width) :
             this(Vector2(x, y), width, height)
@@ -45,10 +45,10 @@ data class Rectangle(val corner: Vector2, val width: Double, val height: Double 
     val y: Double get() = corner.y
 
     /** Returns [Shape] representation of the [Rectangle]. */
-    val shape get() = Shape(listOf(contour))
+    override val shape get() = Shape(listOf(contour))
 
     /** Returns [ShapeContour] representation of the [Rectangle]. */
-    val contour: ShapeContour
+    override val contour: ShapeContour
         get() {
             return if (corner == Vector2.INFINITY || corner.x != corner.x || corner.y != corner.y || width != width || height != height) {
                 ShapeContour.EMPTY

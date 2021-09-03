@@ -26,7 +26,9 @@ import kotlin.math.min
  * @param end End of the line segment.
  */
 @Suppress("MemberVisibilityCanBePrivate", "unused")
-data class LineSegment(val start: Vector2, val end: Vector2) : LinearType<LineSegment> {
+data class LineSegment(val start: Vector2, val end: Vector2) : LinearType<LineSegment>,
+    ShapeProvider,
+    ShapeContourProvider {
     constructor(x0: Double, y0: Double, x1: Double, y1: Double) : this(Vector2(x0, y0), Vector2(x1, y1))
 
     /** Direction of the line segment */
@@ -45,8 +47,10 @@ data class LineSegment(val start: Vector2, val end: Vector2) : LinearType<LineSe
 
         var t = ((query.x - start.x) * (end.x - start.x) + (query.y - start.y) * (end.y - start.y)) / l2
         t = max(0.0, min(1.0, t))
-        return Vector2(start.x + t * (end.x - start.x),
-                start.y + t * (end.y - start.y))
+        return Vector2(
+            start.x + t * (end.x - start.x),
+            start.y + t * (end.y - start.y)
+        )
     }
 
     /**
@@ -117,11 +121,11 @@ data class LineSegment(val start: Vector2, val end: Vector2) : LinearType<LineSe
         get() = Segment(start, end)
 
     /** Returns [ShapeContour] representation of the [LineSegment]. */
-    val contour: ShapeContour
+    override val contour: ShapeContour
         get() = ShapeContour.fromPoints(listOf(start, end), false, YPolarity.CW_NEGATIVE_Y)
 
     /** Returns [Shape] representation of the [LineSegment]. */
-    val shape: Shape
+    override val shape: Shape
         get() = Shape(listOf(contour))
 
     override operator fun times(scale: Double): LineSegment {

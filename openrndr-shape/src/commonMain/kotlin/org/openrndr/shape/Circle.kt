@@ -12,7 +12,7 @@ import kotlin.math.abs
  *
  * Alternatively, see [Ellipse].
  */
-data class Circle(val center: Vector2, val radius: Double): Movable, Scalable1D {
+data class Circle(val center: Vector2, val radius: Double): Movable, Scalable1D, ShapeProvider, ShapeContourProvider {
     constructor(x: Double, y: Double, radius: Double) : this(Vector2(x, y), radius)
 
     companion object {
@@ -96,10 +96,10 @@ data class Circle(val center: Vector2, val radius: Double): Movable, Scalable1D 
     fun contains(point: Vector2): Boolean = point.minus(center).squaredLength < radius * radius
 
     /** Returns [Shape] representation of the [Circle]. */
-    val shape get() = Shape(listOf(contour))
+    override val shape get() = Shape(listOf(contour))
 
     /** Returns [ShapeContour] representation of the [Circle]. */
-    val contour: ShapeContour
+    override val contour: ShapeContour
         get() {
             val x = center.x - radius
             val y = center.y - radius

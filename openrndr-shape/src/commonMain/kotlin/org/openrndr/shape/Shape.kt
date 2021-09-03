@@ -8,7 +8,7 @@ import org.openrndr.utils.resettableLazy
 /**
  * A simple interface for managing a [List] of [ShapeContour].
  */
-class Shape(val contours: List<ShapeContour>) {
+class Shape(val contours: List<ShapeContour>) : ShapeProvider {
     companion object {
         /**
          * An empty [Shape] object.
@@ -178,6 +178,9 @@ class Shape(val contours: List<ShapeContour>) {
             (candidates + openContours.map { listOf(it) }).map { Shape(it) }
         }
     }
+
+    override val shape: Shape
+        get() = this
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
