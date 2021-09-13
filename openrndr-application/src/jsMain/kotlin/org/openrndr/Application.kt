@@ -14,6 +14,7 @@ var applicationFunc : ((Program, Configuration) -> Application)? = null
 actual abstract class Application {
     actual companion object {
         actual fun run(program: Program, configuration: Configuration) {
+            error("use Application.runAsync")
         }
 
         actual suspend fun runAsync(program: Program, configuration: Configuration) {
@@ -54,5 +55,5 @@ actual fun application(program: Program, configuration: Configuration) {
 }
 
 actual suspend fun applicationAsync(program: Program, configuration: Configuration) {
-    Application.run(program, configuration)
+    Application.runAsync(program, configuration)
 }
