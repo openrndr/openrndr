@@ -24,10 +24,10 @@ sealed interface Paint : AttributeOrPropertyValue {
 
     class RGB(override val value: ColorRGBa) : Paint {
         override fun toString(): String {
-            val ir = (value.r.coerceIn(0.0, 1.0) * 255.0).toInt().toString(16)
-            val ig = (value.g.coerceIn(0.0, 1.0) * 255.0).toInt().toString(16)
-            val ib = (value.b.coerceIn(0.0, 1.0) * 255.0).toInt().toString(16)
-            return ir + ig + ib
+            val hexs = listOf(value.r, value.g, value.b).map {
+                (it.coerceIn(0.0, 1.0) * 255.0).toInt().toString(16).padStart(2, '0')
+            }
+            return hexs.joinToString(prefix = "#", separator = "")
         }
     }
 
@@ -35,6 +35,7 @@ sealed interface Paint : AttributeOrPropertyValue {
     object CurrentColor : Paint {
         override val value: ColorRGBa
             get() = TODO("Not yet implemented")
+
         override fun toString(): String = "currentcolor"
     }
 

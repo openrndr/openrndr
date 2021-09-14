@@ -30,6 +30,11 @@ object TestSVGWriter : Spek({
                 circle(Vector2(100.0, 100.0), 50.0)?.id = "circle"
             }
         }
+        it("can serialize colors") {
+            val svgString = comp.toSVG()
+            // The shorthand hex color is just as valid
+            svgString `should contain some` listOf("fill=\"#ff0000\"", "fill=\"#f00\"")
+        }
         it("can be written and loaded") {
             val svgString = comp.toSVG()
             val loaded = loadSVG(svgString)
