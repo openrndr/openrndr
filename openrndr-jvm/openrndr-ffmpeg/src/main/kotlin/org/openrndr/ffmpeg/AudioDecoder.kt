@@ -45,8 +45,8 @@ internal data class AudioDecoderOutput(
         val sampleFormat: Long)
 
 internal class AudioDecoder(
-    private val audioCodecContext: AVCodecContext,
-    @Suppress("UNUSED_PARAMETER") output: AudioDecoderOutput
+        private val audioCodecContext: AVCodecContext,
+        output: AudioDecoderOutput
 ) {
     private val audioFrame = av_frame_alloc()
 
@@ -119,13 +119,13 @@ internal class AudioDecoder(
     fun decodeAudioPacket(packet: AVPacket) {
         val frameFinished = IntArray(1)
         while (packet.size() > 0) {
-            @Suppress("DEPRECATION") val size = avcodec_decode_audio4(audioCodecContext, audioFrame, frameFinished, packet)
+            val size = avcodec_decode_audio4(audioCodecContext, audioFrame, frameFinished, packet)
 //
 //            var ret = avcodec.avcodec_send_packet(audioCodecContext, packet)
 //
 //            if (ret < 0) {
 //                if (ret != AVERROR_EOF)
-//                    logger.debug { "error in avcodec_send_packet: $ret" }
+//                    org.openrndr.ffmpeg.logger.debug { "error in avcodec_send_packet: $ret" }
 //                return
 //            }
 //
@@ -157,7 +157,7 @@ internal class AudioDecoder(
 //                            val buffer = av_buffer_alloc(audioFrameSize)!!
 //                            val ts = (audioFrame.best_effort_timestamp()) * av_q2d(audioCodecContext.time_base())
 //                            memcpy(buffer.data(), data()[0], audioFrameSize.toLong())
-//                            audioQueue.push(AudioFrame(buffer, 0, audioFrameSize, ts))
+//                            audioQueue.push(org.openrndr.ffmpeg.AudioFrame(buffer, 0, audioFrameSize, ts))
 //                        }
 //                    } else println("there was an error: $result")
 //                    result.checkAVError()
