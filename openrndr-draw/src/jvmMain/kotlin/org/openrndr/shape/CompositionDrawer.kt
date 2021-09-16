@@ -609,6 +609,7 @@ class CompositionDrawer(documentBounds: CompositionDimensions = defaultCompositi
         val newRoot = (composition.root as GroupNode).copy().also { it.parent = rootContainer }
         rootContainer.children.add(newRoot)
         rootContainer.transform *= model
+        rootContainer.parent = cursor
         cursor.children.add(rootContainer)
 
         return rootContainer
