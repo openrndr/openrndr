@@ -1,21 +1,15 @@
 plugins {
-    kotlin("multiplatform")
+    //kotlin("jvm")
+    java
 }
 val kotlinLanguageVersion: String by rootProject.extra
 val kotlinApiVersion: String by rootProject.extra
 
-kotlin {
-    jvm {
-        withJava()
-        sourceSets {
-            val jvmMain by getting {
-                dependencies {
-                    implementation(project(":openrndr-math"))
-                }
-            }
-        }
-    }
+dependencies {
+    implementation(project(":openrndr-math"))
 }
+
+
 
 //kotlin {
 //    jvm {

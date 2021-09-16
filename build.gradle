@@ -125,7 +125,7 @@ def multiplatformModules = [
         "openrndr-dds",
         "openrndr-openal",
         "openrndr-gl3",
-        "openrndr-tessellation",
+//        "openrndr-tessellation",
         "openrndr-svg",
         "openrndr-kartifex"
 ]
