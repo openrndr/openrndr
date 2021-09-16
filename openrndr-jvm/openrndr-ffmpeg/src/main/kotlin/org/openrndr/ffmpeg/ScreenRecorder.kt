@@ -3,7 +3,6 @@ package org.openrndr.ffmpeg
 import org.openrndr.Extension
 import org.openrndr.Program
 import org.openrndr.draw.*
-import org.openrndr.namedTimestamp
 import java.io.File
 
 /**
@@ -83,8 +82,9 @@ class ScreenRecorder : Extension {
             resolved = colorBuffer(effectiveWidth, effectiveHeight)
         }
 
-        val filename = outputFile
-            ?: program.namedTimestamp(profile.fileExtension, "video/")
+        val filename = if (!outputFile.isNullOrBlank()) outputFile!! else {
+            "video/${program.assetMetadata().assetBaseName}.${profile.fileExtension}"
+        }
 
         File(filename).parentFile?.let {
             if (!it.exists()) {
