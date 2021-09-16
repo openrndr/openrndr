@@ -80,7 +80,7 @@ internal class Decoder(private val statistics: VideoStatistics,
                     PlatformType.WINDOWS -> arrayListOf(AV_HWDEVICE_TYPE_D3D11VA, AV_HWDEVICE_TYPE_DXVA2, AV_HWDEVICE_TYPE_QSV)
                     PlatformType.MAC -> arrayListOf(AV_HWDEVICE_TYPE_VIDEOTOOLBOX)
                     PlatformType.GENERIC -> arrayListOf(AV_HWDEVICE_TYPE_VAAPI)
-                    else -> error("unsupported platform ${Platform.type}")
+                    PlatformType.BROWSER -> error("browser not supported")
                 }.reversed()
 
                 val foundHW = mutableListOf<Int>()
@@ -93,9 +93,9 @@ internal class Decoder(private val statistics: VideoStatistics,
                 } while (next != AV_HWDEVICE_TYPE_NONE)
 
                 hwType = (foundHW.map { Pair(it, preferredHW.indexOf(it)) })
-                        .filter { it.second >= 0 }
-                        .maxByOrNull { it.second }
-                        ?.first ?: AV_HWDEVICE_TYPE_NONE
+                    .filter { it.second >= 0 }
+                    .maxByOrNull { it.second }
+                    ?.first ?: AV_HWDEVICE_TYPE_NONE
 
                 if (hwType != AV_HWDEVICE_TYPE_NONE) {
                     val hwContextPtr = PointerPointer<AVHWDeviceContext>(1)
@@ -234,7 +234,7 @@ internal class Decoder(private val statistics: VideoStatistics,
             if (packetResult == AVERROR_EOF) {
                 reachedEndOfFile()
                 Thread.sleep(50)
-            } else {
+            } else if (packetResult < 0) {
                 return
             }
 

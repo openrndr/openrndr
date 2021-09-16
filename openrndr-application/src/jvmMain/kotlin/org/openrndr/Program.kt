@@ -1,6 +1,8 @@
 package org.openrndr
 
 import kotlinx.coroutines.*
+import org.openrndr.draw.Writer
+import org.openrndr.draw.writer as writerFunc
 import org.openrndr.shape.*
 import java.time.LocalDateTime
 import kotlin.coroutines.CoroutineContext
@@ -48,4 +50,8 @@ actual fun Program.namedTimestamp(extension: String, path: String?):
     return "$computedPath$basename-%04d-%02d-%02d-%02d.%02d.%02d$ext".format(
         now.year, now.month.value, now.dayOfMonth,
         now.hour, now.minute, now.second)
+}
+
+fun <T> Program.writer(f: Writer.() -> T): T {
+    return writerFunc(drawer, f)
 }
