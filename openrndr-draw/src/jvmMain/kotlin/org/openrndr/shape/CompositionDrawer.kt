@@ -605,89 +605,14 @@ class CompositionDrawer(documentBounds: CompositionDimensions = defaultCompositi
     }
 
     fun composition(composition: Composition): CompositionNode {
-        pushStyle()
+        val rootContainer = GroupNode()
+        val newRoot = (composition.root as GroupNode).copy().also { it.parent = rootContainer }
+        rootContainer.children.add(newRoot)
+        rootContainer.transform *= model
+        rootContainer.parent = cursor
+        cursor.children.add(rootContainer)
 
-        fun node(compositionNode: CompositionNode) {
-            pushModel()
-            pushStyle()
-
-            model *= compositionNode.style.transform.value
-
-            // (skip compositionNode.shadeStyle here)
-            // TODO: Handle Style.display
-            when (compositionNode) {
-                is ShapeNode -> {
-                    val cs = compositionNode.effectiveStyle
-
-                    cs.stroke.let {
-                        stroke = when (it) {
-                            is Paint.RGB -> it.value
-                            Paint.None -> null
-                            Paint.CurrentColor -> null
-                        }
-                    }
-                    cs.strokeOpacity.let {
-                        strokeOpacity = when (it) {
-                            is Numeric.Rational -> it.value
-                        }
-                    }
-                    cs.strokeWeight.let {
-                        strokeWeight = when (it) {
-                            is Length.Pixels -> it.value
-                            is Length.Percent -> composition.normalizedDiagonalLength() * it.value / 100.0
-                        }
-                    }
-                    cs.miterLimit.let {
-                        miterlimit = when (it) {
-                            is Numeric.Rational -> it.value
-                        }
-                    }
-                    cs.lineCap.let {
-                        lineCap = it.value
-                    }
-                    cs.lineJoin.let {
-                        lineJoin = it.value
-                    }
-                    cs.fill.let {
-                        fill = when (it) {
-                            is Paint.RGB -> it.value
-                            is Paint.None -> null
-                            // TODO: This should grab the value of the `color` property in the CSS
-                            // but that's so irrelevant in our case.
-                            is Paint.CurrentColor -> null
-                        }
-                    }
-                    cs.fillOpacity.let {
-                        fillOpacity = when (it) {
-                            is Numeric.Rational -> it.value
-                        }
-                    }
-                    cs.opacity.let {
-                        opacity = when (it) {
-                            is Numeric.Rational -> it.value
-                        }
-                    }
-                    cs.visibility.let {
-                        visibility = it
-                    }
-                    shape(compositionNode.shape)
-                }
-                is ImageNode -> {
-                    image(compositionNode.image)
-                }
-                is TextNode -> {
-                    text(compositionNode.text, Vector2.ZERO)
-                }
-                is GroupNode -> compositionNode.children.forEach { node(it) }
-            }
-
-            popStyle()
-            popModel()
-        }
-        node(composition.root)
-        popStyle()
-
-        return composition.root
+        return rootContainer
     }
 
     fun CompositionNode.translate(x: Double, y: Double, z: Double = 0.0) {
