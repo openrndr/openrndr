@@ -63,9 +63,9 @@ class FontImageMapDrawer {
 
             var instance = 0
 
-            for ((text, _) in (texts zip positions)) {
+            for ((text, position) in (texts zip positions)) {
                 var cursorX = 0.0
-                var cursorY = 0.0
+                val cursorY = 0.0
 
                 val bw = vertices.shadow.writer()
                 bw.position = vertices.vertexFormat.size * quadCount * 6
@@ -81,8 +81,9 @@ class FontImageMapDrawer {
                         fontMap,
                         bw,
                         it,
-                        cursorX,
-                        cursorY + metrics.yBitmapShift / fontMap.contentScale,
+                        position.x + cursorX,
+                        position.y + cursorY +
+                                metrics.yBitmapShift / fontMap.contentScale,
                         0,
                         drawStyle.textSetting
                     )
