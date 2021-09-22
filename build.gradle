@@ -5,7 +5,6 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath "org.jetbrains.dokka:dokka-gradle-plugin:1.5.30"
         classpath "com.netflix.nebula:nebula-release-plugin:15.3.1"
     }
 }
@@ -15,6 +14,7 @@ plugins {
     id 'org.jetbrains.kotlin.jvm' version '1.5.30' apply false
     id 'org.jetbrains.kotlin.multiplatform' version '1.5.30' apply false
     id 'org.jetbrains.kotlin.plugin.serialization' version '1.5.30' apply false
+    id "org.jetbrains.dokka" version "1.5.30"
 }
 
 /*
