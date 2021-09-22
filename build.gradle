@@ -17,9 +17,14 @@ plugins {
     id 'org.jetbrains.kotlin.plugin.serialization' version '1.5.30' apply false
 }
 
-def dokkaHasIssues = DefaultNativePlatform.currentOperatingSystem.windows
+/*
+    We are disabling Dokka on Windows because of the following error:
+    No signature of method: org.jetbrains.dokka.gradle.GradleDokkaSourceSetBuilder.set() is applicable for argument types: (Boolean) values: [true]
+			Possible solutions: use([Ljava.lang.Object;), wait(), any(), grep(), wait(long), use(java.util.List, groovy.lang.Closure) (11 s 190 ms)
+ */
+def dokkaEnabled = !DefaultNativePlatform.currentOperatingSystem.windows
 
-if (!dokkaHasIssues) {
+if (!dokkaEnabled) {
     apply plugin: 'org.jetbrains.dokka'
 }
 
@@ -51,7 +56,7 @@ project.ext {
     junitJupiterVersion = '5.7.1'
 }
 
-if (!dokkaHasIssues) {
+if (!dokkaEnabled) {
     tasks.named("dokkaHtml") {
         moduleName.set("openrndr")
         dokkaSourceSets {
