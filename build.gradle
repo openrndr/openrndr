@@ -5,7 +5,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath "org.jetbrains.dokka:dokka-gradle-plugin:1.5.0"
+        classpath "org.jetbrains.dokka:dokka-gradle-plugin:1.5.30"
         classpath "com.netflix.nebula:nebula-release-plugin:15.3.1"
     }
 }
