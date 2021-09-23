@@ -14,17 +14,17 @@ plugins {
     id 'org.jetbrains.kotlin.jvm' version '1.5.30' apply false
     id 'org.jetbrains.kotlin.multiplatform' version '1.5.30' apply false
     id 'org.jetbrains.kotlin.plugin.serialization' version '1.5.30' apply false
-    id "org.jetbrains.dokka" version "1.5.30"
+    id "org.jetbrains.dokka" version "1.5.30" apply false
 }
 
 /*
-    We are disabling Dokka on Windows because of the following error:
+    Disable `dokkaHtmlMultiModule` task on Windows because of this error:
     No signature of method: org.jetbrains.dokka.gradle.GradleDokkaSourceSetBuilder.set() is applicable for argument types: (Boolean) values: [true]
 			Possible solutions: use([Ljava.lang.Object;), wait(), any(), grep(), wait(long), use(java.util.List, groovy.lang.Closure) (11 s 190 ms)
  */
 def dokkaEnabled = !DefaultNativePlatform.currentOperatingSystem.windows
 
-if (!dokkaEnabled) {
+if (dokkaEnabled) {
     apply plugin: 'org.jetbrains.dokka'
 }
 
@@ -56,11 +56,12 @@ project.ext {
     junitJupiterVersion = '5.7.1'
 }
 
-if (!dokkaEnabled) {
+if (dokkaEnabled) {
+
+    // See https://kotlin.github.io/dokka/1.5.30/user_guide/gradle/usage/
     tasks.named("dokkaHtml") {
         moduleName.set("openrndr")
         dokkaSourceSets {
-
             named("main") { /* configure main source set */
                 perPackageOption {
                     matchingRegex.set(".*gl3.*")
@@ -79,10 +80,27 @@ if (!dokkaEnabled) {
                     suppress.set(true)
                 }
 
+                // Includes and sourceLink not working. See:
+                // https://github.com/Kotlin/dokka/issues/1838
+
+                // This .kts demo uses both and works:
+                // https://github.com/Kotlin/dokka/tree/master/examples/gradle/dokka-gradle-example
+
+                // Try converting to .kts or wait for dokka >1.5.30
+
+//                includes.from("Module.md")
+//                def sourceSetName = name
+//                println(sourceSetName)
+//                sourceLink {
+//                    localDirectory.set(file("$sourceSetName/src/commonMain/kotlin"))
+//                    remoteUrl.set(uri("https://github.com/openrndr/openrndr/blob/master/src/main/kotlin").toURL())
+//                    remoteLineSuffix.set("#L")
+//                }
             }
-            skipDeprecated.set(true)
-            skipEmptyPackages.set(true)
-            remoteUrl.set(uri("https://github.com/openrndr/openrndr/master/src/main/kotlin").toURL())
+            configureEach {
+                skipDeprecated.set(true)
+                skipEmptyPackages.set(true)
+            }
         }
 
 
