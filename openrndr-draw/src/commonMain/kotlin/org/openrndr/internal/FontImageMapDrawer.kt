@@ -22,41 +22,22 @@ class FontImageMapDrawer {
     }, 6 * maxQuads)
 
     private var quadCount = 0
-    fun drawText(context: DrawContext, drawStyle: DrawStyle, text: String, x: Double, y: Double) {
-        (drawStyle.fontMap as? FontImageMap)?.let { fontMap ->
-            var cursorX = 0.0
-            var cursorY = 0.0
 
-            val bw = vertices.shadow.writer()
-            bw.position = vertices.vertexFormat.size * quadCount * 6
-
-            var lastChar:Char? = null
-            text.forEach {
-                val lc = lastChar
-                val metrics = fontMap.glyphMetrics[it] ?: fontMap.glyphMetrics.getValue(' ')
-                if (drawStyle.kerning == KernMode.METRIC) {
-                    cursorX += if (lc != null) fontMap.kerning(lc, it) else 0.0
-                }
-                val dx = insertCharacterQuad(
-                    fontMap,
-                    bw,
-                    it,
-                    x + cursorX,
-                    y + cursorY + metrics.yBitmapShift / fontMap.contentScale,
-                    0,
-                    drawStyle.textSetting
-                )
-                cursorX += metrics.advanceWidth + dx
-                lastChar = it
-            }
-            flush(context, drawStyle)
-        }
-    }
+    fun drawText(
+        context: DrawContext,
+        drawStyle: DrawStyle,
+        text: String,
+        x: Double,
+        y: Double
+    )= drawTexts(context, drawStyle, listOf(text), listOf(Vector2(x, y)))
 
 
-
-    fun drawTexts(context: DrawContext, drawStyle: DrawStyle, texts: List<String>, positions: List<Vector2>) {
-
+    fun drawTexts(
+        context: DrawContext,
+        drawStyle: DrawStyle,
+        texts: List<String>,
+        positions: List<Vector2>
+    ) {
         val fontMap = drawStyle.fontMap as? FontImageMap
 
         if (fontMap!= null) {
@@ -84,7 +65,7 @@ class FontImageMapDrawer {
                         position.x + cursorX,
                         position.y + cursorY +
                                 metrics.yBitmapShift / fontMap.contentScale,
-                        0,
+                        instance,
                         drawStyle.textSetting
                     )
                     cursorX += metrics.advanceWidth + dx
