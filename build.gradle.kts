@@ -45,46 +45,25 @@ project.ext.set("kotestVersion", "4.4.3")
 project.ext.set("junitJupiterVersion", "5.7.1")
 
 // See https://kotlin.github.io/dokka/1.5.30/user_guide/gradle/usage/
+
 tasks.dokkaHtml {
-    val ignore = listOf(
-        ".*gl3.*",
-        ".*generated.*",
-        ".*internal*",
-        ".*artifex*",
-        "io\\.lacuna.*"
-    )
-    println("ignore: $ignore")
     moduleName.set("openrndr")
     dokkaSourceSets {
         configureEach {
+            includes.from("Module.md")
             skipDeprecated.set(true)
             skipEmptyPackages.set(true)
-            includes.from(files("Module.md"))
-
-            ignore.forEach {
-                perPackageOption {
-                    matchingRegex.set(it)
-                    suppress.set(true)
-                }
-            }
-
-            // sourceLink to be removed?
-            val sourceSetName = name
-            println(sourceSetName)
-
-            sourceLink {
-                localDirectory.set(file("$sourceSetName/src/commonMain/kotlin"))
-                remoteUrl.set(
-                    URL(
-                        "https://github.com/openrndr/openrndr/blob/master/src/main/kotlin"
-                    )
-                )
-                remoteLineSuffix.set("#L")
-            }
         }
     }
 }
 
+val dokkaIgnore = listOf(
+    ".*gl3.*",
+    ".*generated.*",
+    ".*internal*",
+    ".*artifex*",
+    "io\\.lacuna.*"
+)
 
 listOf(
     "openrndr-animatable",
@@ -103,7 +82,16 @@ listOf(
         tasks.withType<DokkaTaskPartial>().configureEach {
             dokkaSourceSets {
                 configureEach {
-                    includes.from("/home/funpro/OR/openrndr/Module.md")
+                    includes.from("Module.md")
+                    skipDeprecated.set(true)
+                    skipEmptyPackages.set(true)
+
+                    dokkaIgnore.forEach {
+                        perPackageOption {
+                            matchingRegex.set(it)
+                            suppress.set(true)
+                        }
+                    }
 
                     sourceRoots.firstOrNull()?.also { path ->
                         val relPath = rootProject.projectDir.toURI()
