@@ -2,7 +2,6 @@ plugins {
     kotlin("multiplatform")
 }
 
-val kotlinxSerializationVersion: String by rootProject.extra
 val kotestVersion: String by rootProject.extra
 val junitJupiterVersion: String by rootProject.extra
 val kotlinApiVersion: String by rootProject.extra
