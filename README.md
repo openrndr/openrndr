@@ -11,23 +11,24 @@ Basics and use are further explained in the [OPENRNDR guide](https://guide.openr
 
 | module              | description          |
 ----------------------|-----------------------
-| [openrndr-animatable](openrndr-animatable) | Tooling for interactive animations
+| [openrndr-animatable](openrndr-animatable) | Tooling for interactive animations |
 | [openrndr-application](openrndr-application) | Application and Program classes |
 | [openrndr-binpack](openrndr-binpack) | Binpacking algorithm used for texture atlasses |
 | [openrndr-color](openrndr-color) | Color spaces |
 | [openrndr-dds](openrndr-dds) | DirectDraw Surface file (.dds) loader |
 | [openrndr-demos](openrndr-demos) | A collection of small in-repository demos |
-| [openrndr-draw](openrndr-draw) | Drawing primitives
-| [openrndr-event](openrndr-event) | Event classes
-| [openrndr-extensions](openrndr-extensions) | Built-in OPENRNDR extensions
-| [openrndr-filter](openrndr-filter)| Built-in filters
+| [openrndr-draw](openrndr-draw) | Drawing primitives |
+| [openrndr-event](openrndr-event) | Event classes |
+| [openrndr-extensions](openrndr-extensions) | Built-in OPENRNDR extensions |
+| [openrndr-filter](openrndr-filter)| Built-in filters |
 | [openrndr-js](openrndr-js) | Kotlin/JS specific modules |
 | [openrndr-jvm](openrndr-jvm) | Kotlin/JVM specific modules |
 | [openrndr-math](openrndr-math) | Math functions and classes |
 | [openrndr-nullgl](openrndr-nullgl) | Mock graphics back-end |
 | [openrndr-shape](openrndr-shape) | Classes and functions for working with 2D shapes |
 | [openrndr-svg](openrndr-svg) | Loading and saving SVG |
-| [openrndr-utils](openrndr-utils) | Assorted utilities
+| [openrndr-utils](openrndr-utils) | Assorted utilities |
+
 ## Using OPENRNDR
 
 You are advised to use the [OPENRNDR template](https://github.com/openrndr/openrndr-template) which provides a quick start to using the library.
@@ -63,6 +64,4 @@ Visit the [OPENRNDR website](https://openrndr.org) for the latest news on OPENRN
 
 Join us on the [OPENRNDR forum](https://openrndr.discourse.group) for questions, tutorials and showcases.
 
-.. or if you prefer a more direct and chatty way of conversation talk to us the [OPENRNDR Slack](https://communityinviter.com/apps/openrndr/openrndr)
-
-
+Reach us more directly on the [OPENRNDR Slack](https://communityinviter.com/apps/openrndr/openrndr).
