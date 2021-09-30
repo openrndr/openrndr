@@ -23,6 +23,8 @@ enum class Linearity {
  * @param g green as a percentage between 0.0 and 1.0
  * @param b blue as a percentage between 0.0 and 1.0
  * @param a alpha as a percentage between 0.0 and 1.0
+ * @see [rgb]
+ * @see [rgba]
  */
 @Suppress("EqualsOrHashCode") // generated equals() is ok, only hashCode() needs to be overridden
 data class ColorRGBa(
