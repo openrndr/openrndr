@@ -24,6 +24,9 @@ private val cyrillic = charArrayOf(
 
 val defaultFontmapCharacterSet by lazy { (standard + cyrillic).toSet() }
 
+/**
+ * Holds properties common to both vector-based and image-based [FontMap]s.
+ */
 abstract class FontMap {
     abstract val size: Double
     abstract val ascenderLength: Double
@@ -41,6 +44,10 @@ private val fontImageMaps: MutableMap<FontImageMapDescriptor, FontImageMap> = mu
 
 data class CharacterPair(val left: Char, val right: Char)
 
+/**
+ * A type of [FontMap] which keeps characters pre-rendered in a [ColorBuffer]
+ * texture at a specific font [size].
+ */
 class FontImageMap(val texture: ColorBuffer,
                    val map: Map<Char, IntRectangle>,
                    val glyphMetrics: Map<Char, GlyphMetrics>,
@@ -72,7 +79,12 @@ class FontImageMap(val texture: ColorBuffer,
 }
 
 
-
+/**
+ * A type of [FontMap] which keeps characters stored as vector data. Good for
+ * displaying very large text and for displaying text at different scales, but
+ * in general less performant than [FontImageMap] because it is not
+ * pre-rendered.
+ */
 abstract class FontVectorMap : FontMap() {
     companion object {
         fun fromUrl(fontUrl: String, size: Double, characterSet: Set<Char> = defaultFontmapCharacterSet): FontImageMap {

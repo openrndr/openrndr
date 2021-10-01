@@ -1,6 +1,5 @@
 package org.openrndr.shape
 
-import org.openrndr.*
 import org.openrndr.collections.pflatMap
 import org.openrndr.collections.pforEach
 import org.openrndr.color.ColorRGBa
@@ -14,6 +13,9 @@ import org.openrndr.math.YPolarity
 import org.openrndr.math.transforms.*
 import java.util.*
 
+/**
+ * Used internally to define [ClipMode]s.
+ */
 enum class ClipOp {
     DISABLED,
     DIFFERENCE,
@@ -22,11 +24,19 @@ enum class ClipOp {
     UNION
 }
 
+/**
+ * Specifies if transformations should be kept separate
+ * or applied to the clipped object and reset to identity.
+ */
 enum class TransformMode {
     KEEP,
     APPLY
 }
 
+/**
+ * Specifies in which way to combine [Shape]s
+ * to form a [Composition]
+ */
 enum class ClipMode(val grouped: Boolean, val op: ClipOp) {
     DISABLED(false, ClipOp.DISABLED),
     DIFFERENCE(false, ClipOp.DIFFERENCE),
@@ -39,6 +49,9 @@ enum class ClipMode(val grouped: Boolean, val op: ClipOp) {
     UNION_GROUP(true, ClipOp.UNION)
 }
 
+/**
+ * The set of draw style properties used for rendering a [Composition]
+ */
 private data class CompositionDrawStyle(
     var fill: ColorRGBa? = null,
     var fillOpacity: Double = 1.0,
@@ -55,9 +68,21 @@ private data class CompositionDrawStyle(
     var visibility: Visibility = Visibility.Visible
 )
 
+/**
+ * Data structure containing intersection information.
+ */
 data class ShapeNodeIntersection(val node: ShapeNode, val intersection: ContourIntersection)
+
+/**
+ * Data structure containing information about a point
+ * in a [ShapeContour] closest to some other 2D point.
+ */
 data class ShapeNodeNearestContour(val node: ShapeNode, val point: ContourPoint, val distanceDirection: Vector2, val distance: Double)
 
+/**
+ * Merges two lists of [ShapeNodeIntersection] removing duplicates under the
+ * given [threshold]. Used internally by [intersections].
+ */
 fun List<ShapeNodeIntersection>.merge(threshold: Double = 0.5): List<ShapeNodeIntersection> {
     val result = mutableListOf<ShapeNodeIntersection>()
     for (i in this) {
@@ -295,7 +320,7 @@ class CompositionDrawer(documentBounds: CompositionDimensions = defaultCompositi
         mergeThreshold: Double = 0.5
     ): List<ShapeNodeIntersection> {
         return searchFrom.findShapes().pflatMap { node ->
-            if (intersects(node.bounds, contour.bounds)) {
+            if (node.bounds.intersects(contour.bounds)) {
                 node.shape.contours.flatMap {
                     intersections(contour, it).map {
                         ShapeNodeIntersection(node, it)
@@ -642,8 +667,8 @@ class CompositionDrawer(documentBounds: CompositionDimensions = defaultCompositi
     }
 
     /**
-     * Copy node and insert copy at [cursor]
-     * @param insert when true the copy is inserted at [cursor]
+     * Returns a deep copy of a [CompositionNode].
+     * If [insert] is true the copy is inserted at [cursor].
      * @return a deep copy of the node
      */
     // TODO: Include new features
@@ -681,6 +706,11 @@ class CompositionDrawer(documentBounds: CompositionDimensions = defaultCompositi
     }
 }
 
+/**
+ * Creates a [Composition]. The draw operations contained inside
+ * the [drawFunction] do not render graphics to the screen,
+ * but populate the Composition instead.
+ */
 fun drawComposition(
     documentBounds: CompositionDimensions = defaultCompositionDimensions,
     composition: Composition? = null,
@@ -688,6 +718,9 @@ fun drawComposition(
     drawFunction: CompositionDrawer.() -> Unit
 ): Composition = CompositionDrawer(documentBounds, composition, cursor).apply { drawFunction() }.composition
 
+/**
+ * Draw into an existing [Composition].
+ */
 fun Composition.draw(drawFunction: CompositionDrawer.() -> Unit) {
     drawComposition(composition = this, drawFunction = drawFunction)
 }

@@ -253,6 +253,11 @@ enum class DepthTestPass {
     NEVER
 }
 
+/**
+ * Used for controlling how pixels are blended together. The different modes
+ * can be used to simulate different kinds of effects like transparency,
+ * adding light, subtracting color and others.
+ */
 enum class BlendMode {
     OVER,
     BLEND,
@@ -286,6 +291,9 @@ class ChannelMask(val red: Boolean, val green: Boolean, val blue: Boolean, val a
     }
 }
 
+/**
+ * Specifies if to optimize drawing for quality or performance.
+ */
 enum class DrawQuality {
     QUALITY,
     PERFORMANCE
@@ -298,6 +306,11 @@ private val logger = KotlinLogging.logger {}
 private var styleBlocks = mutableMapOf<Long, UniformBlock?>()
 expect val useStyleBlock : Boolean
 
+/**
+ * A data class that controls the look of
+ * drawing operations including stroke and fill color, stroke
+ * weight and more.
+ */
 data class DrawStyle(
     /** Clipping rectangle, set to null for no clipping */
     var clip: Rectangle? = null,
