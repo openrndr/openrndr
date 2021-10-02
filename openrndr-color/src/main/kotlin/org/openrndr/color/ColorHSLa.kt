@@ -10,7 +10,7 @@ import org.openrndr.math.mixAngle
  * @param a alpha (0.0. .. 1.0)
  */
 @Suppress("unused", "MemberVisibilityCanBePrivate")
-data class ColorHSLa(val h: Double, val s: Double, val l: Double, val a: Double = 1.0) :
+data class ColorHSLa  @JvmOverloads constructor(val h: Double, val s: Double, val l: Double, val a: Double = 1.0) :
         ConvertibleToColorRGBa,
         ShadableColor<ColorHSLa>,
         HueShiftableColor<ColorHSLa>,

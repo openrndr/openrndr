@@ -4,7 +4,7 @@ import org.openrndr.math.CastableToVector4
 import org.openrndr.math.Vector4
 import kotlin.math.pow
 
-data class ColorLABa(
+data class ColorLABa @JvmOverloads constructor(
     val l: Double,
     val a: Double,
     val b: Double,

@@ -16,7 +16,7 @@ import kotlin.math.floor
  * @param a alpha in [0, 1]
  */
 @Suppress("unused")
-data class ColorHSVa(val h: Double, val s: Double, val v: Double, val a: Double = 1.0) :
+data class ColorHSVa @JvmOverloads constructor(val h: Double, val s: Double, val v: Double, val a: Double = 1.0) :
         ConvertibleToColorRGBa,
         ShadableColor<ColorHSVa>,
         HueShiftableColor<ColorHSVa>,

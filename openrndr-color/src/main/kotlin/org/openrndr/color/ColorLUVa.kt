@@ -5,7 +5,7 @@ import org.openrndr.math.Vector4
 import kotlin.math.pow
 
 @Suppress("unused", "UNUSED_PARAMETER")
-data class ColorLUVa(val l: Double, val u: Double, val v: Double, val alpha: Double = 1.0, val ref: ColorXYZa) :
+data class ColorLUVa @JvmOverloads constructor(val l: Double, val u: Double, val v: Double, val alpha: Double = 1.0, val ref: ColorXYZa) :
     ConvertibleToColorRGBa,
     CastableToVector4,
     OpacifiableColor<ColorLUVa>,
