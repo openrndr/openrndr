@@ -340,6 +340,9 @@ internal class Path {
     }
 
     private fun calculateJoins(points: List<PathPoint>, w: Double, lineJoin: LineJoin, miterLimit: Double) {
+        if (points.isEmpty()) {
+            return
+        }
         nbevel = 0
 
         val iw = if (w > 0.0) 1.0 / w else 0.0
@@ -400,6 +403,10 @@ internal class Path {
     }
 
     fun prepare(points: List<PathPoint>) {
+        if (points.isEmpty()) {
+            return
+        }
+
         var p0 = points[points.size - 1]
         var p1 = points[0]
         var p1ptr = 0
