@@ -49,6 +49,23 @@ class ContourBuilder(private val multipleContours: Boolean) {
 
     internal val contours = mutableListOf<ShapeContour>()
 
+
+    fun copy(source: ShapeContour) {
+        if (this.segments.isEmpty() && !source.empty) {
+            segments.addAll(source.segments)
+            anchor = segments.first().start
+            cursor = segments.last().end
+        } else if (!source.empty) {
+            val d = cursor-source.segments.first().start
+            if (d.squaredLength < 1E-6) {
+                lineTo(source.segments.first().start)
+            }
+            for(segment in source.segments) {
+                segment(segment)
+            }
+        }
+    }
+
     /**
      * Move pen without drawing
      * @param position coordinate to move pen to
