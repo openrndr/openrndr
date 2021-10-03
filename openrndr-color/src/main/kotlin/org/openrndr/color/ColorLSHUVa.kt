@@ -1,7 +1,7 @@
 package org.openrndr.color
 
 
-data class ColorLSHUVa(
+data class ColorLSHUVa @JvmOverloads constructor(
     val l: Double,
     val s: Double,
     val h: Double,

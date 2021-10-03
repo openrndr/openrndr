@@ -1,6 +1,6 @@
 package org.openrndr.color
 
-data class ColorYxya(val yy: Double, val x: Double, val y: Double, val a: Double = 1.0) {
+data class ColorYxya @JvmOverloads constructor(val yy: Double, val x: Double, val y: Double, val a: Double = 1.0) {
     companion object {
         fun fromXYZa(xyza: ColorXYZa): ColorYxya {
             val s = xyza.x + xyza.y + xyza.z

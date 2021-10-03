@@ -22,7 +22,7 @@ enum class Linearity {
  * @param b blue between 0 and 1
  * @param a alpha between 0 and 1
  */
-data class ColorRGBa(
+data class ColorRGBa @JvmOverloads constructor (
     val r: Double,
     val g: Double,
     val b: Double,

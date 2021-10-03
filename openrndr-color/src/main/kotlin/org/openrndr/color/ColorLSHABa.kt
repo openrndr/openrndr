@@ -1,6 +1,6 @@
 package org.openrndr.color
 
-data class ColorLSHABa(
+data class ColorLSHABa @JvmOverloads constructor(
     val l: Double,
     val s: Double,
     val h: Double,

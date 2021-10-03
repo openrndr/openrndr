@@ -6,7 +6,7 @@ import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.sqrt
 
-data class ColorLCHUVa(
+data class ColorLCHUVa @JvmOverloads constructor(
     val l: Double,
     val c: Double,
     val h: Double,

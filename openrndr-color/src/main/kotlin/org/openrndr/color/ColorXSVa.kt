@@ -2,7 +2,7 @@ package org.openrndr.color
 
 import org.openrndr.math.mixAngle
 
-data class ColorXSVa(val x: Double, val s: Double, val v: Double, val a: Double = 1.0) :
+data class ColorXSVa @JvmOverloads constructor(val x: Double, val s: Double, val v: Double, val a: Double = 1.0) :
     ConvertibleToColorRGBa,
     ShadableColor<ColorXSVa>,
     HueShiftableColor<ColorXSVa>,
