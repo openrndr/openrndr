@@ -112,8 +112,8 @@ data class ColorRGBa(
          * @param vector input vector, `[x, y, z]` is mapped to `[r, g, b]`
          * @param alpha optional alpha value, default is 1.0
          */
-        fun fromVector(vector: Vector3, alpha: Double = 1.0): ColorRGBa {
-            return ColorRGBa(vector.x, vector.y, vector.z, alpha)
+        fun fromVector(vector: Vector3, alpha: Double = 1.0, linearity: Linearity = Linearity.SRGB): ColorRGBa {
+            return ColorRGBa(vector.x, vector.y, vector.z, alpha, linearity)
         }
 
 
@@ -121,8 +121,8 @@ data class ColorRGBa(
          * Create a ColorRGBa object from a [Vector4]
          * @param vector input vector, `[x, y, z, w]` is mapped to `[r, g, b, a]`
          */
-        fun fromVector(vector: Vector4): ColorRGBa {
-            return ColorRGBa(vector.x, vector.y, vector.z, vector.w)
+        fun fromVector(vector: Vector4, linearity: Linearity = Linearity.SRGB): ColorRGBa {
+            return ColorRGBa(vector.x, vector.y, vector.z, vector.w, linearity)
         }
     }
 
@@ -132,7 +132,7 @@ data class ColorRGBa(
      * @return A [ColorRGBa] with scaled opacity
      * @see shade
      */
-    override fun opacify(factor: Double): ColorRGBa = ColorRGBa(r, g, b, a * factor)
+    override fun opacify(factor: Double): ColorRGBa = ColorRGBa(r, g, b, a * factor, linearity)
 
     /**
      * Creates a copy of color with adjusted color
@@ -150,9 +150,9 @@ data class ColorRGBa(
             r.coerceIn(0.0, 1.0),
             g.coerceIn(0.0, 1.0),
             b.coerceIn(0.0, 1.0),
-            a.coerceIn(0.0, 1.0)
+            a.coerceIn(0.0, 1.0), linearity
         )
-    val alphaMultiplied get() = ColorRGBa(r * a, g * a, b * a, a)
+    val alphaMultiplied get() = ColorRGBa(r * a, g * a, b * a, a, linearity)
 
     /**
      * The minimum value over `r`, `g`, `b`
