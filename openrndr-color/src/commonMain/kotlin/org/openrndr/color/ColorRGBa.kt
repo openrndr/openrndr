@@ -140,7 +140,7 @@ data class ColorRGBa(
      * @return A [ColorRGBa] with scaled colors
      * @see opacify
      */
-    override fun shade(factor: Double): ColorRGBa = ColorRGBa(r * factor, g * factor, b * factor, a)
+    override fun shade(factor: Double): ColorRGBa = ColorRGBa(r * factor, g * factor, b * factor, a, linearity)
 
     /**
      * Copy of the the color with all of its fields clamped to `[0, 1]`
