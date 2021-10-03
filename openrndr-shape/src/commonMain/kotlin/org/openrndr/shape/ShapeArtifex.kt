@@ -594,7 +594,7 @@ fun intersection(from: List<Shape>, with: List<List<Shape>>): List<Shape> {
 class SegmentIntersection(val a: SegmentPoint, val b: SegmentPoint, val position: Vector2)
 
 /** Calculates a [List] of all points where two [Segment]s intersect. */
-fun intersections(a: Segment, b: Segment): List<SegmentIntersection> {
+fun intersections(a: Segment, b: Segment, vertexThreshold: Double = 1E-5): List<SegmentIntersection> {
 
     if ((a.linear && a.length == 0.0) || (b.linear && b.length == 0.0)) {
         return emptyList()
@@ -608,8 +608,18 @@ fun intersections(a: Segment, b: Segment): List<SegmentIntersection> {
 
     return if (!selfTest) {
         Intersections.intersections(ca, cb).map {
-            val pointA = SegmentPoint(a, it.x, ca.position(it.x).toVector2())
-            val pointB = SegmentPoint(b, it.y, pointA.position)
+            val at = when {
+                it.x < vertexThreshold -> 0.0
+                it.x >= 1.0 - vertexThreshold -> 1.0
+                else -> it.x
+            }
+            val bt = when {
+                it.y < vertexThreshold -> 0.0
+                it.y >= 1.0 - vertexThreshold -> 1.0
+                else -> it.y
+            }
+            val pointA = SegmentPoint(a, at, ca.position(it.x).toVector2())
+            val pointB = SegmentPoint(b, bt, pointA.position)
             SegmentIntersection(pointA, pointB, pointA.position)
         }
     } else {
@@ -623,15 +633,23 @@ data class ContourIntersection(val a: ContourPoint, val b: ContourPoint, val pos
 /**
  * Calculates a [List] of all points of where paths intersect between two [ShapeContour]s.
  */
-fun intersections(a: ShapeContour, b: ShapeContour): List<ContourIntersection> {
+fun intersections(a: ShapeContour, b: ShapeContour, vertexThreshold: Double = 1E-5): List<ContourIntersection> {
     val selfTest = a === b
     val result = mutableListOf<ContourIntersection>()
+
+    if (a.empty || b.empty) {
+        return emptyList()
+    }
+
+    val lastA = a.segments.lastIndex
+    val lastB = b.segments.lastIndex
+    // this is where we should use a sweepline approach
     for ((ia, sa) in a.segments.withIndex()) {
         for ((ib, sb) in b.segments.withIndex()) {
             if (selfTest && ib > ia) {
                 continue
             }
-            val segmentIntersections = intersections(sa, sb).let {
+            val segmentIntersections = intersections(sa, sb, vertexThreshold).let {
                 if (selfTest) {
                     it.filterNot { intersection -> intersection.a.segmentT == 1.0 && intersection.b.segmentT == 0.0 || intersection.a.segmentT == 0.0 && intersection.b.segmentT == 1.0 }
                 } else {
@@ -639,14 +657,21 @@ fun intersections(a: ShapeContour, b: ShapeContour): List<ContourIntersection> {
                 }
             }
             result.addAll(segmentIntersections.map {
+                val at = if (it.a.segmentT == 1.0 && ia != lastA) 0.0 else it.a.segmentT
+                val ai = if (it.a.segmentT == 1.0 && ia != lastA) ia + 1 else ia
+                val bt = if (it.b.segmentT == 1.0 && ib != lastB) 0.0 else it.b.segmentT
+                val bi = if (it.b.segmentT == 1.0 && ib != lastB) ib + 1 else ib
+
                 ContourIntersection(
-                    ContourPoint(a, (ia + it.a.segmentT) / a.segments.size, it.a.segment, it.a.segmentT, it.position),
-                    ContourPoint(b, (ib + it.b.segmentT) / b.segments.size, it.b.segment, it.b.segmentT, it.position),
+                    ContourPoint(a, (ai + at) / a.segments.size, a.segments[ai], at, it.position),
+                    ContourPoint(b, (bi + bt) / b.segments.size, b.segments[bi], bt, it.position),
                     it.position
                 )
             })
         }
     }
+
+
     return result.let {
         if (selfTest) {
             it.distinctBy { intersection -> Pair(intersection.a.contourT.toString().take(7), intersection.b.contourT.toString().take(7)) }
