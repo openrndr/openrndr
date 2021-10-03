@@ -1,5 +1,6 @@
 package org.openrndr.draw
 
+import org.openrndr.draw.Writer
 import org.openrndr.math.Vector2
 import org.openrndr.shape.Rectangle
 import kotlin.jvm.JvmName
@@ -196,9 +197,6 @@ fun <T> writer(drawer: Drawer, f: Writer.() -> T): T {
     return writer.f()
 }
 
-//fun <T> Program.writer(f: Writer.() -> T): T {
-//    return writer(drawer, f)
-//}
 
 @JvmName("drawerWriter")
 fun <T> Drawer.writer(f: Writer.() -> T): T {
