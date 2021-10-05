@@ -185,7 +185,7 @@ class Segment : ShapeContourProvider {
             SegmentType.LINEAR -> {
                 val dir = end - start
                 val relativePoint = point - start
-                (dir dot relativePoint) / dir.squaredLength
+                ((dir dot relativePoint) / dir.squaredLength).coerceIn(0.0, 1.0)
             }
             SegmentType.QUADRATIC -> {
                 val qa = start - point
