@@ -93,7 +93,7 @@ data class Circle(val center: Vector2, val radius: Double): Movable, Scalable1D,
     }
 
     /** Returns true if given [point] lies inside the [Shape]. */
-    fun contains(point: Vector2): Boolean = point.minus(center).squaredLength < radius * radius
+    operator fun contains(point: Vector2): Boolean = point.minus(center).squaredLength < radius * radius
 
     /** Returns [Shape] representation of the [Circle]. */
     override val shape get() = Shape(listOf(contour))
