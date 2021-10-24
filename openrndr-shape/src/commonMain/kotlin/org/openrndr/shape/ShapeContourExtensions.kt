@@ -78,7 +78,6 @@ fun ShapeContour.offset(distance: Double, joinType: SegmentJoin = SegmentJoin.RO
         val i1 = (i + 1) % (offsetContours.size)
         val its = intersections(offsetContours[i0], offsetContours[i1])
         if (its.size == 1) {
-            println(its[0])
             offsetContours[i0] = offsetContours[i0].sub(0.0, its[0].a.contourT)
             offsetContours[i1] = offsetContours[i1].sub(its[0].b.contourT, 1.0)
         }
