@@ -64,6 +64,20 @@ class Shape(val contours: List<ShapeContour>) : ShapeProvider {
     /** Returns true if [Shape] contains no [ShapeContour]s. */
     val empty get() = this === EMPTY || contours.isEmpty()
 
+
+    /**
+     * Projects a point on the contours of a [Shape]
+     * @param point The point to project.
+     * @return a projected point that lies on the [ShapeContour].
+     */
+    fun nearest(point: Vector2) : ContourPoint {
+        require(!empty) {
+            """cannot perform nearest point query on empty shape"""
+        }
+        return contours.map { it.nearest(point) }.minByOrNull { it.position.squaredDistanceTo(point) }
+            ?: error("no nearest segment")
+    }
+
     /**
      * Returns true if [Shape] consists solely of [ShapeContour]s,
      * where each [Segment] is a [line segment][SegmentType.LINEAR].
