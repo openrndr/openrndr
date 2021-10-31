@@ -66,6 +66,8 @@ internal class Expansion(val type: ExpansionType, val fb: FloatArray, val buffer
         val dlx1 = p1.dy
         val dly1 = -p1.dx
 
+        if (dlx0 != dlx0 || dly0 != dly0 || dlx1 != dlx1 || dly1 != dly1 || lw != lw || rw != rw || p0.x != p0.x || p0.y != p0.y || p1.x != p1.x || p1.y != p1.y)
+            return
 
         if (p1.flags and LEFT != 0) {
             val r = chooseBevel(p1.flags and INNER_BEVEL != 0, p0, p1, lw)
@@ -210,64 +212,72 @@ internal class Expansion(val type: ExpansionType, val fb: FloatArray, val buffer
         p: PathPoint, dx: Double, dy: Double, w: Double,
         d: Double, aa: Double, offset: Double
     ) {
-        val px = p.x - dx * d
-        val py = p.y - dy * d
-        val dly = -dx
+        if (dx == dx && dy == dy && d == d) {
+            val px = p.x - dx * d
+            val py = p.y - dy * d
+            val dly = -dx
 
-        addVertex(px + dy * w - dx * aa, py + dly * w - dy * aa, 0.0, 0.0, offset)
-        addVertex(px - dy * w - dx * aa, py - dly * w - dy * aa, 1.0, 0.0, offset)
-        addVertex(px + dy * w, py + dly * w, 0.0, 1.0, offset)
-        addVertex(px - dy * w, py - dly * w, 1.0, 1.0, offset)
+            addVertex(px + dy * w - dx * aa, py + dly * w - dy * aa, 0.0, 0.0, offset)
+            addVertex(px - dy * w - dx * aa, py - dly * w - dy * aa, 1.0, 0.0, offset)
+            addVertex(px + dy * w, py + dly * w, 0.0, 1.0, offset)
+            addVertex(px - dy * w, py - dly * w, 1.0, 1.0, offset)
+        }
     }
 
 
     fun buttCapEnd(p: PathPoint, dx: Double, dy: Double, w: Double, d: Double, aa: Double, offset: Double) {
-        val px = p.x - dx * d
-        val py = p.y - dy * d
-        val dly = -dx
+        if (dx == dx && dy == dy && d == d) {
+            val px = p.x - dx * d
+            val py = p.y - dy * d
+            val dly = -dx
 
-        addVertex(px + dy * w, py + dly * w, 0.0, 1.0, offset)
-        addVertex(px - dy * w, py - dly * w, 1.0, 1.0, offset)
-        addVertex(px + dy * w + dx * aa, py + dly * w + dy * aa, 0.0, 0.0, offset)
-        addVertex(px - dy * w + dx * aa, py - dly * w + dy * aa, 1.0, 0.0, offset)
+            addVertex(px + dy * w, py + dly * w, 0.0, 1.0, offset)
+            addVertex(px - dy * w, py - dly * w, 1.0, 1.0, offset)
+            addVertex(px + dy * w + dx * aa, py + dly * w + dy * aa, 0.0, 0.0, offset)
+            addVertex(px - dy * w + dx * aa, py - dly * w + dy * aa, 1.0, 0.0, offset)
+        }
     }
 
     fun roundCapStart(
         p: PathPoint,
         dx: Double, dy: Double, w: Double, ncap: Int, offset: Double
     ) {
-        val px = p.x
-        val py = p.y
-        val dly = -dx
+        if (dx == dx && dy == dy) {
+            val px = p.x
+            val py = p.y
+            val dly = -dx
 
 
-        for (i in 0 until ncap) {
-            val a = i / (ncap - 1.0) * PI
-            val ax = cos(a) * w
-            val ay = sin(a) * w
-            addVertex(px - dy * ax - dx * ay, py - dly * ax - dy * ay, 0.0, 1.0, offset)
-            addVertex(px, py, 0.5, 1.0, offset)
+            for (i in 0 until ncap) {
+                val a = i / (ncap - 1.0) * PI
+                val ax = cos(a) * w
+                val ay = sin(a) * w
+                addVertex(px - dy * ax - dx * ay, py - dly * ax - dy * ay, 0.0, 1.0, offset)
+                addVertex(px, py, 0.5, 1.0, offset)
+            }
+            addVertex(px + dy * w, py + dly * w, 0.0, 1.0, offset)
+            addVertex(px - dy * w, py - dly * w, 1.0, 1.0, offset)
         }
-        addVertex(px + dy * w, py + dly * w, 0.0, 1.0, offset)
-        addVertex(px - dy * w, py - dly * w, 1.0, 1.0, offset)
     }
 
     fun roundCapEnd(
         p: PathPoint,
         dx: Double, dy: Double, w: Double, ncap: Int, offset: Double
     ) {
-        val px = p.x
-        val py = p.y
-        val dly = -dx
+        if (dx == dx && dy == dy) {
+            val px = p.x
+            val py = p.y
+            val dly = -dx
 
-        addVertex(px + dy * w, py + dly * w, 0.0, 1.0, offset)
-        addVertex(px - dy * w, py - dly * w, 1.0, 1.0, offset)
-        for (i in 0 until ncap) {
-            val a = i / (ncap - 1).toDouble() * PI
-            val ax = cos(a) * w
-            val ay = sin(a) * w
-            addVertex(px, py, 0.5, 1.0, offset)
-            addVertex(px - dy * ax + dx * ay, py - dly * ax + dy * ay, 0.0, 1.0, offset)
+            addVertex(px + dy * w, py + dly * w, 0.0, 1.0, offset)
+            addVertex(px - dy * w, py - dly * w, 1.0, 1.0, offset)
+            for (i in 0 until ncap) {
+                val a = i / (ncap - 1).toDouble() * PI
+                val ax = cos(a) * w
+                val ay = sin(a) * w
+                addVertex(px, py, 0.5, 1.0, offset)
+                addVertex(px - dy * ax + dx * ay, py - dly * ax + dy * ay, 0.0, 1.0, offset)
+            }
         }
     }
 
@@ -275,8 +285,8 @@ internal class Expansion(val type: ExpansionType, val fb: FloatArray, val buffer
         Vector2(fb[bufferStart + idx * 5].toDouble(), fb[bufferStart + idx * 5 + 1].toDouble())
 
     fun addVertex(x: Double, y: Double, u: Double, v: Double, offset: Double) {
-        if (x != x) {
-            throw RuntimeException("$x $y $u $v")
+        if (x != x || y != y) {
+            return// throw RuntimeException("$x $y $u $v")
         }
 
         minx = min(minx, x)
