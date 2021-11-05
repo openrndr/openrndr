@@ -7,12 +7,34 @@ import org.openrndr.math.Vector4
 import kotlin.jvm.JvmOverloads
 import kotlin.math.pow
 
-enum class Linearity {
-    UNKNOWN,
-    LINEAR,
-    SRGB,
-    ASSUMED_LINEAR,
-    ASSUMED_SRGB
+enum class Linearity(val certainty: Int) {
+    UNKNOWN(-1),
+    LINEAR(1),
+    SRGB(1),
+    ASSUMED_LINEAR(0),
+    ASSUMED_SRGB(0)
+    ;
+
+    fun leastCertain(other: Linearity): Linearity {
+        return if (this.certainty <= other.certainty) {
+            this
+        } else {
+            other
+        }
+    }
+
+    fun isEquivalent(other: Linearity): Boolean {
+        return if (this == UNKNOWN || other == UNKNOWN) {
+            false
+        } else if (this == other) {
+            true
+        } else {
+            if ((this == LINEAR || this == ASSUMED_LINEAR) && (other == LINEAR || other == ASSUMED_LINEAR)) {
+                true
+            } else (this == SRGB || this == ASSUMED_SRGB) && (other == SRGB || other == ASSUMED_SRGB)
+        }
+    }
+
 }
 
 /**
@@ -204,10 +226,6 @@ data class ColorRGBa(
     @JvmOverloads
     fun toLCHUVa(ref: ColorXYZa = ColorXYZa.NEUTRAL): ColorLCHUVa = toLUVa(ref).toLCHUVa()
 
-    /**
-     * Convert to linear RGB
-     * @see toSRGB
-     */
     fun toLinear(): ColorRGBa {
         fun t(x: Double): Double {
             return if (x <= 0.04045) x / 12.92 else ((x + 0.055) / (1 + 0.055)).pow(2.4)
@@ -256,6 +274,7 @@ data class ColorRGBa(
     override fun mix(other: ColorRGBa, factor: Double): ColorRGBa {
         return mix(this, other, factor)
     }
+
     override fun toVector4(): Vector4 = Vector4(r, g, b, a)
 }
 
@@ -268,21 +287,25 @@ data class ColorRGBa(
 fun mix(left: ColorRGBa, right: ColorRGBa, x: Double): ColorRGBa {
     val sx = x.coerceIn(0.0, 1.0)
 
-    if (left.linearity == right.linearity) {
+    if (left.linearity.isEquivalent(right.linearity)) {
         return ColorRGBa(
             (1.0 - sx) * left.r + sx * right.r,
             (1.0 - sx) * left.g + sx * right.g,
             (1.0 - sx) * left.b + sx * right.b,
             (1.0 - sx) * left.a + sx * right.a,
-            linearity = left.linearity
+            linearity = left.linearity.leastCertain(right.linearity)
         )
     } else {
-        return if (right.linearity == Linearity.LINEAR || right.linearity == Linearity.ASSUMED_LINEAR) {
-            mix(left.toLinear(), right.toLinear(), x)
-        } else if (right.linearity == Linearity.SRGB || right.linearity == Linearity.ASSUMED_SRGB) {
-            mix(left.toSRGB(), right.toSRGB(), x)
-        } else {
-            error("can't blend ${right.linearity} with ${left.linearity}")
+        return when (right.linearity) {
+            Linearity.LINEAR, Linearity.ASSUMED_LINEAR -> {
+                mix(left.toLinear(), right.toLinear(), x)
+            }
+            Linearity.SRGB, Linearity.ASSUMED_SRGB -> {
+                mix(left.toSRGB(), right.toSRGB(), x)
+            }
+            else -> {
+                error("can't blend ${right.linearity} with ${left.linearity}")
+            }
         }
     }
 }
