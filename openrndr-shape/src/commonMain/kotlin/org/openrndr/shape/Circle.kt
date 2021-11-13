@@ -16,6 +16,8 @@ data class Circle(val center: Vector2, val radius: Double): Movable, Scalable1D,
     constructor(x: Double, y: Double, radius: Double) : this(Vector2(x, y), radius)
 
     companion object {
+        val INVALID = Circle(Vector2.INFINITY, 0.0)
+
         /**
          * Creates a [Circle] passing through two points.
          *
@@ -33,7 +35,7 @@ data class Circle(val center: Vector2, val radius: Double): Movable, Scalable1D,
             val det = (a.x - b.x) * (b.y - c.y) - (b.x - c.x) * (a.y - b.y)
 
             if (abs(det) < 1E-7) {
-                return Circle(Double.NaN, Double.NaN, Double.NaN)
+                return INVALID
             }
 
             val offset = b.x * b.x + b.y * b.y
@@ -93,6 +95,9 @@ data class Circle(val center: Vector2, val radius: Double): Movable, Scalable1D,
     /** Returns [ShapeContour] representation of the [Circle]. */
     override val contour: ShapeContour
         get() {
+            if(this == INVALID) {
+                return ShapeContour.EMPTY
+            }
             val x = center.x - radius
             val y = center.y - radius
             val width = radius * 2.0
@@ -123,6 +128,9 @@ data class Circle(val center: Vector2, val radius: Double): Movable, Scalable1D,
      * @param isInner If true, returns the inner tangents instead.
      */
     fun tangents(c: Circle, isInner: Boolean = false): List<Pair<Vector2, Vector2>>? {
+        if(this == INVALID || c == INVALID) {
+            return listOf()
+        }
         val r1 = radius
         val r2 = if (isInner) -c.radius else c.radius
 
@@ -143,6 +151,9 @@ data class Circle(val center: Vector2, val radius: Double): Movable, Scalable1D,
 
     /** Calculates the tangent lines through an external point. **/
     fun tangents(point: Vector2): Pair<Vector2, Vector2> {
+        if(this == INVALID) {
+            return Pair(Vector2.INFINITY, Vector2.INFINITY)
+        }
         val v = Polar.fromVector(point - center)
         val b = v.radius
         val theta = (acos(radius / b)).asDegrees
