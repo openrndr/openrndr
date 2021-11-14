@@ -113,8 +113,9 @@ data class Rectangle(val corner: Vector2, val width: Double, val height: Double 
     override fun movedTo(position: Vector2): Rectangle = Rectangle(position, width, height)
 
     override fun scaledBy(xScale: Double, yScale: Double, uAnchor: Double, vAnchor: Double): Rectangle {
-        val d = corner - position(uAnchor, vAnchor)
-        val nd = position(uAnchor, vAnchor) + d * Vector2(xScale, yScale)
+        val anchorPosition = position(uAnchor, vAnchor)
+        val d = corner - anchorPosition
+        val nd = anchorPosition + d * Vector2(xScale, yScale)
         return Rectangle(nd, width * xScale, height * yScale)
     }
 
