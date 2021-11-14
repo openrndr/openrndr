@@ -82,7 +82,7 @@ data class Rectangle(val corner: Vector2, val width: Double, val height: Double 
      */
     @Deprecated("Vague naming", ReplaceWith("scaledBy(scale, scaleY)"))
     fun scale(scale: Double, scaleY: Double = scale, anchorU: Double = 0.5, anchorV: Double = 0.5): Rectangle {
-        return scaledBy(scale, scaleY, anchorU, anchorV) as Rectangle
+        return scaledBy(scale, scaleY, anchorU, anchorV)
     }
 
     @Deprecated("Doesn't account for anchor placement", ReplaceWith("scaledBy(scale, scaleY)"))
@@ -108,22 +108,22 @@ data class Rectangle(val corner: Vector2, val width: Double, val height: Double 
         return Rectangle(corner + offset, width, height)
     }
 
-    override fun movedBy(offset: Vector2): Movable = Rectangle(corner + offset, width, height)
+    override fun movedBy(offset: Vector2): Rectangle = Rectangle(corner + offset, width, height)
 
-    override fun movedTo(position: Vector2): Movable = Rectangle(position, width, height)
+    override fun movedTo(position: Vector2): Rectangle = Rectangle(position, width, height)
 
-    override fun scaledBy(xScale: Double, yScale: Double, uAnchor: Double, vAnchor: Double): Scalable2D {
+    override fun scaledBy(xScale: Double, yScale: Double, uAnchor: Double, vAnchor: Double): Rectangle {
         val d = corner - position(uAnchor, vAnchor)
         val nd = position(uAnchor, vAnchor) + d * Vector2(xScale, yScale)
         return Rectangle(nd, width * xScale, height * yScale)
     }
 
-    override fun scaledBy(scale: Double, uAnchor: Double, vAnchor: Double): Scalable1D =
+    override fun scaledBy(scale: Double, uAnchor: Double, vAnchor: Double): Rectangle =
         scaledBy(scale, scale, uAnchor, vAnchor)
 
-    override fun scaledTo(width: Double, height: Double): Scalable2D = Rectangle(corner, width, height)
+    override fun scaledTo(width: Double, height: Double): Rectangle = Rectangle(corner, width, height)
 
-    override fun scaledTo(size: Double): Scalable1D = scaledTo(size, size)
+    override fun scaledTo(size: Double): Rectangle = scaledTo(size, size)
 
     /**
      * Returns true if given [point] is inside the [Rectangle].
