@@ -16,6 +16,8 @@ data class Circle(val center: Vector2, val radius: Double): Movable, Scalable1D,
     constructor(x: Double, y: Double, radius: Double) : this(Vector2(x, y), radius)
 
     companion object {
+        val INVALID = Circle(Vector2.INFINITY, 0.0)
+
         /**
          * Creates a [Circle] passing through two points.
          *
@@ -30,30 +32,22 @@ data class Circle(val center: Vector2, val radius: Double): Movable, Scalable1D,
          * Constructs a [Circle] where the perimeter passes through the three points.
          */
         fun fromPoints(a: Vector2, b: Vector2, c: Vector2): Circle {
-            val epsilon = 1E-7
-            val dyba = b.y - a.y
-            val dxba = b.x - a.x
-            val dycb = c.y - b.y
-            val dxcb = c.x - b.x
+            val det = (a.x - b.x) * (b.y - c.y) - (b.x - c.x) * (a.y - b.y)
 
-            if (abs(dxba) <= epsilon && abs(dycb) <= epsilon) {
-                val center = (b + c) * 0.5
-                val radius = center.distanceTo(a)
-                return Circle(center, radius)
+            if (abs(det) < 1E-7) {
+                return INVALID
             }
 
-            val baSlope = dyba / dxba
-            val cbSlope = dycb / dxcb
-            if (abs(baSlope - cbSlope) <= epsilon) {
-                return Circle((a + b + c) / 3.0, 0.0)
-            }
+            val offset = b.x * b.x + b.y * b.y
+            val bc = (a.x * a.x + a.y * a.y - offset) / 2
+            val cd = (offset - c.x * c.x - c.y * c.y) / 2
+            val x = (bc * (b.y - c.y) - cd * (a.y - b.y)) / det
+            val y = (cd * (a.x - b.x) - bc * (b.x - c.x)) / det
+            val radius = sqrt(
+                (b.x - x) * (b.x - x) + (b.y - y) * (b.y - y)
+            )
 
-            val cx = (baSlope * cbSlope * (a.y - c.y) + cbSlope * (a.x + b.x)
-                    - baSlope * (b.x + c.x)) / (2 * (cbSlope - baSlope))
-            val cy = -1 * (cx - (a.x + b.x) / 2) / baSlope + (a.y + b.y) / 2
-
-            val center = Vector2(cx, cy)
-            return Circle(center, center.distanceTo(a))
+            return Circle(x, y, radius)
         }
     }
 
@@ -101,6 +95,9 @@ data class Circle(val center: Vector2, val radius: Double): Movable, Scalable1D,
     /** Returns [ShapeContour] representation of the [Circle]. */
     override val contour: ShapeContour
         get() {
+            if(this == INVALID) {
+                return ShapeContour.EMPTY
+            }
             val x = center.x - radius
             val y = center.y - radius
             val width = radius * 2.0
@@ -131,6 +128,9 @@ data class Circle(val center: Vector2, val radius: Double): Movable, Scalable1D,
      * @param isInner If true, returns the inner tangents instead.
      */
     fun tangents(c: Circle, isInner: Boolean = false): List<Pair<Vector2, Vector2>>? {
+        if(this == INVALID || c == INVALID) {
+            return listOf()
+        }
         val r1 = radius
         val r2 = if (isInner) -c.radius else c.radius
 
@@ -151,6 +151,9 @@ data class Circle(val center: Vector2, val radius: Double): Movable, Scalable1D,
 
     /** Calculates the tangent lines through an external point. **/
     fun tangents(point: Vector2): Pair<Vector2, Vector2> {
+        if(this == INVALID) {
+            return Pair(Vector2.INFINITY, Vector2.INFINITY)
+        }
         val v = Polar.fromVector(point - center)
         val b = v.radius
         val theta = (acos(radius / b)).asDegrees
