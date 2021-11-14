@@ -28,9 +28,8 @@ data class Ellipse(val center: Vector2, val xRadius: Double, val yRadius: Double
 
     /** Creates a new [Ellipse] with the scale specified as multipliers for the current radii. */
     override fun scaledBy(xScale: Double, yScale: Double, uAnchor: Double, vAnchor: Double): Ellipse {
-        val d = corner - position(uAnchor, vAnchor)
-        val nd = position(uAnchor, vAnchor) + d * Vector2(xScale, yScale)
-        return Ellipse(nd, xRadius * xScale, yRadius * yScale)
+        val anchorPosition = position(uAnchor, vAnchor)
+        return Ellipse(anchorPosition, xRadius * xScale, yRadius * yScale)
     }
 
     override fun scaledBy(scale: Double, uAnchor: Double, vAnchor: Double) =
@@ -55,7 +54,7 @@ data class Ellipse(val center: Vector2, val xRadius: Double, val yRadius: Double
         Ellipse(center - right.center, xRadius - right.xRadius, yRadius - right.yRadius)
 
     override fun position(u: Double, v: Double): Vector2 {
-        return corner + Vector2(u * xRadius, v * yRadius)
+        return corner + Vector2(u * 2 * xRadius, v * 2 * yRadius)
     }
 
     override val shape: Shape = Shape(listOf(contour))
