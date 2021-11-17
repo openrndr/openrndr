@@ -46,7 +46,7 @@ project.ext {
     kotlinLoggingVersion = '2.0.6'
     kotlinxSerializationVersion = '1.2.1'
     kotlinxCoroutinesVersion = '1.5.0'
-    lwjglVersion = '3.2.3'
+    lwjglVersion = '3.3.0'
     javacpp_version = '1.5.4'
     ffmpeg_version = "4.3.1-$javacpp_version"
     spekVersion = '2.0.15'
