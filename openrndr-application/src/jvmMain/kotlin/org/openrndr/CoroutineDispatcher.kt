@@ -12,8 +12,11 @@ actual class Dispatcher : MainCoroutineDispatcher(), Delay {
     private val toRunAfter = mutableListOf<Pair<Long, Runnable>>()
     private val toContinueAfter = mutableListOf<Pair<Long, CancellableContinuation<Unit>>>()
 
-    @ExperimentalCoroutinesApi
+
     override fun isDispatchNeeded(context: CoroutineContext): Boolean = true
+    override fun toString(): String {
+        return "MainCoroutineDispatcher"
+    }
 
     override fun scheduleResumeAfterDelay(timeMillis: Long, continuation: CancellableContinuation<Unit>) {
         synchronized(toContinueAfter) {
@@ -22,7 +25,7 @@ actual class Dispatcher : MainCoroutineDispatcher(), Delay {
         }
     }
 
-    @ExperimentalCoroutinesApi
+
     override val immediate: MainCoroutineDispatcher
         get() = this
 

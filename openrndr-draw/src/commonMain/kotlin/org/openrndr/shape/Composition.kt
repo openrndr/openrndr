@@ -507,6 +507,9 @@ fun CompositionNode.filter(filter: (CompositionNode) -> Boolean): CompositionNod
                     is GroupNode -> {
                         copies.add(filtered.copy(parent = this))
                     }
+                    else -> {
+
+                    }
                 }
             }
         }

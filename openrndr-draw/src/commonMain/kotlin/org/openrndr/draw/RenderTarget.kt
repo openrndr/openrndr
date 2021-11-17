@@ -240,7 +240,9 @@ interface RenderTarget {
                     val targetRectangle = IntRectangle(0,0, sourceRectangle.width, sourceRectangle.height)
                     a.colorBuffer.copyTo((to.colorAttachments[i] as ColorBufferAttachment).colorBuffer, sourceRectangle = sourceRectangle, targetRectangle = targetRectangle)
                 }
+                else -> {
 
+                }
 
 
             }
