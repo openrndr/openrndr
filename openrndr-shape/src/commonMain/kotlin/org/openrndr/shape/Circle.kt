@@ -73,9 +73,8 @@ data class Circle(val center: Vector2, val radius: Double): Movable, Scalable1D,
     fun scaled(scale: Double): Circle = Circle(center, radius * scale)
 
     override fun scaledBy(scale: Double, uAnchor: Double, vAnchor: Double): Circle {
-        val d = corner - position(uAnchor, vAnchor)
-        val nd = position(uAnchor, vAnchor) + d * Vector2(scale)
-        return Circle(nd, radius * scale)
+        val anchorPosition = position(uAnchor, vAnchor)
+        return Circle(anchorPosition, radius * scale)
     }
 
     /** Creates a new [Circle] at the same position with the given [radius]. */
@@ -83,7 +82,7 @@ data class Circle(val center: Vector2, val radius: Double): Movable, Scalable1D,
     override fun scaledTo(radius: Double) = Circle(center, radius)
 
     override fun position(u: Double, v: Double): Vector2 {
-        return corner + Vector2(u * radius, v * radius)
+        return corner + Vector2(u * 2 * radius, v * 2 * radius)
     }
 
     /** Returns true if given [point] lies inside the [Shape]. */
