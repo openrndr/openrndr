@@ -1,6 +1,5 @@
-import io.kotest.matchers.shouldBe
 import org.openrndr.shape.*
-import kotlin.test.Test
+import kotlin.test.*
 
 class EllipseTest {
 
@@ -11,7 +10,12 @@ class EllipseTest {
         val scaledMiddleEllipse = ellipse.scaledBy(2.0, 0.5, 0.5)
         val scaledEndEllipse = ellipse.scaledBy(2.0, 1.0, 1.0)
 
-        scaledMiddleEllipse.center shouldBe ellipse.center
-        scaledEndEllipse.center shouldBe (ellipse.center + ellipse.scale)
+        assertTrue {
+            scaledMiddleEllipse.center == ellipse.center
+        }
+
+        assertTrue {
+            scaledEndEllipse.center == (ellipse.center + ellipse.scale)
+        }
     }
 }
