@@ -8,8 +8,6 @@ val kotlinLoggingVersion: String by rootProject.extra
 val kotlinJvmTarget: String by rootProject.extra
 val kotlinApiVersion: String by rootProject.extra
 val jsoupVersion: String by rootProject.extra
-val kluentVersion: String by rootProject.extra
-val spekVersion: String by rootProject.extra
 
 kotlin {
     jvm {
@@ -20,11 +18,15 @@ kotlin {
         }
         testRuns["test"].executionTask.configure {
             useJUnitPlatform()
-            exclude("**/*.class")
         }
     }
 
     sourceSets {
+        val commonTest by getting {
+            dependencies {
+                implementation(kotlin("test"))
+            }
+        }
         val jvmMain by getting {
             dependencies {
                 implementation(project(":openrndr-application"))
@@ -42,8 +44,6 @@ kotlin {
                 runtimeOnly(project(":openrndr-jvm:openrndr-gl3-natives-linux-x64"))
                 runtimeOnly("org.slf4j:slf4j-simple:1.7.30")
                 runtimeOnly(project(":openrndr-nullgl"))
-                implementation("org.spekframework.spek2:spek-dsl-jvm:$spekVersion")
-                implementation("org.amshove.kluent:kluent:$kluentVersion")
             }
         }
     }
