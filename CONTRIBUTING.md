@@ -26,6 +26,22 @@ The style guide is fairly minimal, but it helps to spell it out regardless:
 * **Commit messages**: It's preferable to make your commit messages relevant to the changes you
   make. Although it's not unusual for the commits to be squashed when merging a pull request.
 
+### Writing tests
+
+While writing tests is not mandatory, it is highly encouraged.
+
+These following libraries are currently in use for testing:
+
+* Spek
+* Kotest
+* [Kluent](https://github.com/MarkusAmshove/Kluent/) (recommended)
+* [kotlin.test](https://kotlinlang.org/api/latest/kotlin.test/) (recommended)
+
+We're in the process of removing Spek and Kotest as they add very little in value to testing. When
+writing new tests, you should prefer using kotlin.test and Kluent if needed. You may need to make
+some changes in the build.gradle file to accommodate this. Take a look
+at [openrndr-svg's build.gradle.kts](/openrndr-svg/build.gradle.kts) for an example.
+
 ## I want to contribute to the documentation
 
 There are various places where you can contribute without writing code. It will be greatly
