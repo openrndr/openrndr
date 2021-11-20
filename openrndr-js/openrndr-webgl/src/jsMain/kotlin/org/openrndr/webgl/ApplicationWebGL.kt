@@ -9,6 +9,7 @@ import org.openrndr.draw.Drawer
 import org.openrndr.internal.Driver
 import org.openrndr.math.Vector2
 import org.w3c.dom.HTMLCanvasElement
+import org.w3c.dom.events.WheelEvent
 import org.w3c.dom.events.MouseEvent as HtmlMouseEvent
 import kotlin.math.min
 
@@ -89,6 +90,18 @@ class ApplicationWebGL(private val program: Program, private val configuration: 
 
         window.addEventListener("mouseup", {
             down = false
+        })
+
+        window.addEventListener("wheel", {
+            it as WheelEvent
+            program.mouse.scrolled.trigger(
+                MouseEvent(cursorPosition,
+                    Vector2(it.deltaX, it.deltaY),
+                    Vector2.ZERO,
+                    MouseEventType.SCROLLED,
+                    MouseButton.NONE,
+                    emptySet())
+            )
         })
 
         window.addEventListener("pointermove", {
