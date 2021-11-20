@@ -87,10 +87,12 @@ open class Program(val suspend: Boolean = false) {
      */
     var ended = Event<ProgramEvent>()
 
+    private var firstFrameTime = Double.POSITIVE_INFINITY
+
     /**
      * clock function. defaults to returning the application time.
      */
-    var clock = { application.seconds }
+    var clock = { if (firstFrameTime == Double.POSITIVE_INFINITY || frameCount <= 0) 0.0 else (application.seconds - firstFrameTime) }
 
     var assetProperties = mutableMapOf<String, String>()
     var assetMetadata = {
@@ -297,6 +299,9 @@ open class Program(val suspend: Boolean = false) {
      * This is the draw call that is called by Application. It takes care of handling extensions.
      */
     fun drawImpl() {
+        if (frameCount == 0) {
+            firstFrameTime = application.seconds
+        }
         animator.updateAnimation()
         frameSeconds = clock()
 
@@ -305,7 +310,6 @@ open class Program(val suspend: Boolean = false) {
         deltaSeconds = frameSeconds - lastSeconds
         lastSeconds = frameSeconds
 
-        frameCount++
 
         backgroundColor?.let {
             drawer.clear(it)
@@ -313,6 +317,7 @@ open class Program(val suspend: Boolean = false) {
         extensions.filter { it.enabled }.forEach { it.beforeDraw(drawer, this) }
         draw()
         extensions.reversed().filter { it.enabled }.forEach { it.afterDraw(drawer, this) }
+        frameCount++
     }
 
     fun animate(animationFunction: Animatable.() -> Unit) {
