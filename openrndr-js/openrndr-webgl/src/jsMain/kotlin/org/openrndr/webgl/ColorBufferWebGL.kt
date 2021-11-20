@@ -6,6 +6,7 @@ import org.khronos.webgl.ArrayBufferView
 import org.khronos.webgl.TexImageSource
 import org.khronos.webgl.WebGLFramebuffer
 import org.khronos.webgl.WebGLTexture
+import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
 import org.openrndr.internal.Driver
 import org.openrndr.shape.IntRectangle
@@ -314,4 +315,8 @@ class ColorBufferWebGL(
     override var wrapV: WrapMode
         get() = TODO("Not yet implemented")
         set(_) {}
+
+    override fun fill(color: ColorRGBa) {
+        TODO("Not yet implemented")
+    }
 }

@@ -133,12 +133,7 @@ actual abstract class ColorBuffer {
 
     actual abstract fun copyTo(target: ArrayTexture, layer: Int, fromLevel: Int, toLevel: Int)
 
-
-    /**
-     * sets all pixels in the color buffer to [color]
-     * @param color the color used for filling
-     */
-    abstract fun fill(color: ColorRGBa)
+    actual abstract fun fill(color: ColorRGBa)
 
     /** the wrapping mode to use in the horizontal direction */
     actual abstract var wrapU: WrapMode

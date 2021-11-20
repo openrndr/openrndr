@@ -1,5 +1,6 @@
 package org.openrndr.draw
 
+import org.openrndr.color.ColorRGBa
 import org.openrndr.internal.Driver
 import org.openrndr.shape.IntRectangle
 import org.openrndr.shape.Rectangle
@@ -180,6 +181,12 @@ expect abstract class ColorBuffer {
      * @param toLevel the mip-map level of [target] to which will be copied
      */
     abstract fun copyTo(target: ArrayTexture, layer: Int, fromLevel: Int = 0, toLevel: Int = 0)
+
+    /**
+     * sets all pixels in the color buffer to [color]
+     * @param color the color used for filling
+     */
+    abstract fun fill(color: ColorRGBa)
 }
 
 
