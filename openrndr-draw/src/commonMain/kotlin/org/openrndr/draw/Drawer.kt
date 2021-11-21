@@ -474,15 +474,15 @@ class Drawer(val driver: Driver) {
         rectangleDrawer.drawRectangle(context, drawStyle, rectangle.x, rectangle.y, rectangle.width, rectangle.height)
     }
 
-    fun rectangle(x: Double, y: Double, width: Double, height: Double) {
+    fun rectangle(x: Double, y: Double, width: Double, height: Double = width) {
         rectangleDrawer.drawRectangle(context, drawStyle, x, y, width, height)
     }
 
-    fun rectangle(corner: Vector2, width: Double, height: Double) {
+    fun rectangle(corner: Vector2, width: Double, height: Double = width) {
         rectangleDrawer.drawRectangle(context, drawStyle, corner.x, corner.y, width, height)
     }
 
-    fun rectangles(positions: List<Vector2>, width: Double, height: Double) {
+    fun rectangles(positions: List<Vector2>, width: Double, height: Double = width) {
         rectangleDrawer.drawRectangles(context, drawStyle, positions, width, height)
     }
 
