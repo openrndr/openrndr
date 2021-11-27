@@ -100,6 +100,7 @@ if (dokkaEnabled) {
             configureEach {
                 skipDeprecated.set(true)
                 skipEmptyPackages.set(true)
+
             }
         }
 
@@ -201,18 +202,20 @@ configure(allprojects.findAll { multiplatformModules.contains(it.name) && !doNot
     apply plugin: 'maven-publish'
     apply plugin: 'signing'
 
+    def proj = it
 
     def publicationsFromMainHost = ["jvm", "js"] + "kotlinMultiplatform"
 
+    def fjdj = tasks.create("fakeJavaDocJar", Jar) {
+        archiveClassifier = "javadoc"
+    }
+
     publishing {
-//        publications {
-//
-//            matching { it.name in publicationsFromMainHost }.all { targetPublication ->
-//                tasks.withType(AbstractPublishToMaven)
-//                        .matching { it.publication == targetPublication }
-//                        .configureEach { onlyIf { findProperty("isMainHost") == "true" } }
-//            }
-//        }
+        publications {
+            matching { it.name == "jvm" }.all { p ->
+                artifact(fjdj)
+            }
+        }
 
         repositories {
             maven {
@@ -233,6 +236,10 @@ configure(allprojects.findAll { multiplatformModules.contains(it.name) && !doNot
         required { isReleaseVersion && gradle.taskGraph.hasTask("publish") }
         sign publishing.publications
     }
+}
+
+configure(allprojects.findAll { !doNotPublish.contains(it.name) && (multiplatformModules.contains(it.name)) }) {
+
 }
 
 
