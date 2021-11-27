@@ -215,5 +215,9 @@ void main() {
         shader?.let { Session.active.untrack(shader) }
     }
 
+    open fun destroy() {
+        shader?.destroy()
+    }
+
     protected val format get() = filterQuadFormat
 }
