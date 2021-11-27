@@ -10,6 +10,7 @@ import kotlin.jvm.JvmOverloads
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.sign
 
 /**
  * A strictly linear 2D segment.
@@ -142,6 +143,10 @@ data class LineSegment(val start: Vector2, val end: Vector2) : LinearType<LineSe
 
     override operator fun minus(right: LineSegment): LineSegment {
         return LineSegment(start - right.start, end - right.end)
+    }
+
+    fun side(v: Vector2): Double {
+        return sign((end.x - start.x) * (v.y - start.y) - (end.y - start.y) * (v.x - start.x))
     }
 }
 

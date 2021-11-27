@@ -1,9 +1,6 @@
 package org.openrndr.shape
 
-import org.openrndr.math.Vector2
-import org.openrndr.math.asDegrees
-import org.openrndr.math.asRadians
-import org.openrndr.math.mod_
+import org.openrndr.math.*
 import kotlin.math.*
 
 /**
@@ -220,25 +217,16 @@ class ContourBuilder(private val multipleContours: Boolean) {
     }
 
 
-//    fun doubleCircularArcTo(through:Vector2, end:Vector2) {
-//        val tc = through.distanceTo(cursor)
-//        val et = end.distanceTo(through)
-//
-//        val
-//
-//        arcTo(tc, tc, )
-//    }
 
     fun circularArcTo(through: Vector2, end: Vector2) {
         val circle = Circle.fromPoints(cursor, through, end)
-        val tc = (through - circle.center).normalized
-        val ec = (end - circle.center).normalized
-        val angle = (acos(tc dot ec)).asDegrees
-        val side = (end - cursor).dot(through - cursor) > 0.0
-
-        val largeArc = circle.radius > end.distanceTo(cursor) / 2.0
-
-        arcTo(circle.radius, circle.radius, angle, largeArc, side, end)
+        val side = LineSegment(cursor, end).side(through) < 0.0
+        val centerSide = LineSegment(cursor, end).side(circle.center) < 0.0
+        if (side == centerSide) {
+            arcTo(circle.radius, circle.radius, 90.0, true, side, end)
+        } else {
+            arcTo(circle.radius, circle.radius, 90.0, false, side, end)
+        }
     }
 
     fun arcTo(
