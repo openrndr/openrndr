@@ -239,9 +239,39 @@ configure(allprojects.findAll { multiplatformModules.contains(it.name) && !doNot
 }
 
 configure(allprojects.findAll { !doNotPublish.contains(it.name) && (multiplatformModules.contains(it.name)) }) {
-
+    publishing {
+        publications {
+            all {
+                pom {
+                    name = "$project.name"
+                    description = "$project.name"
+                    url = 'https://openrndr.org'
+                    developers {
+                        developer {
+                            id = 'edwinjakobs'
+                            name = 'Edwin Jakobs'
+                            email = 'edwin@openrndr.org'
+                        }
+                    }
+                    license {
+                        licenses {
+                            license {
+                                name = 'BSD-2-Clause'
+                                url = 'https://github.com/openrndr/openrndr/blob/master/LICENSE'
+                                distribution = 'repo'
+                            }
+                        }
+                    }
+                    scm {
+                        connection = "scm:git:git@github.com:openrndr/openrndr.git"
+                        developerConnection = "scm:git:ssh://github.com/openrndr/openrndr.git"
+                        url = "https://github.com/openrndr/openrndr"
+                    }
+                }
+            }
+        }
+    }
 }
-
 
 configure(allprojects.findAll { !doNotPublish.contains(it.name) && (!multiplatformModules.contains(it.name)) }) {
     apply plugin: 'nebula.release'
@@ -252,8 +282,6 @@ configure(allprojects.findAll { !doNotPublish.contains(it.name) && (!multiplatfo
         withJavadocJar()
         withSourcesJar()
     }
-
-
     publishing {
         publications {
             mavenJava(MavenPublication) {
