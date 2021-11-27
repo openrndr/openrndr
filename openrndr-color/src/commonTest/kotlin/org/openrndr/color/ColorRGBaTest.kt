@@ -20,4 +20,10 @@ class ColorRGBaTest {
     ColorRGBa(0.0, 0.0, 0.0, 1.0, Linearity.SRGB) shouldBe ColorRGBa(0.0, 0.0, 0.0, 1.0, Linearity.SRGB)
   }
 
+  @Test
+  fun mixTwoColors() {
+    val mixed = mix(ColorRGBa(1.0, 0.0, 0.0, 1.0, Linearity.ASSUMED_LINEAR), ColorRGBa(1.0, 1.0, 1.0, 0.0, Linearity.LINEAR), 0.5)
+    mixed.linearity shouldBe Linearity.ASSUMED_LINEAR
+  }
+
 }
