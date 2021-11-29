@@ -64,4 +64,4 @@ Visit the [OPENRNDR website](https://openrndr.org) for the latest news on OPENRN
 
 Join us on the [OPENRNDR forum](https://openrndr.discourse.group) for questions, tutorials and showcases.
 
-Reach us more directly on the [OPENRNDR Slack](https://communityinviter.com/apps/openrndr/openrndr).
+Reach us more directly on the [OPENRNDR Slack](https://join.slack.com/t/openrndr/shared_invite/zt-avkbk0as-AZEsN7kb4UNIpfmYfbAemw).
