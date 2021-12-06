@@ -19,8 +19,16 @@ private var filterQuadFormat = vertexFormat {
 }
 
 
-fun filterShaderFromCode(fragmentShaderCode: String, name: String): Shader {
-    return Shader.createFromCode(vsCode = Filter.filterVertexCode, fsCode = fragmentShaderCode, name = name)
+fun filterShaderFromCode(fragmentShaderCode: String, name: String, includeShaderConfiguration: Boolean = true): Shader {
+    return if (!includeShaderConfiguration) {
+        Shader.createFromCode(vsCode = Filter.filterVertexCode, fsCode = fragmentShaderCode, name = name)
+    } else {
+        Shader.createFromCode(
+            vsCode = Filter.filterVertexCode,
+            fsCode = "${Driver.instance.shaderConfiguration()}\n$fragmentShaderCode",
+            name = name
+        )
+    }
 }
 
 /**
@@ -124,7 +132,10 @@ void main() {
         source.forEachIndexed { index, colorBuffer ->
             colorBuffer.bind(index)
             shader.uniform("tex$index", index)
-            shader.uniform("textureSize$index", Vector2(colorBuffer.effectiveWidth.toDouble(), colorBuffer.effectiveHeight.toDouble()))
+            shader.uniform(
+                "textureSize$index",
+                Vector2(colorBuffer.effectiveWidth.toDouble(), colorBuffer.effectiveHeight.toDouble())
+            )
         }
 
         Driver.instance.setState(filterDrawStyle)
@@ -177,7 +188,10 @@ void main() {
 
                 is ColorBuffer -> {
                     shader.uniform("$uniform", textureIndex)
-                    shader.uniform("textureSize$textureIndex", Vector2(value.effectiveWidth.toDouble(), value.effectiveHeight.toDouble()))
+                    shader.uniform(
+                        "textureSize$textureIndex",
+                        Vector2(value.effectiveWidth.toDouble(), value.effectiveHeight.toDouble())
+                    )
                     value.bind(textureIndex)
                     textureIndex++
                 }

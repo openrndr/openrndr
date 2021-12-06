@@ -13,6 +13,13 @@ class TestVector2 {
     private val maxError = 0.0000001
 
     @Test
+    fun shouldHaveAHashcode() {
+        val v0 = Vector2(0.0, 4.0)
+        println(v0.hashCode())
+
+    }
+
+    @Test
     fun shouldDoVector2Operations() {
 
         it("should normalize 0 length") {
