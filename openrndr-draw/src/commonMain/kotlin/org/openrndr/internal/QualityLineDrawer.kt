@@ -49,19 +49,19 @@ class QualityLineDrawer {
                       strips: List<List<Vector2>>,
                       corners: List<List<Boolean>>,
                       fringeWidth: Double = 1.0) {
-        val fw = if (drawStyle.smooth) fringeWidth else 0.0
+        val effectiveFringeWidth = if (drawStyle.smooth) fringeWidth else 0.0
         if (drawStyle.stroke != null && drawStyle.strokeWeight > 0) {
             val expansions = strips.mapIndexed { index, it ->
                 val path = Path.fromLineStrip(it, corners[index], true)
                 path.expandStroke(
-                    fw,
+                    effectiveFringeWidth,
                     drawStyle.strokeWeight / 2.0,
                     drawStyle.lineCap,
                     drawStyle.lineJoin,
                     drawStyle.miterLimit
                 )
             }
-            expansionDrawer.renderStrokes(drawContext, drawStyle, expansions, fw)
+            expansionDrawer.renderStrokes(drawContext, drawStyle, expansions, effectiveFringeWidth)
         }
     }
 

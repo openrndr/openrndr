@@ -61,6 +61,8 @@ internal class Expansion(val type: ExpansionType, val fb: FloatArray, val buffer
         offset: Double
     ) {
 
+
+
         val dlx0 = p0.dy
         val dly0 = -p0.dx
         val dlx1 = p1.dy
@@ -166,7 +168,7 @@ internal class Expansion(val type: ExpansionType, val fb: FloatArray, val buffer
             }
 
             addVertex(lx0, ly0, lu, 1.0, offset)
-            addVertex(p1.x - dlx0, p1.y - dly0, ru, 1.0, offset)
+            addVertex(p1.x - dlx0 * rw, p1.y - dly0 * rw, ru, 1.0, offset)
 
             val n = ncap.coerceAtMost(ceil((a0 - a1) / PI * ncap).toInt()).coerceAtLeast(2)
             for (i in 0 until n) {
@@ -567,21 +569,25 @@ internal class Path {
         }
     }
 
-    fun expandFill(fringeWidth: Double, w: Double, lineJoin: LineJoin, miterLimit: Double): List<Expansion> {
+    fun expandFill(
+        fringeWidth: Double,
+        weight: Double,
+        lineJoin: LineJoin,
+        miterLimit: Double
+    ): List<Expansion> {
         if (contours.isNotEmpty()) {
             val result = mutableListOf<Expansion>()
 
             contours.forEach { prepare(it) }
-            contours.forEach { calculateJoins(it, w, lineJoin, miterLimit) }
+            contours.forEach { calculateJoins(it, weight, lineJoin, miterLimit) }
 
             if (contours.size > 1) {
                 convex = false
             }
             convex = false
-            val aa = fringeWidth
-            val woff = 0.5 * aa
-            val generateFringe = aa > 0.0
-            val offset = 0.0
+            val woff = 0.5 * fringeWidth
+            val generateFringe = fringeWidth > 0.0
+            val pathOffset = 0.0
 
 
             contours.forEach { points ->
@@ -593,10 +599,7 @@ internal class Path {
                         4
                     }
                 }
-
                 val fill = Expansion(ExpansionType.FILL, FloatArray(size * 5), 0)
-
-
                 if (generateFringe) {
                     var p0 = points.last()
                     var p1 = points[0]
@@ -605,9 +608,8 @@ internal class Path {
                     for (j in points.indices) {
                         if (p1.flags and BEVEL != 0) {
                             if (p1.flags and LEFT != 0) {
-                                fill.addVertex(p1.x + p1.dmx * woff, p1.y + p1.dmy * woff, 0.5, 1.0, offset)
+                                fill.addVertex(p1.x + p1.dmx * woff, p1.y + p1.dmy * woff, 0.5, 1.0, pathOffset)
                             } else {
-
                                 val dlx0 = p0.dy
                                 val dly0 = -p0.dx
                                 val dlx1 = p1.dy
@@ -618,11 +620,11 @@ internal class Path {
                                 val lx1 = p1.x + dlx1 * woff
                                 val ly1 = p1.y + dly1 * woff
 
-                                fill.addVertex(lx0, ly0, 0.5, 1.0, offset)
-                                fill.addVertex(lx1, ly1, 0.5, 1.0, offset)
+                                fill.addVertex(lx0, ly0, 0.5, 1.0, pathOffset)
+                                fill.addVertex(lx1, ly1, 0.5, 1.0, pathOffset)
                             }
                         } else {
-                            fill.addVertex(p1.x + p1.dmx * woff, p1.y + p1.dmy * woff, 0.5, 1.0, offset)
+                            fill.addVertex(p1.x + p1.dmx * woff, p1.y + p1.dmy * woff, 0.5, 1.0, pathOffset)
                         }
                         p0 = p1
                         p1ptr++
@@ -633,7 +635,7 @@ internal class Path {
 
                 } else {
                     for (j in points.indices) {
-                        fill.addVertex(points[j].x, points[j].y, 0.5, 1.0, offset)
+                        fill.addVertex(points[j].x, points[j].y, 0.5, 1.0, pathOffset)
                     }
                 }
                 result.add(fill)
@@ -653,8 +655,8 @@ internal class Path {
                     }
                     val fringe = Expansion(ExpansionType.FRINGE, FloatArray(size * 5), 0)
 
-                    var lw = w + woff
-                    val rw = w - woff
+                    var lw = weight + woff
+                    val rw = weight - woff
                     var lu = 0.0
                     val ru = 1.0
 
@@ -672,10 +674,10 @@ internal class Path {
                     var p1ptr = 0
                     for (j in points.indices) {
                         if (p1.flags and (BEVEL or INNER_BEVEL) != 0) {
-                            fringe.bevelJoin(p0, p1, lw, rw, lu, ru, offset)
+                            fringe.bevelJoin(p0, p1, lw, rw, lu, ru, offset = pathOffset)
                         } else {
-                            fringe.addVertex(p1.x + (p1.dmx * lw), p1.y + (p1.dmy * lw), lu, 1.0, offset)
-                            fringe.addVertex(p1.x - (p1.dmx * rw), p1.y - (p1.dmy * rw), ru, 1.0, offset)
+                            fringe.addVertex(p1.x + (p1.dmx * lw), p1.y + (p1.dmy * lw), lu, 1.0, pathOffset)
+                            fringe.addVertex(p1.x - (p1.dmx * rw), p1.y - (p1.dmy * rw), ru, 1.0, pathOffset)
                         }
                         p0 = p1
                         p1ptr++
@@ -687,8 +689,8 @@ internal class Path {
                     val v0 = fringe.vertex(0)
                     val v1 = fringe.vertex(1)
 
-                    fringe.addVertex(v0.x, v0.y, lu, 1.0, offset)
-                    fringe.addVertex(v1.x, v1.y, ru, 1.0, offset)
+                    fringe.addVertex(v0.x, v0.y, lu, 1.0, pathOffset)
+                    fringe.addVertex(v1.x, v1.y, ru, 1.0, pathOffset)
                     result.add(fringe)
                 }
 

@@ -1,5 +1,6 @@
 package org.openrndr.internal
 
+import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
 import org.openrndr.math.Vector4
 
@@ -21,7 +22,7 @@ internal class ExpansionDrawer {
     var vertices = VertexBuffer.createDynamic(vertexFormat, 4 * 1024 * 1024, Session.root)
     var quad = VertexBuffer.createDynamic(vertexFormat, 6, Session.root)
 
-    fun renderStrokeCommands(drawContext: DrawContext, drawStyle: DrawStyle, commands: List<Command>, fringeScale: Double) {
+    fun renderStrokeCommands(drawContext: DrawContext, drawStyle: DrawStyle, commands: List<Command>, fringeWidth: Double) {
 
         val shader = shaderManager.shader(drawStyle.shadeStyle, listOf(vertices.vertexFormat), emptyList())
         shader.begin()
@@ -30,7 +31,7 @@ internal class ExpansionDrawer {
         Driver.instance.setState(drawStyle)
 
         val localStyle = drawStyle.copy()
-        val fs = fringeScale
+        val fs = fringeWidth
         shader.uniform("strokeMult", (drawStyle.strokeWeight*0.5 + fs*0.5 ) / (fs) )
         shader.uniform("strokeFillFactor", 0.0)
         commands.forEach { command ->
@@ -131,7 +132,7 @@ internal class ExpansionDrawer {
         }
     }
 
-    fun renderFillCommands(drawContext: DrawContext, drawStyle: DrawStyle, commands: List<Command>, fringeScale: Double) {
+    fun renderFillCommands(drawContext: DrawContext, drawStyle: DrawStyle, commands: List<Command>, fringeWidth: Double) {
 
         if (commands.isEmpty()) {
             return
@@ -148,6 +149,7 @@ internal class ExpansionDrawer {
         // -- pass 1 : draw fill shapes in stencil only
         shader.uniform("strokeThr", -1.0f)
         shader.uniform("strokeMult", 1.0)
+
 
         shader.uniform("strokeFillFactor", 1.0)
 
@@ -185,24 +187,26 @@ internal class ExpansionDrawer {
         // -- pass 2: draw anti-aliased fringes
         localStyle.channelWriteMask = ChannelMask.ALL
         shader.uniform("strokeThr", 0.0f)
+        shader.uniform("strokeMult", 2.0)
         localStyle.stencil.stencilFunc(stencilTest = StencilTest.EQUAL, testReference = 0x00, writeMask = 0xff)
         localStyle.stencil.stencilOp(onStencilTestFail = StencilOperation.KEEP, onDepthTestFail = StencilOperation.KEEP, onDepthTestPass = StencilOperation.KEEP)
+
         Driver.instance.setState(localStyle)
         for (c in commands) {
             if (c.type == ExpansionType.FRINGE) {
                 Driver.instance.drawVertexBuffer(shader, listOf(c.vertexBuffer), DrawPrimitive.TRIANGLE_STRIP, c.vertexOffset, c.vertexCount, verticesPerPatch = 0)
             }
         }
+        Driver.instance.setState(localStyle)
 
         // -- pass 3: fill in stencilled area in pass 1
         shader.uniform("strokeThr", -1.0f)
+        shader.uniform("strokeMult", 1.0)
         localStyle.stencil.stencilFunc(stencilTest = StencilTest.NOT_EQUAL, testReference = 0x0, writeMask = 0xff)
         localStyle.stencil.stencilTestMask = 0x1
         localStyle.stencil.stencilOp(onStencilTestFail = StencilOperation.ZERO, onDepthTestFail = StencilOperation.ZERO, onDepthTestPass = StencilOperation.ZERO)
         localStyle.channelWriteMask = ChannelMask.ALL
         localStyle.cullTestPass = CullTestPass.ALWAYS
-
-
 
         quad.shadow.writer().apply {
             rewind()
@@ -216,7 +220,9 @@ internal class ExpansionDrawer {
         }
         quad.shadow.upload()
         Driver.instance.setState(localStyle)
-        Driver.instance.drawVertexBuffer(shader, listOf(quad), DrawPrimitive.TRIANGLES, 0, 6, verticesPerPatch = 0)
+            Driver.instance.drawVertexBuffer(shader, listOf(quad), DrawPrimitive.TRIANGLES, 0, 6, verticesPerPatch = 0)
+
+
         localStyle.stencil.stencilTest = StencilTest.DISABLED
         shader.end()
     }
