@@ -43,16 +43,16 @@ project.ext {
     kotlinJvmTarget = '1.8'
     kotlinLanguageVersion = '1.6'
     kotlinVersion = '1.6.0'
-    kotlinLoggingVersion = '2.0.6'
-    kotlinxSerializationVersion = '1.2.1'
-    kotlinxCoroutinesVersion = '1.5.0'
+    kotlinLoggingVersion = '2.1.15'
+    kotlinxSerializationVersion = '1.3.1'
+    kotlinxCoroutinesVersion = '1.6.0-RC'
     lwjglVersion = '3.3.0'
     javacpp_version = '1.5.4'
     ffmpeg_version = "4.3.1-$javacpp_version"
     spekVersion = '2.0.15'
-    kluentVersion = '1.65'
-    jsoupVersion = '1.13.1'
-    kotestVersion = '4.4.3'
+    kluentVersion = '1.68'
+    jsoupVersion = '1.14.3'
+    kotestVersion = '5.0.1'
     junitJupiterVersion = '5.7.1'
 }
 
