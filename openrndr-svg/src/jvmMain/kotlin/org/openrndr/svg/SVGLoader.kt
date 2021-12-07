@@ -74,7 +74,7 @@ internal class SVGDocument(private val root: SVGSVGElement, val namespaces: Map<
 internal class SVGLoader {
     fun loadSVG(svg: String): SVGDocument {
         val doc = Jsoup.parse(svg, "", Parser.xmlParser())
-        val root = doc.select(Tag.SVG).first()
+        val root = doc.select(Tag.SVG).first() ?: error("no root")
         val namespaces = root.attributes().filter { it.key.startsWith("xmlns") }.associate {
             Pair(it.key, it.value)
         }
