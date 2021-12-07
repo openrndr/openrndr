@@ -273,7 +273,15 @@ class VideoPlayerFFMPEG private constructor(
                                 break@all
                             }
                             val deviceNamePattern = Regex("\\[dshow @ [0-9a-f]*]\\s+\"(.*)\"")
-                            result.add(deviceNamePattern.matchEntire(texts[lineIndex])!!.groupValues[1])
+
+                            val text = texts.getOrNull(lineIndex)
+                            if (text != null) {
+                                val match = deviceNamePattern.matchEntire(text)
+                                val group = match?.groupValues?.getOrNull(1)
+                                if (group != null) {
+                                    result.add(group)
+                                }
+                            }
                             lineIndex += 2
                         }
                     }
