@@ -858,14 +858,23 @@ class Drawer(val driver: Driver) {
     }
 
     fun lineLoop(points: List<Vector2>) {
+        val fringeWidth = 1.0 / modelViewScaling
+        if (abs(modelViewScaling) < 1E-6){
+            return
+        }
+
         when (drawStyle.quality) {
             DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineLoops(context, drawStyle, listOf(points))
-            DrawQuality.QUALITY -> qualityLineDrawer.drawLineLoops(context, drawStyle, listOf(points), listOf(points.map { true }))
+            DrawQuality.QUALITY -> qualityLineDrawer.drawLineLoops(context, drawStyle, listOf(points), listOf(points.map { true }), fringeWidth)
         }
     }
 
     @JvmName("lineLoop3d")
     fun lineLoop(points: List<Vector3>) {
+        val fringeWidth = 1.0 / modelViewScaling
+        if (abs(modelViewScaling) < 1E-6){
+            return
+        }
         when (drawStyle.quality) {
             DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineLoops(context, drawStyle, listOf(points))
             DrawQuality.QUALITY -> meshLineDrawer.drawLineStrips(context, drawStyle, listOf(points), closed = listOf(true))
@@ -873,9 +882,13 @@ class Drawer(val driver: Driver) {
     }
 
     fun lineLoops(loops: List<List<Vector2>>) {
+        val fringeWidth = 1.0 / modelViewScaling
+        if (abs(modelViewScaling) < 1E-6){
+            return
+        }
         when (drawStyle.quality) {
             DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineLoops(context, drawStyle, loops)
-            DrawQuality.QUALITY -> qualityLineDrawer.drawLineLoops(context, drawStyle, loops, loops.map { it.map { true } })
+            DrawQuality.QUALITY -> qualityLineDrawer.drawLineLoops(context, drawStyle, loops, loops.map { it.map { true } }, fringeWidth)
         }
     }
 
@@ -888,9 +901,13 @@ class Drawer(val driver: Driver) {
     }
 
     fun lineLoops(loops: List<List<Vector2>>, weights: List<Double>) {
+        val fringeWidth = 1.0 / modelViewScaling
+        if (abs(modelViewScaling) < 1E-6){
+            return
+        }
         when (drawStyle.quality) {
             DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineLoops(context, drawStyle, loops)
-            DrawQuality.QUALITY -> qualityLineDrawer.drawLineLoops(context, drawStyle, loops, loops.map { it.map { true } }, weights)
+            DrawQuality.QUALITY -> qualityLineDrawer.drawLineLoops(context, drawStyle, loops, loops.map { it.map { true } }, weights, fringeWidth)
         }
     }
 
