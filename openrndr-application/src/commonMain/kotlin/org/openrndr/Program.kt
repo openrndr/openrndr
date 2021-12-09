@@ -293,7 +293,7 @@ open class Program(val suspend: Boolean = false) {
     /**
      * This is ran exactly once before the first call to draw()
      */
-    open suspend fun setup() {}
+    open fun setup() {}
 
     /**
      * This is the draw call that is called by Application. It takes care of handling extensions.

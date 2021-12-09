@@ -46,7 +46,7 @@ class ApplicationNullGL(private val program: Program, private val configuration:
         logger.debug { "calling program.setup" }
         var setupException: Throwable? = null
         try {
-            runBlocking { program.setup() }
+            program.setup()
         } catch (t: Throwable) {
             setupException = t
         }

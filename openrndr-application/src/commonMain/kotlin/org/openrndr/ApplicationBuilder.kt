@@ -9,9 +9,9 @@ class ApplicationBuilder internal constructor(){
         configuration.init()
     }
 
-    fun program(init: suspend Program.() -> Unit) {
+    fun program(init: Program.() -> Unit) {
         program = object : Program() {
-            override suspend fun setup() {
+            override fun setup() {
                 init()
             }
         }
