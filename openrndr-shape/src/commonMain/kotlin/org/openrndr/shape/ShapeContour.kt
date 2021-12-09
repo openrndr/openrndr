@@ -8,7 +8,7 @@ import kotlin.math.min
 /**
  * A [List] for managing a collection of [Segment]s.
  */
-data class ShapeContour(
+data class ShapeContour @JvmOverloads constructor (
     val segments: List<Segment>,
     val closed: Boolean,
     val polarity: YPolarity = YPolarity.CW_NEGATIVE_Y

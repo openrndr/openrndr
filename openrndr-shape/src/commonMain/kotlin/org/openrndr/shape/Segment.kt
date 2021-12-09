@@ -3,6 +3,7 @@ package org.openrndr.shape
 import org.openrndr.math.*
 import org.openrndr.shape.internal.BezierCubicSampler2D
 import org.openrndr.shape.internal.BezierQuadraticSampler2D
+import kotlin.jvm.JvmOverloads
 import kotlin.math.*
 
 /**
@@ -55,7 +56,7 @@ class Segment : ShapeContourProvider {
      * @param start The starting anchor point.
      * @param end The ending anchor point.
      */
-    constructor(start: Vector2, end: Vector2, corner: Boolean = true) {
+    @JvmOverloads constructor(start: Vector2, end: Vector2, corner: Boolean = true) {
         this.start = start
         this.end = end
         this.control = emptyArray()
@@ -69,7 +70,7 @@ class Segment : ShapeContourProvider {
      * @param c0 The control point.
      * @param end The ending anchor point.
      */
-    constructor(start: Vector2, c0: Vector2, end: Vector2, corner: Boolean = true) {
+    @JvmOverloads constructor(start: Vector2, c0: Vector2, end: Vector2, corner: Boolean = true) {
         this.start = start
         this.control = arrayOf(c0)
         this.end = end
@@ -84,14 +85,14 @@ class Segment : ShapeContourProvider {
      * @param c1 The second control point
      * @param end The ending anchor point.
      */
-    constructor(start: Vector2, c0: Vector2, c1: Vector2, end: Vector2, corner: Boolean = true) {
+    @JvmOverloads constructor(start: Vector2, c0: Vector2, c1: Vector2, end: Vector2, corner: Boolean = true) {
         this.start = start
         this.control = arrayOf(c0, c1)
         this.end = end
         this.corner = corner
     }
 
-    constructor(start: Vector2, control: Array<Vector2>, end: Vector2, corner: Boolean = true) {
+    @JvmOverloads constructor(start: Vector2, control: Array<Vector2>, end: Vector2, corner: Boolean = true) {
         this.start = start
         this.control = control
         this.end = end
