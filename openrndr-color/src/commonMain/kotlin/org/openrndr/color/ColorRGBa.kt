@@ -49,7 +49,7 @@ enum class Linearity(val certainty: Int) {
  * @see [rgba]
  */
 @Suppress("EqualsOrHashCode") // generated equals() is ok, only hashCode() needs to be overridden
-data class ColorRGBa(
+data class ColorRGBa @JvmOverloads constructor (
     val r: Double,
     val g: Double,
     val b: Double,

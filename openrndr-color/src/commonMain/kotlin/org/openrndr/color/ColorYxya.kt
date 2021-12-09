@@ -1,5 +1,7 @@
 package org.openrndr.color
 
+import kotlin.jvm.JvmOverloads
+
 /**
  * The Yxy color space, also known as the
  * [xyY color space](https://en.wikipedia.org/wiki/CIE_1931_color_space#CIE_xy_chromaticity_diagram_and_the_CIE_xyY_color_space).
@@ -8,7 +10,7 @@ package org.openrndr.color
  * @param y second chromaticity coordinate, in a range of 0.0 to 1.0
  */
 @Suppress("LocalVariableName")
-data class ColorYxya(val yy: Double, val x: Double, val y: Double, val a: Double = 1.0) {
+data class ColorYxya @JvmOverloads constructor (val yy: Double, val x: Double, val y: Double, val a: Double = 1.0) {
     companion object {
         fun fromXYZa(xyza: ColorXYZa): ColorYxya {
             val s = xyza.x + xyza.y + xyza.z

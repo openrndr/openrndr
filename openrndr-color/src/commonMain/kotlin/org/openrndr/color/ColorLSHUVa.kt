@@ -1,12 +1,14 @@
 package org.openrndr.color
 
+import kotlin.jvm.JvmOverloads
+
 /**
  * Based on [ColorLCHUVa], but
  * instead tries to use a normalized chroma.
  *
  * @see ColorLCHUVa
  */
-data class ColorLSHUVa(
+data class ColorLSHUVa @JvmOverloads constructor (
     val l: Double,
     val s: Double,
     val h: Double,

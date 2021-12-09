@@ -2,6 +2,7 @@ package org.openrndr.color
 
 import org.openrndr.math.CastableToVector4
 import org.openrndr.math.Vector4
+import kotlin.jvm.JvmOverloads
 import kotlin.math.pow
 
 /**
@@ -16,7 +17,7 @@ import kotlin.math.pow
  * @param alpha alpha as a percentage between 0.0 and 1.0
  * @param ref reference white against which the color values are calculated
  */
-data class ColorLABa(
+data class ColorLABa @JvmOverloads constructor (
     val l: Double,
     val a: Double,
     val b: Double,

@@ -4,6 +4,7 @@ package org.openrndr.color
 
 import org.openrndr.math.mixAngle
 import org.openrndr.math.mod
+import kotlin.jvm.JvmOverloads
 import kotlin.math.floor
 
 
@@ -18,7 +19,7 @@ import kotlin.math.floor
  * @param a alpha as a percentage between 0.0 and 1.0
  */
 @Suppress("unused")
-data class ColorHSVa(val h: Double, val s: Double, val v: Double, val a: Double = 1.0) :
+data class ColorHSVa @JvmOverloads constructor (val h: Double, val s: Double, val v: Double, val a: Double = 1.0) :
         ConvertibleToColorRGBa,
         ShadableColor<ColorHSVa>,
         HueShiftableColor<ColorHSVa>,

@@ -1,6 +1,7 @@
 package org.openrndr.color
 
 import org.openrndr.math.mixAngle
+import kotlin.jvm.JvmOverloads
 
 /**
  * Practically identical to [ColorHSLa], but
@@ -10,7 +11,7 @@ import org.openrndr.math.mixAngle
  * @see ColorHSLa
  * @see ColorXSVa
  */
-data class ColorXSLa(val x: Double, val s: Double, val l: Double, val a: Double) :
+data class ColorXSLa @JvmOverloads constructor (val x: Double, val s: Double, val l: Double, val a: Double = 1.0) :
     ConvertibleToColorRGBa,
     ShadableColor<ColorXSLa>,
     HueShiftableColor<ColorXSLa>,

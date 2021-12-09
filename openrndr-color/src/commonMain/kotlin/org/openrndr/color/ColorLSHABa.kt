@@ -1,12 +1,14 @@
 package org.openrndr.color
 
+import kotlin.jvm.JvmOverloads
+
 /**
  * Based on [ColorLCHABa], but
  * instead tries to use a normalized chroma.
  *
  * @see ColorLCHABa
  */
-data class ColorLSHABa(
+data class ColorLSHABa @JvmOverloads constructor (
     val l: Double,
     val s: Double,
     val h: Double,

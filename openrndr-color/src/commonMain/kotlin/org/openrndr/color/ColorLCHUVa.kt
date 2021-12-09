@@ -3,6 +3,7 @@ package org.openrndr.color
 import org.openrndr.math.asDegrees
 import org.openrndr.math.asRadians
 import org.openrndr.math.mixAngle
+import kotlin.jvm.JvmOverloads
 import kotlin.math.*
 
 /**
@@ -17,7 +18,7 @@ import kotlin.math.*
  *
  * @see ColorLUVa
  */
-data class ColorLCHUVa(
+data class ColorLCHUVa @JvmOverloads constructor (
     val l: Double,
     val c: Double,
     val h: Double,
