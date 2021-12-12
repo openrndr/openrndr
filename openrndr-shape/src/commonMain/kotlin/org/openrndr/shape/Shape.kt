@@ -2,6 +2,7 @@
 
 package org.openrndr.shape
 
+import org.openrndr.kartifex.Vec2
 import org.openrndr.math.*
 import org.openrndr.utils.resettableLazy
 
@@ -212,9 +213,34 @@ class Shape(val contours: List<ShapeContour>) : ShapeProvider {
     override fun toString(): String {
         return "Shape(org.openrndr.shape.contours=$contours, topology=$topology)"
     }
+
+    /** Applies a boolean org.openrndr.shape.union operation between two [Shape]s. */
+    fun union(other: Shape): Shape = union(this, other)
+
+    /** Applies a boolean difference operation between two [Shape]s. */
+    fun difference(other: Shape): Shape = difference(this, other)
+
+    /** Applies a boolean intersection operation between two [Shape]s. */
+    fun intersection(other: Shape): Shape = intersection(this, other)
+
+    /** Calculates a [List] of all points where two [Shape]s intersect. */
+    fun intersections(other: Shape) = intersections(this, other)
+
+    /** Calculates a [List] of all points where the [Shape] and a [ShapeContour] intersect. */
+    fun intersections(other: ShapeContour) = intersections(this, other.shape)
+
+    /** Calculates a [List] of all points where the [Shape] and a [Segment] intersect. */
+    fun intersections(other: Segment) = intersections(this, other.contour.shape)
+
+    /** Returns true if given [Vector2] is inside the [Shape]. */
+    operator fun Shape.contains(v: Vector2): Boolean {
+        if (empty) {
+            return false
+        }
+        return toRegion2().contains(Vec2(v.x, v.y))
+    }
 }
 
 /** Converts a [List] of [Shape] items into a single org.openrndr.shape.compound [Shape]. */
 val List<Shape>.compound
     get() = Shape.compound(this)
-

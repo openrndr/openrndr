@@ -1000,6 +1000,24 @@ class Segment : ShapeContourProvider {
     override val contour: ShapeContour
         get() = ShapeContour(listOf(this), false)
 
+
+    /**
+     * Calculates a [List] of all points where two [Segment]s intersect.
+     */
+    @Suppress("unused")
+    fun intersections(other: Segment) = intersections(this, other)
+
+    /**
+     * Calculates a [List] of all points of where a [Segment] and a [ShapeContour] intersect.
+     */
+    @Suppress("unused")
+    fun intersections(other: ShapeContour) = intersections(this.contour, other)
+
+    /**
+     * Calculates a [List] of all points of where a [Segment] and a [Shape] intersect.
+     */
+    @Suppress("unused")
+    fun intersections(other: Shape) = intersections(this.contour.shape, other)
 }
 
 private fun sumDifferences(points: List<Vector2>) =
