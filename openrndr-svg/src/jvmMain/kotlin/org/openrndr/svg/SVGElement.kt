@@ -377,6 +377,7 @@ internal class SVGPath(val element: Element? = null) : SVGElement(element) {
                         if ((cursor - anchor).length >= 0.001) {
                             segments += Segment(cursor, anchor)
                         }
+                        cursor = anchor
                         closed = true
                     }
                     else -> {

@@ -288,12 +288,10 @@ internal object SVGParse {
         }
     }
 
-    private fun pointsToCommands(pointsValues: String): List<Command> {
+    private fun pointsToCommands(numbers: List<Double>): List<Command> {
         val commands = mutableListOf<Command>()
-        val tokens = pointsValues.split(PropertyRegex.commaWsp.toRegex())
-            .map(String::trim)
-            .filter(String::isNotEmpty)
-        val points = (0 until tokens.size / 2).map { Vector2(tokens[it * 2].toDouble(), tokens[it * 2 + 1].toDouble()) }
+
+        val points = (0 until numbers.size / 2).map { Vector2(numbers[it * 2].toDouble(), numbers[it * 2 + 1].toDouble()) }
         commands.add(Command("M", points[0].x, points[0].y))
         (1 until points.size).mapTo(commands) { Command("L", points[it].x, points[it].y) }
 
@@ -312,7 +310,7 @@ internal object SVGParse {
             }
         }
 
-        val commands = pointsToCommands(list.reduce(String::plus)) as MutableList
+        val commands = pointsToCommands(list.map { it.trim().toDouble() }).toMutableList()
         commands.add(Command("Z"))
 
         return commands
@@ -330,7 +328,7 @@ internal object SVGParse {
             }
         }
 
-        return pointsToCommands(list.reduce(String::plus)) as MutableList
+        return pointsToCommands(list.map { it.trim().toDouble() })
     }
 
     private fun ellipsePath(x: Double, y: Double, width: Double, height: Double): List<Command> {
