@@ -2,6 +2,7 @@ package org.openrndr.color
 
 import org.openrndr.math.CastableToVector4
 import org.openrndr.math.Vector4
+import kotlin.jvm.JvmOverloads
 import kotlin.math.min
 
 /**
@@ -12,7 +13,7 @@ import kotlin.math.min
  * @param z second chromaticity coordinate, quasi-equal to blue
  * @param a alpha as a percentage between 0.0 and 1.0
  */
-data class ColorXYZa(val x: Double, val y: Double, val z: Double, val a: Double = 1.0) :
+data class ColorXYZa @JvmOverloads constructor (val x: Double, val y: Double, val z: Double, val a: Double = 1.0) :
     ConvertibleToColorRGBa,
     CastableToVector4,
     OpacifiableColor<ColorXYZa>,

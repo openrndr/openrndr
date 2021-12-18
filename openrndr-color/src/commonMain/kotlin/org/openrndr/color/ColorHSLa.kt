@@ -1,6 +1,7 @@
 package org.openrndr.color
 
 import org.openrndr.math.mixAngle
+import kotlin.jvm.JvmOverloads
 
 /**
  * The [HSL color space](https://en.wikipedia.org/wiki/HSL_and_HSV).
@@ -13,7 +14,7 @@ import org.openrndr.math.mixAngle
  * @param a alpha as a percentage between 0.0 and 1.0
  */
 @Suppress("unused", "MemberVisibilityCanBePrivate")
-data class ColorHSLa(val h: Double, val s: Double, val l: Double, val a: Double = 1.0) :
+data class ColorHSLa @JvmOverloads constructor (val h: Double, val s: Double, val l: Double, val a: Double = 1.0) :
         ConvertibleToColorRGBa,
         ShadableColor<ColorHSLa>,
         HueShiftableColor<ColorHSLa>,
