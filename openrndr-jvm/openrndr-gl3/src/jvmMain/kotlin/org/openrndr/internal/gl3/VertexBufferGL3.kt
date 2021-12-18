@@ -21,6 +21,8 @@ class VertexBufferShadowGL3(override val vertexBuffer: VertexBufferGL3) : Vertex
     val buffer: ByteBuffer =
             BufferUtils.createByteBuffer(vertexBuffer.vertexCount * vertexBuffer.vertexFormat.size).apply {
                 order(ByteOrder.nativeOrder())
+                logger.debug { "creating vertex buffer shadow of ${vertexBuffer.vertexCount.toLong() * vertexBuffer.vertexFormat.size.toLong()} bytes"}
+                logger.debug { "${vertexBuffer}" }
             }
 
     override fun upload(offset: Int, size: Int) {
@@ -78,7 +80,7 @@ class VertexBufferGL3(val buffer: Int, override val vertexFormat: VertexFormat, 
     override val shadow: VertexBufferShadow
         get() {
             if (isDestroyed) {
-                throw IllegalStateException("buffer is destroyed")
+                error("buffer is destroyed")
             }
             if (realShadow == null) {
                 realShadow = VertexBufferShadowGL3(this)
@@ -88,7 +90,7 @@ class VertexBufferGL3(val buffer: Int, override val vertexFormat: VertexFormat, 
 
     override fun write(data: ByteBuffer, offset: Int) {
         if (isDestroyed) {
-            throw IllegalStateException("buffer is destroyed")
+            throw error("buffer is destroyed")
         }
 
         if (data.isDirect) {

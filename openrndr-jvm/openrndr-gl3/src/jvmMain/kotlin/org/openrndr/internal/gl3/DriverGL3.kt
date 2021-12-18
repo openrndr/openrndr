@@ -9,8 +9,8 @@ import org.openrndr.internal.*
 import org.openrndr.math.Matrix33
 import org.openrndr.math.Matrix44
 import org.openrndr.measure
+import org.openrndr.shape.Rectangle
 import java.io.InputStream
-import java.math.BigInteger
 import java.nio.Buffer
 import java.nio.ByteBuffer
 import java.util.*
@@ -83,18 +83,22 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         }
 
     override val shaderGenerators: ShaderGenerators = ShaderGeneratorsGL3()
-    private val vaos = mutableMapOf<BigInteger, Int>()
+    private val vaos = mutableMapOf<Long, Int>()
 
-    private fun hash(shader: ShaderGL3, vertexBuffers: List<VertexBuffer>, instanceAttributes: List<VertexBuffer>): BigInteger {
-        var hash = BigInteger.valueOf(contextID)
-        hash += BigInteger.valueOf(shader.program.toLong())
+    private fun hash(shader: ShaderGL3, vertexBuffers: List<VertexBuffer>, instanceAttributes: List<VertexBuffer>): Long {
+        var hash = contextID
+        hash = hash * 31 + shader.program.toLong()
+        logger.hashCode()
 
-        for (i in vertexBuffers.indices) {
-            hash += BigInteger.valueOf(((vertexBuffers[i] as VertexBufferGL3).bufferHash shl (12 + (i * 12))).toLong())
+        for (vb in vertexBuffers) {
+            hash = hash * 31 + vb.vertexFormat.hashCode()
         }
-        for (i in instanceAttributes.indices) {
-            hash += BigInteger.valueOf(((instanceAttributes[i] as VertexBufferGL3).bufferHash shl (12 + ((i + vertexBuffers.size) * 12))).toLong())
+        hash *= 31
+
+        for (vb in instanceAttributes) {
+            hash = hash *31  + vb.vertexFormat.hashCode()
         }
+
         return hash
     }
 
@@ -766,7 +770,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         measure("DriverGL3.setState") {
             if (dirty || cached.clip != drawStyle.clip) {
                 if (drawStyle.clip != null) {
-                    drawStyle.clip?.let {
+                    drawStyle.clip?.let { it: Rectangle ->
                         val target = RenderTarget.active
                         glScissor((it.x * target.contentScale).toInt(), (target.height * target.contentScale - it.y * target.contentScale - it.height * target.contentScale).toInt(), (it.width * target.contentScale).toInt(), (it.height * target.contentScale).toInt())
                         glEnable(GL_SCISSOR_TEST)
