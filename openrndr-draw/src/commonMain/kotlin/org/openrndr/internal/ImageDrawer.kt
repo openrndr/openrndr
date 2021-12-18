@@ -72,6 +72,10 @@ class ImageDrawer {
     fun drawImage(drawContext: DrawContext, drawStyle: DrawStyle, colorBuffer: ColorBuffer,
                   rectangles: List<Pair<Rectangle, Rectangle>>) {
 
+        require(colorBuffer.multisample == BufferMultisample.Disabled) {
+            """multisample color buffer $colorBuffer needs to be resolved first"""
+        }
+
         assertInstanceSize(rectangles.size)
 
         val shader = shaderManager.shader(drawStyle.shadeStyle, listOf(vertices.vertexFormat), listOf(instanceAttributes.vertexFormat))
@@ -99,6 +103,7 @@ class ImageDrawer {
 
     fun drawImage(drawContext: DrawContext, drawStyle: DrawStyle, arrayTexture: ArrayTexture,
                   layers:List<Int>, rectangles: List<Pair<Rectangle, Rectangle>>) {
+
         assertInstanceSize(rectangles.size)
         val shader = arrayTextureShaderManager.shader(drawStyle.shadeStyle, listOf(vertices.vertexFormat), listOf(instanceAttributes.vertexFormat))
 
