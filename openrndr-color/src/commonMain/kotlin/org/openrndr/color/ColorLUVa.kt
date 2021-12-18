@@ -22,16 +22,19 @@ data class ColorLUVa(val l: Double, val u: Double, val v: Double, val alpha: Dou
 
     companion object {
         fun fromXYZa(xyz: ColorXYZa, ref: ColorXYZa): ColorLUVa {
-            val y = xyz.y / ref.y
+            val y = if (ref.y != 0.0) xyz.y / ref.y else 0.0
             val l = if (y <= (6.0 / 29.0).pow(3.0)) (29.0 / 3.0).pow(3.0) * y else
                 116.0 * y.pow(1.0 / 3.0) - 16.0
 
 
-            val up = (xyz.x * 4.0) / (xyz.x + xyz.y * 15.0 + xyz.z * 3.0)
-            val vp = (xyz.y * 9.0) / (xyz.x + xyz.y * 15.0 + xyz.z * 3.0)
+            val div0 = (xyz.x + xyz.y * 15.0 + xyz.z * 3.0)
 
-            val ur = (ref.x * 4.0) / (ref.x + ref.y * 15 + ref.z * 3.0)
-            val vr = (ref.y * 9.0) / (ref.x + ref.y * 15 + ref.z * 3.0)
+            val up = if (div0 ==0.0) 0.0 else (xyz.x * 4.0) / div0
+            val vp = if (div0 == 0.0) 0.0 else (xyz.y * 9.0) / div0
+
+            val div1 =  (ref.x + ref.y * 15 + ref.z * 3.0)
+            val ur = if (div1 == 0.0) 0.0 else (ref.x * 4.0) / div1
+            val vr = if (div1 == 0.0) 0.0 else (ref.y * 9.0) / div1
 
             val u = 13.0 * l * (up - ur)
             val v = 13.0 * l * (vp - vr)
@@ -45,17 +48,22 @@ data class ColorLUVa(val l: Double, val u: Double, val v: Double, val alpha: Dou
     }
 
     fun toXYZa(): ColorXYZa {
+        val divr = (ref.x + ref.y * 15 + ref.z * 3.0)
 
-        val ur = (ref.x * 4.0) / (ref.x + ref.y * 15 + ref.z * 3.0)
-        val vr = (ref.y * 9.0) / (ref.x + ref.y * 15 + ref.z * 3.0)
+        val ur = if (divr == 0.0) 0.0 else (ref.x * 4.0) / divr
+        val vr = if (divr == 0.0) 0.0 else (ref.y * 9.0) / divr
 
+        println("intermediate 0 $ur $vr")
 
-        val up = u / (13 * l) + ur
-        val vp = v / (13 * l) + vr
+        val divp = 13 * l
+        val up = if (divp == 0.0) 0.0 else u / divp + ur
+        val vp = if (divp == 0.0) 0.0 else v / divp + vr
+
+        println("intermediate 1 $up $vp")
 
         val y = if (l <= 8) ref.y * l * (3.0 / 29.0).pow(3.0) else ref.y * ((l + 16) / 116.0).pow(3.0)
-        val x = y * ((9 * up) / (4 * vp))
-        val z = y * ((12 - 3 * up - 20 * vp) / (4 * vp))
+        val x = if (vp == 0.0) 0.0 else  y * ((9 * up) / (4 * vp))
+        val z = if (vp == 0.0) 0.0 else y * ((12 - 3 * up - 20 * vp) / (4 * vp))
         return ColorXYZa(x, y, z, alpha)
     }
 
