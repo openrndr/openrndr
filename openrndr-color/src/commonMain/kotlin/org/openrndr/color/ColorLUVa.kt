@@ -54,13 +54,9 @@ data class ColorLUVa @JvmOverloads constructor (val l: Double, val u: Double, va
         val ur = if (divr == 0.0) 0.0 else (ref.x * 4.0) / divr
         val vr = if (divr == 0.0) 0.0 else (ref.y * 9.0) / divr
 
-        println("intermediate 0 $ur $vr")
-
         val divp = 13 * l
         val up = if (divp == 0.0) 0.0 else u / divp + ur
         val vp = if (divp == 0.0) 0.0 else v / divp + vr
-
-        println("intermediate 1 $up $vp")
 
         val y = if (l <= 8) ref.y * l * (3.0 / 29.0).pow(3.0) else ref.y * ((l + 16) / 116.0).pow(3.0)
         val x = if (vp == 0.0) 0.0 else  y * ((9 * up) / (4 * vp))
