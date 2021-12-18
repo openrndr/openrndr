@@ -707,6 +707,7 @@ class ShaderGL3(val program: Int,
             session?.untrack(this)
             glDeleteProgram(program)
             destroyed = true
+            (Driver.instance as DriverGL3).destroyVAOsForShader(this)
             Session.active.untrack(this)
         }
     }

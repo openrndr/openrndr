@@ -6,6 +6,7 @@ import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL33C.*
 import org.lwjgl.system.MemoryUtil.NULL
 import org.openrndr.draw.*
+import org.openrndr.internal.Driver
 import org.openrndr.utils.buffer.MPPBuffer
 import java.nio.Buffer
 
@@ -151,6 +152,7 @@ class VertexBufferGL3(val buffer: Int, override val vertexFormat: VertexFormat, 
         session?.untrack(this)
         isDestroyed = true
         glDeleteBuffers(buffer)
+        (Driver.instance as DriverGL3).destroyVAOsForVertexBuffer(this)
         checkGLErrors()
         Session.active.untrack(this)
     }

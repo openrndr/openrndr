@@ -40,9 +40,9 @@ inline fun DriverVersionGL.require(minimum: DriverVersionGL) {
 class DriverGL3(val version: DriverVersionGL) : Driver {
 
     override val shaderLanguage: ShaderLanguage
-    get() {
-        return GLSL(version.glslVersion)
-    }
+        get() {
+            return GLSL(version.glslVersion)
+        }
 
     override fun shaderConfiguration(): String = """
         #version ${version.glslVersion}
@@ -53,8 +53,9 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
     companion object {
         fun candidateVersions(): List<DriverVersionGL> {
             val property = System.getProperty("org.openrndr.gl3.version", "all")
-            return DriverVersionGL.values().find { "${it.majorVersion}.${it.minorVersion}" == property }?.let { listOf(it) }
-                    ?: DriverVersionGL.values().reversed()
+            return DriverVersionGL.values().find { "${it.majorVersion}.${it.minorVersion}" == property }
+                ?.let { listOf(it) }
+                ?: DriverVersionGL.values().reversed()
         }
     }
 
@@ -83,9 +84,13 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         }
 
     override val shaderGenerators: ShaderGenerators = ShaderGeneratorsGL3()
-    private val vaos = mutableMapOf<Long, Int>()
+    private val vaos = mutableMapOf<ShaderVertexDescription, Int>()
 
-    private fun hash(shader: ShaderGL3, vertexBuffers: List<VertexBuffer>, instanceAttributes: List<VertexBuffer>): Long {
+    private fun hash(
+        shader: ShaderGL3,
+        vertexBuffers: List<VertexBuffer>,
+        instanceAttributes: List<VertexBuffer>
+    ): Long {
         var hash = contextID
         hash = hash * 31 + shader.program.toLong()
         logger.hashCode()
@@ -96,7 +101,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         hash *= 31
 
         for (vb in instanceAttributes) {
-            hash = hash *31  + vb.vertexFormat.hashCode()
+            hash = hash * 31 + vb.vertexFormat.hashCode()
         }
 
         return hash
@@ -158,30 +163,32 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
     }
 
     override fun createShadeStyleManager(
-            name: String,
-            vsGenerator: (ShadeStructure) -> String,
-            tcsGenerator: ((ShadeStructure) -> String)?,
-            tesGenerator: ((ShadeStructure) -> String)?,
-            gsGenerator: ((ShadeStructure) -> String)?,
-            fsGenerator: (ShadeStructure) -> String,
-            session: Session?
+        name: String,
+        vsGenerator: (ShadeStructure) -> String,
+        tcsGenerator: ((ShadeStructure) -> String)?,
+        tesGenerator: ((ShadeStructure) -> String)?,
+        gsGenerator: ((ShadeStructure) -> String)?,
+        fsGenerator: (ShadeStructure) -> String,
+        session: Session?
     ): ShadeStyleManager {
-        return ShadeStyleManagerGL3(name,
-                vsGenerator = vsGenerator,
-                tcsGenerator = tcsGenerator,
-                tesGenerator = tesGenerator,
-                gsGenerator = gsGenerator,
-                fsGenerator = fsGenerator)
+        return ShadeStyleManagerGL3(
+            name,
+            vsGenerator = vsGenerator,
+            tcsGenerator = tcsGenerator,
+            tesGenerator = tesGenerator,
+            gsGenerator = gsGenerator,
+            fsGenerator = fsGenerator
+        )
     }
 
     override fun createShader(
-            vsCode: String,
-            tcsCode: String?,
-            tesCode: String?,
-            gsCode: String?,
-            fsCode: String,
-            name: String,
-            session: Session?
+        vsCode: String,
+        tcsCode: String?,
+        tesCode: String?,
+        gsCode: String?,
+        fsCode: String,
+        name: String,
+        session: Session?
     ): Shader {
         logger.trace {
             "creating shader:\n${gsCode}\n${vsCode}\n${fsCode}"
@@ -194,13 +201,13 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
 
         synchronized(this) {
             return ShaderGL3.create(
-                    vertexShader,
-                    tcShader,
-                    teShader,
-                    geometryShader,
-                    fragmentShader,
-                    name,
-                    session
+                vertexShader,
+                tcShader,
+                teShader,
+                geometryShader,
+                fragmentShader,
+                name,
+                session
             )
         }
     }
@@ -217,21 +224,40 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         return atomicCounterBuffer
     }
 
-    override fun createArrayTexture(width: Int, height: Int, layers: Int, format: ColorFormat, type: ColorType, levels: Int, session: Session?): ArrayTexture {
+    override fun createArrayTexture(
+        width: Int,
+        height: Int,
+        layers: Int,
+        format: ColorFormat,
+        type: ColorType,
+        levels: Int,
+        session: Session?
+    ): ArrayTexture {
         logger.trace { "creating array texture" }
         val arrayTexture = ArrayTextureGL3.create(width, height, layers, format, type, levels, session)
         session?.track(arrayTexture)
         return arrayTexture
     }
 
-    override fun createBufferTexture(elementCount: Int, format: ColorFormat, type: ColorType, session: Session?): BufferTexture {
+    override fun createBufferTexture(
+        elementCount: Int,
+        format: ColorFormat,
+        type: ColorType,
+        session: Session?
+    ): BufferTexture {
         logger.trace { "creating buffer texture" }
         val bufferTexture = BufferTextureGL3.create(elementCount, format, type, session)
         session?.track(bufferTexture)
         return bufferTexture
     }
 
-    override fun createCubemap(width: Int, format: ColorFormat, type: ColorType, levels: Int, session: Session?): Cubemap {
+    override fun createCubemap(
+        width: Int,
+        format: ColorFormat,
+        type: ColorType,
+        levels: Int,
+        session: Session?
+    ): Cubemap {
         logger.trace { "creating cubemap $width" }
         val cubemap = CubemapGL3.create(width, format, type, levels, session)
         session?.track(cubemap)
@@ -249,7 +275,11 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         return cubemap
     }
 
-    override fun createCubemapFromFiles(filenames: List<String>, formatHint: ImageFileFormat?, session: Session?): Cubemap {
+    override fun createCubemapFromFiles(
+        filenames: List<String>,
+        formatHint: ImageFileFormat?,
+        session: Session?
+    ): Cubemap {
         val urls = filenames.map { "file:$it" }
         logger.trace { "creating cubemap from urls $urls" }
         val cubemap = when (urls.size) {
@@ -261,13 +291,27 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         return cubemap
     }
 
-    override fun createVolumeTexture(width: Int, height: Int, depth: Int, format: ColorFormat, type: ColorType, levels: Int, session: Session?): VolumeTexture {
+    override fun createVolumeTexture(
+        width: Int,
+        height: Int,
+        depth: Int,
+        format: ColorFormat,
+        type: ColorType,
+        levels: Int,
+        session: Session?
+    ): VolumeTexture {
         val volumeTexture = VolumeTextureGL3.create(width, height, depth, format, type, levels, session)
         session?.track(volumeTexture)
         return volumeTexture
     }
 
-    override fun createRenderTarget(width: Int, height: Int, contentScale: Double, multisample: BufferMultisample, session: Session?): RenderTarget {
+    override fun createRenderTarget(
+        width: Int,
+        height: Int,
+        contentScale: Double,
+        multisample: BufferMultisample,
+        session: Session?
+    ): RenderTarget {
         logger.trace { "creating render target $width x $height @ ${contentScale}x $multisample" }
         synchronized(this) {
             val renderTarget = RenderTargetGL3.create(width, height, contentScale, multisample, session)
@@ -276,7 +320,14 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         }
     }
 
-    override fun createArrayCubemap(width: Int, layers: Int, format: ColorFormat, type: ColorType, levels: Int, session: Session?): ArrayCubemap {
+    override fun createArrayCubemap(
+        width: Int,
+        layers: Int,
+        format: ColorFormat,
+        type: ColorType,
+        levels: Int,
+        session: Session?
+    ): ArrayCubemap {
         logger.trace { "creating array texture" }
         version.require(DriverVersionGL.VERSION_4_1)
         val arrayTexture = ArrayCubemapGL4.create(width, layers, format, type, levels, session)
@@ -284,10 +335,20 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         return arrayTexture
     }
 
-    override fun createColorBuffer(width: Int, height: Int, contentScale: Double, format: ColorFormat, type: ColorType, multisample: BufferMultisample, levels: Int, session: Session?): ColorBuffer {
+    override fun createColorBuffer(
+        width: Int,
+        height: Int,
+        contentScale: Double,
+        format: ColorFormat,
+        type: ColorType,
+        multisample: BufferMultisample,
+        levels: Int,
+        session: Session?
+    ): ColorBuffer {
         logger.trace { "creating color buffer $width x $height @ $format:$type" }
         synchronized(this) {
-            val colorBuffer = ColorBufferGL3.create(width, height, contentScale, format, type, multisample, levels, session)
+            val colorBuffer =
+                ColorBufferGL3.create(width, height, contentScale, format, type, multisample, levels, session)
             session?.track(colorBuffer)
             return colorBuffer
         }
@@ -299,37 +360,68 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         return colorBuffer
     }
 
-    override suspend fun createColorBufferFromUrlSuspend(url: String, formatHint: ImageFileFormat?, session: Session?): ColorBuffer {
+    override suspend fun createColorBufferFromUrlSuspend(
+        url: String,
+        formatHint: ImageFileFormat?,
+        session: Session?
+    ): ColorBuffer {
         val colorBuffer = ColorBufferGL3.fromUrl(url, formatHint, session)
         session?.track(colorBuffer)
         return colorBuffer
     }
 
-    override fun createColorBufferFromFile(filename: String, formatHint: ImageFileFormat?, session: Session?): ColorBuffer {
+    override fun createColorBufferFromFile(
+        filename: String,
+        formatHint: ImageFileFormat?,
+        session: Session?
+    ): ColorBuffer {
         val colorBuffer = ColorBufferGL3.fromFile(filename, formatHint, session)
         session?.track(colorBuffer)
         return colorBuffer
     }
 
-    override fun createColorBufferFromStream(stream: InputStream, name: String?, formatHint: ImageFileFormat?, session: Session?): ColorBuffer {
+    override fun createColorBufferFromStream(
+        stream: InputStream,
+        name: String?,
+        formatHint: ImageFileFormat?,
+        session: Session?
+    ): ColorBuffer {
         val colorBuffer = ColorBufferGL3.fromStream(stream, name, formatHint, session)
         session?.track(colorBuffer)
         return colorBuffer
     }
 
-    override fun createColorBufferFromArray(array: ByteArray, offset: Int, length: Int, name: String?, formatHint: ImageFileFormat?, session: Session?): ColorBuffer {
+    override fun createColorBufferFromArray(
+        array: ByteArray,
+        offset: Int,
+        length: Int,
+        name: String?,
+        formatHint: ImageFileFormat?,
+        session: Session?
+    ): ColorBuffer {
         val colorBuffer = ColorBufferGL3.fromArray(array, offset, length, name, formatHint, session)
         session?.track(colorBuffer)
         return colorBuffer
     }
 
-    override fun createColorBufferFromBuffer(buffer: ByteBuffer, name: String?, formatHint: ImageFileFormat?, session: Session?): ColorBuffer {
+    override fun createColorBufferFromBuffer(
+        buffer: ByteBuffer,
+        name: String?,
+        formatHint: ImageFileFormat?,
+        session: Session?
+    ): ColorBuffer {
         val colorBuffer = ColorBufferGL3.fromBuffer(buffer, name, formatHint, session)
         session?.track(colorBuffer)
         return colorBuffer
     }
 
-    override fun createDepthBuffer(width: Int, height: Int, format: DepthFormat, multisample: BufferMultisample, session: Session?): DepthBuffer {
+    override fun createDepthBuffer(
+        width: Int,
+        height: Int,
+        format: DepthFormat,
+        multisample: BufferMultisample,
+        session: Session?
+    ): DepthBuffer {
         logger.trace { "creating depth buffer $width x $height @ $format" }
         synchronized(this) {
             val depthBuffer = DepthBufferGL3.create(width, height, format, multisample, session)
@@ -378,13 +470,15 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
 
         shader as ShaderGL3
         // -- find or create a VAO for our shader + vertex buffers combination
-        val hash =
-                hash(shader, vertexBuffers, emptyList())
+        val shaderVertexDescription = ShaderVertexDescription(
+            shader.program,
+            vertexBuffers.map { (it as VertexBufferGL3).buffer }.toIntArray(),
+            IntArray(0)
+        )
 
-
-        val vao = vaos.getOrPut(hash) {
+        val vao = vaos.getOrPut(shaderVertexDescription) {
             logger.debug {
-                "[context=$contextID] creating new VAO for hash $hash"
+                "[context=$contextID] creating new VAO for hash $shaderVertexDescription"
             }
 
             val arrays = IntArray(1)
@@ -420,6 +514,32 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         glBindVertexArray(defaultVAO)
     }
 
+    data class ShaderVertexDescription(
+        val shader: Int,
+        val vertexBuffers: IntArray,
+        val instanceAttributeBuffers: IntArray
+    ) {
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (javaClass != other?.javaClass) return false
+
+            other as ShaderVertexDescription
+            if (shader != other.shader) return false
+            if (!vertexBuffers.contentEquals(other.vertexBuffers)) return false
+            if (!instanceAttributeBuffers.contentEquals(other.instanceAttributeBuffers)) return false
+
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result = shader
+            result = 31 * result + vertexBuffers.contentHashCode()
+            result = 31 * result + instanceAttributeBuffers.contentHashCode()
+            return result
+        }
+    }
+
+
     override fun drawIndexedVertexBuffer(
         shader: Shader,
         indexBuffer: IndexBuffer,
@@ -442,14 +562,18 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
 
         measure("DriverGL3.drawIndexedVertexBuffer") {
             // -- find or create a VAO for our shader + vertex buffers combination
-            val hash = measure("hash-vao") {
-                hash(shader, vertexBuffers, emptyList())
+            val shaderVertexDescription = measure("hash-vao") {
+                ShaderVertexDescription(
+                    (shader as ShaderGL3).program,
+                    vertexBuffers.map { (it as VertexBufferGL3).buffer }.toIntArray(),
+                    IntArray(0)
+                )
             }
             val vao = measure("get-vao") {
-                vaos.getOrPut(hash) {
+                vaos.getOrPut(shaderVertexDescription) {
                     measure("miss") {
                         logger.debug {
-                            "creating new VAO for hash $hash"
+                            "creating new VAO for hash $shaderVertexDescription"
                         }
                         val arrays = IntArray(1)
                         synchronized(Driver.instance) {
@@ -493,6 +617,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         }
     }
 
+
     override fun drawInstances(
         shader: Shader,
         vertexBuffers: List<VertexBuffer>,
@@ -515,7 +640,11 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         }
 
         // -- find or create a VAO for our shader + vertex buffers + instance buffers combination
-        val hash = hash(shader as ShaderGL3, vertexBuffers, instanceAttributes)
+        val hash = ShaderVertexDescription(
+            (shader as ShaderGL3).program,
+            vertexBuffers.map { (it as VertexBufferGL3).buffer }.toIntArray(),
+            instanceAttributes.map { (it as VertexBufferGL3).buffer }.toIntArray()
+        )
 
         val vao = vaos.getOrPut(hash) {
             logger.debug {
@@ -539,11 +668,11 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
                 glDrawArraysInstanced(drawPrimitive.glType(), vertexOffset, vertexCount, instanceCount)
             } else {
                 GL42C.glDrawArraysInstancedBaseInstance(
-                        drawPrimitive.glType(),
-                        vertexOffset,
-                        vertexCount,
-                        instanceCount,
-                        instanceOffset
+                    drawPrimitive.glType(),
+                    vertexOffset,
+                    vertexCount,
+                    instanceCount,
+                    instanceOffset
                 )
             }
         }
@@ -583,11 +712,15 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
 
 
         // -- find or create a VAO for our shader + vertex buffers + instance buffers combination
-        val hash = hash(shader as ShaderGL3, vertexBuffers, instanceAttributes)
+        val shaderVertexDescription = ShaderVertexDescription(
+            (shader as ShaderGL3).program,
+            vertexBuffers.map { (it as VertexBufferGL3).buffer }.toIntArray(),
+            instanceAttributes.map { (it as VertexBufferGL3).buffer }.toIntArray()
+        )
 
-        val vao = vaos.getOrPut(hash) {
+        val vao = vaos.getOrPut(shaderVertexDescription) {
             logger.debug {
-                "creating new instances VAO for hash $hash"
+                "creating new instances VAO for hash $shaderVertexDescription"
             }
             val arrays = IntArray(1)
             synchronized(Driver.instance) {
@@ -607,20 +740,20 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         measure("glDrawElementsInstanced") {
             if (instanceOffset == 0) {
                 glDrawElementsInstanced(
-                        drawPrimitive.glType(),
-                        indexCount,
-                        indexBuffer.type.glType(),
-                        indexOffset.toLong(),
-                        instanceCount
+                    drawPrimitive.glType(),
+                    indexCount,
+                    indexBuffer.type.glType(),
+                    indexOffset.toLong(),
+                    instanceCount
                 )
             } else {
                 GL42C.glDrawElementsInstancedBaseInstance(
-                        drawPrimitive.glType(),
-                        indexCount,
-                        indexBuffer.type.glType(),
-                        indexOffset.toLong(),
-                        instanceCount,
-                        instanceOffset
+                    drawPrimitive.glType(),
+                    indexCount,
+                    indexBuffer.type.glType(),
+                    indexOffset.toLong(),
+                    instanceCount,
+                    instanceOffset
                 )
             }
         }
@@ -636,19 +769,44 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         glBindVertexArray(defaultVAO)
     }
 
-
-    private fun setupFormat(vertexBuffer: List<VertexBuffer>, instanceAttributes: List<VertexBuffer>, shader: ShaderGL3) {
+    private fun setupFormat(
+        vertexBuffer: List<VertexBuffer>,
+        instanceAttributes: List<VertexBuffer>,
+        shader: ShaderGL3
+    ) {
         measure("setupFormat") {
             debugGLErrors()
 
             val scalarVectorTypes = setOf(
-                    VertexElementType.UINT8, VertexElementType.VECTOR2_UINT8, VertexElementType.VECTOR3_UINT8, VertexElementType.VECTOR4_UINT8,
-                    VertexElementType.INT8, VertexElementType.VECTOR2_INT8, VertexElementType.VECTOR3_INT8, VertexElementType.VECTOR4_INT8,
-                    VertexElementType.UINT16, VertexElementType.VECTOR2_UINT16, VertexElementType.VECTOR3_UINT16, VertexElementType.VECTOR4_UINT16,
-                    VertexElementType.INT16, VertexElementType.VECTOR2_INT16, VertexElementType.VECTOR3_INT16, VertexElementType.VECTOR4_INT16,
-                    VertexElementType.UINT32, VertexElementType.VECTOR2_UINT32, VertexElementType.VECTOR3_UINT32, VertexElementType.VECTOR4_UINT32,
-                    VertexElementType.INT32, VertexElementType.VECTOR2_INT32, VertexElementType.VECTOR3_INT32, VertexElementType.VECTOR4_INT32,
-                    VertexElementType.FLOAT32, VertexElementType.VECTOR2_FLOAT32, VertexElementType.VECTOR3_FLOAT32, VertexElementType.VECTOR4_FLOAT32)
+                VertexElementType.UINT8,
+                VertexElementType.VECTOR2_UINT8,
+                VertexElementType.VECTOR3_UINT8,
+                VertexElementType.VECTOR4_UINT8,
+                VertexElementType.INT8,
+                VertexElementType.VECTOR2_INT8,
+                VertexElementType.VECTOR3_INT8,
+                VertexElementType.VECTOR4_INT8,
+                VertexElementType.UINT16,
+                VertexElementType.VECTOR2_UINT16,
+                VertexElementType.VECTOR3_UINT16,
+                VertexElementType.VECTOR4_UINT16,
+                VertexElementType.INT16,
+                VertexElementType.VECTOR2_INT16,
+                VertexElementType.VECTOR3_INT16,
+                VertexElementType.VECTOR4_INT16,
+                VertexElementType.UINT32,
+                VertexElementType.VECTOR2_UINT32,
+                VertexElementType.VECTOR3_UINT32,
+                VertexElementType.VECTOR4_UINT32,
+                VertexElementType.INT32,
+                VertexElementType.VECTOR2_INT32,
+                VertexElementType.VECTOR3_INT32,
+                VertexElementType.VECTOR4_INT32,
+                VertexElementType.FLOAT32,
+                VertexElementType.VECTOR2_FLOAT32,
+                VertexElementType.VECTOR3_FLOAT32,
+                VertexElementType.VECTOR4_FLOAT32
+            )
 
             fun setupBuffer(buffer: VertexBuffer, divisor: Int = 0) {
                 val prefix = if (divisor == 0) "a" else "i"
@@ -673,13 +831,17 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
                                     val glType = item.type.glType()
 
                                     if (glType == GL_FLOAT) {
-                                        glVertexAttribPointer(attributeIndex + i,
-                                                item.type.componentCount,
-                                                glType, false, format.size, item.offset.toLong() + i * item.type.sizeInBytes)
+                                        glVertexAttribPointer(
+                                            attributeIndex + i,
+                                            item.type.componentCount,
+                                            glType, false, format.size, item.offset.toLong() + i * item.type.sizeInBytes
+                                        )
                                     } else {
-                                        glVertexAttribIPointer(attributeIndex + i,
-                                                item.type.componentCount,
-                                                glType, format.size, item.offset.toLong() + i * item.type.sizeInBytes)
+                                        glVertexAttribIPointer(
+                                            attributeIndex + i,
+                                            item.type.componentCount,
+                                            glType, format.size, item.offset.toLong() + i * item.type.sizeInBytes
+                                        )
 
                                     }
                                     debugGLErrors {
@@ -698,9 +860,14 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
                                         glEnableVertexAttribArray(attributeIndex + column + i * 4)
                                         debugGLErrors()
 
-                                        glVertexAttribPointer(attributeIndex + column + i * 4,
-                                                4,
-                                                item.type.glType(), false, format.size, item.offset.toLong() + column * 16 + i * 64)
+                                        glVertexAttribPointer(
+                                            attributeIndex + column + i * 4,
+                                            4,
+                                            item.type.glType(),
+                                            false,
+                                            format.size,
+                                            item.offset.toLong() + column * 16 + i * 64
+                                        )
                                         debugGLErrors()
 
                                         glVertexAttribDivisor(attributeIndex + column + i * 4, divisor)
@@ -715,9 +882,14 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
                                         glEnableVertexAttribArray(attributeIndex + column + i * 3)
                                         debugGLErrors()
 
-                                        glVertexAttribPointer(attributeIndex + column + i * 3,
-                                                3,
-                                                item.type.glType(), false, format.size, item.offset.toLong() + column * 12 + i * 48)
+                                        glVertexAttribPointer(
+                                            attributeIndex + column + i * 3,
+                                            3,
+                                            item.type.glType(),
+                                            false,
+                                            format.size,
+                                            item.offset.toLong() + column * 12 + i * 48
+                                        )
                                         debugGLErrors()
 
                                         glVertexAttribDivisor(attributeIndex + column + i * 3, divisor)
@@ -759,10 +931,15 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         }
     }
 
-    private fun teardownFormat(vertexBuffers: List<VertexBuffer>, instanceAttributes: List<VertexBuffer>, shader: ShaderGL3) {
+    private fun teardownFormat(
+        vertexBuffers: List<VertexBuffer>,
+        instanceAttributes: List<VertexBuffer>,
+        shader: ShaderGL3
+    ) {
         vertexBuffers.forEach { teardownFormat(it.vertexFormat, shader) }
         instanceAttributes.forEach { teardownFormat(it.vertexFormat, shader) }
     }
+
 
     private val cached = DrawStyle()
     private var dirty = true
@@ -772,7 +949,12 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
                 if (drawStyle.clip != null) {
                     drawStyle.clip?.let { it: Rectangle ->
                         val target = RenderTarget.active
-                        glScissor((it.x * target.contentScale).toInt(), (target.height * target.contentScale - it.y * target.contentScale - it.height * target.contentScale).toInt(), (it.width * target.contentScale).toInt(), (it.height * target.contentScale).toInt())
+                        glScissor(
+                            (it.x * target.contentScale).toInt(),
+                            (target.height * target.contentScale - it.y * target.contentScale - it.height * target.contentScale).toInt(),
+                            (it.width * target.contentScale).toInt(),
+                            (it.height * target.contentScale).toInt()
+                        )
                         glEnable(GL_SCISSOR_TEST)
                     }
                 } else {
@@ -782,7 +964,12 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
             }
 
             if (dirty || cached.channelWriteMask != drawStyle.channelWriteMask) {
-                glColorMask(drawStyle.channelWriteMask.red, drawStyle.channelWriteMask.green, drawStyle.channelWriteMask.blue, drawStyle.channelWriteMask.alpha)
+                glColorMask(
+                    drawStyle.channelWriteMask.red,
+                    drawStyle.channelWriteMask.green,
+                    drawStyle.channelWriteMask.blue,
+                    drawStyle.channelWriteMask.alpha
+                )
                 cached.channelWriteMask = drawStyle.channelWriteMask
             }
 
@@ -801,19 +988,47 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
                     glDisable(GL_STENCIL_TEST)
                 } else {
                     glEnable(GL_STENCIL_TEST)
-                    glStencilFunc(glStencilTest(drawStyle.stencil.stencilTest), drawStyle.stencil.stencilTestReference, drawStyle.stencil.stencilTestMask)
+                    glStencilFunc(
+                        glStencilTest(drawStyle.stencil.stencilTest),
+                        drawStyle.stencil.stencilTestReference,
+                        drawStyle.stencil.stencilTestMask
+                    )
                     debugGLErrors()
-                    glStencilOp(glStencilOp(drawStyle.stencil.stencilFailOperation), glStencilOp(drawStyle.stencil.depthFailOperation), glStencilOp(drawStyle.stencil.depthPassOperation))
+                    glStencilOp(
+                        glStencilOp(drawStyle.stencil.stencilFailOperation),
+                        glStencilOp(drawStyle.stencil.depthFailOperation),
+                        glStencilOp(drawStyle.stencil.depthPassOperation)
+                    )
                     debugGLErrors()
                     glStencilMask(drawStyle.stencil.stencilWriteMask)
                     debugGLErrors()
                 }
             } else {
                 glEnable(GL_STENCIL_TEST)
-                glStencilFuncSeparate(GL_FRONT, glStencilTest(drawStyle.frontStencil.stencilTest), drawStyle.frontStencil.stencilTestReference, drawStyle.frontStencil.stencilTestMask)
-                glStencilFuncSeparate(GL_BACK, glStencilTest(drawStyle.backStencil.stencilTest), drawStyle.backStencil.stencilTestReference, drawStyle.backStencil.stencilTestMask)
-                glStencilOpSeparate(GL_FRONT, glStencilOp(drawStyle.frontStencil.stencilFailOperation), glStencilOp(drawStyle.frontStencil.depthFailOperation), glStencilOp(drawStyle.frontStencil.depthPassOperation))
-                glStencilOpSeparate(GL_BACK, glStencilOp(drawStyle.backStencil.stencilFailOperation), glStencilOp(drawStyle.backStencil.depthFailOperation), glStencilOp(drawStyle.backStencil.depthPassOperation))
+                glStencilFuncSeparate(
+                    GL_FRONT,
+                    glStencilTest(drawStyle.frontStencil.stencilTest),
+                    drawStyle.frontStencil.stencilTestReference,
+                    drawStyle.frontStencil.stencilTestMask
+                )
+                glStencilFuncSeparate(
+                    GL_BACK,
+                    glStencilTest(drawStyle.backStencil.stencilTest),
+                    drawStyle.backStencil.stencilTestReference,
+                    drawStyle.backStencil.stencilTestMask
+                )
+                glStencilOpSeparate(
+                    GL_FRONT,
+                    glStencilOp(drawStyle.frontStencil.stencilFailOperation),
+                    glStencilOp(drawStyle.frontStencil.depthFailOperation),
+                    glStencilOp(drawStyle.frontStencil.depthPassOperation)
+                )
+                glStencilOpSeparate(
+                    GL_BACK,
+                    glStencilOp(drawStyle.backStencil.stencilFailOperation),
+                    glStencilOp(drawStyle.backStencil.depthFailOperation),
+                    glStencilOp(drawStyle.backStencil.depthPassOperation)
+                )
                 glStencilMaskSeparate(GL_FRONT, drawStyle.frontStencil.stencilWriteMask)
                 glStencilMaskSeparate(GL_BACK, drawStyle.backStencil.stencilWriteMask)
             }
@@ -930,6 +1145,33 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         glFlush()
         glFinish()
     }
+
+    fun destroyVAOsForVertexBuffer(vertexBuffer: VertexBufferGL3) {
+        val candidates = vaos.keys.filter {
+            it.vertexBuffers.contains(vertexBuffer.buffer) || it.instanceAttributeBuffers.contains(vertexBuffer.buffer)
+        }
+        for (candidate in candidates) {
+            val value = vaos[candidate] ?: error("no vao found")
+            logger.debug { "removing VAO $value for $candidate" }
+            glDeleteVertexArrays(value)
+            debugGLErrors()
+            vaos.remove(candidate)
+        }
+    }
+
+    fun destroyVAOsForShader(shader: ShaderGL3) {
+        val candidates = vaos.keys.filter {
+            it.vertexBuffers.contains(shader.program) || it.instanceAttributeBuffers.contains(shader.program)
+        }
+        for (candidate in candidates) {
+            val value = vaos[candidate] ?: error("no vao found")
+            logger.debug { "removing VAO $value for $candidate" }
+            glDeleteVertexArrays(value)
+            debugGLErrors()
+            vaos.remove(candidate)
+        }
+    }
+
 }
 
 private fun IndexType.glType(): Int {
@@ -999,15 +1241,17 @@ private fun VertexElementType.glType(): Int = when (this) {
 }
 
 internal fun Matrix44.toFloatArray(): FloatArray = floatArrayOf(
-        c0r0.toFloat(), c0r1.toFloat(), c0r2.toFloat(), c0r3.toFloat(),
-        c1r0.toFloat(), c1r1.toFloat(), c1r2.toFloat(), c1r3.toFloat(),
-        c2r0.toFloat(), c2r1.toFloat(), c2r2.toFloat(), c2r3.toFloat(),
-        c3r0.toFloat(), c3r1.toFloat(), c3r2.toFloat(), c3r3.toFloat())
+    c0r0.toFloat(), c0r1.toFloat(), c0r2.toFloat(), c0r3.toFloat(),
+    c1r0.toFloat(), c1r1.toFloat(), c1r2.toFloat(), c1r3.toFloat(),
+    c2r0.toFloat(), c2r1.toFloat(), c2r2.toFloat(), c2r3.toFloat(),
+    c3r0.toFloat(), c3r1.toFloat(), c3r2.toFloat(), c3r3.toFloat()
+)
 
 internal fun Matrix33.toFloatArray(): FloatArray = floatArrayOf(
-        c0r0.toFloat(), c0r1.toFloat(), c0r2.toFloat(),
-        c1r0.toFloat(), c1r1.toFloat(), c1r2.toFloat(),
-        c2r0.toFloat(), c2r1.toFloat(), c2r2.toFloat())
+    c0r0.toFloat(), c0r1.toFloat(), c0r2.toFloat(),
+    c1r0.toFloat(), c1r1.toFloat(), c1r2.toFloat(),
+    c2r0.toFloat(), c2r1.toFloat(), c2r2.toFloat()
+)
 
 val Driver.Companion.glVersion
     get() = (Driver.instance as DriverGL3).version
