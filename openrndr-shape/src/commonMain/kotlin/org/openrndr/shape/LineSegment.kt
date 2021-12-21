@@ -118,6 +118,12 @@ data class LineSegment(val start: Vector2, val end: Vector2) : LinearType<LineSe
         return LineSegment(start - direction * times, end + direction * times)
     }
 
+    val length: Double
+        get() = start.distanceTo(end)
+
+    val squaredLength: Double
+        get() = start.squaredDistanceTo(end);
+
     /** Returns [Segment] representation of the [LineSegment]. */
     val segment: Segment
         get() = Segment(start, end)
