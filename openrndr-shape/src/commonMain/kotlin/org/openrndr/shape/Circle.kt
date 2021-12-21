@@ -7,6 +7,8 @@ import kotlin.math.acos
 import kotlin.math.pow
 import kotlin.math.sqrt
 import kotlin.math.abs
+import kotlin.math.PI
+
 /**
  * Creates a [Circle].
  *
@@ -87,6 +89,9 @@ data class Circle(val center: Vector2, val radius: Double): Movable, Scalable1D,
 
     /** Returns true if given [point] lies inside the [Shape]. */
     operator fun contains(point: Vector2): Boolean = point.minus(center).squaredLength < radius * radius
+
+    val area: Double
+        get() = radius * radius * PI
 
     /** Returns [Shape] representation of the [Circle]. */
     override val shape get() = Shape(listOf(contour))
