@@ -10,6 +10,10 @@ val kluentVersion: String by rootProject.extra
 val spekVersion: String by rootProject.extra
 val kotlinLoggingVersion: String by rootProject.extra
 val kotlinxCoroutinesVersion: String by rootProject.extra
+val kotlinxSerializationVersion: String by rootProject.extra
+val kotestVersion: String by rootProject.extra
+val junitJupiterVersion: String by rootProject.extra
+
 
 kotlin {
     jvm {
@@ -20,7 +24,7 @@ kotlin {
         }
         testRuns["test"].executionTask.configure {
             useJUnitPlatform()
-            exclude("**/*.class")
+//            exclude("**/*.class")
         }
     }
 
@@ -54,6 +58,12 @@ kotlin {
                 runtimeOnly("org.slf4j:slf4j-simple:1.7.30")
                 implementation("org.spekframework.spek2:spek-dsl-jvm:$spekVersion")
                 implementation("org.amshove.kluent:kluent:$kluentVersion")
+
+                implementation(kotlin("test-annotations-common"))
+                implementation(kotlin("test-junit5"))
+                runtimeOnly("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
+                runtimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
+
 
             }
         }

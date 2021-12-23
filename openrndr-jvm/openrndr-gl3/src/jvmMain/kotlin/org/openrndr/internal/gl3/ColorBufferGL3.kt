@@ -927,7 +927,6 @@ class ColorBufferGL3(
                 (gBuffer as Buffer).rewind()
                 (rBuffer as Buffer).rewind()
 
-
                 val pixelTypes = BufferUtils.createIntBuffer(4 * 3).apply {
                     put(exrType); put(exrType); put(exrType); (this as Buffer).rewind()
                 }
@@ -944,7 +943,6 @@ class ColorBufferGL3(
                 images.put(1, gBuffer)
                 images.put(2, rBuffer)
                 images.rewind()
-
                 exrImage.images(images)
 
                 val errors = PointerBuffer.allocateDirect(1)
@@ -953,10 +951,9 @@ class ColorBufferGL3(
                 require(result == 0) {
                     "failed to save to ${file.path}, [result=$result]"
                 }
-                //FreeEXRHeader(exrHeader)
+                exrImage.images(null as PointerBuffer?)
                 FreeEXRImage(exrImage)
             }
-
         } else {
             throw IllegalArgumentException("multisample targets cannot be saved to file")
         }
