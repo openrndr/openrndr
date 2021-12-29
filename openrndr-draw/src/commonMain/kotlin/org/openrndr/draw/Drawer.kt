@@ -97,20 +97,24 @@ class Drawer(val driver: Driver) {
     val width: Int get() = RenderTarget.active.width
     val height: Int get() = RenderTarget.active.height
 
-    private var modelViewScaling = 1.0
+    private var modelViewScalingFactor = 1.0
+    private val modelViewScaling: Double
+    get() {
+        return modelViewScalingFactor * RenderTarget.active.contentScale
+    }
 
     /** The active model matrix */
     var model: Matrix44 = Matrix44.IDENTITY
         set(value) {
             field = value
-            modelViewScaling = ((view * model).matrix33 * Vector3(1.0, 1.0, 1.0).normalized).length
+            modelViewScalingFactor = ((view * model).matrix33 * Vector3(1.0, 1.0, 1.0).normalized).length
         }
 
     /** The active view matrix */
     var view: Matrix44 = Matrix44.IDENTITY
         set(value) {
             field = value
-            modelViewScaling = ((view * model).matrix33 * Vector3(1.0, 1.0, 1.0).normalized).length
+            modelViewScalingFactor = ((view * model).matrix33 * Vector3(1.0, 1.0, 1.0).normalized).length
         }
 
 
