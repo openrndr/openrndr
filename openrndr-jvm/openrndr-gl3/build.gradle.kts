@@ -24,7 +24,9 @@ kotlin {
         }
         testRuns["test"].executionTask.configure {
             useJUnitPlatform()
-//            exclude("**/*.class")
+            if (System.getenv("CI") == "true") {
+                exclude("**/*.class")
+            }
         }
     }
 
