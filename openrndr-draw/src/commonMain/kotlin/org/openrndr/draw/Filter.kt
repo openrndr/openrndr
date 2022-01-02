@@ -1,9 +1,12 @@
 package org.openrndr.draw
 
+import mu.KotlinLogging
 import org.openrndr.color.ColorRGBa
 import org.openrndr.internal.Driver
 import org.openrndr.math.*
 import org.openrndr.math.transforms.ortho
+
+private val logger = KotlinLogging.logger {}
 
 private val filterDrawStyle = DrawStyle().apply {
     blendMode = BlendMode.REPLACE
@@ -20,7 +23,13 @@ private var filterQuadFormat = vertexFormat {
 
 
 fun filterShaderFromCode(fragmentShaderCode: String, name: String, includeShaderConfiguration: Boolean = true): Shader {
-    return if (!includeShaderConfiguration) {
+    val hasExistingConfiguration = fragmentShaderCode.contains("#version")
+
+    if (hasExistingConfiguration && includeShaderConfiguration) {
+        logger.warn { "Shader '$name' has an existing #version definition. Shader configuration will not be added." }
+    }
+
+    return if (!includeShaderConfiguration || hasExistingConfiguration) {
         Shader.createFromCode(vsCode = Filter.filterVertexCode, fsCode = fragmentShaderCode, name = name)
     } else {
         Shader.createFromCode(
