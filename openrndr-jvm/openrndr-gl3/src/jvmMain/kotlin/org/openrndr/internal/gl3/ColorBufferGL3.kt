@@ -46,6 +46,19 @@ enum class TextureStorageModeGL {
     STORAGE
 }
 
+/**
+ * Exposes TINYEXR_COMPRESSIONTYPE for convention
+ */
+enum class ExrCompression(val value: Int) {
+   NONE(TINYEXR_COMPRESSIONTYPE_NONE),
+   RLE(TINYEXR_COMPRESSIONTYPE_RLE),
+   ZIPS(TINYEXR_COMPRESSIONTYPE_ZIPS),
+   ZIP(TINYEXR_COMPRESSIONTYPE_ZIP),
+   PIZ(TINYEXR_COMPRESSIONTYPE_PIZ),
+   ZFP(TINYEXR_COMPRESSIONTYPE_ZFP)  // experimental, see https://tinyexr.docsforge.com/master/getting-started/#zfp
+}
+
+
 internal fun internalFormat(format: ColorFormat, type: ColorType): Pair<Int, Int> {
     val entries = arrayOf(
         ConversionEntry(ColorFormat.R, ColorType.UINT8, GL_R8, GL_RED),
@@ -135,6 +148,7 @@ class ColorBufferGL3(
     override val session: Session?
 ) : ColorBuffer() {
 
+    var exrCompression = ExrCompression.NONE
 
     private var destroyed = false
     override var flipV: Boolean = false
@@ -874,6 +888,9 @@ class ColorBufferGL3(
                 InitEXRHeader(exrHeader)
 
                 exrHeader.num_channels(3)
+                if (exrCompression != ExrCompression.NONE) {
+                    exrHeader.compression_type(exrCompression.value)
+                }
 
                 val exrChannels = EXRChannelInfo.calloc(3)
                 exrChannels[0].name(
@@ -909,18 +926,18 @@ class ColorBufferGL3(
 
                     for (x in 0 until effectiveWidth) {
                         for (i in 0 until type.componentSize) {
-                            val b = data.get()
-                            bBuffer.put(b)
+                            val r = data.get()
+                            rBuffer.put(r)
                         }
                         for (i in 0 until type.componentSize) {
                             val g = data.get()
                             gBuffer.put(g)
                         }
                         for (i in 0 until type.componentSize) {
-                            val r = data.get()
-                            rBuffer.put(r)
+                            val b = data.get()
+                            bBuffer.put(b)
                         }
-                    }
+                   }
                 }
 
                 (bBuffer as Buffer).rewind()
