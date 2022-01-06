@@ -6,6 +6,9 @@ import kotlin.coroutines.CoroutineContext
 
 private val logger = KotlinLogging.logger {}
 
+
+private var lastRunTime = -1L
+
 @OptIn(InternalCoroutinesApi::class)
 actual class Dispatcher : MainCoroutineDispatcher(), Delay {
     private val toRun = mutableListOf<Runnable>()
@@ -38,6 +41,7 @@ actual class Dispatcher : MainCoroutineDispatcher(), Delay {
 
 
     fun execute() {
+        lastRunTime = System.currentTimeMillis()
         synchronized(toRun) {
             val copy = toRun + emptyList()
             toRun.clear()
@@ -74,6 +78,13 @@ actual class Dispatcher : MainCoroutineDispatcher(), Delay {
         }
     }
 }
+
+suspend fun throttle(timeMillis: Long) {
+    if ((System.currentTimeMillis() - lastRunTime) > timeMillis) {
+        delay(1)
+    }
+}
+
 @Suppress("EXPERIMENTAL_API_USAGE")
 fun Dispatcher.launch(start: CoroutineStart = CoroutineStart.DEFAULT,
                       block: suspend CoroutineScope.() -> Unit
