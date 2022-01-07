@@ -2,15 +2,19 @@ package org.openrndr.webgl
 
 import kotlinx.browser.document
 import kotlinx.browser.window
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.await
 import org.khronos.webgl.WebGLContextAttributes
 import org.khronos.webgl.WebGLRenderingContext
 import org.openrndr.*
 import org.openrndr.draw.Drawer
 import org.openrndr.internal.Driver
 import org.openrndr.math.Vector2
+import org.w3c.dom.HTMLAnchorElement
 import org.w3c.dom.HTMLCanvasElement
 import org.w3c.dom.events.WheelEvent
 import org.w3c.dom.events.MouseEvent as HtmlMouseEvent
+import org.w3c.dom.events.KeyboardEvent as HtmlKeyboardEvent
 import kotlin.math.min
 
 val applicationWebGLInitializer = object {
@@ -77,7 +81,34 @@ class ApplicationWebGL(private val program: Program, private val configuration: 
             )
         })
 
+        // Keyboard
+        window.addEventListener("keydown", {
+            it as HtmlKeyboardEvent
+            program.keyboard.pressedKeys.add(it.key)
+            program.keyboard.keyDown.trigger(
+                KeyEvent(
+                    KeyEventType.KEY_DOWN,
+                    it.which,
+                    it.key,
+                    getModifiers(it)
+                )
+            )
+        })
 
+        window.addEventListener("keyup", {
+            it as HtmlKeyboardEvent
+            program.keyboard.pressedKeys.remove(it.key)
+            program.keyboard.keyUp.trigger(
+                KeyEvent(
+                    KeyEventType.KEY_UP,
+                    it.which,
+                    it.key,
+                    getModifiers(it)
+                )
+            )
+        })
+
+        // Mouse
         var lastDragPosition = Vector2.ZERO
         var down = false
         window.addEventListener("mousedown", {
@@ -86,10 +117,43 @@ class ApplicationWebGL(private val program: Program, private val configuration: 
             val x = it.clientX.toDouble()
             val y = it.clientY.toDouble()
             lastDragPosition = Vector2(x, y)
+
+            program.mouse.buttonDown.trigger(
+                MouseEvent(
+                    lastDragPosition,
+                    Vector2.ZERO,
+                    Vector2.ZERO,
+                    MouseEventType.BUTTON_DOWN,
+                    when (it.button as Int) {
+                        0 -> MouseButton.LEFT
+                        1 -> MouseButton.CENTER
+                        2 -> MouseButton.RIGHT
+                        else -> MouseButton.LEFT
+                     },
+                    emptySet()
+                )
+            )
         })
 
         window.addEventListener("mouseup", {
+            it as HtmlMouseEvent
             down = false
+
+            program.mouse.buttonUp.trigger(
+                MouseEvent(
+                    lastDragPosition,
+                    Vector2.ZERO,
+                    Vector2.ZERO,
+                    MouseEventType.BUTTON_UP,
+                    when (it.button as Int) {
+                        0 -> MouseButton.LEFT
+                        1 -> MouseButton.CENTER
+                        2 -> MouseButton.RIGHT
+                        else -> MouseButton.LEFT
+                    },
+                    emptySet()
+                )
+            )
         })
 
         window.addEventListener("wheel", {
@@ -152,6 +216,15 @@ class ApplicationWebGL(private val program: Program, private val configuration: 
         program.setup()
     }
 
+    private fun getModifiers(e: HtmlKeyboardEvent): Set<KeyModifier> {
+        val set = mutableSetOf<KeyModifier>()
+        if (e.ctrlKey) set.add(KeyModifier.CTRL)
+        if (e.altKey) set.add(KeyModifier.ALT)
+        if (e.metaKey) set.add(KeyModifier.SUPER)
+        if (e.shiftKey) set.add(KeyModifier.SHIFT)
+        return set
+    }
+
     override fun loop() {
         val dims = windowSize
         program.width = dims.x.toInt()
@@ -206,4 +279,4 @@ class ApplicationWebGL(private val program: Program, private val configuration: 
     override var windowContentScale: Double
         get() = min(configuration.maxContentScale, window.devicePixelRatio)
         set(_) {}
-}
+
