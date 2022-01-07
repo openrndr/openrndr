@@ -1,4 +1,3 @@
-// TODO: needs to be moved to openrndr-extra
 package org.openrndr.extensions
 
 import kotlinx.browser.document
