@@ -12,7 +12,13 @@ import org.openrndr.internal.Driver
 import org.openrndr.math.Vector2
 import org.w3c.dom.HTMLAnchorElement
 import org.w3c.dom.HTMLCanvasElement
+import org.w3c.dom.asList
 import org.w3c.dom.events.WheelEvent
+import org.w3c.files.File
+import org.w3c.files.FileList
+import org.w3c.files.FileReader
+import org.w3c.files.get
+import kotlin.js.Promise
 import org.w3c.dom.events.MouseEvent as HtmlMouseEvent
 import org.w3c.dom.events.KeyboardEvent as HtmlKeyboardEvent
 import kotlin.math.min
@@ -52,7 +58,8 @@ class ApplicationWebGL(private val program: Program, private val configuration: 
         canvas = document.getElementById(configuration.canvasId) as? HTMLCanvasElement
             ?: error("failed to get canvas #${configuration.canvasId}")
         val contextAttributes = WebGLContextAttributes(stencil = true)
-        context = canvas?.getContext("webgl", contextAttributes) as? WebGLRenderingContext ?: error("failed to create webgl context")
+        context = canvas?.getContext("webgl", contextAttributes) as? WebGLRenderingContext
+            ?: error("failed to create webgl context")
         Driver.driver = DriverWebGL(context ?: error("no context"))
         program.drawer = Drawer(Driver.instance)
         referenceTime = window.performance.now()
@@ -129,7 +136,7 @@ class ApplicationWebGL(private val program: Program, private val configuration: 
                         1 -> MouseButton.CENTER
                         2 -> MouseButton.RIGHT
                         else -> MouseButton.LEFT
-                     },
+                    },
                     emptySet()
                 )
             )
@@ -159,12 +166,14 @@ class ApplicationWebGL(private val program: Program, private val configuration: 
         window.addEventListener("wheel", {
             it as WheelEvent
             program.mouse.scrolled.trigger(
-                MouseEvent(cursorPosition,
+                MouseEvent(
+                    cursorPosition,
                     Vector2(it.deltaX, it.deltaY),
                     Vector2.ZERO,
                     MouseEventType.SCROLLED,
                     MouseButton.NONE,
-                    emptySet())
+                    emptySet()
+                )
             )
         })
 
@@ -206,6 +215,29 @@ class ApplicationWebGL(private val program: Program, private val configuration: 
         })
 
 
+        // Drag and drop
+        canvas?.addEventListener("dragover", {
+            it.preventDefault()
+            println("dragover")
+        })
+
+        canvas?.addEventListener("drop", {
+            it.preventDefault()
+            println("drop")
+            val files: FileList = js("it.dataTransfer.files")
+            val promises = files.asList().map { f -> readFileOrBlobAsDataUrl(f)}
+
+            Promise.all(promises.toTypedArray()).then { images ->
+                program.window.drop.trigger(
+                    DropEvent(
+                        this.cursorPosition,
+                        images.toList()
+                    )
+                )
+            }
+        })
+
+
         defaultRenderTarget = ProgramRenderTargetWebGL(context ?: error("no context"), program)
         defaultRenderTarget?.bind()
 
@@ -214,6 +246,16 @@ class ApplicationWebGL(private val program: Program, private val configuration: 
         program.width = dims.x.toInt()
         program.height = dims.y.toInt()
         program.setup()
+    }
+
+    private fun readFileOrBlobAsDataUrl(file: File): Promise<String> {
+        return Promise() { resolve, reject ->
+            val reader = FileReader()
+            reader.readAsDataURL(file);
+            reader.onloadend = {
+                resolve(reader.result)
+            }
+        }
     }
 
     private fun getModifiers(e: HtmlKeyboardEvent): Set<KeyModifier> {
@@ -244,9 +286,11 @@ class ApplicationWebGL(private val program: Program, private val configuration: 
     override var clipboardContents: String?
         get() = TODO("Not yet implemented")
         set(_) {}
+
     override var windowTitle: String
         get() = TODO("Not yet implemented")
         set(_) {}
+
     override var windowPosition: Vector2
         get() = Vector2(0.0, 0.0)
         set(_) {}
@@ -266,6 +310,7 @@ class ApplicationWebGL(private val program: Program, private val configuration: 
     override var cursorVisible: Boolean
         get() = TODO("Not yet implemented")
         set(_) {}
+
     override var cursorHideMode: MouseCursorHideMode
         get() = TODO("Not yet implemented")
         set(_) {}
@@ -280,3 +325,4 @@ class ApplicationWebGL(private val program: Program, private val configuration: 
         get() = min(configuration.maxContentScale, window.devicePixelRatio)
         set(_) {}
 
+}
