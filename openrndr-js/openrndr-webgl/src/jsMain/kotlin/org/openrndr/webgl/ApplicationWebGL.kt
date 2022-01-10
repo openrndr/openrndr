@@ -47,7 +47,7 @@ class ApplicationWebGL(private val program: Program, private val configuration: 
     override suspend fun setup() {
         canvas = document.getElementById(configuration.canvasId) as? HTMLCanvasElement
             ?: error("failed to get canvas #${configuration.canvasId}")
-        val contextAttributes = WebGLContextAttributes(stencil = true)
+        val contextAttributes = WebGLContextAttributes(stencil = true, preserveDrawingBuffer = true)
         context = canvas?.getContext("webgl", contextAttributes) as? WebGLRenderingContext ?: error("failed to create webgl context")
         Driver.driver = DriverWebGL(context ?: error("no context"))
         program.drawer = Drawer(Driver.instance)
