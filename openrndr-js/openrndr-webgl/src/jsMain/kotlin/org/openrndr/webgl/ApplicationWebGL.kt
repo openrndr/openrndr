@@ -57,9 +57,8 @@ class ApplicationWebGL(private val program: Program, private val configuration: 
     override suspend fun setup() {
         canvas = document.getElementById(configuration.canvasId) as? HTMLCanvasElement
             ?: error("failed to get canvas #${configuration.canvasId}")
-        val contextAttributes = WebGLContextAttributes(stencil = true)
-        context = canvas?.getContext("webgl", contextAttributes) as? WebGLRenderingContext
-            ?: error("failed to create webgl context")
+        val contextAttributes = WebGLContextAttributes(stencil = true, preserveDrawingBuffer = true)
+        context = canvas?.getContext("webgl", contextAttributes) as? WebGLRenderingContext ?: error("failed to create webgl context")
         Driver.driver = DriverWebGL(context ?: error("no context"))
         program.drawer = Drawer(Driver.instance)
         referenceTime = window.performance.now()
@@ -69,6 +68,7 @@ class ApplicationWebGL(private val program: Program, private val configuration: 
         canvas?.width = (dpr * (canvas?.clientWidth ?: error("no width"))).toInt()
         canvas?.height = (dpr * (canvas?.clientHeight ?: error("no height"))).toInt()
 
+        windowTitle = configuration.title
 
         window.addEventListener("resize", {
             val resizeDpr = min(configuration.maxContentScale, window.devicePixelRatio)
@@ -288,8 +288,10 @@ class ApplicationWebGL(private val program: Program, private val configuration: 
         set(_) {}
 
     override var windowTitle: String
-        get() = TODO("Not yet implemented")
-        set(_) {}
+        get() = window.document.title
+        set(text) {
+            window.document.title = text
+        }
 
     override var windowPosition: Vector2
         get() = Vector2(0.0, 0.0)

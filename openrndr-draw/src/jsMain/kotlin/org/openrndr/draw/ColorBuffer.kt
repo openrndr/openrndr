@@ -184,5 +184,5 @@ actual suspend fun loadImageSuspend(
     formatHint: ImageFileFormat?,
     session: Session?
 ): ColorBuffer {
-    return Driver.instance.createColorBufferFromUrl(fileOrUrl, null, session)
+    return Driver.instance.createColorBufferFromUrlSuspend(fileOrUrl, null, session)
 }
