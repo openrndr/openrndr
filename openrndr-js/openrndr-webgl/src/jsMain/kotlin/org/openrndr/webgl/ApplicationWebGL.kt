@@ -58,6 +58,7 @@ class ApplicationWebGL(private val program: Program, private val configuration: 
         canvas?.width = (dpr * (canvas?.clientWidth ?: error("no width"))).toInt()
         canvas?.height = (dpr * (canvas?.clientHeight ?: error("no height"))).toInt()
 
+        windowTitle = configuration.title
 
         window.addEventListener("resize", {
             val resizeDpr = min(configuration.maxContentScale, window.devicePixelRatio)
@@ -172,8 +173,11 @@ class ApplicationWebGL(private val program: Program, private val configuration: 
         get() = TODO("Not yet implemented")
         set(_) {}
     override var windowTitle: String
-        get() = TODO("Not yet implemented")
-        set(_) {}
+        get() = window.document.title
+        set(text) {
+            window.document.title = text
+        }
+
     override var windowPosition: Vector2
         get() = Vector2(0.0, 0.0)
         set(_) {}
