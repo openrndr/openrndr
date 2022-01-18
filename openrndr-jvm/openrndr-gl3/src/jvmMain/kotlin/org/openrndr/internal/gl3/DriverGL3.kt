@@ -1034,21 +1034,37 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
             }
 
             if (dirty || cached.blendMode != drawStyle.blendMode) {
+
                 when (drawStyle.blendMode) {
                     BlendMode.OVER -> {
                         glEnable(GL_BLEND)
-                        glBlendEquationi(0, GL_FUNC_ADD)
-                        glBlendFunci(0, GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
+                        if (version >= DriverVersionGL.VERSION_4_1) {
+                            glBlendEquationi(0, GL_FUNC_ADD)
+                            glBlendFunci(0, GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
+                        } else {
+                            glBlendEquation(GL_FUNC_ADD)
+                            glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
+                        }
                     }
                     BlendMode.BLEND -> {
                         glEnable(GL_BLEND)
-                        glBlendEquationi(0, GL_FUNC_ADD)
-                        glBlendFunci(0, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+                        if (version >= DriverVersionGL.VERSION_4_1) {
+                            glBlendEquationi(0, GL_FUNC_ADD)
+                            glBlendFunci(0, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+                        } else {
+                            glBlendEquation(GL_FUNC_ADD)
+                            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+                        }
                     }
                     BlendMode.ADD -> {
                         glEnable(GL_BLEND)
-                        glBlendEquationi(0, GL_FUNC_ADD)
-                        glBlendFunci(0, GL_ONE, GL_ONE)
+                        if (version >= DriverVersionGL.VERSION_4_1) {
+                            glBlendEquationi(0, GL_FUNC_ADD)
+                            glBlendFunci(0, GL_ONE, GL_ONE)
+                        } else {
+                            glBlendEquation(GL_FUNC_ADD)
+                            glBlendFunc(GL_ONE, GL_ONE)
+                        }
                     }
 
                     BlendMode.REPLACE -> {
@@ -1056,18 +1072,33 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
                     }
                     BlendMode.SUBTRACT -> {
                         glEnable(GL_BLEND)
-                        glBlendEquationSeparatei(0, GL_FUNC_REVERSE_SUBTRACT, GL_FUNC_ADD)
-                        glBlendFuncSeparatei(0, GL_SRC_ALPHA, GL_ONE, GL_ONE, GL_ONE)
+                        if (version >= DriverVersionGL.VERSION_4_1) {
+                            glBlendEquationSeparatei(0, GL_FUNC_REVERSE_SUBTRACT, GL_FUNC_ADD)
+                            glBlendFuncSeparatei(0, GL_SRC_ALPHA, GL_ONE, GL_ONE, GL_ONE)
+                        } else {
+                            glBlendEquationSeparate(GL_FUNC_REVERSE_SUBTRACT, GL_FUNC_ADD)
+                            glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE, GL_ONE, GL_ONE)
+                        }
                     }
                     BlendMode.MULTIPLY -> {
                         glEnable(GL_BLEND)
-                        glBlendEquationi(0, GL_FUNC_ADD)
-                        glBlendFunci(0, GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA)
+                        if (version >= DriverVersionGL.VERSION_4_1) {
+                            glBlendEquationi(0, GL_FUNC_ADD)
+                            glBlendFunci(0, GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA)
+                        } else {
+                            glBlendEquation(GL_FUNC_ADD)
+                            glBlendFunc(GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA)
+                        }
                     }
                     BlendMode.REMOVE -> {
                         glEnable(GL_BLEND)
-                        glBlendEquationi(0, GL_FUNC_ADD)
-                        glBlendFunci(0, GL_ZERO, GL_ONE_MINUS_SRC_ALPHA)
+                        if (version >= DriverVersionGL.VERSION_4_1) {
+                            glBlendEquationi(0, GL_FUNC_ADD)
+                            glBlendFunci(0, GL_ZERO, GL_ONE_MINUS_SRC_ALPHA)
+                        } else {
+                            glBlendEquation(GL_FUNC_ADD)
+                            glBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_ALPHA)
+                        }
                     }
                 }
                 cached.blendMode = drawStyle.blendMode
