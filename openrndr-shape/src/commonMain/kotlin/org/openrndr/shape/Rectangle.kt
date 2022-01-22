@@ -249,3 +249,5 @@ fun Vector2.map(sourceRectangle: Rectangle, targetRectangle: Rectangle, clamp: B
     return if (clamp) remapped.clamp(targetRectangle.corner, targetRectangle.corner + targetRectangle.dimensions) else remapped
 }
 
+fun List<Vector2>.map(sourceRectangle: Rectangle, targetRectangle: Rectangle, clamp: Boolean = false) : List<Vector2> =
+    this.map { it.map(sourceRectangle, targetRectangle, clamp)}
