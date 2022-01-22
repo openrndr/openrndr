@@ -615,6 +615,7 @@ class DriverWebGL(val context: GL) : Driver {
             #define OR_VARYINGS
             #define OR_WEBGL1
             #define OR_GL_TEXTURE2D
+            #define OR_CONSTANT_LOOPS
         """.trimIndent()
     }
 }
