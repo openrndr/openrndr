@@ -36,4 +36,5 @@ include 'openrndr-application',
 		'openrndr-nullgl',
 		'openrndr-utils',
 		'openrndr-dds',
-		'openrndr-kartifex'
+		'openrndr-kartifex',
+		'openrndr-ktessellation'
