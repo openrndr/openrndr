@@ -8,8 +8,10 @@ val kotlinApiVersion: String by rootProject.extra
 dependencies {
     implementation(project(":openrndr-math"))
 }
-
-
+tasks.withType<JavaCompile> {
+    sourceCompatibility = "1.8"
+    targetCompatibility = "1.8"
+}
 
 //kotlin {
 //    jvm {
