@@ -200,18 +200,20 @@ data class ShapeContour @JvmOverloads constructor (
             return Vector2.INFINITY
         }
 
-        return when (val t = ut.clamp(0.0, 1.0)) {
+        return when (val t = ut.coerceIn(0.0, 1.0)) {
             0.0 -> segments[0].start
             1.0 -> segments.last().end
             else -> {
-                val segment = (t * segments.size).toInt()
-                val segmentOffset = (t * segments.size) - segment
-                segments[min(segments.size - 1, segment)].position(segmentOffset)
+                val (segment, segmentOffset) = segment(t)
+                segments[segment].position(segmentOffset)
             }
         }
     }
 
-    /** Calculates the normal for given value of `t`. */
+    /**
+     * Calculates the normal for the given [ut].
+     * @param ut unfiltered t parameter, will be clamped between 0.0 and 1.0.
+     */
     fun normal(ut: Double): Vector2 {
         if (empty) {
             return Vector2.ZERO
@@ -221,12 +223,33 @@ data class ShapeContour @JvmOverloads constructor (
             0.0 -> segments[0].normal(0.0, polarity)
             1.0 -> segments.last().normal(1.0, polarity)
             else -> {
-                val segment = (t * segments.size).toInt()
-                val segmentOffset = (t * segments.size) - segment
-                segments[min(segments.size - 1, segment)].normal(segmentOffset, polarity)
+                val (segment, segmentOffset) = segment(t)
+                segments[segment].normal(segmentOffset, polarity)
             }
         }
     }
+
+    /**
+     * Returns segment number and segment offset
+     * in a [ShapeContour] for the given [ut].
+     * @param ut unfiltered t parameter, will be clamped between 0.0 and 1.0.
+     */
+    fun segment(ut: Double): Pair<Int, Double> {
+        if (empty) {
+            return Pair(0, 0.0)
+        }
+
+        return when (val t = ut.coerceIn(0.0, 1.0)) {
+            0.0 -> Pair(0, 0.0)
+            1.0 -> Pair(segments.size - 1, 1.0)
+            else -> {
+                val segment = (t * segments.size).toInt()
+                val segmentOffset = (t * segments.size) - segment
+                return Pair(segment, segmentOffset)
+            }
+        }
+    }
+
 
     /**
      * Calculates the pose [Matrix44] (i.e. translation and rotation) that describes an orthonormal basis
