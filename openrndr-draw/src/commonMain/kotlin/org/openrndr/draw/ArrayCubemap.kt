@@ -1,5 +1,11 @@
 package org.openrndr.draw
 
+/**
+ * Array of [Cubemap], all with the same [ColorType], [ColorFormat] and other
+ * properties. Typically, used for efficient reflection probes, lighting and shadowing
+ * systems. This is a common interface to be implemented in various
+ * target languages.
+ */
 expect interface ArrayCubemap {
     val session: Session?
 
