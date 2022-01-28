@@ -33,7 +33,7 @@ data class ColorXSVa @JvmOverloads constructor (val x: Double, val s: Double, va
             } else if (225.0 <= h && h < 275.0) {
                 map(h, 225.0, 275.0, 240.0, 300.0)
             } else {
-                map(h, 276.0, 360.0, 300.0, 360.0)
+                map(h, 275.0, 360.0, 300.0, 360.0)
             }
             return ColorXSVa(x, hsva.s, hsva.v, hsva.a)
         }
@@ -52,7 +52,7 @@ data class ColorXSVa @JvmOverloads constructor (val x: Double, val s: Double, va
         } else if (240.0 <= x && x < 300.0) {
             map(x, 240.0, 300.0, 225.0, 275.0)
         } else {
-            map(x, 300.0, 360.0, 276.0, 360.0)
+            map(x, 300.0, 360.0, 275.0, 360.0)
         }
         return ColorHSVa(h, s, v, a)
     }
