@@ -190,6 +190,19 @@ data class ShapeContour @JvmOverloads constructor (
     /**
      * Returns a point on the path of the [ShapeContour].
      *
+     * To make the computation easier in the presence of non-linear Segments,
+     * the result is derived first from the corresponding Segment in the ShapeContour,
+     * and then within that Segment.
+     *
+     * For example, if the ShapeContour is composed of 10 Segments, asking for position ut=0.03
+     * will return the point 30% of the along the 1st Segment, and ut=0.51 will return the point
+     * 10% of the along the 6th.
+     *
+     *
+     * If the component Segments are of wildly different lengths, the resulting point can be very
+     * different than what would be arrived at if the ShapeContour were treated strictly as a whole.
+     * In that case, consider using [ShapeContour.equidistantPositions] instead.
+     *
      * Also see: [Segment.position].
      *
      * @param ut unfiltered t parameter, will be clamped between 0.0 and 1.0.
@@ -212,7 +225,9 @@ data class ShapeContour @JvmOverloads constructor (
 
     /**
      * Calculates the normal for the given [ut].
-     * @param ut unfiltered t parameter, will be clamped between 0.0 and 1.0.
+     *
+     * @param ut unfiltered t parameter, will be clamped between 0.0 and 1.0.  The treatment of
+     * ut is as in [ShapeContour.position].
      */
     fun normal(ut: Double): Vector2 {
         if (empty) {
