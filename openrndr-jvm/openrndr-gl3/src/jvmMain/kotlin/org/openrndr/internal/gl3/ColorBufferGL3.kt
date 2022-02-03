@@ -234,10 +234,12 @@ class ColorBufferGL3(
             }
             checkGLErrors()
 
-            val storageMode = when {
-                (Driver.instance as DriverGL3).version >= DriverVersionGL.VERSION_4_3 -> TextureStorageModeGL.STORAGE
-                else -> TextureStorageModeGL.IMAGE
-            }
+            // We have some problems with mipmaps when using STORAGE mode
+//            val storageMode = when {
+//                (Driver.instance as DriverGL3).version >= DriverVersionGL.VERSION_4_3 -> TextureStorageModeGL.STORAGE
+//                else -> TextureStorageModeGL.IMAGE
+//            }
+            val storageMode = TextureStorageModeGL.IMAGE
 
             val texture = glGenTextures()
             checkGLErrors()
