@@ -335,13 +335,18 @@ class Segment : ShapeContourProvider {
         return sampleEquidistant(adaptivePositions(), pointCount)
     }
 
-    /** Calculates approximate Euclidean length of the [Segment]. */
-    val length: Double
+    // work around length-by-lazy property being initialized before the secondary constructor initializes the relevant fields
+    private val internalLength: Double
         get() = when (control.size) {
             0 -> (end - start).length
             1, 2 -> sumDifferences(adaptivePositions())
             else -> throw RuntimeException("unsupported number of control points")
         }
+
+    /** Calculates approximate Euclidean length of the [Segment]. */
+    val length by lazy {
+        internalLength
+    }
 
     /**
      * Returns a point on the segment.
