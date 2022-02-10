@@ -4,7 +4,6 @@ import org.openrndr.math.Polar
 import org.openrndr.math.Vector2
 import org.openrndr.math.asDegrees
 import kotlin.math.acos
-import kotlin.math.pow
 import kotlin.math.sqrt
 import kotlin.math.abs
 import kotlin.math.PI
@@ -131,26 +130,36 @@ data class Circle(val center: Vector2, val radius: Double): Movable, Scalable1D,
      *
      * @param isInner If true, returns the inner tangents instead.
      */
-    fun tangents(c: Circle, isInner: Boolean = false): List<Pair<Vector2, Vector2>>? {
-        if(this == INVALID || c == INVALID) {
+    fun tangents(other: Circle, isInner: Boolean = false): List<Pair<Vector2, Vector2>> {
+        if (this == INVALID || other == INVALID) {
             return listOf()
         }
-        val r1 = radius
-        val r2 = if (isInner) -c.radius else c.radius
 
-        val w = (c.center - center) // hypotenuse
-        val d = w.length
-        val dr = r1 - r2 // adjacent
-        val d2 = sqrt(d)
-        val h = sqrt(d.pow(2.0) - dr.pow(2.0))
+        val distSq = center.squaredDistanceTo(other.center)
 
-        if (d2 == 0.0) return null
-
-        return listOf(-1.0, 1.0).map { sign ->
-            val v = (w * dr + w.perpendicular() * h * sign) / d.pow(2.0)
-
-            Pair(center + v * r1, c.center + v * r2)
+        if (isInner) {
+            if (sqrt(distSq) <= radius + other.radius) {
+                return listOf() // circles too close
+            }
+        } else {
+            val rDiff = radius - other.radius
+            if (distSq <= rDiff * rDiff) {
+                return listOf() // nested circles
+            }
         }
+
+        val otherRadiusSigned = if (isInner) -other.radius else other.radius
+        val hyp = other.center - center // hypotenuse
+        val adj = radius - otherRadiusSigned // adjacent
+        val a = hyp * adj
+        val b = hyp.perpendicular() * sqrt(distSq - adj * adj)
+        val v1 = (a - b) / distSq
+        val v2 = (a + b) / distSq
+
+        return listOf(
+            Pair(center + v1 * radius, other.center + v1 * otherRadiusSigned),
+            Pair(center + v2 * radius, other.center + v2 * otherRadiusSigned)
+        )
     }
 
     /** Calculates the tangent lines through an external point. **/
