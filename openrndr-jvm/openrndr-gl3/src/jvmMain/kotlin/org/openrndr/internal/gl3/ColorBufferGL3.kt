@@ -53,9 +53,9 @@ internal fun internalFormat(format: ColorFormat, type: ColorType): Pair<Int, Int
         ConversionEntry(ColorFormat.R, ColorType.SINT8_INT, GL_R8I, GL_RED_INTEGER),
         ConversionEntry(ColorFormat.R, ColorType.UINT16, GL_R16, GL_RED),
         ConversionEntry(ColorFormat.R, ColorType.UINT16_INT, GL_R16UI, GL_RED_INTEGER),
-        ConversionEntry(ColorFormat.R, ColorType.SINT16_INT, GL_RG16I, GL_RED_INTEGER),
+        ConversionEntry(ColorFormat.R, ColorType.SINT16_INT, GL_R16I, GL_RED_INTEGER),
         ConversionEntry(ColorFormat.R, ColorType.UINT32_INT, GL_R32UI, GL_RED_INTEGER),
-        ConversionEntry(ColorFormat.R, ColorType.SINT32_INT, GL_RG32I, GL_RED_INTEGER),
+        ConversionEntry(ColorFormat.R, ColorType.SINT32_INT, GL_R32I, GL_RED_INTEGER),
 
         ConversionEntry(ColorFormat.R, ColorType.FLOAT16, GL_R16F, GL_RED),
         ConversionEntry(ColorFormat.R, ColorType.FLOAT32, GL_R32F, GL_RED),
@@ -276,7 +276,7 @@ class ColorBufferGL3(
                                     effectiveHeight / div,
                                     0,
                                     internalType,
-                                    GL_UNSIGNED_BYTE,
+                                    type.glType(),
                                     nullBB
                                 )
                             is SampleCount -> glTexImage2DMultisample(
@@ -747,6 +747,7 @@ class ColorBufferGL3(
                         }
                     }
                 } else {
+                    val internalType = internalFormat(sourceFormat, sourceType).second
                     glTexSubImage2D(
                         target,
                         level,
@@ -754,7 +755,7 @@ class ColorBufferGL3(
                         0,
                         width / div,
                         height / div,
-                        sourceFormat.glFormat(),
+                        internalType,
                         sourceType.glType(),
                         sourceBuffer
                     )
@@ -800,7 +801,8 @@ class ColorBufferGL3(
                 targetBuffer.order(ByteOrder.nativeOrder())
                 (targetBuffer as Buffer).rewind()
                 if (!targetType.compressed) {
-                    glGetTexImage(target, level, targetFormat.glFormat(), targetType.glType(), targetBuffer)
+                    val internalType = internalFormat(targetFormat, targetType).second
+                    glGetTexImage(target, level, internalType, targetType.glType(), targetBuffer)
                 } else {
                     require(targetType == type && targetFormat == format) {
                         "source format/type (${format}/${type}) and target format/type ${targetFormat}/${targetType}) must match"
