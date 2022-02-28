@@ -10,7 +10,10 @@ import kotlin.math.max
 import kotlin.math.min
 
 /**
- * Creates a new [Rectangle].
+ * Creates a new axis-aligned [Rectangle].
+ *
+ * [Rectangle] is only a data structure with no visible representation,
+ * although it can be drawn by calling [org.openrndr.draw.Drawer.rectangle].
  *
  * Also see [IntRectangle].
  */
@@ -239,6 +242,12 @@ val List<Rectangle>.bounds: Rectangle
 fun intersects(a: Rectangle, b: Rectangle) = a.intersects(b)
 
 /**
+ * Clamps a [Vector2] within the bounds of the [bounds] `Rectangle`.
+ */
+fun Vector2.clamp(bounds: Rectangle) =
+    this.clamp(bounds.corner, bounds.corner + bounds.dimensions)
+
+/**
  * Remaps [Vector2] from a position on the [sourceRectangle] to
  * a proportionally equivalent position on the [targetRectangle].
  *
@@ -246,8 +255,13 @@ fun intersects(a: Rectangle, b: Rectangle) = a.intersects(b)
  */
 fun Vector2.map(sourceRectangle: Rectangle, targetRectangle: Rectangle, clamp: Boolean = false): Vector2 {
     val remapped = (this - sourceRectangle.corner) / sourceRectangle.dimensions * targetRectangle.dimensions + targetRectangle.corner
-    return if (clamp) remapped.clamp(targetRectangle.corner, targetRectangle.corner + targetRectangle.dimensions) else remapped
+    return if (clamp) remapped.clamp(targetRectangle) else remapped
 }
 
+/**
+ * Maps all elements in a `List<Vector2>`
+ * from [sourceRectangle] to [targetRectangle].
+ * If [clamp] is true all elements are clamped within the bounds of [targetRectangle].
+ */
 fun List<Vector2>.map(sourceRectangle: Rectangle, targetRectangle: Rectangle, clamp: Boolean = false) : List<Vector2> =
     this.map { it.map(sourceRectangle, targetRectangle, clamp)}
