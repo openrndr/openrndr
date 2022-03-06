@@ -31,8 +31,8 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation(project(":openrndr-math"))
-                implementation(project(":openrndr-shape"))
-                implementation(project(":openrndr-draw"))
+//                implementation(project(":openrndr-shape"))
+//                implementation(project(":openrndr-draw"))
             }
         }
 
@@ -64,6 +64,5 @@ kotlin {
                 implementation(kotlin("test-js"))
             }
         }
-
     }
 }

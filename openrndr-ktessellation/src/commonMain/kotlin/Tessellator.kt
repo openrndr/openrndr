@@ -14,15 +14,6 @@ class Tessellator : GLUtessellatorImpl() {
                     primitives.add(Primitive(type))
                 }
 
-                //            @Override
-                //            public void vertexD(Object vertexData) {
-                //                if (vertexData != null) {
-                //                    double[] coords = (double[]) vertexData;
-                //                    primitives.get(primitives.size() - 1).positions.add(new Vector2(coords[0], coords[1]));
-                //                } else {
-                //                    System.out.println("yo vertexData is null!");
-                //                }
-                //            }
                 override fun vertexData(vertexData: Any?, polygonData: Any?) {
                     val data = vertexData as DoubleArray
                     primitives.get(primitives.size - 1).positions.add(Vector2(data[0], data[1]))

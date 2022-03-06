@@ -4,6 +4,7 @@ package org.openrndr.shape
 
 import org.openrndr.math.*
 import org.openrndr.utils.resettableLazy
+import kotlin.random.Random
 
 /**
  * A simple interface for managing a [List] of [ShapeContour].
@@ -90,54 +91,54 @@ class Shape(val contours: List<ShapeContour>) : ShapeProvider {
                 Shape(contours.map { it.sampleLinear(distanceTolerance) })
             }
 
-//    private val triangulationDelegate = resettableLazy {
-//        triangulate(this).windowed(3, 3).map {
-//            Triangle(it[0], it[1], it[2])
-//        }
-//    }
-//
-//    /** Triangulates [Shape] into a [List] of [Triangle]s. */
-//    val triangulation by triangulationDelegate
+    private val triangulationDelegate = resettableLazy {
+        triangulate(this).windowed(3, 3).map {
+            Triangle(it[0], it[1], it[2])
+        }
+    }
 
-//    private val areaDelegate = resettableLazy {
-//        triangulation.sumByDouble { it.area }
-//    }
+    /** Triangulates [Shape] into a [List] of [Triangle]s. */
+    val triangulation by triangulationDelegate
 
-//    /** Calculates approximate area for this shape (through triangulation). */
-//    val area by areaDelegate
+    private val areaDelegate = resettableLazy {
+        triangulation.sumByDouble { it.area }
+    }
 
-//    fun resetCache() {
-//        boundsDelegate.reset()
-//        triangulationDelegate.reset()
-//        areaDelegate.reset()
-//    }
-//
-//    /**
-//     * Generates specified amount of random points that lie inside the [Shape].
-//     *
-//     * @param pointCount The number of points to generate.
-//     * @param random The [Random] number generator to use, defaults to [Random.Default].
-//     */
-//    fun randomPoints(pointCount: Int, random: Random = Random.Default): List<Vector2> {
-//        val randomValues = List(pointCount) { random.nextDouble() * area }.sortedDescending().toMutableList()
-//        var sum = 0.0
-//        val result = mutableListOf<Vector2>()
-//        for (triangle in triangulation) {
-//            sum += triangle.area
-//            if (randomValues.isEmpty()) {
-//                break
-//            }
-//            while (sum > randomValues.last()) {
-//                result.add(triangle.randomPoint())
-//                randomValues.removeLastOrNull()
-//                if (randomValues.isEmpty()) {
-//                    break
-//                }
-//            }
-//        }
-//        return result
-//    }
-//
+    /** Calculates approximate area for this shape (through triangulation). */
+    val area by areaDelegate
+
+    fun resetCache() {
+        boundsDelegate.reset()
+        triangulationDelegate.reset()
+        areaDelegate.reset()
+    }
+
+    /**
+     * Generates specified amount of random points that lie inside the [Shape].
+     *
+     * @param pointCount The number of points to generate.
+     * @param random The [Random] number generator to use, defaults to [Random.Default].
+     */
+    fun randomPoints(pointCount: Int, random: Random = Random.Default): List<Vector2> {
+        val randomValues = List(pointCount) { random.nextDouble() * area }.sortedDescending().toMutableList()
+        var sum = 0.0
+        val result = mutableListOf<Vector2>()
+        for (triangle in triangulation) {
+            sum += triangle.area
+            if (randomValues.isEmpty()) {
+                break
+            }
+            while (sum > randomValues.last()) {
+                result.add(triangle.randomPoint())
+                randomValues.removeLastOrNull()
+                if (randomValues.isEmpty()) {
+                    break
+                }
+            }
+        }
+        return result
+    }
+
 
 
     /** The outline of the shape. */
