@@ -218,13 +218,13 @@ internal class Decoder(private val statistics: VideoStatistics,
         while (needMoreFrames() && !disposed) {
             if (videoDecoder?.isQueueAlmostFull() == true) {
                 logger.warn { "video queue is almost full. [video queue: ${videoDecoder?.queueCount()}, audio queue: ${audioDecoder?.queueCount()}]" }
-                Thread.sleep(100)
+                //Thread.sleep(100)
                 return
             }
 
             if (audioDecoder?.isQueueAlmostFull() == true) {
                 logger.warn { "audio queue is almost full. [video queue: ${videoDecoder?.queueCount()}, audio queue: ${audioDecoder?.queueCount()}]" }
-                Thread.sleep(100)
+                //Thread.sleep(100)
                 return
             }
 

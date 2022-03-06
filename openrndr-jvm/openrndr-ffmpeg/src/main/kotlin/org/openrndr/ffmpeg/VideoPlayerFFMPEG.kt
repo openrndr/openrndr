@@ -167,7 +167,7 @@ class VideoStatistics {
 }
 
 class VideoPlayerConfiguration {
-    var videoFrameQueueSize = 100
+    var videoFrameQueueSize = 50
     var packetQueueSize = 2500
     var displayQueueSize = 20
     var useHardwareDecoding = true
@@ -585,7 +585,7 @@ class VideoPlayerFFMPEG private constructor(
 
 
                     if (now - nextFrame > duration * 2 && configuration.synchronizeToClock) {
-                        logger.debug {
+                        logger.warn {
                             "resetting next frame time"
                         }
                         nextFrame = now
@@ -596,7 +596,7 @@ class VideoPlayerFFMPEG private constructor(
                             nextFrame += 1.0 / duration
 
                             while (displayQueue.size() >= displayQueue.maxSize - 1) {
-                                logger.debug {
+                                logger.warn {
                                     "display queue is full (${displayQueue.size()} / ${displayQueue.maxSize})"
                                 }
                                 Thread.sleep(configuration.displayQueueCooldown.toLong())

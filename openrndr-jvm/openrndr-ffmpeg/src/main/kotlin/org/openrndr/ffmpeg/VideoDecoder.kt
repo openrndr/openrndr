@@ -6,7 +6,6 @@ import org.bytedeco.ffmpeg.avcodec.AVPacket
 import org.bytedeco.ffmpeg.avutil.AVBufferRef
 import org.bytedeco.ffmpeg.avutil.AVFrame
 import org.bytedeco.ffmpeg.global.avcodec.*
-import org.bytedeco.ffmpeg.global.avutil
 import org.bytedeco.ffmpeg.global.avutil.*
 import org.bytedeco.ffmpeg.global.swscale
 import org.bytedeco.ffmpeg.swscale.SwsContext
@@ -15,18 +14,15 @@ import org.bytedeco.javacpp.*
 import java.nio.DoubleBuffer
 private val logger = KotlinLogging.logger {}
 
-private fun Int.toAVPixelFormat(): Int =
-        AV_PIX_FMT_BGR32
-
 internal data class VideoOutput(val size: Dimensions, val pixelFormat: Int)
 
-internal fun VideoOutput.toVideoDecoderOutput(): VideoDecoderOutput? {
-    val avPixelFormat = pixelFormat.toAVPixelFormat()
+internal fun VideoOutput.toVideoDecoderOutput(): VideoDecoderOutput {
+    val avPixelFormat = AV_PIX_FMT_BGR32
     return VideoDecoderOutput(size.copy(), avPixelFormat)
 }
 
 internal data class VideoFrame(val buffer: AVBufferRef, val lineSize: Int, val timeStamp: Double, val frameSize:Int) {
-    fun unref() = avutil.av_buffer_unref(buffer)
+    fun unref() = av_buffer_unref(buffer)
 }
 
 internal data class VideoInfo(val size: Dimensions, val fps: Double)
@@ -47,7 +43,7 @@ internal data class VideoDecoderOutput(val size: Dimensions, val avPixelFormat: 
 
 internal class VideoDecoder(
         val statistics: VideoStatistics,
-        val configuration: VideoPlayerConfiguration,
+        configuration: VideoPlayerConfiguration,
         private val videoCodecContext: AVCodecContext,
         output: VideoDecoderOutput,
         hwType:Int
@@ -55,9 +51,8 @@ internal class VideoDecoder(
     private val windowSize = output.size
     private val avPixelFormat = output.avPixelFormat
     private val videoSize = Dimensions(videoCodecContext.width(), videoCodecContext.height())
-    private val videoFrame = avutil.av_frame_alloc()
 
-    private val scaledVideoFrame = avutil.av_frame_alloc()
+    private val scaledVideoFrame = av_frame_alloc()
     private val hwPixFmt = hwType.pixFmtForHWType()
     private var softwareScalingContext: SwsContext? = null
 
@@ -138,7 +133,7 @@ internal class VideoDecoder(
                             swscale.SWS_BILINEAR, null as SwsFilter?, null as SwsFilter?, null as DoubleBuffer?)
                 }
 
-                val buffer = av_buffer_alloc(scaledFrameSize)
+                val buffer = av_buffer_alloc(scaledFrameSize.toLong())
 
                 swscale.sws_scale(softwareScalingContext, resultFrame.data(),
                         resultFrame.linesize(), 0, resultFrame.height(),
