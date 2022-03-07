@@ -1,6 +1,6 @@
-import org.openrndr.ktessellation.triangulator.triangulate
 import org.openrndr.shape.Circle
 import org.openrndr.shape.Rectangle
+import org.openrndr.shape.triangulate
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

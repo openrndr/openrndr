@@ -31,7 +31,7 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation(project(":openrndr-math"))
-//                implementation(project(":openrndr-shape"))
+
 //                implementation(project(":openrndr-draw"))
             }
         }
@@ -42,7 +42,7 @@ kotlin {
                 implementation(kotlin("test-common"))
                 implementation(kotlin("test-annotations-common"))
                 implementation("io.kotest:kotest-assertions-core:$kotestVersion")
-
+                implementation(project(":openrndr-shape"))
             }
         }
 
