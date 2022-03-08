@@ -453,7 +453,7 @@ internal object Render {
              * the separate triangles at once.
              */
             require(size == 1L)
-            tess.lonelyTriList = AddToTrail(e.Lface!!, tess.lonelyTriList!!)
+            tess.lonelyTriList = AddToTrail(e.Lface!!, tess.lonelyTriList)
         }
     }
 
