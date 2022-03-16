@@ -52,7 +52,7 @@ project.ext {
     spekVersion = '2.0.15'
     kluentVersion = '1.68'
     jsoupVersion = '1.14.3'
-    kotestVersion = '5.1.0'
+    kotestVersion = '5.2.1'
     junitJupiterVersion = '5.8.2'
 }
 
