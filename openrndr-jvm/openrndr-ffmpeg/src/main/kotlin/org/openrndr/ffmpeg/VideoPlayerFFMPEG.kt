@@ -205,6 +205,7 @@ fun Program.loadVideo(fileOrUrl: String, mode: PlayMode = PlayMode.BOTH, configu
 }
 
 fun loadVideoDevice(deviceName: String = VideoPlayerFFMPEG.defaultDevice(), mode: PlayMode = PlayMode.VIDEO, width: Int? = null, height: Int? = null, frameRate: Double? = null, configuration: VideoPlayerConfiguration = VideoPlayerConfiguration()): VideoPlayerFFMPEG {
+    logger.info { """loading video device $deviceName (mode: $mode)""" }
     return VideoPlayerFFMPEG.fromDevice(deviceName, mode = mode, imageWidth = width, imageHeight = height, frameRate = frameRate, configuration = configuration)
 }
 
@@ -239,6 +240,7 @@ class VideoPlayerFFMPEG private constructor(
          */
         @Suppress("unused")
         fun listDeviceNames(): List<String> {
+            logger.debug { """listing device names""" }
             val result = mutableListOf<String>()
 
             /*
@@ -250,6 +252,7 @@ class VideoPlayerFFMPEG private constructor(
                 override fun call(source: Pointer?, level: Int, formatStr: String?, params: Pointer?) {
                     val bp = BytePointer(1024)
                     val ip = IntPointer(1)
+
                     val length = av_log_format_line2(source, level, formatStr, params, bp, 1024, ip)
                     val text = bp.string.substring(0, length).trimEnd()
                     texts.add(text)
@@ -266,25 +269,30 @@ class VideoPlayerFFMPEG private constructor(
                 avformat_open_input(context, "video=dummy", format, options)
                 var lineIndex = 0
                 all@ while (true) {
-                    if (texts[lineIndex].contains("DirectShow video devices")) {
-                        lineIndex++
-                        while (true) {
                             if (lineIndex >= texts.size || texts[lineIndex].contains("DirectShow audio devices")) {
                                 break@all
                             }
                             val deviceNamePattern = Regex("\\[dshow @ [0-9a-f]*]\\s+\"(.*)\"")
+                            val deviceTypePattern = Regex("\\[dshow @ [0-9a-f]*]\\s+[ ]+\\((.*)")
 
-                            val text = texts.getOrNull(lineIndex)
-                            if (text != null) {
-                                val match = deviceNamePattern.matchEntire(text)
+
+                            val nameText = texts.getOrNull(lineIndex)
+                            val typeText = texts.getOrNull(lineIndex+1)
+                            if (typeText != null) {
+                                val match = deviceTypePattern.matchEntire(typeText)
                                 val group = match?.groupValues?.getOrNull(1)
-                                if (group != null) {
-                                    result.add(group)
+                                if (group == "video") {
+                                    if (nameText != null) {
+                                        val match = deviceNamePattern.matchEntire(nameText)
+                                        val group = match?.groupValues?.getOrNull(1)
+                                        if (group != null) {
+                                            result.add(group)
+                                        }
+                                    }
                                 }
                             }
-                            lineIndex += 2
-                        }
-                    }
+                            lineIndex += 5
+
                 }
                 av_dict_free(options)
                 avformat_close_input(context)
@@ -381,6 +389,7 @@ class VideoPlayerFFMPEG private constructor(
                 else -> error("unsupported platform ${Platform.type}")
             }
             val file = AVFile(configuration, properDeviceName, mode, format, frameRate, imageWidth, imageHeight)
+            logger.debug { file }
             return VideoPlayerFFMPEG(file, mode, configuration)
         }
 
