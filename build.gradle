@@ -11,9 +11,9 @@ buildscript {
 
 plugins {
     // remember to update all the versions here when upgrading kotlin version
-    id 'org.jetbrains.kotlin.jvm' version '1.6.10' apply false
-    id 'org.jetbrains.kotlin.multiplatform' version '1.6.10' apply false
-    id 'org.jetbrains.kotlin.plugin.serialization' version '1.6.10' apply false
+    id 'org.jetbrains.kotlin.jvm' version '1.6.20' apply false
+    id 'org.jetbrains.kotlin.multiplatform' version '1.6.20' apply false
+    id 'org.jetbrains.kotlin.plugin.serialization' version '1.6.20' apply false
     id "org.jetbrains.dokka" version "1.5.30" apply false
 }
 
@@ -42,7 +42,7 @@ project.ext {
     kotlinApiVersion = '1.6'
     kotlinJvmTarget = '1.8'
     kotlinLanguageVersion = '1.6'
-    kotlinVersion = '1.6.10'
+    kotlinVersion = '1.6.20'
     kotlinLoggingVersion = '2.1.21'
     kotlinxSerializationVersion = '1.3.2'
     kotlinxCoroutinesVersion = '1.6.0'
