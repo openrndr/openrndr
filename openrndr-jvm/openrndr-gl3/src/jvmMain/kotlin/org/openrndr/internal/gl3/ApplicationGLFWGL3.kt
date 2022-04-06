@@ -516,6 +516,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         defaultRenderTarget.bind()
 
         setupSizes()
+        setupPreload(program, configuration)
         program.drawer.ortho()
     }
 

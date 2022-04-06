@@ -19,6 +19,7 @@ class ApplicationNullGL(private val program: Program, private val configuration:
     init {
         Driver.driver = DriverNullGL()
         program.application = this
+        setupPreload(program, configuration)
     }
 
     override fun requestDraw() {
