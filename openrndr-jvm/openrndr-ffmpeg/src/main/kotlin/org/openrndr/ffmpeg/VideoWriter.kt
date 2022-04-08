@@ -231,6 +231,12 @@ class VideoWriter {
     }
 
     /**
+     * Returns true if the video process was started
+     *
+     */
+    fun started() = ffmpeg != null
+
+    /**
      * Feed a frame to the video encoder
      *
      * @param frame a ColorBuffer (RGBA, 8bit) holding the image data to be written to the video. The ColorBuffer should have the same resolution as the VideoWriter.

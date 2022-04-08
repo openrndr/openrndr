@@ -15,6 +15,7 @@ class ScreenRecorder : Extension {
     private lateinit var frame: RenderTarget
     private var resolved: ColorBuffer? = null
     private var frameIndex: Long = 0
+    private var framesWritten: Long = 0
 
     /**
      * optional width, overrides the program width
@@ -42,6 +43,11 @@ class ScreenRecorder : Extension {
      */
     var frameSkip = 0L
 
+    /**
+     * is video recording enabled or paused?
+     */
+    var outputToVideo: Boolean = true
+
     /** the profile to use for the output video */
     var profile: VideoWriterProfile = MP4Profile()
 
@@ -61,7 +67,6 @@ class ScreenRecorder : Extension {
     var quitAfterMaximum = true
 
     var contentScale: Double = 1.0
-
 
     override fun setup(program: Program) {
         if (frameClock) {
@@ -96,9 +101,6 @@ class ScreenRecorder : Extension {
     }
 
     override fun beforeDraw(drawer: Drawer, program: Program) {
-        if (frameIndex == frameSkip){
-            videoWriter.start()
-        }
         if (frameIndex >= frameSkip) {
             frame.bind()
             program.backgroundColor?.let {
@@ -107,16 +109,17 @@ class ScreenRecorder : Extension {
         }
     }
 
+
     override fun afterDraw(drawer: Drawer, program: Program) {
         if (frameIndex >= frameSkip) {
             frame.unbind()
-            if (frameIndex < maximumFrames + frameSkip && (frameIndex - frameSkip) / frameRate.toDouble() < maximumDuration) {
+            if (framesWritten < maximumFrames && framesWritten / frameRate.toDouble() < maximumDuration) {
                 val lresolved = resolved
                 if (lresolved != null) {
                     frame.colorBuffer(0).copyTo(lresolved)
-                    videoWriter.frame(lresolved)
+                    writeFrame(lresolved)
                 } else {
-                    videoWriter.frame(frame.colorBuffer(0))
+                    writeFrame(frame.colorBuffer(0))
                 }
 
                 drawer.isolated {
@@ -144,7 +147,19 @@ class ScreenRecorder : Extension {
         frameIndex++
     }
 
+    private fun writeFrame(colorBuffer: ColorBuffer) {
+        if(outputToVideo) {
+            if(!videoWriter.started()) {
+                videoWriter.start()
+            }
+            videoWriter.frame(colorBuffer)
+            framesWritten++
+        }
+    }
+
     override fun shutdown(program: Program) {
-        videoWriter.stop()
+        if(videoWriter.started()) {
+            videoWriter.stop()
+        }
     }
 }
