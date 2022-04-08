@@ -39,21 +39,6 @@ open class ApplicationPreload {
 actual abstract class Application {
     actual companion object {
         actual fun run(program: Program, configuration: Configuration) {
-            val preloadClassName =
-                (System.getProperties().get("org.openrndr.preloadclass") as? String) ?: "org.openrndr.Preload"
-            val preload = try {
-                val c = Application::class.java.classLoader.loadClass(preloadClassName) as Class<ApplicationPreload>
-                logger.info { "preload class found '$preloadClassName'" }
-                c.constructors.first().newInstance() as ApplicationPreload
-            } catch (e: ClassNotFoundException) {
-                logger.info { "no preload class found '$preloadClassName'" }
-                null
-            }
-            if (preload != null) {
-                preload.onConfiguration(configuration)
-                preload.onProgramSetup(program)
-            }
-
             if (enableProfiling) {
                 Runtime.getRuntime().addShutdownHook(object : Thread() {
                     override fun run() {
@@ -72,6 +57,25 @@ actual abstract class Application {
 
         actual suspend fun runAsync(program: Program, configuration: Configuration) {
             error("use run")
+        }
+
+        fun setupPreload(program: Program, configuration: Configuration) {
+            val preloadClassName =
+                (System.getProperties()["org.openrndr.preloadclass"] as? String)
+                    ?: "org.openrndr.Preload"
+            val preload = try {
+                val c =
+                    Application::class.java.classLoader.loadClass(preloadClassName) as Class<ApplicationPreload>
+                logger.info { "preload class found '$preloadClassName'" }
+                c.constructors.first().newInstance() as ApplicationPreload
+            } catch (e: ClassNotFoundException) {
+                logger.info { "no preload class found '$preloadClassName'" }
+                null
+            }
+            if(preload != null) {
+                preload.onConfiguration(configuration)
+                preload.onProgramSetup(program)
+            }
         }
 
         private fun applicationClass(configuration: Configuration): Class<*> {

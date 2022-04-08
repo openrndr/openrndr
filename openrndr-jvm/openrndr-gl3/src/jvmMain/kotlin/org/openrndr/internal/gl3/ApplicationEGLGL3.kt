@@ -114,6 +114,9 @@ class ApplicationEGLGL3(private val program: Program, private val configuration:
 
             val defaultRenderTarget = ProgramRenderTargetGL3(program)
             defaultRenderTarget.bind()
+
+            setupPreload(program, configuration)
+
             program.drawer = Drawer(driver)
             runBlocking {
                 program.setup()
