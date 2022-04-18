@@ -178,4 +178,15 @@ class TestSVGLoader {
             10e-6
         )
     }
+
+    @Test
+    fun polylineSvgFile() {
+        val composition = loadSVG(resourceUrl("/svg/polyline.svg"))
+        val largePolyline = composition.findShape("large")!!
+        val contours = largePolyline.shape.contours
+        assertEquals(1, contours.size)
+        assertEquals(79, contours[0].segments.size)
+        val flawedPolyline = composition.findShape("flawed")!!
+        assertEquals(0, flawedPolyline.shape.contours.size)
+    }
 }

@@ -1,5 +1,6 @@
 package org.openrndr.svg
 
+import mu.KotlinLogging
 import org.jsoup.nodes.*
 import org.openrndr.color.*
 import org.openrndr.math.*
@@ -9,13 +10,15 @@ import java.util.regex.*
 import kotlin.math.*
 import kotlin.text.MatchResult
 
+private val logger = KotlinLogging.logger {}
+
 internal sealed interface PropertyRegex {
 
     val regex: Regex
 
     companion object {
-        const val wsp = "(?:\\s|\\A|\\Z)+"
-        const val commaWsp = "(?:\\s*,\\s*|\\s+)"
+        val wsp = "(?:\\s|\\A|\\Z)+".toRegex()
+        val commaWsp = "(?:\\s*,\\s*|\\s+)".toRegex()
         const val align = "(?<align>[xy](?:Min|Mid|Max)[XY](?:Min|Mid|Max))?"
         const val meetOrSlice = "(?<meetOrSlice>meet|slice)?"
         const val unitIdentifier = "in|pc|pt|px|cm|mm|Q"
@@ -68,21 +71,23 @@ internal sealed interface PropertyRegex {
 
 internal object SVGParse {
     fun viewBox(element: Element): ViewBox {
-        val viewBoxValue = element.attr(Attr.VIEW_BOX)
-
+        val viewBoxValue = element.attr(Attr.VIEW_BOX).trim()
         val (minX, minY, width, height) = PropertyRegex.NumberList.regex.matches(viewBoxValue).let {
-            val list = viewBoxValue.split(PropertyRegex.commaWsp.toRegex())
+            if (!it) {
+                return ViewBox.None
+            }
+            val list = viewBoxValue.split(PropertyRegex.commaWsp).map(String::toDouble)
             when (list.size) {
                 // Early return and signal that the element should not be rendered at all
-                1 -> if (list[0].toDoubleOrNull() == 0.0 || list[0].toDoubleOrNull() == null) {
+                1 -> if (list[0] == 0.0) {
                     return ViewBox.None
                 } else {
                     // Interpret as height
-                    listOf(0.0, 0.0, 0.0, list[0].toDouble())
+                    listOf(0.0, 0.0, 0.0, list[0])
                 }
-                2 -> listOf(0.0, 0.0, list[0].toDouble(), list[1].toDouble())
-                3 -> listOf(0.0, list[0].toDouble(), list[1].toDouble(), list[2].toDouble())
-                4 -> list.map { item -> item.toDouble() }
+                2 -> listOf(0.0, 0.0, list[0], list[1])
+                3 -> listOf(0.0, list[0], list[1], list[2])
+                4 -> list
                 else -> return ViewBox.None
             }
         }
@@ -288,47 +293,37 @@ internal object SVGParse {
         }
     }
 
+    /** Assumes [numbers] consists of at least 2 elements. */
     private fun pointsToCommands(numbers: List<Double>): List<Command> {
-        val commands = mutableListOf<Command>()
-
-        val points = (0 until numbers.size / 2).map { Vector2(numbers[it * 2].toDouble(), numbers[it * 2 + 1].toDouble()) }
-        commands.add(Command("M", points[0].x, points[0].y))
-        (1 until points.size).mapTo(commands) { Command("L", points[it].x, points[it].y) }
-
+        val commands = mutableListOf<Command>(Command("M", numbers[0], numbers[1]))
+        numbers.drop(2).windowed(2, 2, false).mapTo(commands) { (x, y) ->
+            Command("L", x, y)
+        }
         return commands
     }
 
     fun polygon(element: Element): List<Command> {
-        val pointsValues = element.attr(Attr.POINTS)
-
-        PropertyRegex.NumberList.regex.matchEntire(pointsValues) ?: return emptyList()
-        val list = pointsValues.split(PropertyRegex.commaWsp.toRegex()).let {
-            if (it.size % 2 != 0) {
-                it.dropLast(1)
-            } else {
-                it
-            }
-        }
-
-        val commands = pointsToCommands(list.map { it.trim().toDouble() }).toMutableList()
+        val commands = polyline(element).toMutableList()
         commands.add(Command("Z"))
-
         return commands
     }
 
     fun polyline(element: Element): List<Command> {
-        val pointsValues = element.attr(Attr.POINTS)
-
-        PropertyRegex.NumberList.regex.matchEntire(pointsValues) ?: return emptyList()
-        val list = pointsValues.split(PropertyRegex.commaWsp.toRegex()).let {
-            if (it.size % 2 != 0) {
-                it.dropLast(1)
+        val numbers = element.attr(Attr.POINTS)
+            .trim()
+            .split(PropertyRegex.commaWsp)
+            .takeWhile(PropertyRegex.Number.regex::matches)
+            .map(String::toDouble)
+        return if (numbers.size > 1) {
+            if (numbers.size and 1 == 1) {
+                logger.warn { "${element.tagName()} attribute ${Attr.POINTS} has odd amount of numbers" }
+                pointsToCommands(numbers.dropLast(1))
             } else {
-                it
+                pointsToCommands(numbers)
             }
+        } else {
+            emptyList()
         }
-
-        return pointsToCommands(list.map { it.trim().toDouble() })
     }
 
     private fun ellipsePath(x: Double, y: Double, width: Double, height: Double): List<Command> {
