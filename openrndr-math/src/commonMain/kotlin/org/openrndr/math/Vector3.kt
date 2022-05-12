@@ -12,6 +12,7 @@ data class Vector3(val x: Double, val y: Double, val z: Double) : LinearType<Vec
     companion object {
         val ZERO = Vector3(0.0, 0.0, 0.0)
         val ONE = Vector3(1.0, 1.0, 1.0)
+        val UNIT_XYZ = ONE.normalized
         val UNIT_X = Vector3(1.0, 0.0, 0.0)
         val UNIT_Y = Vector3(0.0, 1.0, 0.0)
         val UNIT_Z = Vector3(0.0, 0.0, 1.0)
@@ -131,3 +132,29 @@ fun min(a: Vector3, b: Vector3) = Vector3(min(a.x, b.x), min(a.y, b.y), min(a.z,
 fun max(a: Vector3, b: Vector3) = Vector3(max(a.x, b.x), max(a.y, b.y), max(a.z, b.z))
 
 fun mix(a: Vector3, b: Vector3, mix:Double): Vector3 = a * (1 - mix) + b * mix
+
+fun Iterable<Vector3>.sum() : Vector3 {
+    var x = 0.0
+    var y = 0.0
+    var z = 0.0
+    for (v in this) {
+        x += v.x
+        y += v.y
+        z += v.z
+    }
+    return Vector3(x, y, z)
+}
+
+fun Iterable<Vector3>.average() : Vector3 {
+    var x = 0.0
+    var y = 0.0
+    var z = 0.0
+    var count = 0
+    for (v in this) {
+        x += v.x
+        y += v.y
+        z += v.z
+        count++
+    }
+    return Vector3(x / count, y / count, z / count)
+}

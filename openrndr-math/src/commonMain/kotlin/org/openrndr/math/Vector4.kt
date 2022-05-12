@@ -112,3 +112,33 @@ fun mix(a: Vector4, b: Vector4, mix:Double): Vector4 = a * (1 - mix) + b * mix
 interface CastableToVector4 {
     fun toVector4() : Vector4
 }
+
+fun Iterable<Vector4>.sum() : Vector4 {
+    var x = 0.0
+    var y = 0.0
+    var z = 0.0
+    var w = 0.0
+    for (v in this) {
+        x += v.x
+        y += v.y
+        z += v.z
+        w += v.w
+    }
+    return Vector4(x, y, z, w)
+}
+
+fun Iterable<Vector4>.average() : Vector4 {
+    var x = 0.0
+    var y = 0.0
+    var z = 0.0
+    var w = 0.0
+    var count = 0
+    for (v in this) {
+        x += v.x
+        y += v.y
+        z += v.z
+        w += v.w
+        count++
+    }
+    return Vector4(x / count, y / count, z / count, w / count)
+}

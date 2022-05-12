@@ -185,3 +185,24 @@ fun max(a: Vector2, b: Vector2): Vector2 = Vector2(max(a.x, b.x), max(a.y, b.y))
 
 fun mix(a: Vector2, b: Vector2, mix: Double): Vector2 = a * (1 - mix) + b * mix
 
+fun Iterable<Vector2>.sum() : Vector2 {
+    var x = 0.0
+    var y = 0.0
+    for (v in this) {
+        x += v.x
+        y += v.y
+    }
+    return Vector2(x, y)
+}
+
+fun Iterable<Vector2>.average() : Vector2 {
+    var x = 0.0
+    var y = 0.0
+    var count = 0
+    for (v in this) {
+        x += v.x
+        y += v.y
+        count++
+    }
+    return Vector2(x / count, y / count)
+}
