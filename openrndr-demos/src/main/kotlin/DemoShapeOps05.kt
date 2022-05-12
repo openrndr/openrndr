@@ -3,7 +3,6 @@ import org.openrndr.color.ColorRGBa
 import org.openrndr.math.Vector2
 import org.openrndr.math.Vector3
 import org.openrndr.math.transforms.buildTransform
-import org.openrndr.shape.Circle
 import org.openrndr.shape.Rectangle
 import org.openrndr.shape.union
 import kotlin.math.cos

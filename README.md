@@ -9,25 +9,25 @@ Basics and use are further explained in the [OPENRNDR guide](https://guide.openr
 
 ## Repository structure
 
-| module              | description          |
-----------------------|-----------------------
-| [openrndr-animatable](openrndr-animatable) | Tooling for interactive animations |
-| [openrndr-application](openrndr-application) | Application and Program classes |
-| [openrndr-binpack](openrndr-binpack) | Binpacking algorithm used for texture atlasses |
-| [openrndr-color](openrndr-color) | Color spaces |
-| [openrndr-dds](openrndr-dds) | DirectDraw Surface file (.dds) loader |
-| [openrndr-demos](openrndr-demos) | A collection of small in-repository demos |
-| [openrndr-draw](openrndr-draw) | Drawing primitives |
-| [openrndr-event](openrndr-event) | Event classes |
-| [openrndr-extensions](openrndr-extensions) | Built-in OPENRNDR extensions |
-| [openrndr-filter](openrndr-filter)| Built-in filters |
-| [openrndr-js](openrndr-js) | Kotlin/JS specific modules |
-| [openrndr-jvm](openrndr-jvm) | Kotlin/JVM specific modules |
-| [openrndr-math](openrndr-math) | Math functions and classes |
-| [openrndr-nullgl](openrndr-nullgl) | Mock graphics back-end |
-| [openrndr-shape](openrndr-shape) | Classes and functions for working with 2D shapes |
-| [openrndr-svg](openrndr-svg) | Loading and saving SVG |
-| [openrndr-utils](openrndr-utils) | Assorted utilities |
+| module                                       | description                                      |
+|----------------------------------------------|--------------------------------------------------|
+| [openrndr-animatable](openrndr-animatable)   | Tooling for interactive animations               |
+| [openrndr-application](openrndr-application) | Application and Program classes                  |
+| [openrndr-binpack](openrndr-binpack)         | Binpacking algorithm used for texture atlasses   |
+| [openrndr-color](openrndr-color)             | Color spaces                                     |
+| [openrndr-dds](openrndr-dds)                 | DirectDraw Surface file (.dds) loader            |
+| [openrndr-demos](openrndr-demos)             | A collection of small in-repository demos        |
+| [openrndr-draw](openrndr-draw)               | Drawing primitives                               |
+| [openrndr-event](openrndr-event)             | Event classes                                    |
+| [openrndr-extensions](openrndr-extensions)   | Built-in OPENRNDR extensions                     |
+| [openrndr-filter](openrndr-filter)           | Built-in filters                                 |
+| [openrndr-js](openrndr-js)                   | Kotlin/JS specific modules                       |
+| [openrndr-jvm](openrndr-jvm)                 | Kotlin/JVM specific modules                      |
+| [openrndr-math](openrndr-math)               | Math functions and classes                       |
+| [openrndr-nullgl](openrndr-nullgl)           | Mock graphics back-end                           |
+| [openrndr-shape](openrndr-shape)             | Classes and functions for working with 2D shapes |
+| [openrndr-svg](openrndr-svg)                 | Loading and saving SVG                           |
+| [openrndr-utils](openrndr-utils)             | Assorted utilities                               |
 
 ## Using OPENRNDR
 

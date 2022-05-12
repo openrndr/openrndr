@@ -6,3 +6,4 @@ build/
 out/
 *.log
 generated-src/
+/kotlin-js-store/yarn.lock

@@ -1,11 +1,13 @@
-package org.openrndr.demos
-
 import org.openrndr.application
 import org.openrndr.draw.colorBuffer
 import org.openrndr.filter.color.delinearize
 import org.openrndr.filter.color.hybridLogGamma
 import org.openrndr.filter.color.linearize
 
+/**
+ * Applies multiple filters reading from a colorBuffer and writing into
+ * a different colorBuffer to make sure they don't throw any errors.
+ */
 fun main() {
     application {
         program {

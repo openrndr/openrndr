@@ -6,6 +6,10 @@ import org.openrndr.shape.Composition
 import org.openrndr.shape.GroupNode
 import org.openrndr.shape.ShapeNode
 
+/**
+ * Draws the same `Circle` using `drawer.shape` and `drawer.composition`
+ * side by side to compare both approaches.
+ */
 fun main() {
     application {
         program {
