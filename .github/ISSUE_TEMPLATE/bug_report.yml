@@ -1,6 +1,6 @@
 name: "Bug report"
 description: Report an issue or possible bug
-title: "Bug report:"
+title: "Bug report: "
 labels: ["bug"]
 assignees: []
 body:
@@ -20,22 +20,14 @@ body:
       required: true
   - type: input
     attributes:
-      label: Java version
+      label: Java version (if applicable)
+  - type: textarea
+    attributes:
+      label: Describe the bug
+      description: A clear and concise description of what the bug is, optionally including a screenshot.
     validations:
       required: true
   - type: textarea
     attributes:
-      label: Describe the Bug
-      description: A clear and concise description of what the bug is.
-    validations:
-      required: true
-  - type: textarea
-    attributes:
-      label: Steps to Reproduce
+      label: Steps to reproduce the bug
       description: Describe the steps taken or paste/link a minimal code example that we can reproduce ourselves.
-    validations:
-      required: true
-  - type: textarea
-    attributes:
-      label: Screenshots (Optional)
-      description: Link or drag & drop images showcasing the bug.
