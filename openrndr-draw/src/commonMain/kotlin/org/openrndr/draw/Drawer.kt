@@ -107,14 +107,14 @@ class Drawer(val driver: Driver) {
     var model: Matrix44 = Matrix44.IDENTITY
         set(value) {
             field = value
-            modelViewScalingFactor = ((view * model).matrix33 * Vector3(1.0, 1.0, 1.0).normalized).length
+            modelViewScalingFactor = ((view * model).matrix33 * Vector3.UNIT_XYZ).length
         }
 
     /** The active view matrix */
     var view: Matrix44 = Matrix44.IDENTITY
         set(value) {
             field = value
-            modelViewScalingFactor = ((view * model).matrix33 * Vector3(1.0, 1.0, 1.0).normalized).length
+            modelViewScalingFactor = ((view * model).matrix33 * Vector3.UNIT_XYZ).length
         }
 
 
@@ -125,7 +125,7 @@ class Drawer(val driver: Driver) {
      * The draw context holds references to model, view, projection matrices, width, height and content-scale
      */
     val context: DrawContext
-        get() = DrawContext(model, view, projection, width, height, RenderTarget.active.contentScale)
+        get() = DrawContext(model, view, projection, width, height, RenderTarget.active.contentScale, modelViewScalingFactor)
 
     var drawStyle = DrawStyle()
     /** The active draw style */

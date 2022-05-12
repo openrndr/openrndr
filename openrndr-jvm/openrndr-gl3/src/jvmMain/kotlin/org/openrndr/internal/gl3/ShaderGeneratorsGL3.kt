@@ -378,10 +378,12 @@ void main() {
     ${vertexMainConstants()}
     ${shadeStructure.varyingBridge ?: ""}
 
-    v_boundsSize = vec3(i_radius.xy, 0.0);
+    vec2 effectiveRadius = i_radius.xy + vec2(1.25) / (u_modelViewScalingFactor);
+
+    v_boundsSize = vec3(effectiveRadius.xy, 0.0);
     ${preVertexTransform}
     vec3 x_normal = a_normal;
-    vec3 x_position = vec3(a_position.xy * i_radius, 0.0) + i_offset;
+    vec3 x_position = vec3(a_position.xy * effectiveRadius, 0.0) + i_offset;
     {
         ${shadeStructure.vertexTransform ?: ""}
     }

@@ -138,6 +138,7 @@ actual class ShadeStyleGLSL {
                 |    uniform highp mat4 u_viewMatrix;
                 |    uniform highp mat4 u_projectionMatrix;
                 |    uniform highp float u_contentScale;
+                |    uniform highp float u_modelViewScalingFactor;
                 |    uniform highp vec2 u_viewDimensions;
                 |"""
             }

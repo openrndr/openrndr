@@ -17,7 +17,7 @@ expect val useContextBlock : Boolean
 private val logger = KotlinLogging.logger {}
 
 @Suppress("MemberVisibilityCanPrivate")
-data class DrawContext(val model: Matrix44, val view: Matrix44, val projection: Matrix44, val width: Int, val height: Int, val contentScale: Double) {
+data class DrawContext(val model: Matrix44, val view: Matrix44, val projection: Matrix44, val width: Int, val height: Int, val contentScale: Double, val modelViewScalingFactor:Double) {
     fun applyToShader(shader: Shader) {
         if (!useContextBlock) {
             if (shader.hasUniform("u_viewMatrix")) {
@@ -51,6 +51,11 @@ data class DrawContext(val model: Matrix44, val view: Matrix44, val projection: 
             if (shader.hasUniform("u_contentScale")) {
                 shader.uniform("u_contentScale", contentScale)
             }
+
+            if (shader.hasUniform("u_modelViewScalingFactor")) {
+                shader.uniform("u_modelViewScalingFactor", modelViewScalingFactor)
+            }
+
         } else {
             val contextBlock = contextBlocks.getOrPut(Driver.instance.contextID) {
                 logger.debug { "creating context block for ${Driver.instance.contextID}" }
@@ -79,6 +84,7 @@ data class DrawContext(val model: Matrix44, val view: Matrix44, val projection: 
                     uniform("u_viewNormalMatrix", normalMatrix)
                 }
                 uniform("u_contentScale", contentScale.toFloat())
+                uniform("u_modelViewScalingFactor", modelViewScalingFactor.toFloat())
                 if (dirty) {
                     upload()
                 }
