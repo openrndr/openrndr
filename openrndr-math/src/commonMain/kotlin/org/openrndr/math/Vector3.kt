@@ -80,7 +80,7 @@ data class Vector3(val x: Double, val y: Double, val z: Double) : LinearType<Vec
     operator fun div(v: Vector3) = Vector3(x / v.x, y / v.y, z / v.z)
 
     /** Calculates a dot product between this [Vector2] and [v]. */
-    infix fun dot(v: Vector3) = x * v.x + y * v.y + z * v.z
+    infix fun dot(v: Vector3): Double = x * v.x + y * v.y + z * v.z
 
     /** Calculates a cross product between this [Vector2] and [v]. */
     infix fun cross(v: Vector3) = Vector3(
