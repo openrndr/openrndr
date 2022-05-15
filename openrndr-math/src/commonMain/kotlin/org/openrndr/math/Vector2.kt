@@ -55,7 +55,7 @@ data class Vector2(val x: Double, val y: Double) : LinearType<Vector2> {
     infix fun cross(right: Vector2) = x * right.y - y * right.x
 
     /** Calculates a dot product between this [Vector2] and [right]. */
-    infix fun dot(right: Vector2) = x * right.x + y * right.y
+    infix fun dot(right: Vector2): Double = x * right.x + y * right.y
 
     infix fun reflect(surfaceNormal: Vector2): Vector2 = this - surfaceNormal * (this dot surfaceNormal) * 2.0
 

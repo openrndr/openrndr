@@ -64,4 +64,12 @@ class TestVector3 {
 
     }
 
+    @Test
+    fun shouldCalculateDotProduct() {
+        Vector3.ZERO dot Vector3.ZERO shouldBe 0.0
+        Vector3.ZERO dot Vector3.ONE shouldBe 0.0
+        Vector3.ONE dot Vector3.ZERO shouldBe 0.0
+        Vector3.ONE dot Vector3.ONE shouldBe 3.0
+    }
+
 }

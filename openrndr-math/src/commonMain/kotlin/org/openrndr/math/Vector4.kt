@@ -65,6 +65,9 @@ data class Vector4(val x: Double, val y: Double, val z: Double, val w: Double) :
     operator fun div(v: Vector4) = Vector4(x / v.x, y / v.y, z / v.z, w / v.w)
     override operator fun div(scale: Double) = Vector4(x / scale, y / scale, z / scale, w / scale)
 
+    /** Calculates a dot product between this [Vector4] and [right]. */
+    infix fun dot(right: Vector4): Double = x * right.x + y * right.y + z * right.z + w * right.w
+
     operator fun get(i: Int): Double {
         return when (i) {
             0 -> x

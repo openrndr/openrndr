@@ -1,6 +1,7 @@
 package org.openrndr.math
 
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldMatch
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
@@ -68,6 +69,14 @@ class TestVector2 {
             }
         }
 
+    }
+
+    @Test
+    fun shouldCalculateDotProduct() {
+        Vector2.ZERO dot Vector2.ZERO shouldBe 0.0
+        Vector2.ZERO dot Vector2.ONE shouldBe 0.0
+        Vector2.ONE dot Vector2.ZERO shouldBe 0.0
+        Vector2.ONE dot Vector2.ONE shouldBe 2.0
     }
 
 }
