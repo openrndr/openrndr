@@ -100,6 +100,12 @@ class Configuration {
     var hideWindowDecorations = false
 
     /**
+     * Index of the monitor to use for creating the window.
+     * Value of `0` is your primary monitor.
+     */
+    var monitor = 0
+
+    /**
      * Should the window be made fullscreen?
      */
     var fullscreen: Fullscreen = Fullscreen.DISABLED
