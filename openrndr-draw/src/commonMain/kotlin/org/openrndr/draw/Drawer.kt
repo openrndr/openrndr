@@ -79,17 +79,6 @@ class Drawer(val driver: Driver) {
     private var qualityPolygonDrawer = QualityPolygonDrawer()
     val fontImageMapDrawer = FontImageMapDrawer()
 
-//    private val defaultFontMap by lazy {
-//        val defaultFontPath = File("data/fonts/default.otf")
-//        if (defaultFontPath.isFile) {
-//            logger.info("loading default font from ${defaultFontPath.absolutePath}")
-//            org.openrndr.draw.loadFont(defaultFontPath.path, 16.0)
-//        } else {
-//            logger.warn("default font ${defaultFontPath.absolutePath} not found")
-//            null
-//        }
-//    }
-
     private val modelStack = ArrayDeque<Matrix44>()
     private val viewStack = ArrayDeque<Matrix44>()
     private val projectionStack = ArrayDeque<Matrix44>()
@@ -469,7 +458,7 @@ class Drawer(val driver: Driver) {
         }
         get() {
             if (drawStyle.fontMap == null) {
-                //drawStyle.fontMap = defaultFontMap
+                drawStyle.fontMap = defaultFontMap
             }
             return drawStyle.fontMap
         }

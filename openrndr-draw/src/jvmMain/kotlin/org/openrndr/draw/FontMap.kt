@@ -1,9 +1,12 @@
 @file:JvmName("FontMapJVM")
 package org.openrndr.draw
 
+import mu.KotlinLogging
 import java.io.File
 import java.net.MalformedURLException
 import java.net.URL
+
+private val logger = KotlinLogging.logger {}
 
 fun loadFont(fileOrUrl: String, size: Double, characterSet: Set<Char> = defaultFontmapCharacterSet, contentScale: Double = 1.0): FontImageMap {
     val activeSet = if (characterSet.contains(' ')) characterSet else (characterSet + ' ')
@@ -15,9 +18,20 @@ fun loadFont(fileOrUrl: String, size: Double, characterSet: Set<Char> = defaultF
         require(file.exists()) {
             "failed to load font: file '${file.absolutePath}' does not exist."
         }
-        require(file.extension.toLowerCase() in setOf("ttf", "otf")) {
+        require(file.extension.lowercase() in setOf("ttf", "otf")) {
             "failed to load font: file '${file.absolutePath}' is not a .ttf or .otf file"
         }
         FontImageMap.fromFile(fileOrUrl, size, activeSet, contentScale)
+    }
+}
+
+actual val defaultFontMap by lazy {
+    val defaultFontPath = File("data/fonts/default.otf")
+    if (defaultFontPath.isFile) {
+        logger.info("loading default font from ${defaultFontPath.absolutePath}")
+        loadFont(defaultFontPath.path, 16.0)
+    } else {
+        logger.warn("default font ${defaultFontPath.absolutePath} not found")
+        null
     }
 }
