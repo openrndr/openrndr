@@ -333,6 +333,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         stackPush().let { stack ->
             val px = stack.mallocInt(1) // int*
             val py = stack.mallocInt(1) // int*
+            glfwGetMonitorPos(monitor, px, py)
             // We will set the window position onto the specified monitor so the
             // window gets resized according to the content scale of said monitor and
             // [glfwGetVideoMode] can return the expected dimensions for the window.
