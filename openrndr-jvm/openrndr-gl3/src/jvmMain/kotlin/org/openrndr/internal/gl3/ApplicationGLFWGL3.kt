@@ -219,13 +219,13 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
             glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE)
         }
 
-        val monitor = glfwGetMonitors()?.get(configuration.monitor) ?: glfwGetPrimaryMonitor()
+        val display = glfwGetMonitors()?.get(configuration.display) ?: glfwGetPrimaryMonitor()
 
         val xscale = FloatArray(1)
 
         run {
             val yscale = FloatArray(1)
-            glfwGetMonitorContentScale(monitor, xscale, yscale)
+            glfwGetMonitorContentScale(display, xscale, yscale)
             logger.debug { "content scale ${xscale[0]} ${yscale[0]}" }
             if (xscale[0] != yscale[0]) {
                 logger.debug {
@@ -258,20 +258,20 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
             window = if (configuration.fullscreen == Fullscreen.DISABLED) {
                 /**
                  * We will be creating the [window] by passing [NULL] as the monitor
-                 * for [glfwCreateWindow]. This will create the window on the user's primary monitor.
+                 * for [glfwCreateWindow]. This will create the window on the user's primary display.
                  * The glfw docs suggest that if you want to specify the position as well, one should
                  * create the window and then move it. The trouble occurs when the user has specified to
-                 * use a non-primary monitor and the two monitors have different content scales.
-                 * To remedy this we will be using primary monitor's scaling for the initial window
-                 * and let glfw rescale it after we move the window to the specified monitor.
+                 * use a non-primary display and the two displays have different content scales.
+                 * To remedy this we will be using primary display's scaling for the initial window
+                 * and let glfw rescale it after we move the window to the specified display.
                  */
-                val primaryMonitorScale = FloatArray(1)
-                glfwGetMonitorContentScale(glfwGetPrimaryMonitor(), primaryMonitorScale, null)
+                val primaryDisplayScale = FloatArray(1)
+                glfwGetMonitorContentScale(glfwGetPrimaryMonitor(), primaryDisplayScale, null)
 
                 val adjustedWidth =
-                    if (fixWindowSize) (primaryMonitorScale[0] * configuration.width).toInt() else configuration.width
+                    if (fixWindowSize) (primaryDisplayScale[0] * configuration.width).toInt() else configuration.width
                 val adjustedHeight =
-                    if (fixWindowSize) (primaryMonitorScale[0] * configuration.height).toInt() else configuration.height
+                    if (fixWindowSize) (primaryDisplayScale[0] * configuration.height).toInt() else configuration.height
 
                 glfwCreateWindow(
                     adjustedWidth,
@@ -286,7 +286,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
                 var requestHeight = configuration.height
 
                 if (configuration.fullscreen == Fullscreen.CURRENT_DISPLAY_MODE) {
-                    val mode = glfwGetVideoMode(monitor)
+                    val mode = glfwGetVideoMode(display)
                     if (mode != null) {
                         requestWidth = mode.width()
                         requestHeight = mode.height()
@@ -297,7 +297,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
                 glfwCreateWindow(
                     requestWidth,
                     requestHeight,
-                    configuration.title, monitor, primaryWindow
+                    configuration.title, display, primaryWindow
                 )
             }
             versionIndex++
@@ -333,9 +333,9 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         stackPush().let { stack ->
             val px = stack.mallocInt(1) // int*
             val py = stack.mallocInt(1) // int*
-            glfwGetMonitorPos(monitor, px, py)
-            // We will set the window position onto the specified monitor so the
-            // window gets resized according to the content scale of said monitor and
+            glfwGetMonitorPos(display, px, py)
+            // We will set the window position onto the specified display so the
+            // window gets resized according to the content scale of said display and
             // [glfwGetVideoMode] can return the expected dimensions for the window.
             // TODO: Can we calculate this ourselves and match glfw's behavior?
             glfwSetWindowPos(window, px.get(0), py.get(0))
@@ -346,8 +346,8 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
             // Get the window size passed to glfwCreateWindow
             glfwGetWindowSize(window, pWidth, pHeight)
 
-            // Get the resolution of the monitor
-            val vidmode = glfwGetVideoMode(monitor)
+            // Get the resolution of the display
+            val vidmode = glfwGetVideoMode(display)
 
             if (configuration.position == null) {
                 if (vidmode != null) {

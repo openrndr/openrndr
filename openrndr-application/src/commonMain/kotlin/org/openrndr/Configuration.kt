@@ -100,10 +100,10 @@ class Configuration {
     var hideWindowDecorations = false
 
     /**
-     * Index of the monitor to use for creating the window.
-     * Value of `0` is your primary monitor.
+     * Index of the display to use for creating the window.
+     * Value of `0` is your primary display.
      */
-    var monitor = 0
+    var display = 0
 
     /**
      * Should the window be made fullscreen?
