@@ -27,5 +27,5 @@ operator fun Shape.contains(v: Vector2): Boolean {
     if (empty) {
         return false
     }
-    return toRegion2().contains(Vec2(v.x, v.y))
+    return region2.contains(Vec2(v.x, v.y))
 }

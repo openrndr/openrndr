@@ -2,6 +2,8 @@
 
 package org.openrndr.shape
 
+import org.openrndr.kartifex.Path2
+import org.openrndr.kartifex.Region2
 import org.openrndr.math.*
 import org.openrndr.utils.resettableLazy
 import kotlin.random.Random
@@ -107,10 +109,25 @@ class Shape(val contours: List<ShapeContour>) : ShapeProvider {
     /** Calculates approximate area for this shape (through triangulation). */
     val area by areaDelegate
 
+    private val region2Delegate = resettableLazy {
+        Region2(contours.map { it.ring2 })
+    }
+
+    internal val region2 by region2Delegate
+
+    private val path2Delegate = resettableLazy {
+        contours.map { it.path2 }
+    }
+
+    internal val path2 by path2Delegate
+
     fun resetCache() {
         boundsDelegate.reset()
         triangulationDelegate.reset()
         areaDelegate.reset()
+        region2Delegate.reset()
+        path2Delegate.reset()
+        contours.forEach { it.resetCache() }
     }
 
     /**

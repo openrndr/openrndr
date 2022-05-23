@@ -1,6 +1,9 @@
 package org.openrndr.shape
 
+import org.openrndr.kartifex.Path2
+import org.openrndr.kartifex.Ring2
 import org.openrndr.math.*
+import org.openrndr.utils.resettableLazy
 import kotlin.jvm.JvmOverloads
 import kotlin.math.abs
 import kotlin.math.min
@@ -596,6 +599,23 @@ data class ShapeContour @JvmOverloads constructor (
         )
     override val contour: ShapeContour
         get() = this
+
+    private val path2Delegate = resettableLazy {
+        Path2(segments.map { it.toCurve2() })
+    }
+
+    internal val path2 by path2Delegate
+
+    private val ring2Delegate = resettableLazy {
+        Ring2(segments.map { it.toCurve2() })
+    }
+
+    internal val ring2 by ring2Delegate
+
+    fun resetCache() {
+        path2Delegate.reset()
+        ring2Delegate.reset()
+    }
 }
 
 /**
