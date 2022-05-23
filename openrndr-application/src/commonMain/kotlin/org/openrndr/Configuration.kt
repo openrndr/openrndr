@@ -103,7 +103,7 @@ class Configuration {
      * Index of the display to use for creating the window.
      * Value of `0` is your primary display.
      */
-    var display = 0
+    var display: ((List<Display>) -> Display)? = null
 
     /**
      * Should the window be made fullscreen?
