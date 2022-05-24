@@ -38,7 +38,7 @@ class ApplicationWebGL(private val program: Program, private val configuration: 
     }
 
     override fun requestDraw() {
-        TODO("Not yet implemented")
+        drawRequested = true
     }
 
     override fun requestFocus() {
@@ -49,6 +49,7 @@ class ApplicationWebGL(private val program: Program, private val configuration: 
         TODO("Not yet implemented")
     }
 
+    private var drawRequested: Boolean = true
     private var referenceTime: Double = 0.0
 
     var canvas: HTMLCanvasElement? = null
@@ -268,16 +269,21 @@ class ApplicationWebGL(private val program: Program, private val configuration: 
     }
 
     override fun loop() {
-        val dims = windowSize
-        program.width = dims.x.toInt()
-        program.height = dims.y.toInt()
+        if (presentationMode == PresentationMode.AUTOMATIC || drawRequested) {
+            drawRequested = false
 
-        @Suppress("DEPRECATION")
-        program.drawer.reset()
-        program.drawer.ortho()
+            val dims = windowSize
+            program.width = dims.x.toInt()
+            program.height = dims.y.toInt()
 
-        defaultRenderTarget?.bindTarget()
-        program.drawImpl()
+            @Suppress("DEPRECATION")
+            program.drawer.reset()
+            program.drawer.ortho()
+
+            defaultRenderTarget?.bindTarget()
+            program.drawImpl()
+        }
+
         window.requestAnimationFrame {
             loop()
         }
