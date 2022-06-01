@@ -28,7 +28,7 @@ import kotlin.math.ceil
 private val logger = KotlinLogging.logger {}
 internal var primaryWindow: Long = NULL
 
-class ApplicationGLFWGL3(private val program: Program, private val configuration: Configuration) : Application() {
+class ApplicationGLFWGL3(override var program: Program = Program(), override var configuration: Configuration = Configuration()) : Application() {
 
     private var windowFocused = true
 
@@ -39,7 +39,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
             System.getProperty("os.name").contains("linux", true)
     private var setupCalled = false
 
-    val displays: List<Display> by lazy {
+    override val displays: List<Display> by lazy {
         val detectedMonitors = glfwGetMonitors()
         if (detectedMonitors != null && detectedMonitors.limit() > 0) {
             stackPush().use {
@@ -207,16 +207,19 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         logger.debug { "debug output enabled" }
         logger.trace { "trace level enabled" }
 
-        program.application = this
         createPrimaryWindow()
     }
 
-    override suspend fun setup() {
+    override suspend fun setup(program: Program, configuration: Configuration) {
+        this.program = program
+        this.configuration = configuration
+        program.application = this
         glfwDefaultWindowHints()
         glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE)
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE)
 
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE)
+        glfwWindowHint(GLFW_AUTO_ICONIFY, GLFW_FALSE)
         glfwWindowHint(GLFW_RESIZABLE, if (configuration.windowResizable) GLFW_TRUE else GLFW_FALSE)
         glfwWindowHint(GLFW_DECORATED, if (configuration.hideWindowDecorations) GLFW_FALSE else GLFW_TRUE)
 
@@ -242,7 +245,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
             glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE)
         }
 
-        val display = configuration.display?.let { it(displays).pointer } ?: glfwGetPrimaryMonitor()
+        val display = configuration.display?.pointer ?: displays[0].pointer
 
         val xscale = FloatArray(1)
 

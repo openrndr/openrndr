@@ -32,10 +32,7 @@ val applicationWebGLInitializer = object {
     }
 }
 
-class ApplicationWebGL(private val program: Program, private val configuration: Configuration) : Application() {
-    init {
-        program.application = this
-    }
+class ApplicationWebGL(override var program: Program = Program(), override var configuration: Configuration = Configuration()) : Application() {
 
     override fun requestDraw() {
         drawRequested = true
@@ -55,7 +52,11 @@ class ApplicationWebGL(private val program: Program, private val configuration: 
     var canvas: HTMLCanvasElement? = null
     var context: WebGLRenderingContext? = null
     var defaultRenderTarget: ProgramRenderTargetWebGL? = null
-    override suspend fun setup() {
+    override suspend fun setup(program: Program, configuration: Configuration) {
+        this.program = program
+        this.configuration = configuration
+        program.application = this
+
         canvas = document.getElementById(configuration.canvasId) as? HTMLCanvasElement
             ?: error("failed to get canvas #${configuration.canvasId}")
         val contextAttributes = WebGLContextAttributes(stencil = true, preserveDrawingBuffer = true)

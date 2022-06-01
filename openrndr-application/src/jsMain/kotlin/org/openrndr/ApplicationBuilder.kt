@@ -16,3 +16,22 @@ actual suspend fun applicationAsync(build: ApplicationBuilder.() -> Unit) {
     val applicationBuilder = ApplicationBuilder().apply { build() }
     applicationAsync(applicationBuilder.program, applicationBuilder.configuration)
 }
+
+@ApplicationDslMarker
+actual class ApplicationBuilder internal actual constructor(){
+    internal actual val configuration = Configuration()
+    actual var program: Program = Program()
+    actual val application = applicationFunc?.invoke(program, configuration) ?: error("applicationFunc not set")
+
+    actual fun configure(init: Configuration.() -> Unit) {
+        configuration.init()
+    }
+
+    actual fun program(init: suspend Program.() -> Unit) {
+        program = object : Program() {
+            override suspend fun setup() {
+                init()
+            }
+        }
+    }
+}

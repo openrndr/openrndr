@@ -11,16 +11,15 @@ import org.openrndr.math.Vector2
 
 val logger = KotlinLogging.logger {}
 
-class ApplicationNullGL(private val program: Program, private val configuration: Configuration) : Application() {
+class ApplicationNullGL(override var program: Program = Program(), override var configuration: Configuration = Configuration()) : Application() {
 
     val startMS = System.currentTimeMillis()
     private var exitRequested = false
 
     init {
         Driver.driver = DriverNullGL()
-        program.application = this
-        setupPreload(program, configuration)
     }
+    override val displays: List<Display> = emptyList()
 
     override fun requestDraw() {
 
@@ -34,8 +33,12 @@ class ApplicationNullGL(private val program: Program, private val configuration:
         exitRequested = true
     }
 
-    override suspend fun setup() {
+    override suspend fun setup(program: Program, configuration: Configuration) {
         logger.debug { "entering setup" }
+        this.program = program
+        this.configuration = configuration
+        program.application = this
+        setupPreload(program, configuration)
     }
 
     override fun loop() {

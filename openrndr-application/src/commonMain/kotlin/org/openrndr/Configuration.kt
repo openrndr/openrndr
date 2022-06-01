@@ -100,10 +100,11 @@ class Configuration {
     var hideWindowDecorations = false
 
     /**
-     * Index of the display to use for creating the window.
-     * Value of `0` is your primary display.
+     * Display on which to create the window.
+     * All currently detected [Display]s can be found in the `displays` list.
+     * Defaults to `null` which means to use your primary monitor.
      */
-    var display: ((List<Display>) -> Display)? = null
+    var display: Display? = null
 
     /**
      * Should the window be made fullscreen?

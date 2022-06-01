@@ -1,21 +1,14 @@
 package org.openrndr
 
 @ApplicationDslMarker
-class ApplicationBuilder internal constructor(){
-    internal val configuration = Configuration()
-    var program: Program = Program()
+expect class ApplicationBuilder internal constructor(){
+    val application: Application
+    internal val configuration : Configuration
+    var program: Program
 
-    fun configure(init: Configuration.() -> Unit) {
-        configuration.init()
-    }
+    fun configure(init: Configuration.() -> Unit)
 
-    fun program(init: suspend Program.() -> Unit) {
-        program = object : Program() {
-            override suspend fun setup() {
-                init()
-            }
-        }
-    }
+    fun program(init: suspend Program.() -> Unit)
 }
 
 /**

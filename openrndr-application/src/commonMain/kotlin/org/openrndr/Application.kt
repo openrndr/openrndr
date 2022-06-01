@@ -27,16 +27,17 @@ annotation class ApplicationDslMarker
  */
 @ApplicationDslMarker
 expect abstract class Application {
-    companion object {
-        fun run(program: Program, configuration: Configuration)
-        suspend fun runAsync(program: Program, configuration: Configuration)
-    }
+    abstract var program: Program
+    abstract var configuration: Configuration
+
+    fun run(program: Program, configuration: Configuration)
+    suspend fun runAsync(program: Program, configuration: Configuration)
 
     abstract fun requestDraw()
     abstract fun requestFocus()
 
     abstract fun exit()
-    abstract suspend fun setup()
+    abstract suspend fun setup(program: Program = Program(), configuration: Configuration = Configuration())
 
     abstract fun loop()
     abstract var clipboardContents: String?

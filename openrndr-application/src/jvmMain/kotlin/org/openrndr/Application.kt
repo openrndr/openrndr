@@ -37,8 +37,8 @@ open class ApplicationPreload {
  */
 @ApplicationDslMarker
 actual abstract class Application {
-    actual companion object {
-        actual fun run(program: Program, configuration: Configuration) {
+    companion object {
+        fun initialize(program: Program, configuration: Configuration): Application {
             if (enableProfiling) {
                 Runtime.getRuntime().addShutdownHook(object : Thread() {
                     override fun run() {
@@ -48,15 +48,7 @@ actual abstract class Application {
             }
 
             val c = applicationClass(configuration)
-            val application = c.declaredConstructors[0].newInstance(program, configuration) as Application
-            runBlocking {
-                application.setup()
-            }
-            application.loop()
-        }
-
-        actual suspend fun runAsync(program: Program, configuration: Configuration) {
-            error("use run")
+            return c.declaredConstructors[0].newInstance() as Application
         }
 
         fun setupPreload(program: Program, configuration: Configuration) {
@@ -94,13 +86,28 @@ actual abstract class Application {
         }
     }
 
+    actual abstract var program: Program
+    actual abstract var configuration: Configuration
+
+    actual fun run(program: Program, configuration: Configuration) {
+        runBlocking {
+            this@Application.setup(program, configuration)
+        }
+        this.loop()
+    }
+
+    actual suspend fun runAsync(program: Program, configuration: Configuration) {
+        error("use run")
+    }
+
     actual abstract fun requestDraw()
     actual abstract fun requestFocus()
 
     actual abstract fun exit()
-    actual abstract suspend fun setup()
+    actual abstract suspend fun setup(program: Program, configuration: Configuration)
 
     actual abstract fun loop()
+    abstract val displays: List<Display>
     actual abstract var clipboardContents: String?
     actual abstract var windowTitle: String
     actual abstract var windowPosition: Vector2
@@ -123,7 +130,8 @@ actual abstract class Application {
  * Runs [program] as an application using [configuration].
  */
 actual fun application(program: Program, configuration: Configuration) {
-    Application.run(program, configuration)
+    val application: Application = Application.initialize(program, configuration)
+    application.run(program, configuration)
 }
 
 actual suspend fun applicationAsync(program: Program, configuration: Configuration) {

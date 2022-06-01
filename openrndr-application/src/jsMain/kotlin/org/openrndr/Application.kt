@@ -12,23 +12,24 @@ var applicationFunc : ((Program, Configuration) -> Application)? = null
  */
 @ApplicationDslMarker
 actual abstract class Application {
-    actual companion object {
-        actual fun run(program: Program, configuration: Configuration) {
-            error("use Application.runAsync")
-        }
+    actual abstract var program: Program
+    actual abstract var configuration: Configuration
 
-        actual suspend fun runAsync(program: Program, configuration: Configuration) {
-            val application = applicationFunc?.invoke(program, configuration) ?: error("applicationFunc not set")
-            application.setup()
-            application.loop()
-        }
+    actual fun run(program: Program, configuration: Configuration) {
+        error("use Application.runAsync")
+    }
+
+    actual suspend fun runAsync(program: Program, configuration: Configuration) {
+        val application = applicationFunc?.invoke(program, configuration) ?: error("applicationFunc not set")
+        application.setup(program, configuration)
+        application.loop()
     }
 
     actual abstract fun requestDraw()
     actual abstract fun requestFocus()
 
     actual abstract fun exit()
-    actual abstract suspend fun setup()
+    actual abstract suspend fun setup(program: Program, configuration: Configuration)
 
     actual abstract fun loop()
     actual abstract var clipboardContents: String?
@@ -57,5 +58,6 @@ actual fun application(program: Program, configuration: Configuration) {
 }
 
 actual suspend fun applicationAsync(program: Program, configuration: Configuration) {
-    Application.runAsync(program, configuration)
+    val application = applicationFunc?.invoke(program, configuration) ?: error("applicationFunc not set")
+    application.runAsync(program, configuration)
 }
