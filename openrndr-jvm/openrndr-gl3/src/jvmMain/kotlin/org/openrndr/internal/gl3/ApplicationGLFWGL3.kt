@@ -354,9 +354,8 @@ class ApplicationGLFWGL3(override var program: Program = Program(), override var
 
         logger.debug { "window created: $window" }
 
-
         // Get the thread stack and push a new frame
-        stackPush().let { stack ->
+        stackPush().use { stack ->
             val px = stack.mallocInt(1) // int*
             val py = stack.mallocInt(1) // int*
             glfwGetMonitorPos(display, px, py)
@@ -384,6 +383,7 @@ class ApplicationGLFWGL3(override var program: Program = Program(), override var
                         py.get(0) + (vidmode.height() - pHeight.get(0)) / 2
                     )
                 }
+                Unit
             } else {
                 configuration.position?.let {
                     glfwSetWindowPos(
@@ -393,7 +393,6 @@ class ApplicationGLFWGL3(override var program: Program = Program(), override var
                     )
                 }
             }
-            Unit
         }
 
         logger.debug { "making context current" }
