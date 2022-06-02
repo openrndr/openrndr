@@ -77,13 +77,19 @@ sealed class CompositionNode {
         }
     var strokeOpacity
         get() = style.strokeOpacity.value
-        set(value) { style.strokeOpacity = Numeric.Rational(value) }
+        set(value) {
+            style.strokeOpacity = Numeric.Rational(value)
+        }
     var strokeWeight
         get() = style.strokeWeight.value
-        set(value) { style.strokeWeight = Length.Pixels(value) }
+        set(value) {
+            style.strokeWeight = Length.Pixels(value)
+        }
     var miterLimit
         get() = style.miterLimit.value
-        set(value) { style.miterLimit = Numeric.Rational(value) }
+        set(value) {
+            style.miterLimit = Numeric.Rational(value)
+        }
     var lineCap
         get() = style.lineCap.value
         set(value) {
@@ -112,16 +118,24 @@ sealed class CompositionNode {
         }
     var fillOpacity
         get() = style.fillOpacity.value
-        set(value) { style.fillOpacity = Numeric.Rational(value) }
+        set(value) {
+            style.fillOpacity = Numeric.Rational(value)
+        }
     var opacity
         get() = style.opacity.value
-        set(value) { style.opacity = Numeric.Rational(value) }
+        set(value) {
+            style.opacity = Numeric.Rational(value)
+        }
     var shadeStyle
         get() = style.shadeStyle.value
-        set(value) { style.shadeStyle = Shade.Value(value) }
+        set(value) {
+            style.shadeStyle = Shade.Value(value)
+        }
     var transform
         get() = style.transform.value
-        set(value) { style.transform = Transform.Matrix(value) }
+        set(value) {
+            style.transform = Transform.Matrix(value)
+        }
 }
 
 // TODO: Deprecate this?
@@ -262,7 +276,12 @@ data class CompositionDimensions(val x: Length, val y: Length, val width: Length
     val position = Vector2((x as Length.Pixels).value, (y as Length.Pixels).value)
     val dimensions = Vector2((width as Length.Pixels).value, (height as Length.Pixels).value)
 
-    constructor(rectangle: Rectangle): this(rectangle.corner.x.pixels, rectangle.corner.y.pixels, rectangle.dimensions.x.pixels, rectangle.dimensions.y.pixels)
+    constructor(rectangle: Rectangle) : this(
+        rectangle.corner.x.pixels,
+        rectangle.corner.y.pixels,
+        rectangle.dimensions.x.pixels,
+        rectangle.dimensions.y.pixels
+    )
 
     override fun toString(): String = "$x $y $width $height"
 
@@ -296,7 +315,7 @@ class GroupNodeStop(children: MutableList<CompositionNode>) : GroupNode(children
  * @param bounds the dimensions of the composition
  */
 class Composition(val root: CompositionNode, var bounds: CompositionDimensions = defaultCompositionDimensions) {
-    constructor(root: CompositionNode, bounds: Rectangle): this(root, CompositionDimensions(bounds))
+    constructor(root: CompositionNode, bounds: Rectangle) : this(root, CompositionDimensions(bounds))
 
     /** SVG/XML namespaces */
     val namespaces = mutableMapOf<String, String>()
@@ -318,17 +337,17 @@ class Composition(val root: CompositionNode, var bounds: CompositionDimensions =
 
     fun findShapes() = root.findShapes()
     fun findShape(id: String): ShapeNode? {
-        return (root.findTerminals { it is ShapeNode && it.id == id }).firstOrNull() as? ShapeNode
+        return (root.find { it is ShapeNode && it.id == id }) as? ShapeNode
     }
 
     fun findImages() = root.findImages()
     fun findImage(id: String): ImageNode? {
-        return (root.findTerminals { it is ImageNode && it.id == id }).firstOrNull() as? ImageNode
+        return (root.find { it is ImageNode && it.id == id }) as? ImageNode
     }
 
     fun findGroups(): List<GroupNode> = root.findGroups()
     fun findGroup(id: String): GroupNode? {
-        return (root.findTerminals { it is GroupNode && it.id == id }).firstOrNull() as? GroupNode
+        return (root.find { it is GroupNode && it.id == id }) as? GroupNode
     }
 
     fun clear() = (root as? GroupNode)?.children?.clear()
@@ -349,6 +368,7 @@ class Composition(val root: CompositionNode, var bounds: CompositionDimensions =
                         // The intent is to not display the element
                         Matrix44.ZERO
                     }
+
                     else -> {
                         val vbCorner = vb.corner
                         val vbDims = vb.dimensions
@@ -442,6 +462,26 @@ fun CompositionNode.findAll(filter: (CompositionNode) -> Boolean): List<Composit
 }
 
 /**
+ * Finds first [CompositionNode] to match the given [predicate].
+ */
+fun CompositionNode.find(predicate: (CompositionNode) -> Boolean): CompositionNode? {
+    if (predicate(this)) {
+        return this
+    } else if (this is GroupNode) {
+        val deque: ArrayDeque<CompositionNode> = ArrayDeque(children)
+        while (deque.isNotEmpty()) {
+            val node = deque.removeFirst()
+            if (predicate(node)) {
+                return node
+            } else if (node is GroupNode) {
+                deque.addAll(node.children)
+            }
+        }
+    }
+    return null
+}
+
+/**
  * find all descendant [ShapeNode] nodes, including potentially this node
  * @return a [List] of [ShapeNode] nodes
  */
@@ -504,9 +544,11 @@ fun CompositionNode.filter(filter: (CompositionNode) -> Boolean): CompositionNod
                     is ShapeNode -> {
                         copies.add(filtered.copy(parent = this))
                     }
+
                     is GroupNode -> {
                         copies.add(filtered.copy(parent = this))
                     }
+
                     else -> {
 
                     }
@@ -529,6 +571,7 @@ fun CompositionNode.map(mapper: (CompositionNode) -> CompositionNode): Compositi
                 }
             }
         }
+
         is GroupNode -> {
             val copy = r.copy(children = r.children.map { it.map(mapper) }.toMutableList())
             copy.children.forEach {
@@ -536,6 +579,7 @@ fun CompositionNode.map(mapper: (CompositionNode) -> CompositionNode): Compositi
             }
             copy
         }
+
         else -> r
     }
 }
