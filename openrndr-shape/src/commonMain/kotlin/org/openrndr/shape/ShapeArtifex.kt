@@ -16,29 +16,13 @@ private fun Vec2.toVector2(): Vector2 {
     return Vector2(x, y)
 }
 
-private fun Segment.toCurve2(): Curve2 {
+internal fun Segment.toCurve2(): Curve2 {
     return when (control.size) {
         0 -> Line2.line(start.toVec2(), end.toVec2())
         1 -> Bezier2.curve(start.toVec2(), control[0].toVec2(), end.toVec2())
         2 -> Bezier2.curve(start.toVec2(), control[0].toVec2(), control[1].toVec2(), end.toVec2())
         else -> throw IllegalArgumentException("unsupported control count ${control.size}")
     }
-}
-
-private fun ShapeContour.toPath2(): Path2 {
-    return Path2(segments.map { it.toCurve2() })
-}
-
-internal fun ShapeContour.toRing2(): Ring2 {
-    return Ring2(segments.map { it.toCurve2() })
-}
-
-internal fun Shape.toRegion2(): Region2 {
-    return Region2(contours.map { it.toRing2() })
-}
-
-private fun Shape.toPath2(): List<Path2> {
-    return contours.map { it.toPath2() }
 }
 
 private fun Region2.toShape(): Shape {
@@ -98,7 +82,7 @@ private fun Ring2.toShapeContour(): ShapeContour {
 
 private fun List<Shape>.toRegion2(): Region2 {
     return Region2(flatMap { shape ->
-        shape.contours.map { it.toRing2() }
+        shape.contours.map { it.ring2 }
     })
 }
 
@@ -108,7 +92,7 @@ private fun List<Shape>.toRegion2(): Region2 {
  */
 fun difference(from: ShapeContour, subtract: ShapeContour): Shape {
     return if (from.closed) {
-        val result = from.toRing2().region().difference(subtract.toRing2().region())
+        val result = from.ring2.region().difference(subtract.ring2.region())
         result.toShape()
     } else {
         return if (subtract.closed) {
@@ -143,7 +127,7 @@ fun difference(from: Shape, subtract: ShapeContour): Shape {
     return when (from.topology) {
         ShapeTopology.CLOSED -> {
             if (subtract.closed) {
-                val result = from.toRegion2().difference(subtract.toRing2().region())
+                val result = from.region2.difference(subtract.ring2.region())
                 result.toShape()
             } else {
                 return from
@@ -175,7 +159,7 @@ fun difference(from: Shape, subtract: ShapeContour): Shape {
  */
 fun difference(from: ShapeContour, subtract: Shape): Shape {
     return if (from.closed) {
-        val result = from.toRing2().region().difference(subtract.toRegion2())
+        val result = from.ring2.region().difference(subtract.region2)
         result.toShape()
     } else {
         when (subtract.topology) {
@@ -241,7 +225,7 @@ fun difference(from: Shape, subtract: Shape): Shape {
             when (subtract.topology) {
                 ShapeTopology.OPEN -> from
                 ShapeTopology.CLOSED -> {
-                    val result = from.toRegion2().difference(subtract.toRegion2())
+                    val result = from.region2.difference(subtract.region2)
                     result.toShape()
                 }
                 ShapeTopology.MIXED -> {
@@ -264,14 +248,14 @@ fun difference(from: Shape, subtract: Shape): Shape {
  * Applies a boolean difference operation between a [List] of [Shape]s and a [ShapeContour].
  */
 fun difference(from: List<Shape>, subtract: ShapeContour): List<Shape> {
-    return from.toRegion2().difference(subtract.toRing2().region()).toShapes()
+    return from.toRegion2().difference(subtract.ring2.region()).toShapes()
 }
 
 /**
  * Applies a boolean difference operation between a [List] of [Shape]s and a [Shape].
  */
 fun difference(from: List<Shape>, subtract: Shape): List<Shape> {
-    return from.toRegion2().difference(subtract.toRegion2()).toShapes()
+    return from.toRegion2().difference(subtract.region2).toShapes()
 }
 
 /**
@@ -310,7 +294,7 @@ fun union(from: ShapeContour, add: ShapeContour): Shape {
     }
 
     return if (from.closed) {
-        val result = from.toRing2().region().union(add.toRing2().region())
+        val result = from.ring2.region().union(add.ring2.region())
         result.toShape()
     } else {
         from.shape
@@ -330,7 +314,7 @@ fun union(from: Shape, add: ShapeContour): Shape {
     if (add === ShapeContour.EMPTY) {
         return from
     }
-    val result = from.toRegion2().union(add.toRing2().region())
+    val result = from.region2.union(add.ring2.region())
     return result.toShape()
 }
 
@@ -339,7 +323,7 @@ fun union(from: Shape, add: ShapeContour): Shape {
  */
 fun union(from: Shape, add: Shape): Shape {
     return if (from.topology == ShapeTopology.CLOSED) {
-        val result = from.toRegion2().union(add.toRegion2())
+        val result = from.region2.union(add.region2)
         result.toShape()
     } else {
         from
@@ -350,14 +334,14 @@ fun union(from: Shape, add: Shape): Shape {
  * Applies a boolean org.openrndr.shape.union operation between a [List] of [Shape]s and a [ShapeContour].
  */
 fun union(from: List<Shape>, add: ShapeContour): List<Shape> {
-    return from.toRegion2().union(add.toRing2().region()).toShapes()
+    return from.toRegion2().union(add.ring2.region()).toShapes()
 }
 
 /**
  * Applies a boolean org.openrndr.shape.union operation between a [List] of [Shape]s and a [Shape].
  */
 fun union(from: List<Shape>, add: Shape): List<Shape> {
-    return from.toRegion2().union(add.toRegion2()).toShapes()
+    return from.toRegion2().union(add.region2).toShapes()
 }
 
 /**
@@ -402,7 +386,7 @@ fun intersection(from: ShapeContour, with: ShapeContour): Shape {
         return Shape.EMPTY
 
     return if (from.closed) {
-        val result = from.toRing2().region().intersection(with.toRing2().region())
+        val result = from.ring2.region().intersection(with.ring2.region())
         result.toShape()
     } else {
         return if (with.closed) {
@@ -441,7 +425,7 @@ fun intersection(from: Shape, with: ShapeContour): Shape {
     return when (from.topology) {
         ShapeTopology.CLOSED -> {
             if (with.closed) {
-                val result = from.toRegion2().intersection(with.toRing2().region())
+                val result = from.region2.intersection(with.ring2.region())
                 result.toShape()
             } else {
                 return from
@@ -477,7 +461,7 @@ fun intersection(from: ShapeContour, with: Shape): Shape {
     }
 
     return if (from.closed) {
-        val result = from.toRing2().region().intersection(with.toRegion2())
+        val result = from.ring2.region().intersection(with.region2)
         result.toShape()
     } else {
         when (with.topology) {
@@ -537,7 +521,7 @@ fun intersection(from: Shape, with: Shape): Shape {
             when (with.topology) {
                 ShapeTopology.OPEN -> from
                 ShapeTopology.CLOSED -> {
-                    val result = from.toRegion2().intersection(with.toRegion2())
+                    val result = from.region2.intersection(with.region2)
                     result.toShape()
                 }
                 ShapeTopology.MIXED -> {
@@ -560,14 +544,14 @@ fun intersection(from: Shape, with: Shape): Shape {
  * Applies a boolean intersection operation between a [List] of [Shape]s and a [ShapeContour].
  */
 fun intersection(from: List<Shape>, with: ShapeContour): List<Shape> {
-    return from.toRegion2().intersection(with.toRing2().region()).toShapes()
+    return from.toRegion2().intersection(with.ring2.region()).toShapes()
 }
 
 /**
  * Applies a boolean intersection operation between a [List] of [Shape]s and a [Shape].
  */
 fun intersection(from: List<Shape>, with: Shape): List<Shape> {
-    return from.toRegion2().intersection(with.toRegion2()).toShapes()
+    return from.toRegion2().intersection(with.region2).toShapes()
 }
 
 /**

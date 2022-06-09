@@ -5,7 +5,7 @@ import org.openrndr.math.Vector2
 import kotlin.math.sqrt
 
 /** Returns true if given [point] lies inside the [ShapeContour]. */
-operator fun ShapeContour.contains(point: Vector2): Boolean = closed && this.toRing2().test(
+operator fun ShapeContour.contains(point: Vector2): Boolean = closed && this.ring2.test(
     Vec2(point.x, point.y)
 ).inside
 
