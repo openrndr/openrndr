@@ -38,7 +38,7 @@ open class ApplicationPreload {
 @ApplicationDslMarker
 actual abstract class Application {
     companion object {
-        fun initialize(program: Program, configuration: Configuration): Application {
+        fun initialize(): Application {
             if (enableProfiling) {
                 Runtime.getRuntime().addShutdownHook(object : Thread() {
                     override fun run() {
@@ -47,7 +47,7 @@ actual abstract class Application {
                 })
             }
 
-            val c = applicationClass(configuration)
+            val c = applicationClass()
             return c.declaredConstructors[0].newInstance() as Application
         }
 
@@ -64,13 +64,13 @@ actual abstract class Application {
                 logger.info { "no preload class found '$preloadClassName'" }
                 null
             }
-            if(preload != null) {
+            if (preload != null) {
                 preload.onConfiguration(configuration)
                 preload.onProgramSetup(program)
             }
         }
 
-        private fun applicationClass(configuration: Configuration): Class<*> {
+        private fun applicationClass(): Class<*> {
             try {
                 val c = Application::class.java.classLoader.loadClass("org.openrndr.internal.nullgl.ApplicationNullGL")
                 logger.debug { "NullGL found" }
@@ -79,10 +79,14 @@ actual abstract class Application {
                 logger.debug { "NullGL not found" }
             }
 
-            return if (!configuration.headless)
-                Application::class.java.classLoader.loadClass("org.openrndr.internal.gl3.ApplicationGLFWGL3")
-            else
-                Application::class.java.classLoader.loadClass("org.openrndr.internal.gl3.ApplicationEGLGL3")
+            val applicationProperty: String? = System.getProperty("org.openrndr.application")
+
+            @Suppress("KotlinConstantConditions")
+            return when (applicationProperty) {
+                null, "", "ApplicationGLFW" -> Application::class.java.classLoader.loadClass("org.openrndr.internal.gl3.ApplicationGLFWGL3")
+                "ApplicationEGL" -> Application::class.java.classLoader.loadClass("org.openrndr.internal.gl3.ApplicationEGLGL3")
+                else -> throw IllegalArgumentException("Unknown value '${applicationProperty}' provided for org.openrndr.application")
+            }
         }
     }
 
@@ -97,7 +101,7 @@ actual abstract class Application {
     }
 
     actual suspend fun runAsync(program: Program, configuration: Configuration) {
-        error("use run")
+        throw NotImplementedError("Asynchronous application is unsupported, use Application.run()")
     }
 
     actual abstract fun requestDraw()
@@ -130,10 +134,10 @@ actual abstract class Application {
  * Runs [program] as an application using [configuration].
  */
 actual fun application(program: Program, configuration: Configuration) {
-    val application: Application = Application.initialize(program, configuration)
+    val application: Application = Application.initialize()
     application.run(program, configuration)
 }
 
 actual suspend fun applicationAsync(program: Program, configuration: Configuration) {
-    error("use application()")
+    throw NotImplementedError("Asynchronous application is unsupported, use application()")
 }

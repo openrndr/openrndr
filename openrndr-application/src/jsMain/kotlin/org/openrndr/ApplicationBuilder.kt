@@ -5,7 +5,7 @@ package org.openrndr
  * writing applications.
  */
 actual fun application(build: ApplicationBuilder.() -> Unit) {
-    error("use applicationAsync")
+    throw NotImplementedError("Synchronous application is unsupported, use applicationAsync()")
 }
 
 /**
@@ -13,8 +13,10 @@ actual fun application(build: ApplicationBuilder.() -> Unit) {
  * writing applications.
  */
 actual suspend fun applicationAsync(build: ApplicationBuilder.() -> Unit) {
-    val applicationBuilder = ApplicationBuilder().apply { build() }
-    applicationAsync(applicationBuilder.program, applicationBuilder.configuration)
+    ApplicationBuilder().apply {
+        build()
+        application.runAsync(program, configuration)
+    }
 }
 
 @ApplicationDslMarker

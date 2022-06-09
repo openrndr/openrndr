@@ -158,11 +158,6 @@ class Configuration {
     var windowTransparent : Boolean = false
 
     /**
-     * Should the application be run in headless mode?
-     */
-    var headless: Boolean = false
-
-    /**
      * Should the window render target use multisampling?
      */
     var multisample: WindowMultisample = WindowMultisample.Disabled

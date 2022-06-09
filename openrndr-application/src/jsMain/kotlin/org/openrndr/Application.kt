@@ -16,7 +16,7 @@ actual abstract class Application {
     actual abstract var configuration: Configuration
 
     actual fun run(program: Program, configuration: Configuration) {
-        error("use Application.runAsync")
+        throw NotImplementedError("Synchronous application is unsupported, use Application.runAsync()")
     }
 
     actual suspend fun runAsync(program: Program, configuration: Configuration) {
@@ -54,7 +54,7 @@ actual abstract class Application {
  * Runs [program] as an application using [configuration].
  */
 actual fun application(program: Program, configuration: Configuration) {
-    error("use applicationAsync")
+    throw NotImplementedError("Synchronous application is unsupported, use applicationAsync()")
 }
 
 actual suspend fun applicationAsync(program: Program, configuration: Configuration) {

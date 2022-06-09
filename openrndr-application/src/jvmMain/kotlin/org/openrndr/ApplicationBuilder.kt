@@ -1,6 +1,5 @@
 package org.openrndr
 
-import kotlinx.coroutines.runBlocking
 import org.openrndr.exceptions.installUncaughtExceptionHandler
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -77,24 +76,22 @@ private fun restartJVM(): Boolean {
 actual fun application(build: ApplicationBuilder.() -> Unit) {
     if (!restartJVM()) {
         installUncaughtExceptionHandler()
-        val applicationBuilder = ApplicationBuilder().apply { build() }
-        application(applicationBuilder.program, applicationBuilder.configuration)
+        ApplicationBuilder().apply {
+            build()
+            application.run(program, configuration)
+        }
     }
 }
 
 actual suspend fun applicationAsync(build: ApplicationBuilder.() -> Unit) {
-    if (!restartJVM()) {
-        installUncaughtExceptionHandler()
-        val applicationBuilder = ApplicationBuilder().apply { build() }
-        applicationAsync(applicationBuilder.program, applicationBuilder.configuration)
-    }
+    throw NotImplementedError("Asynchronous application is unsupported, use application()")
 }
 
 @ApplicationDslMarker
 actual class ApplicationBuilder internal actual constructor(){
     internal actual val configuration = Configuration()
     actual var program: Program = Program()
-    actual val application: Application = Application.initialize(program, configuration)
+    actual val application: Application = Application.initialize()
     val displays = application.displays
 
     actual fun configure(init: Configuration.() -> Unit) {
