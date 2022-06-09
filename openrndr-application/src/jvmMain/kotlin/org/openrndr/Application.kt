@@ -98,14 +98,14 @@ actual abstract class Application {
     actual abstract var program: Program
     actual abstract var configuration: Configuration
 
-    actual fun run(program: Program, configuration: Configuration) {
+    internal actual fun run(program: Program, configuration: Configuration) {
         runBlocking {
             this@Application.setup(program, configuration)
         }
         this.loop()
     }
 
-    actual suspend fun runAsync(program: Program, configuration: Configuration) {
+    internal actual suspend fun runAsync(program: Program, configuration: Configuration) {
         throw NotImplementedError("Asynchronous application is unsupported, use Application.run()")
     }
 

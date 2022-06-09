@@ -30,8 +30,8 @@ expect abstract class Application {
     abstract var program: Program
     abstract var configuration: Configuration
 
-    fun run(program: Program, configuration: Configuration)
-    suspend fun runAsync(program: Program, configuration: Configuration)
+    internal fun run(program: Program, configuration: Configuration)
+    internal suspend fun runAsync(program: Program, configuration: Configuration)
 
     abstract fun requestDraw()
     abstract fun requestFocus()

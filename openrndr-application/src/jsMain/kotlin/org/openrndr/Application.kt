@@ -15,11 +15,11 @@ actual abstract class Application {
     actual abstract var program: Program
     actual abstract var configuration: Configuration
 
-    actual fun run(program: Program, configuration: Configuration) {
+    internal actual fun run(program: Program, configuration: Configuration) {
         throw NotImplementedError("Synchronous application is unsupported, use Application.runAsync()")
     }
 
-    actual suspend fun runAsync(program: Program, configuration: Configuration) {
+    internal actual suspend fun runAsync(program: Program, configuration: Configuration) {
         val application = applicationFunc?.invoke(program, configuration) ?: error("applicationFunc not set")
         application.setup(program, configuration)
         application.loop()
