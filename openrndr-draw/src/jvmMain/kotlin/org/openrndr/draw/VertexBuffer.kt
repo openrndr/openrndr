@@ -36,7 +36,7 @@ actual abstract class VertexBuffer {
         if (w.position % vertexFormat.size != 0) {
             throw RuntimeException("incomplete vertices written. likely violating the specified vertex format $vertexFormat")
         }
-        val count = w.positionElements
+        val count = w.positionElements - elementOffset
         shadow.uploadElements(elementOffset, count)
         w.rewind()
         return count
