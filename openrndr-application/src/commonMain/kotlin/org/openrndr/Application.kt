@@ -59,8 +59,5 @@ expect abstract class Application {
     abstract var presentationMode: PresentationMode
 }
 
-/**
- * Runs [program] as an application using [configuration].
- */
 expect fun application(program: Program, configuration: Configuration = Configuration())
 expect suspend fun applicationAsync(program: Program, configuration: Configuration = Configuration())

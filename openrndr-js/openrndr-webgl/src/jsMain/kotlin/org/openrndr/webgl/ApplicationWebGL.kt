@@ -19,15 +19,15 @@ import kotlin.math.min
 import org.w3c.dom.events.KeyboardEvent as HtmlKeyboardEvent
 import org.w3c.dom.events.MouseEvent as HtmlMouseEvent
 
+// This is a hack to get [applicationFunc] initialized. Perhaps there's a better way to do this,
+// but this ensures the property is not removed by DCE and gets initialized eagerly.
 @OptIn(ExperimentalStdlibApi::class, ExperimentalJsExport::class)
 @EagerInitialization
 @JsExport
 val applicationWebGLInitializer = object {
     init {
         console.log("setting up ApplicationWebGL")
-        applicationFunc = { program, configuration ->
-            ApplicationWebGL(program, configuration)
-        }
+        applicationFunc = ::ApplicationWebGL
     }
 }
 
@@ -52,7 +52,9 @@ class ApplicationWebGL(override var program: Program = Program(), override var c
     var context: WebGLRenderingContext? = null
     var defaultRenderTarget: ProgramRenderTargetWebGL? = null
     override suspend fun setup(program: Program, configuration: Configuration) {
+        // We need this here to make sure [applicationFunc] is initialized.
         applicationWebGLInitializer
+
         this.program = program
         this.configuration = configuration
         program.application = this

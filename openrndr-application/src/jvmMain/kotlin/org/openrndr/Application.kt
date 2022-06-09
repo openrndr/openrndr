@@ -33,7 +33,12 @@ open class ApplicationPreload {
 }
 
 /**
- * Application interface
+ * This class is responsible for selecting and initializing the appropriate graphics backend.
+ *
+ * By default, the GLFW backend is used. This can be customized by setting the VM property
+ * `org.openrndr.application` to "ApplicationGLFW" or "ApplicationEGL".
+ * However, if "org.openrndr.internal.nullgl.ApplicationNullGL" is found on the classpath,
+ * NullGL will be used as the backend instead, regardless of other settings.
  */
 @ApplicationDslMarker
 actual abstract class Application {
@@ -131,13 +136,18 @@ actual abstract class Application {
 }
 
 /**
- * Runs [program] as an application using [configuration].
+ * Runs [program] as a synchronous application with the given [configuration].
+ * @see application
  */
 actual fun application(program: Program, configuration: Configuration) {
     val application: Application = Application.initialize()
     application.run(program, configuration)
 }
 
+/**
+ * Runs [program] as an asynchronous application with the given [configuration].
+ * @see applicationAsync
+ */
 actual suspend fun applicationAsync(program: Program, configuration: Configuration) {
     throw NotImplementedError("Asynchronous application is unsupported, use application()")
 }

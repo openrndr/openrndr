@@ -11,16 +11,6 @@ expect class ApplicationBuilder internal constructor(){
     fun program(init: suspend Program.() -> Unit)
 }
 
-/**
- * Runs [programFunction] as an application using [configuration], this provides a more functional flavored way of
- * writing applications.
- */
 expect fun application(build: ApplicationBuilder.() -> Unit)
 
-
-/**
- * Runs [programFunction] as an application using [configuration], this provides a more functional flavored way of
- * writing applications.
- */
 expect suspend fun applicationAsync(build: ApplicationBuilder.() -> Unit)
-

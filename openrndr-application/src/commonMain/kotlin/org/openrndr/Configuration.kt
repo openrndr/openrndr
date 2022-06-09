@@ -100,8 +100,8 @@ class Configuration {
     var hideWindowDecorations = false
 
     /**
-     * Display on which to create the window.
-     * All currently detected [Display]s can be found in the `displays` list.
+     * The display on which to create the window.
+     * All currently detected [Display]s can be found in the `displays` list inside [ApplicationBuilder].
      * Defaults to `null` which means to use your primary monitor.
      */
     var display: Display? = null

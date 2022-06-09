@@ -72,7 +72,10 @@ private fun restartJVM(): Boolean {
     return true
 }
 
-
+/**
+ * Creates and runs a synchronous OPENRNDR application using the provided [ApplicationBuilder].
+ * @see <a href="https://guide.openrndr.org/">the OPENRNDR guide</a>
+ */
 actual fun application(build: ApplicationBuilder.() -> Unit) {
     if (!restartJVM()) {
         installUncaughtExceptionHandler()
@@ -83,6 +86,10 @@ actual fun application(build: ApplicationBuilder.() -> Unit) {
     }
 }
 
+/**
+ * Creates and runs an asynchronous OPENRNDR application using the provided [ApplicationBuilder].
+ * @see <a href="https://guide.openrndr.org/">the OPENRNDR guide</a>
+ */
 actual suspend fun applicationAsync(build: ApplicationBuilder.() -> Unit) {
     throw NotImplementedError("Asynchronous application is unsupported, use application()")
 }

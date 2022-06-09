@@ -51,12 +51,17 @@ actual abstract class Application {
 }
 
 /**
- * Runs [program] as an application using [configuration].
+ * Runs [program] as a synchronous application with the given [configuration].
+ * @see application
  */
 actual fun application(program: Program, configuration: Configuration) {
     throw NotImplementedError("Synchronous application is unsupported, use applicationAsync()")
 }
 
+/**
+ * Runs [program] as an asynchronous application with the given [configuration].
+ * @see applicationAsync
+ */
 actual suspend fun applicationAsync(program: Program, configuration: Configuration) {
     val application = applicationFunc?.invoke(program, configuration) ?: error("applicationFunc not set")
     application.runAsync(program, configuration)

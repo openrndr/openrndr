@@ -1,16 +1,16 @@
 package org.openrndr
 
 /**
- * Runs [programFunction] as an application using [configuration], this provides a more functional flavored way of
- * writing applications.
+ * Creates and runs a synchronous OPENRNDR application using the provided [ApplicationBuilder].
+ * @see <a href="https://guide.openrndr.org/">the OPENRNDR guide</a>
  */
 actual fun application(build: ApplicationBuilder.() -> Unit) {
     throw NotImplementedError("Synchronous application is unsupported, use applicationAsync()")
 }
 
 /**
- * Runs [programFunction] as an application using [configuration], this provides a more functional flavored way of
- * writing applications.
+ * Creates and runs an asynchronous OPENRNDR application using the provided [ApplicationBuilder].
+ * @see <a href="https://guide.openrndr.org/">the OPENRNDR guide</a>
  */
 actual suspend fun applicationAsync(build: ApplicationBuilder.() -> Unit) {
     ApplicationBuilder().apply {
