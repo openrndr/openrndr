@@ -2,27 +2,26 @@ package org.openrndr.webgl
 
 import kotlinx.browser.document
 import kotlinx.browser.window
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.await
 import org.khronos.webgl.WebGLContextAttributes
 import org.khronos.webgl.WebGLRenderingContext
 import org.openrndr.*
 import org.openrndr.draw.Drawer
 import org.openrndr.internal.Driver
 import org.openrndr.math.Vector2
-import org.w3c.dom.HTMLAnchorElement
 import org.w3c.dom.HTMLCanvasElement
 import org.w3c.dom.asList
 import org.w3c.dom.events.WheelEvent
 import org.w3c.files.File
 import org.w3c.files.FileList
 import org.w3c.files.FileReader
-import org.w3c.files.get
 import kotlin.js.Promise
-import org.w3c.dom.events.MouseEvent as HtmlMouseEvent
-import org.w3c.dom.events.KeyboardEvent as HtmlKeyboardEvent
 import kotlin.math.min
+import org.w3c.dom.events.KeyboardEvent as HtmlKeyboardEvent
+import org.w3c.dom.events.MouseEvent as HtmlMouseEvent
 
+@OptIn(ExperimentalStdlibApi::class, ExperimentalJsExport::class)
+@EagerInitialization
+@JsExport
 val applicationWebGLInitializer = object {
     init {
         console.log("setting up ApplicationWebGL")
@@ -53,6 +52,7 @@ class ApplicationWebGL(override var program: Program = Program(), override var c
     var context: WebGLRenderingContext? = null
     var defaultRenderTarget: ProgramRenderTargetWebGL? = null
     override suspend fun setup(program: Program, configuration: Configuration) {
+        applicationWebGLInitializer
         this.program = program
         this.configuration = configuration
         program.application = this
