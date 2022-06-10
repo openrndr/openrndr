@@ -1,3 +1,5 @@
+@file:Suppress("USELESS_ELVIS", "FunctionName", "unused", "MemberVisibilityCanBePrivate")
+
 package org.openrndr.ktessellation
 
 internal object TessMono {
@@ -53,8 +55,11 @@ internal object TessMono {
                  * are CW, given that the upper and lower chains are truly monotone.
                  */
                 while (lo.Lnext !== up && (Geom.EdgeGoesLeft(lo.Lnext ?: error("lo.Lnext == null"))
-                            || Geom.EdgeSign(lo.Org ?: error("lo.Org == null"),
-                        lo.Sym?.Org ?: error("lo.Sym.Org = null"), lo.Lnext?.Sym?.Org ?: error("lo.Lnext.Sym.Org == null")) <= 0)
+                            || Geom.EdgeSign(
+                        lo.Org ?: error("lo.Org == null"),
+                        lo.Sym?.Org ?: error("lo.Sym.Org = null"),
+                        lo.Lnext?.Sym?.Org ?: error("lo.Lnext.Sym.Org == null")
+                    ) <= 0)
                 ) {
                     val tempHalfEdge: GLUhalfEdge =
                         Mesh.__gl_meshConnect(lo.Lnext!!, lo) ?: return false
@@ -64,8 +69,10 @@ internal object TessMono {
             } else {
                 /* lo.Org is on the left.  We can make CCW triangles from up.Sym.Org. */
                 while (lo.Lnext !== up && (Geom.EdgeGoesRight(up.Onext?.Sym ?: error("up.Onext.Sym == null"))
-                            || Geom.EdgeSign(up.Sym?.Org ?: error("up.Sym.Org == null"), up.Org ?: error("up.Org == null"),
-                        up.Onext?.Sym?.Org ?: error("up.Onext.Sym.Org == null")) >= 0)
+                            || Geom.EdgeSign(
+                        up.Sym?.Org ?: error("up.Sym.Org == null"), up.Org ?: error("up.Org == null"),
+                        up.Onext?.Sym?.Org ?: error("up.Onext.Sym.Org == null")
+                    ) >= 0)
                 ) {
                     val tempHalfEdge: GLUhalfEdge =
                         Mesh.__gl_meshConnect(up, up.Onext?.Sym ?: error("up.Onext.Sym == null"))

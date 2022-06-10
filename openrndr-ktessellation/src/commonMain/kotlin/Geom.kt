@@ -1,3 +1,5 @@
+@file:Suppress("MemberVisibilityCanBePrivate", "FunctionName", "NAME_SHADOWING", "unused")
+
 package org.openrndr.ktessellation
 
 import kotlin.math.abs
@@ -85,11 +87,9 @@ internal object Geom {
          * is cheaper to evaluate.  Returns > 0, == 0 , or < 0
          * as v is above, on, or below the edge uw.
          */
-        val gapL: Double
-        val gapR: Double
         require(TransLeq(u, v) && TransLeq(v, w))
-        gapL = v.t - u.t
-        gapR = w.t - v.t
+        val gapL: Double = v.t - u.t
+        val gapR: Double = w.t - v.t
         return if (gapL + gapR > 0) {
             (v.s - w.s) * gapL + (v.s - u.s) * gapR
         } else 0.0

@@ -1,3 +1,5 @@
+@file:Suppress("unused", "MemberVisibilityCanBePrivate")
+
 package org.openrndr.ktessellation
 
 /*
@@ -40,7 +42,7 @@ package org.openrndr.ktessellation
  * @author Erik Duijs
  */
 object GLU {
-    val PI: Float = kotlin.math.PI.toFloat()
+    const val PI: Float = kotlin.math.PI.toFloat()
 
     /* Errors: (return value 0 = no error) */
     const val GLU_INVALID_ENUM = 100900
@@ -97,23 +99,23 @@ object GLU {
     const val GLU_TESS_ERROR6 = 100156
     const val GLU_TESS_ERROR7 = 100157
     const val GLU_TESS_ERROR8 = 100158
-    const val GLU_TESS_MISSING_BEGIN_POLYGON: Int = GLU.GLU_TESS_ERROR1
-    const val GLU_TESS_MISSING_BEGIN_CONTOUR: Int = GLU.GLU_TESS_ERROR2
-    const val GLU_TESS_MISSING_END_POLYGON: Int = GLU.GLU_TESS_ERROR3
-    const val GLU_TESS_MISSING_END_CONTOUR: Int = GLU.GLU_TESS_ERROR4
-    const val GLU_TESS_COORD_TOO_LARGE: Int = GLU.GLU_TESS_ERROR5
-    const val GLU_TESS_NEED_COMBINE_CALLBACK: Int = GLU.GLU_TESS_ERROR6
+    const val GLU_TESS_MISSING_BEGIN_POLYGON: Int = GLU_TESS_ERROR1
+    const val GLU_TESS_MISSING_BEGIN_CONTOUR: Int = GLU_TESS_ERROR2
+    const val GLU_TESS_MISSING_END_POLYGON: Int = GLU_TESS_ERROR3
+    const val GLU_TESS_MISSING_END_CONTOUR: Int = GLU_TESS_ERROR4
+    const val GLU_TESS_COORD_TOO_LARGE: Int = GLU_TESS_ERROR5
+    const val GLU_TESS_NEED_COMBINE_CALLBACK: Int = GLU_TESS_ERROR6
     fun gluErrorString(error_code: Int): String {
         return when (error_code) {
-            GLU.GLU_INVALID_ENUM -> "Invalid enum (glu)"
-            GLU.GLU_INVALID_VALUE -> "Invalid value (glu)"
-            GLU.GLU_OUT_OF_MEMORY -> "Out of memory (glu)"
-            GLU.GLU_TESS_MISSING_BEGIN_POLYGON -> "missing begin polygon"
-            GLU.GLU_TESS_MISSING_BEGIN_CONTOUR -> "missing begin contour"
-            GLU.GLU_TESS_MISSING_END_POLYGON -> "missing end polygon"
-            GLU.GLU_TESS_MISSING_END_CONTOUR -> "missing end contour"
-            GLU.GLU_TESS_COORD_TOO_LARGE -> "tess coord too large"
-            GLU.GLU_TESS_NEED_COMBINE_CALLBACK -> "tess need combine callback"
+            GLU_INVALID_ENUM -> "Invalid enum (glu)"
+            GLU_INVALID_VALUE -> "Invalid value (glu)"
+            GLU_OUT_OF_MEMORY -> "Out of memory (glu)"
+            GLU_TESS_MISSING_BEGIN_POLYGON -> "missing begin polygon"
+            GLU_TESS_MISSING_BEGIN_CONTOUR -> "missing begin contour"
+            GLU_TESS_MISSING_END_POLYGON -> "missing end polygon"
+            GLU_TESS_MISSING_END_CONTOUR -> "missing end contour"
+            GLU_TESS_COORD_TOO_LARGE -> "tess coord too large"
+            GLU_TESS_NEED_COMBINE_CALLBACK -> "tess need combine callback"
             else -> "E_NO_CLUE"
         }
     }

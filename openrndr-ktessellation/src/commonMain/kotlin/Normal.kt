@@ -1,3 +1,8 @@
+@file:Suppress(
+    "UNNECESSARY_NOT_NULL_ASSERTION", "FloatingPointLiteralPrecision", "MemberVisibilityCanBePrivate",
+    "FunctionName"
+)
+
 package org.openrndr.ktessellation
 
 import kotlin.math.abs
@@ -39,31 +44,26 @@ internal object Normal {
         var c: Double
         var tLen2: Double
         var maxLen2: Double
-        val maxVal: DoubleArray
-        val minVal: DoubleArray
-        val d1: DoubleArray
-        val d2: DoubleArray
-        val tNorm: DoubleArray
         val vHead: GLUvertex = tess.mesh!!.vHead
         var i: Int
-        maxVal = DoubleArray(3)
-        minVal = DoubleArray(3)
-        val minVert: Array<GLUvertex?> = arrayOfNulls<GLUvertex>(3)
-        val maxVert: Array<GLUvertex?> = arrayOfNulls<GLUvertex>(3)
-        d1 = DoubleArray(3)
-        d2 = DoubleArray(3)
-        tNorm = DoubleArray(3)
+        val maxVal = DoubleArray(3)
+        val minVal = DoubleArray(3)
+        val minVert: Array<GLUvertex?> = arrayOfNulls(3)
+        val maxVert: Array<GLUvertex?> = arrayOfNulls(3)
+        val d1 = DoubleArray(3)
+        val d2 = DoubleArray(3)
+        val tNorm = DoubleArray(3)
         maxVal[2] = -2 * GLU.TESS_MAX_COORD
         maxVal[1] = maxVal[2]
         maxVal[0] = maxVal[1]
         minVal[2] = 2 * GLU.TESS_MAX_COORD
         minVal[1] = minVal[2]
         minVal[0] = minVal[1]
-        v = vHead.next?:error("vhead next == null")
+        v = vHead.next ?: error("vhead next == null")
         while (v !== vHead) {
             i = 0
             while (i < 3) {
-                c = v.coords.get(i)
+                c = v.coords[i]
                 if (c < minVal[i]) {
                     minVal[i] = c
                     minVert[i] = v
@@ -138,7 +138,7 @@ internal object Normal {
 /* When we compute the normal automatically, we choose the orientation
  * so that the the sum of the signed areas of all contours is non-negative.
  */
-        var area: Double = 0.0
+        var area = 0.0
         f = fHead.next ?: error("fHead.next == null")
         while (f !== fHead) {
             e = f.anEdge ?: error("f.anEdge == null")
@@ -168,25 +168,23 @@ internal object Normal {
     /* Determine the polygon normal and project vertices onto the plane
  * of the polygon.
  */
+    @Suppress("FunctionName")
     fun __gl_projectPolygon(tess: GLUtessellatorImpl) {
         var v: GLUvertex
         val vHead: GLUvertex = tess.mesh!!.vHead
         val w: Double
         val norm = DoubleArray(3)
-        val sUnit: DoubleArray
-        val tUnit: DoubleArray
-        val i: Int
         var computedNormal = false
-        norm[0] = tess.normal.get(0)
-        norm[1] = tess.normal.get(1)
-        norm[2] = tess.normal.get(2)
+        norm[0] = tess.normal[0]
+        norm[1] = tess.normal[1]
+        norm[2] = tess.normal[2]
         if (norm[0] == 0.0 && norm[1] == 0.0 && norm[2] == 0.0) {
             ComputeNormal(tess, norm)
             computedNormal = true
         }
-        sUnit = tess.sUnit
-        tUnit = tess.tUnit
-        i = LongAxis(norm)
+        val sUnit: DoubleArray = tess.sUnit
+        val tUnit: DoubleArray = tess.tUnit
+        val i: Int = LongAxis(norm)
         if (TRUE_PROJECT) {
 /* Choose the initial sUnit vector to be approximately perpendicular
  * to the normal.

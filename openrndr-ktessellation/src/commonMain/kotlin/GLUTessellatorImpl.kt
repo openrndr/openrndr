@@ -1,5 +1,8 @@
+@file:Suppress("UNREACHABLE_CODE", "SENSELESS_COMPARISON", "unused")
+
 package org.openrndr.ktessellation
 
+@Suppress("UNNECESSARY_NOT_NULL_ASSERTION")
 open class GLUtessellatorImpl : GLUtessellator {
     private var state /* what begin/end calls have we seen? */: Int
     private var lastEdge /* lastEdge->Org is the most recent vertex */: GLUhalfEdge? =
@@ -30,7 +33,7 @@ open class GLUtessellatorImpl : GLUtessellator {
     private var flushCacheOnNextVertex /* empty cache on next vertex() call */ = false
     var cacheCount /* number of cached vertices */ = 0
     internal var cache: Array<CachedVertex?> =
-        arrayOfNulls<CachedVertex>(
+        arrayOfNulls(
             TESS_MAX_CACHE
         ) /* the vertex data */
 
@@ -281,7 +284,6 @@ open class GLUtessellatorImpl : GLUtessellator {
     }
 
     override fun gluTessVertex(coords: DoubleArray, coords_offset: Int, vertexData: Any?) {
-        var i: Int
         var tooLarge = false
         var x: Double
         val clamped = DoubleArray(3)
@@ -293,7 +295,7 @@ open class GLUtessellatorImpl : GLUtessellator {
             }
             lastEdge = null
         }
-        i = 0
+        var i = 0
         while (i < 3) {
             x = coords[i + coords_offset]
             if (x < -GLU.GLU_TESS_MAX_COORD) {
@@ -353,7 +355,7 @@ open class GLUtessellatorImpl : GLUtessellator {
     }
 
     override fun gluTessEndPolygon() {
-        var mesh: GLUmesh?
+        val mesh: GLUmesh?
         try {
             requireState(TessState.T_IN_POLYGON)
             state = TessState.T_DORMANT
@@ -388,12 +390,12 @@ open class GLUtessellatorImpl : GLUtessellator {
             }
             mesh = this.mesh
             if (!fatalError) {
-                var rc = true
 
 /* If the user wants only the boundary contours, we throw away all edges
  * except those which separate the interior from the exterior.
  * Otherwise we tessellate all the regions marked "inside".
- */rc = if (boundaryOnly) {
+ */
+                val rc: Boolean = if (boundaryOnly) {
                     TessMono.__gl_meshSetWindingNumber(mesh!!, 1, true)
                 } else {
                     TessMono.__gl_meshTessellateInterior(mesh!!)
@@ -424,7 +426,6 @@ open class GLUtessellatorImpl : GLUtessellator {
             }
             Mesh.__gl_meshDeleteMesh(mesh!!)
             polygonData = null
-            mesh = null
         } catch (e: Exception) {
             e.printStackTrace()
             callErrorOrErrorData(GLU.GLU_OUT_OF_MEMORY)

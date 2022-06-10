@@ -8,7 +8,7 @@ class TestKTessellation {
     @Test
     fun testCircle() {
         val c = Circle(300.0, 300.0, 100.0).shape
-        val tris = triangulate(c)
+        triangulate(c)
     }
 
     @Test
@@ -17,5 +17,4 @@ class TestKTessellation {
         val tris = triangulate(c)
         assertEquals(6, tris.size)
     }
-
 }

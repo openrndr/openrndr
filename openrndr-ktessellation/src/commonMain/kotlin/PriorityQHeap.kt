@@ -1,9 +1,12 @@
+@file:Suppress("NAME_SHADOWING", "FunctionName", "ConvertTwoComparisonsToRangeCheck")
+
 package org.openrndr.ktessellation
 
-internal class PriorityQHeap(val leq: PriorityQ.Leq) :
+@Suppress("MemberVisibilityCanBePrivate")
+internal class PriorityQHeap(val leq: Leq) :
     PriorityQ() {
-    var nodes: Array<PriorityQ.PQnode?>?
-    var handles: Array<PriorityQ.PQhandleElem?>?
+    var nodes: Array<PQnode?>?
+    var handles: Array<PQhandleElem?>?
     var size = 0
     var max: Int
     var freeList: Int
@@ -17,15 +20,14 @@ internal class PriorityQHeap(val leq: PriorityQ.Leq) :
 
     fun FloatDown(curr: Int) {
         var curr = curr
-        val n: Array<PriorityQ.PQnode?>? = nodes
-        val h: Array<PriorityQ.PQhandleElem?>? = handles
-        val hCurr: Int
+        val n: Array<PQnode?>? = nodes
+        val h: Array<PQhandleElem?>? = handles
         var hChild: Int
         var child: Int
-        hCurr = n!![curr]!!.handle
+        val hCurr: Int = n!![curr]!!.handle
         while (true) {
             child = curr shl 1
-            if (child < size && PriorityQ.LEQ(
+            if (child < size && LEQ(
                     leq, h!![n[child + 1]!!.handle]!!.key!!,
                     h[n[child]!!.handle]!!.key!!
                 )
@@ -34,7 +36,7 @@ internal class PriorityQHeap(val leq: PriorityQ.Leq) :
             }
             require(child <= max)
             hChild = n[child]!!.handle
-            if (child > size || PriorityQ.LEQ(leq, h!![hCurr]!!.key!!, h[hChild]!!.key!!)) {
+            if (child > size || LEQ(leq, h!![hCurr]!!.key!!, h[hChild]!!.key!!)) {
                 n[curr]!!.handle = hCurr
                 h!![hCurr]!!.node = curr
                 break
@@ -47,16 +49,15 @@ internal class PriorityQHeap(val leq: PriorityQ.Leq) :
 
     fun FloatUp(curr: Int) {
         var curr = curr
-        val n: Array<PriorityQ.PQnode?>? = nodes
-        val h: Array<PriorityQ.PQhandleElem?>? = handles
-        val hCurr: Int
+        val n: Array<PQnode?>? = nodes
+        val h: Array<PQhandleElem?>? = handles
         var hParent: Int
         var parent: Int
-        hCurr = n!![curr]!!.handle
+        val hCurr: Int = n!![curr]!!.handle
         while (true) {
             parent = curr shr 1
             hParent = n[parent]!!.handle
-            if (parent == 0 || PriorityQ.LEQ(leq, h!![hParent]!!.key!!, h[hCurr]!!.key!!)) {
+            if (parent == 0 || LEQ(leq, h!![hParent]!!.key!!, h[hCurr]!!.key!!)) {
                 n[curr]!!.handle = hCurr
                 h!![hCurr]!!.node = curr
                 break
@@ -69,9 +70,9 @@ internal class PriorityQHeap(val leq: PriorityQ.Leq) :
 
     /* really __gl_pqHeapInit */
     override fun pqInit(): Boolean {
-        var i: Int
 
-        /* This method of building a heap is O(n), rather than O(n lg n). */i = size
+        /* This method of building a heap is O(n), rather than O(n lg n). */
+        var i: Int = size
         while (i >= 1) {
             FloatDown(i)
             --i
@@ -82,20 +83,19 @@ internal class PriorityQHeap(val leq: PriorityQ.Leq) :
 
     /* really __gl_pqHeapInsert */ /* returns LONG_MAX iff out of memory */
     override fun pqInsert(keyNew: Any?): Int {
-        val curr: Int
         val free: Int
-        curr = ++size
+        val curr: Int = ++size
         if (curr * 2 > max) {
-            val saveNodes: Array<PriorityQ.PQnode?>? = nodes
-            val saveHandles: Array<PriorityQ.PQhandleElem?>? = handles
+            val saveNodes: Array<PQnode?>? = nodes
+            val saveHandles: Array<PQhandleElem?>? = handles
 
             /* If the heap overflows, double its size. */max = max shl 1
             //            pq->nodes = (PQnode *)memRealloc( pq->nodes, (size_t) ((pq->max + 1) * sizeof( pq->nodes[0] )));
-            val pqNodes: Array<PriorityQ.PQnode?> =
-                arrayOfNulls<PriorityQ.PQnode>(max + 1)
+            val pqNodes: Array<PQnode?> =
+                arrayOfNulls(max + 1)
             arraycopy(nodes!!, 0, pqNodes, 0, nodes!!.size)
             for (i in nodes!!.size until pqNodes.size) {
-                pqNodes[i] = PriorityQ.PQnode()
+                pqNodes[i] = PQnode()
             }
             nodes = pqNodes
             if (nodes == null) {
@@ -104,11 +104,11 @@ internal class PriorityQHeap(val leq: PriorityQ.Leq) :
             }
 
 //            pq->handles = (PQhandleElem *)memRealloc( pq->handles,(size_t)((pq->max + 1) * sizeof( pq->handles[0] )));
-            val pqHandles: Array<PriorityQ.PQhandleElem?> =
-                arrayOfNulls<PriorityQ.PQhandleElem>(max + 1)
+            val pqHandles: Array<PQhandleElem?> =
+                arrayOfNulls(max + 1)
             arraycopy(handles!!, 0, pqHandles, 0, handles!!.size)
             for (i in handles!!.size until pqHandles.size) {
-                pqHandles[i] = PriorityQ.PQhandleElem()
+                pqHandles[i] = PQhandleElem()
             }
             handles = pqHandles
             if (handles == null) {
@@ -134,8 +134,8 @@ internal class PriorityQHeap(val leq: PriorityQ.Leq) :
 
     /* really __gl_pqHeapExtractMin */
     override fun pqExtractMin(): Any? {
-        val n: Array<PriorityQ.PQnode?>? = nodes
-        val h: Array<PriorityQ.PQhandleElem?>? = handles
+        val n: Array<PQnode?>? = nodes
+        val h: Array<PQhandleElem?>? = handles
         val hMin: Int = n!![1]!!.handle
         val min: Any? = h!![hMin]!!.key
         if (size > 0) {
@@ -153,15 +153,14 @@ internal class PriorityQHeap(val leq: PriorityQ.Leq) :
 
     /* really __gl_pqHeapDelete */
     override fun pqDelete(hCurr: Int) {
-        val n: Array<PriorityQ.PQnode?>? = nodes
-        val h: Array<PriorityQ.PQhandleElem?>? = handles
-        val curr: Int
+        val n: Array<PQnode?>? = nodes
+        val h: Array<PQhandleElem?>? = handles
         require(hCurr >= 1 && hCurr <= max && h!![hCurr]!!.key != null)
-        curr = h!![hCurr]!!.node
+        val curr: Int = h!![hCurr]!!.node
         n!![curr]!!.handle = n[size]!!.handle
         h[n[curr]!!.handle]!!.node = curr
         if (curr <= --size) {
-            if (curr <= 1 || PriorityQ.LEQ(
+            if (curr <= 1 || LEQ(
                     leq,
                     h[n[curr shr 1]!!.handle]!!.key!!,
                     h[n[curr]!!.handle]!!.key!!
@@ -187,16 +186,16 @@ internal class PriorityQHeap(val leq: PriorityQ.Leq) :
 
     /* really __gl_pqHeapNewPriorityQ */
     init {
-        max = PriorityQ.INIT_SIZE
+        max = INIT_SIZE
         nodes =
-            arrayOfNulls<PriorityQ.PQnode>(PriorityQ.INIT_SIZE + 1)
+            arrayOfNulls(INIT_SIZE + 1)
         for (i in nodes!!.indices) {
-            nodes!![i] = PriorityQ.PQnode()
+            nodes!![i] = PQnode()
         }
         handles =
-            arrayOfNulls<PriorityQ.PQhandleElem>(PriorityQ.INIT_SIZE + 1)
+            arrayOfNulls(INIT_SIZE + 1)
         for (i in handles!!.indices) {
-            handles!![i] = PriorityQ.PQhandleElem()
+            handles!![i] = PQhandleElem()
         }
         initialized = false
         freeList = 0

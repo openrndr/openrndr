@@ -1,3 +1,5 @@
+@file:Suppress("SpellCheckingInspection")
+
 package org.openrndr.ktessellation
 
 internal class GLUvertex {

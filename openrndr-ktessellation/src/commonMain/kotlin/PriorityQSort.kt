@@ -1,7 +1,6 @@
 package org.openrndr.ktessellation
 
 
-
 import kotlin.math.abs
 
 internal class PriorityQSort(leq: PriorityQ.Leq) :
@@ -194,8 +193,8 @@ internal class PriorityQSort(leq: PriorityQ.Leq) :
     }
 
     /* really __gl_pqSortDelete */
-    override fun pqDelete(curr: Int) {
-        var curr = curr
+    override fun pqDelete(hCurr: Int) {
+        var curr = hCurr
         if (curr >= 0) {
             heap!!.pqDelete(curr)
             return

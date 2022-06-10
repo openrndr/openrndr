@@ -1,3 +1,5 @@
+@file:Suppress("UNUSED_PARAMETER", "NAME_SHADOWING", "unused")
+
 package org.openrndr.ktessellation
 
 internal class Dict private constructor() {
@@ -43,7 +45,7 @@ internal class Dict private constructor() {
             do {
                 node = node.prev ?: error("node.prev == null")
             } while (node.key != null && !dict.leq!!.leq(dict.frame!!, node.key!!, key))
-            val newNode: DictNode = DictNode()
+            val newNode = DictNode()
             newNode.key = key
             newNode.next = node.next
             node.next?.prev = newNode

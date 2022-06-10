@@ -1,5 +1,8 @@
+@file:Suppress("UNUSED_PARAMETER")
+
 package org.openrndr.ktessellation
 
+@Suppress("FunctionName")
 internal abstract class PriorityQ {
     class PQnode {
         var handle = 0

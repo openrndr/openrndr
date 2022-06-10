@@ -1,3 +1,9 @@
+@file:Suppress(
+    "FunctionName", "UNUSED_PARAMETER", "MemberVisibilityCanBePrivate", "MemberVisibilityCanBePrivate",
+    "SENSELESS_COMPARISON", "NAME_SHADOWING", "SpellCheckingInspection", "RedundantNullableReturnType",
+    "UNNECESSARY_NOT_NULL_ASSERTION", "unused", "FoldInitializerAndIfToElvis"
+)
+
 package org.openrndr.ktessellation
 
 import kotlin.math.max
@@ -74,12 +80,10 @@ internal object Sweep {
  * we sort the edges by slope (they would otherwise compare equally).
  */ {
         val event: GLUvertex = tess.event!!
-        val e1: GLUhalfEdge
-        val e2: GLUhalfEdge
         val t1: Double
         val t2: Double
-        e1 = reg1.eUp!!
-        e2 = reg2.eUp!!
+        val e1: GLUhalfEdge = reg1.eUp!!
+        val e2: GLUhalfEdge = reg2.eUp!!
         if (e1.Sym!!.Org === event) {
             return if (e2.Sym!!.Org === event) {
                 /* Two edges right of the sweep line which meet at the sweep event.
@@ -169,8 +173,7 @@ internal object Sweep {
  * The upper edge of the new region will be "eNewUp".
  * Winding number and "inside" flag are not updated.
  */ {
-        val regNew: ActiveRegion = ActiveRegion()
-            ?: throw RuntimeException()
+        val regNew = ActiveRegion()
         regNew.eUp = eNewUp
         /* __gl_dictListInsertBefore */regNew.nodeUp =
             Dict.dictInsertBefore(tess.dict!!, regAbove!!.nodeUp!!, regNew)
@@ -353,7 +356,7 @@ internal object Sweep {
     ) {
         val coords = DoubleArray(3)
 
-        /* Copy coord data in case the callback changes it. */coords[0] = isect.coords.get(0)
+        /* Copy coord data in case the callback changes it. */coords[0] = isect.coords[0]
         coords[1] = isect.coords[1]
         coords[2] = isect.coords[2]
         val outData = arrayOfNulls<Any>(1)
@@ -427,8 +430,8 @@ internal object Sweep {
         data[2] = orgLo.data
         data[3] = dstLo.data
         isect.coords[2] = 0.0
-        isect.coords[1] = isect.coords.get(2)
-        isect.coords[0] = isect.coords.get(1)
+        isect.coords[1] = isect.coords[2]
+        isect.coords[0] = isect.coords[1]
         VertexWeights(isect, orgUp, dstUp, weights1)
         VertexWeights(isect, orgLo, dstLo, weights2)
         arraycopy(weights1, 0, weights, 0, 2)
@@ -560,10 +563,7 @@ internal object Sweep {
         val orgLo: GLUvertex = eLo.Org!!
         val dstUp: GLUvertex = eUp.Sym!!.Org!!
         val dstLo: GLUvertex = eLo.Sym!!.Org!!
-        val tMinUp: Double
-        val tMaxLo: Double
-        val isect: GLUvertex = GLUvertex()
-        val orgMin: GLUvertex
+        val isect = GLUvertex()
         val e: GLUhalfEdge
         require(!Geom.VertEq(dstLo, dstUp))
         require(Geom.EdgeSign(dstUp, tess.event!!, orgUp) <= 0)
@@ -571,8 +571,8 @@ internal object Sweep {
         require(orgUp !== tess.event && orgLo !== tess.event)
         require(!regUp.fixUpperEdge && !regLo.fixUpperEdge)
         if (orgUp === orgLo) return false /* right endpoints are the same */
-        tMinUp = min(orgUp.t, dstUp.t)
-        tMaxLo = max(orgLo.t, dstLo.t)
+        val tMinUp: Double = min(orgUp.t, dstUp.t)
+        val tMaxLo: Double = max(orgLo.t, dstLo.t)
         if (tMinUp > tMaxLo) return false /* t ranges do not overlap */
         if (Geom.VertLeq(orgUp, orgLo)) {
             if (Geom.EdgeSign(dstLo, orgUp, orgLo) > 0) return false
@@ -601,7 +601,8 @@ internal object Sweep {
          * unbelievable inefficiency on sufficiently degenerate inputs.
          * (If you have the test program, try running test54.d with the
          * "X zoom" option turned on).
-         */orgMin = if (Geom.VertLeq(orgUp, orgLo)) orgUp else orgLo
+         */
+        val orgMin: GLUvertex = if (Geom.VertLeq(orgUp, orgLo)) orgUp else orgLo
         if (Geom.VertLeq(orgMin, isect)) {
             isect.s = orgMin.s
             isect.t = orgMin.t
@@ -889,12 +890,9 @@ internal object Sweep {
  * part of the mesh.
  */ {
         var regUp: ActiveRegion = regUp
-        val e: GLUhalfEdge
         var eTopLeft: GLUhalfEdge?
         var eTopRight: GLUhalfEdge
-        val eLast: GLUhalfEdge
-        val reg: ActiveRegion
-        e = regUp.eUp!!
+        val e: GLUhalfEdge = regUp.eUp!!
         if (Geom.VertEq(e.Org!!, vEvent)) {
             /* e.Org is an unprocessed vertex - just combine them, and wait
              * for e.Org to be pulled from the queue
@@ -917,9 +915,9 @@ internal object Sweep {
         }
         //assert(TOLERANCE_NONZERO)
         regUp = TopRightRegion(regUp)
-        reg = RegionBelow(regUp)!!
+        val reg: ActiveRegion = RegionBelow(regUp)!!
         eTopRight = reg.eUp!!.Sym!!
-        eLast = eTopRight.Onext!!
+        val eLast: GLUhalfEdge = eTopRight.Onext!!
         eTopLeft = eLast
         if (reg.fixUpperEdge) {
             /* Here e.Sym.Org has only a single fixable edge going right.
@@ -957,12 +955,10 @@ internal object Sweep {
  *	- merging with an already-processed portion of U or L
  */ {
         val regUp: ActiveRegion
-        val regLo: ActiveRegion
         val reg: ActiveRegion
-        val eUp: GLUhalfEdge
         val eLo: GLUhalfEdge
         val eNew: GLUhalfEdge
-        val tmp: ActiveRegion = ActiveRegion()
+        val tmp = ActiveRegion()
 
         /* assert ( vEvent.anEdge.Onext.Onext == vEvent.anEdge ); */
 
@@ -975,8 +971,8 @@ internal object Sweep {
                 tmp
             )!!
         ) as ActiveRegion
-                regLo = RegionBelow(regUp)!!
-        eUp = regUp.eUp!!
+        val regLo: ActiveRegion = RegionBelow(regUp)!!
+        val eUp: GLUhalfEdge = regUp.eUp!!
         eLo = regLo.eUp!!
 
         /* Try merging with U or L first */
@@ -1000,7 +996,7 @@ internal object Sweep {
             } else {
                 val tempHalfEdge: GLUhalfEdge =
                     Mesh.__gl_meshConnect(eLo.Sym!!.Onext!!.Sym!!, vEvent.anEdge!!)
-                        ?: throw RuntimeException()
+
                 eNew = tempHalfEdge.Sym!!
             }
             if (reg.fixUpperEdge) {
@@ -1025,10 +1021,7 @@ internal object Sweep {
  * Updates the mesh and the edge dictionary.
  */ {
         val regUp: ActiveRegion?
-        val reg: ActiveRegion
         var e: GLUhalfEdge
-        val eTopLeft: GLUhalfEdge
-        val eBottomLeft: GLUhalfEdge
         tess.event = vEvent /* for access in EdgeLeq() */
         DebugEvent(tess)
 
@@ -1054,9 +1047,9 @@ internal object Sweep {
          * This takes care of all the left-going edges from vEvent.
          */regUp = TopLeftRegion(e.activeRegion!!)!!
         //if (regUp == null) throw RuntimeException()
-        reg = RegionBelow(regUp)!!
-        eTopLeft = reg.eUp!!
-        eBottomLeft = FinishLeftRegions(tess, reg, null)
+        val reg: ActiveRegion = RegionBelow(regUp)!!
+        val eTopLeft: GLUhalfEdge = reg.eUp!!
+        val eBottomLeft: GLUhalfEdge = FinishLeftRegions(tess, reg, null)
 
         /* Next we process all the right-going edges from vEvent.  This
          * involves adding the edges to the dictionary, and creating the
@@ -1075,15 +1068,13 @@ internal object Sweep {
  * input contour and the maximum tolerance of 1.0, no merging will be
  * done with coordinates larger than 3 * GLU_TESS_MAX_COORD).
  */
-    private val SENTINEL_COORD: Double = 4.0 * GLU.GLU_TESS_MAX_COORD
+    private const val SENTINEL_COORD: Double = 4.0 * GLU.GLU_TESS_MAX_COORD
     fun AddSentinel(tess: GLUtessellatorImpl, t: Double) /*
  * We add two sentinel edges above and below all other edges,
  * to avoid special cases at the top and bottom.
  */ {
-        val e: GLUhalfEdge
-        val reg: ActiveRegion = ActiveRegion()
-            ?: throw RuntimeException()
-        e = Mesh.__gl_meshMakeEdge(tess.mesh!!)!!
+        val reg = ActiveRegion()
+        val e: GLUhalfEdge = Mesh.__gl_meshMakeEdge(tess.mesh!!)!!
         if (e == null) throw RuntimeException()
         e.Org!!.s = SENTINEL_COORD
         e.Org!!.t = t
@@ -1190,9 +1181,7 @@ internal object Sweep {
  * Insert all vertices into the priority queue which determines the
  * order in which vertices cross the sweep line.
  */ {
-        val pq: PriorityQ?
         var v: GLUvertex
-        val vHead: GLUvertex
 
         /* __gl_pqSortNewPriorityQ */tess.pq = PriorityQ.pqNewPriorityQ(object :
             PriorityQ.Leq {
@@ -1203,9 +1192,9 @@ internal object Sweep {
                 )
             }
         })
-        pq = tess.pq
+        val pq: PriorityQ? = tess.pq
         if (pq == null) return false
-        vHead = tess.mesh!!.vHead
+        val vHead: GLUvertex = tess.mesh!!.vHead
         v = vHead.next!!
         while (v !== vHead) {
             v.pqHandle = pq.pqInsert(v) /* __gl_pqSortInsert */
@@ -1283,7 +1272,7 @@ internal object Sweep {
             } != null) {
             while (true) {
                 vNext = tess.pq!!.pqMinimum() as GLUvertex? /* __gl_pqSortMinimum */
-                        if (vNext == null || !Geom.VertEq(vNext, v!!)) break
+                if (vNext == null || !Geom.VertEq(vNext, v!!)) break
 
                 /* Merge together all vertices at exactly the same location.
                  * This is more efficient than processing them one at a time,
@@ -1300,7 +1289,7 @@ internal object Sweep {
                  * when using boundary extraction (GLU_TESS_BOUNDARY_ONLY).
                  */vNext =
                     tess.pq!!.pqExtractMin() as GLUvertex /* __gl_pqSortExtractMin*/
-                            SpliceMergeVertices(tess, v!!.anEdge!!, vNext.anEdge!!)
+                SpliceMergeVertices(tess, v!!.anEdge!!, vNext.anEdge!!)
             }
             SweepEvent(tess, v!!)
         }

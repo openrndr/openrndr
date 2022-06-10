@@ -16,7 +16,7 @@ class Tessellator : GLUtessellatorImpl() {
 
                 override fun vertexData(vertexData: Any?, polygonData: Any?) {
                     val data = vertexData as DoubleArray
-                    primitives.get(primitives.size - 1).positions.add(Vector2(data[0], data[1]))
+                    primitives[primitives.size - 1].positions.add(Vector2(data[0], data[1]))
                 }
 
                 override fun error(errnum: Int) {

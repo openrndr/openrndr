@@ -1,3 +1,5 @@
+@file:Suppress("SpellCheckingInspection", "KDocUnresolvedReference")
+
 package org.openrndr.ktessellation
 
 /*

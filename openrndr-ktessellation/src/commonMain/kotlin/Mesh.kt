@@ -1,3 +1,8 @@
+@file:Suppress(
+    "SENSELESS_COMPARISON", "FunctionName", "NAME_SHADOWING", "UNNECESSARY_NOT_NULL_ASSERTION",
+    "MemberVisibilityCanBePrivate", "FoldInitializerAndIfToElvis", "unused"
+)
+
 package org.openrndr.ktessellation
 
 internal object Mesh {
@@ -7,16 +12,15 @@ internal object Mesh {
  */
     fun MakeEdge(eNext: GLUhalfEdge): GLUhalfEdge {
         var eNext: GLUhalfEdge = eNext
-        val ePrev: GLUhalfEdge
 
 //        EdgePair * pair = (EdgePair *)
 //        memAlloc(sizeof(EdgePair));
 //        if (pair == NULL) return NULL;
 //
 //        e = &pair - > e;
-        val e: GLUhalfEdge = GLUhalfEdge(true)
+        val e = GLUhalfEdge(true)
         //        eSym = &pair - > eSym;
-        val eSym: GLUhalfEdge = GLUhalfEdge(false)
+        val eSym = GLUhalfEdge(false)
 
 
         /* Make sure eNext points to the first edge of the edge pair */if (!eNext.first) {
@@ -25,7 +29,8 @@ internal object Mesh {
 
         /* Insert in circular doubly-linked list before eNext.
          * Note that the prev pointer is stored in Sym->next.
-         */ePrev = eNext.Sym?.next ?: error("eNext.Sym.next == null")
+         */
+        val ePrev: GLUhalfEdge = eNext.Sym?.next ?: error("eNext.Sym.next == null")
         eSym.next = ePrev
         ePrev.Sym!!.next = e
         e.next = eNext
@@ -73,12 +78,11 @@ internal object Mesh {
         eOrig: GLUhalfEdge, vNext: GLUvertex
     ) {
         var e: GLUhalfEdge
-        val vPrev: GLUvertex
         val vNew: GLUvertex = newVertex
         require(vNew != null)
 
         /* insert in circular doubly-linked list before vNext */
-        vPrev = vNext.prev?:error("vNext.prev == null")
+        val vPrev: GLUvertex = vNext.prev ?: error("vNext.prev == null")
         vNew.prev = vPrev
         vPrev.next = vNew
         vNew.next = vNext
@@ -106,12 +110,11 @@ internal object Mesh {
         fNext: GLUface
     ) {
         var e: GLUhalfEdge
-        val fPrev: GLUface
         val fNew: GLUface = newFace
         require(fNew != null)
 
         /* insert in circular doubly-linked list before fNext */
-        fPrev = fNext.prev ?: error("fNext.prev == null")
+        val fPrev: GLUface = fNext.prev ?: error("fNext.prev == null")
         fNew.prev = fPrev
         fPrev.next = fNew
         fNew.next = fNext
@@ -137,15 +140,14 @@ internal object Mesh {
  */
     fun KillEdge(eDel: GLUhalfEdge) {
         var eDel: GLUhalfEdge = eDel
-        val ePrev: GLUhalfEdge
-        val eNext: GLUhalfEdge
 
         /* Half-edges are allocated in pairs, see EdgePair above */if (!eDel.first) {
             eDel = eDel.Sym ?: error("eDel.Sym == null")
         }
 
-        /* delete from circular doubly-linked list */eNext = eDel.next ?: error("eDel.next == null")
-        ePrev = eDel.Sym?.next ?: error("eDel.Sym.next == null")
+        /* delete from circular doubly-linked list */
+        val eNext: GLUhalfEdge = eDel.next ?: error("eDel.next == null")
+        val ePrev: GLUhalfEdge = eDel.Sym?.next ?: error("eDel.Sym.next == null")
         eNext.Sym!!.next = ePrev
         ePrev.Sym!!.next = eNext
     }
@@ -156,8 +158,6 @@ internal object Mesh {
     fun KillVertex(vDel: GLUvertex, newOrg: GLUvertex?) {
         var e: GLUhalfEdge
         val eStart: GLUhalfEdge = vDel.anEdge ?: error("vDel.anEdge == null")
-        val vPrev: GLUvertex
-        val vNext: GLUvertex
 
         /* change the origin of all affected edges */e = eStart
         do {
@@ -165,8 +165,9 @@ internal object Mesh {
             e = e.Onext ?: error("e.Onext == null")
         } while (e !== eStart)
 
-        /* delete from circular doubly-linked list */vPrev = vDel.prev ?: error("vDel.prev == null")
-        vNext = vDel.next ?: error("vDel.next == null")
+        /* delete from circular doubly-linked list */
+        val vPrev: GLUvertex = vDel.prev ?: error("vDel.prev == null")
+        val vNext: GLUvertex = vDel.next ?: error("vDel.next == null")
         vNext.prev = vPrev
         vPrev.next = vNext
     }
@@ -177,8 +178,6 @@ internal object Mesh {
     fun KillFace(fDel: GLUface, newLface: GLUface?) {
         var e: GLUhalfEdge
         val eStart: GLUhalfEdge = fDel.anEdge ?: error("fDel.anEdge == null")
-        val fPrev: GLUface
-        val fNext: GLUface
 
         /* change the left face of all affected edges */e = eStart
         do {
@@ -186,8 +185,9 @@ internal object Mesh {
             e = e.Lnext ?: error("e.Lnext == null")
         } while (e !== eStart)
 
-        /* delete from circular doubly-linked list */fPrev = fDel.prev ?: error("fDel.prev == null")
-        fNext = fDel.next ?: error("fDel.next == null")
+        /* delete from circular doubly-linked list */
+        val fPrev: GLUface = fDel.prev ?: error("fDel.prev == null")
+        val fNext: GLUface = fDel.next ?: error("fDel.next == null")
         fNext.prev = fPrev
         fPrev.next = fNext
     }
@@ -196,11 +196,10 @@ internal object Mesh {
  * The loop consists of the two new half-edges.
  */
     fun __gl_meshMakeEdge(mesh: GLUmesh): GLUhalfEdge? {
-        val newVertex1: GLUvertex = GLUvertex()
-        val newVertex2: GLUvertex = GLUvertex()
-        val newFace: GLUface = GLUface()
-        val e: GLUhalfEdge
-        e = MakeEdge(mesh.eHead)
+        val newVertex1 = GLUvertex()
+        val newVertex2 = GLUvertex()
+        val newFace = GLUface()
+        val e: GLUhalfEdge = MakeEdge(mesh.eHead)
         if (e == null) return null
         MakeVertex(newVertex1, e, mesh.vHead)
         MakeVertex(newVertex2, e.Sym ?: error("e.Sym == null"), mesh.vHead)
@@ -251,15 +250,15 @@ internal object Mesh {
 
         /* Change the edge structure */Splice(eDst, eOrg)
         if (!joiningVertices) {
-            val newVertex: GLUvertex = GLUvertex()
+            val newVertex = GLUvertex()
 
             /* We split one vertex into two -- the new vertex is eDst.Org.
              * Make sure the old vertex points to a valid half-edge.
-             */MakeVertex(newVertex, eDst, eOrg.Org?:error("eOrg.Org == null"))
+             */MakeVertex(newVertex, eDst, eOrg.Org ?: error("eOrg.Org == null"))
             eOrg.Org!!.anEdge = eOrg
         }
         if (!joiningLoops) {
-            val newFace: GLUface = GLUface()
+            val newFace = GLUface()
 
             /* We split one loop into two -- the new loop is eDst.Lface.
              * Make sure the old face points to a valid half-edge.
@@ -295,10 +294,10 @@ internal object Mesh {
         } else {
             /* Make sure that eDel.Org and eDel.Sym.Lface point to valid half-edges */
             eDel.Sym!!.Lface!!.anEdge = eDel.Sym!!.Lnext
-            eDel.Org!!.anEdge = eDel!!.Onext
+            eDel.Org!!.anEdge = eDel.Onext
             Splice(eDel, eDel.Sym!!.Lnext!!)
             if (!joiningLoops) {
-                val newFace: GLUface = GLUface()
+                val newFace = GLUface()
 
                 /* We are splitting one loop into two -- create a new loop for eDel. */MakeFace(
                     newFace,
@@ -343,8 +342,8 @@ internal object Mesh {
         /* Set the vertex and face information */
         eNew.Org = eOrg.Sym!!.Org
         run {
-            val newVertex: GLUvertex = GLUvertex()
-            MakeVertex(newVertex, eNewSym, eNew.Org ?: error("eNew.Org == null") )
+            val newVertex = GLUvertex()
+            MakeVertex(newVertex, eNewSym, eNew.Org ?: error("eNew.Org == null"))
         }
         eNewSym.Lface = eOrg.Lface
         eNew.Lface = eNewSym.Lface
@@ -410,10 +409,10 @@ internal object Mesh {
         /* Make sure the old face points to a valid half-edge */
         eOrg.Lface!!.anEdge = eNewSym
         if (!joiningLoops) {
-            val newFace: GLUface = GLUface()
+            val newFace = GLUface()
 
             /* We split one loop into two -- the new loop is eNew.Lface */
-            MakeFace(newFace, eNew, eOrg.Lface?:error("eOrg.Lface == null"))
+            MakeFace(newFace, eNew, eOrg.Lface ?: error("eOrg.Lface == null"))
         }
         return eNew
     }
@@ -430,8 +429,6 @@ internal object Mesh {
         var e: GLUhalfEdge
         var eNext: GLUhalfEdge
         var eSym: GLUhalfEdge
-        val fPrev: GLUface
-        val fNext: GLUface
 
         /* walk around face, deleting edges whose right face is also null */
         eNext = eStart.Lnext ?: error("eStart.Lnext == null")
@@ -461,8 +458,8 @@ internal object Mesh {
         } while (e !== eStart)
 
         /* delete from circular doubly-linked list */
-        fPrev = fZap.prev ?: error("fZap.prev == null")
-        fNext = fZap.next ?: error("fZap.next == null")
+        val fPrev: GLUface = fZap.prev ?: error("fZap.prev == null")
+        val fNext: GLUface = fZap.next ?: error("fZap.next == null")
         fNext.prev = fPrev
         fPrev.next = fNext
     }
@@ -475,7 +472,7 @@ internal object Mesh {
         val f: GLUface
         val e: GLUhalfEdge
         val eSym: GLUhalfEdge
-        val mesh: GLUmesh = GLUmesh()
+        val mesh = GLUmesh()
         v = mesh.vHead
         f = mesh.fHead
         e = mesh.eHead
@@ -586,6 +583,7 @@ internal object Mesh {
 
     /* __gl_meshCheckMesh( mesh ) checks a mesh for self-consistency.
  */
+    @Suppress("UNUSED_VALUE")
     fun __gl_meshCheckMesh(mesh: GLUmesh) {
         val fHead: GLUface = mesh.fHead
         val vHead: GLUvertex = mesh.vHead
@@ -598,7 +596,7 @@ internal object Mesh {
         var ePrev: GLUhalfEdge
         fPrev = fHead
         fPrev = fHead
-        while (fPrev.next.also { f = it?:error("it == null") } !== fHead) {
+        while (fPrev.next.also { f = it ?: error("it == null") } !== fHead) {
             require(f.prev === fPrev)
             e = f.anEdge ?: error("f.anEdge == null")
             do {
@@ -630,7 +628,7 @@ internal object Mesh {
         require(v.prev === vPrev && v.anEdge == null && v.data == null)
         ePrev = eHead
         ePrev = eHead
-        while (ePrev.next.also { e = it?:error("it == null") } !== eHead) {
+        while (ePrev.next.also { e = it ?: error("it == null") } !== eHead) {
             require(e.Sym!!.next === ePrev.Sym)
             require(e.Sym !== e)
             require(e.Sym!!.Sym === e)

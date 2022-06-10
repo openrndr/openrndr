@@ -1,3 +1,7 @@
+@file:Suppress("FunctionName", "ConstantConditionIf", "NAME_SHADOWING", "UNCHECKED_CAST",
+    "MemberVisibilityCanBePrivate", "RemoveEmptySecondaryConstructorBody", "ClassName"
+)
+
 package org.openrndr.ktessellation
 
 
@@ -169,8 +173,6 @@ internal object Render {
         var tailSize: Long = 0
         var trail: GLUface? = null
         var e: GLUhalfEdge
-        val eTail: GLUhalfEdge
-        val eHead: GLUhalfEdge
         e = eOrig
         while (!Marked(e.Lface!!)) {
             trail = AddToTrail(e.Lface!!, trail)
@@ -181,7 +183,7 @@ internal object Render {
             ++tailSize
             e = e.Onext!!
         }
-        eTail = e
+        val eTail: GLUhalfEdge = e
         e = eOrig
         while (!Marked(e.Sym!!.Lface!!)) {
             trail = AddToTrail(e.Sym!!.Lface!!, trail)
@@ -192,7 +194,7 @@ internal object Render {
             ++headSize
             e = e.Sym!!.Onext!!.Sym!!
         }
-        eHead = e
+        val eHead: GLUhalfEdge = e
         newFace.size = tailSize + headSize
         if (IsEven(tailSize)) {
             newFace.eStart = eTail.Sym
@@ -283,7 +285,6 @@ internal object Render {
         //            CachedVertex vn = v0 + tess.cacheCount;
         val vn: Int = tess.cacheCount
         //            CachedVertex vc;
-        var vc: Int
         var dot: Double
         var xc: Double
         var yc: Double
@@ -311,17 +312,17 @@ internal object Render {
             norm[1] = norm[2]
             norm[0] = norm[1]
         }
-        vc = 1
-        xc = v[vc].coords.get(0) - v[0].coords.get(0)
-        yc = v[vc].coords.get(1) - v[0].coords.get(1)
-        zc = v[vc].coords.get(2) - v[0].coords.get(2)
+        var vc = 1
+        xc = v[vc].coords[0] - v[0].coords[0]
+        yc = v[vc].coords[1] - v[0].coords[1]
+        zc = v[vc].coords[2] - v[0].coords[2]
         while (++vc < vn) {
             xp = xc
             yp = yc
             zp = zc
-            xc = v[vc].coords.get(0) - v[0].coords.get(0)
-            yc = v[vc].coords.get(1) - v[0].coords.get(1)
-            zc = v[vc].coords.get(2) - v[0].coords.get(2)
+            xc = v[vc].coords[0] - v[0].coords[0]
+            yc = v[vc].coords[1] - v[0].coords[1]
+            zc = v[vc].coords[2] - v[0].coords[2]
 
             /* Compute (vp - v0) cross (vc - v0) */n[0] = yp * zc - zp * yc
             n[1] = zp * xc - xp * zc
@@ -368,18 +369,17 @@ internal object Render {
         //            CachedVertex vc;
         var vc: Int
         val norm = DoubleArray(3)
-        val sign: Int
         if (tess.cacheCount < 3) {
             /* Degenerate contour -- no output */
             return true
         }
-        norm[0] = tess.normal.get(0)
-        norm[1] = tess.normal.get(1)
-        norm[2] = tess.normal.get(2)
+        norm[0] = tess.normal[0]
+        norm[1] = tess.normal[1]
+        norm[2] = tess.normal[2]
         if (norm[0] == 0.0 && norm[1] == 0.0 && norm[2] == 0.0) {
             ComputeNormal(tess, norm, false)
         }
-        sign = ComputeNormal(tess, norm, true)
+        val sign: Int = ComputeNormal(tess, norm, true)
         if (sign == SIGN_INCONSISTENT) {
             /* Fan triangles did not have a consistent orientation */
             return false
