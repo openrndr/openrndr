@@ -11,7 +11,7 @@ private val logger = KotlinLogging.logger {}
  * [ApplicationPreload] can be used to configure [Application] and [Program] without changing
  * user code.
  *
- * [Application.Companion.run] looks for a preload class on the class path, if found this class instantiated
+ * [Application.run] looks for a preload class on the class path, if found this class instantiated
  * and used for configuration.
  *
  * The `org.openrndr.preloadclass` property can be used to set the name for the preload class,
@@ -37,7 +37,7 @@ open class ApplicationPreload {
  *
  * By default, the GLFW backend is used. This can be customized by setting the VM property
  * `org.openrndr.application` to "ApplicationGLFW" or "ApplicationEGL".
- * However, if "org.openrndr.internal.nullgl.ApplicationNullGL" is found on the classpath,
+ * However, if `org.openrndr.internal.nullgl.ApplicationNullGL` is found on the classpath,
  * NullGL will be used as the backend instead, regardless of other settings.
  */
 @ApplicationDslMarker
@@ -86,7 +86,6 @@ actual abstract class Application {
 
             val applicationProperty: String? = System.getProperty("org.openrndr.application")
 
-            @Suppress("KotlinConstantConditions")
             return when (applicationProperty) {
                 null, "", "ApplicationGLFW" -> Application::class.java.classLoader.loadClass("org.openrndr.internal.gl3.ApplicationGLFWGL3")
                 "ApplicationEGL" -> Application::class.java.classLoader.loadClass("org.openrndr.internal.gl3.ApplicationEGLGL3")
