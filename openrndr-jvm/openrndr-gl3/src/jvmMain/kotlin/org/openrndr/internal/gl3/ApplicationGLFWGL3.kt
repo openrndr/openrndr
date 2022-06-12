@@ -354,6 +354,15 @@ class ApplicationGLFWGL3(override var program: Program = Program(), override var
 
         logger.debug { "window created: $window" }
 
+        // This is a workaround for the i3 window manager on linux ignoring
+        // window placement if the window is not visible. But not hiding the window
+        // can produce artifacts during the rest of the setup phase.
+        // So we'll special case "i3" for now.
+        if (System.getenv("DESKTOP_SESSION") == "i3") {
+            logger.debug { "showing window early: $window" }
+            glfwShowWindow(window)
+        }
+
         // Get the thread stack and push a new frame
         stackPush().use { stack ->
             val px = stack.mallocInt(1) // int*
