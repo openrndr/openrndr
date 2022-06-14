@@ -92,7 +92,8 @@ open class Program(val suspend: Boolean = false) {
     /**
      * clock function. defaults to returning the application time.
      */
-    var clock = { if (firstFrameTime == Double.POSITIVE_INFINITY || frameCount <= 0) 0.0 else (application.seconds - firstFrameTime) }
+    var clock =
+        { if (firstFrameTime == Double.POSITIVE_INFINITY || frameCount <= 0) 0.0 else (application.seconds - firstFrameTime) }
 
     var assetProperties = mutableMapOf<String, String>()
     var assetMetadata = {
@@ -105,9 +106,11 @@ open class Program(val suspend: Boolean = false) {
     init {
         requestAssets.listen {
             produceAssets.trigger(
-                ProduceAssetsEvent(it.origin, it.program,
-                    assetMetadata())
+                ProduceAssetsEvent(
+                    it.origin, it.program,
+                    assetMetadata()
                 )
+            )
         }
     }
 
@@ -228,6 +231,22 @@ open class Program(val suspend: Boolean = false) {
             get() = application.presentationMode
             set(value) {
                 application.presentationMode = value
+            }
+
+        var multisample: WindowMultisample
+            get() {
+                return application.windowMultisample
+            }
+            set(value) {
+                application.windowMultisample = value
+            }
+
+        var resizable: Boolean
+            get() {
+                return application.windowResizable
+            }
+            set(value) {
+                application.windowResizable = value
             }
 
         fun requestFocus() = application.requestFocus()

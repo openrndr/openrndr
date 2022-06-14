@@ -1,5 +1,6 @@
 package org.openrndr
 
+import org.openrndr.draw.BufferMultisample
 import org.openrndr.math.IntVector2
 
 /**
@@ -28,6 +29,13 @@ enum class Fullscreen {
 }
 
 sealed class WindowMultisample {
+    fun bufferEquivalent() : BufferMultisample = when {
+        this === SystemDefault -> error("Cannot resolve SystemDefault to BufferMultisample")
+        this === Disabled -> BufferMultisample.Disabled
+        this is SampleCount -> BufferMultisample.SampleCount(this.count)
+        else -> error("Cannot resolve $this to BufferMultisample")
+    }
+
     /** Use the system default */
     object SystemDefault : WindowMultisample()
 

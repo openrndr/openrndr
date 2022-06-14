@@ -109,12 +109,26 @@ interface RenderTarget {
     /**
      * effective width in pixels
      */
+    //@Deprecated("use pixelWidth", replaceWith = ReplaceWith("pixelWidth"))
     val effectiveWidth: Int get() = (width * contentScale).toInt()
+
+    /**
+     * effective width in pixels
+     */
+    val pixelWidth: Int get() = (width * contentScale).toInt()
+
 
     /**
      * effective height in pixels
      */
+    //@Deprecated("use pixelHeight", replaceWith = ReplaceWith("pixelHeight"))
     val effectiveHeight: Int get() = (height * contentScale).toInt()
+
+    /**
+     * effective height in pixels
+     */
+    val pixelHeight: Int get() = (height * contentScale).toInt()
+
 
     /**
      * list of [ColorAttachment]s

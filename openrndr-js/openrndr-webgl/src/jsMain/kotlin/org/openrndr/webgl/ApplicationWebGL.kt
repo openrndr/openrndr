@@ -333,4 +333,15 @@ class ApplicationWebGL(private val program: Program, private val configuration: 
         get() = min(configuration.maxContentScale, window.devicePixelRatio)
         set(_) {}
 
+    override var windowMultisample: WindowMultisample
+        get() = WindowMultisample.Disabled
+        set(value) {
+            TODO("Not yet implemented")
+        }
+
+    override var windowResizable: Boolean
+        get() = false
+        set(value) {
+            TODO("Not yet implemented")
+        }
 }

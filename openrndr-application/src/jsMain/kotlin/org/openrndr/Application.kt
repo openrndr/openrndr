@@ -45,6 +45,8 @@ actual abstract class Application {
 
     actual abstract var presentationMode: PresentationMode
     actual abstract var windowContentScale: Double
+    actual abstract var windowMultisample: WindowMultisample
+    actual abstract var windowResizable: Boolean
 }
 
 /**

@@ -29,6 +29,9 @@ class ProgramRenderTargetGL3(override val program: Program) : ProgramRenderTarge
 
     override val hasColorAttachments = true
     override val hasDepthBuffer = true
+
+    override val multisample: BufferMultisample
+        get() = program.window.multisample.bufferEquivalent()
 }
 
 open class RenderTargetGL3(

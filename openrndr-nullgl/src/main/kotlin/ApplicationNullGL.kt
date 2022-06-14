@@ -68,6 +68,20 @@ class ApplicationNullGL(private val program: Program, private val configuration:
     override var windowTitle = "nulllgl window"
     override var windowPosition = Vector2.ZERO
     override var windowSize = Vector2(640.0, 480.0)
+    override var windowMultisample: WindowMultisample
+        get() = WindowMultisample.Disabled
+        set(value) {
+
+            logger.warn { "Setting window multisampling is not supported" }
+
+        }
+    override var windowResizable: Boolean
+        get() = false
+        set(value) {
+            if (value) {
+                logger.warn { "Setting window multisampling is not supported" }
+            }
+        }
 
     override var cursorPosition: Vector2 = Vector2.ZERO
     override var cursorVisible: Boolean = true

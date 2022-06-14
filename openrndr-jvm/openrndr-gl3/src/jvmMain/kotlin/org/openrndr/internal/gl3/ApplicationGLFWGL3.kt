@@ -50,6 +50,8 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
 
     private var realCursorPosition = Vector2(0.0, 0.0)
 
+    private var requestedMultisample = configuration.multisample
+
     override var cursorPosition: Vector2
         get() {
             return realCursorPosition
@@ -134,6 +136,21 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
                 if (fixWindowSize) (value.x * program.window.contentScale).toInt() else value.x.toInt(),
                 if (fixWindowSize) (value.y * program.window.contentScale).toInt() else value.y.toInt()
             )
+        }
+
+    override var windowResizable: Boolean
+        get() {
+            val attrib = glfwGetWindowAttrib(window, GLFW_RESIZABLE)
+            return attrib != 0
+        }
+        set(value) {
+            glfwSetWindowAttrib(window, GLFW_RESIZABLE, if (value) GLFW_TRUE else GLFW_FALSE)
+        }
+
+    override var windowMultisample: WindowMultisample
+        get() = requestedMultisample
+        set(_) {
+            error("Changing window multisampling is not supported.")
         }
 
     override var clipboardContents: String?

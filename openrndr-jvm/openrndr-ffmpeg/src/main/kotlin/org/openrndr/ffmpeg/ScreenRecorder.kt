@@ -1,9 +1,12 @@
 package org.openrndr.ffmpeg
 
+import mu.KotlinLogging
 import org.openrndr.Extension
 import org.openrndr.Program
 import org.openrndr.draw.*
 import java.io.File
+
+private val logger = KotlinLogging.logger {  }
 
 /**
  * ScreenRecorder extension can be used to record to contents of a `Program` to a video
@@ -55,7 +58,7 @@ class ScreenRecorder : Extension {
     var frameClock = true
 
     /** should multisampling be used? */
-    var multisample: BufferMultisample = BufferMultisample.Disabled
+    var multisample: BufferMultisample? = null
 
     /** the maximum duration in frames */
     var maximumFrames = Long.MAX_VALUE
@@ -66,25 +69,39 @@ class ScreenRecorder : Extension {
     /** when set to true, `program.application.exit()` will be issued after the maximum duration has been reached */
     var quitAfterMaximum = true
 
-    var contentScale: Double = 1.0
+    var contentScale: Double? = null
 
     override fun setup(program: Program) {
+        if (program.window.resizable) {
+            logger.warn { "Resizable windows are not supported, disabling window resizing." }
+            program.window.resizable = false
+        }
+
         if (frameClock) {
             program.clock = {
                 frameIndex / frameRate.toDouble() + timeOffset
             }
         }
 
-        val effectiveWidth = ((width ?: program.width) * contentScale).toInt()
-        val effectiveHeight = ((height ?: program.height) * contentScale).toInt()
+        val requestedWidth = ((width ?: program.width) ).toInt()
+        val requestedHeight = ((height ?: program.height) ).toInt()
 
-        frame = renderTarget(effectiveWidth, effectiveHeight, multisample = multisample) {
+        if (multisample == null) {
+            multisample = program.window.multisample.bufferEquivalent()
+        }
+
+        if (contentScale == null) {
+            contentScale = program.window.contentScale
+        }
+
+
+        frame = renderTarget(requestedWidth, requestedHeight, multisample = multisample!!, contentScale = contentScale!!) {
             colorBuffer()
             depthBuffer()
         }
 
         if (multisample != BufferMultisample.Disabled) {
-            resolved = colorBuffer(effectiveWidth, effectiveHeight)
+            resolved = colorBuffer(requestedWidth, requestedHeight)
         }
 
         val filename = if (!outputFile.isNullOrBlank()) outputFile!! else {
@@ -97,7 +114,7 @@ class ScreenRecorder : Extension {
             }
         }
 
-        videoWriter = VideoWriter().profile(profile).output(filename).size(effectiveWidth, effectiveHeight).frameRate(frameRate)
+        videoWriter = VideoWriter().profile(profile).output(filename).size(frame.pixelWidth, frame.pixelHeight).frameRate(frameRate)
     }
 
     override fun beforeDraw(drawer: Drawer, program: Program) {
@@ -132,8 +149,8 @@ class ScreenRecorder : Extension {
                             frame.colorBuffer(0),
                             0.0,
                             0.0,
-                            frame.width / contentScale,
-                            frame.height / contentScale
+                            frame.width.toDouble(),
+                            frame.height.toDouble()
                         )
                     }
                 }

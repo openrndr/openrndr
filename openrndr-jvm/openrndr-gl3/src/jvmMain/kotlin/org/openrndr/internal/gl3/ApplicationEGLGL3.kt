@@ -1,6 +1,7 @@
 package org.openrndr.internal.gl3
 
 import kotlinx.coroutines.runBlocking
+import mu.KotlinLogging
 import org.lwjgl.BufferUtils
 import org.lwjgl.egl.EGL15.*
 import org.lwjgl.opengl.GL
@@ -13,6 +14,8 @@ import org.openrndr.draw.Drawer
 import org.openrndr.draw.renderTarget
 import org.openrndr.internal.Driver
 import org.openrndr.math.Vector2
+
+private val logger = KotlinLogging.logger {}
 
 @Suppress("UNUSED_PARAMETER")
 class ApplicationEGLGL3(private val program: Program, private val configuration: Configuration) : Application() {
@@ -158,6 +161,20 @@ class ApplicationEGLGL3(private val program: Program, private val configuration:
     override var windowSize: Vector2
         get() = Vector2(configuration.width.toDouble(), configuration.height.toDouble())
         set(value) {}
+
+    override var windowMultisample: WindowMultisample
+        get() = WindowMultisample.Disabled
+        set(value) {
+            logger.warn { "Setting window multisampling is not supported" }
+        }
+    override var windowResizable: Boolean
+        get() = false
+        set(value) {
+            if (value) {
+                logger.warn { "Resizable windows are not supported" }
+            }
+        }
+
     override val seconds: Double
         get() = (System.currentTimeMillis() - startTime) / 1000.0
     override var presentationMode: PresentationMode
