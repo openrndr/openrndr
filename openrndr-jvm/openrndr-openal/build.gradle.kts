@@ -2,18 +2,11 @@ plugins {
     kotlin("multiplatform")
 }
 
-val lwjglVersion: String by rootProject.extra
-val kotlinLanguageVersion: String by rootProject.extra
-val kotlinApiVersion: String by rootProject.extra
-val kotlinLoggingVersion: String by rootProject.extra
-val kotlinJvmTarget: String by rootProject.extra
-
 kotlin {
     jvm {
         compilations.all {
-            kotlinOptions.jvmTarget = kotlinJvmTarget
-            kotlinOptions.apiVersion = kotlinApiVersion
-            kotlinOptions.languageVersion = kotlinLanguageVersion
+            kotlinOptions.jvmTarget = libs.versions.jvmTarget.get()
+            kotlinOptions.apiVersion = libs.versions.kotlinApi.get()
         }
         testRuns["test"].executionTask.configure {
             useJUnitPlatform()
@@ -25,18 +18,9 @@ kotlin {
             dependencies {
                 implementation(project(":openrndr-core"))
                 implementation(project(":openrndr-math"))
-                implementation("org.lwjgl:lwjgl:$lwjglVersion")
-                implementation("org.lwjgl:lwjgl-openal:$lwjglVersion")
-                implementation("io.github.microutils:kotlin-logging:$kotlinLoggingVersion")
+                implementation(libs.bundles.lwjgl.openal)
+                implementation(libs.kotlin.logging)
             }
         }
-//        val jvmTest by getting {
-//            dependencies {
-//                runtimeOnly(project (":openrndr-jvm:openrndr-openal-natives-windows"))
-//                runtimeOnly(project (":openrndr-jvm:openrndr-openal-natives-macos"))
-//                runtimeOnly(project (":openrndr-jvm:openrndr-openal-natives-linux-x64"))
-//                runtimeOnly("org.slf4j:slf4j-simple:1.7.5")
-//            }
-//        }
     }
 }

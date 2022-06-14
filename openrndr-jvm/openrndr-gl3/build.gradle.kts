@@ -2,25 +2,11 @@ plugins {
     kotlin("multiplatform")
 }
 
-val lwjglVersion: String by rootProject.extra
-val kotlinJvmTarget: String by rootProject.extra
-val kotlinLanguageVersion: String by rootProject.extra
-val kotlinApiVersion: String by rootProject.extra
-val kluentVersion: String by rootProject.extra
-val spekVersion: String by rootProject.extra
-val kotlinLoggingVersion: String by rootProject.extra
-val kotlinxCoroutinesVersion: String by rootProject.extra
-val kotlinxSerializationVersion: String by rootProject.extra
-val kotestVersion: String by rootProject.extra
-val junitJupiterVersion: String by rootProject.extra
-
-
 kotlin {
     jvm {
         compilations.all {
-            kotlinOptions.jvmTarget = kotlinJvmTarget
-            kotlinOptions.apiVersion = kotlinApiVersion
-            kotlinOptions.languageVersion = kotlinLanguageVersion
+            kotlinOptions.jvmTarget = libs.versions.jvmTarget.get()
+            kotlinOptions.apiVersion = libs.versions.kotlinApi.get()
         }
         testRuns["test"].executionTask.configure {
             useJUnitPlatform()
@@ -38,17 +24,16 @@ kotlin {
                 implementation(project(":openrndr-shape"))
                 implementation(project(":openrndr-binpack"))
                 implementation(project(":openrndr-dds"))
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxCoroutinesVersion")
-
-                implementation("io.github.microutils:kotlin-logging:$kotlinLoggingVersion")
-                implementation("org.lwjgl:lwjgl:$lwjglVersion")
-                implementation("org.lwjgl:lwjgl-glfw:$lwjglVersion")
-                implementation("org.lwjgl:lwjgl-jemalloc:$lwjglVersion")
-                implementation("org.lwjgl:lwjgl-openal:$lwjglVersion")
-                implementation("org.lwjgl:lwjgl-opengl:$lwjglVersion")
-                implementation("org.lwjgl:lwjgl-stb:$lwjglVersion")
-                implementation("org.lwjgl:lwjgl-egl:$lwjglVersion")
-                implementation("org.lwjgl:lwjgl-tinyexr:$lwjglVersion")
+                implementation(libs.kotlin.coroutines)
+                implementation(libs.kotlin.logging)
+                implementation(libs.lwjgl.core)
+                implementation(libs.lwjgl.glfw)
+                implementation(libs.lwjgl.jemalloc)
+                implementation(libs.lwjgl.opengl)
+                implementation(libs.lwjgl.stb)
+                implementation(libs.lwjgl.tinyexr)
+                implementation(libs.lwjgl.openal)
+                implementation(libs.lwjgl.egl)
             }
         }
 
@@ -57,16 +42,13 @@ kotlin {
                 runtimeOnly(project(":openrndr-jvm:openrndr-gl3-natives-windows"))
                 runtimeOnly(project(":openrndr-jvm:openrndr-gl3-natives-macos"))
                 runtimeOnly(project(":openrndr-jvm:openrndr-gl3-natives-linux-x64"))
-                runtimeOnly("org.slf4j:slf4j-simple:1.7.30")
-                implementation("org.spekframework.spek2:spek-dsl-jvm:$spekVersion")
-                implementation("org.amshove.kluent:kluent:$kluentVersion")
+                runtimeOnly(libs.slf4j.simple)
+                implementation(libs.spek.dsl)
+                implementation(libs.kluent)
 
                 implementation(kotlin("test-annotations-common"))
                 implementation(kotlin("test-junit5"))
-                runtimeOnly("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
-                runtimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
-
-
+                runtimeOnly(libs.bundles.jupiter)
             }
         }
     }

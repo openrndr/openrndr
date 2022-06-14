@@ -2,10 +2,11 @@ plugins {
     kotlin("jvm")
 }
 
-val lwjglNatives = "natives-linux-arm64"
-val lwjglVersion: String by rootProject.extra
-
 dependencies {
-    runtimeOnly("org.lwjgl:lwjgl:$lwjglVersion:$lwjglNatives")
-    runtimeOnly("org.lwjgl:lwjgl-openal:$lwjglVersion:$lwjglNatives")
+    runtimeOnly(libs.bundles.lwjgl.openal) {
+        artifact {
+            classifier = "natives-linux-arm64"
+            extension = DependencyArtifact.DEFAULT_TYPE
+        }
+    }
 }
