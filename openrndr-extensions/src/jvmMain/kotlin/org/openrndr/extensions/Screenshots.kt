@@ -58,9 +58,16 @@ open class Screenshots : Extension {
     override var enabled: Boolean = true
 
     /**
+     * contentScale can be se to be greater than 1.0 for higher resolution screenshots
+     */
+
+    var contentScale: Double? = null
+
+    /**
      * scale can be se to be greater than 1.0 for higher resolution screenshots
      */
-    var scale = 1.0
+    @Deprecated("use contentScale", replaceWith = ReplaceWith("contentScale"))
+    var scale: Double? by ::contentScale
 
     /**
      * should saving be performed asynchronously?
@@ -70,7 +77,7 @@ open class Screenshots : Extension {
     /**
      * multisample settings
      */
-    var multisample: BufferMultisample = BufferMultisample.Disabled
+    var multisample: BufferMultisample? = null
 
     /**
      * delays the screenshot for a number of frames.
@@ -127,6 +134,14 @@ open class Screenshots : Extension {
     override fun setup(program: Program) {
         programRef = program
 
+        if (multisample == null) {
+            multisample = program.window.multisample.bufferEquivalent()
+        }
+
+        if (contentScale == null) {
+            contentScale = program.window.contentScale
+        }
+
         if (listenToProduceAssetsEvent) {
             program.produceAssets.listen {
                 assetMetaData = it.assetMetadata
@@ -160,11 +175,11 @@ open class Screenshots : Extension {
     private var filename: String? = null
     override fun beforeDraw(drawer: Drawer, program: Program) {
         if (createScreenshot != None && delayFrames-- <= 0) {
-            target = renderTarget(program.width, program.height, contentScale = scale, multisample = multisample) {
+            target = renderTarget(program.width, program.height, contentScale = contentScale!!, multisample = multisample!!) {
                 colorBuffer()
                 depthBuffer()
             }
-            resolved = when (multisample) {
+            resolved = when (multisample!!) {
                 BufferMultisample.Disabled -> null
                 is BufferMultisample.SampleCount -> colorBuffer(program.width, program.height)
             }
@@ -173,8 +188,8 @@ open class Screenshots : Extension {
             filename = when (val cs = createScreenshot) {
                 None -> throw IllegalStateException("")
                 AutoNamed -> {
-                    val parent = File(folder?:".")
-                    val fn = File(parent, "${(assetMetaData?:program.assetMetadata()).assetBaseName}.png").toString()
+                    val parent = File(folder ?: ".")
+                    val fn = File(parent, "${(assetMetaData ?: program.assetMetadata()).assetBaseName}.png").toString()
                     if (name.isNullOrBlank()) fn else name
                 }
                 is Named -> cs.name
@@ -219,7 +234,7 @@ open class Screenshots : Extension {
                 }
                 val savedTo = try {
                     targetFile.relativeTo(File("."))
-                } catch(e: IllegalArgumentException) {
+                } catch (e: IllegalArgumentException) {
                     targetFile
                 }
                 logger.info { "screenshot saved to: '$savedTo'" }
