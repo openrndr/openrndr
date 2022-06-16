@@ -15,7 +15,7 @@ actual fun application(build: ApplicationBuilder.() -> Unit) {
 actual suspend fun applicationAsync(build: ApplicationBuilder.() -> Unit) {
     ApplicationBuilder().apply {
         build()
-        application.runAsync(program, configuration)
+        application.build(program, configuration).runAsync()
     }
 }
 
@@ -23,7 +23,7 @@ actual suspend fun applicationAsync(build: ApplicationBuilder.() -> Unit) {
 actual class ApplicationBuilder internal actual constructor(){
     internal actual val configuration = Configuration()
     actual var program: Program = Program()
-    actual val application = applicationFunc?.invoke(program, configuration) ?: error("applicationFunc not set")
+    actual val application = applicationBaseFunc?.invoke() ?: error("applicationFunc not set")
 
     actual fun configure(init: Configuration.() -> Unit) {
         configuration.init()

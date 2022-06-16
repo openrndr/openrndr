@@ -2,9 +2,9 @@ package org.openrndr
 
 @ApplicationDslMarker
 expect class ApplicationBuilder internal constructor(){
-    val application: Application
     internal val configuration: Configuration
     var program: Program
+    val application: ApplicationBase
 
     fun configure(init: Configuration.() -> Unit)
 

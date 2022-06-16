@@ -30,14 +30,14 @@ expect abstract class Application {
     abstract var program: Program
     abstract var configuration: Configuration
 
-    internal fun run(program: Program, configuration: Configuration)
-    internal suspend fun runAsync(program: Program, configuration: Configuration)
+    internal fun run()
+    internal suspend fun runAsync()
 
     abstract fun requestDraw()
     abstract fun requestFocus()
 
     abstract fun exit()
-    abstract suspend fun setup(program: Program = Program(), configuration: Configuration = Configuration())
+    abstract suspend fun setup()
 
     abstract fun loop()
     abstract var clipboardContents: String?

@@ -81,7 +81,7 @@ actual fun application(build: ApplicationBuilder.() -> Unit) {
         installUncaughtExceptionHandler()
         ApplicationBuilder().apply {
             build()
-            application.run(program, configuration)
+            application.build(this.program, this.configuration).run()
         }
     }
 }
@@ -98,7 +98,7 @@ actual suspend fun applicationAsync(build: ApplicationBuilder.() -> Unit) {
 actual class ApplicationBuilder internal actual constructor(){
     internal actual val configuration = Configuration()
     actual var program: Program = Program()
-    actual val application: Application = Application.initialize()
+    actual val application: ApplicationBase = ApplicationBase.initialize()
     val displays = application.displays
 
     actual fun configure(init: Configuration.() -> Unit) {

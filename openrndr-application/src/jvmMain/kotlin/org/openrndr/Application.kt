@@ -43,19 +43,6 @@ open class ApplicationPreload {
 @ApplicationDslMarker
 actual abstract class Application {
     companion object {
-        fun initialize(): Application {
-            if (enableProfiling) {
-                Runtime.getRuntime().addShutdownHook(object : Thread() {
-                    override fun run() {
-                        report()
-                    }
-                })
-            }
-
-            val c = applicationClass()
-            return c.declaredConstructors[0].newInstance() as Application
-        }
-
         fun setupPreload(program: Program, configuration: Configuration) {
             val preloadClassName =
                 (System.getProperties()["org.openrndr.preloadclass"] as? String)
@@ -74,37 +61,19 @@ actual abstract class Application {
                 preload.onProgramSetup(program)
             }
         }
-
-        private fun applicationClass(): Class<*> {
-            try {
-                val c = Application::class.java.classLoader.loadClass("org.openrndr.internal.nullgl.ApplicationNullGL")
-                logger.debug { "NullGL found" }
-                return c
-            } catch (e: ClassNotFoundException) {
-                logger.debug { "NullGL not found" }
-            }
-
-            val applicationProperty: String? = System.getProperty("org.openrndr.application")
-
-            return when (applicationProperty) {
-                null, "", "ApplicationGLFW" -> Application::class.java.classLoader.loadClass("org.openrndr.internal.gl3.ApplicationGLFWGL3")
-                "ApplicationEGL" -> Application::class.java.classLoader.loadClass("org.openrndr.internal.gl3.ApplicationEGLGL3")
-                else -> throw IllegalArgumentException("Unknown value '${applicationProperty}' provided for org.openrndr.application")
-            }
-        }
     }
 
     actual abstract var program: Program
     actual abstract var configuration: Configuration
 
-    internal actual fun run(program: Program, configuration: Configuration) {
+    internal actual fun run() {
         runBlocking {
-            this@Application.setup(program, configuration)
+            this@Application.setup()
         }
         this.loop()
     }
 
-    internal actual suspend fun runAsync(program: Program, configuration: Configuration) {
+    internal actual suspend fun runAsync() {
         throw NotImplementedError("Asynchronous application is unsupported, use Application.run()")
     }
 
@@ -112,10 +81,9 @@ actual abstract class Application {
     actual abstract fun requestFocus()
 
     actual abstract fun exit()
-    actual abstract suspend fun setup(program: Program, configuration: Configuration)
+    actual abstract suspend fun setup()
 
     actual abstract fun loop()
-    abstract val displays: List<Display>
     actual abstract var clipboardContents: String?
     actual abstract var windowTitle: String
     actual abstract var windowPosition: Vector2
@@ -139,8 +107,9 @@ actual abstract class Application {
  * @see application
  */
 actual fun application(program: Program, configuration: Configuration) {
-    val application: Application = Application.initialize()
-    application.run(program, configuration)
+    val applicationBase: ApplicationBase = ApplicationBase.initialize()
+    val application = applicationBase.build(program, configuration)
+    application.run()
 }
 
 /**
