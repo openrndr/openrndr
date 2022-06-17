@@ -7,12 +7,11 @@ import org.openrndr.math.Vector2
 private val logger = KotlinLogging.logger {}
 
 /**
- * Application preload class
  * [ApplicationPreload] can be used to configure [Application] and [Program] without changing
  * user code.
  *
- * [Application.run] looks for a preload class on the class path, if found this class instantiated
- * and used for configuration.
+ * On application initialization a preload class is looked for on the classpath,
+ * if found this class is instantiated and used for configuration.
  *
  * The `org.openrndr.preloadclass` property can be used to set the name for the preload class,
  * the default value is `org.openrndr.Preload`.
@@ -20,14 +19,14 @@ private val logger = KotlinLogging.logger {}
  */
 open class ApplicationPreload {
     /**
-     * called before passing the configuration to [Application]
-     * This can be used to override resolution and other configuration settings
+     * Called before passing the configuration to [Application].
+     * This can be used to override resolution and other configuration settings.
      */
     open fun onConfiguration(configuration: Configuration) {}
 
     /**
-     * called before setting up the [Program]
-     * This can be used to install extensions
+     * Called before setting up the [Program]
+     * This can be used to install extensions.
      */
     open fun onProgramSetup(program: Program) {}
 }
@@ -36,7 +35,7 @@ open class ApplicationPreload {
  * This class is responsible for selecting and initializing the appropriate graphics backend.
  *
  * By default, the GLFW backend is used. This can be customized by setting the VM property
- * `org.openrndr.application` to "ApplicationGLFW" or "ApplicationEGL".
+ * `org.openrndr.application` to "GLFW" or "EGL".
  * However, if `org.openrndr.internal.nullgl.ApplicationNullGL` is found on the classpath,
  * NullGL will be used as the backend instead, regardless of other settings.
  */
