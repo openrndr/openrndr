@@ -4,7 +4,7 @@ package org.openrndr
 expect class ApplicationBuilder internal constructor(){
     internal val configuration: Configuration
     var program: Program
-    val application: ApplicationBase
+    internal val application: ApplicationBase
 
     fun configure(init: Configuration.() -> Unit)
 

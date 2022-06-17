@@ -98,8 +98,8 @@ actual suspend fun applicationAsync(build: ApplicationBuilder.() -> Unit) {
 actual class ApplicationBuilder internal actual constructor(){
     internal actual val configuration = Configuration()
     actual var program: Program = Program()
-    actual val application: ApplicationBase = ApplicationBase.initialize()
-    val displays = application.displays
+    internal actual val application: ApplicationBase = ApplicationBase.initialize()
+    val displays by lazy { application.displays }
 
     actual fun configure(init: Configuration.() -> Unit) {
         configuration.init()

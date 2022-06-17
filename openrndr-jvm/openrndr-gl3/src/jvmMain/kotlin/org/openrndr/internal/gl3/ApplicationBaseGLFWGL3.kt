@@ -11,24 +11,22 @@ class ApplicationBaseGLFWGL3 : ApplicationBase() {
         }
     }
 
-    override val displays: List<Display> by lazy {
+    override val displays: List<DisplayGLFWGL3> by lazy {
         val detectedMonitors = glfwGetMonitors()
         if (detectedMonitors != null && detectedMonitors.limit() > 0) {
             stackPush().use {
                 val x = it.mallocInt(1)
                 val y = it.mallocInt(1)
-                val xScale = it.mallocFloat(1)
-                val yScale = it.mallocFloat(1)
+                val contentScale = it.mallocFloat(1)
                 return@lazy List(detectedMonitors.limit()) { i ->
                     val monitor = detectedMonitors[i]
                     val videoMode = glfwGetVideoMode(monitor)
                     glfwGetMonitorPos(monitor, x, y)
-                    glfwGetMonitorContentScale(monitor, xScale, yScale)
-                    Display(
-                        monitor, glfwGetMonitorName(monitor),
-                        x[0], y[0],
-                        videoMode?.width(), videoMode?.height(),
-                        xScale[0].toDouble(), yScale[0].toDouble()
+                    // vertical scale is reportedly flaky, so we disregard it
+                    glfwGetMonitorContentScale(monitor, contentScale, null)
+                    DisplayGLFWGL3(
+                        monitor, glfwGetMonitorName(monitor), x[0], y[0],
+                        videoMode?.width(), videoMode?.height(), contentScale[0].toDouble()
                     )
                 }
             }

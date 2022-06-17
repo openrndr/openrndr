@@ -23,7 +23,7 @@ actual suspend fun applicationAsync(build: ApplicationBuilder.() -> Unit) {
 actual class ApplicationBuilder internal actual constructor(){
     internal actual val configuration = Configuration()
     actual var program: Program = Program()
-    actual val application = applicationBaseFunc?.invoke() ?: error("applicationFunc not set")
+    internal actual val application = applicationBaseFunc?.invoke() ?: error("applicationFunc not set")
 
     actual fun configure(init: Configuration.() -> Unit) {
         configuration.init()
