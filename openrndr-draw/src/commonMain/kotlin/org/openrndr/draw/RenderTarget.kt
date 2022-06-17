@@ -7,9 +7,9 @@ import org.openrndr.draw.colorBuffer as _colorBuffer
 import org.openrndr.draw.depthBuffer as _depthBuffer
 
 /**
- * Color attachment for [RenderTarget]
+ * Color attachment for [RenderTarget].
  * @param index the binding index for [RenderTarget]
- * @param name an optional name for the binding
+ * @param name an optional name for the binding, defaults to `null`
  */
 sealed class ColorAttachment(val index: Int, val name: String?)
 class ColorBufferAttachment(
@@ -81,81 +81,56 @@ class LayeredCubemapAttachment(
 ) : ColorAttachment(index, name)
 
 interface RenderTarget {
-    /**
-     * [Session] in which this render target is created
-     */
+    /** [Session] in which this render target is created. */
     val session: Session?
 
-    /**
-     * width in display units
-     */
+    /** Width in display units. */
     val width: Int
 
-    /**
-     * height in display units
-     */
+    /** Height in display units. */
     val height: Int
 
-    /**
-     * content scaling factor
-     */
+    /** Content scaling factor. */
     val contentScale: Double
 
-    /**
-     * multisample mode
-     */
+    /** Multisampling mode. */
     val multisample: BufferMultisample
 
-    /**
-     * effective width in pixels
-     */
+    /** Effective width in pixels. */
     //@Deprecated("use pixelWidth", replaceWith = ReplaceWith("pixelWidth"))
     val effectiveWidth: Int get() = (width * contentScale).toInt()
 
-    /**
-     * effective width in pixels
-     */
+    /** Effective width in pixels. */
     val pixelWidth: Int get() = (width * contentScale).toInt()
 
-
-    /**
-     * effective height in pixels
-     */
+    /** Effective height in pixels. */
     //@Deprecated("use pixelHeight", replaceWith = ReplaceWith("pixelHeight"))
     val effectiveHeight: Int get() = (height * contentScale).toInt()
 
-    /**
-     * effective height in pixels
-     */
+    /** Effective height in pixels. */
     val pixelHeight: Int get() = (height * contentScale).toInt()
 
-
-    /**
-     * list of [ColorAttachment]s
-     */
+    /** List of [ColorAttachment]s. */
     val colorAttachments: List<ColorAttachment>
 
-    /**
-     * find color attachment index by name
-     * @param name the name of the [ColorAttachment] to look for
-     */
+    /** Find the index of a [ColorAttachment] by name. */
     fun colorAttachmentIndexByName(name: String): Int? {
         return colorAttachments.find { it.name == name }?.index
     }
 
-    /**
-     * find color attachment by name
-     */
+    /** Find [ColorAttachment] by name. */
     fun colorAttachmentByName(name: String): ColorAttachment? {
         return colorAttachments.find { it.name == name }
     }
 
-    /**
-     * depthBuffer
-     */
     val depthBuffer: DepthBuffer?
 
     companion object {
+        /**
+         * Points to the [RenderTarget] that is currently in use. This is either an
+         * instance of ProgramRenderTarget, which represents the window's surface or to
+         * a user created RenderTarget that is made active using [Drawer.withTarget] or similar.
+         */
         val active: RenderTarget
             get() = Driver.instance.activeRenderTarget
     }
@@ -173,68 +148,58 @@ interface RenderTarget {
     fun attachLayered(cubemap: Cubemap, level: Int = 0, name: String? = null)
     fun attachLayered(volumeTexture: VolumeTexture, level: Int = 0, name: String? = null)
 
-    /**
-     * detach all color attachments
-     */
+    /** Detach all color attachments. */
     fun detachColorAttachments()
 
     @Deprecated("detachColorBuffer is deprecated, use detachColorAttachments", replaceWith = ReplaceWith("detachColorAttachments"))
     fun detachColorBuffers()
 
-    /**
-     * detach depth buffer
-     */
+    /** Detach the [depthBuffer]. */
     fun detachDepthBuffer()
 
     /**
-     * destroy the [RenderTarget]
-     * to properly destroy destroy color attachments and depth attachment first then use [detachColorAttachments] and [detachDepthBuffer] before calling [destroy]
+     * Destroy the [RenderTarget].
+     *
+     * In order to fully destroy the RenderTarget, you should
+     *   1. Destroy the color attachments and the depth attachment
+     *   2. Call [detachColorAttachments] and [detachDepthBuffer]
+     *   3. Call [destroy]
      */
     fun destroy()
 
-    /**
-     * get a color attachment as a [ColorBuffer]
-     */
+    /** Get a color attachment as a [ColorBuffer]. */
     fun colorBuffer(index: Int): ColorBuffer
 
     /**
-     * clear a color attachment
+     * Clear a color attachment.
      * @param index the index of the attachment to clear
      * @param color the [ColorRGBa] to use for clearing
      */
     fun clearColor(index: Int, color: ColorRGBa)
 
     /**
-     * clear the depth attachment
-     * @param depth the value to use for clearing the depth attachment, default is 1.0
-     * @param stencil the value to use for clearing the stencil attachment, default is 0
+     * Clear the depth attachment.
+     * @param depth the value to use for clearing the depth attachment, defaults to `1.0`
+     * @param stencil the value to use for clearing the stencil attachment, defaults to `0`
      */
     fun clearDepth(depth: Double = 1.0, stencil: Int = 0)
 
     /**
-     * set the [BlendMode] for a [ColorAttachment]
+     * Set the [BlendMode] for a [ColorAttachment].
      * @param index the attachment index
      */
     fun blendMode(index: Int, blendMode: BlendMode)
 
-    /**
-     * binds the [RenderTarget] to the active target
-     */
+    /** Binds the [RenderTarget] to the active target. */
     fun bind()
 
-    /**
-     * unbinds the [RenderTarget] from the active target
-     */
+    /** Unbinds the [RenderTarget] from the active target. */
     fun unbind()
 
-    /**
-     * indicates that this [RenderTarget] has a [DepthBuffer]
-     */
+    /** Indicates if this [RenderTarget] has a [DepthBuffer]. */
     val hasDepthBuffer: Boolean
 
-    /**
-     * indicates that this [RenderTarget] has at least one [ColorAttachment]
-     */
+    /** Indicates if this [RenderTarget] has at least one [ColorAttachment]. */
     val hasColorAttachments: Boolean
 
     fun resolveTo(to: RenderTarget) {
@@ -345,7 +310,7 @@ class RenderTargetBuilder(private val renderTarget: RenderTarget) {
      * @param arrayCubemap the [ArrayCubemap] to attach
      * @param side the [CubemapSide] of the [ArrayCubemap] to attach
      * @param layer the layer of the [ArrayCubemap] to attach
-     * @param mipmap level of the [ArrayCubemap] to attach, default is 0
+     * @param level mipmap level of the [ArrayCubemap] to attach, default is 0
      */
     fun arrayCubemap(name: String, arrayCubemap: ArrayCubemap, side: CubemapSide, layer: Int, level: Int = 0) {
         renderTarget.attach(arrayCubemap, side, layer, level, name)
@@ -367,7 +332,7 @@ class RenderTargetBuilder(private val renderTarget: RenderTarget) {
      * @param name the name for the attachment
      * @param cubemap the [Cubemap] to attach
      * @param side the [CubemapSide] of the [Cubemap] to attach
-     * @param level level of the [Cubemap] to attach, default is 0
+     * @param level mipmap level of the [Cubemap] to attach, default is 0
      */
     fun cubemap(name: String, cubemap: Cubemap, side: CubemapSide, level: Int = 0) {
         renderTarget.attach(cubemap, side, level, name)
@@ -377,7 +342,7 @@ class RenderTargetBuilder(private val renderTarget: RenderTarget) {
      * attach an existing [Cubemap] with a nameless binding to [RenderTarget]
      * @param cubemap the [Cubemap] to attach
      * @param side the [CubemapSide] of the [Cubemap] to attach
-     * @param level level of the [Cubemap] to attach, default is 0
+     * @param level mipmap level of the [Cubemap] to attach, default is 0
      */
     fun cubemap(cubemap: Cubemap, side: CubemapSide, level: Int = 0) {
         renderTarget.attach(cubemap, side, level)
@@ -388,7 +353,7 @@ class RenderTargetBuilder(private val renderTarget: RenderTarget) {
      * @param name the name for the attachment
      * @param volumeTexture the [VolumeTexture] to attach
      * @param layer the layer of the [VolumeTexture] to attach
-     * @param level level of the [VolumeTexture] to attach, default is 0
+     * @param level mipmap level of the [VolumeTexture] to attach, default is 0
      */
     fun volumeTexture(name: String, volumeTexture: VolumeTexture, layer: Int, level: Int = 0) {
         renderTarget.attach(volumeTexture, layer, level, name)
@@ -398,7 +363,7 @@ class RenderTargetBuilder(private val renderTarget: RenderTarget) {
      * attach an existing [VolumeTexture] with a nameless binding to [RenderTarget]
      * @param volumeTexture the [VolumeTexture] to attach
      * @param layer the layer of the [VolumeTexture] to attach
-     * @param level level of the [VolumeTexture] to attach, default is 0
+     * @param level mipmap level of the [VolumeTexture] to attach, default is 0
      */
     fun volumeTexture(volumeTexture: VolumeTexture, layer: Int, level: Int = 0) {
         renderTarget.attach(volumeTexture, layer, level)
