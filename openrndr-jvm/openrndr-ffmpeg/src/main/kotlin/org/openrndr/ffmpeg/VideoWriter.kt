@@ -243,9 +243,9 @@ class VideoWriter {
      */
     fun frame(frame: ColorBuffer): VideoWriter {
         if (!stopped) {
-            val frameBytes = frame.width * frame.height * frame.format.componentCount * frame.type.componentSize
+            val frameBytes = frame.effectiveWidth * frame.effectiveHeight * frame.format.componentCount * frame.type.componentSize
             require(frameBytes == frameBuffer.capacity()) {
-                "frame size/format/type mismatch"
+                "frame size/format/type mismatch. ($width x $height) vs ({${frame.effectiveWidth} x ${frame.effectiveHeight})"
             }
             (frameBuffer as Buffer).rewind()
             //frameBuffer.order(ByteOrder.nativeOrder())

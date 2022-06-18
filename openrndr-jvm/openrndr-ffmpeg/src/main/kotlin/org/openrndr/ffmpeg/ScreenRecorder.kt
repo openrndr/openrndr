@@ -101,7 +101,7 @@ class ScreenRecorder : Extension {
         }
 
         if (multisample != BufferMultisample.Disabled) {
-            resolved = colorBuffer(requestedWidth, requestedHeight)
+            resolved = colorBuffer(requestedWidth, requestedHeight, contentScale = contentScale!!)
         }
 
         val filename = if (!outputFile.isNullOrBlank()) outputFile!! else {
