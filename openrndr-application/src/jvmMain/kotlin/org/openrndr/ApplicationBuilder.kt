@@ -25,7 +25,7 @@ private fun restartJVM(): Boolean {
     if (env != null && env == "1") {
         return false
     }
-    System.err.println("Warning: Running on macOS without -XstartOnFirstThread JVM argument. Restarting JVM with -XstartOnFirstThread.")
+    System.err.println("Warning: Running on macOS without -XstartOnFirstThread JVM argument. Restarting JVM with -XstartOnFirstThread, this is not compatible with debugging. \nAdd -XstartOnFirstThread to your VM Options in the configuration to enable debugging.")
 
     // restart jvm with -XstartOnFirstThread
     val separator = System.getProperty("file.separator")
