@@ -5,23 +5,23 @@ import org.openrndr.math.Vector2
 
 private val logger = KotlinLogging.logger {}
 
-var applicationFunc : ((Program, Configuration) -> Application)? = null
+var applicationBaseFunc: (() -> ApplicationBase)? = null
 
 /**
  * Application interface
  */
 @ApplicationDslMarker
 actual abstract class Application {
-    actual companion object {
-        actual fun run(program: Program, configuration: Configuration) {
-            error("use Application.runAsync")
-        }
+    actual abstract var program: Program
+    actual abstract var configuration: Configuration
 
-        actual suspend fun runAsync(program: Program, configuration: Configuration) {
-            val application = applicationFunc?.invoke(program, configuration) ?: error("applicationFunc not set")
-            application.setup()
-            application.loop()
-        }
+    internal actual fun run() {
+        throw NotImplementedError("Synchronous application is unsupported, use Application.runAsync()")
+    }
+
+    internal actual suspend fun runAsync() {
+        setup()
+        loop()
     }
 
     actual abstract fun requestDraw()
@@ -50,12 +50,19 @@ actual abstract class Application {
 }
 
 /**
- * Runs [program] as an application using [configuration].
+ * Runs [program] as a synchronous application with the given [configuration].
+ * @see application
  */
 actual fun application(program: Program, configuration: Configuration) {
-    error("use applicationAsync")
+    throw NotImplementedError("Synchronous application is unsupported, use applicationAsync()")
 }
 
+/**
+ * Runs [program] as an asynchronous application with the given [configuration].
+ * @see applicationAsync
+ */
 actual suspend fun applicationAsync(program: Program, configuration: Configuration) {
-    Application.runAsync(program, configuration)
+    val applicationBase = applicationBaseFunc?.invoke() ?: error("applicationBaseFunc not set")
+    val application = applicationBase.build(program, configuration)
+    application.runAsync()
 }

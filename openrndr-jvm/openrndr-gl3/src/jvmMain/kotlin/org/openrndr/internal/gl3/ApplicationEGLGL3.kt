@@ -18,13 +18,12 @@ import org.openrndr.math.Vector2
 private val logger = KotlinLogging.logger {}
 
 @Suppress("UNUSED_PARAMETER")
-class ApplicationEGLGL3(private val program: Program, private val configuration: Configuration) : Application() {
+class ApplicationEGLGL3(override var program: Program, override var configuration: Configuration) : Application() {
 
     override var cursorVisible: Boolean = false
     override var cursorHideMode: MouseCursorHideMode = MouseCursorHideMode.HIDE
 
     override var cursorType: CursorType = CursorType.ARROW_CURSOR
-
 
     override var cursorPosition: Vector2
         get() = Vector2(0.0, 0.0)
@@ -35,9 +34,9 @@ class ApplicationEGLGL3(private val program: Program, private val configuration:
     private val vaos = IntArray(1)
 
     init {
-        program.application = this
         driver = DriverGL3(DriverVersionGL.VERSION_3_3)
         Driver.driver = driver
+        program.application = this
     }
 
     override fun requestDraw() {
@@ -53,6 +52,7 @@ class ApplicationEGLGL3(private val program: Program, private val configuration:
     }
 
     override suspend fun setup() {
+
         val display = eglGetDisplay(EGL_DEFAULT_DISPLAY)
         println("display $display")
         val major = BufferUtils.createIntBuffer(1)

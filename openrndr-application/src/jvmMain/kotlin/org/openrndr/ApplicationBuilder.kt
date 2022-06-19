@@ -1,6 +1,5 @@
 package org.openrndr
 
-import kotlinx.coroutines.runBlocking
 import org.openrndr.exceptions.installUncaughtExceptionHandler
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -73,19 +72,44 @@ private fun restartJVM(): Boolean {
     return true
 }
 
-
+/**
+ * Creates and runs a synchronous OPENRNDR application using the provided [ApplicationBuilder].
+ * @see <a href="https://guide.openrndr.org/">the OPENRNDR guide</a>
+ */
 actual fun application(build: ApplicationBuilder.() -> Unit) {
     if (!restartJVM()) {
         installUncaughtExceptionHandler()
-        val applicationBuilder = ApplicationBuilder().apply { build() }
-        application(applicationBuilder.program, applicationBuilder.configuration)
+        ApplicationBuilder().apply {
+            build()
+            application.build(this.program, this.configuration).run()
+        }
     }
 }
 
+/**
+ * Creates and runs an asynchronous OPENRNDR application using the provided [ApplicationBuilder].
+ * @see <a href="https://guide.openrndr.org/">the OPENRNDR guide</a>
+ */
 actual suspend fun applicationAsync(build: ApplicationBuilder.() -> Unit) {
-    if (!restartJVM()) {
-        installUncaughtExceptionHandler()
-        val applicationBuilder = ApplicationBuilder().apply { build() }
-        applicationAsync(applicationBuilder.program, applicationBuilder.configuration)
+    throw NotImplementedError("Asynchronous application is unsupported, use application()")
+}
+
+@ApplicationDslMarker
+actual class ApplicationBuilder internal actual constructor(){
+    internal actual val configuration = Configuration()
+    actual var program: Program = Program()
+    internal actual val application: ApplicationBase = ApplicationBase.initialize()
+    val displays by lazy { application.displays }
+
+    actual fun configure(init: Configuration.() -> Unit) {
+        configuration.init()
+    }
+
+    actual fun program(init: suspend Program.() -> Unit) {
+        program = object : Program() {
+            override suspend fun setup() {
+                init()
+            }
+        }
     }
 }

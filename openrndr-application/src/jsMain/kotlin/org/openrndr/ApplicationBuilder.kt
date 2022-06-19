@@ -1,18 +1,39 @@
 package org.openrndr
 
 /**
- * Runs [programFunction] as an application using [configuration], this provides a more functional flavored way of
- * writing applications.
+ * Creates and runs a synchronous OPENRNDR application using the provided [ApplicationBuilder].
+ * @see <a href="https://guide.openrndr.org/">the OPENRNDR guide</a>
  */
 actual fun application(build: ApplicationBuilder.() -> Unit) {
-    error("use applicationAsync")
+    throw NotImplementedError("Synchronous application is unsupported, use applicationAsync()")
 }
 
 /**
- * Runs [programFunction] as an application using [configuration], this provides a more functional flavored way of
- * writing applications.
+ * Creates and runs an asynchronous OPENRNDR application using the provided [ApplicationBuilder].
+ * @see <a href="https://guide.openrndr.org/">the OPENRNDR guide</a>
  */
 actual suspend fun applicationAsync(build: ApplicationBuilder.() -> Unit) {
-    val applicationBuilder = ApplicationBuilder().apply { build() }
-    applicationAsync(applicationBuilder.program, applicationBuilder.configuration)
+    ApplicationBuilder().apply {
+        build()
+        application.build(program, configuration).runAsync()
+    }
+}
+
+@ApplicationDslMarker
+actual class ApplicationBuilder internal actual constructor(){
+    internal actual val configuration = Configuration()
+    actual var program: Program = Program()
+    internal actual val application = applicationBaseFunc?.invoke() ?: error("applicationFunc not set")
+
+    actual fun configure(init: Configuration.() -> Unit) {
+        configuration.init()
+    }
+
+    actual fun program(init: suspend Program.() -> Unit) {
+        program = object : Program() {
+            override suspend fun setup() {
+                init()
+            }
+        }
+    }
 }

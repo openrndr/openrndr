@@ -100,6 +100,13 @@ class Configuration {
     var hideWindowDecorations = false
 
     /**
+     * The display on which to create the window.
+     * All currently detected [Display]s can be found in the `displays` list inside [ApplicationBuilder].
+     * Defaults to `null` which means to use your primary monitor.
+     */
+    var display: Display? = null
+
+    /**
      * Should the window be made fullscreen?
      */
     var fullscreen: Fullscreen = Fullscreen.DISABLED
@@ -149,11 +156,6 @@ class Configuration {
      * Should the window be transparent
      */
     var windowTransparent : Boolean = false
-
-    /**
-     * Should the application be run in headless mode?
-     */
-    var headless: Boolean = false
 
     /**
      * Should the window render target use multisampling?

@@ -2,37 +2,25 @@ package org.openrndr.webgl
 
 import kotlinx.browser.document
 import kotlinx.browser.window
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.await
 import org.khronos.webgl.WebGLContextAttributes
 import org.khronos.webgl.WebGLRenderingContext
 import org.openrndr.*
 import org.openrndr.draw.Drawer
 import org.openrndr.internal.Driver
 import org.openrndr.math.Vector2
-import org.w3c.dom.HTMLAnchorElement
 import org.w3c.dom.HTMLCanvasElement
 import org.w3c.dom.asList
 import org.w3c.dom.events.WheelEvent
 import org.w3c.files.File
 import org.w3c.files.FileList
 import org.w3c.files.FileReader
-import org.w3c.files.get
 import kotlin.js.Promise
-import org.w3c.dom.events.MouseEvent as HtmlMouseEvent
-import org.w3c.dom.events.KeyboardEvent as HtmlKeyboardEvent
 import kotlin.math.min
+import org.w3c.dom.events.KeyboardEvent as HtmlKeyboardEvent
+import org.w3c.dom.events.MouseEvent as HtmlMouseEvent
 
-val applicationWebGLInitializer = object {
-    init {
-        console.log("setting up ApplicationWebGL")
-        applicationFunc = { program, configuration ->
-            ApplicationWebGL(program, configuration)
-        }
-    }
-}
+class ApplicationWebGL(override var program: Program, override var configuration: Configuration) : Application() {
 
-class ApplicationWebGL(private val program: Program, private val configuration: Configuration) : Application() {
     init {
         program.application = this
     }
@@ -59,7 +47,8 @@ class ApplicationWebGL(private val program: Program, private val configuration: 
         canvas = document.getElementById(configuration.canvasId) as? HTMLCanvasElement
             ?: error("failed to get canvas #${configuration.canvasId}")
         val contextAttributes = WebGLContextAttributes(stencil = true, preserveDrawingBuffer = true)
-        context = canvas?.getContext("webgl", contextAttributes) as? WebGLRenderingContext ?: error("failed to create webgl context")
+        context = canvas?.getContext("webgl", contextAttributes) as? WebGLRenderingContext
+            ?: error("failed to create webgl context")
         Driver.driver = DriverWebGL(context ?: error("no context"))
         program.drawer = Drawer(Driver.instance)
         referenceTime = window.performance.now()

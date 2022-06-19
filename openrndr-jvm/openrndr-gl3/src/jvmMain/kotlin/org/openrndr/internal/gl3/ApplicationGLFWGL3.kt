@@ -28,7 +28,7 @@ import kotlin.math.ceil
 private val logger = KotlinLogging.logger {}
 internal var primaryWindow: Long = NULL
 
-class ApplicationGLFWGL3(private val program: Program, private val configuration: Configuration) : Application() {
+class ApplicationGLFWGL3(override var program: Program, override var configuration: Configuration) : Application() {
 
     private var windowFocused = true
 
@@ -36,8 +36,9 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
     private var realWindowTitle = configuration.title
     private var exitRequested = false
     private val fixWindowSize = System.getProperty("os.name").contains("windows", true) ||
-            System.getProperty("os.name").contains("linux", true)
+        System.getProperty("os.name").contains("linux", true)
     private var setupCalled = false
+
     override var presentationMode: PresentationMode = PresentationMode.AUTOMATIC
     override var windowContentScale: Double
         get() {
@@ -184,8 +185,8 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         logger.debug { "debug output enabled" }
         logger.trace { "trace level enabled" }
 
-        program.application = this
         createPrimaryWindow()
+        program.application = this
     }
 
     override suspend fun setup() {
@@ -194,6 +195,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE)
 
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE)
+        glfwWindowHint(GLFW_AUTO_ICONIFY, GLFW_FALSE)
         glfwWindowHint(GLFW_RESIZABLE, if (configuration.windowResizable) GLFW_TRUE else GLFW_FALSE)
         glfwWindowHint(GLFW_DECORATED, if (configuration.hideWindowDecorations) GLFW_FALSE else GLFW_TRUE)
 
@@ -219,12 +221,13 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
             glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE)
         }
 
-        val xscale = FloatArray(1)
+        val display = (configuration.display as? DisplayGLFWGL3)?.pointer ?: glfwGetPrimaryMonitor()
 
+        val xscale = FloatArray(1)
 
         run {
             val yscale = FloatArray(1)
-            glfwGetMonitorContentScale(glfwGetPrimaryMonitor(), xscale, yscale)
+            glfwGetMonitorContentScale(display, xscale, yscale)
             logger.debug { "content scale ${xscale[0]} ${yscale[0]}" }
             if (xscale[0] != yscale[0]) {
                 logger.debug {
@@ -255,10 +258,22 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
             glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, versions[versionIndex].minorVersion)
 
             window = if (configuration.fullscreen == Fullscreen.DISABLED) {
+                /**
+                 * We will be creating the [window] by passing [NULL] as the monitor
+                 * for [glfwCreateWindow]. This will create the window on the user's primary display.
+                 * The glfw docs suggest that if you want to specify the position as well, one should
+                 * create the window and then move it. The trouble occurs when the user has specified to
+                 * use a non-primary display and the two displays have different content scales.
+                 * To remedy this we will be using primary display's scaling for the initial window
+                 * and let glfw rescale it after we move the window to the specified display.
+                 */
+                val primaryDisplayScale = FloatArray(1)
+                glfwGetMonitorContentScale(glfwGetPrimaryMonitor(), primaryDisplayScale, null)
+
                 val adjustedWidth =
-                    if (fixWindowSize) (xscale[0] * configuration.width).toInt() else configuration.width
+                    if (fixWindowSize) (primaryDisplayScale[0] * configuration.width).toInt() else configuration.width
                 val adjustedHeight =
-                    if (fixWindowSize) (xscale[0] * configuration.height).toInt() else configuration.height
+                    if (fixWindowSize) (primaryDisplayScale[0] * configuration.height).toInt() else configuration.height
 
                 glfwCreateWindow(
                     adjustedWidth,
@@ -273,7 +288,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
                 var requestHeight = configuration.height
 
                 if (configuration.fullscreen == Fullscreen.CURRENT_DISPLAY_MODE) {
-                    val mode = glfwGetVideoMode(glfwGetPrimaryMonitor())
+                    val mode = glfwGetVideoMode(display)
                     if (mode != null) {
                         requestWidth = mode.width()
                         requestHeight = mode.height()
@@ -284,7 +299,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
                 glfwCreateWindow(
                     requestWidth,
                     requestHeight,
-                    configuration.title, glfwGetPrimaryMonitor(), primaryWindow
+                    configuration.title, display, primaryWindow
                 )
             }
             versionIndex++
@@ -305,7 +320,7 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
 
             stackPush().use {
                 glfwSetWindowIcon(
-                    window, GLFWImage.mallocStack(1, it)
+                    window, GLFWImage.malloc(1, it)
                         .width(128)
                         .height(128)
                         .pixels(buf)
@@ -315,37 +330,54 @@ class ApplicationGLFWGL3(private val program: Program, private val configuration
 
         logger.debug { "window created: $window" }
 
+        // This is a workaround for the i3 window manager on linux ignoring
+        // window placement if the window is not visible. But not hiding the window
+        // can produce artifacts during the rest of the setup phase.
+        // So we'll special case "i3" for now.
+        if (System.getenv("DESKTOP_SESSION") == "i3") {
+            logger.debug { "showing window early: $window" }
+            glfwShowWindow(window)
+        }
 
         // Get the thread stack and push a new frame
-        stackPush().let { stack ->
+        stackPush().use { stack ->
+            val px = stack.mallocInt(1) // int*
+            val py = stack.mallocInt(1) // int*
+            glfwGetMonitorPos(display, px, py)
+            // We will set the window position onto the specified display so the
+            // window gets resized according to the content scale of said display and
+            // [glfwGetVideoMode] can return the expected dimensions for the window.
+            // TODO: Can we calculate this ourselves and match glfw's behavior?
+            glfwSetWindowPos(window, px.get(0), py.get(0))
+
             val pWidth = stack.mallocInt(1) // int*
             val pHeight = stack.mallocInt(1) // int*
 
             // Get the window size passed to glfwCreateWindow
             glfwGetWindowSize(window, pWidth, pHeight)
 
-            // Get the resolution of the primary monitor
-            val vidmode = glfwGetVideoMode(glfwGetPrimaryMonitor())
+            // Get the resolution of the display
+            val vidmode = glfwGetVideoMode(display)
 
             if (configuration.position == null) {
                 if (vidmode != null) {
                     // Center the window
                     glfwSetWindowPos(
                         window,
-                        (vidmode.width() - pWidth.get(0)) / 2,
-                        (vidmode.height() - pHeight.get(0)) / 2
+                        px.get(0) + (vidmode.width() - pWidth.get(0)) / 2,
+                        py.get(0) + (vidmode.height() - pHeight.get(0)) / 2
                     )
                 }
+                Unit
             } else {
                 configuration.position?.let {
                     glfwSetWindowPos(
                         window,
-                        it.x,
-                        it.y
+                        px.get(0) + it.x,
+                        py.get(0) + it.y
                     )
                 }
             }
-            Unit
         }
 
         logger.debug { "making context current" }
