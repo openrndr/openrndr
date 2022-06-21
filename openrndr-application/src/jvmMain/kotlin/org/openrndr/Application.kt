@@ -39,7 +39,6 @@ open class ApplicationPreload {
  * However, if `org.openrndr.internal.nullgl.ApplicationNullGL` is found on the classpath,
  * NullGL will be used as the backend instead, regardless of other settings.
  */
-@ApplicationDslMarker
 actual abstract class Application {
     companion object {
         fun setupPreload(program: Program, configuration: Configuration) {

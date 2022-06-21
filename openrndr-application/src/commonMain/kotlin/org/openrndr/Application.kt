@@ -25,7 +25,6 @@ annotation class ApplicationDslMarker
 /**
  * Application interface
  */
-@ApplicationDslMarker
 expect abstract class Application {
     abstract var program: Program
     abstract var configuration: Configuration

@@ -94,8 +94,9 @@ actual suspend fun applicationAsync(build: ApplicationBuilder.() -> Unit) {
     throw NotImplementedError("Asynchronous application is unsupported, use application()")
 }
 
+@Suppress("DeprecatedCallableAddReplaceWith")
 @ApplicationDslMarker
-actual class ApplicationBuilder internal actual constructor(){
+actual class ApplicationBuilder internal actual constructor() {
     internal actual val configuration = Configuration()
     actual var program: Program = Program()
     internal actual val application: ApplicationBase = ApplicationBase.initialize()
@@ -112,4 +113,13 @@ actual class ApplicationBuilder internal actual constructor(){
             }
         }
     }
+
+    @Deprecated("Cannot construct application in an application block.", level = DeprecationLevel.ERROR)
+    actual fun application(build: ApplicationBuilder.() -> Unit): Nothing = error("Cannot construct application in an application block.")
+
+    @Deprecated("Cannot construct application in an application block.", level = DeprecationLevel.ERROR)
+    actual fun applicationAsync(build: ApplicationBuilder.() -> Unit): Nothing = error("Cannot construct application in an application block.")
+
+    @Deprecated("Cannot construct program in a program block.", level = DeprecationLevel.ERROR)
+    actual fun Program.program(init: Program.() -> Unit): Nothing = error("Cannot construct program in a program block.")
 }
