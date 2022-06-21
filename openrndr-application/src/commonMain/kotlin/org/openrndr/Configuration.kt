@@ -46,7 +46,7 @@ sealed class WindowMultisample {
     data class SampleCount(val count: Int) : WindowMultisample()
 }
 
-
+@ApplicationDslMarker
 class Configuration {
 
     var canvasId = "openrndr-canvas"

@@ -57,9 +57,8 @@ data class AssetMetadata(
 
 
 /**
-The Program class, this is where most user implementations start
- **/
-//@ApplicationDslMarker
+ * The Program class, this is where most user implementations start.
+ */
 open class Program(val suspend: Boolean = false) {
     var width = 0
     var height = 0
@@ -73,6 +72,8 @@ open class Program(val suspend: Boolean = false) {
 
     lateinit var application: Application
 
+    /** This is checked at runtime to disallow nesting [extend] blocks. */
+    protected var isNested: Boolean = false
 
     /**
      * background color that is used to clear the background every frame
@@ -179,11 +180,13 @@ open class Program(val suspend: Boolean = false) {
      * install an extension function for the given [ExtensionStage]
      */
     fun extend(stage: ExtensionStage = ExtensionStage.BEFORE_DRAW, userDraw: Program.() -> Unit) {
+        if (isNested) error("Cannot nest extend blocks within extend blocks")
         val functionExtension = when (stage) {
             ExtensionStage.SETUP ->
                 object : Extension {
                     override var enabled: Boolean = true
                     override fun setup(program: Program) {
+                        program.isNested = true
                         program.userDraw()
                     }
                 }
@@ -191,6 +194,7 @@ open class Program(val suspend: Boolean = false) {
                 object : Extension {
                     override var enabled: Boolean = true
                     override fun beforeDraw(drawer: Drawer, program: Program) {
+                        program.isNested = true
                         program.userDraw()
                     }
                 }
@@ -198,6 +202,7 @@ open class Program(val suspend: Boolean = false) {
                 object : Extension {
                     override var enabled: Boolean = true
                     override fun afterDraw(drawer: Drawer, program: Program) {
+                        program.isNested = true
                         program.userDraw()
                     }
                 }

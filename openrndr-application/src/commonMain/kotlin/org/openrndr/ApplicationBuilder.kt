@@ -9,6 +9,15 @@ expect class ApplicationBuilder internal constructor(){
     fun configure(init: Configuration.() -> Unit)
 
     fun program(init: suspend Program.() -> Unit)
+
+    @Deprecated("Cannot construct application in an application block.", level = DeprecationLevel.ERROR)
+    fun application(build: ApplicationBuilder.() -> Unit): Nothing
+
+    @Deprecated("Cannot construct application in an application block.", level = DeprecationLevel.ERROR)
+    fun applicationAsync(build: ApplicationBuilder.() -> Unit): Nothing
+
+    @Deprecated("Cannot construct program in a program block.", level = DeprecationLevel.ERROR)
+    fun Program.program(init: Program.() -> Unit): Nothing
 }
 
 expect fun application(build: ApplicationBuilder.() -> Unit)

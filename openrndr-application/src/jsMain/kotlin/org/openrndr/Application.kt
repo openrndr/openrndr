@@ -10,7 +10,6 @@ var applicationBaseFunc: (() -> ApplicationBase)? = null
 /**
  * Application interface
  */
-@ApplicationDslMarker
 actual abstract class Application {
     actual abstract var program: Program
     actual abstract var configuration: Configuration
