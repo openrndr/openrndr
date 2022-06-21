@@ -333,4 +333,7 @@ class ApplicationWebGL(override var program: Program, override var configuration
         set(value) {
             TODO("Not yet implemented")
         }
+    override var pointers: List<Pointer>
+        get() = TODO("Not yet implemented")
+        set(value) {}
 }

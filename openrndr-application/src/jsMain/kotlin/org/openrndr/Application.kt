@@ -47,6 +47,7 @@ actual abstract class Application {
     actual abstract var windowContentScale: Double
     actual abstract var windowMultisample: WindowMultisample
     actual abstract var windowResizable: Boolean
+    actual abstract val pointers: List<Pointer>
 }
 
 /**

@@ -95,6 +95,8 @@ actual abstract class Application {
     actual abstract var cursorHideMode: MouseCursorHideMode
     actual abstract var cursorType: CursorType
 
+    actual abstract val pointers: List<Pointer>
+
     actual abstract val seconds: Double
 
     actual abstract var presentationMode: PresentationMode

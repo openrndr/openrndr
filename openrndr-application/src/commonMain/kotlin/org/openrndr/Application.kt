@@ -54,6 +54,8 @@ expect abstract class Application {
     abstract var cursorHideMode: MouseCursorHideMode
     abstract var cursorType: CursorType
 
+    abstract val pointers: List<Pointer>
+
     abstract val seconds: Double
 
     abstract var presentationMode: PresentationMode

@@ -30,6 +30,7 @@ internal var primaryWindow: Long = NULL
 
 class ApplicationGLFWGL3(override var program: Program, override var configuration: Configuration) : Application() {
 
+    private var pointerInput: PointerInputManager? = null
     private var windowFocused = true
 
     private var window: Long = NULL
@@ -100,6 +101,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
                 field = value
             }
         }
+    override var pointers: List<Pointer> = mutableListOf()
 
     override var windowSize: Vector2
         get() {
@@ -190,6 +192,9 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
     }
 
     override suspend fun setup() {
+
+
+
         glfwDefaultWindowHints()
         glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE)
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE)
@@ -308,6 +313,10 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
             throw IllegalStateException("Window creation failed")
         }
 
+
+        if (System.getProperty("os.name").contains("windows", true)) {
+            pointerInput = PointerInputManagerWin32(window, this)
+        }
         if (configuration.windowSetIcon) {
             val buf = BufferUtils.createByteBuffer(128 * 128 * 4)
             (buf as Buffer).rewind()
@@ -525,7 +534,8 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
             for (version in versions) {
                 glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, version.majorVersion)
                 glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, version.minorVersion)
-                primaryWindow = glfwCreateWindow(640, 480, title, NULL, NULL)
+                //primaryWindow = glfwCreateWindow(640, 480, title, NULL, NULL)
+                foundVersion = version
                 if (primaryWindow != 0L) {
                     foundVersion = version
                     break
@@ -533,7 +543,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
             }
 
             if (primaryWindow == 0L) {
-                throw IllegalStateException("primary window could not be created")
+                //throw IllegalStateException("primary window could not be created")
             }
             Driver.driver = DriverGL3(foundVersion ?: error("no version found"))
         }
@@ -827,7 +837,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
             glDepthMask(false)
             glfwSwapBuffers(window)
 
-            glfwPollEvents()
+            //glfwPollEvents()
         }
         logger.info { "OpenGL vendor: ${glGetString(GL_VENDOR)}" }
         logger.info { "OpenGL renderer: ${glGetString(GL_RENDERER)}" }
@@ -866,6 +876,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
 
         var exception: Throwable? = null
         while (!exitRequested && !glfwWindowShouldClose(window)) {
+
             if (presentationMode == PresentationMode.AUTOMATIC || drawRequested) {
                 drawRequested = false
                 exception = drawFrame()
@@ -881,10 +892,11 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
             }
 
             if (presentationMode == PresentationMode.AUTOMATIC) {
+                pointerInput?.pollEvents()
                 glfwPollEvents()
             } else {
                 Thread.sleep(1)
-                glfwPollEvents()
+                pointerInput?.pollEvents()
                 deliverEvents()
                 program.dispatcher.execute()
             }
@@ -936,6 +948,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
     }
 
     private fun drawFrame(): Throwable? {
+
         setupSizes()
         glBindVertexArray(vaos[0])
         @Suppress("DEPRECATION")
