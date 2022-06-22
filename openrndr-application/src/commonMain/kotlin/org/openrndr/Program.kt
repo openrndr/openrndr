@@ -152,6 +152,10 @@ open class Program(val suspend: Boolean = false) {
      * list of installed extensions
      */
     val extensions = mutableListOf<Extension>()
+        get() {
+            if (field.isEmpty()) isNested = false
+            return field
+        }
 
     /**
      * install an [Extension]
