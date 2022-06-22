@@ -37,7 +37,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
     private var realWindowTitle = configuration.title
     private var exitRequested = false
     private val fixWindowSize = System.getProperty("os.name").contains("windows", true) ||
-        System.getProperty("os.name").contains("linux", true)
+            System.getProperty("os.name").contains("linux", true)
     private var setupCalled = false
 
     override var presentationMode: PresentationMode = PresentationMode.AUTOMATIC
@@ -103,15 +103,19 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
         }
     override var pointers: List<Pointer> = mutableListOf()
 
+    private var _windowSize: Vector2? = null
     override var windowSize: Vector2
         get() {
-            val w = IntArray(1)
-            val h = IntArray(1)
-            glfwGetWindowSize(window, w, h)
-            return Vector2(
-                if (fixWindowSize) (w[0].toDouble() / program.window.contentScale) else w[0].toDouble(),
-                if (fixWindowSize) (h[0].toDouble() / program.window.contentScale) else h[0].toDouble()
-            )
+            if (_windowSize == null) {
+                val w = IntArray(1)
+                val h = IntArray(1)
+                glfwGetWindowSize(window, w, h)
+                _windowSize = Vector2(
+                    if (fixWindowSize) (w[0].toDouble() / program.window.contentScale) else w[0].toDouble(),
+                    if (fixWindowSize) (h[0].toDouble() / program.window.contentScale) else h[0].toDouble()
+                )
+            }
+            return _windowSize ?: error("window size unknown")
         }
         set(value) {
             glfwSetWindowSize(
@@ -119,7 +123,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
                 if (fixWindowSize) (value.x * program.window.contentScale).toInt() else value.x.toInt(),
                 if (fixWindowSize) (value.y * program.window.contentScale).toInt() else value.y.toInt()
             )
-
+            _windowSize = null
         }
 
 
@@ -192,7 +196,6 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
     }
 
     override suspend fun setup() {
-
 
 
         glfwDefaultWindowHints()
@@ -868,7 +871,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
 
         setupException?.let {
             logger.error { "An error occurred inside the program setup" }
-            throw(it)
+            throw (it)
         }
 
         setupCalled = true
@@ -948,7 +951,8 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
     }
 
     private fun drawFrame(): Throwable? {
-
+        // reset cached values
+        _windowSize = null
         setupSizes()
         glBindVertexArray(vaos[0])
         @Suppress("DEPRECATION")
