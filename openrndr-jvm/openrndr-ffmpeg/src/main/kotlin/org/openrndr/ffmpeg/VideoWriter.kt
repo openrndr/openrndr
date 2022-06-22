@@ -73,7 +73,18 @@ class MP4Profile : VideoWriterProfile() {
         filters.add("vflip")
 
         val chromaArguments = if (highPrecisionChroma) {
-            arrayOf("-sws_flags", "spline+accurate_rnd+full_chroma_int", "-color_range", "1", "-colorspace", "1", "-color_primaries", "1", "-color_trc", "1")
+            arrayOf(
+                "-sws_flags",
+                "spline+accurate_rnd+full_chroma_int",
+                "-color_range",
+                "1",
+                "-colorspace",
+                "1",
+                "-color_primaries",
+                "1",
+                "-color_trc",
+                "1"
+            )
         } else {
             emptyArray()
         }
@@ -90,7 +101,8 @@ class MP4Profile : VideoWriterProfile() {
         val filterArguments = arrayOf("-vf", filters.joinToString(","))
 
 
-        val arguments = hwaccelArguments + pixelFormatArguments + chromaArguments + filterArguments + videoCodecArguments + constantRateArguments + presetArguments + userArguments
+        val arguments =
+            hwaccelArguments + pixelFormatArguments + chromaArguments + filterArguments + videoCodecArguments + constantRateArguments + presetArguments + userArguments
 
         return arguments
 
@@ -136,6 +148,13 @@ class VideoWriter {
     fun height(): Int {
         return height
     }
+
+    fun advisedSize(width: Int, height: Int): Pair<Int, Int> {
+        val advisedWidth = (width / 2) * 2
+        val advisedHeight = (height / 2) * 2
+        return Pair(advisedWidth, advisedHeight)
+    }
+
 
     fun size(width: Int, height: Int): VideoWriter {
         if (width % 2 != 0 || height % 2 != 0) {
@@ -194,8 +213,10 @@ class VideoWriter {
             else -> throw RuntimeException("unsupported format $inputFormat")
         }
 
-        val preamble = arrayOf("-y", "-f", "rawvideo", "-vcodec", "rawvideo",
-                "-s", String.format("%dx%d", width, height), "-pix_fmt", inputFormat, "-r", "" + frameRate, "-i", "-")
+        val preamble = arrayOf(
+            "-y", "-f", "rawvideo", "-vcodec", "rawvideo",
+            "-s", String.format("%dx%d", width, height), "-pix_fmt", inputFormat, "-r", "" + frameRate, "-i", "-"
+        )
 
         val codec = profile.arguments()
         val arguments = ArrayList<String>()
@@ -243,7 +264,8 @@ class VideoWriter {
      */
     fun frame(frame: ColorBuffer): VideoWriter {
         if (!stopped) {
-            val frameBytes = frame.effectiveWidth * frame.effectiveHeight * frame.format.componentCount * frame.type.componentSize
+            val frameBytes =
+                frame.effectiveWidth * frame.effectiveHeight * frame.format.componentCount * frame.type.componentSize
             require(frameBytes == frameBuffer.capacity()) {
                 "frame size/format/type mismatch. ($width x $height) vs ({${frame.effectiveWidth} x ${frame.effectiveHeight})"
             }

@@ -4,9 +4,10 @@ import mu.KotlinLogging
 import org.openrndr.Extension
 import org.openrndr.Program
 import org.openrndr.draw.*
+import org.openrndr.shape.IntRectangle
 import java.io.File
 
-private val logger = KotlinLogging.logger {  }
+private val logger = KotlinLogging.logger { }
 
 /**
  * ScreenRecorder extension can be used to record to contents of a `Program` to a video
@@ -16,6 +17,7 @@ class ScreenRecorder : Extension {
 
     private lateinit var videoWriter: VideoWriter
     private lateinit var frame: RenderTarget
+    private var crop: ColorBuffer? = null
     private var resolved: ColorBuffer? = null
     private var frameIndex: Long = 0
     private var framesWritten: Long = 0
@@ -83,8 +85,8 @@ class ScreenRecorder : Extension {
             }
         }
 
-        val requestedWidth = ((width ?: program.width) ).toInt()
-        val requestedHeight = ((height ?: program.height) ).toInt()
+        val requestedWidth = ((width ?: program.width)).toInt()
+        val requestedHeight = ((height ?: program.height)).toInt()
 
         if (multisample == null) {
             multisample = program.window.multisample.bufferEquivalent()
@@ -95,10 +97,11 @@ class ScreenRecorder : Extension {
         }
 
 
-        frame = renderTarget(requestedWidth, requestedHeight, multisample = multisample!!, contentScale = contentScale!!) {
-            colorBuffer()
-            depthBuffer()
-        }
+        frame =
+            renderTarget(requestedWidth, requestedHeight, multisample = multisample!!, contentScale = contentScale!!) {
+                colorBuffer()
+                depthBuffer()
+            }
 
         if (multisample != BufferMultisample.Disabled) {
             resolved = colorBuffer(requestedWidth, requestedHeight, contentScale = contentScale!!)
@@ -113,8 +116,15 @@ class ScreenRecorder : Extension {
                 it.mkdirs()
             }
         }
+        videoWriter = VideoWriter().profile(profile)
 
-        videoWriter = VideoWriter().profile(profile).output(filename).size(frame.pixelWidth, frame.pixelHeight).frameRate(frameRate)
+        val (advisedWidth, advisedHeight) = videoWriter.advisedSize(frame.pixelWidth, frame.pixelHeight)
+        if (advisedWidth != frame.pixelWidth || advisedHeight != frame.pixelHeight) {
+            logger.warn { "cropping video from ${frame.pixelWidth}x${frame.pixelHeight} to ${advisedWidth}x${advisedHeight}" }
+            crop = colorBuffer(advisedWidth, advisedHeight)
+        }
+
+        videoWriter.output(filename).size(advisedWidth, advisedHeight).frameRate(frameRate)
     }
 
     override fun beforeDraw(drawer: Drawer, program: Program) {
@@ -132,11 +142,30 @@ class ScreenRecorder : Extension {
             frame.unbind()
             if (framesWritten < maximumFrames && framesWritten / frameRate.toDouble() < maximumDuration) {
                 val lresolved = resolved
+                val lcrop = crop
+
                 if (lresolved != null) {
                     frame.colorBuffer(0).copyTo(lresolved)
-                    writeFrame(lresolved)
+                    if (lcrop == null) {
+                        writeFrame(lresolved)
+                    } else {
+                        lresolved.copyTo(
+                            lcrop, sourceRectangle = IntRectangle(0, 0, lcrop.effectiveWidth, lcrop.effectiveHeight),
+                            targetRectangle = IntRectangle(0, 0, lcrop.effectiveWidth, lcrop.effectiveHeight)
+                        )
+                        writeFrame(lcrop)
+                    }
+
                 } else {
-                    writeFrame(frame.colorBuffer(0))
+                    if (lcrop == null) {
+                        writeFrame(frame.colorBuffer(0))
+                    } else {
+                        frame.colorBuffer(0).copyTo(
+                            lcrop, sourceRectangle = IntRectangle(0, 0, lcrop.effectiveWidth, lcrop.effectiveHeight),
+                            targetRectangle = IntRectangle(0, 0, lcrop.effectiveWidth, lcrop.effectiveHeight)
+                        )
+                        writeFrame(lcrop)
+                    }
                 }
 
                 drawer.isolated {
@@ -165,8 +194,8 @@ class ScreenRecorder : Extension {
     }
 
     private fun writeFrame(colorBuffer: ColorBuffer) {
-        if(outputToVideo) {
-            if(!videoWriter.started()) {
+        if (outputToVideo) {
+            if (!videoWriter.started()) {
                 videoWriter.start()
             }
             videoWriter.frame(colorBuffer)
@@ -175,7 +204,7 @@ class ScreenRecorder : Extension {
     }
 
     override fun shutdown(program: Program) {
-        if(videoWriter.started()) {
+        if (videoWriter.started()) {
             videoWriter.stop()
         }
     }
