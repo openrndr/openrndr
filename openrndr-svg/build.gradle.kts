@@ -2,19 +2,11 @@ plugins {
     kotlin("multiplatform")
 }
 
-val lwjglVersion: String by rootProject.extra
-val kotlinLanguageVersion: String by rootProject.extra
-val kotlinLoggingVersion: String by rootProject.extra
-val kotlinJvmTarget: String by rootProject.extra
-val kotlinApiVersion: String by rootProject.extra
-val jsoupVersion: String by rootProject.extra
-
 kotlin {
     jvm {
         compilations.all {
-            kotlinOptions.jvmTarget = kotlinJvmTarget
-            kotlinOptions.apiVersion = kotlinApiVersion
-            kotlinOptions.languageVersion = kotlinLanguageVersion
+            kotlinOptions.jvmTarget = libs.versions.jvmTarget.get()
+            kotlinOptions.apiVersion = libs.versions.kotlinApi.get()
         }
         testRuns["test"].executionTask.configure {
             useJUnitPlatform()
@@ -32,8 +24,8 @@ kotlin {
                 implementation(project(":openrndr-application"))
                 implementation(project(":openrndr-math"))
                 implementation(project(":openrndr-color"))
-                implementation("org.jsoup:jsoup:$jsoupVersion")
-                implementation("io.github.microutils:kotlin-logging:$kotlinLoggingVersion")
+                implementation(libs.jsoup)
+                implementation(libs.kotlin.logging)
             }
         }
 
@@ -42,7 +34,7 @@ kotlin {
                 runtimeOnly(project(":openrndr-jvm:openrndr-gl3-natives-windows"))
                 runtimeOnly(project(":openrndr-jvm:openrndr-gl3-natives-macos"))
                 runtimeOnly(project(":openrndr-jvm:openrndr-gl3-natives-linux-x64"))
-                runtimeOnly("org.slf4j:slf4j-simple:1.7.30")
+                runtimeOnly(libs.slf4j.simple)
                 runtimeOnly(project(":openrndr-nullgl"))
             }
         }

@@ -30,34 +30,7 @@ if (dokkaEnabled) {
 
 ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
 
-/*
-  Note: check out the latest Kotlin release docs to keep all in sync:
-
-  https://kotlinlang.org/docs/releases.html#release-details
-
-  Warning: coroutines and logging cannot be parametrized with project.ext
-  see below!
-*/
-project.ext {
-    kotlinApiVersion = '1.6'
-    kotlinJvmTarget = '1.8'
-    kotlinLanguageVersion = '1.6'
-    kotlinVersion = '1.6.21'
-    kotlinLoggingVersion = '2.1.21'
-    kotlinxSerializationVersion = '1.3.2'
-    kotlinxCoroutinesVersion = '1.6.1'
-    lwjglVersion = '3.3.1'
-    javacpp_version = '1.5.7'
-    ffmpeg_version = "5.0-$javacpp_version"
-    spekVersion = '2.0.15'
-    kluentVersion = '1.68'
-    jsoupVersion = '1.14.3'
-    kotestVersion = '5.2.3'
-    junitJupiterVersion = '5.8.2'
-}
-
 if (dokkaEnabled) {
-
     // See https://kotlin.github.io/dokka/1.5.30/user_guide/gradle/usage/
     tasks.named("dokkaHtml") {
         moduleName.set("openrndr")
@@ -103,8 +76,6 @@ if (dokkaEnabled) {
 
             }
         }
-
-
     }
 }
 
@@ -163,18 +134,14 @@ configure(allprojects.findAll { !multiplatformModules.contains(it.name) }) {
     apply plugin: 'maven-publish'
 
     dependencies {
-        // Note: kotlin-logging and kotlinx-coroutines-core are loaded
-        // too early and their versions cannot be parametrized
-        implementation 'io.github.microutils:kotlin-logging:2.0.6'
-        implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxCoroutinesVersion"
-
-        implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
-
-        testImplementation "org.spekframework.spek2:spek-dsl-jvm:$spekVersion"
-        testImplementation "org.amshove.kluent:kluent:$kluentVersion"
-        testImplementation "org.jetbrains.kotlin:kotlin-test:$kotlinVersion"
-        testRuntimeOnly "org.spekframework.spek2:spek-runner-junit5:$spekVersion"
-        testRuntimeOnly "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"
+        implementation libs.kotlin.logging
+        implementation libs.kotlin.coroutines
+        implementation libs.kotlin.stdlib
+        testImplementation libs.spek.dsl
+        testImplementation libs.kluent
+        testImplementation libs.kotlin.test
+        testRuntimeOnly libs.spek.junit5
+        testRuntimeOnly libs.kotlin.reflect
     }
 
     test {

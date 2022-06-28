@@ -18,5 +18,5 @@ dependencies {
     runtimeOnly project(":openrndr-jvm:openrndr-openal-natives-$openrndrOS")
     runtimeOnly project(":openrndr-jvm:openrndr-ffmpeg-natives-$openrndrOS")
     implementation project(":openrndr-jvm:openrndr-ffmpeg")
-    runtimeOnly "org.slf4j:slf4j-simple:1.7.29"
+    runtimeOnly(libs.slf4j.simple)
 }

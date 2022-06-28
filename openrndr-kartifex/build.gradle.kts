@@ -2,18 +2,11 @@ plugins {
     kotlin("multiplatform")
 }
 
-val kotlinxSerializationVersion: String by rootProject.extra
-val kotestVersion: String by rootProject.extra
-val junitJupiterVersion: String by rootProject.extra
-val kotlinApiVersion: String by rootProject.extra
-val kotlinJvmTarget: String by rootProject.extra
-
 kotlin {
-
     jvm {
         compilations.all {
-            kotlinOptions.jvmTarget = kotlinJvmTarget
-            kotlinOptions.apiVersion = kotlinApiVersion
+            kotlinOptions.jvmTarget = libs.versions.jvmTarget.get()
+            kotlinOptions.apiVersion = libs.versions.kotlinApi.get()
         }
         testRuns["test"].executionTask.configure {
             useJUnitPlatform()
@@ -25,25 +18,18 @@ kotlin {
         nodejs()
     }
 
-
     sourceSets {
         @Suppress("UNUSED_VARIABLE")
-        val commonMain by getting {
-            dependencies {
-
-            }
-        }
+        val commonMain by getting
 
         @Suppress("UNUSED_VARIABLE")
         val commonTest by getting {
             dependencies {
                 implementation(kotlin("test-common"))
                 implementation(kotlin("test-annotations-common"))
-                implementation("io.kotest:kotest-assertions-core:$kotestVersion")
-
+                implementation(libs.kotest)
             }
         }
-
 
         @Suppress("UNUSED_VARIABLE")
         val jvmTest by getting {
@@ -51,8 +37,7 @@ kotlin {
                 implementation(kotlin("test-common"))
                 implementation(kotlin("test-annotations-common"))
                 implementation(kotlin("test-junit5"))
-                runtimeOnly("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
-                runtimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
+                runtimeOnly(libs.bundles.jupiter)
                 implementation("io.lacuna:artifex:0.1.0-alpha1")
                 //implementation("org.openrndr:openrndr-adopted-artifex:0.3.58")
                 //implementation(project(":openrndr-jvm:openrndr-adopted-artifex"))

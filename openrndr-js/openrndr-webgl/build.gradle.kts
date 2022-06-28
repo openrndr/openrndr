@@ -2,10 +2,6 @@ plugins {
     kotlin("multiplatform")
 }
 
-val kotlinxSerializationVersion:    String by rootProject.extra
-val kotestVersion:                  String by rootProject.extra
-val junitJupiterVersion:            String by rootProject.extra
-
 kotlin {
     js(IR) {
         browser()
@@ -25,7 +21,6 @@ kotlin {
         val jsTest by getting {
             dependencies {
                 implementation(kotlin("test-js"))
-
             }
         }
     }

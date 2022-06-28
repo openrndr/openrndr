@@ -13,8 +13,8 @@ kotlin {
 
     jvm {
         compilations.all {
-            kotlinOptions.jvmTarget = kotlinJvmTarget
-            kotlinOptions.apiVersion = kotlinApiVersion
+            kotlinOptions.jvmTarget = libs.versions.jvmTarget.get()
+            kotlinOptions.apiVersion = libs.versions.kotlinApi.get()
         }
         testRuns["test"].executionTask.configure {
             useJUnitPlatform()
@@ -45,7 +45,7 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation(project(":openrndr-math"))
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxCoroutinesVersion")
+                implementation(libs.kotlin.coroutines)
             }
         }
 
@@ -54,7 +54,7 @@ kotlin {
             dependencies {
                 implementation(kotlin("test-common"))
                 implementation(kotlin("test-annotations-common"))
-                implementation("io.kotest:kotest-assertions-core:$kotestVersion")
+                implementation(libs.kotest)
             }
         }
 
@@ -67,8 +67,7 @@ kotlin {
                 implementation(kotlin("test-common"))
                 implementation(kotlin("test-annotations-common"))
                 implementation(kotlin("test-junit5"))
-                runtimeOnly("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
-                runtimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
+                runtimeOnly(libs.bundles.jupiter)
             }
         }
 

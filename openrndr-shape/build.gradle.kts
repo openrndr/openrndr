@@ -2,23 +2,22 @@ plugins {
     kotlin("multiplatform")
 }
 
-val kotlinApiVersion: String by rootProject.extra
-val kotlinJvmTarget: String by rootProject.extra
-
 kotlin {
     jvm {
         compilations.all {
-            kotlinOptions.jvmTarget = kotlinJvmTarget
-            kotlinOptions.apiVersion = kotlinApiVersion
+            kotlinOptions.jvmTarget = libs.versions.jvmTarget.get()
+            kotlinOptions.apiVersion = libs.versions.kotlinApi.get()
         }
         testRuns["test"].executionTask.configure {
             useJUnitPlatform()
         }
     }
+
     js(IR) {
         browser()
         nodejs()
     }
+
     sourceSets {
         @Suppress("UNUSED_VARIABLE")
         val commonMain by getting {

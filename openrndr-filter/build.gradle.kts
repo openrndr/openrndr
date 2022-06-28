@@ -2,13 +2,6 @@ plugins {
     kotlin("multiplatform")
 }
 
-val kotlinxSerializationVersion: String by rootProject.extra
-val kotestVersion: String by rootProject.extra
-val junitJupiterVersion: String by rootProject.extra
-val kotlinLoggingVersion: String by rootProject.extra
-val kotlinApiVersion: String by rootProject.extra
-val kotlinJvmTarget: String by rootProject.extra
-
 val embedShaders = tasks.register<EmbedShadersTask>("embedShaders") {
     inputDir.set(file("$projectDir/src/shaders/glsl"))
     outputDir.set(file("$buildDir/generated/shaderKotlin"))
@@ -21,8 +14,8 @@ val embedShaders = tasks.register<EmbedShadersTask>("embedShaders") {
 kotlin {
     jvm {
         compilations.all {
-            kotlinOptions.jvmTarget = kotlinJvmTarget
-            kotlinOptions.apiVersion = kotlinApiVersion
+            kotlinOptions.jvmTarget = libs.versions.jvmTarget.get()
+            kotlinOptions.apiVersion = libs.versions.kotlinApi.get()
         }
         testRuns["test"].executionTask.configure {
             useJUnitPlatform()
@@ -42,7 +35,7 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation(project(":openrndr-draw"))
-                implementation("io.github.microutils:kotlin-logging:$kotlinLoggingVersion")
+                implementation(libs.kotlin.logging)
                 api(shaderKotlin.kotlin)
             }
             dependsOn(shaderKotlin)
@@ -53,7 +46,7 @@ kotlin {
             dependencies {
                 implementation(kotlin("test-common"))
                 implementation(kotlin("test-annotations-common"))
-                implementation("io.kotest:kotest-assertions-core:$kotestVersion")
+                implementation(libs.kotest)
             }
         }
     }

@@ -6,21 +6,11 @@ repositories {
     mavenCentral()
 }
 
-val kotlinxSerializationVersion: String by rootProject.extra
-val kotlinxCoroutinesVersion: String by rootProject.extra
-val kotestVersion: String by rootProject.extra
-val junitJupiterVersion: String by rootProject.extra
-val kotlinApiVersion: String by rootProject.extra
-val kotlinJvmTarget: String by rootProject.extra
-val kotlinLoggingVersion: String by rootProject.extra
-val kluentVersion: String by rootProject.extra
-
 kotlin {
-
     jvm {
         compilations.all {
-            kotlinOptions.jvmTarget = kotlinJvmTarget
-            kotlinOptions.apiVersion = kotlinApiVersion
+            kotlinOptions.jvmTarget = libs.versions.jvmTarget.get()
+            kotlinOptions.apiVersion = libs.versions.kotlinApi.get()
         }
         testRuns["test"].executionTask.configure {
             useJUnitPlatform()
@@ -39,7 +29,7 @@ kotlin {
                 api(project(":openrndr-math"))
                 api(project(":openrndr-draw"))
                 api(project(":openrndr-animatable"))
-                implementation("io.github.microutils:kotlin-logging:$kotlinLoggingVersion")
+                implementation(libs.kotlin.logging)
             }
         }
 
@@ -48,16 +38,15 @@ kotlin {
             dependencies {
                 implementation(kotlin("test-common"))
                 implementation(kotlin("test-annotations-common"))
-                implementation("io.kotest:kotest-assertions-core:$kotestVersion")
+                implementation(libs.kotest)
             }
         }
 
         @Suppress("UNUSED_VARIABLE")
         val jvmMain by getting {
             dependencies {
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxCoroutinesVersion")
+                implementation(libs.kotlin.coroutines)
             }
-
         }
 
         @Suppress("UNUSED_VARIABLE")
@@ -66,9 +55,8 @@ kotlin {
                 implementation(kotlin("test-common"))
                 implementation(kotlin("test-annotations-common"))
                 implementation(kotlin("test-junit5"))
-                implementation("org.amshove.kluent:kluent:$kluentVersion")
-                runtimeOnly("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
-                runtimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
+                implementation(libs.kluent)
+                runtimeOnly(libs.bundles.jupiter)
             }
         }
 
