@@ -537,7 +537,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
             for (version in versions) {
                 glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, version.majorVersion)
                 glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, version.minorVersion)
-                //primaryWindow = glfwCreateWindow(640, 480, title, NULL, NULL)
+                primaryWindow = glfwCreateWindow(640, 480, title, NULL, NULL)
                 foundVersion = version
                 if (primaryWindow != 0L) {
                     foundVersion = version
@@ -546,7 +546,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
             }
 
             if (primaryWindow == 0L) {
-                //throw IllegalStateException("primary window could not be created")
+                throw IllegalStateException("primary window could not be created")
             }
             Driver.driver = DriverGL3(foundVersion ?: error("no version found"))
         }
