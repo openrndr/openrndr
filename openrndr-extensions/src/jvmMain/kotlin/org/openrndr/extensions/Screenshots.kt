@@ -33,6 +33,7 @@ class SingleScreenshot : Screenshots() {
     var outputFile = "screenshot.png"
 
     override fun setup(program: Program) {
+        super.setup(program)
         createScreenshot = Named(outputFile)
     }
 }
