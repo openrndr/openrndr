@@ -134,6 +134,7 @@ class CircleDrawer {
         drawStyle: DrawStyle, x: Double, y: Double, radius: Double
     ) {
         ensureBatchSize(1)
+
         batch.geometry.shadow.writer().apply {
             rewind()
             write(Vector3(x, y, 0.0))

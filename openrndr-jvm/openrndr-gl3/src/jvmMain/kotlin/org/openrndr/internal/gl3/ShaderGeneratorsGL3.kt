@@ -310,7 +310,6 @@ void main() {
     gl_Position = v_clipPosition;
 }"""
 
-
     override fun circleFragmentShader(shadeStructure: ShadeStructure): String = """#version ${glslVersion()}
 ${primitiveTypes("d_circle")}
 ${shadeStructure.uniforms ?: ""}
@@ -327,12 +326,12 @@ ${shadeStructure.fragmentPreamble ?: ""}
 
 flat in int v_instance;
 in vec3 v_boundsSize;
+in vec2 v_effectiveRadius;
 void main(void) {
     ${
         fragmentMainConstants(boundsPosition = "vec3(va_texCoord0, 0.0)",
                 boundsSize = "v_boundsSize")
     }
-    float smoothFactor = 3.0;
 
     vec4 x_fill = vi_fill;
     vec4 x_stroke = vi_stroke;
@@ -341,20 +340,21 @@ void main(void) {
     {
         ${shadeStructure.fragmentTransform ?: ""}
     }
-    float wd = fwidth(length(va_texCoord0 - vec2(0.0)));
+    
     float d = length(va_texCoord0 - vec2(0.5)) * 2;
 
-    float or = smoothstep(0, wd * smoothFactor, 1.0 - d);
-    float b = x_strokeWeight / vi_radius.x;
-    float ir = smoothstep(0, wd * smoothFactor, 1.0 - b - d);
+    float tr = v_effectiveRadius.x;
+    float wd = fwidth(length(va_texCoord0)) * tr;
+
+    float or = vi_strokeWeight == 0.0? 0.0 : smoothstep(vi_strokeWeight / 2.0 + wd, vi_strokeWeight / 2.0, abs(d * tr - (vi_radius.x)));
+    
+    float ir = smoothstep(vi_radius.x + wd, vi_radius.x, d*tr);
 
     vec4 final = vec4(0.0);
-    final.rgb =  x_stroke.rgb;
-    final.a = or * (1.0 - ir) * x_stroke.a;
-    final.rgb *= final.a;
-
-    final.rgb += x_fill.rgb * ir * x_fill.a;
-    final.a += ir * x_fill.a;
+    final += (x_fill * x_fill.a) * ir;
+    final *= (1.0 - or * x_stroke.a);
+    final += (x_stroke * x_stroke.a) * or;
+        
     ${if (!shadeStructure.suppressDefaultOutput) "o_color = final;" else ""}
 }
 """
@@ -373,17 +373,18 @@ ${shadeStructure.vertexPreamble ?: ""}
 
 flat out int v_instance;
 out vec3 v_boundsSize;
+out vec2 v_effectiveRadius;
 void main() {
     v_instance = gl_InstanceID;
     ${vertexMainConstants()}
     ${shadeStructure.varyingBridge ?: ""}
 
-    vec2 effectiveRadius = i_radius.xy + vec2(1.25) / (u_modelViewScalingFactor);
+    v_effectiveRadius = (i_strokeWeight / 2.0 + i_radius.xy + vec2(1.25) / (u_modelViewScalingFactor));
 
-    v_boundsSize = vec3(effectiveRadius.xy, 0.0);
+    v_boundsSize = vec3(v_effectiveRadius, 0.0);
     ${preVertexTransform}
     vec3 x_normal = a_normal;
-    vec3 x_position = vec3(a_position.xy * effectiveRadius, 0.0) + i_offset;
+    vec3 x_position = vec3(a_position.xy * v_effectiveRadius, 0.0) + i_offset;
     {
         ${shadeStructure.vertexTransform ?: ""}
     }
