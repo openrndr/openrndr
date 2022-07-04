@@ -482,6 +482,9 @@ ${if (!shadeStructure.suppressDefaultOutput) "out vec4 o_color;" else ""}
 ${shadeStructure.fragmentPreamble ?: ""}
 flat in int v_instance;
 in vec3 v_boundsSize;
+in vec2 v_effectiveDimensions;
+
+
 
 void main(void) {
     ${
@@ -494,20 +497,30 @@ void main(void) {
     {
         ${shadeStructure.fragmentTransform ?: ""}
     }
-    vec2 wd = fwidth(va_texCoord0 - vec2(0.5));
-    vec2 d = abs((va_texCoord0 - vec2(0.5)) * 2);
+    vec2 wd = fwidth(va_texCoord0) * v_effectiveDimensions * 1.0;
+    vec2 d = abs((va_texCoord0 - vec2(0.5))) * v_effectiveDimensions;
 
-    float irx = smoothstep(0.0, wd.x * 2.5, 1.0-d.x - vi_strokeWeight*2.0/vi_dimensions.x);
-    float iry = smoothstep(0.0, wd.y * 2.5, 1.0-d.y - vi_strokeWeight*2.0/vi_dimensions.y);
-    float ir = irx*iry;
+   
+    vec2 rd = max(abs(va_texCoord0-vec2(0.5)) * v_effectiveDimensions - vi_dimensions/2.0, 0.0);
+    float rl = length(rd);
+    
 
-    vec4 final = vec4(1.0);
-    final.rgb = x_fill.rgb * x_fill.a;
-    final.a = x_fill.a;
+    float ir = smoothstep(length(wd), 0.0, rl);
 
-    float sa = (1.0-ir) * x_stroke.a;
-    final.rgb = final.rgb * (1.0-sa) + x_stroke.rgb * sa;
-    final.a = final.a * (1.0-sa) + sa;
+    vec2 ird = max(abs(va_texCoord0-vec2(0.5)) * v_effectiveDimensions - (vi_dimensions/2.0 - vi_strokeWeight/2.0 ), 0.0);
+    float irl = length(ird);
+
+    vec2 ord = max(abs(va_texCoord0-vec2(0.5)) * v_effectiveDimensions - (vi_dimensions/2.0 + vi_strokeWeight/2.0 ), 0.0);
+    float orl = length(ord);
+
+    
+    float or = smoothstep(0.0, 0.0 + length(wd), irl) * smoothstep(length(wd), 0.0, orl);
+
+    vec4 final = vec4(0.0);
+    final += vec4(x_fill.rgb, 1.0) * x_fill.a * ir;
+    final *= (1.0 - x_stroke.a * or);
+    final += vec4(x_stroke.rgb, 1.0) * x_stroke.a * or;
+    
 
     ${
         if (!shadeStructure.suppressDefaultOutput) """
@@ -530,6 +543,7 @@ ${shadeStructure.vertexPreamble ?: ""}
 
 flat out int v_instance;
 out vec3 v_boundsSize;
+out vec2 v_effectiveDimensions;
 ${rotate2}
 
 void main() {
@@ -538,7 +552,12 @@ void main() {
     ${shadeStructure.varyingBridge ?: ""}
     ${preVertexTransform}
     vec3 x_normal = vec3(0.0, 0.0, 1.0);
-    vec2 rotatedPosition = rotate2(i_rotation) * (( a_position.xy - vec2(0.5) ) * i_dimensions) + vec2(0.5) * i_dimensions;
+    
+    v_effectiveDimensions = (i_strokeWeight  + i_dimensions.xy + vec2(1.25) / (u_modelViewScalingFactor));
+
+    vec2 rotatedPosition = rotate2(i_rotation) * (( a_position.xy - vec2(0.5) ) * v_effectiveDimensions) + vec2(0.5) * i_dimensions;
+
+
       
     vec3 x_position = vec3(rotatedPosition, 0.0) + i_offset;
     v_boundsSize = vec3(i_dimensions, 1.0);
