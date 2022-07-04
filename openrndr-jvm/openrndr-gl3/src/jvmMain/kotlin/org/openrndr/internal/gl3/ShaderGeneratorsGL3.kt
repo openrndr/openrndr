@@ -351,9 +351,9 @@ void main(void) {
     float ir = smoothstep(vi_radius.x + wd, vi_radius.x, d*tr);
 
     vec4 final = vec4(0.0);
-    final += (x_fill * x_fill.a) * ir;
+    final += (vec4(x_fill.rgb, 1.0) * x_fill.a) * ir;
     final *= (1.0 - or * x_stroke.a);
-    final += (x_stroke * x_stroke.a) * or;
+    final += (vec4(x_stroke.rgb, 1.0) * x_stroke.a) * or;
         
     ${if (!shadeStructure.suppressDefaultOutput) "o_color = final;" else ""}
 }
