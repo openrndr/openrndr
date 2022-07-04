@@ -344,7 +344,7 @@ void main(void) {
     float d = length(va_texCoord0 - vec2(0.5)) * 2;
 
     float tr = v_effectiveRadius.x;
-    float wd = fwidth(length(va_texCoord0)) * tr;
+    float wd = fwidth(length(va_texCoord0)) * tr * 2.0;
 
     float or = vi_strokeWeight == 0.0? 0.0 : smoothstep(vi_strokeWeight / 2.0 + wd, vi_strokeWeight / 2.0, abs(d * tr - (vi_radius.x)));
     
