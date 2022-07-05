@@ -484,8 +484,6 @@ flat in int v_instance;
 in vec3 v_boundsSize;
 in vec2 v_effectiveDimensions;
 
-
-
 void main(void) {
     ${
         fragmentMainConstants(
@@ -497,30 +495,27 @@ void main(void) {
     {
         ${shadeStructure.fragmentTransform ?: ""}
     }
-    vec2 wd = fwidth(va_texCoord0) * v_effectiveDimensions * 1.0;
-    vec2 d = abs((va_texCoord0 - vec2(0.5))) * v_effectiveDimensions;
-
-   
-    vec2 rd = max(abs(va_texCoord0-vec2(0.5)) * v_effectiveDimensions - vi_dimensions/2.0, 0.0);
-    float rl = length(rd);
+    // calculate distance field gradient
+    float smoothFactor = length(fwidth(va_texCoord0) * v_effectiveDimensions * 1.0);
     
+    vec2 distance = abs(va_texCoord0-vec2(0.5)) * v_effectiveDimensions;
 
-    float ir = smoothstep(length(wd), 0.0, rl);
+    // approximate fill coverage from distance to fill rectangle
+    float fillCoverage = smoothstep(smoothFactor, 0.0, length(max(distance - vi_dimensions/2.0, 0.0)));
 
-    vec2 ird = max(abs(va_texCoord0-vec2(0.5)) * v_effectiveDimensions - (vi_dimensions/2.0 - vi_strokeWeight/2.0 ), 0.0);
-    float irl = length(ird);
+    // calculate distance to inner stroke contour
+    float irl = length(max(distance - (vi_dimensions/2.0 - vi_strokeWeight/2.0), 0.0));
 
-    vec2 ord = max(abs(va_texCoord0-vec2(0.5)) * v_effectiveDimensions - (vi_dimensions/2.0 + vi_strokeWeight/2.0 ), 0.0);
-    float orl = length(ord);
-
+    // calculate distance to outer stroke contour
+    float orl = length(max(distance - (vi_dimensions/2.0 + vi_strokeWeight/2.0), 0.0));
     
-    float or = smoothstep(0.0, 0.0 + length(wd), irl) * smoothstep(length(wd), 0.0, orl);
+    // approximate stroke coverage from the difference of the outer and inner stroke rectangles
+    float strokeCoverage = smoothstep(0.0, smoothFactor, irl) * smoothstep(smoothFactor, 0.0, orl);
 
-    vec4 final = vec4(0.0);
-    final += vec4(x_fill.rgb, 1.0) * x_fill.a * ir;
-    final *= (1.0 - x_stroke.a * or);
-    final += vec4(x_stroke.rgb, 1.0) * x_stroke.a * or;
-    
+    // blend stroke over fill
+    vec4 final = vec4(x_fill.rgb, 1.0) * x_fill.a * fillCoverage;
+    final *= (1.0 - x_stroke.a * strokeCoverage);
+    final += vec4(x_stroke.rgb, 1.0) * x_stroke.a * strokeCoverage;
 
     ${
         if (!shadeStructure.suppressDefaultOutput) """
@@ -552,12 +547,11 @@ void main() {
     ${shadeStructure.varyingBridge ?: ""}
     ${preVertexTransform}
     vec3 x_normal = vec3(0.0, 0.0, 1.0);
-    
+
+    // calculate the effective dimensions, the geometry is fattened to accommodate prefiltering of the silhouette 
     v_effectiveDimensions = (i_strokeWeight  + i_dimensions.xy + vec2(1.25) / (u_modelViewScalingFactor));
 
     vec2 rotatedPosition = rotate2(i_rotation) * (( a_position.xy - vec2(0.5) ) * v_effectiveDimensions) + vec2(0.5) * i_dimensions;
-
-
       
     vec3 x_position = vec3(rotatedPosition, 0.0) + i_offset;
     v_boundsSize = vec3(i_dimensions, 1.0);
@@ -568,7 +562,6 @@ void main() {
     gl_Position = v_clipPosition;
     }
     """
-
     override fun expansionFragmentShader(shadeStructure: ShadeStructure): String = """#version ${glslVersion()}
 ${primitiveTypes("d_expansion")}
 ${shadeStructure.buffers ?: ""}
