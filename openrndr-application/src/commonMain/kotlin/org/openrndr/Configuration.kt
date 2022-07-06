@@ -171,9 +171,16 @@ class Configuration {
 
 }
 
+@Deprecated(
+    "Use buildConfiguration instead", level = DeprecationLevel.WARNING,
+    replaceWith = ReplaceWith("buildConfiguration(builder)")
+)
+fun configuration(builder: Configuration.() -> Unit): Configuration = buildConfiguration(builder)
+
 /**
- * Simple configuration builder
+ * Convenience function for building a new [Configuration].
+ * @return the built [Configuration]
  */
-fun configuration(builder: Configuration.() -> Unit): Configuration {
+fun buildConfiguration(builder: Configuration.() -> Unit): Configuration {
     return Configuration().apply(builder)
 }
