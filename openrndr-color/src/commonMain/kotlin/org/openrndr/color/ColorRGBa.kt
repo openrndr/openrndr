@@ -311,12 +311,14 @@ fun mix(left: ColorRGBa, right: ColorRGBa, x: Double): ColorRGBa {
 }
 
 /**
- * Color in RGBa space. Specify one value only to obtain a shade of gray.
+ * Shorthand for calling [ColorRGBa].
+ * Specify only one value to obtain a shade of gray.
  * @param r red in `[0,1]`
  * @param g green in `[0,1]`
  * @param b blue in `[0,1]`
+ * @param a alpha in `[0,1]`, defaults to `1.0`
  */
-fun rgb(r: Double, g: Double = r, b: Double = r) = ColorRGBa(r, g, b, linearity = Linearity.SRGB)
+fun rgb(r: Double, g: Double = r, b: Double = r, a: Double = 1.0) = ColorRGBa(r, g, b, a, linearity = Linearity.SRGB)
 
 /**
  * Create a color in RGBa space
@@ -326,10 +328,12 @@ fun rgb(r: Double, g: Double = r, b: Double = r) = ColorRGBa(r, g, b, linearity 
  * @param b blue in `[0,1]`
  * @param a alpha in `[0,1]`
  */
+@Deprecated("Use rgb(r, g, b, a)", ReplaceWith("rgb(r, g, b, a)"), DeprecationLevel.WARNING)
 fun rgba(r: Double, g: Double, b: Double, a: Double) = ColorRGBa(r, g, b, a, linearity = Linearity.SRGB)
 
 /**
- * Create color from a string encoded hex value
+ * Shorthand for calling [ColorRGBa.fromHex].
+ * Creates a [ColorRGBa] from a hex string.
  * @param hex string encoded hex value, for example `"ffc0cd"`
  */
 fun rgb(hex: String) = ColorRGBa.fromHex(hex)
