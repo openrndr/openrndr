@@ -2,8 +2,7 @@
 
 package org.openrndr.color
 
-import org.openrndr.math.mixAngle
-import org.openrndr.math.mod
+import org.openrndr.math.*
 import kotlin.jvm.JvmOverloads
 import kotlin.math.floor
 
@@ -21,6 +20,7 @@ import kotlin.math.floor
 @Suppress("unused")
 data class ColorHSVa @JvmOverloads constructor (val h: Double, val s: Double, val v: Double, val a: Double = 1.0) :
         ConvertibleToColorRGBa,
+        CastableToVector4,
         ShadableColor<ColorHSVa>,
         HueShiftableColor<ColorHSVa>,
         SaturatableColor<ColorHSVa>,
@@ -161,6 +161,8 @@ data class ColorHSVa @JvmOverloads constructor (val h: Double, val s: Double, va
     override fun plus(right: ColorHSVa) = copy(h = h + right.h, s = s + right.s, v = v + right.v, a = a + right.a)
     override fun minus(right: ColorHSVa) = copy(h = h - right.h, s = s - right.s, v = v - right.v, a = a - right.a)
     override fun times(scale: Double) = copy(h = h * scale, s = s * scale, v = v * scale, a = a * scale)
+
+    override fun toVector4(): Vector4 = Vector4(h, s, v, a)
 
     fun toXSVa(): ColorXSVa {
         return ColorXSVa.fromHSVa(this)

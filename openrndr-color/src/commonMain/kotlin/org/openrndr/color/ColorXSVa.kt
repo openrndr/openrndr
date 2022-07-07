@@ -1,5 +1,7 @@
 package org.openrndr.color
 
+import org.openrndr.math.CastableToVector4
+import org.openrndr.math.Vector4
 import org.openrndr.math.mixAngle
 import kotlin.jvm.JvmOverloads
 
@@ -13,6 +15,7 @@ import kotlin.jvm.JvmOverloads
  */
 data class ColorXSVa @JvmOverloads constructor (val x: Double, val s: Double, val v: Double, val a: Double = 1.0) :
     ConvertibleToColorRGBa,
+    CastableToVector4,
     ShadableColor<ColorXSVa>,
     HueShiftableColor<ColorXSVa>,
     SaturatableColor<ColorXSVa>,
@@ -69,6 +72,8 @@ data class ColorXSVa @JvmOverloads constructor (val x: Double, val s: Double, va
     override fun times(scale: Double) = copy(x = x * scale, s = s * scale, v = v * scale, a = a * scale)
 
     override fun mix(other: ColorXSVa, factor: Double) = mix(this, other, factor)
+
+    override fun toVector4(): Vector4 = Vector4(x, s, v, a)
 }
 
 private fun map(x: Double, a: Double, b: Double, c: Double, d: Double): Double {

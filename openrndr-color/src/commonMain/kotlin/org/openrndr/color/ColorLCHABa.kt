@@ -1,8 +1,6 @@
 package org.openrndr.color
 
-import org.openrndr.math.asDegrees
-import org.openrndr.math.asRadians
-import org.openrndr.math.mixAngle
+import org.openrndr.math.*
 import kotlin.jvm.JvmOverloads
 import kotlin.math.*
 
@@ -26,6 +24,7 @@ data class ColorLCHABa @JvmOverloads constructor (
     val ref: ColorXYZa = ColorXYZa.NEUTRAL
 ) :
     ConvertibleToColorRGBa,
+    CastableToVector4,
     ShadableColor<ColorLCHABa>,
     OpacifiableColor<ColorLCHABa>,
     HueShiftableColor<ColorLCHABa>,
@@ -112,6 +111,8 @@ data class ColorLCHABa @JvmOverloads constructor (
 
     override fun times(scale: Double) = copy(l = l * scale, c = c * scale, h = h * scale, alpha = alpha * scale)
     override fun mix(other: ColorLCHABa, factor: Double) = mix(this, other, factor)
+
+    override fun toVector4(): Vector4 = Vector4(l, c, h, alpha)
 }
 
 /**
