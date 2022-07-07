@@ -1,5 +1,7 @@
 package org.openrndr.color
 
+import org.openrndr.math.CastableToVector4
+import org.openrndr.math.Vector4
 import org.openrndr.math.mixAngle
 import kotlin.jvm.JvmOverloads
 
@@ -16,6 +18,7 @@ import kotlin.jvm.JvmOverloads
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 data class ColorHSLa @JvmOverloads constructor (val h: Double, val s: Double, val l: Double, val a: Double = 1.0) :
         ConvertibleToColorRGBa,
+        CastableToVector4,
         ShadableColor<ColorHSLa>,
         HueShiftableColor<ColorHSLa>,
         SaturatableColor<ColorHSLa>,
@@ -115,6 +118,7 @@ data class ColorHSLa @JvmOverloads constructor (val h: Double, val s: Double, va
     override fun minus(right: ColorHSLa) = copy(h = h - right.h, s = s - right.s, l = l - right.l, a = a - right.a)
     override fun times(scale: Double) = copy(h = h * scale, s = s * scale, l = l * scale, a = a * scale)
 
+    override fun toVector4(): Vector4 = Vector4(h, s, l, a)
 }
 
 internal fun hue2rgb(p: Double, q: Double, ut: Double): Double {

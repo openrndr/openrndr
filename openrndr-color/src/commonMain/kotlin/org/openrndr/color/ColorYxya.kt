@@ -1,5 +1,7 @@
 package org.openrndr.color
 
+import org.openrndr.math.CastableToVector4
+import org.openrndr.math.Vector4
 import kotlin.jvm.JvmOverloads
 
 /**
@@ -10,7 +12,12 @@ import kotlin.jvm.JvmOverloads
  * @param y second chromaticity coordinate, in a range of 0.0 to 1.0
  */
 @Suppress("LocalVariableName")
-data class ColorYxya @JvmOverloads constructor (val yy: Double, val x: Double, val y: Double, val a: Double = 1.0) {
+data class ColorYxya @JvmOverloads constructor (
+    val yy: Double,
+    val x: Double,
+    val y: Double,
+    val a: Double = 1.0
+) : CastableToVector4 {
     companion object {
         fun fromXYZa(xyza: ColorXYZa): ColorYxya {
             val s = xyza.x + xyza.y + xyza.z
@@ -27,6 +34,8 @@ data class ColorYxya @JvmOverloads constructor (val yy: Double, val x: Double, v
         val Z = if (yy > 0) ((1.0 - x - y) * yy) / y else 0.0
         return ColorXYZa(X, Y, Z, a)
     }
+
+    override fun toVector4(): Vector4 = Vector4(yy, x, y, a)
 }
 
 fun mix(a: ColorYxya, b: ColorYxya, x: Double): ColorYxya {

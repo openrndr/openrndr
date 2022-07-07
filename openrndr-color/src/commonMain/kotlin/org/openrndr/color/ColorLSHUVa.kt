@@ -1,5 +1,7 @@
 package org.openrndr.color
 
+import org.openrndr.math.CastableToVector4
+import org.openrndr.math.Vector4
 import kotlin.jvm.JvmOverloads
 
 /**
@@ -14,7 +16,7 @@ data class ColorLSHUVa @JvmOverloads constructor (
     val h: Double,
     val alpha: Double = 1.0,
     val ref: ColorXYZa = ColorXYZa.NEUTRAL
-) {
+) : CastableToVector4 {
 
     companion object {
         fun fromLCHUVa(lcha: ColorLCHUVa): ColorLSHUVa {
@@ -39,4 +41,6 @@ data class ColorLSHUVa @JvmOverloads constructor (
     fun shiftLuminosity(shift: Double) = copy(l = l + shift)
 
     val saturated get() = copy(s = s.coerceIn(0.0, 1.0))
+
+    override fun toVector4(): Vector4 = Vector4(l, s, h, alpha)
 }
