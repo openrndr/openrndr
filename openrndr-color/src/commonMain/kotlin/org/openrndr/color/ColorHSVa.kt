@@ -169,7 +169,9 @@ data class ColorHSVa @JvmOverloads constructor (val h: Double, val s: Double, va
     }
 }
 
-fun hsv(h: Double, s: Double, v: Double) = ColorHSVa(h, s, v)
+fun hsv(h: Double, s: Double, v: Double, a: Double = 1.0) = ColorHSVa(h, s, v, a)
+
+@Deprecated("Use hsv(h, s, v, a)", ReplaceWith("hsv(h, s, v, a)"), DeprecationLevel.WARNING)
 fun hsva(h: Double, s: Double, v: Double, a: Double) = ColorHSVa(h, s, v, a)
 
 /**
