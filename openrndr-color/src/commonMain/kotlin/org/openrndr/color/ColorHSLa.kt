@@ -24,14 +24,6 @@ data class ColorHSLa @JvmOverloads constructor (val h: Double, val s: Double, va
         SaturatableColor<ColorHSLa>,
         AlgebraicColor<ColorHSLa> {
 
-    override fun toString(): String {
-        return "ColorHSL{" +
-                "h=" + h +
-                ", s=" + s +
-                ", l=" + l +
-                '}'
-    }
-
     companion object {
         fun fromRGBa(rgb: ColorRGBa): ColorHSLa {
             val srgb = rgb.toSRGB()
