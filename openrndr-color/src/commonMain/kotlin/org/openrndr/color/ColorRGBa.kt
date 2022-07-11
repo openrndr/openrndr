@@ -121,6 +121,12 @@ data class ColorRGBa @JvmOverloads constructor (
         val YELLOW = ColorRGBa(1.0, 1.0, 0.0, 1.0, Linearity.SRGB)
 
         /** @suppress */
+        val CYAN = ColorRGBa(0.0, 1.0, 1.0, 1.0, Linearity.SRGB)
+
+        /** @suppress */
+        val MAGENTA = ColorRGBa(1.0, 0.0, 1.0, 1.0, Linearity.SRGB)
+
+        /** @suppress */
         val GRAY = ColorRGBa(0.5, 0.5, 0.5, 1.0, Linearity.SRGB)
 
         /** @suppress */
