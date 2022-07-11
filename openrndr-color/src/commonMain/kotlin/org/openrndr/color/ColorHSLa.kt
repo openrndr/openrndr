@@ -62,7 +62,7 @@ data class ColorHSLa @JvmOverloads constructor (val h: Double, val s: Double, va
                     ColorRGBa.Component.R -> 60.0 * ((srgb.g - srgb.b) / d + if (srgb.g < srgb.b) 6 else 0)
                     ColorRGBa.Component.G -> 60.0 * ((srgb.b - srgb.r) / d + 2.0)
                     ColorRGBa.Component.B -> 60.0 * ((srgb.r - srgb.g) / d + 4.0)
-                    ColorRGBa.Component.a -> 0.0
+                    ColorRGBa.Component.Alpha -> 0.0
                 }
             }
             return ColorHSLa(h, s, l, srgb.alpha)

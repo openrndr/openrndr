@@ -63,7 +63,7 @@ data class ColorRGBa @JvmOverloads constructor (
         R,
         G,
         B,
-        a
+        Alpha
     }
 
     companion object {
