@@ -26,9 +26,6 @@ data class ColorHSVa @JvmOverloads constructor (val h: Double, val s: Double, va
         SaturatableColor<ColorHSVa>,
         AlgebraicColor<ColorHSVa> {
 
-    operator fun invoke(h: Double = this.h, s: Double = this.s, v: Double = this.v, a: Double = this.a) =
-            ColorHSVa(h, s, v, a)
-
     companion object {
         fun fromRGBa(rgb: ColorRGBa): ColorHSVa {
             val srgb = rgb.toSRGB()

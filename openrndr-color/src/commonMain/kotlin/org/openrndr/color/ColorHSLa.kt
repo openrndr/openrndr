@@ -24,9 +24,6 @@ data class ColorHSLa @JvmOverloads constructor (val h: Double, val s: Double, va
         SaturatableColor<ColorHSLa>,
         AlgebraicColor<ColorHSLa> {
 
-    operator fun invoke(h: Double = this.h, s: Double = this.s, l: Double = this.l, a: Double = this.a) =
-            ColorHSLa(h, s, l, a)
-
     override fun toString(): String {
         return "ColorHSL{" +
                 "h=" + h +

@@ -62,9 +62,6 @@ data class ColorRGBa @JvmOverloads constructor (
     ShadableColor<ColorRGBa>,
     AlgebraicColor<ColorRGBa> {
 
-    operator fun invoke(r: Double = this.r, g: Double = this.g, b: Double = this.b, a: Double = this.a) =
-        ColorRGBa(r, g, b, a)
-
     enum class Component {
         R,
         G,
