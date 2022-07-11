@@ -395,7 +395,7 @@ open class RenderTargetGL3(
     override fun clearColor(index: Int, color: ColorRGBa) {
         require(!destroyed)
         bound {
-            val ca = floatArrayOf(color.r.toFloat(), color.g.toFloat(), color.b.toFloat(), color.a.toFloat())
+            val ca = floatArrayOf(color.r.toFloat(), color.g.toFloat(), color.b.toFloat(), color.alpha.toFloat())
             glClearBufferfv(GL_COLOR, index, ca)
         }
     }

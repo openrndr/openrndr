@@ -106,7 +106,7 @@ class BufferWriterWebGL(val buffer: Float32Array, val elementSize: Int): BufferW
     }
 
     override fun write(v: ColorRGBa) {
-        write(v.r.toFloat(), v.g.toFloat(), v.b.toFloat(), v.a.toFloat())
+        write(v.r.toFloat(), v.g.toFloat(), v.b.toFloat(), v.alpha.toFloat())
     }
 
     override fun write(a: FloatArray, offset: Int, size: Int) {

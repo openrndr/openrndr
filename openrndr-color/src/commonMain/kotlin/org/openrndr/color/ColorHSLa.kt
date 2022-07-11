@@ -1,6 +1,5 @@
 package org.openrndr.color
 
-import org.openrndr.math.CastableToVector4
 import org.openrndr.math.Vector4
 import org.openrndr.math.mixAngle
 import kotlin.jvm.JvmOverloads
@@ -13,27 +12,15 @@ import kotlin.jvm.JvmOverloads
  * @param h hue in degrees, where a full rotation is 360.0 degrees
  * @param s saturation as a percentage between 0.0 and 1.0
  * @param l lightness/luminance as a percentage between 0.0 and 1.0
- * @param a alpha as a percentage between 0.0 and 1.0
+ * @param alpha alpha as a percentage between 0.0 and 1.0
  */
 @Suppress("unused", "MemberVisibilityCanBePrivate")
-data class ColorHSLa @JvmOverloads constructor (val h: Double, val s: Double, val l: Double, val a: Double = 1.0) :
-        ConvertibleToColorRGBa,
-        CastableToVector4,
+data class ColorHSLa @JvmOverloads constructor (val h: Double, val s: Double, val l: Double, override val alpha: Double = 1.0) :
+        ColorModel<ColorHSLa>,
         ShadableColor<ColorHSLa>,
         HueShiftableColor<ColorHSLa>,
         SaturatableColor<ColorHSLa>,
         AlgebraicColor<ColorHSLa> {
-
-    operator fun invoke(h: Double = this.h, s: Double = this.s, l: Double = this.l, a: Double = this.a) =
-            ColorHSLa(h, s, l, a)
-
-    override fun toString(): String {
-        return "ColorHSL{" +
-                "h=" + h +
-                ", s=" + s +
-                ", l=" + l +
-                '}'
-    }
 
     companion object {
         fun fromRGBa(rgb: ColorRGBa): ColorHSLa {
@@ -75,13 +62,17 @@ data class ColorHSLa @JvmOverloads constructor (val h: Double, val s: Double, va
                     ColorRGBa.Component.R -> 60.0 * ((srgb.g - srgb.b) / d + if (srgb.g < srgb.b) 6 else 0)
                     ColorRGBa.Component.G -> 60.0 * ((srgb.b - srgb.r) / d + 2.0)
                     ColorRGBa.Component.B -> 60.0 * ((srgb.r - srgb.g) / d + 4.0)
-                    ColorRGBa.Component.a -> 0.0
+                    ColorRGBa.Component.Alpha -> 0.0
                 }
             }
-            return ColorHSLa(h, s, l, srgb.a)
+            return ColorHSLa(h, s, l, srgb.alpha)
         }
     }
 
+    @Deprecated("Legacy alpha parameter name", ReplaceWith("alpha"))
+    val a = alpha
+
+    override fun opacify(factor: Double): ColorHSLa = copy(alpha = alpha * factor)
     override fun shiftHue(shiftInDegrees: Double): ColorHSLa = copy(h = (h + shiftInDegrees))
     override fun saturate(factor: Double) = copy(s = s * factor)
     override fun shade(factor: Double) = copy(l = l * factor)
@@ -92,14 +83,14 @@ data class ColorHSLa @JvmOverloads constructor (val h: Double, val s: Double, va
 
     override fun toRGBa(): ColorRGBa {
         return if (s == 0.0) {
-            ColorRGBa(l, l, l, a)
+            ColorRGBa(l, l, l, alpha)
         } else {
             val q = if (l < 0.5) l * (1 + s) else l + s - l * s
             val p = 2 * l - q
             val r = hue2rgb(p, q, h / 360.0 + 1.0 / 3)
             val g = hue2rgb(p, q, h / 360.0)
             val b = hue2rgb(p, q, h / 360.0 - 1.0 / 3)
-            ColorRGBa(r, g, b, a, Linearity.SRGB)
+            ColorRGBa(r, g, b, alpha, Linearity.SRGB)
         }
     }
 
@@ -114,11 +105,21 @@ data class ColorHSLa @JvmOverloads constructor (val h: Double, val s: Double, va
      * convert to [ColorXSLa]
      */
     fun toXSLa() = ColorXSLa.fromHSLa(this)
-    override fun plus(right: ColorHSLa) = copy(h = h + right.h, s = s + right.s, l = l + right.l, a = a + right.a)
-    override fun minus(right: ColorHSLa) = copy(h = h - right.h, s = s - right.s, l = l - right.l, a = a - right.a)
-    override fun times(scale: Double) = copy(h = h * scale, s = s * scale, l = l * scale, a = a * scale)
+    override fun plus(right: ColorHSLa) = copy(
+        h = h + right.h,
+        s = s + right.s,
+        l = l + right.l,
+        alpha = alpha + right.alpha
+    )
+    override fun minus(right: ColorHSLa) = copy(
+        h = h - right.h,
+        s = s - right.s,
+        l = l - right.l,
+        alpha = alpha - right.alpha
+    )
+    override fun times(scale: Double) = copy(h = h * scale, s = s * scale, l = l * scale, alpha = alpha * scale)
 
-    override fun toVector4(): Vector4 = Vector4(h, s, l, a)
+    override fun toVector4(): Vector4 = Vector4(h, s, l, alpha)
 }
 
 internal fun hue2rgb(p: Double, q: Double, ut: Double): Double {
@@ -147,5 +148,6 @@ fun mix(left: ColorHSLa, right: ColorHSLa, x: Double): ColorHSLa {
             mixAngle(left.h, right.h, sx),
             (1.0 - sx) * left.s + sx * right.s,
             (1.0 - sx) * left.l + sx * right.l,
-            (1.0 - sx) * left.a + sx * right.a)
+        (1.0 - sx) * left.alpha + sx * right.alpha
+    )
 }

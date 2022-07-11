@@ -1,6 +1,5 @@
 package org.openrndr.color
 
-import org.openrndr.math.CastableToVector4
 import org.openrndr.math.Vector4
 import kotlin.jvm.JvmOverloads
 import kotlin.math.pow
@@ -14,10 +13,8 @@ import kotlin.math.pow
  * @param ref reference white against which the color values are calculated
  */
 @Suppress("unused", "UNUSED_PARAMETER")
-data class ColorLUVa @JvmOverloads constructor (val l: Double, val u: Double, val v: Double, val alpha: Double = 1.0, val ref: ColorXYZa) :
-    ConvertibleToColorRGBa,
-    CastableToVector4,
-    OpacifiableColor<ColorLUVa>,
+data class ColorLUVa @JvmOverloads constructor (val l: Double, val u: Double, val v: Double, override val alpha: Double = 1.0, val ref: ColorXYZa) :
+    ColorModel<ColorLUVa>,
     ShadableColor<ColorLUVa>,
     AlgebraicColor<ColorLUVa> {
 
@@ -40,7 +37,7 @@ data class ColorLUVa @JvmOverloads constructor (val l: Double, val u: Double, va
             val u = 13.0 * l * (up - ur)
             val v = 13.0 * l * (vp - vr)
 
-            return ColorLUVa(l, u, v, xyz.a, ref)
+            return ColorLUVa(l, u, v, xyz.alpha, ref)
         }
 
         fun fromRGBa(rgba: ColorRGBa, ref: ColorXYZa = ColorXYZa.NEUTRAL): ColorLUVa {

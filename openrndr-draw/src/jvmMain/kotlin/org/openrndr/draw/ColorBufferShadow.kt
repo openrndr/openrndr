@@ -14,7 +14,7 @@ interface ColorBufferShadow {
     fun writer(): BufferWriter
     fun write(x: Int, y: Int, r: Double, g: Double, b: Double, a: Double)
     fun write(x: Int, y: Int, color: ColorRGBa) {
-        write(x, y, color.r, color.g, color.b, color.a)
+        write(x, y, color.r, color.g, color.b, color.alpha)
     }
 
     fun write(x: Int, y: Int, r: Float, g: Float, b: Float, a: Float) {

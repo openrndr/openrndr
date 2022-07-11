@@ -278,7 +278,7 @@ class Drawer(val driver: Driver) {
     }
 
     fun clear(color: ColorRGBa) {
-        driver.clear(color.r, color.g, color.b, color.a)
+        driver.clear(color.r, color.g, color.b, color.alpha)
     }
 
     @Deprecated("background will be replaced by clear", replaceWith = ReplaceWith("clear(r,g,b,a)"))
@@ -288,7 +288,7 @@ class Drawer(val driver: Driver) {
 
     @Deprecated("background will be replaced by clear", replaceWith = ReplaceWith("clear(color)"))
     fun background(color: ColorRGBa) {
-        driver.clear(color.r, color.g, color.b, color.a)
+        driver.clear(color.r, color.g, color.b, color.alpha)
     }
 
     /**

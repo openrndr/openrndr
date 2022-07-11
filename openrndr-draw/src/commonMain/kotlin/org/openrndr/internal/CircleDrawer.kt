@@ -145,7 +145,7 @@ class CircleDrawer {
             rewind()
             write(drawStyle.fill ?: ColorRGBa.TRANSPARENT)
             write(drawStyle.stroke ?: ColorRGBa.TRANSPARENT)
-            val weight = if (drawStyle.stroke == null || drawStyle.stroke?.a == 0.0) 0.0 else
+            val weight = if (drawStyle.stroke == null || drawStyle.stroke?.alpha == 0.0) 0.0 else
                 drawStyle.strokeWeight
             write(weight.toFloat())
         }

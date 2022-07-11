@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package org.openrndr.color
 
 import kotlin.math.pow

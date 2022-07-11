@@ -1,5 +1,6 @@
 package org.openrndr.color
 
+import org.openrndr.math.CastableToVector4
 import org.openrndr.math.LinearType
 
 interface ConvertibleToColorRGBa {
@@ -26,9 +27,17 @@ interface SaturatableColor<T> {
 }
 
 interface OpacifiableColor<T> {
-    /** Multiply the opacity by a factor */
+    /** The opacity of the given color model. */
+    val alpha: Double
+
+    /**
+     * Returns a copy of the color with the opacity ([alpha]) multiplied by a factor.
+     * @param factor a scaling factor used for the opacity
+     */
     fun opacify(factor: Double): T
 }
+
+interface ColorModel<T : ColorModel<T>> : OpacifiableColor<T>, ConvertibleToColorRGBa, CastableToVector4
 
 /**
  * Allows performing select algebraic operations on colors of this kind.

@@ -307,7 +307,13 @@ class ShaderGL3(val program: Int,
                 measure("miss") {
                     val index = uniformIndex(name)
                     if (index != -1) {
-                        glUniform4f(index, value.r.toFloat(), value.g.toFloat(), value.b.toFloat(), value.a.toFloat())
+                        glUniform4f(
+                            index,
+                            value.r.toFloat(),
+                            value.g.toFloat(),
+                            value.b.toFloat(),
+                            value.alpha.toFloat()
+                        )
                         postUniformCheck(name, index, value)
                     }
                     lastValues[name] = value
@@ -583,7 +589,7 @@ class ShaderGL3(val program: Int,
                 floatValues[i * 4] = value[i].r.toFloat()
                 floatValues[i * 4 + 1] = value[i].g.toFloat()
                 floatValues[i * 4 + 2] = value[i].b.toFloat()
-                floatValues[i * 4 + 3] = value[i].a.toFloat()
+                floatValues[i * 4 + 3] = value[i].alpha.toFloat()
             }
 
             glUniform4fv(index, floatValues)

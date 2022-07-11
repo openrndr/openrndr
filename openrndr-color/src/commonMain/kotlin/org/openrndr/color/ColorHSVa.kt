@@ -2,7 +2,9 @@
 
 package org.openrndr.color
 
-import org.openrndr.math.*
+import org.openrndr.math.Vector4
+import org.openrndr.math.mixAngle
+import org.openrndr.math.mod
 import kotlin.jvm.JvmOverloads
 import kotlin.math.floor
 
@@ -15,19 +17,15 @@ import kotlin.math.floor
  * @param h hue in degrees, where a full rotation is 360.0 degrees
  * @param s saturation as a percentage between 0.0 and 1.0
  * @param v value/brightness as a percentage between 0.0 and 1.0
- * @param a alpha as a percentage between 0.0 and 1.0
+ * @param alpha alpha as a percentage between 0.0 and 1.0
  */
 @Suppress("unused")
-data class ColorHSVa @JvmOverloads constructor (val h: Double, val s: Double, val v: Double, val a: Double = 1.0) :
-        ConvertibleToColorRGBa,
-        CastableToVector4,
+data class ColorHSVa @JvmOverloads constructor (val h: Double, val s: Double, val v: Double, override val alpha: Double = 1.0) :
+        ColorModel<ColorHSVa>,
         ShadableColor<ColorHSVa>,
         HueShiftableColor<ColorHSVa>,
         SaturatableColor<ColorHSVa>,
         AlgebraicColor<ColorHSVa> {
-
-    operator fun invoke(h: Double = this.h, s: Double = this.s, v: Double = this.v, a: Double = this.a) =
-            ColorHSVa(h, s, v, a)
 
     companion object {
         fun fromRGBa(rgb: ColorRGBa): ColorHSVa {
@@ -70,7 +68,7 @@ data class ColorHSVa @JvmOverloads constructor (val h: Double, val s: Double, va
                 // r = g = b = 0		// s = 0, v is undefined
                 s = 0.0
                 h = 0.0
-                return ColorHSVa(h, s, v, srgb.a)
+                return ColorHSVa(h, s, v, srgb.alpha)
             }
             if (maxArg == ColorRGBa.Component.R) {
                 h = (srgb.g - srgb.b) / delta        // between yellow & magenta
@@ -83,11 +81,14 @@ data class ColorHSVa @JvmOverloads constructor (val h: Double, val s: Double, va
             if (h < 0) {
                 h += 360.0
             }
-            return ColorHSVa(h, s, v, srgb.a)
+            return ColorHSVa(h, s, v, srgb.alpha)
         }
     }
 
+    @Deprecated("Legacy alpha parameter name", ReplaceWith("alpha"))
+    val a = alpha
 
+    override fun opacify(factor: Double): ColorHSVa = copy(alpha = alpha * factor)
     override fun shiftHue(shiftInDegrees: Double) = copy(h = (h + shiftInDegrees))
     override fun saturate(factor: Double) = copy(s = s * factor)
     override fun shade(factor: Double): ColorHSVa = copy(v = v * factor)
@@ -154,15 +155,25 @@ data class ColorHSVa @JvmOverloads constructor (val h: Double, val s: Double, va
             g = hsv.v
             b = hsv.v
         }
-        return ColorRGBa(r, g, b, hsv.a, Linearity.SRGB)
+        return ColorRGBa(r, g, b, hsv.alpha, Linearity.SRGB)
 
     }
 
-    override fun plus(right: ColorHSVa) = copy(h = h + right.h, s = s + right.s, v = v + right.v, a = a + right.a)
-    override fun minus(right: ColorHSVa) = copy(h = h - right.h, s = s - right.s, v = v - right.v, a = a - right.a)
-    override fun times(scale: Double) = copy(h = h * scale, s = s * scale, v = v * scale, a = a * scale)
+    override fun plus(right: ColorHSVa) = copy(
+        h = h + right.h,
+        s = s + right.s,
+        v = v + right.v,
+        alpha = alpha + right.alpha
+    )
+    override fun minus(right: ColorHSVa) = copy(
+        h = h - right.h,
+        s = s - right.s,
+        v = v - right.v,
+        alpha = alpha - right.alpha
+    )
+    override fun times(scale: Double) = copy(h = h * scale, s = s * scale, v = v * scale, alpha = alpha * scale)
 
-    override fun toVector4(): Vector4 = Vector4(h, s, v, a)
+    override fun toVector4(): Vector4 = Vector4(h, s, v, alpha)
 
     fun toXSVa(): ColorXSVa {
         return ColorXSVa.fromHSVa(this)
@@ -188,5 +199,6 @@ fun mix(left: ColorHSVa, right: ColorHSVa, x: Double): ColorHSVa {
             mixAngle(left.h, right.h, sx),
             (1.0 - sx) * left.s + sx * right.s,
             (1.0 - sx) * left.v + sx * right.v,
-            (1.0 - sx) * left.a + sx * right.a)
+        (1.0 - sx) * left.alpha + sx * right.alpha
+    )
 }

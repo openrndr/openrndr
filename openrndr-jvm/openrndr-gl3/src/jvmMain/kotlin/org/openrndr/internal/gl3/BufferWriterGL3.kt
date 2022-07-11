@@ -146,7 +146,7 @@ class BufferWriterGL3(val buffer: ByteBuffer, val elementSize: Int = 1) : Buffer
         buffer.putFloat(v.r.toFloat())
         buffer.putFloat(v.g.toFloat())
         buffer.putFloat(v.b.toFloat())
-        buffer.putFloat(v.a.toFloat())
+        buffer.putFloat(v.alpha.toFloat())
     }
 
     override var position: Int

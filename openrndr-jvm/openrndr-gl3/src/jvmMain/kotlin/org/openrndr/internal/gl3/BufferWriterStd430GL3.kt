@@ -214,7 +214,7 @@ class BufferWriterStd430GL3(
         buffer.putFloat(v.r.toFloat())
         buffer.putFloat(v.g.toFloat())
         buffer.putFloat(v.b.toFloat())
-        buffer.putFloat(v.a.toFloat())
+        buffer.putFloat(v.alpha.toFloat())
         padding()
     }
 
