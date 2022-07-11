@@ -1,23 +1,18 @@
 package org.openrndr.color
 
-import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
 import kotlin.test.*
 
 class ColorRGBaTest {
 
     @Test
-    @Suppress("ReplaceCallWithBinaryOperator")
     fun shouldDoEqualsProperly() {
-        ColorRGBa.BLACK.equals(ColorRGBa.BLACK) shouldBe true
-        ColorRGBa.BLACK.equals(ColorRGBa.WHITE) shouldBe false
-        (ColorRGBa.BLACK == ColorRGBa.BLACK) shouldBe true
-        (ColorRGBa.BLACK == ColorRGBa.WHITE) shouldBe false
-        ColorRGBa.BLACK shouldBe ColorRGBa.BLACK
-        ColorRGBa.BLACK shouldNotBe ColorRGBa.WHITE
-        ColorRGBa.BLACK shouldBe ColorRGBa(0.0, 0.0, 0.0, 1.0, Linearity.SRGB)
-        ColorRGBa.BLACK shouldNotBe ColorRGBa(0.0, 0.0, 0.0, 1.0, Linearity.LINEAR)
-        ColorRGBa(0.0, 0.0, 0.0, 1.0, Linearity.SRGB) shouldBe ColorRGBa(0.0, 0.0, 0.0, 1.0, Linearity.SRGB)
+        assertEquals(ColorRGBa.BLACK, ColorRGBa.BLACK)
+        assertNotEquals(ColorRGBa.BLACK, ColorRGBa.WHITE)
+        assertSame(ColorRGBa.BLACK, ColorRGBa.BLACK)
+        assertNotSame(ColorRGBa.BLACK, ColorRGBa.WHITE)
+        assertEquals(ColorRGBa.BLACK, ColorRGBa(0.0, 0.0, 0.0, 1.0, Linearity.SRGB))
+        assertNotEquals(ColorRGBa.BLACK, ColorRGBa(0.0, 0.0, 0.0, 1.0, Linearity.LINEAR))
+        assertEquals(ColorRGBa(0.0, 0.0, 0.0, 1.0, Linearity.SRGB), ColorRGBa(0.0, 0.0, 0.0, 1.0, Linearity.SRGB))
     }
 
     @Test
@@ -27,7 +22,7 @@ class ColorRGBaTest {
             ColorRGBa(1.0, 1.0, 1.0, 0.0, Linearity.LINEAR),
             0.5
         )
-        mixed.linearity shouldBe Linearity.ASSUMED_LINEAR
+        assertEquals(mixed.linearity, Linearity.ASSUMED_LINEAR)
     }
 
     @Test
