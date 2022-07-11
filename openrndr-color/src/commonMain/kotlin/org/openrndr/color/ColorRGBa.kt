@@ -321,7 +321,14 @@ fun mix(left: ColorRGBa, right: ColorRGBa, x: Double): ColorRGBa {
  * @param b blue in `[0,1]`
  * @param a alpha in `[0,1]`, defaults to `1.0`
  */
-fun rgb(r: Double, g: Double = r, b: Double = r, a: Double = 1.0) = ColorRGBa(r, g, b, a, linearity = Linearity.SRGB)
+fun rgb(r: Double, g: Double, b: Double, a: Double = 1.0) = ColorRGBa(r, g, b, a, linearity = Linearity.SRGB)
+
+/**
+ * Shorthand for calling [ColorRGBa].
+ * @param gray shade of gray in `[0,1]`
+ * @param a alpha in `[0,1]`, defaults to `1.0`
+ */
+fun rgb(gray: Double, a: Double = 1.0) = ColorRGBa(gray, gray, gray, a, linearity = Linearity.SRGB)
 
 /**
  * Create a color in RGBa space
