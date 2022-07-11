@@ -1,6 +1,5 @@
 package org.openrndr.color
 
-import org.openrndr.math.CastableToVector4
 import org.openrndr.math.Matrix55
 import org.openrndr.math.Vector3
 import org.openrndr.math.Vector4
@@ -44,7 +43,7 @@ enum class Linearity(val certainty: Int) {
  * @param r red as a percentage between 0.0 and 1.0
  * @param g green as a percentage between 0.0 and 1.0
  * @param b blue as a percentage between 0.0 and 1.0
- * @param a alpha as a percentage between 0.0 and 1.0
+ * @param alpha alpha as a percentage between 0.0 and 1.0
  * @see [rgb]
  * @see [rgba]
  */
@@ -53,12 +52,10 @@ data class ColorRGBa @JvmOverloads constructor (
     val r: Double,
     val g: Double,
     val b: Double,
-    val a: Double = 1.0,
+    override val alpha: Double = 1.0,
     val linearity: Linearity = Linearity.UNKNOWN
 ) :
-    ConvertibleToColorRGBa,
-    CastableToVector4,
-    OpacifiableColor<ColorRGBa>,
+    ColorModel<ColorRGBa>,
     ShadableColor<ColorRGBa>,
     AlgebraicColor<ColorRGBa> {
 
@@ -151,13 +148,16 @@ data class ColorRGBa @JvmOverloads constructor (
         }
     }
 
+    @Deprecated("Legacy alpha parameter name", ReplaceWith("alpha"))
+    val a = alpha
+
     /**
      * Creates a copy of color with adjusted opacity
      * @param factor a scaling factor used for the opacity
      * @return A [ColorRGBa] with scaled opacity
      * @see shade
      */
-    override fun opacify(factor: Double): ColorRGBa = ColorRGBa(r, g, b, a * factor, linearity)
+    override fun opacify(factor: Double): ColorRGBa = ColorRGBa(r, g, b, alpha * factor, linearity)
 
     /**
      * Creates a copy of color with adjusted color
@@ -165,7 +165,7 @@ data class ColorRGBa @JvmOverloads constructor (
      * @return A [ColorRGBa] with scaled colors
      * @see opacify
      */
-    override fun shade(factor: Double): ColorRGBa = ColorRGBa(r * factor, g * factor, b * factor, a, linearity)
+    override fun shade(factor: Double): ColorRGBa = ColorRGBa(r * factor, g * factor, b * factor, alpha, linearity)
 
     /**
      * Copy of the the color with all of its fields clamped to `[0, 1]`
@@ -175,9 +175,9 @@ data class ColorRGBa @JvmOverloads constructor (
             r.coerceIn(0.0, 1.0),
             g.coerceIn(0.0, 1.0),
             b.coerceIn(0.0, 1.0),
-            a.coerceIn(0.0, 1.0), linearity
+            alpha.coerceIn(0.0, 1.0), linearity
         )
-    val alphaMultiplied get() = ColorRGBa(r * a, g * a, b * a, a, linearity)
+    val alphaMultiplied get() = ColorRGBa(r * alpha, g * alpha, b * alpha, alpha, linearity)
 
     /**
      * The minimum value over `r`, `g`, `b`
@@ -234,8 +234,8 @@ data class ColorRGBa @JvmOverloads constructor (
             return if (x <= 0.04045) x / 12.92 else ((x + 0.055) / (1 + 0.055)).pow(2.4)
         }
         return when (linearity) {
-            Linearity.SRGB -> ColorRGBa(t(r), t(g), t(b), a, Linearity.LINEAR)
-            Linearity.UNKNOWN, Linearity.ASSUMED_SRGB -> ColorRGBa(t(r), t(g), t(b), a, Linearity.ASSUMED_LINEAR)
+            Linearity.SRGB -> ColorRGBa(t(r), t(g), t(b), alpha, Linearity.LINEAR)
+            Linearity.UNKNOWN, Linearity.ASSUMED_SRGB -> ColorRGBa(t(r), t(g), t(b), alpha, Linearity.ASSUMED_LINEAR)
             Linearity.ASSUMED_LINEAR, Linearity.LINEAR -> this
         }
     }
@@ -249,8 +249,8 @@ data class ColorRGBa @JvmOverloads constructor (
             return if (x <= 0.0031308) 12.92 * x else (1 + 0.055) * x.pow(1.0 / 2.4) - 0.055
         }
         return when (linearity) {
-            Linearity.LINEAR -> ColorRGBa(t(r), t(g), t(b), a, Linearity.SRGB)
-            Linearity.UNKNOWN, Linearity.ASSUMED_LINEAR -> ColorRGBa(t(r), t(g), t(b), a, Linearity.ASSUMED_SRGB)
+            Linearity.LINEAR -> ColorRGBa(t(r), t(g), t(b), alpha, Linearity.SRGB)
+            Linearity.UNKNOWN, Linearity.ASSUMED_LINEAR -> ColorRGBa(t(r), t(g), t(b), alpha, Linearity.ASSUMED_SRGB)
             Linearity.ASSUMED_SRGB, Linearity.SRGB -> this
         }
     }
@@ -262,23 +262,33 @@ data class ColorRGBa @JvmOverloads constructor (
         var result = r.hashCode()
         result = 31 * result + g.hashCode()
         result = 31 * result + b.hashCode()
-        result = 31 * result + a.hashCode()
+        result = 31 * result + alpha.hashCode()
         // here we overcome the unstable hash by using the ordinal value
         result = 31 * result + linearity.ordinal.hashCode()
         return result
     }
 
-    override fun plus(right: ColorRGBa) = copy(r = r + right.r, g = g + right.g, b = b + right.b, a = a + right.a)
+    override fun plus(right: ColorRGBa) = copy(
+        r = r + right.r,
+        g = g + right.g,
+        b = b + right.b,
+        alpha = alpha + right.alpha
+    )
 
-    override fun minus(right: ColorRGBa) = copy(r = r - right.r, g = g - right.g, b = b - right.b, a = a - right.a)
+    override fun minus(right: ColorRGBa) = copy(
+        r = r - right.r,
+        g = g - right.g,
+        b = b - right.b,
+        alpha = alpha - right.alpha
+    )
 
-    override fun times(scale: Double) = copy(r = r * scale, g = g * scale, b = b * scale, a = a * scale)
+    override fun times(scale: Double) = copy(r = r * scale, g = g * scale, b = b * scale, alpha = alpha * scale)
 
     override fun mix(other: ColorRGBa, factor: Double): ColorRGBa {
         return mix(this, other, factor)
     }
 
-    override fun toVector4(): Vector4 = Vector4(r, g, b, a)
+    override fun toVector4(): Vector4 = Vector4(r, g, b, alpha)
 }
 
 /**
@@ -295,7 +305,7 @@ fun mix(left: ColorRGBa, right: ColorRGBa, x: Double): ColorRGBa {
             (1.0 - sx) * left.r + sx * right.r,
             (1.0 - sx) * left.g + sx * right.g,
             (1.0 - sx) * left.b + sx * right.b,
-            (1.0 - sx) * left.a + sx * right.a,
+            (1.0 - sx) * left.alpha + sx * right.alpha,
             linearity = left.linearity.leastCertain(right.linearity)
         )
     } else {
@@ -350,9 +360,9 @@ fun rgb(hex: String) = ColorRGBa.fromHex(hex)
 
 operator fun Matrix55.times(color: ColorRGBa): ColorRGBa {
     return color.copy(
-        r = color.r * c0r0 + color.g * c1r0 + color.b * c2r0 + color.a * c3r0 + c4r0,
-        g = color.r * c0r1 + color.g * c1r1 + color.b * c2r1 + color.a * c3r1 + c4r1,
-        b = color.r * c0r2 + color.g * c1r2 + color.b * c2r2 + color.a * c3r2 + c4r2,
-        a = color.r * c0r3 + color.g * c1r3 + color.b * c2r3 + color.a * c3r3 + c4r3
+        r = color.r * c0r0 + color.g * c1r0 + color.b * c2r0 + color.alpha * c3r0 + c4r0,
+        g = color.r * c0r1 + color.g * c1r1 + color.b * c2r1 + color.alpha * c3r1 + c4r1,
+        b = color.r * c0r2 + color.g * c1r2 + color.b * c2r2 + color.alpha * c3r2 + c4r2,
+        alpha = color.r * c0r3 + color.g * c1r3 + color.b * c2r3 + color.alpha * c3r3 + c4r3
     )
 }

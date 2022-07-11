@@ -135,7 +135,7 @@ class ComputeShaderGL43(val programObject: Int, val name: String = "compute_shad
         bound {
             val index = uniformIndex(name)
             if (index != -1) {
-                glUniform4f(index, value.r.toFloat(), value.g.toFloat(), value.b.toFloat(), value.a.toFloat())
+                glUniform4f(index, value.r.toFloat(), value.g.toFloat(), value.b.toFloat(), value.alpha.toFloat())
                 postUniformCheck(name, index, value)
             }
         }

@@ -20,13 +20,11 @@ data class ColorLCHABa @JvmOverloads constructor (
     val l: Double,
     val c: Double,
     val h: Double,
-    val alpha: Double = 1.0,
+    override val alpha: Double = 1.0,
     val ref: ColorXYZa = ColorXYZa.NEUTRAL
 ) :
-    ConvertibleToColorRGBa,
-    CastableToVector4,
+    ColorModel<ColorLCHABa>,
     ShadableColor<ColorLCHABa>,
-    OpacifiableColor<ColorLCHABa>,
     HueShiftableColor<ColorLCHABa>,
     AlgebraicColor<ColorLCHABa> {
     companion object {

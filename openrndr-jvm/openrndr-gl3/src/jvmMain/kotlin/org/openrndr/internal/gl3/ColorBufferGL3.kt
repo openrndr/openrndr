@@ -611,7 +611,12 @@ class ColorBufferGL3(
     override fun fill(color: ColorRGBa) {
         checkDestroyed()
 
-        val floatColorData = floatArrayOf(color.r.toFloat(), color.g.toFloat(), color.b.toFloat(), color.a.toFloat())
+        val floatColorData = floatArrayOf(
+            color.r.toFloat(),
+            color.g.toFloat(),
+            color.b.toFloat(),
+            color.alpha.toFloat()
+        )
         when {
             (Driver.glVersion < DriverVersionGL.VERSION_4_4) -> {
                 val writeTarget = renderTarget(width, height, contentScale) {

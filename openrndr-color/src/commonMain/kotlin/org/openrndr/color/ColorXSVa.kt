@@ -1,6 +1,5 @@
 package org.openrndr.color
 
-import org.openrndr.math.CastableToVector4
 import org.openrndr.math.Vector4
 import org.openrndr.math.mixAngle
 import kotlin.jvm.JvmOverloads
@@ -13,13 +12,11 @@ import kotlin.jvm.JvmOverloads
  * @see ColorHSVa
  * @see ColorXSLa
  */
-data class ColorXSVa @JvmOverloads constructor (val x: Double, val s: Double, val v: Double, val a: Double = 1.0) :
-    ConvertibleToColorRGBa,
-    CastableToVector4,
+data class ColorXSVa @JvmOverloads constructor (val x: Double, val s: Double, val v: Double, override val alpha: Double = 1.0) :
+    ColorModel<ColorXSVa>,
     ShadableColor<ColorXSVa>,
     HueShiftableColor<ColorXSVa>,
     SaturatableColor<ColorXSVa>,
-    OpacifiableColor<ColorXSVa>,
     AlgebraicColor<ColorXSVa> {
 
     companion object {
@@ -38,9 +35,12 @@ data class ColorXSVa @JvmOverloads constructor (val x: Double, val s: Double, va
             } else {
                 map(h, 275.0, 360.0, 300.0, 360.0)
             }
-            return ColorXSVa(x, hsva.s, hsva.v, hsva.a)
+            return ColorXSVa(x, hsva.s, hsva.v, hsva.alpha)
         }
     }
+
+    @Deprecated("Legacy alpha parameter name", ReplaceWith("alpha"))
+    val a = alpha
 
     fun toHSVa(): ColorHSVa {
         val x = this.x % 360.0
@@ -57,7 +57,7 @@ data class ColorXSVa @JvmOverloads constructor (val x: Double, val s: Double, va
         } else {
             map(x, 300.0, 360.0, 275.0, 360.0)
         }
-        return ColorHSVa(h, s, v, a)
+        return ColorHSVa(h, s, v, alpha)
     }
 
     override fun toRGBa() = toHSVa().toRGBa()
@@ -65,15 +65,25 @@ data class ColorXSVa @JvmOverloads constructor (val x: Double, val s: Double, va
     override fun shiftHue(shiftInDegrees: Double) = copy(x = (x + shiftInDegrees))
     override fun saturate(factor: Double) = copy(s = s * factor)
     override fun shade(factor: Double) = copy(v = v * factor)
-    override fun opacify(factor: Double): ColorXSVa = copy(a = a * factor)
+    override fun opacify(factor: Double): ColorXSVa = copy(alpha = alpha * factor)
 
-    override fun plus(right: ColorXSVa) = copy(x = x + right.x, s = s + right.s, v = v + right.v, a = a + right.a)
-    override fun minus(right: ColorXSVa) = copy(x = x - right.x, s = s - right.s, v = v - right.v, a = a - right.a)
-    override fun times(scale: Double) = copy(x = x * scale, s = s * scale, v = v * scale, a = a * scale)
+    override fun plus(right: ColorXSVa) = copy(
+        x = x + right.x,
+        s = s + right.s,
+        v = v + right.v,
+        alpha = alpha + right.alpha
+    )
+    override fun minus(right: ColorXSVa) = copy(
+        x = x - right.x,
+        s = s - right.s,
+        v = v - right.v,
+        alpha = alpha - right.alpha
+    )
+    override fun times(scale: Double) = copy(x = x * scale, s = s * scale, v = v * scale, alpha = alpha * scale)
 
     override fun mix(other: ColorXSVa, factor: Double) = mix(this, other, factor)
 
-    override fun toVector4(): Vector4 = Vector4(x, s, v, a)
+    override fun toVector4(): Vector4 = Vector4(x, s, v, alpha)
 }
 
 private fun map(x: Double, a: Double, b: Double, c: Double, d: Double): Double {
@@ -93,6 +103,6 @@ fun mix(left: ColorXSVa, right: ColorXSVa, x: Double): ColorXSVa {
         mixAngle(left.x, right.x, sx),
         (1.0 - sx) * left.s + sx * right.s,
         (1.0 - sx) * left.v + sx * right.v,
-        (1.0 - sx) * left.a + sx * right.a
+        (1.0 - sx) * left.alpha + sx * right.alpha
     )
 }

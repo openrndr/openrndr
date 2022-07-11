@@ -52,7 +52,7 @@ class VolumeTextureGL3(val texture: Int,
     override fun fill(color: ColorRGBa) {
         (Driver.instance as DriverGL3).version.require(DriverVersionGL.VERSION_4_4)
         require(storageMode == TextureStorageModeGL.STORAGE)
-        val floatData = floatArrayOf(color.r.toFloat(), color.g.toFloat(), color.b.toFloat(), color.a.toFloat())
+        val floatData = floatArrayOf(color.r.toFloat(), color.g.toFloat(), color.b.toFloat(), color.alpha.toFloat())
         for (level in 0 until levels) {
             GL44C.glClearTexImage(texture, level, ColorFormat.RGBa.glFormat(), ColorType.FLOAT32.glType(), floatData)
             debugGLErrors()

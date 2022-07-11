@@ -1,6 +1,5 @@
 package org.openrndr.color
 
-import org.openrndr.math.CastableToVector4
 import org.openrndr.math.Vector4
 import kotlin.jvm.JvmOverloads
 import kotlin.math.pow
@@ -21,12 +20,10 @@ data class ColorLABa @JvmOverloads constructor (
     val l: Double,
     val a: Double,
     val b: Double,
-    val alpha: Double = 1.0,
+    override val alpha: Double = 1.0,
     val ref: ColorXYZa = ColorXYZa.NEUTRAL
 ) :
-    ConvertibleToColorRGBa,
-    CastableToVector4,
-    OpacifiableColor<ColorLABa>,
+    ColorModel<ColorLABa>,
     ShadableColor<ColorLABa>,
     AlgebraicColor<ColorLABa> {
 
@@ -41,7 +38,7 @@ data class ColorLABa @JvmOverloads constructor (
             val a = 500 * (f(x) - f(y))
             val b = 200 * (f(y) - f(z))
 
-            return ColorLABa(l, a, b, xyz.a, ref)
+            return ColorLABa(l, a, b, xyz.alpha, ref)
         }
 
         fun fromRGBa(rgba: ColorRGBa, ref: ColorXYZa = ColorXYZa.NEUTRAL) =

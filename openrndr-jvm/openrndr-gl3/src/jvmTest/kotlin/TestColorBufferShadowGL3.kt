@@ -71,11 +71,11 @@ object TestColorBufferShadowGL3 : Spek({
             it("should be able to read all pixels correctly ") {
                 for (y in 0 until cb.height) {
                     for (x in 0 until cb.width) {
-                        val c = cb.shadow[x,y]
-                        c.r `should be equal to` 127/255.0
+                        val c = cb.shadow[x, y]
+                        c.r `should be equal to` 127 / 255.0
                         c.g `should be equal to` 0.0
                         c.b `should be equal to` 0.0
-                        c.a `should be equal to` 1.0
+                        c.alpha `should be equal to` 1.0
                     }
                 }
             }

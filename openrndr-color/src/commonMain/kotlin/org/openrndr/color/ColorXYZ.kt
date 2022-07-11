@@ -1,6 +1,5 @@
 package org.openrndr.color
 
-import org.openrndr.math.CastableToVector4
 import org.openrndr.math.Vector4
 import kotlin.jvm.JvmOverloads
 import kotlin.math.min
@@ -11,12 +10,10 @@ import kotlin.math.min
  * @param x first chromaticity coordinate, mix of the three CIE RGB curves chosen to be nonnegative
  * @param y luminance of the color, in a range of 0.0 (darkest) to 100.0 (brightest)
  * @param z second chromaticity coordinate, quasi-equal to blue
- * @param a alpha as a percentage between 0.0 and 1.0
+ * @param alpha alpha as a percentage between 0.0 and 1.0
  */
-data class ColorXYZa @JvmOverloads constructor (val x: Double, val y: Double, val z: Double, val a: Double = 1.0) :
-    ConvertibleToColorRGBa,
-    CastableToVector4,
-    OpacifiableColor<ColorXYZa>,
+data class ColorXYZa @JvmOverloads constructor (val x: Double, val y: Double, val z: Double, override val alpha: Double = 1.0) :
+    ColorModel<ColorXYZa>,
     AlgebraicColor<ColorXYZa> {
 
     @Suppress("unused")
@@ -52,9 +49,12 @@ data class ColorXYZa @JvmOverloads constructor (val x: Double, val y: Double, va
             val x = 0.4124 * linear.r + 0.3576 * linear.g + 0.1805 * linear.b
             val y = 0.2126 * linear.r + 0.7152 * linear.g + 0.0722 * linear.b
             val z = 0.0193 * linear.r + 0.1192 * linear.g + 0.9505 * linear.b
-            return ColorXYZa(x, y, z, linear.a)
+            return ColorXYZa(x, y, z, linear.alpha)
         }
     }
+
+    @Deprecated("Legacy alpha parameter name", ReplaceWith("alpha"))
+    val a = alpha
 
     val minValue get() = min(min(x, y), z)
 
@@ -64,15 +64,30 @@ data class ColorXYZa @JvmOverloads constructor (val x: Double, val y: Double, va
         val r = 3.2406 * x - 1.5372 * y - 0.4986 * z
         val g = -0.9689 * x + 1.8758 * y + 0.0415 * z
         val b = 0.0557 * x - 0.2040 * y + 1.0570 * z
-        return ColorRGBa(r, g, b, a, Linearity.LINEAR)
+        return ColorRGBa(r, g, b, alpha, Linearity.LINEAR)
     }
 
     fun toHSVa(): ColorHSVa = toRGBa().toHSVa()
     fun toHSLa(): ColorHSLa = toRGBa().toHSLa()
-    override fun plus(right: ColorXYZa) = copy(x = x + right.x, y = y + right.y, z = z + right.z, a = a + right.a)
-    override fun minus(right: ColorXYZa) = copy(x = x - right.x, y = y - right.y, z = z - right.z, a = a - right.a)
-    override fun times(scale: Double): ColorXYZa = copy(x = x * scale, y = y * scale, z = z * scale, a = a * scale)
-    override fun opacify(factor: Double) = copy(a = a * factor)
+    override fun plus(right: ColorXYZa) = copy(
+        x = x + right.x,
+        y = y + right.y,
+        z = z + right.z,
+        alpha = alpha + right.alpha
+    )
+    override fun minus(right: ColorXYZa) = copy(
+        x = x - right.x,
+        y = y - right.y,
+        z = z - right.z,
+        alpha = alpha - right.alpha
+    )
+    override fun times(scale: Double): ColorXYZa = copy(
+        x = x * scale,
+        y = y * scale,
+        z = z * scale,
+        alpha = alpha * scale
+    )
+    override fun opacify(factor: Double) = copy(alpha = alpha * factor)
 
-    override fun toVector4() = Vector4(x, y, z, a)
+    override fun toVector4() = Vector4(x, y, z, alpha)
 }

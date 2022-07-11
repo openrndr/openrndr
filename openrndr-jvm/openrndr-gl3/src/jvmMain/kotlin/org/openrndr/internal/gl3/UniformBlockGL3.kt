@@ -107,7 +107,7 @@ class UniformBlockGL3(override val layout: UniformBlockLayout, val blockBinding:
                     shadowBuffer.putFloat(entry.offset, value.r.toFloat())
                     shadowBuffer.putFloat(entry.offset + 4, value.g.toFloat())
                     shadowBuffer.putFloat(entry.offset + 8, value.b.toFloat())
-                    shadowBuffer.putFloat(entry.offset + 12, value.a.toFloat())
+                    shadowBuffer.putFloat(entry.offset + 12, value.alpha.toFloat())
                 } else {
                     throw RuntimeException("uniform mismatch")
                 }

@@ -40,7 +40,7 @@ internal fun Matrix33.toFloat32Array(): Float32Array = float32Array(
     c2r0.toFloat(), c2r1.toFloat(), c2r2.toFloat())
 
 internal fun ColorRGBa.toFloat32Array(): Float32Array = float32Array(
-    r.toFloat(), g.toFloat(), b.toFloat(), a.toFloat()
+    r.toFloat(), g.toFloat(), b.toFloat(), alpha.toFloat()
 )
 
 internal fun Vector4.toFloat32Array(): Float32Array = float32Array(
