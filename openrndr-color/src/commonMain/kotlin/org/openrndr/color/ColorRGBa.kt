@@ -6,6 +6,7 @@ import org.openrndr.math.Vector4
 import kotlin.jvm.JvmOverloads
 import kotlin.math.pow
 
+
 enum class Linearity(val certainty: Int) {
     UNKNOWN(-1),
     LINEAR(1),
@@ -48,7 +49,7 @@ enum class Linearity(val certainty: Int) {
  * @see [rgba]
  */
 @Suppress("EqualsOrHashCode") // generated equals() is ok, only hashCode() needs to be overridden
-data class ColorRGBa @JvmOverloads constructor (
+data class ColorRGBa @JvmOverloads constructor(
     val r: Double,
     val g: Double,
     val b: Double,
@@ -67,6 +68,10 @@ data class ColorRGBa @JvmOverloads constructor (
     }
 
     companion object {
+        /**
+         * Calculates a color from hexadecimal value. For values with transparency
+         * use the [String] variant of this function.
+         */
         fun fromHex(hex: Int): ColorRGBa {
             val r = hex and (0xff0000) shr 16
             val g = hex and (0x00ff00) shr 8
@@ -74,26 +79,37 @@ data class ColorRGBa @JvmOverloads constructor (
             return ColorRGBa(r / 255.0, g / 255.0, b / 255.0, 1.0, Linearity.SRGB)
         }
 
+        /**
+         * Calculates a color from hexadecimal notation, like in CSS.
+         *
+         * Supports the following formats
+         * * `RGB`
+         * * `RGBA`
+         * * `RRGGBB`
+         * * `RRGGBBAA`
+         *
+         * where every character is a valid hex digit between `0..f` (case insensitive).
+         * Supports leading "#" or "0x".
+         */
         fun fromHex(hex: String): ColorRGBa {
-            val parsedHex = hex.replace("#", "")
-            val len = parsedHex.length
-            val mult = len / 3
-
-            val colors = (0..2).map { idx ->
-                var c = parsedHex.substring(idx * mult, (idx + 1) * mult)
-
-                c = if (len == 3) c + c else c
-
-                try {
-                    c.toInt(16)
-                } catch (e: NumberFormatException) {
-                    throw IllegalArgumentException("Cannot convert input '$hex' to an RGBa color value.")
-                }
+            val pos = when {
+                hex.startsWith("#") -> 1
+                hex.startsWith("0x") -> 2
+                else -> 0
             }
-
-            val (r, g, b) = colors
-
-            return ColorRGBa(r / 255.0, g / 255.0, b / 255.0, 1.0, Linearity.SRGB)
+            fun fromHex1(str: String, pos: Int): Double {
+                return 17 * str[pos].digitToInt(16) / 255.0
+            }
+            fun fromHex2(str: String, pos: Int): Double {
+                return (16 * str[pos].digitToInt(16) + str[pos + 1].digitToInt(16)) / 255.0
+            }
+            return when (hex.length - pos) {
+                3 -> ColorRGBa(fromHex1(hex, pos), fromHex1(hex, pos + 1), fromHex1(hex, pos + 2), 1.0, Linearity.SRGB)
+                4 -> ColorRGBa(fromHex1(hex, pos), fromHex1(hex, pos + 1), fromHex1(hex, pos + 2), fromHex1(hex, pos + 3), Linearity.SRGB)
+                6 -> ColorRGBa(fromHex2(hex, pos), fromHex2(hex, pos + 2), fromHex2(hex, pos + 4), 1.0, Linearity.SRGB)
+                8 -> ColorRGBa(fromHex2(hex, pos), fromHex2(hex, pos + 2), fromHex2(hex, pos + 4), fromHex2(hex, pos + 6), Linearity.SRGB)
+                else -> throw IllegalArgumentException("Invalid hex length/format for '$hex'")
+            }
         }
 
         /** @suppress */
