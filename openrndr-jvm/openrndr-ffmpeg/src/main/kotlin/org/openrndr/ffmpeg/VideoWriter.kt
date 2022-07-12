@@ -2,6 +2,7 @@ package org.openrndr.ffmpeg
 
 import mu.KotlinLogging
 import org.lwjgl.BufferUtils
+import org.openrndr.ExtensionDslMarker
 import org.openrndr.draw.ColorBuffer
 import java.io.File
 import java.io.IOException
@@ -14,6 +15,7 @@ import java.util.*
 
 private val logger = KotlinLogging.logger {}
 
+@ExtensionDslMarker
 abstract class VideoWriterProfile {
     abstract fun arguments(): Array<String>
     abstract val fileExtension: String
