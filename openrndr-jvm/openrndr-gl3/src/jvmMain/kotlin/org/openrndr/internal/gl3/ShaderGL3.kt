@@ -12,6 +12,7 @@ import org.openrndr.measure
 import java.io.File
 import java.io.FileWriter
 import java.nio.Buffer
+import java.time.LocalDateTime
 
 private val logger = KotlinLogging.logger {}
 
@@ -28,14 +29,43 @@ internal fun checkShaderInfoLog(`object`: Int, code: String, sourceFile: String)
         glGetShaderInfoLog(`object`, logLength, infoLog)
 
         val infoBytes = ByteArray(logLength[0])
-        infoLog.get(infoBytes)
-        println("GLSL compilation problems in\n ${String(infoBytes)}")
 
-        val temp = File("ShaderError.txt")
-        FileWriter(temp).use {
-            it.write(code)
+        // This is suspected to only work for NVIDIA drivers
+        val errorLinePattern = "\\d+\\((\\d+)\\) :".toRegex()
+
+        infoLog.get(infoBytes)
+        val infoString = "${String(infoBytes)}"
+        println("GLSL compilation problems in\n $infoString")
+
+        val errorLineMatches = errorLinePattern.find(infoString)
+        val firstErrorLine = if (errorLineMatches != null) {
+            errorLineMatches.groupValues[1].toIntOrNull()
+        } else {
+            1
+        } ?: 1
+
+        val errorLogFile = File("ShaderError.glsl")
+
+        if (errorLogFile.exists()) {
+            if (!errorLogFile.canWrite()) {
+                errorLogFile.setWritable(true)
+            }
+            errorLogFile.delete()
         }
-        System.err.println("click.to.see.shader.code(ShaderError.txt:1)")
+
+        FileWriter(errorLogFile).use {
+            it.write(code)
+            it.write("// -------------\n")
+            it.write("// $sourceFile\n")
+            it.write("// created ${LocalDateTime.now()}\n")
+            it.write("/*\n")
+            it.write(infoString)
+            it.write("*/\n")
+        }
+        errorLogFile.setReadOnly()
+
+        // This is to trick IntelliJ into displaying a clickable link.
+        System.err.println("click.to.see.shader.code(ShaderError.glsl:$firstErrorLine)")
         logger.error { "GLSL shader compilation failed for $sourceFile" }
         throw Exception("Shader error: $sourceFile")
     }
@@ -61,19 +91,22 @@ fun checkProgramInfoLog(`object`: Int, sourceFile: String) {
     }
 }
 
-class ShaderGL3(val program: Int,
-                val name: String,
-                val vertexShader: VertexShaderGL3,
-                val tessellationControlShader: TessellationControlShaderGL3?,
-                val tessellationEvaluationShader: TessellationEvaluationShaderGL3?,
-                val geometryShader: GeometryShaderGL3?,
-                val fragmentShader: FragmentShaderGL3,
-                override val session: Session?) : Shader {
+class ShaderGL3(
+    val program: Int,
+    val name: String,
+    val vertexShader: VertexShaderGL3,
+    val tessellationControlShader: TessellationControlShaderGL3?,
+    val tessellationEvaluationShader: TessellationEvaluationShaderGL3?,
+    val geometryShader: GeometryShaderGL3?,
+    val fragmentShader: FragmentShaderGL3,
+    override val session: Session?
+) : Shader {
 
     private val lastValues = mutableMapOf<String, Any>()
 
-    override val types: Set<ShaderType> = if (geometryShader != null) setOf(ShaderType.VERTEX, ShaderType.GEOMETRY, ShaderType.FRAGMENT) else
-        setOf(ShaderType.VERTEX, ShaderType.FRAGMENT)
+    override val types: Set<ShaderType> =
+        if (geometryShader != null) setOf(ShaderType.VERTEX, ShaderType.GEOMETRY, ShaderType.FRAGMENT) else
+            setOf(ShaderType.VERTEX, ShaderType.FRAGMENT)
 
     private var destroyed = false
     private var running = false
@@ -89,13 +122,13 @@ class ShaderGL3(val program: Int,
 
     companion object {
         fun create(
-                vertexShader: VertexShaderGL3,
-                tessellationControlShader: TessellationControlShaderGL3?,
-                tessellationEvaluationShader: TessellationEvaluationShaderGL3?,
-                geometryShader: GeometryShaderGL3?,
-                fragmentShader: FragmentShaderGL3,
-                name: String,
-                session: Session?
+            vertexShader: VertexShaderGL3,
+            tessellationControlShader: TessellationControlShaderGL3?,
+            tessellationEvaluationShader: TessellationEvaluationShaderGL3?,
+            geometryShader: GeometryShaderGL3?,
+            fragmentShader: FragmentShaderGL3,
+            name: String,
+            session: Session?
         ): ShaderGL3 {
             synchronized(Driver.instance) {
                 debugGLErrors()
@@ -138,7 +171,16 @@ class ShaderGL3(val program: Int,
                     checkProgramInfoLog(program, "noname")
                 }
                 glFinish()
-                return ShaderGL3(program, name, vertexShader, tessellationControlShader, tessellationEvaluationShader, geometryShader, fragmentShader, session)
+                return ShaderGL3(
+                    program,
+                    name,
+                    vertexShader,
+                    tessellationControlShader,
+                    tessellationEvaluationShader,
+                    geometryShader,
+                    fragmentShader,
+                    session
+                )
             }
         }
     }
@@ -174,7 +216,12 @@ class ShaderGL3(val program: Int,
 
             val uniformIndicesBuffer = BufferUtils.createIntBuffer(uniformCount)
             val uniformIndices = run {
-                glGetActiveUniformBlockiv(program, blockIndex, GL_UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES, uniformIndicesBuffer)
+                glGetActiveUniformBlockiv(
+                    program,
+                    blockIndex,
+                    GL_UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES,
+                    uniformIndicesBuffer
+                )
                 (uniformIndicesBuffer as Buffer).rewind()
                 val array = IntArray(uniformCount)
                 uniformIndicesBuffer.get(array)
@@ -225,7 +272,13 @@ class ShaderGL3(val program: Int,
             checkGLErrors()
 
             return UniformBlockLayout(blockSize, (0 until uniformCount).map {
-                UniformDescription(uniformNames[it].replace(Regex("\\[.*\\]"), ""), uniformTypes[it].toUniformType(), uniformSizes[it], uniformOffsets[it], uniformStrides[it])
+                UniformDescription(
+                    uniformNames[it].replace(Regex("\\[.*\\]"), ""),
+                    uniformTypes[it].toUniformType(),
+                    uniformSizes[it],
+                    uniformOffsets[it],
+                    uniformStrides[it]
+                )
             }.associateBy { it.name })
 
 
@@ -570,8 +623,8 @@ class ShaderGL3(val program: Int,
         if (index != -1) {
             logger.trace { "Setting uniform '$name' to $value" }
 
-            val floatValues = FloatArray(value.size) {
-                i -> value[i].toFloat()
+            val floatValues = FloatArray(value.size) { i ->
+                value[i].toFloat()
             }
 
             glUniform1fv(index, floatValues)
@@ -702,11 +755,11 @@ class ShaderGL3(val program: Int,
     }
 
     fun attributeIndex(name: String): Int =
-            attributes.getOrPut(name) {
-                val location = glGetAttribLocation(program, name)
-                debugGLErrors()
-                location
-            }
+        attributes.getOrPut(name) {
+            val location = glGetAttribLocation(program, name)
+            debugGLErrors()
+            location
+        }
 
     override fun destroy() {
         if (!destroyed) {
@@ -736,7 +789,15 @@ class ShaderGL3(val program: Int,
                 require(bufferTexture.format.componentCount != 3) {
                     "color buffer has unsupported format (${imageBinding.bufferTexture.format}), only formats with 1, 2 or 4 components are supported"
                 }
-                GL43C.glBindImageTexture(image, bufferTexture.texture, imageBinding.level, false, 0, imageBinding.access.gl(), bufferTexture.glFormat())
+                GL43C.glBindImageTexture(
+                    image,
+                    bufferTexture.texture,
+                    imageBinding.level,
+                    false,
+                    0,
+                    imageBinding.access.gl(),
+                    bufferTexture.glFormat()
+                )
             }
 
             is ColorBufferImageBinding -> {
@@ -744,35 +805,75 @@ class ShaderGL3(val program: Int,
                 require(colorBuffer.format.componentCount != 3) {
                     "color buffer has unsupported format (${imageBinding.colorBuffer.format}), only formats with 1, 2 or 4 components are supported"
                 }
-                GL43C.glBindImageTexture(image, colorBuffer.texture, imageBinding.level, false, 0, imageBinding.access.gl(), colorBuffer.glFormat())
+                GL43C.glBindImageTexture(
+                    image,
+                    colorBuffer.texture,
+                    imageBinding.level,
+                    false,
+                    0,
+                    imageBinding.access.gl(),
+                    colorBuffer.glFormat()
+                )
             }
             is ArrayTextureImageBinding -> {
                 val arrayTexture = imageBinding.arrayTexture as ArrayTextureGL3
                 require(arrayTexture.format.componentCount != 3) {
                     "color buffer has unsupported format (${imageBinding.arrayTexture.format}), only formats with 1, 2 or 4 components are supported"
                 }
-                GL43C.glBindImageTexture(image, arrayTexture.texture, imageBinding.level, false, 0, imageBinding.access.gl(), arrayTexture.glFormat())
+                GL43C.glBindImageTexture(
+                    image,
+                    arrayTexture.texture,
+                    imageBinding.level,
+                    false,
+                    0,
+                    imageBinding.access.gl(),
+                    arrayTexture.glFormat()
+                )
             }
             is CubemapImageBinding -> {
                 val cubemap = imageBinding.cubemap as CubemapGL3
                 require(cubemap.format.componentCount != 3) {
                     "color buffer has unsupported format (${imageBinding.cubemap.format}), only formats with 1, 2 or 4 components are supported"
                 }
-                GL43C.glBindImageTexture(image, cubemap.texture, imageBinding.level, false, 0, imageBinding.access.gl(), cubemap.glFormat())
+                GL43C.glBindImageTexture(
+                    image,
+                    cubemap.texture,
+                    imageBinding.level,
+                    false,
+                    0,
+                    imageBinding.access.gl(),
+                    cubemap.glFormat()
+                )
             }
             is ArrayCubemapImageBinding -> {
                 val arrayCubemap = imageBinding.arrayCubemap as ArrayCubemapGL4
                 require(arrayCubemap.format.componentCount != 3) {
                     "color buffer has unsupported format (${imageBinding.arrayCubemap.format}), only formats with 1, 2 or 4 components are supported"
                 }
-                GL43C.glBindImageTexture(image, arrayCubemap.texture, imageBinding.level, false, 0, imageBinding.access.gl(), arrayCubemap.glFormat())
+                GL43C.glBindImageTexture(
+                    image,
+                    arrayCubemap.texture,
+                    imageBinding.level,
+                    false,
+                    0,
+                    imageBinding.access.gl(),
+                    arrayCubemap.glFormat()
+                )
             }
             is VolumeTextureImageBinding -> {
                 val volumeTexture = imageBinding.volumeTexture as VolumeTextureGL3
                 require(volumeTexture.format.componentCount != 3) {
                     "color buffer has unsupported format (${imageBinding.volumeTexture.format}), only formats with 1, 2 or 4 components are supported"
                 }
-                GL43C.glBindImageTexture(image, volumeTexture.texture, imageBinding.level, false, 0, imageBinding.access.gl(), volumeTexture.glFormat())
+                GL43C.glBindImageTexture(
+                    image,
+                    volumeTexture.texture,
+                    imageBinding.level,
+                    false,
+                    0,
+                    imageBinding.access.gl(),
+                    volumeTexture.glFormat()
+                )
             }
 
             else -> error("unsupported binding")
