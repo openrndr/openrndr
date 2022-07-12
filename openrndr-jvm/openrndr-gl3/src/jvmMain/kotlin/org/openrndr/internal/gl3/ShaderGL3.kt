@@ -30,8 +30,9 @@ internal fun checkShaderInfoLog(`object`: Int, code: String, sourceFile: String)
 
         val infoBytes = ByteArray(logLength[0])
 
-        // This is suspected to only work for NVIDIA drivers
-        val errorLinePattern = "\\d+\\((\\d+)\\) :".toRegex()
+        // NVIDIA driver: `0(72) : error`
+        // Intel driver:  `0:72(8): error`
+        val errorLinePattern = "\\d+[:(](\\d+)[ 0-9()]*?:".toRegex()
 
         infoLog.get(infoBytes)
         val infoString = "${String(infoBytes)}"
