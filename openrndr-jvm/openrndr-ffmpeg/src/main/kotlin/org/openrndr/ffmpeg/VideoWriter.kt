@@ -30,31 +30,22 @@ val File.fileWithoutExtension: File
         }
     }
 
-class MP4Profile : VideoWriterProfile() {
-    private var mode = WriterMode.Normal
-    private var constantRateFactor = null as Int?
+@Deprecated("Use H264Profile", replaceWith = ReplaceWith("H264Profile"))
+typealias MP4Profile = H264Profile
 
-    override val fileExtension = "mp4"
-
-    enum class WriterMode {
-        Normal,
-        Lossless
-    }
-
-    fun mode(mode: WriterMode): MP4Profile {
-        this.mode = mode
-        return this
-    }
+class H264Profile : VideoWriterProfile() {
 
     /**
-     * Sets the constant rate factor
-     * @param constantRateFactor the constant rate factor (default is 23)
-     * @return
+     * constant rate factor (default is 23)
      */
-    fun constantRateFactor(constantRateFactor: Int?): MP4Profile {
-        this.constantRateFactor = constantRateFactor
-        return this
+    var constantRateFactor = null as Int?
+
+    @Deprecated("Use constantRateFactor property")
+    fun constantRateFactor(factor: Int) {
+        constantRateFactor = factor
     }
+
+    override var fileExtension = "mp4"
 
     var highPrecisionChroma = true
 
@@ -64,6 +55,8 @@ class MP4Profile : VideoWriterProfile() {
     var videoCodec = CODEC_LIBX264 as String?
     var hwaccel = null as String?
     var preset = null as String?
+
+
     var pixelFormat = "yuv420p" as String?
     var userArguments = emptyArray<String>()
 
@@ -105,15 +98,6 @@ class MP4Profile : VideoWriterProfile() {
             hwaccelArguments + pixelFormatArguments + chromaArguments + filterArguments + videoCodecArguments + constantRateArguments + presetArguments + userArguments
 
         return arguments
-
-//        return when (mode) {
-//            WriterMode.Normal -> arrayOf("-pix_fmt", "yuv420p", // this will produce videos that are playable by quicktime
-//                    "-an", "-vcodec", codec, "-crf", "" + constantRateFactor) + chromaArguments
-//            WriterMode.Lossless -> {
-//                arrayOf("-pix_fmt", "yuv420p", // this will produce videos that are playable by quicktime
-//                        "-an", "-vcodec", codec, "-preset", "llhp") + chromaArguments
-//            }
-//        }
     }
 }
 
@@ -132,7 +116,7 @@ class VideoWriter {
     private var ffmpeg: Process? = null
     private var movieStream: OutputStream? = null
 
-    private var profile: VideoWriterProfile = MP4Profile()
+    private var profile: VideoWriterProfile = H264Profile()
 
     var inputFormat = "rgba"
 

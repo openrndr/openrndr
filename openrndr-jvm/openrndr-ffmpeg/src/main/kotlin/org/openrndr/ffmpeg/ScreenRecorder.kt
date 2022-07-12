@@ -54,7 +54,7 @@ class ScreenRecorder : Extension {
     var outputToVideo: Boolean = true
 
     /** the profile to use for the output video */
-    var profile: VideoWriterProfile = MP4Profile()
+    var profile: VideoWriterProfile = H264Profile()
 
     /** should a frameclock be installed, if false system clock is used */
     var frameClock = true
@@ -208,4 +208,8 @@ class ScreenRecorder : Extension {
             videoWriter.stop()
         }
     }
+}
+
+fun ScreenRecorder.h264(configure: H264Profile.()->Unit) {
+    profile = H264Profile().apply(configure)
 }
