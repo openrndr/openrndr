@@ -2,6 +2,9 @@ package org.openrndr
 
 import org.openrndr.draw.Drawer
 
+@DslMarker
+annotation class ExtensionDslMarker
+
 /**
  * Indicates the stage in which the extension is
  */
@@ -14,6 +17,7 @@ enum class ExtensionStage {
 /**
  * Defines a Program extension. This is the interface for developers of OPENRNDR extensions.
  */
+@ExtensionDslMarker
 interface Extension {
     var enabled: Boolean
     fun setup(program: Program) {}
