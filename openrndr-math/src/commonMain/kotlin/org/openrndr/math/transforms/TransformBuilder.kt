@@ -10,6 +10,8 @@ import kotlin.reflect.KMutableProperty0
 class TransformBuilder(baseTransform: Matrix44 = Matrix44.IDENTITY) {
     var transform: Matrix44 = baseTransform
 
+    fun rotate(degrees: Double) = rotate(Vector3.UNIT_Z, degrees)
+
     fun rotate(axis: Quaternion) {
         transform *= axis.matrix.matrix44
     }
