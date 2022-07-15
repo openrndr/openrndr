@@ -564,6 +564,39 @@ class CompositionDrawer(documentBounds: CompositionDimensions = defaultCompositi
         lineSegment(it, insert)
     }
 
+    fun segment(
+        start: Vector2,
+        c0: Vector2,
+        c1: Vector2,
+        end: Vector2,
+        insert: Boolean = true
+    ) = segment(Segment(start, c0, c1, end), insert)
+
+    fun segment(
+        start: Vector2,
+        c0: Vector2,
+        end: Vector2,
+        insert: Boolean = true
+    ) = segment(Segment(start, c0, end), insert)
+
+    fun segment(
+        start: Vector2,
+        end: Vector2,
+        insert: Boolean = true
+    ) = segment(Segment(start, end), insert)
+
+    fun segment(
+        segment: Segment,
+        insert: Boolean = true
+    ) = contour(segment.contour, insert)
+
+    fun segments(
+        segments: List<Segment>,
+        insert: Boolean = true
+    ) = segments.map {
+        segment(it, insert)
+    }
+
     fun lineStrip(
             points: List<Vector2>,
             insert: Boolean = true
