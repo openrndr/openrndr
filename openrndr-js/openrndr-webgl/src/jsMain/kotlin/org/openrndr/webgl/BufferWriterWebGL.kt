@@ -7,6 +7,9 @@ import org.openrndr.draw.BufferWriter
 import org.openrndr.math.*
 
 class BufferWriterWebGL(val buffer: Float32Array, val elementSize: Int): BufferWriter() {
+    init {
+        require(elementSize % 4 == 0) { "elementSize $elementSize must be a multiple of 4" }
+    }
 
     override var position: Int = 0
 

@@ -26,11 +26,11 @@ class VertexBufferShadowGL3(override val vertexBuffer: VertexBufferGL3) : Vertex
                 logger.debug { "${vertexBuffer}" }
             }
 
-    override fun upload(offset: Int, size: Int) {
+    override fun upload(offsetInBytes: Int, sizeInBytes: Int) {
         logger.trace { "uploading shadow to vertex buffer" }
         (buffer as Buffer).rewind()
-        (buffer as Buffer).position(offset)
-        (buffer as Buffer).limit(offset + size)
+        (buffer as Buffer).position(offsetInBytes)
+        (buffer as Buffer).limit(offsetInBytes + sizeInBytes)
         vertexBuffer.write(buffer)
         (buffer as Buffer).limit(buffer.capacity())
     }

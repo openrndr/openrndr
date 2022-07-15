@@ -27,8 +27,15 @@ actual abstract class BufferWriter {
      * rewind the underlying buffer
      */
     actual abstract fun rewind()
+
+    /**
+     * Set the raw position of the underlying buffer, in 4-byte strides
+     */
     actual abstract var position: Int
+
+    /**
+     * Set the position of the underlying buffer to accommodate the given number of elements
+     * according to the format size
+     */
     actual abstract var positionElements: Int
-
-
 }

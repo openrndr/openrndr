@@ -11,8 +11,8 @@ class VertexBufferShadowWebGL(override val vertexBuffer: VertexBuffer) : VertexB
 
     val shadow = Float32Array(vertexBuffer.vertexCount * (vertexBuffer.vertexFormat.size / 4))
 
-    override fun upload(offset: Int, size: Int) {
-        vertexBuffer.write(shadow, 0, size/4)
+    override fun upload(offsetInBytes: Int, sizeInBytes: Int) {
+        vertexBuffer.write(shadow, offsetInBytes, sizeInBytes / 4)
     }
 
     override fun download() {
@@ -73,15 +73,17 @@ class VertexBufferWebGL(
         Session.active.untrack(this)
     }
 
-    override fun write(data: FloatArray, offset:Int, floatCount:Int) {
+    override fun write(data: FloatArray, offsetBytes:Int, floatCount:Int) {
         bind()
-        context.bufferSubData(GL.ARRAY_BUFFER, offset, Float32Array(data.toTypedArray()).subarray(0, floatCount))
+        val offsetFloats = offsetBytes / 4
+        context.bufferSubData(GL.ARRAY_BUFFER, offsetBytes, Float32Array(data.toTypedArray()).subarray(offsetFloats, offsetFloats + floatCount))
         unbind()
     }
 
-    override fun write(data: Float32Array, offset:Int, floatCount: Int) {
+    override fun write(data: Float32Array, offsetBytes:Int, floatCount: Int) {
         bind()
-        context.bufferSubData(GL.ARRAY_BUFFER, offset, data.subarray(0, floatCount))
+        val offsetFloats = offsetBytes / 4
+        context.bufferSubData(GL.ARRAY_BUFFER, offsetBytes, data.subarray(offsetFloats, offsetFloats + floatCount))
         unbind()
     }
 
