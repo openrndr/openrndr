@@ -320,6 +320,10 @@ internal class Path {
             closed: Boolean
         ): Path {
             val sp = Path()
+            if (segments.isEmpty()) {
+                return sp
+            }
+
             val drop = closed && segments.first().squaredDistanceTo(segments.last()) < 10E-6
             val path = segments.mapIndexed { index, it ->
                 PathPoint().apply { x = it.x; y = it.y; flags = if (corners[index]) CORNER else 0 }
