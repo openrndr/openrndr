@@ -900,6 +900,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
             } else {
                 Thread.sleep(1)
                 pointerInput?.pollEvents()
+                glfwPollEvents()
                 deliverEvents()
                 program.dispatcher.execute()
             }
