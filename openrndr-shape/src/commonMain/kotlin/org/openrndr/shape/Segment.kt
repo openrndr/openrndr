@@ -160,6 +160,19 @@ class Segment : ShapeContourProvider {
         return 1.0
     }
 
+    /**
+     * Calculates the point at a given distance along this [Segment].
+     */
+    fun pointAtLength(length: Double): Vector2 {
+        return if (length <= 0.0) {
+            start
+        } else if (length >= this.length) {
+            end
+        } else {
+            position(tForLength(length))
+        }
+    }
+
     @Suppress("unused")
     private fun closest(points: List<Vector2>, query: Vector2): Pair<Int, Vector2> {
         var closestIndex = 0
