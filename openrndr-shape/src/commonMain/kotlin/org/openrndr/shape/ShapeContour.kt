@@ -186,7 +186,7 @@ data class ShapeContour @JvmOverloads constructor(
     /**
      * Calculates the point at a given distance along this [ShapeContour].
      */
-    fun pointAtLength(length: Double): Vector2 {
+    fun pointAtLength(length: Double, tolerance: Double): Vector2 {
         if (length <= 0.0) {
             return segments.first().start
         } else if (length >= this.length && !closed) {
@@ -200,7 +200,7 @@ data class ShapeContour @JvmOverloads constructor(
         for (segment in segments) {
             val segmentLength = segment.length
             if (segmentLength > remainingLength) {
-                return segment.position(segment.tForLength(remainingLength))
+                return segment.pointAtLength(remainingLength, tolerance)
             }
             remainingLength -= segmentLength
         }

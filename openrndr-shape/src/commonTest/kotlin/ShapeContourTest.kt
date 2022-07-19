@@ -4,6 +4,7 @@ import org.openrndr.shape.Segment
 import org.openrndr.shape.ShapeContour
 import kotlin.test.*
 
+// TODO: Move this to a dedicated package
 internal fun assertEquals(expected: Vector2, actual: Vector2, absoluteTolerance: Double, message: String? = null) {
     assertEquals(expected.x, actual.x, absoluteTolerance, message)
     assertEquals(expected.y, actual.y, absoluteTolerance, message)
@@ -21,17 +22,17 @@ class ShapeContourTest {
                 Segment(Vector2(7.0, 506.0), Vector2(7.0, 6.0))
             ), true, YPolarity.CW_NEGATIVE_Y
         )
-        assertEquals(Vector2(507.0, 16.0), rectangleContour.pointAtLength(510.0))
+        assertEquals(Vector2(507.0, 16.0), rectangleContour.pointAtLength(510.0, 0.0001))
 
         val curveContour = ShapeContour(
             listOf(
                 Segment(Vector2(110.0, 150.0), Vector2(25.0, 190.0), Vector2(210.0, 250.0), Vector2(210.0, 30.0))
             ), false, YPolarity.CW_NEGATIVE_Y
         )
-        assertEquals(Vector2(105.53567504882812, 152.2501678466797), curveContour.pointAtLength(5.0), 2.0)
-        assertEquals(Vector2(162.22564697265625, 170.3757781982422), curveContour.pointAtLength(120.0), 2.0)
-        assertEquals(curveContour.segments.first().start, curveContour.pointAtLength(-500.0))
-        assertEquals(curveContour.segments.first().end, curveContour.pointAtLength(500.0))
+        assertEquals(Vector2(105.53567504882812, 152.2501678466797), curveContour.pointAtLength(5.0, 0.0001), 0.001)
+        assertEquals(Vector2(162.22564697265625, 170.3757781982422), curveContour.pointAtLength(120.0, 0.0001), 0.001)
+        assertEquals(curveContour.segments.first().start, curveContour.pointAtLength(-500.0, 0.0001))
+        assertEquals(curveContour.segments.first().end, curveContour.pointAtLength(500.0, 0.0001))
     }
 
     @Test
@@ -137,10 +138,9 @@ class ShapeContourTest {
             ), false, YPolarity.CW_NEGATIVE_Y
         )
 
-        val point = poorlyDrawnLine.pointAtLength(100.0)
+        val point = poorlyDrawnLine.pointAtLength(100.0, 0.0001)
         // These are the coordinates which Firefox 103 reports for an equivalent SVG and they
         // seem to be consistent across browsers with a tolerance as low as 0.0001.
-        assertEquals(0.5043081045150757, point.x, 0.05)
-        assertEquals(65.25358581542969, point.y, 0.05)
+        assertEquals(Vector2(0.5043081045150757, 65.25358581542969), point, 0.005)
     }
 }

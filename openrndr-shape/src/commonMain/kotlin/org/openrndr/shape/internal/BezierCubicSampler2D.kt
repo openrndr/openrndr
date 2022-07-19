@@ -6,7 +6,7 @@ import kotlin.math.abs
 import kotlin.math.atan2
 
 internal class BezierCubicSampler2D {
-    private val recursionLimit = 8
+    private val recursionLimit = 12
     private val points = mutableListOf<Vector2>()
     private val direction = mutableListOf<Vector2>()
 
@@ -29,7 +29,7 @@ internal class BezierCubicSampler2D {
 
     private fun sample(x1: Vector2, x2: Vector2, x3: Vector2, x4: Vector2, level: Int) {
         if (level > recursionLimit) {
-            return
+            throw IllegalStateException("Reached recursion limit (try increasing distanceTolerance)")
         }
 
         val x12 = (x1 + x2) * 0.5
