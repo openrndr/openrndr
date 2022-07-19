@@ -1,6 +1,5 @@
 package org.openrndr
 
-@ApplicationDslMarker
 expect class ApplicationBuilder internal constructor(){
     internal val configuration: Configuration
     var program: Program

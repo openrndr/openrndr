@@ -19,9 +19,6 @@ enum class PresentationMode {
     MANUAL,
 }
 
-@DslMarker
-annotation class ApplicationDslMarker
-
 /**
  * Application interface
  */
