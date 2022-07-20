@@ -162,16 +162,23 @@ class Segment : ShapeContourProvider {
 
     /**
      * Calculates the point at a given distance along this [Segment].
+     * @param length the distance along the [Segment].
+     * @param distanceTolerance the tolerance used for simplifying the [Segment], lower values
+     * result in more accurate results, but slower calculation.
+     *
+     * @see [Segment.adaptivePositions]
      */
-    fun pointAtLength(length: Double, tolerance: Double): Vector2 {
+    fun pointAtLength(length: Double, distanceTolerance: Double = 0.5): Vector2 {
         return if (length <= 0.0) {
             start
         } else if (length >= this.length) {
             end
+        } else if (isStraight(distanceTolerance)) {
+            start + (end - start) / this.length * length
         } else {
             var remainingLength = length
             var currentPoint = start
-            val points = adaptivePositions(tolerance)
+            val points = adaptivePositions(distanceTolerance)
             for (point in points) {
                 val segmentLength = currentPoint.distanceTo(point)
                 if (remainingLength <= segmentLength) {
