@@ -11,47 +11,51 @@ fun mod(a: Int, b: Int) = ((a % b) + b) % b
 fun mod(a: Float, b: Float) = ((a % b) + b) % b
 fun mod(a: Long, b: Long) = ((a % b) + b) % b
 
+@Deprecated("deprecated", replaceWith = ReplaceWith("mod"))
 @JvmName("modDouble")
 fun Double.mod_(b: Double) = mod(this, b)
 
+@Deprecated("deprecated", replaceWith = ReplaceWith("mod"))
 @JvmName("modInt")
 fun Int.mod_(b: Int) = mod(this, b)
 
+@Deprecated("deprecated", replaceWith = ReplaceWith("mod"))
 @JvmName("modFloat")
 fun Float.mod_(b: Float) = mod(this, b)
 
+@Deprecated("deprecated", replaceWith = ReplaceWith("mod"))
 @JvmName("modLong")
 fun Long.mod_(b: Long) = mod(this, b)
 
 fun Vector2.mod(b: Vector2) =
-        Vector2(x.mod_(b.x),
-                y.mod_(b.y))
+        Vector2(x.mod(b.x),
+                y.mod(b.y))
 
 fun Vector3.mod(b: Vector3) =
-        Vector3(x.mod_(b.x),
-                y.mod_(b.y),
-                z.mod_(b.z))
+        Vector3(x.mod(b.x),
+                y.mod(b.y),
+                z.mod(b.z))
 
 fun Vector4.mod(b: Vector4) =
-        Vector4(x.mod_(b.x),
-                y.mod_(b.y),
-                z.mod_(b.z),
-                w.mod_(b.w))
+        Vector4(x.mod(b.x),
+                y.mod(b.y),
+                z.mod(b.z),
+                w.mod(b.w))
 
 fun IntVector2.mod(b: IntVector2) =
-        IntVector2(x.mod_(b.x),
-                y.mod_(b.y))
+        IntVector2(x.mod(b.x),
+                y.mod(b.y))
 
 fun IntVector3.mod(b: IntVector3) =
-        IntVector3(x.mod_(b.x),
-                y.mod_(b.y),
-                z.mod_(b.z))
+        IntVector3(x.mod(b.x),
+                y.mod(b.y),
+                z.mod(b.z))
 
 fun IntVector4.mod(b: IntVector4) =
-        IntVector4(x.mod_(b.x),
-                y.mod_(b.y),
-                z.mod_(b.z),
-                w.mod_(b.w))
+        IntVector4(x.mod(b.x),
+                y.mod(b.y),
+                z.mod(b.z),
+                w.mod(b.w))
 
 /** Returns number whose value is limited between [min] and [max]. */
 fun clamp(value: Double, min: Double, max: Double) = max(min, min(max, value))

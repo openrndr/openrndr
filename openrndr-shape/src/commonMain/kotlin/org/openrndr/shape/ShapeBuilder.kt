@@ -244,7 +244,7 @@ class ContourBuilder(private val multipleContours: Boolean) {
             "use moveTo first"
         }
 
-        val angleRad = (angle.mod_(360.0)).asRadians
+        val angleRad = (angle.mod(360.0)).asRadians
 
         val tdx = cursor.x - tx
         val tdy = cursor.y - ty
