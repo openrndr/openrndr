@@ -194,19 +194,12 @@ data class ShapeContour @JvmOverloads constructor(
      * @see [Segment.pointAtLength]
      */
     fun pointAtLength(length: Double, distanceTolerance: Double = 0.5): Vector2 {
-        if (empty) {
-            return Vector2.INFINITY
+        when {
+            empty -> return Vector2.INFINITY
+            length <= 0.0 -> return segments.first().start
+            length >= this.length -> return segments.last().end
         }
-        if (length <= 0.0) {
-            return segments.first().start
-        } else if (length >= this.length && !closed) {
-            return segments.last().end
-        }
-        var remainingLength = if (closed) {
-            length % this.length
-        } else {
-            length
-        }
+        var remainingLength = length
         for (segment in segments) {
             val segmentLength = segment.length
             if (segmentLength > remainingLength) {

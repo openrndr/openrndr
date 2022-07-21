@@ -123,12 +123,10 @@ data class LineSegment(val start: Vector2, val end: Vector2) : LinearType<LineSe
      * @param length the distance along the [LineSegment].
      */
     fun pointAtLength(length: Double): Vector2 {
-        return if (length <= 0.0) {
-            start
-        } else if (length >= this.length) {
-            end
-        } else {
-            start + direction / this.length * length
+        return when {
+            length <= 0.0 -> start
+            length >= this.length -> end
+            else -> start + direction / this.length * length
         }
     }
 
