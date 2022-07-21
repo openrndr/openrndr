@@ -95,7 +95,6 @@ actual suspend fun applicationAsync(build: ApplicationBuilder.() -> Unit) {
 }
 
 @Suppress("DeprecatedCallableAddReplaceWith")
-@ApplicationDslMarker
 actual class ApplicationBuilder internal actual constructor() {
     internal actual val configuration = Configuration()
     actual var program: Program = Program()
