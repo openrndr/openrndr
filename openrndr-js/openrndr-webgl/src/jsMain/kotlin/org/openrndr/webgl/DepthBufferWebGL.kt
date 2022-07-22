@@ -21,14 +21,22 @@ class DepthBufferWebGL(
             context: GL,
             width: Int,
             height: Int,
-            @Suppress("UNUSED_PARAMETER") format: DepthFormat,
+            format: DepthFormat,
             multisample: BufferMultisample,
             session: Session?
         ): DepthBufferWebGL {
             val buffer = context.createRenderbuffer() ?: error("buffer creation failed")
             context.bindRenderbuffer(GL.RENDERBUFFER, buffer)
-            context.renderbufferStorage(GL.RENDERBUFFER, GL.DEPTH_COMPONENT16, width, height)
-            return DepthBufferWebGL(context, buffer, width, height, DepthFormat.DEPTH16, multisample, session)
+
+            val webGlFormat = when(format) {
+                DepthFormat.DEPTH16 -> GL.DEPTH_COMPONENT16
+                DepthFormat.DEPTH_STENCIL -> GL.DEPTH_STENCIL
+                DepthFormat.STENCIL8 -> GL.STENCIL_INDEX8
+                else -> error("unsupported depth buffer format $format")
+            }
+
+            context.renderbufferStorage(GL.RENDERBUFFER, webGlFormat, width, height)
+            return DepthBufferWebGL(context, buffer, width, height, format, multisample, session)
         }
     }
 

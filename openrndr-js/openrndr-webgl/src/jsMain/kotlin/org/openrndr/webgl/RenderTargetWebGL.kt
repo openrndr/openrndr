@@ -11,7 +11,8 @@ import org.khronos.webgl.WebGLRenderingContext as GL
 
 private val active = ArrayDeque<RenderTargetWebGL>()
 
-class ProgramRenderTargetWebGL(context: GL, override val program: Program) : ProgramRenderTarget, RenderTargetWebGL( context, null, 0, 0, 1.0, BufferMultisample.Disabled, Session.root) {
+class ProgramRenderTargetWebGL(context: GL, override val program: Program) : ProgramRenderTarget,
+    RenderTargetWebGL(context, null, 0, 0, 1.0, BufferMultisample.Disabled, Session.root) {
     override val width: Int
         get() = program.window.size.x.toInt()
 
@@ -34,12 +35,20 @@ open class RenderTargetWebGL(
     override val multisample: BufferMultisample,
     override val session: Session?
 
-    ):RenderTarget {
+) : RenderTarget {
     companion object {
-        fun create(context: GL, width: Int, height: Int, contentScale: Double = 1.0, multisample: BufferMultisample = BufferMultisample.Disabled, session: Session?): RenderTargetWebGL {
+        fun create(
+            context: GL,
+            width: Int,
+            height: Int,
+            contentScale: Double = 1.0,
+            multisample: BufferMultisample = BufferMultisample.Disabled,
+            session: Session?
+        ): RenderTargetWebGL {
             val framebuffer = context.createFramebuffer() ?: error("framebuffer creation failed")
             return RenderTargetWebGL(context, framebuffer, width, height, contentScale, multisample, session)
         }
+
         val activeRenderTarget: RenderTargetWebGL
             get() {
                 return active.last()
@@ -47,7 +56,7 @@ open class RenderTargetWebGL(
     }
 
     override val colorAttachments: MutableList<ColorAttachment> = mutableListOf()
-    override val depthBuffer: DepthBuffer? = null
+    override var depthBuffer: DepthBuffer? = null
 
     fun bindTarget() {
         context.bindFramebuffer(GL.FRAMEBUFFER, framebuffer)
@@ -84,7 +93,17 @@ open class RenderTargetWebGL(
 
     override fun attach(depthBuffer: DepthBuffer) {
         depthBuffer as DepthBufferWebGL
-        context.framebufferRenderbuffer(GL.FRAMEBUFFER, GL.DEPTH_ATTACHMENT, GL.RENDERBUFFER, depthBuffer.buffer)
+
+        val webGlAttachment =
+            when (depthBuffer.format) {
+                DepthFormat.DEPTH_STENCIL -> GL.DEPTH_STENCIL_ATTACHMENT
+                DepthFormat.STENCIL8 -> GL.STENCIL_ATTACHMENT
+                DepthFormat.DEPTH16 -> GL.DEPTH_ATTACHMENT
+                else -> error("unsupported depth buffer format '${depthBuffer.format}'")
+            }
+
+        context.framebufferRenderbuffer(GL.FRAMEBUFFER, webGlAttachment, GL.RENDERBUFFER, depthBuffer.buffer)
+        this.depthBuffer = depthBuffer
     }
 
     override fun attach(arrayTexture: ArrayTexture, layer: Int, level: Int, name: String?) {
@@ -128,6 +147,7 @@ open class RenderTargetWebGL(
     override fun detachDepthBuffer() {
         bound {
             context.framebufferRenderbuffer(GL.FRAMEBUFFER, GL.DEPTH_ATTACHMENT, GL.RENDERBUFFER, null)
+            depthBuffer = null
         }
     }
 

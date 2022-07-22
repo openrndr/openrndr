@@ -116,5 +116,7 @@ private fun DepthFormat.toGLFormat(): Int {
         DepthFormat.DEPTH24 -> GL_DEPTH_COMPONENT24
         DepthFormat.DEPTH32F -> GL_DEPTH_COMPONENT32F
         DepthFormat.DEPTH32F_STENCIL8 -> GL_DEPTH32F_STENCIL8
+        DepthFormat.STENCIL8 -> GL_STENCIL_INDEX8
+        DepthFormat.DEPTH_STENCIL -> GL_DEPTH_STENCIL
     }
 }

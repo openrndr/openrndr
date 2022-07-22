@@ -75,7 +75,14 @@ enum class DepthFormat {
     /** 24 bit integer depth plus 8 bit integer stencil */
     DEPTH24_STENCIL8,
     /** 32 bit float depth plus 8 bit integer stencil */
-    DEPTH32F_STENCIL8
+    DEPTH32F_STENCIL8,
+
+    /** 8 bit integer stencil */
+    STENCIL8,
+
+    /** depth buffer and stencil buffer with unspecified types */
+    DEPTH_STENCIL,
+
 }
 
 class StencilStyle {
