@@ -78,7 +78,7 @@ class BufferWriterNullGL : BufferWriter() {
 
 class VertexBufferShadowNullGL(override val vertexBuffer: VertexBuffer) : VertexBufferShadow {
 
-    override fun upload(offset: Int, size: Int) {
+    override fun upload(offsetInBytes: Int, sizeInBytes: Int) {
     }
 
     override fun download() {

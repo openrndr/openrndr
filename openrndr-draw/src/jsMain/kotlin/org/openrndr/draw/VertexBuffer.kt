@@ -20,12 +20,14 @@ actual abstract class VertexBuffer {
     actual abstract fun destroy()
     actual fun put(elementOffset: Int, putter: BufferWriter.() -> Unit): Int {
         val w = shadow.writer()
-        w.rewind()
+        w.positionElements = elementOffset
         w.putter()
-        val count = w.positionElements
-
-        shadow.upload(0, w.position * 4)
-        w.rewind()
+        // *4 is because the underlying buffer is 4-byte floats
+        if (w.position*4 % vertexFormat.size != 0) {
+            throw RuntimeException("incomplete vertices written at ${w.position}. likely violating the specified vertex format $vertexFormat")
+        }
+        val count = w.positionElements - elementOffset
+        shadow.uploadElements(elementOffset, count)
         return count
     }
 
@@ -47,8 +49,8 @@ actual abstract class VertexBuffer {
         }
     }
 
-    abstract fun write(data: FloatArray, offset:Int, floatCount: Int)
-    abstract fun write(data: Float32Array, offset:Int, floatCount : Int)
+    abstract fun write(data: FloatArray, offsetBytes:Int, floatCount: Int)
+    abstract fun write(data: Float32Array, offsetBytes:Int, floatCount : Int)
     actual abstract fun write(
         source: MPPBuffer,
         targetByteOffset: Int,
