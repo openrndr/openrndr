@@ -131,7 +131,9 @@ internal fun hue2rgb(p: Double, q: Double, ut: Double): Double {
     return if (t < 2.0 / 3.0) p + (q - p) * (2.0 / 3.0 - t) * 6.0 else p
 }
 
-fun hsl(h: Double, s: Double, l: Double) = ColorHSLa(h, s, l)
+fun hsl(h: Double, s: Double, l: Double, a: Double = 1.0) = ColorHSLa(h, s, l, a)
+
+@Deprecated("Use hsl(h, s, l, a)", ReplaceWith("hsl(h, s, l, a)"), DeprecationLevel.WARNING)
 fun hsla(h: Double, s: Double, l: Double, a: Double) = ColorHSLa(h, s, l, a)
 
 /**

@@ -8,7 +8,7 @@ import kotlin.math.min
  * The [CIE XYZ color space](https://en.wikipedia.org/wiki/CIE_1931_color_space#Definition_of_the_CIE_XYZ_color_space).
  *
  * @param x first chromaticity coordinate, mix of the three CIE RGB curves chosen to be nonnegative
- * @param y luminance of the color, in a range of 0.0 (darkest) to 100.0 (brightest)
+ * @param y luminance of the color, in a range of 0.0 (darkest) to 1.0 (brightest)
  * @param z second chromaticity coordinate, quasi-equal to blue
  * @param alpha alpha as a percentage between 0.0 and 1.0
  */
@@ -25,7 +25,7 @@ data class ColorXYZa @JvmOverloads constructor (val x: Double, val y: Double, va
         val SO2_C = ColorXYZa(98.04 / 100.0, 1.0, 118.11 / 100.0)
         val SO2_F2 = ColorXYZa(98.09 / 100.0, 1.0, 67.53 / 100.0)
         val SO2_TL4 = ColorXYZa(101.40 / 100.0, 1.0, 65.90 / 100.0)
-        val SO2_UL3000 = ColorXYZa(107.99, 1.0, 33.91 / 100.0)
+        val SO2_UL3000 = ColorXYZa(107.99 / 100.0, 1.0, 33.91 / 100.0)
         val SO2_D50 = ColorXYZa(107.99 / 100.0, 1.0, 82.45 / 100.0)
         val SO2_D60 = ColorXYZa(107.99 / 100.0, 1.0, 100.86 / 100.0)
         val SO2_D65 = ColorXYZa(95.02 / 100.0, 1.0, 108.82 / 100.0)
