@@ -14,8 +14,8 @@ data class ColorLSHABa @JvmOverloads constructor (
     val s: Double,
     val h: Double,
     override val alpha: Double = 1.0,
-    val ref: ColorXYZa = ColorXYZa.NEUTRAL
-) : ColorModel<ColorLSHABa> {
+    override val ref: ColorXYZa = ColorXYZa.NEUTRAL
+) : ColorModel<ColorLSHABa>, ReferenceWhitePoint {
     companion object {
         fun fromLCHABa(lcha: ColorLCHABa): ColorLSHABa {
             val maxC = ColorLCHABa.findMaxChroma(lcha.l, lcha.h, lcha.ref)

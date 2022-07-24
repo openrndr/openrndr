@@ -13,8 +13,15 @@ import kotlin.math.pow
  * @param ref reference white against which the color values are calculated
  */
 @Suppress("unused", "UNUSED_PARAMETER")
-data class ColorLUVa @JvmOverloads constructor (val l: Double, val u: Double, val v: Double, override val alpha: Double = 1.0, val ref: ColorXYZa) :
+data class ColorLUVa @JvmOverloads constructor(
+    val l: Double,
+    val u: Double,
+    val v: Double,
+    override val alpha: Double = 1.0,
+    override val ref: ColorXYZa
+) :
     ColorModel<ColorLUVa>,
+    ReferenceWhitePoint,
     ShadableColor<ColorLUVa>,
     AlgebraicColor<ColorLUVa> {
 
@@ -27,7 +34,7 @@ data class ColorLUVa @JvmOverloads constructor (val l: Double, val u: Double, va
 
             val div0 = (xyz.x + xyz.y * 15.0 + xyz.z * 3.0)
 
-            val up = if (div0 ==0.0) 0.0 else (xyz.x * 4.0) / div0
+            val up = if (div0 == 0.0) 0.0 else (xyz.x * 4.0) / div0
             val vp = if (div0 == 0.0) 0.0 else (xyz.y * 9.0) / div0
 
             val div1 =  (ref.x + ref.y * 15 + ref.z * 3.0)

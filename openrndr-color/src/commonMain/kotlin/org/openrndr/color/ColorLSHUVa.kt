@@ -14,8 +14,8 @@ data class ColorLSHUVa @JvmOverloads constructor (
     val s: Double,
     val h: Double,
     override val alpha: Double = 1.0,
-    val ref: ColorXYZa = ColorXYZa.NEUTRAL
-) : ColorModel<ColorLSHUVa> {
+    override val ref: ColorXYZa = ColorXYZa.NEUTRAL
+) : ColorModel<ColorLSHUVa>, ReferenceWhitePoint {
     companion object {
         fun fromLCHUVa(lcha: ColorLCHUVa): ColorLSHUVa {
 
