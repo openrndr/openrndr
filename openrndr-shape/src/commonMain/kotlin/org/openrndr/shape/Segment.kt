@@ -56,7 +56,8 @@ class Segment : ShapeContourProvider {
      * @param start The starting anchor point.
      * @param end The ending anchor point.
      */
-    @JvmOverloads constructor(start: Vector2, end: Vector2, corner: Boolean = true) {
+    @JvmOverloads
+    constructor(start: Vector2, end: Vector2, corner: Boolean = true) {
         this.start = start
         this.end = end
         this.control = emptyArray()
@@ -70,7 +71,8 @@ class Segment : ShapeContourProvider {
      * @param c0 The control point.
      * @param end The ending anchor point.
      */
-    @JvmOverloads constructor(start: Vector2, c0: Vector2, end: Vector2, corner: Boolean = true) {
+    @JvmOverloads
+    constructor(start: Vector2, c0: Vector2, end: Vector2, corner: Boolean = true) {
         this.start = start
         this.control = arrayOf(c0)
         this.end = end
@@ -85,14 +87,16 @@ class Segment : ShapeContourProvider {
      * @param c1 The second control point
      * @param end The ending anchor point.
      */
-    @JvmOverloads constructor(start: Vector2, c0: Vector2, c1: Vector2, end: Vector2, corner: Boolean = true) {
+    @JvmOverloads
+    constructor(start: Vector2, c0: Vector2, c1: Vector2, end: Vector2, corner: Boolean = true) {
         this.start = start
         this.control = arrayOf(c0, c1)
         this.end = end
         this.corner = corner
     }
 
-    @JvmOverloads constructor(start: Vector2, control: Array<Vector2>, end: Vector2, corner: Boolean = true) {
+    @JvmOverloads
+    constructor(start: Vector2, control: Array<Vector2>, end: Vector2, corner: Boolean = true) {
         this.start = start
         this.control = control
         this.end = end
@@ -158,6 +162,36 @@ class Segment : ShapeContourProvider {
             }
         }
         return 1.0
+    }
+
+    /**
+     * Calculates the point at a given distance along this [Segment].
+     * @param length the distance along the [Segment].
+     * @param distanceTolerance the tolerance used for simplifying the [Segment], lower values
+     * result in more accurate results, but slower calculation.
+     *
+     * @see [Segment.adaptivePositions]
+     */
+    fun pointAtLength(length: Double, distanceTolerance: Double = 0.5): Vector2 {
+        when {
+            length <= 0.0 -> return start
+            length >= this.length -> return end
+            isStraight(distanceTolerance) -> return start + (end - start) / this.length * length
+        }
+        var remainingLength = length
+        var currentPoint = start
+        val points = adaptivePositions(distanceTolerance)
+        for (point in points) {
+            val segmentLength = currentPoint.distanceTo(point)
+            if (remainingLength <= segmentLength) {
+                val currentVector = point - currentPoint
+                val tangent = currentVector / segmentLength
+                return currentPoint + tangent * remainingLength
+            }
+            remainingLength -= segmentLength
+            currentPoint = point
+        }
+        return end
     }
 
     @Suppress("unused")

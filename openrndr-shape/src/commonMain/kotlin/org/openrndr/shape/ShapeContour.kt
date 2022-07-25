@@ -11,7 +11,7 @@ import kotlin.math.min
 /**
  * A [List] for managing a collection of [Segment]s.
  */
-data class ShapeContour @JvmOverloads constructor (
+data class ShapeContour @JvmOverloads constructor(
     val segments: List<Segment>,
     val closed: Boolean,
     val polarity: YPolarity = YPolarity.CW_NEGATIVE_Y
@@ -183,6 +183,32 @@ data class ShapeContour @JvmOverloads constructor (
         return 1.0
     }
 
+    /**
+     * Calculates the point at a given distance along this [ShapeContour].
+     * @param length the distance along the [ShapeContour]
+     * @param distanceTolerance the tolerance used for simplifying the [ShapeContour], lower values
+     * result in more accurate results, but slower calculation
+     *
+     * @return Resulting [Vector2] or [Vector2.INFINITY] for an empty [ShapeContour].
+     *
+     * @see [Segment.pointAtLength]
+     */
+    fun pointAtLength(length: Double, distanceTolerance: Double = 0.5): Vector2 {
+        when {
+            empty -> return Vector2.INFINITY
+            length <= 0.0 -> return segments.first().start
+            length >= this.length -> return segments.last().end
+        }
+        var remainingLength = length
+        for (segment in segments) {
+            val segmentLength = segment.length
+            if (segmentLength > remainingLength) {
+                return segment.pointAtLength(remainingLength, distanceTolerance)
+            }
+            remainingLength -= segmentLength
+        }
+        return segments.last().end
+    }
 
     /** Returns true if [ShapeContour] doesn't contain any [Segment]s. */
     val empty: Boolean
