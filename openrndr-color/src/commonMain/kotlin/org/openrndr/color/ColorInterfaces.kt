@@ -37,6 +37,11 @@ interface OpacifiableColor<T> {
     fun opacify(factor: Double): T
 }
 
+interface ReferenceWhitePoint {
+    /** The reference white point against which the color is calculated. */
+    val ref: ColorXYZa
+}
+
 interface ColorModel<T : ColorModel<T>> : OpacifiableColor<T>, ConvertibleToColorRGBa, CastableToVector4
 
 /**

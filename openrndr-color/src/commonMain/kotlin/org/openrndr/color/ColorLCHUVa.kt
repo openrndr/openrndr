@@ -21,9 +21,10 @@ data class ColorLCHUVa @JvmOverloads constructor (
     val c: Double,
     val h: Double,
     override val alpha: Double = 1.0,
-    val ref: ColorXYZa = ColorXYZa.NEUTRAL
+    override val ref: ColorXYZa = ColorXYZa.NEUTRAL
 ) :
     ColorModel<ColorLCHUVa>,
+    ReferenceWhitePoint,
     ShadableColor<ColorLCHUVa>,
     HueShiftableColor<ColorLCHUVa>,
     AlgebraicColor<ColorLCHUVa> {
