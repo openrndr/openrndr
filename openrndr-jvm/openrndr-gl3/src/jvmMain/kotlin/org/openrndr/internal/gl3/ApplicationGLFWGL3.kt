@@ -317,7 +317,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
         }
 
 
-        if (System.getProperty("os.name").contains("windows", true)) {
+        if (System.getProperty("os.name").contains("windows", true) && System.getProperty("org.openrndr.pointerevents") != null) {
             pointerInput = PointerInputManagerWin32(window, this)
         }
         if (configuration.windowSetIcon) {
