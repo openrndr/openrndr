@@ -176,7 +176,6 @@ class Segment : ShapeContourProvider {
         when {
             length <= 0.0 -> return start
             length >= this.length -> return end
-            isStraight(distanceTolerance) -> return start + (end - start) / this.length * length
         }
         var remainingLength = length
         var currentPoint = start
