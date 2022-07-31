@@ -1,12 +1,25 @@
 name: Build on commit
 on: [push, pull_request]
+
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-java@v1
+      - name: Checkout current repository
+        uses: actions/checkout@v3
+
+      - name: Validate Gradle wrapper
+        uses: gradle/wrapper-validation-action@v1.0.4
+
+      - uses: actions/setup-java@v2
         with:
+          distribution: temurin
           java-version: 17
-      - name: Build sources
+          cache: gradle
+
+      - name: Build OPENRNDR
         run: ./gradlew build
