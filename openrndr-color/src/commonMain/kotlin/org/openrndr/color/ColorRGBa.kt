@@ -63,8 +63,7 @@ data class ColorRGBa @JvmOverloads constructor(
     enum class Component {
         R,
         G,
-        B,
-        Alpha
+        B
     }
 
     companion object {
