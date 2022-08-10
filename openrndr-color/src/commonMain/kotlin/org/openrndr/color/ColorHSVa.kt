@@ -30,54 +30,34 @@ data class ColorHSVa @JvmOverloads constructor (val h: Double, val s: Double, va
     companion object {
         fun fromRGBa(rgb: ColorRGBa): ColorHSVa {
             val srgb = rgb.toSRGB()
-            var min = Double.POSITIVE_INFINITY
-            var max = Double.NEGATIVE_INFINITY
+            val min = srgb.minValue
 
-            var h: Double
-            var maxArg: ColorRGBa.Component? = null
-
-            if (srgb.r <= srgb.b && srgb.r <= srgb.g) {
-                min = srgb.r
-            }
-            if (srgb.g <= srgb.b && srgb.g <= srgb.r) {
-                min = srgb.g
-            }
-            if (srgb.b <= srgb.r && srgb.b <= srgb.g) {
-                min = srgb.b
-            }
+            val max: Double
+            val maxArg: ColorRGBa.Component
 
             if (srgb.r >= srgb.b && srgb.r >= srgb.g) {
                 maxArg = ColorRGBa.Component.R
                 max = srgb.r
-            }
-            if (srgb.g >= srgb.b && srgb.g >= srgb.r) {
+            } else if (srgb.g >= srgb.b && srgb.g >= srgb.r) {
                 maxArg = ColorRGBa.Component.G
                 max = srgb.g
-            }
-            if (srgb.b >= srgb.r && srgb.b >= srgb.g) {
+            } else {
                 maxArg = ColorRGBa.Component.B
                 max = srgb.b
             }
 
-            val s: Double
             val v = max
+            // In the case r == g == b
+            if (min == max) {
+                return ColorHSVa(0.0, 0.0, v, srgb.alpha)
+            }
             val delta = max - min
-            if (max != 0.0) {
-                s = delta / max
-            } else {
-                // r = g = b = 0		// s = 0, v is undefined
-                s = 0.0
-                h = 0.0
-                return ColorHSVa(h, s, v, srgb.alpha)
+            val s = delta / max
+            var h = 60 * when (maxArg) {
+                ColorRGBa.Component.R -> (srgb.g - srgb.b) / delta // between yellow & magenta
+                ColorRGBa.Component.G -> (srgb.b - srgb.r) / delta + 2.0 // between cyan & yellow
+                ColorRGBa.Component.B -> (srgb.r - srgb.g) / delta + 4.0 // between magenta & cyan
             }
-            if (maxArg == ColorRGBa.Component.R) {
-                h = (srgb.g - srgb.b) / delta        // between yellow & magenta
-            } else if (maxArg == ColorRGBa.Component.G) {
-                h = 2 + (srgb.b - srgb.r) / delta    // between cyan & yellow
-            } else {
-                h = 4 + (srgb.r - srgb.g) / delta    // between magenta & cyan
-            }
-            h *= 60.0                // degrees
             if (h < 0) {
                 h += 360.0
             }

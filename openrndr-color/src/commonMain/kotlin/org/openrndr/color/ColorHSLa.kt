@@ -25,15 +25,7 @@ data class ColorHSLa @JvmOverloads constructor (val h: Double, val s: Double, va
     companion object {
         fun fromRGBa(rgb: ColorRGBa): ColorHSLa {
             val srgb = rgb.toSRGB()
-            val min = if (srgb.r <= srgb.b && srgb.r <= srgb.g) {
-                srgb.r
-            } else if (srgb.g <= srgb.b && srgb.g <= srgb.r) {
-                srgb.g
-            } else if (srgb.b <= srgb.r && srgb.b <= srgb.g) {
-                srgb.b
-            } else {
-                0.0
-            }
+            val min = srgb.minValue
 
             val max: Double
             val maxArg: ColorRGBa.Component
@@ -49,21 +41,17 @@ data class ColorHSLa @JvmOverloads constructor (val h: Double, val s: Double, va
                 max = srgb.b
             }
 
+            // In the case r == g == b
+            if (min == max) {
+                return ColorHSLa(0.0, 0.0, max, srgb.alpha)
+            }
+            val delta = max - min
             val l = (max + min) / 2.0
-            val s: Double
-            val h: Double
-            if (max == min) {
-                s = 0.0
-                h = s
-            } else {
-                val d = max - min
-                s = if (l > 0.5) d / (2.0 - max - min) else d / (max + min)
-                h = when (maxArg) {
-                    ColorRGBa.Component.R -> 60.0 * ((srgb.g - srgb.b) / d + if (srgb.g < srgb.b) 6 else 0)
-                    ColorRGBa.Component.G -> 60.0 * ((srgb.b - srgb.r) / d + 2.0)
-                    ColorRGBa.Component.B -> 60.0 * ((srgb.r - srgb.g) / d + 4.0)
-                    ColorRGBa.Component.Alpha -> 0.0
-                }
+            val s = if (l > 0.5) delta / (2.0 - max - min) else delta / (max + min)
+            val h = 60.0 * when (maxArg) {
+                ColorRGBa.Component.R -> (srgb.g - srgb.b) / delta + if (srgb.g < srgb.b) 6 else 0
+                ColorRGBa.Component.G -> (srgb.b - srgb.r) / delta + 2.0
+                ColorRGBa.Component.B -> (srgb.r - srgb.g) / delta + 4.0
             }
             return ColorHSLa(h, s, l, srgb.alpha)
         }
@@ -83,7 +71,7 @@ data class ColorHSLa @JvmOverloads constructor (val h: Double, val s: Double, va
 
     override fun toRGBa(): ColorRGBa {
         return if (s == 0.0) {
-            ColorRGBa(l, l, l, alpha)
+            ColorRGBa(l, l, l, alpha, Linearity.SRGB)
         } else {
             val q = if (l < 0.5) l * (1 + s) else l + s - l * s
             val p = 2 * l - q
