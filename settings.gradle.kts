@@ -6,7 +6,7 @@ dependencyResolutionManagement {
             version("kotlinApi", "1.6")
             version("kotlinLanguage", "1.6")
             version("kotlin", "1.6.21")
-            version("jvmTarget", "1.8")
+            version("jvmTarget", "11")
             version("kotlinxCoroutines", "1.6.4")
             version("kotlinLogging", "2.1.23")
             version("kotlinxSerialization", "1.3.2")

@@ -1,4 +1,5 @@
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 buildscript {
     repositories {
@@ -148,11 +149,6 @@ configure(allprojects.findAll { !multiplatformModules.contains(it.name) }) {
         useJUnitPlatform {
             includeEngines 'spek2'
         }
-    }
-
-    java {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
     }
 
     javadoc {
@@ -308,4 +304,23 @@ configure(allprojects.findAll { !doNotPublish.contains(it.name) && (!multiplatfo
 configure(allprojects.findAll { it.name != "openrndr-demos" }) {
     //apply plugin: 'maven-publish'
     apply plugin: 'nebula.release'
+}
+
+subprojects {
+    // Equivalent Kotlin is: tasks.register<DependencyReportTask>("dependenciesAll") { ...
+    tasks.register("dependenciesAll", DependencyReportTask) {
+        group = "help"
+        description = "Displays all dependencies, including subprojects."
+    }
+
+    kotlin {
+        // https://youtrack.jetbrains.com/issue/KT-43095/Add-support-for-Java-Toolchain-to-the-Gradle-plugin#focus=Comments-27-5192573.0-0
+        jvmToolchain { toolchain ->
+            (toolchain as JavaToolchainSpec).languageVersion.set(JavaLanguageVersion.of(libs.versions.jvmTarget.get()))
+        }
+        tasks.withType(KotlinCompile).configureEach {
+            kotlinOptions.jvmTarget = libs.versions.jvmTarget.get()
+            kotlinOptions.apiVersion = libs.versions.kotlinApi.get()
+        }
+    }
 }
