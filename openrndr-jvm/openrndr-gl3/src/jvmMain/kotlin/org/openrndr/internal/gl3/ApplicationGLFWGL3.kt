@@ -840,7 +840,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
             glDepthMask(false)
             glfwSwapBuffers(window)
 
-            //glfwPollEvents()
+            glfwPollEvents()
         }
         logger.info { "OpenGL vendor: ${glGetString(GL_VENDOR)}" }
         logger.info { "OpenGL renderer: ${glGetString(GL_RENDERER)}" }
