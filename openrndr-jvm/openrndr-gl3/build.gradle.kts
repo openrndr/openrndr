@@ -1,12 +1,11 @@
 plugins {
-    kotlin("multiplatform")
+    org.openrndr.convention.`kotlin-multiplatform`
 }
 
 kotlin {
     jvm {
         testRuns["test"].executionTask.configure {
-            useJUnitPlatform()
-            if (System.getenv("CI") == "true") {
+            if (System.getenv("CI") != null) {
                 exclude("**/*.class")
             }
         }
@@ -40,11 +39,6 @@ kotlin {
                 runtimeOnly(project(":openrndr-jvm:openrndr-gl3-natives-linux-x64"))
                 runtimeOnly(libs.slf4j.simple)
                 implementation(libs.spek.dsl)
-                implementation(libs.kluent)
-
-                implementation(kotlin("test-annotations-common"))
-                implementation(kotlin("test-junit5"))
-                runtimeOnly(libs.bundles.jupiter)
             }
         }
     }

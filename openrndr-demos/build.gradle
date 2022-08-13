@@ -1,3 +1,7 @@
+plugins {
+    id("org.openrndr.convention.kotlin-jvm")
+}
+
 switch (org.gradle.internal.os.OperatingSystem.current()) {
     case org.gradle.internal.os.OperatingSystem.WINDOWS:
         project.ext.openrndrOS = "windows"

@@ -1,20 +1,9 @@
 plugins {
-    kotlin("multiplatform")
+    org.openrndr.convention.`kotlin-multiplatform`
 }
 
 kotlin {
-    jvm {
-        testRuns["test"].executionTask.configure {
-            useJUnitPlatform()
-        }
-    }
-
     sourceSets {
-        val commonTest by getting {
-            dependencies {
-                implementation(kotlin("test"))
-            }
-        }
         val jvmMain by getting {
             dependencies {
                 implementation(project(":openrndr-application"))
