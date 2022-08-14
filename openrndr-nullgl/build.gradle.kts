@@ -3,4 +3,5 @@ plugins {
 }
 dependencies {
     implementation(project(":openrndr-application"))
+    implementation(libs.kotlin.coroutines)
 }

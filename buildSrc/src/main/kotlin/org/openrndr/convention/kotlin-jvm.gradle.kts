@@ -19,7 +19,6 @@ group = "org.openrndr"
 
 dependencies {
     implementation(libs.kotlin.logging)
-    implementation(libs.kotlin.coroutines)
     implementation(libs.kotlin.stdlib)
     testImplementation(libs.kotlin.test)
 }

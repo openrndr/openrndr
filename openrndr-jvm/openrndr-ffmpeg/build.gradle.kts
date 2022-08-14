@@ -6,4 +6,5 @@ dependencies {
     implementation(libs.bundles.lwjgl.openal)
     implementation(libs.ffmpeg)
     implementation(project(":openrndr-jvm:openrndr-openal"))
+    implementation(libs.kotlin.coroutines)
 }
