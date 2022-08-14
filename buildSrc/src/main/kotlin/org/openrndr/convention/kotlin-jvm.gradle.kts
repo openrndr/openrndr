@@ -21,10 +21,7 @@ dependencies {
     implementation(libs.kotlin.logging)
     implementation(libs.kotlin.coroutines)
     implementation(libs.kotlin.stdlib)
-    testImplementation(libs.spek.dsl)
-    testImplementation(libs.kluent)
     testImplementation(libs.kotlin.test)
-    testRuntimeOnly(libs.spek.junit5)
 }
 
 kotlin {
@@ -34,11 +31,8 @@ kotlin {
 }
 
 tasks {
-    @Suppress("UNUSED_VARIABLE")
-    val test by getting(Test::class) {
-        useJUnitPlatform {
-            includeEngines("spek2")
-        }
+    test {
+        useJUnitPlatform()
     }
     @Suppress("UNUSED_VARIABLE")
     val javadoc by getting(Javadoc::class) {
