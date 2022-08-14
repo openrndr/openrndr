@@ -18,12 +18,5 @@ kotlin {
                 implementation(project(":openrndr-js:openrndr-webgl"))
             }
         }
-
-        @Suppress("UNUSED_VARIABLE")
-        val jvmMain by getting {
-            dependencies {
-                implementation(libs.kotlin.logging)
-            }
-        }
     }
 }

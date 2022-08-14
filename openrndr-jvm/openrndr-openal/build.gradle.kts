@@ -9,11 +9,11 @@ kotlin {
         }
     }
     sourceSets {
+        @Suppress("UNUSED_VARIABLE")
         val jvmMain by getting {
             dependencies {
                 implementation(project(":openrndr-math"))
                 implementation(libs.bundles.lwjgl.openal)
-                implementation(libs.kotlin.logging)
             }
         }
     }

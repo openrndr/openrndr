@@ -37,6 +37,13 @@ kotlin {
 
     sourceSets {
         @Suppress("UNUSED_VARIABLE")
+        val commonMain by getting {
+            dependencies {
+                implementation(libs.kotlin.logging)
+            }
+        }
+
+        @Suppress("UNUSED_VARIABLE")
         val commonTest by getting {
             dependencies {
                 implementation(kotlin("test"))

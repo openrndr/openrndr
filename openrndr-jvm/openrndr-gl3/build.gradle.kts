@@ -21,7 +21,6 @@ kotlin {
                 implementation(project(":openrndr-binpack"))
                 implementation(project(":openrndr-dds"))
                 implementation(libs.kotlin.coroutines)
-                implementation(libs.kotlin.logging)
                 implementation(libs.lwjgl.core)
                 implementation(libs.lwjgl.glfw)
                 implementation(libs.lwjgl.jemalloc)

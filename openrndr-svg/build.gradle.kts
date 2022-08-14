@@ -4,16 +4,17 @@ plugins {
 
 kotlin {
     sourceSets {
+        @Suppress("UNUSED_VARIABLE")
         val jvmMain by getting {
             dependencies {
                 implementation(project(":openrndr-application"))
                 implementation(project(":openrndr-math"))
                 implementation(project(":openrndr-color"))
                 implementation(libs.jsoup)
-                implementation(libs.kotlin.logging)
             }
         }
 
+        @Suppress("UNUSED_VARIABLE")
         val jvmTest by getting {
             dependencies {
                 runtimeOnly(project(":openrndr-jvm:openrndr-gl3-natives-windows"))
