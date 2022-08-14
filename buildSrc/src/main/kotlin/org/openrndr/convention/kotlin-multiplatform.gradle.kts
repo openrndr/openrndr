@@ -23,6 +23,7 @@ tasks.withType<KotlinCompile>() {
 kotlin {
     jvm {
         jvmToolchain {
+            this as JavaToolchainSpec
             languageVersion.set(JavaLanguageVersion.of(libs.versions.jvmTarget.get()))
         }
         testRuns["test"].executionTask.configure {

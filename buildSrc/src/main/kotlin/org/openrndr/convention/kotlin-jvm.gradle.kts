@@ -25,6 +25,7 @@ dependencies {
 
 kotlin {
     jvmToolchain {
+        this as JavaToolchainSpec
         languageVersion.set(JavaLanguageVersion.of(libs.versions.jvmTarget.get()))
     }
 }
