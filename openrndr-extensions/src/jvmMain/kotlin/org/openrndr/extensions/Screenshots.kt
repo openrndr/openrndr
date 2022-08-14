@@ -182,7 +182,7 @@ open class Screenshots : Extension {
             }
             resolved = when (multisample!!) {
                 BufferMultisample.Disabled -> null
-                is BufferMultisample.SampleCount -> colorBuffer(program.width, program.height)
+                is BufferMultisample.SampleCount -> colorBuffer(program.width, program.height, contentScale = contentScale!!)
             }
             target?.bind()
 
