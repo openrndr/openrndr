@@ -1,5 +1,11 @@
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+}
+
 plugins {
     alias(libs.plugins.dokka) apply false
     alias(libs.plugins.nebula.release) apply false
