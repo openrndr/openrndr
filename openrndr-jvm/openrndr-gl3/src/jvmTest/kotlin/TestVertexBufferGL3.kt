@@ -4,48 +4,45 @@ import org.openrndr.draw.DrawPrimitive
 import org.openrndr.draw.VertexElementType
 import org.openrndr.draw.vertexFormat
 import org.openrndr.internal.gl3.VertexBufferGL3
-import org.spekframework.spek2.Spek
-import org.spekframework.spek2.style.specification.describe
 import java.nio.ByteBuffer
+import kotlin.test.*
 
-object TestVertexBufferGL3 : Spek({
+class TestVertexBufferGL3 {
+    val program = Program().initializeGLFWGL3Application()
+    val vbgl3 = VertexBufferGL3.createDynamic(vertexFormat {
+        position(3)
+    }, 10, null)
 
-    describe("a program") {
-        val program = Program().initializeGLFWGL3Application()
-
-        describe("a vertex buffer") {
-            val vbgl3 = VertexBufferGL3.createDynamic(vertexFormat {
-                position(3)
-            }, 10, null)
-
-            it("should be able to write a non-direct byte buffer") {
-                val nonDirectByteBuffer = ByteBuffer.allocate(vbgl3.vertexFormat.size * vbgl3.vertexCount)
-                vbgl3.write(nonDirectByteBuffer)
-            }
-
-            it("should be able to write a direct byte buffer") {
-                val nonDirectByteBuffer = BufferUtils.createByteBuffer(vbgl3.vertexFormat.size * vbgl3.vertexCount)
-                vbgl3.write(nonDirectByteBuffer)
-            }
-
-            it("should be able to read to a non-direct byte buffer (with copy)") {
-                val nonDirectByteBuffer = ByteBuffer.allocate(vbgl3.vertexFormat.size * vbgl3.vertexCount)
-                vbgl3.read(nonDirectByteBuffer)
-            }
-
-            it("should be able to read to a direct byte buffer") {
-                val nonDirectByteBuffer = BufferUtils.createByteBuffer(vbgl3.vertexFormat.size * vbgl3.vertexCount)
-                vbgl3.read(nonDirectByteBuffer)
-            }
-        }
-
-        describe("a vertex buffer with array attributes") {
-            val vbgl3 = VertexBufferGL3.createDynamic(vertexFormat {
-                position(3)
-                attribute("someArrayAttribute", VertexElementType.FLOAT32, 2)
-            }, 10, null)
-            program.drawer.vertexBuffer(vbgl3, DrawPrimitive.TRIANGLES)
-
-        }
+    @Test
+    fun `should be able to write a non-direct byte buffer`() {
+        val nonDirectByteBuffer = ByteBuffer.allocate(vbgl3.vertexFormat.size * vbgl3.vertexCount)
+        vbgl3.write(nonDirectByteBuffer)
     }
-})
+
+    @Test
+    fun `should be able to write a direct byte buffer`() {
+        val nonDirectByteBuffer = BufferUtils.createByteBuffer(vbgl3.vertexFormat.size * vbgl3.vertexCount)
+        vbgl3.write(nonDirectByteBuffer)
+    }
+
+    @Test
+    fun `should be able to read to a non-direct byte buffer (with copy)`() {
+        val nonDirectByteBuffer = ByteBuffer.allocate(vbgl3.vertexFormat.size * vbgl3.vertexCount)
+        vbgl3.read(nonDirectByteBuffer)
+    }
+
+    @Test
+    fun `should be able to read to a direct byte buffer`() {
+        val nonDirectByteBuffer = BufferUtils.createByteBuffer(vbgl3.vertexFormat.size * vbgl3.vertexCount)
+        vbgl3.read(nonDirectByteBuffer)
+    }
+
+    @Test
+    fun `a vertex buffer with array attributes`() {
+        val vbgl3 = VertexBufferGL3.createDynamic(vertexFormat {
+            position(3)
+            attribute("someArrayAttribute", VertexElementType.FLOAT32, 2)
+        }, 10, null)
+        program.drawer.vertexBuffer(vbgl3, DrawPrimitive.TRIANGLES)
+    }
+}

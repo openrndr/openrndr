@@ -1,17 +1,16 @@
 import org.openrndr.Program
-import org.spekframework.spek2.Spek
-import org.spekframework.spek2.style.specification.describe
+import kotlin.test.*
 
-object TestCubemapsGL3 : Spek({
-    describe("a program") {
-        val program = Program().initializeGLFWGL3Application()
+class TestCubemapsGL3 {
+    val program = Program().initializeGLFWGL3Application()
 
-        it("can load a rgb8 dds cubemap") {
-            //CubemapGL3.fromUrl(resourceUrl("/cubemaps/garage.dds"))
-        }
-
-        it("can load a rgb32f dds cubemap") {
-            //CubemapGL3.fromUrl(resourceUrl("/cubemaps/garage-rgba32f.dds"))
-        }
+    @Test
+    fun `can load a rgb8 dds cubemap`() {
+        //CubemapGL3.fromUrl(resourceUrl("/cubemaps/garage.dds"))
     }
-})
+
+    @Test
+    fun `can load a rgb32f dds cubemap`() {
+        //CubemapGL3.fromUrl(resourceUrl("/cubemaps/garage-rgba32f.dds"))
+    }
+}
