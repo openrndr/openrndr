@@ -6,7 +6,7 @@ jvmTarget = "11"
 kotlinxCoroutines = "1.6.4"
 kotlinLogging = "2.1.23"
 kotlinxSerialization = "1.3.2"
-dokka = "1.5.30"
+dokka = "1.7.10"
 nebulaRelease = "15.3.1"
 lwjgl = "3.3.1"
 javacpp = "1.5.7"
@@ -28,6 +28,7 @@ kotlin-stdlib = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib", versio
 kotlin-test = { group = "org.jetbrains.kotlin", name = "kotlin-test", version.ref = "kotlin" }
 kotlin-reflect = { group = "org.jetbrains.kotlin", name = "kotlin-reflect", version.ref = "kotlin" }
 kotlin-gradle-plugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
+dokka-gradle-plugin = { group = "org.jetbrains.dokka", name = "dokka-gradle-plugin", version.ref = "dokka" }
 
 lwjgl-core = { group = "org.lwjgl", name = "lwjgl", version.ref = "lwjgl" }
 lwjgl-glfw = { group = "org.lwjgl", name = "lwjgl-glfw", version.ref = "lwjgl" }
@@ -55,7 +56,6 @@ slf4j-simple = { group = "org.slf4j", name = "slf4j-simple", version.ref = "slf4
 
 [plugins]
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
-dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 nebula-release = { id = "nebula.release", version.ref = "nebulaRelease" }
 
 [bundles]
