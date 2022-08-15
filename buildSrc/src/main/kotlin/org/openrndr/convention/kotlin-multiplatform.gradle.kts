@@ -8,6 +8,7 @@ val libs = the<LibrariesForLibs>()
 plugins {
     kotlin("multiplatform")
     id("maven-publish")
+    id("org.openrndr.convention.dokka")
 }
 
 repositories {
