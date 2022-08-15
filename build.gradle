@@ -1,21 +1,8 @@
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-    dependencies {
-        classpath "com.netflix.nebula:nebula-release-plugin:15.3.1"
-    }
-}
 
 plugins {
-    // remember to update all the versions here when upgrading kotlin version
-    id 'org.jetbrains.kotlin.jvm' version '1.6.21' apply false
-    id 'org.jetbrains.kotlin.multiplatform' version '1.6.21' apply false
-    id 'org.jetbrains.kotlin.plugin.serialization' version '1.6.21' apply false
-    id "org.jetbrains.dokka" version "1.5.30" apply false
+    alias(libs.plugins.dokka) apply false
+    alias(libs.plugins.nebula.release) apply false
 }
 
 /*
@@ -29,7 +16,7 @@ if (dokkaEnabled) {
     apply plugin: 'org.jetbrains.dokka'
 }
 
-ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
+def isReleaseVersion = !version.endsWith("SNAPSHOT")
 
 if (dokkaEnabled) {
     // See https://kotlin.github.io/dokka/1.5.30/user_guide/gradle/usage/
@@ -74,7 +61,6 @@ if (dokkaEnabled) {
             configureEach {
                 skipDeprecated.set(true)
                 skipEmptyPackages.set(true)
-
             }
         }
     }
@@ -91,17 +77,8 @@ if (dokkaEnabled) {
  "openrndr-shape",
  "openrndr-utils",
 ].each {
-
     project(":$it") {
         apply plugin: 'org.jetbrains.dokka'
-    }
-}
-
-
-allprojects {
-    group 'org.openrndr'
-    repositories {
-        mavenCentral()
     }
 }
 
@@ -127,48 +104,11 @@ def multiplatformModules = [
         "openrndr-ktessellation"
 ]
 
-
-configure(allprojects.findAll { !multiplatformModules.contains(it.name) }) {
-    apply plugin: 'idea'
-    apply plugin: 'java'
-    apply plugin: 'kotlin'
-    apply plugin: 'maven-publish'
-
-    dependencies {
-        implementation libs.kotlin.logging
-        implementation libs.kotlin.coroutines
-        implementation libs.kotlin.stdlib
-        testImplementation libs.spek.dsl
-        testImplementation libs.kluent
-        testImplementation libs.kotlin.test
-        testRuntimeOnly libs.spek.junit5
-        testRuntimeOnly libs.kotlin.reflect
-    }
-
-    test {
-        useJUnitPlatform {
-            includeEngines 'spek2'
-        }
-    }
-
-    javadoc {
-        options.addBooleanOption 'Xdoclint:none', true
-    }
-
-    tasks.withType(org.jetbrains.kotlin.gradle.tasks.AbstractKotlinCompile).all {
-        kotlinOptions.freeCompilerArgs += ["-Xuse-experimental=kotlinx.coroutines.InternalCoroutinesApi"]
-    }
-}
-
 def doNotPublish = ["openrndr-demos"]
 
 configure(allprojects.findAll { multiplatformModules.contains(it.name) && !doNotPublish.contains(it.name) }) {
     apply plugin: 'maven-publish'
     apply plugin: 'signing'
-
-    def proj = it
-
-    def publicationsFromMainHost = ["jvm", "js"] + "kotlinMultiplatform"
 
     def fjdj = tasks.create("fakeJavaDocJar", Jar) {
         archiveClassifier = "javadoc"
@@ -240,6 +180,7 @@ configure(allprojects.findAll { !doNotPublish.contains(it.name) && (multiplatfor
 configure(allprojects.findAll { !doNotPublish.contains(it.name) && (!multiplatformModules.contains(it.name)) }) {
     apply plugin: 'nebula.release'
     apply plugin: 'maven-publish'
+    apply plugin: 'java'
     apply plugin: 'signing'
 
     java {
@@ -301,26 +242,13 @@ configure(allprojects.findAll { !doNotPublish.contains(it.name) && (!multiplatfo
     }
 }
 
-configure(allprojects.findAll { it.name != "openrndr-demos" }) {
-    //apply plugin: 'maven-publish'
-    apply plugin: 'nebula.release'
-}
-
 subprojects {
+    if (name != "openrndr-demos") {
+        apply(plugin: "nebula.release")
+    }
     // Equivalent Kotlin is: tasks.register<DependencyReportTask>("dependenciesAll") { ...
     tasks.register("dependenciesAll", DependencyReportTask) {
         group = "help"
         description = "Displays all dependencies, including subprojects."
-    }
-
-    kotlin {
-        // https://youtrack.jetbrains.com/issue/KT-43095/Add-support-for-Java-Toolchain-to-the-Gradle-plugin#focus=Comments-27-5192573.0-0
-        jvmToolchain { toolchain ->
-            (toolchain as JavaToolchainSpec).languageVersion.set(JavaLanguageVersion.of(libs.versions.jvmTarget.get()))
-        }
-        tasks.withType(KotlinCompile).configureEach {
-            kotlinOptions.jvmTarget = libs.versions.jvmTarget.get()
-            kotlinOptions.apiVersion = libs.versions.kotlinApi.get()
-        }
     }
 }

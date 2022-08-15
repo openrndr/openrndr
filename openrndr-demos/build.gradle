@@ -1,3 +1,7 @@
+plugins {
+    id("org.openrndr.convention.kotlin-jvm")
+}
+
 switch (org.gradle.internal.os.OperatingSystem.current()) {
     case org.gradle.internal.os.OperatingSystem.WINDOWS:
         project.ext.openrndrOS = "windows"
@@ -18,5 +22,6 @@ dependencies {
     runtimeOnly project(":openrndr-jvm:openrndr-openal-natives-$openrndrOS")
     runtimeOnly project(":openrndr-jvm:openrndr-ffmpeg-natives-$openrndrOS")
     implementation project(":openrndr-jvm:openrndr-ffmpeg")
+    implementation(libs.kotlin.coroutines)
     runtimeOnly(libs.slf4j.simple)
 }

@@ -1,5 +1,5 @@
 plugins {
-    kotlin("multiplatform")
+    org.openrndr.convention.`kotlin-multiplatform`
 }
 
 val embedShaders = tasks.register<EmbedShadersTask>("embedShaders") {
@@ -12,16 +12,6 @@ val embedShaders = tasks.register<EmbedShadersTask>("embedShaders") {
 }.get()
 
 kotlin {
-    jvm {
-        testRuns["test"].executionTask.configure {
-            useJUnitPlatform()
-        }
-    }
-    js(IR) {
-        browser()
-        nodejs()
-    }
-
     sourceSets {
         val shaderKotlin by creating {
             this.kotlin.srcDir(embedShaders.outputDir)
@@ -31,19 +21,9 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation(project(":openrndr-draw"))
-                implementation(libs.kotlin.logging)
                 api(shaderKotlin.kotlin)
             }
             dependsOn(shaderKotlin)
-        }
-
-        @Suppress("UNUSED_VARIABLE")
-        val commonTest by getting {
-            dependencies {
-                implementation(kotlin("test-common"))
-                implementation(kotlin("test-annotations-common"))
-                implementation(libs.kotest)
-            }
         }
     }
 }

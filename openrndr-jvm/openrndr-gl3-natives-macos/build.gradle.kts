@@ -1,7 +1,6 @@
 plugins {
-    kotlin("jvm")
+    org.openrndr.convention.`kotlin-jvm`
 }
-
 dependencies {
     runtimeOnly(libs.bundles.lwjgl.full) {
         artifact {

@@ -1,0 +1,65 @@
+[versions]
+kotlinApi = "1.6"
+kotlinLanguage = "1.6"
+kotlin = "1.6.21"
+jvmTarget = "11"
+kotlinxCoroutines = "1.6.4"
+kotlinLogging = "2.1.23"
+kotlinxSerialization = "1.3.2"
+dokka = "1.5.30"
+nebulaRelease = "15.3.1"
+lwjgl = "3.3.1"
+javacpp = "1.5.7"
+# ffmpeg version suffix should match javacpp version
+ffmpeg = "5.0-1.5.7"
+jsoup = "1.14.3"
+junitJupiter = "5.8.2"
+spek = "2.0.18"
+kluent = "1.68"
+kotest = "5.2.3"
+slf4j = "1.7.36"
+
+[libraries]
+kotlin-logging = { group = "io.github.microutils", name = "kotlin-logging", version.ref = "kotlinLogging" }
+kotlin-coroutines = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
+kotlin-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
+kotlin-serialization-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-core", version.ref = "kotlinxSerialization" }
+kotlin-stdlib = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib", version.ref = "kotlin" }
+kotlin-test = { group = "org.jetbrains.kotlin", name = "kotlin-test", version.ref = "kotlin" }
+kotlin-reflect = { group = "org.jetbrains.kotlin", name = "kotlin-reflect", version.ref = "kotlin" }
+kotlin-gradle-plugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
+
+lwjgl-core = { group = "org.lwjgl", name = "lwjgl", version.ref = "lwjgl" }
+lwjgl-glfw = { group = "org.lwjgl", name = "lwjgl-glfw", version.ref = "lwjgl" }
+lwjgl-jemalloc = { group = "org.lwjgl", name = "lwjgl-jemalloc", version.ref = "lwjgl" }
+lwjgl-opengl = { group = "org.lwjgl", name = "lwjgl-opengl", version.ref = "lwjgl" }
+lwjgl-stb = { group = "org.lwjgl", name = "lwjgl-stb", version.ref = "lwjgl" }
+lwjgl-tinyexr = { group = "org.lwjgl", name = "lwjgl-tinyexr", version.ref = "lwjgl" }
+
+lwjgl-nfd = { group = "org.lwjgl", name = "lwjgl-nfd", version.ref = "lwjgl" }
+lwjgl-openal = { group = "org.lwjgl", name = "lwjgl-openal", version.ref = "lwjgl" }
+lwjgl-egl = { group = "org.lwjgl", name = "lwjgl-egl", version.ref = "lwjgl" }
+
+javacpp = { group = "org.bytedeco", name = "javacpp", version.ref = "javacpp" }
+ffmpeg = { group = "org.bytedeco", name = "ffmpeg", version.ref = "ffmpeg" }
+
+jsoup = { group = "org.jsoup", name = "jsoup", version.ref = "jsoup" }
+
+jupiter-api = { group = "org.junit.jupiter", name = "junit-jupiter-api", version.ref = "junitJupiter" }
+jupiter-engine = { group = "org.junit.jupiter", name = "junit-jupiter-engine", version.ref = "junitJupiter" }
+spek-dsl = { group = "org.spekframework.spek2", name = "spek-dsl-jvm", version.ref = "spek" }
+spek-junit5 = { group = "org.spekframework.spek2", name = "spek-runner-junit5", version.ref = "spek" }
+kluent = { group = "org.amshove.kluent", name = "kluent", version.ref = "kluent" }
+kotest = { group = "io.kotest", name = "kotest-assertions-core", version.ref = "kotest" }
+slf4j-simple = { group = "org.slf4j", name = "slf4j-simple", version.ref = "slf4j" }
+
+[plugins]
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
+nebula-release = { id = "nebula.release", version.ref = "nebulaRelease" }
+
+[bundles]
+lwjgl-openal = ["lwjgl-core", "lwjgl-openal"]
+lwjgl-full = ["lwjgl-core", "lwjgl-glfw", "lwjgl-jemalloc", "lwjgl-opengl", "lwjgl-stb", "lwjgl-tinyexr", "lwjgl-nfd"]
+javacpp-ffmpeg = ["javacpp", "ffmpeg"]
+jupiter = ["jupiter-api", "jupiter-engine"]

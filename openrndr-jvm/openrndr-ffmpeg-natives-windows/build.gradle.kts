@@ -1,3 +1,6 @@
+plugins {
+    org.openrndr.convention.`kotlin-jvm`
+}
 dependencies {
     runtimeOnly(libs.bundles.javacpp.ffmpeg) {
         artifact {
