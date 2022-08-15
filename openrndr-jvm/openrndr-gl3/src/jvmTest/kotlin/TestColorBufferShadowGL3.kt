@@ -1,20 +1,16 @@
-import kotlinx.coroutines.runBlocking
 import org.amshove.kluent.`should be equal to`
-import org.amshove.kluent.`should equal`
-import org.openrndr.Configuration
 import org.openrndr.Program
 import org.openrndr.color.ColorRGBa
-import org.openrndr.draw.*
-import org.openrndr.internal.gl3.ApplicationGLFWGL3
+import org.openrndr.draw.ColorFormat
+import org.openrndr.draw.ColorType
+import org.openrndr.draw.colorBuffer
+import org.openrndr.draw.renderTarget
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 
 object TestColorBufferShadowGL3 : Spek({
     describe("a program") {
-        val program = Program()
-        val app = ApplicationGLFWGL3(program, Configuration())
-        runBlocking { app.setup() }
-        app.preloop()
+        val program = Program().initializeGLFWGL3Application()
 
         describe("a UINT8/RGBA color buffer shadow") {
             val cb = colorBuffer(256, 256)
@@ -22,7 +18,7 @@ object TestColorBufferShadowGL3 : Spek({
             it("should be able to read all pixels ") {
                 for (y in 0 until cb.height) {
                     for (x in 0 until cb.width) {
-                        cb.shadow[x,y]
+                        cb.shadow[x, y]
                     }
                 }
             }
@@ -33,7 +29,7 @@ object TestColorBufferShadowGL3 : Spek({
             it("should be able to read all pixels ") {
                 for (y in 0 until cb.height) {
                     for (x in 0 until cb.width) {
-                        cb.shadow[x,y]
+                        cb.shadow[x, y]
                     }
                 }
             }
@@ -45,7 +41,7 @@ object TestColorBufferShadowGL3 : Spek({
             it("should be able to read all pixels ") {
                 for (y in 0 until cb.height) {
                     for (x in 0 until cb.width) {
-                        cb.shadow[x,y]
+                        cb.shadow[x, y]
                     }
                 }
             }
@@ -57,7 +53,7 @@ object TestColorBufferShadowGL3 : Spek({
             it("should be able to read all pixels ") {
                 for (y in 0 until cb.height) {
                     for (x in 0 until cb.width) {
-                        cb.shadow[x,y]
+                        cb.shadow[x, y]
                     }
                 }
             }
@@ -65,7 +61,7 @@ object TestColorBufferShadowGL3 : Spek({
                 colorBuffer(cb)
             }
             program.drawer.withTarget(rt) {
-                clear(ColorRGBa(127/256.0, 0.0, 0.0, 1.0))
+                clear(ColorRGBa(127 / 256.0, 0.0, 0.0, 1.0))
             }
             cb.shadow.download()
             it("should be able to read all pixels correctly ") {
@@ -83,51 +79,50 @@ object TestColorBufferShadowGL3 : Spek({
         }
 
         describe("a UINT16/RGBA color buffer shadow") {
-            val cb = colorBuffer(256, 256, type= ColorType.UINT16)
+            val cb = colorBuffer(256, 256, type = ColorType.UINT16)
             cb.shadow.download()
             it("should be able to read all pixels ") {
                 for (y in 0 until cb.height) {
                     for (x in 0 until cb.width) {
-                        cb.shadow[x,y]
+                        cb.shadow[x, y]
                     }
                 }
             }
         }
         describe("a UINT16/RGB color buffer shadow") {
-            val cb = colorBuffer(256, 256, format = ColorFormat.RGB, type= ColorType.UINT16)
+            val cb = colorBuffer(256, 256, format = ColorFormat.RGB, type = ColorType.UINT16)
             cb.shadow.download()
             it("should be able to read all pixels ") {
                 for (y in 0 until cb.height) {
                     for (x in 0 until cb.width) {
-                        cb.shadow[x,y]
+                        cb.shadow[x, y]
                     }
                 }
             }
         }
 
         describe("a UINT16/RG color buffer shadow") {
-            val cb = colorBuffer(256, 256, format = ColorFormat.RG, type= ColorType.UINT16)
+            val cb = colorBuffer(256, 256, format = ColorFormat.RG, type = ColorType.UINT16)
             cb.shadow.download()
             it("should be able to read all pixels ") {
                 for (y in 0 until cb.height) {
                     for (x in 0 until cb.width) {
-                        cb.shadow[x,y]
+                        cb.shadow[x, y]
                     }
                 }
             }
         }
 
         describe("a UINT16/R color buffer shadow") {
-            val cb = colorBuffer(256, 256, format = ColorFormat.R, type= ColorType.UINT16)
+            val cb = colorBuffer(256, 256, format = ColorFormat.R, type = ColorType.UINT16)
             cb.shadow.download()
             it("should be able to read all pixels ") {
                 for (y in 0 until cb.height) {
                     for (x in 0 until cb.width) {
-                        cb.shadow[x,y]
+                        cb.shadow[x, y]
                     }
                 }
             }
         }
     }
-
 })

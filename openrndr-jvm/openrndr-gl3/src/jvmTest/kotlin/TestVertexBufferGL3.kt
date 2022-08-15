@@ -1,23 +1,17 @@
-import kotlinx.coroutines.runBlocking
 import org.lwjgl.BufferUtils
-import org.openrndr.Configuration
 import org.openrndr.Program
 import org.openrndr.draw.DrawPrimitive
 import org.openrndr.draw.VertexElementType
 import org.openrndr.draw.vertexFormat
-import org.openrndr.internal.gl3.ApplicationGLFWGL3
 import org.openrndr.internal.gl3.VertexBufferGL3
-import java.nio.ByteBuffer
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
+import java.nio.ByteBuffer
 
 object TestVertexBufferGL3 : Spek({
 
     describe("a program") {
-        val program = Program()
-        val app = ApplicationGLFWGL3(program, Configuration())
-        runBlocking { app.setup() }
-        app.preloop()
+        val program = Program().initializeGLFWGL3Application()
 
         describe("a vertex buffer") {
             val vbgl3 = VertexBufferGL3.createDynamic(vertexFormat {
@@ -54,6 +48,4 @@ object TestVertexBufferGL3 : Spek({
 
         }
     }
-
-
 })
