@@ -371,9 +371,9 @@ class RenderTargetBuilder(private val renderTarget: RenderTarget) {
 
     /**
      * create and attach a [DepthBuffer]
-     * @param format the [DepthFormat] for the [DepthBuffer], default is [DepthFormat.DEPTH24_STENCIL8]
+     * @param format the [DepthFormat] for the [DepthBuffer], default is [DepthFormat.DEPTH_STENCIL]
      */
-    fun depthBuffer(format: DepthFormat = DepthFormat.DEPTH24_STENCIL8) {
+    fun depthBuffer(format: DepthFormat = DepthFormat.DEPTH_STENCIL) {
         renderTarget.attach(_depthBuffer(renderTarget.effectiveWidth, renderTarget.effectiveHeight, format, renderTarget.multisample))
     }
 

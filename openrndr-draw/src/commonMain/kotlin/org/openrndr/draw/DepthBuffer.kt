@@ -10,7 +10,7 @@ interface DepthBuffer {
     val multisample: BufferMultisample
 
     val hasStencil: Boolean
-        get() = format == DepthFormat.DEPTH32F_STENCIL8 || format == DepthFormat.DEPTH24_STENCIL8
+        get() = format == DepthFormat.DEPTH32F_STENCIL8 || format == DepthFormat.DEPTH24_STENCIL8 || format == DepthFormat.DEPTH_STENCIL
 
     companion object {
         @Deprecated("use the depthBuffer() builder function instead")
