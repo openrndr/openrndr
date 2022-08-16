@@ -1,6 +1,7 @@
 package org.openrndr.utils.buffer
 
 import java.nio.ByteBuffer
+import java.nio.ByteOrder
 
 actual class MPPBuffer(val byteBuffer: ByteBuffer)  {
     actual fun rewind() {
@@ -34,13 +35,16 @@ actual class MPPBuffer(val byteBuffer: ByteBuffer)  {
 
     actual companion object {
         actual fun allocate(size: Int) : MPPBuffer {
-            return MPPBuffer(ByteBuffer.allocateDirect(size))
+            val byteBuffer = ByteBuffer.allocateDirect(size)
+            byteBuffer.order(ByteOrder.nativeOrder())
+            return MPPBuffer(byteBuffer)
         }
 
         actual fun createFrom(fromBytes: ByteArray): MPPBuffer {
-            val bb= ByteBuffer.allocateDirect(fromBytes.size)
-            bb.put(fromBytes)
-            return MPPBuffer(bb)
+            val byteBuffer= ByteBuffer.allocateDirect(fromBytes.size)
+            byteBuffer.order(ByteOrder.nativeOrder())
+            byteBuffer.put(fromBytes)
+            return MPPBuffer(byteBuffer)
         }
     }
 
