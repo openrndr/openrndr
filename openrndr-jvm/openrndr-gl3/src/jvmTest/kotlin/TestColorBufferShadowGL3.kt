@@ -1,4 +1,3 @@
-import org.openrndr.Program
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.ColorFormat
 import org.openrndr.draw.ColorType
@@ -6,9 +5,7 @@ import org.openrndr.draw.colorBuffer
 import org.openrndr.draw.renderTarget
 import kotlin.test.*
 
-class TestColorBufferShadowGL3 {
-    val program = Program().initializeGLFWGL3Application()
-
+class TestColorBufferShadowGL3 : AbstractApplicationTestFixture() {
     @Test
     fun `a UINT8RGBA color buffer shadow`() {
         val cb = colorBuffer(256, 256)

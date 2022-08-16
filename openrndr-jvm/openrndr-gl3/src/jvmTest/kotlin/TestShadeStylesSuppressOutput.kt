@@ -6,15 +6,19 @@ import org.openrndr.math.Vector3
 import org.openrndr.resourceUrl
 import kotlin.test.*
 
-class TestShadeStylesSuppressOutput {
-    val program = Program().initializeGLFWGL3Application().also {
-        it.drawer.shadeStyle = shadeStyle {
+class TestShadeStylesSuppressOutput: AbstractApplicationTestFixture() {
+    lateinit var vbgl3: VertexBufferGL3
+
+    @BeforeTest
+    override fun setup() {
+        super.setup()
+        program.drawer.shadeStyle = shadeStyle {
             suppressDefaultOutput = true
         }
+        vbgl3 = VertexBufferGL3.createDynamic(vertexFormat {
+            position(3)
+        }, 10, null)
     }
-    val vbgl3 = VertexBufferGL3.createDynamic(vertexFormat {
-        position(3)
-    }, 10, null)
 
     @Test
     fun circle() {

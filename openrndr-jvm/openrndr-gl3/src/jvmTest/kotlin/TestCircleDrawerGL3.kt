@@ -3,9 +3,7 @@ import org.openrndr.math.Vector2
 import org.openrndr.shape.Circle
 import kotlin.test.*
 
-class TestCircleDrawerGL3 {
-    val program = Program().initializeGLFWGL3Application()
-
+class TestCircleDrawerGL3  : AbstractApplicationTestFixture(){
     @Test
     fun `a circle drawer`() {
         program.drawer.circle(Vector2(0.0, 0.0), 40.0)

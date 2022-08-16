@@ -1,5 +1,4 @@
 import org.lwjgl.BufferUtils
-import org.openrndr.Program
 import org.openrndr.draw.DrawPrimitive
 import org.openrndr.draw.VertexElementType
 import org.openrndr.draw.vertexFormat
@@ -7,11 +6,16 @@ import org.openrndr.internal.gl3.VertexBufferGL3
 import java.nio.ByteBuffer
 import kotlin.test.*
 
-class TestVertexBufferGL3 {
-    val program = Program().initializeGLFWGL3Application()
-    val vbgl3 = VertexBufferGL3.createDynamic(vertexFormat {
-        position(3)
-    }, 10, null)
+class TestVertexBufferGL3 : AbstractApplicationTestFixture() {
+    lateinit var vbgl3: VertexBufferGL3
+
+    @BeforeTest
+    override fun setup() {
+        super.setup()
+        vbgl3 = VertexBufferGL3.createDynamic(vertexFormat {
+            position(3)
+        }, 10, null)
+    }
 
     @Test
     fun `should be able to write a non-direct byte buffer`() {

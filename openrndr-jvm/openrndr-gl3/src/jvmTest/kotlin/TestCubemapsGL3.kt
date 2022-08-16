@@ -1,9 +1,6 @@
-import org.openrndr.Program
 import kotlin.test.*
 
-class TestCubemapsGL3 {
-    val program = Program().initializeGLFWGL3Application()
-
+class TestCubemapsGL3 : AbstractApplicationTestFixture() {
     @Test
     fun `can load a rgb8 dds cubemap`() {
         //CubemapGL3.fromUrl(resourceUrl("/cubemaps/garage.dds"))

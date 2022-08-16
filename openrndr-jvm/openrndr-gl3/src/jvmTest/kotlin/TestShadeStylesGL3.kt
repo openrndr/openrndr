@@ -1,4 +1,3 @@
-import org.openrndr.Program
 import org.openrndr.draw.*
 import org.openrndr.internal.gl3.VertexBufferGL3
 import org.openrndr.math.Vector2
@@ -6,9 +5,13 @@ import org.openrndr.math.Vector3
 import org.openrndr.resourceUrl
 import kotlin.test.*
 
-class TestShadeStylesGL3 {
-    val program = Program().initializeGLFWGL3Application().also {
-        it.drawer.shadeStyle = shadeStyle {
+class TestShadeStylesGL3 : AbstractApplicationTestFixture() {
+    lateinit var vbgl3: VertexBufferGL3
+
+    @BeforeTest
+    override fun setup() {
+        super.setup()
+        program.drawer.shadeStyle = shadeStyle {
             vertexTransform = """
                 |int k = c_element;
                 |if (d_primitive == d_image) {}
@@ -34,10 +37,10 @@ class TestShadeStylesGL3 {
                 |if (d_primitive == d_expansion) {}
             """.trimMargin()
         }
+        vbgl3 = VertexBufferGL3.createDynamic(vertexFormat {
+            position(3)
+        }, 10, null)
     }
-    val vbgl3 = VertexBufferGL3.createDynamic(vertexFormat {
-        position(3)
-    }, 10, null)
 
     @Test
     fun `a circle should be able to do shadestyles`() {
