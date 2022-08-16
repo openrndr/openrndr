@@ -9,6 +9,11 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - name: Add more swap space
+        uses: pierotofy/set-swap-space@v1.0
+        with:
+          swap-size-gb: 8
+
       - name: Checkout current repository
         uses: actions/checkout@v3
 
