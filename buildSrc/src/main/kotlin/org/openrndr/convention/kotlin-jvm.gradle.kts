@@ -19,6 +19,11 @@ repositories {
 group = "org.openrndr"
 
 dependencies {
+    components {
+        for (module in LwjglModules.all) {
+            withModule<LwjglRule_gradle.LwjglRule>("org.lwjgl:$module")
+        }
+    }
     implementation(libs.kotlin.logging)
     implementation(libs.kotlin.stdlib)
     testImplementation(libs.kotlin.test)
@@ -30,6 +35,9 @@ kotlin {
         languageVersion.set(JavaLanguageVersion.of(libs.versions.jvmTarget.get()))
     }
 }
+
+addHostMachineAttributesToConfiguration("runtimeClasspath")
+addHostMachineAttributesToConfiguration("testRuntimeClasspath")
 
 tasks {
     test {

@@ -1,5 +1,13 @@
+import org.openrndr.convention.currentOperatingSystemName
+
 plugins {
     org.openrndr.convention.`kotlin-multiplatform`
+}
+
+val nativeClassifier = when (currentOperatingSystemName) {
+    "linux" -> "linux-x64"
+    "macos", "windows" -> currentOperatingSystemName
+    else -> throw IllegalStateException("Unknown OS: $currentOperatingSystemName")
 }
 
 kotlin {
@@ -17,9 +25,8 @@ kotlin {
         @Suppress("UNUSED_VARIABLE")
         val jvmTest by getting {
             dependencies {
-                runtimeOnly(project(":openrndr-jvm:openrndr-gl3-natives-windows"))
-                runtimeOnly(project(":openrndr-jvm:openrndr-gl3-natives-macos"))
-                runtimeOnly(project(":openrndr-jvm:openrndr-gl3-natives-linux-x64"))
+                runtimeOnly(project(":openrndr-jvm:openrndr-gl3", "jvmRuntimeElements"))
+                runtimeOnly(project(":openrndr-jvm:openrndr-gl3", "natives-${nativeClassifier}RuntimeElements"))
                 runtimeOnly(libs.slf4j.simple)
                 runtimeOnly(project(":openrndr-nullgl"))
             }

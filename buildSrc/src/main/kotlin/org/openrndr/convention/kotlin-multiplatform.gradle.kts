@@ -21,6 +21,14 @@ tasks.withType<KotlinCompile>() {
     kotlinOptions.apiVersion = libs.versions.kotlinApi.get()
 }
 
+dependencies {
+    components {
+        for (module in LwjglModules.all) {
+            withModule<LwjglRule_gradle.LwjglRule>("org.lwjgl:$module")
+        }
+    }
+}
+
 kotlin {
     jvm {
         jvmToolchain {
@@ -30,6 +38,8 @@ kotlin {
         testRuns["test"].executionTask.configure {
             useJUnitPlatform()
         }
+        addHostMachineAttributesToConfiguration("jvmRuntimeClasspath")
+        addHostMachineAttributesToConfiguration("jvmTestRuntimeClasspath")
     }
 
     js(IR) {

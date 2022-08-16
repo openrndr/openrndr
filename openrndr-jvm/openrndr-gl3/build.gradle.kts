@@ -1,16 +1,12 @@
+import org.openrndr.convention.addNativeRuntimeOnly
+import org.openrndr.convention.mapToLwjglTargetName
+import org.openrndr.convention.openrndrJvmNativeVariants
+
 plugins {
-    org.openrndr.convention.`kotlin-multiplatform`
+    org.openrndr.convention.`kotlin-multiplatform-jvm-natives`
 }
 
 kotlin {
-    jvm {
-        testRuns["test"].executionTask.configure {
-            if (System.getenv("CI") != null) {
-                exclude("**/*.class")
-            }
-        }
-    }
-
     sourceSets {
         @Suppress("UNUSED_VARIABLE")
         val jvmMain by getting {
@@ -35,12 +31,19 @@ kotlin {
         @Suppress("UNUSED_VARIABLE")
         val jvmTest by getting {
             dependencies {
-                runtimeOnly(project(":openrndr-jvm:openrndr-gl3-natives-windows"))
-                runtimeOnly(project(":openrndr-jvm:openrndr-gl3-natives-macos"))
-                runtimeOnly(project(":openrndr-jvm:openrndr-gl3-natives-linux-x64"))
+                runtimeOnly(project(":openrndr-jvm:openrndr-gl3"))
                 runtimeOnly(libs.slf4j.simple)
                 implementation(libs.kluent)
                 implementation(libs.spek.dsl)
+            }
+        }
+
+        for (nativeVariant in openrndrJvmNativeVariants) {
+            getByName(nativeVariant.targetName + "Main") {
+                dependencies {
+                    addNativeRuntimeOnly(libs.bundles.lwjgl.full, nativeVariant.mapToLwjglTargetName())
+                }
+//                dependsOn(jvmMain)
             }
         }
     }
