@@ -22,11 +22,7 @@ tasks.withType<KotlinCompile>() {
 }
 
 dependencies {
-    components {
-        for (module in LwjglModules.all) {
-            withModule<LwjglRule_gradle.LwjglRule>("org.lwjgl:$module")
-        }
-    }
+    components.all<LwjglRule_gradle.LwjglRule>()
 }
 
 kotlin {

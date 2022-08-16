@@ -19,11 +19,7 @@ repositories {
 group = "org.openrndr"
 
 dependencies {
-    components {
-        for (module in LwjglModules.all) {
-            withModule<LwjglRule_gradle.LwjglRule>("org.lwjgl:$module")
-        }
-    }
+    components.all<LwjglRule_gradle.LwjglRule>()
     implementation(libs.kotlin.logging)
     implementation(libs.kotlin.stdlib)
     testImplementation(libs.kotlin.test)

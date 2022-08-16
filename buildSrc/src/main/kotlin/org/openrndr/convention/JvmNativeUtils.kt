@@ -14,6 +14,15 @@ import org.jetbrains.kotlin.gradle.plugin.mpp.DefaultKotlinDependencyHandler
 
 data class JvmNativeVariant(val targetName: String, val os: String, val arch: String)
 
+fun JvmNativeVariant.mapToLwjglTargetName(): String = when (targetName) {
+    "natives-linux-arm64" -> "natives-linux-arm64"
+    "natives-linux-x64" -> "natives-linux"
+    "natives-macos-arm64" -> "natives-macos-arm64"
+    "natives-macos" -> "natives-macos"
+    "natives-windows" -> "natives-windows"
+    else -> throw IllegalArgumentException("No match for target: $targetName")
+}
+
 val currentOperatingSystemName: String = DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName()
 val currentArchitectureName: String = DefaultNativePlatform.getCurrentArchitecture().name
 

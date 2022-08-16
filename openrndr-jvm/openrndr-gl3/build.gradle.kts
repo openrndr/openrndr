@@ -1,9 +1,16 @@
 import org.openrndr.convention.addNativeRuntimeOnly
+import org.openrndr.convention.currentOperatingSystemName
 import org.openrndr.convention.mapToLwjglTargetName
 import org.openrndr.convention.openrndrJvmNativeVariants
 
 plugins {
     org.openrndr.convention.`kotlin-multiplatform-jvm-natives`
+}
+
+val nativeClassifier = when (currentOperatingSystemName) {
+    "linux" -> "linux-x64"
+    "macos", "windows" -> currentOperatingSystemName
+    else -> throw IllegalStateException("Unknown OS: $currentOperatingSystemName")
 }
 
 kotlin {
@@ -31,7 +38,8 @@ kotlin {
         @Suppress("UNUSED_VARIABLE")
         val jvmTest by getting {
             dependencies {
-                runtimeOnly(project(":openrndr-jvm:openrndr-gl3"))
+                runtimeOnly(project(":openrndr-jvm:openrndr-gl3", "jvmRuntimeElements"))
+                runtimeOnly(project(":openrndr-jvm:openrndr-gl3", "natives-${nativeClassifier}RuntimeElements"))
                 runtimeOnly(libs.slf4j.simple)
                 implementation(libs.kluent)
                 implementation(libs.spek.dsl)
