@@ -17,6 +17,12 @@ class TestVertexBufferGL3 : AbstractApplicationTestFixture() {
         }, 10, null)
     }
 
+    @AfterTest
+    override fun teardown() {
+        vbgl3.destroy()
+        super.teardown()
+    }
+
     @Test
     fun `should be able to write a non-direct byte buffer`() {
         val nonDirectByteBuffer = ByteBuffer.allocate(vbgl3.vertexFormat.size * vbgl3.vertexCount)
@@ -48,5 +54,6 @@ class TestVertexBufferGL3 : AbstractApplicationTestFixture() {
             attribute("someArrayAttribute", VertexElementType.FLOAT32, 2)
         }, 10, null)
         program.drawer.vertexBuffer(vbgl3, DrawPrimitive.TRIANGLES)
+        vbgl3.destroy()
     }
 }

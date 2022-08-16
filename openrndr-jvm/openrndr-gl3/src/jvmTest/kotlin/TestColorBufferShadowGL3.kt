@@ -15,6 +15,7 @@ class TestColorBufferShadowGL3 : AbstractApplicationTestFixture() {
                 cb.shadow[x, y]
             }
         }
+        cb.destroy()
     }
 
     @Test
@@ -26,6 +27,7 @@ class TestColorBufferShadowGL3 : AbstractApplicationTestFixture() {
                 cb.shadow[x, y]
             }
         }
+        cb.destroy()
     }
 
     @Test
@@ -37,6 +39,7 @@ class TestColorBufferShadowGL3 : AbstractApplicationTestFixture() {
                 cb.shadow[x, y]
             }
         }
+        cb.destroy()
     }
 
     @Test
@@ -55,7 +58,6 @@ class TestColorBufferShadowGL3 : AbstractApplicationTestFixture() {
             clear(ColorRGBa(127 / 256.0, 0.0, 0.0, 1.0))
         }
         cb.shadow.download()
-
         for (y in 0 until cb.height) {
             for (x in 0 until cb.width) {
                 val c = cb.shadow[x, y]
@@ -65,6 +67,7 @@ class TestColorBufferShadowGL3 : AbstractApplicationTestFixture() {
                 assertEquals(c.alpha, 1.0)
             }
         }
+        cb.destroy()
     }
 
     @Test
@@ -76,6 +79,7 @@ class TestColorBufferShadowGL3 : AbstractApplicationTestFixture() {
                 cb.shadow[x, y]
             }
         }
+        cb.destroy()
     }
 
     @Test
@@ -87,6 +91,7 @@ class TestColorBufferShadowGL3 : AbstractApplicationTestFixture() {
                 cb.shadow[x, y]
             }
         }
+        cb.destroy()
     }
 
     @Test
@@ -98,6 +103,7 @@ class TestColorBufferShadowGL3 : AbstractApplicationTestFixture() {
                 cb.shadow[x, y]
             }
         }
+        cb.destroy()
     }
 
     @Test
@@ -109,5 +115,6 @@ class TestColorBufferShadowGL3 : AbstractApplicationTestFixture() {
                 cb.shadow[x, y]
             }
         }
+        cb.destroy()
     }
 }

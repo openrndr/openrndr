@@ -1,4 +1,3 @@
-import org.openrndr.Program
 import org.openrndr.draw.*
 import org.openrndr.internal.gl3.VertexBufferGL3
 import org.openrndr.math.Vector2
@@ -6,18 +5,13 @@ import org.openrndr.math.Vector3
 import org.openrndr.resourceUrl
 import kotlin.test.*
 
-class TestShadeStylesSuppressOutput: AbstractApplicationTestFixture() {
-    lateinit var vbgl3: VertexBufferGL3
-
+class TestShadeStylesSuppressOutput : AbstractApplicationTestFixture() {
     @BeforeTest
     override fun setup() {
         super.setup()
         program.drawer.shadeStyle = shadeStyle {
             suppressDefaultOutput = true
         }
-        vbgl3 = VertexBufferGL3.createDynamic(vertexFormat {
-            position(3)
-        }, 10, null)
     }
 
     @Test
@@ -49,13 +43,18 @@ class TestShadeStylesSuppressOutput: AbstractApplicationTestFixture() {
 
     @Test
     fun `vertex buffer`() {
+        val vbgl3 = VertexBufferGL3.createDynamic(vertexFormat {
+            position(3)
+        }, 10, null)
         program.drawer.vertexBuffer(vbgl3, DrawPrimitive.TRIANGLES)
+        vbgl3.destroy()
     }
 
     @Test
     fun image() {
         val cb = colorBuffer(640, 640)
         program.drawer.image(cb)
+        cb.destroy()
     }
 
     @Test

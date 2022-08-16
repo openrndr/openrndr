@@ -6,8 +6,6 @@ import org.openrndr.resourceUrl
 import kotlin.test.*
 
 class TestShadeStylesGL3 : AbstractApplicationTestFixture() {
-    lateinit var vbgl3: VertexBufferGL3
-
     @BeforeTest
     override fun setup() {
         super.setup()
@@ -37,9 +35,6 @@ class TestShadeStylesGL3 : AbstractApplicationTestFixture() {
                 |if (d_primitive == d_expansion) {}
             """.trimMargin()
         }
-        vbgl3 = VertexBufferGL3.createDynamic(vertexFormat {
-            position(3)
-        }, 10, null)
     }
 
     @Test
@@ -71,13 +66,18 @@ class TestShadeStylesGL3 : AbstractApplicationTestFixture() {
 
     @Test
     fun `vertex buffer`() {
+        val vbgl3 = VertexBufferGL3.createDynamic(vertexFormat {
+            position(3)
+        }, 10, null)
         program.drawer.vertexBuffer(vbgl3, DrawPrimitive.TRIANGLES)
+        vbgl3.destroy()
     }
 
     @Test
     fun image() {
         val cb = colorBuffer(640, 640)
         program.drawer.image(cb)
+        cb.destroy()
     }
 
     @Test
