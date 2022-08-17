@@ -19,8 +19,8 @@ repositories {
 group = "org.openrndr"
 
 dependencies {
-    implementation(libs.kotlin.logging)
     implementation(libs.kotlin.stdlib)
+    implementation(libs.kotlin.logging)
     testImplementation(libs.kotlin.test)
 }
 
@@ -44,5 +44,6 @@ tasks {
     }
     withType<KotlinCompile>() {
         kotlinOptions.apiVersion = libs.versions.kotlinApi.get()
+        kotlinOptions.languageVersion = libs.versions.kotlinLanguage.get()
     }
 }

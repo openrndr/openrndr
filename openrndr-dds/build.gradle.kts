@@ -10,6 +10,7 @@ kotlin {
                 implementation(project(":openrndr-math"))
                 implementation(project(":openrndr-draw"))
                 implementation(project(":openrndr-utils"))
+                implementation(libs.kotlin.coroutines)
             }
         }
     }
