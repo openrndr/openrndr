@@ -44,7 +44,8 @@ class FontImageMapDrawer {
 
             var instance = 0
 
-            for ((text, position) in (texts zip positions)) {
+            val textAndPositionPairs = texts.zip(positions)
+            for ((text, position) in textAndPositionPairs) {
                 var cursorX = 0.0
                 val cursorY = 0.0
 

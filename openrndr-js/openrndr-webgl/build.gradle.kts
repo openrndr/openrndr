@@ -9,6 +9,7 @@ kotlin {
             dependencies {
                 api(project(":openrndr-application"))
                 api(project(":openrndr-draw"))
+                implementation(libs.kotlin.coroutines)
             }
         }
     }

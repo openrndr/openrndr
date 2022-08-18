@@ -19,6 +19,7 @@ group = "org.openrndr"
 
 tasks.withType<KotlinCompile>() {
     kotlinOptions.apiVersion = libs.versions.kotlinApi.get()
+    kotlinOptions.languageVersion = libs.versions.kotlinLanguage.get()
 }
 
 kotlin {
@@ -41,6 +42,7 @@ kotlin {
         @Suppress("UNUSED_VARIABLE")
         val commonMain by getting {
             dependencies {
+                implementation(libs.kotlin.stdlib)
                 implementation(libs.kotlin.logging)
             }
         }
