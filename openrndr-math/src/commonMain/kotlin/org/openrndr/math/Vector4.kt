@@ -7,7 +7,7 @@ import kotlin.math.sqrt
 
 /** Double-precision 4D vector. */
 @Serializable
-data class Vector4(val x: Double, val y: Double, val z: Double, val w: Double) : LinearType<Vector4> {
+data class Vector4(val x: Double, val y: Double, val z: Double, val w: Double) : LinearType<Vector4>, EuclideanVector<Vector4> {
     constructor(x: Double) : this(x, x, x, x)
 
     val xy: Vector2 get() = Vector2(x, y)
@@ -24,10 +24,10 @@ data class Vector4(val x: Double, val y: Double, val z: Double, val w: Double) :
     val div: Vector3 get() = Vector3(x / w, y / w, z / w)
 
     /** The Euclidean length of the vector. */
-    val length get() = sqrt(x * x + y * y + z * z + w * w)
+    override val length get() = sqrt(x * x + y * y + z * z + w * w)
 
     /** The squared Euclidean length of the vector. */
-    val squaredLength get() = x * x + y * y + z * z + w * w
+    override val squaredLength get() = x * x + y * y + z * z + w * w
 
     companion object {
         val UNIT_X = Vector4(1.0, 0.0, 0.0, 0.0)
@@ -66,7 +66,7 @@ data class Vector4(val x: Double, val y: Double, val z: Double, val w: Double) :
     override operator fun div(scale: Double) = Vector4(x / scale, y / scale, z / scale, w / scale)
 
     /** Calculates a dot product between this [Vector4] and [right]. */
-    infix fun dot(right: Vector4): Double = x * right.x + y * right.y + z * right.z + w * right.w
+    override infix fun dot(right: Vector4): Double = x * right.x + y * right.y + z * right.z + w * right.w
 
     operator fun get(i: Int): Double {
         return when (i) {
@@ -79,7 +79,7 @@ data class Vector4(val x: Double, val y: Double, val z: Double, val w: Double) :
     }
 
     /** Calculates the Euclidean distance to [other]. */
-    fun distanceTo(other: Vector4): Double {
+    override fun distanceTo(other: Vector4): Double {
         val dx = other.x - x
         val dy = other.y - y
         val dz = other.z - z
@@ -88,7 +88,7 @@ data class Vector4(val x: Double, val y: Double, val z: Double, val w: Double) :
     }
 
     /** Calculates the squared Euclidean distance to [other]. */
-    fun squaredDistanceTo(other: Vector4): Double {
+    override fun squaredDistanceTo(other: Vector4): Double {
         val dx = other.x - x
         val dy = other.y - y
         val dz = other.z - z

@@ -6,7 +6,7 @@ import kotlin.math.*
 
 /** Double-precision 3D vector. */
 @Serializable
-data class Vector3(val x: Double, val y: Double, val z: Double) : LinearType<Vector3> {
+data class Vector3(val x: Double, val y: Double, val z: Double) : LinearType<Vector3>, EuclideanVector<Vector3> {
     constructor(x: Double) : this(x, x, x)
 
     companion object {
@@ -58,7 +58,6 @@ data class Vector3(val x: Double, val y: Double, val z: Double) : LinearType<Vec
             return this * l
         }
 
-    infix fun reflect(surfaceNormal: Vector3) = this - surfaceNormal * (this dot surfaceNormal) * 2.0
 
     operator fun get(i: Int): Double {
         return when (i) {
@@ -80,7 +79,7 @@ data class Vector3(val x: Double, val y: Double, val z: Double) : LinearType<Vec
     operator fun div(v: Vector3) = Vector3(x / v.x, y / v.y, z / v.z)
 
     /** Calculates a dot product between this [Vector2] and [v]. */
-    infix fun dot(v: Vector3): Double = x * v.x + y * v.y + z * v.z
+    override infix fun dot(v: Vector3): Double = x * v.x + y * v.y + z * v.z
 
     /** Calculates a cross product between this [Vector2] and [v]. */
     infix fun cross(v: Vector3) = Vector3(
@@ -88,19 +87,18 @@ data class Vector3(val x: Double, val y: Double, val z: Double) : LinearType<Vec
             -(x * v.z - z * v.x),
             x * v.y - y * v.x)
 
-    infix fun projectedOn(v: Vector3) = (this dot v) / (v dot v) * v
 
     /** The Euclidean length of the vector. */
-    val length: Double get() = sqrt(x * x + y * y + z * z)
+    override val length: Double get() = sqrt(x * x + y * y + z * z)
 
     /** The squared Euclidean length of the vector. */
-    val squaredLength get() = x * x + y * y + z * z
+    override val squaredLength get() = x * x + y * y + z * z
 
     /** Casts to [DoubleArray]. */
     fun toDoubleArray() = doubleArrayOf(x, y, z)
 
     /** Calculates the Euclidean distance to [other]. */
-    fun distanceTo(other: Vector3): Double {
+    override fun distanceTo(other: Vector3): Double {
         val dx = other.x - x
         val dy = other.y - y
         val dz = other.z - z
@@ -108,7 +106,7 @@ data class Vector3(val x: Double, val y: Double, val z: Double) : LinearType<Vec
     }
 
     /** Calculates the squared Euclidean distance to [other]. */
-    fun squaredDistanceTo(other: Vector3): Double {
+    override fun squaredDistanceTo(other: Vector3): Double {
         val dx = other.x - x
         val dy = other.y - y
         val dz = other.z - z

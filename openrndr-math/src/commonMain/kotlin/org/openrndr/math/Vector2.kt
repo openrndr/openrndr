@@ -11,16 +11,16 @@ enum class YPolarity {
 
 /** Double-precision 2D vector. */
 @Serializable
-data class Vector2(val x: Double, val y: Double) : LinearType<Vector2> {
+data class Vector2(val x: Double, val y: Double) : LinearType<Vector2>, EuclideanVector<Vector2> {
 
     constructor(x: Double) : this(x, x)
 
     /** The Euclidean length of the vector. */
-    val length: Double
+    override val length: Double
         get() = sqrt(x * x + y * y)
 
     /** The squared Euclidean length of the vector. */
-    val squaredLength: Double
+    override val squaredLength: Double
         get() = x * x + y * y
 
 
@@ -55,7 +55,7 @@ data class Vector2(val x: Double, val y: Double) : LinearType<Vector2> {
     infix fun cross(right: Vector2) = x * right.y - y * right.x
 
     /** Calculates a dot product between this [Vector2] and [right]. */
-    infix fun dot(right: Vector2): Double = x * right.x + y * right.y
+    override infix fun dot(right: Vector2): Double = x * right.x + y * right.y
 
     infix fun reflect(surfaceNormal: Vector2): Vector2 = this - surfaceNormal * (this dot surfaceNormal) * 2.0
 
@@ -77,7 +77,7 @@ data class Vector2(val x: Double, val y: Double) : LinearType<Vector2> {
         return w + origin
     }
 
-    // these attributes doesn't have to be transients, but IntelliJ goes into some loop otherwise
+    // these attributes don't have to be transients, but IntelliJ goes into some loop otherwise
     @Suppress("TRANSIENT_IS_REDUNDANT")
     @Transient
     val yx get() = Vector2(y, x)
@@ -139,14 +139,14 @@ data class Vector2(val x: Double, val y: Double) : LinearType<Vector2> {
     operator fun div(d: Vector2) = Vector2(x / d.x, y / d.y)
 
     /** Calculates the Euclidean distance to [other]. */
-    fun distanceTo(other: Vector2): Double {
+    override fun distanceTo(other: Vector2): Double {
         val dx = other.x - x
         val dy = other.y - y
         return sqrt(dx * dx + dy * dy)
     }
 
     /** Calculates the squared Euclidean distance to [other]. */
-    fun squaredDistanceTo(other: Vector2): Double {
+    override fun squaredDistanceTo(other: Vector2): Double {
         val dx = other.x - x
         val dy = other.y - y
         return dx * dx + dy * dy
