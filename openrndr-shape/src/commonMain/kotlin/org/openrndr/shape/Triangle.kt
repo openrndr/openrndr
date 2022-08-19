@@ -108,4 +108,7 @@ data class Triangle(val x1: Vector2, val x2: Vector2, val x3: Vector2) : ShapePr
         return Triangle(x1 - right.x1, x2 - right.x2, x3 - right.x3)
     }
 
+    val reversed
+        get() = Triangle(x3, x2, x1)
+
 }
