@@ -4,7 +4,7 @@ import org.openrndr.math.Vector3
 import org.openrndr.shape.LineSegment3D
 
 internal class BezierCubicSampler3D {
-    private val recursionLimit = 8
+    private val recursionLimit = 12
     private val points = mutableListOf<Vector3>()
     private val direction = mutableListOf<Vector3>()
     private var distanceToleranceSquare = 0.0

@@ -4,7 +4,7 @@ import org.openrndr.math.Vector3
 import org.openrndr.shape.LineSegment3D
 
 internal class BezierQuadraticSampler3D {
-    private val recursionLimit = 8
+    private val recursionLimit = 12
 
     var distanceTolerance = 0.5
     private var distanceToleranceSquare = 0.0
@@ -14,7 +14,7 @@ internal class BezierQuadraticSampler3D {
 
     private fun sample(x1: Vector3, x2: Vector3, x3: Vector3, level: Int) {
         if (level > recursionLimit) {
-            return
+            throw IllegalStateException("Reached recursion limit (try increasing distanceTolerance)")
         }
 
         val x12 = (x1 + x2) * 0.5
