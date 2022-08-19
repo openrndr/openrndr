@@ -1,13 +1,15 @@
 package org.openrndr.shape
 
-import org.openrndr.math.Vector2
-import org.openrndr.math.Vector3
-import kotlin.jvm.JvmName
+import org.openrndr.math.EuclideanVector
+import org.openrndr.math.LinearType
 import kotlin.math.roundToInt
 
 /** Returns specified amount of points of equal distance from each other. */
-fun sampleEquidistant(segments: List<Vector2>, count: Int): List<Vector2> {
-    val result = mutableListOf<Vector2>()
+fun <T> sampleEquidistant(
+    segments: List<T>,
+    count: Int
+): List<T> where T : LinearType<T>, T : EuclideanVector<T> {
+    val result = mutableListOf<T>()
     if (segments.isEmpty()) {
         return result
     }
@@ -20,9 +22,9 @@ fun sampleEquidistant(segments: List<Vector2>, count: Int): List<Vector2> {
     val spacing = totalLength / (count - 1)
 
     var remaining = 0.0
-    var cursor: Vector2
+    var cursor: T
     if (count > 0) {
-        result.add(Vector2(segments[0].x, segments[0].y))
+        result.add(segments[0])
     }
 
     for (i in 0 until segments.size - 1) {
@@ -42,13 +44,13 @@ fun sampleEquidistant(segments: List<Vector2>, count: Int): List<Vector2> {
             val start = segments[i]
             var t = skipT
             for (n in 0 until pointsFromSegment) {
-                if (t < 1.0+1.0E-6) {
+                if (t < 1.0 + 1.0E-6) {
                     cursor = start + direction * t
                     t += spaceT
                     result.add(cursor)
                 }
             }
-            remaining = (1.0 - (t-spaceT)) * segmentLength
+            remaining = (1.0 - (t - spaceT)) * segmentLength
         }
     }
     if (count >= 2) {
@@ -58,59 +60,5 @@ fun sampleEquidistant(segments: List<Vector2>, count: Int): List<Vector2> {
             result.add(segments.last())
         }
     }
-    return result
-}
-
-/** Returns specified amount of points of equal distance from each other. */
-@JvmName("sampleEquidistant3D")
-fun sampleEquidistant(pieces: List<Vector3>, count: Int): List<Vector3> {
-    val result = mutableListOf<Vector3>()
-
-    if (pieces.isEmpty()) {
-        return result
-    }
-
-    var totalLength = 0.0
-    for (i in 0 until pieces.size - 1) {
-        totalLength += (pieces[i] - pieces[i + 1]).length
-    }
-
-    val spacing = totalLength / count
-
-    var runLength = 0.0
-    var cursor: Vector3
-    result.add(pieces[0])
-
-    for (i in 0 until pieces.size - 1) {
-        val piece = pieces[i] - pieces[i + 1]
-        val pieceLength = piece.length
-
-        if (pieceLength + runLength < spacing) {
-            runLength += pieceLength
-        } else {
-            val skip = (spacing - runLength).coerceAtLeast(0.0)
-            if (skip < 0) {
-                throw RuntimeException("skip < 0 - $skip")
-            }
-            val newPieces = ((pieceLength - skip) / spacing).toInt()
-            val skipT = skip / pieceLength
-            val spaceT = spacing / pieceLength
-
-            val direction = pieces[i + 1].minus(pieces[i])
-            val start = pieces[i]
-
-            var t = skipT
-
-            for (n in 0 until 1 + newPieces) {
-                cursor = start.plus(direction * t)
-                t += spaceT
-                result.add(cursor)
-            }
-
-            runLength = pieceLength - skip - newPieces * spacing
-        }
-    }
-    result.add(pieces[pieces.size - 1])
-
     return result
 }
