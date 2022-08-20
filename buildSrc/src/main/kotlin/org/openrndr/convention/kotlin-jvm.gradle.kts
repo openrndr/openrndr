@@ -35,6 +35,7 @@ tasks {
     val test by getting(Test::class) {
         useJUnitPlatform()
     }
+
     @Suppress("UNUSED_VARIABLE")
     val javadoc by getting(Javadoc::class) {
         options {

@@ -26,7 +26,7 @@ kotlin {
             this as JavaToolchainSpec
             languageVersion.set(JavaLanguageVersion.of(libs.versions.jvmTarget.get()))
         }
-        testRuns["test"].executionTask.configure {
+        testRuns["test"].executionTask {
             useJUnitPlatform()
         }
     }
