@@ -130,6 +130,44 @@ data class Rectangle(val corner: Vector2, val width: Double, val height: Double 
     override fun scaledTo(size: Double): Rectangle = scaledTo(size, size)
 
     /**
+     * Creates a Rectangle mirrored around a vertical axis. [u] specifies the axis position.
+     * Defaults to 0.5 (center). Left edge = 0.0, right edge = 1.0.
+     * Frequently used for mirroring images or video.
+     */
+    fun flippedHorizontally(u: Double = 0.5): Rectangle = if (u == 0.5) {
+        scaledBy(xScale = -1.0, 1.0)
+    } else {
+        scaledBy(xScale = -1.0, 1.0).movedBy(Vector2((u * 2 - 1) * width, 0.0))
+    }
+
+    /**
+     * Creates a Rectangle mirrored around a horizontal axis. [v] specifies the axis position.
+     * Defaults to 0.5 (center). Top edge = 0.0, bottom edge = 1.0.
+     * Frequently used for mirroring images or video.
+     */
+    fun flippedVertically(v: Double = 0.5): Rectangle = if (v == 0.5) {
+        scaledBy(xScale = 1.0, -1.0)
+    } else {
+        scaledBy(xScale = 1.0, -1.0).movedBy(Vector2(0.0, (v * 2 - 1) * height))
+    }
+
+    /**
+     * Returns a horizontal [LineSegment] specified by [v].
+     * Top edge [v] = 0.0, bottom edge [v] = 1.0.
+     */
+    fun horizontal(v: Double = 0.5): LineSegment = LineSegment(
+        position(0.0, v), position(1.0, v)
+    )
+
+    /**
+     * Returns a vertical [LineSegment] specified by [u].
+     * Left edge [u] = 0.0, right edge [u] = 1.0.
+     */
+    fun vertical(u: Double = 0.5): LineSegment = LineSegment(
+        position(u, 0.0), position(u, 1.0)
+    )
+
+    /**
      * Returns true if given [point] is inside the [Rectangle].
      */
     operator fun contains(point: Vector2): Boolean {
