@@ -1,7 +1,11 @@
 package org.openrndr.shape.internal
 
+import mu.KotlinLogging
 import org.openrndr.math.Vector3
 import org.openrndr.shape.LineSegment3D
+
+private val logger = KotlinLogging.logger {}
+private var warnedForRecursionDepth = false
 
 internal class BezierCubicSampler3D {
     private val recursionLimit = 12
@@ -21,6 +25,10 @@ internal class BezierCubicSampler3D {
 
     private fun sample(x1: Vector3, x2: Vector3, x3: Vector3, x4: Vector3, level: Int) {
         if (level > recursionLimit) {
+            if (!warnedForRecursionDepth) {
+                logger.warn { "recursion limit reached at $recursionLimit" }
+                warnedForRecursionDepth = true
+            }
             return
         }
 

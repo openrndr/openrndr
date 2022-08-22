@@ -12,6 +12,7 @@ kotlin {
                 api(project(":openrndr-utils"))
                 api(project(":openrndr-ktessellation"))
                 implementation(project(":openrndr-kartifex"))
+                implementation(libs.kotlin.logging)
             }
         }
     }

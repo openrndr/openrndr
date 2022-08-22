@@ -1,10 +1,13 @@
 package org.openrndr.shape.internal
 
+import mu.KotlinLogging
 import org.openrndr.math.Vector2
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.atan2
 
+private val logger = KotlinLogging.logger {}
+private var warnedForRecursionDepth = false
 internal class BezierCubicSampler2D {
     private val recursionLimit = 12
     private val points = mutableListOf<Vector2>()
@@ -29,7 +32,11 @@ internal class BezierCubicSampler2D {
 
     private fun sample(x1: Vector2, x2: Vector2, x3: Vector2, x4: Vector2, level: Int) {
         if (level > recursionLimit) {
-            throw IllegalStateException("Reached recursion limit (try increasing distanceTolerance)")
+            if (!warnedForRecursionDepth) {
+                logger.warn { "recursion limit reached at $recursionLimit" }
+                warnedForRecursionDepth = true
+            }
+            return
         }
 
         val x12 = (x1 + x2) * 0.5
