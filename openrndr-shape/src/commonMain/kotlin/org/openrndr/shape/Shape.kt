@@ -103,7 +103,7 @@ class Shape(val contours: List<ShapeContour>) : ShapeProvider {
     val triangulation by triangulationDelegate
 
     private val areaDelegate = resettableLazy {
-        triangulation.sumByDouble { it.area }
+        triangulation.sumOf { it.area }
     }
 
     /** Calculates approximate area for this shape (through triangulation). */

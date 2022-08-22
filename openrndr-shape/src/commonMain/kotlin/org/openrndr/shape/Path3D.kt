@@ -80,7 +80,7 @@ class Path3D(val segments: List<Segment3D>, val closed: Boolean) {
     /**
      * Sample the shape contour into line segments
      */
-    fun sampleEquidistant(pointCount: Int, distanceTolerance: Double): Path3D {
+    fun sampleEquidistant(pointCount: Int, distanceTolerance: Double = 0.5): Path3D {
         val points = equidistantPositions(pointCount, distanceTolerance)
         val segments = (0 until points.size - 1).map { Segment3D(points[it], points[it + 1]) }
         return Path3D(segments, closed)

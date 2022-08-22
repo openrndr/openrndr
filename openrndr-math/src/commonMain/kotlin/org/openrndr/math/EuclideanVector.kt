@@ -24,7 +24,7 @@ interface EuclideanVector<T> : LinearType<T> where T : EuclideanVector<T>, T : L
     /**
      * dot product between this and [other]
      */
-    infix fun dot(other: T): Double
+    infix fun dot(right: T): Double
 
     /**
      * project this vector on [on]
