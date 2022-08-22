@@ -4,13 +4,14 @@ plugins {
 
 kotlin {
     jvm {
-        testRuns["test"].executionTask.configure {
-            if (System.getenv("CI") != null) {
-                exclude("**/*.class")
+        testRuns["test"].executionTask {
+            useJUnitPlatform {
+                if (System.getenv("CI") != null) {
+                    exclude("**/*.class")
+                }
             }
         }
     }
-
     sourceSets {
         @Suppress("UNUSED_VARIABLE")
         val jvmMain by getting {
@@ -39,8 +40,6 @@ kotlin {
                 runtimeOnly(project(":openrndr-jvm:openrndr-gl3-natives-macos"))
                 runtimeOnly(project(":openrndr-jvm:openrndr-gl3-natives-linux-x64"))
                 runtimeOnly(libs.slf4j.simple)
-                implementation(libs.kluent)
-                implementation(libs.spek.dsl)
             }
         }
     }

@@ -21,5 +21,10 @@ jobs:
           java-version: 17
           cache: gradle
 
+      - name: Test glxinfo
+        run: |
+          sudo apt-get install -y mesa-utils xvfb
+          xvfb-run glxinfo
+
       - name: Build OPENRNDR
-        run: ./gradlew build
+        run: xvfb-run ./gradlew build

@@ -1,6 +1,7 @@
 package org.openrndr.convention
 
 import org.gradle.accessors.dm.LibrariesForLibs
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val libs = the<LibrariesForLibs>()
@@ -28,8 +29,9 @@ kotlin {
             this as JavaToolchainSpec
             languageVersion.set(JavaLanguageVersion.of(libs.versions.jvmTarget.get()))
         }
-        testRuns["test"].executionTask.configure {
+        testRuns["test"].executionTask {
             useJUnitPlatform()
+            testLogging.exceptionFormat = TestExceptionFormat.FULL
         }
     }
 
