@@ -6,8 +6,8 @@ kotlin {
     jvm {
         testRuns["test"].executionTask {
             useJUnitPlatform {
-                if (System.getProperty("CI") != null) {
-                    filter.excludeTestsMatching("*")
+                if (System.getenv("CI") != null) {
+                    exclude("**/*.class")
                 }
             }
         }
