@@ -276,3 +276,7 @@ class CatmullRomChain3 @JvmOverloads constructor (points: List<Vector3>, alpha: 
         return segments[segmentIndex].position(t)
     }
 }
+
+fun List<Vector2>.catmullRom(alpha: Double = 0.5, closed: Boolean) = CatmullRomChain2(this, alpha, closed)
+
+fun List<Vector3>.catmullRom(alpha: Double = 0.5, closed: Boolean) = CatmullRomChain3(this, alpha, closed)
