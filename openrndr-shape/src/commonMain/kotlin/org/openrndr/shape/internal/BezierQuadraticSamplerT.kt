@@ -10,7 +10,7 @@ private fun <T:EuclideanVector<T>> Tt<T>.squaredDistanceTo(other: Tt<T>) = first
 private fun <T:EuclideanVector<T>> Tt<T>.squaredDistanceTo(other: T) = first.squaredDistanceTo(other)
 
 internal class BezierQuadraticSamplerT<T : EuclideanVector<T>> {
-    private val recursionLimit = 8
+    private val recursionLimit = 12
 
     var distanceTolerance = 0.5
     private var distanceToleranceSquare = 0.0

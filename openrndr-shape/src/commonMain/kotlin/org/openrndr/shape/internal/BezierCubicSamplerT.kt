@@ -235,6 +235,6 @@ internal class BezierCubicSamplerT<T:EuclideanVector<T>> {
     companion object {
         private const val colinearityEpsilon = 1e-30
         private const val angleToleranceEpsilon = 0.01
-        private const val recursionLimit = 8
+        private const val recursionLimit = 12
     }
 }
