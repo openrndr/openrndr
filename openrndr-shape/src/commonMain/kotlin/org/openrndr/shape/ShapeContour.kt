@@ -359,43 +359,6 @@ data class ShapeContour @JvmOverloads constructor(
         return Pair(adaptivePoints, corners)
     }
 
-    /**
-     * Recursively subdivides linear [Segment]s to approximate Bézier curves.
-     *
-     * Also see [Segment.adaptivePositions].
-     *
-     * @param distanceTolerance The square of the maximum distance of each point from curve.
-     * @return A pair containing a list of points and a list of
-     *      respective normal vectors.
-     */
-    @Suppress("unused")
-    fun adaptivePositionsAndDirection(distanceTolerance: Double = 0.5): Pair<List<Vector2>, List<Vector2>> {
-        if (empty) {
-            return Pair(emptyList(), emptyList())
-        }
-        val adaptivePoints = mutableListOf<Vector2>()
-        val adaptiveNormals = mutableListOf<Vector2>()
-        var last: Vector2? = null
-        for (segment in this.segments) {
-            val samples = segment.adaptivePositionsAndNormals(distanceTolerance)
-            if (samples.first.isNotEmpty()) {
-                val r = samples.first[0]
-                if (last == null || last.minus(r).length > 0.01) {
-                    adaptivePoints.add(r)
-                    adaptiveNormals.add(samples.second[0].normalized)
-                }
-                for (i in 1 until samples.first.size) {
-                    adaptivePoints.add(samples.first[i])
-                    adaptiveNormals.add(samples.second[i].normalized)
-                    last = samples.first[i]
-                }
-            }
-        }
-        adaptivePoints.zipWithNext().forEach {
-            require(it.first.squaredDistanceTo(it.second) > 0.0)
-        }
-        return Pair(adaptivePoints, adaptiveNormals)
-    }
 
     /**
      * Returns specified amount of points of equal distance from each other.

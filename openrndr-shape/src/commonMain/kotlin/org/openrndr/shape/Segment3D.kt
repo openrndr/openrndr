@@ -1,8 +1,8 @@
 package org.openrndr.shape
 
 import org.openrndr.math.*
-import org.openrndr.shape.internal.BezierCubicSampler3D
-import org.openrndr.shape.internal.BezierQuadraticSampler3D
+import org.openrndr.shape.internal.BezierCubicSamplerT
+import org.openrndr.shape.internal.BezierQuadraticSamplerT
 
 private fun sumDifferences(points: List<Vector3>) =
         (0 until points.size - 1).sumOf { (points[it] - points[it + 1]).length }
@@ -147,15 +147,8 @@ class Segment3D {
 
     fun sampleAdaptive(distanceTolerance: Double = 0.5): List<Vector3> = when (control.size) {
         0 -> listOf(start, end)
-        1 -> BezierQuadraticSampler3D().apply { this.distanceTolerance = distanceTolerance }.sample(start, control[0], end).first
-        2 -> BezierCubicSampler3D().apply { this.distanceTolerance = distanceTolerance }.sample(start, control[0], control[1], end).first
-        else -> throw RuntimeException("unsupported number of control points")
-    }
-
-    fun sampleAdaptiveNormals(distanceTolerance: Double = 0.5): Pair<List<Vector3>, List<Vector3>> = when (control.size) {
-        0 -> Pair(listOf(start, end), listOf(end - start, end - start))
-        1 -> BezierQuadraticSampler3D().apply { this.distanceTolerance = distanceTolerance }.sample(start, control[0], end)
-        2 -> BezierCubicSampler3D().apply { this.distanceTolerance = distanceTolerance }.sample(start, control[0], control[1], end)
+        1 -> BezierQuadraticSamplerT<Vector3>().apply { this.distanceTolerance = distanceTolerance }.sample(start, control[0], end).map { it.first }
+        2 -> BezierCubicSamplerT<Vector3>().apply { this.distanceTolerance = distanceTolerance }.sample(start, control[0], control[1], end).map { it.first }
         else -> throw RuntimeException("unsupported number of control points")
     }
 

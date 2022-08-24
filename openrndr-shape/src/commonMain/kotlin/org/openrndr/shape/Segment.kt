@@ -1,8 +1,9 @@
 package org.openrndr.shape
 
 import org.openrndr.math.*
-import org.openrndr.shape.internal.BezierCubicSampler2D
-import org.openrndr.shape.internal.BezierQuadraticSampler2D
+
+import org.openrndr.shape.internal.BezierCubicSamplerT
+import org.openrndr.shape.internal.BezierQuadraticSamplerT
 import kotlin.jvm.JvmOverloads
 import kotlin.math.*
 
@@ -340,23 +341,8 @@ class Segment : ShapeContourProvider {
      */
     fun adaptivePositions(distanceTolerance: Double = 0.5): List<Vector2> = when (control.size) {
         0 -> listOf(start, end)
-        1 -> BezierQuadraticSampler2D().apply { this.distanceTolerance = distanceTolerance }.sample(start, control[0], end).first
-        2 -> BezierCubicSampler2D().apply { this.distanceTolerance = distanceTolerance }.sample(start, control[0], control[1], end).first
-        else -> throw RuntimeException("unsupported number of control points")
-    }
-
-    /**
-     * Recursively subdivides [Segment] to approximate Bézier curve.
-     *
-     * For a more detailed breakdown, see [http://agg.sourceforge.net/antigrain.com/research/adaptive_bezier/index.html].
-     *
-     * @param distanceTolerance The square of the maximal distance of each point from curve.
-     * @return A pair of lists. The first list contains positions, the second list the points' normals.
-     */
-    fun adaptivePositionsAndNormals(distanceTolerance: Double = 0.5): Pair<List<Vector2>, List<Vector2>> = when (control.size) {
-        0 -> Pair(listOf(start, end), listOf(end - start, end - start))
-        1 -> BezierQuadraticSampler2D().apply { this.distanceTolerance = distanceTolerance }.sample(start, control[0], end)
-        2 -> BezierCubicSampler2D().apply { this.distanceTolerance = distanceTolerance }.sample(start, control[0], control[1], end)
+        1 -> BezierQuadraticSamplerT<Vector2>().apply { this.distanceTolerance = distanceTolerance }.sample(start, control[0], end).map { it.first }
+        2 -> BezierCubicSamplerT<Vector2>().apply { this.distanceTolerance = distanceTolerance }.sample(start, control[0], control[1], end).map { it.first }
         else -> throw RuntimeException("unsupported number of control points")
     }
 
