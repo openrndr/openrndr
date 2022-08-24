@@ -1,5 +1,6 @@
 import org.openrndr.math.Vector2
 import org.openrndr.math.YPolarity
+import org.openrndr.shape.Circle
 import org.openrndr.shape.Segment
 import org.openrndr.shape.ShapeContour
 import kotlin.test.*
@@ -11,6 +12,37 @@ internal fun assertEquals(expected: Vector2, actual: Vector2, absoluteTolerance:
 }
 
 class ShapeContourTest {
+
+
+    @Test
+    fun shouldCalculateAdaptivePositionsWithT() {
+        val c = Circle(0.0, 0.0, 200.0).contour
+        val points = c.adaptivePositionsWithT()
+        assertEquals(0.0, points.first().second)
+        for (i in points.indices) {
+            val tp = c.position(points[i].second)
+            assertTrue(tp.distanceTo(points[i].first) < 0.05)
+        }
+    }
+
+    @Test
+    fun shouldCalculateEquidistantPositionsWithT() {
+        val c = Circle(0.0, 0.0, 200.0).contour
+        val points = c.equidistantPositionsWithT(20)
+        assertEquals(0.0, points.first().second)
+        for (i in 0 until points.size) {
+            val tp = c.position(points[i].second)
+            assertTrue(tp.distanceTo(points[i].first) < 0.05)
+        }
+
+    }
+
+    @Test
+    fun shouldCalculateTValues() {
+        val positionsWithT = Circle(0.0, 0.0, 200.0).contour.adaptivePositionsWithT()
+        assertEquals(0.0, positionsWithT.first().second)
+        assertEquals(1.0, positionsWithT.last().second)
+    }
 
     @Test
     fun shouldCalculateSimplePointAtLength() {

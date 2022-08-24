@@ -47,7 +47,7 @@ class Path3D(val segments: List<Segment3D>, val closed: Boolean) {
         val adaptivePoints = mutableListOf<Vector3>()
         var last: Vector3? = null
         for (segment in this.segments) {
-            val samples = segment.sampleAdaptive(distanceTolerance)
+            val samples = segment.adaptivePositions(distanceTolerance)
             if (samples.isNotEmpty()) {
                 val r = samples[0]
                 if (last == null || last.minus(r).length > 0.01) {
@@ -62,12 +62,38 @@ class Path3D(val segments: List<Segment3D>, val closed: Boolean) {
         return adaptivePoints
     }
 
+    fun adaptivePositionsWithT(distanceTolerance: Double = 0.5): List<Pair<Vector3, Double>> {
+        val adaptivePoints = mutableListOf<Pair<Vector3, Double>>()
+        var last: Vector3? = null
+        for ((index, segment) in this.segments.withIndex()) {
+            val samples = segment.adaptivePositionsWithT(distanceTolerance)
+            if (samples.isNotEmpty()) {
+                val r = samples[0]
+                if (last == null || last.minus(r.first).length > 0.01) {
+                    adaptivePoints.add(r)
+                }
+                for (i in 1 until samples.size) {
+                    adaptivePoints.add(samples[i])
+                    last = samples[i].first
+                }
+            }
+        }
+        return adaptivePoints
+    }
+
+
+
     /**
      *
      */
     fun equidistantPositions(pointCount: Int, distanceTolerance: Double = 0.5): List<Vector3> {
         return sampleEquidistant(adaptivePositions(distanceTolerance), pointCount)
     }
+
+    fun equidistantPositionsWithT(pointCount: Int, distanceTolerance: Double = 0.5): List<Pair<Vector3, Double>> {
+        return sampleEquidistantWithT(adaptivePositionsWithT(distanceTolerance), pointCount)
+    }
+
 
     /**
      * Adaptively sample the contour into line segments while still approximating the original contour

@@ -144,13 +144,31 @@ class Segment3D {
         }
         return Segment3D(tstart, tcontrol, tend)
     }
+    @Deprecated("inconsistent naming", replaceWith = ReplaceWith("adaptivePositions"))
+    fun sampleAdaptive(distanceTolerance: Double = 0.5): List<Vector3> = adaptivePositions(distanceTolerance)
 
-    fun sampleAdaptive(distanceTolerance: Double = 0.5): List<Vector3> = when (control.size) {
-        0 -> listOf(start, end)
-        1 -> BezierQuadraticSamplerT<Vector3>().apply { this.distanceTolerance = distanceTolerance }.sample(start, control[0], end).map { it.first }
-        2 -> BezierCubicSamplerT<Vector3>().apply { this.distanceTolerance = distanceTolerance }.sample(start, control[0], control[1], end).map { it.first }
+    fun adaptivePositions(distanceTolerance: Double = 0.5): List<Vector3> =
+        adaptivePositionsWithT(distanceTolerance).map { it.first }
+
+    fun adaptivePositionsWithT(distanceTolerance: Double = 0.5): List<Pair<Vector3, Double>> = when (control.size) {
+        0 -> listOf(start to 0.0, end to 1.0)
+        1 -> BezierQuadraticSamplerT<Vector3>().apply { this.distanceTolerance = distanceTolerance }.sample(start, control[0], end)
+        2 -> BezierCubicSamplerT<Vector3>().apply { this.distanceTolerance = distanceTolerance }.sample(start, control[0], control[1], end)
         else -> throw RuntimeException("unsupported number of control points")
     }
+
+    /**
+     * Samples specified amount of points on the [Segment3D].
+     * @param pointCount The number of points to sample.
+     */
+    fun equidistantPositions(pointCount: Int, distanceTolerance: Double = 0.5): List<Vector3> {
+        return sampleEquidistant(adaptivePositions(distanceTolerance), pointCount)
+    }
+
+    fun equidistantPositionsWithT(pointCount: Int, distanceTolerance: Double = 0.5): List<Pair<Vector3, Double>> {
+        return sampleEquidistantWithT(adaptivePositionsWithT(distanceTolerance), pointCount)
+    }
+
 
     val length: Double
         get() = when (control.size) {
@@ -168,8 +186,6 @@ class Segment3D {
             else -> throw RuntimeException("unsupported number of control points")
         }
     }
-
-
 
     fun direction(): Vector3 {
         return (start - end).normalized

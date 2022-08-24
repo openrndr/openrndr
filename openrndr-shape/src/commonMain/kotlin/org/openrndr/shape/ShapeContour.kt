@@ -325,6 +325,21 @@ data class ShapeContour @JvmOverloads constructor(
         return adaptivePositionsAndCorners(distanceTolerance).first
     }
 
+    fun adaptivePositionsWithT(distanceTolerance: Double = 0.5): List<Pair<Vector2, Double>> {
+        val adaptivePoints = mutableListOf<Pair<Vector2, Double>>()
+        val segmentCount = segments.size
+        for ((segmentIndex, segment) in this.segments.withIndex()) {
+            val samples = segment.adaptivePositionsWithT(distanceTolerance)
+            samples.forEach {
+                val last = adaptivePoints.lastOrNull()
+                if (last == null || last.first.squaredDistanceTo(it.first) > 0.0) {
+                    adaptivePoints.add(it.copy(second = (it.second + segmentIndex) / segmentCount))
+                }
+            }
+        }
+        return adaptivePoints
+    }
+
     /**
      * Recursively subdivides linear [Segment]s to approximate Bézier curves.
      *
@@ -363,14 +378,24 @@ data class ShapeContour @JvmOverloads constructor(
     /**
      * Returns specified amount of points of equal distance from each other.
      */
-    fun equidistantPositions(pointCount: Int) =
+    fun equidistantPositions(pointCount: Int, distanceTolerance: Double = 0.5) =
         if (empty) {
             emptyList()
         } else {
             sampleEquidistant(
-                adaptivePositions(),
+                adaptivePositions(distanceTolerance),
                 pointCount + if (closed) 1 else 0
-            )
+            ).take(pointCount)
+        }
+
+    fun equidistantPositionsWithT(pointCount: Int, distanceTolerance: Double = 0.5) =
+        if (empty) {
+            emptyList()
+        } else {
+            sampleEquidistantWithT(
+                adaptivePositionsWithT(distanceTolerance),
+                pointCount + if (closed) 1 else 0
+            ).take(pointCount)
         }
 
     /**

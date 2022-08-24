@@ -339,10 +339,14 @@ class Segment : ShapeContourProvider {
      *
      * @param distanceTolerance The square of the maximal distance of each point from curve.
      */
-    fun adaptivePositions(distanceTolerance: Double = 0.5): List<Vector2> = when (control.size) {
-        0 -> listOf(start, end)
-        1 -> BezierQuadraticSamplerT<Vector2>().apply { this.distanceTolerance = distanceTolerance }.sample(start, control[0], end).map { it.first }
-        2 -> BezierCubicSamplerT<Vector2>().apply { this.distanceTolerance = distanceTolerance }.sample(start, control[0], control[1], end).map { it.first }
+    fun adaptivePositions(distanceTolerance: Double = 0.5): List<Vector2> =
+        adaptivePositionsWithT(distanceTolerance).map { it.first }
+
+
+    fun adaptivePositionsWithT(distanceTolerance: Double = 0.5): List<Pair<Vector2, Double>> = when (control.size) {
+        0 -> listOf(start to 0.0, end to 1.0)
+        1 -> BezierQuadraticSamplerT<Vector2>().apply { this.distanceTolerance = distanceTolerance }.sample(start, control[0], end)
+        2 -> BezierCubicSamplerT<Vector2>().apply { this.distanceTolerance = distanceTolerance }.sample(start, control[0], control[1], end)
         else -> throw RuntimeException("unsupported number of control points")
     }
 
@@ -350,9 +354,14 @@ class Segment : ShapeContourProvider {
      * Samples specified amount of points on the [Segment].
      * @param pointCount The number of points to sample.
      */
-    fun equidistantPositions(pointCount: Int): List<Vector2> {
-        return sampleEquidistant(adaptivePositions(), pointCount)
+    fun equidistantPositions(pointCount: Int, distanceTolerance: Double = 0.5): List<Vector2> {
+        return sampleEquidistant(adaptivePositions(distanceTolerance), pointCount)
     }
+
+    fun equidistantPositionsWithT(pointCount: Int, distanceTolerance: Double = 0.5): List<Pair<Vector2, Double>> {
+        return sampleEquidistantWithT(adaptivePositionsWithT(distanceTolerance), pointCount)
+    }
+
 
     // work around length-by-lazy property being initialized before the secondary constructor initializes the relevant fields
     private val internalLength: Double
