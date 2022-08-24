@@ -9,6 +9,8 @@ import kotlin.math.*
 data class Vector3(val x: Double, val y: Double, val z: Double) : LinearType<Vector3>, EuclideanVector<Vector3> {
     constructor(x: Double) : this(x, x, x)
 
+    override val zero: Vector3 get() = ZERO
+
     companion object {
         val ZERO = Vector3(0.0, 0.0, 0.0)
         val ONE = Vector3(1.0, 1.0, 1.0)
@@ -47,17 +49,6 @@ data class Vector3(val x: Double, val y: Double, val z: Double) : LinearType<Vec
     @Suppress("TRANSIENT_IS_REDUNDANT")
     @Transient
     val xz get() = Vector2(x, z)
-
-    /** Returns a normalized version of the vector. (i.e. unit vector) */
-    val normalized: Vector3
-        get() {
-            val l = 1.0 / length
-            if (l.isNaN() || l.isInfinite()) {
-                return ZERO
-            }
-            return this * l
-        }
-
 
     operator fun get(i: Int): Double {
         return when (i) {

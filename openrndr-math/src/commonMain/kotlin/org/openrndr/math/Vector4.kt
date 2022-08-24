@@ -30,6 +30,8 @@ data class Vector4(val x: Double, val y: Double, val z: Double, val w: Double) :
     /** The squared Euclidean length of the vector. */
     override val squaredLength get() = x * x + y * y + z * z + w * w
 
+    override val zero: Vector4 get() = ZERO
+
     companion object {
         val UNIT_X = Vector4(1.0, 0.0, 0.0, 0.0)
         val UNIT_Y = Vector4(0.0, 1.0, 0.0, 0.0)
@@ -45,15 +47,6 @@ data class Vector4(val x: Double, val y: Double, val z: Double, val w: Double) :
         )
     }
 
-    /** Returns a normalized version of the vector. (i.e. unit vector) */
-    val normalized: Vector4
-        get() {
-            val l = 1.0 / length
-            if (l.isNaN() || l.isInfinite()) {
-                return ZERO
-            }
-            return this * l
-        }
 
     operator fun unaryMinus() = Vector4(-x, -y, -z, -w)
 

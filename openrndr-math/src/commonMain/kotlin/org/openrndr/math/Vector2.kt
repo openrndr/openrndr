@@ -34,16 +34,7 @@ data class Vector2(val x: Double, val y: Double) : LinearType<Vector2>, Euclidea
         YPolarity.CW_NEGATIVE_Y -> Vector2(y, -x)
     }
 
-    /** Returns a normalized version of the vector. (i.e. unit vector) */
-    val normalized: Vector2
-        get() {
-            val localLength = length
-            return if (localLength > 0.0) {
-                this / length
-            } else {
-                Vector2.ZERO
-            }
-        }
+    override val zero:Vector2 get() = ZERO
 
     /**
      * Calculates a cross product between this [Vector2] and [right].
