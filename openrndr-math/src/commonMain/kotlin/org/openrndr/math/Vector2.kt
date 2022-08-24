@@ -152,6 +152,11 @@ data class Vector2(val x: Double, val y: Double) : LinearType<Vector2>, Euclidea
         return dx * dx + dy * dy
     }
 
+    override fun areaBetween(other: Vector2): Double {
+        // here we override the default implementation of areaBetween to make it faster without square root
+        return abs(x * other.y - y * other.x)
+    }
+
     fun mix(o: Vector2, mix: Double): Vector2 = this * (1 - mix) + o * mix
 
     companion object {

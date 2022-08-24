@@ -3,6 +3,7 @@ package org.openrndr.math
 import kotlinx.serialization.Serializable
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.pow
 import kotlin.math.sqrt
 
 /** Double-precision 4D vector. */

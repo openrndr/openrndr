@@ -97,7 +97,6 @@ data class Vector3(val x: Double, val y: Double, val z: Double) : LinearType<Vec
     /** Casts to [DoubleArray]. */
     fun toDoubleArray() = doubleArrayOf(x, y, z)
 
-    /** Calculates the Euclidean distance to [other]. */
     override fun distanceTo(other: Vector3): Double {
         val dx = other.x - x
         val dy = other.y - y
@@ -105,7 +104,6 @@ data class Vector3(val x: Double, val y: Double, val z: Double) : LinearType<Vec
         return sqrt(dx * dx + dy * dy + dz * dz)
     }
 
-    /** Calculates the squared Euclidean distance to [other]. */
     override fun squaredDistanceTo(other: Vector3): Double {
         val dx = other.x - x
         val dy = other.y - y

@@ -14,6 +14,15 @@ class TestVector3 {
     private val maxError = 0.0000001
 
     @Test
+    fun shouldHaveArea() {
+        Vector3(0.0, 1.0, 0.0).areaBetween(Vector3(0.0, 1.0, 0.0)) shouldBe 0.0
+        Vector3(0.0, 1.0, 0.0).areaBetween(Vector3(0.0, -1.0, 0.0)) shouldBe 0.0
+        Vector3(0.0, -1.0, 0.0).areaBetween(Vector3(0.0, 1.0, 0.0)) shouldBe 0.0
+        Vector3(0.0, -1.0, 0.0).areaBetween(Vector3(0.0, -1.0, 0.0)) shouldBe 0.0
+        Vector3(0.0, 2.0, 0.0).areaBetween(Vector3(2.0, 0.0, 0.0)) shouldBe 4.0
+    }
+
+    @Test
     fun shouldDoVector3Operations() {
 
         it("should normalize 0 length") {

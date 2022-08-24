@@ -10,12 +10,18 @@ import org.openrndr.math.test.it
 import kotlin.test.Test
 
 class TestVector4 {
-
     private val maxError = 0.0000001
 
     @Test
+    fun shouldHaveArea() {
+        Vector4(0.0, 1.0, 0.0, 0.0).areaBetween(Vector4(0.0, 1.0, 0.0, 0.0)) shouldBe 0.0
+        Vector4(0.0, 1.0, 0.0, 0.0).areaBetween(Vector4(0.0, -1.0, 0.0, 0.0)) shouldBe 0.0
+        Vector4(0.0, -1.0, 0.0, 0.0).areaBetween(Vector4(0.0, 1.0, 0.0, 0.0)) shouldBe 0.0
+        Vector4(0.0, -1.0, 0.0, 0.0).areaBetween(Vector4(0.0, -1.0, 0.0, 0.0)) shouldBe 0.0
+        Vector4(0.0, 2.0, 0.0, 0.0).areaBetween(Vector4(2.0, 0.0, 0.0, 0.0)) shouldBe 4.0
+    }
+    @Test
     fun shouldDoVector4Operations() {
-
         it("should normalize 0 length") {
             Vector4.ZERO.normalized.closeTo(Vector4.ZERO, maxError)
         }
