@@ -385,7 +385,7 @@ data class ShapeContour @JvmOverloads constructor(
             sampleEquidistant(
                 adaptivePositions(distanceTolerance),
                 pointCount + if (closed) 1 else 0
-            ).take(pointCount)
+            )
         }
 
     fun equidistantPositionsWithT(pointCount: Int, distanceTolerance: Double = 0.5) =
@@ -395,7 +395,7 @@ data class ShapeContour @JvmOverloads constructor(
             sampleEquidistantWithT(
                 adaptivePositionsWithT(distanceTolerance),
                 pointCount + if (closed) 1 else 0
-            ).take(pointCount)
+            )
         }
 
     /**
