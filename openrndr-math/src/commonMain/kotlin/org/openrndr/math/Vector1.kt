@@ -2,6 +2,7 @@ package org.openrndr.math
 
 import kotlin.jvm.JvmInline
 import kotlin.math.abs
+import kotlin.math.pow
 
 @JvmInline
 value class Vector1(val x: Double) : EuclideanVector<Vector1> {
@@ -41,6 +42,9 @@ value class Vector1(val x: Double) : EuclideanVector<Vector1> {
         return abs(x - other.x)
     }
 
+    override fun areaBetween(other: Vector1): Double {
+        return abs(x - other.x).pow(2.0)
+    }
     companion object {
         val ZERO = Vector1(0.0)
     }
