@@ -27,9 +27,10 @@ private fun restartJVM(): Boolean {
     System.err.println("Warning: Running on macOS without -XstartOnFirstThread JVM argument. Restarting JVM with -XstartOnFirstThread.")
 
     // restart jvm with -XstartOnFirstThread
-    val separator = System.getProperty("file.separator")
-    val classpath = System.getProperty("java.class.path")
-    val mainClass = System.getenv("JAVA_MAIN_CLASS_$pid")
+    val separator = System.getProperty("file.separator") ?: error("file.separator not set")
+    val classpath = System.getProperty("java.class.path") ?: error("java.class.path not set")
+
+    val mainClass = System.getenv("JAVA_MAIN_CLASS_$pid") ?: System.getProperty("sun.java.command") ?: error("JAVA_MAIN_CLASS_$pid and sun.java.command not set")
     val jvmPath = System.getProperty("java.home") + separator + "bin" + separator + "java"
 
     val inputArguments = ManagementFactory.getRuntimeMXBean().inputArguments
