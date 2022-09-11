@@ -13,6 +13,10 @@ value class Vector1(val x: Double) : EuclideanVector<Vector1> {
     override val squaredLength: Double
         get() = x*x
 
+    override fun map(function: (Double) -> Double): Vector1 {
+        return Vector1(function(x))
+    }
+
     override fun times(scale: Double): Vector1 {
         return Vector1(x * scale)
     }

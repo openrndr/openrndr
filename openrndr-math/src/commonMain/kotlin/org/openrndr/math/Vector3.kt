@@ -85,6 +85,10 @@ data class Vector3(val x: Double, val y: Double, val z: Double) : LinearType<Vec
     /** The squared Euclidean length of the vector. */
     override val squaredLength get() = x * x + y * y + z * z
 
+    override fun map(function: (Double) -> Double): Vector3 {
+        return Vector3(function(x), function(y), function(z))
+    }
+
     /** Casts to [DoubleArray]. */
     fun toDoubleArray() = doubleArrayOf(x, y, z)
 

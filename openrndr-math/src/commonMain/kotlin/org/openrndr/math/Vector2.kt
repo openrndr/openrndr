@@ -23,6 +23,9 @@ data class Vector2(val x: Double, val y: Double) : LinearType<Vector2>, Euclidea
     override val squaredLength: Double
         get() = x * x + y * y
 
+    override fun map(function: (Double) -> Double): Vector2 {
+        return Vector2(function(x), function(y))
+    }
 
     /**
      * Calculates a vector perpendicular to the current one.

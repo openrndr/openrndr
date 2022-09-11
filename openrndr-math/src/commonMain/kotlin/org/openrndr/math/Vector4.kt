@@ -30,6 +30,10 @@ data class Vector4(val x: Double, val y: Double, val z: Double, val w: Double) :
     /** The squared Euclidean length of the vector. */
     override val squaredLength get() = x * x + y * y + z * z + w * w
 
+    override fun map(function: (Double) -> Double): Vector4 {
+        return Vector4(function(x), function(y), function(z), function(w))
+    }
+
     override val zero: Vector4 get() = ZERO
 
     companion object {

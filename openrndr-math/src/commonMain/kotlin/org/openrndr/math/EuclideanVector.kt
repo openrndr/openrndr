@@ -73,4 +73,10 @@ interface EuclideanVector<T> : LinearType<T> where T : EuclideanVector<T>, T : L
         val y = sqrt(1.0 - x * x)
         return kotlin.math.atan2(y, x)
     }
+
+    /**
+     * apply [function] to all components
+     */
+    fun map(function: (Double)->Double) : T
+
 }
