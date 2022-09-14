@@ -52,7 +52,8 @@ class ColorBufferLoader {
                     if (!loader.loadQueue.isEmpty()) {
                         val proxy = synchronized(loader.loadQueue) {
                             loader.loadQueue.forEach { it.lastTouchedShadow = it.lastTouched }
-                            loader.loadQueue.sortBy { it.lastTouchedShadow }
+                            //loader.loadQueue.sortBy { it.lastTouchedShadow }
+                            loader.loadQueue.sortWith(compareBy({ it.priority },{ it.lastTouchedShadow }, ))
                             loader.loadQueue.removeAt(0)
                         }
                         try {

@@ -30,6 +30,11 @@ data class ColorBufferProxy(val url: String, val loader: ColorBufferLoader, val 
         ERROR
     }
 
+    /**
+     * The proxy priority index, proxies with lower priority index will be loaded first
+     */
+    var priority = 100
+
     var colorBuffer: ColorBuffer? = null
         get() {
             lastTouched = System.currentTimeMillis()
