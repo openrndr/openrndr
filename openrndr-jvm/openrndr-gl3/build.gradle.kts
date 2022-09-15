@@ -1,3 +1,5 @@
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+
 plugins {
     org.openrndr.convention.`kotlin-multiplatform`
 }
@@ -10,6 +12,11 @@ kotlin {
                     exclude("**/*.class")
                 }
             }
+            testLogging.exceptionFormat = TestExceptionFormat.FULL
+        }
+        testRuns.create("heavy").executionTask {
+            useJUnitPlatform()
+            testLogging.exceptionFormat = TestExceptionFormat.FULL
         }
     }
     sourceSets {
@@ -44,4 +51,3 @@ kotlin {
         }
     }
 }
-
