@@ -88,6 +88,12 @@ open class Program(val suspend: Boolean = false) {
      */
     var ended = Event<ProgramEvent>()
 
+
+    /**
+     * A map that can be used to store arbitrary data, including functions
+     */
+    var userProperties = mutableMapOf<String, Any>()
+
     private var firstFrameTime = Double.POSITIVE_INFINITY
 
     /**
