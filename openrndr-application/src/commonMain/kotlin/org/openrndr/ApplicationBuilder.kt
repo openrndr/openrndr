@@ -1,22 +1,27 @@
 package org.openrndr
 
-expect class ApplicationBuilder internal constructor(){
-    internal val configuration: Configuration
-    var program: Program
-    internal val application: ApplicationBase
+abstract class ApplicationBuilder {
+    abstract val configuration: Configuration
+    abstract var program: Program
 
-    fun configure(init: Configuration.() -> Unit)
+    abstract val applicationBase: ApplicationBase
 
-    fun program(init: suspend Program.() -> Unit)
+    abstract fun configure(init: Configuration.() -> Unit)
+
+    abstract fun program(init: suspend Program.() -> Unit): Program
+
+    abstract val displays: List<Display>
+
 
     @Deprecated("Cannot construct application in an application block.", level = DeprecationLevel.ERROR)
-    fun application(build: ApplicationBuilder.() -> Unit): Nothing
+    abstract fun application(build: ApplicationBuilder.() -> Unit): Nothing
 
     @Deprecated("Cannot construct application in an application block.", level = DeprecationLevel.ERROR)
-    fun applicationAsync(build: ApplicationBuilder.() -> Unit): Nothing
+    abstract fun applicationAsync(build: ApplicationBuilder.() -> Unit): Nothing
+
 
     @Deprecated("Cannot construct program in a program block.", level = DeprecationLevel.ERROR)
-    fun Program.program(init: Program.() -> Unit): Nothing
+    abstract fun Program.program(init: Program.() -> Unit): Nothing
 }
 
 expect fun application(build: ApplicationBuilder.() -> Unit)

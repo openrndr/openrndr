@@ -4,7 +4,7 @@ package org.openrndr
  * Creates and runs a synchronous OPENRNDR application using the provided [ApplicationBuilder].
  * @see <a href="https://guide.openrndr.org/">the OPENRNDR guide</a>
  */
-actual fun application(build: ApplicationBuilder.() -> Unit) {
+actual fun application(build: ApplicationBuilder.() -> Unit){
     throw NotImplementedError("Synchronous application is unsupported, use applicationAsync()")
 }
 
@@ -13,36 +13,38 @@ actual fun application(build: ApplicationBuilder.() -> Unit) {
  * @see <a href="https://guide.openrndr.org/">the OPENRNDR guide</a>
  */
 actual suspend fun applicationAsync(build: ApplicationBuilder.() -> Unit) {
-    ApplicationBuilder().apply {
+    ApplicationBuilderJS().apply {
         build()
-        application.build(program, configuration).runAsync()
+        applicationBase.build(program, configuration).runAsync()
     }
 }
 
 @Suppress("DeprecatedCallableAddReplaceWith")
-actual class ApplicationBuilder internal actual constructor() {
-    internal actual val configuration = Configuration()
-    actual var program: Program = Program()
-    internal actual val application = applicationBaseFunc?.invoke() ?: error("applicationFunc not set")
+class ApplicationBuilderJS internal constructor() : ApplicationBuilder() {
+    override val configuration = Configuration()
+    override var program: Program = Program()
+    override val applicationBase = applicationBaseFunc?.invoke() ?: error("applicationFunc not set")
+    override val displays: List<Display> = emptyList()
 
-    actual fun configure(init: Configuration.() -> Unit) {
+    override fun configure(init: Configuration.() -> Unit) {
         configuration.init()
     }
 
-    actual fun program(init: suspend Program.() -> Unit) {
+    override fun program(init: suspend Program.() -> Unit) : Program {
         program = object : Program() {
             override suspend fun setup() {
                 init()
             }
         }
+        return program
     }
 
     @Deprecated("Cannot construct application in an application block.", level = DeprecationLevel.ERROR)
-    actual fun application(build: ApplicationBuilder.() -> Unit): Nothing = error("Cannot construct application in an application block.")
+    override fun application(build: ApplicationBuilder.() -> Unit): Nothing = error("Cannot construct application in an application block.")
 
     @Deprecated("Cannot construct application in an application block.", level = DeprecationLevel.ERROR)
-    actual fun applicationAsync(build: ApplicationBuilder.() -> Unit): Nothing = error("Cannot construct application in an application block.")
+    override fun applicationAsync(build: ApplicationBuilder.() -> Unit): Nothing = error("Cannot construct application in an application block.")
 
     @Deprecated("Cannot construct program in a program block.", level = DeprecationLevel.ERROR)
-    actual fun Program.program(init: Program.() -> Unit): Nothing = error("Cannot construct program in a program block.")
+    override fun Program.program(init: Program.() -> Unit): Nothing = error("Cannot construct program in a program block.")
 }

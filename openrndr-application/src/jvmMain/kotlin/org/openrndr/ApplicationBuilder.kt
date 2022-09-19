@@ -16,7 +16,8 @@ private fun restartJVM(): Boolean {
         return false
     }
     // get current jvm process pid
-    val pid = ManagementFactory.getRuntimeMXBean().name.split("@".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()[0]
+    val pid =
+        ManagementFactory.getRuntimeMXBean().name.split("@".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()[0]
     // get environment variable on whether XstartOnFirstThread is enabled
     val env = System.getenv("JAVA_STARTED_ON_FIRST_THREAD_$pid")
 
@@ -30,7 +31,8 @@ private fun restartJVM(): Boolean {
     val separator = System.getProperty("file.separator") ?: error("file.separator not set")
     val classpath = System.getProperty("java.class.path") ?: error("java.class.path not set")
 
-    val mainClass = System.getenv("JAVA_MAIN_CLASS_$pid") ?: System.getProperty("sun.java.command") ?: error("JAVA_MAIN_CLASS_$pid and sun.java.command not set")
+    val mainClass = System.getenv("JAVA_MAIN_CLASS_$pid") ?: System.getProperty("sun.java.command")
+    ?: error("JAVA_MAIN_CLASS_$pid and sun.java.command not set")
     val jvmPath = System.getProperty("java.home") + separator + "bin" + separator + "java"
 
     val inputArguments = ManagementFactory.getRuntimeMXBean().inputArguments
@@ -57,7 +59,7 @@ private fun restartJVM(): Boolean {
         val isr = InputStreamReader(`is`)
         val br = BufferedReader(isr)
 
-        while(true) {
+        while (true) {
             val inline = br.readLine()
             if (inline == null)
                 break
@@ -80,10 +82,16 @@ private fun restartJVM(): Boolean {
 actual fun application(build: ApplicationBuilder.() -> Unit) {
     if (!restartJVM()) {
         installUncaughtExceptionHandler()
-        ApplicationBuilder().apply {
+        val result: Application
+        ApplicationBuilderJVM().apply {
             build()
-            application.build(this.program, this.configuration).run()
+            result = applicationBase.build(this.program, this.configuration)
+            result.run()
         }
+
+
+    } else {
+        error("unreachable?")
     }
 }
 
@@ -96,30 +104,40 @@ actual suspend fun applicationAsync(build: ApplicationBuilder.() -> Unit) {
 }
 
 @Suppress("DeprecatedCallableAddReplaceWith")
-actual class ApplicationBuilder internal actual constructor() {
-    internal actual val configuration = Configuration()
-    actual var program: Program = Program()
-    internal actual val application: ApplicationBase = ApplicationBase.initialize()
-    val displays by lazy { application.displays }
+class ApplicationBuilderJVM : ApplicationBuilder() {
+    override val configuration = Configuration()
+    override var program: Program = Program()
+    override val applicationBase: ApplicationBase = ApplicationBase.initialize()
+    override val displays by lazy { applicationBase.displays }
 
-    actual fun configure(init: Configuration.() -> Unit) {
+    override fun configure(init: Configuration.() -> Unit) {
         configuration.init()
     }
 
-    actual fun program(init: suspend Program.() -> Unit) {
+    override fun program(init: suspend Program.() -> Unit): Program {
         program = object : Program() {
             override suspend fun setup() {
                 init()
             }
         }
+        return program
+    }
+
+    fun run() : Application {
+        val result = applicationBase.build(this.program, this.configuration)
+        result.run()
+        return result
     }
 
     @Deprecated("Cannot construct application in an application block.", level = DeprecationLevel.ERROR)
-    actual fun application(build: ApplicationBuilder.() -> Unit): Nothing = error("Cannot construct application in an application block.")
+    override fun application(build: ApplicationBuilder.() -> Unit): Nothing =
+        error("Cannot construct application in an application block.")
 
     @Deprecated("Cannot construct application in an application block.", level = DeprecationLevel.ERROR)
-    actual fun applicationAsync(build: ApplicationBuilder.() -> Unit): Nothing = error("Cannot construct application in an application block.")
+    override fun applicationAsync(build: ApplicationBuilder.() -> Unit): Nothing =
+        error("Cannot construct application in an application block.")
 
     @Deprecated("Cannot construct program in a program block.", level = DeprecationLevel.ERROR)
-    actual fun Program.program(init: Program.() -> Unit): Nothing = error("Cannot construct program in a program block.")
+    override fun Program.program(init: Program.() -> Unit): Nothing =
+        error("Cannot construct program in a program block.")
 }

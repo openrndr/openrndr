@@ -53,7 +53,7 @@ actual abstract class Application {
  * Runs [program] as a synchronous application with the given [configuration].
  * @see application
  */
-actual fun application(program: Program, configuration: Configuration) {
+actual fun application(program: Program, configuration: Configuration){
     throw NotImplementedError("Synchronous application is unsupported, use applicationAsync()")
 }
 
