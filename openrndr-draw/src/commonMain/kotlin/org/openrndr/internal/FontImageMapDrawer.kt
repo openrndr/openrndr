@@ -150,7 +150,7 @@ class FontImageMapDrawer {
         val x = if (textSetting == TextSettingMode.PIXEL) round(cx * targetContentScale) / targetContentScale else cx
         val y = if (textSetting == TextSettingMode.SUBPIXEL) round(cy * targetContentScale) / targetContentScale else cy
 
-        val metrics = fontMap.glyphMetrics[character]!!
+        val metrics = fontMap.glyphMetrics[character] ?: fontMap.glyphMetrics[' '] ?: error("glyph or space substitute not found")
 
         if (rectangle != null) {
             val pad = 2.0f
