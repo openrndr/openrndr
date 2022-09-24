@@ -1,10 +1,10 @@
 package org.openrndr.internal
 
 import mu.KotlinLogging
-import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.ColorBuffer
 import org.openrndr.draw.ColorBufferProxy
 import java.io.IOException
+import java.util.WeakHashMap
 
 private val logger = KotlinLogging.logger {}
 
@@ -13,33 +13,40 @@ val colorBufferLoader by lazy {
 }
 
 class ColorBufferLoader {
-    private val loadQueue = mutableListOf<ColorBufferProxy>()
-    private val unloadQueue = mutableListOf<ColorBufferProxy>()
+    private val loadQueue = ArrayDeque<ColorBufferProxy>()
+    private val unloadQueue = ArrayDeque<ColorBufferProxy>()
 
-    private val urlItems = mutableMapOf<String, ColorBufferProxy>()
+    private val urlItems = WeakHashMap<String, ColorBufferProxy>()
 
     fun queue(colorBufferProxy: ColorBufferProxy) {
         synchronized(loadQueue) { loadQueue.add(colorBufferProxy) }
+        synchronized(unloadQueue) { unloadQueue.remove(colorBufferProxy) }
     }
 
-    fun loadFromUrl(url: String, queue: Boolean = true, persistent: Boolean = false): ColorBufferProxy = urlItems.getOrPut(url) {
-        val proxy = ColorBufferProxy(url, this, persistent).apply {
-            lastTouched = System.currentTimeMillis()
-            state = if (queue) {
-                ColorBufferProxy.State.QUEUED
-            } else {
-                ColorBufferProxy.State.NOT_LOADED
+    fun loadFromUrl(url: String, queue: Boolean = true, persistent: Boolean = false): ColorBufferProxy =
+        urlItems.getOrPut(url) {
+            val proxy = ColorBufferProxy(url, this, persistent).apply {
+                lastTouched = System.currentTimeMillis()
+                state = if (queue) {
+                    ColorBufferProxy.State.QUEUED
+                } else {
+                    ColorBufferProxy.State.NOT_LOADED
+                }
             }
+            if (queue) {
+                queue(proxy)
+            }
+            proxy
         }
-        if (queue) {
-            queue(proxy)
-        }
-        proxy
-    }
 
-    fun cancel(proxy: ColorBufferProxy){
-        synchronized(loadQueue){
+    fun cancel(proxy: ColorBufferProxy) {
+        synchronized(loadQueue) {
             loadQueue.remove(proxy)
+        }
+        synchronized(unloadQueue) {
+            if (proxy.state == ColorBufferProxy.State.LOADED) {
+                unloadQueue.add(proxy)
+            }
         }
     }
 
@@ -49,12 +56,12 @@ class ColorBufferLoader {
             Driver.instance.createResourceThread {
                 logger.debug { "ColorBufferLoader thread started" }
                 while (true) {
-                    if (!loader.loadQueue.isEmpty()) {
+                    if (loader.loadQueue.isNotEmpty()) {
                         val proxy = synchronized(loader.loadQueue) {
                             loader.loadQueue.forEach { it.lastTouchedShadow = it.lastTouched }
-                            //loader.loadQueue.sortBy { it.lastTouchedShadow }
-                            loader.loadQueue.sortWith(compareBy({ it.priority },{ it.lastTouchedShadow }, ))
-                            loader.loadQueue.removeAt(0)
+                            val best = loader.loadQueue.minWith(compareBy({ it.priority }, { -it.lastTouchedShadow }))
+                            loader.loadQueue.remove(best)
+                            best
                         }
                         try {
                             val cb = ColorBuffer.fromUrl(proxy.url)
@@ -81,11 +88,11 @@ class ColorBufferLoader {
                     }
 
                     synchronized(loader.unloadQueue) {
-                        if (!loader.unloadQueue.isEmpty()) {
-                            //loader.unloadQueue.sortBy { it.lastTouched }
-                            val dt = System.currentTimeMillis() - loader.unloadQueue[0].lastTouched
+                        if (loader.unloadQueue.isNotEmpty()) {
+                            val proxy = loader.unloadQueue.minWith(compareBy({ it.lastTouched }))
+                            val dt = System.currentTimeMillis() - proxy.lastTouched
                             if (dt > 5000) {
-                                val proxy = loader.unloadQueue.removeAt(0)
+                                loader.unloadQueue.remove(proxy)
                                 proxy.colorBuffer?.destroy()
                                 proxy.colorBuffer = null
                                 proxy.state = ColorBufferProxy.State.NOT_LOADED
