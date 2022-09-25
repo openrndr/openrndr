@@ -22,7 +22,7 @@ jobs:
           cache: gradle
 
       - name: Test OPENRNDR
-        run: ./gradlew test
+        run: ./gradlew check
 
   test-gl3:
     needs: tests

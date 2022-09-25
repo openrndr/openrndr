@@ -51,3 +51,10 @@ kotlin {
         }
     }
 }
+
+gradle.taskGraph.whenReady {
+    // Exclude heavy tests when running allTests
+    if (allTasks.any { it.name == "allTests" }) {
+        tasks["jvmHeavyTest"].enabled = false
+    }
+}
