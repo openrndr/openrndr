@@ -821,6 +821,7 @@ void main() {
         |uniform sampler2D tex2;
         |uniform sampler2D tex3;
         |uniform sampler2D tex4;
+        |uniform vec2 targetSize;
         |// -- drawerUniforms
         |${drawerUniforms()}
         |// -- shadeStructure.outputs
@@ -831,7 +832,7 @@ void main() {
         |// -- shadeStructure.fragmentPreamble
         |${shadeStructure.fragmentPreamble ?: ""}
         |void main() {
-        |   ${fragmentMainConstants(instance = "0", screenPosition = "v_texCoord0")}
+        |   ${fragmentMainConstants(instance = "0", screenPosition = "v_texCoord0", boundsPosition = "vec3(v_texCoord0, 0.0)", boundsSize = "vec3(targetSize, 0.0)")}
         |   vec4 x_fill = texture(tex0, v_texCoord0);
         |   vec4 x_stroke = vec4(0.0);
         |   {
