@@ -48,7 +48,7 @@ open class Filter(private val shader: Shader? = null, private val watcher: Shade
     /**
      * parameter map
      */
-    val parameters = mutableMapOf<String, Any>()
+    open val parameters = mutableMapOf<String, Any>()
     var padding = 0
 
     var depthBufferOut: DepthBuffer? = null

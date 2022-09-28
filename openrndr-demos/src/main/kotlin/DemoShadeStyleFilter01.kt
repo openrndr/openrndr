@@ -1,4 +1,5 @@
 import org.openrndr.application
+import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.ShadeStyleFilter
 import org.openrndr.draw.colorBuffer
 import org.openrndr.draw.shadeStyle
@@ -13,9 +14,11 @@ fun main() = application {
                float l = length(d);
                float sl = smoothstep(0.24, 0.5, l);
                x_fill = vec4(vec3(sl), 1.0); 
+               x_fill.rgb *= p_color.rgb;
             """
         })
         extend {
+            shadeFilter.parameter("color", ColorRGBa.PINK)
             shadeFilter.apply(emptyArray(), filtered)
             drawer.image(filtered)
         }

@@ -101,7 +101,7 @@ fun structureFromShadeStyle(shadeStyle: ShadeStyle?, vertexFormats: List<VertexF
 //                            outputs = shadeStyle.outputs.map { "// -- output-from  ${it.value} \nlayout(location = ${it.value.attachment}) out ${it.value.glslType} o_${it.key};\n" }.joinToString("")
 //                        }
                         outputs = ""
-                        uniforms = shadeStyle.parameters.map { "${mapTypeToUniform(it.value, it.key)}"}.joinToString("\n")
+                        uniforms = shadeStyle.parameterTypes.map { "${mapTypeToUniform(it.value, it.key)}"}.joinToString("\n")
                     }
                     run {
                         varyingOut = vertexFormats.flatMap { it.items }.joinToString("") { "${it.type.glslVaryingQualifier}varying ${it.type.glslType} va_${it.attribute}${array(it)};\n" } +

@@ -24,8 +24,198 @@ class ObservableHashmap<K, V>(val b: MutableMap<K,V>, inline val onChange: () ->
     }
 }
 
+interface ShadeStyleParameters {
+    var parameterValues : MutableMap<String, Any>
+    var parameterTypes : ObservableHashmap<String, String>
+
+    fun parameter(name: String, value: Cubemap) {
+        parameterValues[name] = value
+        parameterTypes[name] = when (value.type.colorSampling) {
+            ColorSampling.UNSIGNED_INTEGER -> "Cubemap_UINT"
+            ColorSampling.SIGNED_INTEGER -> "Cubemap_SINT"
+            else -> "Cubemap"
+        }
+    }
+
+    fun parameter(name: String, value: Boolean) {
+        parameterValues[name] = value
+        parameterTypes[name] = "boolean"
+    }
+
+    fun parameter(name: String, value: Int) {
+        parameterValues[name] = value
+        parameterTypes[name] = "int"
+    }
+
+    fun parameter(name: String, value: Matrix33) {
+        parameterValues[name] = value
+        parameterTypes[name] = "Matrix33"
+    }
+
+    fun parameter(name: String, value: Matrix44) {
+        parameterValues[name] = value
+        parameterTypes[name] = "Matrix44"
+    }
+
+    fun parameter(name: String, value: Array<Matrix44>) {
+        parameterValues[name] = value
+        parameterTypes[name] = "Matrix44,${value.size}"
+    }
+
+    fun parameter(name: String, value: Array<Vector2>) {
+        parameterValues[name] = value
+        parameterTypes[name] = "Vector2,${value.size}"
+    }
+
+    fun parameter(name: String, value: Array<Vector3>) {
+        parameterValues[name] = value
+        parameterTypes[name] = "Vector3,${value.size}"
+    }
+
+    fun parameter(name: String, value: Array<Vector4>) {
+        parameterValues[name] = value
+        parameterTypes[name] = "Vector4,${value.size}"
+    }
+
+    fun parameter(name: String, value: Array<ColorRGBa>) {
+        parameterValues[name] = value
+        parameterTypes[name] = "ColorRGBa,${value.size}"
+    }
+
+    fun parameter(name: String, value: Float) {
+        parameterValues[name] = value
+        parameterTypes[name] = "float"
+    }
+
+    fun parameter(name: String, value: Double) {
+        parameterValues[name] = value.toFloat()
+        parameterTypes[name] = "float"
+    }
+
+    fun parameter(name: String, value: Vector2) {
+        parameterValues[name] = value
+        parameterTypes[name] = "Vector2"
+    }
+
+    fun parameter(name: String, value: Vector3) {
+        parameterValues[name] = value
+        parameterTypes[name] = "Vector3"
+    }
+
+    fun parameter(name: String, value: Vector4) {
+        parameterValues[name] = value
+        parameterTypes[name] = "Vector4"
+    }
+
+    fun parameter(name: String, value: IntVector2) {
+        parameterValues[name] = value
+        parameterTypes[name] = "IntVector2"
+    }
+
+    fun parameter(name: String, value: IntVector3) {
+        parameterValues[name] = value
+        parameterTypes[name] = "IntVector3"
+    }
+
+    fun parameter(name: String, value: IntVector4) {
+        parameterValues[name] = value
+        parameterTypes[name] = "IntVector4"
+    }
+
+    fun parameter(name: String, value: ColorRGBa) {
+        parameterValues[name] = value
+        parameterTypes[name] = "ColorRGBa"
+    }
+
+    fun parameter(name: String, value: ColorBuffer) {
+        parameterValues[name] = value
+        parameterTypes[name] = when (value.type.colorSampling) {
+            ColorSampling.UNSIGNED_INTEGER -> "ColorBuffer_UINT"
+            ColorSampling.SIGNED_INTEGER -> "ColorBuffer_SINT"
+            else -> "ColorBuffer"
+        }
+    }
+
+    fun parameter(name: String, value: DepthBuffer) {
+        parameterValues[name] = value
+        parameterTypes[name] = "DepthBuffer"
+    }
+
+    fun parameter(name: String, value: ArrayTexture) {
+        parameterValues[name] = value
+        parameterTypes[name] = when (value.type.colorSampling) {
+            ColorSampling.UNSIGNED_INTEGER -> "ArrayTexture_UINT"
+            ColorSampling.SIGNED_INTEGER -> "ArrayTexture_SINT"
+            else -> "ArrayTexture"
+        }
+    }
+
+    fun parameter(name: String, value: IntArray) {
+        parameterValues[name] = value
+        parameterTypes[name] = "int, ${value.size}"
+    }
+
+    fun parameter(name: String, value: DoubleArray) {
+        parameterValues[name] = value
+        parameterTypes[name] = "float, ${value.size}"
+    }
+
+    fun parameter(name: String, value: ArrayCubemap) {
+        parameterValues[name] = value
+        parameterTypes[name] = when (value.type.colorSampling) {
+            ColorSampling.UNSIGNED_INTEGER -> "ArrayCubemap_UINT"
+            ColorSampling.SIGNED_INTEGER -> "ArrayCubemap_SINT"
+            else -> "ArrayCubemap"
+        }
+    }
+
+    fun parameter(name: String, value: BufferTexture) {
+        parameterValues[name] = value
+        parameterTypes[name] = when (value.type.colorSampling) {
+            ColorSampling.UNSIGNED_INTEGER -> "BufferTexture_UINT"
+            ColorSampling.SIGNED_INTEGER -> "BufferTexture_SINT"
+            else -> "BufferTexture"
+        }
+    }
+
+    fun parameter(name: String, value: VolumeTexture) {
+        parameterValues[name] = value
+        parameterTypes[name] = when (value.type.colorSampling) {
+            ColorSampling.UNSIGNED_INTEGER -> "VolumeTexture_UINT"
+            ColorSampling.SIGNED_INTEGER -> "VolumeTexture_SINT"
+            else -> "VolumeTexture"
+        }
+    }
+
+
+    fun parameter(name: String, value: ImageBinding) {
+        parameterValues[name] = value
+        parameterTypes[name] = when (value) {
+            is BufferTextureImageBinding -> {
+                "ImageBuffer,${value.bufferTexture.format.name},${value.bufferTexture.type.name},${value.access.name}"
+            }
+            is CubemapImageBinding -> {
+                "ImageCube,${value.cubemap.format.name},${value.cubemap.type.name},${value.access.name}"
+            }
+            is ArrayCubemapImageBinding -> {
+                "ImageCubeArray,${value.arrayCubemap.format.name},${value.arrayCubemap.type.name},${value.access.name}"
+            }
+            is ColorBufferImageBinding -> {
+                "Image2D,${value.colorBuffer.format.name},${value.colorBuffer.type.name},${value.access.name}"
+            }
+            is ArrayTextureImageBinding -> {
+                "Image2DArray,${value.arrayTexture.format.name},${value.arrayTexture.type.name},${value.access.name}"
+            }
+            is VolumeTextureImageBinding -> {
+                "Image3D,${value.volumeTexture.format.name},${value.volumeTexture.type.name},${value.access.name}"
+            }
+            else -> error("unsupported image binding")
+        }
+    }
+}
+
 @Suppress("unused")
-open class ShadeStyle {
+open class ShadeStyle: ShadeStyleParameters {
     var dirty = true
 
     var vertexPreamble: String? = null
@@ -66,8 +256,7 @@ open class ShadeStyle {
 
     var bufferValues = mutableMapOf<String, Any>()
     val buffers = mutableMapOf<String, String>()
-    var parameterValues = mutableMapOf<String, Any>()
-    var parameters = ObservableHashmap(HashMap<String, String>()) { dirty = true }
+
     var outputs = ObservableHashmap(HashMap<String, ShadeStyleOutput>()) { dirty = true }
     var attributes = mutableListOf<VertexBuffer>()
 
@@ -88,168 +277,22 @@ open class ShadeStyle {
         this.geometryTransform = other.geometryTransform
         this.vertexTransform = other.vertexTransform
 
-        this.parameters.putAll(other.parameters)
+        this.parameterTypes.putAll(other.parameterTypes)
         this.outputs.putAll(other.outputs)
     }
 
-    fun parameter(name: String, value: Cubemap) {
-        parameterValues[name] = value
-        parameters[name] = when (value.type.colorSampling) {
-            ColorSampling.UNSIGNED_INTEGER -> "Cubemap_UINT"
-            ColorSampling.SIGNED_INTEGER -> "Cubemap_SINT"
-            else -> "Cubemap"
-        }
+
+
+
+    fun output(name: String, output: ShadeStyleOutput) {
+        outputs[name] = output
     }
 
-    fun parameter(name: String, value: Boolean) {
-        parameterValues[name] = value
-        parameters[name] = "boolean"
+    fun attributes(attributesBuffer: VertexBuffer) {
+        attributes.add(attributesBuffer)
     }
 
-    fun parameter(name: String, value: Int) {
-        parameterValues[name] = value
-        parameters[name] = "int"
-    }
 
-    fun parameter(name: String, value: Matrix33) {
-        parameterValues[name] = value
-        parameters[name] = "Matrix33"
-    }
-
-    fun parameter(name: String, value: Matrix44) {
-        parameterValues[name] = value
-        parameters[name] = "Matrix44"
-    }
-
-    fun parameter(name: String, value: Array<Matrix44>) {
-        parameterValues[name] = value
-        parameters[name] = "Matrix44,${value.size}"
-    }
-
-    fun parameter(name: String, value: Array<Vector2>) {
-        parameterValues[name] = value
-        parameters[name] = "Vector2,${value.size}"
-    }
-
-    fun parameter(name: String, value: Array<Vector3>) {
-        parameterValues[name] = value
-        parameters[name] = "Vector3,${value.size}"
-    }
-
-    fun parameter(name: String, value: Array<Vector4>) {
-        parameterValues[name] = value
-        parameters[name] = "Vector4,${value.size}"
-    }
-
-    fun parameter(name: String, value: Array<ColorRGBa>) {
-        parameterValues[name] = value
-        parameters[name] = "ColorRGBa,${value.size}"
-    }
-
-    fun parameter(name: String, value: Float) {
-        parameterValues[name] = value
-        parameters[name] = "float"
-    }
-
-    fun parameter(name: String, value: Double) {
-        parameterValues[name] = value.toFloat()
-        parameters[name] = "float"
-    }
-
-    fun parameter(name: String, value: Vector2) {
-        parameterValues[name] = value
-        parameters[name] = "Vector2"
-    }
-
-    fun parameter(name: String, value: Vector3) {
-        parameterValues[name] = value
-        parameters[name] = "Vector3"
-    }
-
-    fun parameter(name: String, value: Vector4) {
-        parameterValues[name] = value
-        parameters[name] = "Vector4"
-    }
-
-    fun parameter(name: String, value: IntVector2) {
-        parameterValues[name] = value
-        parameters[name] = "IntVector2"
-    }
-
-    fun parameter(name: String, value: IntVector3) {
-        parameterValues[name] = value
-        parameters[name] = "IntVector3"
-    }
-
-    fun parameter(name: String, value: IntVector4) {
-        parameterValues[name] = value
-        parameters[name] = "IntVector4"
-    }
-
-    fun parameter(name: String, value: ColorRGBa) {
-        parameterValues[name] = value
-        parameters[name] = "ColorRGBa"
-    }
-
-    fun parameter(name: String, value: ColorBuffer) {
-        parameterValues[name] = value
-        parameters[name] = when (value.type.colorSampling) {
-            ColorSampling.UNSIGNED_INTEGER -> "ColorBuffer_UINT"
-            ColorSampling.SIGNED_INTEGER -> "ColorBuffer_SINT"
-            else -> "ColorBuffer"
-        }
-    }
-
-    fun parameter(name: String, value: DepthBuffer) {
-        parameterValues[name] = value
-        parameters[name] = "DepthBuffer"
-    }
-
-    fun parameter(name: String, value: ArrayTexture) {
-        parameterValues[name] = value
-        parameters[name] = when (value.type.colorSampling) {
-            ColorSampling.UNSIGNED_INTEGER -> "ArrayTexture_UINT"
-            ColorSampling.SIGNED_INTEGER -> "ArrayTexture_SINT"
-            else -> "ArrayTexture"
-        }
-    }
-
-    fun parameter(name: String, value: IntArray) {
-        parameterValues[name] = value
-        parameters[name] = "int, ${value.size}"
-    }
-
-    fun parameter(name: String, value: DoubleArray) {
-        parameterValues[name] = value
-        parameters[name] = "float, ${value.size}"
-    }
-
-    fun parameter(name: String, value: ArrayCubemap) {
-        parameterValues[name] = value
-        parameters[name] = when (value.type.colorSampling) {
-            ColorSampling.UNSIGNED_INTEGER -> "ArrayCubemap_UINT"
-            ColorSampling.SIGNED_INTEGER -> "ArrayCubemap_SINT"
-            else -> "ArrayCubemap"
-        }
-    }
-
-    fun parameter(name: String, value: BufferTexture) {
-        parameterValues[name] = value
-        parameters[name] = when (value.type.colorSampling) {
-            ColorSampling.UNSIGNED_INTEGER -> "BufferTexture_UINT"
-            ColorSampling.SIGNED_INTEGER -> "BufferTexture_SINT"
-            else -> "BufferTexture"
-        }
-    }
-
-    fun parameter(name: String, value: VolumeTexture) {
-        parameterValues[name] = value
-        parameters[name] = when (value.type.colorSampling) {
-            ColorSampling.UNSIGNED_INTEGER -> "VolumeTexture_UINT"
-            ColorSampling.SIGNED_INTEGER -> "VolumeTexture_SINT"
-            else -> "VolumeTexture"
-        }
-    }
 
     fun buffer(name: String, buffer: ShaderStorageBuffer) {
         bufferValues[name] = buffer
@@ -262,39 +305,6 @@ open class ShadeStyle {
     }
 
 
-    fun parameter(name: String, value: ImageBinding) {
-        parameterValues[name] = value
-        parameters[name] = when (value) {
-            is BufferTextureImageBinding -> {
-                "ImageBuffer,${value.bufferTexture.format.name},${value.bufferTexture.type.name},${value.access.name}"
-            }
-            is CubemapImageBinding -> {
-                "ImageCube,${value.cubemap.format.name},${value.cubemap.type.name},${value.access.name}"
-            }
-            is ArrayCubemapImageBinding -> {
-                "ImageCubeArray,${value.arrayCubemap.format.name},${value.arrayCubemap.type.name},${value.access.name}"
-            }
-            is ColorBufferImageBinding -> {
-                "Image2D,${value.colorBuffer.format.name},${value.colorBuffer.type.name},${value.access.name}"
-            }
-            is ArrayTextureImageBinding -> {
-                "Image2DArray,${value.arrayTexture.format.name},${value.arrayTexture.type.name},${value.access.name}"
-            }
-            is VolumeTextureImageBinding -> {
-                "Image3D,${value.volumeTexture.format.name},${value.volumeTexture.type.name},${value.access.name}"
-            }
-            else -> error("unsupported image binding")
-        }
-    }
-
-
-    fun output(name: String, output: ShadeStyleOutput) {
-        outputs[name] = output
-    }
-
-    fun attributes(attributesBuffer: VertexBuffer) {
-        attributes.add(attributesBuffer)
-    }
 
     operator fun plus(other: ShadeStyle): ShadeStyle {
         val s = ShadeStyle()
@@ -304,9 +314,9 @@ open class ShadeStyle {
         s.vertexPreamble = (if (vertexPreamble == null) "" else vertexPreamble) + "\n" + if (other.vertexPreamble == null) "" else other.vertexPreamble
         s.fragmentPreamble = (if (fragmentPreamble == null) "" else fragmentPreamble) + "\n" + if (other.fragmentPreamble == null) "" else other.fragmentPreamble
 
-        s.parameters.apply {
-            putAll(parameters)
-            putAll(other.parameters)
+        s.parameterTypes.apply {
+            putAll(parameterTypes)
+            putAll(other.parameterTypes)
         }
 
         s.parameterValues.apply {
@@ -336,7 +346,7 @@ open class ShadeStyle {
 
         override fun setValue(thisRef: ShadeStyle, property: KProperty<*>, value: R) {
             parameterValues[property.name] = value
-            parameters[property.name] = when (value) {
+            parameterTypes[property.name] = when (value) {
                 is Boolean -> "boolean"
                 is Int -> "int"
                 is Double -> "float"
@@ -424,6 +434,9 @@ open class ShadeStyle {
             }
         }
     }
+
+    override var parameterValues: MutableMap<String, Any> = mutableMapOf()
+    override var parameterTypes: ObservableHashmap<String, String> = ObservableHashmap(mutableMapOf()) { dirty = true}
 }
 
 fun shadeStyle(builder: ShadeStyle.() -> Unit): ShadeStyle = ShadeStyle().apply(builder)

@@ -15,7 +15,7 @@ private val shadeStyleManager by lazy {
  * A [Filter] that uses the [ShadeStyle] interface and language
  * @param shadeStyle the [ShadeStyle] that is applied as a filter
  */
-class ShadeStyleFilter(val shadeStyle: ShadeStyle) : Filter() {
+class ShadeStyleFilter(val shadeStyle: ShadeStyle) : Filter(), ShadeStyleParameters by shadeStyle {
     var fill: ColorRGBa by parameters
 
     init {
@@ -23,10 +23,12 @@ class ShadeStyleFilter(val shadeStyle: ShadeStyle) : Filter() {
         shadeStyle.parameter("fill", fill)
     }
 
-    val shader = shadeStyleManager.shader(shadeStyle, format)
 
     override fun apply(source: Array<ColorBuffer>, target: Array<ColorBuffer>) {
         shadeStyle.parameter("fill", fill)
+        for (param in parameterTypes) {
+
+        }
         for ((index, buffer) in source.withIndex()) {
             shadeStyle.parameter("input$index", buffer)
         }
