@@ -45,11 +45,61 @@ enum class CursorType {
     VRESIZE_CURSOR
 }
 
+interface MouseEvents {
+    /**
+     * mouse button down event
+     *
+     * Emitted from [Application] whenever a mouse button is pressed
+     */
+    val buttonDown: Event<MouseEvent>
+
+    /**
+     * mouse button up event
+     *
+     * Emitted from [Application] whenever a mouse button is released
+     */
+    val buttonUp: Event<MouseEvent>
+
+    /**
+     * mouse dragged event
+     *
+     * Emitted from [Application] whenever the mouse is moved while a button is pressed
+     */
+    val dragged: Event<MouseEvent>
+
+    /**
+     * mouse moved event
+     *
+     * Emitted from [Application] whenever the mouse is moved
+     */
+    val moved: Event<MouseEvent>
+    /**
+     * mouse scroll wheel event
+     *
+     * Emitted from [Application] whenever the mouse scroll wheel is used
+     */
+    val scrolled: Event<MouseEvent>
+
+
+    /**
+     * mouse entered event
+     *
+     * Emitted from [Application] whenever the mouse enters the window client area
+     */
+    val entered: Event<MouseEvent>
+
+    /**
+     * mouse exited event
+     *
+     * Emitted from [Application] whenever the mouse exits the window client area
+     */
+    val exited: Event<MouseEvent>
+}
 
 /**
  * Mouse events
  */
-class Mouse(private val application: () -> Application) {
+class ApplicationMouse(private val application: () -> Application): MouseEvents {
     /**
      * The current mouse position
      */
@@ -88,34 +138,34 @@ class Mouse(private val application: () -> Application) {
      *
      * Emitted from [Application] whenever a mouse button is pressed
      */
-    val buttonDown = Event<MouseEvent>("mouse-button-down", postpone = true)
+    override val buttonDown = Event<MouseEvent>("mouse-button-down", postpone = true)
 
     /**
      * mouse button up event
      *
      * Emitted from [Application] whenever a mouse button is released
      */
-    val buttonUp = Event<MouseEvent>("mouse-button-up", postpone = true)
+    override val buttonUp = Event<MouseEvent>("mouse-button-up", postpone = true)
 
     /**
      * mouse dragged event
      *
      * Emitted from [Application] whenever the mouse is moved while a button is pressed
      */
-    val dragged = Event<MouseEvent>("mouse-dragged", postpone = true)
+    override val dragged = Event<MouseEvent>("mouse-dragged", postpone = true)
 
     /**
      * mouse moved event
      *
      * Emitted from [Application] whenever the mouse is moved
      */
-    val moved = Event<MouseEvent>("mouse-moved", postpone = true)
+    override val moved = Event<MouseEvent>("mouse-moved", postpone = true)
     /**
      * mouse scroll wheel event
      *
      * Emitted from [Application] whenever the mouse scroll wheel is used
      */
-    val scrolled = Event<MouseEvent>("mouse-scrolled", postpone = true)
+    override val scrolled = Event<MouseEvent>("mouse-scrolled", postpone = true)
 
     @Deprecated("use buttonUp")
     val clicked = buttonUp
@@ -125,14 +175,14 @@ class Mouse(private val application: () -> Application) {
      *
      * Emitted from [Application] whenever the mouse enters the window client area
      */
-    val entered = Event<MouseEvent>("mouse-entered", postpone = true)
+    override val entered = Event<MouseEvent>("mouse-entered", postpone = true)
 
     /**
      * mouse exited event
      *
      * Emitted from [Application] whenever the mouse exits the window client area
      */
-    val exited = Event<MouseEvent>("mouse-exited", postpone = true)
+    override val exited = Event<MouseEvent>("mouse-exited", postpone = true)
 
     var pressedButtons = mutableSetOf<MouseButton>()
 }

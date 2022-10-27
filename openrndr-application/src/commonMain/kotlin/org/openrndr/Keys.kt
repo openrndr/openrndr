@@ -103,34 +103,41 @@ const val KEY_F12 = 301
 const val KEY_LEFT_SHIFT = 340
 const val KEY_RIGHT_SHIFT = 344
 
+interface KeyEvents {
+    val keyDown: Event<KeyEvent>
+    val keyUp: Event<KeyEvent>
+    val keyRepeat: Event<KeyEvent>
+    val character: Event<CharacterEvent>
+}
+
 /**
  * Keyboard events in a single class
  */
-class Keyboard {
+class Keyboard: KeyEvents {
     /**
      * key down event
      *
      * This event is triggered from [Application] whenever a key is pressed.
      */
-    val keyDown = Event<KeyEvent>("keyboard-key-down", postpone = true)
+    override val keyDown = Event<KeyEvent>("keyboard-key-down", postpone = true)
     /**
      * key up event
      *
      * This event is triggered from [Application] whenever a key is released.
      */
-    val keyUp = Event<KeyEvent>("keyboard-key-up", postpone = true)
+    override val keyUp = Event<KeyEvent>("keyboard-key-up", postpone = true)
     /**
      * key repeat event
      *
      * This event is triggered from [Application] whenever a key is released.
      */
-    val keyRepeat = Event<KeyEvent>("keyboard-key-repeat", postpone = true)
+    override val keyRepeat = Event<KeyEvent>("keyboard-key-repeat", postpone = true)
     /**
      * character event
      *
      * This event is triggered from [Application] whenever a key is held down for a while
      */
-    val character = Event<CharacterEvent>("keyboard-character", postpone = true)
+    override val character = Event<CharacterEvent>("keyboard-character", postpone = true)
     /**
      * set containing the names of the currently pressed keys
      */

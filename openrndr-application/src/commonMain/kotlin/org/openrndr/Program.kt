@@ -55,11 +55,16 @@ data class AssetMetadata(
     val assetProperties: Map<String, String>
 )
 
+interface ProgramInputEvents {
+    val mouse: ApplicationMouse
+    val keyboard: Keyboard
+    val pointers: Pointers
+}
 
 /**
  * The Program class, this is where most user implementations start.
  */
-open class Program(val suspend: Boolean = false) {
+open class Program(val suspend: Boolean = false) : ProgramInputEvents {
     var width = 0
     var height = 0
 
@@ -321,9 +326,9 @@ open class Program(val suspend: Boolean = false) {
     val window = Window()
 
 
-    val keyboard by lazy { Keyboard() }
-    val mouse by lazy { Mouse({ application }) }
-    val pointers by lazy { Pointers({ application }) }
+    override val keyboard by lazy { Keyboard() }
+    override val mouse by lazy { ApplicationMouse({ application }) }
+    override val pointers by lazy { Pointers({ application }) }
 
     /**
      * This is ran exactly once before the first call to draw()
