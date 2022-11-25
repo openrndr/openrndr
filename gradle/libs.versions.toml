@@ -1,23 +1,23 @@
 [versions]
 kotlinApi = "1.7"
 kotlinLanguage = "1.7"
-kotlin = "1.7.20"
+kotlin = "1.7.21"
 jvmTarget = "11"
 kotlinxCoroutines = "1.6.4"
 kotlinLogging = "2.1.23"
-kotlinxSerialization = "1.3.2"
+kotlinxSerialization = "1.4.1"
 dokka = "1.7.10"
 nebulaRelease = "15.3.1"
 lwjgl = "3.3.1"
 javacpp = "1.5.7"
 # ffmpeg version suffix should match javacpp version
 ffmpeg = "5.0-1.5.7"
-jsoup = "1.14.3"
-junitJupiter = "5.8.2"
-spek = "2.0.18"
-kluent = "1.68"
-kotest = "5.2.3"
-slf4j = "1.7.36"
+jsoup = "1.15.3"
+junitJupiter = "5.9.1"
+spek = "2.0.19"
+kluent = "1.72"
+kotest = "5.5.4"
+slf4j = "2.0.3"
 
 [libraries]
 kotlin-logging = { group = "io.github.microutils", name = "kotlin-logging", version.ref = "kotlinLogging" }
