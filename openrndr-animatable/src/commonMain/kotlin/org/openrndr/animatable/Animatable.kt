@@ -304,7 +304,7 @@ open class Animatable {
         val toRemove = mutableListOf<PropertyAnimationKey<*>>()
         val triggers = mutableListOf<Event<AnimationEvent>>()
 
-        for (key in propertyAnimationKeys) {
+        for (key in propertyAnimationKeys.map { it }) {
             if (key.startInNs <= timeInNs) { // && key.start + key.duration >= time) {
                 if (key.animationState == AnimationState.Queued) {
                     key.play()
