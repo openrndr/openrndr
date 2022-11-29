@@ -176,13 +176,17 @@ open class Screenshots : Extension {
     private var filename: String? = null
     override fun beforeDraw(drawer: Drawer, program: Program) {
         if (createScreenshot != None && delayFrames-- <= 0) {
-            target = renderTarget(program.width, program.height, contentScale = contentScale!!, multisample = multisample!!) {
+
+            val width = RenderTarget.active.width
+            val height = RenderTarget.active.height
+
+            target = renderTarget(width, height, contentScale = contentScale!!, multisample = multisample!!) {
                 colorBuffer()
                 depthBuffer()
             }
             resolved = when (multisample!!) {
                 BufferMultisample.Disabled -> null
-                is BufferMultisample.SampleCount -> colorBuffer(program.width, program.height, contentScale = contentScale!!)
+                is BufferMultisample.SampleCount -> colorBuffer(width, height, contentScale = contentScale!!)
             }
             target?.bind()
 

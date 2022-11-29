@@ -81,7 +81,6 @@ class ApplicationWebGL(override var program: Program, override var configuration
         // Keyboard
         window.addEventListener("keydown", {
             it as HtmlKeyboardEvent
-            program.keyboard.pressedKeys.add(it.key)
             program.keyboard.keyDown.trigger(
                 KeyEvent(
                     KeyEventType.KEY_DOWN,
@@ -94,7 +93,6 @@ class ApplicationWebGL(override var program: Program, override var configuration
 
         window.addEventListener("keyup", {
             it as HtmlKeyboardEvent
-            program.keyboard.pressedKeys.remove(it.key)
             program.keyboard.keyUp.trigger(
                 KeyEvent(
                     KeyEventType.KEY_UP,
@@ -121,7 +119,7 @@ class ApplicationWebGL(override var program: Program, override var configuration
                     Vector2.ZERO,
                     Vector2.ZERO,
                     MouseEventType.BUTTON_DOWN,
-                    when (it.button as Int) {
+                    when (it.button.toInt()) {
                         0 -> MouseButton.LEFT
                         1 -> MouseButton.CENTER
                         2 -> MouseButton.RIGHT
@@ -142,7 +140,7 @@ class ApplicationWebGL(override var program: Program, override var configuration
                     Vector2.ZERO,
                     Vector2.ZERO,
                     MouseEventType.BUTTON_UP,
-                    when (it.button as Int) {
+                    when (it.button.toInt()) {
                         0 -> MouseButton.LEFT
                         1 -> MouseButton.CENTER
                         2 -> MouseButton.RIGHT

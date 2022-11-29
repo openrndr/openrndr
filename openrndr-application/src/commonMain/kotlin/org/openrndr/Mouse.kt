@@ -46,6 +46,10 @@ enum class CursorType {
 }
 
 interface MouseEvents {
+
+    val pressedButtons: MutableSet<MouseButton>
+    val position: Vector2
+
     /**
      * mouse button down event
      *
@@ -103,7 +107,7 @@ class ApplicationMouse(private val application: () -> Application): MouseEvents 
     /**
      * The current mouse position
      */
-    var position: Vector2
+    override var position: Vector2
         get() = application().cursorPosition
         set(value) {
             application().cursorPosition = value
@@ -184,5 +188,5 @@ class ApplicationMouse(private val application: () -> Application): MouseEvents 
      */
     override val exited = Event<MouseEvent>("mouse-exited", postpone = true)
 
-    var pressedButtons = mutableSetOf<MouseButton>()
+    override var pressedButtons = mutableSetOf<MouseButton>()
 }

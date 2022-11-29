@@ -1,6 +1,7 @@
 import kotlinx.coroutines.runBlocking
 import org.openrndr.Configuration
 import org.openrndr.Program
+import org.openrndr.ProgramImplementation
 import org.openrndr.internal.gl3.ApplicationGLFWGL3
 import kotlin.test.*
 
@@ -10,7 +11,7 @@ abstract class AbstractApplicationTestFixture {
 
     @BeforeTest
     open fun setup() {
-        program = Program()
+        program = ProgramImplementation()
         application = ApplicationGLFWGL3(program, Configuration())
         runBlocking { application.setup() }
         application.preloop()

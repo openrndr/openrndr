@@ -14,6 +14,18 @@ enum class ExtensionStage {
     AFTER_DRAW
 }
 
+interface ExtensionHost : InputEvents {
+    val extensions: MutableList<Extension>
+
+    fun <T : Extension> extend(extension: T): T
+    fun <T : Extension> extend(extension: T, configure: T.() -> Unit): T
+
+    fun extend(stage: ExtensionStage = ExtensionStage.BEFORE_DRAW, userDraw: Program.() -> Unit)
+
+    val program: Program
+}
+
+
 /**
  * Defines a Program extension. This is the interface for developers of OPENRNDR extensions.
  */

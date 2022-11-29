@@ -138,8 +138,18 @@ class Keyboard: KeyEvents {
      * This event is triggered from [Application] whenever a key is held down for a while
      */
     override val character = Event<CharacterEvent>("keyboard-character", postpone = true)
+
+}
+
+class KeyTracker {
     /**
      * set containing the names of the currently pressed keys
      */
     var pressedKeys = mutableSetOf<String>()
+
+    fun setupEvents(keyEvents: KeyEvents) {
+        keyEvents.keyDown.listen {
+
+        }
+    }
 }

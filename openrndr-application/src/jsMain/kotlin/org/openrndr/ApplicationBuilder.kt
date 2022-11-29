@@ -22,7 +22,7 @@ actual suspend fun applicationAsync(build: ApplicationBuilder.() -> Unit) {
 @Suppress("DeprecatedCallableAddReplaceWith")
 class ApplicationBuilderJS internal constructor() : ApplicationBuilder() {
     override val configuration = Configuration()
-    override var program: Program = Program()
+    override var program: Program = ProgramImplementation()
     override val applicationBase = applicationBaseFunc?.invoke() ?: error("applicationFunc not set")
     override val displays: List<Display> = emptyList()
 
@@ -31,7 +31,7 @@ class ApplicationBuilderJS internal constructor() : ApplicationBuilder() {
     }
 
     override fun program(init: suspend Program.() -> Unit) : Program {
-        program = object : Program() {
+        program = object : ProgramImplementation() {
             override suspend fun setup() {
                 init()
             }

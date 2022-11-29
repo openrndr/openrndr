@@ -7,6 +7,7 @@ import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.Drawer
 import org.openrndr.events.Event
 import org.openrndr.internal.Driver
+import org.openrndr.math.IntVector2
 import org.openrndr.math.Vector2
 
 expect fun rootClassName(): String
@@ -55,43 +56,137 @@ data class AssetMetadata(
     val assetProperties: Map<String, String>
 )
 
-interface ProgramInputEvents {
-    val mouse: ApplicationMouse
-    val keyboard: Keyboard
+interface InputEvents {
+    val mouse: MouseEvents
+    val keyboard: KeyEvents
     val pointers: Pointers
+}
+
+interface Clipboard {
+    var contents: String?
+}
+
+interface Program: InputEvents, ExtensionHost {
+    var name: String
+
+    var width: Int
+    var height: Int
+    var isNested: Boolean
+    var drawer: Drawer
+    var driver: Driver
+
+    val dispatcher: Dispatcher
+    val window: Window
+    var application: Application
+
+    suspend fun setup()
+
+    fun drawImpl()
+    fun draw()
+
+    val produceAssets: Event<ProduceAssetsEvent>
+    val requestAssets: Event<RequestAssetsEvent>
+    var assetMetadata: () -> AssetMetadata
+    var assetProperties: MutableMap<String, String>
+    var clock: () -> Double
+    var ended: Event<ProgramEvent>
+    var backgroundColor: ColorRGBa?
+    val seconds: Double
+    val frameCount: Int
+    val clipboard: ProgramImplementation.ApplicationClipboard
+}
+
+interface Window {
+    var title: String
+    var size: Vector2
+    var contentScale: Double
+    var presentationMode: PresentationMode
+    var multisample: WindowMultisample
+    var resizable: Boolean
+
+    fun requestFocus()
+
+    fun requestDraw()
+
+    /**
+     * Window focused event, triggered when the window receives focus
+     */
+    val focused : Event<WindowEvent>
+
+    /**
+     * Window focused event, triggered when the window loses focus
+     */
+    val unfocused : Event<WindowEvent>
+
+    /**
+     * Window moved event
+     */
+    val moved : Event<WindowEvent>
+
+    /**
+     * Window sized event
+     */
+    val sized : Event<WindowEvent>
+
+    /**
+     * Window minimized event
+     */
+    val minimized : Event<WindowEvent>
+
+    /**
+     * Window restored (from minimization) event
+     */
+    val restored : Event<WindowEvent>
+
+    /**
+     * Window restored (from minimization) event
+     */
+    val closed : Event<WindowEvent>
+
+    /**
+     * Drop event, triggered when a file is dropped on the window
+     */
+    val drop : Event<DropEvent>
+
+    /**
+     * Window position
+     */
+    var position: Vector2
 }
 
 /**
  * The Program class, this is where most user implementations start.
  */
-open class Program(val suspend: Boolean = false) : ProgramInputEvents {
-    var width = 0
-    var height = 0
+open class ProgramImplementation(val suspend: Boolean = false) : Program {
+    override var width = 0
+    override var height = 0
 
-    var name = rootClassName()
+    override val program: Program by lazy { this }
+
+    override var name = rootClassName()
 
     private val animator by lazy { Animatable() }
 
-    lateinit var drawer: Drawer
-    lateinit var driver: Driver
+    override lateinit var drawer: Drawer
+    override lateinit var driver: Driver
 
-    lateinit var application: Application
+    override lateinit var application: Application
 
     /** This is checked at runtime to disallow nesting [extend] blocks. */
-    protected var isNested: Boolean = false
+    override var isNested: Boolean = false
 
     /**
      * background color that is used to clear the background every frame
      */
-    var backgroundColor: ColorRGBa? = ColorRGBa.BLACK
-    val dispatcher = Dispatcher()
+    override var backgroundColor: ColorRGBa? = ColorRGBa.BLACK
+    override val dispatcher = Dispatcher()
 
     /**
      * program ended event
      *
      * The [ended] event is emitted when the program is ended by closing the application window
      */
-    var ended = Event<ProgramEvent>()
+    override var ended = Event<ProgramEvent>()
 
 
     /**
@@ -104,16 +199,16 @@ open class Program(val suspend: Boolean = false) : ProgramInputEvents {
     /**
      * clock function. defaults to returning the application time.
      */
-    var clock =
+    override var clock =
         { if (firstFrameTime == Double.POSITIVE_INFINITY || frameCount <= 0) 0.0 else (application.seconds - firstFrameTime) }
 
-    var assetProperties = mutableMapOf<String, String>()
-    var assetMetadata = {
+    override var assetProperties = mutableMapOf<String, String>()
+    override var assetMetadata = {
         AssetMetadata(this.name, namedTimestamp(), assetProperties)
     }
 
-    val requestAssets = Event<RequestAssetsEvent>()
-    val produceAssets = Event<ProduceAssetsEvent>()
+    override val requestAssets = Event<RequestAssetsEvent>()
+    override val produceAssets = Event<ProduceAssetsEvent>()
 
     init {
         requestAssets.listen {
@@ -131,14 +226,13 @@ open class Program(val suspend: Boolean = false) : ProgramInputEvents {
     private var deltaSeconds: Double = 0.0
     private var lastSeconds: Double = -1.0
 
-    var frameCount = 0
-        private set
+    override var frameCount = 0
 
     /**
      * The number of [seconds] since program start, or the time from a custom [clock].
      * value is updated at the beginning of the frame only.
      */
-    val seconds: Double
+    override val seconds: Double
         get() = frameSeconds
 
     /**
@@ -147,8 +241,8 @@ open class Program(val suspend: Boolean = false) : ProgramInputEvents {
     val deltaTime: Double
         get() = deltaSeconds
 
-    inner class Clipboard {
-        var contents: String?
+    inner class ApplicationClipboard  : Clipboard{
+        override var contents: String?
             get() {
                 return application.clipboardContents
             }
@@ -157,12 +251,12 @@ open class Program(val suspend: Boolean = false) : ProgramInputEvents {
             }
     }
 
-    val clipboard = Clipboard()
+    override val clipboard = ApplicationClipboard()
 
     /**
      * list of installed extensions
      */
-    val extensions = mutableListOf<Extension>()
+    override val extensions = mutableListOf<Extension>()
         get() {
             if (field.isEmpty()) isNested = false
             return field
@@ -172,7 +266,7 @@ open class Program(val suspend: Boolean = false) : ProgramInputEvents {
      * install an [Extension]
      * @param extension the [Extension] to install
      */
-    fun <T : Extension> extend(extension: T): T {
+    override fun <T : Extension> extend(extension: T): T {
         extensions.add(extension)
         extension.setup(this)
         return extension
@@ -184,7 +278,7 @@ open class Program(val suspend: Boolean = false) : ProgramInputEvents {
      * @param configure a configuration function to called with [extension] as its receiver
      * @return the installed [Extension]
      */
-    fun <T : Extension> extend(extension: T, configure: T.() -> Unit): T {
+    override fun <T : Extension> extend(extension: T, configure: T.() -> Unit): T {
         extensions.add(extension)
         extension.configure()
         extension.setup(this)
@@ -194,7 +288,7 @@ open class Program(val suspend: Boolean = false) : ProgramInputEvents {
     /**
      * install an extension function for the given [ExtensionStage]
      */
-    fun extend(stage: ExtensionStage = ExtensionStage.BEFORE_DRAW, userDraw: Program.() -> Unit) {
+    override fun extend(stage: ExtensionStage, userDraw: Program.() -> Unit) {
         if (isNested) error("Cannot nest extend blocks within extend blocks")
         val functionExtension = when (stage) {
             ExtensionStage.SETUP ->
@@ -228,32 +322,32 @@ open class Program(val suspend: Boolean = false) : ProgramInputEvents {
     /**
      * Simplified window interface
      */
-    inner class Window {
-        var title: String
+    inner class Window:org.openrndr.Window {
+        override var title: String
             get() = application.windowTitle
             set(value) {
                 application.windowTitle = value
             }
 
-        var size
+        override var size
             get() = application.windowSize
             set(value) {
                 application.windowSize = value
             }
 
-        var contentScale
+        override var contentScale
             get() = application.windowContentScale
             set(value) {
                 application.windowContentScale = value
             }
 
-        var presentationMode: PresentationMode
+        override var presentationMode: PresentationMode
             get() = application.presentationMode
             set(value) {
                 application.presentationMode = value
             }
 
-        var multisample: WindowMultisample
+        override var multisample: WindowMultisample
             get() {
                 return application.windowMultisample
             }
@@ -261,7 +355,7 @@ open class Program(val suspend: Boolean = false) : ProgramInputEvents {
                 application.windowMultisample = value
             }
 
-        var resizable: Boolean
+        override var resizable: Boolean
             get() {
                 return application.windowResizable
             }
@@ -269,61 +363,61 @@ open class Program(val suspend: Boolean = false) : ProgramInputEvents {
                 application.windowResizable = value
             }
 
-        fun requestFocus() = application.requestFocus()
+        override fun requestFocus() = application.requestFocus()
 
-        fun requestDraw() = application.requestDraw()
+        override fun requestDraw() = application.requestDraw()
 
         /**
          * Window focused event, triggered when the window receives focus
          */
-        val focused = Event<WindowEvent>("window-focused", postpone = true)
+        override val focused = Event<WindowEvent>("window-focused", postpone = true)
 
         /**
          * Window focused event, triggered when the window loses focus
          */
-        val unfocused = Event<WindowEvent>("window-unfocused", postpone = true)
+        override val unfocused = Event<WindowEvent>("window-unfocused", postpone = true)
 
         /**
          * Window moved event
          */
-        val moved = Event<WindowEvent>("window-moved", postpone = true)
+        override val moved = Event<WindowEvent>("window-moved", postpone = true)
 
         /**
          * Window sized event
          */
-        val sized = Event<WindowEvent>("window-sized", postpone = true)
+        override val sized = Event<WindowEvent>("window-sized", postpone = true)
 
         /**
          * Window minimized event
          */
-        val minimized = Event<WindowEvent>("window-minimized", postpone = true)
+        override val minimized = Event<WindowEvent>("window-minimized", postpone = true)
 
         /**
          * Window restored (from minimization) event
          */
-        val restored = Event<WindowEvent>("window-restored", postpone = true)
+        override val restored = Event<WindowEvent>("window-restored", postpone = true)
 
         /**
          * Window restored (from minimization) event
          */
-        val closed = Event<WindowEvent>("window-closed", postpone = true)
+        override val closed = Event<WindowEvent>("window-closed", postpone = true)
 
         /**
          * Drop event, triggered when a file is dropped on the window
          */
-        val drop = Event<DropEvent>("window-drop", postpone = true)
+        override val drop = Event<DropEvent>("window-drop", postpone = true)
 
         /**
          * Window position
          */
-        var position: Vector2
+        override var position: Vector2
             get() = application.windowPosition
             set(value) {
                 application.windowPosition = value
             }
     }
 
-    val window = Window()
+    override val window = Window()
 
 
     override val keyboard by lazy { Keyboard() }
@@ -331,14 +425,14 @@ open class Program(val suspend: Boolean = false) : ProgramInputEvents {
     override val pointers by lazy { Pointers({ application }) }
 
     /**
-     * This is ran exactly once before the first call to draw()
+     * This runs exactly once before the first call to draw()
      */
-    open suspend fun setup() {}
+    override suspend fun setup() {}
 
     /**
      * This is the draw call that is called by Application. It takes care of handling extensions.
      */
-    fun drawImpl() {
+    override fun drawImpl() {
         if (frameCount == 0) {
             firstFrameTime = application.seconds
         }
@@ -367,7 +461,7 @@ open class Program(val suspend: Boolean = false) : ProgramInputEvents {
     /**
      * This is the user facing draw call. It should be overridden by the user.
      */
-    open fun draw() {}
+    override fun draw() {}
 }
 
 expect fun Program.namedTimestamp(extension: String = "", path: String? = null): String

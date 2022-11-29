@@ -88,10 +88,6 @@ actual fun application(build: ApplicationBuilder.() -> Unit) {
             result = applicationBase.build(this.program, this.configuration)
             result.run()
         }
-
-
-    } else {
-        error("unreachable?")
     }
 }
 
@@ -106,7 +102,7 @@ actual suspend fun applicationAsync(build: ApplicationBuilder.() -> Unit) {
 @Suppress("DeprecatedCallableAddReplaceWith")
 class ApplicationBuilderJVM : ApplicationBuilder() {
     override val configuration = Configuration()
-    override var program: Program = Program()
+    override var program: Program = ProgramImplementation()
     override val applicationBase: ApplicationBase = ApplicationBase.initialize()
     override val displays by lazy { applicationBase.displays }
 
@@ -115,7 +111,7 @@ class ApplicationBuilderJVM : ApplicationBuilder() {
     }
 
     override fun program(init: suspend Program.() -> Unit): Program {
-        program = object : Program() {
+        program = object : ProgramImplementation() {
             override suspend fun setup() {
                 init()
             }

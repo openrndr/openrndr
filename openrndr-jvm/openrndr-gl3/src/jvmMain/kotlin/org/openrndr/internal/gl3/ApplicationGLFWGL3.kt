@@ -651,7 +651,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
                         modifiers += KeyModifier.SUPER
                     }
                     program.keyboard.keyDown.trigger(KeyEvent(KeyEventType.KEY_DOWN, key, name, modifiers))
-                    program.keyboard.pressedKeys.add(name)
+
                 }
 
                 GLFW_RELEASE -> {
@@ -668,7 +668,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
                         modifiers -= KeyModifier.SUPER
                     }
                     program.keyboard.keyUp.trigger(KeyEvent(KeyEventType.KEY_UP, key, name, modifiers))
-                    program.keyboard.pressedKeys.remove(name)
+
                 }
 
                 GLFW_REPEAT ->
@@ -777,7 +777,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
                         modifiers
                     )
                 )
-                program.mouse.pressedButtons.add(mouseButton)
+
                 buttonsDown.set(button, true)
             }
 
@@ -793,7 +793,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
                         modifiers
                     )
                 )
-                program.mouse.pressedButtons.remove(mouseButton)
+
                 buttonsDown.set(button, false)
             }
         }
