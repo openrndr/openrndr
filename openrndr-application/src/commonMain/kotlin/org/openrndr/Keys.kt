@@ -141,15 +141,21 @@ class Keyboard: KeyEvents {
 
 }
 
-class KeyTracker {
+class KeyTracker(keyEvents: KeyEvents) {
+    private val mutablePressedKeys = mutableSetOf<String>()
+
     /**
      * set containing the names of the currently pressed keys
      */
-    var pressedKeys = mutableSetOf<String>()
+    val pressedKeys: Set<String> = mutablePressedKeys
 
-    fun setupEvents(keyEvents: KeyEvents) {
+    init {
         keyEvents.keyDown.listen {
+            mutablePressedKeys.add(it.name)
+        }
 
+        keyEvents.keyUp.listen {
+            mutablePressedKeys.remove(it.name)
         }
     }
 }
