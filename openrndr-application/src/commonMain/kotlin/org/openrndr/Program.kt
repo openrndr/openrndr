@@ -67,6 +67,12 @@ interface Clipboard {
 }
 
 interface Program: InputEvents, ExtensionHost {
+
+    /**
+     * A map that can be used to store arbitrary data, including functions
+     */
+    var userProperties: MutableMap<String, Any>
+
     var name: String
 
     var width: Int
@@ -162,6 +168,8 @@ open class ProgramImplementation(val suspend: Boolean = false) : Program {
     override var height = 0
 
     override val program: Program by lazy { this }
+    override var userProperties: MutableMap<String, Any> = mutableMapOf()
+
 
     override var name = rootClassName()
 
@@ -189,10 +197,7 @@ open class ProgramImplementation(val suspend: Boolean = false) : Program {
     override var ended = Event<ProgramEvent>()
 
 
-    /**
-     * A map that can be used to store arbitrary data, including functions
-     */
-    var userProperties = mutableMapOf<String, Any>()
+
 
     private var firstFrameTime = Double.POSITIVE_INFINITY
 
