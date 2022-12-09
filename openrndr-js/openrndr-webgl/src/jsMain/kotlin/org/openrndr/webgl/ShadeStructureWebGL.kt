@@ -104,20 +104,20 @@ fun structureFromShadeStyle(shadeStyle: ShadeStyle?, vertexFormats: List<VertexF
                         uniforms = shadeStyle.parameterTypes.map { "${mapTypeToUniform(it.value, it.key)}"}.joinToString("\n")
                     }
                     run {
-                        varyingOut = vertexFormats.flatMap { it.items }.joinToString("") { "${it.type.glslVaryingQualifier}varying ${it.type.glslType} va_${it.attribute}${array(it)};\n" } +
-                                instanceAttributeFormats.flatMap { it.items }.joinToString("") { "${it.type.glslVaryingQualifier}varying ${it.type.glslType} vi_${it.attribute}${array(it)};\n" }
+                        varyingOut = vertexFormats.flatMap { it.items }.joinToString("") { "${it.type.glslVaryingQualifier}out ${it.type.glslType} va_${it.attribute}${array(it)};\n" } +
+                                instanceAttributeFormats.flatMap { it.items }.joinToString("") { "${it.type.glslVaryingQualifier}out ${it.type.glslType} vi_${it.attribute}${array(it)};\n" }
                     }
                     run {
-                        varyingIn = vertexFormats.flatMap { it.items }.joinToString("") { "${it.type.glslVaryingQualifier}varying ${it.type.glslType} va_${it.attribute}${array(it)};\n" } +
-                                instanceAttributeFormats.flatMap { it.items }.joinToString("") { "${it.type.glslVaryingQualifier}varying ${it.type.glslType} vi_${it.attribute}${array(it)};\n" }
+                        varyingIn = vertexFormats.flatMap { it.items }.joinToString("") { "${it.type.glslVaryingQualifier}in ${it.type.glslType} va_${it.attribute}${array(it)};\n" } +
+                                instanceAttributeFormats.flatMap { it.items }.joinToString("") { "${it.type.glslVaryingQualifier}in ${it.type.glslType} vi_${it.attribute}${array(it)};\n" }
                     }
                     run {
                         varyingBridge = vertexFormats.flatMap { it.items }.joinToString("") { "    va_${it.attribute} = a_${it.attribute};\n" } +
                                 instanceAttributeFormats.flatMap { it.items }.joinToString("") { "vi_${it.attribute} = i_${it.attribute};\n" }
                     }
                     run {
-                        attributes = vertexFormats.flatMap { it.items }.joinToString("") { "attribute ${it.type.glslType} a_${it.attribute}${array(it)};\n" } +
-                                instanceAttributeFormats.flatMap { it.items }.joinToString("") { "attribute ${it.type.glslType} i_${it.attribute}${array(it)};\n" }
+                        attributes = vertexFormats.flatMap { it.items }.joinToString("") { "in ${it.type.glslType} a_${it.attribute}${array(it)};\n" } +
+                                instanceAttributeFormats.flatMap { it.items }.joinToString("") { "in ${it.type.glslType} i_${it.attribute}${array(it)};\n" }
                     }
                     suppressDefaultOutput = shadeStyle?.suppressDefaultOutput ?: false
                 }

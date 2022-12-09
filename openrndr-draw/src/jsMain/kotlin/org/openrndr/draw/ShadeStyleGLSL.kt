@@ -51,12 +51,12 @@ actual class ShadeStyleGLSL {
          */
         actual val transformVaryingIn = """
             // <transform-varying-in> (ShadeStyleGLSL.kt)
-            varying vec3 v_worldNormal;
-            varying vec3 v_viewNormal;
-            varying vec3 v_worldPosition;
-            varying vec3 v_viewPosition;
-            varying vec4 v_clipPosition;
-            varying mat4 v_modelNormalMatrix;
+            in vec3 v_worldNormal;
+            in vec3 v_viewNormal;
+            in vec3 v_worldPosition;
+            in vec3 v_viewPosition;
+            in vec4 v_clipPosition;
+            in mat4 v_modelNormalMatrix;
             // </transform-varying-in>""".trimIndent()
 
         /**
@@ -65,13 +65,13 @@ actual class ShadeStyleGLSL {
          */
         actual val transformVaryingOut = """
             // <transform-varying-out> (ShadeStyleGLSL.kt)
-            varying vec3 v_worldNormal;
-            varying vec3 v_viewNormal;
-            varying vec3 v_worldPosition;
-            varying vec3 v_viewPosition;
-            varying vec4 v_clipPosition;
+            out vec3 v_worldNormal;
+            out vec3 v_viewNormal;
+            out vec3 v_worldPosition;
+            out vec3 v_viewPosition;
+            out vec4 v_clipPosition;
             
-            varying mat4 v_modelNormalMatrix;
+            out mat4 v_modelNormalMatrix;
             // </transform-varying-out>""".trimIndent()
 
         /**

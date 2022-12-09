@@ -1,11 +1,12 @@
 package org.openrndr.webgl
 
+import WebGL2RenderingContext
 import org.khronos.webgl.WebGLRenderingContext as GL
 import org.openrndr.draw.*
 import org.openrndr.internal.*
 
 
-class DriverWebGL(val context: GL) : Driver {
+class DriverWebGL(val context: WebGL2RenderingContext) : Driver {
     init {
         Driver.driver = this
     }
@@ -301,7 +302,7 @@ class DriverWebGL(val context: GL) : Driver {
                                 } else {
                                     error("integer attributes are not supported by WebGL")
                                 }
-                                extensions.instancedArrays?.vertexAttribDivisorANGLE(attributeIndex, divisor) ?: error("instancing not supported")
+                                context.vertexAttribDivisor(attributeIndex, divisor)
                                 attributeBindings++
                             }
                         }
@@ -312,7 +313,7 @@ class DriverWebGL(val context: GL) : Driver {
                                     context.vertexAttribPointer(attributeIndex + column + i * 4,
                                         4,
                                         item.type.glType(), false, format.size, item.offset.toInt() + column * 16 + i * 64)
-                                    extensions.instancedArrays?.vertexAttribDivisorANGLE(attributeIndex + column + i * 4, divisor) ?: error("instancing not supported")
+                                    context.vertexAttribDivisor(attributeIndex + column + i * 4, divisor)
                                     attributeBindings++
                                 }
                             }
@@ -324,7 +325,7 @@ class DriverWebGL(val context: GL) : Driver {
                                     context.vertexAttribPointer(attributeIndex + column + i * 3,
                                         3,
                                         item.type.glType(), false, format.size, item.offset + column * 12 + i * 48)
-                                    extensions.instancedArrays?.vertexAttribDivisorANGLE(attributeIndex + column + i * 3, divisor) ?: error("instancing not supported")
+                                    context.vertexAttribDivisor(attributeIndex + column + i * 3, divisor)
                                     attributeBindings++
                                 }
                             }
@@ -397,7 +398,8 @@ class DriverWebGL(val context: GL) : Driver {
             "instance offsets are not supported"
         }
         //console.log("drawing instances", vertexOffset, vertexCount, instanceCount)
-        extensions.instancedArrays?.drawArraysInstancedANGLE(drawPrimitive.glType(), vertexOffset, vertexCount, instanceCount) ?: error("instancing not supported")
+        context.drawArraysInstanced(drawPrimitive.glType(), vertexOffset, vertexCount, instanceCount)
+        //extensions.instancedArrays?.drawArraysInstancedANGLE(drawPrimitive.glType(), vertexOffset, vertexCount, instanceCount) ?: error("instancing not supported")
     }
 
     override fun drawIndexedInstances(
@@ -610,12 +612,9 @@ class DriverWebGL(val context: GL) : Driver {
 
     override fun shaderConfiguration(): String {
         return """
+            #version 300 es
             precision highp float;
-            #define OR_GL_FRAGCOLOR
-            #define OR_VARYINGS
-            #define OR_WEBGL1
-            #define OR_GL_TEXTURE2D
-            #define OR_CONSTANT_LOOPS
+            #define OR_WEBGL2
         """.trimIndent()
     }
 }

@@ -1,5 +1,6 @@
 package org.openrndr.webgl
 
+import WebGL2RenderingContext
 import kotlinx.browser.document
 import kotlinx.browser.window
 import org.khronos.webgl.WebGLContextAttributes
@@ -47,9 +48,9 @@ class ApplicationWebGL(override var program: Program, override var configuration
         canvas = document.getElementById(configuration.canvasId) as? HTMLCanvasElement
             ?: error("failed to get canvas #${configuration.canvasId}")
         val contextAttributes = WebGLContextAttributes(stencil = true, preserveDrawingBuffer = true)
-        context = canvas?.getContext("webgl", contextAttributes) as? WebGLRenderingContext
-            ?: error("failed to create webgl context")
-        Driver.driver = DriverWebGL(context ?: error("no context"))
+        context = canvas?.getContext("webgl2", contextAttributes) as? WebGL2RenderingContext
+            ?: error("failed to create webgl2 context")
+        Driver.driver = DriverWebGL(context as WebGL2RenderingContext)
         program.drawer = Drawer(Driver.instance)
         referenceTime = window.performance.now()
 
