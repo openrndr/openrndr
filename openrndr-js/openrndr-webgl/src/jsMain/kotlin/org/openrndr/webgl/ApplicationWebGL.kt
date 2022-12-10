@@ -42,7 +42,7 @@ class ApplicationWebGL(override var program: Program, override var configuration
     private var referenceTime: Double = 0.0
 
     var canvas: HTMLCanvasElement? = null
-    var context: WebGLRenderingContext? = null
+    var context: WebGL2RenderingContext? = null
     var defaultRenderTarget: ProgramRenderTargetWebGL? = null
     override suspend fun setup() {
         canvas = document.getElementById(configuration.canvasId) as? HTMLCanvasElement

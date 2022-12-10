@@ -1,11 +1,9 @@
 package org.openrndr.webgl
 
+import WebGL2RenderingContext
 import WebGLRenderingFixedCompressedTexImage
 import kotlinx.coroutines.await
-import org.khronos.webgl.ArrayBufferView
-import org.khronos.webgl.TexImageSource
-import org.khronos.webgl.WebGLFramebuffer
-import org.khronos.webgl.WebGLTexture
+import org.khronos.webgl.*
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
 import org.openrndr.internal.Driver
@@ -29,7 +27,7 @@ internal fun promiseImage(url: String): Promise<Image> {
 
 
 class ColorBufferWebGL(
-    val context: GL,
+    val context: WebGL2RenderingContext,
     val target: Int,
     val texture: WebGLTexture,
     override val width: Int,
@@ -45,7 +43,7 @@ class ColorBufferWebGL(
 
     companion object {
         fun create(
-            context: GL,
+            context: WebGL2RenderingContext,
             width: Int,
             height: Int,
             contentScale: Double = 1.0,
@@ -140,7 +138,7 @@ class ColorBufferWebGL(
             )
         }
 
-        fun fromImage(context: GL, image: Image, session: Session? = Session.active): ColorBufferWebGL {
+        fun fromImage(context: WebGL2RenderingContext, image: Image, session: Session? = Session.active): ColorBufferWebGL {
             val texture = context.createTexture() ?: error("failed to create texture")
             context.activeTexture(GL.TEXTURE0)
             context.bindTexture(GL.TEXTURE_2D, texture)
@@ -165,7 +163,7 @@ class ColorBufferWebGL(
             //return fromImage(context, image, session)
         }
 
-        suspend fun fromUrlSuspend(context: GL, url: String, session: Session? = Session.active): ColorBufferWebGL {
+        suspend fun fromUrlSuspend(context: WebGL2RenderingContext, url: String, session: Session? = Session.active): ColorBufferWebGL {
             val image = promiseImage(url).await()
             return fromImage(context, image, session)
         }
@@ -317,6 +315,16 @@ class ColorBufferWebGL(
         set(_) {}
 
     override fun fill(color: ColorRGBa) {
-        TODO("Not yet implemented")
+        val writeTarget = renderTarget(width, height, contentScale) {
+            colorBuffer(this@ColorBufferWebGL)
+        } as RenderTargetWebGL
+
+        writeTarget.bind()
+        val floatColorData = float32Array(color.r.toFloat(), color.g.toFloat(), color.b.toFloat(), color.alpha.toFloat())
+        context.clearBufferfv(WebGL2RenderingContext.COLOR, 0, floatColorData)
+        writeTarget.unbind()
+
+        writeTarget.detachColorAttachments()
+        writeTarget.destroy()
     }
 }

@@ -18,6 +18,10 @@ abstract external class WebGL2RenderingContext : WebGLRenderingContext {
     fun bindBufferBase(target: Int, index: Int, buffer: WebGLBuffer?)
     fun bufferData(target: Int, srcData: ArrayBufferView, usage: Int, srcOffset: Int, length: Int)
     fun clearBufferfv(buffer: Int, drawBuffer: Int, values: Float32Array)
+
+    fun clearBufferfi(buffer:Int, drawbuffer:Int, depth:Float, stencil:Int)
+
+
     fun drawBuffers(buffers: IntArray)
     fun drawElementsInstanced(mode: Int, count: Int, type: Int, offset: Int, instanceCount: Int)
 

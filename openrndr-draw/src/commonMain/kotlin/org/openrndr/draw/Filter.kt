@@ -160,7 +160,7 @@ void main() {
         parameters.forEach { (uniform, value) ->
             @Suppress("UNCHECKED_CAST")
             when (value) {
-                is Double -> shader.uniform(uniform, value.toFloat())
+                is Double -> shader.uniform(uniform, value)
                 is Boolean -> shader.uniform(uniform, value)
                 is Float -> shader.uniform(uniform, value)
                 is Matrix44 -> shader.uniform(uniform, value)

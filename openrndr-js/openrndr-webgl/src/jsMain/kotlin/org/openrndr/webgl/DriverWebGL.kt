@@ -615,6 +615,7 @@ class DriverWebGL(val context: WebGL2RenderingContext) : Driver {
             #version 300 es
             precision highp float;
             #define OR_WEBGL2
+            #define OR_IN_OUT
         """.trimIndent()
     }
 }

@@ -1,5 +1,6 @@
 package org.openrndr.webgl
 
+import WebGL2RenderingContext
 import org.khronos.webgl.WebGLFramebuffer
 import org.openrndr.Program
 import org.openrndr.collections.pop
@@ -11,7 +12,7 @@ import org.khronos.webgl.WebGLRenderingContext as GL
 
 private val active = ArrayDeque<RenderTargetWebGL>()
 
-class ProgramRenderTargetWebGL(context: GL, override val program: Program) : ProgramRenderTarget,
+class ProgramRenderTargetWebGL(context: WebGL2RenderingContext, override val program: Program) : ProgramRenderTarget,
     RenderTargetWebGL(context, null, 0, 0, 1.0, BufferMultisample.Disabled, Session.root) {
     override val width: Int
         get() = program.window.size.x.toInt()
@@ -27,7 +28,7 @@ class ProgramRenderTargetWebGL(context: GL, override val program: Program) : Pro
 }
 
 open class RenderTargetWebGL(
-    val context: GL,
+    val context: WebGL2RenderingContext,
     val framebuffer: WebGLFramebuffer?,
     override val width: Int,
     override val height: Int,
@@ -38,7 +39,7 @@ open class RenderTargetWebGL(
 ) : RenderTarget {
     companion object {
         fun create(
-            context: GL,
+            context: WebGL2RenderingContext,
             width: Int,
             height: Int,
             contentScale: Double = 1.0,
@@ -164,7 +165,9 @@ open class RenderTargetWebGL(
     }
 
     override fun clearDepth(depth: Double, stencil: Int) {
-        TODO("Not yet implemented")
+        bound {
+            context.clearBufferfi(WebGL2RenderingContext.DEPTH_STENCIL, 0, depth.toFloat(), stencil)
+        }
     }
 
     override fun blendMode(index: Int, blendMode: BlendMode) {

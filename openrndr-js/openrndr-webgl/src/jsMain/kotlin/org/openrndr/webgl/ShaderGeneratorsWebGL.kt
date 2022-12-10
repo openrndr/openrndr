@@ -17,12 +17,12 @@ private val rotate2 = """mat2 rotate2(float rotationInDegrees) {
 """.trimIndent()
 
 class ShaderGeneratorsWebGL : ShaderGenerators {
-    override fun vertexBufferFragmentShader(shadeStructure: ShadeStructure): String = """version 300 es
+    override fun vertexBufferFragmentShader(shadeStructure: ShadeStructure): String = """#version 300 es
         |precision highp float;
         |${primitiveTypes("d_vertex_buffer")}
         |${shadeStructure.buffers ?: ""}
         |${shadeStructure.uniforms ?: ""}
-
+        |out vec4 o_color;
         |uniform sampler2D image;
         |${drawerUniforms()}
         |${shadeStructure.varyingIn ?: ""}
@@ -39,11 +39,11 @@ class ShaderGeneratorsWebGL : ShaderGenerators {
         |       ${shadeStructure.fragmentTransform ?: ""}
         |    }
         ${if (!shadeStructure.suppressDefaultOutput) """
-            |    gl_FragColor = x_fill;
-            |    gl_FragColor.rgb *= gl_FragColor.a;""".trimMargin() else ""}
+            |    o_color = x_fill;
+            |    o_color.rgb *= o_color.a;""".trimMargin() else ""}
 |}""".trimMargin()
 
-    override fun vertexBufferVertexShader(shadeStructure: ShadeStructure): String = """version 300 es
+    override fun vertexBufferVertexShader(shadeStructure: ShadeStructure): String = """#version 300 es
         |precision highp float;
         |${primitiveTypes("d_vertex_buffer")}
         |${shadeStructure.buffers ?: ""}
@@ -67,13 +67,14 @@ class ShaderGeneratorsWebGL : ShaderGenerators {
         |gl_Position = v_clipPosition;
         |}""".trimMargin()
 
-    override fun imageFragmentShader(shadeStructure: ShadeStructure): String = """version 300 es
+    override fun imageFragmentShader(shadeStructure: ShadeStructure): String = """#version 300 es
         |precision highp float;
         |${primitiveTypes("d_image")}
         |${shadeStructure.buffers ?: ""}
         |${shadeStructure.uniforms ?: ""}
         |//layout(origin_upper_left) in vec4 gl_FragCoord;
         |uniform sampler2D image;
+        |out vec4 o_color;
         |${drawerUniforms()}
         |${shadeStructure.varyingIn ?: ""}
         |${transformVaryingIn}
@@ -90,7 +91,7 @@ class ShaderGeneratorsWebGL : ShaderGenerators {
         |}
         |void main(void) {
         |   ${fragmentMainConstants(boundsPosition = "v_boundsPosition", instance = "0")}
-        |   vec4 x_fill = texture2D(image, va_texCoord0);
+        |   vec4 x_fill = texture(image, va_texCoord0);
         |   vec4 x_stroke = u_stroke;
         |   {
         |       ${shadeStructure.fragmentTransform ?: ""}
@@ -99,10 +100,10 @@ class ShaderGeneratorsWebGL : ShaderGenerators {
         |   x_fill.rgb /= div;
         |   //x_fill = colorTransform(x_fill, u_colorMatrix);
         |   x_fill.rgb *= x_fill.a;
-        |   gl_FragColor = x_fill;
+        |   o_color = x_fill;
         |}""".trimMargin()
 
-    override fun imageVertexShader(shadeStructure: ShadeStructure): String = """version 300 es
+    override fun imageVertexShader(shadeStructure: ShadeStructure): String = """#version 300 es
         |precision highp float;
         |${primitiveTypes("d_image")}
         |${shadeStructure.buffers ?: ""}
@@ -142,12 +143,12 @@ class ShaderGeneratorsWebGL : ShaderGenerators {
         error("not supported")
     }
 
-    override fun pointFragmentShader(shadeStructure: ShadeStructure): String = """version 300 es
+    override fun pointFragmentShader(shadeStructure: ShadeStructure): String = """#version 300 es
         |precision highp float;
         |${primitiveTypes("d_circle")}
         |${shadeStructure.buffers ?: ""}
         |${shadeStructure.uniforms ?: ""}
-
+        |out vec4 o_color;
         |${drawerUniforms(styleBlock = false)}
         |${shadeStructure.varyingIn ?: ""}
         |${transformVaryingIn}
@@ -166,7 +167,7 @@ class ShaderGeneratorsWebGL : ShaderGenerators {
         |       ${shadeStructure.fragmentTransform ?: ""}
         |   }
         |   x_fill.rgb *= x_fill.a;
-        |   gl_FragColor = x_fill;
+        |   o_color = x_fill;
         |}""".trimMargin()
 
     override fun pointVertexShader(shadeStructure: ShadeStructure): String = """
@@ -290,7 +291,7 @@ void main() {
         TODO("Not yet implemented")
     }
 
-    override fun rectangleFragmentShader(shadeStructure: ShadeStructure): String = """version 300 es
+    override fun rectangleFragmentShader(shadeStructure: ShadeStructure): String = """#version 300 es
 precision highp float;        
 ${primitiveTypes("d_rectangle")}
 ${shadeStructure.buffers ?: ""}
@@ -306,6 +307,7 @@ ${transformVaryingIn}
 ${shadeStructure.fragmentPreamble ?: ""}
 //flat in int v_instance;
 in vec3 v_boundsSize;
+out vec4 o_color;
 
 void main(void) {
     int v_instance = 0;
@@ -335,11 +337,11 @@ void main(void) {
     final.rgb = final.rgb * (1.0-sa) + x_stroke.rgb * sa;
     final.a = final.a * (1.0-sa) + sa;
 
-    gl_FragColor = final;
+    o_color = final;
 }
 """
 
-    override fun rectangleVertexShader(shadeStructure: ShadeStructure): String = """version 300 es
+    override fun rectangleVertexShader(shadeStructure: ShadeStructure): String = """#version 300 es
 precision highp float;        
         
 ${primitiveTypes("d_rectangle")}
@@ -353,7 +355,7 @@ ${ShadeStyleGLSL.transformVaryingOut}
 ${shadeStructure.vertexPreamble ?: ""}
 
 //flat out int v_instance;
-in vec3 v_boundsSize;
+out vec3 v_boundsSize;
 ${rotate2}
 
 void main() {
@@ -374,7 +376,7 @@ void main() {
     }
     """
 
-    override fun expansionFragmentShader(shadeStructure: ShadeStructure): String = """version 300 es
+    override fun expansionFragmentShader(shadeStructure: ShadeStructure): String = """#version 300 es
 precision highp float;        
 ${primitiveTypes("d_expansion")}
 ${shadeStructure.buffers ?: ""}
@@ -390,6 +392,7 @@ uniform float strokeFillFactor;
 uniform sampler2D tex;
 uniform vec4 bounds;
 
+out vec4 o_color;
 in vec3 v_objectPosition;
 in vec2 v_ftcoord;
 //${if (!shadeStructure.suppressDefaultOutput) "out vec4 o_color;" else ""}
@@ -428,11 +431,11 @@ void main(void) {
     vec4 final = result;
 	final = result;
 	final.rgb *= final.a;
-    ${if (!shadeStructure.suppressDefaultOutput) "gl_FragColor = final;" else ""}
+    ${if (!shadeStructure.suppressDefaultOutput) "o_color = final;" else ""}
 }        
     """
 
-    override fun expansionVertexShader(shadeStructure: ShadeStructure): String = """version 300 es
+    override fun expansionVertexShader(shadeStructure: ShadeStructure): String = """#version 300 es
 precision highp float;        
         
 ${primitiveTypes("d_expansion")}
@@ -489,7 +492,7 @@ void main() {
         TODO("Not yet implemented")
     }
 
-    override fun filterVertexShader(shadeStructure: ShadeStructure): String = """version 300 es
+    override fun filterVertexShader(shadeStructure: ShadeStructure): String = """#version 300 es
         |// -- ShaderGeneratorsGL3.filterVertexShader
         |precision highp float;
         |${shadeStructure.buffers ?: ""}
@@ -509,9 +512,10 @@ void main() {
         |}
     """.trimMargin()
 
-    override fun filterFragmentShader(shadeStructure: ShadeStructure): String = """version 300 es
+    override fun filterFragmentShader(shadeStructure: ShadeStructure): String = """#version 300 es
         |// -- ShaderGeneratorsGL3.filterFragmentShader
         |precision highp float;
+        |out vec4 o_color;
         |${shadeStructure.buffers ?: ""}
         |in vec2 v_texCoord0;
         |uniform sampler2D tex0;
@@ -530,7 +534,7 @@ void main() {
         |${shadeStructure.fragmentPreamble ?: ""}
         |void main() {
         |   ${fragmentMainConstants(instance = "0", screenPosition = "v_texCoord0")}
-        |   vec4 x_fill = texture2D(tex0, v_texCoord0);
+        |   vec4 x_fill = texture(tex0, v_texCoord0);
         |   vec4 x_stroke = vec4(0.0);
         |   {
         |       // -- shadeStructure.fragmentTransform
