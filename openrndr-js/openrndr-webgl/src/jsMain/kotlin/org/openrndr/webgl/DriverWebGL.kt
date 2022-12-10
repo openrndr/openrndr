@@ -1,6 +1,7 @@
 package org.openrndr.webgl
 
 import WebGL2RenderingContext
+import WebGLVertexArrayObject
 import org.khronos.webgl.WebGLRenderingContext as GL
 import org.openrndr.draw.*
 import org.openrndr.internal.*
@@ -10,6 +11,31 @@ class DriverWebGL(val context: WebGL2RenderingContext) : Driver {
     init {
         Driver.driver = this
     }
+
+    data class ShaderVertexDescription(
+        val shader: Int,
+        val vertexBuffers: IntArray,
+        val instanceAttributeBuffers: IntArray
+    ) {
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+
+            other as ShaderVertexDescription
+            if (shader != other.shader) return false
+            if (!vertexBuffers.contentEquals(other.vertexBuffers)) return false
+            if (!instanceAttributeBuffers.contentEquals(other.instanceAttributeBuffers)) return false
+
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result = shader
+            result = 31 * result + vertexBuffers.contentHashCode()
+            result = 31 * result + instanceAttributeBuffers.contentHashCode()
+            return result
+        }
+    }
+
 
     @Suppress("UNCHECKED_CAST_TO_EXTERNAL_INTERFACE")
     inner class Extensions {
@@ -362,8 +388,26 @@ class DriverWebGL(val context: WebGL2RenderingContext) : Driver {
         verticesPerPatch: Int
     ) {
         shader as ShaderWebGL
-        setupFormat(vertexBuffers, emptyList(), shader)
+
+        val shaderVertexDescription = ShaderVertexDescription(
+            shader.program.hashCode(),
+            vertexBuffers.map { (it as VertexBufferWebGL).buffer.hashCode() }.toIntArray(),
+            IntArray(0)
+        )
+
+        val vao = vaos.getOrPut(shaderVertexDescription) {
+            val localVao = context.createVertexArray()
+                context.bindVertexArray(localVao)
+                setupFormat(vertexBuffers, emptyList(), shader)
+                context.bindVertexArray(null)
+            localVao
+        }
+
+        context.bindVertexArray(vao)
+
+//        setupFormat(vertexBuffers, emptyList(), shader)
         context.drawArrays(drawPrimitive.glType(), vertexOffset, vertexCount)
+        context.bindVertexArray(null)
     }
 
     override fun drawIndexedVertexBuffer(
@@ -573,6 +617,8 @@ class DriverWebGL(val context: WebGL2RenderingContext) : Driver {
     override val shaderGenerators: ShaderGenerators by lazy {
         ShaderGeneratorsWebGL()
     }
+    private val vaos = mutableMapOf<ShaderVertexDescription, WebGLVertexArrayObject>()
+
 
     override val activeRenderTarget: RenderTargetWebGL
         get() = RenderTargetWebGL.activeRenderTarget

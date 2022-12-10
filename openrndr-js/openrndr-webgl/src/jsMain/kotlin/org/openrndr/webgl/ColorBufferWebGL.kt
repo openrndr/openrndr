@@ -206,6 +206,13 @@ class ColorBufferWebGL(
         copyTo(target, fromLevel, toLevel, sourceRectangle, targetRectangle, filter)
     }
 
+    fun bound(f: ColorBufferWebGL.() -> Unit) {
+        context.activeTexture(GL.TEXTURE0)
+        val current = context.getParameter(GL.TEXTURE_BINDING_2D) as WebGLTexture?
+        context.bindTexture(target, texture)
+        this.f()
+        context.bindTexture(target, current)
+    }
 
     override fun copyTo(
         target: ColorBuffer,
@@ -215,7 +222,113 @@ class ColorBufferWebGL(
         targetRectangle: IntRectangle,
         filter: MagnifyingFilter
     ) {
-        TODO("Not yet implemented")
+        val fromDiv = 1 shl fromLevel
+        val toDiv = 1 shl toLevel
+        val refRectangle = IntRectangle(0, 0, effectiveWidth / fromDiv, effectiveHeight / fromDiv)
+
+        val useTexSubImage =
+            target.type.compressed || (refRectangle == sourceRectangle && refRectangle == targetRectangle && multisample == target.multisample)
+
+        if (!useTexSubImage) {
+            val readTarget = renderTarget(
+                width / fromDiv,
+                height / fromDiv,
+                contentScale,
+                multisample = multisample
+            ) {
+                colorBuffer(this@ColorBufferWebGL, fromLevel)
+            } as RenderTargetWebGL
+
+            val writeTarget = renderTarget(
+                target.width / toDiv,
+                target.height / toDiv,
+                target.contentScale,
+                multisample = target.multisample
+            ) {
+                colorBuffer(target, toLevel)
+            } as RenderTargetWebGL
+
+            writeTarget.bind()
+            context.bindFramebuffer(WebGL2RenderingContext.READ_FRAMEBUFFER, readTarget.framebuffer)
+
+            val ssx = sourceRectangle.x
+            val ssy = sourceRectangle.y
+            val sex = sourceRectangle.width + ssx
+            val sey = sourceRectangle.height + ssy
+
+            val tsx = targetRectangle.x
+            val tsy = targetRectangle.y
+            val tex = targetRectangle.width + tsx
+            val tey = targetRectangle.height + tsy
+
+            fun sflip(y: Int): Int {
+                return this.effectiveHeight / fromDiv - y
+            }
+
+            fun tflip(y: Int): Int {
+                return target.effectiveHeight / toDiv - y
+            }
+
+            context.blitFramebuffer(
+                ssx,
+                sflip(ssy),
+                sex,
+                sflip(sey),
+                tsx,
+                tflip(tsy),
+                tex,
+                tflip(tey),
+                GL.COLOR_BUFFER_BIT,
+                filter.toGLFilter()
+            )
+            writeTarget.unbind()
+
+            writeTarget.detachColorAttachments()
+            writeTarget.destroy()
+
+            readTarget.detachColorAttachments()
+            readTarget.destroy()
+        } else {
+            require(sourceRectangle == refRectangle && targetRectangle == refRectangle) {
+                "cropped or scaled copyTo is not allowed with the selected color buffers: ${this} -> ${target}"
+            }
+
+            val useFrameBufferCopy =
+                true // Driver.glVersion < DriverVersionGL.VERSION_4_3 || (type != target.type || format != target.format)
+
+            if (useFrameBufferCopy) {
+//                checkDestroyed()
+                val readTarget = renderTarget(width / fromDiv, height / fromDiv, contentScale) {
+                    colorBuffer(this@ColorBufferWebGL, fromLevel)
+                } as RenderTargetWebGL
+
+                target as ColorBufferWebGL
+                readTarget.bind()
+                context.readBuffer(GL.COLOR_ATTACHMENT0)
+                target.bound {
+                    context.copyTexSubImage2D(
+                        target.target,
+                        toLevel,
+                        0,
+                        0,
+                        0,
+                        0,
+                        target.effectiveWidth / toDiv,
+                        target.effectiveHeight / toDiv
+                    )
+//                    debugGLErrors() {
+//                        when (it) {
+//                            GL_INVALID_VALUE -> "level ($toLevel) less than 0, effective target is GL_TEXTURE_RECTANGLE (${target.target == GL_TEXTURE_RECTANGLE} and level is not 0"
+//                            else -> null
+//                        }
+//                    }
+                }
+                readTarget.unbind()
+
+                readTarget.detachColorAttachments()
+                readTarget.destroy()
+            }
+        }
     }
 
     override fun copyTo(target: ArrayTexture, layer: Int, fromLevel: Int, toLevel: Int) {
