@@ -402,8 +402,16 @@ open class RenderTargetGL3(
 
     override fun clearDepth(depth: Double, stencil: Int) {
         require(!destroyed)
+        require(hasDepthBuffer)
         bound {
+            val mask = glGetBoolean(GL_DEPTH_WRITEMASK)
+            if (!mask) {
+                glDepthMask(true)
+            }
             glClearBufferfi(GL_DEPTH_STENCIL, 0, depth.toFloat(), stencil)
+            if (!mask) {
+                glDepthMask(false)
+            }
             checkGLErrors()
         }
     }
