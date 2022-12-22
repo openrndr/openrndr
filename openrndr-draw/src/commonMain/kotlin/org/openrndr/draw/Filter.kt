@@ -230,7 +230,9 @@ void main() {
         target.unbind()
     }
 
+    // TODO move to Filter1to1
     fun apply(source: ColorBuffer, target: ColorBuffer) = apply(arrayOf(source), arrayOf(target))
+
     fun apply(source: ColorBuffer, target: Array<ColorBuffer>) = apply(arrayOf(source), target)
     fun apply(source: Array<ColorBuffer>, target: ColorBuffer) = apply(source, arrayOf(target))
 
@@ -243,4 +245,30 @@ void main() {
     }
 
     protected val format get() = filterQuadFormat
+}
+
+open class Filter1to1(shader: Shader? = null, watcher: ShaderWatcher? = null) :
+    Filter(shader, watcher) {
+}
+
+open class Filter2to1(shader: Shader? = null, watcher: ShaderWatcher? = null) :
+    Filter(shader, watcher) {
+    fun apply(source0: ColorBuffer, source1: ColorBuffer, target: ColorBuffer) =
+        apply(arrayOf(source0, source1), arrayOf(target))
+}
+
+open class Filter3to1(shader: Shader? = null, watcher: ShaderWatcher? = null) :
+    Filter(shader, watcher) {
+    fun apply(source0: ColorBuffer, source1: ColorBuffer, source2: ColorBuffer, target: ColorBuffer) =
+        apply(arrayOf(source0, source1, source2), arrayOf(target))
+}
+
+open class Filter4to1(shader: Shader? = null, watcher: ShaderWatcher? = null) :
+    Filter(shader, watcher) {
+    fun apply(source0: ColorBuffer,
+              source1: ColorBuffer,
+              source2: ColorBuffer,
+              source3: ColorBuffer,
+              target: ColorBuffer) =
+        apply(arrayOf(source0, source1, source2, source3), arrayOf(target))
 }
