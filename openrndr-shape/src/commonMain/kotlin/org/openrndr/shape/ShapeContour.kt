@@ -51,7 +51,9 @@ data class ShapeContour @JvmOverloads constructor(
             points: List<Vector2>,
             closed: Boolean,
             polarity: YPolarity = YPolarity.CW_NEGATIVE_Y
-        ) =
+        ) = if (points.isEmpty()) {
+            EMPTY
+        } else {
             if (!closed) {
                 ShapeContour((0 until points.size - 1).map {
                     Segment(
@@ -69,6 +71,7 @@ data class ShapeContour @JvmOverloads constructor(
                     )
                 }, true, polarity)
             }
+        }
     }
 
     init {
