@@ -14,7 +14,7 @@ class QualityPolygonDrawer {
                     corners: List<List<Boolean>>,
                     fringeWidth: Double) {
 
-        if (drawStyle.fill != null) {
+        if (drawStyle.fill != null && loops.isNotEmpty()) {
             val path = Path.fromLineLoops(loops, corners)
             val alpha = drawStyle.stroke?.alpha ?: 0.0
             val fw = if (drawStyle.smooth) {

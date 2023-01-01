@@ -594,7 +594,10 @@ internal class Path {
             val pathOffset = 0.0
 
 
-            contours.forEach { points ->
+            for (points in contours) {
+                if (points.isEmpty())
+                    continue
+
                 var size = 4
                 points.forEach { point ->
                     size += if ((point.flags and BEVEL) != 0) {
@@ -649,6 +652,11 @@ internal class Path {
             // Calculate fringe
             if (generateFringe) {
                 for (points in contours) {
+
+                    if (points.isEmpty()) {
+                        continue
+                    }
+
                     var size = 2
                     for (point in points) {
                         size += if (point.flags and (BEVEL or INNER_BEVEL) != 0) {
