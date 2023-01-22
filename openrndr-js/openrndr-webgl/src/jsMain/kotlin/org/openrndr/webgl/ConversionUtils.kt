@@ -1,5 +1,6 @@
 package org.openrndr.webgl
 
+import WebGL2RenderingContext
 import org.khronos.webgl.Float32Array
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
@@ -111,25 +112,34 @@ internal fun glStencilOp(op: StencilOperation): Int {
         else -> throw RuntimeException("unsupported op")
     }
 }
-internal data class ConversionEntry(val format: ColorFormat, val type: ColorType, val glFormat: Int, val glType: Int)
+internal data class ConversionEntry(val format: ColorFormat, val type: ColorType,
+                                    val glInternalFormat: Int,
+                                    val glFormat: Int,
+                                    val glType: Int
+)
 
-internal fun internalFormat(format: ColorFormat, type: ColorType): Pair<Int, Int> {
+internal fun internalFormat(format: ColorFormat, type: ColorType): Triple<Int, Int, Int> {
     val entries = arrayOf(
-        ConversionEntry(ColorFormat.RGB, ColorType.UINT8, GL.RGB, GL.RGB),
-        ConversionEntry(ColorFormat.RGBa, ColorType.UINT8, GL.RGBA, GL.RGBA),
-        ConversionEntry(ColorFormat.RGB, ColorType.FLOAT16, GL.RGB, HALF_FLOAT_OES),
-        ConversionEntry(ColorFormat.RGBa, ColorType.FLOAT16, GL.RGBA, HALF_FLOAT_OES),
-        ConversionEntry(ColorFormat.RGB, ColorType.FLOAT32, GL.RGB, GL.FLOAT),
-        ConversionEntry(ColorFormat.RGBa, ColorType.FLOAT32, GL.RGBA, GL.FLOAT),
-
-        ConversionEntry(ColorFormat.RGB, ColorType.DXT1, COMPRESSED_RGB_S3TC_DXT1_EXT, GL.RGB),
-        ConversionEntry(ColorFormat.RGBa, ColorType.DXT1, COMPRESSED_RGBA_S3TC_DXT1_EXT, GL.RGBA),
-        ConversionEntry(ColorFormat.RGBa, ColorType.DXT3, COMPRESSED_RGBA_S3TC_DXT3_EXT, GL.RGBA),
-        ConversionEntry(ColorFormat.RGBa, ColorType.DXT5, COMPRESSED_RGBA_S3TC_DXT5_EXT, GL.RGBA)
+        ConversionEntry(ColorFormat.R, ColorType.UINT8, WebGL2RenderingContext.R8, WebGL2RenderingContext.RED, GL.UNSIGNED_BYTE),
+        ConversionEntry(ColorFormat.RG, ColorType.UINT8, WebGL2RenderingContext.RG8, WebGL2RenderingContext.RG, GL.UNSIGNED_BYTE),
+        ConversionEntry(ColorFormat.RGB, ColorType.UINT8, GL.RGB, GL.RGB, GL.UNSIGNED_BYTE),
+        ConversionEntry(ColorFormat.RGBa, ColorType.UINT8, GL.RGBA, GL.RGBA, GL.UNSIGNED_BYTE),
+        ConversionEntry(ColorFormat.R, ColorType.FLOAT16, WebGL2RenderingContext.R16F, WebGL2RenderingContext.RED, WebGL2RenderingContext.HALF_FLOAT),
+        ConversionEntry(ColorFormat.RG, ColorType.FLOAT16, WebGL2RenderingContext.RG16F, WebGL2RenderingContext.RG, WebGL2RenderingContext.HALF_FLOAT),
+        ConversionEntry(ColorFormat.RGB, ColorType.FLOAT16, WebGL2RenderingContext.RGB16F, GL.RGB, WebGL2RenderingContext.HALF_FLOAT),
+        ConversionEntry(ColorFormat.RGBa, ColorType.FLOAT16, WebGL2RenderingContext.RGBA16F, GL.RGBA,  WebGL2RenderingContext.HALF_FLOAT),
+        ConversionEntry(ColorFormat.R, ColorType.FLOAT32, WebGL2RenderingContext.R16F, WebGL2RenderingContext.RED, GL.FLOAT),
+        ConversionEntry(ColorFormat.RG, ColorType.FLOAT32, WebGL2RenderingContext.RG16F, WebGL2RenderingContext.RG, GL.FLOAT),
+        ConversionEntry(ColorFormat.RGB, ColorType.FLOAT32, WebGL2RenderingContext.RGB32F, GL.RGB, GL.FLOAT),
+        ConversionEntry(ColorFormat.RGBa, ColorType.FLOAT32,WebGL2RenderingContext.RGBA32F, GL.RGBA, GL.FLOAT),
+        ConversionEntry(ColorFormat.RGB, ColorType.DXT1, COMPRESSED_RGB_S3TC_DXT1_EXT, GL.RGB, 0 ),
+        ConversionEntry(ColorFormat.RGBa, ColorType.DXT1, COMPRESSED_RGBA_S3TC_DXT1_EXT, GL.RGBA, 0),
+        ConversionEntry(ColorFormat.RGBa, ColorType.DXT3, COMPRESSED_RGBA_S3TC_DXT3_EXT, GL.RGBA, 0),
+        ConversionEntry(ColorFormat.RGBa, ColorType.DXT5, COMPRESSED_RGBA_S3TC_DXT5_EXT, GL.RGBA, 0)
     )
     for (entry in entries) {
         if (entry.format === format && entry.type === type) {
-            return Pair(entry.glFormat, entry.glType)
+            return Triple(entry.glInternalFormat, entry.glFormat, entry.glType)
         }
     }
     throw Exception("no conversion entry for $format/$type")

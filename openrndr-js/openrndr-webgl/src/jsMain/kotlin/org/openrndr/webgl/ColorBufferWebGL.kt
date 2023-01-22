@@ -74,9 +74,7 @@ class ColorBufferWebGL(
             if (levels > 1) {
                 //context.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MAX_LEVEL, levels - 1)
             }
-            val (internalFormat, _) = internalFormat(format, type)
-
-
+            val (internalFormat, glformat, gltype) = internalFormat(format, type)
 
             if (!type.compressed) {
                 for (level in 0 until levels) {
@@ -88,10 +86,11 @@ class ColorBufferWebGL(
                         effectiveWidth / div,
                         effectiveHeight / div,
                         0,
-                        internalFormat,
-                        type.glType(),
+                        glformat,
+                        gltype,
                         null
                     )
+                    context.checkErrors("texture creation failed: $type $format")
                 }
             } else {
                 for (level in 0 until levels) {
@@ -175,13 +174,17 @@ class ColorBufferWebGL(
     }
 
     override fun bind(unit: Int) {
+        context.checkErrors("pre-existing errors")
         context.activeTexture(unit + GL.TEXTURE0)
         context.bindTexture(target, texture)
+        context.checkErrors("bindTexture unit:$unit $this")
     }
 
     override fun generateMipmaps() {
+        context.checkErrors("pre-existing errors")
         bind(0)
         context.generateMipmap(target)
+        context.checkErrors("generateMipmap $this")
     }
 
     override var anisotropy: Double
@@ -226,8 +229,8 @@ class ColorBufferWebGL(
         val toDiv = 1 shl toLevel
         val refRectangle = IntRectangle(0, 0, effectiveWidth / fromDiv, effectiveHeight / fromDiv)
 
-        val useTexSubImage =
-            target.type.compressed || (refRectangle == sourceRectangle && refRectangle == targetRectangle && multisample == target.multisample)
+        val useTexSubImage =false
+            //target.type.compressed || (refRectangle == sourceRectangle && refRectangle == targetRectangle && multisample == target.multisample)
 
         if (!useTexSubImage) {
             val readTarget = renderTarget(
@@ -250,6 +253,7 @@ class ColorBufferWebGL(
 
             writeTarget.bind()
             context.bindFramebuffer(WebGL2RenderingContext.READ_FRAMEBUFFER, readTarget.framebuffer)
+            context.checkErrors("bindFrameBuffer $this $target")
 
             val ssx = sourceRectangle.x
             val ssy = sourceRectangle.y
@@ -281,6 +285,8 @@ class ColorBufferWebGL(
                 GL.COLOR_BUFFER_BIT,
                 filter.toGLFilter()
             )
+            context.bindFramebuffer(WebGL2RenderingContext.READ_FRAMEBUFFER, null)
+            context.checkErrors("blitFramebuffer $this $target")
             writeTarget.unbind()
 
             writeTarget.detachColorAttachments()
@@ -305,6 +311,7 @@ class ColorBufferWebGL(
                 target as ColorBufferWebGL
                 readTarget.bind()
                 context.readBuffer(GL.COLOR_ATTACHMENT0)
+                context.checkErrors("readBuffer $this $target")
                 target.bound {
                     context.copyTexSubImage2D(
                         target.target,
@@ -316,6 +323,7 @@ class ColorBufferWebGL(
                         target.effectiveWidth / toDiv,
                         target.effectiveHeight / toDiv
                     )
+                    context.checkErrors("copyTexSubImage2D $this $target")
 //                    debugGLErrors() {
 //                        when (it) {
 //                            GL_INVALID_VALUE -> "level ($toLevel) less than 0, effective target is GL_TEXTURE_RECTANGLE (${target.target == GL_TEXTURE_RECTANGLE} and level is not 0"
@@ -439,5 +447,9 @@ class ColorBufferWebGL(
 
         writeTarget.detachColorAttachments()
         writeTarget.destroy()
+    }
+
+    override fun toString(): String {
+        return "ColorBufferWebGL(target=$target, width=$width, height=$height, contentScale=$contentScale, format=$format, type=$type, levels=$levels, multisample=$multisample, flipV=$flipV)"
     }
 }

@@ -128,5 +128,12 @@ abstract external class WebGL2RenderingContext : WebGLRenderingContext {
         val RG16F: Int
         val RGB16F: Int
         val RGBA16F: Int
+
+        val R32F: Int
+        val RG32F: Int
+        val RGB32F: Int
+        val RGBA32F: Int
+
+        val HALF_FLOAT: Int
     }
 }

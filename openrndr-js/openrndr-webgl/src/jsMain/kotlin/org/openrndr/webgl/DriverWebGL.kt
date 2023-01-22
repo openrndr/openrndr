@@ -59,7 +59,7 @@ class DriverWebGL(val context: WebGL2RenderingContext) : Driver {
         }
 
         val colorBufferFloat by lazy {
-            context.getExtension("WEBGL_color_buffer_float") as? WEBGLColorBufferFloat
+            context.getExtension("EXT_color_buffer_float") as? EXTColorBufferFloat
         }
 
         val halfFloatTexturesLinear by lazy {
@@ -97,8 +97,8 @@ class DriverWebGL(val context: WebGL2RenderingContext) : Driver {
     val capabilities = Capabilities(
         instancedArrays = extensions.instancedArrays != null,
         standardDerivatives = extensions.standardDerivatives != null,
-        halfFloatTextures = extensions.halfFloatTextures != null,
-        floatTextures = extensions.floatTextures != null,
+        halfFloatTextures =true,  //extensions.halfFloatTextures != null,
+        floatTextures = true, //extensions.floatTextures != null,
         colorBufferHalfFloat = extensions.colorBufferHalfFloat != null,
         colorBufferFloat = extensions.colorBufferFloat != null,
         halfFloatTexturesLinear = extensions.halfFloatTexturesLinear != null,

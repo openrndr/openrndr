@@ -114,6 +114,7 @@ class ShaderWebGL(
     }
 
     override fun uniform(name: String, value: Matrix44) {
+        context.checkErrors("older error persists")
         val index = uniformIndex(name)
         if (index != null) {
             context.uniformMatrix4fv(index, false, value.toFloat32Array())

@@ -60,18 +60,31 @@ open class RenderTargetWebGL(
     override var depthBuffer: DepthBuffer? = null
 
     fun bindTarget() {
+        context.checkErrors("preexisting errors")
         context.bindFramebuffer(GL.FRAMEBUFFER, framebuffer)
+        context.checkErrors("bindFrameBuffer $this")
         context.viewport(0, 0, effectiveWidth, effectiveHeight)
+        context.checkErrors("viewport")
     }
 
     override fun attach(colorBuffer: ColorBuffer, level: Int, name: String?) {
         bindTarget()
         val caps = (Driver.instance as DriverWebGL).capabilities
         if (colorBuffer.type == ColorType.FLOAT16) {
-            require(caps.colorBufferHalfFloat)
+            require(caps.colorBufferHalfFloat) {
+                """This WebGL client does not support FLOAT16 color buffer attachments"""
+            }
+            require(colorBuffer.format in setOf(ColorFormat.R, ColorFormat.RG, ColorFormat.RGBa)) {
+                "WebGL only supports R, RG or RGBa format FLOAT16 color buffer attachments"
+            }
         }
         if (colorBuffer.type == ColorType.FLOAT32) {
-            require(caps.colorBufferFloat)
+            require(caps.colorBufferFloat) {
+                """This WebGL client does not support FLOAT32 color buffer attachments"""
+            }
+            require(colorBuffer.format in setOf(ColorFormat.R, ColorFormat.RG, ColorFormat.RGBa)) {
+                "WebGL only supports R, RG or RGBa format FLOAT32 color buffer attachments"
+            }
         }
         colorBuffer as ColorBufferWebGL
         val div = 1 shl level
@@ -88,6 +101,12 @@ open class RenderTargetWebGL(
             colorBuffer.texture,
             level
         )
+        context.checkErrors("frameBufferTexture2D $colorBuffer")
+        val status = context.checkFramebufferStatus(GL.FRAMEBUFFER)
+        require(status == GL.FRAMEBUFFER_COMPLETE) {
+            "status: $status, while attaching $colorBuffer"
+        }
+
         colorAttachments.add(ColorBufferAttachment(colorAttachments.size, name, colorBuffer, level))
 
     }
@@ -104,6 +123,11 @@ open class RenderTargetWebGL(
             }
 
         context.framebufferRenderbuffer(GL.FRAMEBUFFER, webGlAttachment, GL.RENDERBUFFER, depthBuffer.buffer)
+        context.checkErrors("framebufferRenderBuffer")
+        val status = context.checkFramebufferStatus(GL.FRAMEBUFFER)
+        require(status == GL.FRAMEBUFFER_COMPLETE) {
+            "status: $status, while attaching $depthBuffer"
+        }
         this.depthBuffer = depthBuffer
     }
 
@@ -137,6 +161,7 @@ open class RenderTargetWebGL(
         bound {
             for ((index, _) in colorAttachments.withIndex()) {
                 context.framebufferTexture2D(GL.FRAMEBUFFER, GL.COLOR_ATTACHMENT0 + index, GL.TEXTURE_2D, null, 0)
+                context.checkErrors("framebufferTexture2D detach $index")
             }
         }
     }
@@ -148,12 +173,14 @@ open class RenderTargetWebGL(
     override fun detachDepthBuffer() {
         bound {
             context.framebufferRenderbuffer(GL.FRAMEBUFFER, GL.DEPTH_ATTACHMENT, GL.RENDERBUFFER, null)
+            context.checkErrors()
             depthBuffer = null
         }
     }
 
     override fun destroy() {
         context.deleteFramebuffer(framebuffer)
+        context.checkErrors()
     }
 
     override fun colorBuffer(index: Int): ColorBuffer {
@@ -182,6 +209,7 @@ open class RenderTargetWebGL(
 
     var bound = false
     override fun bind() {
+        context.checkErrors("preexisting errors")
         if (bound) {
             throw RuntimeException("already bound")
         } else {
@@ -191,6 +219,7 @@ open class RenderTargetWebGL(
     }
 
     override fun unbind() {
+        context.checkErrors("preexisting errors")
         if (!bound) {
             active.pop()
             val previous = active.last()

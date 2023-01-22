@@ -20,10 +20,10 @@ external interface OESTextureHalfFloat
 external interface OESTextureFloatLinear
 external interface OESTextureHalfFloatLinear
 
-
-
+external interface EXT_color_buffer_float
 
 external interface EXTColorBufferHalfFloat
+external interface EXTColorBufferFloat
 const val RGBA16F_EXT = 0x881A
 const val RGB16F_EXT = 0x881B
 
