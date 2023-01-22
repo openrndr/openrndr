@@ -11,7 +11,7 @@ private val logger = KotlinLogging.logger {}
 
 @Suppress("MemberVisibilityCanBePrivate")
 class ColorBufferShadowGL3(override val colorBuffer: ColorBufferGL3) : ColorBufferShadow {
-    val size = colorBuffer.width * colorBuffer.height
+    val size = colorBuffer.effectiveWidth * colorBuffer.effectiveHeight
     val elementSize = colorBuffer.format.componentCount * colorBuffer.type.componentSize
     override val buffer: ByteBuffer = BufferUtils.createByteBuffer(elementSize * size)
 
@@ -74,6 +74,11 @@ class ColorBufferShadowGL3(override val colorBuffer: ColorBufferGL3) : ColorBuff
         val componentCount = colorBuffer.format.componentCount
         val ay = if (colorBuffer.flipV) y else colorBuffer.effectiveHeight - 1 - y
         val offset = (ay * colorBuffer.effectiveWidth + x) * colorBuffer.format.componentCount * colorBuffer.type.componentSize
+        require(x >= 0 && x < colorBuffer.effectiveWidth) { "x out of bounds (0 < $x < ${colorBuffer.effectiveWidth}"}
+        require(y >= 0 && y < colorBuffer.effectiveHeight) { "y out of bounds (0 < $y < ${colorBuffer.effectiveHeight}"}
+        require(offset >= 0) { "offset > 0 ($offset)" }
+        require(offset < size*elementSize ) { "offset < $size ($offset)" }
+
         return when (colorBuffer.type) {
             ColorType.UINT8 -> {
                 val ir = buffer.get(offset).toInt() and 0xff
