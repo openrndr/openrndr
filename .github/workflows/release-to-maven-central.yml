@@ -3,7 +3,8 @@ on:
   push:
     tags:
       - v[0-9].[0-9]+.[0-9]+
-
+      - v[0-9].[0-9]+.[0-9]+-alpha[0-9]+
+      - v[0-9].[0-9]+.[0-9]+-beta[0-9]+
 jobs:
   release_to_maven_central:
     runs-on: ubuntu-latest
