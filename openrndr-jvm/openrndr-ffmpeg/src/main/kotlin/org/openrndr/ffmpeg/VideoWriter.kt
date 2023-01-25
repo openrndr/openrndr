@@ -62,11 +62,9 @@ class H264Profile : VideoWriterProfile() {
     var pixelFormat = "yuv420p" as String?
     var userArguments = emptyArray<String>()
 
+    val filters = mutableListOf("vflip")
+
     override fun arguments(): Array<String> {
-        val filters = mutableListOf<String>()
-
-        filters.add("vflip")
-
         val chromaArguments = if (highPrecisionChroma) {
             arrayOf(
                 "-sws_flags",
@@ -94,7 +92,6 @@ class H264Profile : VideoWriterProfile() {
         val presetArguments = preset?.let { arrayOf("-preset", it) } ?: emptyArray()
         val videoCodecArguments = videoCodec?.let { arrayOf("-vcodec", it) } ?: emptyArray()
         val filterArguments = arrayOf("-vf", filters.joinToString(","))
-
 
         val arguments =
             hwaccelArguments + pixelFormatArguments + chromaArguments + filterArguments + videoCodecArguments + constantRateArguments + presetArguments + userArguments
