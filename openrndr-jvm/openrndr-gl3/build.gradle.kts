@@ -14,9 +14,15 @@ kotlin {
             }
             testLogging.exceptionFormat = TestExceptionFormat.FULL
         }
-        testRuns.create("heavy").executionTask {
-            useJUnitPlatform()
-            testLogging.exceptionFormat = TestExceptionFormat.FULL
+        testRuns.create("heavy") {
+            setExecutionSourceFrom(
+                testRuns["test"].executionSource.classpath,
+                testRuns["test"].executionSource.testClassesDirs
+            )
+            executionTask {
+                useJUnitPlatform()
+                testLogging.exceptionFormat = TestExceptionFormat.FULL
+            }
         }
     }
     sourceSets {
