@@ -330,7 +330,7 @@ class Drawer(val driver: Driver) {
     }
 
     /**
-     * Push the active model, view and projection matrices on their according stacks
+     * Push the active model, view and projection matrices on their respective stacks
      * @see pushTransforms
      * @see popTransforms
      * @see isolated
@@ -343,7 +343,7 @@ class Drawer(val driver: Driver) {
     }
 
     /**
-     * Pop the active the model, view and projection matrices from their according stacks
+     * Pop the active the model, view and projection matrices from their respective stacks
      * @see pushTransforms
      * @see popTransforms
      * @see isolated
