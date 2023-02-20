@@ -1275,7 +1275,7 @@ class Drawer(val driver: Driver) {
 }
 
 /**
- * Pushes style, view- and projection matrix, calls function and pops.
+ * Pushes style and model-view-projection matrices, calls function and pops.
  * @param function the function that is called in the isolation
  */
 fun Drawer.isolated(function: Drawer.() -> Unit) {
@@ -1287,7 +1287,7 @@ fun Drawer.isolated(function: Drawer.() -> Unit) {
 }
 
 /**
- * Pushes style, view- and projection matrix, sets render target, calls function and pops,
+ * Pushes style and model-view-projection matrices, sets render target, calls function and pops.
  * @param function the function that is called in the isolation
  */
 fun Drawer.isolatedWithTarget(target: RenderTarget, function: Drawer.() -> Unit) {
