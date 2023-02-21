@@ -127,18 +127,18 @@ fun Double.smoothstep(edge0: Double, edge1: Double) = smoothstep(edge0, edge1, t
 
 fun Vector2.smoothstep(edge0: Vector2, edge1: Vector2): Vector2 =
         Vector2(this.x.smoothstep(edge0.x, edge1.x),
-                this.x.smoothstep(edge0.y, edge1.y))
+                this.y.smoothstep(edge0.y, edge1.y))
 
 fun Vector3.smoothstep(edge0: Vector3, edge1: Vector3): Vector3 =
         Vector3(this.x.smoothstep(edge0.x, edge1.x),
-                this.x.smoothstep(edge0.y, edge1.y),
-                this.x.smoothstep(edge0.z, edge1.z))
+                this.y.smoothstep(edge0.y, edge1.y),
+                this.z.smoothstep(edge0.z, edge1.z))
 
 fun Vector4.smoothstep(edge0: Vector4, edge1: Vector4): Vector4 =
         Vector4(this.x.smoothstep(edge0.x, edge1.x),
-                this.x.smoothstep(edge0.y, edge1.y),
-                this.x.smoothstep(edge0.z, edge1.z),
-                this.x.smoothstep(edge0.w, edge1.w))
+                this.y.smoothstep(edge0.y, edge1.y),
+                this.z.smoothstep(edge0.z, edge1.z),
+                this.w.smoothstep(edge0.w, edge1.w))
 
 /**
  * Smoothstep

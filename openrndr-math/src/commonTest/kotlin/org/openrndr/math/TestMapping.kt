@@ -131,6 +131,42 @@ class TestMapping {
     }
 
     @Test
+    fun shouldDoSmoothstepOperations() {
+        describe("Smoothstep Vector2") {
+            val edge0 = Vector2.ZERO
+            val edge1 = Vector2.ONE
+            val x = Vector2(0.0, 1.0)
+            val expectedResult = Vector2(0.0, 1.0)
+
+            it("should apply smoothstep component-wise") {
+                x.smoothstep(edge0, edge1).closeTo(expectedResult, 10E-6)
+            }
+        }
+
+        describe("Smoothstep Vector3") {
+            val edge0 = Vector3.ZERO
+            val edge1 = Vector3.ONE
+            val x = Vector3(0.0, 0.5, 1.0)
+            val expectedResult = Vector3(0.0, 0.5, 1.0)
+
+                it("should apply smoothstep component-wise") {
+                x.smoothstep(edge0, edge1).closeTo(expectedResult, 10E-6)
+            }
+        }
+
+        describe("Smoothstep Vector4") {
+            val edge0 = Vector4.ZERO
+            val edge1 = Vector4.ONE
+            val x = Vector4(0.0, 0.3, 0.6, 1.0)
+            val expectedResult = Vector4(0.0, 0.216, 0.648, 1.0)
+
+                it("should apply smoothstep component-wise") {
+                x.smoothstep(edge0, edge1).closeTo(expectedResult, 10E-6)
+            }
+        }
+    }
+
+    @Test
     fun shouldDoMixingOperations() {
         describe("Mixing double") {
             it("should produce expected result") {
