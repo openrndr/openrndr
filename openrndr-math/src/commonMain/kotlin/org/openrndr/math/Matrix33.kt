@@ -90,13 +90,13 @@ data class Matrix33(
             v.x * c0r1 + v.y * c1r1 + v.z * c2r1,
             v.x * c0r2 + v.y * c1r2 + v.z * c2r2)
 
-    override operator fun times(scale: Double) = Matrix33(scale * c0r0, scale * c1r0, scale * c2r0,
-            scale * c0r1, scale * c1r1, scale * c2r1,
-            scale * c0r2, scale * c1r2, scale * c2r2)
+    override operator fun times(scale: Double) = Matrix33(c0r0 * scale, c1r0 * scale, c2r0 * scale,
+            c0r1 * scale, c1r1 * scale, c2r1 * scale,
+            c0r2 * scale, c1r2 * scale, c2r2 * scale)
 
-    override operator fun div(scale: Double) = Matrix33(scale / c0r0, scale / c1r0, scale / c2r0,
-            scale / c0r1, scale / c1r1, scale / c2r1,
-            scale / c0r2, scale / c1r2, scale / c2r2)
+    override operator fun div(scale: Double) = Matrix33(c0r0 / scale, c1r0 / scale, c2r0 / scale,
+            c0r1 / scale, c1r1 / scale, c2r1 / scale,
+            c0r2 / scale, c1r2 / scale, c2r2 / scale)
 
     operator fun times(mat: Matrix33) = Matrix33(
             this.c0r0 * mat.c0r0 + this.c1r0 * mat.c0r1 + this.c2r0 * mat.c0r2,

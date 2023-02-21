@@ -25,6 +25,19 @@ fun Vector4.closeTo(expected: Vector4, delta: Double) = this.should("\n[$this]\n
             ((this.w - expected.w).absoluteValue - delta) <= 0.0
 }
 
+fun Matrix33.closeTo(expected: Matrix33, delta: Double) = this.should("\n[$this]\nand\n[$expected]\nshould be equal within an accuracy of $delta") {
+
+    ((this.c0r0 - expected.c0r0).absoluteValue - delta) <= 0.0 &&
+            ((this.c0r1 - expected.c0r1).absoluteValue - delta) <= 0.0 &&
+            ((this.c0r2 - expected.c0r2).absoluteValue - delta) <= 0.0 &&
+            ((this.c1r0 - expected.c1r0).absoluteValue - delta) <= 0.0 &&
+            ((this.c1r1 - expected.c1r1).absoluteValue - delta) <= 0.0 &&
+            ((this.c1r2 - expected.c1r2).absoluteValue - delta) <= 0.0 &&
+            ((this.c2r0 - expected.c2r0).absoluteValue - delta) <= 0.0 &&
+            ((this.c2r1 - expected.c2r1).absoluteValue - delta) <= 0.0 &&
+            ((this.c2r2 - expected.c2r2).absoluteValue - delta) <= 0.0
+}
+
 fun Matrix44.closeTo(expected: Matrix44, delta: Double) = this.should("\n[$this]\nand\n[$expected]\nshould be equal within an accuracy of $delta") {
 
     ((this.c0r0 - expected.c0r0).absoluteValue - delta) <= 0.0 &&

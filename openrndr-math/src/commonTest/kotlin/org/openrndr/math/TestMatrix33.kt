@@ -50,6 +50,38 @@ class TestMatrix33 {
             val inversed = nd.inversed
             (nd * inversed).trace shouldBe (3.0 plusOrMinus maxError)
         }
+
+        it("multiplication by a scalar") {
+            val m = Matrix33(
+                1.0, 2.0, 3.0,
+                4.0, 5.0, 6.0,
+                7.0, 8.0, 9.0
+            )
+            val expectedResult = Matrix33(
+                2.0, 4.0, 6.0,
+                8.0, 10.0, 12.0,
+                14.0, 16.0, 18.0
+            )
+
+            val operationResult = m * 2.0
+            operationResult.closeTo(expectedResult, maxError)
+        }
+
+        it("division by a scalar") {
+            val m = Matrix33(
+                1.0, 2.0, 3.0,
+                4.0, 5.0, 6.0,
+                7.0, 8.0, 9.0
+            )
+            val expectedResult = Matrix33(
+                0.5, 1.0, 1.5,
+                2.0, 2.5, 3.0,
+                3.5, 4.0, 4.5
+            )
+
+            val operationResult = m / 2.0
+            operationResult.closeTo(expectedResult, maxError)
+        }
     }
 
 }
