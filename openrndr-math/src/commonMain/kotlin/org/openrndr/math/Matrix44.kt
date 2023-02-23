@@ -182,15 +182,15 @@ data class Matrix44(
     /**
      * Multiplies all the elements in the 4x4 matrix with a scalar
      */
-    override operator fun times(scale: Double) = Matrix44(scale * c0r0, scale * c1r0, scale * c2r0, scale * c3r0,
-            scale * c0r1, scale * c1r1, scale * c2r1, scale * c3r1,
-            scale * c0r2, scale * c1r2, scale * c2r2, scale * c3r2,
-            scale * c0r3, scale * c1r3, scale * c2r3, scale * c3r3)
+    override operator fun times(scale: Double) = Matrix44(c0r0 * scale, c1r0 * scale, c2r0 * scale, c3r0 * scale,
+            c0r1 * scale, c1r1 * scale, c2r1 * scale, c3r1 * scale,
+            c0r2 * scale, c1r2 * scale, c2r2 * scale, c3r2 * scale,
+            c0r3 * scale, c1r3 * scale, c2r3 * scale, c3r3 * scale)
 
-    override operator fun div(scale: Double) = Matrix44(scale / c0r0, scale / c1r0, scale / c2r0, scale / c3r0,
-            scale / c0r1, scale / c1r1, scale / c2r1, scale / c3r1,
-            scale / c0r2, scale / c1r2, scale / c2r2, scale / c3r2,
-            scale / c0r3, scale / c1r3, scale / c2r3, scale / c3r3)
+    override operator fun div(scale: Double) = Matrix44(c0r0 / scale, c1r0 / scale, c2r0 / scale, c3r0 / scale,
+            c0r1 / scale, c1r1 / scale, c2r1 / scale, c3r1 / scale,
+            c0r2 / scale, c1r2 / scale, c2r2 / scale, c3r2 / scale,
+            c0r3 / scale, c1r3 / scale, c2r3 / scale, c3r3 / scale)
 
 
     /**
