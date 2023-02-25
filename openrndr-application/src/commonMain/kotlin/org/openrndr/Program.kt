@@ -7,7 +7,6 @@ import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.Drawer
 import org.openrndr.events.Event
 import org.openrndr.internal.Driver
-import org.openrndr.math.IntVector2
 import org.openrndr.math.Vector2
 
 expect fun rootClassName(): String
@@ -100,6 +99,8 @@ interface Program: InputEvents, ExtensionHost {
     val seconds: Double
     val frameCount: Int
     val clipboard: ProgramImplementation.ApplicationClipboard
+
+    fun updateFrameSecondsFromClock()
 }
 
 interface Window {
@@ -442,7 +443,7 @@ open class ProgramImplementation(val suspend: Boolean = false) : Program {
             firstFrameTime = application.seconds
         }
         animator.updateAnimation()
-        frameSeconds = clock()
+        updateFrameSecondsFromClock()
 
         if (lastSeconds == -1.0) lastSeconds = seconds
 
@@ -467,6 +468,10 @@ open class ProgramImplementation(val suspend: Boolean = false) : Program {
      * This is the user facing draw call. It should be overridden by the user.
      */
     override fun draw() {}
+
+    override fun updateFrameSecondsFromClock() {
+        frameSeconds = clock()
+    }
 }
 
 expect fun Program.namedTimestamp(extension: String = "", path: String? = null): String

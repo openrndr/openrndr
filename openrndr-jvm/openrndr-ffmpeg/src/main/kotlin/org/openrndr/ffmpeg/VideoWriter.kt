@@ -21,7 +21,6 @@ abstract class VideoWriterProfile {
     abstract val fileExtension: String
 }
 
-
 val File.fileWithoutExtension: File
     get() {
         val p = parent
@@ -104,9 +103,11 @@ class VideoWriter {
     internal var ffmpegOutput = File("ffmpegOutput.txt")
     private var stopped = false
 
-    private var frameRate = 25
-    private var width = -1
-    private var height = -1
+    var frameRate = 25
+    var width = -1
+        private set
+    var height = -1
+        private set
 
     private var filename: String = "openrndr.mp4"
 
@@ -119,17 +120,8 @@ class VideoWriter {
 
     var inputFormat = "rgba"
 
-    fun profile(profile: VideoWriterProfile): VideoWriter {
+    fun profile(profile: VideoWriterProfile) {
         this.profile = profile
-        return this
-    }
-
-    fun width(): Int {
-        return width
-    }
-
-    fun height(): Int {
-        return height
     }
 
     fun advisedSize(width: Int, height: Int): Pair<Int, Int> {
@@ -139,13 +131,12 @@ class VideoWriter {
     }
 
 
-    fun size(width: Int, height: Int): VideoWriter {
+    fun size(width: Int, height: Int) {
         if (width % 2 != 0 || height % 2 != 0) {
             throw IllegalArgumentException("width ($width) and height ($height) should be divisible by 2")
         }
         this.width = width
         this.height = height
-        return this
     }
 
     /**
@@ -153,21 +144,10 @@ class VideoWriter {
      *
      * @param filename the filename of the output file
      */
-    fun output(filename: String): VideoWriter {
+    fun output(filename: String) {
         this.filename = filename
-        return this
     }
 
-    /**
-     * Sets the framerate of the output video
-     *
-     * @param frameRate the frame rate in frames per second
-     * @return this
-     */
-    fun frameRate(frameRate: Int): VideoWriter {
-        this.frameRate = frameRate
-        return this
-    }
 
     /**
      * Start writing to the video file
@@ -189,7 +169,6 @@ class VideoWriter {
             throw RuntimeException("invalid height or height not set $height")
         }
 
-        //frameBufferArray = ByteArray(width * height * 4)
         frameBuffer = when (inputFormat) {
             "rgba" -> BufferUtils.createByteBuffer(width * height * 4)
             "rgba64le" -> BufferUtils.createByteBuffer(width * height * 8)
@@ -228,8 +207,8 @@ class VideoWriter {
             channel = Channels.newChannel(movieStream)
             return this
         } catch (e: IOException) {
-            System.err.println("system path: ${System.getenv("path")}")
-            System.err.println("command: ${arguments.joinToString(" ")}")
+            logger.error { "system path: ${System.getenv("path")}" }
+            logger.error { "command: ${arguments.joinToString(" ")}" }
             throw RuntimeException("failed to launch ffmpeg", e)
         }
     }
@@ -238,14 +217,14 @@ class VideoWriter {
      * Returns true if the video process was started
      *
      */
-    fun started() = ffmpeg != null
+    val started get() = ffmpeg != null
 
     /**
      * Feed a frame to the video encoder
      *
      * @param frame a ColorBuffer (RGBA, 8bit) holding the image data to be written to the video. The ColorBuffer should have the same resolution as the VideoWriter.
      */
-    fun frame(frame: ColorBuffer): VideoWriter {
+    fun frame(frame: ColorBuffer) {
         if (!stopped) {
             val frameBytes =
                 frame.effectiveWidth * frame.effectiveHeight * frame.format.componentCount * frame.type.componentSize
@@ -253,47 +232,36 @@ class VideoWriter {
                 "frame size/format/type mismatch. ($width x $height) vs ({${frame.effectiveWidth} x ${frame.effectiveHeight})"
             }
             (frameBuffer as Buffer).rewind()
-            //frameBuffer.order(ByteOrder.nativeOrder())
             frame.read(frameBuffer)
             (frameBuffer as Buffer).rewind()
             try {
                 channel.write(frameBuffer)
-
-                //movieStream!!.flush()
             } catch (e: IOException) {
-                e.printStackTrace()
                 throw RuntimeException("failed to write frame", e)
             }
         } else {
             logger.warn { "ignoring frame after VideoWriter stop" }
         }
-        return this
     }
 
     /**
      * Stop writing to the video file. This closes the video, after calling stop() it is no longer possible to provide new frames.
      */
-    fun stop(): VideoWriter {
-        stopped = true
-        try {
-            movieStream!!.close()
+    fun stop() {
+        if (!stopped) {
+            stopped = true
             try {
-                logger.info("waiting for ffmpeg to finish")
-                ffmpeg!!.waitFor()
-            } catch (e: InterruptedException) {
-                e.printStackTrace()
+                movieStream!!.close()
+                try {
+                    logger.info("waiting for ffmpeg to finish")
+                    ffmpeg!!.waitFor()
+                    logger.info("ffmpeg finished")
+                } catch (e: InterruptedException) {
+                    e.printStackTrace()
+                }
+            } catch (e: IOException) {
+                throw RuntimeException("failed to close the movie stream", e)
             }
-
-        } catch (e: IOException) {
-            throw RuntimeException("failed to close the movie stream")
-        }
-
-        return this
-    }
-
-    companion object {
-        fun create(): VideoWriter {
-            return VideoWriter()
         }
     }
 }

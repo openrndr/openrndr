@@ -73,16 +73,12 @@ class ScreenRecorder : Extension {
 
     var contentScale: Double? = null
 
+    private var storedClock: (()->Double)? = null
+
     override fun setup(program: Program) {
         if (program.window.resizable) {
             logger.warn { "Resizable windows are not supported, disabling window resizing." }
             program.window.resizable = false
-        }
-
-        if (frameClock) {
-            program.clock = {
-                frameIndex / frameRate.toDouble() + timeOffset
-            }
         }
 
         val requestedWidth = ((width ?: program.width)).toInt()
@@ -116,7 +112,8 @@ class ScreenRecorder : Extension {
                 it.mkdirs()
             }
         }
-        videoWriter = VideoWriter().profile(profile)
+        videoWriter = VideoWriter()
+        videoWriter.profile(profile)
 
         val (advisedWidth, advisedHeight) = videoWriter.advisedSize(frame.pixelWidth, frame.pixelHeight)
         if (advisedWidth != frame.pixelWidth || advisedHeight != frame.pixelHeight) {
@@ -124,10 +121,19 @@ class ScreenRecorder : Extension {
             crop = colorBuffer(advisedWidth, advisedHeight)
         }
 
-        videoWriter.output(filename).size(advisedWidth, advisedHeight).frameRate(frameRate)
+        videoWriter.output(filename)
+        videoWriter.size(advisedWidth, advisedHeight)
+        videoWriter.frameRate = frameRate
     }
 
     override fun beforeDraw(drawer: Drawer, program: Program) {
+        if (frameClock) {
+            storedClock = program.clock
+            program.clock = {
+                frameIndex / frameRate.toDouble() + timeOffset
+            }
+            program.updateFrameSecondsFromClock()
+        }
         if (frameIndex >= frameSkip) {
             frame.bind()
             program.backgroundColor?.let {
@@ -135,7 +141,6 @@ class ScreenRecorder : Extension {
             }
         }
     }
-
 
     override fun afterDraw(drawer: Drawer, program: Program) {
         if (frameIndex >= frameSkip) {
@@ -155,7 +160,6 @@ class ScreenRecorder : Extension {
                         )
                         writeFrame(lcrop)
                     }
-
                 } else {
                     if (lcrop == null) {
                         writeFrame(frame.colorBuffer(0))
@@ -191,11 +195,18 @@ class ScreenRecorder : Extension {
             }
         }
         frameIndex++
+
+        if (frameClock) {
+            storedClock?.let {
+                program.clock = it
+                program.updateFrameSecondsFromClock()
+            }
+        }
     }
 
     private fun writeFrame(colorBuffer: ColorBuffer) {
         if (outputToVideo) {
-            if (!videoWriter.started()) {
+            if (!videoWriter.started) {
                 videoWriter.start()
             }
             videoWriter.frame(colorBuffer)
@@ -204,7 +215,7 @@ class ScreenRecorder : Extension {
     }
 
     override fun shutdown(program: Program) {
-        if (videoWriter.started()) {
+        if (videoWriter.started) {
             videoWriter.stop()
         }
     }
