@@ -186,7 +186,12 @@ class VideoWriter {
         if (System.getProperty("os.name").contains("Windows")) {
             arguments.add("ffmpeg.exe")
         } else {
-            arguments.add("ffmpeg")
+            val localExecutable = File("./ffmpeg")
+            if (localExecutable.exists()) {
+                arguments.add("./ffmpeg")
+            } else {
+                arguments.add("ffmpeg")
+            }
         }
         arguments.addAll(listOf(*preamble))
         arguments.addAll(listOf(*codec))
