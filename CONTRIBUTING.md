@@ -63,7 +63,7 @@ extracted from comments written in OPENRNDR's source code. It goes like this:
 3. Find the corresponding Kotlin file in your cloned repo and add missing comments. Read about
    the [suggested style](https://developers.google.com/style).
 4. Generate the API website locally to verify your changes look correct by running the following
-   commant: `./gradlew dokkaHtmlMultiModule -Dorg.gradle.jvmargs=-Xmx1536M`. This will create the
+   command: `./gradlew dokkaHtmlMultiModule -Dorg.gradle.jvmargs=-Xmx1536M`. This will create the
    html documentation under `build/dokka/htmlMultiModule/`.
 5. Open the `build/dokka/htmlMultiModule/index.html` in your web browser. If something looks off
    tweak your comments.
