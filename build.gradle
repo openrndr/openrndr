@@ -179,3 +179,8 @@ subprojects {
         description = "Displays all dependencies, including subprojects."
     }
 }
+
+dokkaHtmlMultiModule {
+    dependsOn("openrndr-js:dokkaHtmlMultiModule")
+    dependsOn("openrndr-jvm:dokkaHtmlMultiModule")
+}
