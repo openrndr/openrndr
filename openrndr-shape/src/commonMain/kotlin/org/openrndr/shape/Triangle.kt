@@ -1,5 +1,7 @@
 package org.openrndr.shape
 
+import org.openrndr.kartifex.Vec
+import org.openrndr.math.Matrix33
 import org.openrndr.math.Polar
 import org.openrndr.math.Vector2
 import org.openrndr.math.Vector3
@@ -106,6 +108,22 @@ data class Triangle(val x1: Vector2, val x2: Vector2, val x3: Vector2) : ShapePr
 
     operator fun minus(right: Triangle): Triangle {
         return Triangle(x1 - right.x1, x2 - right.x2, x3 - right.x3)
+    }
+
+    fun position(bary: Vector3): Vector2 {
+        return x1 * bary.x + x2 * bary.y + x3 * bary.z
+    }
+
+    fun barycentric(position: Vector2) : Vector3 {
+        val m = Matrix33.fromColumnVectors(
+            Vector3(x1.x - x3.x, x1.y - x3.y, 0.0),
+            Vector3(x2.x - x3.x, x2.y - x3.y, 0.0),
+            Vector3.UNIT_Z
+            )
+        val r = position - x3
+        val (b1, b2) = (m.inversed * r.xy1).xy
+        return Vector3(b1, b2, 1.0 - b1 - b2)
+
     }
 
     val reversed
