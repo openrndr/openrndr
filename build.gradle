@@ -184,3 +184,8 @@ dokkaHtmlMultiModule {
     dependsOn("openrndr-js:dokkaHtmlMultiModule")
     dependsOn("openrndr-jvm:dokkaHtmlMultiModule")
 }
+
+gradle.buildFinished {
+    println("\n")
+    println("openrndr = \"${version}\"")
+}
