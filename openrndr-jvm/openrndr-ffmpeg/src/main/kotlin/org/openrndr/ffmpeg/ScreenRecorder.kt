@@ -4,6 +4,7 @@ import mu.KotlinLogging
 import org.openrndr.Extension
 import org.openrndr.Program
 import org.openrndr.draw.*
+import org.openrndr.events.Event
 import org.openrndr.shape.IntRectangle
 import java.io.File
 
@@ -21,6 +22,10 @@ class ScreenRecorder : Extension {
     private var resolved: ColorBuffer? = null
     private var frameIndex: Long = 0
     private var framesWritten: Long = 0
+
+
+    val finished = Event<ScreenRecorder>()
+    private var recording = true
 
     /**
      * optional width, overrides the program width
@@ -171,29 +176,33 @@ class ScreenRecorder : Extension {
                         writeFrame(lcrop)
                     }
                 }
-
-                drawer.isolated {
-                    drawer.defaults()
-
-                    if (lresolved != null) {
-                        drawer.image(lresolved)
-                    } else {
-                        drawer.image(
-                            frame.colorBuffer(0),
-                            0.0,
-                            0.0,
-                            frame.width.toDouble(),
-                            frame.height.toDouble()
-                        )
-                    }
-                }
             } else {
                 if (quitAfterMaximum) {
-                    videoWriter.stop()
                     program.application.exit()
+                }
+                if (recording) {
+                    videoWriter.stop()
+                    recording = false
+                    finished.trigger(this)
                 }
             }
         }
+        drawer.isolated {
+            drawer.defaults()
+            val lresolved = resolved
+            if (lresolved != null) {
+                drawer.image(lresolved)
+            } else {
+                drawer.image(
+                    frame.colorBuffer(0),
+                    0.0,
+                    0.0,
+                    frame.width.toDouble(),
+                    frame.height.toDouble()
+                )
+            }
+        }
+
         frameIndex++
 
         if (frameClock) {
@@ -215,6 +224,10 @@ class ScreenRecorder : Extension {
     }
 
     override fun shutdown(program: Program) {
+        frame.colorBuffer(0).destroy()
+        frame.depthBuffer?.destroy()
+        resolved?.destroy()
+        frame.destroy()
         if (videoWriter.started) {
             videoWriter.stop()
         }
