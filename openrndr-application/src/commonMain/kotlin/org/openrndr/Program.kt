@@ -65,7 +65,7 @@ interface Clipboard {
     var contents: String?
 }
 
-interface Program: InputEvents, ExtensionHost {
+interface Program : InputEvents, ExtensionHost {
 
     /**
      * A map that can be used to store arbitrary data, including functions
@@ -118,42 +118,42 @@ interface Window {
     /**
      * Window focused event, triggered when the window receives focus
      */
-    val focused : Event<WindowEvent>
+    val focused: Event<WindowEvent>
 
     /**
      * Window focused event, triggered when the window loses focus
      */
-    val unfocused : Event<WindowEvent>
+    val unfocused: Event<WindowEvent>
 
     /**
      * Window moved event
      */
-    val moved : Event<WindowEvent>
+    val moved: Event<WindowEvent>
 
     /**
      * Window sized event
      */
-    val sized : Event<WindowEvent>
+    val sized: Event<WindowEvent>
 
     /**
      * Window minimized event
      */
-    val minimized : Event<WindowEvent>
+    val minimized: Event<WindowEvent>
 
     /**
      * Window restored (from minimization) event
      */
-    val restored : Event<WindowEvent>
+    val restored: Event<WindowEvent>
 
     /**
      * Window restored (from minimization) event
      */
-    val closed : Event<WindowEvent>
+    val closed: Event<WindowEvent>
 
     /**
      * Drop event, triggered when a file is dropped on the window
      */
-    val drop : Event<DropEvent>
+    val drop: Event<DropEvent>
 
     /**
      * Window position
@@ -198,8 +198,6 @@ open class ProgramImplementation(val suspend: Boolean = false) : Program {
     override var ended = Event<ProgramEvent>()
 
 
-
-
     private var firstFrameTime = Double.POSITIVE_INFINITY
 
     /**
@@ -213,8 +211,8 @@ open class ProgramImplementation(val suspend: Boolean = false) : Program {
         AssetMetadata(this.name, namedTimestamp(), assetProperties)
     }
 
-    override val requestAssets = Event<RequestAssetsEvent>()
-    override val produceAssets = Event<ProduceAssetsEvent>()
+    final override val requestAssets = Event<RequestAssetsEvent>()
+    final override val produceAssets = Event<ProduceAssetsEvent>()
 
     init {
         requestAssets.listen {
@@ -247,7 +245,7 @@ open class ProgramImplementation(val suspend: Boolean = false) : Program {
     val deltaTime: Double
         get() = deltaSeconds
 
-    inner class ApplicationClipboard  : Clipboard{
+    inner class ApplicationClipboard : Clipboard {
         override var contents: String?
             get() {
                 return application.clipboardContents
@@ -305,6 +303,7 @@ open class ProgramImplementation(val suspend: Boolean = false) : Program {
                         program.userDraw()
                     }
                 }
+
             ExtensionStage.BEFORE_DRAW ->
                 object : Extension {
                     override var enabled: Boolean = true
@@ -313,6 +312,7 @@ open class ProgramImplementation(val suspend: Boolean = false) : Program {
                         program.userDraw()
                     }
                 }
+
             ExtensionStage.AFTER_DRAW ->
                 object : Extension {
                     override var enabled: Boolean = true
@@ -328,7 +328,7 @@ open class ProgramImplementation(val suspend: Boolean = false) : Program {
     /**
      * Simplified window interface
      */
-    inner class Window:org.openrndr.Window {
+    inner class Window : org.openrndr.Window {
         override var title: String
             get() = application.windowTitle
             set(value) {
@@ -427,8 +427,8 @@ open class ProgramImplementation(val suspend: Boolean = false) : Program {
 
 
     override val keyboard by lazy { Keyboard() }
-    override val mouse by lazy { ApplicationMouse({ application }) }
-    override val pointers by lazy { Pointers({ application }) }
+    override val mouse by lazy { ApplicationMouse(application = { application }) }
+    override val pointers by lazy { Pointers(application = { application }) }
 
     /**
      * This runs exactly once before the first call to draw()
