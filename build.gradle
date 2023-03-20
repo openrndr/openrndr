@@ -4,6 +4,7 @@ plugins {
 }
 
 repositories {
+    maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
     mavenCentral()
 }
 
@@ -161,6 +162,8 @@ configure(allprojects.findAll { !doNotPublish.contains(it.name) && (!multiplatfo
                     url "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2"
                 }
             }
+
+
         }
     }
     signing {

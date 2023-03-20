@@ -8,7 +8,7 @@ kotlinLogging = "3.0.0"
 kotlinxSerialization = "1.5.0-RC"
 dokka = "1.8.10"
 nebulaRelease = "17.1.0"
-lwjgl = "3.3.1"
+lwjgl = "3.3.2-SNAPSHOT"
 javacpp = "1.5.8"
 # ffmpeg version suffix should match javacpp version
 ffmpeg = "5.1.2-1.5.8"
