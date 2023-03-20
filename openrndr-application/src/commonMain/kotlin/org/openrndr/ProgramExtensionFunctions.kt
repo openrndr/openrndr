@@ -52,5 +52,6 @@ fun Program.drawImage(
     tempTarget.detachDepthBuffer()
     tempTarget.destroy()
 
+    result.generateMipmaps()
     return result
 }
