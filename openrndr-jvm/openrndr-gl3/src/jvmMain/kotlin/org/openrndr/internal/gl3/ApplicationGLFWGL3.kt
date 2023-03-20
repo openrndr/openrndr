@@ -417,6 +417,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
 
         glfwSetFramebufferSizeCallback(window) { window, width, height ->
             logger.trace { "resizing window ($window) to ${width}x$height " }
+            _windowSize = null
 
             if (readyFrames > 0) {
                 setupSizes()
