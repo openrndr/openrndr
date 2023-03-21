@@ -27,17 +27,10 @@ data class IntVector4(val x: Int, val y: Int, val z: Int, val w: Int) {
     infix fun dot(right: IntVector4) = x * right.x + y * right.y + z * right.z + w * right.w
 
     // don't need to be transient, but otherwise compiler is going into recursive loop
-    @Suppress("TRANSIENT_IS_REDUNDANT")
-    @Transient
     val xy get() = IntVector2(x, y)
-    @Suppress("TRANSIENT_IS_REDUNDANT")
-    @Transient
+
     val yx get() = IntVector2(y, x)
-    @Suppress("TRANSIENT_IS_REDUNDANT")
-    @Transient
     val xx get() = IntVector2(x, x)
-    @Suppress("TRANSIENT_IS_REDUNDANT")
-    @Transient
     val yy get() = IntVector2(y, y)
     operator fun plus(v: IntVector4) = IntVector4(x + v.x, y + v.y, z + v.z, w + v.w)
     operator fun minus(v: IntVector4) = IntVector4(x - v.x, y - v.y, z - v.z, w - v.w)

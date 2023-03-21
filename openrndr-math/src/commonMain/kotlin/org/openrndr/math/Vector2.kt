@@ -71,16 +71,9 @@ data class Vector2(val x: Double, val y: Double) : LinearType<Vector2>, Euclidea
         return w + origin
     }
 
-    // these attributes don't have to be transients, but IntelliJ goes into some loop otherwise
-    @Suppress("TRANSIENT_IS_REDUNDANT")
-    @Transient
-    val yx get() = Vector2(y, x)
-    @Suppress("TRANSIENT_IS_REDUNDANT")
-    @Transient
-    val xx get() = Vector2(x, x)
-    @Suppress("TRANSIENT_IS_REDUNDANT")
-    @Transient
-    val yy get() = Vector2(y, y)
+    val yx:Vector2 get() = Vector2(y, x)
+    val xx:Vector2 get() = Vector2(x, x)
+    val yy: Vector2 get() = Vector2(y, y)
     val xy0 get() = Vector3(x, y, 0.0)
     val xy1 get() = Vector3(x, y, 1.0)
     val xy00 get() = Vector4(x, y, 0.0, 0.0)

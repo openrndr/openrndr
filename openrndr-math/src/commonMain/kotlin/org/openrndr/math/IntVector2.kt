@@ -23,16 +23,9 @@ data class IntVector2(val x: Int, val y: Int) {
     /** Calculates a dot product between this [Vector2] and [right]. */
     infix fun dot(right: IntVector2) = x * right.x + y * right.y
 
-    // don't need to be transient, but otherwise compiler is going into recursive loop
-    @Suppress("TRANSIENT_IS_REDUNDANT")
-    @Transient
-    val yx get() = IntVector2(y, x)
-    @Suppress("TRANSIENT_IS_REDUNDANT")
-    @Transient
-    val xx get() = IntVector2(x, x)
-    @Suppress("TRANSIENT_IS_REDUNDANT")
-    @Transient
-    val yy get() = IntVector2(y, y)
+    val yx: IntVector2 get() = IntVector2(y, x)
+    val xx: IntVector2 get() = IntVector2(x, x)
+    val yy: IntVector2 get() = IntVector2(y, y)
     operator fun plus(v: IntVector2) = IntVector2(x + v.x, y + v.y)
     operator fun minus(v: IntVector2) = IntVector2(x - v.x, y - v.y)
     operator fun times(d: Int) = IntVector2(x * d, y * d)

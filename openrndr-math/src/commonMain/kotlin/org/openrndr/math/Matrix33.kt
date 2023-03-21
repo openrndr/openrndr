@@ -70,10 +70,7 @@ data class Matrix33(
             c0r1 - right.c0r1, c1r1 - right.c1r1, c2r1 - right.c2r1,
             c0r2 - right.c0r2, c1r2 - right.c1r2, c2r2 - right.c2r2)
 
-    // don't need to be transient, but otherwise compiler is going into recursive loop
-    @Suppress("TRANSIENT_IS_REDUNDANT")
-    @Transient
-    val transposed
+    val transposed: Matrix33
         get() = Matrix33(
                 c0r0, c0r1, c0r2,
                 c1r0, c1r1, c1r2,

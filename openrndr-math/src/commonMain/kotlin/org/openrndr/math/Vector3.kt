@@ -27,28 +27,21 @@ data class Vector3(val x: Double, val y: Double, val z: Double) : LinearType<Vec
 
             val sinPhiRadius = sin(phi) * s.radius
             return Vector3(
-                    sinPhiRadius * sin(theta),
-                    cos(phi) * s.radius,
-                    sinPhiRadius * cos(theta))
+                sinPhiRadius * sin(theta),
+                cos(phi) * s.radius,
+                sinPhiRadius * cos(theta)
+            )
         }
     }
 
     val xyz0 get() = Vector4(x, y, z, 0.0)
     val xyz1 get() = Vector4(x, y, z, 1.0)
 
-    // @Transient not required by serialization but by Kotlin compiler to avoid recursive loop
-    @Suppress("TRANSIENT_IS_REDUNDANT")
-    @Transient
-    val xy get() = Vector2(x, y)
-    @Suppress("TRANSIENT_IS_REDUNDANT")
-    @Transient
-    val yx get() = Vector2(y, x)
-    @Suppress("TRANSIENT_IS_REDUNDANT")
-    @Transient
-    val zx get() = Vector2(z, x)
-    @Suppress("TRANSIENT_IS_REDUNDANT")
-    @Transient
-    val xz get() = Vector2(x, z)
+    val xy: Vector2 get() = Vector2(x, y)
+    val yx: Vector2 get() = Vector2(y, x)
+    val zx: Vector2 get() = Vector2(z, x)
+
+    val xz: Vector2 get() = Vector2(x, z)
 
     operator fun get(i: Int): Double {
         return when (i) {
@@ -74,9 +67,10 @@ data class Vector3(val x: Double, val y: Double, val z: Double) : LinearType<Vec
 
     /** Calculates a cross product between this [Vector2] and [v]. */
     infix fun cross(v: Vector3) = Vector3(
-            y * v.z - z * v.y,
-            -(x * v.z - z * v.x),
-            x * v.y - y * v.x)
+        y * v.z - z * v.y,
+        -(x * v.z - z * v.x),
+        x * v.y - y * v.x
+    )
 
 
     /** The Euclidean length of the vector. */
@@ -122,9 +116,9 @@ operator fun Double.times(v: Vector3) = v * this
 fun min(a: Vector3, b: Vector3) = Vector3(min(a.x, b.x), min(a.y, b.y), min(a.z, b.z))
 fun max(a: Vector3, b: Vector3) = Vector3(max(a.x, b.x), max(a.y, b.y), max(a.z, b.z))
 
-fun mix(a: Vector3, b: Vector3, mix:Double): Vector3 = a * (1 - mix) + b * mix
+fun mix(a: Vector3, b: Vector3, mix: Double): Vector3 = a * (1 - mix) + b * mix
 
-fun Iterable<Vector3>.sum() : Vector3 {
+fun Iterable<Vector3>.sum(): Vector3 {
     var x = 0.0
     var y = 0.0
     var z = 0.0
@@ -136,7 +130,7 @@ fun Iterable<Vector3>.sum() : Vector3 {
     return Vector3(x, y, z)
 }
 
-fun Iterable<Vector3>.average() : Vector3 {
+fun Iterable<Vector3>.average(): Vector3 {
     var x = 0.0
     var y = 0.0
     var z = 0.0
