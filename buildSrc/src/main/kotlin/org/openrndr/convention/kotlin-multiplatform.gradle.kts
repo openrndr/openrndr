@@ -27,6 +27,7 @@ kotlin {
     jvm {
         jvmToolchain {
             languageVersion.set(JavaLanguageVersion.of(libs.versions.jvmTarget.get()))
+            vendor.set(JvmVendorSpec.ADOPTIUM)
         }
         testRuns["test"].executionTask {
             useJUnitPlatform()
