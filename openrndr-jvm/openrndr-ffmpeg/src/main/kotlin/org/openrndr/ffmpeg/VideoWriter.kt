@@ -1,6 +1,8 @@
 package org.openrndr.ffmpeg
 
 import mu.KotlinLogging
+import org.bytedeco.ffmpeg.ffmpeg
+import org.bytedeco.javacpp.Loader
 import org.lwjgl.BufferUtils
 import org.openrndr.ExtensionDslMarker
 import org.openrndr.draw.ColorBuffer
@@ -14,6 +16,8 @@ import java.nio.channels.WritableByteChannel
 import java.util.*
 
 private val logger = KotlinLogging.logger {}
+
+private val ffmpegBinary = Loader.load(ffmpeg::class.java)
 
 @ExtensionDslMarker
 abstract class VideoWriterProfile {
@@ -183,16 +187,7 @@ class VideoWriter {
         val codec = profile.arguments()
         val arguments = ArrayList<String>()
 
-        if (System.getProperty("os.name").contains("Windows")) {
-            arguments.add("ffmpeg.exe")
-        } else {
-            val localExecutable = File("./ffmpeg")
-            if (localExecutable.exists()) {
-                arguments.add("./ffmpeg")
-            } else {
-                arguments.add("ffmpeg")
-            }
-        }
+        arguments.add(ffmpegBinary)
         arguments.addAll(listOf(*preamble))
         arguments.addAll(listOf(*codec))
 
