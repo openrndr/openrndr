@@ -4,6 +4,8 @@ import mu.KotlinLogging
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.system.MemoryStack.*
 import org.openrndr.*
+import org.openrndr.draw.font.FontDriverStbTt
+import org.openrndr.draw.font.internal.FontDriver
 import org.openrndr.internal.ImageDriver
 
 private val logger = KotlinLogging.logger {  }
@@ -14,6 +16,7 @@ class ApplicationBaseGLFWGL3 : ApplicationBase() {
             throw IllegalStateException("Unable to initialize GLFW")
         }
         ImageDriver.driver = ImageDriverStbImage()
+        FontDriver.driver = FontDriverStbTt()
     }
 
     override val displays: List<DisplayGLFWGL3> by lazy {

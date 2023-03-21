@@ -6,6 +6,7 @@ import org.openrndr.math.Vector2
 import org.openrndr.math.YPolarity
 import org.openrndr.math.clamp
 import kotlin.jvm.JvmName
+import kotlin.math.absoluteValue
 import kotlin.math.max
 import kotlin.math.min
 
@@ -17,7 +18,8 @@ import kotlin.math.min
  *
  * Also see [IntRectangle].
  */
-data class Rectangle(val corner: Vector2, val width: Double, val height: Double = width) : Movable, Scalable2D, ShapeProvider, ShapeContourProvider {
+data class Rectangle(val corner: Vector2, val width: Double, val height: Double = width) : Movable, Scalable2D,
+    ShapeProvider, ShapeContourProvider {
 
     constructor(x: Double, y: Double, width: Double, height: Double = width) :
             this(Vector2(x, y), width, height)
@@ -219,6 +221,20 @@ data class Rectangle(val corner: Vector2, val width: Double, val height: Double 
      * Casts to [IntRectangle].
      */
     fun toInt() = IntRectangle(x.toInt(), y.toInt(), width.toInt(), height.toInt())
+
+
+    val normalized: Rectangle
+        get() {
+            var nx = x
+            var ny = y
+            if (width < 0) {
+                nx += width
+            }
+            if (height < 0) {
+                ny += height
+            }
+            return Rectangle(nx, ny, width.absoluteValue, height.absoluteValue)
+        }
 }
 
 /** calculates [Rectangle]-bounds for a list of [Vector2] instances */
@@ -247,7 +263,8 @@ val List<Vector2>.bounds: Rectangle
     }
 
 /** calculates [Rectangle]-bounds for a list of [Rectangle] instances */
-@Deprecated("use List<Rectangle>.bounds instead",
+@Deprecated(
+    "use List<Rectangle>.bounds instead",
     ReplaceWith("rectangles.bounds")
 )
 fun rectangleBounds(rectangles: List<Rectangle>): Rectangle {
@@ -274,7 +291,8 @@ val List<Rectangle>.bounds: Rectangle
     }
 
 /** Determines whether or not rectangles [a] and [b] intersect. */
-@Deprecated("use Rectangle.intersects(Rectangle) instead",
+@Deprecated(
+    "use Rectangle.intersects(Rectangle) instead",
     ReplaceWith("a.intersects(b)")
 )
 fun intersects(a: Rectangle, b: Rectangle) = a.intersects(b)
@@ -292,7 +310,8 @@ fun Vector2.clamp(bounds: Rectangle) =
  * @param clamp Clamps remapped value within the bounds of [targetRectangle].
  */
 fun Vector2.map(sourceRectangle: Rectangle, targetRectangle: Rectangle, clamp: Boolean = false): Vector2 {
-    val remapped = (this - sourceRectangle.corner) / sourceRectangle.dimensions * targetRectangle.dimensions + targetRectangle.corner
+    val remapped =
+        (this - sourceRectangle.corner) / sourceRectangle.dimensions * targetRectangle.dimensions + targetRectangle.corner
     return if (clamp) remapped.clamp(targetRectangle) else remapped
 }
 
@@ -301,5 +320,5 @@ fun Vector2.map(sourceRectangle: Rectangle, targetRectangle: Rectangle, clamp: B
  * from [sourceRectangle] to [targetRectangle].
  * If [clamp] is true all elements are clamped within the bounds of [targetRectangle].
  */
-fun List<Vector2>.map(sourceRectangle: Rectangle, targetRectangle: Rectangle, clamp: Boolean = false) : List<Vector2> =
-    this.map { it.map(sourceRectangle, targetRectangle, clamp)}
+fun List<Vector2>.map(sourceRectangle: Rectangle, targetRectangle: Rectangle, clamp: Boolean = false): List<Vector2> =
+    this.map { it.map(sourceRectangle, targetRectangle, clamp) }
