@@ -1,14 +1,19 @@
 package org.openrndr.internal.gl3
 
+import mu.KotlinLogging
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.system.MemoryStack.*
 import org.openrndr.*
+import org.openrndr.internal.ImageDriver
 
+private val logger = KotlinLogging.logger {  }
 class ApplicationBaseGLFWGL3 : ApplicationBase() {
     init {
+        logger.debug { "initializing ApplicationBaseGLFWGL3" }
         if (!glfwInit()) {
             throw IllegalStateException("Unable to initialize GLFW")
         }
+        ImageDriver.driver = ImageDriverStbImage()
     }
 
     override val displays: List<DisplayGLFWGL3> by lazy {
