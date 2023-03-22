@@ -121,12 +121,12 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         logger.trace { "initializing DriverGL3" }
     }
 
-    private var fontImageMapManagerInstance: FontImageMapManagerStbTruetype? = null
+    private var fontImageMapManagerInstance: FontImageMapManager? = null
 
     override val fontImageMapManager: FontMapManager
         get() {
             if (fontImageMapManagerInstance == null) {
-                fontImageMapManagerInstance = FontImageMapManagerStbTruetype()
+                fontImageMapManagerInstance = FontImageMapManager()
             }
             return fontImageMapManagerInstance!!
         }
