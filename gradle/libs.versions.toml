@@ -61,5 +61,6 @@ nebula-release = { id = "nebula.release", version.ref = "nebulaRelease" }
 [bundles]
 lwjgl-openal = ["lwjgl-core", "lwjgl-openal"]
 lwjgl-full = ["lwjgl-core", "lwjgl-glfw", "lwjgl-jemalloc", "lwjgl-opengl", "lwjgl-stb", "lwjgl-tinyexr", "lwjgl-nfd"]
-javacpp-ffmpeg = ["javacpp", "ffmpeg"]
+javacpp-ffmpeg = ["ffmpeg"]
+javacpp = ["javacpp"]
 jupiter = ["jupiter-api", "jupiter-engine"]
