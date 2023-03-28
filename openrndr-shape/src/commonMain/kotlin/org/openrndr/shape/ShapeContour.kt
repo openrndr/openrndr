@@ -63,7 +63,7 @@ data class ShapeContour @JvmOverloads constructor(
                 }, closed, polarity)
             } else {
                 val d = (points.last() - points.first()).squaredLength
-                val usePoints = if (d > 10E-6) points else points.dropLast(1)
+                val usePoints = if (d > 1E-6) points else points.dropLast(1)
                 ShapeContour((usePoints.indices).map {
                     Segment(
                         usePoints[it],
@@ -77,7 +77,7 @@ data class ShapeContour @JvmOverloads constructor(
     init {
         segments.zipWithNext().forEach {
             val d = (it.first.end - it.second.start).length
-            require(d < 10E-6) {
+            require(d < 1E-6) {
                 "points are too far away from each other ${it.first.end} ${it.second.start} $d"
             }
         }
@@ -113,6 +113,7 @@ data class ShapeContour @JvmOverloads constructor(
                 } else {
                     Winding.CLOCKWISE
                 }
+
                 YPolarity.CW_NEGATIVE_Y -> if (sum < 0) {
                     Winding.CLOCKWISE
                 } else {
@@ -146,7 +147,7 @@ data class ShapeContour @JvmOverloads constructor(
                 return this
             }
         }
-        val epsilon = 0.001
+        val epsilon = 1E-6
         val segments = mutableListOf<Segment>()
         segments.addAll(this.segments)
         if ((this.segments[this.segments.size - 1].end - other.segments[0].start).length > epsilon) {
@@ -232,7 +233,7 @@ data class ShapeContour @JvmOverloads constructor(
      *
      *
      * If the component Segments are of wildly different lengths, the resulting point can be very
-     * different than what would be arrived at if the ShapeContour were treated strictly as a whole.
+     * different from what would be arrived at if the ShapeContour were treated strictly as a whole.
      * In that case, consider using [ShapeContour.equidistantPositions] instead.
      *
      * Also see: [Segment.position].
@@ -461,7 +462,7 @@ data class ShapeContour @JvmOverloads constructor(
         require(t0 == t0) { "t0 is NaN" }
         require(t1 == t1) { "t1 is NaN" }
 
-        if (abs(t0 - t1) < 10E-6) {
+        if (abs(t0 - t1) < 1E-6) {
             return EMPTY
         }
 
@@ -471,7 +472,7 @@ data class ShapeContour @JvmOverloads constructor(
         if (closed && (u1 < u0 || u1 > 1.0 || u0 > 1.0 || u0 < 0.0 || u1 < 0.0)) {
             val diff = u1 - u0
             u0 = mod(u0, 1.0)
-            if (abs(diff) < (1.0 - 10E-6)) {
+            if (abs(diff) < (1.0 - 1E-6)) {
                 return if (diff > 0.0) {
                     u1 = u0 + diff
                     if (u1 > 1.0) {
@@ -523,7 +524,7 @@ data class ShapeContour @JvmOverloads constructor(
         segment0 = min(segments.size - 1, segment0)
 
         val newSegments = mutableListOf<Segment>()
-        val epsilon = 10E-7
+        val epsilon = 1E-6
 
         for (s in segment0..segment1) {
             if (s == segment0 && s == segment1) {
@@ -592,7 +593,7 @@ data class ShapeContour @JvmOverloads constructor(
      * then no new [Segment]s are added.
      */
     fun close() = if (empty) EMPTY else {
-        if ((segments.last().end - segments.first().start).squaredLength < 10E-6)
+        if ((segments.last().end - segments.first().start).squaredLength < 1E-6)
             ShapeContour(segments, true, polarity)
         else
             ShapeContour(
