@@ -4,6 +4,7 @@ import mu.KotlinLogging
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL33C.*
 import org.lwjgl.opengl.GL43C
+import org.lwjgl.system.MemoryStack.stackPush
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
 import org.openrndr.internal.Driver
@@ -35,7 +36,7 @@ internal fun checkShaderInfoLog(`object`: Int, code: String, sourceFile: String)
         val errorLinePattern = "\\d+[:(](\\d+)[ 0-9()]*?:".toRegex()
 
         infoLog.get(infoBytes)
-        val infoString = "${String(infoBytes)}"
+        val infoString = String(infoBytes)
         println("GLSL compilation problems in\n $infoString")
 
         val errorLineMatches = errorLinePattern.find(infoString)
@@ -516,38 +517,45 @@ class ShaderGL3(
     }
 
     override fun uniform(name: String, value: Matrix33) {
-        measure("set-uniform-matrix33::$name") {
-            if (lastValues[name] !== value) {
+        if (lastValues[name] !== value) {
+            val index = uniformIndex(name)
+            if (index != -1) {
+                logger.trace { "Setting uniform '$name' to $value" }
+                stackPush().use { stack ->
+                    val floatValues = stack.mallocFloat(9)
+                    value.put(floatValues)
+                    floatValues.flip()
+                    glUniformMatrix3fv(index, false, floatValues)
+                }
+                postUniformCheck(name, index, value)
+            }
+            lastValues[name] = value
+        }
+
+    }
+
+
+    override fun uniform(name: String, value: Matrix44) {
+        val prior = lastValues[name]
+        val miss = prior !== value
+
+        if (miss) {
+            measure("miss") {
                 val index = uniformIndex(name)
                 if (index != -1) {
                     logger.trace { "Setting uniform '$name' to $value" }
-                    glUniformMatrix3fv(index, false, value.toFloatArray())
+                    stackPush().use { stack ->
+                        val floatValues = stack.mallocFloat(16)
+                        value.put(floatValues)
+                        floatValues.flip()
+                        glUniformMatrix4fv(index, false, floatValues)
+                    }
                     postUniformCheck(name, index, value)
                 }
                 lastValues[name] = value
             }
         }
-    }
 
-
-    override fun uniform(name: String, value: Matrix44) {
-        measure("set-uniform-matrix44::$name") {
-
-            val prior = measure("look-up") { lastValues[name] }
-            val miss = measure("compare") { prior !== value }
-
-            if (miss) {
-                measure("miss") {
-                    val index = uniformIndex(name)
-                    if (index != -1) {
-                        logger.trace { "Setting uniform '$name' to $value" }
-                        glUniformMatrix4fv(index, false, value.toFloatArray())
-                        postUniformCheck(name, index, value)
-                    }
-                    lastValues[name] = value
-                }
-            }
-        }
     }
 
     override fun uniform(name: String, value: Array<Matrix44>) {
@@ -555,16 +563,14 @@ class ShaderGL3(
         if (index != -1) {
             logger.trace { "Setting uniform '$name' to $value" }
 
-            val floatValues = FloatArray(value.size * 4 * 4)
-            var offset = 0
-            for (j in value.indices) {
-                val mf = value[j].toFloatArray()
-                for (i in 0 until 16) {
-                    floatValues[offset] = mf[i]
-                    offset++
+            stackPush().use { stack ->
+                val floatValues = stack.mallocFloat(value.size * 4 * 4)
+                for (j in value.indices) {
+                    value[j].put(floatValues)
                 }
+                floatValues.flip()
+                glUniformMatrix4fv(index, false, floatValues)
             }
-            glUniformMatrix4fv(index, false, floatValues)
             postUniformCheck(name, index, value)
         }
     }
@@ -574,13 +580,16 @@ class ShaderGL3(
         if (index != -1) {
             logger.trace { "Setting uniform '$name' to $value" }
 
-            val floatValues = FloatArray(value.size * 2)
-            for (i in 0 until value.size) {
-                floatValues[i * 2] = value[i].x.toFloat()
-                floatValues[i * 2 + 1] = value[i].y.toFloat()
-            }
+            stackPush().use { stack ->
+                val floatValues = stack.mallocFloat(value.size * 2)
 
-            glUniform2fv(index, floatValues)
+                for (v in value) {
+                    floatValues.put(v.x.toFloat())
+                    floatValues.put(v.y.toFloat())
+                }
+                floatValues.flip()
+                glUniform2fv(index, floatValues)
+            }
             postUniformCheck(name, index, value)
         }
     }
@@ -589,14 +598,16 @@ class ShaderGL3(
         val index = uniformIndex(name)
         if (index != -1) {
             logger.trace { "Setting uniform '$name' to $value" }
-
-            val floatValues = FloatArray(value.size * 3)
-            for (i in 0 until value.size) {
-                floatValues[i * 3] = value[i].x.toFloat()
-                floatValues[i * 3 + 1] = value[i].y.toFloat()
-                floatValues[i * 3 + 2] = value[i].z.toFloat()
+            stackPush().use { stack ->
+                val floatValues = stack.mallocFloat(value.size * 3)
+                for (v in value) {
+                    floatValues.put(v.x.toFloat())
+                    floatValues.put(v.y.toFloat())
+                    floatValues.put(v.z.toFloat())
+                }
+                floatValues.flip()
+                glUniform3fv(index, floatValues)
             }
-            glUniform3fv(index, floatValues)
             postUniformCheck(name, index, value)
         }
     }
@@ -605,16 +616,17 @@ class ShaderGL3(
         val index = uniformIndex(name)
         if (index != -1) {
             logger.trace { "Setting uniform '$name' to $value" }
-
-            val floatValues = FloatArray(value.size * 4)
-            for (i in value.indices) {
-                floatValues[i * 4] = value[i].x.toFloat()
-                floatValues[i * 4 + 1] = value[i].y.toFloat()
-                floatValues[i * 4 + 2] = value[i].z.toFloat()
-                floatValues[i * 4 + 3] = value[i].w.toFloat()
+            stackPush().use { stack ->
+                val floatValues = stack.mallocFloat(value.size * 4)
+                for (i in value.indices) {
+                    floatValues.put(value[i].x.toFloat())
+                    floatValues.put(value[i].y.toFloat())
+                    floatValues.put(value[i].z.toFloat())
+                    floatValues.put(value[i].w.toFloat())
+                }
+                floatValues.flip()
+                glUniform4fv(index, floatValues)
             }
-
-            glUniform4fv(index, floatValues)
             postUniformCheck(name, index, value)
         }
     }
@@ -624,11 +636,14 @@ class ShaderGL3(
         if (index != -1) {
             logger.trace { "Setting uniform '$name' to $value" }
 
-            val floatValues = FloatArray(value.size) { i ->
-                value[i].toFloat()
+            stackPush().use { stack ->
+                val floatValues = stack.mallocFloat(value.size)
+                for (v in value) {
+                    floatValues.put(v.toFloat())
+                }
+                floatValues.flip()
+                glUniform1fv(index, floatValues)
             }
-
-            glUniform1fv(index, floatValues)
             postUniformCheck(name, index, value)
         }
     }
@@ -638,15 +653,17 @@ class ShaderGL3(
         if (index != -1) {
             logger.trace { "Setting uniform '$name' to $value" }
 
-            val floatValues = FloatArray(value.size * 4)
-            for (i in value.indices) {
-                floatValues[i * 4] = value[i].r.toFloat()
-                floatValues[i * 4 + 1] = value[i].g.toFloat()
-                floatValues[i * 4 + 2] = value[i].b.toFloat()
-                floatValues[i * 4 + 3] = value[i].alpha.toFloat()
+            stackPush().use { stack ->
+                val floatValues = stack.mallocFloat(value.size * 4)
+                for (i in value.indices) {
+                    floatValues.put(value[i].r.toFloat())
+                    floatValues.put(value[i].g.toFloat())
+                    floatValues.put(value[i].b.toFloat())
+                    floatValues.put(value[i].alpha.toFloat())
+                }
+                floatValues.flip()
+                glUniform4fv(index, floatValues)
             }
-
-            glUniform4fv(index, floatValues)
             postUniformCheck(name, index, value)
         }
     }
@@ -656,13 +673,17 @@ class ShaderGL3(
         if (index != -1) {
             logger.trace { "Setting uniform '$name' to $value" }
 
-            val intValues = IntArray(value.size * 2)
-            for (i in value.indices) {
-                intValues[i * 2] = value[i].x
-                intValues[i * 2 + 1] = value[i].y
-            }
+            stackPush().use { stack ->
 
-            glUniform2iv(index, intValues)
+                val intValues = stack.mallocInt(value.size * 2)
+                for (i in value.indices) {
+                    intValues.put(value[i].x)
+                    intValues.put(value[i].y)
+                }
+                intValues.flip()
+
+                glUniform2iv(index, intValues)
+            }
             postUniformCheck(name, index, value)
         }
     }
@@ -671,14 +692,16 @@ class ShaderGL3(
         val index = uniformIndex(name)
         if (index != -1) {
             logger.trace { "Setting uniform '$name' to $value" }
-
-            val intValues = IntArray(value.size * 3)
-            for (i in value.indices) {
-                intValues[i * 3] = value[i].x
-                intValues[i * 3 + 1] = value[i].y
-                intValues[i * 3 + 2] = value[i].z
+            stackPush().use { stack ->
+                val intValues = stack.mallocInt(value.size * 3)
+                for (i in value.indices) {
+                    intValues.put(value[i].x)
+                    intValues.put(value[i].y)
+                    intValues.put(value[i].z)
+                }
+                intValues.flip()
+                glUniform3iv(index, intValues)
             }
-            glUniform3iv(index, intValues)
             postUniformCheck(name, index, value)
         }
     }
@@ -688,14 +711,17 @@ class ShaderGL3(
         if (index != -1) {
             logger.trace { "Setting uniform '$name' to $value" }
 
-            val intValues = IntArray(value.size * 4)
-            for (i in value.indices) {
-                intValues[i * 4] = value[i].x
-                intValues[i * 4 + 1] = value[i].y
-                intValues[i * 4 + 2] = value[i].z
-                intValues[i * 4 + 3] = value[i].w
+            stackPush().use { stack ->
+                val intValues = stack.mallocInt(value.size * 4)
+                for (i in value.indices) {
+                    intValues.put(value[i].x)
+                    intValues.put(value[i].y)
+                    intValues.put(value[i].z)
+                    intValues.put(value[i].w)
+                }
+                intValues.flip()
+                glUniform4iv(index, intValues)
             }
-            glUniform4iv(index, intValues)
             postUniformCheck(name, index, value)
         }
     }
@@ -816,6 +842,7 @@ class ShaderGL3(
                     colorBuffer.glFormat()
                 )
             }
+
             is ArrayTextureImageBinding -> {
                 val arrayTexture = imageBinding.arrayTexture as ArrayTextureGL3
                 require(arrayTexture.format.componentCount != 3) {
@@ -831,6 +858,7 @@ class ShaderGL3(
                     arrayTexture.glFormat()
                 )
             }
+
             is CubemapImageBinding -> {
                 val cubemap = imageBinding.cubemap as CubemapGL3
                 require(cubemap.format.componentCount != 3) {
@@ -846,6 +874,7 @@ class ShaderGL3(
                     cubemap.glFormat()
                 )
             }
+
             is ArrayCubemapImageBinding -> {
                 val arrayCubemap = imageBinding.arrayCubemap as ArrayCubemapGL4
                 require(arrayCubemap.format.componentCount != 3) {
@@ -861,6 +890,7 @@ class ShaderGL3(
                     arrayCubemap.glFormat()
                 )
             }
+
             is VolumeTextureImageBinding -> {
                 val volumeTexture = imageBinding.volumeTexture as VolumeTextureGL3
                 require(volumeTexture.format.componentCount != 3) {

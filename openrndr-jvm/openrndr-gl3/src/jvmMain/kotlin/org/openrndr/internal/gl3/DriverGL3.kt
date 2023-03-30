@@ -13,6 +13,7 @@ import org.openrndr.shape.Rectangle
 import java.io.InputStream
 import java.nio.Buffer
 import java.nio.ByteBuffer
+import java.nio.FloatBuffer
 import java.util.*
 
 private val logger = KotlinLogging.logger {}
@@ -564,7 +565,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
             // -- find or create a VAO for our shader + vertex buffers combination
             val shaderVertexDescription = measure("hash-vao") {
                 ShaderVertexDescription(
-                    (shader as ShaderGL3).program,
+                    shader.program,
                     vertexBuffers.map { (it as VertexBufferGL3).buffer }.toIntArray(),
                     IntArray(0)
                 )
@@ -1271,12 +1272,46 @@ private fun VertexElementType.glType(): Int = when (this) {
     VertexElementType.VECTOR4_FLOAT32 -> GL_FLOAT
 }
 
+internal fun Matrix44.put(fb: FloatBuffer) {
+    fb.put(c0r0.toFloat())
+    fb.put(c0r1.toFloat())
+    fb.put(c0r2.toFloat())
+    fb.put(c0r3.toFloat())
+    fb.put(c1r0.toFloat())
+    fb.put(c1r1.toFloat())
+    fb.put(c1r2.toFloat())
+    fb.put(c1r3.toFloat())
+    fb.put(c2r0.toFloat())
+    fb.put(c2r1.toFloat())
+    fb.put(c2r2.toFloat())
+    fb.put(c2r3.toFloat())
+    fb.put(c3r0.toFloat())
+    fb.put(c3r1.toFloat())
+    fb.put(c3r2.toFloat())
+    fb.put(c3r3.toFloat())
+}
+
 internal fun Matrix44.toFloatArray(): FloatArray = floatArrayOf(
     c0r0.toFloat(), c0r1.toFloat(), c0r2.toFloat(), c0r3.toFloat(),
     c1r0.toFloat(), c1r1.toFloat(), c1r2.toFloat(), c1r3.toFloat(),
     c2r0.toFloat(), c2r1.toFloat(), c2r2.toFloat(), c2r3.toFloat(),
     c3r0.toFloat(), c3r1.toFloat(), c3r2.toFloat(), c3r3.toFloat()
 )
+
+internal fun Matrix33.put(fb: FloatBuffer) {
+    fb.put(c0r0.toFloat())
+    fb.put(c0r1.toFloat())
+    fb.put(c0r2.toFloat())
+
+    fb.put(c1r0.toFloat())
+    fb.put(c1r1.toFloat())
+    fb.put(c1r2.toFloat())
+
+    fb.put(c2r0.toFloat())
+    fb.put(c2r1.toFloat())
+    fb.put(c2r2.toFloat())
+}
+
 
 internal fun Matrix33.toFloatArray(): FloatArray = floatArrayOf(
     c0r0.toFloat(), c0r1.toFloat(), c0r2.toFloat(),

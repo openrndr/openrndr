@@ -107,13 +107,15 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
     override var windowSize: Vector2
         get() {
             if (_windowSize == null) {
-                val w = IntArray(1)
-                val h = IntArray(1)
-                glfwGetWindowSize(window, w, h)
-                _windowSize = Vector2(
-                    if (fixWindowSize) (w[0].toDouble() / program.window.contentScale) else w[0].toDouble(),
-                    if (fixWindowSize) (h[0].toDouble() / program.window.contentScale) else h[0].toDouble()
-                )
+                stackPush().use {
+                    val w = it.mallocInt(1)
+                    val h = it.mallocInt(1)
+                    glfwGetWindowSize(window, w, h)
+                    _windowSize = Vector2(
+                        if (fixWindowSize) (w[0].toDouble() / program.window.contentScale) else w[0].toDouble(),
+                        if (fixWindowSize) (h[0].toDouble() / program.window.contentScale) else h[0].toDouble()
+                    )
+                }
             }
             return _windowSize ?: error("window size unknown")
         }
@@ -129,13 +131,15 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
 
     override var windowPosition: Vector2
         get() {
-            val x = IntArray(1)
-            val y = IntArray(1)
-            glfwGetWindowPos(window, x, y)
-            return Vector2(
-                if (fixWindowSize) (x[0].toDouble() / program.window.contentScale) else x[0].toDouble(),
-                if (fixWindowSize) (y[0].toDouble() / program.window.contentScale) else y[0].toDouble()
-            )
+            stackPush().use {
+                val x = it.mallocInt(1)
+                val y = it.mallocInt(1)
+                glfwGetWindowPos(window, x, y)
+                return Vector2(
+                    if (fixWindowSize) (x[0].toDouble() / program.window.contentScale) else x[0].toDouble(),
+                    if (fixWindowSize) (y[0].toDouble() / program.window.contentScale) else y[0].toDouble()
+                )
+            }
         }
         set(value) {
             glfwSetWindowPos(
@@ -973,18 +977,20 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
     }
 
     private fun setupSizes() {
-        val wcsx = FloatArray(1)
-        val wcsy = FloatArray(1)
-        glfwGetWindowContentScale(window, wcsx, wcsy)
-        program.window.contentScale = wcsx[0].toDouble()
+        stackPush().use { stack ->
+            val wcsx = stack.mallocFloat(1)
+            val wcsy = stack.mallocFloat(1)
+            glfwGetWindowContentScale(window, wcsx, wcsy)
+            program.window.contentScale = wcsx[0].toDouble()
 
-        val fbw = IntArray(1)
-        val fbh = IntArray(1)
-        glfwGetFramebufferSize(window, fbw, fbh)
+            val fbw = stack.mallocInt(1)
+            val fbh = stack.mallocInt(1)
+            glfwGetFramebufferSize(window, fbw, fbh)
 
-        glViewport(0, 0, fbw[0], fbh[0])
-        program.width = ceil(fbw[0] / program.window.contentScale).toInt()
-        program.height = ceil(fbh[0] / program.window.contentScale).toInt()
+            glViewport(0, 0, fbw[0], fbh[0])
+            program.width = ceil(fbw[0] / program.window.contentScale).toInt()
+            program.height = ceil(fbh[0] / program.window.contentScale).toInt()
+        }
     }
 
     override fun exit() {
