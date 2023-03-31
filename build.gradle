@@ -8,6 +8,7 @@ repositories {
     mavenCentral()
 }
 
+group = "org.openrndr"
 nexusPublishing {
     repositories {
         sonatype {
