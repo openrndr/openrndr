@@ -56,6 +56,11 @@ tasks {
     }
 }
 
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
 val isReleaseVersion = !(version.toString()).endsWith("SNAPSHOT")
 
 if (shouldPublish) {
