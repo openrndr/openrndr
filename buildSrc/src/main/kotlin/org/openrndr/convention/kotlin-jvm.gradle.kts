@@ -77,8 +77,8 @@ if (shouldPublish) {
                     }
                 }
                 pom {
-                    name.set("$project.name")
-                    description.set("$project.name")
+                    name.set(project.name)
+                    description.set(project.name)
                     url.set("https://openrndr.org")
                     developers {
                         developer {
