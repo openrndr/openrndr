@@ -1,8 +1,11 @@
 package org.openrndr.dialogs
 
 import mu.KotlinLogging
+import org.lwjgl.system.MemoryStack
+import org.lwjgl.system.MemoryStack.stackPush
 import org.lwjgl.system.MemoryUtil.*
-import org.lwjgl.util.nfd.NFDPathSet
+import org.lwjgl.util.nfd.NFDFilterItem
+import org.lwjgl.util.nfd.NFDPathSetEnum
 import org.lwjgl.util.nfd.NativeFileDialog.*
 import org.openrndr.exceptions.stackRootClassName
 import org.openrndr.platform.Platform
@@ -12,7 +15,12 @@ import java.io.FileOutputStream
 import java.nio.file.Paths
 import java.util.*
 
+
 private val logger = KotlinLogging.logger {}
+
+val nfd by lazy {
+    NFD_Init()
+}
 
 /**
  * Returns the default path for a context
@@ -90,58 +98,27 @@ fun setDefaultPathForContext(programName: String = stackRootClassName(), context
  * @see saveFileDialog
  */
 fun openFileDialog(
-        programName: String = stackRootClassName(),
-        contextID: String = "global",
-        supportedExtensions: List<Pair<String, List<String>>>,
-        function: (File) -> Unit
+    programName: String = stackRootClassName(),
+    contextID: String = "global",
+    defaultPath: String? = getDefaultPathForContext(programName, contextID),
+    supportedExtensions: List<Pair<String, List<String>>> = emptyList(),
+    function: (File) -> Unit
 ) {
-    val filterList = extensionsToString(supportedExtensions)
-    val defaultPath = Paths.get(getDefaultPathForContext(programName, contextID)
-            ?: ".").normalize().toString()
+    nfd
+    stackPush().use { stack ->
+        val filterList = filterItems(stack, supportedExtensions)
+        val out = stack.mallocPointer(1)
 
-    val out = memAllocPointer(1)
-
-    val r = NFD_OpenDialog(filterList, defaultPath, out)
-    if (r == NFD_OKAY) {
-        val ptr = out.get(0)
-        val str = memUTF8(ptr)
-        val f = File(str)
-        setDefaultPathForContext(programName, contextID, f)
-        function(f)
+        val r = NFD_OpenDialog(out, filterList, defaultPath)
+        if (r == NFD_OKAY) {
+            val ptr = out.get(0)
+            val str = memUTF8(ptr)
+            val f = File(str)
+            setDefaultPathForContext(programName, contextID, f)
+            function(f)
+        }
     }
-    memFree(out)
 }
-
-/**
- * Creates a file dialog that can be used to open a single file
- * @param programName optional name of the program, this is guessed from a stack trace by default
- * @param contextID optional context identifier, default is "global"
- * @param supportedExtensions a supported/allowed file extension
- * @param function the function to be invoked when a file has been picked
- * @see openFilesDialog
- * @see saveFileDialog
- */
-@JvmName("openFileDialogSimple")
-fun openFileDialog(
-        programName: String = stackRootClassName(),
-        contextID: String = "global",
-        supportedExtensions: List<String>,
-        function: (File) -> Unit
-) = openFileDialog(programName, contextID, listOf("supported extensions" to
-        supportedExtensions), function)
-
-/**
- * Creates a file dialog that can be used to open a single
- * @param programName optional name of the program, this is guessed from a stack trace by default
- * @param contextID optional context identifier, default is "global"
- * @see openFilesDialog
- * @see saveFileDialog
- */
-fun openFileDialog(
-        programName: String = stackRootClassName(),
-        contextID: String = "global",
-        function: (File) -> Unit
-) = openFileDialog(programName, contextID, emptyList<String>(), function)
 
 /**
  * Creates a file dialog that can be used to open multiple files
@@ -155,64 +132,43 @@ fun openFileDialog(
  * @see saveFileDialog
  */
 fun openFilesDialog(
-        programName: String = stackRootClassName(),
-        contextID: String = "global",
-        supportedExtensions: List<Pair<String, List<String>>>,
-        function: (List<File>) -> Unit
+    programName: String = stackRootClassName(),
+    contextID: String = "global",
+    defaultPath: String? = getDefaultPathForContext(programName, contextID),
+    supportedExtensions: List<Pair<String, List<String>>> = emptyList(),
+    function: (List<File>) -> Unit
 ) {
-    val filterList = extensionsToString(supportedExtensions)
-    val defaultPath = Paths.get(getDefaultPathForContext(programName, contextID)
-            ?: ".").normalize().toString()
+    nfd
+    stackPush().use { stack ->
+        val filterList = filterItems(stack, supportedExtensions)
+        val pp = stack.mallocPointer(1)
 
-    val pathSet = NFDPathSet.calloc()
+        val r = NFD_OpenDialogMultiple(pp, filterList, defaultPath)
+        val files = mutableListOf<File>()
 
-    val r = NFD_OpenDialogMultiple(filterList, defaultPath, pathSet)
-    val files = mutableListOf<File>()
-    if (r == NFD_OKAY) {
-        for (i in 0 until NFD_PathSet_GetCount(pathSet)) {
-            val result = NFD_PathSet_GetPath(pathSet, i)
-            if (result != null) {
-                files.add(File(result))
+        if (r == NFD_OKAY) {
+            val pathSet: Long = pp.get(0)
+            val psEnum = NFDPathSetEnum.calloc(stack)
+            NFD_PathSet_GetEnum(pathSet, psEnum)
+
+            var i = 0
+            while (NFD_PathSet_EnumNext(psEnum, pp) == NFD_OKAY && pp.get(0) !== NULL) {
+                //System.out.format("Path %d: %s\n", i++, pp.getStringUTF8(0))
+                files.add(File(pp.getStringUTF8(0)))
+                NFD_PathSet_FreePath(pp.get(0))
             }
+
+            NFD_PathSet_FreeEnum(psEnum)
+            NFD_PathSet_Free(pathSet)
+
         }
-    }
-    NFD_PathSet_Free(pathSet)
-    if (files.isNotEmpty()) {
-        setDefaultPathForContext(programName, contextID, files[0])
-        function(files)
+        if (files.isNotEmpty()) {
+            setDefaultPathForContext(programName, contextID, files[0])
+            function(files)
+        }
+
     }
 }
-
-/**
- * Creates a file dialog that can be used to open multiple files
- * @param programName optional name of the program, this is guessed from a stack trace by default
- * @param contextID optional context identifier, default is "global"
- * @param supportedExtensions a supported/allowed file extension
- * @param function the function to be invoked when a file has been picked
- * @see openFileDialog
- * @see saveFileDialog
- */
-@JvmName("openFilesDialogSimple")
-fun openFilesDialog(
-        programName: String = stackRootClassName(),
-        contextID: String = "global",
-        supportedExtensions: List<String>, // simplified signature
-        function: (List<File>) -> Unit
-) = openFilesDialog(programName, contextID, listOf("supported extensions" to
-        supportedExtensions), function)
-
-/**
- * Creates a file dialog that can be used to open multiple files
- * @param programName optional name of the program, this is guessed from a stack trace by default
- * @param contextID optional context identifier, default is "global"
- * @param function the function to be invoked when a file has been picked
- */
-fun openFilesDialog(
-        programName: String = stackRootClassName(),
-        contextID: String = "global",
-        function: (List<File>) -> Unit
-) = openFilesDialog(programName, contextID, emptyList<String>(), function)
-
 
 /**
  * Creates a file dialog that can be used to open multiple files
@@ -221,22 +177,23 @@ fun openFilesDialog(
  * @param function the function to be invoked when a file has been picked
  */
 fun openFolderDialog(
-        programName: String = stackRootClassName(),
-        contextID: String = "global",
-        function: (File) -> Unit
+    programName: String = stackRootClassName(),
+    contextID: String = "global",
+    defaultPath: String? = getDefaultPathForContext(programName, contextID),
+    function: (File) -> Unit
 ) {
-    val defaultPath: CharSequence? = getDefaultPathForContext(programName, contextID)
-    val out = memAllocPointer(1)
-
-    val r = NFD_PickFolder(defaultPath, out)
-    if (r == NFD_OKAY) {
-        val ptr = out.get(0)
-        val str = memUTF8(ptr)
-        val f = File(str)
-        setDefaultPathForContext(programName, contextID, f)
-        function(f)
+    nfd
+    stackPush().use { stack ->
+        val out = stack.mallocPointer(1)
+        val r = NFD_PickFolder(out, defaultPath)
+        if (r == NFD_OKAY) {
+            val ptr = out.get(0)
+            val str = memUTF8(ptr)
+            val f = File(str)
+            setDefaultPathForContext(programName, contextID, f)
+            function(f)
+        }
     }
-    memFree(out)
 }
 
 /**
@@ -251,78 +208,75 @@ fun openFolderDialog(
  * @param function the function to be invoked when a file has been picked
  */
 fun saveFileDialog(
-        programName: String = stackRootClassName(),
-        contextID: String = "global",
-        suggestedFilename: String? = null,
-        supportedExtensions: List<Pair<String, List<String>>> = emptyList(),
-        function: (File) -> Unit
+    programName: String = stackRootClassName(),
+    contextID: String = "global",
+    defaultPath: String? = getDefaultPathForContext(programName, contextID),
+    suggestedFilename: String? = null,
+    supportedExtensions: List<Pair<String, List<String>>> = emptyList(),
+    function: (File) -> Unit
 ) {
-    val filterList = extensionsToString(supportedExtensions)
-    val defaultPathBase = Paths.get(getDefaultPathForContext(programName, contextID)
-            ?: ".").normalize().toString()
 
-    val defaultPath = if (suggestedFilename == null) {
-        defaultPathBase
-    } else {
-        File(defaultPathBase, suggestedFilename).absolutePath
-    }
-    logger.debug { "Default path is $defaultPath" }
+    nfd
+    stackPush().use { stack ->
+        val filterList = filterItems(stack, supportedExtensions)
+        val defaultPathBase = Paths.get(
+            getDefaultPathForContext(programName, contextID)
+                ?: "."
+        ).normalize().toString()
 
-    val out = memAllocPointer(1)
-    val r = NFD_SaveDialog(filterList, defaultPath, out)
-    if (r == NFD_OKAY) {
-        val ptr = out.get(0)
-        val pickedFilename = memUTF8(ptr)
-        val pickedFile = File(pickedFilename)
-
-        val finalFile = if (supportedExtensions.isNotEmpty() && supportedExtensions.none { pickedFile.extension in it.second }) {
-            val fixedFilename = "$pickedFilename.${supportedExtensions.first().second.first()}"
-            logger.warn { "User has picked either no or an unsupported extension, fixed filename to '$fixedFilename'" }
-            File(fixedFilename)
+        val defaultPath = if (suggestedFilename == null) {
+            defaultPathBase
         } else {
-            pickedFile
+            File(defaultPathBase, suggestedFilename).absolutePath
         }
-        try {
-            function(finalFile)
-        } catch (e: Throwable) {
-            logger.error { "Caught exception while saving to file '${finalFile.absolutePath}" }
-            throw e
-        }
-        setDefaultPathForContext(programName, contextID, finalFile)
-    } else if (r == NFD_ERROR) {
-        logger.error { "error NFD_SaveDialog returned NFD_ERROR" }
-    }
-    memFree(out)
-}
+        logger.debug { "Default path is $defaultPath" }
 
-/**
- * Creates a file dialog that can be used to save a single file files
- * @param programName optional name of the program, this is guessed from a stack trace by default
- * @param contextID optional context identifier, default is "global"
- * @param suggestedFilename an optional suggestion for a filename
- * @param supportedExtensions a supported/allowed file extension
- * @param function the function to be invoked when a file has been picked
- */
-@JvmName("saveFileDialogSimple")
-fun saveFileDialog(
-        programName: String = stackRootClassName(),
-        contextID: String = "global",
-        suggestedFilename: String? = null,
-        supportedExtensions: List<String>,
-        function: (File) -> Unit
-) = saveFileDialog(programName, contextID, suggestedFilename,
-        listOf("supported formats" to supportedExtensions), function)
+        val out = stack.mallocPointer(1)
+        when (NFD_SaveDialog(out, filterList, defaultPath, suggestedFilename)) {
+            NFD_OKAY -> {
+                val ptr = out.get(0)
+                val pickedFilename = memUTF8(ptr)
+                val pickedFile = File(pickedFilename)
+
+                val finalFile =
+                    if (supportedExtensions.isNotEmpty() && supportedExtensions.none { pickedFile.extension in it.second }) {
+                        val fixedFilename = "$pickedFilename.${supportedExtensions.first().second.first()}"
+                        logger.warn { "User has picked either no or an unsupported extension, fixed filename to '$fixedFilename'" }
+                        File(fixedFilename)
+                    } else {
+                        pickedFile
+                    }
+                try {
+                    function(finalFile)
+                } catch (e: Throwable) {
+                    logger.error { "Caught exception while saving to file '${finalFile.absolutePath}" }
+                    throw e
+                }
+                setDefaultPathForContext(programName, contextID, finalFile)
+            }
+
+            NFD_ERROR -> {
+                logger.error { "error NFD_SaveDialog returned NFD_ERROR" }
+            }
+        }
+    }
+}
 
 /**
  * Helper function to join the provided extensions as one string with
  * separator characters
  */
-private fun extensionsToString(extensions: List<Pair<String, List<String>>>) =
-        if (extensions.isEmpty())
-            null
-        else
-            extensions.joinToString(";") {
-                // TODO: Use `it.first` when file filter names are supported by
-                // https://github.com/mlabbe/nativefiledialog/#known-limitations
-                it.second.joinToString(",")
-            }
+private fun filterItems(stack: MemoryStack, extensions: List<Pair<String, List<String>>>): NFDFilterItem.Buffer? {
+    return if (extensions.isNotEmpty()) {
+        val filters = NFDFilterItem.malloc(extensions.size)
+        for (i in extensions.indices) {
+            filters.get(i)
+                .name(stack.UTF8(extensions[i].first))
+                .spec(stack.UTF8(extensions[i].second.joinToString(",")))
+        }
+        filters
+    } else {
+        null
+    }
+
+}

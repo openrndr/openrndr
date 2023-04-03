@@ -18,6 +18,7 @@ dependencies {
     implementation project(":openrndr-jvm:openrndr-gl3")
     implementation project(":openrndr-filter")
     implementation project(":openrndr-extensions")
+    implementation project(":openrndr-jvm:openrndr-dialogs")
     runtimeOnly project(":openrndr-jvm:openrndr-gl3-natives-$openrndrOS")
     runtimeOnly project(":openrndr-jvm:openrndr-openal-natives-$openrndrOS")
     runtimeOnly project(":openrndr-jvm:openrndr-ffmpeg-natives-$openrndrOS")
