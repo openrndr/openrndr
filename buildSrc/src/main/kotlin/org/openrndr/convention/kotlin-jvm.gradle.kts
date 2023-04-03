@@ -71,11 +71,6 @@ if (shouldPublish) {
                 groupId = "org.openrndr"
                 artifactId = project.name
                 description = project.name
-                versionMapping {
-                    allVariants {
-                        fromResolutionResult()
-                    }
-                }
                 pom {
                     name.set(project.name)
                     description.set(project.name)

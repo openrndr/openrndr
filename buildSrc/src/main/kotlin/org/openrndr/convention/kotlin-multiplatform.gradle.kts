@@ -84,11 +84,6 @@ if (shouldPublish) {
             }
             all {
                 this as MavenPublication
-                versionMapping {
-                    allVariants {
-                        fromResolutionOf("commonMainApiDependenciesMetadata")
-                    }
-                }
                 pom {
                     name.set(project.name)
                     description.set(project.name)
