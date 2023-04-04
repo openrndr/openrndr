@@ -53,6 +53,13 @@ class FontImageMapManager : FontMapManager() {
 
         val bitmap = MemoryUtil.memAlloc(packSize * packSize)
 
+        // zero memory to prevent glitchy fontmaps on macOS
+        for (i in 0 until packSize * packSize) {
+            bitmap.put(0)
+        }
+        bitmap.rewind()
+
+
         logger.debug { "creating font bitmap" }
         glyphDimensions.entries.sortedByDescending { it.value.squaredLength }.forEach {
             val target = packer.insert(root, IntRectangle(0, 0, it.value.x + 2 * sanding, it.value.y + 2 * sanding))
