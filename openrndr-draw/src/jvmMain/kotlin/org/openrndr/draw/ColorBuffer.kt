@@ -310,14 +310,22 @@ fun loadImage(file: File, formatHint: ImageFileFormat? = null, session: Session?
     require(file.exists()) {
         "failed to load image: file '${file.absolutePath}' does not exist."
     }
-    return ColorBuffer.fromFile(file, formatHint, session)
+    try {
+        return ColorBuffer.fromFile(file, formatHint, session)
+    } catch(e: Throwable) {
+        throw RuntimeException("failed to load image: file '${file.absolutePath}'", e)
+    }
 }
 
 /**
  * load an image from an [url]
  */
 fun loadImage(url: URL, formatHint: ImageFileFormat?, session: Session? = Session.active): ColorBuffer {
-    return ColorBuffer.fromUrl(url.toExternalForm(), formatHint, session)
+    try {
+        return ColorBuffer.fromUrl(url.toExternalForm(), formatHint, session)
+    } catch(e: Throwable) {
+        throw RuntimeException("failed to load image: url '${url.toExternalForm()}'", e)
+    }
 }
 
 actual suspend fun loadImageSuspend(
