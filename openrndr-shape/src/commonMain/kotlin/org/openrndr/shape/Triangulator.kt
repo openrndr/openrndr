@@ -80,6 +80,15 @@ fun triangulate(
             }
         }
     }
+    for (i in result.indices step 3) {
+        val a = result[i]
+        val b = result[i + 1]
+        val c = result[i + 2]
+        if ((b.x - a.x) * (c.y - a.y) < (b.y - a.y) * (c.x - a.x)) {
+            result[i + 1] = c
+            result[i + 2] = b
+        }
+    }
     tessellator.gluDeleteTess()
     return result
 }
