@@ -11,7 +11,7 @@ private var lastModelNormal = Matrix44.IDENTITY
 private var lastView = Matrix44.IDENTITY
 private var lastViewNormal = Matrix44.IDENTITY
 
-private var contextBlocks = mutableMapOf<Long, UniformBlock?>()
+var contextBlocks = mutableMapOf<Long, UniformBlock?>()
 expect val useContextBlock : Boolean
 
 private val logger = KotlinLogging.logger {}

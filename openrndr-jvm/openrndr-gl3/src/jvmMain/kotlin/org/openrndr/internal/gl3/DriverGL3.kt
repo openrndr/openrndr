@@ -472,6 +472,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         shader as ShaderGL3
         // -- find or create a VAO for our shader + vertex buffers combination
         val shaderVertexDescription = ShaderVertexDescription(
+            contextID,
             shader.program,
             vertexBuffers.map { (it as VertexBufferGL3).buffer }.toIntArray(),
             IntArray(0)
@@ -516,6 +517,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
     }
 
     data class ShaderVertexDescription(
+        val context: Long,
         val shader: Int,
         val vertexBuffers: IntArray,
         val instanceAttributeBuffers: IntArray
@@ -560,11 +562,11 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
             }
         }
 
-
         measure("DriverGL3.drawIndexedVertexBuffer") {
             // -- find or create a VAO for our shader + vertex buffers combination
             val shaderVertexDescription = measure("hash-vao") {
                 ShaderVertexDescription(
+                    contextID,
                     shader.program,
                     vertexBuffers.map { (it as VertexBufferGL3).buffer }.toIntArray(),
                     IntArray(0)
@@ -642,6 +644,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
 
         // -- find or create a VAO for our shader + vertex buffers + instance buffers combination
         val hash = ShaderVertexDescription(
+            contextID,
             (shader as ShaderGL3).program,
             vertexBuffers.map { (it as VertexBufferGL3).buffer }.toIntArray(),
             instanceAttributes.map { (it as VertexBufferGL3).buffer }.toIntArray()
@@ -714,6 +717,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
 
         // -- find or create a VAO for our shader + vertex buffers + instance buffers combination
         val shaderVertexDescription = ShaderVertexDescription(
+            contextID,
             (shader as ShaderGL3).program,
             vertexBuffers.map { (it as VertexBufferGL3).buffer }.toIntArray(),
             instanceAttributes.map { (it as VertexBufferGL3).buffer }.toIntArray()
@@ -855,6 +859,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
                                     attributeBindings++
                                 }
                             }
+
                             VertexElementType.MATRIX44_FLOAT32 -> {
                                 for (i in 0 until item.arraySize) {
                                     for (column in 0 until 4) {
@@ -877,6 +882,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
                                     }
                                 }
                             }
+
                             VertexElementType.MATRIX33_FLOAT32 -> {
                                 for (i in 0 until item.arraySize) {
                                     for (column in 0 until 3) {
@@ -899,6 +905,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
                                     }
                                 }
                             }
+
                             else -> {
                                 TODO("implement support for ${item.type}")
                             }
@@ -1047,6 +1054,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
                             glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
                         }
                     }
+
                     BlendMode.BLEND -> {
                         glEnable(GL_BLEND)
                         if (version >= DriverVersionGL.VERSION_4_1) {
@@ -1057,6 +1065,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
                             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
                         }
                     }
+
                     BlendMode.ADD -> {
                         glEnable(GL_BLEND)
                         if (version >= DriverVersionGL.VERSION_4_1) {
@@ -1071,6 +1080,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
                     BlendMode.REPLACE -> {
                         glDisable(GL_BLEND)
                     }
+
                     BlendMode.SUBTRACT -> {
                         glEnable(GL_BLEND)
                         if (version >= DriverVersionGL.VERSION_4_1) {
@@ -1081,6 +1091,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
                             glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE, GL_ONE, GL_ONE)
                         }
                     }
+
                     BlendMode.MULTIPLY -> {
                         glEnable(GL_BLEND)
                         if (version >= DriverVersionGL.VERSION_4_1) {
@@ -1091,6 +1102,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
                             glBlendFunc(GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA)
                         }
                     }
+
                     BlendMode.REMOVE -> {
                         glEnable(GL_BLEND)
                         if (version >= DriverVersionGL.VERSION_4_1) {
@@ -1119,21 +1131,27 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
                     DepthTestPass.ALWAYS -> {
                         glDepthFunc(GL_ALWAYS)
                     }
+
                     DepthTestPass.GREATER -> {
                         glDepthFunc(GL_GREATER)
                     }
+
                     DepthTestPass.GREATER_OR_EQUAL -> {
                         glDepthFunc(GL_GEQUAL)
                     }
+
                     DepthTestPass.LESS -> {
                         glDepthFunc(GL_LESS)
                     }
+
                     DepthTestPass.LESS_OR_EQUAL -> {
                         glDepthFunc(GL_LEQUAL)
                     }
+
                     DepthTestPass.EQUAL -> {
                         glDepthFunc(GL_EQUAL)
                     }
+
                     DepthTestPass.NEVER -> {
                         glDepthFunc(GL_NEVER)
                     }
@@ -1147,14 +1165,17 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
                     CullTestPass.ALWAYS -> {
                         glDisable(GL_CULL_FACE)
                     }
+
                     CullTestPass.FRONT -> {
                         glEnable(GL_CULL_FACE)
                         glCullFace(GL_BACK)
                     }
+
                     CullTestPass.BACK -> {
                         glEnable(GL_CULL_FACE)
                         glCullFace(GL_FRONT)
                     }
+
                     CullTestPass.NEVER -> {
                         glEnable(GL_CULL_FACE)
                         glCullFace(GL_FRONT_AND_BACK)
@@ -1168,6 +1189,15 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
 
     override fun destroyContext(context: Long) {
         logger.debug { "destroying context: $context" }
+        styleBlocks.remove(context)
+        contextBlocks.remove(context)
+        defaultVAOs[context]?.let {
+            glDeleteVertexArrays(it)
+            debugGLErrors()
+            defaultVAOs.remove(context)
+        }
+        destroyAllVAOs()
+        dirty = true
     }
 
     override val activeRenderTarget: RenderTarget
@@ -1204,6 +1234,14 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         }
     }
 
+    fun destroyAllVAOs() {
+        vaos.keys.forEach {
+            val value = vaos[it]!!
+            GL30C.glDeleteVertexArrays(value)
+            debugGLErrors()
+        }
+        vaos.clear()
+    }
 }
 
 private fun IndexType.glType(): Int {
@@ -1320,4 +1358,4 @@ internal fun Matrix33.toFloatArray(): FloatArray = floatArrayOf(
 )
 
 val Driver.Companion.glVersion
-    get() = (Driver.instance as DriverGL3).version
+    get() = (instance as DriverGL3).version

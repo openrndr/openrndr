@@ -310,7 +310,7 @@ enum class DrawQuality {
 private val logger = KotlinLogging.logger {}
 
 
-private var styleBlocks = mutableMapOf<Long, UniformBlock?>()
+var styleBlocks = mutableMapOf<Long, UniformBlock?>()
 expect val useStyleBlock : Boolean
 
 /**

@@ -12,7 +12,7 @@ private val logger = KotlinLogging.logger {}
  */
 actual interface Driver {
 
-    fun createColorBufferFromStream(
+        fun createColorBufferFromStream(
         stream: InputStream,
         name: String? = null,
         formatHint: ImageFileFormat? = null,
@@ -252,8 +252,6 @@ actual interface Driver {
      */
     actual fun finish()
     actual fun internalShaderResource(resourceId: String): String
-
-
 
     actual companion object {
         actual var driver: Driver? = null

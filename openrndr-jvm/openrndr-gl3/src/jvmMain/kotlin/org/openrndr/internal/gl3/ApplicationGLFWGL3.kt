@@ -920,6 +920,9 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
 
         program.ended.trigger(ProgramEvent(ProgramEventType.ENDED))
 
+
+        Driver.instance.destroyContext(Driver.instance.contextID)
+
         glfwFreeCallbacks(window)
         glfwDestroyWindow(window)
 
