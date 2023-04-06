@@ -91,7 +91,7 @@ class VertexBufferGL3(val buffer: Int, override val vertexFormat: VertexFormat, 
 
     override fun write(data: ByteBuffer, offset: Int) {
         if (isDestroyed) {
-            throw error("buffer is destroyed")
+            error("buffer is destroyed")
         }
 
         if (data.isDirect) {
