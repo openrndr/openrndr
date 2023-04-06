@@ -864,7 +864,6 @@ class Drawer(val driver: Driver) {
 
     @JvmName("lineLoop3d")
     fun lineLoop(points: List<Vector3>) {
-        val fringeWidth = 1.0 / modelViewScaling
         if (abs(modelViewScaling) < 1E-6){
             return
         }
@@ -1013,7 +1012,7 @@ class Drawer(val driver: Driver) {
      * Draws a single 3D segment
      */
     fun segment(segment: Segment3D) {
-        lineStrip(segment.sampleAdaptive())
+        lineStrip(segment.adaptivePositions())
     }
 
     /**
@@ -1028,14 +1027,14 @@ class Drawer(val driver: Driver) {
      * Draws a list of 3D segments
      */
     fun segments(segments: List<Segment3D>) {
-        lineStrips(segments.map { it.sampleAdaptive() })
+        lineStrips(segments.map { it.adaptivePositions() })
     }
 
     /**
      * Draws a list of 3D segments, each with their weight and color
      */
     fun segments(segments: List<Segment3D>, weights: List<Double>, colors: List<ColorRGBa>) {
-        lineStrips(segments.map { it.sampleAdaptive() }, weights, colors)
+        lineStrips(segments.map { it.adaptivePositions() }, weights, colors)
     }
 
     /**

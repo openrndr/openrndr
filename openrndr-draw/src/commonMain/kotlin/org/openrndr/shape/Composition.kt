@@ -374,7 +374,7 @@ class Composition(val root: CompositionNode, var bounds: CompositionDimensions =
                         val vbDims = vb.dimensions
                         val eCorner = bounds.position
                         val eDims = bounds.dimensions
-                        val (align, meetOrSlice) = documentStyle.preserveAspectRatio!!
+                        val (align, meetOrSlice) = documentStyle.preserveAspectRatio
 
                         val scale = (eDims / vbDims).let {
                             if (align != Align.NONE) {
