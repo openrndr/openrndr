@@ -174,9 +174,9 @@ enum class ColorType {
     SINT16_INT,
     /** signed 32 bit integer type, with integer sampler */
     SINT32_INT,
-    /** 16 bit float type, or half precision float type */
+    /** 16-bit float type, or half precision float type */
     FLOAT16,
-    /** 32 bit float type, or single precision float type */
+    /** 32-bit float type, or single precision float type */
     FLOAT32,
     /** Compressed in DXT1 format */
     DXT1,
@@ -254,7 +254,7 @@ enum class DepthTestPass {
     EQUAL,
     /** Depth test will only pass when the test value is greater than the target value */
     GREATER,
-    /** Depth test will only pass when the test value is greater than or equal to the the target value */
+    /** Depth test will only pass when the test value is greater than or equal to the target value */
     GREATER_OR_EQUAL,
     /** Depth test will never pass, thus always fail */
     NEVER
@@ -293,8 +293,8 @@ class ChannelMask(val red: Boolean, val green: Boolean, val blue: Boolean, val a
         const val GREEN = 2
         const val BLUE = 4
         const val ALPHA = 8
-        val NONE = ChannelMask(false, false, false, false)
-        val ALL = ChannelMask(true, true, true, true)
+        val NONE = ChannelMask(red = false, green = false, blue = false, alpha = false)
+        val ALL = ChannelMask(red = true, green = true, blue = true, alpha = true)
     }
 }
 

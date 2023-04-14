@@ -125,9 +125,8 @@ class ShaderStorageFormat {
         var paddingIdx = -1
         /* Compute necessary padding after each field */
         for (idx in members.indices) {
-            val element = members[idx]
 
-            when(element) {
+            when(val element = members[idx]) {
                 is ShaderStorageMember -> {
                     val len = element.arraySize
                     val align = element.type.alignmentInBytes
@@ -171,9 +170,8 @@ class ShaderStorageFormat {
         paddingIdx = 0
 
         for (memberIdx in members.indices) {
-            val element = members[memberIdx]
 
-            when (element) {
+            when (val element = members[memberIdx]) {
                 is ShaderStorageMember -> {
                     val padding = paddings[paddingIdx]
 
@@ -209,9 +207,7 @@ class ShaderStorageFormat {
 
         other as ShaderStorageFormat
 
-        if (members != other.members) return false
-
-        return true
+        return members == other.members
     }
 }
 

@@ -77,7 +77,7 @@ class FontImageMap(val texture: ColorBuffer,
 
     fun characterWidth(character: Char): Double = map[character]?.width?.toDouble() ?: 0.0
 
-    fun kerning(left: Char, right: Char): Double = kerningTable.getOrElse(CharacterPair(left, right), { 0.0 })
+    fun kerning(left: Char, right: Char): Double = kerningTable.getOrElse(CharacterPair(left, right)) { 0.0 }
 }
 
 

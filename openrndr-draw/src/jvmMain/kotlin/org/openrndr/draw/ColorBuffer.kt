@@ -18,7 +18,7 @@ import java.nio.ByteBuffer
 /**
  * representation for simple images stored on GPU memory
  *
- * [ColorBuffer] is a unmanaged GPU resource, the user is responsible for destroying a [ColorBuffer] once it is no
+ * [ColorBuffer] is an unmanaged GPU resource, the user is responsible for destroying a [ColorBuffer] once it is no
  * longer used.
  */
 actual abstract class ColorBuffer {
@@ -199,28 +199,25 @@ actual abstract class ColorBuffer {
          * @param formatHint optional [ImageFileFormat] hint, default is null
          * @param session the [Session] under which to create this [ColorBuffer]
          */
-        @Suppress("UNUSED_PARAMETER")
         fun fromStream(
             stream: InputStream,
             formatHint: ImageFileFormat? = null,
             session: Session? = Session.active
         ): ColorBuffer {
-            val colorBuffer = Driver.instance.createColorBufferFromStream(
+            return Driver.instance.createColorBufferFromStream(
                 stream,
                 formatHint = formatHint,
                 session = session
             )
-            return colorBuffer
         }
 
         /**
          * create a [ColorBuffer] from a [ByteArray] containing a formatted image (meaning any of the formats in [ImageFileFormat])
          * @param bytes a [ByteArray] containing a formatted image
          * @param offset offset used for reading from [bytes], default is 0
-         * @param length number of bytes to be used from [bytes], default is [bytes.size]
+         * @param length number of bytes to be used from [bytes], default is [bytes].size
          * @param formatHint an optional [ImageFileFormat] hint, default is null
          */
-        @Suppress("UNUSED_PARAMETER")
         fun fromArray(
             bytes: ByteArray,
             offset: Int = 0,
@@ -228,7 +225,7 @@ actual abstract class ColorBuffer {
             formatHint: ImageFileFormat?,
             session: Session? = Session.active
         ): ColorBuffer {
-            val colorBuffer = Driver.instance.createColorBufferFromArray(
+            return Driver.instance.createColorBufferFromArray(
                 bytes,
                 offset,
                 length,
@@ -236,7 +233,6 @@ actual abstract class ColorBuffer {
                 session = session,
                 name = null
             )
-            return colorBuffer
         }
 
         /**
@@ -250,12 +246,11 @@ actual abstract class ColorBuffer {
             formatHint: ImageFileFormat?,
             session: Session? = Session.active
         ): ColorBuffer {
-            val colorBuffer = Driver.instance.createColorBufferFromBuffer(
+            return Driver.instance.createColorBufferFromBuffer(
                 bytes,
                 formatHint = formatHint,
                 session = session
             )
-            return colorBuffer
         }
     }
 

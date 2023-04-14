@@ -12,7 +12,7 @@ interface DrawThread {
 /**
  * launches a coroutine on the [DrawThread]
  */
-@Suppress("EXPERIMENTAL_API_USAGE")
+@OptIn(DelicateCoroutinesApi::class)
 fun DrawThread.launch(
         context: CoroutineContext = this.dispatcher,
         start: CoroutineStart = CoroutineStart.DEFAULT,

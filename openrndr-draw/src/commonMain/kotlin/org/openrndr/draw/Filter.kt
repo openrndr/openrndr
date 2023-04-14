@@ -175,7 +175,7 @@ void main() {
                 is Matrix55 -> shader.uniform(uniform, value.floatArray)
                 is FloatArray -> shader.uniform(uniform, value)
 
-                // EJ: this is not so nice but I have no other ideas for this
+                // EJ: this is not so nice, but I have no other ideas for this
                 is Array<*> -> if (value.size > 0) when (value[0]) {
                     is Vector2 -> shader.uniform(uniform, value as Array<Vector2>)
                     is Vector3 -> shader.uniform(uniform, value as Array<Vector3>)
@@ -190,13 +190,13 @@ void main() {
                 }
 
                 is DepthBuffer -> {
-                    shader.uniform("$uniform", textureIndex)
+                    shader.uniform(uniform, textureIndex)
                     value.bind(textureIndex)
                     textureIndex++
                 }
 
                 is ColorBuffer -> {
-                    shader.uniform("$uniform", textureIndex)
+                    shader.uniform(uniform, textureIndex)
                     shader.uniform(
                         "textureSize$textureIndex",
                         Vector2(value.effectiveWidth.toDouble(), value.effectiveHeight.toDouble())
@@ -206,19 +206,19 @@ void main() {
                 }
 
                 is Cubemap -> {
-                    shader.uniform("$uniform", textureIndex)
+                    shader.uniform(uniform, textureIndex)
                     value.bind(textureIndex)
                     textureIndex++
                 }
 
                 is ArrayCubemap -> {
-                    shader.uniform("$uniform", textureIndex)
+                    shader.uniform(uniform, textureIndex)
                     value.bind(textureIndex)
                     textureIndex++
                 }
 
                 is BufferTexture -> {
-                    shader.uniform("$uniform", textureIndex)
+                    shader.uniform(uniform, textureIndex)
                     value.bind(textureIndex)
                     textureIndex++
                 }
@@ -248,8 +248,7 @@ void main() {
 }
 
 open class Filter1to1(shader: Shader? = null, watcher: ShaderWatcher? = null) :
-    Filter(shader, watcher) {
-}
+    Filter(shader, watcher)
 
 open class Filter2to1(shader: Shader? = null, watcher: ShaderWatcher? = null) :
     Filter(shader, watcher) {

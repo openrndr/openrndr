@@ -321,8 +321,8 @@ class CompositionDrawer(documentBounds: CompositionDimensions = defaultCompositi
     ): List<ShapeNodeIntersection> {
         return searchFrom.findShapes().pflatMap { node ->
             if (node.bounds.intersects(contour.bounds)) {
-                node.shape.contours.flatMap {
-                    intersections(contour, it).map {
+                node.shape.contours.flatMap { nodeContour ->
+                    intersections(contour, nodeContour).map {
                         ShapeNodeIntersection(node, it)
                     }
                 }

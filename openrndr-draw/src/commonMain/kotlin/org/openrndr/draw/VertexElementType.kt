@@ -3,18 +3,18 @@ package org.openrndr.draw
  * Vertex element type enumeration
  */
 enum class VertexElementType(val componentCount: Int, val sizeInBytes: Int) {
-    /** signed 8 bit integer */
+    /** signed 8-bit integer */
     INT8(1, 1),
     /** unsigned 8 bit integer */
     UINT8(1, 1),
 
     UINT16(1, 2),
-    /** signed 16 bit integer */
+    /** signed 16-bit integer */
     INT16(1, 2),
 
     UINT32(1, 4),
 
-    /** signed 32 bit integer */
+    /** signed 32-bit integer */
     INT32(1, 4),
 
     VECTOR2_UINT8(2, 2),
@@ -40,11 +40,11 @@ enum class VertexElementType(val componentCount: Int, val sizeInBytes: Int) {
 
     /** 32 bit float, or single precision float scalar */
     FLOAT32(1, 4),
-    /** 32 bit float, or single precision float 2-component vector */
+    /** 32-bit float, or single precision float 2-component vector */
     VECTOR2_FLOAT32(2, 8),
-    /** 32 bit float, or single precision float 3-component vector */
+    /** 32-bit float, or single precision float 3-component vector */
     VECTOR3_FLOAT32(3, 12),
-    /** 32 bit float, or single precision float 4-component vector */
+    /** 32-bit float, or single precision float 4-component vector */
     VECTOR4_FLOAT32(4, 16),
     /** 32 bit float, or single precision float 2x2 matrix */
     MATRIX22_FLOAT32(4, 4 * 4),

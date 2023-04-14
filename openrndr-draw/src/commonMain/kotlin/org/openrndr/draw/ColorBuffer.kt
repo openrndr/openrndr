@@ -99,22 +99,19 @@ expect abstract class ColorBuffer {
 
     /** bind the colorbuffer to a texture unit, internal API */
     abstract fun bind(unit: Int)
-    /**
-     * write the contents from [sourceBuffer] to the [ColorBuffer], potentially with format and type conversions
-     *
-     * The [sourceBuffer] should be allocated using [ByteBuffer.allocateDirect] and have an amount of remaining bytes
-     * that matches with the dimensions, [sourceFormat] and [sourceType].
-     * @param sourceBuffer a [ByteBuffer] holding raw image data
-     * @param sourceFormat the [ColorFormat] that is used for the image data stored in [sourceBuffer], default is [ColorBuffer.format]
-     * @param sourceType the [ColorType] that is used for the image data stored in [sourceBuffer], default is [ColorBuffer.type]
-     * @param level the mipmap-level of [ColorBuffer] to write to
-     */
 
 
     /** generates mipmaps from the top-level mipmap */
     abstract fun generateMipmaps()
 
-
+    /**
+     * write the contents from [sourceBuffer] to the [ColorBuffer], potentially with format and type conversions
+     *
+     * @param sourceBuffer a [MPPBuffer] holding raw image data
+     * @param sourceFormat the [ColorFormat] that is used for the image data stored in [sourceBuffer], default is [ColorBuffer.format]
+     * @param sourceType the [ColorType] that is used for the image data stored in [sourceBuffer], default is [ColorBuffer.type]
+     * @param level the mipmap-level of [ColorBuffer] to write to
+     */
     abstract fun write(sourceBuffer: MPPBuffer, sourceFormat: ColorFormat, sourceType: ColorType, x:Int = 0, y:Int = 0, width:Int, height:Int, level:Int = 0)
 
     /** the (unitless?) degree of anisotropy to be used in filtering */

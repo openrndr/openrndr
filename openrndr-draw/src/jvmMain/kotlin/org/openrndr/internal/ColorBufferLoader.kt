@@ -89,7 +89,7 @@ class ColorBufferLoader {
 
                     synchronized(loader.unloadQueue) {
                         if (loader.unloadQueue.isNotEmpty()) {
-                            val proxy = loader.unloadQueue.minWith(compareBy({ it.lastTouched }))
+                            val proxy = loader.unloadQueue.minWith(compareBy { it.lastTouched })
                             val dt = System.currentTimeMillis() - proxy.lastTouched
                             if (dt > 5000) {
                                 loader.unloadQueue.remove(proxy)

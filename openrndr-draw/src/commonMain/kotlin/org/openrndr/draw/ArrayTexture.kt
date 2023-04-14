@@ -1,7 +1,6 @@
 package org.openrndr.draw
 
 import org.openrndr.internal.Driver
-import org.openrndr.math.Vector2
 import org.openrndr.shape.Rectangle
 
 expect abstract class ArrayTexture {

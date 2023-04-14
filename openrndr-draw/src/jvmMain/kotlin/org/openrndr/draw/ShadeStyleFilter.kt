@@ -26,9 +26,7 @@ class ShadeStyleFilter(val shadeStyle: ShadeStyle) : Filter(), ShadeStyleParamet
 
     override fun apply(source: Array<ColorBuffer>, target: Array<ColorBuffer>) {
         shadeStyle.parameter("fill", fill)
-        for (param in parameterTypes) {
 
-        }
         for ((index, buffer) in source.withIndex()) {
             shadeStyle.parameter("input$index", buffer)
         }

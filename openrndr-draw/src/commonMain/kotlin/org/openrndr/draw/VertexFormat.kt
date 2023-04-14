@@ -7,8 +7,6 @@ data class VertexElement(val attribute: String, val offset: Int, val type: Verte
  */
 class VertexFormat {
 
-    internal constructor()
-
     var items: MutableList<VertexElement> = mutableListOf()
     private var vertexSize = 0
 
@@ -71,9 +69,7 @@ class VertexFormat {
         if (other !is VertexFormat) return false
 
 
-        if (items != other.items) return false
-
-        return true
+        return items == other.items
     }
 
     override fun hashCode(): Int {

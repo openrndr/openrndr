@@ -1,7 +1,6 @@
 package org.openrndr.draw
 
 import org.openrndr.internal.Driver
-import org.openrndr.math.Vector3
 import org.openrndr.utils.buffer.MPPBuffer
 import java.io.File
 import java.net.MalformedURLException
@@ -11,14 +10,18 @@ import java.nio.ByteBuffer
 actual interface Cubemap {
 
     companion object {
-        fun create(width: Int, format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.UINT8, levels: Int = -1, session: Session? = Session.active): Cubemap {
-            val cubemap = Driver.instance.createCubemap(width, format, type, levels, session)
-            return cubemap
+        fun create(
+            width: Int,
+            format: ColorFormat = ColorFormat.RGBa,
+            type: ColorType = ColorType.UINT8,
+            levels: Int = -1,
+            session: Session? = Session.active
+        ): Cubemap {
+            return Driver.instance.createCubemap(width, format, type, levels, session)
         }
 
         fun fromUrl(url: String, formatHint: ImageFileFormat?, session: Session? = Session.active): Cubemap {
-            val cubemap = Driver.instance.createCubemapFromUrls(listOf(url), formatHint, session)
-            return cubemap
+            return Driver.instance.createCubemapFromUrls(listOf(url), formatHint, session)
         }
 
         fun fromUrls(urls: List<String>, formatHint: ImageFileFormat?, session: Session? = Session.active): Cubemap {

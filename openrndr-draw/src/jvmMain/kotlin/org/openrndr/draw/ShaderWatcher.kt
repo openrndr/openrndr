@@ -26,8 +26,8 @@ private val watchThread by lazy {
         while (true) {
             val key = watchService.take()
             val path = keyPaths[key]
-            key.pollEvents().forEach {
-                val contextPath = it.context() as Path
+            key.pollEvents().forEach { event ->
+                val contextPath = event.context() as Path
                 val fullPath = path?.resolve(contextPath)
                 watching[fullPath]?.forEach {
                     logger.info { "informing $it of change in $fullPath" }
@@ -54,8 +54,8 @@ actual class ShaderWatcher private constructor(
                      vsUrl: String? = null,
                      fsCode: String? = null,
                      fsUrl: String? = null): ShaderWatcher {
-            val vsFile = vsUrl?.let { URL(it).toFileName()?.let { File(it) } }
-            val fsFile = fsUrl?.let { URL(it).toFileName()?.let { File(it) } }
+            val vsFile = vsUrl?.let { url -> URL(url).toFileName()?.let { File(it) } }
+            val fsFile = fsUrl?.let { url -> URL(url).toFileName()?.let { File(it) } }
             val vsPath = vsFile?.toPath()
             val fsPath = fsFile?.toPath()
             val vsParent = vsPath?.parent

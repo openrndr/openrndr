@@ -16,8 +16,7 @@ actual interface VolumeTexture {
             levels: Int = 1,
             session: Session? = Session.active
         ): VolumeTexture {
-            val volumeTexture = Driver.instance.createVolumeTexture(width, height, depth, format, type, levels, session)
-            return volumeTexture
+            return Driver.instance.createVolumeTexture(width, height, depth, format, type, levels, session)
         }
     }
 
