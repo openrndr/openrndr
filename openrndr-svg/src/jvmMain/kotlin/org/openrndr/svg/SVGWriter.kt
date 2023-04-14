@@ -28,7 +28,7 @@ private val CompositionNode.svgAttributes: String
     get() {
         return attributes.map {
             if (it.value != null && it.value != "") {
-                "${it.key}=\"${Entities.escape(it.value)}\""
+                "${it.key}=\"${Entities.escape(it.value ?: "")}\""
             } else {
                 it.key
             }
