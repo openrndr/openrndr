@@ -148,12 +148,8 @@ object Split {
         }
 
         fun adjust(c: Curve2): Curve2? {
-            val bounds =c.bounds()
-
             val start = adjust(c.start())
             val end = adjust(c.end())
-            //val start = adjust(bounds.lower())
-            //val end = adjust(bounds.upper())
             return if (start == end) null else c.endpoints(start, end)
         }
 
