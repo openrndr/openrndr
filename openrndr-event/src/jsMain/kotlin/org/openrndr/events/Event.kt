@@ -55,7 +55,7 @@ actual class Event<T> actual constructor(val name: String, val postpone: Boolean
     }
 
     actual fun listen(listener: Event<T>): (T) -> Unit {
-        val listenFunction = { m: T -> listener.trigger(m); Unit }
+        val listenFunction = { m: T -> listener.trigger(m) }
         listeners.add(listenFunction)
         return listenFunction
     }
@@ -72,7 +72,7 @@ actual class Event<T> actual constructor(val name: String, val postpone: Boolean
     }
 
     actual fun listenOnce(listener: Event<T>) {
-        oneShotListeners.add({ v1 -> listener.trigger(v1) })
+        oneShotListeners.add { v1 -> listener.trigger(v1) }
     }
 
 }
