@@ -43,7 +43,7 @@ open class Animatable {
         pushTime()
         val before = propertyAnimationKeys.map { it }
         this@Animatable.builder()
-        val added = propertyAnimationKeys subtract before
+        val added = propertyAnimationKeys subtract before.toSet()
 
         val groupDurationInNs = added.maxByOrNull { it.endInNs }?.let {
             it.endInNs - createAtTimeInNs
@@ -252,7 +252,7 @@ open class Animatable {
     }
 
     /**
-     * Wait until a the given timeMillis
+     * Wait until the given timeMillis
      * @param timeInMs the timeMillis in milliseconds
      * @return `this` for easy animation chaining
      */
@@ -278,8 +278,7 @@ open class Animatable {
     }
 
     private fun getFieldValue(variable: KMutableProperty0<Any>): Double {
-        val g = variable.get()
-        when (g) {
+        when (val g = variable.get()) {
             is Double -> return g.toDouble()
         }
         return 0.0
