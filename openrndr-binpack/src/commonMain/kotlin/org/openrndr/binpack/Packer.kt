@@ -9,7 +9,7 @@ import kotlin.math.max
 import kotlin.random.Random
 
 interface Clipper {
-    fun inside(node: IntRectangle, rectangle: IntRectangle, data:Any?): Boolean
+    fun inside(node: IntRectangle, rectangle: IntRectangle, data: Any?): Boolean
 }
 
 interface Splitter {
@@ -34,29 +34,34 @@ class RandomOrderer : Orderer {
     }
 }
 
-class CenterOrderer(val enclosement: IntRectangle, val reverse: Boolean = false) : Orderer {
+class CenterOrderer(private val enclosement: IntRectangle, private val reverse: Boolean = false) : Orderer {
     data class SortOption(val index: Int, val distance: Double)
 
     override fun order(node: PackNode, rectangle: IntRectangle): List<Int> {
-        return node.children.mapIndexed { i, packNode -> SortOption(i, packNode.area.center.minus(enclosement.center).length) }.sortedWith(compareBy { it.distance })
-                .map { it.index }
-                .let {
-                    if (reverse) it.reversed() else it
-                }
+        return node.children.mapIndexed { i, packNode ->
+            SortOption(
+                i,
+                packNode.area.center.minus(enclosement.center).length
+            )
+        }.sortedWith(compareBy { it.distance })
+            .map { it.index }
+            .let {
+                if (reverse) it.reversed() else it
+            }
     }
 }
 
-class OptimizingOrderer(val reverse: Boolean = false) : Orderer {
+class OptimizingOrderer(private val reverse: Boolean = false) : Orderer {
 
     data class SortOption(val index: Int, val area: Int)
 
     override fun order(node: PackNode, rectangle: IntRectangle): List<Int> {
         return node.children.mapIndexed { i, packNode -> SortOption(i, max(packNode.freeArea.x, packNode.freeArea.y)) }
-                .sortedWith(compareBy { it.area })
-                .map { it.index }
-                .let {
-                    if (reverse) it.reversed() else it
-                }
+            .sortedWith(compareBy { it.area })
+            .map { it.index }
+            .let {
+                if (reverse) it.reversed() else it
+            }
     }
 }
 
@@ -92,13 +97,12 @@ class DefaultSplitter : Splitter {
 }
 
 class CenteredBinarySplitter(
-    val enclosement: IntRectangle,
-    val invert: Boolean = true,
-    val constraints: (node:PackNode, rectangle: IntRectangle) -> Boolean = { _, _ -> true },
-    val xcon: (node:PackNode, rectangle: IntRectangle) -> Boolean = { _, _ -> true},
-    val ycon: (node:PackNode, rectangle: IntRectangle) -> Boolean = { _, _ -> true}
-)
-    : Splitter {
+    private val enclosement: IntRectangle,
+    private val invert: Boolean = true,
+    private val constraints: (node: PackNode, rectangle: IntRectangle) -> Boolean = { _, _ -> true },
+    private val xcon: (node: PackNode, rectangle: IntRectangle) -> Boolean = { _, _ -> true },
+    private val ycon: (node: PackNode, rectangle: IntRectangle) -> Boolean = { _, _ -> true }
+) : Splitter {
     override fun split(node: PackNode, rectangle: IntRectangle): List<PackNode> {
 
         if (!constraints.invoke(node, rectangle)) {
@@ -156,7 +160,11 @@ class CenteredBinarySplitter(
     }
 }
 
-class RandomBinarySplitter(val enclosement: IntRectangle, val invert: Boolean = true, val constraints: (node:PackNode, rectangle: IntRectangle) -> Boolean = { _, _ -> true }) : Splitter {
+class RandomBinarySplitter(
+    private val enclosement: IntRectangle,
+    private val invert: Boolean = true,
+    private val constraints: (node: PackNode, rectangle: IntRectangle) -> Boolean = { _, _ -> true }
+) : Splitter {
     override fun split(node: PackNode, rectangle: IntRectangle): List<PackNode> {
 
         if (!constraints.invoke(node, rectangle)) {
@@ -296,8 +304,8 @@ fun prune(node: PackNode) {
             node.children = emptyList()
             node.parent?.let { prune(it) }
         } else {
-            val mx = node.children.map { it.freeArea.x }.maxOrNull() ?: node.freeArea.x
-            val my = node.children.map { it.freeArea.y }.maxOrNull() ?: node.freeArea.y
+            val mx = node.children.maxOfOrNull { it.freeArea.x } ?: node.freeArea.x
+            val my = node.children.maxOfOrNull { it.freeArea.y } ?: node.freeArea.y
 
             if (mx != node.freeArea.x || my != node.freeArea.y) {
                 node.freeArea = IntVector2(mx, my)
@@ -308,9 +316,10 @@ fun prune(node: PackNode) {
 }
 
 class IntPacker(
-        private val clipper: Clipper = DefaultClipper(),
-        private val splitter: Splitter = DefaultSplitter(),
-        private val orderer: Orderer = DefaultOrderer()) {
+    private val clipper: Clipper = DefaultClipper(),
+    private val splitter: Splitter = DefaultSplitter(),
+    private val orderer: Orderer = DefaultOrderer()
+) {
 
     fun insert(node: PackNode, rectangle: IntRectangle, data: Any? = null): PackNode? {
         if (node.freeArea.x < rectangle.width || node.freeArea.y < rectangle.height) {
@@ -330,8 +339,8 @@ class IntPacker(
                 if (node.children[i].freeArea.x >= rectangle.width && node.children[i].freeArea.y >= rectangle.height) {
                     newNode = insert(node.children[i], rectangle, data) //children[i].insert(rect, id);
 
-                    val mx = node.children.map { it.freeArea.x }.maxOrNull() ?: node.freeArea.x
-                    val my = node.children.map { it.freeArea.y }.maxOrNull() ?: node.freeArea.y
+                    val mx = node.children.maxOfOrNull { it.freeArea.x } ?: node.freeArea.x
+                    val my = node.children.maxOfOrNull { it.freeArea.y } ?: node.freeArea.y
                     node.freeArea = IntVector2(mx, my)
 
                     if (newNode != null)
@@ -339,8 +348,8 @@ class IntPacker(
                 }
             }
 
-            val mx = node.children.map { it.freeArea.x }.maxOrNull() ?: node.freeArea.x
-            val my = node.children.map { it.freeArea.y }.maxOrNull() ?: node.freeArea.y
+            val mx = node.children.maxOfOrNull { it.freeArea.x } ?: node.freeArea.x
+            val my = node.children.maxOfOrNull { it.freeArea.y } ?: node.freeArea.y
             node.freeArea = IntVector2(mx, my)
 
             return null
@@ -353,27 +362,27 @@ class IntPacker(
                     return null
                 } else if (node.area.width == rectangle.width && node.area.height == rectangle.height) {
                     // perfect fit!
-                    if (clipper.inside(node.area, rectangle, data)) {
+                    return if (clipper.inside(node.area, rectangle, data)) {
                         node.populate(data)
                         node.freeArea = IntVector2(0, 0)
-                        return node
+                        node
                     } else {
                         //node.freeArea = IntVector2(node.area.width, node.area.height)
-                        return null
+                        null
                     }
                 } else if (node.area.width >= rectangle.width && node.area.height >= rectangle.height) {
                     // fits, but area too big => split area
                     val children = splitter.split(node, rectangle)
 
-                    if (children.size == 0) {
-                        return null
+                    return if (children.isEmpty()) {
+                        null
                     } else {
                         node.children = splitter.split(node, rectangle)
                         val result = insert(node.children[0], rectangle, data)
-                        val mx = node.children.map { it.freeArea.x }.maxOrNull() ?: node.freeArea.x
-                        val my = node.children.map { it.freeArea.y }.maxOrNull() ?: node.freeArea.y
+                        val mx = node.children.maxOfOrNull { it.freeArea.x } ?: node.freeArea.x
+                        val my = node.children.maxOfOrNull { it.freeArea.y } ?: node.freeArea.y
                         node.freeArea = IntVector2(mx, my)
-                        return result
+                        result
                     }
                 } else {
                     throw RuntimeException("where am I?")
