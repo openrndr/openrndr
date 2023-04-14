@@ -238,7 +238,7 @@ class ApplicationWebGL(override var program: Program, override var configuration
     }
 
     private fun readFileOrBlobAsDataUrl(file: File): Promise<String> {
-        return Promise() { resolve, reject ->
+        return Promise() { resolve, _ ->
             val reader = FileReader()
             reader.readAsDataURL(file);
             reader.onloadend = {
@@ -323,16 +323,16 @@ class ApplicationWebGL(override var program: Program, override var configuration
 
     override var windowMultisample: WindowMultisample
         get() = WindowMultisample.Disabled
-        set(value) {
+        set(_) {
             TODO("Not yet implemented")
         }
 
     override var windowResizable: Boolean
         get() = false
-        set(value) {
+        set(_) {
             TODO("Not yet implemented")
         }
     override var pointers: List<Pointer>
         get() = TODO("Not yet implemented")
-        set(value) {}
+        set(_) {}
 }

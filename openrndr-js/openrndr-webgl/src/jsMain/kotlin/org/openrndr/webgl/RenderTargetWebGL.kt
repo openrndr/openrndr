@@ -166,6 +166,10 @@ open class RenderTargetWebGL(
         }
     }
 
+    @Deprecated(
+        "detachColorBuffer is deprecated, use detachColorAttachments",
+        replaceWith = ReplaceWith("detachColorAttachments")
+    )
     override fun detachColorBuffers() {
         TODO("Not yet implemented")
     }

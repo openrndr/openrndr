@@ -101,7 +101,7 @@ fun structureFromShadeStyle(shadeStyle: ShadeStyle?, vertexFormats: List<VertexF
 //                            outputs = shadeStyle.outputs.map { "// -- output-from  ${it.value} \nlayout(location = ${it.value.attachment}) out ${it.value.glslType} o_${it.key};\n" }.joinToString("")
 //                        }
                         outputs = ""
-                        uniforms = shadeStyle.parameterTypes.map { "${mapTypeToUniform(it.value, it.key)}"}.joinToString("\n")
+                        uniforms = shadeStyle.parameterTypes.map { mapTypeToUniform(it.value, it.key) }.joinToString("\n")
                     }
                     run {
                         varyingOut = vertexFormats.flatMap { it.items }.joinToString("") { "${it.type.glslVaryingQualifier}out ${it.type.glslType} va_${it.attribute}${array(it)};\n" } +
@@ -169,7 +169,7 @@ private fun mapTypeToUniform(type: String, name: String): String {
         "VolumeTexture_UINT" -> "$u usampler3D p_$name;"
         "VolumeTexture_SINT" -> "$u isampler3D p_$name;"
         "Image2D", "Image3D", "ImageCube", "Image2DArray", "ImageBuffer", "ImageCubeArray" -> {
-            val sampler = tokens[0].take(1).toLowerCase() + tokens[0].drop(1)
+            val sampler = tokens[0].take(1).lowercase() + tokens[0].drop(1)
             val colorFormat = ColorFormat.valueOf(tokens[1])
             val colorType = ColorType.valueOf(tokens[2])
             val access = ImageAccess.valueOf(tokens[3])
