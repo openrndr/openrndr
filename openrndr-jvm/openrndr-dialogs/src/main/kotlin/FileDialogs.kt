@@ -15,7 +15,6 @@ import java.io.FileOutputStream
 import java.nio.file.Paths
 import java.util.*
 
-
 private val logger = KotlinLogging.logger {}
 
 val nfd by lazy {
@@ -54,7 +53,7 @@ fun getDefaultPathForContext(programName: String = stackRootClassName(), context
 
 /**
  * Set the default path for a context
- * This is an internal function but it can be used to set a default path before calling any of the file dialog functions
+ * This is an internal function, but it can be used to set a default path before calling any of the file dialog functions
  * @param programName optional name of the program, default is guessed from a stack trace on the current thread
  * @param contextID optional context identifier, the default is "global"
  * @param file the path to set as a default
@@ -151,9 +150,7 @@ fun openFilesDialog(
             val psEnum = NFDPathSetEnum.calloc(stack)
             NFD_PathSet_GetEnum(pathSet, psEnum)
 
-            var i = 0
-            while (NFD_PathSet_EnumNext(psEnum, pp) == NFD_OKAY && pp.get(0) !== NULL) {
-                //System.out.format("Path %d: %s\n", i++, pp.getStringUTF8(0))
+            while (NFD_PathSet_EnumNext(psEnum, pp) == NFD_OKAY && pp.get(0) != NULL) {
                 files.add(File(pp.getStringUTF8(0)))
                 NFD_PathSet_FreePath(pp.get(0))
             }
@@ -220,24 +217,19 @@ fun saveFileDialog(
     stackPush().use { stack ->
         val filterList = filterItems(stack, supportedExtensions)
         val defaultPathBase = Paths.get(
-            getDefaultPathForContext(programName, contextID)
-                ?: "."
+            defaultPath ?: getDefaultPathForContext(programName, contextID)
+            ?: "."
         ).normalize().toString()
 
-        val defaultPath = if (suggestedFilename == null) {
-            defaultPathBase
-        } else {
-            File(defaultPathBase, suggestedFilename).absolutePath
-        }
-        logger.debug { "Default path is $defaultPath" }
+
+        logger.debug { "Default path is $defaultPathBase" }
 
         val out = stack.mallocPointer(1)
-        when (NFD_SaveDialog(out, filterList, defaultPath, suggestedFilename)) {
+        when (NFD_SaveDialog(out, filterList, defaultPathBase, suggestedFilename)) {
             NFD_OKAY -> {
                 val ptr = out.get(0)
                 val pickedFilename = memUTF8(ptr)
                 val pickedFile = File(pickedFilename)
-
                 val finalFile =
                     if (supportedExtensions.isNotEmpty() && supportedExtensions.none { pickedFile.extension in it.second }) {
                         val fixedFilename = "$pickedFilename.${supportedExtensions.first().second.first()}"
@@ -278,5 +270,4 @@ private fun filterItems(stack: MemoryStack, extensions: List<Pair<String, List<S
     } else {
         null
     }
-
 }
