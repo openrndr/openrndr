@@ -295,7 +295,7 @@ internal object SVGParse {
 
     /** Assumes [numbers] consists of at least 2 elements. */
     private fun pointsToCommands(numbers: List<Double>): List<Command> {
-        val commands = mutableListOf<Command>(Command("M", numbers[0], numbers[1]))
+        val commands = mutableListOf(Command("M", numbers[0], numbers[1]))
         numbers.drop(2).windowed(2, 2, false).mapTo(commands) { (x, y) ->
             Command("L", x, y)
         }
