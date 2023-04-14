@@ -482,6 +482,10 @@ open class RenderTargetGL3(
         colorAttachments.clear()
     }
 
+    @Deprecated(
+        "detachColorBuffer is deprecated, use detachColorAttachments",
+        replaceWith = ReplaceWith("detachColorAttachments")
+    )
     override fun detachColorBuffers() {
         detachColorAttachments()
     }

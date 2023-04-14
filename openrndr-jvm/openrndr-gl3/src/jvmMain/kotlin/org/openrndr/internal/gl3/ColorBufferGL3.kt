@@ -1,5 +1,6 @@
 package org.openrndr.internal.gl3
 
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -824,6 +825,7 @@ class ColorBufferGL3(
         }
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     override fun saveToFile(file: File, imageFileFormat: ImageFileFormat, async: Boolean) {
         checkDestroyed()
         if (multisample == Disabled) {
@@ -834,7 +836,7 @@ class ColorBufferGL3(
                 (pixels as Buffer).rewind()
 
                 runBlocking {
-                    @Suppress("EXPERIMENTAL_API_USAGE") val job = GlobalScope.launch {
+                    val job = GlobalScope.launch {
                         if (!flipV) {
                             val flippedPixels =
                                 BufferUtils.createByteBuffer(effectiveWidth * effectiveHeight * format.componentCount)
@@ -887,13 +889,13 @@ class ColorBufferGL3(
                 val exrChannels = EXRChannelInfo.calloc(3)
                 exrChannels[0].name(
                     ByteBuffer.allocateDirect(2)
-                        .apply { put('B'.toByte()); put(0.toByte()); (this as Buffer).rewind() })
+                        .apply { put('B'.code.toByte()); put(0.toByte()); (this as Buffer).rewind() })
                 exrChannels[1].name(
                     ByteBuffer.allocateDirect(2)
-                        .apply { put('G'.toByte()); put(0.toByte()); (this as Buffer).rewind() })
+                        .apply { put('G'.code.toByte()); put(0.toByte()); (this as Buffer).rewind() })
                 exrChannels[2].name(
                     ByteBuffer.allocateDirect(2)
-                        .apply { put('R'.toByte()); put(0.toByte()); (this as Buffer).rewind() })
+                        .apply { put('R'.code.toByte()); put(0.toByte()); (this as Buffer).rewind() })
 
                 exrHeader.channels(exrChannels)
 

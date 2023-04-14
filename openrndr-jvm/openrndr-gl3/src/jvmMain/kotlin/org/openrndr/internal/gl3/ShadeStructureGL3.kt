@@ -2,6 +2,9 @@ package org.openrndr.internal.gl3
 
 import org.openrndr.draw.*
 import org.openrndr.measure
+import java.util.*
+import kotlin.collections.HashMap
+import kotlin.collections.LinkedHashMap
 
 fun array(item: VertexElement): String = if (item.arraySize == 1) "" else "[${item.arraySize}]"
 
@@ -184,7 +187,7 @@ private fun mapTypeToUniform(type: String, name: String): String {
         "VolumeTexture_UINT" -> "$u usampler3D p_$name;"
         "VolumeTexture_SINT" -> "$u isampler3D p_$name;"
         "Image2D", "Image3D", "ImageCube", "Image2DArray", "ImageBuffer", "ImageCubeArray" -> {
-            val sampler = tokens[0].take(1).toLowerCase() + tokens[0].drop(1)
+            val sampler = tokens[0].take(1).lowercase() + tokens[0].drop(1)
             val colorFormat = ColorFormat.valueOf(tokens[1])
             val colorType = ColorType.valueOf(tokens[2])
             val access = ImageAccess.valueOf(tokens[3])

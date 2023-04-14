@@ -47,10 +47,10 @@ class ColorBufferShadowGL3(override val colorBuffer: ColorBufferGL3) : ColorBuff
                 }
             }
             ColorType.UINT16 -> {
-                val ir = (r * 65535).coerceIn(0.0, 65535.0).toChar()
-                val ig = (g * 65535).coerceIn(0.0, 65535.0).toChar()
-                val ib = (b * 65335).coerceIn(0.0, 65535.0).toChar()
-                val ia = (a * 65535).coerceIn(0.0, 65535.0).toChar()
+                val ir = (r * 65535).coerceIn(0.0, 65535.0).toInt().toChar()
+                val ig = (g * 65535).coerceIn(0.0, 65535.0).toInt().toChar()
+                val ib = (b * 65335).coerceIn(0.0, 65535.0).toInt().toChar()
+                val ia = (a * 65535).coerceIn(0.0, 65535.0).toInt().toChar()
                 buffer.putChar(offset, ir)
                 buffer.putChar(offset + 2, ig)
                 buffer.putChar(offset + 4, ib)
