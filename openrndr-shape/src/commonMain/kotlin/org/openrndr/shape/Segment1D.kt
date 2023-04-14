@@ -224,8 +224,7 @@ class Segment1D: LinearType<Segment1D> {
 
 
     override fun plus(right: Segment1D): Segment1D {
-        val cmax = max(control.size, right.control.size)
-        when(cmax) {
+        when(val cmax = max(control.size, right.control.size)) {
             0 -> return Segment1D(start + right.start, end + right.end)
             1 -> {
                 val qthis = this.quadratic
@@ -247,8 +246,7 @@ class Segment1D: LinearType<Segment1D> {
     }
 
     override fun minus(right: Segment1D): Segment1D {
-        val cmax = max(control.size, right.control.size)
-        when(cmax) {
+        when(val cmax = max(control.size, right.control.size)) {
             0 -> return Segment1D(start - right.start, end - right.end)
             1 -> {
                 val qthis = this.quadratic

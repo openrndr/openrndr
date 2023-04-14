@@ -41,16 +41,15 @@ fun <T : LinearType<T>> resample(input: List<Pair<T, Double>>, ts: List<Double>)
         val i1 = index.coerceIn(input.indices)
         val i0 = (index - 1).coerceIn(input.indices)
 
-        val v: T
-        if (i0 == i1) {
-            v = input[i0].first
+        val v: T = if (i0 == i1) {
+            input[i0].first
         } else {
             val t0 = t - input[i0].second
             val dt = input[i1].second - input[i0].second
             val f = t0 / dt
             val v0 = input[i0].first
             val v1 = input[i1].first
-            v = v0 * (1.0 - f) + v1 * f
+            v0 * (1.0 - f) + v1 * f
         }
         result.add(Pair(v, t))
     }

@@ -31,8 +31,7 @@ class Path1D(val segments: List<Segment1D>, val closed: Boolean) {
 
     fun adaptivePositionsWithT(distanceTolerance: Double = 25.0): List<Pair<Double, Double>> {
         val adaptivePoints = mutableListOf<Pair<Double, Double>>()
-        var last: Double? = null
-        for ((index, segment) in this.segments.withIndex()) {
+        for (segment in this.segments) {
             val samples = segment.adaptivePositionsWithT(distanceTolerance)
             if (samples.isNotEmpty()) {
                 val r = samples[0]

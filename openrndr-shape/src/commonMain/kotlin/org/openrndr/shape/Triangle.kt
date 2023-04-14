@@ -1,6 +1,5 @@
 package org.openrndr.shape
 
-import org.openrndr.kartifex.Vec
 import org.openrndr.math.Matrix33
 import org.openrndr.math.Polar
 import org.openrndr.math.Vector2
@@ -35,10 +34,7 @@ data class Triangle(val x1: Vector2, val x2: Vector2, val x3: Vector2) : ShapePr
             return false
         }
         val c = det - a - b
-        if (c < minD || c > maxD)
-            return false
-
-        return true
+        return !(c < minD || c > maxD)
     }
 
     /** Returns [ShapeContour] representation of the [Triangle]. */

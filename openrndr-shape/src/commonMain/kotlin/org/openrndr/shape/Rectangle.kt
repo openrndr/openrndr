@@ -290,7 +290,7 @@ val List<Rectangle>.bounds: Rectangle
         return Rectangle(Vector2(minX, minY), maxX - minX, maxY - minY)
     }
 
-/** Determines whether or not rectangles [a] and [b] intersect. */
+/** Determines whether rectangles [a] and [b] intersect. */
 @Deprecated(
     "use Rectangle.intersects(Rectangle) instead",
     ReplaceWith("a.intersects(b)")

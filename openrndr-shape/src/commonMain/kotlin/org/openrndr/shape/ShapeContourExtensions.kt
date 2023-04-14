@@ -17,7 +17,7 @@ fun ShapeContour.split(cutter: ShapeContour) = split(this, cutter)
 fun ShapeContour.split(cutters: List<ShapeContour>) = split(this, cutters)
 
 
-fun ShapeContour.removeLoops(attempts: Int = 0, reverseOrder: Boolean = false): ShapeContour {
+fun ShapeContour.removeLoops(attempts: Int = 0): ShapeContour {
     if (attempts > 10) {
         error("tried more than 10 times to remove loops")
     }
@@ -25,12 +25,12 @@ fun ShapeContour.removeLoops(attempts: Int = 0, reverseOrder: Boolean = false): 
     if (this.closed) {
         return this
     } else {
-        val ints = intersections(this, this)
-        if (ints.isEmpty()) {
+        val selfIntersections = intersections(this, this)
+        if (selfIntersections.isEmpty()) {
             return this
         } else {
 
-            val toFix = ints.minByOrNull { it.a.contourT }!!
+            val toFix = selfIntersections.minByOrNull { it.a.contourT }!!
             val sorted = listOf(toFix.a.contourT, toFix.b.contourT).sorted()
 
             val head = this.sub(0.0, sorted[0])
@@ -73,9 +73,8 @@ fun ShapeContour.offset(distance: Double, joinType: SegmentJoin = SegmentJoin.RO
         offsetContours[i] = offsetContours[i].removeLoops()
     }
 
-    for (i in 0 until if (this.closed) offsetContours.size else offsetContours.size - 1) {
-        val i0 = i
-        val i1 = (i + 1) % (offsetContours.size)
+    for (i0 in 0 until if (this.closed) offsetContours.size else offsetContours.size - 1) {
+        val i1 = (i0 + 1) % (offsetContours.size)
         val its = intersections(offsetContours[i0], offsetContours[i1])
         if (its.size == 1) {
             offsetContours[i0] = offsetContours[i0].sub(0.0, its[0].a.contourT)

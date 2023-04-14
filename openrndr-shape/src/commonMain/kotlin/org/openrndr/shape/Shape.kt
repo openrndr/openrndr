@@ -2,7 +2,6 @@
 
 package org.openrndr.shape
 
-import org.openrndr.kartifex.Path2
 import org.openrndr.kartifex.Region2
 import org.openrndr.math.*
 import org.openrndr.utils.resettableLazy

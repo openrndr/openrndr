@@ -8,9 +8,7 @@ import kotlin.math.abs
 import kotlin.math.min
 import kotlin.math.pow
 
-
 class PathProjection3D(val segmentProjection: SegmentProjection3D, val projection: Double, val distance: Double, val point: Vector3)
-
 
 class Path3D(val segments: List<Segment3D>, val closed: Boolean) {
     companion object {
@@ -18,7 +16,7 @@ class Path3D(val segments: List<Segment3D>, val closed: Boolean) {
                 if (!closed)
                     Path3D((0 until points.size - 1).map { Segment3D(points[it], points[it + 1]) }, closed)
                 else
-                    Path3D((0 until points.size).map { Segment3D(points[it], points[(it + 1) % points.size]) }, closed)
+                    Path3D((points.indices).map { Segment3D(points[it], points[(it + 1) % points.size]) }, closed)
     }
 
     val exploded: List<Path3D>
@@ -65,7 +63,7 @@ class Path3D(val segments: List<Segment3D>, val closed: Boolean) {
     fun adaptivePositionsWithT(distanceTolerance: Double = 0.5): List<Pair<Vector3, Double>> {
         val adaptivePoints = mutableListOf<Pair<Vector3, Double>>()
         var last: Vector3? = null
-        for ((index, segment) in this.segments.withIndex()) {
+        for (segment in this.segments) {
             val samples = segment.adaptivePositionsWithT(distanceTolerance)
             if (samples.isNotEmpty()) {
                 val r = samples[0]
@@ -119,8 +117,8 @@ class Path3D(val segments: List<Segment3D>, val closed: Boolean) {
 
     /**
      * Sample a sub contour
-     * @param u0 starting point in [0, 1)
-     * @param u1 ending point in [0, 1)
+     * @param t0 starting point in [0, 1)
+     * @param t1 ending point in [0, 1)
      * @return sub contour
      */
     fun sub(t0: Double, t1: Double): Path3D {
@@ -211,7 +209,7 @@ class Path3D(val segments: List<Segment3D>, val closed: Boolean) {
      *
      */
     fun on(point: Vector3, error: Double = 5.0): Double? {
-        for (i in 0 until segments.size) {
+        for (i in segments.indices) {
             val st = segments[i].on(point, error)
             if (st != null) {
                 return (i + st) / segments.size
@@ -266,14 +264,11 @@ class Path3D(val segments: List<Segment3D>, val closed: Boolean) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (this::class != other!!::class)
-        //if (javaClass != other?.javaClass) return false
 
         other as Path3D
 
         if (segments != (other as Path3D).segments) return false
-        if (closed != other.closed) return false
-
-        return true
+        return closed == other.closed
     }
 
     override fun hashCode(): Int {

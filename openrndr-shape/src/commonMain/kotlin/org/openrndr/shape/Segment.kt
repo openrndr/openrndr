@@ -27,7 +27,7 @@ class Segment : ShapeContourProvider {
     val control: Array<Vector2>
 
     /**
-     * Indicates whether or not the [Segment] is [linear][SegmentType.LINEAR].
+     * Indicates whether the [Segment] is [linear][SegmentType.LINEAR].
      */
     val linear: Boolean get() = control.isEmpty()
 
@@ -913,9 +913,7 @@ class Segment : ShapeContourProvider {
 
         if (start != other.start) return false
         if (end != other.end) return false
-        if (!control.contentEquals(other.control)) return false
-
-        return true
+        return control.contentEquals(other.control)
     }
 
     override fun hashCode(): Int {
