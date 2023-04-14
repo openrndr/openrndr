@@ -25,7 +25,7 @@ class CubemapGL3(val texture: Int, override val width: Int, override val type: C
 
 
     override var levels = levels
-        private set(value: Int) {
+        private set(value) {
             if (field != value) {
                 field = value
                 bound {

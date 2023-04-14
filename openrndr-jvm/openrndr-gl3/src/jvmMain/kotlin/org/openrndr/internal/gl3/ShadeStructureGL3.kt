@@ -2,7 +2,6 @@ package org.openrndr.internal.gl3
 
 import org.openrndr.draw.*
 import org.openrndr.measure
-import java.util.*
 import kotlin.collections.HashMap
 import kotlin.collections.LinkedHashMap
 
@@ -105,7 +104,7 @@ fun structureFromShadeStyle(shadeStyle: ShadeStyle?, vertexFormats: List<VertexF
                             outputs = shadeStyle.outputs.map { "// -- output-from  ${it.value} \nlayout(location = ${it.value.attachment}) out ${it.value.glslType} o_${it.key};\n" }.joinToString("")
                         }
                         measure("uniforms") {
-                            uniforms = shadeStyle.parameterTypes.map { "${mapTypeToUniform(it.value, it.key)}"}.joinToString("\n")
+                            uniforms = shadeStyle.parameterTypes.map { mapTypeToUniform(it.value, it.key) }.joinToString("\n")
                         }
 
                         measure("buffers") {

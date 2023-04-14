@@ -26,7 +26,7 @@ class ShadeStyleManagerGL3(
         instanceFormats: List<VertexFormat>
     ): Shader {
         val outputInstanceFormats = instanceFormats + (style?.attributes
-            ?: emptyList<VertexBuffer>()).map { it.vertexFormat }
+            ?: emptyList()).map { it.vertexFormat }
 
         if (style == null) {
             return measure("default-shader") {

@@ -13,7 +13,6 @@ import org.lwjgl.opengl.EXTTextureFilterAnisotropic.GL_TEXTURE_MAX_ANISOTROPY_EX
 import org.lwjgl.opengl.EXTTextureSRGB.*
 import org.lwjgl.opengl.GL33C.*
 import org.lwjgl.opengl.GL42C.glTexStorage2D
-import org.lwjgl.opengl.GL43C
 import org.lwjgl.opengl.GL43C.glCopyImageSubData
 import org.lwjgl.opengl.GL43C.glTexStorage2DMultisample
 import org.lwjgl.opengl.GL44C
@@ -371,13 +370,13 @@ class ColorBufferGL3(
     }
 
     override fun copyTo(target: ColorBuffer, fromLevel: Int, toLevel: Int, filter: MagnifyingFilter) {
-        val sourceRectangle: IntRectangle = IntRectangle(
+        val sourceRectangle = IntRectangle(
             0,
             0,
             this.effectiveWidth / (1 shl fromLevel),
             this.effectiveHeight / (1 shl fromLevel)
         )
-        val targetRectangle: IntRectangle = IntRectangle(
+        val targetRectangle = IntRectangle(
             0,
             0,
             sourceRectangle.width,
@@ -464,7 +463,7 @@ class ColorBufferGL3(
             readTarget.destroy()
         } else {
             require(sourceRectangle == refRectangle && targetRectangle == refRectangle) {
-                "cropped or scaled copyTo is not allowed with the selected color buffers: ${this} -> ${target}"
+                "cropped or scaled copyTo is not allowed with the selected color buffers: $this -> $target"
             }
 
             val useFrameBufferCopy =
@@ -491,7 +490,7 @@ class ColorBufferGL3(
                         target.effectiveWidth / toDiv,
                         target.effectiveHeight / toDiv
                     )
-                    debugGLErrors() {
+                    debugGLErrors {
                         when (it) {
                             GL_INVALID_VALUE -> "level ($toLevel) less than 0, effective target is GL_TEXTURE_RECTANGLE (${target.target == GL_TEXTURE_RECTANGLE} and level is not 0"
                             else -> null
@@ -504,7 +503,7 @@ class ColorBufferGL3(
                 readTarget.destroy()
             } else {
                 target as ColorBufferGL3
-                GL43C.glCopyImageSubData(
+                glCopyImageSubData(
                     texture,
                     this.target,
                     fromLevel,
@@ -527,7 +526,7 @@ class ColorBufferGL3(
     }
 
     override fun copyTo(target: ArrayTexture, layer: Int, fromLevel: Int, toLevel: Int) {
-        debugGLErrors() {
+        debugGLErrors {
             "leaking error"
         }
         require(fromLevel < this.levels) { """requested to copy from mipmap level $fromLevel, but source colorbuffer has $levels mipmap levels.""" }
@@ -559,7 +558,7 @@ class ColorBufferGL3(
                     target.width / toDiv,
                     target.height / toDiv
                 )
-                debugGLErrors() {
+                debugGLErrors {
                     when (it) {
                         GL_INVALID_FRAMEBUFFER_OPERATION -> "the object bound to GL_READ_FRAMEBUFFER_BINDING is not framebuffer complete."
                         else -> null
@@ -707,7 +706,7 @@ class ColorBufferGL3(
     override fun write(sourceBuffer: ByteBuffer, sourceFormat: ColorFormat, sourceType: ColorType, level: Int) {
 
         require(sourceBuffer.remaining() > 0) {
-            "sourceBuffer ${sourceBuffer} has no remaining data"
+            "sourceBuffer $sourceBuffer has no remaining data"
         }
 
         val div = 1 shl level

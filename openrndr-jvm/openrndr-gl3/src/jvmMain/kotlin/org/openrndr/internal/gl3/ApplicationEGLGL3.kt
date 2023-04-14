@@ -29,13 +29,12 @@ class ApplicationEGLGL3(override var program: Program, override var configuratio
     override var cursorPosition: Vector2
         get() = Vector2(0.0, 0.0)
         set(value) {}
-    private var driver: DriverGL3
+    private var driver = DriverGL3(DriverVersionGL.VERSION_3_3)
     private var exitRequested = false
     private var startTime = System.currentTimeMillis()
     private val vaos = IntArray(1)
 
     init {
-        driver = DriverGL3(DriverVersionGL.VERSION_3_3)
         Driver.driver = driver
         program.application = this
     }

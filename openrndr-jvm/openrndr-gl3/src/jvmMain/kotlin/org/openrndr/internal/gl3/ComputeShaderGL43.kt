@@ -2,7 +2,6 @@ package org.openrndr.internal.gl3
 
 import mu.KotlinLogging
 import org.lwjgl.BufferUtils
-import org.lwjgl.opengl.GL43C
 import org.lwjgl.opengl.GL43C.*
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
@@ -64,7 +63,7 @@ class ComputeShaderGL43(val programObject: Int, val name: String = "compute_shad
                     require(colorBuffer.format.componentCount != 3) {
                         "color buffer has unsupported format (${imageBinding.colorBuffer.format}), only formats with 1, 2 or 4 components are supported"
                     }
-                    GL43C.glBindImageTexture(
+                    glBindImageTexture(
                         image,
                         colorBuffer.texture,
                         0,
@@ -90,7 +89,7 @@ class ComputeShaderGL43(val programObject: Int, val name: String = "compute_shad
         bound {
             val index = storageIndex.getOrPut(name) { storageIndex.size + 8 }
             vertexBuffer as VertexBufferGL3
-            glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
+            glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo)
             checkGLErrors()
             glBindBufferBase(GL_SHADER_STORAGE_BUFFER, index, vertexBuffer.buffer)
             checkGLErrors()
@@ -109,7 +108,7 @@ class ComputeShaderGL43(val programObject: Int, val name: String = "compute_shad
             val index = storageIndex.getOrPut(name) { storageIndex.size + 8 }
 
             shaderStorageBuffer as ShaderStorageBufferGL43
-            glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
+            glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo)
             checkGLErrors()
             glBindBufferBase(GL_SHADER_STORAGE_BUFFER, index, shaderStorageBuffer.buffer)
             checkGLErrors()

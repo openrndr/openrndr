@@ -100,7 +100,7 @@ open class RenderTargetGL3(
 
         debugGLErrors { null }
         if (colorAttachments.isNotEmpty()) {
-            val drawBuffers = colorAttachments.mapIndexed { index, _ -> GL_COLOR_ATTACHMENT0 + index }.toIntArray()
+            val drawBuffers = List(colorAttachments.size) { index -> GL_COLOR_ATTACHMENT0 + index }.toIntArray()
             glDrawBuffers(drawBuffers)
             debugGLErrors {
                 when (it) {
@@ -300,7 +300,7 @@ open class RenderTargetGL3(
             level
         )
 
-        checkGLErrors() { null }
+        checkGLErrors { null }
 
         colorAttachments.add(LayeredCubemapAttachment(colorAttachments.size, name, cubemap, level))
 

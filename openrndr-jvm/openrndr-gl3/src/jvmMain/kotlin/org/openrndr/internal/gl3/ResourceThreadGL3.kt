@@ -4,7 +4,6 @@ import org.lwjgl.glfw.GLFW
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL33C.GL_TRUE
 import org.lwjgl.system.MemoryUtil
-import org.openrndr.color.ColorRGBa
 import org.openrndr.internal.Driver
 import org.openrndr.internal.ResourceThread
 import kotlin.concurrent.thread

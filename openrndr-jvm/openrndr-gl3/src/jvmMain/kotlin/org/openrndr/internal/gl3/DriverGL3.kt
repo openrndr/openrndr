@@ -529,9 +529,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
             other as ShaderVertexDescription
             if (shader != other.shader) return false
             if (!vertexBuffers.contentEquals(other.vertexBuffers)) return false
-            if (!instanceAttributeBuffers.contentEquals(other.instanceAttributeBuffers)) return false
-
-            return true
+            return instanceAttributeBuffers.contentEquals(other.instanceAttributeBuffers)
         }
 
         override fun hashCode(): Int {

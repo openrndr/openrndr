@@ -23,7 +23,7 @@ class VertexBufferShadowGL3(override val vertexBuffer: VertexBufferGL3) : Vertex
             BufferUtils.createByteBuffer(vertexBuffer.vertexCount * vertexBuffer.vertexFormat.size).apply {
                 order(ByteOrder.nativeOrder())
                 logger.debug { "creating vertex buffer shadow of ${vertexBuffer.vertexCount.toLong() * vertexBuffer.vertexFormat.size.toLong()} bytes"}
-                logger.debug { "${vertexBuffer}" }
+                logger.debug { "$vertexBuffer" }
             }
 
     override fun upload(offsetInBytes: Int, sizeInBytes: Int) {
@@ -61,7 +61,7 @@ class VertexBufferGL3(val buffer: Int, override val vertexFormat: VertexFormat, 
 
     companion object {
         fun createDynamic(vertexFormat: VertexFormat, vertexCount: Int, session: Session?): VertexBufferGL3 {
-            checkGLErrors() {
+            checkGLErrors {
                 "pre-existing errors before creating vertex buffer"
             }
             val buffer = glGenBuffers()
@@ -147,7 +147,7 @@ class VertexBufferGL3(val buffer: Int, override val vertexFormat: VertexFormat, 
 
     override fun destroy() {
         logger.debug {
-            "destroying vertex buffer with id ${buffer}"
+            "destroying vertex buffer with id $buffer"
         }
         session?.untrack(this)
         isDestroyed = true
@@ -161,7 +161,7 @@ class VertexBufferGL3(val buffer: Int, override val vertexFormat: VertexFormat, 
         if (isDestroyed) {
             throw IllegalStateException("buffer is destroyed")
         }
-        logger.trace { "binding vertex buffer ${buffer}" }
+        logger.trace { "binding vertex buffer $buffer" }
         glBindBuffer(GL_ARRAY_BUFFER, buffer)
         debugGLErrors()
     }
