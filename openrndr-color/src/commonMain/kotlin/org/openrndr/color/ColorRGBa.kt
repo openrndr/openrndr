@@ -87,7 +87,7 @@ data class ColorRGBa @JvmOverloads constructor(
          * * `RRGGBB`
          * * `RRGGBBAA`
          *
-         * where every character is a valid hex digit between `0..f` (case insensitive).
+         * where every character is a valid hex digit between `0..f` (case-insensitive).
          * Supports leading "#" or "0x".
          */
         fun fromHex(hex: String): ColorRGBa {
@@ -183,7 +183,7 @@ data class ColorRGBa @JvmOverloads constructor(
     override fun shade(factor: Double): ColorRGBa = ColorRGBa(r * factor, g * factor, b * factor, alpha, linearity)
 
     /**
-     * Copy of the the color with all of its fields clamped to `[0, 1]`
+     * Copy of the color with all of its fields clamped to `[0, 1]`
      */
     val saturated
         get() = ColorRGBa(
@@ -357,7 +357,7 @@ fun rgb(gray: Double, a: Double = 1.0) = ColorRGBa(gray, gray, gray, a, linearit
 
 /**
  * Create a color in RGBa space
- * This function is a short-hand for using the ColorRGBa constructor
+ * This function is a shorthand for using the ColorRGBa constructor
  * @param r red in `[0,1]`
  * @param g green in `[0,1]`
  * @param b blue in `[0,1]`
