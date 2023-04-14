@@ -215,8 +215,7 @@ fun slerp(q1: Quaternion, q2: Quaternion, x: Double): Quaternion {
         val theta = acos(result)
         val invSinTheta = 1.0 / sin(theta)
 
-        // Calculate the scale for q1 and q2, according to the angle and
-        // it's sine value
+        // Calculate the scale for q1 and q2, according to the angle and its sine value
         scale0 = sin((1 - x) * theta) * invSinTheta
         scale1 = sin(x * theta) * invSinTheta
     }

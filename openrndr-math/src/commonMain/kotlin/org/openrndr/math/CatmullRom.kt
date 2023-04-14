@@ -63,7 +63,7 @@ class CatmullRom1 @JvmOverloads constructor (val p0: Double, val p1: Double, val
  * @param points The [List] of 1D points where [CatmullRom1] is applied in groups of 4.
  * @param alpha The *tension* of the curve.
  *      Use `0.0` for the uniform spline, `0.5` for the centripetal spline, `1.0` for the chordal spline.
- * @param loop Whether or not to connect the first and last point so it forms a closed shape.
+ * @param loop Whether to connect the first and last point, such that it forms a closed shape.
  */
 class CatmullRomChain1 @JvmOverloads constructor (points: List<Double>, alpha: Double = 0.5, val loop: Boolean = false) {
     val segments = if (!loop) points.windowed(4, 1).map {
@@ -144,7 +144,7 @@ class CatmullRom2 @JvmOverloads constructor (val p0: Vector2, val p1: Vector2, v
  * @param points The [List] of 2D points where [CatmullRom2] is applied in groups of 4.
  * @param alpha The *tension* of the curve.
  *      Use `0.0` for the uniform spline, `0.5` for the centripetal spline, `1.0` for the chordal spline.
- * @param loop Whether or not to connect the first and last point so it forms a closed shape.
+ * @param loop Whether to connect the first and last point, such that it forms a closed shape.
  */
 class CatmullRomChain2 @JvmOverloads constructor (points: List<Vector2>, alpha: Double = 0.5, val loop: Boolean = false) {
     val segments = if (!loop) {
@@ -239,7 +239,7 @@ class CatmullRom3 @JvmOverloads constructor (val p0: Vector3, val p1: Vector3, v
  * @param points The [List] of 3D points where [CatmullRom3] is applied in groups of 4.
  * @param alpha The *tension* of the curve.
  *      Use `0.0` for the uniform spline, `0.5` for the centripetal spline, `1.0` for the chordal spline.
- * @param loop Whether or not to connect the first and last point so it forms a closed shape.
+ * @param loop Whether to connect the first and last point, such that it forms a closed shape.
  */
 class CatmullRomChain3 @JvmOverloads constructor (points: List<Vector3>, alpha: Double = 0.5, val loop: Boolean = false) {
     val segments = if (!loop) {

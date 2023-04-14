@@ -1,7 +1,6 @@
 package org.openrndr.math
 
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
 import kotlin.math.*
 
 enum class YPolarity {

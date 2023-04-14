@@ -49,7 +49,7 @@ interface EuclideanVector<T> : LinearType<T> where T : EuclideanVector<T>, T : L
     }
 
     /**
-     * dot product between this and [other]
+     * dot product between this and [right]
      */
     infix fun dot(right: T): Double
 

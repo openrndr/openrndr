@@ -1,7 +1,6 @@
 package org.openrndr.math
 
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
 
 /**
  * A 4x4 matrix with double precision

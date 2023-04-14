@@ -14,7 +14,7 @@ package org.openrndr.math
  * @param bias a value above 0.0 and below 0.5 controlling
  * where new vertices are located. Lower values produce vertices near
  * existing vertices. Values near 0.5 biases new vertices towards
- * the mid point between existing vertices.
+ * the mid-point between existing vertices.
  */
 tailrec fun chaikinSmooth(
     polyline: List<Vector2>,

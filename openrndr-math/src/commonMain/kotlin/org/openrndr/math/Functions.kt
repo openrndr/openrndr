@@ -15,14 +15,17 @@ fun mod(a: Long, b: Long) = ((a % b) + b) % b
 @JvmName("modDouble")
 fun Double.mod_(b: Double) = mod(this, b)
 
+@Suppress("FunctionName")
 @Deprecated("deprecated", replaceWith = ReplaceWith("mod"))
 @JvmName("modInt")
 fun Int.mod_(b: Int) = mod(this, b)
 
+@Suppress("FunctionName")
 @Deprecated("deprecated", replaceWith = ReplaceWith("mod"))
 @JvmName("modFloat")
 fun Float.mod_(b: Float) = mod(this, b)
 
+@Suppress("FunctionName")
 @Deprecated("deprecated", replaceWith = ReplaceWith("mod"))
 @JvmName("modLong")
 fun Long.mod_(b: Long) = mod(this, b)

@@ -7,7 +7,7 @@ import kotlin.math.atan2
 /**
  * Ref: https://en.wikipedia.org/wiki/Spherical_coordinate_system
  *
- * The poles (phi) are at the positive and negative y axis.
+ * The poles (phi) are at the positive and negative y-axis.
  * The equator starts at positive z.
  */
 
