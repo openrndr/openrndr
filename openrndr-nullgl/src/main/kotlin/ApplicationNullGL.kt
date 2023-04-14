@@ -70,10 +70,8 @@ class ApplicationNullGL(override var program: Program, override var configuratio
     override var windowSize = Vector2(640.0, 480.0)
     override var windowMultisample: WindowMultisample
         get() = WindowMultisample.Disabled
-        set(value) {
-
+        set(_) {
             logger.warn { "Setting window multisampling is not supported" }
-
         }
     override var windowResizable: Boolean
         get() = false

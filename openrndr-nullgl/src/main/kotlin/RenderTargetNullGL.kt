@@ -51,6 +51,10 @@ class RenderTargetNullGL(override val width: Int, override val height: Int, over
         TODO("Not yet implemented")
     }
 
+    @Deprecated(
+        "detachColorBuffer is deprecated, use detachColorAttachments",
+        replaceWith = ReplaceWith("detachColorAttachments")
+    )
     override fun detachColorBuffers() {
     }
 
