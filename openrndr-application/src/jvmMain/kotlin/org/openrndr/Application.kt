@@ -46,7 +46,7 @@ actual abstract class Application {
                 (System.getProperties()["org.openrndr.preloadclass"] as? String)
                     ?: "org.openrndr.Preload"
             val preload = try {
-                val c =
+                @Suppress("UNCHECKED_CAST") val c =
                     Application::class.java.classLoader.loadClass(preloadClassName) as Class<ApplicationPreload>
                 logger.info { "preload class found '$preloadClassName'" }
                 c.constructors.first().newInstance() as ApplicationPreload

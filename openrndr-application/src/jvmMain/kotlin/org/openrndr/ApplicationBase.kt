@@ -32,9 +32,7 @@ actual abstract class ApplicationBase {
                 logger.debug { "NullGL not found" }
             }
 
-            val applicationProperty: String? = System.getProperty("org.openrndr.application")
-
-            return when (applicationProperty) {
+            return when (val applicationProperty: String? = System.getProperty("org.openrndr.application")) {
                 null, "", "GLFW" -> ApplicationBase::class.java.classLoader.loadClass("org.openrndr.internal.gl3.ApplicationBaseGLFWGL3")
                 "EGL" -> ApplicationBase::class.java.classLoader.loadClass("org.openrndr.internal.gl3.ApplicationBaseEGLGL3")
                 else -> throw IllegalArgumentException("Unknown value '${applicationProperty}' provided for org.openrndr.application")

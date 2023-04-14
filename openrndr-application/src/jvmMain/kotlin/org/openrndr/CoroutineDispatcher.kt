@@ -40,6 +40,7 @@ actual class Dispatcher : MainCoroutineDispatcher(), Delay {
     }
 
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     fun execute() {
         lastRunTime = System.currentTimeMillis()
         synchronized(toRun) {
@@ -54,7 +55,7 @@ actual class Dispatcher : MainCoroutineDispatcher(), Delay {
         val time = System.currentTimeMillis()
         synchronized(toRunAfter) {
             val toDo = toRunAfter.filter { it.first <= time }
-            if (!toDo.isEmpty()) {
+            if (toDo.isNotEmpty()) {
                 toRunAfter.removeAll { it.first <= time }
             }
             for ((_, runnable) in toDo) {
@@ -85,7 +86,8 @@ suspend fun throttle(timeMillis: Long) {
     }
 }
 
-@Suppress("EXPERIMENTAL_API_USAGE")
+
+@OptIn(DelicateCoroutinesApi::class)
 fun Dispatcher.launch(start: CoroutineStart = CoroutineStart.DEFAULT,
                       block: suspend CoroutineScope.() -> Unit
 ): Job = GlobalScope.launch(this, start, block)
