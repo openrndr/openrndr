@@ -35,7 +35,9 @@ data class MouseEvent(val position: Vector2, val rotation: Vector2, val dragDisp
     }
 }
 
-
+/**
+ * Mouse cursor types
+ */
 enum class CursorType {
     ARROW_CURSOR,
     IBEAM_CURSOR,
@@ -47,7 +49,6 @@ enum class CursorType {
 
 interface MouseEvents {
 
-    val pressedButtons: MutableSet<MouseButton>
     val position: Vector2
 
     /**
@@ -187,6 +188,28 @@ class ApplicationMouse(private val application: () -> Application): MouseEvents 
      * Emitted from [Application] whenever the mouse exits the window client area
      */
     override val exited = Event<MouseEvent>("mouse-exited", postpone = true)
+}
 
-    override var pressedButtons = mutableSetOf<MouseButton>()
+/**
+ * Keeps track of which mouse buttons are currently pressed.
+ * Usage: `val mt = MouseTracker(mouse)`, then read `mt.pressedButtons`.
+ * Replaces `MouseEvents.pressedButtons`.
+ */
+class MouseTracker(mouseEvents: MouseEvents) {
+    private val mutablePressedButtons = mutableSetOf<MouseButton>()
+
+    /**
+     * set containing the names of the currently pressed buttons
+     */
+    val pressedButtons: Set<MouseButton> = mutablePressedButtons
+
+    init {
+        mouseEvents.buttonDown.listen {
+            mutablePressedButtons.add(it.button)
+        }
+
+        mouseEvents.buttonUp.listen {
+            mutablePressedButtons.remove(it.button)
+        }
+    }
 }
