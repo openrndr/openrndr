@@ -17,6 +17,9 @@ class DepthBufferGL3(val texture: Int,
 
     companion object {
         fun create(width: Int, height: Int, format: DepthFormat, multisample: BufferMultisample, session: Session?): DepthBufferGL3 {
+            checkGLErrors {
+                "pre-existing error"
+            }
             val glTexture = glGenTextures()
             val target = when (multisample) {
                 BufferMultisample.Disabled -> GL_TEXTURE_2D
@@ -31,7 +34,7 @@ class DepthBufferGL3(val texture: Int,
                     val glFormat = when(format) {
                         DepthFormat.DEPTH16, DepthFormat.DEPTH24, DepthFormat.DEPTH32F -> GL_DEPTH_COMPONENT
                         DepthFormat.DEPTH_STENCIL, DepthFormat.DEPTH24_STENCIL8, DepthFormat.DEPTH32F_STENCIL8 -> GL_DEPTH_COMPONENT
-                        DepthFormat.STENCIL8 ->  { (Driver.instance as DriverGL3).version.require(DriverVersionGL.VERSION_4_4); GL_STENCIL_INDEX }
+                        DepthFormat.STENCIL8 -> { (Driver.instance as DriverGL3).version.require(DriverVersionGL.VERSION_4_4); GL_STENCIL_INDEX }
                     }
 
                     glTexImage2D(/* target = */ GL_TEXTURE_2D,
