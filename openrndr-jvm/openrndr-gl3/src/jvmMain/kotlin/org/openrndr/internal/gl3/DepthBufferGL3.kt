@@ -2,6 +2,7 @@ package org.openrndr.internal.gl3
 
 import org.lwjgl.opengl.GL33C.*
 import org.openrndr.draw.*
+import org.openrndr.internal.Driver
 import java.nio.ByteBuffer
 
 class DepthBufferGL3(val texture: Int,
@@ -27,7 +28,22 @@ class DepthBufferGL3(val texture: Int,
 
             when (multisample) {
                 BufferMultisample.Disabled -> {
-                    glTexImage2D(GL_TEXTURE_2D, 0, format.toGLFormat(), width, height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, nullBuffer)
+                    val glFormat = when(format) {
+                        DepthFormat.DEPTH16, DepthFormat.DEPTH24, DepthFormat.DEPTH32F -> GL_DEPTH_COMPONENT
+                        DepthFormat.DEPTH_STENCIL, DepthFormat.DEPTH24_STENCIL8, DepthFormat.DEPTH32F_STENCIL8 -> GL_DEPTH_COMPONENT
+                        DepthFormat.STENCIL8 ->  { (Driver.instance as DriverGL3).version.require(DriverVersionGL.VERSION_4_4); GL_STENCIL_INDEX }
+                    }
+
+                    glTexImage2D(/* target = */ GL_TEXTURE_2D,
+                        /* level = */ 0,
+                        /* internalformat = */ format.toGLFormat(),
+                        /* width = */ width,
+                        /* height = */ height,
+                        /* border = */ 0,
+                        /* format = */ glFormat,
+                        /* type = */ GL_UNSIGNED_BYTE,
+                        /* pixels = */
+                        nullBuffer)
                     checkGLErrors()
                     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
                     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)

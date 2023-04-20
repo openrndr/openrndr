@@ -65,24 +65,23 @@ enum class StencilOperation {
 /**
  * Depth format enumeration
  */
-enum class DepthFormat {
+enum class DepthFormat(val hasDepth: Boolean, val hasStencil: Boolean) {
     /** 16 bit integer depth */
-    DEPTH16,
+    DEPTH16(true, false),
     /** 24 bit integer depth */
-    DEPTH24,
+    DEPTH24(true, false),
     /** 32 bit floating point depth */
-    DEPTH32F,
+    DEPTH32F(true, false),
     /** 24 bit integer depth plus 8 bit integer stencil */
-    DEPTH24_STENCIL8,
+    DEPTH24_STENCIL8(true, true),
     /** 32 bit float depth plus 8 bit integer stencil */
-    DEPTH32F_STENCIL8,
+    DEPTH32F_STENCIL8(true, true),
 
     /** 8 bit integer stencil */
-    STENCIL8,
+    STENCIL8(false, true),
 
     /** depth buffer and stencil buffer with unspecified types */
-    DEPTH_STENCIL,
-
+    DEPTH_STENCIL(true, true),
 }
 
 class StencilStyle {

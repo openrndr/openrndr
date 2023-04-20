@@ -428,8 +428,10 @@ open class RenderTargetGL3(
         bound {
             depthBuffer as DepthBufferGL3
 
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthBuffer.target, depthBuffer.texture, 0)
-            checkGLErrors { null }
+            if (depthBuffer.hasDepth) {
+                glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthBuffer.target, depthBuffer.texture, 0)
+                checkGLErrors { null }
+            }
 
             if (depthBuffer.hasStencil) {
                 glFramebufferTexture2D(

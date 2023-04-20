@@ -2,7 +2,6 @@
 
 package org.openrndr.draw
 
-
 import org.openrndr.shape.Circle
 import org.openrndr.shape.CompositionNode
 import org.openrndr.shape.GroupNode
@@ -628,7 +627,7 @@ class Drawer(val driver: Driver) {
             return
         }
 
-        if (RenderTarget.active.hasDepthBuffer) {
+        if (RenderTarget.active.depthBuffer?.hasStencil == true) {
             when (shape.topology) {
                 ShapeTopology.CLOSED -> {
                     val closedPC = shape.contours.map { it.adaptivePositionsAndCorners(distanceTolerance) }
@@ -656,7 +655,7 @@ class Drawer(val driver: Driver) {
                 }
             }
         } else {
-            error("drawing shapes requires a render target with a depth buffer attachment")
+            error("drawing shapes requires a render target with a stencil attachment")
         }
     }
 
@@ -682,7 +681,7 @@ class Drawer(val driver: Driver) {
             return
         }
 
-        if (RenderTarget.active.hasDepthBuffer) {
+        if (RenderTarget.active.depthBuffer?.hasStencil == true) {
             if (drawStyle.fill != null && contour.closed) {
                 val apc = contour.adaptivePositionsAndCorners(distanceTolerance)
                 val ap = listOf(apc.first)
@@ -709,7 +708,7 @@ class Drawer(val driver: Driver) {
                 }
             }
         } else {
-            throw RuntimeException("drawing org.openrndr.shape.contours requires a render target with a depth buffer attachment")
+            error("drawing org.openrndr.shape.contours requires a render target with a stencil attachment")
         }
     }
 

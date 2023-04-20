@@ -9,8 +9,11 @@ interface DepthBuffer {
     val format: DepthFormat
     val multisample: BufferMultisample
 
+    val hasDepth: Boolean
+        get() = format.hasDepth
+
     val hasStencil: Boolean
-        get() = format == DepthFormat.DEPTH32F_STENCIL8 || format == DepthFormat.DEPTH24_STENCIL8 || format == DepthFormat.DEPTH_STENCIL
+        get() = format.hasStencil
 
     fun resolveTo(target: DepthBuffer)
     fun copyTo(target: DepthBuffer)
@@ -18,4 +21,9 @@ interface DepthBuffer {
     fun bind(textureUnit: Int)
 }
 
-fun depthBuffer(width: Int, height: Int, format: DepthFormat = DepthFormat.DEPTH24_STENCIL8, multisample: BufferMultisample): DepthBuffer = Driver.instance.createDepthBuffer(width, height, format, multisample)
+fun depthBuffer(
+    width: Int,
+    height: Int,
+    format: DepthFormat = DepthFormat.DEPTH24_STENCIL8,
+    multisample: BufferMultisample
+): DepthBuffer = Driver.instance.createDepthBuffer(width, height, format, multisample)
