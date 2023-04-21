@@ -4,6 +4,7 @@ import org.openrndr.draw.*
 import org.openrndr.internal.Driver
 import org.openrndr.internal.gl3.DriverGL3
 import org.openrndr.internal.gl3.DriverVersionGL
+import org.openrndr.internal.gl3.checkGLErrors
 import org.openrndr.shape.Circle
 import kotlin.test.*
 
@@ -27,7 +28,9 @@ class TestStencilBufferGL3 : AbstractApplicationTestFixture() {
             assertThrows<IllegalStateException> {
                 program.drawer.isolatedWithTarget(rt) {
                     shape(Circle(300.0, 300.0, 100.0).shape)
+                    checkGLErrors()
                     contour(Circle(300.0, 300.0, 100.0).contour)
+                    checkGLErrors()
                 }
             }
             rt.colorBuffer(0).destroy()
@@ -35,6 +38,7 @@ class TestStencilBufferGL3 : AbstractApplicationTestFixture() {
             rt.depthBuffer?.destroy()
             rt.detachDepthBuffer()
             rt.destroy()
+            checkGLErrors()
         }
     }
 
@@ -52,7 +56,9 @@ class TestStencilBufferGL3 : AbstractApplicationTestFixture() {
             assertDoesNotThrow {
                 program.drawer.isolatedWithTarget(rt) {
                     shape(Circle(300.0, 300.0, 100.0).shape)
+                    checkGLErrors()
                     contour(Circle(300.0, 300.0, 100.0).contour)
+                    checkGLErrors()
                 }
             }
             rt.colorBuffer(0).destroy()
@@ -60,6 +66,7 @@ class TestStencilBufferGL3 : AbstractApplicationTestFixture() {
             rt.depthBuffer?.destroy()
             rt.detachDepthBuffer()
             rt.destroy()
+            checkGLErrors()
         }
     }
 
@@ -78,7 +85,9 @@ class TestStencilBufferGL3 : AbstractApplicationTestFixture() {
                 assertDoesNotThrow {
                     program.drawer.isolatedWithTarget(rt) {
                         shape(Circle(300.0, 300.0, 100.0).shape)
+                        checkGLErrors()
                         contour(Circle(300.0, 300.0, 100.0).contour)
+                        checkGLErrors()
                     }
                 }
                 rt.colorBuffer(0).destroy()
@@ -86,6 +95,7 @@ class TestStencilBufferGL3 : AbstractApplicationTestFixture() {
                 rt.depthBuffer?.destroy()
                 rt.detachDepthBuffer()
                 rt.destroy()
+                checkGLErrors()
             }
         } else {
             println("skipping test because opengl version < 4.4")
