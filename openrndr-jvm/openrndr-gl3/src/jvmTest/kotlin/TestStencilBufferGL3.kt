@@ -14,27 +14,32 @@ class TestStencilBufferGL3 : AbstractApplicationTestFixture() {
     @Test
     fun `drawing contour on render target without stencil should throw exception`() {
         val formats = listOf(
-            //DepthFormat.DEPTH16,
+            DepthFormat.DEPTH16,
             DepthFormat.DEPTH24,
             DepthFormat.DEPTH32F
         )
 
         for (format in formats) {
-            checkGLErrors { "$format" }
+            println(format)
+            checkGLErrors { "pre-existing error. $format" }
             val rt = renderTarget(600, 600) {
+                checkGLErrors { "renderTarget. $format" }
                 colorBuffer()
-                checkGLErrors { "$format" }
+                checkGLErrors { "color buffer. $format" }
                 depthBuffer(format = format)
-                checkGLErrors { "$format" }
+                checkGLErrors { "depth buffer. $format" }
             }
+            checkGLErrors { "post renderTarget. $format" }
 
             assertThrows<IllegalStateException> {
                 program.drawer.isolatedWithTarget(rt) {
+                    checkGLErrors { "isolatedWithTarget. $format" }
                     shape(Circle(300.0, 300.0, 100.0).shape)
-                    checkGLErrors { "$format" }
+                    checkGLErrors { "shape. $format" }
                     contour(Circle(300.0, 300.0, 100.0).contour)
-                    checkGLErrors { "$format" }
+                    checkGLErrors { "contour. $format" }
                 }
+                checkGLErrors { "post isolatedWithTarget. $format" }
             }
             rt.colorBuffer(0).destroy()
             checkGLErrors { "$format" }
