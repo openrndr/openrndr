@@ -16,29 +16,36 @@ class TestStencilBufferGL3 : AbstractApplicationTestFixture() {
         val formats = listOf(
             //DepthFormat.DEPTH16,
             DepthFormat.DEPTH24,
-            DepthFormat.DEPTH32F)
+            DepthFormat.DEPTH32F
+        )
 
         for (format in formats) {
-            println(format)
+            checkGLErrors { "$format" }
             val rt = renderTarget(600, 600) {
                 colorBuffer()
+                checkGLErrors { "$format" }
                 depthBuffer(format = format)
+                checkGLErrors { "$format" }
             }
 
             assertThrows<IllegalStateException> {
                 program.drawer.isolatedWithTarget(rt) {
                     shape(Circle(300.0, 300.0, 100.0).shape)
-                    checkGLErrors()
+                    checkGLErrors { "$format" }
                     contour(Circle(300.0, 300.0, 100.0).contour)
-                    checkGLErrors()
+                    checkGLErrors { "$format" }
                 }
             }
             rt.colorBuffer(0).destroy()
+            checkGLErrors { "$format" }
             rt.detachColorAttachments()
+            checkGLErrors { "$format" }
             rt.depthBuffer?.destroy()
+            checkGLErrors { "$format" }
             rt.detachDepthBuffer()
+            checkGLErrors { "$format" }
             rt.destroy()
-            checkGLErrors()
+            checkGLErrors { "$format" }
         }
     }
 
@@ -50,7 +57,9 @@ class TestStencilBufferGL3 : AbstractApplicationTestFixture() {
             println(format)
             val rt = renderTarget(600, 600) {
                 colorBuffer()
+                checkGLErrors()
                 depthBuffer(format = format)
+                checkGLErrors()
             }
 
             assertDoesNotThrow {
@@ -79,7 +88,9 @@ class TestStencilBufferGL3 : AbstractApplicationTestFixture() {
                 println(format)
                 val rt = renderTarget(600, 600) {
                     colorBuffer()
+                    checkGLErrors()
                     depthBuffer(format = format)
+                    checkGLErrors()
                 }
 
                 assertDoesNotThrow {
