@@ -65,7 +65,11 @@ interface Clipboard {
     var contents: String?
 }
 
-interface Program : InputEvents, ExtensionHost {
+interface Clock {
+    val seconds: Double
+}
+
+interface Program : InputEvents, ExtensionHost, Clock {
 
     /**
      * A map that can be used to store arbitrary data, including functions
@@ -96,7 +100,6 @@ interface Program : InputEvents, ExtensionHost {
     var clock: () -> Double
     var ended: Event<ProgramEvent>
     var backgroundColor: ColorRGBa?
-    val seconds: Double
     val frameCount: Int
     val clipboard: ProgramImplementation.ApplicationClipboard
 
