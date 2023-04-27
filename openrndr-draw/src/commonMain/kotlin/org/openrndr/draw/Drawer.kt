@@ -1071,7 +1071,7 @@ class Drawer(val driver: Driver) {
 
                     compositionNode.style.stroke.let {
                         stroke = when (it) {
-                            is Paint.RGB -> it.value
+                            is Paint.RGB -> it.value.copy(alpha = 1.0)
                             Paint.None -> null
                             Paint.CurrentColor -> null
                         }
@@ -1100,7 +1100,7 @@ class Drawer(val driver: Driver) {
                     }
                     compositionNode.style.fill.let {
                         fill = when (it) {
-                            is Paint.RGB -> it.value
+                            is Paint.RGB -> it.value.copy(alpha = 1.0)
                             is Paint.None -> null
                             is Paint.CurrentColor -> null
                         }
