@@ -29,6 +29,7 @@ class ProgramRenderTargetGL3(override val program: Program) : ProgramRenderTarge
 
     override val hasColorAttachments = true
     override val hasDepthBuffer = true
+    override val hasStencilBuffer = true
 
     override val multisample: BufferMultisample
         get() = program.window.multisample.bufferEquivalent()
@@ -71,7 +72,9 @@ open class RenderTargetGL3(
     private var bound = false
 
     override val hasColorAttachments: Boolean get() = colorAttachments.isNotEmpty()
-    override val hasDepthBuffer: Boolean get() = depthBuffer != null
+    override val hasDepthBuffer: Boolean get() = depthBuffer?.hasDepth == true
+    override val hasStencilBuffer: Boolean get() = depthBuffer?.hasStencil == true
+
 
     override fun colorBuffer(index: Int): ColorBuffer {
         require(!destroyed)

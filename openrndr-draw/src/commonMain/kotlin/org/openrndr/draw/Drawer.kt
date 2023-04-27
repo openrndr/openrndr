@@ -681,7 +681,7 @@ class Drawer(val driver: Driver) {
             return
         }
 
-        if (RenderTarget.active.depthBuffer?.hasStencil == true) {
+        if (RenderTarget.active.hasStencilBuffer) {
             if (drawStyle.fill != null && contour.closed) {
                 val apc = contour.adaptivePositionsAndCorners(distanceTolerance)
                 val ap = listOf(apc.first)

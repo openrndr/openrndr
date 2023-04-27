@@ -93,6 +93,10 @@ class RenderTargetNullGL(override val width: Int, override val height: Int, over
 
     override val hasDepthBuffer: Boolean
         get() = depthBuffer != null
+
+    override val hasStencilBuffer: Boolean
+        get() = depthBuffer?.hasStencil == true
+
     override val hasColorAttachments: Boolean
         get() = colorAttachments.isNotEmpty()
 }

@@ -196,8 +196,11 @@ interface RenderTarget {
     /** Unbinds the [RenderTarget] from the active target. */
     fun unbind()
 
-    /** Indicates if this [RenderTarget] has a [DepthBuffer]. */
+    /** Indicates if this [RenderTarget] has a [DepthBuffer] with depth component */
     val hasDepthBuffer: Boolean
+
+    /** Indicates if this [RenderTarget] has a [DepthBuffer] with stencil index */
+    val hasStencilBuffer: Boolean
 
     /** Indicates if this [RenderTarget] has at least one [ColorAttachment]. */
     val hasColorAttachments: Boolean

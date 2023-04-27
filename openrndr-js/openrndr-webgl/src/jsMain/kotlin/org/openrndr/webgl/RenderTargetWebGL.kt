@@ -25,6 +25,8 @@ class ProgramRenderTargetWebGL(context: WebGL2RenderingContext, override val pro
 
     override val hasColorAttachments = true
     override val hasDepthBuffer = true
+    override val hasStencilBuffer = true
+
 }
 
 open class RenderTargetWebGL(
@@ -234,7 +236,11 @@ open class RenderTargetWebGL(
     }
 
     override val hasDepthBuffer: Boolean
-        get() = depthBuffer != null
+        get() = depthBuffer?.hasDepth == true
+
+    override val hasStencilBuffer: Boolean
+        get() = depthBuffer?.hasStencil == true
+
     override val hasColorAttachments: Boolean
         get() = colorAttachments.isNotEmpty()
 

@@ -11,6 +11,12 @@ import kotlin.test.*
 
 class TestStencilBufferGL3 : AbstractApplicationTestFixture() {
 
+
+    @Test
+    fun `drawing contour without render target`() {
+        program.drawer.contour(Circle(100.0, 100.0, 50.0).contour)
+    }
+
     @Test
     fun `drawing contour on render target without stencil should throw exception`() {
         val formats = listOf(
