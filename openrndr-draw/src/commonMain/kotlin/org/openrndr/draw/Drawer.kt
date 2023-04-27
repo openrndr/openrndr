@@ -627,7 +627,7 @@ class Drawer(val driver: Driver) {
             return
         }
 
-        if (RenderTarget.active.depthBuffer?.hasStencil == true) {
+        if (RenderTarget.active.hasStencilBuffer) {
             when (shape.topology) {
                 ShapeTopology.CLOSED -> {
                     val closedPC = shape.contours.map { it.adaptivePositionsAndCorners(distanceTolerance) }
