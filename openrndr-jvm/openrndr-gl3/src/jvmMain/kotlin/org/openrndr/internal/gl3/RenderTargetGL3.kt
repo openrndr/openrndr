@@ -5,6 +5,7 @@ import org.lwjgl.glfw.GLFW.glfwGetCurrentContext
 import org.lwjgl.opengl.GL33C.*
 import org.lwjgl.opengl.GL40C.glBlendEquationi
 import org.lwjgl.opengl.GL40C.glBlendFunci
+import org.lwjgl.system.MemoryStack
 import org.openrndr.Program
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
@@ -405,13 +406,28 @@ open class RenderTargetGL3(
 
     override fun clearDepth(depth: Double, stencil: Int) {
         require(!destroyed)
-        require(hasDepthBuffer)
         bound {
             val mask = glGetBoolean(GL_DEPTH_WRITEMASK)
             if (!mask) {
                 glDepthMask(true)
             }
-            glClearBufferfi(GL_DEPTH_STENCIL, 0, depth.toFloat(), stencil)
+            if (hasDepthBuffer && hasStencilBuffer) {
+                glClearBufferfi(GL_DEPTH_STENCIL, 0, depth.toFloat(), stencil)
+            } else if (hasDepthBuffer) {
+                MemoryStack.stackPush().use { stack ->
+                    val fb = stack.mallocFloat(1)
+                    fb.put(depth.toFloat())
+                    fb.flip()
+                    glClearBufferfv(GL_DEPTH, 0, fb)
+                }
+            } else if (hasStencilBuffer) {
+                MemoryStack.stackPush().use { stack ->
+                    val ib = stack.mallocInt(1)
+                    ib.put(stencil)
+                    ib.flip()
+                    glClearBufferiv(GL_STENCIL, 0, ib)
+                }
+            }
             if (!mask) {
                 glDepthMask(false)
             }
