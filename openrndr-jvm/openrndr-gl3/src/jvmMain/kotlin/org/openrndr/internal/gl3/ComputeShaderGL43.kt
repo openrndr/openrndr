@@ -56,25 +56,64 @@ class ComputeShaderGL43(val programObject: Int, val name: String = "compute_shad
 
     override fun image(name: String, image: Int, imageBinding: ImageBinding) {
         require((Driver.instance as DriverGL3).version >= DriverVersionGL.VERSION_4_3)
+
+        fun validateColorFormat(colorFormat: ColorFormat) {
+            require(colorFormat.componentCount != 3) {
+                "ComputeShader image `$name` has unsupported format " +
+                        "($colorFormat), only formats with 1, 2 or 4 " +
+                        "components are supported"
+            }
+        }
+
+        fun bindTexture(texture: Int, glFormat: Int) {
+            glBindImageTexture(
+                image, texture, imageBinding.level, false, 0,
+                imageBinding.access.gl(), glFormat
+            )
+        }
+
         bound {
             when (imageBinding) {
-                is ColorBufferImageBinding -> {
-                    val colorBuffer = imageBinding.colorBuffer as ColorBufferGL3
-                    require(colorBuffer.format.componentCount != 3) {
-                        "color buffer has unsupported format (${imageBinding.colorBuffer.format}), only formats with 1, 2 or 4 components are supported"
+                is BufferTextureImageBinding ->
+                    (imageBinding.bufferTexture as BufferTextureGL3).let {
+                        validateColorFormat(it.format)
+                        bindTexture(it.texture, it.glFormat())
                     }
-                    glBindImageTexture(
-                        image,
-                        colorBuffer.texture,
-                        0,
-                        false,
-                        0,
-                        imageBinding.access.gl(),
-                        colorBuffer.glFormat()
-                    )
+
+                is ColorBufferImageBinding ->
+                    (imageBinding.colorBuffer as ColorBufferGL3).let {
+                    validateColorFormat(it.format)
+                    bindTexture(it.texture, it.glFormat())
                 }
+
+                is ArrayTextureImageBinding ->
+                    (imageBinding.arrayTexture as ArrayTextureGL3).let {
+                        validateColorFormat(it.format)
+                        bindTexture(it.texture, it.glFormat())
+                    }
+
+                is CubemapImageBinding ->
+                    (imageBinding.cubemap as CubemapGL3).let {
+                        validateColorFormat(it.format)
+                        bindTexture(it.texture, it.glFormat())
+                    }
+
+                is ArrayCubemapImageBinding ->
+                    (imageBinding.arrayCubemap as ArrayCubemapGL4).let {
+                        validateColorFormat(it.format)
+                        bindTexture(it.texture, it.glFormat())
+                    }
+
+                is VolumeTextureImageBinding ->
+                    (imageBinding.volumeTexture as VolumeTextureGL3).let {
+                        validateColorFormat(it.format)
+                        bindTexture(it.texture, it.glFormat())
+                    }
+
                 else -> error("unsupported binding")
             }
+            checkGLErrors()
+
             val index = uniformIndex(name)
             glUniform1i(index, image)
             checkGLErrors()
