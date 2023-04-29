@@ -13,7 +13,7 @@ lwjgl = "3.3.2"
 javacpp = "1.5.8"
 # ffmpeg version suffix should match javacpp version
 ffmpeg = "5.1.2-1.5.8"
-jsoup = "1.15.4"
+jsoup = "1.16.1"
 junitJupiter = "5.9.2"
 spek = "2.0.19"
 kluent = "1.72"
