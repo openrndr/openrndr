@@ -109,7 +109,7 @@ class FontImageMapManager : FontMapManager() {
         ).apply {
             for (outer in characterSet) {
                 for (inner in characterSet) {
-                    kerningTable[CharacterPair(outer, inner)] = face.kernAdvance(size * contentScale, outer, inner)
+                    kerningTable[CharacterPair(outer, inner)] = face.kernAdvance(size, outer, inner)
                 }
             }
         }
