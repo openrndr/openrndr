@@ -16,7 +16,7 @@ ffmpeg = "5.1.2-1.5.8"
 jsoup = "1.16.1"
 junitJupiter = "5.9.2"
 spek = "2.0.19"
-kluent = "1.72"
+kluent = "1.73"
 kotest = "5.6.1"
 slf4j = "2.0.7"
 
