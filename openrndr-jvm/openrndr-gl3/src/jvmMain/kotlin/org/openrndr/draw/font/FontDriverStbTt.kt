@@ -1,6 +1,5 @@
 package org.openrndr.draw.font
 
-import mu.KotlinLogging
 import org.lwjgl.stb.STBTTFontinfo
 import org.lwjgl.stb.STBTruetype
 import org.lwjgl.system.MemoryStack.stackPush
@@ -16,17 +15,13 @@ import java.lang.ref.Cleaner
 import java.nio.Buffer
 import java.nio.ByteBuffer
 
-private val logger = KotlinLogging.logger { }
-
 class FaceStbTt(data: ByteBuffer, fontInfo: STBTTFontinfo) : Face, AutoCloseable {
     companion object {
-        val cleaner : Cleaner = Cleaner.create()
+        val cleaner: Cleaner = Cleaner.create()
     }
 
     class State(val data: ByteBuffer, val fontInfo: STBTTFontinfo) : Runnable {
         override fun run() {
-            logger.info { "cleaning up ${this@State}" }
-            //fontInfo.free()
             MemoryUtil.memFree(data)
         }
     }
@@ -222,7 +217,6 @@ class GlyphStbTt(private val face: FaceStbTt, private val character: Char, priva
             0.0f,
             glyphIndex
         )
-
     }
 }
 
