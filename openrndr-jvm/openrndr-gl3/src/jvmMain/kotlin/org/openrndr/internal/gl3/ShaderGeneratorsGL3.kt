@@ -42,11 +42,10 @@ class ShaderGeneratorsGL3 : ShaderGenerators {
 
 |${if (!shadeStructure.suppressDefaultOutput) "out vec4 o_color;" else ""}
 
-|${shadeStructure.fragmentPreamble ?: ""}
 |flat in int v_instance;
-
+|${fragmentMainConstants(element = "v_instance")}
+|${shadeStructure.fragmentPreamble ?: ""}
 |void main(void) {
-|    ${fragmentMainConstants(element = "v_instance")}
 |    vec4 x_fill = u_fill;
 |    vec4 x_stroke = u_stroke;
 |    {
@@ -105,8 +104,6 @@ ${shadeStructure.outputs ?: ""}
 
 ${if (!shadeStructure.suppressDefaultOutput) "out vec4 o_color;" else ""}
 
-${shadeStructure.fragmentPreamble ?: ""}
-
 in vec3 v_boundsPosition;
 flat in int v_instance;
 vec4 colorTransform(vec4 color, float[25] matrix) {
@@ -116,9 +113,10 @@ vec4 colorTransform(vec4 color, float[25] matrix) {
     float a = color.r * matrix[3] + color.g * matrix[8] + color.b * matrix[13] + color.a * matrix[18] + matrix[23];
     return vec4(r, g, b, a);
 }
-
+${fragmentMainConstants(boundsPosition = "v_boundsPosition")}
+${shadeStructure.fragmentPreamble ?: ""}
 void main(void) {
-    ${fragmentMainConstants(boundsPosition = "v_boundsPosition")}
+
     vec4 x_fill = texture(image, va_texCoord0);
     vec4 x_stroke = u_stroke;
     {
@@ -142,6 +140,7 @@ ${shadeStructure.uniforms ?: ""}
 ${shadeStructure.varyingOut ?: ""}
 ${transformVaryingOut}
 
+${vertexMainConstants()}
 ${shadeStructure.vertexPreamble ?: ""}
 
 flat out int v_instance;
@@ -149,7 +148,7 @@ flat out int v_instance;
 out vec3 v_boundsPosition;
 void main() {
     v_instance = gl_InstanceID;
-    ${vertexMainConstants()}
+    
     ${shadeStructure.varyingBridge ?: ""}
     ${preVertexTransform}
     vec3 x_normal = a_normal;
@@ -181,7 +180,7 @@ ${transformVaryingIn}
 
 ${if (!shadeStructure.suppressDefaultOutput) "out vec4 o_color;" else ""}
 
-${shadeStructure.fragmentPreamble ?: ""}
+
 
 in vec3 v_boundsPosition;
 flat in int v_instance;
@@ -194,8 +193,9 @@ vec4 colorTransform(vec4 color, float[25] matrix) {
     return vec4(r, g, b, a);
 }
 
+${fragmentMainConstants(boundsPosition = "v_boundsPosition")}
+${shadeStructure.fragmentPreamble ?: ""}
 void main(void) {
-    ${fragmentMainConstants(boundsPosition = "v_boundsPosition")}
     vec4 x_fill = texture(image, vec3(va_texCoord0, v_layer*1.0));
     vec4 x_stroke = u_stroke;
     {
@@ -219,6 +219,7 @@ ${shadeStructure.uniforms ?: ""}
 ${shadeStructure.varyingOut ?: ""}
 ${transformVaryingOut}
 
+${vertexMainConstants()}
 ${shadeStructure.vertexPreamble ?: ""}
 
 flat out int v_instance;
@@ -227,7 +228,7 @@ flat out int v_layer;
 out vec3 v_boundsPosition;
 void main() {
     v_instance = gl_InstanceID;
-    ${vertexMainConstants()}
+    
     ${shadeStructure.varyingBridge ?: ""}
     ${preVertexTransform}
     vec3 x_normal = a_normal;
@@ -259,15 +260,16 @@ ${transformVaryingIn}
 
 ${if (!shadeStructure.suppressDefaultOutput) "out vec4 o_color;" else ""}
 
-${shadeStructure.fragmentPreamble ?: ""}
+
 
 flat in int v_instance;
 in vec3 v_boundsSize;
-void main(void) {
-    ${
-        fragmentMainConstants(boundsPosition = "vec3(0.0, 0.0, 0.0)",
-                boundsSize = "v_boundsSize")
+${
+        fragmentMainConstants(boundsPosition = "vec3(0.0, 0.0, 0.0)", boundsSize = "v_boundsSize")
     }
+${shadeStructure.fragmentPreamble ?: ""}    
+void main(void) {
+    
 
     vec4 x_fill = vi_fill;
     vec4 x_stroke = vi_stroke;
@@ -289,13 +291,14 @@ ${shadeStructure.uniforms ?: ""}
 ${shadeStructure.varyingOut ?: ""}
 ${transformVaryingOut}
 
+${vertexMainConstants()}
 ${shadeStructure.vertexPreamble ?: ""}
 
 flat out int v_instance;
 out vec3 v_boundsSize;
 void main() {
     v_instance = gl_InstanceID;
-    ${vertexMainConstants()}
+    
     ${shadeStructure.varyingBridge ?: ""}
 
     v_boundsSize = vec3(0, 0.0, 0.0);
@@ -329,8 +332,10 @@ flat in int v_instance;
 in vec3 v_boundsSize;
 void main(void) {
     ${
-        fragmentMainConstants(boundsPosition = "vec3(va_texCoord0, 0.0)",
-                boundsSize = "v_boundsSize")
+        fragmentMainConstants(
+            boundsPosition = "vec3(va_texCoord0, 0.0)",
+            boundsSize = "v_boundsSize"
+        )
     }
     float smoothFactor = 3.0;
 
@@ -369,13 +374,14 @@ ${shadeStructure.uniforms ?: ""}
 ${shadeStructure.varyingOut ?: ""}
 ${transformVaryingOut}
 
+${vertexMainConstants()}
 ${shadeStructure.vertexPreamble ?: ""}
 
 flat out int v_instance;
 out vec3 v_boundsSize;
 void main() {
     v_instance = gl_InstanceID;
-    ${vertexMainConstants()}
+    
     ${shadeStructure.varyingBridge ?: ""}
 
     vec2 effectiveRadius = i_radius.xy + vec2(1.25) / (u_modelViewScalingFactor);
@@ -412,15 +418,15 @@ ${if (!shadeStructure.suppressDefaultOutput) "out vec4 o_color;" else ""}
 
 ${shadeStructure.fragmentPreamble ?: ""}
 
-void main(void) {
-    ${
+${
         fragmentMainConstants(
-                element = "v_element",
-                instance = "v_instance",
-                boundsPosition = "vec3(va_bounds.xy, 0.0)",
-                boundsSize = "vec3(va_bounds.zw, 0.0)")
+            element = "v_element",
+            instance = "v_instance",
+            boundsPosition = "vec3(va_bounds.xy, 0.0)",
+            boundsSize = "vec3(va_bounds.zw, 0.0)"
+        )
     }
-
+void main(void) {
     float imageMap = texture(image, va_texCoord0).r;
     
     vec4 x_fill = vec4(u_fill.rgb,u_fill.a * imageMap);
@@ -443,12 +449,13 @@ ${shadeStructure.attributes ?: ""}
 ${shadeStructure.uniforms ?: ""}
 ${shadeStructure.varyingOut ?: ""}
 ${transformVaryingOut}
+${vertexMainConstants("int(a_position.z)")}
 ${shadeStructure.vertexPreamble ?: ""}
 flat out int v_instance;
 flat out int v_element;
 
 void main() {
-    ${vertexMainConstants("int(a_position.z)")}
+    
     vec3 decodedPosition = vec3(a_position.xy, 0.0);
     v_element = int(a_position.z);
     v_instance = int(a_instance);
@@ -482,12 +489,14 @@ ${shadeStructure.fragmentPreamble ?: ""}
 flat in int v_instance;
 in vec3 v_boundsSize;
 
-void main(void) {
-    ${
+${
         fragmentMainConstants(
-                boundsPosition = "vec3(va_texCoord0, 0.0)",
-                boundsSize = "v_boundsSize")
+            boundsPosition = "vec3(va_texCoord0, 0.0)",
+            boundsSize = "v_boundsSize"
+        )
     }
+    
+void main(void) {
     vec4 x_fill = vi_fill;
     vec4 x_stroke = vi_stroke;
     {
@@ -525,6 +534,7 @@ ${shadeStructure.uniforms ?: ""}
 ${shadeStructure.varyingOut ?: ""}
 ${transformVaryingOut}
 
+${vertexMainConstants()}
 ${shadeStructure.vertexPreamble ?: ""}
 
 flat out int v_instance;
@@ -533,7 +543,6 @@ ${rotate2}
 
 void main() {
     v_instance =  gl_InstanceID;
-    ${vertexMainConstants()}
     ${shadeStructure.varyingBridge ?: ""}
     ${preVertexTransform}
     vec3 x_normal = vec3(0.0, 0.0, 1.0);
@@ -576,14 +585,15 @@ float strokeMask() {
     //return smoothstep(0.0, 1.0, (1.0-abs(v_ftcoord.x*2.0-1.0))*strokeMult) * smoothstep(0.0, 1.0, v_ftcoord.y);
 }
 
-void main(void) {
-    ${
-        fragmentMainConstants(boundsPosition = "vec3(v_objectPosition.xy - bounds.xy, 0.0) / vec3(bounds.zw,1.0)",
-                boundsSize = "vec3(bounds.zw, 0.0)",
-                contourPosition = "va_vertexOffset"
+${
+        fragmentMainConstants(
+            boundsPosition = "vec3(v_objectPosition.xy - bounds.xy, 0.0) / vec3(bounds.zw,1.0)",
+            boundsSize = "vec3(bounds.zw, 0.0)",
+            contourPosition = "va_vertexOffset"
         )
     }
 
+void main(void) {
 	float strokeAlpha = strokeMask();
 
     vec4 x_stroke = u_stroke;
@@ -614,6 +624,7 @@ ${shadeStructure.attributes}
 ${shadeStructure.varyingOut ?: ""}
 ${transformVaryingOut}
 
+${vertexMainConstants()}
 ${shadeStructure.vertexPreamble ?: ""}
 
 out vec2 v_ftcoord;
@@ -624,7 +635,6 @@ flat out int v_instance;
 
 void main() {
     v_instance = 0;
-    ${vertexMainConstants()}
     ${shadeStructure.varyingBridge ?: ""}
     v_objectPosition = vec3(a_position, 0.0);
     v_ftcoord = a_texCoord0;
@@ -656,8 +666,8 @@ ${if (!shadeStructure.suppressDefaultOutput) "out vec4 o_color;" else ""}
 
 ${shadeStructure.fragmentPreamble ?: ""}
 
+${fragmentMainConstants()}
 void main(void) {
-    ${fragmentMainConstants()}
     vec4 x_fill = u_fill;
     vec4 x_stroke = u_stroke;
     {
@@ -681,13 +691,14 @@ ${shadeStructure.uniforms ?: ""}
 ${shadeStructure.varyingOut ?: ""}
 ${transformVaryingOut}
 
+${vertexMainConstants()}
 ${shadeStructure.vertexPreamble ?: ""}
 
 flat out int v_instance;
 
 void main() {
     v_instance = gl_InstanceID;
-    ${vertexMainConstants()}
+    
     ${shadeStructure.varyingBridge ?: ""}
     $preVertexTransform
     vec3 x_normal = vec3(0.0, 0.0, 1.0);
@@ -715,8 +726,8 @@ void main() {
         |$transformVaryingIn
         |flat in int v_instance;
         |${if (!shadeStructure.suppressDefaultOutput) "out vec4 o_color;" else ""}
-        |void main(void) {
         |   ${fragmentMainConstants()}
+        |void main(void) {
         |   vec4 x_fill = u_fill;
         |   vec4 x_stroke = va_color;
         |   {
@@ -740,6 +751,7 @@ void main() {
         |${shadeStructure.uniforms ?: ""}
         |${shadeStructure.varyingOut ?: ""}
         |$transformVaryingOut
+        |${vertexMainConstants(element = "int(a_element)")}
         |${shadeStructure.vertexPreamble ?: ""}
         |flat out int v_instance;
         |
@@ -751,7 +763,6 @@ void main() {
         |
         |void main() {
         |   v_instance = gl_InstanceID;
-        |   ${vertexMainConstants(element = "int(a_element)")}
         |   ${shadeStructure.varyingBridge ?: ""}
         |   $preVertexTransform
         |   vec3 x_normal = vec3(0.0, 0.0, 1.0);
@@ -830,9 +841,16 @@ void main() {
         |// -- shadeStructure.uniforms
         |${shadeStructure.uniforms ?: ""}
         |// -- shadeStructure.fragmentPreamble
+        |${
+        fragmentMainConstants(
+            instance = "0",
+            screenPosition = "v_texCoord0",
+            boundsPosition = "vec3(v_texCoord0, 0.0)",
+            boundsSize = "vec3(targetSize, 0.0)"
+        )
+    }
         |${shadeStructure.fragmentPreamble ?: ""}
         |void main() {
-        |   ${fragmentMainConstants(instance = "0", screenPosition = "v_texCoord0", boundsPosition = "vec3(v_texCoord0, 0.0)", boundsSize = "vec3(targetSize, 0.0)")}
         |   vec4 x_fill = texture(tex0, v_texCoord0);
         |   vec4 x_stroke = vec4(0.0);
         |   {
