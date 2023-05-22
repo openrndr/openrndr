@@ -20,8 +20,6 @@ private val logger = KotlinLogging.logger {}
 private val bufferId = AtomicInteger(0)
 
 class VertexBufferShadowGL3(override val vertexBuffer: VertexBufferGL3) : VertexBufferShadow, AutoCloseable {
-
-
     val buffer: ByteBuffer = ByteBuffer.allocateDirect(vertexBuffer.vertexCount * vertexBuffer.vertexFormat.size).apply {
         order(ByteOrder.nativeOrder())
     }
@@ -61,6 +59,7 @@ class VertexBufferGL3(
 
     internal val bufferHash = bufferId.getAndAdd(1)
     internal var realShadow: VertexBufferShadowGL3? = null
+
     internal var isDestroyed = false
 
     override fun toString(): String {
@@ -159,6 +158,7 @@ class VertexBufferGL3(
         }
         session?.untrack(this)
         isDestroyed = true
+        realShadow = null
         glDeleteBuffers(buffer)
         (Driver.instance as DriverGL3).destroyVAOsForVertexBuffer(this)
         checkGLErrors()
