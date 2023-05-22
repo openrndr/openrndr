@@ -15,5 +15,5 @@ fun resolveFileOrUrl(fileOrUrl: String): Pair<File?, URL?> {
 }
 
 actual fun textFromURL(url: String): String {
-    TODO("Not yet implemented")
+    return URL(url).readText()
 }
