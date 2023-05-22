@@ -9,8 +9,6 @@ import org.lwjgl.system.MemoryUtil.NULL
 import org.openrndr.draw.*
 import org.openrndr.internal.Driver
 import org.openrndr.utils.buffer.MPPBuffer
-import java.lang.ref.Cleaner
-import java.lang.ref.WeakReference
 import java.nio.Buffer
 
 import java.nio.ByteBuffer
@@ -23,30 +21,10 @@ private val bufferId = AtomicInteger(0)
 
 class VertexBufferShadowGL3(override val vertexBuffer: VertexBufferGL3) : VertexBufferShadow, AutoCloseable {
 
-    companion object {
-        val cleaner: Cleaner = Cleaner.create()
+
+    val buffer: ByteBuffer = ByteBuffer.allocateDirect(vertexBuffer.vertexCount * vertexBuffer.vertexFormat.size).apply {
+        order(ByteOrder.nativeOrder())
     }
-
-    class State(vertexBuffer: VertexBufferGL3) : Runnable {
-        val buffer: ByteBuffer =
-            MemoryUtil.memAlloc(vertexBuffer.vertexCount * vertexBuffer.vertexFormat.size).apply {
-                order(ByteOrder.nativeOrder())
-                logger.debug { "creating vertex buffer shadow of ${vertexBuffer.vertexCount.toLong() * vertexBuffer.vertexFormat.size.toLong()} bytes" }
-                logger.debug { "$vertexBuffer" }
-            }
-
-        override fun run() {
-            logger.debug { "freeing vertex buffer shadow" }
-            MemoryUtil.memFree(buffer)
-        }
-    }
-
-    val state = State(vertexBuffer)
-    private val cleanable = cleaner.register(this, state)
-
-    val buffer: ByteBuffer
-        get() = state.buffer
-
 
     override fun upload(offsetInBytes: Int, sizeInBytes: Int) {
         logger.trace { "uploading shadow to vertex buffer" }
@@ -71,7 +49,6 @@ class VertexBufferShadowGL3(override val vertexBuffer: VertexBufferGL3) : Vertex
     }
 
     override fun close() {
-        cleanable.clean()
     }
 }
 
@@ -83,8 +60,7 @@ class VertexBufferGL3(
 ) : VertexBuffer() {
 
     internal val bufferHash = bufferId.getAndAdd(1)
-    //internal var realShadow: VertexBufferShadowGL3? = null
-    internal var realShadow: WeakReference<VertexBufferShadowGL3> = WeakReference(null)
+    internal var realShadow: VertexBufferShadowGL3? = null
     internal var isDestroyed = false
 
     override fun toString(): String {
@@ -115,10 +91,10 @@ class VertexBufferGL3(
             if (isDestroyed) {
                 error("buffer is destroyed")
             }
-            if (realShadow.get() == null) {
-                realShadow = WeakReference(VertexBufferShadowGL3(this))
+            if (realShadow == null) {
+                realShadow = VertexBufferShadowGL3(this)
             }
-            return realShadow.get()!!
+            return realShadow ?: error("no shadow")
         }
 
     override fun write(data: ByteBuffer, offset: Int) {
