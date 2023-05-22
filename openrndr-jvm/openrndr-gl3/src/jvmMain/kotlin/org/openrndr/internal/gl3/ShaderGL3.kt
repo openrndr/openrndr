@@ -105,6 +105,7 @@ class ShaderGL3(
 ) : Shader {
 
     private val lastValues = mutableMapOf<String, Any>()
+    private val useDSA = (Driver.instance as DriverGL3).version >= DriverVersionGL.VERSION_4_2
 
     override val types: Set<ShaderType> =
         if (geometryShader != null) setOf(ShaderType.VERTEX, ShaderType.GEOMETRY, ShaderType.FRAGMENT) else

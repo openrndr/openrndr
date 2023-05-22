@@ -316,6 +316,7 @@ void main() {
 
     override fun circleFragmentShader(shadeStructure: ShadeStructure): String = """#version ${glslVersion()}
 ${primitiveTypes("d_circle")}
+${shadeStructure.structDefinitions ?: ""}
 ${shadeStructure.uniforms ?: ""}
 ${shadeStructure.buffers ?: ""}
 layout(origin_upper_left) in vec4 gl_FragCoord;
@@ -370,6 +371,7 @@ ${primitiveTypes("d_circle")}
 ${shadeStructure.buffers ?: ""}
 ${drawerUniforms(styleBlock = false)}
 ${shadeStructure.attributes ?: ""}
+${shadeStructure.structDefinitions ?: ""}
 ${shadeStructure.uniforms ?: ""}
 ${shadeStructure.varyingOut ?: ""}
 ${transformVaryingOut}

@@ -100,6 +100,20 @@ fun structureFromShadeStyle(shadeStyle: ShadeStyle?, vertexFormats: List<VertexF
                         vertexPreamble = shadeStyle.vertexPreamble
                         geometryPreamble = shadeStyle.geometryPreamble
                         fragmentPreamble = shadeStyle.fragmentPreamble
+                        measure("structDefinitions") {
+                            val structs = shadeStyle.parameterTypes.filterValues {
+                                it.startsWith("struct")
+                            }
+                            val structValues = structs.keys.map {
+                                Pair(it, shadeStyle.parameterValues[it]!! as Struct<*>)
+                            }
+                            val structProtoValues = structValues.distinctBy {
+                                it.second::class.simpleName
+                            }
+                            structDefinitions = structProtoValues.joinToString("\n") {
+                                it.second.typeDef(shadeStyle.parameterTypes[it.first]!!.split(" ")[1])
+                            }
+                        }
                         measure("outputs") {
                             outputs = shadeStyle.outputs.map { "// -- output-from  ${it.value} \nlayout(location = ${it.value.attachment}) out ${it.value.glslType} o_${it.key};\n" }.joinToString("")
                         }
@@ -151,40 +165,12 @@ private fun mapTypeToUniform(type: String, name: String): String {
     fun String?.arraySizeDefinition() = if (this == null) {
         ""
     } else {
-        "\n#define p_${name}_SIZE $arraySize"
+        "[$arraySize]; \n#define p_${name}_SIZE $arraySize"
     }
-    return when (tokens[0]) {
-        "Boolean", "boolean" -> "$u bool p_$name;"
-        "Int", "int" -> "$u int${if (arraySize != null) "[$arraySize]" else ""} p_$name; ${arraySize.arraySizeDefinition()}"
-        "Matrix33" -> "$u mat3 p_$name; ${arraySize.arraySizeDefinition()}"
-        "Matrix44" -> "$u mat4${if (arraySize != null) "[$arraySize]" else ""} p_$name; ${arraySize.arraySizeDefinition()}"
-        "Float", "float" -> "$u float${if (arraySize != null) "[$arraySize]" else ""} p_$name; ${arraySize.arraySizeDefinition()}"
-        "Vector2" -> "$u vec2${if (arraySize != null) "[$arraySize]" else ""} p_$name; ${arraySize.arraySizeDefinition()}"
-        "Vector3" -> "$u vec3${if (arraySize != null) "[$arraySize]" else ""} p_$name; ${arraySize.arraySizeDefinition()}"
-        "Vector4" -> "$u vec4${if (arraySize != null) "[$arraySize]" else ""} p_$name; ${arraySize.arraySizeDefinition()}"
-        "IntVector2" -> "$u ivec2${if (arraySize != null) "[$arraySize]" else ""} p_$name; ${arraySize.arraySizeDefinition()}"
-        "IntVector3" -> "$u ivec3${if (arraySize != null) "[$arraySize]" else ""} p_$name; ${arraySize.arraySizeDefinition()}"
-        "IntVector4" -> "$u ivec4${if (arraySize != null) "[$arraySize]" else ""} p_$name; ${arraySize.arraySizeDefinition()}"
-        "ColorRGBa" -> "$u vec4${if (arraySize != null) "[$arraySize]" else ""} p_$name; ${arraySize.arraySizeDefinition()}"
-        "BufferTexture" -> "$u samplerBuffer p_$name;"
-        "BufferTexture_UINT" -> "$u usamplerBuffer p_$name;"
-        "BufferTexture_SINT" -> "$u isamplerBuffer p_$name;"
-        "ColorBuffer" -> "$u sampler2D p_$name;"
-        "ColorBuffer_UINT" -> "$u usampler2D p_$name;"
-        "ColorBuffer_SINT" -> "$u isampler2D p_$name;"
-        "DepthBuffer" -> "$u sampler2D p_$name;"
-        "Cubemap" -> "$u samplerCube p_$name;"
-        "Cubemap_UINT" -> "$u usamplerCube p_$name;"
-        "Cubemap_SINT" -> "$u isamplerCube p_$name;"
-        "ArrayCubemap" -> "$u samplerCubeArray p_$name;"
-        "ArrayCubemap_UINT" -> "$u usamplerCubeArray p_$name;"
-        "ArrayCubemap_SINT" -> "$u isamplerCubeArray p_$name;"
-        "ArrayTexture" -> "$u sampler2DArray p_$name;"
-        "ArrayTexture_UINT" -> "$u usampler2DArray p_$name;"
-        "ArrayTexture_SINT" -> "$u isampler2DArray p_$name;"
-        "VolumeTexture" -> "$u sampler3D p_$name;"
-        "VolumeTexture_UINT" -> "$u usampler3D p_$name;"
-        "VolumeTexture_SINT" -> "$u isampler3D p_$name;"
+
+    val subtokens = tokens[0].split(" ")
+    return when (subtokens[0]) {
+        "struct" -> "$u ${subtokens[1]} p_$name${arraySize.arraySizeDefinition()};"
         "Image2D", "Image3D", "ImageCube", "Image2DArray", "ImageBuffer", "ImageCubeArray" -> {
             val sampler = tokens[0].take(1).lowercase() + tokens[0].drop(1)
             val colorFormat = ColorFormat.valueOf(tokens[1])
@@ -196,7 +182,7 @@ private fun mapTypeToUniform(type: String, name: String): String {
                 ImageAccess.WRITE -> "writeonly $u $sampler p_$name"
             }
         }
-        else -> throw RuntimeException("unsupported type $type")
+        else ->  "$u ${shadeStyleTypeToGLSL(tokens[0])} p_$name${arraySize.arraySizeDefinition()};"
     }
 }
 

@@ -24,5 +24,6 @@ dependencies {
     runtimeOnly project(":openrndr-jvm:openrndr-ffmpeg-natives-$openrndrOS")
     implementation project(":openrndr-jvm:openrndr-ffmpeg")
     implementation(libs.kotlin.coroutines)
+    implementation(libs.kotlin.reflect)
     runtimeOnly(libs.slf4j.simple)
 }
