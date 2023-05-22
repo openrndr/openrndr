@@ -380,6 +380,12 @@ inline fun <reified T : Struct<T>> ShadeStyleParameters.parameter(name: String, 
     parameterTypes[name] = "struct ${T::class.simpleName}"
 }
 
+inline fun <reified T : Struct<T>> ShadeStyleParameters.parameter(name: String, value: Array<T>) {
+    parameterValues[name] = value
+    parameterTypes[name] = "struct ${T::class.simpleName},${value.size}"
+}
+
+
 @Suppress("unused")
 open class ShadeStyle : ShadeStyleParameters {
     var dirty = true
