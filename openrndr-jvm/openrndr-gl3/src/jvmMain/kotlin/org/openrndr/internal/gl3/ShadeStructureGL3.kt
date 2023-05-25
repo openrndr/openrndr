@@ -105,13 +105,18 @@ fun structureFromShadeStyle(shadeStyle: ShadeStyle?, vertexFormats: List<VertexF
                                 it.startsWith("struct")
                             }
                             val structValues = structs.keys.map {
-                                Pair(it, shadeStyle.parameterValues[it]!! as Struct<*>)
+                                if (shadeStyle.parameterValues[it] is Array<*>) {
+                                    @Suppress("UNCHECKED_CAST") val array = shadeStyle.parameterValues[it] as Array<Struct<*>>
+                                    Pair(it, array.first())
+                                } else {
+                                    Pair(it, shadeStyle.parameterValues[it]!! as Struct<*>)
+                                }
                             }
                             val structProtoValues = structValues.distinctBy {
                                 it.second::class.simpleName
                             }
                             structDefinitions = structProtoValues.joinToString("\n") {
-                                it.second.typeDef(shadeStyle.parameterTypes[it.first]!!.split(" ")[1])
+                                it.second.typeDef(shadeStyle.parameterTypes[it.first]!!.split(" ")[1].split(",")[0])
                             }
                         }
                         measure("outputs") {

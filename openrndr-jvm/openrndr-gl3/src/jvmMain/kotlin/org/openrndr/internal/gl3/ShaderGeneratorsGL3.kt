@@ -31,6 +31,7 @@ class ShaderGeneratorsGL3 : ShaderGenerators {
     override fun vertexBufferFragmentShader(shadeStructure: ShadeStructure): String = """|#version ${glslVersion()}
 |${primitiveTypes("d_vertex_buffer")}
 |${shadeStructure.buffers ?: ""}
+|${shadeStructure.structDefinitions ?: ""}
 |${shadeStructure.uniforms ?: ""}
 |layout(origin_upper_left) in vec4 gl_FragCoord;
 
@@ -64,6 +65,7 @@ ${primitiveTypes("d_vertex_buffer")}
 ${shadeStructure.buffers ?: ""}
 ${drawerUniforms()}
 ${shadeStructure.attributes ?: ""}
+${shadeStructure.structDefinitions ?: ""}
 ${shadeStructure.uniforms ?: ""}
 ${shadeStructure.varyingOut ?: ""}
 ${transformVaryingOut}
@@ -92,6 +94,7 @@ ${shadeStructure.varyingBridge ?: ""}
     override fun imageFragmentShader(shadeStructure: ShadeStructure): String = """#version ${glslVersion()}
 ${primitiveTypes("d_image")}
 ${shadeStructure.buffers ?: ""}
+${shadeStructure.structDefinitions ?: ""}
 ${shadeStructure.uniforms ?: ""}
 layout(origin_upper_left) in vec4 gl_FragCoord;
 
@@ -135,6 +138,7 @@ ${primitiveTypes("d_image")}
 ${shadeStructure.buffers ?: ""}
 ${drawerUniforms()}
 uniform int u_flipV;
+${shadeStructure.structDefinitions ?: ""}
 ${shadeStructure.attributes ?: ""}
 ${shadeStructure.uniforms ?: ""}
 ${shadeStructure.varyingOut ?: ""}
@@ -169,6 +173,7 @@ void main() {
 
     override fun imageArrayTextureFragmentShader(shadeStructure: ShadeStructure): String = """#version ${glslVersion()}
 ${primitiveTypes("d_image")}
+${shadeStructure.structDefinitions ?: ""}
 ${shadeStructure.buffers ?: ""}
 ${shadeStructure.uniforms ?: ""}
 layout(origin_upper_left) in vec4 gl_FragCoord;
@@ -214,6 +219,7 @@ ${primitiveTypes("d_image")}
 ${shadeStructure.buffers ?: ""}
 ${drawerUniforms()}
 uniform int u_flipV;
+${shadeStructure.structDefinitions ?: ""}
 ${shadeStructure.attributes ?: ""}
 ${shadeStructure.uniforms ?: ""}
 ${shadeStructure.varyingOut ?: ""}
@@ -250,6 +256,7 @@ void main() {
 
     override fun pointFragmentShader(shadeStructure: ShadeStructure): String = """#version ${glslVersion()}
 ${primitiveTypes("d_circle")}
+${shadeStructure.structDefinitions ?: ""}
 ${shadeStructure.buffers ?: ""}
 ${shadeStructure.uniforms ?: ""}
 layout(origin_upper_left) in vec4 gl_FragCoord;
@@ -284,6 +291,7 @@ void main(void) {
 
     override fun pointVertexShader(shadeStructure: ShadeStructure): String = """#version ${glslVersion()}
 ${primitiveTypes("d_point")}
+${shadeStructure.structDefinitions ?: ""}
 ${shadeStructure.buffers ?: ""}
 ${drawerUniforms(styleBlock = false)}
 ${shadeStructure.attributes ?: ""}
@@ -404,6 +412,7 @@ void main() {
 
     override fun fontImageMapFragmentShader(shadeStructure: ShadeStructure): String = """#version ${glslVersion()}
 ${primitiveTypes("d_font_image_map")}
+${shadeStructure.structDefinitions ?: ""}
 ${shadeStructure.buffers ?: ""}
 ${shadeStructure.uniforms ?: ""}
 layout(origin_upper_left) in vec4 gl_FragCoord;
@@ -444,6 +453,7 @@ void main(void) {
 
     override fun fontImageMapVertexShader(shadeStructure: ShadeStructure): String = """#version ${glslVersion()}
 ${primitiveTypes("d_font_image_map")}
+${shadeStructure.structDefinitions ?: ""}
 ${shadeStructure.buffers ?: ""}
 ${drawerUniforms()}
 
@@ -476,6 +486,7 @@ void main() {
 
     override fun rectangleFragmentShader(shadeStructure: ShadeStructure): String = """#version ${glslVersion()}
 ${primitiveTypes("d_rectangle")}
+${shadeStructure.structDefinitions ?: ""}
 ${shadeStructure.buffers ?: ""}
 ${shadeStructure.uniforms ?: ""}
 layout(origin_upper_left) in vec4 gl_FragCoord;
@@ -529,6 +540,7 @@ void main(void) {
 
     override fun rectangleVertexShader(shadeStructure: ShadeStructure): String = """#version ${glslVersion()}
 ${primitiveTypes("d_rectangle")}
+${shadeStructure.structDefinitions ?: ""}
 ${shadeStructure.buffers ?: ""}
 ${drawerUniforms(styleBlock = false)}
 ${shadeStructure.attributes ?: ""}
@@ -562,6 +574,7 @@ void main() {
 
     override fun expansionFragmentShader(shadeStructure: ShadeStructure): String = """#version ${glslVersion()}
 ${primitiveTypes("d_expansion")}
+${shadeStructure.structDefinitions ?: ""}
 ${shadeStructure.buffers ?: ""}
 ${shadeStructure.uniforms ?: ""}
 layout(origin_upper_left) in vec4 gl_FragCoord;
@@ -619,6 +632,7 @@ void main(void) {
 
     override fun expansionVertexShader(shadeStructure: ShadeStructure): String = """#version ${glslVersion()}
 ${primitiveTypes("d_expansion")}
+${shadeStructure.structDefinitions ?: ""}
 ${shadeStructure.buffers ?: ""}
 ${drawerUniforms()}
 ${shadeStructure.uniforms ?: ""}
@@ -655,6 +669,7 @@ void main() {
 
     override fun fastLineFragmentShader(shadeStructure: ShadeStructure): String = """#version ${glslVersion()}
 ${primitiveTypes("d_fast_line")}
+${shadeStructure.structDefinitions ?: ""}
 ${shadeStructure.buffers ?: ""}
 ${shadeStructure.uniforms ?: ""}
 layout(origin_upper_left) in vec4 gl_FragCoord;
@@ -686,6 +701,7 @@ void main(void) {
 
     override fun fastLineVertexShader(shadeStructure: ShadeStructure): String = """#version ${glslVersion()}
 ${primitiveTypes("d_fast_line")}
+${shadeStructure.structDefinitions ?: ""}
 ${shadeStructure.buffers ?: ""}
 ${drawerUniforms()}
 ${shadeStructure.attributes ?: ""}
@@ -716,6 +732,7 @@ void main() {
     override fun meshLineFragmentShader(shadeStructure: ShadeStructure): String = """
         |#version ${glslVersion()}
         |${primitiveTypes("d_mesh_line")}
+        |${shadeStructure.structDefinitions ?: ""}
         |${shadeStructure.buffers ?: ""}
         |${shadeStructure.outputs ?: ""}
         |${shadeStructure.uniforms ?: ""}
@@ -747,6 +764,7 @@ void main() {
     override fun meshLineVertexShader(shadeStructure: ShadeStructure): String = """
         |#version ${glslVersion()}
         |${shadeStructure.buffers ?: ""}
+        |${shadeStructure.structDefinitions ?: ""}
         |${primitiveTypes("d_mesh_line")}
         |${drawerUniforms()}
         |${shadeStructure.attributes ?: ""}
@@ -806,6 +824,7 @@ void main() {
 
     override fun filterVertexShader(shadeStructure: ShadeStructure): String = """
         |// -- ShaderGeneratorsGL3.filterVertexShader
+        |${shadeStructure.structDefinitions ?: ""}
         |${shadeStructure.buffers ?: ""}
         |#version ${glslVersion()}
         |in vec2 a_texCoord0;
@@ -826,6 +845,7 @@ void main() {
 
     override fun filterFragmentShader(shadeStructure: ShadeStructure): String = """
         |// -- ShaderGeneratorsGL3.filterFragmentShader
+        |${shadeStructure.structDefinitions ?: ""}
         |${shadeStructure.buffers ?: ""}
         |#version ${glslVersion()}
         |in vec2 v_texCoord0;
