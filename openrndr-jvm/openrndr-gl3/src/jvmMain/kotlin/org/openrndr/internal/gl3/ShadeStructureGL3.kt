@@ -163,7 +163,7 @@ private fun mapTypeToUniform(type: String, name: String): String {
     val u = "uniform"
 
     fun String?.arraySizeDefinition() = if (this == null) {
-        ""
+        ";"
     } else {
         "[$arraySize]; \n#define p_${name}_SIZE $arraySize"
     }
