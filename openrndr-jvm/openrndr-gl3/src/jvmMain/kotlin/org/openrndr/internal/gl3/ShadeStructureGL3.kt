@@ -168,14 +168,14 @@ private fun mapTypeToUniform(type: String, name: String): String {
     val u = "uniform"
 
     fun String?.arraySizeDefinition() = if (this == null) {
-        ""
+        ";"
     } else {
         "[$arraySize]; \n#define p_${name}_SIZE $arraySize"
     }
 
     val subtokens = tokens[0].split(" ")
     return when (subtokens[0]) {
-        "struct" -> "$u ${subtokens[1]} p_$name${arraySize.arraySizeDefinition()};"
+        "struct" -> "$u ${subtokens[1]} p_$name${arraySize.arraySizeDefinition()}"
         "Image2D", "Image3D", "ImageCube", "Image2DArray", "ImageBuffer", "ImageCubeArray" -> {
             val sampler = tokens[0].take(1).lowercase() + tokens[0].drop(1)
             val colorFormat = ColorFormat.valueOf(tokens[1])
@@ -187,7 +187,7 @@ private fun mapTypeToUniform(type: String, name: String): String {
                 ImageAccess.WRITE -> "writeonly $u $sampler p_$name"
             }
         }
-        else ->  "$u ${shadeStyleTypeToGLSL(tokens[0])} p_$name${arraySize.arraySizeDefinition()};"
+        else ->  "$u ${shadeStyleTypeToGLSL(tokens[0])} p_$name${arraySize.arraySizeDefinition()}"
     }
 }
 
