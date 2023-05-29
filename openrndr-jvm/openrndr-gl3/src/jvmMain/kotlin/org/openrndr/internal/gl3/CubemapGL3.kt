@@ -88,7 +88,8 @@ class CubemapGL3(val texture: Int, override val width: Int, override val type: C
                 glBindTexture(GL_TEXTURE_CUBE_MAP, textures[0])
                 checkGLErrors()
 
-                val data = loadDDS(URL(url).openStream())
+                val realUrl = URL(url)
+                val data = realUrl.openStream().use { loadDDS(it) }
                 val cubemap = data.toCubemap(session) as CubemapGL3
                 if (data.mipmaps == 1) {
                     cubemap.generateMipmaps()
@@ -128,8 +129,8 @@ class CubemapGL3(val texture: Int, override val width: Int, override val type: C
     override fun generateMipmaps() {
         bound {
             glGenerateMipmap(GL_TEXTURE_CUBE_MAP)
-            levels = ceil(log(width.toDouble(), 2.0)).toInt()
-            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAX_LEVEL, levels-1)
+            //levels = ceil(log(width.toDouble(), 2.0)).toInt()
+            //glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAX_LEVEL, levels)
         }
     }
 

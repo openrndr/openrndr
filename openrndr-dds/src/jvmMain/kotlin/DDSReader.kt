@@ -18,6 +18,7 @@ fun loadDDS(buffer: ByteBuffer) : DDSData {
 
 fun loadDDS(inputStream: InputStream): DDSData {
     val ba = ByteArray(inputStream.available())
+    inputStream.read(ba)
     return loadDDS(MPPBuffer(newByteBuffer(ba)))
 }
 

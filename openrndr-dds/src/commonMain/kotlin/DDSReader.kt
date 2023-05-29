@@ -66,7 +66,7 @@ class DDSPixelFormat(header: MPPBuffer) {
 
     private fun createFourCCString(fourCC: Int): String {
         val fourCCString = CharArray(DDPF_FOURCC)
-        for (i in fourCCString.indices) fourCCString[i] = (fourCC shr i * 8).toChar()
+        for (i in fourCCString.indices) fourCCString[i] = ((fourCC shr i * 8) and 0xff).toChar()
         return fourCCString.concatToString()
     }
 }
@@ -391,7 +391,6 @@ data class DDSData(
         for (level in 0 until mipmaps) {
             val levelWidth = width / (1 shl level)
             for (side in CubemapSide.values()) {
-                println("side: $side, level: $level")
                 cm.write(side, side(side, level), format, type, x = 0, y = 0, width = levelWidth, height = levelWidth, level = level)
             }
         }

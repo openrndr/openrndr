@@ -181,7 +181,11 @@ class ColorBufferGL3(
             return fromColorBufferData(data, session)
         }
 
-        fun fromFile(filename: String, @Suppress("UNUSED_PARAMETER") formatHint: ImageFileFormat?, session: Session?): ColorBuffer {
+        fun fromFile(
+            filename: String,
+            @Suppress("UNUSED_PARAMETER") formatHint: ImageFileFormat?,
+            session: Session?
+        ): ColorBuffer {
             val data = ColorBufferDataGL3.fromFile(filename)
             return fromColorBufferData(data, session)
         }
@@ -228,6 +232,11 @@ class ColorBufferGL3(
             levels: Int,
             session: Session?
         ): ColorBufferGL3 {
+
+            if (type.compressed && multisample is SampleCount) {
+                error("cannot create ColorBuffer that is both compressed and multi-sampled")
+            }
+
             val (internalFormat, internalType) = internalFormat(format, type)
             if (width <= 0 || height <= 0) {
                 throw Exception("cannot create ColorBuffer with dimensions: ${width}x$height")
@@ -267,7 +276,7 @@ class ColorBufferGL3(
                     for (level in 0 until levels) {
                         val div = 1 shl level
                         when (multisample) {
-                            Disabled ->
+                            Disabled -> if (!type.compressed) {
                                 glTexImage2D(
                                     GL_TEXTURE_2D,
                                     level,
@@ -279,6 +288,20 @@ class ColorBufferGL3(
                                     type.glType(),
                                     nullBB
                                 )
+                            } else {
+                                glTexImage2D(
+                                    GL_TEXTURE_2D,
+                                    level,
+                                    internalFormat,
+                                    effectiveWidth,
+                                    effectiveHeight,
+                                    0,
+                                    internalType,
+                                    GL_UNSIGNED_BYTE,
+                                    nullBB
+                                )
+                            }
+
                             is SampleCount -> glTexImage2DMultisample(
                                 GL_TEXTURE_2D_MULTISAMPLE,
                                 multisample.sampleCount.coerceAtMost(glGetInteger(GL_MAX_COLOR_TEXTURE_SAMPLES)),
@@ -290,10 +313,12 @@ class ColorBufferGL3(
                         }
                     }
                 }
+
                 TextureStorageModeGL.STORAGE -> {
                     when (multisample) {
                         Disabled ->
                             glTexStorage2D(GL_TEXTURE_2D, levels, internalFormat, effectiveWidth, effectiveHeight)
+
                         is SampleCount -> glTexStorage2DMultisample(
                             GL_TEXTURE_2D_MULTISAMPLE,
                             multisample.sampleCount.coerceAtMost(glGetInteger(GL_MAX_COLOR_TEXTURE_SAMPLES)),
@@ -631,6 +656,7 @@ class ColorBufferGL3(
                 writeTarget.detachColorAttachments()
                 writeTarget.destroy()
             }
+
             else -> {
                 GL44C.glClearTexImage(
                     texture,
@@ -859,11 +885,13 @@ class ColorBufferGL3(
                                 effectiveWidth, effectiveHeight,
                                 format.componentCount, pixels, 90
                             )
+
                             ImageFileFormat.PNG -> STBImageWrite.stbi_write_png(
                                 file.absolutePath,
                                 effectiveWidth, effectiveHeight,
                                 format.componentCount, pixels, effectiveWidth * format.componentCount
                             )
+
                             else -> error("format not supported")
                         }
                     }
@@ -1009,11 +1037,13 @@ class ColorBufferGL3(
                 effectiveWidth, effectiveHeight,
                 format.componentCount, pixels, 90
             )
+
             ImageFileFormat.PNG -> STBImageWrite.stbi_write_png_to_func(
                 writeFunc, 0L,
                 effectiveWidth, effectiveHeight,
                 format.componentCount, pixels, effectiveWidth * format.componentCount
             )
+
             else -> {
                 // do nothing
             }
@@ -1117,20 +1147,24 @@ internal fun compressedType(format: ColorFormat, type: ColorType): Int {
             ColorType.BPTC_UNORM -> GL_COMPRESSED_RGBA_BPTC_UNORM_ARB
             else -> throw IllegalArgumentException()
         }
+
         ColorFormat.sRGBa -> return when (type) {
             ColorType.DXT1 -> GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT
             ColorType.DXT3 -> GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT
             ColorType.DXT5 -> GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT
             else -> throw IllegalArgumentException()
         }
+
         ColorFormat.RGB -> return when (type) {
             ColorType.DXT1 -> GL_COMPRESSED_RGB_S3TC_DXT1_EXT
             else -> throw IllegalArgumentException()
         }
+
         ColorFormat.sRGB -> return when (type) {
             ColorType.DXT1 -> GL_COMPRESSED_SRGB_S3TC_DXT1_EXT
             else -> throw IllegalArgumentException()
         }
+
         else -> throw IllegalArgumentException()
     }
 }

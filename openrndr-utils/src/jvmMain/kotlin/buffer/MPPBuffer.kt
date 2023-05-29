@@ -44,6 +44,7 @@ actual class MPPBuffer(val byteBuffer: ByteBuffer)  {
             val byteBuffer= ByteBuffer.allocateDirect(fromBytes.size)
             byteBuffer.order(ByteOrder.nativeOrder())
             byteBuffer.put(fromBytes)
+            byteBuffer.flip()
             return MPPBuffer(byteBuffer)
         }
     }
