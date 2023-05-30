@@ -129,13 +129,13 @@ class Keyboard: KeyEvents {
     /**
      * key repeat event
      *
-     * This event is triggered from [Application] whenever a key is released.
+     * This event is triggered from [Application] whenever a key is held down for a while.
      */
     override val keyRepeat = Event<KeyEvent>("keyboard-key-repeat", postpone = true)
     /**
      * character event
      *
-     * This event is triggered from [Application] whenever a key is held down for a while
+     * This event is triggered from [Application] whenever an input character is generated.
      */
     override val character = Event<CharacterEvent>("keyboard-character", postpone = true)
 
