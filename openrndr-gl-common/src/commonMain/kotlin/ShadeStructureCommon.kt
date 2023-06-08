@@ -1,95 +1,21 @@
-package org.openrndr.internal.gl3
+package org.openrndr.internal.glcommon
 
 import org.openrndr.draw.*
-import org.openrndr.measure
-import kotlin.collections.HashMap
-import kotlin.collections.LinkedHashMap
 
-fun array(item: VertexElement): String = if (item.arraySize == 1) "" else "[${item.arraySize}]"
+private val shadeStyleCache = LRUCache<CacheEntry, ShadeStructure>()
 
-interface Cache<K, V> {
-    val size: Int
-    operator fun set(key: K, value: V)
-    operator fun get(key: K): V?
-    fun remove(key: K): V?
-    fun clear()
-}
+private fun array(item: VertexElement): String = if (item.arraySize == 1) "" else "[${item.arraySize}]"
+private data class CacheEntry(val shadeStyle: ShadeStyle?, val vertexFormats: List<VertexFormat>, val instanceAttributeFormats: List<VertexFormat>)
 
-class PerpetualCache<K, V> : Cache<K, V> {
-    private val cache = HashMap<K, V>()
-    override val size: Int
-        get() = cache.size
-
-    override fun set(key: K, value: V) {
-        this.cache[key] = value
-    }
-
-    override fun remove(key: K) = this.cache.remove(key)
-    override fun get(key: K) = this.cache[key]
-    override fun clear() = this.cache.clear()
-}
-
-class LRUCache<K, V>(private val delegate: Cache<K, V>, private val minimalSize: Int = DEFAULT_SIZE) : Cache<K, V> by delegate {
-    inline fun getOrSet(key: K, forceSet: Boolean, crossinline valueFunction: () -> V): V {
-        val v = measure("LRUCache-lookup") { get(key) }
-        return if (forceSet || v == null) {
-            val n = valueFunction()
-            set(key, n)
-            n
-        } else {
-            v
-        }
-    }
-
-    private val keyMap = object : LinkedHashMap<K, Boolean>(minimalSize, .75f, true) {
-        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<K, Boolean>): Boolean {
-            val tooManyCachedItems = size > minimalSize
-            if (tooManyCachedItems) eldestKeyToRemove = eldest.key
-            return tooManyCachedItems
-        }
-    }
-
-    private var eldestKeyToRemove: K? = null
-
-    override fun set(key: K, value: V) {
-        delegate[key] = value
-        cycleKeyMap(key)
-    }
-
-    override fun get(key: K): V? {
-        keyMap[key]
-        return delegate[key]
-    }
-
-    override fun clear() {
-        keyMap.clear()
-        delegate.clear()
-    }
-
-    private fun cycleKeyMap(key: K) {
-        keyMap[key] = PRESENT
-        eldestKeyToRemove?.let { delegate.remove(it) }
-        eldestKeyToRemove = null
-    }
-
-    companion object {
-        private const val DEFAULT_SIZE = 10000
-        private const val PRESENT = true
-    }
-}
-
-data class CacheEntry(val shadeStyle: ShadeStyle?, val vertexFormats: List<VertexFormat>, val instanceAttributeFormats: List<VertexFormat>)
-
-private val shadeStyleCache = LRUCache<CacheEntry, ShadeStructure>(PerpetualCache())
 
 fun structureFromShadeStyle(shadeStyle: ShadeStyle?, vertexFormats: List<VertexFormat>, instanceAttributeFormats: List<VertexFormat>): ShadeStructure {
-    return measure("structureFromShadeStyle") {
+    return run {
 
         val cacheEntry = CacheEntry(shadeStyle, vertexFormats, instanceAttributeFormats)
 
         shadeStyleCache.getOrSet(cacheEntry, shadeStyle?.dirty ?: false) {
 
-            measure("miss") {
+            run {
                 shadeStyle?.dirty = false
 
                 ShadeStructure().apply {
@@ -100,7 +26,7 @@ fun structureFromShadeStyle(shadeStyle: ShadeStyle?, vertexFormats: List<VertexF
                         vertexPreamble = shadeStyle.vertexPreamble
                         geometryPreamble = shadeStyle.geometryPreamble
                         fragmentPreamble = shadeStyle.fragmentPreamble
-                        measure("structDefinitions") {
+                        run {
                             val structs = shadeStyle.parameterTypes.filterValues {
                                 it.startsWith("struct")
                             }
@@ -119,14 +45,14 @@ fun structureFromShadeStyle(shadeStyle: ShadeStyle?, vertexFormats: List<VertexF
                                 it.second.typeDef(shadeStyle.parameterTypes[it.first]!!.split(" ")[1].split(",")[0])
                             }
                         }
-                        measure("outputs") {
+                        run {
                             outputs = shadeStyle.outputs.map { "// -- output-from  ${it.value} \nlayout(location = ${it.value.attachment}) out ${it.value.glslType} o_${it.key};\n" }.joinToString("")
                         }
-                        measure("uniforms") {
+                        run {
                             uniforms = shadeStyle.parameterTypes.map { mapTypeToUniform(it.value, it.key) }.joinToString("\n")
                         }
 
-                        measure("buffers") {
+                        run {
                             var bufferIndex = 2
                             buffers = shadeStyle.bufferValues.map {
                                 val r  =when (val v = it.value) {
@@ -139,19 +65,19 @@ fun structureFromShadeStyle(shadeStyle: ShadeStyle?, vertexFormats: List<VertexF
                         }
 
                     }
-                    measure("varying-out") {
+                    run {
                         varyingOut = vertexFormats.flatMap { it.items }.joinToString("") { "${it.type.glslVaryingQualifier}out ${it.type.glslType} va_${it.attribute}${array(it)};\n" } +
                                 instanceAttributeFormats.flatMap { it.items }.joinToString("") { "${it.type.glslVaryingQualifier}out ${it.type.glslType} vi_${it.attribute}${array(it)};\n" }
                     }
-                    measure("varying-in") {
+                    run {
                         varyingIn = vertexFormats.flatMap { it.items }.joinToString("") { "${it.type.glslVaryingQualifier}in ${it.type.glslType} va_${it.attribute}${array(it)};\n" } +
                                 instanceAttributeFormats.flatMap { it.items }.joinToString("") { "${it.type.glslVaryingQualifier}in ${it.type.glslType} vi_${it.attribute}${array(it)};\n" }
                     }
-                    measure("varying-bridge") {
+                    run {
                         varyingBridge = vertexFormats.flatMap { it.items }.joinToString("") { "    va_${it.attribute} = a_${it.attribute};\n" } +
                                 instanceAttributeFormats.flatMap { it.items }.joinToString("") { "vi_${it.attribute} = i_${it.attribute};\n" }
                     }
-                    measure("attributes") {
+                    run {
                         attributes = vertexFormats.flatMap { it.items }.joinToString("") { "in ${it.type.glslType} a_${it.attribute}${array(it)};\n" } +
                                 instanceAttributeFormats.flatMap { it.items }.joinToString("") { "in ${it.type.glslType} i_${it.attribute}${array(it)};\n" }
                     }
@@ -161,6 +87,8 @@ fun structureFromShadeStyle(shadeStyle: ShadeStyle?, vertexFormats: List<VertexF
         }
     }
 }
+
+
 
 private fun mapTypeToUniform(type: String, name: String): String {
     val tokens = type.split(",")

@@ -5,7 +5,7 @@ import WebGLVertexArrayObject
 import org.khronos.webgl.WebGLRenderingContext as GL
 import org.openrndr.draw.*
 import org.openrndr.internal.*
-
+import org.openrndr.internal.glcommon.*
 
 class DriverWebGL(val context: WebGL2RenderingContext) : Driver {
     init {
@@ -142,7 +142,10 @@ class DriverWebGL(val context: WebGL2RenderingContext) : Driver {
         fsGenerator: (ShadeStructure) -> String,
         session: Session?
     ): ShadeStyleManager {
-        return ShadeStyleManagerWebGL(name, vsGenerator, fsGenerator, session)
+        require(tcsGenerator == null)
+        require(tesGenerator == null)
+        require(gsGenerator == null)
+        return ShadeStyleManagerGLCommon(name, vsGenerator, tcsGenerator, tesGenerator, gsGenerator, fsGenerator)
     }
 
     override fun createRenderTarget(
@@ -615,7 +618,7 @@ class DriverWebGL(val context: WebGL2RenderingContext) : Driver {
     override val fontVectorMapManager: FontMapManager
         get() = TODO("Not yet implemented")
     override val shaderGenerators: ShaderGenerators by lazy {
-        ShaderGeneratorsWebGL()
+        ShaderGeneratorsGLCommon()
     }
     private val vaos = mutableMapOf<ShaderVertexDescription, WebGLVertexArrayObject>()
 
@@ -653,7 +656,7 @@ class DriverWebGL(val context: WebGL2RenderingContext) : Driver {
     }
 
     override val shaderLanguage: ShaderLanguage
-        get() = WebGLSL("100")
+        get() = WebGLSL("300 es")
 
 
     override fun shaderConfiguration(): String {

@@ -10,6 +10,7 @@ include(
         "openrndr-core",
         "openrndr-demos",
         "openrndr-draw",
+        "openrndr-gl-common",
         "openrndr-math",
         "openrndr-color",
         "openrndr-shape",

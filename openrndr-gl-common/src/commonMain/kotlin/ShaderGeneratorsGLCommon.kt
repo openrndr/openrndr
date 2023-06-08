@@ -1,8 +1,7 @@
 @file:Suppress("RemoveCurlyBracesFromTemplate")
 
-package org.openrndr.internal.gl3
+package org.openrndr.internal.glcommon
 
-import org.intellij.lang.annotations.Language
 import org.openrndr.draw.ShadeStructure
 import org.openrndr.draw.ShadeStyleGLSL.Companion.drawerUniforms
 import org.openrndr.draw.ShadeStyleGLSL.Companion.fragmentMainConstants
@@ -12,12 +11,9 @@ import org.openrndr.draw.ShadeStyleGLSL.Companion.primitiveTypes
 import org.openrndr.draw.ShadeStyleGLSL.Companion.transformVaryingIn
 import org.openrndr.draw.ShadeStyleGLSL.Companion.transformVaryingOut
 import org.openrndr.draw.ShadeStyleGLSL.Companion.vertexMainConstants
-import org.openrndr.internal.Driver
+
 import org.openrndr.internal.ShaderGenerators
 
-fun glslVersion(): String = (Driver.instance as DriverGL3).version.glslVersion
-
-@Language("GLSL")
 private val rotate2 = """mat2 rotate2(float rotationInDegrees) {
     float r = radians(rotationInDegrees);
     float cr = cos(r);
@@ -26,14 +22,18 @@ private val rotate2 = """mat2 rotate2(float rotationInDegrees) {
 }
 """.trimIndent()
 
+private val glFragCoord = """#ifdef OR_GL    
+layout(origin_upper_left) in vec4 gl_FragCoord;
+#endif   
+"""
 
-class ShaderGeneratorsGL3 : ShaderGenerators {
-    override fun vertexBufferFragmentShader(shadeStructure: ShadeStructure): String = """|#version ${glslVersion()}
+class ShaderGeneratorsGLCommon : ShaderGenerators {
+    override fun vertexBufferFragmentShader(shadeStructure: ShadeStructure): String = """|
 |${primitiveTypes("d_vertex_buffer")}
 |${shadeStructure.buffers ?: ""}
 |${shadeStructure.structDefinitions ?: ""}
 |${shadeStructure.uniforms ?: ""}
-|layout(origin_upper_left) in vec4 gl_FragCoord;
+|$glFragCoord
 
 |uniform sampler2D image;
 |${drawerUniforms()}
@@ -60,7 +60,7 @@ class ShaderGeneratorsGL3 : ShaderGenerators {
     }
 |}""".trimMargin()
 
-    override fun vertexBufferVertexShader(shadeStructure: ShadeStructure): String = """#version ${glslVersion()}
+    override fun vertexBufferVertexShader(shadeStructure: ShadeStructure): String = """
 ${primitiveTypes("d_vertex_buffer")}
 ${shadeStructure.buffers ?: ""}
 ${drawerUniforms()}
@@ -91,12 +91,12 @@ ${shadeStructure.varyingBridge ?: ""}
 }
             """.trimMargin()
 
-    override fun imageFragmentShader(shadeStructure: ShadeStructure): String = """#version ${glslVersion()}
+    override fun imageFragmentShader(shadeStructure: ShadeStructure): String = """
 ${primitiveTypes("d_image")}
 ${shadeStructure.buffers ?: ""}
 ${shadeStructure.structDefinitions ?: ""}
 ${shadeStructure.uniforms ?: ""}
-layout(origin_upper_left) in vec4 gl_FragCoord;
+$glFragCoord
 
 uniform sampler2D image;
 ${drawerUniforms()}
@@ -133,7 +133,7 @@ void main(void) {
 }"""
 
     override fun imageVertexShader(shadeStructure: ShadeStructure): String = """
-#version ${glslVersion()}
+
 ${primitiveTypes("d_image")}
 ${shadeStructure.buffers ?: ""}
 ${drawerUniforms()}
@@ -152,7 +152,7 @@ flat out int v_instance;
 out vec3 v_boundsPosition;
 void main() {
     v_instance = gl_InstanceID;
-    
+
     ${shadeStructure.varyingBridge ?: ""}
     ${preVertexTransform}
     vec3 x_normal = a_normal;
@@ -171,12 +171,12 @@ void main() {
 }
 """
 
-    override fun imageArrayTextureFragmentShader(shadeStructure: ShadeStructure): String = """#version ${glslVersion()}
+    override fun imageArrayTextureFragmentShader(shadeStructure: ShadeStructure): String = """
 ${primitiveTypes("d_image")}
 ${shadeStructure.structDefinitions ?: ""}
 ${shadeStructure.buffers ?: ""}
 ${shadeStructure.uniforms ?: ""}
-layout(origin_upper_left) in vec4 gl_FragCoord;
+$glFragCoord
 
 uniform sampler2DArray image;
 ${drawerUniforms()}
@@ -214,7 +214,7 @@ void main(void) {
 }"""
 
     override fun imageArrayTextureVertexShader(shadeStructure: ShadeStructure): String = """
-#version ${glslVersion()}
+
 ${primitiveTypes("d_image")}
 ${shadeStructure.buffers ?: ""}
 ${drawerUniforms()}
@@ -234,7 +234,7 @@ flat out int v_layer;
 out vec3 v_boundsPosition;
 void main() {
     v_instance = gl_InstanceID;
-    
+
     ${shadeStructure.varyingBridge ?: ""}
     ${preVertexTransform}
     vec3 x_normal = a_normal;
@@ -254,12 +254,12 @@ void main() {
 }
 """
 
-    override fun pointFragmentShader(shadeStructure: ShadeStructure): String = """#version ${glslVersion()}
+    override fun pointFragmentShader(shadeStructure: ShadeStructure): String = """
 ${primitiveTypes("d_circle")}
 ${shadeStructure.structDefinitions ?: ""}
 ${shadeStructure.buffers ?: ""}
 ${shadeStructure.uniforms ?: ""}
-layout(origin_upper_left) in vec4 gl_FragCoord;
+$glFragCoord
 
 ${drawerUniforms(styleBlock = false)}
 ${shadeStructure.varyingIn ?: ""}
@@ -274,9 +274,9 @@ in vec3 v_boundsSize;
 ${
         fragmentMainConstants(boundsPosition = "vec3(0.0, 0.0, 0.0)", boundsSize = "v_boundsSize")
     }
-${shadeStructure.fragmentPreamble ?: ""}    
+${shadeStructure.fragmentPreamble ?: ""}
 void main(void) {
-    
+
 
     vec4 x_fill = vi_fill;
     vec4 x_stroke = vi_stroke;
@@ -289,7 +289,7 @@ void main(void) {
 
     """.trimMargin()
 
-    override fun pointVertexShader(shadeStructure: ShadeStructure): String = """#version ${glslVersion()}
+    override fun pointVertexShader(shadeStructure: ShadeStructure): String = """
 ${primitiveTypes("d_point")}
 ${shadeStructure.structDefinitions ?: ""}
 ${shadeStructure.buffers ?: ""}
@@ -306,7 +306,7 @@ flat out int v_instance;
 out vec3 v_boundsSize;
 void main() {
     v_instance = gl_InstanceID;
-    
+
     ${shadeStructure.varyingBridge ?: ""}
 
     v_boundsSize = vec3(0, 0.0, 0.0);
@@ -322,12 +322,12 @@ void main() {
 }"""
 
 
-    override fun circleFragmentShader(shadeStructure: ShadeStructure): String = """#version ${glslVersion()}
+    override fun circleFragmentShader(shadeStructure: ShadeStructure): String = """
 ${primitiveTypes("d_circle")}
 ${shadeStructure.structDefinitions ?: ""}
 ${shadeStructure.uniforms ?: ""}
 ${shadeStructure.buffers ?: ""}
-layout(origin_upper_left) in vec4 gl_FragCoord;
+$glFragCoord
 
 ${drawerUniforms(styleBlock = false)}
 ${shadeStructure.varyingIn ?: ""}
@@ -351,16 +351,16 @@ void main(void) {
     vec4 x_fill = vi_fill;
     vec4 x_stroke = vi_stroke;
     float x_strokeWeight = vi_strokeWeight;
-    
+
     {
         ${shadeStructure.fragmentTransform ?: ""}
     }
     float wd = fwidth(length(va_texCoord0 - vec2(0.0)));
-    float d = length(va_texCoord0 - vec2(0.5)) * 2;
+    float d = length(va_texCoord0 - vec2(0.5)) * 2.0;
 
-    float or = smoothstep(0, wd * smoothFactor, 1.0 - d);
+    float or = smoothstep(0.0, wd * smoothFactor, 1.0 - d);
     float b = x_strokeWeight / vi_radius.x;
-    float ir = smoothstep(0, wd * smoothFactor, 1.0 - b - d);
+    float ir = smoothstep(0.0, wd * smoothFactor, 1.0 - b - d);
 
     vec4 final = vec4(0.0);
     final.rgb =  x_stroke.rgb;
@@ -373,8 +373,8 @@ void main(void) {
 }
 """
 
-    override fun circleVertexShader(shadeStructure: ShadeStructure): String = """#version ${glslVersion()}
-// -- circle vertex shader        
+    override fun circleVertexShader(shadeStructure: ShadeStructure): String = """
+// -- circle vertex shader
 ${primitiveTypes("d_circle")}
 ${shadeStructure.buffers ?: ""}
 ${drawerUniforms(styleBlock = false)}
@@ -391,7 +391,7 @@ flat out int v_instance;
 out vec3 v_boundsSize;
 void main() {
     v_instance = gl_InstanceID;
-    
+
     ${shadeStructure.varyingBridge ?: ""}
 
     vec2 effectiveRadius = i_radius.xy + vec2(1.25) / (u_modelViewScalingFactor);
@@ -410,12 +410,12 @@ void main() {
 }
     """
 
-    override fun fontImageMapFragmentShader(shadeStructure: ShadeStructure): String = """#version ${glslVersion()}
+    override fun fontImageMapFragmentShader(shadeStructure: ShadeStructure): String = """
 ${primitiveTypes("d_font_image_map")}
 ${shadeStructure.structDefinitions ?: ""}
 ${shadeStructure.buffers ?: ""}
 ${shadeStructure.uniforms ?: ""}
-layout(origin_upper_left) in vec4 gl_FragCoord;
+$glFragCoord
 
 uniform sampler2D image;
 flat in int v_instance;
@@ -439,7 +439,7 @@ ${
     }
 void main(void) {
     float imageMap = texture(image, va_texCoord0).r;
-    
+
     vec4 x_fill = vec4(u_fill.rgb,u_fill.a * imageMap);
     vec4 x_stroke = u_stroke;
     {
@@ -451,7 +451,7 @@ void main(void) {
 }
 """
 
-    override fun fontImageMapVertexShader(shadeStructure: ShadeStructure): String = """#version ${glslVersion()}
+    override fun fontImageMapVertexShader(shadeStructure: ShadeStructure): String = """
 ${primitiveTypes("d_font_image_map")}
 ${shadeStructure.structDefinitions ?: ""}
 ${shadeStructure.buffers ?: ""}
@@ -467,7 +467,7 @@ flat out int v_instance;
 flat out int v_element;
 
 void main() {
-    
+
     vec3 decodedPosition = vec3(a_position.xy, 0.0);
     v_element = int(a_position.z);
     v_instance = int(a_instance);
@@ -484,12 +484,12 @@ void main() {
 }
             """
 
-    override fun rectangleFragmentShader(shadeStructure: ShadeStructure): String = """#version ${glslVersion()}
+    override fun rectangleFragmentShader(shadeStructure: ShadeStructure): String = """
 ${primitiveTypes("d_rectangle")}
 ${shadeStructure.structDefinitions ?: ""}
 ${shadeStructure.buffers ?: ""}
 ${shadeStructure.uniforms ?: ""}
-layout(origin_upper_left) in vec4 gl_FragCoord;
+$glFragCoord
 
 ${drawerUniforms(styleBlock = false)}
 ${shadeStructure.varyingIn ?: ""}
@@ -508,7 +508,7 @@ ${
             boundsSize = "v_boundsSize"
         )
     }
-    
+
 void main(void) {
     vec4 x_fill = vi_fill;
     vec4 x_stroke = vi_stroke;
@@ -516,10 +516,10 @@ void main(void) {
         ${shadeStructure.fragmentTransform ?: ""}
     }
     vec2 wd = fwidth(va_texCoord0 - vec2(0.5));
-    vec2 d = abs((va_texCoord0 - vec2(0.5)) * 2);
+    vec2 d = abs((va_texCoord0 - vec2(0.5)) * 2.0);
 
-    float irx = smoothstep(0.0, wd.x * 2.5, 1.0-d.x - vi_strokeWeight*2.0/vi_dimensions.x);
-    float iry = smoothstep(0.0, wd.y * 2.5, 1.0-d.y - vi_strokeWeight*2.0/vi_dimensions.y);
+    float irx = smoothstep(0.0, wd.x * 2.5, 1.0-d.x - vi_strokeWeight * 2.0 / vi_dimensions.x);
+    float iry = smoothstep(0.0, wd.y * 2.5, 1.0-d.y - vi_strokeWeight * 2.0 / vi_dimensions.y);
     float ir = irx*iry;
 
     vec4 final = vec4(1.0);
@@ -538,7 +538,7 @@ void main(void) {
 }
 """
 
-    override fun rectangleVertexShader(shadeStructure: ShadeStructure): String = """#version ${glslVersion()}
+    override fun rectangleVertexShader(shadeStructure: ShadeStructure): String = """
 ${primitiveTypes("d_rectangle")}
 ${shadeStructure.structDefinitions ?: ""}
 ${shadeStructure.buffers ?: ""}
@@ -561,7 +561,7 @@ void main() {
     ${preVertexTransform}
     vec3 x_normal = vec3(0.0, 0.0, 1.0);
     vec2 rotatedPosition = rotate2(i_rotation) * (( a_position.xy - vec2(0.5) ) * i_dimensions) + vec2(0.5) * i_dimensions;
-      
+
     vec3 x_position = vec3(rotatedPosition, 0.0) + i_offset;
     v_boundsSize = vec3(i_dimensions, 1.0);
     {
@@ -572,12 +572,12 @@ void main() {
     }
     """
 
-    override fun expansionFragmentShader(shadeStructure: ShadeStructure): String = """#version ${glslVersion()}
+    override fun expansionFragmentShader(shadeStructure: ShadeStructure): String = """
 ${primitiveTypes("d_expansion")}
 ${shadeStructure.structDefinitions ?: ""}
 ${shadeStructure.buffers ?: ""}
 ${shadeStructure.uniforms ?: ""}
-layout(origin_upper_left) in vec4 gl_FragCoord;
+$glFragCoord
 ${drawerUniforms()}
 ${shadeStructure.varyingIn ?: ""}
 ${transformVaryingIn}
@@ -616,7 +616,7 @@ void main(void) {
 
     { ${shadeStructure.fragmentTransform ?: ""} }
 
-    vec4 color = mix(x_stroke, x_fill, strokeFillFactor)  * vec4(1, 1, 1, strokeAlpha);
+    vec4 color = mix(x_stroke, x_fill, strokeFillFactor)  * vec4(1.0, 1.0, 1.0, strokeAlpha);
     vec4 result = color;
 
     if (strokeAlpha < strokeThr) {
@@ -630,7 +630,7 @@ void main(void) {
 }
 """
 
-    override fun expansionVertexShader(shadeStructure: ShadeStructure): String = """#version ${glslVersion()}
+    override fun expansionVertexShader(shadeStructure: ShadeStructure): String = """
 ${primitiveTypes("d_expansion")}
 ${shadeStructure.structDefinitions ?: ""}
 ${shadeStructure.buffers ?: ""}
@@ -667,12 +667,12 @@ void main() {
 }
 """
 
-    override fun fastLineFragmentShader(shadeStructure: ShadeStructure): String = """#version ${glslVersion()}
+    override fun fastLineFragmentShader(shadeStructure: ShadeStructure): String = """
 ${primitiveTypes("d_fast_line")}
 ${shadeStructure.structDefinitions ?: ""}
 ${shadeStructure.buffers ?: ""}
 ${shadeStructure.uniforms ?: ""}
-layout(origin_upper_left) in vec4 gl_FragCoord;
+$glFragCoord
 
 uniform sampler2D image;
 ${drawerUniforms()}
@@ -699,7 +699,7 @@ void main(void) {
 }
 """
 
-    override fun fastLineVertexShader(shadeStructure: ShadeStructure): String = """#version ${glslVersion()}
+    override fun fastLineVertexShader(shadeStructure: ShadeStructure): String = """
 ${primitiveTypes("d_fast_line")}
 ${shadeStructure.structDefinitions ?: ""}
 ${shadeStructure.buffers ?: ""}
@@ -716,7 +716,7 @@ flat out int v_instance;
 
 void main() {
     v_instance = gl_InstanceID;
-    
+
     ${shadeStructure.varyingBridge ?: ""}
     $preVertexTransform
     vec3 x_normal = vec3(0.0, 0.0, 1.0);
@@ -730,13 +730,13 @@ void main() {
 """
 
     override fun meshLineFragmentShader(shadeStructure: ShadeStructure): String = """
-        |#version ${glslVersion()}
+        |
         |${primitiveTypes("d_mesh_line")}
         |${shadeStructure.structDefinitions ?: ""}
         |${shadeStructure.buffers ?: ""}
         |${shadeStructure.outputs ?: ""}
         |${shadeStructure.uniforms ?: ""}
-        |layout(origin_upper_left) in vec4 gl_FragCoord;
+        |$glFragCoord
         |
         |uniform sampler2D image;
         |${shadeStructure.fragmentPreamble ?: ""}
@@ -762,7 +762,7 @@ void main() {
         """.trimMargin()
 
     override fun meshLineVertexShader(shadeStructure: ShadeStructure): String = """
-        |#version ${glslVersion()}
+        |
         |${shadeStructure.buffers ?: ""}
         |${shadeStructure.structDefinitions ?: ""}
         |${primitiveTypes("d_mesh_line")}
@@ -800,7 +800,7 @@ void main() {
         |   vec2 currentP = fix(finalPosition, aspect);
         |   vec2 prevP = fix(prevPosition, aspect);
         |   vec2 nextP = fix(nextPosition, aspect);
-        |   
+        |
         |   vec2 w = max(pixelWidthRatio*finalPosition.w, (pixelWidthRatio) * a_width);
         |   vec2 dir;
         |   if (nextP == currentP) {
@@ -826,7 +826,7 @@ void main() {
         |// -- ShaderGeneratorsGL3.filterVertexShader
         |${shadeStructure.structDefinitions ?: ""}
         |${shadeStructure.buffers ?: ""}
-        |#version ${glslVersion()}
+        |
         |in vec2 a_texCoord0;
         |in vec2 a_position;
         |// -- vertexPreamble
@@ -847,7 +847,7 @@ void main() {
         |// -- ShaderGeneratorsGL3.filterFragmentShader
         |${shadeStructure.structDefinitions ?: ""}
         |${shadeStructure.buffers ?: ""}
-        |#version ${glslVersion()}
+        |
         |in vec2 v_texCoord0;
         |uniform sampler2D tex0;
         |uniform sampler2D tex1;
@@ -887,7 +887,7 @@ void main() {
     }
         |}
         |
-        
+
     """.trimMargin()
 
 

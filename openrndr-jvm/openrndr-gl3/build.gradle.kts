@@ -34,6 +34,7 @@ kotlin {
                 implementation(project(":openrndr-shape"))
                 implementation(project(":openrndr-binpack"))
                 implementation(project(":openrndr-dds"))
+                implementation(project(":openrndr-gl-common"))
                 implementation(libs.kotlin.coroutines)
                 implementation(libs.lwjgl.core)
                 implementation(libs.lwjgl.glfw)

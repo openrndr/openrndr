@@ -6,6 +6,8 @@ import org.lwjgl.opengl.*
 import org.lwjgl.opengl.GL40C.*
 import org.openrndr.draw.*
 import org.openrndr.internal.*
+import org.openrndr.internal.glcommon.ShadeStyleManagerGLCommon
+import org.openrndr.internal.glcommon.ShaderGeneratorsGLCommon
 import org.openrndr.math.Matrix33
 import org.openrndr.math.Matrix44
 import org.openrndr.measure
@@ -84,7 +86,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
             vaos[0]
         }
 
-    override val shaderGenerators: ShaderGenerators = ShaderGeneratorsGL3()
+    override val shaderGenerators: ShaderGenerators = ShaderGeneratorsGLCommon()
     private val vaos = mutableMapOf<ShaderVertexDescription, Int>()
 
     private fun hash(
@@ -172,7 +174,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         fsGenerator: (ShadeStructure) -> String,
         session: Session?
     ): ShadeStyleManager {
-        return ShadeStyleManagerGL3(
+        return ShadeStyleManagerGLCommon(
             name,
             vsGenerator = vsGenerator,
             tcsGenerator = tcsGenerator,
