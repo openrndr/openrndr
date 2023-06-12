@@ -4,8 +4,6 @@ import org.openrndr.color.ColorRGBa
 import org.openrndr.math.*
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
-import kotlin.reflect.typeOf
-
 
 open class Struct<T : Struct<T>> {
     val types = mutableMapOf<String, String>()

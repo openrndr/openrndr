@@ -50,7 +50,7 @@ class ShaderGeneratorsGLCommon : ShaderGenerators {
 |    vec4 x_fill = u_fill;
 |    vec4 x_stroke = u_stroke;
 |    {
-|       ${shadeStructure.fragmentTransform ?: ""}
+${shadeStructure.fragmentTransform?.prependIndent("        ") ?: ""}
 |    }
      ${
         if (!shadeStructure.suppressDefaultOutput) """
@@ -82,7 +82,7 @@ ${shadeStructure.varyingBridge ?: ""}
 
     ${preVertexTransform}
     {
-        ${shadeStructure.vertexTransform ?: ""}
+${shadeStructure.vertexTransform?.prependIndent("        ") ?: ""}
     }
     ${postVertexTransform}
 
@@ -123,7 +123,7 @@ void main(void) {
     vec4 x_fill = texture(image, va_texCoord0);
     vec4 x_stroke = u_stroke;
     {
-        ${shadeStructure.fragmentTransform ?: ""}
+${shadeStructure.fragmentTransform?.prependIndent("        ") ?: ""}
     }
     float div = x_fill.a != 0.0 ? x_fill.a : 1.0;
     x_fill.rgb /= div;
@@ -164,7 +164,7 @@ void main() {
         va_texCoord0.y = 1.0 - va_texCoord0.y;
     }
     {
-        ${shadeStructure.vertexTransform ?: ""}
+${shadeStructure.vertexTransform?.prependIndent("        ") ?: ""}
     }
     ${postVertexTransform}
     gl_Position = v_clipPosition;
@@ -204,7 +204,7 @@ void main(void) {
     vec4 x_fill = texture(image, vec3(va_texCoord0, v_layer*1.0));
     vec4 x_stroke = u_stroke;
     {
-        ${shadeStructure.fragmentTransform ?: ""}
+${shadeStructure.fragmentTransform?.prependIndent("        ") ?: ""}
     }
     float div = x_fill.a != 0.0 ? x_fill.a : 1.0;
     x_fill.rgb /= div;
@@ -247,7 +247,7 @@ void main() {
         va_texCoord0.y = 1.0 - va_texCoord0.y;
     }
     {
-        ${shadeStructure.vertexTransform ?: ""}
+${shadeStructure.vertexTransform?.prependIndent("        ") ?: ""}
     }
     ${postVertexTransform}
     gl_Position = v_clipPosition;
@@ -281,7 +281,7 @@ void main(void) {
     vec4 x_fill = vi_fill;
     vec4 x_stroke = vi_stroke;
     {
-        ${shadeStructure.fragmentTransform ?: ""}
+${shadeStructure.fragmentTransform?.prependIndent("        ") ?: ""}
     }
     x_fill.rgb *= x_fill.a;
     ${if (!shadeStructure.suppressDefaultOutput) "o_color = x_fill;" else ""}
@@ -314,7 +314,7 @@ void main() {
     vec3 x_normal = vec3(0.0, 0.0, 1.0);
     vec3 x_position = a_position  + i_offset;
     {
-        ${shadeStructure.vertexTransform ?: ""}
+${shadeStructure.vertexTransform?.prependIndent("        ") ?: ""}
     }
     va_position = x_position;
     ${postVertexTransform}
@@ -339,13 +339,14 @@ ${shadeStructure.fragmentPreamble ?: ""}
 
 flat in int v_instance;
 in vec3 v_boundsSize;
-void main(void) {
-    ${
+${
         fragmentMainConstants(
-            boundsPosition = "vec3(va_texCoord0, 0.0)",
-            boundsSize = "v_boundsSize"
+            boundsPosition = "vec3(va_texCoord0, 0.0)", boundsSize = "v_boundsSize"
         )
     }
+
+
+void main(void) {
     float smoothFactor = 3.0;
 
     vec4 x_fill = vi_fill;
@@ -353,7 +354,7 @@ void main(void) {
     float x_strokeWeight = vi_strokeWeight;
 
     {
-        ${shadeStructure.fragmentTransform ?: ""}
+${shadeStructure.fragmentTransform?.prependIndent("        ") ?: ""}
     }
     float wd = fwidth(length(va_texCoord0 - vec2(0.0)));
     float d = length(va_texCoord0 - vec2(0.5)) * 2.0;
@@ -401,7 +402,7 @@ void main() {
     vec3 x_normal = a_normal;
     vec3 x_position = vec3(a_position.xy * effectiveRadius, 0.0) + i_offset;
     {
-        ${shadeStructure.vertexTransform ?: ""}
+${shadeStructure.vertexTransform?.prependIndent("        ") ?: ""}
     }
     va_position = x_position;
     ${postVertexTransform}
@@ -443,7 +444,7 @@ void main(void) {
     vec4 x_fill = vec4(u_fill.rgb,u_fill.a * imageMap);
     vec4 x_stroke = u_stroke;
     {
-        ${shadeStructure.fragmentTransform ?: ""}
+${shadeStructure.fragmentTransform?.prependIndent("        ") ?: ""}
     }
     vec4 final = x_fill;
     final.rgb *= final.a;
@@ -477,7 +478,7 @@ void main() {
     vec3 x_normal = vec3(0.0, 0.0, 1.0);
     vec3 x_position = decodedPosition;
     {
-        ${shadeStructure.vertexTransform ?: ""}
+${shadeStructure.vertexTransform?.prependIndent("        ") ?: ""}
     }
     ${postVertexTransform}
     gl_Position = v_clipPosition;
@@ -513,7 +514,7 @@ void main(void) {
     vec4 x_fill = vi_fill;
     vec4 x_stroke = vi_stroke;
     {
-        ${shadeStructure.fragmentTransform ?: ""}
+${shadeStructure.fragmentTransform?.prependIndent("        ") ?: ""}
     }
     vec2 wd = fwidth(va_texCoord0 - vec2(0.5));
     vec2 d = abs((va_texCoord0 - vec2(0.5)) * 2.0);
@@ -565,7 +566,7 @@ void main() {
     vec3 x_position = vec3(rotatedPosition, 0.0) + i_offset;
     v_boundsSize = vec3(i_dimensions, 1.0);
     {
-        ${shadeStructure.vertexTransform ?: ""}
+${shadeStructure.vertexTransform?.prependIndent("        ") ?: ""}
     }
     ${postVertexTransform}
     gl_Position = v_clipPosition;
@@ -614,7 +615,7 @@ void main(void) {
     vec4 x_stroke = u_stroke;
     vec4 x_fill = u_fill;
 
-    { ${shadeStructure.fragmentTransform ?: ""} }
+${shadeStructure.fragmentTransform?.prependIndent("        ") ?: ""}
 
     vec4 color = mix(x_stroke, x_fill, strokeFillFactor)  * vec4(1.0, 1.0, 1.0, strokeAlpha);
     vec4 result = color;
@@ -659,7 +660,7 @@ void main() {
     vec3 x_normal = vec3(0.0, 0.0, 1.0);
     $preVertexTransform
     {
-        ${shadeStructure.vertexTransform ?: ""}
+${shadeStructure.vertexTransform?.prependIndent("        ") ?: ""}
     }
     $postVertexTransform
 
@@ -688,7 +689,7 @@ void main(void) {
     vec4 x_fill = u_fill;
     vec4 x_stroke = u_stroke;
     {
-        ${shadeStructure.fragmentTransform ?: ""}
+${shadeStructure.fragmentTransform?.prependIndent("        ") ?: ""}
     }
 
 
@@ -722,7 +723,7 @@ void main() {
     vec3 x_normal = vec3(0.0, 0.0, 1.0);
     vec3 x_position = a_position;
     {
-        ${shadeStructure.vertexTransform ?: ""}
+${shadeStructure.vertexTransform?.prependIndent("        ") ?: ""}
     }
     $postVertexTransform
     gl_Position = v_clipPosition;
@@ -750,7 +751,7 @@ void main() {
         |   vec4 x_fill = u_fill;
         |   vec4 x_stroke = va_color;
         |   {
-        |       ${shadeStructure.fragmentTransform ?: ""}
+${shadeStructure.fragmentTransform?.prependIndent("        ") ?: ""}
         |   }
         |${
         if (!shadeStructure.suppressDefaultOutput) """
@@ -788,7 +789,7 @@ void main() {
         |   vec3 x_normal = vec3(0.0, 0.0, 1.0);
         |   vec3 x_position = a_position;
         |   {
-        |       ${shadeStructure.vertexTransform ?: ""}
+${shadeStructure.vertexTransform?.prependIndent("        ") ?: ""}
         |   }
         |   $postVertexTransform
         |   float aspect = u_viewDimensions.x / u_viewDimensions.y;
@@ -839,7 +840,7 @@ void main() {
         |   v_texCoord0 = a_texCoord0;
         |   vec2 transformed = a_position * (targetSize - 2*padding) + padding;
         |   gl_Position = projectionMatrix * vec4(transformed, 0.0, 1.0);
-        |   ${shadeStructure.vertexTransform ?: ""}
+${shadeStructure.vertexTransform?.prependIndent("        ") ?: ""}
         |}
     """.trimMargin()
 
@@ -877,7 +878,7 @@ void main() {
         |   vec4 x_stroke = vec4(0.0);
         |   {
         |       // -- shadeStructure.fragmentTransform
-        |       ${shadeStructure.fragmentTransform ?: ""}
+${shadeStructure.fragmentTransform?.prependIndent("        ") ?: ""}
         |   }
         |${
         if (!shadeStructure.suppressDefaultOutput) """
