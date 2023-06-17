@@ -1,6 +1,5 @@
 package org.openrndr.draw
 
-import org.openrndr.draw.Writer
 import org.openrndr.math.Vector2
 import org.openrndr.shape.Rectangle
 import kotlin.jvm.JvmName
@@ -10,7 +9,7 @@ class Cursor(var x: Double = 0.0, var y: Double = 0.0) {
 }
 
 @Suppress("unused")
-class RenderToken(val token: String, val x: Double, val y: Double, val width: Double, val tracking: Double)
+class TextToken(val token: String, val x: Double, val y: Double, val width: Double, val tracking: Double)
 
 class WriteStyle {
     var leading = 0.0
@@ -82,33 +81,49 @@ class Writer(val drawerRef: Drawer?) {
         text.sumOf { (drawStyle.fontMap as FontImageMap).glyphMetrics[it]?.advanceWidth ?: 0.0 } +
                 (text.length - 1).coerceAtLeast(0) * style.tracking
 
-    fun text(text: String, visible: Boolean = true) {
+    /**
+     * Draw text
+     * @param text the text to write, may contain newlines
+     * @param visible draw the text when set to true, when set to false only type setting is performed
+     * @return a list of [TextToken] instances
+     */
+    fun text(text: String, visible: Boolean = true) : List<TextToken> {
         // Triggers loading the default font (if needed) by accessing .fontMap
         // otherwise makeRenderTokens() is not aware of the default font.
         drawerRef?.fontMap
 
-        val renderTokens = makeRenderTokens(text, false)
+        val renderTokens = makeTextTokens(text, false)
 
         if (visible) {
-            drawerRef?.let { d ->
-                val renderer = d.fontImageMapDrawer
-                renderTokens.forEach {
-                    renderer.queueText(
-                        fontMap = d.drawStyle.fontMap!!,
-                        text = it.token,
-                        x = it.x,
-                        y = it.y,
-                        tracking = style.tracking,
-                        kerning = drawStyle.kerning,
-                        textSetting = drawStyle.textSetting
-                    )
-                }
-                renderer.flush(d.context, d.drawStyle)
+            drawTextTokens(renderTokens)
+        }
+        return renderTokens
+    }
+
+    /**
+     * Draw pre-set text tokens.
+     * @param tokens a list of [TextToken] instances
+     * @since 0.4.3
+     */
+    fun drawTextTokens(tokens: List<TextToken>) {
+        drawerRef?.let { d ->
+            val renderer = d.fontImageMapDrawer
+            tokens.forEach {
+                renderer.queueText(
+                    fontMap = d.drawStyle.fontMap!!,
+                    text = it.token,
+                    x = it.x,
+                    y = it.y,
+                    tracking = style.tracking,
+                    kerning = drawStyle.kerning,
+                    textSetting = drawStyle.textSetting
+                )
             }
+            renderer.flush(d.context, d.drawStyle)
         }
     }
 
-    private fun makeRenderTokens(text: String, mustFit: Boolean = false): List<RenderToken> {
+    private fun makeTextTokens(text: String, mustFit: Boolean = false): List<TextToken> {
         drawStyle.fontMap?.let { font ->
 
             var fits = true
@@ -125,7 +140,7 @@ class Writer(val drawerRef: Drawer?) {
             val spaceWidth = font.glyphMetrics[' ']!!.advanceWidth
             val verticalSpace = style.leading + font.leading
 
-            val renderTokens = mutableListOf<RenderToken>()
+            val textTokens = mutableListOf<TextToken>()
 
             tokenLoop@ for (i in 0 until tokens.size) {
 
@@ -138,8 +153,8 @@ class Writer(val drawerRef: Drawer?) {
                         font.glyphMetrics[it]?.advanceWidth ?: 0.0
                     } + style.tracking * token.length
                     if (localCursor.x + tokenWidth < box.x + box.width && localCursor.y <= box.y + box.height) run {
-                        val renderToken = RenderToken(token, localCursor.x, localCursor.y, tokenWidth, style.tracking)
-                        emitToken(localCursor, renderTokens, renderToken)
+                        val textToken = TextToken(token, localCursor.x, localCursor.y, tokenWidth, style.tracking)
+                        emitToken(localCursor, textTokens, textToken)
                     } else {
 
                         if (localCursor.y > box.corner.y + box.height) {
@@ -151,13 +166,13 @@ class Writer(val drawerRef: Drawer?) {
 
                             emitToken(
                                 localCursor,
-                                renderTokens,
-                                RenderToken(token, localCursor.x, localCursor.y, tokenWidth, style.tracking)
+                                textTokens,
+                                TextToken(token, localCursor.x, localCursor.y, tokenWidth, style.tracking)
                             )
                         } else {
                             if (!mustFit && style.ellipsis != null && cursor.y <= box.y + box.height) {
                                 emitToken(
-                                    localCursor, renderTokens, RenderToken(
+                                    localCursor, textTokens, TextToken(
                                         style.ellipsis
                                             ?: "", localCursor.x, localCursor.y, tokenWidth, style.tracking
                                     )
@@ -175,20 +190,18 @@ class Writer(val drawerRef: Drawer?) {
                     }
                 }
             }
-
             if (fits || (!fits && !mustFit)) {
                 cursor = Cursor(localCursor)
             } else {
-                renderTokens.clear()
+                textTokens.clear()
             }
-
-            return renderTokens
+            return textTokens
         }
         return emptyList()
     }
 
-    private fun emitToken(cursor: Cursor, renderTokens: MutableList<RenderToken>, renderToken: RenderToken) {
-        renderTokens.add(renderToken)
+    private fun emitToken(cursor: Cursor, textTokens: MutableList<TextToken>, textToken: TextToken) {
+        textTokens.add(textToken)
     }
 }
 

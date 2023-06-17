@@ -4,7 +4,7 @@ import org.openrndr.draw.*
 import org.openrndr.math.Vector2
 import kotlin.math.round
 
-class CharacterRectangle(val character: Char, val x: Double, val y: Double, val width: Double, val height: Double)
+class GlyphRectangle(val character: Char, val x: Double, val y: Double, val width: Double, val height: Double)
 
 class FontImageMapDrawer {
 
@@ -37,8 +37,10 @@ class FontImageMapDrawer {
         drawStyle: DrawStyle,
         texts: List<String>,
         positions: List<Vector2>
-    ) {
+    ):List<List<GlyphRectangle>> {
         val fontMap = drawStyle.fontMap as? FontImageMap
+
+
 
         if (fontMap!= null) {
 
@@ -59,7 +61,7 @@ class FontImageMapDrawer {
                        cursorX += if (lc != null) fontMap.kerning(lc, it) else 0.0
                     }
                     val metrics = fontMap.glyphMetrics[it] ?: fontMap.glyphMetrics.getValue(' ')
-                    val dx = insertCharacterQuad(
+                    val (dx, gr) = insertCharacterQuad(
                         fontMap,
                         bw,
                         it,
@@ -76,6 +78,7 @@ class FontImageMapDrawer {
             }
             flush(context, drawStyle)
         }
+        return emptyList()
     }
 
     var queuedInstances = 0
@@ -101,7 +104,7 @@ class FontImageMapDrawer {
                 if (kerning == KernMode.METRIC) {
                     cursorX += if (lc != null) fontMap.kerning(lc, it) else 0.0
                 }
-                val dx = insertCharacterQuad(
+                val (dx,rect) = insertCharacterQuad(
                     fontMap,
                     bw,
                     it,
@@ -143,7 +146,7 @@ class FontImageMapDrawer {
         cy: Double,
         instance: Int,
         textSetting: TextSettingMode
-    ) : Double {
+    ) : Pair<Double, GlyphRectangle?> {
         val rectangle = fontMap.map[character] ?: fontMap.map[' ']
         val targetContentScale = RenderTarget.active.contentScale
 
@@ -152,6 +155,8 @@ class FontImageMapDrawer {
 
         val metrics = fontMap.glyphMetrics[character] ?: fontMap.glyphMetrics[' '] ?: error("glyph or space substitute not found")
 
+
+        val glyphRectangle =
         if (rectangle != null) {
             val pad = 2.0f
             val ushift = if (metrics.xBitmapShift <= pad) -(metrics.xBitmapShift/fontMap.texture.effectiveWidth).toFloat() else 0.0f
@@ -189,7 +194,10 @@ class FontImageMapDrawer {
                 }
                 quadCount++
             }
+            GlyphRectangle(character, x0.toDouble(), y0.toDouble(), (x1-x0).toDouble(), (y1-y0).toDouble())
+        } else {
+            null
         }
-        return x - cx
+        return Pair(x - cx, glyphRectangle)
     }
 }
