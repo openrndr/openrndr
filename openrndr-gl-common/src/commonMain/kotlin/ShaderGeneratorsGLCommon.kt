@@ -30,8 +30,8 @@ layout(origin_upper_left) in vec4 gl_FragCoord;
 class ShaderGeneratorsGLCommon : ShaderGenerators {
     override fun vertexBufferFragmentShader(shadeStructure: ShadeStructure): String = """|
 |${primitiveTypes("d_vertex_buffer")}
-|${shadeStructure.buffers ?: ""}
 |${shadeStructure.structDefinitions ?: ""}
+|${shadeStructure.buffers ?: ""}
 |${shadeStructure.uniforms ?: ""}
 |$glFragCoord
 
@@ -62,10 +62,10 @@ ${shadeStructure.fragmentTransform?.prependIndent("        ") ?: ""}
 
     override fun vertexBufferVertexShader(shadeStructure: ShadeStructure): String = """
 ${primitiveTypes("d_vertex_buffer")}
+${shadeStructure.structDefinitions ?: ""}
 ${shadeStructure.buffers ?: ""}
 ${drawerUniforms()}
 ${shadeStructure.attributes ?: ""}
-${shadeStructure.structDefinitions ?: ""}
 ${shadeStructure.uniforms ?: ""}
 ${shadeStructure.varyingOut ?: ""}
 ${transformVaryingOut}
@@ -93,8 +93,8 @@ ${shadeStructure.vertexTransform?.prependIndent("        ") ?: ""}
 
     override fun imageFragmentShader(shadeStructure: ShadeStructure): String = """
 ${primitiveTypes("d_image")}
-${shadeStructure.buffers ?: ""}
 ${shadeStructure.structDefinitions ?: ""}
+${shadeStructure.buffers ?: ""}
 ${shadeStructure.uniforms ?: ""}
 $glFragCoord
 
@@ -135,10 +135,10 @@ ${shadeStructure.fragmentTransform?.prependIndent("        ") ?: ""}
     override fun imageVertexShader(shadeStructure: ShadeStructure): String = """
 
 ${primitiveTypes("d_image")}
+${shadeStructure.structDefinitions ?: ""}
 ${shadeStructure.buffers ?: ""}
 ${drawerUniforms()}
 uniform int u_flipV;
-${shadeStructure.structDefinitions ?: ""}
 ${shadeStructure.attributes ?: ""}
 ${shadeStructure.uniforms ?: ""}
 ${shadeStructure.varyingOut ?: ""}
@@ -216,10 +216,10 @@ ${shadeStructure.fragmentTransform?.prependIndent("        ") ?: ""}
     override fun imageArrayTextureVertexShader(shadeStructure: ShadeStructure): String = """
 
 ${primitiveTypes("d_image")}
+${shadeStructure.structDefinitions ?: ""}
 ${shadeStructure.buffers ?: ""}
 ${drawerUniforms()}
 uniform int u_flipV;
-${shadeStructure.structDefinitions ?: ""}
 ${shadeStructure.attributes ?: ""}
 ${shadeStructure.uniforms ?: ""}
 ${shadeStructure.varyingOut ?: ""}
@@ -377,10 +377,10 @@ ${shadeStructure.fragmentTransform?.prependIndent("        ") ?: ""}
     override fun circleVertexShader(shadeStructure: ShadeStructure): String = """
 // -- circle vertex shader
 ${primitiveTypes("d_circle")}
+${shadeStructure.structDefinitions ?: ""}
 ${shadeStructure.buffers ?: ""}
 ${drawerUniforms(styleBlock = false)}
 ${shadeStructure.attributes ?: ""}
-${shadeStructure.structDefinitions ?: ""}
 ${shadeStructure.uniforms ?: ""}
 ${shadeStructure.varyingOut ?: ""}
 ${transformVaryingOut}
@@ -764,8 +764,8 @@ ${shadeStructure.fragmentTransform?.prependIndent("        ") ?: ""}
 
     override fun meshLineVertexShader(shadeStructure: ShadeStructure): String = """
         |
-        |${shadeStructure.buffers ?: ""}
         |${shadeStructure.structDefinitions ?: ""}
+        |${shadeStructure.buffers ?: ""}
         |${primitiveTypes("d_mesh_line")}
         |${drawerUniforms()}
         |${shadeStructure.attributes ?: ""}

@@ -343,6 +343,7 @@ open class ShadeStyle : ShadeStyleParameters {
 
     var bufferValues = mutableMapOf<String, Any>()
     val buffers = mutableMapOf<String, String>()
+    val bufferTypes = mutableMapOf<String, String>()
 
     var outputs = ObservableHashmap(HashMap<String, ShadeStyleOutput>()) { dirty = true }
     var attributes = mutableListOf<VertexBuffer>()
@@ -376,6 +377,11 @@ open class ShadeStyle : ShadeStyleParameters {
         attributes.add(attributesBuffer)
     }
 
+    inline fun <reified T: Struct<T>> buffer(name: String, buffer: StructuredBuffer<T>) {
+        bufferValues[name] = buffer
+        buffers[name] = buffer.format.hashCode().toString()
+        bufferTypes[name] = "struct ${T::class.simpleName}"
+    }
 
     fun buffer(name: String, buffer: ShaderStorageBuffer) {
         bufferValues[name] = buffer
