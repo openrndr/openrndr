@@ -21,6 +21,12 @@ class VertexFormat {
      */
     fun position(dimensions: Int) = attribute("position", floatTypeFromDimensions(dimensions))
 
+    /**
+     * Insert padding in the layout
+     * @param paddingInBytes the amount of padding in bytes
+     */
+    fun padding(paddingInBytes: Int) = attribute("_", VertexElementType.UINT8, paddingInBytes)
+
     private fun floatTypeFromDimensions(dimensions: Int): VertexElementType {
         return when (dimensions) {
             1 -> VertexElementType.FLOAT32
@@ -79,6 +85,9 @@ class VertexFormat {
 
 }
 
+/**
+ * Build a vertex format
+ */
 fun vertexFormat(builder: VertexFormat.() -> Unit): VertexFormat {
     return VertexFormat().apply { builder() }
 }

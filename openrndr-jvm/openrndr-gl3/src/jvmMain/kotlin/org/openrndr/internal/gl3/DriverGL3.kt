@@ -820,6 +820,11 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
                 glBindBuffer(GL_ARRAY_BUFFER, (buffer as VertexBufferGL3).buffer)
                 val format = buffer.vertexFormat
                 for (item in format.items) {
+                    // skip over padding attributes
+                    if (item.attribute == "_") {
+                        continue
+                    }
+
                     val attributeIndex = shader.attributeIndex("${prefix}_${item.attribute}")
                     if (attributeIndex != -1) {
                         when (item.type) {

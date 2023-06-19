@@ -304,7 +304,6 @@ class DriverWebGL(val context: WebGL2RenderingContext) : Driver {
         val scalarVectorTypes = setOf(
             VertexElementType.FLOAT32, VertexElementType.VECTOR2_FLOAT32, VertexElementType.VECTOR3_FLOAT32, VertexElementType.VECTOR4_FLOAT32)
 
-
         var attribute0Used = false
 
         fun setupBuffer(buffer: VertexBuffer, divisor: Int = 0) {
@@ -314,6 +313,11 @@ class DriverWebGL(val context: WebGL2RenderingContext) : Driver {
             context.bindBuffer(GL.ARRAY_BUFFER, (buffer as VertexBufferWebGL).buffer)
             val format = buffer.vertexFormat
             for (item in format.items) {
+                // skip over padding attributes
+                if (item.attribute == "_") {
+                    continue
+                }
+
                 val attributeIndex = shader.attributeIndex("${prefix}_${item.attribute}")
                 if (attributeIndex == 0) {
                     attribute0Used = true
