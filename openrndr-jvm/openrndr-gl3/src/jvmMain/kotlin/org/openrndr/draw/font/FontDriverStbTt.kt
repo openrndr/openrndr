@@ -123,7 +123,7 @@ class GlyphStbTt(private val face: FaceStbTt, private val character: Char, priva
             }
         }
         shape.free()
-        return Shape(shapeContours.map { it.close() })
+        return Shape(shapeContours.map { it.reversed.close() })
     }
 
     override fun advanceWidth(size: Double): Double {
