@@ -11,4 +11,6 @@ actual interface ShaderStorageBuffer {
         elementOffset: Int,
         putter: BufferWriterStd430.() -> Unit
     ): Int
+
+    actual fun vertexBufferView(): VertexBuffer
 }

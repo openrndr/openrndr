@@ -4,7 +4,7 @@ interface ShaderStorageBufferShadow {
     val shaderStorageBuffer: ShaderStorageBuffer
 
     fun upload(offset: Int = 0, size: Int = shaderStorageBuffer.format.size)
-    fun uploadElements(elementOffset: Int = 0, elementCount: Int = shaderStorageBuffer.format.members.size) {
+    fun uploadElements(elementOffset: Int = 0, elementCount: Int = shaderStorageBuffer.format.elements.size) {
         upload(elementOffset * shaderStorageBuffer.format.size, elementCount * shaderStorageBuffer.format.size)
     }
 

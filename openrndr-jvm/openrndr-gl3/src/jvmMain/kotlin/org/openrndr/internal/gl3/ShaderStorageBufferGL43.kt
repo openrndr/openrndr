@@ -80,6 +80,13 @@ class ShaderStorageBufferGL43(val buffer: Int, override val format: ShaderStorag
             }
             return realShadow!!
         }
+
+    override fun vertexBufferView(): VertexBuffer {
+        val vertexFormat = shaderStorageFormatToVertexFormat(this.format)
+        val vertexCount = this.format.elements.first().arraySize
+        return VertexBufferGL3(this.buffer, vertexFormat, vertexCount, this.session)
+    }
+
     companion object {
         fun create(format: ShaderStorageFormat, session: Session?) : ShaderStorageBufferGL43 {
             val ssbo = GL33C.glGenBuffers()

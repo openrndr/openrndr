@@ -15,7 +15,7 @@ class BufferWriterStd430GL3(
 ) : BufferWriterStd430 {
     private var pointer = 0
     private var element: ShaderStorageElement = elements[pointer]
-    private lateinit var member: ShaderStorageMember
+    private lateinit var member: ShaderStoragePrimitive
 
     init {
         buffer.order(ByteOrder.nativeOrder())
@@ -23,8 +23,8 @@ class BufferWriterStd430GL3(
 
     private fun next() {
         when (element){
-            is ShaderStorageMember -> {
-                member = element as ShaderStorageMember
+            is ShaderStoragePrimitive -> {
+                member = element as ShaderStoragePrimitive
                 pointer++
 
                 val index = elements.indexOf(element)
@@ -38,13 +38,13 @@ class BufferWriterStd430GL3(
                 val struct = element as ShaderStorageStruct
                 val index = elements.indexOf(element)
 
-                if (pointer >= (index + struct.arraySize * struct.members.size)) {
+                if (pointer >= (index + struct.arraySize * struct.elements.size)) {
                     pointer = index + 1
                     element = elements[pointer % elements.size]
                     next()
                 } else {
-                    val memberIdx = (pointer - index) % (struct.members.size)
-                    member = struct.members[memberIdx % struct.members.size]
+                    val memberIdx = (pointer - index) % (struct.elements.size)
+                    member = struct.elements[memberIdx % struct.elements.size] as ShaderStoragePrimitive
                     pointer++
                 }
             }

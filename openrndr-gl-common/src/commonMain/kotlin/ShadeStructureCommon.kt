@@ -217,36 +217,36 @@ private val ShadeStyleOutput.glslType: String
         }
     }
 
-private val BufferMemberType.glslType: String
+private val BufferPrimitiveType.glslType: String
     get() {
         return when (this) {
-            BufferMemberType.BOOLEAN -> "bool"
-            BufferMemberType.INT -> "int"
-            BufferMemberType.UINT -> "uint"
-            BufferMemberType.FLOAT -> "float"
-            BufferMemberType.DOUBLE -> "double"
+            BufferPrimitiveType.BOOLEAN -> "bool"
+            BufferPrimitiveType.INT32 -> "int"
+            BufferPrimitiveType.UINT32 -> "uint"
+            BufferPrimitiveType.FLOAT32 -> "float"
+            BufferPrimitiveType.FLOAT64 -> "double"
 
-            BufferMemberType.VECTOR2_UINT -> "uvec2"
-            BufferMemberType.VECTOR2_BOOLEAN -> "bvec2"
-            BufferMemberType.VECTOR2_INT -> "ivec2"
-            BufferMemberType.VECTOR2_FLOAT -> "vec2"
-            BufferMemberType.VECTOR2_DOUBLE -> "dvec2"
+            BufferPrimitiveType.VECTOR2_UINT32 -> "uvec2"
+            BufferPrimitiveType.VECTOR2_BOOLEAN -> "bvec2"
+            BufferPrimitiveType.VECTOR2_INT32 -> "ivec2"
+            BufferPrimitiveType.VECTOR2_FLOAT32 -> "vec2"
+            BufferPrimitiveType.VECTOR2_FLOAT64 -> "dvec2"
 
-            BufferMemberType.VECTOR3_UINT -> "uvec3"
-            BufferMemberType.VECTOR3_BOOLEAN -> "bvec3"
-            BufferMemberType.VECTOR3_INT -> "ivec3"
-            BufferMemberType.VECTOR3_FLOAT -> "vec3"
-            BufferMemberType.VECTOR3_DOUBLE -> "dvec3"
+            BufferPrimitiveType.VECTOR3_UINT32 -> "uvec3"
+            BufferPrimitiveType.VECTOR3_BOOLEAN -> "bvec3"
+            BufferPrimitiveType.VECTOR3_INT32 -> "ivec3"
+            BufferPrimitiveType.VECTOR3_FLOAT32 -> "vec3"
+            BufferPrimitiveType.VECTOR3_FLOAT64 -> "dvec3"
 
-            BufferMemberType.VECTOR4_UINT -> "uvec4"
-            BufferMemberType.VECTOR4_BOOLEAN -> "bvec4"
-            BufferMemberType.VECTOR4_INT -> "ivec4"
-            BufferMemberType.VECTOR4_FLOAT -> "vec4"
-            BufferMemberType.VECTOR4_DOUBLE -> "dvec4"
+            BufferPrimitiveType.VECTOR4_UINT32 -> "uvec4"
+            BufferPrimitiveType.VECTOR4_BOOLEAN -> "bvec4"
+            BufferPrimitiveType.VECTOR4_INT32 -> "ivec4"
+            BufferPrimitiveType.VECTOR4_FLOAT32 -> "vec4"
+            BufferPrimitiveType.VECTOR4_FLOAT64 -> "dvec4"
 
-            BufferMemberType.MATRIX22_FLOAT -> "mat2"
-            BufferMemberType.MATRIX33_FLOAT -> "mat3"
-            BufferMemberType.MATRIX44_FLOAT -> "mat4"
+            BufferPrimitiveType.MATRIX22_FLOAT32 -> "mat2"
+            BufferPrimitiveType.MATRIX33_FLOAT32 -> "mat3"
+            BufferPrimitiveType.MATRIX44_FLOAT32 -> "mat4"
         }
     }
 
@@ -289,21 +289,21 @@ private val VertexElementType.glslVaryingQualifier: String
 
 
 private val ShaderStorageFormat.glslLayout: String
-    get() = members.joinToString("\n") {
+    get() = elements.joinToString("\n") {
         when (it) {
-            is ShaderStorageMember -> {
+            is ShaderStoragePrimitive -> {
                 if (it.arraySize == 1) {
-                    "${it.type.glslType} ${it.member};"
+                    "${it.type.glslType} ${it.name};"
                 } else {
-                    "${it.type.glslType}[${it.arraySize}] ${it.member};"
+                    "${it.type.glslType}[${it.arraySize}] ${it.name};"
                 }
             }
 
             is ShaderStorageStruct -> {
                 if (it.arraySize == 1) {
-                    "${it.structName} ${it.member};"
+                    "${it.structName} ${it.name};"
                 } else {
-                    "${it.structName}[${it.arraySize}] ${it.member};"
+                    "${it.structName}[${it.arraySize}] ${it.name};"
                 }
             }
 

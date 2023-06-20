@@ -34,7 +34,7 @@ class ShaderStorageBufferShadowGL3(override val shaderStorageBuffer: ShaderStora
     }
 
     override fun writer(): BufferWriterStd430 {
-        return BufferWriterStd430GL3(buffer, shaderStorageBuffer.format.members, shaderStorageBuffer.format.size)
+        return BufferWriterStd430GL3(buffer, shaderStorageBuffer.format.elements, shaderStorageBuffer.format.size)
     }
 }
 

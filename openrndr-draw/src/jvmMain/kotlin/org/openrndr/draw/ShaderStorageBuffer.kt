@@ -14,6 +14,7 @@ actual interface ShaderStorageBuffer {
 
     actual fun put(elementOffset: Int, putter: BufferWriterStd430.() -> Unit): Int
     actual val shadow: ShaderStorageBufferShadow
+    actual fun vertexBufferView(): VertexBuffer
 }
 
 

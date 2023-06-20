@@ -110,19 +110,19 @@ fun structToShaderStorageFormat(
             return stype.split(" ")[1]
         }
 
-        fun structTypeToSsboType(stype: String): BufferMemberType {
+        fun structTypeToSsboType(stype: String): BufferPrimitiveType {
             return when (tokens[0]) {
-                "int" -> BufferMemberType.INT
-                "float" -> BufferMemberType.FLOAT
-                "bool" -> BufferMemberType.BOOLEAN
-                "Matrix33" -> BufferMemberType.MATRIX33_FLOAT
-                "Matrix44" -> BufferMemberType.MATRIX44_FLOAT
-                "Vector2" -> BufferMemberType.VECTOR2_FLOAT
-                "Vector3" -> BufferMemberType.VECTOR3_FLOAT
-                "Vector4" -> BufferMemberType.VECTOR4_FLOAT
-                "IntVector2" -> BufferMemberType.VECTOR2_INT
-                "IntVector3" -> BufferMemberType.VECTOR3_INT
-                "IntVector4" -> BufferMemberType.VECTOR4_INT
+                "int" -> BufferPrimitiveType.INT32
+                "float" -> BufferPrimitiveType.FLOAT32
+                "bool" -> BufferPrimitiveType.BOOLEAN
+                "Matrix33" -> BufferPrimitiveType.MATRIX33_FLOAT32
+                "Matrix44" -> BufferPrimitiveType.MATRIX44_FLOAT32
+                "Vector2" -> BufferPrimitiveType.VECTOR2_FLOAT32
+                "Vector3" -> BufferPrimitiveType.VECTOR3_FLOAT32
+                "Vector4" -> BufferPrimitiveType.VECTOR4_FLOAT32
+                "IntVector2" -> BufferPrimitiveType.VECTOR2_INT32
+                "IntVector3" -> BufferPrimitiveType.VECTOR3_INT32
+                "IntVector4" -> BufferPrimitiveType.VECTOR4_INT32
                 else -> error("type not supported '$stype'")
             }
         }
@@ -130,7 +130,7 @@ fun structToShaderStorageFormat(
         val arraySize = tokens.getOrNull(1)?.toIntOrNull() ?: 1
         if (!isStruct(tokens[0])) {
             val bmt = structTypeToSsboType(tokens[0])
-            ssf.member(name, bmt, arraySize)
+            ssf.primitive(name, bmt, arraySize)
         } else {
             val structValue = struct.values[name] ?: error("no value set for '$name'")
             ssf.struct(structName(tokens[0]), name, arraySize) {

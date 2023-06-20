@@ -15,68 +15,70 @@ expect interface ShaderStorageBuffer {
     fun bind(base: Int)
     fun destroy()
 
-    fun put(elementOffset: Int = 0, putter: BufferWriterStd430.() -> Unit) : Int
+    fun put(elementOffset: Int = 0, putter: BufferWriterStd430.() -> Unit): Int
+
+    fun vertexBufferView(): VertexBuffer
 }
 
 interface ShaderStorageElement {
-    val member: String
+    val name: String
     val offset: Int
     val arraySize: Int
 }
 
-enum class BufferMemberType(val componentCount: Int, val sizeInBytes: Int, val alignmentInBytes: Int) {
-    UINT(1, 4, 4),
-    INT(1, 4, 4),
+enum class BufferPrimitiveType(val componentCount: Int, val sizeInBytes: Int, val alignmentInBytes: Int) {
+    UINT32(1, 4, 4),
+    INT32(1, 4, 4),
     BOOLEAN(1, 4, 4),
-    FLOAT(1, 4, 4),
+    FLOAT32(1, 4, 4),
 
-    DOUBLE(1, 8, 8),
+    FLOAT64(1, 8, 8),
 
     VECTOR2_BOOLEAN(2, 8, 8),
-    VECTOR2_INT(2, 8, 8),
-    VECTOR2_UINT(2, 8, 8),
-    VECTOR2_FLOAT(2, 8, 8),
+    VECTOR2_INT32(2, 8, 8),
+    VECTOR2_UINT32(2, 8, 8),
+    VECTOR2_FLOAT32(2, 8, 8),
 
-    VECTOR2_DOUBLE(2, 16, 16),
+    VECTOR2_FLOAT64(2, 16, 16),
 
     VECTOR3_BOOLEAN(2, 12, 16),
-    VECTOR3_INT(2, 12, 16),
-    VECTOR3_UINT(2, 12, 16),
-    VECTOR3_FLOAT(3, 12, 16),
+    VECTOR3_INT32(2, 12, 16),
+    VECTOR3_UINT32(2, 12, 16),
+    VECTOR3_FLOAT32(3, 12, 16),
 
-    VECTOR3_DOUBLE(3, 24, 32),
+    VECTOR3_FLOAT64(3, 24, 32),
 
     VECTOR4_BOOLEAN(2, 16, 16),
-    VECTOR4_INT(2, 16, 16),
-    VECTOR4_UINT(2, 16, 16),
-    VECTOR4_FLOAT(4, 16, 16),
+    VECTOR4_INT32(2, 16, 16),
+    VECTOR4_UINT32(2, 16, 16),
+    VECTOR4_FLOAT32(4, 16, 16),
 
-    VECTOR4_DOUBLE(4, 16, 32),
+    VECTOR4_FLOAT64(4, 16, 32),
 
-    MATRIX22_FLOAT(4, 4 * 4, 8),
-    MATRIX33_FLOAT(9, 9 * 4, 16),
-    MATRIX44_FLOAT(16, 16 * 4, 16),
+    MATRIX22_FLOAT32(4, 4 * 4, 8),
+    MATRIX33_FLOAT32(9, 9 * 4, 16),
+    MATRIX44_FLOAT32(16, 16 * 4, 16),
 }
 
-data class ShaderStorageMember(
-    override val member: String,
-    val type: BufferMemberType,
+data class ShaderStoragePrimitive(
+    override val name: String,
+    val type: BufferPrimitiveType,
     override val arraySize: Int = 1,
     override var offset: Int = 0,
     var padding: Int = 0
-): ShaderStorageElement
+) : ShaderStorageElement
 
 
 data class ShaderStorageStruct(
     val structName: String,
-    override val member: String,
-    val members: List<ShaderStorageMember>,
+    override val name: String,
+    val elements: List<ShaderStorageElement>,
     override val arraySize: Int = 1,
     override var offset: Int = 0,
-): ShaderStorageElement
+) : ShaderStorageElement
 
 class ShaderStorageFormat {
-    var members: MutableList<ShaderStorageElement> = mutableListOf()
+    var elements: MutableList<ShaderStorageElement> = mutableListOf()
     private var formatSize = 0
 
     /**
@@ -88,46 +90,46 @@ class ShaderStorageFormat {
     /**
      * Adds a custom member to the [ShaderStorageFormat]
      */
-    fun member(name: String, type: BufferMemberType, arraySize: Int = 1) {
-        val item = ShaderStorageMember(name, type, arraySize)
-        members.add(item)
+    fun primitive(name: String, type: BufferPrimitiveType, arraySize: Int = 1) {
+        val item = ShaderStoragePrimitive(name, type, arraySize)
+        elements.add(item)
     }
 
-    fun struct(structName: String,  name: String, arraySize: Int = 1, builder: ShaderStorageFormat.() -> Unit) {
-        val structMembers = ShaderStorageFormat().let {
+    fun struct(structName: String, name: String, arraySize: Int = 1, builder: ShaderStorageFormat.() -> Unit) {
+        val structElements = ShaderStorageFormat().let {
             it.builder()
-            it.members
-        }.filterIsInstance<ShaderStorageMember>()
+            it.elements
+        }.filterIsInstance<ShaderStoragePrimitive>()
 
-        val struct = ShaderStorageStruct(structName, name, structMembers, arraySize)
-        members.add(struct)
+        val struct = ShaderStorageStruct(structName, name, structElements, arraySize)
+        elements.add(struct)
     }
 
     override fun toString(): String {
         return "ShaderStorageFormat{" +
-                "items=" + members +
+                "items=" + elements +
                 ", formatSize=" + formatSize +
                 '}'
     }
 
-    fun hasMember(name: String): Boolean = members.any { it.member == name }
+    fun hasMember(name: String): Boolean = elements.any { it.name == name }
 
     override fun hashCode(): Int {
-        return members.hashCode()
+        return elements.hashCode()
     }
 
     fun commit() {
-        val memberCount = members.sumOf { if (it is ShaderStorageStruct) it.members.size else 1 }
+        val memberCount = elements.sumOf { if (it is ShaderStorageStruct) it.elements.size else 1 }
         val paddings = IntArray(memberCount)
         var largestAlign = 0
         var ints = 0
 
         var paddingIdx = -1
         /* Compute necessary padding after each field */
-        for (idx in members.indices) {
+        for (idx in elements.indices) {
 
-            when(val element = members[idx]) {
-                is ShaderStorageMember -> {
+            when (val element = elements[idx]) {
+                is ShaderStoragePrimitive -> {
                     val len = element.arraySize
                     val align = element.type.alignmentInBytes
 
@@ -142,9 +144,10 @@ class ShaderStorageFormat {
                     ints += element.type.sizeInBytes * len
                     paddingIdx++
                 }
+
                 is ShaderStorageStruct -> {
-                    for (sIdx in element.members.indices) {
-                        val structMember = element.members[sIdx]
+                    for (sIdx in element.elements.indices) {
+                        val structMember = element.elements[sIdx] as ShaderStoragePrimitive
                         val len = structMember.arraySize
                         val align = structMember.type.alignmentInBytes
 
@@ -169,10 +172,10 @@ class ShaderStorageFormat {
 
         paddingIdx = 0
 
-        for (memberIdx in members.indices) {
+        for (memberIdx in elements.indices) {
 
-            when (val element = members[memberIdx]) {
-                is ShaderStorageMember -> {
+            when (val element = elements[memberIdx]) {
+                is ShaderStoragePrimitive -> {
                     val padding = paddings[paddingIdx]
 
                     element.offset = element.arraySize * element.type.sizeInBytes
@@ -181,11 +184,12 @@ class ShaderStorageFormat {
                     formatSize += element.offset + padding
                     paddingIdx++
                 }
+
                 is ShaderStorageStruct -> {
                     var totalSize = 0
 
-                    for (sIdx in element.members.indices) {
-                        val structMember = element.members[sIdx]
+                    for (sIdx in element.elements.indices) {
+                        val structMember = element.elements[sIdx] as ShaderStoragePrimitive
                         val padding = paddings[paddingIdx]
 
                         structMember.offset = structMember.arraySize * structMember.type.sizeInBytes
@@ -207,7 +211,7 @@ class ShaderStorageFormat {
 
         other as ShaderStorageFormat
 
-        return members == other.members
+        return elements == other.elements
     }
 }
 
@@ -215,6 +219,40 @@ fun shaderStorageFormat(builder: ShaderStorageFormat.() -> Unit): ShaderStorageF
     return ShaderStorageFormat().apply {
         builder()
         commit()
+    }
+}
+
+fun shaderStorageFormatToVertexFormat(format: ShaderStorageFormat): VertexFormat {
+
+    return vertexFormat {
+        if (format.elements.first() is ShaderStorageStruct) {
+            val outerStruct = format.elements.first() as ShaderStorageStruct
+            for (member in outerStruct.elements) {
+                if (member is ShaderStoragePrimitive) {
+                    val vet = when (member.type) {
+                        BufferPrimitiveType.VECTOR4_FLOAT32 -> VertexElementType.VECTOR4_FLOAT32
+                        BufferPrimitiveType.VECTOR3_FLOAT32 -> VertexElementType.VECTOR3_FLOAT32
+                        BufferPrimitiveType.VECTOR2_FLOAT32 -> VertexElementType.VECTOR2_FLOAT32
+                        BufferPrimitiveType.MATRIX22_FLOAT32 -> VertexElementType.MATRIX33_FLOAT32
+                        BufferPrimitiveType.MATRIX33_FLOAT32 -> VertexElementType.MATRIX33_FLOAT32
+                        BufferPrimitiveType.MATRIX44_FLOAT32 -> VertexElementType.MATRIX44_FLOAT32
+                        BufferPrimitiveType.INT32 -> VertexElementType.INT32
+                        BufferPrimitiveType.UINT32 -> VertexElementType.UINT32
+                        BufferPrimitiveType.FLOAT32 -> VertexElementType.FLOAT32
+                        else -> error("unsupported type '${member.type}")
+                    }
+
+                    val padding = member.padding
+                    attribute(member.name, vet)
+                    if (padding > 0) {
+                        padding(padding)
+                    }
+                }
+            }
+        } else {
+            error("first item of storage buffer format must be a struct")
+        }
+
     }
 }
 

@@ -79,20 +79,20 @@ fun main() = application {
 
         // define structures matching the two `buffer` entries from GLSL
         val block1 = shaderStorageBuffer(shaderStorageFormat {
-            member("trap", BufferMemberType.VECTOR2_FLOAT, 8)
+            primitive("trap", BufferPrimitiveType.VECTOR2_FLOAT32, 8)
             struct("Particle", "particles", 4) {
-                member("position", BufferMemberType.VECTOR3_INT)
-                member("velocity", BufferMemberType.VECTOR3_FLOAT)
-                member("age", BufferMemberType.FLOAT)
-                member("isActive", BufferMemberType.BOOLEAN)
+                primitive("position", BufferPrimitiveType.VECTOR3_INT32)
+                primitive("velocity", BufferPrimitiveType.VECTOR3_FLOAT32)
+                primitive("age", BufferPrimitiveType.FLOAT32)
+                primitive("isActive", BufferPrimitiveType.BOOLEAN)
             }
             struct("Agent", "agents", 2) {
-                member("position", BufferMemberType.VECTOR3_FLOAT)
+                primitive("position", BufferPrimitiveType.VECTOR3_FLOAT32)
             }
         })
 
         val block2 = shaderStorageBuffer(shaderStorageFormat {
-            member("results", BufferMemberType.FLOAT, csWidth * resultLength)
+            primitive("results", BufferPrimitiveType.FLOAT32, csWidth * resultLength)
         })
 
         // upload data to the compute shader
