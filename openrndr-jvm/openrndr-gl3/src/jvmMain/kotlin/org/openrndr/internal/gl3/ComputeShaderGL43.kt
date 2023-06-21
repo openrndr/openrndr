@@ -161,7 +161,7 @@ class ComputeShaderGL43(val programObject: Int, val name: String = "compute_shad
         }
     }
 
-    override fun counters(bindingIndex: Int, counterBuffer: AtomicCounterBuffer) {
+    override fun buffer(bindingIndex: Int, counterBuffer: AtomicCounterBuffer) {
         counterBuffer as AtomicCounterBufferGL43
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo)
         checkGLErrors()

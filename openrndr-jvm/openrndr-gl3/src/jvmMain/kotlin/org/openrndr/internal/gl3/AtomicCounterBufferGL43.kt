@@ -4,7 +4,7 @@ package org.openrndr.internal.gl3
 import org.lwjgl.opengl.GL43C.*
 import org.openrndr.draw.AtomicCounterBuffer
 
-class AtomicCounterBufferGL43(val buffer: Int, val size: Int) : AtomicCounterBuffer {
+class AtomicCounterBufferGL43(val buffer: Int, override val size: Int) : AtomicCounterBuffer {
 
     private var destroyed = false
 

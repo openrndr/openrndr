@@ -84,7 +84,10 @@ $this"""
                                 value.bind(bufferIndex)
                                 bufferIndex++
                             }
-
+                            is AtomicCounterBuffer -> {
+                                value.bind(bufferIndex)
+                                bufferIndex++
+                            }
                             else -> error("unsupported buffer type $value")
                         }
                     }

@@ -12,7 +12,7 @@ enum class ImageAccess {
 }
 
 
-interface ComputeShader: ShaderImageBindings {
+interface ComputeShader: ShaderImageBindings, ShaderBufferBindings {
     companion object {
         /**
          * Create a compute shader from (GLSL) code as a String
@@ -20,9 +20,6 @@ interface ComputeShader: ShaderImageBindings {
         fun fromCode(code: String, name: String): ComputeShader = Driver.instance.createComputeShader(code, name)
     }
 
-    fun buffer(name:String, vertexBuffer: VertexBuffer)
-    fun buffer(name:String, shaderStorageBuffer: ShaderStorageBuffer)
-    fun counters(bindingIndex: Int, counterBuffer: AtomicCounterBuffer)
 
     fun uniform(name: String, value: Matrix33)
     fun uniform(name: String, value: Matrix44)

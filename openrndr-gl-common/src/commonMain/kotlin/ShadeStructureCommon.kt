@@ -81,6 +81,7 @@ fun structureFromShadeStyle(
                                     }
 
                                     is ShaderStorageBuffer -> "layout(std430, binding = $bufferIndex) buffer B_${it.key} { ${v.format.glslLayout} } b_${it.key};"
+                                    is AtomicCounterBuffer -> "layout(binding = $bufferIndex, offset = 0) atomic_uint b_${it.key};"
                                     else -> error("unsupported buffer type: $v")
                                 }
                                 bufferIndex++

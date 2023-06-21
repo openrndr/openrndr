@@ -19,4 +19,8 @@ interface AtomicCounterBuffer {
 
     fun destroy()
 
+    /**
+     * The number of counters
+     */
+    val size: Int
 }
