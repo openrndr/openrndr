@@ -1,6 +1,6 @@
 package org.openrndr.draw
 
-class StructuredBuffer<T : Struct<T>>(val struct: T, ssbo: ShaderStorageBuffer) : ShaderStorageBuffer by ssbo
+class StructuredBuffer<T : Struct<T>>(val struct: T, val ssbo: ShaderStorageBuffer) : ShaderStorageBuffer by ssbo
 
 /**
  * Create a [StructuredBuffer] from [struct]

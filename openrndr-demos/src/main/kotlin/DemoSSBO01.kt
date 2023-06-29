@@ -47,13 +47,13 @@ fun main() = application {
             };
             
             // SSBOs are declared as using the `buffer` keyword
-            layout (std430, binding = 0) buffer Block1 {
+            layout (std430, binding = 3) buffer Block1 {
                 vec2 trap[8];
                 Particle particles[4];
                 Agent agents[2];
             };
             
-            layout (std430, binding = 1) buffer Block2 {
+            layout (std430, binding = 5) buffer Block2 {
                 float results[];
             };
             

@@ -12,43 +12,13 @@ enum class ImageAccess {
 }
 
 
-interface ComputeShader: ShaderImageBindings, ShaderBufferBindings {
+interface ComputeShader : ShaderImageBindings, ShaderBufferBindings, ShaderUniforms {
     companion object {
         /**
          * Create a compute shader from (GLSL) code as a String
          */
         fun fromCode(code: String, name: String): ComputeShader = Driver.instance.createComputeShader(code, name)
     }
-
-
-    fun uniform(name: String, value: Matrix33)
-    fun uniform(name: String, value: Matrix44)
-
-    fun uniform(name: String, value: ColorRGBa)
-    fun uniform(name: String, value: Vector4)
-    fun uniform(name: String, value: Vector3)
-    fun uniform(name: String, value: Vector2)
-    fun uniform(name: String, value: IntVector2)
-    fun uniform(name: String, value: IntVector3)
-    fun uniform(name: String, value: IntVector4)
-
-
-    fun uniform(name: String, x: Float, y: Float, z: Float, w: Float)
-    fun uniform(name: String, x: Float, y: Float, z: Float)
-    fun uniform(name: String, x: Float, y: Float)
-    fun uniform(name: String, value: Double)
-    fun uniform(name: String, value: Float)
-    fun uniform(name: String, value: Int)
-    fun uniform(name: String, value: Boolean)
-
-    fun uniform(name: String, value: Array<IntVector4>)
-    fun uniform(name: String, value: Array<IntVector3>)
-    fun uniform(name: String, value: Array<IntVector2>)
-    fun uniform(name: String, value: Array<Vector4>)
-    fun uniform(name: String, value: Array<Vector3>)
-    fun uniform(name: String, value: Array<Vector2>)
-    fun uniform(name: String, value: FloatArray)
-    fun uniform(name: String, value: IntArray)
 
 
     /**
@@ -58,6 +28,8 @@ interface ComputeShader: ShaderImageBindings, ShaderBufferBindings {
      * @param depth the global depth
      */
     fun execute(width: Int = 1, height: Int = 1, depth: Int = 1)
+
+    fun execute(dimensions: IntVector3) = execute(dimensions.x, dimensions.y, dimensions.z)
 
     /**
      * Destroy the compute shader

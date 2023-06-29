@@ -95,7 +95,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         instanceAttributes: List<VertexBuffer>
     ): Long {
         var hash = contextID
-        hash = hash * 31 + shader.program.toLong()
+        hash = hash * 31 + shader.programObject.toLong()
         logger.hashCode()
 
         for (vb in vertexBuffers) {
@@ -475,7 +475,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         // -- find or create a VAO for our shader + vertex buffers combination
         val shaderVertexDescription = ShaderVertexDescription(
             contextID,
-            shader.program,
+            shader.programObject,
             vertexBuffers.map { (it as VertexBufferGL3).buffer }.toIntArray(),
             IntArray(0)
         )
@@ -567,7 +567,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
             val shaderVertexDescription = measure("hash-vao") {
                 ShaderVertexDescription(
                     contextID,
-                    shader.program,
+                    shader.programObject,
                     vertexBuffers.map { (it as VertexBufferGL3).buffer }.toIntArray(),
                     IntArray(0)
                 )
@@ -645,7 +645,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         // -- find or create a VAO for our shader + vertex buffers + instance buffers combination
         val hash = ShaderVertexDescription(
             contextID,
-            (shader as ShaderGL3).program,
+            (shader as ShaderGL3).programObject,
             vertexBuffers.map { (it as VertexBufferGL3).buffer }.toIntArray(),
             instanceAttributes.map { (it as VertexBufferGL3).buffer }.toIntArray()
         )
@@ -718,7 +718,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         // -- find or create a VAO for our shader + vertex buffers + instance buffers combination
         val shaderVertexDescription = ShaderVertexDescription(
             contextID,
-            (shader as ShaderGL3).program,
+            (shader as ShaderGL3).programObject,
             vertexBuffers.map { (it as VertexBufferGL3).buffer }.toIntArray(),
             instanceAttributes.map { (it as VertexBufferGL3).buffer }.toIntArray()
         )
@@ -1228,7 +1228,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
 
     fun destroyVAOsForShader(shader: ShaderGL3) {
         val candidates = vaos.keys.filter {
-            it.vertexBuffers.contains(shader.program) || it.instanceAttributeBuffers.contains(shader.program)
+            it.vertexBuffers.contains(shader.programObject) || it.instanceAttributeBuffers.contains(shader.programObject)
         }
         for (candidate in candidates) {
             val value = vaos[candidate] ?: error("no vao found")

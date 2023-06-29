@@ -5,34 +5,49 @@ import org.lwjgl.opengl.GL15C.glBufferSubData
 import org.lwjgl.opengl.GL30C
 import org.lwjgl.opengl.GL33C
 import org.lwjgl.opengl.GL43C.*
+import org.lwjgl.opengl.GL45C.*
 import org.openrndr.draw.*
+import org.openrndr.internal.Driver
 import java.nio.ByteBuffer
 
 class ShaderStorageBufferGL43(val buffer: Int, override val format: ShaderStorageFormat, override val session: Session? = Session.active) : ShaderStorageBuffer {
 
     private var destroyed = false
 
-    override fun bind(base: Int) {
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, base, buffer)
-        debugGLErrors()
-    }
 
     override fun clear() {
-        GL33C.glBindBuffer(GL_SHADER_STORAGE_BUFFER, buffer)
-        glClearBufferData(GL_SHADER_STORAGE_BUFFER, GL_R8UI, GL30C.GL_RED_INTEGER, GL11C.GL_UNSIGNED_BYTE, intArrayOf(0))
-
-
+        if ((Driver.instance as DriverGL3).version >= DriverVersionGL.VERSION_4_5) {
+            glClearNamedBufferData(buffer,
+                GL_R8UI,
+                GL30C.GL_RED_INTEGER,
+                GL11C.GL_UNSIGNED_BYTE,
+                intArrayOf(0) )
+        } else {
+            GL33C.glBindBuffer(GL_SHADER_STORAGE_BUFFER, buffer)
+            glClearBufferData(
+                GL_SHADER_STORAGE_BUFFER,
+                GL_R8UI,
+                GL30C.GL_RED_INTEGER,
+                GL11C.GL_UNSIGNED_BYTE,
+                intArrayOf(0)
+            )
+        }
     }
 
 
     override fun write(source: ByteBuffer, writeOffset: Int) {
         val allowed = format.size - writeOffset
         require(source.remaining() <= allowed)
-        GL33C.glBindBuffer(GL_SHADER_STORAGE_BUFFER, buffer)
-        debugGLErrors()
-        glBufferSubData(GL_SHADER_STORAGE_BUFFER, writeOffset.toLong(), source)
-        debugGLErrors()
-        GL33C.glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0)
+        if ((Driver.instance as DriverGL3).version <= DriverVersionGL.VERSION_4_5) {
+            GL33C.glBindBuffer(GL_SHADER_STORAGE_BUFFER, buffer)
+            debugGLErrors()
+            glBufferSubData(GL_SHADER_STORAGE_BUFFER, writeOffset.toLong(), source)
+            debugGLErrors()
+            GL33C.glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0)
+        } else {
+            glNamedBufferSubData(buffer, writeOffset.toLong(), source)
+            debugGLErrors()
+        }
     }
 
     override fun read(target: ByteBuffer, readOffset: Int) {
@@ -92,7 +107,11 @@ class ShaderStorageBufferGL43(val buffer: Int, override val format: ShaderStorag
             val ssbo = GL33C.glGenBuffers()
             GL33C.glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo)
             checkGLErrors()
-            GL33C.glBufferData(GL_SHADER_STORAGE_BUFFER, format.size.toLong(), GL33C.GL_STREAM_DRAW)
+
+            GL33C.glBufferData(GL_SHADER_STORAGE_BUFFER, format.size.toLong(), GL33C.GL_DYNAMIC_COPY)
+            checkGLErrors()
+
+            GL33C.glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo)
             checkGLErrors()
             return ShaderStorageBufferGL43(ssbo, format, session)
         }

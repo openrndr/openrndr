@@ -252,6 +252,18 @@ class ShaderWebGL(
 
     }
 
+    override fun buffer(name: String, vertexBuffer: VertexBuffer) {
+        TODO("Not yet implemented")
+    }
+
+    override fun buffer(name: String, shaderStorageBuffer: ShaderStorageBuffer) {
+        TODO("Not yet implemented")
+    }
+
+    override fun buffer(name: String, counterBuffer: AtomicCounterBuffer) {
+        TODO("Not yet implemented")
+    }
+
     override fun uniform(name: String, value: Array<Vector4>) {
         val floatValues = Float32Array(value.size * 4)
         for (i in value.indices) {

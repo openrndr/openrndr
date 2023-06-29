@@ -1,13 +1,9 @@
 package org.openrndr.internal.gl3
 
 import mu.KotlinLogging
-import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL43C.*
-import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
 import org.openrndr.internal.Driver
-import org.openrndr.math.*
-import java.nio.Buffer
 
 private val logger = KotlinLogging.logger {}
 
@@ -19,27 +15,21 @@ fun ImageAccess.gl(): Int {
     }
 }
 
-class ComputeShaderGL43(val programObject: Int, val name: String = "compute_shader") : ComputeShader {
+class ComputeShaderGL43(
+    override val programObject: Int,
+    override val name: String = "compute_shader"
+) : ComputeShader,
+    ShaderBufferBindingsGL3, ShaderUniformsGL3, ShaderImageBindingsGL43 {
 
+    override val uniforms = mutableMapOf<String, Int>()
+    override val useProgramUniform = (Driver.instance as DriverGL3).version >= DriverVersionGL.VERSION_4_1
     private var destroyed = false
-    private val uniforms: MutableMap<String, Int> = hashMapOf()
-    private fun uniformIndex(uniform: String, query: Boolean = false): Int =
-        uniforms.getOrPut(uniform) {
-            val location = glGetUniformLocation(programObject, uniform)
-            debugGLErrors()
-            if (location == -1 && !query) {
-                logger.warn {
-                    "Shader '${name}' does not have a uniform called '$uniform'"
-                }
-            }
-            location
-        }
 
     override fun execute(width: Int, height: Int, depth: Int) {
 
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo)
         checkGLErrors()
-        glUseProgram(programObject)
+        glUseProgram(this.programObject)
         checkGLErrors()
         glDispatchCompute(width, height, depth)
         checkGLErrors()
@@ -48,454 +38,11 @@ class ComputeShaderGL43(val programObject: Int, val name: String = "compute_shad
         checkGLErrors()
     }
 
-    private fun bound(f: () -> Unit) {
-        glUseProgram(programObject)
-        f()
-
-    }
-
-    override fun image(name: String, image: Int, imageBinding: ImageBinding) {
-        require((Driver.instance as DriverGL3).version >= DriverVersionGL.VERSION_4_3)
-
-        fun validateColorFormat(colorFormat: ColorFormat) {
-            require(colorFormat.componentCount != 3) {
-                "ComputeShader image `$name` has unsupported format " +
-                        "($colorFormat), only formats with 1, 2 or 4 " +
-                        "components are supported"
-            }
-        }
-
-        fun bindTexture(texture: Int, glFormat: Int) {
-            glBindImageTexture(
-                image, texture, imageBinding.level, false, 0,
-                imageBinding.access.gl(), glFormat
-            )
-        }
-
-        bound {
-            when (imageBinding) {
-                is BufferTextureImageBinding ->
-                    (imageBinding.bufferTexture as BufferTextureGL3).let {
-                        validateColorFormat(it.format)
-                        bindTexture(it.texture, it.glFormat())
-                    }
-
-                is ColorBufferImageBinding ->
-                    (imageBinding.colorBuffer as ColorBufferGL3).let {
-                    validateColorFormat(it.format)
-                    bindTexture(it.texture, it.glFormat())
-                }
-
-                is ArrayTextureImageBinding ->
-                    (imageBinding.arrayTexture as ArrayTextureGL3).let {
-                        validateColorFormat(it.format)
-                        bindTexture(it.texture, it.glFormat())
-                    }
-
-                is CubemapImageBinding ->
-                    (imageBinding.cubemap as CubemapGL3).let {
-                        validateColorFormat(it.format)
-                        bindTexture(it.texture, it.glFormat())
-                    }
-
-                is ArrayCubemapImageBinding ->
-                    (imageBinding.arrayCubemap as ArrayCubemapGL4).let {
-                        validateColorFormat(it.format)
-                        bindTexture(it.texture, it.glFormat())
-                    }
-
-                is VolumeTextureImageBinding ->
-                    (imageBinding.volumeTexture as VolumeTextureGL3).let {
-                        validateColorFormat(it.format)
-                        bindTexture(it.texture, it.glFormat())
-                    }
-
-                else -> error("unsupported binding")
-            }
-            checkGLErrors()
-
-            val index = uniformIndex(name)
-            glUniform1i(index, image)
-            checkGLErrors()
-        }
-    }
-
-
-    private val ssbo = glGenBuffers()
-    private val storageIndex = mutableMapOf<String, Int>()
-
-    override fun buffer(name: String, vertexBuffer: VertexBuffer) {
-        bound {
-            val index = storageIndex.getOrPut(name) { storageIndex.size + 8 }
-            vertexBuffer as VertexBufferGL3
-            glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo)
-            checkGLErrors()
-            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, index, vertexBuffer.buffer)
-            checkGLErrors()
-
-            val blockIndex = glGetProgramResourceIndex(programObject, GL_SHADER_STORAGE_BLOCK, name)
-            if (blockIndex >= 0) {
-                glShaderStorageBlockBinding(programObject, blockIndex, index)
-            } else {
-                logger.warn { "no such program resource: $name" }
-            }
-        }
-    }
-
-    override fun buffer(name: String, shaderStorageBuffer: ShaderStorageBuffer) {
-        bound {
-            val index = storageIndex.getOrPut(name) { storageIndex.size + 8 }
-
-            shaderStorageBuffer as ShaderStorageBufferGL43
-            glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo)
-            checkGLErrors()
-            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, index, shaderStorageBuffer.buffer)
-            checkGLErrors()
-
-            val blockIndex = glGetProgramResourceIndex(programObject, GL_SHADER_STORAGE_BLOCK, name)
-            if (blockIndex >= 0) {
-                glShaderStorageBlockBinding(programObject, blockIndex, index)
-            } else {
-                logger.warn { "no such program resource: $name" }
-            }
-        }
-    }
-
-    override fun buffer(bindingIndex: Int, counterBuffer: AtomicCounterBuffer) {
-        counterBuffer as AtomicCounterBufferGL43
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo)
-        checkGLErrors()
-        glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, bindingIndex, counterBuffer.buffer)
-        checkGLErrors()
-    }
-
-    override fun uniform(name: String, value: ColorRGBa) {
-        bound {
-            val index = uniformIndex(name)
-            if (index != -1) {
-                glUniform4f(index, value.r.toFloat(), value.g.toFloat(), value.b.toFloat(), value.alpha.toFloat())
-                postUniformCheck(name, index, value)
-            }
-        }
-    }
-
-    override fun uniform(name: String, value: Vector3) {
-        bound {
-            val index = uniformIndex(name)
-            if (index != -1) {
-                glUniform3f(index, value.x.toFloat(), value.y.toFloat(), value.z.toFloat())
-                postUniformCheck(name, index, value)
-            }
-        }
-    }
-
-    override fun uniform(name: String, value: Vector4) {
-        bound {
-            val index = uniformIndex(name)
-            if (index != -1) {
-                glUniform4f(index, value.x.toFloat(), value.y.toFloat(), value.z.toFloat(), value.w.toFloat())
-                postUniformCheck(name, index, value)
-            }
-        }
-    }
-
-    override fun uniform(name: String, x: Float, y: Float, z: Float, w: Float) {
-        bound {
-            val index = uniformIndex(name)
-            if (index != -1) {
-                glUniform4f(index, x, y, z, w)
-            }
-        }
-    }
-
-    override fun uniform(name: String, x: Float, y: Float, z: Float) {
-        bound {
-            val index = uniformIndex(name)
-            if (index != -1) {
-                glUniform3f(index, x, y, z)
-            }
-        }
-    }
-
-    override fun uniform(name: String, x: Float, y: Float) {
-        bound {
-            val index = uniformIndex(name)
-            if (index != -1) {
-                glUniform2f(index, x, y)
-            }
-        }
-    }
-
-    override fun uniform(name: String, value: Int) {
-        bound {
-            val index = uniformIndex(name)
-            if (index != -1) {
-                glUniform1i(index, value)
-                postUniformCheck(name, index, value)
-            }
-        }
-    }
-
-    override fun uniform(name: String, value: IntVector2) {
-        bound {
-            val index = uniformIndex(name)
-            if (index != -1) {
-                glUniform2i(index, value.x, value.y)
-                postUniformCheck(name, index, value)
-            }
-        }
-    }
-
-    override fun uniform(name: String, value: IntVector3) {
-        bound {
-            val index = uniformIndex(name)
-            if (index != -1) {
-                glUniform3i(index, value.x, value.y, value.z)
-                postUniformCheck(name, index, value)
-            }
-        }
-    }
-
-    override fun uniform(name: String, value: IntVector4) {
-        bound {
-            val index = uniformIndex(name)
-            if (index != -1) {
-                glUniform4i(index, value.x, value.y, value.z, value.w)
-                postUniformCheck(name, index, value)
-            }
-        }
-    }
-
-    override fun uniform(name: String, value: Boolean) {
-        bound {
-            val index = uniformIndex(name)
-            if (index != -1) {
-                glUniform1i(index, if (value) 1 else 0)
-                postUniformCheck(name, index, value)
-            }
-        }
-    }
-
-    override fun uniform(name: String, value: Vector2) {
-        bound {
-            val index = uniformIndex(name)
-            if (index != -1) {
-                glUniform2f(index, value.x.toFloat(), value.y.toFloat())
-                postUniformCheck(name, index, value)
-            }
-        }
-    }
-
-    override fun uniform(name: String, value: Float) {
-        bound {
-            val index = uniformIndex(name)
-            if (index != -1) {
-                glUniform1f(index, value)
-                postUniformCheck(name, index, value)
-            }
-        }
-    }
-
-    override fun uniform(name: String, value: Double) {
-        bound {
-            val index = uniformIndex(name)
-            if (index != -1) {
-                glUniform1f(index, value.toFloat())
-                postUniformCheck(name, index, value)
-            }
-        }
-    }
-
-    override fun uniform(name: String, value: Matrix33) {
-        bound {
-            val index = uniformIndex(name)
-            if (index != -1) {
-                logger.trace { "Setting uniform '$name' to $value" }
-                glUniformMatrix3fv(index, false, value.toFloatArray())
-                postUniformCheck(name, index, value)
-            }
-        }
-    }
-
-
-    override fun uniform(name: String, value: Matrix44) {
-        bound {
-            val index = uniformIndex(name)
-            if (index != -1) {
-                logger.trace { "Setting uniform '$name' to $value" }
-                glUniformMatrix4fv(index, false, value.toFloatArray())
-                postUniformCheck(name, index, value)
-            }
-        }
-    }
-
-    override fun uniform(name: String, value: Array<IntVector4>) {
-        bound {
-            val index = uniformIndex(name)
-            if (index != -1) {
-                logger.trace { "Setting uniform '$name' to $value" }
-
-                val intValues = IntArray(value.size * 4)
-                for (i in value.indices) {
-                    intValues[i * 4] = value[i].x
-                    intValues[i * 4 + 1] = value[i].y
-                    intValues[i * 4 + 2] = value[i].z
-                    intValues[i * 4 + 3] = value[i].w
-                }
-
-                glUniform4iv(index, intValues)
-                postUniformCheck(name, index, value)
-            }
-        }
-    }
-
-    override fun uniform(name: String, value: Array<IntVector3>) {
-        bound {
-            val index = uniformIndex(name)
-            if (index != -1) {
-                logger.trace { "Setting uniform '$name' to $value" }
-
-                val intValues = IntArray(value.size * 3)
-                for (i in value.indices) {
-                    intValues[i * 3] = value[i].x
-                    intValues[i * 3 + 1] = value[i].y
-                    intValues[i * 3 + 2] = value[i].z
-                }
-
-                glUniform3iv(index, intValues)
-                postUniformCheck(name, index, value)
-            }
-        }
-    }
-
-    override fun uniform(name: String, value: Array<IntVector2>) {
-        bound {
-            val index = uniformIndex(name)
-            if (index != -1) {
-                logger.trace { "Setting uniform '$name' to $value" }
-
-                val intValues = IntArray(value.size * 3)
-                for (i in value.indices) {
-                    intValues[i * 2] = value[i].x
-                    intValues[i * 2 + 1] = value[i].y
-                }
-
-                glUniform2iv(index, intValues)
-                postUniformCheck(name, index, value)
-            }
-        }
-    }
-
-    override fun uniform(name: String, value: Array<Vector2>) {
-        bound {
-            val index = uniformIndex(name)
-            if (index != -1) {
-                logger.trace { "Setting uniform '$name' to $value" }
-
-                val floatValues = FloatArray(value.size * 2)
-                for (i in value.indices) {
-                    floatValues[i * 2] = value[i].x.toFloat()
-                    floatValues[i * 2 + 1] = value[i].y.toFloat()
-                }
-
-                glUniform2fv(index, floatValues)
-                postUniformCheck(name, index, value)
-            }
-        }
-    }
-
-    override fun uniform(name: String, value: Array<Vector3>) {
-        bound {
-            val index = uniformIndex(name)
-            if (index != -1) {
-                logger.trace { "Setting uniform '$name' to $value" }
-
-                val floatValues = FloatArray(value.size * 3)
-                for (i in value.indices) {
-                    floatValues[i * 3] = value[i].x.toFloat()
-                    floatValues[i * 3 + 1] = value[i].y.toFloat()
-                    floatValues[i * 3 + 2] = value[i].z.toFloat()
-                }
-                glUniform3fv(index, floatValues)
-                postUniformCheck(name, index, value)
-            }
-        }
-    }
-
-    override fun uniform(name: String, value: Array<Vector4>) {
-        bound {
-            val index = uniformIndex(name)
-            if (index != -1) {
-                logger.trace { "Setting uniform '$name' to $value" }
-
-                val floatValues = FloatArray(value.size * 4)
-                for (i in value.indices) {
-                    floatValues[i * 4] = value[i].x.toFloat()
-                    floatValues[i * 4 + 1] = value[i].y.toFloat()
-                    floatValues[i * 4 + 2] = value[i].z.toFloat()
-                    floatValues[i * 4 + 3] = value[i].w.toFloat()
-                }
-
-                glUniform4fv(index, floatValues)
-                postUniformCheck(name, index, value)
-            }
-        }
-    }
-
-    override fun uniform(name: String, value: FloatArray) {
-        bound {
-            val index = uniformIndex(name)
-            if (index != -1) {
-                logger.trace { "Setting uniform '$name' to $value" }
-                glUniform1fv(index, value)
-                postUniformCheck(name, index, value)
-            }
-        }
-    }
-
-    override fun uniform(name: String, value: IntArray) {
-        bound {
-            val index = uniformIndex(name)
-            if (index != -1) {
-                logger.trace { "Setting uniform '$name' to $value" }
-                glUniform1iv(index, value)
-                postUniformCheck(name, index, value)
-            }
-        }
-    }
-
-    private fun postUniformCheck(name: String, index: Int, @Suppress("UNUSED_PARAMETER") value: Any) {
-        debugGLErrors {
-            val currentProgram = glGetInteger(GL_CURRENT_PROGRAM)
-
-            fun checkUniform(): String {
-                if (currentProgram > 0) {
-                    val lengthBuffer = BufferUtils.createIntBuffer(1)
-                    val sizeBuffer = BufferUtils.createIntBuffer(1)
-                    val typeBuffer = BufferUtils.createIntBuffer(1)
-                    val nameBuffer = BufferUtils.createByteBuffer(256)
-
-                    glGetActiveUniform(currentProgram, index, lengthBuffer, sizeBuffer, typeBuffer, nameBuffer)
-                    val nameBytes = ByteArray(lengthBuffer[0])
-                    (nameBuffer as Buffer).rewind()
-                    nameBuffer.get(nameBytes)
-                    val retrievedName = String(nameBytes)
-                    return "($name/$retrievedName): ${sizeBuffer[0]} / ${typeBuffer[0]}}"
-                }
-                return "no program"
-            }
-
-            when (it) {
-                GL_INVALID_OPERATION -> "no current program object ($currentProgram), or uniform type mismatch (${checkUniform()}"
-                else -> null
-            }
-        }
-    }
-
+    override val ssbo: Int = createSSBO()
 
     override fun destroy() {
         if (!destroyed) {
-            glDeleteProgram(programObject)
+            glDeleteProgram(this.programObject)
             checkGLErrors()
         }
     }
@@ -526,4 +73,7 @@ class ComputeShaderGL43(val programObject: Int, val name: String = "compute_shad
             return ComputeShaderGL43(program, name)
         }
     }
+
+
+
 }

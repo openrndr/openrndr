@@ -76,17 +76,17 @@ $this"""
                 shader.begin()
                 var textureIndex = 2
                 var imageIndex = 0
-                var bufferIndex = 2
                 run {
                     for (it in style.bufferValues.entries) {
                         when (val value = it.value) {
+                            is StructuredBuffer<*> -> {
+                                shader.buffer("B_${it.key}", value.ssbo)
+                            }
                             is ShaderStorageBuffer -> {
-                                value.bind(bufferIndex)
-                                bufferIndex++
+                                shader.buffer("b_${it.key}", value)
                             }
                             is AtomicCounterBuffer -> {
-                                value.bind(bufferIndex)
-                                bufferIndex++
+                                shader.buffer("b_${it.key}", value)
                             }
                             else -> error("unsupported buffer type $value")
                         }

@@ -12,7 +12,6 @@ expect interface ShaderStorageBuffer {
     val shadow: ShaderStorageBufferShadow
 
     fun clear()
-    fun bind(base: Int)
     fun destroy()
 
     fun put(elementOffset: Int = 0, putter: BufferWriterStd430.() -> Unit): Int

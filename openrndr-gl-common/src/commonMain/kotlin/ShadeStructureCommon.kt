@@ -75,11 +75,8 @@ fun structureFromShadeStyle(
                             buffers = shadeStyle.bufferValues.map {
                                 val r = when (val v = it.value) {
                                     is StructuredBuffer<*> -> {
-                                        val structType = shadeStyle.bufferTypes[it.key]?.drop(7)
-                                            ?: error("no type for buffer '${it.key}'")
-                                        "layout(std430, binding = $bufferIndex) buffer B_${it.key} { ${structType} b_${it.key}; };"
+                                        "layout(std430, binding = $bufferIndex) buffer B_${it.key} { ${v.struct.typeDef("", true)}  }b_${it.key};"
                                     }
-
                                     is ShaderStorageBuffer -> "layout(std430, binding = $bufferIndex) buffer B_${it.key} { ${v.format.glslLayout} } b_${it.key};"
                                     is AtomicCounterBuffer -> "layout(binding = $bufferIndex, offset = 0) atomic_uint b_${it.key};"
                                     else -> error("unsupported buffer type: $v")

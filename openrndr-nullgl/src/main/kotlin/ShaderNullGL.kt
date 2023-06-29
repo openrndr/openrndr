@@ -46,6 +46,18 @@ class ShaderNullGL(override val session: Session?) : Shader {
 
     }
 
+    override fun buffer(name: String, vertexBuffer: VertexBuffer) {
+
+    }
+
+    override fun buffer(name: String, shaderStorageBuffer: ShaderStorageBuffer) {
+
+    }
+
+    override fun buffer(name: String, counterBuffer: AtomicCounterBuffer) {
+
+    }
+
 
     override fun uniform(name: String, value: ColorRGBa) {
 
