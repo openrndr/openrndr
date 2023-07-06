@@ -28,8 +28,8 @@ enum class DriverVersionGL(val glslVersion: String, val majorVersion: Int, val m
     VERSION_4_2("420 core", 4, 2),
     VERSION_4_3("430 core", 4, 3),
     VERSION_4_4("440 core", 4, 4),
-    VERSION_4_5("450 core", 4, 5);
-
+    VERSION_4_5("450 core", 4, 5),
+    VERSION_4_6("460 core", 4, 6);
     val versionString
         get() = "$majorVersion.$minorVersion"
 }
