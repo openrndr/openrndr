@@ -3,9 +3,12 @@ package org.openrndr.internal.gl3
 import mu.KotlinLogging
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL33C.*
+import org.lwjgl.opengl.GL44C.GL_DYNAMIC_STORAGE_BIT
+import org.lwjgl.opengl.GL44C.glBufferStorage
 import org.lwjgl.system.MemoryUtil
 import org.openrndr.draw.IndexBuffer
 import org.openrndr.draw.IndexType
+import org.openrndr.internal.Driver
 import java.nio.ByteBuffer
 
 private val logger = KotlinLogging.logger {}
@@ -21,7 +24,12 @@ class IndexBufferGL3(val buffer: Int, override val indexCount: Int, override val
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer)
             checkGLErrors()
             val sizeInBytes = type.sizeInBytes * elementCount
-            nglBufferData(GL_ELEMENT_ARRAY_BUFFER,  sizeInBytes.toLong(), MemoryUtil.NULL, GL_DYNAMIC_DRAW)
+            val useBufferStorage = (Driver.instance as DriverGL3).version >= DriverVersionGL.VERSION_4_4
+            if (useBufferStorage) {
+                glBufferStorage(GL_ELEMENT_ARRAY_BUFFER, sizeInBytes.toLong(), GL_DYNAMIC_STORAGE_BIT)
+            } else {
+                glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeInBytes.toLong(), GL_DYNAMIC_DRAW)
+            }
             checkGLErrors()
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cb)
             return IndexBufferGL3(buffer, elementCount, type)

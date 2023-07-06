@@ -11,9 +11,7 @@ import org.openrndr.internal.Driver
 import java.nio.ByteBuffer
 
 class ShaderStorageBufferGL43(val buffer: Int, override val format: ShaderStorageFormat, override val session: Session? = Session.active) : ShaderStorageBuffer {
-
     private var destroyed = false
-
 
     override fun clear() {
         if ((Driver.instance as DriverGL3).version >= DriverVersionGL.VERSION_4_5) {
@@ -108,13 +106,15 @@ class ShaderStorageBufferGL43(val buffer: Int, override val format: ShaderStorag
             GL33C.glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo)
             checkGLErrors()
 
-            GL33C.glBufferData(GL_SHADER_STORAGE_BUFFER, format.size.toLong(), GL33C.GL_DYNAMIC_COPY)
-            checkGLErrors()
+            val useBufferStorage = (Driver.instance as DriverGL3).version >= DriverVersionGL.VERSION_4_4
 
-            GL33C.glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo)
+            if (useBufferStorage) {
+                glBufferStorage(GL_SHADER_STORAGE_BUFFER, format.size.toLong(), GL_DYNAMIC_STORAGE_BIT)
+            } else {
+                GL33C.glBufferData(GL_SHADER_STORAGE_BUFFER, format.size.toLong(), GL33C.GL_DYNAMIC_COPY)
+            }
             checkGLErrors()
             return ShaderStorageBufferGL43(ssbo, format, session)
         }
     }
-
 }

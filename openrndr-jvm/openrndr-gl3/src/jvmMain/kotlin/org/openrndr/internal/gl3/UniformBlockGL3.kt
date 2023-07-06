@@ -2,6 +2,8 @@ package org.openrndr.internal.gl3
 
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL33C.*
+import org.lwjgl.opengl.GL44C.GL_DYNAMIC_STORAGE_BIT
+import org.lwjgl.opengl.GL44C.glBufferStorage
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.UniformBlock
 import org.openrndr.draw.UniformBlockLayout
@@ -34,7 +36,13 @@ class UniformBlockGL3(override val layout: UniformBlockLayout, val blockBinding:
             synchronized(Driver.instance) {
                 val ubo = glGenBuffers()
                 glBindBuffer(GL_UNIFORM_BUFFER, ubo)
-                glBufferData(GL_UNIFORM_BUFFER, layout.sizeInBytes.toLong(), GL_DYNAMIC_DRAW)
+
+                val useBufferStorage = (Driver.instance as DriverGL3).version >= DriverVersionGL.VERSION_4_4
+                if (useBufferStorage) {
+                    glBufferStorage(GL_UNIFORM_BUFFER, layout.sizeInBytes.toLong(), GL_DYNAMIC_STORAGE_BIT)
+                } else {
+                    glBufferData(GL_UNIFORM_BUFFER, layout.sizeInBytes.toLong(), GL_DYNAMIC_DRAW)
+                }
                 glBindBuffer(GL_UNIFORM_BUFFER, 0)
 
                 glBindBufferBase(GL_UNIFORM_BUFFER, blockBindings, ubo)

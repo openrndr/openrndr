@@ -4,8 +4,8 @@ import mu.KotlinLogging
 import org.lwjgl.BufferUtils
 
 import org.lwjgl.opengl.GL33C.*
-import org.lwjgl.system.MemoryUtil
-import org.lwjgl.system.MemoryUtil.NULL
+import org.lwjgl.opengl.GL44C.GL_DYNAMIC_STORAGE_BIT
+import org.lwjgl.opengl.GL44C.glBufferStorage
 import org.openrndr.draw.*
 import org.openrndr.internal.Driver
 import org.openrndr.utils.buffer.MPPBuffer
@@ -79,7 +79,13 @@ class VertexBufferGL3(
             glBindBuffer(GL_ARRAY_BUFFER, buffer)
             checkGLErrors()
             val sizeInBytes = vertexFormat.size * vertexCount
-            nglBufferData(GL_ARRAY_BUFFER, sizeInBytes.toLong(), NULL, GL_DYNAMIC_DRAW)
+            val useBufferStorage = (Driver.instance as DriverGL3).version >= DriverVersionGL.VERSION_4_4
+
+            if (useBufferStorage) {
+                glBufferStorage(GL_ARRAY_BUFFER, sizeInBytes.toLong(), GL_DYNAMIC_STORAGE_BIT)
+            } else {
+                glBufferData(GL_ARRAY_BUFFER, sizeInBytes.toLong(), GL_DYNAMIC_DRAW)
+            }
             checkGLErrors()
             return VertexBufferGL3(buffer, vertexFormat, vertexCount, session)
         }

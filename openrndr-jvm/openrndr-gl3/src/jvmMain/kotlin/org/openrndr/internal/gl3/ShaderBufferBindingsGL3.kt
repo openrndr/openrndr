@@ -94,7 +94,7 @@ interface ShaderBufferBindingsGL3 : ShaderBufferBindings, ShaderUniformsGL3 {
                     GL_ATOMIC_COUNTER_BUFFER_BINDING)
                 if (bindingIndex != -1) {
                     glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo)
-                    counterBuffer as AtomicCounterBufferGL43
+                    counterBuffer as AtomicCounterBufferGL42
                     glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, bindingIndex, counterBuffer.buffer)
                 } else {
                     logger.warn { "no binding point for '$name'" }
