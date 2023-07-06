@@ -6,6 +6,7 @@ import org.lwjgl.opengl.*
 import org.lwjgl.opengl.GL40C.*
 import org.openrndr.draw.*
 import org.openrndr.internal.*
+import org.openrndr.internal.glcommon.ComputeStyleManagerGLCommon
 import org.openrndr.internal.glcommon.ShadeStyleManagerGLCommon
 import org.openrndr.internal.glcommon.ShaderGeneratorsGLCommon
 import org.openrndr.math.Matrix33
@@ -41,7 +42,6 @@ inline fun DriverVersionGL.require(minimum: DriverVersionGL) {
 }
 
 class DriverGL3(val version: DriverVersionGL) : Driver {
-
     override val shaderLanguage: ShaderLanguage
         get() {
             return GLSL(version.glslVersion)
@@ -52,6 +52,10 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         #define OR_IN_OUT
         #define OR_GL
     """.trimIndent()
+
+    override fun createComputeStyleManager(session: Session?): ComputeStyleManager {
+        return ComputeStyleManagerGLCommon()
+    }
 
     companion object {
         fun candidateVersions(): List<DriverVersionGL> {
@@ -164,6 +168,8 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
     override fun createStaticVertexBuffer(format: VertexFormat, buffer: Buffer, session: Session?): VertexBuffer {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
+
+
 
     override fun createShadeStyleManager(
         name: String,

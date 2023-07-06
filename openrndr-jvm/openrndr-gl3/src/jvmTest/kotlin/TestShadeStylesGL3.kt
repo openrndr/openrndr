@@ -1,4 +1,7 @@
 import org.openrndr.draw.*
+import org.openrndr.internal.Driver
+import org.openrndr.internal.gl3.DriverGL3
+import org.openrndr.internal.gl3.DriverVersionGL
 import org.openrndr.internal.gl3.VertexBufferGL3
 import org.openrndr.math.Vector2
 import org.openrndr.math.Vector3
@@ -85,5 +88,59 @@ class TestShadeStylesGL3 : AbstractApplicationTestFixture() {
         val font = FontImageMap.fromUrl(resourceUrl("/fonts/Roboto-Medium.ttf"), 16.0)
         program.drawer.fontMap = font
         program.drawer.text("this is a test", 0.0, 0.0)
+    }
+
+    @Test
+    fun ssbo() {
+        if ((Driver.instance as DriverGL3).version >= DriverVersionGL.VERSION_4_3) {
+            val ssbo = shaderStorageBuffer(shaderStorageFormat {
+                primitive("floats", BufferPrimitiveType.FLOAT32, 100)
+            })
+            val ss = shadeStyle {
+                fragmentTransform = """float n = b_buffer.floats[0];"""
+                buffer("buffer", ssbo)
+            }
+            program.drawer.isolated {
+                program.drawer.shadeStyle = ss
+                program.drawer.rectangle(0.0, 0.0, 100.0, 100.0)
+            }
+        }
+    }
+
+    @Test
+    fun structuredBuffers() {
+        if ((Driver.instance as DriverGL3).version >= DriverVersionGL.VERSION_4_3) {
+            class CustomStruct: Struct<CustomStruct>() {
+                var floats by arrayField<Double>(100)
+            }
+
+            val sb = structuredBuffer(CustomStruct())
+            val ss = shadeStyle {
+                fragmentTransform = """float n = b_buffer.floats[0];"""
+                buffer("buffer", sb)
+            }
+            program.drawer.isolated {
+                program.drawer.shadeStyle = ss
+                program.drawer.rectangle(0.0, 0.0, 100.0, 100.0)
+            }
+        }
+    }
+
+    @Test
+    fun unusedStructuredBuffers() {
+        if ((Driver.instance as DriverGL3).version >= DriverVersionGL.VERSION_4_3) {
+            class CustomStruct: Struct<CustomStruct>() {
+                var floats by arrayField<Double>(100)
+            }
+
+            val sb = structuredBuffer(CustomStruct())
+            val ss = shadeStyle {
+                buffer("buffer", sb)
+            }
+            program.drawer.isolated {
+                program.drawer.shadeStyle = ss
+                program.drawer.rectangle(0.0, 0.0, 100.0, 100.0)
+            }
+        }
     }
 }

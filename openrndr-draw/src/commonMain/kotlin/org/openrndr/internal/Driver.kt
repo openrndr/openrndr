@@ -34,6 +34,8 @@ expect interface Driver {
 
     fun createComputeShader(code: String, name: String, session: Session? = Session.active): ComputeShader
 
+    fun createComputeStyleManager(session: Session? = Session.root) : ComputeStyleManager
+
     fun createShadeStyleManager(
         name: String,
         vsGenerator: (ShadeStructure) -> String,

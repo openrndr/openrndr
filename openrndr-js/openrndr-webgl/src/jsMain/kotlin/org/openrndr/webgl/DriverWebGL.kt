@@ -662,6 +662,10 @@ class DriverWebGL(val context: WebGL2RenderingContext) : Driver {
     override val shaderLanguage: ShaderLanguage
         get() = WebGLSL("300 es")
 
+    override fun createComputeStyleManager(session: Session?): ComputeStyleManager {
+        TODO("Not yet implemented")
+    }
+
 
     override fun shaderConfiguration(): String {
         return """

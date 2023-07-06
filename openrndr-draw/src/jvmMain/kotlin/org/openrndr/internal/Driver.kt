@@ -268,5 +268,6 @@ actual interface Driver {
     actual val shaderLanguage: ShaderLanguage
 
     actual fun shaderConfiguration(): String
+    actual fun createComputeStyleManager(session: Session?): ComputeStyleManager
 
 }

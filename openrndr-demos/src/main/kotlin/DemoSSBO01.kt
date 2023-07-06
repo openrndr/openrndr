@@ -29,7 +29,6 @@ fun main() = application {
     }
 
     program {
-        @Language("GLSL")
         val shader = """
             #version 450 core
             
