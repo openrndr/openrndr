@@ -86,7 +86,7 @@ $this"""
                                 shader.buffer("b_${it.key}", value)
                             }
                             is AtomicCounterBuffer -> {
-                                shader.buffer("b_${it.key}", value)
+                                shader.buffer("b_${it.key}[0]", value)
                             }
                             else -> error("unsupported buffer type $value")
                         }
@@ -226,6 +226,9 @@ $this"""
 
                 run {
                     for (it in style.parameterValues.entries) {
+                        setUniform("p_${it.key}", it.key, it.value)
+                    }
+                    for (it in style.imageValues.entries) {
                         setUniform("p_${it.key}", it.key, it.value)
                     }
                 }

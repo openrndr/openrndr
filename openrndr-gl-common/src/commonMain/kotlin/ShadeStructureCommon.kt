@@ -1,6 +1,23 @@
 package org.openrndr.internal.glcommon
 
 import org.openrndr.draw.*
+import org.openrndr.draw.font.BufferAccess
+import org.openrndr.draw.font.BufferFlag
+
+private val BufferAccess.glsl: String
+    get() = when (this) {
+        BufferAccess.READ -> "readonly"
+        BufferAccess.READ_WRITE -> ""
+        BufferAccess.WRITE -> "writeonly"
+    }
+
+private val BufferFlag.glsl: String
+    get() = when (this) {
+        BufferFlag.RESTRICT -> "restrict"
+        BufferFlag.COHERENT -> "coherent"
+        BufferFlag.VOLATILE -> "volatile"
+    }
+
 
 private val shadeStyleCache = LRUCache<CacheEntry, ShadeStructure>()
 
@@ -75,8 +92,15 @@ fun structureFromShadeStyle(
                             buffers = shadeStyle.bufferValues.map {
                                 val r = when (val v = it.value) {
                                     is StructuredBuffer<*> -> {
-                                        "layout(std430, binding = $bufferIndex) buffer B_${it.key} { ${v.struct.typeDef("", true)}  }b_${it.key};"
+                                        listOf(
+                                            "layout(std430, binding = $bufferIndex)",
+                                            (shadeStyle.bufferFlags[it.key]
+                                                ?: emptySet()).joinToString(" ") { it.glsl },
+                                            "${(shadeStyle.bufferAccess[it.key] ?: BufferAccess.READ_WRITE).glsl}",
+                                            "buffer B_${it.key} { ${v.struct.typeDef("", true)} } b_${it.key};"
+                                        ).joinToString(" ")
                                     }
+
                                     is ShaderStorageBuffer -> "layout(std430, binding = $bufferIndex) buffer B_${it.key} { ${v.format.glslLayout} } b_${it.key};"
                                     is AtomicCounterBuffer -> "layout(binding = $bufferIndex, offset = 0) atomic_uint b_${it.key};"
                                     else -> error("unsupported buffer type: $v")
@@ -86,18 +110,25 @@ fun structureFromShadeStyle(
                             }.joinToString("\n")
                         }
 
+                        run {
+                            val images = shadeStyle.imageTypes.map { mapTypeToImage(it.key, it.value, shadeStyle.imageAccess[it.key] ?: error("no image access for '${it.key}'")) }.joinToString("\n")
+                            buffers = listOf(buffers, images).joinToString("\n")
+                        }
+
                     }
                     run {
-                        varyingOut = vertexFormats.flatMap { it.items.filter { it.attribute != "_" } }.joinToString("") {
-                            "${it.type.glslVaryingQualifier}out ${it.type.glslType} va_${it.attribute}${
-                                array(it)
-                            };\n"
-                        } +
-                                instanceAttributeFormats.flatMap { it.items.filter { it.attribute != "_"} }.joinToString("") {
-                                    "${it.type.glslVaryingQualifier}out ${it.type.glslType} vi_${it.attribute}${
-                                        array(it)
-                                    };\n"
-                                }
+                        varyingOut =
+                            vertexFormats.flatMap { it.items.filter { it.attribute != "_" } }.joinToString("") {
+                                "${it.type.glslVaryingQualifier}out ${it.type.glslType} va_${it.attribute}${
+                                    array(it)
+                                };\n"
+                            } +
+                                    instanceAttributeFormats.flatMap { it.items.filter { it.attribute != "_" } }
+                                        .joinToString("") {
+                                            "${it.type.glslVaryingQualifier}out ${it.type.glslType} vi_${it.attribute}${
+                                                array(it)
+                                            };\n"
+                                        }
                     }
                     run {
                         varyingIn = vertexFormats.flatMap { it.items.filter { it.attribute != "_" } }.joinToString("") {
@@ -105,20 +136,21 @@ fun structureFromShadeStyle(
                                 array(it)
                             };\n"
                         } +
-                                instanceAttributeFormats.flatMap { it.items.filter { it.attribute != "_" } } .joinToString("") {
-                                    "${it.type.glslVaryingQualifier}in ${it.type.glslType} vi_${it.attribute}${
-                                        array(it)
-                                    };\n"
-                                }
+                                instanceAttributeFormats.flatMap { it.items.filter { it.attribute != "_" } }
+                                    .joinToString("") {
+                                        "${it.type.glslVaryingQualifier}in ${it.type.glslType} vi_${it.attribute}${
+                                            array(it)
+                                        };\n"
+                                    }
                     }
                     run {
-                        varyingBridge = vertexFormats.flatMap { it.items.filter { it.attribute != "_"} }
+                        varyingBridge = vertexFormats.flatMap { it.items.filter { it.attribute != "_" } }
                             .joinToString("") { "    va_${it.attribute} = a_${it.attribute};\n" } +
-                                instanceAttributeFormats.flatMap { it.items.filter { it.attribute != "_"} }
+                                instanceAttributeFormats.flatMap { it.items.filter { it.attribute != "_" } }
                                     .joinToString("") { "vi_${it.attribute} = i_${it.attribute};\n" }
                     }
                     run {
-                        attributes = vertexFormats.flatMap { it.items.filter { it.attribute != "_"} }
+                        attributes = vertexFormats.flatMap { it.items.filter { it.attribute != "_" } }
                             .joinToString("") { "in ${it.type.glslType} a_${it.attribute}${array(it)};\n" } +
                                 instanceAttributeFormats.flatMap { it.items.filter { it.attribute != "_" } }
                                     .joinToString("") { "in ${it.type.glslType} i_${it.attribute}${array(it)};\n" }
@@ -130,6 +162,37 @@ fun structureFromShadeStyle(
     }
 }
 
+
+private fun mapTypeToImage(name: String, type: String, access: ImageAccess): String {
+    val tokens = type.split(",")
+    val u = "uniform"
+
+
+    val subtokens = tokens[0].split(" ")
+    return when (subtokens[0]) {
+        "Image2D", "Image3D", "ImageCube", "Image2DArray", "ImageBuffer", "ImageCubeArray" -> {
+            val sampler = tokens[0].take(1).lowercase() + tokens[0].drop(1)
+            val colorFormat = ColorFormat.valueOf(tokens[1])
+            val colorType = ColorType.valueOf(tokens[2])
+
+            val layout = imageLayout(colorFormat, colorType)
+            val samplerType = when (colorType.colorSampling) {
+                ColorSampling.SIGNED_INTEGER -> "i"
+                ColorSampling.UNSIGNED_INTEGER -> "u"
+                else -> ""
+            }
+
+            when (access) {
+                ImageAccess.READ -> "layout($layout) readonly $u $samplerType$sampler p_$name;"
+                ImageAccess.READ_WRITE -> "layout($layout) $u $samplerType$sampler p_$name;"
+                ImageAccess.WRITE -> "layout($layout) writeonly $u $samplerType$sampler p_$name;"
+            }
+        }
+        else -> {
+            error("unknown image type '${subtokens[0]}")
+        }
+    }
+}
 
 private fun mapTypeToUniform(type: String, name: String): String {
     val tokens = type.split(",")

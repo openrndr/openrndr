@@ -25,5 +25,4 @@ interface ShaderImageBindings {
      * Bind image unit to imageBinding
      */
     fun image(name: String, image: Int, imageBinding: ImageBinding)
-
 }

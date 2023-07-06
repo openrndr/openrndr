@@ -15,7 +15,7 @@ private val shadeStyleManager by lazy {
  * A [Filter] that uses the [ShadeStyle] interface and language
  * @param shadeStyle the [ShadeStyle] that is applied as a filter
  */
-class ShadeStyleFilter(val shadeStyle: ShadeStyle) : Filter(), ShadeStyleParameters by shadeStyle {
+class ShadeStyleFilter(val shadeStyle: ShadeStyle) : Filter(), StyleParameters by shadeStyle {
     var fill: ColorRGBa by parameters
 
     init {

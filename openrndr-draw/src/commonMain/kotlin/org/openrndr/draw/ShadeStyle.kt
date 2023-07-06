@@ -1,6 +1,8 @@
 package org.openrndr.draw
 
 import org.openrndr.color.ColorRGBa
+import org.openrndr.draw.font.BufferAccess
+import org.openrndr.draw.font.BufferFlag
 import org.openrndr.math.*
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
@@ -93,216 +95,10 @@ class ObservableHashmap<K, V>(val b: MutableMap<K, V>, inline val onChange: () -
     }
 }
 
-interface ShadeStyleParameters {
-    var parameterValues: MutableMap<String, Any>
-    var parameterTypes: ObservableHashmap<String, String>
-
-
-    fun parameter(name: String, value: Cubemap) {
-        parameterValues[name] = value
-        parameterTypes[name] = when (value.type.colorSampling) {
-            ColorSampling.UNSIGNED_INTEGER -> "Cubemap_UINT"
-            ColorSampling.SIGNED_INTEGER -> "Cubemap_SINT"
-            else -> "Cubemap"
-        }
-    }
-
-    fun parameter(name: String, value: Boolean) {
-        parameterValues[name] = value
-        parameterTypes[name] = shadeStyleType<Boolean>()
-    }
-
-    fun parameter(name: String, value: Int) {
-        parameterValues[name] = value
-        parameterTypes[name] = shadeStyleType<Int>()
-    }
-
-    fun parameter(name: String, value: Matrix33) {
-        parameterValues[name] = value
-        parameterTypes[name] = shadeStyleType<Matrix33>()
-    }
-
-    fun parameter(name: String, value: Matrix44) {
-        parameterValues[name] = value
-        parameterTypes[name] = shadeStyleType<Matrix44>()
-    }
-
-    fun parameter(name: String, value: Array<Matrix44>) {
-        parameterValues[name] = value
-        parameterTypes[name] = "${shadeStyleType<Matrix44>()},${value.size}"
-    }
-
-    fun parameter(name: String, value: Array<Vector2>) {
-        parameterValues[name] = value
-        parameterTypes[name] = "${shadeStyleType<Vector2>()},${value.size}"
-    }
-
-    fun parameter(name: String, value: Array<Vector3>) {
-        parameterValues[name] = value
-        parameterTypes[name] = "${shadeStyleType<Vector3>()},${value.size}"
-    }
-
-    fun parameter(name: String, value: Array<Vector4>) {
-        parameterValues[name] = value
-        parameterTypes[name] = "${shadeStyleType<Vector4>()},${value.size}"
-    }
-
-    fun parameter(name: String, value: Array<ColorRGBa>) {
-        parameterValues[name] = value
-        parameterTypes[name] = "${shadeStyleType<ColorRGBa>()},${value.size}"
-    }
-
-    fun parameter(name: String, value: Float) {
-        parameterValues[name] = value
-        parameterTypes[name] = shadeStyleType<Float>()
-    }
-
-    fun parameter(name: String, value: Double) {
-        parameterValues[name] = value.toFloat()
-        parameterTypes[name] = shadeStyleType<Float>()
-    }
-
-    fun parameter(name: String, value: Vector2) {
-        parameterValues[name] = value
-        parameterTypes[name] = shadeStyleType<Vector2>()
-    }
-
-    fun parameter(name: String, value: Vector3) {
-        parameterValues[name] = value
-        parameterTypes[name] = shadeStyleType<Vector3>()
-    }
-
-    fun parameter(name: String, value: Vector4) {
-        parameterValues[name] = value
-        parameterTypes[name] = shadeStyleType<Vector4>()
-    }
-
-    fun parameter(name: String, value: IntVector2) {
-        parameterValues[name] = value
-        parameterTypes[name] = shadeStyleType<IntVector2>()
-    }
-
-    fun parameter(name: String, value: IntVector3) {
-        parameterValues[name] = value
-        parameterTypes[name] = shadeStyleType<IntVector3>()
-    }
-
-    fun parameter(name: String, value: IntVector4) {
-        parameterValues[name] = value
-        parameterTypes[name] = shadeStyleType<IntVector4>()
-    }
-
-    fun parameter(name: String, value: ColorRGBa) {
-        parameterValues[name] = value
-        parameterTypes[name] = shadeStyleType<ColorRGBa>()
-    }
-
-    fun parameter(name: String, value: ColorBuffer) {
-        parameterValues[name] = value
-        parameterTypes[name] = when (value.type.colorSampling) {
-            ColorSampling.UNSIGNED_INTEGER -> "ColorBuffer_UINT"
-            ColorSampling.SIGNED_INTEGER -> "ColorBuffer_SINT"
-            else -> "ColorBuffer"
-        }
-    }
-
-    fun parameter(name: String, value: DepthBuffer) {
-        parameterValues[name] = value
-        parameterTypes[name] = shadeStyleType<DepthBuffer>()
-    }
-
-    fun parameter(name: String, value: ArrayTexture) {
-        parameterValues[name] = value
-        parameterTypes[name] = when (value.type.colorSampling) {
-            ColorSampling.UNSIGNED_INTEGER -> "ArrayTexture_UINT"
-            ColorSampling.SIGNED_INTEGER -> "ArrayTexture_SINT"
-            else -> "ArrayTexture"
-        }
-    }
-
-    fun parameter(name: String, value: IntArray) {
-        parameterValues[name] = value
-        parameterTypes[name] = "${shadeStyleType<Int>()}, ${value.size}"
-    }
-
-    fun parameter(name: String, value: DoubleArray) {
-        parameterValues[name] = value
-        parameterTypes[name] = "${shadeStyleType<Double>()}, ${value.size}"
-    }
-
-    fun parameter(name: String, value: ArrayCubemap) {
-        parameterValues[name] = value
-        parameterTypes[name] = when (value.type.colorSampling) {
-            ColorSampling.UNSIGNED_INTEGER -> "ArrayCubemap_UINT"
-            ColorSampling.SIGNED_INTEGER -> "ArrayCubemap_SINT"
-            else -> "ArrayCubemap"
-        }
-    }
-
-    fun parameter(name: String, value: BufferTexture) {
-        parameterValues[name] = value
-        parameterTypes[name] = when (value.type.colorSampling) {
-            ColorSampling.UNSIGNED_INTEGER -> "BufferTexture_UINT"
-            ColorSampling.SIGNED_INTEGER -> "BufferTexture_SINT"
-            else -> "BufferTexture"
-        }
-    }
-
-    fun parameter(name: String, value: VolumeTexture) {
-        parameterValues[name] = value
-        parameterTypes[name] = when (value.type.colorSampling) {
-            ColorSampling.UNSIGNED_INTEGER -> "VolumeTexture_UINT"
-            ColorSampling.SIGNED_INTEGER -> "VolumeTexture_SINT"
-            else -> "VolumeTexture"
-        }
-    }
-
-
-    fun parameter(name: String, value: ImageBinding) {
-        parameterValues[name] = value
-        parameterTypes[name] = when (value) {
-            is BufferTextureImageBinding -> {
-                "ImageBuffer,${value.bufferTexture.format.name},${value.bufferTexture.type.name},${value.access.name}"
-            }
-
-            is CubemapImageBinding -> {
-                "ImageCube,${value.cubemap.format.name},${value.cubemap.type.name},${value.access.name}"
-            }
-
-            is ArrayCubemapImageBinding -> {
-                "ImageCubeArray,${value.arrayCubemap.format.name},${value.arrayCubemap.type.name},${value.access.name}"
-            }
-
-            is ColorBufferImageBinding -> {
-                "Image2D,${value.colorBuffer.format.name},${value.colorBuffer.type.name},${value.access.name}"
-            }
-
-            is ArrayTextureImageBinding -> {
-                "Image2DArray,${value.arrayTexture.format.name},${value.arrayTexture.type.name},${value.access.name}"
-            }
-
-            is VolumeTextureImageBinding -> {
-                "Image3D,${value.volumeTexture.format.name},${value.volumeTexture.type.name},${value.access.name}"
-            }
-
-            else -> error("unsupported image binding")
-        }
-    }
-}
-
-inline fun <reified T : Struct<T>> ShadeStyleParameters.parameter(name: String, value: T) {
-    parameterValues[name] = value
-    parameterTypes[name] = "struct ${T::class.simpleName}"
-}
-
-inline fun <reified T : Struct<T>> ShadeStyleParameters.parameter(name: String, value: Array<T>) {
-    parameterValues[name] = value
-    parameterTypes[name] = "struct ${T::class.simpleName},${value.size}"
-}
 
 
 @Suppress("unused")
-open class ShadeStyle : ShadeStyleParameters {
+open class ShadeStyle : StyleParameters, StyleBufferBindings, StyleImageBindings {
     var dirty = true
 
     var vertexPreamble: String? = null
@@ -341,9 +137,16 @@ open class ShadeStyle : ShadeStyleParameters {
             field = value
         }
 
-    var bufferValues = mutableMapOf<String, Any>()
-    val buffers = mutableMapOf<String, String>()
-    val bufferTypes = mutableMapOf<String, String>()
+    override var bufferValues = mutableMapOf<String, Any>()
+    override val buffers = mutableMapOf<String, String>()
+    override val bufferTypes = mutableMapOf<String, String>()
+    override val bufferFlags = mutableMapOf<String, Set<BufferFlag>>()
+    override val bufferAccess = mutableMapOf<String, BufferAccess>()
+
+
+    override val imageTypes: MutableMap<String, String> = mutableMapOf()
+    override val imageValues: MutableMap<String, ImageBinding> = mutableMapOf()
+    override val imageAccess: MutableMap<String, ImageAccess> = mutableMapOf()
 
     var outputs = ObservableHashmap(HashMap<String, ShadeStyleOutput>()) { dirty = true }
     var attributes = mutableListOf<VertexBuffer>()
@@ -375,22 +178,6 @@ open class ShadeStyle : ShadeStyleParameters {
 
     fun attributes(attributesBuffer: VertexBuffer) {
         attributes.add(attributesBuffer)
-    }
-
-    inline fun <reified T: Struct<T>> buffer(name: String, buffer: StructuredBuffer<T>) {
-        bufferValues[name] = buffer
-        buffers[name] = buffer.format.hashCode().toString()
-        bufferTypes[name] = "struct ${T::class.simpleName}"
-    }
-
-    fun buffer(name: String, buffer: ShaderStorageBuffer) {
-        bufferValues[name] = buffer
-        buffers[name] = buffer.format.hashCode().toString()
-    }
-
-    fun buffer(name: String, buffer: AtomicCounterBuffer) {
-        bufferValues[name] = buffer
-        buffers[name] = "AtomicCounterBuffer"
     }
 
 
