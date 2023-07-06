@@ -10,8 +10,6 @@ interface AtomicCounterBuffer {
     fun write(data: IntArray)
     fun read(): IntArray
 
-    fun bind(index: Int)
-
     /**
      * Reset all the counters to 0
      */

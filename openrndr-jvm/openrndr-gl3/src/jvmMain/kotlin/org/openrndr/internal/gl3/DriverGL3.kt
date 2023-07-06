@@ -228,7 +228,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
 
     override fun createAtomicCounterBuffer(counterCount: Int, session: Session?): AtomicCounterBuffer {
         version.require(DriverVersionGL.VERSION_4_3)
-        val atomicCounterBuffer = AtomicCounterBufferGL43.create(counterCount)
+        val atomicCounterBuffer = AtomicCounterBufferGL42.create(counterCount)
         session?.track(atomicCounterBuffer)
         return atomicCounterBuffer
     }
