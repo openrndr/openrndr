@@ -1,9 +1,13 @@
 package org.openrndr.internal.gl3
 
+import mu.KotlinLogging
 import org.lwjgl.glfw.GLFWNativeWin32
+import org.lwjgl.system.MemoryUtil
 import org.lwjgl.system.windows.*
 import org.openrndr.Pointer
 import org.openrndr.math.Vector2
+
+private val logger = KotlinLogging.logger { }
 
 internal abstract class PointerInputManager {
     abstract fun pollEvents()
@@ -35,6 +39,61 @@ internal class PointerInputManagerWin32(val window: Long, val application: Appli
     PointerInputManager() {
     val hwnd = GLFWNativeWin32.glfwGetWin32Window(window)
     var msg: MSG = MSG.calloc()
+
+    var touchHwnd = 0L
+
+    fun createOverlayWindow() {
+        val windowClass = WNDCLASSEX.calloc()
+
+        windowClass.cbSize(WNDCLASSEX.SIZEOF)
+        windowClass.lpfnWndProc { hwnd, uMsg, wParam, lParam ->
+            when (uMsg) {
+                in User32.WM_MOUSEMOVE..User32.WM_MOUSEWHEEL,
+                in User32.WM_KEYDOWN..User32.WM_UNICHAR -> {
+                    User32.SendMessage(this.hwnd, uMsg, wParam, lParam)
+                    0
+                }
+
+                else -> {
+                    User32.DefWindowProc(hwnd, uMsg, wParam, lParam)
+                }
+            }
+        }
+        windowClass.hbrBackground(0)
+        windowClass.lpszClassName(MemoryUtil.memUTF16("touchs", true))
+        windowClass.hIcon(0L)
+
+        val res = User32.RegisterClassEx(windowClass)
+        require(res != 0.toShort()) {
+            "RegisterClassEx failed"
+        }
+
+        logger.info { "parent window $hwnd" }
+        touchHwnd = User32.CreateWindowEx(
+            /* dwExStyle = */ 0,
+            /* lpClassName = */ "touchs",
+            /* lpWindowName = */ "touch",
+            /* dwStyle = */ User32.WS_CHILD,
+            /* x = */ 0,
+            /* y = */ 0,
+            /* nWidth = */ 0,
+            /* nHeight = */ 0,
+            /* hWndParent = */ hwnd,
+            /* hMenu = */ 0,
+            /* hInstance = */0L,
+            /* lpParam = */ 0L
+        )
+        require(touchHwnd != 0L) { "CreateWindowEx failed" }
+
+        val windowStyle = User32.GetWindowLongPtr(hwnd, User32.GWL_STYLE)
+        User32.SetWindowLongPtr(hwnd, User32.GWL_STYLE, windowStyle xor User32.WS_CLIPCHILDREN.toLong())
+
+        logger.info { "created touch window window $touchHwnd" }
+        User32.RegisterTouchWindow(touchHwnd, 0)
+        User32.ShowWindow(touchHwnd, User32.SW_SHOW)
+
+        require(User32.MoveWindow(touchHwnd, 0, 0, 8192, 8192, false))
+    }
 
     companion object {
         fun HIWORD(x: Long): Int {
@@ -86,6 +145,7 @@ internal class PointerInputManagerWin32(val window: Long, val application: Appli
     init {
         val value = User32.GetSystemMetrics(User32.SM_DIGITIZER)
         nidReady = value and NID_READY != 0
+        createOverlayWindow()
     }
 
     val pointers = mutableMapOf<Int, Pointer>()
@@ -99,7 +159,7 @@ internal class PointerInputManagerWin32(val window: Long, val application: Appli
         val windowPosition = application.windowPosition
         val ts = System.currentTimeMillis()
 
-        while (User32.PeekMessage(msg, hwnd, WM_POINTERUPDATE, WM_POINTERHWHEEL, User32.PM_REMOVE)) {
+        while (User32.PeekMessage(msg, touchHwnd, WM_POINTERUPDATE, WM_POINTERHWHEEL, User32.PM_REMOVE)) {
             val w = PointerWParam(msg.wParam())
             val l = PointerLParam(msg.lParam())
 
@@ -111,27 +171,32 @@ internal class PointerInputManagerWin32(val window: Long, val application: Appli
             when (msg.message()) {
                 WM_POINTERDOWN -> {
                 }
+
                 WM_POINTERENTER -> {
                     pointers[w.id] = Pointer(position, w.primary, ts)
                     changed = true
                 }
+
                 WM_POINTERUP -> {
                 }
+
                 WM_POINTERUPDATE -> {
                     pointers[w.id] = Pointer(position, w.primary, ts)
                     changed = true
                 }
+
                 WM_POINTERLEAVE -> {
                     pointers.remove(w.id)
                     changed = true
                     User32.GetMessageExtraInfo()
                 }
+
                 else -> {
 
                 }
             }
+            User32.TranslateMessage(msg)
             User32.DispatchMessage(msg)
-            //User32.DefWindowProc(hwnd, msg.message(), msg.lParam(), msg.wParam())
         }
 
         for (pointer in pointers) {

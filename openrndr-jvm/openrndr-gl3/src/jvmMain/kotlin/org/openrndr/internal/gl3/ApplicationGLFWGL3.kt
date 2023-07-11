@@ -200,8 +200,6 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
     }
 
     override suspend fun setup() {
-
-
         glfwDefaultWindowHints()
         glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE)
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE)
@@ -322,6 +320,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
 
 
         if (System.getProperty("os.name").contains("windows", true) && System.getProperty("org.openrndr.pointerevents") != null) {
+            logger.info { "experimental touch input enabled" }
             pointerInput = PointerInputManagerWin32(window, this)
         }
         if (configuration.windowSetIcon) {
@@ -845,6 +844,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
             glDepthMask(false)
             glfwSwapBuffers(window)
 
+            pointerInput?.pollEvents()
             glfwPollEvents()
         }
         logger.info { "OpenGL vendor: ${glGetString(GL_VENDOR)}" }
@@ -903,7 +903,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
                 pointerInput?.pollEvents()
                 glfwPollEvents()
             } else {
-                Thread.sleep(1)
+                Thread.sleep(10)
                 pointerInput?.pollEvents()
                 glfwPollEvents()
                 deliverEvents()
