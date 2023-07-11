@@ -9,6 +9,7 @@ import org.lwjgl.opengl.GL42C.GL_ATOMIC_COUNTER_BUFFER
 import org.lwjgl.opengl.GL43C.*
 import org.lwjgl.opengl.GL45C
 import org.openrndr.draw.*
+import org.openrndr.internal.Driver
 
 private val logger = KotlinLogging.logger {}
 
@@ -16,10 +17,15 @@ interface ShaderBufferBindingsGL3 : ShaderBufferBindings, ShaderUniformsGL3 {
     val ssbo: Int
 
     fun createSSBO() : Int {
-        return glGenBuffers()
+        if ((Driver.instance as DriverGL3).version >= DriverVersionGL.VERSION_4_3 ) {
+            return glGenBuffers()
+        } else {
+            return -1
+        }
     }
 
     override fun buffer(name: String, vertexBuffer: VertexBuffer) {
+        require(ssbo != -1)
         val resourceIndex = GL45C.glGetProgramResourceIndex(programObject, GL_SHADER_STORAGE_BLOCK, name )
         require(resourceIndex != -1) {
             "no resource index for buffer '${name}'"
@@ -43,6 +49,7 @@ interface ShaderBufferBindingsGL3 : ShaderBufferBindings, ShaderUniformsGL3 {
         }
     }
     override fun buffer(name: String, shaderStorageBuffer: ShaderStorageBuffer) {
+        require(ssbo != -1)
         val resourceIndex = GL45C.glGetProgramResourceIndex(programObject, GL_SHADER_STORAGE_BLOCK, name )
         require(resourceIndex != -1) {
             "no resource index for buffer '${name}'"
@@ -67,7 +74,7 @@ interface ShaderBufferBindingsGL3 : ShaderBufferBindings, ShaderUniformsGL3 {
     }
 
     override fun buffer(name: String, counterBuffer: AtomicCounterBuffer) {
-
+        require(ssbo != -1)
         if (name !in this.uniforms.keys) {
             val uniformCount = glGetProgrami(programObject, GL_ACTIVE_UNIFORMS)
 

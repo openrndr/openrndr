@@ -314,7 +314,9 @@ class ShaderGL3(
 
 
     override fun begin() {
-        glBindBuffer(GL43C.GL_SHADER_STORAGE_BUFFER, ssbo)
+        if (ssbo != -1) {
+            glBindBuffer(GL43C.GL_SHADER_STORAGE_BUFFER, ssbo)
+        }
         logger.trace { "shader begin $name" }
         running = true
         measure("glUseProgram $programObject") {
