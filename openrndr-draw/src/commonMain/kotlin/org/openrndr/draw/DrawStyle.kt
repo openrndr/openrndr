@@ -84,14 +84,14 @@ enum class DepthFormat(val hasDepth: Boolean, val hasStencil: Boolean) {
     DEPTH_STENCIL(true, true),
 }
 
-class StencilStyle {
-    var stencilFailOperation = StencilOperation.KEEP
-    var depthFailOperation = StencilOperation.KEEP
-    var depthPassOperation = StencilOperation.KEEP
-    var stencilTestMask = 0xff
-    var stencilTestReference = 0
-    var stencilWriteMask = 0xff
-    var stencilTest = StencilTest.DISABLED
+data class StencilStyle(
+    var stencilFailOperation: StencilOperation = StencilOperation.KEEP,
+    var depthFailOperation: StencilOperation = StencilOperation.KEEP,
+    var depthPassOperation: StencilOperation = StencilOperation.KEEP,
+    var stencilTestMask: Int = 0xff,
+    var stencilTestReference: Int = 0,
+    var stencilWriteMask: Int = 0xff,
+    var stencilTest: StencilTest = StencilTest.DISABLED) {
 
     fun stencilFunc(stencilTest: StencilTest, testReference: Int, writeMask: Int) {
         this.stencilTest = stencilTest
@@ -286,7 +286,7 @@ enum class TextSettingMode {
 }
 
 @Suppress("unused")
-class ChannelMask(val red: Boolean, val green: Boolean, val blue: Boolean, val alpha: Boolean) {
+data class ChannelMask(val red: Boolean, val green: Boolean, val blue: Boolean, val alpha: Boolean) {
     companion object {
         const val RED = 1
         const val GREEN = 2
@@ -376,7 +376,8 @@ data class DrawStyle(
             }
         } else {
             val styleBlock = styleBlocks.getOrPut(Driver.instance.contextID) {
-                logger.trace { "creating styleblock UBO for ${Driver.instance.contextID}" }
+//                println("heyy ${Driver.instance.contextID}")
+//                logger.trace { "creating styleblock UBO for ${Driver.instance.contextID}" }
                 val styleBlock = shader.createBlock("StyleBlock")
                 styleBlock
             }

@@ -11,7 +11,6 @@ import org.openrndr.internal.glcommon.ShadeStyleManagerGLCommon
 import org.openrndr.internal.glcommon.ShaderGeneratorsGLCommon
 import org.openrndr.math.Matrix33
 import org.openrndr.math.Matrix44
-import org.openrndr.measure
 import org.openrndr.shape.Rectangle
 import java.io.InputStream
 import java.nio.Buffer
@@ -30,6 +29,7 @@ enum class DriverVersionGL(val glslVersion: String, val majorVersion: Int, val m
     VERSION_4_4("440 core", 4, 4),
     VERSION_4_5("450 core", 4, 5),
     VERSION_4_6("460 core", 4, 6);
+
     val versionString
         get() = "$majorVersion.$minorVersion"
 }
@@ -145,9 +145,9 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
 
     override fun clear(r: Double, g: Double, b: Double, a: Double) {
         debugGLErrors()
-
         glClearColor(r.toFloat(), g.toFloat(), b.toFloat(), a.toFloat())
         glClearDepth(1.0)
+        val depthWriteMask = glGetInteger(GL_DEPTH_WRITEMASK) != 0
         glDisable(GL_SCISSOR_TEST)
         debugGLErrors()
         glDepthMask(true)
@@ -162,13 +162,12 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
                 else -> null
             }
         }
-        glDepthMask(false)
+        glDepthMask(depthWriteMask)
     }
 
     override fun createStaticVertexBuffer(format: VertexFormat, buffer: Buffer, session: Session?): VertexBuffer {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
-
 
 
     override fun createShadeStyleManager(
@@ -482,7 +481,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         val shaderVertexDescription = ShaderVertexDescription(
             contextID,
             shader.programObject,
-            vertexBuffers.map { (it as VertexBufferGL3).buffer }.toIntArray(),
+            IntArray(vertexBuffers.size) { (vertexBuffers[it] as VertexBufferGL3).buffer },
             IntArray(0)
         )
 
@@ -509,9 +508,8 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         }
 
         logger.trace { "drawing vertex buffer with $drawPrimitive(${drawPrimitive.glType()}) and $vertexCount vertices with vertexOffset $vertexOffset " }
-        measure("glDrawArrays") {
-            glDrawArrays(drawPrimitive.glType(), vertexOffset, vertexCount)
-        }
+        glDrawArrays(drawPrimitive.glType(), vertexOffset, vertexCount)
+
         debugGLErrors {
             when (it) {
                 GL_INVALID_ENUM -> "mode ($drawPrimitive) is not an accepted value."
@@ -568,62 +566,53 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
             }
         }
 
-        measure("DriverGL3.drawIndexedVertexBuffer") {
-            // -- find or create a VAO for our shader + vertex buffers combination
-            val shaderVertexDescription = measure("hash-vao") {
-                ShaderVertexDescription(
-                    contextID,
-                    shader.programObject,
-                    vertexBuffers.map { (it as VertexBufferGL3).buffer }.toIntArray(),
-                    IntArray(0)
-                )
-            }
-            val vao = measure("get-vao") {
-                vaos.getOrPut(shaderVertexDescription) {
-                    measure("miss") {
-                        logger.debug {
-                            "creating new VAO for hash $shaderVertexDescription"
-                        }
-                        val arrays = IntArray(1)
-                        synchronized(Driver.instance) {
-                            glGenVertexArrays(arrays)
-                            glBindVertexArray(arrays[0])
-                            measure("drawIndexedVertexBuffer-setup-format") {
-                                setupFormat(vertexBuffers, emptyList(), shader)
-                            }
-                            glBindVertexArray(defaultVAO)
-                        }
-                        arrays[0]
-                    }
+
+        // -- find or create a VAO for our shader + vertex buffers combination
+        val shaderVertexDescription =
+            ShaderVertexDescription(
+                contextID,
+                shader.programObject,
+                IntArray(vertexBuffers.size) { (vertexBuffers[it] as VertexBufferGL3).buffer },
+                IntArray(0)
+            )
+
+        val vao =
+            vaos.getOrPut(shaderVertexDescription) {
+                logger.debug {
+                    "creating new VAO for hash $shaderVertexDescription"
                 }
-            }
-            measure("bind-vao") {
-                glBindVertexArray(vao)
+                val arrays = IntArray(1)
+                synchronized(Driver.instance) {
+                    glGenVertexArrays(arrays)
+                    glBindVertexArray(arrays[0])
+                    setupFormat(vertexBuffers, emptyList(), shader)
+                    glBindVertexArray(defaultVAO)
+                }
+                arrays[0]
             }
 
-            //logger.trace { "drawing vertex buffer with $drawPrimitive(${drawPrimitive.glType()}) and $indexCount indices with indexOffset $indexOffset " }
-            measure("bind-index-buffer") {
-                indexBuffer.bind()
-            }
-            measure("glDrawElements") {
-                glDrawElements(drawPrimitive.glType(), indexCount, indexBuffer.type.glType(), indexOffset.toLong())
-            }
 
-            measure("check-errors") {
-                debugGLErrors {
-                    when (it) {
-                        GL_INVALID_ENUM -> "mode ($drawPrimitive) is not an accepted value."
-                        GL_INVALID_VALUE -> "count ($indexCount) is negative."
-                        GL_INVALID_OPERATION -> "a non-zero buffer object name is bound to an enabled array and the buffer object's data store is currently mapped."
-                        else -> null
-                    }
-                }
-            }
-            // -- restore defaultVAO binding
-            measure("bind-default-vao") {
-                glBindVertexArray(defaultVAO)
+        glBindVertexArray(vao)
+
+
+        //logger.trace { "drawing vertex buffer with $drawPrimitive(${drawPrimitive.glType()}) and $indexCount indices with indexOffset $indexOffset " }
+        indexBuffer.bind()
+
+
+        glDrawElements(drawPrimitive.glType(), indexCount, indexBuffer.type.glType(), indexOffset.toLong())
+
+
+        debugGLErrors {
+            when (it) {
+                GL_INVALID_ENUM -> "mode ($drawPrimitive) is not an accepted value."
+                GL_INVALID_VALUE -> "count ($indexCount) is negative."
+                GL_INVALID_OPERATION -> "a non-zero buffer object name is bound to an enabled array and the buffer object's data store is currently mapped."
+                else -> null
             }
         }
+
+        // -- restore defaultVAO binding
+        glBindVertexArray(defaultVAO)
     }
 
 
@@ -652,8 +641,8 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         val hash = ShaderVertexDescription(
             contextID,
             (shader as ShaderGL3).programObject,
-            vertexBuffers.map { (it as VertexBufferGL3).buffer }.toIntArray(),
-            instanceAttributes.map { (it as VertexBufferGL3).buffer }.toIntArray()
+            IntArray(vertexBuffers.size) { (vertexBuffers[it] as VertexBufferGL3).buffer },
+            IntArray(instanceAttributes.size) { (instanceAttributes[it] as VertexBufferGL3).buffer }
         )
 
         val vao = vaos.getOrPut(hash) {
@@ -673,19 +662,18 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         glBindVertexArray(vao)
 
         logger.trace { "drawing $instanceCount instances with $drawPrimitive(${drawPrimitive.glType()}) and $vertexCount vertices with vertexOffset $vertexOffset " }
-        measure("glDrawArraysInstanced") {
-            if (instanceOffset == 0) {
-                glDrawArraysInstanced(drawPrimitive.glType(), vertexOffset, vertexCount, instanceCount)
-            } else {
-                GL42C.glDrawArraysInstancedBaseInstance(
-                    drawPrimitive.glType(),
-                    vertexOffset,
-                    vertexCount,
-                    instanceCount,
-                    instanceOffset
-                )
-            }
+        if (instanceOffset == 0) {
+            glDrawArraysInstanced(drawPrimitive.glType(), vertexOffset, vertexCount, instanceCount)
+        } else {
+            GL42C.glDrawArraysInstancedBaseInstance(
+                drawPrimitive.glType(),
+                vertexOffset,
+                vertexCount,
+                instanceCount,
+                instanceOffset
+            )
         }
+
         debugGLErrors {
             when (it) {
                 GL_INVALID_ENUM -> "mode is not one of the accepted values."
@@ -725,8 +713,8 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         val shaderVertexDescription = ShaderVertexDescription(
             contextID,
             (shader as ShaderGL3).programObject,
-            vertexBuffers.map { (it as VertexBufferGL3).buffer }.toIntArray(),
-            instanceAttributes.map { (it as VertexBufferGL3).buffer }.toIntArray()
+            IntArray(vertexBuffers.size) { (vertexBuffers[it] as VertexBufferGL3).buffer },
+            IntArray(instanceAttributes.size) { (instanceAttributes[it] as VertexBufferGL3).buffer }
         )
 
         val vao = vaos.getOrPut(shaderVertexDescription) {
@@ -748,26 +736,26 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         indexBuffer.bind()
 
         logger.trace { "drawing $instanceCount instances with $drawPrimitive(${drawPrimitive.glType()}) and $indexCount vertices with vertexOffset $indexOffset " }
-        measure("glDrawElementsInstanced") {
-            if (instanceOffset == 0) {
-                glDrawElementsInstanced(
-                    drawPrimitive.glType(),
-                    indexCount,
-                    indexBuffer.type.glType(),
-                    indexOffset.toLong(),
-                    instanceCount
-                )
-            } else {
-                GL42C.glDrawElementsInstancedBaseInstance(
-                    drawPrimitive.glType(),
-                    indexCount,
-                    indexBuffer.type.glType(),
-                    indexOffset.toLong(),
-                    instanceCount,
-                    instanceOffset
-                )
-            }
+
+        if (instanceOffset == 0) {
+            glDrawElementsInstanced(
+                drawPrimitive.glType(),
+                indexCount,
+                indexBuffer.type.glType(),
+                indexOffset.toLong(),
+                instanceCount
+            )
+        } else {
+            GL42C.glDrawElementsInstancedBaseInstance(
+                drawPrimitive.glType(),
+                indexCount,
+                indexBuffer.type.glType(),
+                indexOffset.toLong(),
+                instanceCount,
+                instanceOffset
+            )
         }
+
         debugGLErrors {
             when (it) {
                 GL_INVALID_ENUM -> "mode is not one of the accepted values."
@@ -785,7 +773,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         instanceAttributes: List<VertexBuffer>,
         shader: ShaderGL3
     ) {
-        measure("setupFormat") {
+        run {
             debugGLErrors()
 
             val scalarVectorTypes = setOf(
@@ -963,45 +951,45 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
     private val cached = DrawStyle()
     private var dirty = true
     override fun setState(drawStyle: DrawStyle) {
-        measure("DriverGL3.setState") {
-            if (dirty || cached.clip != drawStyle.clip) {
-                if (drawStyle.clip != null) {
-                    drawStyle.clip?.let { it: Rectangle ->
-                        val target = RenderTarget.active
-                        glScissor(
-                            (it.x * target.contentScale).toInt(),
-                            (target.height * target.contentScale - it.y * target.contentScale - it.height * target.contentScale).toInt(),
-                            (it.width * target.contentScale).toInt(),
-                            (it.height * target.contentScale).toInt()
-                        )
-                        glEnable(GL_SCISSOR_TEST)
-                    }
-                } else {
-                    glDisable(GL_SCISSOR_TEST)
+        if (dirty || cached.clip != drawStyle.clip) {
+            if (drawStyle.clip != null) {
+                drawStyle.clip?.let { it: Rectangle ->
+                    val target = RenderTarget.active
+                    glScissor(
+                        (it.x * target.contentScale).toInt(),
+                        (target.height * target.contentScale - it.y * target.contentScale - it.height * target.contentScale).toInt(),
+                        (it.width * target.contentScale).toInt(),
+                        (it.height * target.contentScale).toInt()
+                    )
+                    glEnable(GL_SCISSOR_TEST)
                 }
-                cached.clip = drawStyle.clip
+            } else {
+                glDisable(GL_SCISSOR_TEST)
             }
+            cached.clip = drawStyle.clip
+        }
 
-            if (dirty || cached.channelWriteMask != drawStyle.channelWriteMask) {
-                glColorMask(
-                    drawStyle.channelWriteMask.red,
-                    drawStyle.channelWriteMask.green,
-                    drawStyle.channelWriteMask.blue,
-                    drawStyle.channelWriteMask.alpha
-                )
-                cached.channelWriteMask = drawStyle.channelWriteMask
+        if (dirty || cached.channelWriteMask != drawStyle.channelWriteMask) {
+            glColorMask(
+                drawStyle.channelWriteMask.red,
+                drawStyle.channelWriteMask.green,
+                drawStyle.channelWriteMask.blue,
+                drawStyle.channelWriteMask.alpha
+            )
+            cached.channelWriteMask = drawStyle.channelWriteMask
+        }
+
+        if (dirty || cached.depthWrite != drawStyle.depthWrite) {
+            when (drawStyle.depthWrite) {
+                true -> glDepthMask(true)
+                false -> glDepthMask(false)
             }
+            glEnable(GL_DEPTH_TEST)
+            debugGLErrors()
+            cached.depthWrite = drawStyle.depthWrite
+        }
 
-            if (dirty || cached.depthWrite != drawStyle.depthWrite) {
-                when (drawStyle.depthWrite) {
-                    true -> glDepthMask(true)
-                    false -> glDepthMask(false)
-                }
-                glEnable(GL_DEPTH_TEST)
-                debugGLErrors()
-                cached.depthWrite = drawStyle.depthWrite
-            }
-
+        if (dirty || cached.backStencil != drawStyle.backStencil || cached.frontStencil != drawStyle.frontStencil) {
             if (drawStyle.frontStencil === drawStyle.backStencil) {
                 if (drawStyle.stencil.stencilTest === StencilTest.DISABLED) {
                     glDisable(GL_STENCIL_TEST)
@@ -1051,151 +1039,153 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
                 glStencilMaskSeparate(GL_FRONT, drawStyle.frontStencil.stencilWriteMask)
                 glStencilMaskSeparate(GL_BACK, drawStyle.backStencil.stencilWriteMask)
             }
+        }
 
-            if (dirty || cached.blendMode != drawStyle.blendMode) {
 
-                when (drawStyle.blendMode) {
-                    BlendMode.OVER -> {
-                        glEnable(GL_BLEND)
-                        if (version >= DriverVersionGL.VERSION_4_1) {
-                            glBlendEquationi(0, GL_FUNC_ADD)
-                            glBlendFunci(0, GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
-                        } else {
-                            glBlendEquation(GL_FUNC_ADD)
-                            glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
-                        }
-                    }
-
-                    BlendMode.BLEND -> {
-                        glEnable(GL_BLEND)
-                        if (version >= DriverVersionGL.VERSION_4_1) {
-                            glBlendEquationi(0, GL_FUNC_ADD)
-                            glBlendFunci(0, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-                        } else {
-                            glBlendEquation(GL_FUNC_ADD)
-                            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-                        }
-                    }
-
-                    BlendMode.ADD -> {
-                        glEnable(GL_BLEND)
-                        if (version >= DriverVersionGL.VERSION_4_1) {
-                            glBlendEquationi(0, GL_FUNC_ADD)
-                            glBlendFunci(0, GL_ONE, GL_ONE)
-                        } else {
-                            glBlendEquation(GL_FUNC_ADD)
-                            glBlendFunc(GL_ONE, GL_ONE)
-                        }
-                    }
-
-                    BlendMode.REPLACE -> {
-                        glDisable(GL_BLEND)
-                    }
-
-                    BlendMode.SUBTRACT -> {
-                        glEnable(GL_BLEND)
-                        if (version >= DriverVersionGL.VERSION_4_1) {
-                            glBlendEquationSeparatei(0, GL_FUNC_REVERSE_SUBTRACT, GL_FUNC_ADD)
-                            glBlendFuncSeparatei(0, GL_SRC_ALPHA, GL_ONE, GL_ONE, GL_ONE)
-                        } else {
-                            glBlendEquationSeparate(GL_FUNC_REVERSE_SUBTRACT, GL_FUNC_ADD)
-                            glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE, GL_ONE, GL_ONE)
-                        }
-                    }
-
-                    BlendMode.MULTIPLY -> {
-                        glEnable(GL_BLEND)
-                        if (version >= DriverVersionGL.VERSION_4_1) {
-                            glBlendEquationi(0, GL_FUNC_ADD)
-                            glBlendFunci(0, GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA)
-                        } else {
-                            glBlendEquation(GL_FUNC_ADD)
-                            glBlendFunc(GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA)
-                        }
-                    }
-
-                    BlendMode.REMOVE -> {
-                        glEnable(GL_BLEND)
-                        if (version >= DriverVersionGL.VERSION_4_1) {
-                            glBlendEquationi(0, GL_FUNC_ADD)
-                            glBlendFunci(0, GL_ZERO, GL_ONE_MINUS_SRC_ALPHA)
-                        } else {
-                            glBlendEquation(GL_FUNC_ADD)
-                            glBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_ALPHA)
-                        }
+        if (dirty || cached.blendMode != drawStyle.blendMode) {
+            when (drawStyle.blendMode) {
+                BlendMode.OVER -> {
+                    glEnable(GL_BLEND)
+                    if (version >= DriverVersionGL.VERSION_4_1) {
+                        glBlendEquationi(0, GL_FUNC_ADD)
+                        glBlendFunci(0, GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
+                    } else {
+                        glBlendEquation(GL_FUNC_ADD)
+                        glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
                     }
                 }
-                cached.blendMode = drawStyle.blendMode
+
+                BlendMode.BLEND -> {
+                    glEnable(GL_BLEND)
+                    if (version >= DriverVersionGL.VERSION_4_1) {
+                        glBlendEquationi(0, GL_FUNC_ADD)
+                        glBlendFunci(0, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+                    } else {
+                        glBlendEquation(GL_FUNC_ADD)
+                        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+                    }
+                }
+
+                BlendMode.ADD -> {
+                    glEnable(GL_BLEND)
+                    if (version >= DriverVersionGL.VERSION_4_1) {
+                        glBlendEquationi(0, GL_FUNC_ADD)
+                        glBlendFunci(0, GL_ONE, GL_ONE)
+                    } else {
+                        glBlendEquation(GL_FUNC_ADD)
+                        glBlendFunc(GL_ONE, GL_ONE)
+                    }
+                }
+
+                BlendMode.REPLACE -> {
+                    glDisable(GL_BLEND)
+                }
+
+                BlendMode.SUBTRACT -> {
+                    glEnable(GL_BLEND)
+                    if (version >= DriverVersionGL.VERSION_4_1) {
+                        glBlendEquationSeparatei(0, GL_FUNC_REVERSE_SUBTRACT, GL_FUNC_ADD)
+                        glBlendFuncSeparatei(0, GL_SRC_ALPHA, GL_ONE, GL_ONE, GL_ONE)
+                    } else {
+                        glBlendEquationSeparate(GL_FUNC_REVERSE_SUBTRACT, GL_FUNC_ADD)
+                        glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE, GL_ONE, GL_ONE)
+                    }
+                }
+
+                BlendMode.MULTIPLY -> {
+                    glEnable(GL_BLEND)
+                    if (version >= DriverVersionGL.VERSION_4_1) {
+                        glBlendEquationi(0, GL_FUNC_ADD)
+                        glBlendFunci(0, GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA)
+                    } else {
+                        glBlendEquation(GL_FUNC_ADD)
+                        glBlendFunc(GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA)
+                    }
+                }
+
+                BlendMode.REMOVE -> {
+                    glEnable(GL_BLEND)
+                    if (version >= DriverVersionGL.VERSION_4_1) {
+                        glBlendEquationi(0, GL_FUNC_ADD)
+                        glBlendFunci(0, GL_ZERO, GL_ONE_MINUS_SRC_ALPHA)
+                    } else {
+                        glBlendEquation(GL_FUNC_ADD)
+                        glBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_ALPHA)
+                    }
+                }
             }
-            if (dirty || cached.alphaToCoverage != drawStyle.alphaToCoverage) {
-                if (drawStyle.alphaToCoverage) {
-                    GL33C.glEnable(GL13C.GL_SAMPLE_ALPHA_TO_COVERAGE)
-                    GL33C.glDisable(GL11C.GL_BLEND)
-                } else {
-                    GL33C.glDisable(GL13C.GL_SAMPLE_ALPHA_TO_COVERAGE)
-                }
-                cached.alphaToCoverage = drawStyle.alphaToCoverage
+            cached.blendMode = drawStyle.blendMode
+        }
+        if (dirty || cached.alphaToCoverage != drawStyle.alphaToCoverage) {
+            if (drawStyle.alphaToCoverage) {
+                GL33C.glEnable(GL13C.GL_SAMPLE_ALPHA_TO_COVERAGE)
+                GL33C.glDisable(GL11C.GL_BLEND)
+            } else {
+                GL33C.glDisable(GL13C.GL_SAMPLE_ALPHA_TO_COVERAGE)
             }
+            cached.alphaToCoverage = drawStyle.alphaToCoverage
+        }
 
-            if (dirty || cached.depthTestPass != drawStyle.depthTestPass) {
-                when (drawStyle.depthTestPass) {
-                    DepthTestPass.ALWAYS -> {
-                        glDepthFunc(GL_ALWAYS)
-                    }
-
-                    DepthTestPass.GREATER -> {
-                        glDepthFunc(GL_GREATER)
-                    }
-
-                    DepthTestPass.GREATER_OR_EQUAL -> {
-                        glDepthFunc(GL_GEQUAL)
-                    }
-
-                    DepthTestPass.LESS -> {
-                        glDepthFunc(GL_LESS)
-                    }
-
-                    DepthTestPass.LESS_OR_EQUAL -> {
-                        glDepthFunc(GL_LEQUAL)
-                    }
-
-                    DepthTestPass.EQUAL -> {
-                        glDepthFunc(GL_EQUAL)
-                    }
-
-                    DepthTestPass.NEVER -> {
-                        glDepthFunc(GL_NEVER)
-                    }
+        if (dirty || cached.depthTestPass != drawStyle.depthTestPass) {
+            when (drawStyle.depthTestPass) {
+                DepthTestPass.ALWAYS -> {
+                    glDepthFunc(GL_ALWAYS)
                 }
-                debugGLErrors()
-                cached.depthTestPass = drawStyle.depthTestPass
-            }
 
-            if (dirty || cached.cullTestPass != drawStyle.cullTestPass) {
-                when (drawStyle.cullTestPass) {
-                    CullTestPass.ALWAYS -> {
-                        glDisable(GL_CULL_FACE)
-                    }
-
-                    CullTestPass.FRONT -> {
-                        glEnable(GL_CULL_FACE)
-                        glCullFace(GL_BACK)
-                    }
-
-                    CullTestPass.BACK -> {
-                        glEnable(GL_CULL_FACE)
-                        glCullFace(GL_FRONT)
-                    }
-
-                    CullTestPass.NEVER -> {
-                        glEnable(GL_CULL_FACE)
-                        glCullFace(GL_FRONT_AND_BACK)
-                    }
+                DepthTestPass.GREATER -> {
+                    glDepthFunc(GL_GREATER)
                 }
-                cached.cullTestPass = drawStyle.cullTestPass
+
+                DepthTestPass.GREATER_OR_EQUAL -> {
+                    glDepthFunc(GL_GEQUAL)
+                }
+
+                DepthTestPass.LESS -> {
+                    glDepthFunc(GL_LESS)
+                }
+
+                DepthTestPass.LESS_OR_EQUAL -> {
+                    glDepthFunc(GL_LEQUAL)
+                }
+
+                DepthTestPass.EQUAL -> {
+                    glDepthFunc(GL_EQUAL)
+                }
+
+                DepthTestPass.NEVER -> {
+                    glDepthFunc(GL_NEVER)
+                }
             }
             debugGLErrors()
+            cached.depthTestPass = drawStyle.depthTestPass
         }
+
+        if (dirty || cached.cullTestPass != drawStyle.cullTestPass) {
+            when (drawStyle.cullTestPass) {
+                CullTestPass.ALWAYS -> {
+                    glDisable(GL_CULL_FACE)
+                }
+
+                CullTestPass.FRONT -> {
+                    glEnable(GL_CULL_FACE)
+                    glCullFace(GL_BACK)
+                }
+
+                CullTestPass.BACK -> {
+                    glEnable(GL_CULL_FACE)
+                    glCullFace(GL_FRONT)
+                }
+
+                CullTestPass.NEVER -> {
+                    glEnable(GL_CULL_FACE)
+                    glCullFace(GL_FRONT_AND_BACK)
+                }
+            }
+            cached.cullTestPass = drawStyle.cullTestPass
+        }
+        dirty = false
+        debugGLErrors()
+
     }
 
     override fun destroyContext(context: Long) {

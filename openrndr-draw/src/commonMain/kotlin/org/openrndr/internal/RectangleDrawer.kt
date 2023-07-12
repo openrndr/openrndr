@@ -120,10 +120,10 @@ class RectangleDrawer {
         ensureBatchSize(1)
 
         batch.geometry.put {
-            write(Vector3(
-                    x + min(0.0, width),
-                    y + min(0.0, height), 0.0))
-            write(Vector3(abs(width), abs(height), 0.0))
+            write(
+                (x + min(0.0, width)).toFloat(),
+                (y + min(0.0, height)).toFloat(), 0.0f)
+            write(abs(width).toFloat(), abs(height).toFloat(), 0.0f)
         }
         batch.drawStyle.put {
             write(drawStyle)

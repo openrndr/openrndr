@@ -6,6 +6,7 @@ import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL33C.*
 import org.lwjgl.opengl.GL44C.GL_DYNAMIC_STORAGE_BIT
 import org.lwjgl.opengl.GL44C.glBufferStorage
+import org.lwjgl.opengl.GL45C.glNamedBufferSubData
 import org.openrndr.draw.*
 import org.openrndr.internal.Driver
 import org.openrndr.utils.buffer.MPPBuffer
@@ -102,6 +103,7 @@ class VertexBufferGL3(
             return realShadow ?: error("no shadow")
         }
 
+    private val useNamedBuffer = (Driver.instance as DriverGL3).version >= DriverVersionGL.VERSION_4_5
     override fun write(data: ByteBuffer, offset: Int) {
         if (isDestroyed) {
             error("buffer is destroyed")
@@ -109,13 +111,19 @@ class VertexBufferGL3(
 
         if (data.isDirect) {
             logger.trace { "writing to vertex buffer, ${data.remaining()} bytes" }
-            (data as Buffer).rewind()
-            debugGLErrors()
-            bind()
-            debugGLErrors()
-            glBufferSubData(GL_ARRAY_BUFFER, offset.toLong(), data)
 
-            checkGLErrors {
+            (data as Buffer).rewind()
+
+            if (useNamedBuffer) {
+                glNamedBufferSubData(buffer, offset.toLong(), data)
+            } else {
+                debugGLErrors()
+                bind()
+                debugGLErrors()
+                glBufferSubData(GL_ARRAY_BUFFER, offset.toLong(), data)
+            }
+
+            debugGLErrors {
                 val vertexArrayBinding = IntArray(1)
                 glGetIntegerv(GL_VERTEX_ARRAY_BINDING, vertexArrayBinding)
 

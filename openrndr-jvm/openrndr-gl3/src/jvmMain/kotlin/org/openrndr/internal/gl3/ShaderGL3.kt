@@ -193,8 +193,10 @@ class ShaderGL3(
         }
     }
 
+
     override fun blockLayout(blockName: String): UniformBlockLayout? {
-        val blockIndex = glGetUniformBlockIndex(programObject, blockName)
+
+        val blockIndex = blockIndex(blockName)
 
         if (blockIndex == -1) {
             return null
