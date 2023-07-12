@@ -558,6 +558,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
 
     private val vaos = IntArray(1)
 
+    val defaultRenderTarget by lazy { ProgramRenderTargetGL3(program) }
     fun preloop() {
         createCapabilities()
 
@@ -578,7 +579,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
         program.driver = Driver.instance
         program.drawer = Drawer(Driver.instance)
 
-        val defaultRenderTarget = ProgramRenderTargetGL3(program)
+
         defaultRenderTarget.bind()
 
         setupSizes()
@@ -591,6 +592,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
     override fun loop() {
         logger.debug { "starting loop" }
         preloop()
+
 
 
         var lastDragPosition = Vector2.ZERO
@@ -963,6 +965,9 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
         // reset cached values
         _windowSize = null
         setupSizes()
+
+        defaultRenderTarget.bindTarget()
+
         glBindVertexArray(vaos[0])
         @Suppress("DEPRECATION")
         program.drawer.reset()

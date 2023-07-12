@@ -68,7 +68,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
 
     override val contextID: Long
         get() {
-            return GLFW.glfwGetCurrentContext()
+            return Thread.currentThread().id
         }
 
     override fun createResourceThread(session: Session?, f: () -> Unit): ResourceThread {

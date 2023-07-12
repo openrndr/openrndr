@@ -113,7 +113,7 @@ class Drawer(val driver: Driver) {
      * The draw context holds references to model, view, projection matrices, width, height and content-scale
      */
     val context: DrawContext
-        get() = DrawContext(model, view, projection, width, height, RenderTarget.active.contentScale, modelViewScalingFactor)
+        get() = DrawContext(model, view, projection, RenderTarget.active.width, RenderTarget.active.height, RenderTarget.active.contentScale, modelViewScalingFactor)
 
     var drawStyle = DrawStyle()
     /** The active draw style */

@@ -1,7 +1,6 @@
 package org.openrndr.internal.gl3
 
 import mu.KotlinLogging
-import org.lwjgl.glfw.GLFW.glfwGetCurrentContext
 import org.lwjgl.opengl.GL33C.*
 import org.lwjgl.opengl.GL40C.glBlendEquationi
 import org.lwjgl.opengl.GL40C.glBlendFunci
@@ -9,6 +8,7 @@ import org.lwjgl.system.MemoryStack
 import org.openrndr.Program
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
+import org.openrndr.internal.Driver
 import java.util.*
 
 private val logger = KotlinLogging.logger {}
@@ -19,14 +19,18 @@ class NullRenderTargetGL3 : RenderTargetGL3(0, 640, 480, 1.0, BufferMultisample.
 
 class ProgramRenderTargetGL3(override val program: Program) : ProgramRenderTarget,
     RenderTargetGL3(glGetInteger(GL_FRAMEBUFFER_BINDING), 0, 0, 1.0, BufferMultisample.Disabled, Session.root) {
+
+    private var cachedSize = program.window.size
+    private var cachedContentScale = program.window.contentScale
+
     override val width: Int
-        get() = program.window.size.x.toInt()
+        get() = cachedSize.x.toInt()
 
     override val height: Int
-        get() = program.window.size.y.toInt()
+        get() = cachedSize.y.toInt()
 
     override val contentScale: Double
-        get() = program.window.contentScale
+        get() = cachedContentScale
 
     override val hasColorAttachments = true
     override val hasDepthBuffer = true
@@ -34,6 +38,12 @@ class ProgramRenderTargetGL3(override val program: Program) : ProgramRenderTarge
 
     override val multisample: BufferMultisample
         get() = program.window.multisample.bufferEquivalent()
+
+    override fun bindTarget() {
+        cachedSize = program.window.size
+        cachedContentScale = program.window.contentScale
+        super.bindTarget()
+    }
 }
 
 open class RenderTargetGL3(
@@ -65,7 +75,7 @@ open class RenderTargetGL3(
 
         val activeRenderTarget: RenderTargetGL3
             get() {
-                val stack = active.getOrPut(glfwGetCurrentContext()) { Stack() }
+                val stack = active.getOrPut(Driver.instance.contextID) { Stack() }
                 return stack.peek()
             }
     }
@@ -75,6 +85,8 @@ open class RenderTargetGL3(
     override val hasColorAttachments: Boolean get() = colorAttachments.isNotEmpty()
     override val hasDepthBuffer: Boolean get() = depthBuffer?.hasDepth == true
     override val hasStencilBuffer: Boolean get() = depthBuffer?.hasStencil == true
+
+
 
 
     override fun colorBuffer(index: Int): ColorBuffer {
@@ -88,13 +100,13 @@ open class RenderTargetGL3(
         if (bound) {
             throw RuntimeException("already bound")
         } else {
-            val stack = active.getOrPut(glfwGetCurrentContext()) { Stack() }
+            val stack = active.getOrPut(Driver.instance.contextID) { Stack() }
             stack.push(this)
             bindTarget()
         }
     }
 
-    private fun bindTarget() {
+    open fun bindTarget() {
         debugGLErrors { null }
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer)
 
@@ -126,7 +138,7 @@ open class RenderTargetGL3(
 
     override fun unbind() {
         if (!bound) {
-            val previous = active.getOrPut(glfwGetCurrentContext()) { Stack() }.let {
+            val previous = active.getOrPut(Driver.instance.contextID) { Stack() }.let {
                 it.pop()
                 it.peek()
             }
@@ -141,7 +153,7 @@ open class RenderTargetGL3(
     override fun attach(colorBuffer: ColorBuffer, level: Int, name: String?) {
         require(!destroyed)
 
-        val context = glfwGetCurrentContext()
+        val context = Driver.instance.contextID
         bindTarget()
 
         val div = 1 shl level
@@ -169,7 +181,7 @@ open class RenderTargetGL3(
 
     override fun attach(arrayCubemap: ArrayCubemap, side: CubemapSide, layer: Int, level: Int, name: String?) {
         require(!destroyed)
-        val context = glfwGetCurrentContext()
+        val context = Driver.instance.contextID
         bindTarget()
         val effectiveWidth = (width * contentScale).toInt()
         if (!(arrayCubemap.width == effectiveWidth && arrayCubemap.width == effectiveHeight)) {
@@ -194,7 +206,7 @@ open class RenderTargetGL3(
     override fun attach(cubemap: Cubemap, side: CubemapSide, level: Int, name: String?) {
         val div = 1 shl level
         require(!destroyed)
-        val context = glfwGetCurrentContext()
+        val context = Driver.instance.contextID
         bindTarget()
         val effectiveWidth = (width * contentScale).toInt()
         if (!(cubemap.width / div == effectiveWidth && cubemap.width / div == effectiveHeight)) {
@@ -222,7 +234,7 @@ open class RenderTargetGL3(
         require(!destroyed)
         require(level >= 0 && level < volumeTexture.depth)
 
-        val context = glfwGetCurrentContext()
+        val context = Driver.instance.contextID
         bindTarget()
 
         val effectiveWidth = (width * contentScale).toInt()
@@ -249,7 +261,7 @@ open class RenderTargetGL3(
 
     override fun attachLayered(arrayTexture: ArrayTexture, level: Int, name: String?) {
         require(!destroyed)
-        val context = glfwGetCurrentContext()
+        val context = Driver.instance.contextID
         bindTarget()
 
         val effectiveWidth = (width * contentScale).toInt()
@@ -270,7 +282,7 @@ open class RenderTargetGL3(
 
     override fun attachLayered(arrayCubemap: ArrayCubemap, level: Int, name: String?) {
         require(!destroyed)
-        val context = glfwGetCurrentContext()
+        val context = Driver.instance.contextID
         bindTarget()
         val effectiveWidth = (width * contentScale).toInt()
         if (!(arrayCubemap.width == effectiveWidth && arrayCubemap.width == effectiveHeight)) {
@@ -289,7 +301,7 @@ open class RenderTargetGL3(
     override fun attachLayered(cubemap: Cubemap, level: Int, name: String?) {
         val div = 1 shl level
         require(!destroyed)
-        val context = glfwGetCurrentContext()
+        val context = Driver.instance.contextID
         bindTarget()
         val effectiveWidth = (width * contentScale).toInt()
         if (!(cubemap.width / div == effectiveWidth && cubemap.width / div == effectiveHeight)) {
@@ -316,7 +328,7 @@ open class RenderTargetGL3(
         require(!destroyed)
         require(level >= 0 && level < volumeTexture.depth)
 
-        val context = glfwGetCurrentContext()
+        val context = Driver.instance.contextID
         bindTarget()
 
         val effectiveWidth = (width * contentScale).toInt()
@@ -337,7 +349,7 @@ open class RenderTargetGL3(
 
     override fun attach(arrayTexture: ArrayTexture, layer: Int, level: Int, name: String?) {
         require(!destroyed)
-        val context = glfwGetCurrentContext()
+        val context = Driver.instance.contextID
         bindTarget()
 
         val effectiveWidth = (width * contentScale).toInt()
