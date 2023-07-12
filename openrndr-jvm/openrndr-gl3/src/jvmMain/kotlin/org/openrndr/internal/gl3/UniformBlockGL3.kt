@@ -4,6 +4,7 @@ import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL33C.*
 import org.lwjgl.opengl.GL44C.GL_DYNAMIC_STORAGE_BIT
 import org.lwjgl.opengl.GL44C.glBufferStorage
+import org.lwjgl.opengl.GL45C.glNamedBufferSubData
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.UniformBlock
 import org.openrndr.draw.UniformBlockLayout
@@ -286,10 +287,16 @@ class UniformBlockGL3(override val layout: UniformBlockLayout, val blockBinding:
             throw IllegalStateException("current thread ${Thread.currentThread()} is not equal to creation thread $thread")
         }
         realDirty = false
-        glBindBuffer(GL_UNIFORM_BUFFER, ubo)
         shadowBuffer.safeRewind()
-        glBufferSubData(GL_UNIFORM_BUFFER, 0L, shadowBuffer)
-        checkGLErrors()
-        glBindBuffer(GL_UNIFORM_BUFFER, 0)
+
+        val useNamedBuffer = (Driver.instance as DriverGL3).version >= DriverVersionGL.VERSION_4_5
+        if (useNamedBuffer) {
+            glNamedBufferSubData(ubo, 0L, shadowBuffer)
+        } else {
+            glBindBuffer(GL_UNIFORM_BUFFER, ubo)
+            glBufferSubData(GL_UNIFORM_BUFFER, 0L, shadowBuffer)
+            debugGLErrors()
+            glBindBuffer(GL_UNIFORM_BUFFER, 0)
+        }
     }
 }
