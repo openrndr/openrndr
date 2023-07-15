@@ -1,8 +1,9 @@
 package org.openrndr.internal.gl3
 
-import org.lwjgl.opengl.GL33C
-import org.lwjgl.opengl.GL43C
-import org.lwjgl.opengl.GL44C
+import org.lwjgl.opengl.*
+import org.lwjgl.opengl.GL12C.*
+import org.lwjgl.opengl.GL42C.glTexStorage3D
+import org.lwjgl.opengl.GL45C.glTextureStorage3D
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
 import org.openrndr.internal.Driver
@@ -10,9 +11,17 @@ import org.openrndr.internal.Driver
 import java.nio.ByteBuffer
 
 
-class VolumeTextureGL3(val texture: Int,
-                       val storageMode: TextureStorageModeGL,
-                       override val width: Int, override val height: Int, override val depth: Int, override val format: ColorFormat, override val type: ColorType, override val levels: Int, override val session: Session?) : VolumeTexture {
+class VolumeTextureGL3(
+    val texture: Int,
+    val storageMode: TextureStorageModeGL,
+    override val width: Int,
+    override val height: Int,
+    override val depth: Int,
+    override val format: ColorFormat,
+    override val type: ColorType,
+    override val levels: Int,
+    override val session: Session?
+) : VolumeTexture {
 
     private var destroyed = false
 
@@ -39,10 +48,33 @@ class VolumeTextureGL3(val texture: Int,
         bound {
             val div = 1 shl level
             if (sourceType.compressed) {
-                GL33C.glCompressedTexSubImage3D(GL33C.GL_TEXTURE_3D, level, 0, 0, layer, width / div, height / div, 1, compressedType(sourceFormat, sourceType), source)
+                GL33C.glCompressedTexSubImage3D(
+                    GL33C.GL_TEXTURE_3D,
+                    level,
+                    0,
+                    0,
+                    layer,
+                    width / div,
+                    height / div,
+                    1,
+                    compressedType(sourceFormat, sourceType),
+                    source
+                )
                 debugGLErrors()
             } else {
-                GL33C.glTexSubImage3D(GL33C.GL_TEXTURE_3D, level, 0, 0, layer, width / div, height / div, 1, sourceFormat.glFormat(), sourceType.glType(), source)
+                GL33C.glTexSubImage3D(
+                    GL33C.GL_TEXTURE_3D,
+                    level,
+                    0,
+                    0,
+                    layer,
+                    width / div,
+                    height / div,
+                    1,
+                    sourceFormat.glFormat(),
+                    sourceType.glType(),
+                    source
+                )
                 debugGLErrors()
             }
             debugGLErrors()
@@ -59,8 +91,64 @@ class VolumeTextureGL3(val texture: Int,
         }
     }
 
+
+
     override fun read(layer: Int, target: ByteBuffer, targetFormat: ColorFormat, targetType: ColorType, level: Int) {
-        TODO("Not yet implemented")
+        if (useNamedTexture) {
+            GL45.glGetTextureSubImage(
+                texture, level, 0, 0, layer, width, height, 1, targetFormat.glFormat(),
+                targetType.glType(), target
+            )
+        } else {
+            error("only implemented for opengl 4.5")
+        }
+
+        debugGLErrors()
+    }
+
+    override fun read(target: ByteBuffer, targetFormat: ColorFormat, targetType: ColorType, level: Int) {
+        if (useNamedTexture) {
+            GL45C.glGetTextureImage(texture, level, targetFormat.glFormat(), targetType.glType(), target)
+        } else {
+            glGetTexImage(GL_TEXTURE_3D, level, targetFormat.glFormat(), targetType.glType(), target)
+        }
+        debugGLErrors()
+    }
+
+    override fun write(source: ByteBuffer, sourceFormat: ColorFormat, sourceType: ColorType, level: Int) {
+
+        if (useNamedTexture) {
+            GL45C.glTextureSubImage3D(
+                texture,
+                level,
+                0,
+                0,
+                0,
+                width,
+                height,
+                depth,
+                sourceFormat.glFormat(),
+                sourceType.glType(),
+                source
+            )
+        } else {
+            glBindTexture(GL_TEXTURE_3D, texture)
+            glTexSubImage3D(
+                GL_TEXTURE_3D,
+                level,
+                0,
+                0,
+                0,
+                width,
+                height,
+                depth,
+                sourceFormat.glFormat(),
+                sourceType.glType(),
+                source
+            )
+        }
+        //GL45C.glGetTextureImage(texture, level, sourceFormat.glFormat(), sourceType.glType(), source)
+        checkGLErrors()
     }
 
     override fun copyTo(target: ColorBuffer, layer: Int, fromLevel: Int, toLevel: Int) {
@@ -75,7 +163,16 @@ class VolumeTextureGL3(val texture: Int,
             readTarget.bind()
             GL33C.glReadBuffer(GL33C.GL_COLOR_ATTACHMENT0)
             target.bound {
-                GL33C.glCopyTexSubImage2D(target.target, toLevel, 0, 0, 0, 0, target.width / toDiv, target.height / toDiv)
+                GL33C.glCopyTexSubImage2D(
+                    target.target,
+                    toLevel,
+                    0,
+                    0,
+                    0,
+                    0,
+                    target.width / toDiv,
+                    target.height / toDiv
+                )
                 debugGLErrors()
             }
             readTarget.unbind()
@@ -105,23 +202,48 @@ class VolumeTextureGL3(val texture: Int,
     }
 
     companion object {
+        val useNamedTexture = (Driver.instance as DriverGL3).version >= DriverVersionGL.VERSION_4_5
+
         fun create(
-                width: Int,
-                height: Int,
-                depth: Int,
-                format: ColorFormat,
-                type: ColorType,
-                levels: Int,
-                session: Session?
+            width: Int,
+            height: Int,
+            depth: Int,
+            format: ColorFormat,
+            type: ColorType,
+            levels: Int,
+            session: Session?
         ): VolumeTextureGL3 {
             require(levels >= 1) {
-                """should have at least 1 level (has $levels)"""
+                """should have at least 1 mipmap level (requested $levels)"""
             }
+            val (internalFormat, _) = internalFormat(format, type)
+
+            GL33C.glTexImage3D(
+                GL33C.GL_PROXY_TEXTURE_3D,
+                0,
+                internalFormat,
+                width,
+                height,
+                depth,
+                0,
+                format.glFormat(),
+                type.glType(), null as ByteBuffer?
+            )
+            val proxyWidth = glGetTexLevelParameteri(
+                GL_PROXY_TEXTURE_3D, 0,
+                GL_TEXTURE_WIDTH
+            )
+
+            require(proxyWidth == width) {
+                glGetError()
+                "failed to create ${width}x${height}x${depth} volume texture with format ${format} and type ${type}"
+            }
+
+
             val textures = IntArray(1)
             GL33C.glGenTextures(textures)
             GL33C.glActiveTexture(GL33C.GL_TEXTURE0)
             GL33C.glBindTexture(GL33C.GL_TEXTURE_3D, textures[0])
-            val (internalFormat, _) = internalFormat(format, type)
 
             val version = (Driver.instance as DriverGL3).version
 
@@ -136,24 +258,29 @@ class VolumeTextureGL3(val texture: Int,
 
             when (storageMode) {
                 TextureStorageModeGL.STORAGE -> {
-                    GL43C.glTexStorage3D(GL33C.GL_TEXTURE_3D, levels, internalFormat, width, height, depth)
+                    if (useNamedTexture) {
+                        glTextureStorage3D(textures[0], levels, internalFormat, width, height, depth)
+                    } else {
+                        glTexStorage3D(GL_TEXTURE_3D, levels, internalFormat, width, height, depth)
+                    }
                     checkGLErrors()
                 }
+
                 TextureStorageModeGL.IMAGE -> {
                     for (level in 0 until levels) {
                         val div = 1 shl level
                         val nullBB: ByteBuffer? = null
                         GL33C.glTexImage3D(
-                                GL33C.GL_TEXTURE_3D,
-                                level,
-                                internalFormat,
-                                width / div,
-                                height / div,
-                                depth / div,
-                                0,
-                                format.glFormat(),
-                                type.glType(),
-                                nullBB
+                            GL33C.GL_TEXTURE_3D,
+                            level,
+                            internalFormat,
+                            width / div,
+                            height / div,
+                            depth / div,
+                            0,
+                            format.glFormat(),
+                            type.glType(),
+                            nullBB
                         )
                         checkGLErrors()
                     }

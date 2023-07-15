@@ -36,7 +36,12 @@ actual interface VolumeTexture {
     actual fun generateMipmaps()
     actual fun destroy()
 
+
+    fun write(source: ByteBuffer, sourceFormat: ColorFormat = format, sourceType: ColorType = type, level: Int = 0)
+    fun read(target: ByteBuffer, targetFormat: ColorFormat = format, targetType: ColorType = type, level: Int = 0)
     fun read(layer: Int, target: ByteBuffer, targetFormat: ColorFormat = format, targetType: ColorType = type, level: Int = 0)
+
+
     fun write(layer: Int, source: ByteBuffer, sourceFormat: ColorFormat = format, sourceType: ColorType = type, level: Int = 0)
     fun fill(color: ColorRGBa)
 }
