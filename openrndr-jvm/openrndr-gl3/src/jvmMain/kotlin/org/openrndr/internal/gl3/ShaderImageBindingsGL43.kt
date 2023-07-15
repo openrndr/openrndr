@@ -51,7 +51,7 @@ interface ShaderImageBindingsGL43 : ShaderImageBindings, ShaderUniformsGL3{
                     image,
                     arrayTexture.texture,
                     imageBinding.level,
-                    false,
+                    true,
                     0,
                     imageBinding.access.gl(),
                     arrayTexture.glFormat()
@@ -99,7 +99,7 @@ interface ShaderImageBindingsGL43 : ShaderImageBindings, ShaderUniformsGL3{
                     image,
                     volumeTexture.texture,
                     imageBinding.level,
-                    false,
+                    true,
                     0,
                     imageBinding.access.gl(),
                     volumeTexture.glFormat()
@@ -108,10 +108,10 @@ interface ShaderImageBindingsGL43 : ShaderImageBindings, ShaderUniformsGL3{
 
             else -> error("unsupported binding")
         }
-        checkGLErrors()
+        debugGLErrors()
         val index = uniformIndex(name)
         GL43C.glProgramUniform1i(programObject, index, image)
-        checkGLErrors()
+        debugGLErrors()
     }
 
 }
