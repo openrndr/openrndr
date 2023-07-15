@@ -4,6 +4,8 @@ package org.openrndr.internal.gl3
 import org.lwjgl.opengl.GL43C.*
 import org.lwjgl.opengl.GL44C.GL_DYNAMIC_STORAGE_BIT
 import org.lwjgl.opengl.GL44C.glBufferStorage
+import org.lwjgl.opengl.GL45C.glGetNamedBufferSubData
+import org.lwjgl.opengl.GL45C.glNamedBufferSubData
 import org.openrndr.draw.AtomicCounterBuffer
 import org.openrndr.internal.Driver
 import org.openrndr.utils.resettableLazy
@@ -26,17 +28,29 @@ class AtomicCounterBufferGL42(val buffer: Int, override val size: Int) : AtomicC
         }
     }
 
+    val useNamedBuffers = (Driver.instance as DriverGL3).version >= DriverVersionGL.VERSION_4_5
+
+
     override fun write(data: IntArray) {
         require(!destroyed)
-        glBindBuffer(GL_COPY_WRITE_BUFFER, buffer)
-        glBufferSubData(GL_COPY_WRITE_BUFFER, 0, data)
+        if (useNamedBuffers) {
+            glNamedBufferSubData(buffer,0, data)
+        } else {
+            glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, buffer)
+            glBufferSubData(GL_ATOMIC_COUNTER_BUFFER, 0, data)
+        }
     }
+
 
     override fun read() : IntArray {
         require(!destroyed)
-        glBindBuffer(GL_COPY_READ_BUFFER, buffer)
         val result = IntArray(size)
-        glGetBufferSubData(GL_COPY_READ_BUFFER, 0, result)
+        if (useNamedBuffers) {
+            glGetNamedBufferSubData(buffer, 0, result)
+        } else {
+            glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, buffer)
+            glGetBufferSubData(GL_ATOMIC_COUNTER_BUFFER, 0, result)
+        }
         return result
     }
 
