@@ -40,16 +40,18 @@ class ComputeStyle : StyleParameters, StyleBufferBindings, StyleImageBindings {
     override val imageTypes: MutableMap<String, String> = mutableMapOf()
     override val imageValues: MutableMap<String, ImageBinding> = mutableMapOf()
     override val imageAccess: MutableMap<String, ImageAccess> = mutableMapOf()
+    override val imageFlags: MutableMap<String, Set<ImageFlag>> = mutableMapOf()
+
 }
 
-fun computeStyle(builder:ComputeStyle.() -> Unit) : ComputeStyle {
+fun computeStyle(builder: ComputeStyle.() -> Unit): ComputeStyle {
     val computeStyle = ComputeStyle()
     computeStyle.builder()
     return computeStyle
 }
 
 val computeStyleManager by lazy { Driver.instance.createComputeStyleManager() }
-fun ComputeStyle.execute(width: Int=1, height: Int=1, depth:Int=1) {
+fun ComputeStyle.execute(width: Int = 1, height: Int = 1, depth: Int = 1) {
     val cs = computeStyleManager.shader(this, "compute-style")
     cs.execute(width, height, depth)
 }

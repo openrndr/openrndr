@@ -143,10 +143,10 @@ open class ShadeStyle : StyleParameters, StyleBufferBindings, StyleImageBindings
     override val bufferFlags = mutableMapOf<String, Set<BufferFlag>>()
     override val bufferAccess = mutableMapOf<String, BufferAccess>()
 
-
     override val imageTypes: MutableMap<String, String> = mutableMapOf()
     override val imageValues: MutableMap<String, ImageBinding> = mutableMapOf()
     override val imageAccess: MutableMap<String, ImageAccess> = mutableMapOf()
+    override val imageFlags: MutableMap<String, Set<ImageFlag>> = mutableMapOf()
 
     var outputs = ObservableHashmap(HashMap<String, ShadeStyleOutput>()) { dirty = true }
     var attributes = mutableListOf<VertexBuffer>()

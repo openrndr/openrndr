@@ -24,9 +24,9 @@ interface StyleBufferBindings {
 
 inline fun <reified T : Struct<T>> StyleBufferBindings.registerStructuredBuffer(
     name: String,
-    flags: Set<BufferFlag> = emptySet(),
-    access: BufferAccess = BufferAccess.READ_WRITE
-    ) {
+    access: BufferAccess = BufferAccess.READ_WRITE,
+    flags: Set<BufferFlag> = emptySet()
+) {
     bufferTypes[name] = "struct ${T::class.simpleName}"
     bufferFlags[name] = flags
     bufferAccess[name] = access

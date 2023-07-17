@@ -1,4 +1,3 @@
-import org.intellij.lang.annotations.Language
 import org.openrndr.application
 import org.openrndr.draw.*
 
@@ -37,7 +36,6 @@ fun main() {
              * pixels of different brightnesses.
              * The pattern in each layer depends on the layer id.
              */
-            @Language("GLSL")
             val glsl = """
                 #version 450
                 layout(local_size_x=8, local_size_y=8) in;

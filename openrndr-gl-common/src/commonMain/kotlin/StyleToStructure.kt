@@ -34,11 +34,30 @@ fun StyleParameters.uniforms(): String {
 
 fun StyleImageBindings.images(): String {
     return imageTypes.map {
-        mapTypeToImage(
-            it.key,
-            it.value,
-            imageAccess[it.key] ?: error("no image access for '${it.key}'")
-        )
+        val tokens = it.value.split(",")
+        val subtokens = tokens[0].split(" ")
+        when (subtokens[0]) {
+            "Image2D", "Image3D", "ImageCube", "Image2DArray", "ImageBuffer", "ImageCubeArray" -> {
+                val sampler = tokens[0].take(1).lowercase() + tokens[0].drop(1)
+                val colorFormat = ColorFormat.valueOf(tokens[1])
+                val colorType = ColorType.valueOf(tokens[2])
+
+                val layout = imageLayout(colorFormat, colorType)
+                val samplerType = when (colorType.colorSampling) {
+                    ColorSampling.SIGNED_INTEGER -> "i"
+                    ColorSampling.UNSIGNED_INTEGER -> "u"
+                    else -> ""
+                }
+                listOf("layout($layout)",
+                    (imageFlags[it.key] ?: emptySet()).joinToString(" ") { flag -> flag.glsl },
+                    (imageAccess[it.key] ?: ImageAccess.READ_WRITE).glsl,
+                    "uniform $samplerType$sampler p_${it.key};").joinToString(" ")
+            }
+
+            else -> {
+                error("unknown image type '${subtokens[0]}")
+            }
+        }
     }.joinToString("\n")
 }
 

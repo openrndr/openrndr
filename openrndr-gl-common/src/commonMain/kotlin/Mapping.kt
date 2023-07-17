@@ -4,36 +4,6 @@ import org.openrndr.draw.*
 import org.openrndr.draw.font.BufferAccess
 import org.openrndr.draw.font.BufferFlag
 
-internal fun mapTypeToImage(name: String, type: String, access: ImageAccess): String {
-    val tokens = type.split(",")
-    val u = "uniform"
-
-    val subtokens = tokens[0].split(" ")
-    return when (subtokens[0]) {
-        "Image2D", "Image3D", "ImageCube", "Image2DArray", "ImageBuffer", "ImageCubeArray" -> {
-            val sampler = tokens[0].take(1).lowercase() + tokens[0].drop(1)
-            val colorFormat = ColorFormat.valueOf(tokens[1])
-            val colorType = ColorType.valueOf(tokens[2])
-
-            val layout = imageLayout(colorFormat, colorType)
-            val samplerType = when (colorType.colorSampling) {
-                ColorSampling.SIGNED_INTEGER -> "i"
-                ColorSampling.UNSIGNED_INTEGER -> "u"
-                else -> ""
-            }
-
-            when (access) {
-                ImageAccess.READ -> "layout($layout) readonly $u $samplerType$sampler p_$name;"
-                ImageAccess.READ_WRITE -> "layout($layout) $u $samplerType$sampler p_$name;"
-                ImageAccess.WRITE -> "layout($layout) writeonly $u $samplerType$sampler p_$name;"
-            }
-        }
-        else -> {
-            error("unknown image type '${subtokens[0]}")
-        }
-    }
-}
-
 internal fun imageLayout(format: ColorFormat, type: ColorType): String {
     return when (Pair(format, type)) {
         Pair(ColorFormat.R, ColorType.UINT8) -> "r8"

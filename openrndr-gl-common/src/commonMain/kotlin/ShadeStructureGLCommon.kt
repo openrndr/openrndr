@@ -1,9 +1,6 @@
 package org.openrndr.internal.glcommon
 
 import org.openrndr.draw.*
-import org.openrndr.draw.font.BufferAccess
-import org.openrndr.draw.font.BufferFlag
-
 
 private val shadeStyleCache = LRUCache<CacheEntry, ShadeStructure>()
 
@@ -44,12 +41,12 @@ fun structureFromShadeStyle(
                     }
 
                     varyingOut =
-                        vertexFormats.flatMap { it.items.filter { it.attribute != "_" } }.joinToString("") {
+                        vertexFormats.flatMap { it.items.filter { format -> format.attribute != "_" } }.joinToString("") {
                             "${it.type.glslVaryingQualifier}out ${it.type.glslType} va_${it.attribute}${
                                 array(it)
                             };\n"
                         } +
-                                instanceAttributeFormats.flatMap { it.items.filter { it.attribute != "_" } }
+                                instanceAttributeFormats.flatMap { format -> format.items.filter { it.attribute != "_" } }
                                     .joinToString("") {
                                         "${it.type.glslVaryingQualifier}out ${it.type.glslType} vi_${it.attribute}${
                                             array(it)
@@ -57,27 +54,27 @@ fun structureFromShadeStyle(
                                     }
 
 
-                    varyingIn = vertexFormats.flatMap { it.items.filter { it.attribute != "_" } }.joinToString("") {
+                    varyingIn = vertexFormats.flatMap { it.items.filter { format -> format.attribute != "_" } }.joinToString("") {
                         "${it.type.glslVaryingQualifier}in ${it.type.glslType} va_${it.attribute}${
                             array(it)
                         };\n"
                     } +
-                            instanceAttributeFormats.flatMap { it.items.filter { it.attribute != "_" } }
+                            instanceAttributeFormats.flatMap { format -> format.items.filter { it.attribute != "_" } }
                                 .joinToString("") {
                                     "${it.type.glslVaryingQualifier}in ${it.type.glslType} vi_${it.attribute}${
                                         array(it)
                                     };\n"
                                 }
 
-                    varyingBridge = vertexFormats.flatMap { it.items.filter { it.attribute != "_" } }
+                    varyingBridge = vertexFormats.flatMap { format -> format.items.filter { it.attribute != "_" } }
                         .joinToString("") { "    va_${it.attribute} = a_${it.attribute};\n" } +
-                            instanceAttributeFormats.flatMap { it.items.filter { it.attribute != "_" } }
+                            instanceAttributeFormats.flatMap { format -> format.items.filter { it.attribute != "_" } }
                                 .joinToString("") { "vi_${it.attribute} = i_${it.attribute};\n" }
 
 
-                    attributes = vertexFormats.flatMap { it.items.filter { it.attribute != "_" } }
+                    attributes = vertexFormats.flatMap { format -> format.items.filter { it.attribute != "_" } }
                         .joinToString("") { "in ${it.type.glslType} a_${it.attribute}${array(it)};\n" } +
-                            instanceAttributeFormats.flatMap { it.items.filter { it.attribute != "_" } }
+                            instanceAttributeFormats.flatMap { format -> format.items.filter { it.attribute != "_" } }
                                 .joinToString("") { "in ${it.type.glslType} i_${it.attribute}${array(it)};\n" }
 
                     suppressDefaultOutput = shadeStyle?.suppressDefaultOutput ?: false

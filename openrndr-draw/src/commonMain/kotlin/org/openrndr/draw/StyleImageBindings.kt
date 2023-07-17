@@ -1,18 +1,23 @@
 package org.openrndr.draw
 
 interface StyleImageBindings {
-
     val imageValues: MutableMap<String, ImageBinding>
-    val imageTypes : MutableMap<String, String>
+    val imageTypes: MutableMap<String, String>
     val imageAccess: MutableMap<String, ImageAccess>
+    val imageFlags: MutableMap<String, Set<ImageFlag>>
 
     @Deprecated("renamed to image", ReplaceWith("image"))
     fun parameter(name: String, value: ImageBinding) {
         image(name, value)
     }
 
-    fun StyleImageBindings.registerImageBinding(name: String, access: ImageAccess = ImageAccess.READ_WRITE) {
+    fun StyleImageBindings.registerImageBinding(
+        name: String,
+        access: ImageAccess = ImageAccess.READ_WRITE,
+        flags: Set<ImageFlag>
+    ) {
         imageAccess[name] = access
+        imageFlags[name] = flags
     }
 
     fun image(name: String, value: ImageBinding) {
@@ -31,7 +36,9 @@ interface StyleImageBindings {
         require(imageAccess[name] != null) {
             "image binding '$name' is not registered"
         }
-        colorBuffer.imageBinding(level, imageAccess[name]!!)
+        val imageBinding =
+            colorBuffer.imageBinding(level, imageAccess[name] ?: error("image binding '$name' is not registered"))
+        image(name, imageBinding)
     }
 
     fun image(name: String, volumeTexture: VolumeTexture, level: Int = 0) {
@@ -72,16 +79,3 @@ interface StyleImageBindings {
         }
     }
 }
-
-/*
-inline fun <reified T:ImageBinding> imageBindingName() : String {
-    return when (T::class) {
-        BufferTextureImageBinding::class -> "ImageBuffer"
-        CubemapImageBinding::class -> "ImageCube"
-        ArrayCubemapImageBinding::class -> "ImageCubeArray"
-        ColorBufferImageBinding::class -> "Image2D"
-        ArrayTextureImageBinding::class -> "Image2DArray"
-        VolumeTextureImageBinding::class -> "Image3D"
-        else -> error("no image binding type translation for '${T::class.simpleName}'")
-    }
-}*/
