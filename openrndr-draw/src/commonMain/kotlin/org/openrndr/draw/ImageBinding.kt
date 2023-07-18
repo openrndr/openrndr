@@ -46,7 +46,7 @@ fun ArrayTexture.imageBinding(level: Int = 0, imageAccess: ImageAccess) =
     ArrayTextureImageBinding(this, level, imageAccess)
 
 fun VolumeTexture.imageBinding(level: Int = 0, imageAccess: ImageAccess) : VolumeTextureImageBinding {
-    require(level in 1 until levels) { "requested level $level but volume texture has only $levels mip-levels" }
+    require(level in 0 until levels) { "requested level $level but volume texture has only $levels mip-levels" }
     return VolumeTextureImageBinding(this, level, imageAccess)
 }
 
