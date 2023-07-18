@@ -8,6 +8,10 @@ import kotlin.jvm.JvmOverloads
 import kotlin.math.abs
 import kotlin.math.min
 
+private const val subEpsilon = 1E-6
+private const val closeEpsilon = 1E-6
+private const val consecutiveEpsilon = 1E-6
+
 /**
  * A [List] for managing a collection of [Segment]s.
  */
@@ -63,7 +67,7 @@ data class ShapeContour @JvmOverloads constructor(
                 }, closed, polarity)
             } else {
                 val d = (points.last() - points.first()).squaredLength
-                val usePoints = if (d > 1E-6) points else points.dropLast(1)
+                val usePoints = if (d > closeEpsilon) points else points.dropLast(1)
                 ShapeContour((usePoints.indices).map {
                     Segment(
                         usePoints[it],
@@ -77,7 +81,7 @@ data class ShapeContour @JvmOverloads constructor(
     init {
         segments.zipWithNext().forEach {
             val d = (it.first.end - it.second.start).length
-            require(d < 1E-6) {
+            require(d < consecutiveEpsilon) {
                 "points are too far away from each other ${it.first.end} ${it.second.start} $d"
             }
         }
@@ -147,10 +151,9 @@ data class ShapeContour @JvmOverloads constructor(
                 return this
             }
         }
-        val epsilon = 1E-6
         val segments = mutableListOf<Segment>()
         segments.addAll(this.segments)
-        if ((this.segments[this.segments.size - 1].end - other.segments[0].start).length > epsilon) {
+        if ((this.segments[this.segments.size - 1].end - other.segments[0].start).length > consecutiveEpsilon) {
             segments.add(
                 Segment(
                     this.segments[this.segments.size - 1].end,
@@ -447,6 +450,7 @@ data class ShapeContour @JvmOverloads constructor(
             }
         }
 
+
     /**
      * Samples a new [ShapeContour] from the current [ShapeContour] starting at [t0] and ending at [t1].
      *
@@ -462,7 +466,7 @@ data class ShapeContour @JvmOverloads constructor(
         require(t0 == t0) { "t0 is NaN" }
         require(t1 == t1) { "t1 is NaN" }
 
-        if (abs(t0 - t1) < 1E-6) {
+        if (abs(t0 - t1) < subEpsilon) {
             return EMPTY
         }
 
@@ -472,7 +476,7 @@ data class ShapeContour @JvmOverloads constructor(
         if (closed && (u1 < u0 || u1 > 1.0 || u0 > 1.0 || u0 < 0.0 || u1 < 0.0)) {
             val diff = u1 - u0
             u0 = mod(u0, 1.0)
-            if (abs(diff) < (1.0 - 1E-6)) {
+            if (abs(diff) < (1.0 - subEpsilon)) {
                 return if (diff > 0.0) {
                     u1 = u0 + diff
                     if (u1 > 1.0) {
@@ -524,17 +528,16 @@ data class ShapeContour @JvmOverloads constructor(
         segment0 = min(segments.size - 1, segment0)
 
         val newSegments = mutableListOf<Segment>()
-        val epsilon = 1E-6
 
         for (s in segment0..segment1) {
             if (s == segment0 && s == segment1) {
                 //if (Math.abs(segmentOffset0-segmentOffset1) > epsilon)
                 newSegments.add(segments[s].sub(segmentOffset0, segmentOffset1))
             } else if (s == segment0) {
-                if (segmentOffset0 < 1.0 - epsilon)
+                if (segmentOffset0 < 1.0 - subEpsilon)
                     newSegments.add(segments[s].sub(segmentOffset0, 1.0))
             } else if (s == segment1) {
-                if (segmentOffset1 > epsilon)
+                if (segmentOffset1 > subEpsilon)
                     newSegments.add(segments[s].sub(0.0, segmentOffset1))
             } else {
                 newSegments.add(segments[s])
@@ -593,7 +596,7 @@ data class ShapeContour @JvmOverloads constructor(
      * then no new [Segment]s are added.
      */
     fun close() = if (empty) EMPTY else {
-        if ((segments.last().end - segments.first().start).squaredLength < 1E-6)
+        if ((segments.last().end - segments.first().start).squaredLength < closeEpsilon)
             ShapeContour(segments, true, polarity)
         else
             ShapeContour(
