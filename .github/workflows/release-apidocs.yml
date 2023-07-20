@@ -32,7 +32,7 @@ jobs:
           git reset HEAD -- .
           git clean -df
           mv ../build/dokka/htmlMultiModule/* .
-          cp ../../dokka/styles/* styles/
+          cp ../dokka/styles/* styles/
           echo api.openrndr.org > CNAME
           git status
           git config --global user.email "actions@openrndr.org"
