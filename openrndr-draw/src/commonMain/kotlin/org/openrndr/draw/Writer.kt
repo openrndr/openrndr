@@ -78,8 +78,8 @@ class Writer(val drawerRef: Drawer?) {
     }
 
     fun textWidth(text: String): Double =
-        text.sumOf { (drawStyle.fontMap as FontImageMap).glyphMetrics[it]?.advanceWidth ?: 0.0 } +
-                (text.length - 1).coerceAtLeast(0) * style.tracking
+        text.sumOf { ((drawStyle.fontMap as FontImageMap).glyphMetrics[it]?.advanceWidth ?: 0.0) + style.tracking } - (text.count { it == ' ' }+1) * style.tracking
+
 
     /**
      * Draw text
@@ -137,26 +137,24 @@ class Writer(val drawerRef: Drawer?) {
 
             val localCursor = Cursor(cursor)
 
-            val spaceWidth = font.glyphMetrics[' ']!!.advanceWidth
+            val spaceWidth = (font.glyphMetrics[' ']?.advanceWidth?: error("no metrics for space"))
             val verticalSpace = style.leading + font.leading
 
             val textTokens = mutableListOf<TextToken>()
 
             tokenLoop@ for (i in 0 until tokens.size) {
-
                 val token = tokens[i]
                 if (token == "\n") {
                     localCursor.x = box.corner.x
                     localCursor.y += verticalSpace
                 } else {
                     val tokenWidth = token.sumOf {
-                        font.glyphMetrics[it]?.advanceWidth ?: 0.0
-                    } + style.tracking * token.length
+                        (font.glyphMetrics[it]?.advanceWidth ?: 0.0)
+                    } + style.tracking * (token.length-1).coerceAtLeast(0)
                     if (localCursor.x + tokenWidth < box.x + box.width && localCursor.y <= box.y + box.height) run {
                         val textToken = TextToken(token, localCursor.x, localCursor.y, tokenWidth, style.tracking)
                         emitToken(localCursor, textTokens, textToken)
                     } else {
-
                         if (localCursor.y > box.corner.y + box.height) {
                             fits = false
                         }
@@ -185,8 +183,8 @@ class Writer(val drawerRef: Drawer?) {
                     }
                     localCursor.x += tokenWidth
 
-                    if (i != tokens.size - 1) {
-                        localCursor.x += spaceWidth
+                    if (i != tokens.lastIndex) {
+                        localCursor.x += spaceWidth + tracking
                     }
                 }
             }

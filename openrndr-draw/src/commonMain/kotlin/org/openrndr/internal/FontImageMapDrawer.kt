@@ -3,6 +3,7 @@ package org.openrndr.internal
 import org.openrndr.draw.*
 import org.openrndr.math.Vector2
 import kotlin.math.floor
+import kotlin.math.round
 
 class GlyphRectangle(val character: Char, val x: Double, val y: Double, val width: Double, val height: Double)
 
@@ -41,11 +42,7 @@ class FontImageMapDrawer {
         positions: List<Vector2>
     ): List<List<GlyphRectangle>> {
         val fontMap = drawStyle.fontMap as? FontImageMap
-
-
-
         if (fontMap != null) {
-
             var instance = 0
 
             val textAndPositionPairs = texts.zip(positions)
@@ -62,7 +59,7 @@ class FontImageMapDrawer {
                     if (drawStyle.kerning == KernMode.METRIC) {
                         cursorX += if (lc != null) fontMap.kerning(lc, it) else 0.0
                     }
-                    val metrics = fontMap.glyphMetrics[it] ?: fontMap.glyphMetrics.getValue(' ')
+                    val glyphMetrics = fontMap.glyphMetrics[it] ?: fontMap.glyphMetrics.getValue(' ')
                     val (dx, _) = insertCharacterQuad(
                         fontMap,
                         bw,
@@ -72,7 +69,7 @@ class FontImageMapDrawer {
                         instance,
                         drawStyle.textSetting
                     )
-                    cursorX += metrics.advanceWidth + dx
+                    cursorX += glyphMetrics.advanceWidth + dx
                     lastChar = it
                 }
                 instance++
@@ -105,7 +102,7 @@ class FontImageMapDrawer {
                 if (kerning == KernMode.METRIC) {
                     cursorX += if (lc != null) fontMap.kerning(lc, it) else 0.0
                 }
-                val (dx, _) = insertCharacterQuad(
+                val (dx, _ ) = insertCharacterQuad(
                     fontMap,
                     bw,
                     it,
@@ -212,6 +209,6 @@ class FontImageMapDrawer {
             } else {
                 null
             }
-        return Pair(x - cx, glyphRectangle)
+        return Pair(x - sx, glyphRectangle)
     }
 }

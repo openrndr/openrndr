@@ -348,7 +348,7 @@ data class DrawStyle(
     var shadeStyle: ShadeStyle? = null,
     var fontMap: FontMap? = null,
     var kerning: KernMode = KernMode.METRIC,
-    var textSetting: TextSettingMode = TextSettingMode.PIXEL,
+    var textSetting: TextSettingMode = TextSettingMode.SUBPIXEL,
 
     var stencil: StencilStyle = StencilStyle(),
     var frontStencil: StencilStyle = stencil,
