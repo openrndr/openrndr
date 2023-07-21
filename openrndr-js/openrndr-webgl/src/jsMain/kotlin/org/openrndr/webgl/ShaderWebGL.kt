@@ -360,4 +360,8 @@ class ShaderWebGL(
     override fun image(name: String, image: Int, imageBinding: ImageBinding) {
         error("image bindings are not supported by WebGL")
     }
+
+    override fun image(name: String, image: Int, imageBinding: Array<out ImageBinding>) {
+        error("image bindings are not supported by WebGL")
+    }
 }

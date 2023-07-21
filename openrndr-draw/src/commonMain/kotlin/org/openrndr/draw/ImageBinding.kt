@@ -56,7 +56,13 @@ fun ArrayCubemap.imageBinding(level: Int = 0, imageAccess: ImageAccess) =
 
 interface ShaderImageBindings {
     /**
-     * Bind image unit to imageBinding
+     * Bind image unit to [imageBinding]
      */
     fun image(name: String, image: Int, imageBinding: ImageBinding)
+
+    /**
+     * Bind image units to [imageBinding] array
+     * @since 0.4.4
+     */
+    fun image(name: String, image: Int, imageBinding: Array<out ImageBinding>)
 }

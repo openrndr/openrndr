@@ -38,10 +38,10 @@ class ComputeStyle : StyleParameters, StyleBufferBindings, StyleImageBindings {
     override val bufferFlags: MutableMap<String, Set<BufferFlag>> = mutableMapOf()
 
     override val imageTypes: MutableMap<String, String> = mutableMapOf()
-    override val imageValues: MutableMap<String, ImageBinding> = mutableMapOf()
+    override val imageValues: MutableMap<String, Array<out ImageBinding>> = mutableMapOf()
     override val imageAccess: MutableMap<String, ImageAccess> = mutableMapOf()
     override val imageFlags: MutableMap<String, Set<ImageFlag>> = mutableMapOf()
-
+    override val imageArrayLength: MutableMap<String, Int> = mutableMapOf()
 }
 
 fun computeStyle(builder: ComputeStyle.() -> Unit): ComputeStyle {

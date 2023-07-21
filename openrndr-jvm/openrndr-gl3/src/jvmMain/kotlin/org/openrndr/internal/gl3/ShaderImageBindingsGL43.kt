@@ -4,7 +4,7 @@ import org.lwjgl.opengl.GL43C
 import org.openrndr.draw.*
 import org.openrndr.internal.Driver
 
-interface ShaderImageBindingsGL43 : ShaderImageBindings, ShaderUniformsGL3{
+interface ShaderImageBindingsGL43 : ShaderImageBindings, ShaderUniformsGL3 {
 
     override fun image(name: String, image: Int, imageBinding: ImageBinding) {
         (Driver.instance as DriverGL3).version.require(DriverVersionGL.VERSION_4_3)
@@ -114,4 +114,9 @@ interface ShaderImageBindingsGL43 : ShaderImageBindings, ShaderUniformsGL3{
         debugGLErrors()
     }
 
+    override fun image(name: String, image: Int, imageBinding: Array<out ImageBinding>) {
+        for (i in imageBinding.indices) {
+            image("${name}[$i]", image + i, imageBinding[i])
+        }
+    }
 }

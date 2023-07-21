@@ -48,10 +48,16 @@ fun StyleImageBindings.images(): String {
                     ColorSampling.UNSIGNED_INTEGER -> "u"
                     else -> ""
                 }
+                val arraySpec = when(val length = imageArrayLength[it.key]) {
+                    -1 -> ""
+                    0 -> error("zero-sized arrays are not supported")
+                    else -> "[$length]"
+                }
+
                 listOf("layout($layout)",
                     (imageFlags[it.key] ?: emptySet()).joinToString(" ") { flag -> flag.glsl },
                     (imageAccess[it.key] ?: ImageAccess.READ_WRITE).glsl,
-                    "uniform $samplerType$sampler p_${it.key};").joinToString(" ")
+                    "uniform $samplerType$sampler p_${it.key}${arraySpec};").joinToString(" ")
             }
 
             else -> {

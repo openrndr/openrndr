@@ -156,5 +156,7 @@ class ShaderNullGL(override val session: Session?) : Shader {
         TODO("Not yet implemented")
     }
 
-
+    override fun image(name: String, image: Int, imageBinding: Array<out ImageBinding>) {
+        TODO("Not yet implemented")
+    }
 }
