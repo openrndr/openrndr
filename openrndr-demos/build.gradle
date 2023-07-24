@@ -2,6 +2,8 @@ plugins {
     id("org.openrndr.convention.kotlin-jvm")
 }
 
+
+
 switch (org.gradle.internal.os.OperatingSystem.current()) {
     case org.gradle.internal.os.OperatingSystem.WINDOWS:
         project.ext.openrndrOS = "windows"
@@ -10,7 +12,19 @@ switch (org.gradle.internal.os.OperatingSystem.current()) {
         project.ext.openrndrOS = "linux-x64"
         break
     case org.gradle.internal.os.OperatingSystem.MAC_OS:
-        project.ext.openrndrOS = "macos"
+        switch(System.getProperty("os.arch")) {
+            case "x86-64":
+            case "x86_64":
+            case "amd64":
+            case "x64":
+                project.ext.openrndrOS = "macos"
+                break
+            case "aarch64":
+            case "arm-v8":
+            case "arm64":
+                project.ext.openrndrOS = "macos-arm64"
+                break
+        }
         break
 }
 
