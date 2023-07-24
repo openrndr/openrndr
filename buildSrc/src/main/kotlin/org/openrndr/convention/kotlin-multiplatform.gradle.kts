@@ -1,5 +1,6 @@
 package org.openrndr.convention
 
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.gradle.accessors.dm.LibrariesForLibs
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -35,7 +36,11 @@ kotlin {
             languageVersion.set(JavaLanguageVersion.of(libs.versions.jvmTarget.get()))
             vendor.set(JvmVendorSpec.ADOPTIUM)
         }
+
         testRuns["test"].executionTask {
+            if (DefaultNativePlatform.getCurrentOperatingSystem().isMacOsX) {
+                allJvmArgs = allJvmArgs + "-XstartOnFirstThread"
+            }
             useJUnitPlatform()
             testLogging.exceptionFormat = TestExceptionFormat.FULL
         }
