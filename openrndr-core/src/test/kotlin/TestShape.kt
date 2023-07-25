@@ -5,10 +5,9 @@ import org.openrndr.math.YPolarity
 import org.openrndr.shape.Circle
 import org.openrndr.shape.Winding
 import org.openrndr.shape.shape
-import org.spekframework.spek2.Spek
-import org.spekframework.spek2.style.specification.describe
+import io.kotest.core.spec.style.DescribeSpec
 
-object TestShape : Spek({
+object TestShape : DescribeSpec({
 
     describe("two equivalent shapes") {
         val a = Circle(40.0, 40.0, 100.0).shape

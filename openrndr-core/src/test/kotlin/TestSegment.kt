@@ -1,8 +1,7 @@
 import org.amshove.kluent.*
 import org.openrndr.math.Vector2
 import org.openrndr.shape.Segment
-import org.spekframework.spek2.Spek
-import org.spekframework.spek2.style.specification.describe
+import io.kotest.core.spec.style.DescribeSpec
 import java.lang.Math.sqrt
 
 infix fun Vector2.`should be near`(other: Vector2) {
@@ -16,7 +15,7 @@ infix fun Vector2.`should be somewhat near`(other: Vector2) {
 }
 
 
-object TestSegment : Spek({
+object TestSegment : DescribeSpec({
 
     describe("a horizontal segment") {
         val segment = Segment(Vector2(0.0, 100.0), Vector2(100.0, 100.0))

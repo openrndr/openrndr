@@ -1,9 +1,8 @@
 import org.openrndr.application
 import org.openrndr.shape.LineSegment
-import org.spekframework.spek2.Spek
-import org.spekframework.spek2.style.specification.describe
+import io.kotest.core.spec.style.DescribeSpec
 
-object TestDrawLineSegments : Spek({
+object TestDrawLineSegments : DescribeSpec({
     describe("drawing multiple lineSegments using a List of LineSegment") {
         it("should not throw exceptions") {
             application {

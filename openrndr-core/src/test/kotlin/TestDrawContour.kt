@@ -1,10 +1,9 @@
+import io.kotest.core.spec.style.DescribeSpec
 import org.openrndr.application
 import org.openrndr.shape.Circle
 import org.openrndr.shape.LineSegment
-import org.spekframework.spek2.Spek
-import org.spekframework.spek2.style.specification.describe
 
-object TestVertexBufferGL3 : Spek({
+class TestVertexBufferGL3 : DescribeSpec({
     describe("drawing a single contour") {
         it("should not throw exceptions") {
             application {

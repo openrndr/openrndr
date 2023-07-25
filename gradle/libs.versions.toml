@@ -52,7 +52,8 @@ jupiter-engine = { group = "org.junit.jupiter", name = "junit-jupiter-engine", v
 spek-dsl = { group = "org.spekframework.spek2", name = "spek-dsl-jvm", version.ref = "spek" }
 spek-junit5 = { group = "org.spekframework.spek2", name = "spek-runner-junit5", version.ref = "spek" }
 kluent = { group = "org.amshove.kluent", name = "kluent", version.ref = "kluent" }
-kotest = { group = "io.kotest", name = "kotest-assertions-core", version.ref = "kotest" }
+kotest-assertions = { group = "io.kotest", name = "kotest-assertions-core", version.ref = "kotest" }
+kotest-runner = { group = "io.kotest", name = "kotest-runner-junit5", version.ref = "kotest" }
 slf4j-simple = { group = "org.slf4j", name = "slf4j-simple", version.ref = "slf4j" }
 
 [plugins]

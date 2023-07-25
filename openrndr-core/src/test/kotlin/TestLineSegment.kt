@@ -1,10 +1,9 @@
 import org.openrndr.math.Vector2
 import org.openrndr.shape.LineSegment
 import org.openrndr.shape.intersection
-import org.spekframework.spek2.Spek
-import org.spekframework.spek2.style.specification.describe
+import io.kotest.core.spec.style.DescribeSpec
 
-object TestLineSegment : Spek({
+object TestLineSegment : DescribeSpec({
 
     describe("a crossing horizontal and vertical line segment") {
         val h = LineSegment(-100.0, 0.0, 100.0, 0.0)

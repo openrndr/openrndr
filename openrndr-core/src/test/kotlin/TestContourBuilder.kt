@@ -3,11 +3,10 @@ import org.amshove.kluent.`should throw`
 import org.amshove.kluent.invoking
 import org.openrndr.shape.contour
 import org.openrndr.shape.contours
-import org.spekframework.spek2.Spek
-import org.spekframework.spek2.style.specification.describe
+import io.kotest.core.spec.style.DescribeSpec
 import java.lang.IllegalArgumentException
 
-object TestContourBuilder : Spek({
+object TestContourBuilder : DescribeSpec({
 
     describe("single segment org.openrndr.shape.contours") {
         it("support a single line segment") {
