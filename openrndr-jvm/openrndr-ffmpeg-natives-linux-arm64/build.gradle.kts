@@ -11,7 +11,7 @@ dependencies {
 
     runtimeOnly(libs.bundles.javacpp.ffmpeg) {
         artifact {
-            classifier = "linux-arm64"
+            classifier = "linux-arm64-gpl"
             extension = DependencyArtifact.DEFAULT_TYPE
         }
     }
