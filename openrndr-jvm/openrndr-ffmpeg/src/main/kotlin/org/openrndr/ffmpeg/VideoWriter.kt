@@ -13,11 +13,10 @@ import java.nio.Buffer
 import java.nio.ByteBuffer
 import java.nio.channels.Channels
 import java.nio.channels.WritableByteChannel
-import java.util.*
 
 private val logger = KotlinLogging.logger {}
 
-private val ffmpegBinary = Loader.load(ffmpeg::class.java)
+private val builtInFfmpegBinary = Loader.load(ffmpeg::class.java)
 
 @ExtensionDslMarker
 abstract class VideoWriterProfile {
@@ -187,7 +186,32 @@ class VideoWriter {
         val codec = profile.arguments()
         val arguments = ArrayList<String>()
 
-        arguments.add(ffmpegBinary)
+        // Decide ffmpeg location
+        val ffmpegExe = if (System.getProperty("os.name").contains("Windows")) "ffmpeg.exe" else "ffmpeg"
+        when (val ffmpegPathArg = (System.getProperties()["org.openrndr.ffmpeg"] as? String)) {
+            // `-Dorg.openrndr.ffmpeg` not provided by the user
+            null -> {
+                val localExecutable = File("./$ffmpegExe")
+                if (localExecutable.exists()) {
+                    // 1. Use ffmpeg from current working directory
+                    arguments.add("./$ffmpegExe")
+                } else {
+                    // 2. Assume ffmpeg it's in the path. Let it fail if not found.
+                    arguments.add(ffmpegExe)
+                }
+            }
+
+            // 3. Use built-in ffmpeg from jar because user passed `-Dorg.openrndr.ffmpeg=jar`
+            "jar" -> {
+                arguments.add(builtInFfmpegBinary)
+            }
+
+            // 4. User requested specific ffmpeg binary with `-Dorg.openrndr.ffmpeg=/some/path/ffmpeg[.exe]`
+            else -> {
+                arguments.add(ffmpegPathArg)
+            }
+        }
+
         arguments.addAll(listOf(*preamble))
         arguments.addAll(listOf(*codec))
 
