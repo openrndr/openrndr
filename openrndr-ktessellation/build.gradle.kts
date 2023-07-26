@@ -14,7 +14,7 @@ kotlin {
         @Suppress("UNUSED_VARIABLE")
         val commonTest by getting {
             dependencies {
-                implementation(libs.kotest)
+                implementation(libs.kotest.assertions)
                 implementation(project(":openrndr-shape"))
             }
         }

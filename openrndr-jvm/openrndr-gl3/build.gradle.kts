@@ -52,6 +52,7 @@ kotlin {
             dependencies {
                 runtimeOnly(project(":openrndr-jvm:openrndr-gl3-natives-windows"))
                 runtimeOnly(project(":openrndr-jvm:openrndr-gl3-natives-macos"))
+                runtimeOnly(project(":openrndr-jvm:openrndr-gl3-natives-macos-arm64"))
                 runtimeOnly(project(":openrndr-jvm:openrndr-gl3-natives-linux-x64"))
                 runtimeOnly(libs.slf4j.simple)
             }

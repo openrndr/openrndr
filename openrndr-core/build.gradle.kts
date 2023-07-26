@@ -1,3 +1,5 @@
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
+
 plugins {
     org.openrndr.convention.`kotlin-jvm`
 }
@@ -10,15 +12,16 @@ dependencies {
     api(project(":openrndr-animatable"))
     implementation(project(":openrndr-application"))
     testRuntimeOnly(project(":openrndr-nullgl"))
+    testImplementation(libs.kotest.assertions)
+    testImplementation(libs.kotest.runner)
     testImplementation(libs.kluent)
-    testImplementation(libs.spek.dsl)
-    testRuntimeOnly(libs.spek.junit5)
 }
 
 tasks {
     test {
-        useJUnitPlatform {
-            includeEngines("spek2")
+        if (DefaultNativePlatform.getCurrentOperatingSystem().isMacOsX) {
+            allJvmArgs = allJvmArgs + "-XstartOnFirstThread"
         }
+        useJUnitPlatform()
     }
 }

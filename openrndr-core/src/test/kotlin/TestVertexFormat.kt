@@ -1,10 +1,9 @@
 import org.amshove.kluent.`should be equal to`
-import org.amshove.kluent.`should equal`
 import org.openrndr.draw.VertexElementType
 import org.openrndr.draw.vertexFormat
-import org.spekframework.spek2.Spek
-import org.spekframework.spek2.style.specification.describe
-object TestVertexFormat : Spek({
+import io.kotest.core.spec.style.DescribeSpec
+
+object TestVertexFormat : DescribeSpec({
 
     describe("a vertex format") {
         val vf = vertexFormat {

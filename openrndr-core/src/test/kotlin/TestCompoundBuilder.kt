@@ -4,10 +4,9 @@ import org.openrndr.shape.Circle
 import org.openrndr.shape.Rectangle
 import org.openrndr.shape.Winding
 import org.openrndr.shape.compound
-import org.spekframework.spek2.Spek
-import org.spekframework.spek2.style.specification.describe
+import io.kotest.core.spec.style.DescribeSpec
 
-object TestCompoundBuilder : Spek({
+object TestCompoundBuilder : DescribeSpec({
     val height = 480
     describe("a simple org.openrndr.shape.union org.openrndr.shape.compound") {
         val sc = compound {

@@ -5,10 +5,9 @@ import org.openrndr.math.Vector2
 import org.openrndr.math.YPolarity
 import org.openrndr.shape.Rectangle
 import org.openrndr.shape.Winding
-import org.spekframework.spek2.Spek
-import org.spekframework.spek2.style.specification.describe
+import io.kotest.core.spec.style.DescribeSpec
 
-object TestRectangle : Spek({
+object TestRectangle : DescribeSpec({
 
     describe("A rectangle with default height") {
         val width = 200.0

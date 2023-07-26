@@ -3,10 +3,9 @@ import org.amshove.kluent.`should match all with`
 import org.amshove.kluent.`should not be equal to`
 import org.openrndr.math.Vector2
 import org.openrndr.shape.*
-import org.spekframework.spek2.Spek
-import org.spekframework.spek2.style.specification.describe
+import io.kotest.core.spec.style.DescribeSpec
 
-object TestShapeContour : Spek({
+object TestShapeContour : DescribeSpec({
 
     describe("two equivalent org.openrndr.shape.contours") {
         val a = Circle(40.0, 40.0, 100.0).contour

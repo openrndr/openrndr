@@ -1,10 +1,9 @@
 import org.openrndr.application
 import org.openrndr.math.Vector2
 import org.openrndr.shape.Segment
-import org.spekframework.spek2.Spek
-import org.spekframework.spek2.style.specification.describe
+import io.kotest.core.spec.style.DescribeSpec
 
-object TestDrawSegments : Spek({
+object TestDrawSegments : DescribeSpec({
     describe("drawing multiple segments using a List of Segment") {
         it("should not throw exceptions") {
             application {

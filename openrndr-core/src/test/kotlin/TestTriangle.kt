@@ -1,11 +1,9 @@
 import org.amshove.kluent.`should be equal to`
-
 import org.openrndr.math.Vector2
 import org.openrndr.shape.Triangle
-import org.spekframework.spek2.Spek
-import org.spekframework.spek2.style.specification.describe
+import io.kotest.core.spec.style.DescribeSpec
 
-object TestTriangle : Spek({
+object TestTriangle : DescribeSpec({
     describe("a triangle") {
         val t = Triangle(Vector2(0.0, 0.0), Vector2(0.0, 100.0), Vector2(100.0, 100.0))
         it("contains points") {
