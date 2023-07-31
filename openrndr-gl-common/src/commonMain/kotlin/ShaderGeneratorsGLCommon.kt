@@ -855,6 +855,9 @@ ${shadeStructure.vertexTransform?.prependIndent("        ") ?: ""}
         |uniform sampler2D tex2;
         |uniform sampler2D tex3;
         |uniform sampler2D tex4;
+        |uniform sampler2D tex5;
+        |uniform sampler2D tex6;
+        |uniform sampler2D tex7;
         |uniform vec2 targetSize;
         |// -- drawerUniforms
         |${drawerUniforms()}
