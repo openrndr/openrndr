@@ -7,6 +7,7 @@ interface StyleParameters {
     var parameterValues: MutableMap<String, Any>
     var parameterTypes: ObservableHashmap<String, String>
 
+    var textureBaseIndex: Int
 
     fun parameter(name: String, value: Cubemap) {
         parameterValues[name] = value

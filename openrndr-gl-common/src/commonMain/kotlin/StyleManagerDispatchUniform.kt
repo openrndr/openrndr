@@ -8,7 +8,7 @@ interface StyleManagerDispatchUniform {
     var textureIndex: Int
 
     fun <T> dispatchParameters(style: StyleParameters, shader: T) where T: ShaderUniforms {
-        textureIndex = 2
+        textureIndex = style.textureBaseIndex
         for (it in style.parameterValues.entries) {
             setUniform(shader,"p_${it.key}", it.key, it.value)
         }

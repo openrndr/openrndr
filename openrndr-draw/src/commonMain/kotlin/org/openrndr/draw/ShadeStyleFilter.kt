@@ -24,6 +24,7 @@ class ShadeStyleFilter(val shadeStyle: ShadeStyle) : Filter(), StyleParameters b
     }
     override fun apply(source: Array<ColorBuffer>, target: Array<ColorBuffer>) {
         shadeStyle.parameter("fill", fill)
+        shadeStyle.textureBaseIndex = source.size
 
         for ((index, buffer) in source.withIndex()) {
             shadeStyle.parameter("input$index", buffer)
@@ -44,6 +45,7 @@ class ShadeStyleFilter1to1(val shadeStyle: ShadeStyle) : Filter1to1(), StylePara
     }
     override fun apply(source: Array<ColorBuffer>, target: Array<ColorBuffer>) {
         shadeStyle.parameter("fill", fill)
+        shadeStyle.textureBaseIndex = source.size
 
         for ((index, buffer) in source.withIndex()) {
             shadeStyle.parameter("input$index", buffer)
@@ -64,7 +66,7 @@ class ShadeStyleFilter2to1(val shadeStyle: ShadeStyle) : Filter2to1(), StylePara
     }
     override fun apply(source: Array<ColorBuffer>, target: Array<ColorBuffer>) {
         shadeStyle.parameter("fill", fill)
-
+        shadeStyle.textureBaseIndex = source.size
         for ((index, buffer) in source.withIndex()) {
             shadeStyle.parameter("input$index", buffer)
         }
