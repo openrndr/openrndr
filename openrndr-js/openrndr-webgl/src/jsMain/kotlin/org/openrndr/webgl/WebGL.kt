@@ -135,5 +135,8 @@ abstract external class WebGL2RenderingContext : WebGLRenderingContext {
         val RGBA32F: Int
 
         val HALF_FLOAT: Int
+
+        val MIN: Int
+        val MAX: Int
     }
 }

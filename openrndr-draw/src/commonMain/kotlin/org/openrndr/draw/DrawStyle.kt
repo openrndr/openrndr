@@ -271,7 +271,9 @@ enum class BlendMode {
     SUBTRACT,
     MULTIPLY,
     REPLACE,
-    REMOVE
+    REMOVE,
+    MIN,
+    MAX
 }
 
 

@@ -1113,6 +1113,28 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
                         glBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_ALPHA)
                     }
                 }
+
+                BlendMode.MIN -> {
+                    glEnable(GL_BLEND)
+                    if (version >= DriverVersionGL.VERSION_4_1) {
+                        glBlendEquationi(0, GL_MIN)
+                        glBlendFunci(0, GL_ONE, GL_ONE)
+                    } else {
+                        glBlendEquation(GL_MIN)
+                        glBlendFunc(GL_ONE, GL_ONE)
+                    }
+                }
+
+                BlendMode.MAX -> {
+                    glEnable(GL_BLEND)
+                    if (version >= DriverVersionGL.VERSION_4_1) {
+                        glBlendEquationi(0, GL_MAX)
+                        glBlendFunci(0, GL_ONE, GL_ONE)
+                    } else {
+                        glBlendEquation(GL_MAX)
+                        glBlendFunc(GL_ONE, GL_ONE)
+                    }
+                }
             }
             cached.blendMode = drawStyle.blendMode
         }

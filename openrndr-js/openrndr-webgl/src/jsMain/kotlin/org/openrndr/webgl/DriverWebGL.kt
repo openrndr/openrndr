@@ -552,6 +552,16 @@ class DriverWebGL(val context: WebGL2RenderingContext) : Driver {
                     context.blendEquation(GL.FUNC_ADD)
                     context.blendFunc(GL.ZERO, GL.ONE_MINUS_SRC_ALPHA)
                 }
+                BlendMode.MIN -> {
+                    context.enable(GL.BLEND)
+                    context.blendEquation(WebGL2RenderingContext.MIN)
+                    context.blendFunc(GL.ONE, GL.ONE)
+                }
+                BlendMode.MAX -> {
+                    context.enable(GL.BLEND)
+                    context.blendEquation(WebGL2RenderingContext.MAX)
+                    context.blendFunc(GL.ONE, GL.ONE)
+                }
             }
             cached.blendMode = drawStyle.blendMode
         }

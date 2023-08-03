@@ -396,6 +396,16 @@ open class RenderTargetGL3(
                 glBlendEquationi(index, GL_FUNC_ADD)
                 glBlendFunci(index, GL_ONE, GL_ONE)
             }
+            BlendMode.MIN -> {
+                glEnable(GL_BLEND)
+                glBlendEquationi(index, GL_MIN)
+                glBlendFunci(index, GL_ONE, GL_ONE)
+            }
+            BlendMode.MAX -> {
+                glEnable(GL_BLEND)
+                glBlendEquationi(index, GL_MAX)
+                glBlendFunci(index, GL_ONE, GL_ONE)
+            }
             else -> {
                 error("unsupported blend mode: $blendMode")
             }
