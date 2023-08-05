@@ -313,7 +313,7 @@ class VideoPlayerFFMPEG private constructor(
                             val devicePattern = Regex("\\[AVFoundation .*] \\[[0-9]*] (?<name>.*)")
                             val matchResult = devicePattern.matchEntire(texts[lineIndex])
                             if (matchResult != null) {
-                                val (_, name) = matchResult.destructured
+                                val (name) = matchResult.destructured
                                 result.add(name)
                             }
                             lineIndex += 1
