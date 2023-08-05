@@ -269,29 +269,28 @@ class VideoPlayerFFMPEG private constructor(
                 avformat_open_input(context, "video=dummy", format, options)
                 var lineIndex = 0
                 all@ while (true) {
-                            if (lineIndex >= texts.size || texts[lineIndex].contains("DirectShow audio devices")) {
-                                break@all
-                            }
-                            val deviceNamePattern = Regex("\\[dshow @ [0-9a-f]*]\\s+\"(.*)\"")
-                            val deviceTypePattern = Regex("\\[dshow @ [0-9a-f]*]\\s+[ ]+\\((.*)")
+                    if (lineIndex >= texts.size || texts[lineIndex].contains("DirectShow audio devices")) {
+                        break@all
+                    }
+                    val deviceNamePattern = Regex("\\[dshow @ [0-9a-f]*]\\s+\"(.*)\"")
+                    val deviceTypePattern = Regex("\\[dshow @ [0-9a-f]*]\\s+[ ]+\\((.*)")
 
-
-                            val nameText = texts.getOrNull(lineIndex)
-                            val typeText = texts.getOrNull(lineIndex+1)
-                            if (typeText != null) {
-                                val match = deviceTypePattern.matchEntire(typeText)
+                    val nameText = texts.getOrNull(lineIndex)
+                    val typeText = texts.getOrNull(lineIndex+1)
+                    if (typeText != null) {
+                        val match = deviceTypePattern.matchEntire(typeText)
+                        val group = match?.groupValues?.getOrNull(1)
+                        if (group == "video") {
+                            if (nameText != null) {
+                                val match = deviceNamePattern.matchEntire(nameText)
                                 val group = match?.groupValues?.getOrNull(1)
-                                if (group == "video") {
-                                    if (nameText != null) {
-                                        val match = deviceNamePattern.matchEntire(nameText)
-                                        val group = match?.groupValues?.getOrNull(1)
-                                        if (group != null) {
-                                            result.add(group)
-                                        }
-                                    }
+                                if (group != null) {
+                                    result.add(group)
                                 }
                             }
-                            lineIndex += 5
+                        }
+                    }
+                    lineIndex += 5
 
                 }
                 av_dict_free(options)
@@ -299,18 +298,11 @@ class VideoPlayerFFMPEG private constructor(
             }
 
             if (Platform.type == PlatformType.MAC) {
-                /**
-                 * We are dealing with a JavaCPP/FFMPEG bug here.
-                 * The problem is that av_log_format_line2 appears to produce incorrectly formatted strings
-                 * on macOS machines. As such we can only count the devices and assume those are printed
-                 * in sequence.
-                 */
                 val options = AVDictionary()
                 av_dict_set(options, "list_devices", "true", 0)
                 val format = av_find_input_format("avfoundation")
                 avformat_open_input(context, "", format, options)
                 var lineIndex = 0
-                var deviceIndex = 0
                 all@ while (true) {
                     if (texts[lineIndex].contains("AVFoundation video devices")) {
                         lineIndex++
@@ -318,9 +310,13 @@ class VideoPlayerFFMPEG private constructor(
                             if (lineIndex >= texts.size || texts[lineIndex].contains("AVFoundation audio devices")) {
                                 break@all
                             }
-                            result.add("$deviceIndex")
+                            val devicePattern = Regex("\\[AVFoundation .*] \\[[0-9]*] (?<name>.*)")
+                            val matchResult = devicePattern.matchEntire(texts[lineIndex])
+                            if (matchResult != null) {
+                                val (_, name) = matchResult.destructured
+                                result.add(name)
+                            }
                             lineIndex += 1
-                            deviceIndex++
                         }
                     }
                 }
