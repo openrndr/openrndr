@@ -4,6 +4,9 @@ import org.openrndr.draw.font.BufferAccess
 import org.openrndr.draw.font.BufferFlag
 import org.openrndr.internal.Driver
 import org.openrndr.math.IntVector3
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 
 data class ComputeStructure(
     val structDefinitions: String? = null,
@@ -46,7 +49,11 @@ class ComputeStyle : StyleParameters, StyleBufferBindings, StyleImageBindings {
     override val imageArrayLength: MutableMap<String, Int> = mutableMapOf()
 }
 
+@OptIn(ExperimentalContracts::class)
 fun computeStyle(builder: ComputeStyle.() -> Unit): ComputeStyle {
+    contract {
+        callsInPlace(builder, InvocationKind.EXACTLY_ONCE)
+    }
     val computeStyle = ComputeStyle()
     computeStyle.builder()
     return computeStyle

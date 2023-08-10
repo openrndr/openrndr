@@ -3,6 +3,9 @@ package org.openrndr.draw
 import org.openrndr.color.ColorRGBa
 import org.openrndr.internal.Driver
 import org.openrndr.shape.IntRectangle
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 import org.openrndr.draw.colorBuffer as _colorBuffer
 import org.openrndr.draw.depthBuffer as _depthBuffer
 
@@ -401,11 +404,17 @@ class RenderTargetBuilder(private val renderTarget: RenderTarget) {
  * @param multisample determine if the [RenderTarget] uses multi-sampling, default is disabled
  * @param session specify the session under which the [RenderTarget] should be created, default is [Session.active]
  */
+@OptIn(ExperimentalContracts::class)
 fun renderTarget(width: Int, height: Int,
                  contentScale: Double = 1.0,
                  multisample: BufferMultisample = BufferMultisample.Disabled,
                  session: Session? = Session.active,
                  builder: RenderTargetBuilder.() -> Unit): RenderTarget {
+
+    contract {
+        callsInPlace(builder, InvocationKind.EXACTLY_ONCE)
+    }
+
     if (width <= 0 || height <= 0) {
         throw IllegalArgumentException("unsupported resolution ($width×$height)")
     }

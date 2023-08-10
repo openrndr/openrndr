@@ -1,6 +1,9 @@
 package org.openrndr
 
 import org.openrndr.draw.*
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 
 /**
  * Create an image [ColorBuffer] by drawing it
@@ -13,6 +16,7 @@ import org.openrndr.draw.*
  * @param multisample the multisampling used for drawing the image, the resulting image has multisampling disabled. When set to null the multisampling setting is taken from [RenderTarget.active].
  * @param drawFunction the user supplied function that is used to draw on the created image
  */
+@OptIn(ExperimentalContracts::class)
 fun Program.drawImage(
     width: Int,
     height: Int,
@@ -22,6 +26,10 @@ fun Program.drawImage(
     multisample: BufferMultisample? = null,
     drawFunction: Drawer.() -> Unit
 ): ColorBuffer {
+    contract {
+        callsInPlace(drawFunction, InvocationKind.EXACTLY_ONCE)
+    }
+
     val resolvedContentScale = contentScale ?: RenderTarget.active.contentScale
     val resolvedMultisample = multisample ?: RenderTarget.active.multisample
     val result = colorBuffer(width, height, contentScale = resolvedContentScale, format = format, type = type)

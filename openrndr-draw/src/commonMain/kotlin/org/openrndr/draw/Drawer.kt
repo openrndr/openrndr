@@ -29,6 +29,8 @@ import kotlin.jvm.JvmName
 import org.openrndr.shape.Paint
 import org.openrndr.shape.Rectangle
 import org.openrndr.shape.Shape
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.contract
 import kotlin.math.abs
 import kotlin.math.log2
 import kotlin.reflect.KMutableProperty0
@@ -1276,7 +1278,11 @@ class Drawer(val driver: Driver) {
  * Pushes style and model-view-projection matrices, calls function and pops.
  * @param function the function that is called in the isolation
  */
+@OptIn(ExperimentalContracts::class)
 fun Drawer.isolated(function: Drawer.() -> Unit) {
+    contract {
+        callsInPlace(function, kotlin.contracts.InvocationKind.EXACTLY_ONCE)
+    }
     pushTransforms()
     pushStyle()
     function()
@@ -1288,7 +1294,11 @@ fun Drawer.isolated(function: Drawer.() -> Unit) {
  * Pushes style and model-view-projection matrices, sets render target, calls function and pops.
  * @param function the function that is called in the isolation
  */
+@OptIn(ExperimentalContracts::class)
 fun Drawer.isolatedWithTarget(target: RenderTarget, function: Drawer.() -> Unit) {
+    contract {
+        callsInPlace(function, kotlin.contracts.InvocationKind.EXACTLY_ONCE)
+    }
     target.bind()
     isolated(function)
     target.unbind()

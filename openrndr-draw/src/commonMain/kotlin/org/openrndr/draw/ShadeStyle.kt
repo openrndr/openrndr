@@ -4,6 +4,9 @@ import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.font.BufferAccess
 import org.openrndr.draw.font.BufferFlag
 import org.openrndr.math.*
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
@@ -337,7 +340,13 @@ open class ShadeStyle : StyleParameters, StyleBufferBindings, StyleImageBindings
     override var parameterTypes: ObservableHashmap<String, String> = ObservableHashmap(mutableMapOf()) { dirty = true }
 }
 
-fun shadeStyle(builder: ShadeStyle.() -> Unit): ShadeStyle = ShadeStyle().apply(builder)
+@OptIn(ExperimentalContracts::class)
+fun shadeStyle(builder: ShadeStyle.() -> Unit): ShadeStyle {
+    contract {
+        callsInPlace(builder, InvocationKind.EXACTLY_ONCE)
+    }
+    return ShadeStyle().apply(builder)
+}
 
 private fun concat(left: String?, right: String?): String? {
     return if (left == null && right == null) {

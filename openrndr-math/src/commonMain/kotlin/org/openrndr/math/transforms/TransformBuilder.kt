@@ -4,6 +4,9 @@ import org.openrndr.math.Matrix44
 import org.openrndr.math.Quaternion
 import org.openrndr.math.Vector2
 import org.openrndr.math.Vector3
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 import kotlin.jvm.JvmName
 import kotlin.reflect.KMutableProperty0
 
@@ -54,7 +57,11 @@ class TransformBuilder(baseTransform: Matrix44 = Matrix44.IDENTITY) {
  * @param baseTransform the transform to start with, default is an identity matrix
  * @param builder a function that is invoke inside the [TransformBuilder] context
  */
+@OptIn(ExperimentalContracts::class)
 fun transform(baseTransform: Matrix44 = Matrix44.IDENTITY, builder: TransformBuilder.() -> Unit): Matrix44 {
+    contract {
+        callsInPlace(builder, InvocationKind.EXACTLY_ONCE)
+    }
     return TransformBuilder(baseTransform).apply { builder() }.transform
 }
 
@@ -67,15 +74,23 @@ fun buildTransform(baseTransform: Matrix44 = Matrix44.IDENTITY, builder: Transfo
 /**
  * Matrix44 transform helper
  */
+@OptIn(ExperimentalContracts::class)
 @JvmName("matrix44Transform")
 fun Matrix44.transform(builder: TransformBuilder.() -> Unit): Matrix44 {
+    contract {
+        callsInPlace(builder, InvocationKind.EXACTLY_ONCE)
+    }
     return buildTransform(baseTransform = this, builder = builder)
 }
 
 /**
  * Matrix44 property transform helper
  */
+@OptIn(ExperimentalContracts::class)
 fun KMutableProperty0<Matrix44>.transform(builder: TransformBuilder.() -> Unit) {
+    contract {
+        callsInPlace(builder, InvocationKind.EXACTLY_ONCE)
+    }
     set(get().transform(builder))
 }
 

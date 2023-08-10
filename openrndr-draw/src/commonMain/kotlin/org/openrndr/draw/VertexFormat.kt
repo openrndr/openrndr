@@ -1,5 +1,9 @@
 package org.openrndr.draw
 
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
+
 data class VertexElement(val attribute: String, val offset: Int, val type: VertexElementType, val arraySize: Int)
 
 /**
@@ -88,6 +92,11 @@ class VertexFormat {
 /**
  * Build a vertex format
  */
+@OptIn(ExperimentalContracts::class)
 fun vertexFormat(builder: VertexFormat.() -> Unit): VertexFormat {
+    contract {
+        callsInPlace(builder, InvocationKind.EXACTLY_ONCE)
+    }
+
     return VertexFormat().apply { builder() }
 }
