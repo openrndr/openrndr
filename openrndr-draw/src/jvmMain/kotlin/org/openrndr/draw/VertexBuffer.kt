@@ -25,8 +25,8 @@ actual abstract class VertexBuffer {
     }
 
 
-    abstract fun write(data: ByteBuffer, offset: Int = 0)
-    abstract fun read(data: ByteBuffer, offset: Int = 0)
+    abstract fun write(data: ByteBuffer, offsetInBytes: Int = 0)
+    abstract fun read(data: ByteBuffer, offsetInBytes: Int = 0)
 
     actual fun put(elementOffset: Int, putter: BufferWriter.() -> Unit): Int {
         val w = shadow.writer()

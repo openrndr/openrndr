@@ -96,14 +96,14 @@ class VertexBufferNullGL(override val vertexFormat: VertexFormat, override val v
     override val shadow: VertexBufferShadow
         get() = VertexBufferShadowNullGL(this)
 
-    override fun write(data: ByteBuffer, offset: Int) {
+    override fun write(data: ByteBuffer, offsetInBytes: Int) {
     }
 
     override fun write(source: MPPBuffer, targetByteOffset: Int, sourceByteOffset: Int, byteLength: Int) {
         TODO("Not yet implemented")
     }
 
-    override fun read(data: ByteBuffer, offset: Int) {
+    override fun read(data: ByteBuffer, offsetInBytes: Int) {
     }
 
     override fun destroy() {

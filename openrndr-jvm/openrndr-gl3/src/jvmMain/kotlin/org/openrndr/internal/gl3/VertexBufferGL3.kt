@@ -6,6 +6,7 @@ import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL33C.*
 import org.lwjgl.opengl.GL44C.GL_DYNAMIC_STORAGE_BIT
 import org.lwjgl.opengl.GL44C.glBufferStorage
+import org.lwjgl.opengl.GL45C.glGetNamedBufferSubData
 import org.lwjgl.opengl.GL45C.glNamedBufferSubData
 import org.openrndr.draw.*
 import org.openrndr.internal.Driver
@@ -15,15 +16,15 @@ import java.nio.Buffer
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.util.concurrent.atomic.AtomicInteger
-
 private val logger = KotlinLogging.logger {}
 
 private val bufferId = AtomicInteger(0)
 
 class VertexBufferShadowGL3(override val vertexBuffer: VertexBufferGL3) : VertexBufferShadow, AutoCloseable {
-    val buffer: ByteBuffer = ByteBuffer.allocateDirect(vertexBuffer.vertexCount * vertexBuffer.vertexFormat.size).apply {
-        order(ByteOrder.nativeOrder())
-    }
+    val buffer: ByteBuffer =
+        ByteBuffer.allocateDirect(vertexBuffer.vertexCount * vertexBuffer.vertexFormat.size).apply {
+            order(ByteOrder.nativeOrder())
+        }
 
     override fun upload(offsetInBytes: Int, sizeInBytes: Int) {
         logger.trace { "uploading shadow to vertex buffer" }
@@ -69,16 +70,16 @@ class VertexBufferGL3(
 
     companion object {
         fun createDynamic(vertexFormat: VertexFormat, vertexCount: Int, session: Session?): VertexBufferGL3 {
-            checkGLErrors {
+            debugGLErrors {
                 "pre-existing errors before creating vertex buffer"
             }
             val buffer = glGenBuffers()
-            checkGLErrors()
+            debugGLErrors()
             logger.debug {
                 "created new vertex buffer[buffer=${buffer}, vertexCount=${vertexCount}, vertexFormat=${vertexFormat}]"
             }
             glBindBuffer(GL_ARRAY_BUFFER, buffer)
-            checkGLErrors()
+            debugGLErrors()
             val sizeInBytes = vertexFormat.size * vertexCount
             val useBufferStorage = (Driver.instance as DriverGL3).version >= DriverVersionGL.VERSION_4_4
 
@@ -87,7 +88,7 @@ class VertexBufferGL3(
             } else {
                 glBufferData(GL_ARRAY_BUFFER, sizeInBytes.toLong(), GL_DYNAMIC_DRAW)
             }
-            checkGLErrors()
+            debugGLErrors()
             return VertexBufferGL3(buffer, vertexFormat, vertexCount, session)
         }
     }
@@ -104,7 +105,7 @@ class VertexBufferGL3(
         }
 
     private val useNamedBuffer = (Driver.instance as DriverGL3).version >= DriverVersionGL.VERSION_4_5
-    override fun write(data: ByteBuffer, offset: Int) {
+    override fun write(data: ByteBuffer, offsetInBytes: Int) {
         if (isDestroyed) {
             error("buffer is destroyed")
         }
@@ -112,15 +113,13 @@ class VertexBufferGL3(
         if (data.isDirect) {
             logger.trace { "writing to vertex buffer, ${data.remaining()} bytes" }
 
-            (data as Buffer).rewind()
-
             if (useNamedBuffer) {
-                glNamedBufferSubData(buffer, offset.toLong(), data)
+                glNamedBufferSubData(buffer, offsetInBytes.toLong(), data)
             } else {
                 debugGLErrors()
                 bind()
                 debugGLErrors()
-                glBufferSubData(GL_ARRAY_BUFFER, offset.toLong(), data)
+                glBufferSubData(GL_ARRAY_BUFFER, offsetInBytes.toLong(), data)
             }
 
             debugGLErrors {
@@ -133,14 +132,15 @@ class VertexBufferGL3(
                 val isBuffer = glIsBuffer(buffer)
                 when (it) {
                     GL_INVALID_OPERATION -> "zero is bound to target. (is buffer: $isBuffer, GL_VERTEX_ARRAY_BINDING: ${vertexArrayBinding[0]}, GL_ARRAY_BUFFER_BINDING: ${arrayBufferBinding[0]})"
-                    GL_INVALID_VALUE -> "offset ($offset) or size is negative, or offset+sizeoffset+size is greater than the value of GL_BUFFER_SIZE for the specified buffer object."
+                    GL_INVALID_VALUE -> "offset ($offsetInBytes) or size is negative, or offset+sizeoffset+size is greater than the value of GL_BUFFER_SIZE for the specified buffer object."
                     else -> null
                 }
             }
         } else {
             val temp = BufferUtils.createByteBuffer(data.capacity())
             temp.put(data)
-            write(temp, offset)
+            temp.flip()
+            write(temp, offsetInBytes)
         }
     }
 
@@ -150,18 +150,21 @@ class VertexBufferGL3(
         write(source.byteBuffer, targetByteOffset)
     }
 
-    override fun read(data: ByteBuffer, offset: Int) {
+    override fun read(data: ByteBuffer, offsetInBytes: Int) {
         if (isDestroyed) {
-            throw IllegalStateException("buffer is destroyed")
+            error("buffer is destroyed")
         }
-
         if (data.isDirect) {
-            bind()
-            glGetBufferSubData(GL_ARRAY_BUFFER, offset.toLong(), data)
-            checkGLErrors()
+            if (useNamedBuffer) {
+                glGetNamedBufferSubData(buffer, offsetInBytes.toLong(), data)
+            } else {
+                bind()
+                glGetBufferSubData(GL_ARRAY_BUFFER, offsetInBytes.toLong(), data)
+                debugGLErrors()
+            }
         } else {
             val temp = BufferUtils.createByteBuffer(data.capacity())
-            read(temp, offset)
+            read(temp, offsetInBytes)
             data.put(temp)
         }
     }
@@ -181,7 +184,7 @@ class VertexBufferGL3(
 
     fun bind() {
         if (isDestroyed) {
-            throw IllegalStateException("buffer is destroyed")
+            error("buffer is destroyed")
         }
         logger.trace { "binding vertex buffer $buffer" }
         glBindBuffer(GL_ARRAY_BUFFER, buffer)

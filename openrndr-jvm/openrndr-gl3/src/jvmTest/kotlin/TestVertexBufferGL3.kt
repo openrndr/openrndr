@@ -43,9 +43,26 @@ class TestVertexBufferGL3 : AbstractApplicationTestFixture() {
 
     @Test
     fun `should be able to read to a direct byte buffer`() {
-        val nonDirectByteBuffer = BufferUtils.createByteBuffer(vbgl3.vertexFormat.size * vbgl3.vertexCount)
-        vbgl3.read(nonDirectByteBuffer)
+        val byteBuffer = BufferUtils.createByteBuffer(vbgl3.vertexFormat.size * vbgl3.vertexCount)
+        for (i in 0 until 10) {
+            byteBuffer.putFloat(i.toFloat())
+        }
+        byteBuffer.rewind()
+        vbgl3.write(byteBuffer)
+
+        byteBuffer.position(0)
+        vbgl3.read(byteBuffer)
+        for (i in 0 until 10) {
+            assertEquals(byteBuffer.getFloat(), i.toFloat())
+        }
     }
+
+    @Test
+    fun `should be able to write buffer`() {
+        val nonDirectByteBuffer = BufferUtils.createByteBuffer(vbgl3.vertexFormat.size)
+        vbgl3.write(nonDirectByteBuffer)
+    }
+
 
     @Test
     fun `a vertex buffer with array attributes`() {
