@@ -39,6 +39,8 @@ class ComputeShaderGL43(
     }
 
     override val ssbo: Int = createSSBO()
+    override val ssboResourceIndices = mutableMapOf<String, Int>()
+
 
     override fun destroy() {
         if (!destroyed) {

@@ -16,60 +16,73 @@ private val logger = KotlinLogging.logger {}
 interface ShaderBufferBindingsGL3 : ShaderBufferBindings, ShaderUniformsGL3 {
     val ssbo: Int
 
-    fun createSSBO() : Int {
-        if ((Driver.instance as DriverGL3).version >= DriverVersionGL.VERSION_4_3 ) {
-            return glGenBuffers()
+    val ssboResourceIndices: MutableMap<String, Int>
+
+    fun resourceIndex(name: String): Int = ssboResourceIndices.getOrPut(name) {
+        val resourceIndex = GL45C.glGetProgramResourceIndex(programObject, GL_SHADER_STORAGE_BLOCK, name)
+        if (resourceIndex == -1) {
+            logger.warn {
+                "no resource index for buffer '${name}'"
+            }
+        }
+        resourceIndex
+    }
+
+    fun createSSBO(): Int {
+        return if ((Driver.instance as DriverGL3).version >= DriverVersionGL.VERSION_4_3) {
+            glGenBuffers()
         } else {
-            return -1
+            -1
         }
     }
 
     override fun buffer(name: String, vertexBuffer: VertexBuffer) {
         require(ssbo != -1)
-        val resourceIndex = GL45C.glGetProgramResourceIndex(programObject, GL_SHADER_STORAGE_BLOCK, name )
-        require(resourceIndex != -1) {
-            "no resource index for buffer '${name}'"
-        }
-        val result = IntArray(1)
-        glGetProgramResourceiv(
-            programObject,
-            GL_SHADER_STORAGE_BLOCK,
-            resourceIndex,
-            intArrayOf(GL_BUFFER_BINDING),
-            intArrayOf(1),
-            result
-        )
-        val bindingIndex = result[0]
-        vertexBuffer as VertexBufferGL3
-        if (bindingIndex != -1) {
-            glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo)
-            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, bindingIndex, vertexBuffer.buffer)
-        } else {
-            error("no binding index for '${name}'")
+        val resourceIndex = resourceIndex(name)
+
+        if (resourceIndex != -1) {
+            val result = IntArray(1)
+            glGetProgramResourceiv(
+                programObject,
+                GL_SHADER_STORAGE_BLOCK,
+                resourceIndex,
+                intArrayOf(GL_BUFFER_BINDING),
+                intArrayOf(1),
+                result
+            )
+            val bindingIndex = result[0]
+            vertexBuffer as VertexBufferGL3
+            if (bindingIndex != -1) {
+                glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo)
+                glBindBufferBase(GL_SHADER_STORAGE_BUFFER, bindingIndex, vertexBuffer.buffer)
+            } else {
+                error("no binding index for '${name}'")
+            }
         }
     }
+
     override fun buffer(name: String, shaderStorageBuffer: ShaderStorageBuffer) {
         require(ssbo != -1)
-        val resourceIndex = GL45C.glGetProgramResourceIndex(programObject, GL_SHADER_STORAGE_BLOCK, name )
-        require(resourceIndex != -1) {
-            "no resource index for buffer '${name}'"
-        }
-        val result = IntArray(1)
-        glGetProgramResourceiv(
-            programObject,
-            GL_SHADER_STORAGE_BLOCK,
-            resourceIndex,
-            intArrayOf(GL_BUFFER_BINDING),
-            intArrayOf(1),
-            result
-        )
-        val bindingIndex = result[0]
-        shaderStorageBuffer as ShaderStorageBufferGL43
-        if (bindingIndex != -1) {
-            glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo)
-            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, bindingIndex, shaderStorageBuffer.buffer)
-        } else {
-            logger.warn("no binding index for '${name}'")
+        val resourceIndex = resourceIndex(name)
+
+        if (resourceIndex != -1) {
+            val result = IntArray(1)
+            glGetProgramResourceiv(
+                programObject,
+                GL_SHADER_STORAGE_BLOCK,
+                resourceIndex,
+                intArrayOf(GL_BUFFER_BINDING),
+                intArrayOf(1),
+                result
+            )
+            val bindingIndex = result[0]
+            shaderStorageBuffer as ShaderStorageBufferGL43
+            if (bindingIndex != -1) {
+                glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo)
+                glBindBufferBase(GL_SHADER_STORAGE_BUFFER, bindingIndex, shaderStorageBuffer.buffer)
+            } else {
+                logger.warn("no binding index for '${name}'")
+            }
         }
     }
 
@@ -97,8 +110,10 @@ interface ShaderBufferBindingsGL3 : ShaderBufferBindings, ShaderUniformsGL3 {
             )
             val bufferIndex = result[0]
             if (bufferIndex != -1) {
-                val bindingIndex = glGetActiveAtomicCounterBufferi(programObject, bufferIndex,
-                    GL_ATOMIC_COUNTER_BUFFER_BINDING)
+                val bindingIndex = glGetActiveAtomicCounterBufferi(
+                    programObject, bufferIndex,
+                    GL_ATOMIC_COUNTER_BUFFER_BINDING
+                )
                 if (bindingIndex != -1) {
                     glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo)
                     counterBuffer as AtomicCounterBufferGL42

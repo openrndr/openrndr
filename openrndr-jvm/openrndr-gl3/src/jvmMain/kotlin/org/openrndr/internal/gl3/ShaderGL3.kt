@@ -102,6 +102,7 @@ class ShaderGL3(
 ) : Shader, ShaderUniformsGL3, ShaderBufferBindingsGL3, ShaderImageBindingsGL43 {
 
     override val ssbo: Int = createSSBO()
+    override val ssboResourceIndices = mutableMapOf<String, Int>()
     override val useProgramUniform = (Driver.instance as DriverGL3).version >= DriverVersionGL.VERSION_4_2
 
     override val types: Set<ShaderType> =
