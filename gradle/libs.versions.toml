@@ -3,9 +3,9 @@ kotlinApi = "1.9"
 kotlinLanguage = "1.9"
 kotlin = "1.9.0"
 jvmTarget = "11"
-kotlinxCoroutines = "1.7.2"
+kotlinxCoroutines = "1.7.3"
 kotlinLogging = "3.0.0"
-kotlinxSerialization = "1.5.1"
+kotlinxSerialization = "1.6.0"
 dokka = "1.8.10"
 nebulaRelease = "17.2.2"
 gradleNexusPublish = "2.0.0-rc-1"
@@ -14,8 +14,7 @@ javacpp = "1.5.9"
 # ffmpeg version suffix should match javacpp version
 ffmpeg = "6.0-1.5.9"
 jsoup = "1.16.1"
-junitJupiter = "5.9.3"
-spek = "2.0.19"
+junitJupiter = "5.10.0"
 kluent = "1.73"
 kotest = "5.6.2"
 slf4j = "2.0.7"
@@ -49,8 +48,6 @@ jsoup = { group = "org.jsoup", name = "jsoup", version.ref = "jsoup" }
 
 jupiter-api = { group = "org.junit.jupiter", name = "junit-jupiter-api", version.ref = "junitJupiter" }
 jupiter-engine = { group = "org.junit.jupiter", name = "junit-jupiter-engine", version.ref = "junitJupiter" }
-spek-dsl = { group = "org.spekframework.spek2", name = "spek-dsl-jvm", version.ref = "spek" }
-spek-junit5 = { group = "org.spekframework.spek2", name = "spek-runner-junit5", version.ref = "spek" }
 kluent = { group = "org.amshove.kluent", name = "kluent", version.ref = "kluent" }
 kotest-assertions = { group = "io.kotest", name = "kotest-assertions-core", version.ref = "kotest" }
 kotest-runner = { group = "io.kotest", name = "kotest-runner-junit5", version.ref = "kotest" }
