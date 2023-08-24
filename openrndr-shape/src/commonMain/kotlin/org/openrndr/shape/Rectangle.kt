@@ -193,7 +193,12 @@ data class Rectangle(val corner: Vector2, val width: Double, val height: Double 
     companion object {
         /** Creates a new [Rectangle] by specifying the [center] position with dimensions [width] and [height]. */
         fun fromCenter(center: Vector2, width: Double, height: Double = width) =
-            Rectangle(center.x - width / 2.0, center.y - height / 2.0, width, height)
+            fromAnchor(Vector2(0.5, 0.5), center, width, height)
+
+
+        /** Creates a new [Rectangle] by specifying the [anchorUV], [anchor] positions with dimensions [width] and [height]. */
+        fun fromAnchor(anchorUV: Vector2, anchor: Vector2, width:Double, height: Double = width) =
+            Rectangle(anchor.x - width * anchorUV.x, anchor.y - height * anchorUV.y, width, height)
 
         /** A zero-length [Rectangle]. */
         val EMPTY = Rectangle(0.0, 0.0, 0.0, 0.0)
