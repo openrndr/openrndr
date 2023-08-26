@@ -10,7 +10,7 @@ dependencies {
     }
     runtimeOnly(libs.bundles.javacpp.ffmpeg) {
         artifact {
-            classifier = "windows-x86_64-gpl"
+            classifier = "windows-x86_64"
             extension = DependencyArtifact.DEFAULT_TYPE
         }
     }
