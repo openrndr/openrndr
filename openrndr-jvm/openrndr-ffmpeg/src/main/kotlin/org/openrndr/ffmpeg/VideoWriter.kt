@@ -16,7 +16,7 @@ import java.nio.channels.WritableByteChannel
 
 private val logger = KotlinLogging.logger {}
 
-private val builtInFfmpegBinary = Loader.load(ffmpeg::class.java)
+private val builtInFfmpegBinary by lazy { Loader.load(ffmpeg::class.java) }
 
 @ExtensionDslMarker
 abstract class VideoWriterProfile {
