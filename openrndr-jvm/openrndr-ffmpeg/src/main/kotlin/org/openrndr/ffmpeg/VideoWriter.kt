@@ -6,6 +6,7 @@ import org.bytedeco.javacpp.Loader
 import org.lwjgl.BufferUtils
 import org.openrndr.ExtensionDslMarker
 import org.openrndr.draw.ColorBuffer
+import org.openrndr.platform.Platform
 import java.io.File
 import java.io.IOException
 import java.io.OutputStream
@@ -151,6 +152,34 @@ class VideoWriter {
         this.filename = filename
     }
 
+    fun findFfmpeg(): File? {
+        val ffmpegExe = if (System.getProperty("os.name").contains("Windows")) "ffmpeg.exe" else "ffmpeg"
+
+        return when (val ffmpegPathArg = (System.getProperties()["org.openrndr.ffmpeg"] as? String)) {
+            // 1, 2. `-Dorg.openrndr.ffmpeg` not provided by the user
+            null -> {
+                val directory = (listOf(File(".")) + Platform.path()).find { File(it, ffmpegExe).exists() }
+                if (directory != null) {
+                    logger.info { "ffmpeg found in '$directory'" }
+                    File(directory, ffmpegExe)
+                } else {
+                    null
+                }
+            }
+            // 3. Use built-in ffmpeg from jar because user passed `-Dorg.openrndr.ffmpeg=jar`
+            "jar" -> {
+                null
+            }
+            // 4. User requested specific ffmpeg binary with `-Dorg.openrndr.ffmpeg=/some/path/ffmpeg[.exe]`
+            else -> {
+                val specified = File(ffmpegPathArg)
+                require(specified.exists()) {
+                    "file '$ffmpegPathArg' does not exist"
+                }
+                specified
+            }
+        }
+    }
 
     /**
      * Start writing to the video file
@@ -186,32 +215,13 @@ class VideoWriter {
         val codec = profile.arguments()
         val arguments = ArrayList<String>()
 
-        // Decide ffmpeg location
-        val ffmpegExe = if (System.getProperty("os.name").contains("Windows")) "ffmpeg.exe" else "ffmpeg"
-        when (val ffmpegPathArg = (System.getProperties()["org.openrndr.ffmpeg"] as? String)) {
-            // `-Dorg.openrndr.ffmpeg` not provided by the user
-            null -> {
-                val localExecutable = File("./$ffmpegExe")
-                if (localExecutable.exists()) {
-                    // 1. Use ffmpeg from current working directory
-                    arguments.add("./$ffmpegExe")
-                } else {
-                    // 2. Assume ffmpeg it's in the path. Let it fail if not found.
-                    arguments.add(ffmpegExe)
-                }
-            }
+        val ffmpegFile = findFfmpeg()
 
-            // 3. Use built-in ffmpeg from jar because user passed `-Dorg.openrndr.ffmpeg=jar`
-            "jar" -> {
-                arguments.add(builtInFfmpegBinary)
-            }
-
-            // 4. User requested specific ffmpeg binary with `-Dorg.openrndr.ffmpeg=/some/path/ffmpeg[.exe]`
-            else -> {
-                arguments.add(ffmpegPathArg)
-            }
+        if (ffmpegFile != null) {
+            arguments.add(ffmpegFile.toString())
+        } else {
+            arguments.add(builtInFfmpegBinary)
         }
-
         arguments.addAll(listOf(*preamble))
         arguments.addAll(listOf(*codec))
 

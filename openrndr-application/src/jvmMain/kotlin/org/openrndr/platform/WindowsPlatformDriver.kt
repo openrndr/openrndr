@@ -33,7 +33,33 @@ class WindowsPlatformDriver : PlatformDriver {
         val randomID: String
 
         init {
-            val alphabet = charArrayOf('a', 'b', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z')
+            val alphabet = charArrayOf(
+                'a',
+                'b',
+                'd',
+                'e',
+                'f',
+                'g',
+                'h',
+                'i',
+                'j',
+                'k',
+                'l',
+                'm',
+                'n',
+                'o',
+                'p',
+                'q',
+                'r',
+                's',
+                't',
+                'u',
+                'v',
+                'w',
+                'x',
+                'y',
+                'z'
+            )
 
             var id = ""
             for (i in 0..7) {
@@ -43,6 +69,10 @@ class WindowsPlatformDriver : PlatformDriver {
             randomID = id
         }
 
+    }
+
+    override fun path(): List<File> {
+        return System.getenv("PATH").split(";").map { File(it) }
     }
 
 }

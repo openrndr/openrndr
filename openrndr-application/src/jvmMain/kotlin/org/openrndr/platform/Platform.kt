@@ -1,10 +1,11 @@
 package org.openrndr.platform
 
 import java.io.File
+import java.nio.file.Path
 import java.util.*
 
 actual object Platform {
-    private val driver : PlatformDriver = instantiateDriver()
+    private val driver: PlatformDriver = instantiateDriver()
     private fun instantiateDriver(): PlatformDriver {
         val os = System.getProperty("os.name").lowercase(Locale.getDefault())
         return when {
@@ -34,5 +35,9 @@ actual object Platform {
 
     fun supportDirectory(programName: String): File {
         return driver.supportDirectory(programName)
+    }
+
+    fun path(): List<File> {
+        return driver.path()
     }
 }
