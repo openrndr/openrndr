@@ -5,10 +5,7 @@ import org.lwjgl.stb.STBTruetype
 import org.lwjgl.system.MemoryStack.stackPush
 import org.lwjgl.system.MemoryUtil
 import org.openrndr.draw.font.internal.FontDriver
-import org.openrndr.shape.IntRectangle
-import org.openrndr.shape.Rectangle
-import org.openrndr.shape.Shape
-import org.openrndr.shape.contours
+import org.openrndr.shape.*
 import org.openrndr.utils.buffer.MPPBuffer
 import org.openrndr.utils.url.resolveFileOrUrl
 import java.lang.ref.Cleaner
@@ -103,27 +100,35 @@ class GlyphStbTt(private val face: FaceStbTt, private val character: Char, priva
         val shapeContours = contours {
             for (i in 0 until shape.remaining()) {
                 val v = shape.get()
-                if (v.type() == STBTruetype.STBTT_vmove) {
-                    moveTo(v.x() * scale, v.y() * -scale)
-                } else if (v.type() == STBTruetype.STBTT_vline) {
-                    lineTo(v.x() * scale, v.y() * -scale)
-                } else if (v.type() == STBTruetype.STBTT_vcurve) {
-                    curveTo(v.cx() * scale, v.cy() * -scale, v.x() * scale, v.y() * -scale)
-                } else if (v.type() == STBTruetype.STBTT_vcubic) {
-                    curveTo(
-                        v.cx() * scale,
-                        v.cy() * -scale,
-                        v.cx1() * scale,
-                        v.cy1() * -scale,
-                        v.x() * scale,
-                        v.y() * -scale
+                when (v.type()) {
+                    STBTruetype.STBTT_vmove -> moveTo(
+                        v.x() * scale, v.y() * -scale
+                    )
+
+                    STBTruetype.STBTT_vline -> lineTo(
+                        v.x() * scale, v.y() * -scale
+                    )
+
+                    STBTruetype.STBTT_vcurve -> curveTo(
+                        v.cx() * scale, v.cy() * -scale,
+                        v.x() * scale, v.y() * -scale
+                    )
+
+                    STBTruetype.STBTT_vcubic -> curveTo(
+                        v.cx() * scale, v.cy() * -scale,
+                        v.cx1() * scale, v.cy1() * -scale,
+                        v.x() * scale, v.y() * -scale
                     )
                 }
                 v.free()
             }
         }
         shape.free()
-        return Shape(shapeContours.map { it.close() })
+        return Shape(if (shapeContours.first().winding == Winding.COUNTER_CLOCKWISE)
+            shapeContours.map { it.reversed.close() }
+        else
+            shapeContours.map { it.close() }
+        )
     }
 
     override fun advanceWidth(size: Double): Double {
