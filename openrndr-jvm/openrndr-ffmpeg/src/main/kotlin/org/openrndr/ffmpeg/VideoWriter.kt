@@ -1,9 +1,12 @@
 package org.openrndr.ffmpeg
 
 import mu.KotlinLogging
+import org.bytedeco.ffmpeg.ffmpeg
+import org.bytedeco.javacpp.Loader
 import org.lwjgl.BufferUtils
 import org.openrndr.ExtensionDslMarker
 import org.openrndr.draw.ColorBuffer
+import org.openrndr.platform.Platform
 import java.io.File
 import java.io.IOException
 import java.io.OutputStream
@@ -11,9 +14,10 @@ import java.nio.Buffer
 import java.nio.ByteBuffer
 import java.nio.channels.Channels
 import java.nio.channels.WritableByteChannel
-import java.util.*
 
 private val logger = KotlinLogging.logger {}
+
+private val builtInFfmpegBinary by lazy { Loader.load(ffmpeg::class.java) }
 
 @ExtensionDslMarker
 abstract class VideoWriterProfile {
@@ -148,6 +152,34 @@ class VideoWriter {
         this.filename = filename
     }
 
+    fun findFfmpeg(): File? {
+        val ffmpegExe = if (System.getProperty("os.name").contains("Windows")) "ffmpeg.exe" else "ffmpeg"
+
+        return when (val ffmpegPathArg = (System.getProperties()["org.openrndr.ffmpeg"] as? String)) {
+            // 1, 2. `-Dorg.openrndr.ffmpeg` not provided by the user
+            null -> {
+                val directory = (listOf(File(".")) + Platform.path()).find { File(it, ffmpegExe).exists() }
+                if (directory != null) {
+                    logger.info { "ffmpeg found in '$directory'" }
+                    File(directory, ffmpegExe)
+                } else {
+                    null
+                }
+            }
+            // 3. Use built-in ffmpeg from jar because user passed `-Dorg.openrndr.ffmpeg=jar`
+            "jar" -> {
+                null
+            }
+            // 4. User requested specific ffmpeg binary with `-Dorg.openrndr.ffmpeg=/some/path/ffmpeg[.exe]`
+            else -> {
+                val specified = File(ffmpegPathArg)
+                require(specified.exists()) {
+                    "file '$ffmpegPathArg' does not exist"
+                }
+                specified
+            }
+        }
+    }
 
     /**
      * Start writing to the video file
@@ -183,15 +215,12 @@ class VideoWriter {
         val codec = profile.arguments()
         val arguments = ArrayList<String>()
 
-        if (System.getProperty("os.name").contains("Windows")) {
-            arguments.add("ffmpeg.exe")
+        val ffmpegFile = findFfmpeg()
+
+        if (ffmpegFile != null) {
+            arguments.add(ffmpegFile.toString())
         } else {
-            val localExecutable = File("./ffmpeg")
-            if (localExecutable.exists()) {
-                arguments.add("./ffmpeg")
-            } else {
-                arguments.add("ffmpeg")
-            }
+            arguments.add(builtInFfmpegBinary)
         }
         arguments.addAll(listOf(*preamble))
         arguments.addAll(listOf(*codec))

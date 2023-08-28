@@ -7,4 +7,8 @@ internal actual interface PlatformDriver {
     fun cacheDirectory(programName: String): File
     fun supportDirectory(programName: String): File
 
+    /**
+     * return the system path
+     */
+    fun path(): List<File>
 }
