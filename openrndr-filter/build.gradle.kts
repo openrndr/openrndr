@@ -4,7 +4,7 @@ plugins {
 
 val embedShaders = tasks.register<EmbedShadersTask>("embedShaders") {
     inputDir.set(file("$projectDir/src/shaders/glsl"))
-    outputDir.set(file("$buildDir/generated/shaderKotlin"))
+    outputDir.set(file("${layout.buildDirectory}/generated/shaderKotlin"))
 
     defaultPackage.set("org.openrndr.filter")
     defaultVisibility.set("")
