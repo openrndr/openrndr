@@ -13,12 +13,11 @@ import java.nio.Buffer
 import java.nio.ByteBuffer
 
 class FaceStbTt(data: ByteBuffer, fontInfo: STBTTFontinfo) : Face, AutoCloseable {
-    companion object {
-        val cleaner: Cleaner = Cleaner.create()
-    }
 
-    class State(val data: ByteBuffer, val fontInfo: STBTTFontinfo) : Runnable {
-        override fun run() {
+
+
+    class State(val data: ByteBuffer, val fontInfo: STBTTFontinfo)  {
+        fun destroy() {
             MemoryUtil.memFree(data)
         }
     }
@@ -28,7 +27,6 @@ class FaceStbTt(data: ByteBuffer, fontInfo: STBTTFontinfo) : Face, AutoCloseable
             return state.fontInfo
         }
     private val state = State(data, fontInfo)
-    private val cleanable = cleaner.register(this, state)
 
     internal fun scaleForSize(size: Double): Double {
         return (STBTruetype.stbtt_ScaleForPixelHeight(state.fontInfo, size.toFloat())).toDouble()
@@ -87,7 +85,7 @@ class FaceStbTt(data: ByteBuffer, fontInfo: STBTTFontinfo) : Face, AutoCloseable
     }
 
     override fun close() {
-        cleanable.clean()
+        state.destroy()
     }
 }
 
@@ -148,7 +146,7 @@ class GlyphStbTt(private val face: FaceStbTt, private val character: Char, priva
     }
 
     override fun topSideBearing(size: Double): Double {
-        TODO("Not yet implemented")
+        return 0.0
     }
 
     override fun bounds(size: Double): Rectangle {
