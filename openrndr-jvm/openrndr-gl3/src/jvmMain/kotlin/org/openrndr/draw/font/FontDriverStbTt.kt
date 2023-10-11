@@ -8,15 +8,11 @@ import org.openrndr.draw.font.internal.FontDriver
 import org.openrndr.shape.*
 import org.openrndr.utils.buffer.MPPBuffer
 import org.openrndr.utils.url.resolveFileOrUrl
-import java.lang.ref.Cleaner
-import java.nio.Buffer
 import java.nio.ByteBuffer
 
-class FaceStbTt(data: ByteBuffer, fontInfo: STBTTFontinfo) : Face, AutoCloseable {
+class FaceStbTt(data: ByteBuffer, fontInfo: STBTTFontinfo) : Face {
 
-
-
-    class State(val data: ByteBuffer, val fontInfo: STBTTFontinfo)  {
+    class State(val data: ByteBuffer, val fontInfo: STBTTFontinfo) {
         fun destroy() {
             MemoryUtil.memFree(data)
         }
@@ -91,37 +87,39 @@ class FaceStbTt(data: ByteBuffer, fontInfo: STBTTFontinfo) : Face, AutoCloseable
 
 class GlyphStbTt(private val face: FaceStbTt, private val character: Char, private val glyphIndex: Int) : Glyph {
     override fun shape(size: Double): Shape {
-        val shape = STBTruetype.stbtt_GetCodepointShape(face.fontInfo, character.code) ?: return Shape.EMPTY
+        val shapeBuffer = STBTruetype.stbtt_GetCodepointShape(face.fontInfo, character.code) ?: return Shape.EMPTY
         val scale = face.scaleForSize(size)
 
         // returned values are for up=+y, convert to up=-y
         val shapeContours = contours {
-            for (i in 0 until shape.remaining()) {
-                val v = shape.get()
-                when (v.type()) {
-                    STBTruetype.STBTT_vmove -> moveTo(
-                        v.x() * scale, v.y() * -scale
-                    )
+            shapeBuffer.use { shape ->
+                for (i in 0 until shape.remaining()) {
+                    val v = shape.get()
+                    when (v.type()) {
+                        STBTruetype.STBTT_vmove -> moveTo(
+                            v.x() * scale, v.y() * -scale
+                        )
 
-                    STBTruetype.STBTT_vline -> lineTo(
-                        v.x() * scale, v.y() * -scale
-                    )
+                        STBTruetype.STBTT_vline -> lineTo(
+                            v.x() * scale, v.y() * -scale
+                        )
 
-                    STBTruetype.STBTT_vcurve -> curveTo(
-                        v.cx() * scale, v.cy() * -scale,
-                        v.x() * scale, v.y() * -scale
-                    )
+                        STBTruetype.STBTT_vcurve -> curveTo(
+                            v.cx() * scale, v.cy() * -scale,
+                            v.x() * scale, v.y() * -scale
+                        )
 
-                    STBTruetype.STBTT_vcubic -> curveTo(
-                        v.cx() * scale, v.cy() * -scale,
-                        v.cx1() * scale, v.cy1() * -scale,
-                        v.x() * scale, v.y() * -scale
-                    )
+                        STBTruetype.STBTT_vcubic -> curveTo(
+                            v.cx() * scale, v.cy() * -scale,
+                            v.cx1() * scale, v.cy1() * -scale,
+                            v.x() * scale, v.y() * -scale
+                        )
+
+                        else -> error("unsupported vertex type: ${v.type()}")
+                    }
                 }
-                v.free()
             }
         }
-        shape.free()
         return Shape(if (shapeContours.first().winding == Winding.COUNTER_CLOCKWISE)
             shapeContours.map { it.reversed.close() }
         else
@@ -231,12 +229,12 @@ class GlyphStbTt(private val face: FaceStbTt, private val character: Char, priva
 class FontDriverStbTt : FontDriver {
     override fun loadFace(fileOrUrl: String): Face {
         val (file, url) = resolveFileOrUrl(fileOrUrl)
-        val byteArray = file?.readBytes() ?: url?.readBytes() ?: error("no file or url")
+        val byteArray = file?.readBytes() ?: url?.readBytes() ?: error("no content for file or url: '$fileOrUrl'")
         val fileSize = byteArray.size
 
         val bb = MemoryUtil.memAlloc(fileSize)
         bb.put(byteArray, 0, fileSize)
-        (bb as Buffer).rewind()
+        bb.rewind()
         val fontInfo = STBTTFontinfo.create()
 
         val status = STBTruetype.stbtt_InitFont(fontInfo, bb)
