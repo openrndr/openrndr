@@ -36,6 +36,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
     private var window: Long = NULL
     private var realWindowTitle = configuration.title
     private var exitRequested = false
+    private var exitHandled = false
     private val fixWindowSize = System.getProperty("os.name").contains("windows", true) ||
             System.getProperty("os.name").contains("linux", true)
     private var setupCalled = false
@@ -192,6 +193,16 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
         }
 
     init {
+        Runtime.getRuntime().addShutdownHook(object : Thread() {
+            override fun run() {
+                logger.info { "Program interrupted" }
+                exitRequested = true
+                while (!exitHandled) {
+                    sleep(10)
+                }
+            }
+        })
+
         logger.debug { "debug output enabled" }
         logger.trace { "trace level enabled" }
 
@@ -319,7 +330,9 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
         }
 
 
-        if (System.getProperty("os.name").contains("windows", true) && System.getProperty("org.openrndr.pointerevents") != null) {
+        if (System.getProperty("os.name")
+                .contains("windows", true) && System.getProperty("org.openrndr.pointerevents") != null
+        ) {
             logger.info { "experimental touch input enabled" }
             pointerInput = PointerInputManagerWin32(window, this)
         }
@@ -566,15 +579,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
             GLUtil.setupDebugMessageCallback()
         }
 
-        Runtime.getRuntime().addShutdownHook(object : Thread() {
-            override fun run() {
-                logger.debug { "shutting down extensions from shutdown hook" }
-                for (extension in program.extensions) {
-                    extension.shutdown(program)
-                }
-                program.extensions.clear()
-            }
-        })
+
 
         program.driver = Driver.instance
         program.drawer = Drawer(Driver.instance)
@@ -592,7 +597,6 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
     override fun loop() {
         logger.debug { "starting loop" }
         preloop()
-
 
 
         var lastDragPosition = Vector2.ZERO
@@ -912,26 +916,30 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
                 program.dispatcher.execute()
             }
         }
-        logger.debug { "exiting loop" }
+        logger.debug { "Exiting draw loop" }
 
-        logger.debug { "shutting down extensions" }
-        for (extension in program.extensions) {
-            extension.shutdown(program)
+        logger.debug { "Shutting down extensions" }
+        synchronized(program.extensions) {
+            for (extension in program.extensions) {
+                extension.shutdown(program)
+            }
+            program.extensions.clear()
         }
-        program.extensions.clear()
 
+        logger.debug { "Triggering ENDED event" }
         program.ended.trigger(ProgramEvent(ProgramEventType.ENDED))
-
 
         Driver.instance.destroyContext(Driver.instance.contextID)
 
         glfwFreeCallbacks(window)
         glfwDestroyWindow(window)
 
+        exitHandled = true
+
         // TODO: take care of these when all windows are closed
         //glfwTerminate()
         //glfwSetErrorCallback(null)?.free()
-        logger.debug { "done" }
+        logger.debug { "Exit handled." }
 
         exception?.let {
             logger.info { "OPENRNDR program ended with exceptions" }
@@ -978,7 +986,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
             logger.trace { "window: ${program.window.size.x.toInt()}x${program.window.size.y.toInt()} program: ${program.width}x${program.height}" }
             program.drawImpl()
         } catch (e: Throwable) {
-            logger.error { "Caught exception inside program the program loop" }
+            logger.error { "Caught exception inside program the program loop. (${e.message})" }
             return e
         }
         return null
