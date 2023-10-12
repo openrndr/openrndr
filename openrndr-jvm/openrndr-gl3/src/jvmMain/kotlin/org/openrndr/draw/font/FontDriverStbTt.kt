@@ -120,11 +120,17 @@ class GlyphStbTt(private val face: FaceStbTt, private val character: Char, priva
                 }
             }
         }
-        return Shape(if (shapeContours.first().winding == Winding.COUNTER_CLOCKWISE)
-            shapeContours.map { it.reversed.close() }
-        else
-            shapeContours.map { it.close() }
-        )
+        return if (shapeContours.isNotEmpty()) {
+            Shape(
+                if (shapeContours.first().winding == Winding.COUNTER_CLOCKWISE) {
+                    shapeContours.map { it.reversed.close() }
+                } else {
+                    shapeContours.map { it.close() }
+                }
+            )
+        } else {
+            Shape.EMPTY
+        }
     }
 
     override fun advanceWidth(size: Double): Double {
