@@ -47,17 +47,17 @@ class ContourBuilder(private val multipleContours: Boolean) {
     internal val contours = mutableListOf<ShapeContour>()
 
 
-    fun copy(source: ShapeContour) {
+    fun copy(source: ShapeContour, connectEpsilon: Double = 1E-6) {
         if (this.segments.isEmpty() && !source.empty) {
             segments.addAll(source.segments)
             anchor = segments.first().start
             cursor = segments.last().end
         } else if (!source.empty) {
-            val d = cursor-source.segments.first().start
-            if (d.squaredLength < 1E-6) {
+            val d = cursor - source.segments.first().start
+            if (d.squaredLength > connectEpsilon * connectEpsilon) {
                 lineTo(source.segments.first().start)
             }
-            for(segment in source.segments) {
+            for (segment in source.segments) {
                 segment(segment)
             }
         }
@@ -130,7 +130,7 @@ class ContourBuilder(private val multipleContours: Boolean) {
     }
 
     fun moveOrCurveTo(c0x: Double, c0y: Double, c1x: Double, c1y: Double, x: Double, y: Double) =
-            moveOrCurveTo(Vector2(c0x, c0y), Vector2(c1x, c1y), Vector2(x, y))
+        moveOrCurveTo(Vector2(c0x, c0y), Vector2(c1x, c1y), Vector2(x, y))
 
     /**
      * Line to
@@ -189,7 +189,7 @@ class ContourBuilder(private val multipleContours: Boolean) {
      * Cubic curve to
      */
     fun curveTo(c0x: Double, c0y: Double, c1x: Double, c1y: Double, x: Double, y: Double) =
-            curveTo(Vector2(c0x, c0y), Vector2(c1x, c1y), Vector2(x, y))
+        curveTo(Vector2(c0x, c0y), Vector2(c1x, c1y), Vector2(x, y))
 
     /**
      * Closes the contour, adds a line segment to `anchor` when needed
@@ -217,7 +217,6 @@ class ContourBuilder(private val multipleContours: Boolean) {
     }
 
 
-
     fun circularArcTo(through: Vector2, end: Vector2) {
         val circle = Circle.fromPoints(cursor, through, end)
         val side = LineSegment(cursor, end).side(through) < 0.0
@@ -230,13 +229,13 @@ class ContourBuilder(private val multipleContours: Boolean) {
     }
 
     fun arcTo(
-            crx: Double,
-            cry: Double,
-            angle: Double,
-            largeArcFlag: Boolean,
-            sweepFlag: Boolean,
-            tx: Double,
-            ty: Double
+        crx: Double,
+        cry: Double,
+        angle: Double,
+        largeArcFlag: Boolean,
+        sweepFlag: Boolean,
+        tx: Double,
+        ty: Double
     ) {
         // based on https://github.com/BigBadaboom/androidsvg/blob/master/androidsvg/src/main/java/com/caverock/androidsvg/SVGAndroidRenderer.java
 
@@ -348,8 +347,8 @@ class ContourBuilder(private val multipleContours: Boolean) {
             val x = bezierPoints[i].x
             val y = bezierPoints[i].y
             bezierPoints[i] = Vector2(
-                    cosAngle * rx * x + -sinAngle * ry * y + cx,
-                    sinAngle * rx * x + cosAngle * ry * y + cy
+                cosAngle * rx * x + -sinAngle * ry * y + cx,
+                sinAngle * rx * x + cosAngle * ry * y + cy
             )
         }
 
@@ -370,7 +369,7 @@ class ContourBuilder(private val multipleContours: Boolean) {
     }
 
     fun arcTo(crx: Double, cry: Double, angle: Double, largeArcFlag: Boolean, sweepFlag: Boolean, end: Vector2) =
-            arcTo(crx, cry, angle, largeArcFlag, sweepFlag, end.x, end.y)
+        arcTo(crx, cry, angle, largeArcFlag, sweepFlag, end.x, end.y)
 
     fun continueTo(end: Vector2, tangentScale: Double = 1.0) {
         if ((cursor - end).squaredLength > 0.0) {
@@ -398,7 +397,7 @@ class ContourBuilder(private val multipleContours: Boolean) {
     }
 
     fun continueTo(cx: Double, cy: Double, x: Double, y: Double, tangentScale: Double = 1.0) =
-            continueTo(Vector2(cx, cy), Vector2(x, y), tangentScale)
+        continueTo(Vector2(cx, cy), Vector2(x, y), tangentScale)
 
     private fun arcToBeziers(angleStart: Double, angleExtent: Double): Array<Vector2> {
         val numSegments = ceil(abs(angleExtent) * 2.0 / PI).toInt()
@@ -468,7 +467,12 @@ class ContourBuilder(private val multipleContours: Boolean) {
 
     val result: List<ShapeContour>
         get() {
-            return contours + if (segments.isNotEmpty()) listOf(ShapeContour(segments.map { it }, false)) else emptyList()
+            return contours + if (segments.isNotEmpty()) listOf(
+                ShapeContour(
+                    segments.map { it },
+                    false
+                )
+            ) else emptyList()
         }
 }
 
