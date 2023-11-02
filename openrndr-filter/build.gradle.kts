@@ -12,18 +12,14 @@ val embedShaders = tasks.register<EmbedShadersTask>("embedShaders") {
 }.get()
 
 kotlin {
+    kotlin.sourceSets.getByName("commonMain").kotlin.srcDir(embedShaders.outputDir)
     sourceSets {
-        val shaderKotlin by creating {
-            this.kotlin.srcDir(embedShaders.outputDir)
-        }
 
         @Suppress("UNUSED_VARIABLE")
         val commonMain by getting {
             dependencies {
                 implementation(project(":openrndr-draw"))
-                api(shaderKotlin.kotlin)
             }
-            dependsOn(shaderKotlin)
         }
     }
 }
