@@ -2,6 +2,8 @@
 
 package org.openrndr.shape
 
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import org.openrndr.math.LinearType
 import org.openrndr.math.Vector2
 import org.openrndr.math.YPolarity
@@ -27,13 +29,15 @@ import kotlin.math.sign
  * @param end End of the line segment.
  */
 @Suppress("MemberVisibilityCanBePrivate", "unused")
+@Serializable
 data class LineSegment(val start: Vector2, val end: Vector2) : LinearType<LineSegment>,
     ShapeProvider,
     ShapeContourProvider {
-    constructor(x0: Double, y0: Double, x1: Double, y1: Double) : this(Vector2(x0, y0), Vector2(x1, y1))
+
 
     /** Direction of the line segment */
     val direction get() = (end - start)
+
 
     /** The normal of the line segment, a unit vector. */
     val normal get() = (end - start).normalized.perpendicular(YPolarity.CW_NEGATIVE_Y)
@@ -223,3 +227,5 @@ fun intersection(a0: Vector2, a1: Vector2, b0: Vector2, b1: Vector2, eps: Double
         Vector2.INFINITY
     }
 }
+
+fun LineSegment(x0: Double, y0: Double, x1: Double, y1: Double) = LineSegment(Vector2(x0, y0), Vector2(x1, y1))

@@ -2,11 +2,14 @@
 
 package org.openrndr.shape
 
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import org.openrndr.kartifex.Region2
 import org.openrndr.math.*
 import org.openrndr.utils.resettableLazy
 import kotlin.random.Random
 
+@Serializable
 /**
  * A simple interface for managing a [List] of [ShapeContour].
  */
@@ -17,29 +20,33 @@ class Shape(val contours: List<ShapeContour>) : ShapeProvider {
          *
          * It is advised to use this instance whenever an empty shape is needed.
          */
-        val EMPTY = Shape(emptyList())
+        val EMPTY: Shape = Shape(emptyList())
 
         /** Creates a [Shape] from combining a [List] of Shapes */
         fun compound(shapes: List<Shape>) = Shape(shapes.flatMap { it.contours })
     }
 
     /** Returns [Shape] bounding box. */
+    @Transient
     private val boundsDelegate = resettableLazy {
         if (empty) {
             Rectangle(0.0, 0.0, 0.0, 0.0)
         } else {
-            contours.mapNotNull {
+            val result: List<Rectangle> = contours.mapNotNull {
                 if (it.empty) {
                     null
                 } else {
                     it.bounds
                 }
-            }.bounds
+            }
+            result.bounds
         }
     }
+
     val bounds by boundsDelegate
 
     /** Indicates the [Shape] topology. */
+    @Transient
     val topology = when {
         contours.isEmpty() -> ShapeTopology.OPEN
         contours.all { it.closed } -> ShapeTopology.CLOSED
@@ -47,21 +54,24 @@ class Shape(val contours: List<ShapeContour>) : ShapeProvider {
         else -> ShapeTopology.MIXED
     }
 
-    /** Lists all [ShapeContour]s with an [open topology][ShapeTopology.OPEN]. */
+    @Transient
+            /** Lists all [ShapeContour]s with an [open topology][ShapeTopology.OPEN]. */
     val openContours: List<ShapeContour> =
-            when (topology) {
-                ShapeTopology.OPEN -> contours
-                ShapeTopology.CLOSED -> emptyList()
-                ShapeTopology.MIXED -> contours.filter { !it.closed }
-            }
+        when (topology) {
+            ShapeTopology.OPEN -> contours
+            ShapeTopology.CLOSED -> emptyList()
+            ShapeTopology.MIXED -> contours.filter { !it.closed }
+        }
+
 
     /** Lists all [ShapeContour]s with a [closed topology][ShapeTopology.CLOSED]. */
+    @Transient
     val closedContours: List<ShapeContour> =
-            when (topology) {
-                ShapeTopology.OPEN -> emptyList()
-                ShapeTopology.CLOSED -> contours
-                ShapeTopology.MIXED -> contours.filter { it.closed }
-            }
+        when (topology) {
+            ShapeTopology.OPEN -> emptyList()
+            ShapeTopology.CLOSED -> contours
+            ShapeTopology.MIXED -> contours.filter { it.closed }
+        }
 
     /** Returns true if [Shape] contains no [ShapeContour]s. */
     val empty get() = this === EMPTY || contours.isEmpty()
@@ -72,7 +82,7 @@ class Shape(val contours: List<ShapeContour>) : ShapeProvider {
      * @param point The point to project.
      * @return a projected point that lies on the [ShapeContour].
      */
-    fun nearest(point: Vector2) : ContourPoint {
+    fun nearest(point: Vector2): ContourPoint {
         require(!empty) {
             """cannot perform nearest point query on empty shape"""
         }
@@ -86,21 +96,24 @@ class Shape(val contours: List<ShapeContour>) : ShapeProvider {
      */
     val linear get() = contours.all { it.segments.all { segment -> segment.linear } }
     fun polygon(distanceTolerance: Double = 0.5) =
-            if (empty) {
-                EMPTY
-            } else {
-                Shape(contours.map { it.sampleLinear(distanceTolerance) })
-            }
+        if (empty) {
+            EMPTY
+        } else {
+            Shape(contours.map { it.sampleLinear(distanceTolerance) })
+        }
 
+    @Transient
     private val triangulationDelegate = resettableLazy {
         triangulate(this).windowed(3, 3).map {
             Triangle(it[0], it[1], it[2])
         }
     }
 
+
     /** Triangulates [Shape] into a [List] of [Triangle]s. */
     val triangulation by triangulationDelegate
 
+    @Transient
     private val areaDelegate = resettableLazy {
         triangulation.sumOf { it.area }
     }
@@ -108,12 +121,14 @@ class Shape(val contours: List<ShapeContour>) : ShapeProvider {
     /** Calculates approximate area for this shape (through triangulation). */
     val area by areaDelegate
 
+    @Transient
     private val region2Delegate = resettableLazy {
         Region2(contours.map { it.ring2 })
     }
 
     internal val region2 by region2Delegate
 
+    @Transient
     private val path2Delegate = resettableLazy {
         contours.map { it.path2 }
     }
@@ -156,7 +171,6 @@ class Shape(val contours: List<ShapeContour>) : ShapeProvider {
     }
 
 
-
     /** The outline of the shape. */
     val outline get() = contours[0]
 
@@ -196,7 +210,7 @@ class Shape(val contours: List<ShapeContour>) : ShapeProvider {
             }
         }
 
-    /** Splits a org.openrndr.shape.compound shape into separate shapes. */
+    /** Splits an org.openrndr.shape.compound shape into separate shapes. */
     fun splitCompounds(winding: Winding = Winding.CLOCKWISE): List<Shape> {
         return if (contours.isEmpty()) {
             emptyList()
@@ -232,6 +246,7 @@ class Shape(val contours: List<ShapeContour>) : ShapeProvider {
 }
 
 /** Converts a [List] of [Shape] items into a single org.openrndr.shape.compound [Shape]. */
+@Transient
 val List<Shape>.compound
     get() = Shape.compound(this)
 

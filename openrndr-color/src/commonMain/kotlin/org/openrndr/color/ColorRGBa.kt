@@ -1,5 +1,6 @@
 package org.openrndr.color
 
+import kotlinx.serialization.Serializable
 import org.openrndr.math.Matrix55
 import org.openrndr.math.Vector3
 import org.openrndr.math.Vector4
@@ -7,6 +8,7 @@ import kotlin.jvm.JvmOverloads
 import kotlin.math.pow
 
 
+@Serializable
 enum class Linearity(val certainty: Int) {
     UNKNOWN(-1),
     LINEAR(1),
@@ -48,6 +50,7 @@ enum class Linearity(val certainty: Int) {
  * @see [rgb]
  * @see [rgba]
  */
+@Serializable
 @Suppress("EqualsOrHashCode") // generated equals() is ok, only hashCode() needs to be overridden
 data class ColorRGBa @JvmOverloads constructor(
     val r: Double,
@@ -185,14 +188,15 @@ data class ColorRGBa @JvmOverloads constructor(
     /**
      * Copy of the color with all of its fields clamped to `[0, 1]`
      */
-    val saturated
+    val saturated: ColorRGBa
         get() = ColorRGBa(
             r.coerceIn(0.0, 1.0),
             g.coerceIn(0.0, 1.0),
             b.coerceIn(0.0, 1.0),
             alpha.coerceIn(0.0, 1.0), linearity
         )
-    val alphaMultiplied get() = ColorRGBa(r * alpha, g * alpha, b * alpha, alpha, linearity)
+    val alphaMultiplied: ColorRGBa
+        get() = ColorRGBa(r * alpha, g * alpha, b * alpha, alpha, linearity)
 
     /**
      * The minimum value over `r`, `g`, `b`

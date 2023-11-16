@@ -1,5 +1,6 @@
 package org.openrndr.shape
 
+import kotlinx.serialization.Serializable
 import org.openrndr.math.Polar
 import org.openrndr.math.Vector2
 import org.openrndr.math.asDegrees
@@ -13,8 +14,8 @@ import kotlin.math.PI
  *
  * Alternatively, see [Ellipse].
  */
+@Serializable
 data class Circle(val center: Vector2, val radius: Double): Movable, Scalable1D, ShapeProvider, ShapeContourProvider {
-    constructor(x: Double, y: Double, radius: Double) : this(Vector2(x, y), radius)
 
     companion object {
         val INVALID = Circle(Vector2.INFINITY, 0.0)
@@ -190,3 +191,5 @@ data class Circle(val center: Vector2, val radius: Double): Movable, Scalable1D,
         Circle(center - right.center, radius - right.radius)
 
 }
+
+fun Circle(x: Double, y: Double, radius: Double) =  Circle(Vector2(x, y), radius)

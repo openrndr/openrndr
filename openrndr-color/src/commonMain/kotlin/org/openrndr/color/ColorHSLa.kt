@@ -1,5 +1,6 @@
 package org.openrndr.color
 
+import kotlinx.serialization.Serializable
 import org.openrndr.math.Vector4
 import org.openrndr.math.mixAngle
 import kotlin.jvm.JvmOverloads
@@ -15,6 +16,7 @@ import kotlin.jvm.JvmOverloads
  * @param alpha alpha as a percentage between 0.0 and 1.0
  */
 @Suppress("unused", "MemberVisibilityCanBePrivate")
+@Serializable
 data class ColorHSLa @JvmOverloads constructor (val h: Double, val s: Double, val l: Double, override val alpha: Double = 1.0) :
         ColorModel<ColorHSLa>,
         ShadableColor<ColorHSLa>,

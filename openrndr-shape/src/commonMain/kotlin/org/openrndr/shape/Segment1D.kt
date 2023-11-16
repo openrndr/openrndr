@@ -1,36 +1,17 @@
 package org.openrndr.shape
 
+import kotlinx.serialization.Serializable
 import org.openrndr.math.*
 import org.openrndr.shape.internal.BezierCubicSamplerT
 import org.openrndr.shape.internal.BezierQuadraticSamplerT
 import kotlin.math.max
 
-class Segment1D: LinearType<Segment1D> {
-    val start: Double
-    val end: Double
+@Serializable
+class Segment1D(val start: Double, val control: Array<Double>, val end: Double): LinearType<Segment1D> {
 
     /**
      * control points, zero-length iff the segment is linear
      */
-    val control: Array<Double>
-
-    constructor(start: Double, end: Double) {
-        this.start = start
-        this.end = end
-        this.control = emptyArray()
-    }
-
-    constructor(start: Double, c0: Double, end: Double) {
-        this.start = start
-        this.control = arrayOf(c0)
-        this.end = end
-    }
-
-    constructor(start: Double, c0: Double, c1: Double, end: Double) {
-        this.start = start
-        this.control = arrayOf(c0, c1)
-        this.end = end
-    }
 
     val linear: Boolean get() = control.isEmpty()
 
@@ -48,8 +29,8 @@ class Segment1D: LinearType<Segment1D> {
         get() {
             return when (control.size) {
                 0 -> Segment1D(end, start)
-                1 -> Segment1D(end, control[0], start)
-                2 -> Segment1D(end, control[1], control[0], start)
+                1 -> Segment1D(end, control, start)
+                2 -> Segment1D(end, control.reversed().toTypedArray(), start)
                 else -> throw RuntimeException("unsupported number of control points")
             }
         }
@@ -113,7 +94,7 @@ class Segment1D: LinearType<Segment1D> {
                     val pl2 = pl.z
                     val pl3 = pl.w
 
-                    val left = Segment1D(pl0, pl1, pl2, pl3)
+                    val left = Segment1D(pl0, arrayOf(pl1, pl2), pl3)
 
                     val rsm = Matrix44(
                         iz3, 3.0 * iz2 * z, 3.0 * iz * z2, z3,
@@ -129,7 +110,7 @@ class Segment1D: LinearType<Segment1D> {
                     val pr2 = pr.z
                     val pr3 = pr.w
 
-                    val right = Segment1D(pr0, pr1, pr2, pr3)
+                    val right = Segment1D(pr0, arrayOf(pr1, pr2), pr3)
 
                     return arrayOf(left, right)
                 }
@@ -204,8 +185,9 @@ class Segment1D: LinearType<Segment1D> {
             control.size == 1 -> {
                 Segment1D(
                     start,
+                    arrayOf(
                     start * (1.0 / 3.0) + control[0] * (2.0 / 3.0),
-                    control[0] * (2.0 / 3.0) + end * (1.0 / 3.0),
+                    control[0] * (2.0 / 3.0) + end * (1.0 / 3.0)),
                     end
                 )
             }
@@ -213,8 +195,9 @@ class Segment1D: LinearType<Segment1D> {
                 val delta = end - start
                 Segment1D(
                     start,
+                    arrayOf(
                     start + delta * (1.0 / 3.0),
-                    start + delta * (2.0 / 3.0),
+                    start + delta * (2.0 / 3.0)),
                     end
                 )
             }
@@ -235,8 +218,9 @@ class Segment1D: LinearType<Segment1D> {
                 val cthis = this.cubic
                 val cright = right.cubic
                 return Segment1D(cthis.start + cright.start,
+                    arrayOf(
                     cthis.control[0] + cright.control[0],
-                    cthis.control[1] + cright.control[1],
+                    cthis.control[1] + cright.control[1]),
                     cthis.end + cright.end)
             }
             else -> {
@@ -257,8 +241,9 @@ class Segment1D: LinearType<Segment1D> {
                 val cthis = this.cubic
                 val cright = right.cubic
                 return Segment1D(cthis.start - cright.start,
+                    arrayOf(
                     cthis.control[0] - cright.control[0],
-                    cthis.control[1] - cright.control[1],
+                    cthis.control[1] - cright.control[1]),
                     cthis.end - cright.end)
             }
             else -> {
@@ -303,3 +288,18 @@ class Segment1D: LinearType<Segment1D> {
         return sampleEquidistant(adaptivePositions(distanceTolerance).map { Vector1(it) }, pointCount).map { it.x }
     }
 }
+
+fun Segment1D(start: Double, end: Double) = Segment1D(
+    start,
+    emptyArray(),
+    end)
+
+fun Segment1D(start: Double, c0: Double, end: Double) = Segment1D(
+    start,
+    arrayOf(c0),
+    end)
+
+fun Segment1D(start: Double, c0: Double, c1: Double, end: Double) = Segment1D(
+    start,
+    arrayOf(c0, c1),
+    end)

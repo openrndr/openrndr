@@ -1,5 +1,6 @@
 plugins {
     org.openrndr.convention.`kotlin-multiplatform`
+    alias(libs.plugins.kotlin.serialization)
 }
 
 kotlin {
@@ -13,6 +14,7 @@ kotlin {
                 api(project(":openrndr-ktessellation"))
                 implementation(project(":openrndr-kartifex"))
                 implementation(libs.kotlin.logging)
+                implementation(libs.kotlin.serialization.core)
             }
         }
     }

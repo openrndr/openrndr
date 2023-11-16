@@ -1,5 +1,6 @@
 package org.openrndr.shape
 
+import kotlinx.serialization.Serializable
 import org.openrndr.math.CatmullRom3
 import org.openrndr.math.CatmullRomChain3
 import org.openrndr.math.Matrix44
@@ -10,6 +11,7 @@ import kotlin.math.pow
 
 class PathProjection3D(val segmentProjection: SegmentProjection3D, val projection: Double, val distance: Double, val point: Vector3)
 
+@Serializable
 class Path3D(val segments: List<Segment3D>, val closed: Boolean) {
     companion object {
         fun fromPoints(points: List<Vector3>, closed: Boolean) =
@@ -233,7 +235,7 @@ class Path3D(val segments: List<Segment3D>, val closed: Boolean) {
 
     }
 
-    val reversed get() = Path3D(segments.map { it.reverse }.reversed(), closed)
+    val reversed: Path3D get() = Path3D(segments.map { it.reverse }.reversed(), closed)
 
     val length get() = segments.sumOf { it.length }
 

@@ -1,5 +1,6 @@
 package org.openrndr.color
 
+import kotlinx.serialization.Serializable
 import org.openrndr.math.Vector4
 import kotlin.jvm.JvmOverloads
 import kotlin.math.min
@@ -12,6 +13,7 @@ import kotlin.math.min
  * @param z second chromaticity coordinate, quasi-equal to blue
  * @param alpha alpha as a percentage between 0.0 and 1.0
  */
+@Serializable
 data class ColorXYZa @JvmOverloads constructor (val x: Double, val y: Double, val z: Double, override val alpha: Double = 1.0) :
     ColorModel<ColorXYZa>,
     AlgebraicColor<ColorXYZa> {

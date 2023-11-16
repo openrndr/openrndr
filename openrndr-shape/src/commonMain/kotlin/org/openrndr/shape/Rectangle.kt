@@ -2,6 +2,8 @@
 
 package org.openrndr.shape
 
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import org.openrndr.math.Vector2
 import org.openrndr.math.YPolarity
 import org.openrndr.math.clamp
@@ -18,11 +20,10 @@ import kotlin.math.min
  *
  * Also see [IntRectangle].
  */
+@Serializable
 data class Rectangle(val corner: Vector2, val width: Double, val height: Double = width) : Movable, Scalable2D,
     ShapeProvider, ShapeContourProvider {
 
-    constructor(x: Double, y: Double, width: Double, height: Double = width) :
-            this(Vector2(x, y), width, height)
 
     /** The center of the [Rectangle]. */
     val center: Vector2
@@ -50,7 +51,7 @@ data class Rectangle(val corner: Vector2, val width: Double, val height: Double 
     val y: Double get() = corner.y
 
     /** Returns [Shape] representation of the [Rectangle]. */
-    override val shape get() = Shape(listOf(contour))
+    override val shape:Shape get() = Shape(listOf(contour))
 
     /** Returns [ShapeContour] representation of the [Rectangle]. */
     override val contour: ShapeContour
@@ -197,7 +198,7 @@ data class Rectangle(val corner: Vector2, val width: Double, val height: Double 
 
 
         /** Creates a new [Rectangle] by specifying the [anchorUV], [anchor] positions with dimensions [width] and [height]. */
-        fun fromAnchor(anchorUV: Vector2, anchor: Vector2, width:Double, height: Double = width) =
+        fun fromAnchor(anchorUV: Vector2, anchor: Vector2, width: Double, height: Double = width) =
             Rectangle(anchor.x - width * anchorUV.x, anchor.y - height * anchorUV.y, width, height)
 
         /** A zero-length [Rectangle]. */
@@ -327,3 +328,8 @@ fun Vector2.map(sourceRectangle: Rectangle, targetRectangle: Rectangle, clamp: B
  */
 fun List<Vector2>.map(sourceRectangle: Rectangle, targetRectangle: Rectangle, clamp: Boolean = false): List<Vector2> =
     this.map { it.map(sourceRectangle, targetRectangle, clamp) }
+
+
+fun Rectangle(x: Double, y: Double, width: Double, height: Double = width) = Rectangle(Vector2(x, y), width, height)
+
+

@@ -1,5 +1,6 @@
 package org.openrndr.shape
 
+import kotlinx.serialization.Serializable
 import org.openrndr.math.*
 import org.openrndr.shape.internal.BezierCubicSamplerT
 import org.openrndr.shape.internal.BezierQuadraticSamplerT
@@ -10,14 +11,9 @@ private fun sumDifferences(points: List<Vector3>) =
 
 class SegmentProjection3D(val segment: Segment3D, val projection: Double, val distance: Double, val point: Vector3)
 
-class Segment3D {
-    val start: Vector3
-    val end: Vector3
+@Serializable
+class Segment3D(val start: Vector3, val control: Array<Vector3>, val end: Vector3) {
 
-    /**
-     * control points, zero-length iff the segment is linear
-     */
-    val control: Array<Vector3>
 
     val linear: Boolean get() = control.isEmpty()
 
@@ -28,42 +24,6 @@ class Segment3D {
      * @param start starting point of the segment
      * @param end end point of the segment
      */
-    constructor(start: Vector3, end: Vector3) {
-        this.start = start
-        this.end = end
-        this.control = emptyArray()
-    }
-
-    /**
-     * Quadratic bezier segment constructor
-     * @param start starting point of the segment
-     * @param c0 control point
-     * @param end end point of the segment
-     */
-    constructor(start: Vector3, c0: Vector3, end: Vector3) {
-        this.start = start
-        this.control = arrayOf(c0)
-        this.end = end
-    }
-
-    /**
-     * Cubic bezier segment constructor
-     * @param start starting point of the segment
-     * @param c0 first control point
-     * @param c1 second control point
-     * @param end end point of the segment
-     */
-    constructor(start: Vector3, c0: Vector3, c1: Vector3, end: Vector3) {
-        this.start = start
-        this.control = arrayOf(c0, c1)
-        this.end = end
-    }
-
-    constructor(start: Vector3, control: Array<Vector3>, end: Vector3) {
-        this.start = start
-        this.control = control
-        this.end = end
-    }
 
     fun lut(size: Int = 100): List<Vector3> {
         if (lut == null || lut!!.size != size) {
@@ -437,3 +397,25 @@ class Segment3D {
 
 
 }
+
+fun Segment3D(start: Vector3, end: Vector3) = Segment3D(start, emptyArray(), end)
+
+
+/**
+ * Quadratic bezier segment constructor
+ * @param start starting point of the segment
+ * @param c0 control point
+ * @param end end point of the segment
+ */
+fun Segment3D(start: Vector3, c0: Vector3, end: Vector3) = Segment3D(start, arrayOf(c0), end)
+
+
+/**
+ * Cubic bezier segment constructor
+ * @param start starting point of the segment
+ * @param c0 first control point
+ * @param c1 second control point
+ * @param end end point of the segment
+ */
+fun Segment3D(start: Vector3, c0: Vector3, c1: Vector3, end: Vector3) = Segment3D(start, arrayOf(c0, c1), end)
+

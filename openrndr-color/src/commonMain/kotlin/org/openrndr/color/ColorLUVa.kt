@@ -1,5 +1,6 @@
 package org.openrndr.color
 
+import kotlinx.serialization.Serializable
 import org.openrndr.math.Vector4
 import kotlin.jvm.JvmOverloads
 import kotlin.math.pow
@@ -13,6 +14,7 @@ import kotlin.math.pow
  * @param ref reference white against which the color values are calculated
  */
 @Suppress("unused", "UNUSED_PARAMETER")
+@Serializable
 data class ColorLUVa @JvmOverloads constructor(
     val l: Double,
     val u: Double,

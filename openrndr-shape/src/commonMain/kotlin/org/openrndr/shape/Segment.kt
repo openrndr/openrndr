@@ -1,10 +1,11 @@
 package org.openrndr.shape
 
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import org.openrndr.math.*
 
 import org.openrndr.shape.internal.BezierCubicSamplerT
 import org.openrndr.shape.internal.BezierQuadraticSamplerT
-import kotlin.jvm.JvmOverloads
 import kotlin.math.*
 
 /**
@@ -12,26 +13,18 @@ import kotlin.math.*
  * or a Bézier curve path between two anchor points
  * (and up to two control points for curvature).
  */
-class Segment : ShapeContourProvider {
+@Serializable
+class Segment(val start:Vector2,
+              val control: Array<Vector2>,
+              val end:Vector2,
+              val corner: Boolean = false
+    ) : ShapeContourProvider {
     /** The start point of the [Segment]. */
-    val start: Vector2
-
-    /** The end point of the [Segment]. */
-    val end: Vector2
-
-    /**
-     * Array of control points which control the curvature of the [Segment].
-     *
-     * Returns 0 if the [Segment] is linear.
-     */
-    val control: Array<Vector2>
 
     /**
      * Indicates whether the [Segment] is [linear][SegmentType.LINEAR].
      */
     val linear: Boolean get() = control.isEmpty()
-
-    val corner: Boolean
 
     /**
      * Returns the type of the segment.
@@ -49,60 +42,10 @@ class Segment : ShapeContourProvider {
             }
         }
 
+    @Transient
     private var lut: List<Vector2>? = null
 
-    /**
-     * Linear segment constructor.
-     *
-     * @param start The starting anchor point.
-     * @param end The ending anchor point.
-     */
-    @JvmOverloads
-    constructor(start: Vector2, end: Vector2, corner: Boolean = true) {
-        this.start = start
-        this.end = end
-        this.control = emptyArray()
-        this.corner = corner
-    }
 
-    /**
-     * Quadratic Bézier segment constructor.
-     *
-     * @param start The starting anchor point.
-     * @param c0 The control point.
-     * @param end The ending anchor point.
-     */
-    @JvmOverloads
-    constructor(start: Vector2, c0: Vector2, end: Vector2, corner: Boolean = true) {
-        this.start = start
-        this.control = arrayOf(c0)
-        this.end = end
-        this.corner = corner
-    }
-
-    /**
-     * Cubic Bézier segment constructor.
-     *
-     * @param start The starting anchor point.
-     * @param c0 The first control point.
-     * @param c1 The second control point
-     * @param end The ending anchor point.
-     */
-    @JvmOverloads
-    constructor(start: Vector2, c0: Vector2, c1: Vector2, end: Vector2, corner: Boolean = true) {
-        this.start = start
-        this.control = arrayOf(c0, c1)
-        this.end = end
-        this.corner = corner
-    }
-
-    @JvmOverloads
-    constructor(start: Vector2, control: Array<Vector2>, end: Vector2, corner: Boolean = true) {
-        this.start = start
-        this.control = control
-        this.end = end
-        this.corner = corner
-    }
 
     @Suppress("unused")
     fun lut(size: Int = 100): List<Vector2> {
@@ -693,6 +636,7 @@ class Segment : ShapeContourProvider {
             else -> error("cannot convert to cubic segment")
         }
 
+
     /** Converts the [Segment] to a quadratic Bézier curve. */
     val quadratic: Segment
         get() = when {
@@ -1053,3 +997,44 @@ fun CatmullRom2.toSegment(): Segment {
 
     return Segment(b0, b1, b2, b3)
 }
+
+/**
+ * Linear segment constructor.
+ *
+ * @param start The starting anchor point.
+ * @param end The ending anchor point.
+ */
+
+fun Segment(start: Vector2, end: Vector2, corner: Boolean = true) = Segment(
+    start,
+    emptyArray<Vector2>(),
+    end,
+    corner)
+
+/**
+ * Quadratic Bézier segment constructor.
+ *
+ * @param start The starting anchor point.
+ * @param c0 The control point.
+ * @param end The ending anchor point.
+ */
+fun Segment(start: Vector2, c0: Vector2, end: Vector2, corner: Boolean = true) = Segment(
+    start,
+    arrayOf(c0),
+    end,
+    corner)
+
+/**
+ * Cubic Bézier segment constructor.
+ *
+ * @param start The starting anchor point.
+ * @param c0 The first control point.
+ * @param c1 The second control point
+ * @param end The ending anchor point.
+ */
+fun Segment(start: Vector2, c0: Vector2, c1: Vector2, end: Vector2, corner: Boolean = true) = Segment(
+    start,
+    arrayOf(c0, c1),
+    end,
+    corner
+)

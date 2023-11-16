@@ -1,5 +1,6 @@
 package org.openrndr.color
 
+import kotlinx.serialization.Serializable
 import org.openrndr.math.Vector4
 import kotlin.jvm.JvmOverloads
 
@@ -9,6 +10,7 @@ import kotlin.jvm.JvmOverloads
  *
  * @see ColorLCHUVa
  */
+@Serializable
 data class ColorLSHUVa @JvmOverloads constructor (
     val l: Double,
     val s: Double,

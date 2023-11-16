@@ -1,5 +1,6 @@
 package org.openrndr.color
 
+import kotlinx.serialization.Serializable
 import org.openrndr.math.Vector4
 import kotlin.jvm.JvmOverloads
 
@@ -12,6 +13,7 @@ import kotlin.jvm.JvmOverloads
  * @param alpha alpha as a percentage between 0.0 and 1.0
  */
 @Suppress("LocalVariableName")
+@Serializable
 data class ColorYxya @JvmOverloads constructor (
     val yy: Double,
     val x: Double,

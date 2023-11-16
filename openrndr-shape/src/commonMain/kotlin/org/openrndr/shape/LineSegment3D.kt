@@ -6,7 +6,6 @@ import kotlin.math.min
 
 data class LineSegment3D(val start: Vector3, val end: Vector3) {
 
-    constructor(x0: Double, y0: Double, z0:Double, x1: Double, y1: Double, z1:Double) : this(Vector3(x0, y0, z0), Vector3(x1, y1, z1))
 
     val direction get() = (end - start)
 
@@ -55,3 +54,5 @@ data class LineSegment3D(val start: Vector3, val end: Vector3) {
         get() = Path3D.fromPoints(listOf(start, end), false)
 
 }
+
+fun Segment3D(x0: Double, y0: Double, z0:Double, x1: Double, y1: Double, z1:Double) = Segment3D(Vector3(x0, y0, z0), Vector3(x1, y1, z1))

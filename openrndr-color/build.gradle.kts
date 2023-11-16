@@ -1,5 +1,6 @@
 plugins {
     org.openrndr.convention.`kotlin-multiplatform`
+    alias(libs.plugins.kotlin.serialization)
 }
 
 kotlin {
@@ -8,6 +9,7 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation(project(":openrndr-math"))
+                implementation(libs.kotlin.serialization.core)
             }
         }
     }

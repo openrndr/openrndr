@@ -1,5 +1,6 @@
 package org.openrndr.shape
 
+import kotlinx.serialization.Serializable
 import org.openrndr.math.Matrix33
 import org.openrndr.math.Polar
 import org.openrndr.math.Vector2
@@ -13,6 +14,7 @@ import kotlin.random.Random
 /**
  * Creates a simple three-point polygon.
  */
+@Serializable
 data class Triangle(val x1: Vector2, val x2: Vector2, val x3: Vector2) : ShapeProvider, ShapeContourProvider {
     /** Returns true if given [v] lies inside the [Triangle]. */
     operator fun contains(v: Vector2): Boolean {
@@ -37,7 +39,7 @@ data class Triangle(val x1: Vector2, val x2: Vector2, val x3: Vector2) : ShapePr
         return !(c < minD || c > maxD)
     }
 
-    /** Returns [ShapeContour] representation of the [Triangle]. */
+
     override val contour: ShapeContour
         get() = ShapeContour.fromPoints(listOf(x1, x2, x3), closed = true)
 
@@ -53,6 +55,7 @@ data class Triangle(val x1: Vector2, val x2: Vector2, val x3: Vector2) : ShapePr
         val b = Vector3(b0, b1, 1.0 - b0 - b1)
         return x1 * b.x + x2 * b.y + x3 * b.z
     }
+
 
     /** The unitless area covered by this [Triangle]. */
     val area by lazy {
@@ -122,7 +125,6 @@ data class Triangle(val x1: Vector2, val x2: Vector2, val x3: Vector2) : ShapePr
 
     }
 
-    val reversed
+    val reversed: Triangle
         get() = Triangle(x3, x2, x1)
-
 }

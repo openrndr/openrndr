@@ -1,5 +1,6 @@
 package org.openrndr.color
 
+import kotlinx.serialization.Serializable
 import org.openrndr.math.Vector4
 import org.openrndr.math.mixAngle
 import kotlin.jvm.JvmOverloads
@@ -12,6 +13,7 @@ import kotlin.jvm.JvmOverloads
  * @see ColorHSVa
  * @see ColorXSLa
  */
+@Serializable
 data class ColorXSVa @JvmOverloads constructor (val x: Double, val s: Double, val v: Double, override val alpha: Double = 1.0) :
     ColorModel<ColorXSVa>,
     ShadableColor<ColorXSVa>,

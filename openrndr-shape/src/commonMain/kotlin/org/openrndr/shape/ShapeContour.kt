@@ -1,5 +1,7 @@
 package org.openrndr.shape
 
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import org.openrndr.kartifex.Path2
 import org.openrndr.kartifex.Ring2
 import org.openrndr.math.*
@@ -15,6 +17,7 @@ private const val consecutiveEpsilon = 1E-6
 /**
  * A [List] for managing a collection of [Segment]s.
  */
+@Serializable
 data class ShapeContour @JvmOverloads constructor(
     val segments: List<Segment>,
     val closed: Boolean,
@@ -26,7 +29,7 @@ data class ShapeContour @JvmOverloads constructor(
          *
          * It is advised to use this instance whenever an empty contour is needed.
          */
-        val EMPTY = ShapeContour(emptyList(), false)
+        val EMPTY: ShapeContour = ShapeContour(emptyList(), false)
 
         @JvmOverloads
         fun fromSegments(
@@ -55,7 +58,7 @@ data class ShapeContour @JvmOverloads constructor(
             points: List<Vector2>,
             closed: Boolean,
             polarity: YPolarity = YPolarity.CW_NEGATIVE_Y
-        ) = if (points.isEmpty()) {
+        ): ShapeContour = if (points.isEmpty()) {
             EMPTY
         } else {
             if (!closed) {
@@ -88,7 +91,7 @@ data class ShapeContour @JvmOverloads constructor(
     }
 
     /** Returns [Shape] representation. */
-    val shape get() = Shape(listOf(this))
+    val shape: Shape get() = Shape(listOf(this))
 
     /** Calculates approximate Euclidean length of the contour. */
     val length by lazy { segments.sumOf { it.length } }
@@ -584,7 +587,7 @@ data class ShapeContour @JvmOverloads constructor(
      * Opens the path of the [ShapeContour].
      */
     val open
-        get() = if (empty) EMPTY else
+        get() : ShapeContour = if (empty) EMPTY else
             ShapeContour(segments, false, polarity)
 
     /**
@@ -613,7 +616,7 @@ data class ShapeContour @JvmOverloads constructor(
      * For more information, see [Segment.reverse].
      */
     val reversed
-        get() = ShapeContour(
+        get():ShapeContour = ShapeContour(
             segments.map { it.reverse }.reversed(),
             closed,
             polarity
@@ -621,12 +624,14 @@ data class ShapeContour @JvmOverloads constructor(
     override val contour: ShapeContour
         get() = this
 
+    @Transient
     private val path2Delegate = resettableLazy {
         Path2(segments.map { it.toCurve2() })
     }
 
     internal val path2 by path2Delegate
 
+    @Transient
     private val ring2Delegate = resettableLazy {
         Ring2(segments.map { it.toCurve2() })
     }

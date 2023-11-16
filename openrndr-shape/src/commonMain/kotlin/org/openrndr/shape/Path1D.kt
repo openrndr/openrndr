@@ -1,7 +1,9 @@
 package org.openrndr.shape
 
+import kotlinx.serialization.Serializable
 import kotlin.math.min
 
+@Serializable
 class Path1D(val segments: List<Segment1D>, val closed: Boolean) {
     fun position(ut: Double): Double {
         val t = ut.coerceIn(0.0, 1.0)

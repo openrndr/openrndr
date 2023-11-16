@@ -1,5 +1,6 @@
 package org.openrndr.shape
 
+import kotlinx.serialization.Serializable
 import org.openrndr.math.Vector2
 
 /**
@@ -10,8 +11,8 @@ import org.openrndr.math.Vector2
  * @param xRadius Horizontal radius.
  * @param yRadius Vertical radius.
  */
+@Serializable
 data class Ellipse(val center: Vector2, val xRadius: Double, val yRadius: Double): Movable, Scalable2D, ShapeProvider, ShapeContourProvider {
-    constructor(x: Double, y: Double, xRadius: Double, yRadius: Double) : this(Vector2(x, y), xRadius, yRadius)
 
     /** The top-left corner of the [Ellipse]. */
     val corner: Vector2
@@ -82,3 +83,5 @@ data class Ellipse(val center: Vector2, val xRadius: Double, val yRadius: Double
             }
         }
 }
+
+fun Ellipse(x: Double, y: Double, xRadius: Double, yRadius: Double) = Ellipse(Vector2(x, y), xRadius, yRadius)
