@@ -1,10 +1,8 @@
 package org.openrndr
 
-import mu.KotlinLogging
 import org.openrndr.events.Event
 import org.openrndr.math.Vector2
 
-private val logger = KotlinLogging.logger {}
 
 enum class MouseCursorHideMode {
     HIDE,
@@ -30,7 +28,6 @@ data class MouseEvent(val position: Vector2, val rotation: Vector2, val dragDisp
      * @see propagationCancelled
      */
     fun cancelPropagation() {
-        logger.debug { "Cancelling propagation of $type event" }
         propagationCancelled = true
     }
 }

@@ -1,6 +1,5 @@
 package org.openrndr.internal
 
-import mu.KotlinLogging
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
 import org.openrndr.math.Vector2
@@ -8,7 +7,6 @@ import org.openrndr.math.Vector3
 import org.openrndr.shape.Circle
 import kotlin.math.abs
 
-private val logger = KotlinLogging.logger {}
 
 class CircleDrawer {
     private val vertices: VertexBuffer = VertexBuffer.createDynamic(VertexFormat().apply {
@@ -27,9 +25,6 @@ class CircleDrawer {
 
     internal fun ensureBatchSize(size: Int) {
         if (batch.size < size) {
-            logger.debug {
-                "resizing buffer from ${batch.size} to $size"
-            }
             batch.destroy()
             batch = CircleBatch.create(size, session = Session.root)
         }

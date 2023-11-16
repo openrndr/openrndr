@@ -1,9 +1,7 @@
 package org.openrndr.draw
 
-import mu.KotlinLogging
 import org.openrndr.internal.Driver
 
-private val logger = KotlinLogging.logger {}
 private val sessionStack = mutableMapOf<Long, ArrayDeque<Session>>()
 
 /**
@@ -138,7 +136,6 @@ class Session(val parent: Session?) {
      * Fork the session
      */
     fun fork(): Session {
-        logger.debug { "starting new session for context [id=${context}]" }
         val child = Session(this)
         sessionStack.getValue(Driver.instance.contextID).addLast(child)
         children.add(child)
@@ -155,23 +152,6 @@ class Session(val parent: Session?) {
             child.end()
         }
         children.clear()
-
-        logger.debug {
-            """
-                session ended for context [id=${context}]
-                destroying ${renderTargets.size} render targets
-                destroying ${shaders.size} shaders
-                destroying ${colorBuffers.size} color buffers
-                destroying ${depthBuffers.size} depth buffers
-                destroying ${vertexBuffers.size} vertex buffers
-                destroying ${cubemaps.size} cubemaps
-                destroying ${bufferTextures.size} buffer textures
-                destroying ${arrayTextures.size} array textures
-                destroying ${computeShaders.size} compute shaders
-                destroying ${atomicCounterBuffers.size} atomic counter buffers
-                destroying ${arrayCubemaps.size} array cubemaps
-            """.trimIndent()
-        }
 
         renderTargets.map { it }.forEach {
             it.detachColorAttachments()

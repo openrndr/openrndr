@@ -1,12 +1,10 @@
 package org.openrndr.internal.glcommon
 
-import mu.KotlinLogging
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
 import org.openrndr.internal.Driver
 import org.openrndr.math.*
 
-private val logger = KotlinLogging.logger {}
 
 class ShadeStyleManagerGLCommon(
     name: String,
@@ -37,7 +35,6 @@ $this"""
         if (style == null) {
             return run {
                 if (defaultShader == null) {
-                    logger.debug { "creating default shader" }
                     val structure = structureFromShadeStyle(style, vertexFormats, outputInstanceFormats)
                     defaultShader = Shader.createFromCode(
                         vsCode = vsGenerator(structure).prependConfig(),

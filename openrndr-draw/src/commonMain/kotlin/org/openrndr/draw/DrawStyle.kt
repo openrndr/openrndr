@@ -1,6 +1,5 @@
 package org.openrndr.draw
 
-import mu.KotlinLogging
 import org.openrndr.color.ColorRGBa
 import org.openrndr.internal.Driver
 import org.openrndr.math.Matrix55
@@ -308,8 +307,6 @@ enum class DrawQuality {
 }
 
 
-private val logger = KotlinLogging.logger {}
-
 
 var styleBlocks = mutableMapOf<Long, UniformBlock?>()
 expect val useStyleBlock : Boolean
@@ -391,7 +388,6 @@ data class DrawStyle(
                 uniform("u_colorMatrix", colorMatrix)
                 shader.block("StyleBlock", this)
                 if (dirty) {
-                    logger.trace { "styleblock UBO for ${Driver.instance.contextID} is dirty -> upload" }
                     upload()
                 }
             }

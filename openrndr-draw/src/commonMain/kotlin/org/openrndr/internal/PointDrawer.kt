@@ -1,12 +1,9 @@
 package org.openrndr.internal
 
-import mu.KotlinLogging
 import org.openrndr.draw.*
 import org.openrndr.math.Vector2
 import org.openrndr.math.Vector3
 import kotlin.jvm.JvmName
-
-private val logger = KotlinLogging.logger {}
 
 class PointDrawer {
     val vertices: VertexBuffer = VertexBuffer.createDynamic(VertexFormat().apply {
@@ -22,9 +19,6 @@ class PointDrawer {
 
     internal fun ensureBatchSize(size: Int) {
         if (batch.size < size) {
-            logger.debug {
-                "resizing buffer from ${batch.size} to $size"
-            }
             batch.destroy()
             batch = PointBatch.create(size, session = Session.root)
         }

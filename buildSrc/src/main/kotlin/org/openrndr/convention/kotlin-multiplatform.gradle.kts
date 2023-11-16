@@ -56,6 +56,18 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation(libs.kotlin.stdlib)
+
+            }
+        }
+
+        val jvmMain by getting {
+            dependencies {
+                implementation(libs.kotlin.logging)
+            }
+        }
+
+        val jsMain by getting {
+            dependencies {
                 implementation(libs.kotlin.logging)
             }
         }

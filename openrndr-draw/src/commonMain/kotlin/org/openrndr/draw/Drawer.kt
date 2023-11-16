@@ -11,7 +11,6 @@ import org.openrndr.shape.Segment3D
 import org.openrndr.shape.ShapeNode
 import org.openrndr.shape.ShapeTopology
 import org.openrndr.shape.TextNode
-import mu.KotlinLogging
 import org.openrndr.collections.pop
 import org.openrndr.collections.push
 import org.openrndr.color.ColorRGBa
@@ -37,7 +36,6 @@ import kotlin.reflect.KMutableProperty0
 import org.openrndr.math.transforms.lookAt as _lookAt
 import org.openrndr.math.transforms.ortho as _ortho
 import org.openrndr.math.transforms.perspective as _perspective
-private val logger = KotlinLogging.logger {}
 
 
 
