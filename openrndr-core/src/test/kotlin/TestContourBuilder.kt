@@ -6,8 +6,7 @@ import org.openrndr.shape.contours
 import io.kotest.core.spec.style.DescribeSpec
 import java.lang.IllegalArgumentException
 
-object TestContourBuilder : DescribeSpec({
-
+class TestContourBuilder : DescribeSpec({
     describe("single segment org.openrndr.shape.contours") {
         it("support a single line segment") {
             val c = contour {

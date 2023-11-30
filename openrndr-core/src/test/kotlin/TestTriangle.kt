@@ -3,7 +3,7 @@ import org.openrndr.math.Vector2
 import org.openrndr.shape.Triangle
 import io.kotest.core.spec.style.DescribeSpec
 
-object TestTriangle : DescribeSpec({
+class TestTriangle : DescribeSpec({
     describe("a triangle") {
         val t = Triangle(Vector2(0.0, 0.0), Vector2(0.0, 100.0), Vector2(100.0, 100.0))
         it("contains points") {

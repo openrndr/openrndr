@@ -3,7 +3,7 @@ import org.openrndr.math.Vector2
 import org.openrndr.shape.Segment
 import io.kotest.core.spec.style.DescribeSpec
 
-object TestDrawSegments : DescribeSpec({
+class TestDrawSegments : DescribeSpec({
     describe("drawing multiple segments using a List of Segment") {
         it("should not throw exceptions") {
             application {

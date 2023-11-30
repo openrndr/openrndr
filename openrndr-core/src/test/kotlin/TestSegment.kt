@@ -15,8 +15,7 @@ infix fun Vector2.`should be somewhat near`(other: Vector2) {
 }
 
 
-object TestSegment : DescribeSpec({
-
+class TestSegment : DescribeSpec({
     describe("a horizontal segment") {
         val segment = Segment(Vector2(0.0, 100.0), Vector2(100.0, 100.0))
         segment.normal(0.0) `should be near` Vector2(0.0, -1.0)

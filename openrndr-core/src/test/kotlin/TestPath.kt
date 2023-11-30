@@ -3,9 +3,7 @@ import org.openrndr.shape.Path3D
 import org.openrndr.shape.path3D
 import io.kotest.core.spec.style.DescribeSpec
 
-object TestPath : DescribeSpec({
-
-
+class TestPath : DescribeSpec({
     describe("a path 3d") {
         val c = path3D {
             moveTo(0.0, 0.0, 0.0)

@@ -2,7 +2,7 @@ import org.openrndr.application
 import org.openrndr.shape.LineSegment
 import io.kotest.core.spec.style.DescribeSpec
 
-object TestDrawLineSegments : DescribeSpec({
+class TestDrawLineSegments : DescribeSpec({
     describe("drawing multiple lineSegments using a List of LineSegment") {
         it("should not throw exceptions") {
             application {

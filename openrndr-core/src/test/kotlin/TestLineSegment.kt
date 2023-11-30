@@ -3,8 +3,7 @@ import org.openrndr.shape.LineSegment
 import org.openrndr.shape.intersection
 import io.kotest.core.spec.style.DescribeSpec
 
-object TestLineSegment : DescribeSpec({
-
+class TestLineSegment : DescribeSpec({
     describe("a crossing horizontal and vertical line segment") {
         val h = LineSegment(-100.0, 0.0, 100.0, 0.0)
         val v = LineSegment(0.0, -100.0, 0.0, 100.0)

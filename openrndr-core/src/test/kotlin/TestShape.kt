@@ -7,8 +7,7 @@ import org.openrndr.shape.Winding
 import org.openrndr.shape.shape
 import io.kotest.core.spec.style.DescribeSpec
 
-object TestShape : DescribeSpec({
-
+class TestShape : DescribeSpec({
     describe("two equivalent shapes") {
         val a = Circle(40.0, 40.0, 100.0).shape
         val b = Circle(40.0, 40.0, 100.0).shape
@@ -50,22 +49,20 @@ object TestShape : DescribeSpec({
             s.contours.size `should be equal to` 2
         }
 
-        it ("all org.openrndr.shape.contours should be closed") {
+        it("all org.openrndr.shape.contours should be closed") {
             s.contours.all { it.closed } `should be equal to` true
         }
 
-        it ("all org.openrndr.shape.contours have negative polarity") {
+        it("all org.openrndr.shape.contours have negative polarity") {
             s.contours.all { it.polarity == YPolarity.CW_NEGATIVE_Y } `should be equal to` true
         }
 
-        it ("first contour should have clockwise winding") {
+        it("first contour should have clockwise winding") {
             s.contours.first().winding `should be equal to` Winding.CLOCKWISE
         }
 
         it("second contour should have counter-clockwise winding") {
             s.contours[1].winding `should be equal to` Winding.COUNTER_CLOCKWISE
         }
-
-
     }
 })

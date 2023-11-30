@@ -3,8 +3,7 @@ import org.openrndr.draw.VertexElementType
 import org.openrndr.draw.vertexFormat
 import io.kotest.core.spec.style.DescribeSpec
 
-object TestVertexFormat : DescribeSpec({
-
+class TestVertexFormat : DescribeSpec({
     describe("a vertex format") {
         val vf = vertexFormat {
             position(3)

@@ -5,7 +5,7 @@ import org.openrndr.math.Vector2
 import org.openrndr.shape.*
 import io.kotest.core.spec.style.DescribeSpec
 
-object TestShapeContour : DescribeSpec({
+class TestShapeContour : DescribeSpec({
 
     describe("two equivalent org.openrndr.shape.contours") {
         val a = Circle(40.0, 40.0, 100.0).contour

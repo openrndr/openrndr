@@ -7,8 +7,7 @@ import org.openrndr.shape.Rectangle
 import org.openrndr.shape.Winding
 import io.kotest.core.spec.style.DescribeSpec
 
-object TestRectangle : DescribeSpec({
-
+class TestRectangle : DescribeSpec({
     describe("A rectangle with default height") {
         val width = 200.0
 

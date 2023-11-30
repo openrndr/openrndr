@@ -6,7 +6,7 @@ import org.openrndr.shape.Winding
 import org.openrndr.shape.compound
 import io.kotest.core.spec.style.DescribeSpec
 
-object TestCompoundBuilder : DescribeSpec({
+class TestCompoundBuilder : DescribeSpec({
     val height = 480
     describe("a simple org.openrndr.shape.union org.openrndr.shape.compound") {
         val sc = compound {

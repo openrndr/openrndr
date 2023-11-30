@@ -4,7 +4,7 @@ import org.openrndr.shape.Circle
 import org.openrndr.shape.Winding
 import io.kotest.core.spec.style.DescribeSpec
 
-object TestCircle : DescribeSpec({
+class TestCircle : DescribeSpec({
     describe("A circle's contour") {
         val c = Circle(200.0, 200.0, 200.0).contour
         it("is closed") {
