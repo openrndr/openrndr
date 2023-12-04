@@ -1,5 +1,6 @@
 package org.openrndr
 
+import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
@@ -47,6 +48,7 @@ fun Program.drawImage(
     drawer.isolatedWithTarget(tempTarget) {
         drawer.defaults()
         drawer.ortho(tempTarget)
+        drawer.clear(ColorRGBa.TRANSPARENT)
         drawer.drawFunction()
     }
 
