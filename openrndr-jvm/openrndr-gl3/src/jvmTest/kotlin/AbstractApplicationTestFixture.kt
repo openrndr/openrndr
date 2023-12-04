@@ -21,13 +21,16 @@ abstract class AbstractApplicationTestFixture {
         application = applicationBase.build(program, Configuration()) as ApplicationGLFWGL3
         runBlocking { application.setup() }
         application.preloop()
+
     }
 
     @AfterTest
     open fun teardown() {
-        application.exit()
-        val ci = Driver.instance.contextID
-        Driver.instance.destroyContext(ci)
-        Session.root.end()
+        application.postloop()
+
+//        val ci = Driver.instance.contextID
+//        Driver.instance.destroyContext(ci)
+//        Session.root.end()
+
     }
 }

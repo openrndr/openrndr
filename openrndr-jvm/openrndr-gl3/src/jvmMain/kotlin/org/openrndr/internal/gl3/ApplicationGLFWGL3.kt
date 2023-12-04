@@ -913,7 +913,10 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
             }
         }
         logger.debug { "exiting loop" }
+        postloop(exception)
+    }
 
+    fun postloop(exception: Throwable? = null) {
         logger.debug { "shutting down extensions" }
         for (extension in program.extensions) {
             extension.shutdown(program)
@@ -938,8 +941,8 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
             throw it
         }
 
-
     }
+
 
     private fun deliverEvents() {
         program.window.drop.deliver()
