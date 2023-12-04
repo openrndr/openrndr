@@ -10,6 +10,7 @@ import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.glfw.GLFWImage
 import org.lwjgl.opengl.GL.createCapabilities
 import org.lwjgl.opengl.GL33C.*
+import org.lwjgl.opengl.GL43C.GL_DEBUG_OUTPUT_SYNCHRONOUS
 import org.lwjgl.opengl.GLUtil
 import org.lwjgl.system.MemoryStack.stackPush
 import org.lwjgl.system.MemoryUtil.NULL
@@ -18,6 +19,7 @@ import org.openrndr.WindowMultisample.*
 import org.openrndr.animatable.Animatable
 import org.openrndr.animatable.Clock
 import org.openrndr.draw.Drawer
+import org.openrndr.draw.Session
 import org.openrndr.internal.Driver
 import org.openrndr.math.Vector2
 import java.io.File
@@ -564,6 +566,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
 
         if (useDebugContext) {
             GLUtil.setupDebugMessageCallback()
+            glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
         }
 
         Runtime.getRuntime().addShutdownHook(object : Thread() {
@@ -925,6 +928,8 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
 
         program.ended.trigger(ProgramEvent(ProgramEventType.ENDED))
 
+
+        Session.root.end()
 
         Driver.instance.destroyContext(Driver.instance.contextID)
 
