@@ -989,28 +989,32 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
             cached.depthWrite = drawStyle.depthWrite
         }
 
-        if (dirty || cached.backStencil != drawStyle.backStencil || cached.frontStencil != drawStyle.frontStencil) {
+        if (dirty || cached.stencil != drawStyle.stencil || cached.backStencil != drawStyle.backStencil || cached.frontStencil != drawStyle.frontStencil) {
             if (drawStyle.frontStencil === drawStyle.backStencil) {
-                if (drawStyle.stencil.stencilTest === StencilTest.DISABLED) {
+                if (drawStyle.stencil.stencilTest == StencilTest.DISABLED) {
                     glDisable(GL_STENCIL_TEST)
                 } else {
                     glEnable(GL_STENCIL_TEST)
-                    glStencilFunc(
+                    glStencilFuncSeparate(
+                        GL_FRONT_AND_BACK,
                         glStencilTest(drawStyle.stencil.stencilTest),
                         drawStyle.stencil.stencilTestReference,
                         drawStyle.stencil.stencilTestMask
                     )
                     debugGLErrors()
-                    glStencilOp(
+                    glStencilOpSeparate(
+                        GL_FRONT_AND_BACK,
                         glStencilOp(drawStyle.stencil.stencilFailOperation),
                         glStencilOp(drawStyle.stencil.depthFailOperation),
                         glStencilOp(drawStyle.stencil.depthPassOperation)
                     )
                     debugGLErrors()
-                    glStencilMask(drawStyle.stencil.stencilWriteMask)
+                    glStencilMaskSeparate(GL_FRONT_AND_BACK,drawStyle.stencil.stencilWriteMask)
                     debugGLErrors()
                 }
             } else {
+                require(drawStyle.frontStencil.stencilTest !=StencilTest.DISABLED)
+                require(drawStyle.backStencil.stencilTest !=StencilTest.DISABLED)
                 glEnable(GL_STENCIL_TEST)
                 glStencilFuncSeparate(
                     GL_FRONT,
@@ -1039,8 +1043,10 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
                 glStencilMaskSeparate(GL_FRONT, drawStyle.frontStencil.stencilWriteMask)
                 glStencilMaskSeparate(GL_BACK, drawStyle.backStencil.stencilWriteMask)
             }
+            cached.stencil = drawStyle.stencil.copy()
+            cached.frontStencil = drawStyle.frontStencil.copy()
+            cached.backStencil = drawStyle.backStencil.copy()
         }
-
 
         if (dirty || cached.blendMode != drawStyle.blendMode) {
             when (drawStyle.blendMode) {
