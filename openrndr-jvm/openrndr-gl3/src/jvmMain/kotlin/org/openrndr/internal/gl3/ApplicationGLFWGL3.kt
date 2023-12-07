@@ -197,7 +197,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
     init {
         Runtime.getRuntime().addShutdownHook(object : Thread() {
             override fun run() {
-                logger.info { "Program interrupted" }
+                logger.debug { "Program interrupted" }
                 exitRequested = true
                 while (!exitHandled) {
                     sleep(10)
@@ -576,7 +576,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
 
         if (useDebugContext) {
             GLUtil.setupDebugMessageCallback()
-            glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+            glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS)
         }
 
         program.driver = Driver.instance
