@@ -225,6 +225,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
             is SampleCount -> glfwWindowHint(GLFW_SAMPLES, c.count)
             SystemDefault -> glfwWindowHint(GLFW_SAMPLES, GLFW_DONT_CARE)
             Disabled -> glfwWindowHint(GLFW_SAMPLES, 0)
+            else -> error("unsupported value $c")
         }
 
         glfwWindowHint(GLFW_RED_BITS, 8)
@@ -881,7 +882,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
 
         setupException?.let {
             logger.error { "An error occurred inside the program setup" }
-            throw (it)
+            postloop(setupException)
         }
 
         setupCalled = true
