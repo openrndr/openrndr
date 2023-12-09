@@ -28,6 +28,7 @@ data class ColorLABa @JvmOverloads constructor (
     ColorModel<ColorLABa>,
     ReferenceWhitePoint,
     ShadableColor<ColorLABa>,
+    LuminosityColor<ColorLABa>,
     AlgebraicColor<ColorLABa> {
 
     companion object {
@@ -103,7 +104,10 @@ data class ColorLABa @JvmOverloads constructor (
         copy(l = l * scale, a = a * scale, b = b * scale, alpha = alpha * scale)
 
     override fun toVector4() = Vector4(l, a, b, alpha)
+    override fun withLuminosity(luminosity: Double): ColorLABa = copy(l = luminosity)
 
+    override val luminosity: Double
+        get() = l
 }
 
 private fun f(t: Double): Double {

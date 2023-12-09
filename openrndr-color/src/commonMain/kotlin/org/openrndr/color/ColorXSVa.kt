@@ -65,7 +65,16 @@ data class ColorXSVa @JvmOverloads constructor (val x: Double, val s: Double, va
     override fun toRGBa() = toHSVa().toRGBa()
 
     override fun shiftHue(shiftInDegrees: Double) = copy(x = (x + shiftInDegrees))
-    override fun saturate(factor: Double) = copy(s = s * factor)
+    override fun withHue(hue: Double): ColorXSVa = copy(x = hue)
+
+    override val hue: Double
+        get() = x
+
+    override fun withSaturation(saturation: Double): ColorXSVa = copy(s = saturation)
+
+    override val saturation: Double
+        get() = s
+
     override fun shade(factor: Double) = copy(v = v * factor)
     override fun opacify(factor: Double): ColorXSVa = copy(alpha = alpha * factor)
 

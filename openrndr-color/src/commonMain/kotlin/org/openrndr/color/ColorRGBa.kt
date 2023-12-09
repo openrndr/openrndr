@@ -99,17 +99,33 @@ data class ColorRGBa @JvmOverloads constructor(
                 hex.startsWith("0x") -> 2
                 else -> 0
             }
+
             fun fromHex1(str: String, pos: Int): Double {
                 return 17 * str[pos].digitToInt(16) / 255.0
             }
+
             fun fromHex2(str: String, pos: Int): Double {
                 return (16 * str[pos].digitToInt(16) + str[pos + 1].digitToInt(16)) / 255.0
             }
             return when (hex.length - pos) {
                 3 -> ColorRGBa(fromHex1(hex, pos), fromHex1(hex, pos + 1), fromHex1(hex, pos + 2), 1.0, Linearity.SRGB)
-                4 -> ColorRGBa(fromHex1(hex, pos), fromHex1(hex, pos + 1), fromHex1(hex, pos + 2), fromHex1(hex, pos + 3), Linearity.SRGB)
+                4 -> ColorRGBa(
+                    fromHex1(hex, pos),
+                    fromHex1(hex, pos + 1),
+                    fromHex1(hex, pos + 2),
+                    fromHex1(hex, pos + 3),
+                    Linearity.SRGB
+                )
+
                 6 -> ColorRGBa(fromHex2(hex, pos), fromHex2(hex, pos + 2), fromHex2(hex, pos + 4), 1.0, Linearity.SRGB)
-                8 -> ColorRGBa(fromHex2(hex, pos), fromHex2(hex, pos + 2), fromHex2(hex, pos + 4), fromHex2(hex, pos + 6), Linearity.SRGB)
+                8 -> ColorRGBa(
+                    fromHex2(hex, pos),
+                    fromHex2(hex, pos + 2),
+                    fromHex2(hex, pos + 4),
+                    fromHex2(hex, pos + 6),
+                    Linearity.SRGB
+                )
+
                 else -> throw IllegalArgumentException("Invalid hex length/format for '$hex'")
             }
         }
@@ -188,13 +204,22 @@ data class ColorRGBa @JvmOverloads constructor(
     /**
      * Copy of the color with all of its fields clamped to `[0, 1]`
      */
+
+    @Deprecated("Use clip() instead", replaceWith = ReplaceWith("clip()"))
     val saturated: ColorRGBa
-        get() = ColorRGBa(
-            r.coerceIn(0.0, 1.0),
-            g.coerceIn(0.0, 1.0),
-            b.coerceIn(0.0, 1.0),
-            alpha.coerceIn(0.0, 1.0), linearity
-        )
+        get() = clip()
+
+    /**
+     * Copy of the color with all of its fields clamped to `[0, 1]`
+     */
+    fun clip(): ColorRGBa = copy(
+        r = r.coerceIn(0.0..1.0),
+        g = g.coerceIn(0.0..1.0),
+        b = b.coerceIn(0.0..1.0),
+        alpha = alpha.coerceIn(0.0..1.0)
+    )
+
+
     val alphaMultiplied: ColorRGBa
         get() = ColorRGBa(r * alpha, g * alpha, b * alpha, alpha, linearity)
 
@@ -332,9 +357,11 @@ fun mix(left: ColorRGBa, right: ColorRGBa, x: Double): ColorRGBa {
             Linearity.LINEAR, Linearity.ASSUMED_LINEAR -> {
                 mix(left.toLinear(), right.toLinear(), x)
             }
+
             Linearity.SRGB, Linearity.ASSUMED_SRGB -> {
                 mix(left.toSRGB(), right.toSRGB(), x)
             }
+
             else -> {
                 error("can't blend ${right.linearity} with ${left.linearity}")
             }

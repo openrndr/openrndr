@@ -28,7 +28,9 @@ data class ColorLCHUVa @JvmOverloads constructor (
     ColorModel<ColorLCHUVa>,
     ReferenceWhitePoint,
     ShadableColor<ColorLCHUVa>,
+    ChromaColor<ColorLCHUVa>,
     HueShiftableColor<ColorLCHUVa>,
+    LuminosityColor<ColorLCHUVa>,
     AlgebraicColor<ColorLCHUVa> {
 
     companion object {
@@ -97,7 +99,6 @@ data class ColorLCHUVa @JvmOverloads constructor (
 
     override fun opacify(factor: Double) = copy(alpha = alpha * factor)
     override fun shade(factor: Double) = copy(l = l * factor)
-    override fun shiftHue(shiftInDegrees: Double) = copy(h = h + shiftInDegrees)
 
     override fun plus(right: ColorLCHUVa) =
         copy(l = l + right.l, c = c + right.c, h = h + right.h, alpha = alpha + right.alpha)
@@ -109,6 +110,17 @@ data class ColorLCHUVa @JvmOverloads constructor (
     override fun mix(other: ColorLCHUVa, factor: Double) = mix(this, other, factor)
 
     override fun toVector4(): Vector4 = Vector4(l, c, h, alpha)
+    override fun withChroma(chroma: Double) = copy(c = chroma)
+
+    override val chroma: Double
+        get() = c
+    override fun withHue(hue: Double): ColorLCHUVa = copy(h = hue)
+
+    override val hue: Double
+        get() = h
+    override fun withLuminosity(luminosity: Double): ColorLCHUVa = copy(l = luminosity)
+    override val luminosity: Double
+        get() = l
 }
 
 /**

@@ -25,6 +25,7 @@ data class ColorLUVa @JvmOverloads constructor(
     ColorModel<ColorLUVa>,
     ReferenceWhitePoint,
     ShadableColor<ColorLUVa>,
+    LuminosityColor<ColorLUVa>,
     AlgebraicColor<ColorLUVa> {
 
     companion object {
@@ -90,4 +91,8 @@ data class ColorLUVa @JvmOverloads constructor(
     override fun times(scale: Double) = copy(l = l * scale, u = u * scale, v = v * scale, alpha = alpha * scale)
 
     override fun toVector4() = Vector4(l, u, v, alpha)
+    override fun withLuminosity(luminosity: Double): ColorLUVa = copy(l = luminosity)
+
+    override val luminosity: Double
+        get() = l
 }

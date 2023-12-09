@@ -63,8 +63,16 @@ data class ColorHSLa @JvmOverloads constructor (val h: Double, val s: Double, va
     val a = alpha
 
     override fun opacify(factor: Double): ColorHSLa = copy(alpha = alpha * factor)
-    override fun shiftHue(shiftInDegrees: Double): ColorHSLa = copy(h = (h + shiftInDegrees))
-    override fun saturate(factor: Double) = copy(s = s * factor)
+
+    override fun withHue(hue: Double) = copy(h = hue)
+
+    override val hue: Double
+        get() = h
+
+    override fun withSaturation(saturation: Double): ColorHSLa = copy(s = saturation)
+    override val saturation: Double
+        get() = s
+
     override fun shade(factor: Double) = copy(l = l * factor)
 
     override fun mix(other: ColorHSLa, factor: Double) = mix(this, other, factor)

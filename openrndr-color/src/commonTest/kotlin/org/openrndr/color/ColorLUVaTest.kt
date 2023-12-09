@@ -14,6 +14,7 @@ class ColorLUVaTest {
         assertTrue(crgb.r == crgb.r && crgb.g == crgb.g && crgb.b == crgb.b)
     }
 
+
     @Test
     fun testNeutralReferencePoint() {
         val luvWhite = ColorRGBa.WHITE.toLUVa(ref = ColorXYZa.NEUTRAL)

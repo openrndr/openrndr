@@ -28,7 +28,9 @@ data class ColorLCHABa @JvmOverloads constructor (
     ColorModel<ColorLCHABa>,
     ReferenceWhitePoint,
     ShadableColor<ColorLCHABa>,
+    ChromaColor<ColorLCHABa>,
     HueShiftableColor<ColorLCHABa>,
+    LuminosityColor<ColorLCHABa>,
     AlgebraicColor<ColorLCHABa> {
     companion object {
         fun findMaxChroma(l: Double, h: Double, ref: ColorXYZa): Double {
@@ -102,7 +104,6 @@ data class ColorLCHABa @JvmOverloads constructor (
 
     override fun opacify(factor: Double) = copy(alpha = alpha * factor)
     override fun shade(factor: Double) = copy(l = l * factor)
-    override fun shiftHue(shiftInDegrees: Double) = copy(h = h + shiftInDegrees)
 
     override fun plus(right: ColorLCHABa) =
         copy(l = l + right.l, c = c + right.c, h = h + right.h, alpha = alpha + right.alpha)
@@ -114,8 +115,17 @@ data class ColorLCHABa @JvmOverloads constructor (
     override fun mix(other: ColorLCHABa, factor: Double) = mix(this, other, factor)
 
     override fun toVector4(): Vector4 = Vector4(l, c, h, alpha)
-}
+    override fun withChroma(chroma: Double): ColorLCHABa = copy(c = chroma)
+    override val chroma
+        get() = c
+    override fun withHue(hue: Double): ColorLCHABa = copy(h = hue)
 
+    override val hue: Double
+        get() = h
+    override fun withLuminosity(luminosity: Double): ColorLCHABa = copy(l = luminosity)
+    override val luminosity: Double
+        get() = l
+}
 /**
  * Weighted mix between two colors in the LChAB color space.
  * @param left the left-hand ColorLCHABa to mix

@@ -5,6 +5,20 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class ColorLCHUVaTest {
+
+    @Test
+    fun testSaturation() {
+        val r = ColorRGBa.RED.toLCHUVa()
+        val g = ColorRGBa.GREEN.toLCHUVa()
+        val b = ColorRGBa.BLUE.toLCHUVa()
+
+        println(ColorRGBa.YELLOW.toLCHUVa().c)
+        println(ColorRGBa.MAGENTA.toLCHUVa().c)
+        println(r.c)
+        println(g.c)
+        println(b.c)
+    }
+
     @Test
     fun testConversions() {
         // addresses https://github.com/openrndr/openrndr/issues/275
