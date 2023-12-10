@@ -72,7 +72,7 @@ data class ColorXSLa @JvmOverloads constructor (val x: Double, val s: Double, va
     override fun withSaturation(saturation: Double): ColorXSLa = copy(s = saturation)
 
     override val saturation: Double
-        get() = TODO("Not yet implemented")
+        get() = s
 
     override fun shade(factor: Double) = copy(l = l * factor)
     override fun opacify(factor: Double) = copy(alpha = alpha * factor)

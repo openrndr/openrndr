@@ -79,7 +79,7 @@ data class ColorHSVa @JvmOverloads constructor (val h: Double, val s: Double, va
     override fun withSaturation(saturation: Double): ColorHSVa = copy(s = saturation)
 
     override val saturation: Double
-        get() = TODO("Not yet implemented")
+        get() = s
 
     override fun shade(factor: Double): ColorHSVa = copy(v = v * factor)
 
