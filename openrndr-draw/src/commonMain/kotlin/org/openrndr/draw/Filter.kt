@@ -4,14 +4,7 @@ import org.openrndr.color.ColorRGBa
 import org.openrndr.internal.Driver
 import org.openrndr.math.*
 import org.openrndr.math.transforms.ortho
-
-
-private val filterDrawStyle = DrawStyle().apply {
-    blendMode = BlendMode.REPLACE
-    depthWrite = false
-    depthTestPass = DepthTestPass.ALWAYS
-    stencil.stencilTest = StencilTest.DISABLED
-}
+import org.openrndr.shape.Rectangle
 
 private var filterQuad: VertexBuffer? = null
 private var filterQuadFormat = vertexFormat {
@@ -19,13 +12,8 @@ private var filterQuadFormat = vertexFormat {
     textureCoordinate(2)
 }
 
-
 fun filterShaderFromCode(fragmentShaderCode: String, name: String, includeShaderConfiguration: Boolean = true): Shader {
     val hasExistingConfiguration = fragmentShaderCode.contains("#version")
-
-//    if (hasExistingConfiguration && includeShaderConfiguration) {
-//        logger.warn { "Shader '$name' has an existing #version definition. Shader configuration will not be added." }
-//    }
 
     return if (!includeShaderConfiguration || hasExistingConfiguration) {
         Shader.createFromCode(vsCode = Filter.filterVertexCode, fsCode = fragmentShaderCode, name = name)
@@ -42,6 +30,14 @@ fun filterShaderFromCode(fragmentShaderCode: String, name: String, includeShader
  * Filter base class. Renders "full-screen" quads.
  */
 open class Filter(private val shader: Shader? = null, private val watcher: ShaderWatcher? = null) {
+
+    private val filterDrawStyle = DrawStyle().apply {
+        blendMode = BlendMode.REPLACE
+        depthWrite = false
+        depthTestPass = DepthTestPass.ALWAYS
+        stencil.stencilTest = StencilTest.DISABLED
+        clip = null
+    }
 
     /**
      * parameter map
@@ -83,14 +79,11 @@ void main() {
             }
     }
 
-//    fun apply(source: RenderTarget, target: RenderTarget) {
-//        apply(source.colorBuffers.toTypedArray(), target)
-//    }
-
-    open fun apply(source: Array<ColorBuffer>, target: Array<ColorBuffer>) {
-        if (target.isEmpty()) {
+    open fun apply(source: Array<ColorBuffer>, target: Array<ColorBuffer>, clip: Rectangle? = null) {
+        if (target.isEmpty() || clip?.area == 0.0) {
             return
         }
+        filterDrawStyle.clip = clip
         val renderTarget = renderTarget(target[0].width, target[0].height, target[0].contentScale) {}
 
         target.forEach {
@@ -101,7 +94,7 @@ void main() {
             renderTarget.blendMode(i, BlendMode.REPLACE)
         }
 
-        apply(source, renderTarget)
+        apply(source, renderTarget, clip)
         depthBufferOut?.let {
             renderTarget.attach(it)
         }
@@ -113,7 +106,8 @@ void main() {
         renderTarget.destroy()
     }
 
-    fun apply(source: Array<ColorBuffer>, target: RenderTarget) {
+    fun apply(source: Array<ColorBuffer>, target: RenderTarget, clip: Rectangle? = null) {
+        filterDrawStyle.clip = clip
         val shader = if (this.watcher != null) watcher.shader!! else this.shader!!
         target.bind()
 
@@ -229,10 +223,11 @@ void main() {
     }
 
     // TODO move to Filter1to1
-    fun apply(source: ColorBuffer, target: ColorBuffer) = apply(arrayOf(source), arrayOf(target))
+    fun apply(source: ColorBuffer, target: ColorBuffer, clip: Rectangle? = null) =
+        apply(arrayOf(source), arrayOf(target), clip)
 
-    fun apply(source: ColorBuffer, target: Array<ColorBuffer>) = apply(arrayOf(source), target)
-    fun apply(source: Array<ColorBuffer>, target: ColorBuffer) = apply(source, arrayOf(target))
+    fun apply(source: ColorBuffer, target: Array<ColorBuffer>, clip: Rectangle? = null) = apply(arrayOf(source), target, clip)
+    fun apply(source: Array<ColorBuffer>, target: ColorBuffer, clip: Rectangle? = null) = apply(source, arrayOf(target), clip)
 
     fun untrack() {
         shader?.let { Session.active.untrack(shader) }
@@ -250,22 +245,32 @@ open class Filter1to1(shader: Shader? = null, watcher: ShaderWatcher? = null) :
 
 open class Filter2to1(shader: Shader? = null, watcher: ShaderWatcher? = null) :
     Filter(shader, watcher) {
-    fun apply(source0: ColorBuffer, source1: ColorBuffer, target: ColorBuffer) =
-        apply(arrayOf(source0, source1), arrayOf(target))
+    fun apply(source0: ColorBuffer, source1: ColorBuffer, target: ColorBuffer, clip: Rectangle? = null) =
+        apply(arrayOf(source0, source1), arrayOf(target), clip)
 }
 
 open class Filter3to1(shader: Shader? = null, watcher: ShaderWatcher? = null) :
     Filter(shader, watcher) {
-    fun apply(source0: ColorBuffer, source1: ColorBuffer, source2: ColorBuffer, target: ColorBuffer) =
-        apply(arrayOf(source0, source1, source2), arrayOf(target))
+    fun apply(
+        source0: ColorBuffer,
+        source1: ColorBuffer,
+        source2: ColorBuffer,
+        target: ColorBuffer,
+        clip: Rectangle? = null
+    ) =
+        apply(arrayOf(source0, source1, source2), arrayOf(target), clip)
 }
 
 open class Filter4to1(shader: Shader? = null, watcher: ShaderWatcher? = null) :
     Filter(shader, watcher) {
-    fun apply(source0: ColorBuffer,
-              source1: ColorBuffer,
-              source2: ColorBuffer,
-              source3: ColorBuffer,
-              target: ColorBuffer) =
-        apply(arrayOf(source0, source1, source2, source3), arrayOf(target))
+    fun apply(
+        source0: ColorBuffer,
+        source1: ColorBuffer,
+        source2: ColorBuffer,
+        source3: ColorBuffer,
+        target: ColorBuffer,
+        clip: Rectangle? = null
+
+    ) =
+        apply(arrayOf(source0, source1, source2, source3), arrayOf(target), clip)
 }
