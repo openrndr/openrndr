@@ -14,11 +14,12 @@ import kotlin.math.*
  * (and up to two control points for curvature).
  */
 @Serializable
-class Segment(val start:Vector2,
-              val control: Array<Vector2>,
-              val end:Vector2,
-              val corner: Boolean = false
-    ) : ShapeContourProvider {
+data class Segment(
+    val start: Vector2,
+    val control: Array<Vector2>,
+    val end: Vector2,
+    val corner: Boolean = false
+) : ShapeContourProvider {
     /** The start point of the [Segment]. */
 
     /**
@@ -44,7 +45,6 @@ class Segment(val start:Vector2,
 
     @Transient
     private var lut: List<Vector2>? = null
-
 
 
     @Suppress("unused")
@@ -165,6 +165,7 @@ class Segment(val start:Vector2,
                 val relativePoint = point - start
                 ((dir dot relativePoint) / dir.squaredLength).coerceIn(0.0, 1.0)
             }
+
             SegmentType.QUADRATIC -> {
                 val qa = start - point
                 val ab = control[0] - start
@@ -201,6 +202,7 @@ class Segment(val start:Vector2,
                 }
                 param.coerceIn(0.0, 1.0)
             }
+
             SegmentType.CUBIC -> {
                 fun sign(n: Double): Double {
                     val s = n.sign
@@ -273,7 +275,7 @@ class Segment(val start:Vector2,
                 1 -> arrayOf((transform * control[0].xy01).div.xy)
                 else -> emptyArray()
             }
-            Segment(tStart, tControl, tEnd)
+            copy(tStart, tControl, tEnd)
         }
     }
 
@@ -288,8 +290,12 @@ class Segment(val start:Vector2,
 
     fun adaptivePositionsWithT(distanceTolerance: Double = 0.5): List<Pair<Vector2, Double>> = when (control.size) {
         0 -> listOf(start to 0.0, end to 1.0)
-        1 -> BezierQuadraticSamplerT<Vector2>().apply { this.distanceTolerance = distanceTolerance }.sample(start, control[0], end)
-        2 -> BezierCubicSamplerT<Vector2>().apply { this.distanceTolerance = distanceTolerance }.sample(start, control[0], control[1], end)
+        1 -> BezierQuadraticSamplerT<Vector2>().apply { this.distanceTolerance = distanceTolerance }
+            .sample(start, control[0], end)
+
+        2 -> BezierCubicSamplerT<Vector2>().apply { this.distanceTolerance = distanceTolerance }
+            .sample(start, control[0], control[1], end)
+
         else -> throw RuntimeException("unsupported number of control points")
     }
 
@@ -332,6 +338,7 @@ class Segment(val start:Vector2,
                 start.x * (1.0 - t) + end.x * t,
                 start.y * (1.0 - t) + end.y * t
             )
+
             1 -> bezier(start, control[0], end, t)
             2 -> bezier(start, control[0], control[1], end, t)
             else -> error("unsupported number of control points")
@@ -379,11 +386,13 @@ class Segment(val start:Vector2,
                 val yRoots = roots(dPoints[0].map { it.y })
                 (xRoots + yRoots).distinct().sorted().filter { it in 0.0..1.0 }
             }
+
             control.size == 2 -> {
                 val xRoots = roots(dPoints[0].map { it.x }) + roots(dPoints[1].map { it.x })
                 val yRoots = roots(dPoints[0].map { it.y }) + roots(dPoints[1].map { it.y })
                 (xRoots + yRoots).distinct().sorted().filter { it in 0.0..1.0 }
             }
+
             else -> throw RuntimeException("not supported")
         }
     }
@@ -421,7 +430,11 @@ class Segment(val start:Vector2,
         return dPoints
     }
 
-    fun offset(distance: Double, stepSize: Double = 0.01, yPolarity: YPolarity = YPolarity.CW_NEGATIVE_Y): List<Segment> {
+    fun offset(
+        distance: Double,
+        stepSize: Double = 0.01,
+        yPolarity: YPolarity = YPolarity.CW_NEGATIVE_Y
+    ): List<Segment> {
         return if (linear) {
             val n = normal(0.0, yPolarity)
             if (distance > 0.0) {
@@ -475,6 +488,7 @@ class Segment(val start:Vector2,
 
                 dp0 * dp0 + dp1 * dp1 > (2.0 - 2 * epsilon)
             }
+
             1 -> {
                 val dl = (end - start).normalized
                 val d0 = (control[0] - start).normalized
@@ -482,6 +496,7 @@ class Segment(val start:Vector2,
                 val dp0 = dl.dot(d0)
                 dp0 * dp0 > (1.0 - epsilon)
             }
+
             else -> {
                 true
             }
@@ -602,13 +617,13 @@ class Segment(val start:Vector2,
                 val nd = d.normalized * s
                 it + rc * nd
             }
-            return Segment(newStart, newControls.toTypedArray(), newEnd)
+            return copy(newStart, newControls.toTypedArray(), newEnd)
         } else {
             val newControls = control.mapIndexed { index, it ->
                 val rc = scale((index + 1.0) / 3.0)
                 it + rc * normal((index + 1.0), polarity)
             }
-            return Segment(newStart, newControls.toTypedArray(), newEnd)
+            return copy(newStart, newControls.toTypedArray(), newEnd)
         }
     }
 
@@ -621,18 +636,22 @@ class Segment(val start:Vector2,
                     start,
                     start * (1.0 / 3.0) + control[0] * (2.0 / 3.0),
                     control[0] * (2.0 / 3.0) + end * (1.0 / 3.0),
-                    end
+                    end,
+                    corner
                 )
             }
+
             linear -> {
                 val delta = end - start
                 Segment(
                     start,
                     start + delta * (1.0 / 3.0),
                     start + delta * (2.0 / 3.0),
-                    end
+                    end,
+                    corner
                 )
             }
+
             else -> error("cannot convert to cubic segment")
         }
 
@@ -643,8 +662,9 @@ class Segment(val start:Vector2,
             control.size == 1 -> this
             linear -> {
                 val delta = end - start
-                Segment(start, start + delta * (1.0 / 2.0), end)
+                Segment(start, start + delta * (1.0 / 2.0), end, corner)
             }
+
             else -> error("cannot convert to quadratic segment")
         }
 
@@ -659,6 +679,7 @@ class Segment(val start:Vector2,
             end,
             t
         )
+
         else -> throw RuntimeException("not implemented")
     }
 
@@ -776,6 +797,7 @@ class Segment(val start:Vector2,
 
                     return arrayOf(left, right)
                 }
+
                 1 -> {
                     @Suppress("UnnecessaryVariable")
                     val z = u
@@ -834,6 +856,7 @@ class Segment(val start:Vector2,
 
                     return arrayOf(left, right)
                 }
+
                 else -> error("unsupported number of control points")
             }
         }
@@ -843,10 +866,7 @@ class Segment(val start:Vector2,
         return "Segment(start=$start, end=$end, control=${control.contentToString()})"
     }
 
-    /** Returns a shallow copy of the [Segment]. */
-    fun copy(start: Vector2 = this.start, control: Array<Vector2> = this.control, end: Vector2 = this.end): Segment {
-        return Segment(start, control, end)
-    }
+
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -875,6 +895,7 @@ class Segment(val start:Vector2,
                 control[0] * scale,
                 end * scale
             )
+
             SegmentType.CUBIC -> Segment(
                 start * scale,
                 control[0] * scale,
@@ -892,6 +913,7 @@ class Segment(val start:Vector2,
                 control[0] / scale,
                 end / scale
             )
+
             SegmentType.CUBIC -> Segment(
                 start / scale,
                 control[0] / scale,
@@ -908,11 +930,13 @@ class Segment(val start:Vector2,
                     start - right.start,
                     end - right.end
                 )
+
                 SegmentType.QUADRATIC -> Segment(
                     start - right.start,
                     control[0] - right.control[0],
                     end - right.end
                 )
+
                 SegmentType.CUBIC -> Segment(
                     start - right.start,
                     control[0] - right.control[0],
@@ -944,11 +968,13 @@ class Segment(val start:Vector2,
                     start + right.start,
                     end + right.end
                 )
+
                 SegmentType.QUADRATIC -> Segment(
                     start + right.start,
                     control[0] + right.control[0],
                     end + right.end
                 )
+
                 SegmentType.CUBIC -> Segment(
                     start + right.start,
                     control[0] + right.control[0],
@@ -979,7 +1005,7 @@ class Segment(val start:Vector2,
 }
 
 private fun sumDifferences(points: List<Vector2>) =
-        (0 until points.size - 1).sumOf { (points[it] - points[it + 1]).length }
+    (0 until points.size - 1).sumOf { (points[it] - points[it + 1]).length }
 
 /** Converts spline to a [Segment]. */
 fun CatmullRom2.toSegment(): Segment {
@@ -1009,7 +1035,8 @@ fun Segment(start: Vector2, end: Vector2, corner: Boolean = true) = Segment(
     start,
     emptyArray<Vector2>(),
     end,
-    corner)
+    corner
+)
 
 /**
  * Quadratic Bézier segment constructor.
@@ -1022,7 +1049,8 @@ fun Segment(start: Vector2, c0: Vector2, end: Vector2, corner: Boolean = true) =
     start,
     arrayOf(c0),
     end,
-    corner)
+    corner
+)
 
 /**
  * Cubic Bézier segment constructor.
