@@ -108,6 +108,7 @@ data class LineSegment(val start: Vector2, val end: Vector2) : LinearType<LineSe
      *      of the point on the segment to rotate around, default is `0.5` (mid-point).
      */
     @JvmOverloads
+    @Deprecated("t value is not according to convention", replaceWith = ReplaceWith("rotateBy"))
     fun rotate(degrees: Double, t: Double = 0.5): LineSegment {
         val anchorPoint = end.mix(start, t.coerceIn(0.0, 1.0))
 
@@ -117,11 +118,41 @@ data class LineSegment(val start: Vector2, val end: Vector2) : LinearType<LineSe
         )
     }
 
+    /**
+     * Rotates the [LineSegment] around a point on the segment.
+     * @param degrees The rotation in degrees.
+     * @param t The [t](https://pomax.github.io/bezierinfo/#explanation) value
+     *      of the point on the segment to rotate around, default is `0.5` (mid-point).
+     */
+    fun rotateBy(degrees: Double, t: Double = 0.5): LineSegment {
+        val anchorPoint = start.mix(end, t.coerceIn(0.0, 1.0))
+
+        return LineSegment(
+            start.rotate(degrees, anchorPoint),
+            end.rotate(degrees, anchorPoint)
+        )
+    }
+
     /** Extends the length of the segment by given multiplier. */
+    @Deprecated("extends by twice the amount", replaceWith = ReplaceWith("extendBy"))
     fun extend(times: Double): LineSegment {
         return LineSegment(start - direction * times, end + direction * times)
     }
 
+    /** Extends the length of the segment by the given [length].
+     * @since openrndr 0.4.4
+     * */
+    fun extendBy(length: Double, anchorT: Double = 0.5): LineSegment {
+        val tangent = direction.normalized
+        return LineSegment(start - tangent * length * (1.0-anchorT), end + tangent * length * anchorT)
+    }
+
+    /** Extends the length of the segment to the given [targetLength].
+     * @since openrndr 0.4.4
+     * */
+    fun extendTo(targetLength: Double, anchorT: Double = 0.5): LineSegment {
+        return extendBy(targetLength - length, anchorT)
+    }
     /**
      * Calculates the point at a given distance along this [LineSegment].
      * @param length the distance along the [LineSegment].
