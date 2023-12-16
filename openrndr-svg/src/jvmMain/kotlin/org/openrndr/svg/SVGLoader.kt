@@ -1,13 +1,10 @@
 package org.openrndr.svg
 
-import mu.*
 import org.jsoup.*
 import org.jsoup.parser.*
 import org.openrndr.shape.*
 import java.io.*
 import java.net.*
-
-private val logger = KotlinLogging.logger {}
 
 /**
  * Load a [Composition] from a filename, url or svg string
@@ -78,29 +75,6 @@ internal class SVGLoader {
         val namespaces = root.attributes().filter { it.key.startsWith("xmlns") }.associate {
             Pair(it.key, it.value)
         }
-
-        // Deprecated in SVG 2.0 and not a popular attribute anyway
-        // but if it is present and is not 1.2, we can notify the user
-        // that it's UB from here on out
-        val version = root.attr(Attr.VERSION)
-        val unsupportedVersions = setOf("1.0", "1.1")
-
-        if (version in unsupportedVersions) {
-            logger.warn {
-                "SVG version \"$version\" is not supported!"
-            }
-        }
-
-        // Deprecated in SVG 2.0
-        val baseProfile = root.attr(Attr.BASE_PROFILE)
-        val unsupportedProfiles = setOf("full", "basic")
-
-        if (baseProfile in unsupportedProfiles) {
-            logger.warn {
-                "SVG baseProfile \"$baseProfile\" is not supported!"
-            }
-        }
-
         val rootGroup = SVGSVGElement(root)
         return SVGDocument(rootGroup, namespaces)
     }
