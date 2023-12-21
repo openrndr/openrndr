@@ -1004,7 +1004,11 @@ class Drawer(val driver: Driver) {
      * @see contour
      */
     fun segment(segment: Segment) {
-        contour(ShapeContour(listOf(segment), false, YPolarity.CW_NEGATIVE_Y))
+        val distanceTolerance = 0.5 / (modelViewScaling * log2(strokeWeight).coerceAtLeast(1.0))
+        if (abs(modelViewScaling) < 1E-6){
+            return
+        }
+        lineStrip(segment.adaptivePositions(distanceTolerance))
     }
 
     /**
@@ -1019,7 +1023,11 @@ class Drawer(val driver: Driver) {
      */
     @JvmName("segments2d")
     fun segments(segments: List<Segment>) {
-        lineStrips(segments.map { it.adaptivePositions() })
+        val distanceTolerance = 0.5 / (modelViewScaling * log2(strokeWeight).coerceAtLeast(1.0))
+        if (abs(modelViewScaling) < 1E-6){
+            return
+        }
+        lineStrips(segments.map { it.adaptivePositions(distanceTolerance) })
     }
 
     /**
