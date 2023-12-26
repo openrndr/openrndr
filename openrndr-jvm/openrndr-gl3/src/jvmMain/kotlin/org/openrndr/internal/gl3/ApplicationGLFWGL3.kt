@@ -19,6 +19,7 @@ import org.openrndr.WindowMultisample.*
 import org.openrndr.animatable.Animatable
 import org.openrndr.animatable.Clock
 import org.openrndr.draw.Drawer
+import org.openrndr.draw.RenderTarget
 import org.openrndr.draw.Session
 import org.openrndr.internal.Driver
 import org.openrndr.math.Vector2
@@ -921,7 +922,9 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
     }
 
     fun postloop(exception: Throwable? = null) {
-
+        if (RenderTarget.active != defaultRenderTarget) {
+            defaultRenderTarget.bindTarget()
+        }
 
 
         logger.debug { "Shutting down extensions" }
@@ -934,9 +937,13 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
         logger.debug { "Triggering program ended event" }
         program.ended.trigger(ProgramEvent(ProgramEventType.ENDED))
 
+        exception?.let {
+            it.printStackTrace()
 
-        Session.root.end()
-
+        }
+        if (exception == null) {
+            Session.root.end()
+        }
         Driver.instance.destroyContext(Driver.instance.contextID)
 
         glfwFreeCallbacks(window)
