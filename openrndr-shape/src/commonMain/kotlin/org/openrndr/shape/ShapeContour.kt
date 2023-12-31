@@ -22,7 +22,7 @@ data class ShapeContour @JvmOverloads constructor(
     val segments: List<Segment>,
     val closed: Boolean,
     val polarity: YPolarity = YPolarity.CW_NEGATIVE_Y
-) : ShapeContourProvider {
+) : ShapeProvider, ShapeContourProvider {
     companion object {
         /**
          * An empty [ShapeContour] object.
@@ -91,7 +91,7 @@ data class ShapeContour @JvmOverloads constructor(
     }
 
     /** Returns [Shape] representation. */
-    val shape: Shape get() = Shape(listOf(this))
+    override val shape: Shape get() = Shape(listOf(this))
 
     /** Calculates approximate Euclidean length of the contour. */
     val length by lazy { segments.sumOf { it.length } }
