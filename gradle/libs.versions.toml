@@ -1,7 +1,7 @@
 [versions]
 kotlinApi = "1.9"
 kotlinLanguage = "1.9"
-kotlin = "1.9.21"
+kotlin = "1.9.22"
 jvmTarget = "11"
 kotlinxCoroutines = "1.7.3"
 kotlinLogging = "3.0.0"
@@ -13,11 +13,11 @@ lwjgl = "3.3.3"
 javacpp = "1.5.9"
 # ffmpeg version suffix should match javacpp version
 ffmpeg = "6.0-1.5.9"
-jsoup = "1.17.1"
+jsoup = "1.17.2"
 junitJupiter = "5.10.1"
 kluent = "1.73"
 kotest = "5.8.0"
-slf4j = "2.0.9"
+slf4j = "2.0.10"
 
 [libraries]
 kotlin-logging = { group = "io.github.microutils", name = "kotlin-logging", version.ref = "kotlinLogging" }
