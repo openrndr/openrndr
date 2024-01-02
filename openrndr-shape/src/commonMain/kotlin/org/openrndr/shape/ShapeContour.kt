@@ -110,10 +110,15 @@ data class ShapeContour @JvmOverloads constructor(
     val winding: Winding
         get() {
             var sum = 0.0
-            segments.forEachIndexed { i, v ->
-                val after = segments[mod(i + 1, segments.size)].start
-                sum += (after.x - v.start.x) * (after.y + v.start.y)
+            segments.forEach { s ->
+                (listOf(s.start) + s.control + listOf(s.end)).zipWithNext { a, b ->
+                    sum += (b.x - a.x) * (b.y + a.y)
+                }
             }
+            val start = segments.first().start
+            val end = segments.last().end
+            sum += (start.x - end.x) * (start.y + end.y)
+
             return when (polarity) {
                 YPolarity.CCW_POSITIVE_Y -> if (sum < 0) {
                     Winding.COUNTER_CLOCKWISE
