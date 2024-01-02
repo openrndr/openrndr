@@ -4,6 +4,13 @@ plugins {
 
 kotlin {
     sourceSets {
+
+        val commonMain by getting {
+            dependencies {
+                implementation(project(":openrndr-utils"))
+            }
+        }
+
         @Suppress("UNUSED_VARIABLE")
         val commonTest by getting {
             dependencies {

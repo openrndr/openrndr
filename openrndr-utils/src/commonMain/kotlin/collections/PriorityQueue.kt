@@ -1,5 +1,5 @@
 //https://codereview.stackexchange.com/questions/175291/minimum-priority-queue-implementation-in-kotlin
-package org.openrndr.kartifex.graphs
+package org.openrndr.collections
 
 class PriorityQueue<Key> : Iterable<Key> {
     private var pq: Array<Key?>

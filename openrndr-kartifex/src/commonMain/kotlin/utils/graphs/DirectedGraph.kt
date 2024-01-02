@@ -1,6 +1,6 @@
 package org.openrndr.kartifex.utils.graphs
 
-import org.openrndr.kartifex.graphs.PriorityQueue
+import org.openrndr.collections.PriorityQueue
 import kotlin.math.max
 import kotlin.math.min
 
