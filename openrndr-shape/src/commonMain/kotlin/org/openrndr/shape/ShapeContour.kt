@@ -107,32 +107,31 @@ data class ShapeContour @JvmOverloads constructor(
     }
 
     /** Determines the winding order of the [ShapeContour]. */
-    val winding: Winding
-        get() {
-            var sum = 0.0
-            segments.forEach { s ->
-                (listOf(s.start) + s.control + listOf(s.end)).zipWithNext { a, b ->
-                    sum += (b.x - a.x) * (b.y + a.y)
-                }
-            }
-            val start = segments.first().start
-            val end = segments.last().end
-            sum += (start.x - end.x) * (start.y + end.y)
-
-            return when (polarity) {
-                YPolarity.CCW_POSITIVE_Y -> if (sum < 0) {
-                    Winding.COUNTER_CLOCKWISE
-                } else {
-                    Winding.CLOCKWISE
-                }
-
-                YPolarity.CW_NEGATIVE_Y -> if (sum < 0) {
-                    Winding.CLOCKWISE
-                } else {
-                    Winding.COUNTER_CLOCKWISE
-                }
+    val winding: Winding by lazy {
+        var sum = 0.0
+        segments.forEach { s ->
+            (listOf(s.start) + s.control + listOf(s.end)).zipWithNext { a, b ->
+                sum += (b.x - a.x) * (b.y + a.y)
             }
         }
+        val start = segments.first().start
+        val end = segments.last().end
+        sum += (start.x - end.x) * (start.y + end.y)
+        when (polarity) {
+            YPolarity.CCW_POSITIVE_Y -> if (sum < 0) {
+                Winding.COUNTER_CLOCKWISE
+            } else {
+                Winding.CLOCKWISE
+            }
+
+            YPolarity.CW_NEGATIVE_Y -> if (sum < 0) {
+                Winding.CLOCKWISE
+            } else {
+                Winding.COUNTER_CLOCKWISE
+            }
+        }
+    }
+
 
     /** Converts to a [List] of single [Segment]s. */
     @Suppress("unused")
