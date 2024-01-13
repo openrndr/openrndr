@@ -584,8 +584,6 @@ data class ShapeContour @JvmOverloads constructor(
         return ContourPoint(this, t, n.segment, n.segmentT, n.position)
     }
 
-    //@Deprecated("Please use .open() instead")
-    //val opened = open
 
     /**
      * Opens the path of the [ShapeContour].
@@ -654,9 +652,3 @@ data class ShapeContour @JvmOverloads constructor(
 val List<ShapeContour>.shape
     get() = Shape(this)
 
-/**
- * Converts chain to a [ShapeContour].
- */
-@Suppress("unused")
-fun CatmullRomChain2.toContour(): ShapeContour =
-    ShapeContour(segments.map { it.toSegment() }, this.loop)

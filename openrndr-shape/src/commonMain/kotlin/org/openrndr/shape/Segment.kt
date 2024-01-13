@@ -430,32 +430,6 @@ data class Segment(
         return dPoints
     }
 
-    fun offset(
-        distance: Double,
-        stepSize: Double = 0.01,
-        yPolarity: YPolarity = YPolarity.CW_NEGATIVE_Y
-    ): List<Segment> {
-        return if (linear) {
-            val n = normal(0.0, yPolarity)
-            if (distance > 0.0) {
-                listOf(Segment(start + distance * n, end + distance * n))
-            } else {
-                val d = direction()
-                val s = distance.coerceAtMost(length / 2.0)
-                val candidate = Segment(
-                    start - s * d + distance * n,
-                    end + s * d + distance * n
-                )
-                if (candidate.length > 0.0) {
-                    listOf(candidate)
-                } else {
-                    emptyList()
-                }
-            }
-        } else {
-            reduced(stepSize).map { it.scale(distance, yPolarity) }
-        }
-    }
 
     private fun angle(o: Vector2, v1: Vector2, v2: Vector2): Double {
         val dx1 = v1.x - o.x
@@ -473,10 +447,10 @@ data class Segment(
      * If the given [Segment] has control points,
      * the function verifies that they do not add any curvature to the path.
      *
-     * @param epsilon The margin of error for what's considered a straight line.
+     * @param tolerance The margin of error for what's considered a straight line.
      */
     @Suppress("unused")
-    fun isStraight(epsilon: Double = 0.01): Boolean {
+    fun isStraight(tolerance: Double = 0.01): Boolean {
         return when (control.size) {
             2 -> {
                 val dl = (end - start).normalized
@@ -486,7 +460,7 @@ data class Segment(
                 val dp0 = dl.dot(d0)
                 val dp1 = (-dl).dot(d1)
 
-                dp0 * dp0 + dp1 * dp1 > (2.0 - 2 * epsilon)
+                dp0 * dp0 + dp1 * dp1 > (2.0 - 2 * tolerance)
             }
 
             1 -> {
@@ -494,7 +468,7 @@ data class Segment(
                 val d0 = (control[0] - start).normalized
 
                 val dp0 = dl.dot(d0)
-                dp0 * dp0 > (1.0 - epsilon)
+                dp0 * dp0 > (1.0 - tolerance)
             }
 
             else -> {
@@ -522,110 +496,10 @@ data class Segment(
             return s >= 0.9
         }
 
-    private fun splitOnExtrema(): List<Segment> {
-        var extrema = extrema().toMutableList()
 
-        if (isStraight(0.05)) {
-            return listOf(this)
-        }
-
-        if (simple && extrema.isEmpty()) {
-            return listOf(this)
-        }
-
-        if (extrema.isEmpty()) {
-            return listOf(this)
-        }
-        if (extrema[0] <= 0.01) {
-            extrema[0] = 0.0
-        } else {
-            extrema = (mutableListOf(0.0) + extrema).toMutableList()
-        }
-
-        if (extrema.last() < 0.99) {
-            extrema = (extrema + listOf(1.0)).toMutableList()
-        } else if (extrema.last() >= 0.99) {
-            extrema[extrema.lastIndex] = 1.0
-        }
-
-        return extrema.zipWithNext().map {
-            sub(it.first, it.second)
-        }
-    }
-
-    private fun splitToSimple(step: Double): List<Segment> {
-        var t1 = 0.0
-        var t2 = 0.0
-        val result = mutableListOf<Segment>()
-        while (t2 <= 1.0) {
-            t2 = t1 + step
-            while (t2 <= 1.0 + step) {
-                val segment = sub(t1, t2)
-                if (!segment.simple) {
-                    t2 -= step
-                    if (abs(t1 - t2) < step) {
-                        return listOf(this)
-                    }
-                    val segment2 = sub(t1, t2)
-                    result.add(segment2)
-                    t1 = t2
-                    break
-                }
-                t2 += step
-            }
-
-        }
-        if (t1 < 1.0) {
-            result.add(sub(t1, 1.0))
-        }
-        if (result.isEmpty()) {
-            result.add(this)
-        }
-
-        return result
-    }
-
-    fun reduced(stepSize: Double = 0.01): List<Segment> {
-        val pass1 = splitOnExtrema()
-        //return pass1
-        return pass1.flatMap { it.splitToSimple(stepSize) }
-    }
-
-    fun scale(scale: Double, polarity: YPolarity) = scale(polarity) { scale }
 
     val clockwise
         get() = angle(start, end, control[0]) > 0
-
-    fun scale(polarity: YPolarity, scale: (Double) -> Double): Segment {
-        if (control.size == 1) {
-            return cubic.scale(polarity, scale)
-        }
-
-        val newStart = start + normal(0.0, polarity) * scale(0.0)
-        val newEnd = end + normal(1.0, polarity) * scale(1.0)
-
-        val a = LineSegment(newStart, start)
-        val b = LineSegment(newEnd, end)
-
-        val o = intersection(a, b, 1E7)
-
-        if (o != Vector2.INFINITY) {
-            val newControls = control.mapIndexed { index, it ->
-                val d = it - o
-                val rc = scale((index + 1.0) / 3.0)
-                val s = normal(0.0, polarity).dot(d).sign
-                val nd = d.normalized * s
-                it + rc * nd
-            }
-            return copy(newStart, newControls.toTypedArray(), newEnd)
-        } else {
-            val newControls = control.mapIndexed { index, it ->
-                val rc = scale((index + 1.0) / 3.0)
-                it + rc * normal((index + 1.0), polarity)
-            }
-            return copy(newStart, newControls.toTypedArray(), newEnd)
-        }
-    }
 
     /** Converts the [Segment] to a cubic Bézier curve. */
     val cubic: Segment
@@ -1007,22 +881,6 @@ data class Segment(
 private fun sumDifferences(points: List<Vector2>) =
     (0 until points.size - 1).sumOf { (points[it] - points[it + 1]).length }
 
-/** Converts spline to a [Segment]. */
-fun CatmullRom2.toSegment(): Segment {
-    val d1a2 = (p1 - p0).length.pow(2 * alpha)
-    val d2a2 = (p2 - p1).length.pow(2 * alpha)
-    val d3a2 = (p3 - p2).length.pow(2 * alpha)
-    val d1a = (p1 - p0).length.pow(alpha)
-    val d2a = (p2 - p1).length.pow(alpha)
-    val d3a = (p3 - p2).length.pow(alpha)
-
-    val b0 = p1
-    val b1 = (p2 * d1a2 - p0 * d2a2 + p1 * (2 * d1a2 + 3 * d1a * d2a + d2a2)) / (3 * d1a * (d1a + d2a))
-    val b2 = (p1 * d3a2 - p3 * d2a2 + p2 * (2 * d3a2 + 3 * d3a * d2a + d2a2)) / (3 * d3a * (d3a + d2a))
-    val b3 = p2
-
-    return Segment(b0, b1, b2, b3)
-}
 
 /**
  * Linear segment constructor.
