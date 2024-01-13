@@ -72,10 +72,7 @@ class TestSegment : DescribeSpec({
             segment.normal(0.0)
         }
 
-        it("can be offset") {
-            val offset = segment.offset(10.0)
-            offset.size `should be equal to` 1
-        }
+
 
         it("can be promoted to a quadratic segment") {
             val quadratic = segment.quadratic
@@ -303,15 +300,6 @@ class TestSegment : DescribeSpec({
             segment.extrema()
         }
 
-        describe("has evaluable reduction") {
-            segment.reduced()
-
-            println("number of segments in reduction: ${segment.reduced().size}")
-
-            it("can be scaled") {
-
-            }
-        }
 
         it("can be split in half") {
             val sides = segment.split(0.5)

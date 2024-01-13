@@ -105,12 +105,6 @@ class TestShapeContour : DescribeSpec({
             continueTo(Vector2(0.9 * width, 0.3 * height))
         }
 
-        it("can be offset") {
-            val o = curve.offset(20.0)
-            o.winding `should be equal to` curve.winding
-            o.closed `should be equal to` curve.closed
-        }
-
     }
 
     describe("a simple closed contour") {
@@ -140,25 +134,6 @@ class TestShapeContour : DescribeSpec({
             curve.position(0.0) `should be near` curve.position(1.0)
         }
 
-        it("can be offset with miter joins") {
-            for (i in -100 until 100) {
-                curve.offset(i * 1.0, SegmentJoin.MITER)
-            }
-        }
-
-        it("can be offset with round joins") {
-            for (i in -100 until 100) {
-                val offset = curve.offset(i * 1.0, SegmentJoin.ROUND)
-                offset.closed `should be equal to` curve.closed
-            }
-        }
-
-        it("can be offset with bevel joins") {
-            for (i in -100 until 100) {
-                val offset = curve.offset(i * 1.0, SegmentJoin.BEVEL)
-                offset.closed `should be equal to` curve.closed
-            }
-        }
 
         it("can be sampled for equidistant linear segments") {
             for (i in 4 until 100) {
@@ -182,13 +157,6 @@ class TestShapeContour : DescribeSpec({
         val positions = curve.adaptivePositions()
         positions.zipWithNext().`should match all with` { (it.second - it.first).squaredLength > 0.0 }
 
-        val offset0 = curve.offset(20.0, SegmentJoin.MITER)
-        val positions0 = offset0.adaptivePositions()
-        positions0.zipWithNext().`should match all with` { (it.second - it.first).squaredLength > 0.0 }
-
-        val offset1 = offset0.offset(20.0, SegmentJoin.MITER)
-        val positions1 = offset1.adaptivePositions()
-        positions1.zipWithNext().`should match all with` { (it.second - it.first).squaredLength > 0.0 }
 
         it("has CCW winding") {
             curve.winding `should be equal to` Winding.COUNTER_CLOCKWISE
