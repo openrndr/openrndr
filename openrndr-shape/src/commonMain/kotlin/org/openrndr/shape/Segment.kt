@@ -16,7 +16,7 @@ import kotlin.math.*
 @Serializable
 data class Segment(
     val start: Vector2,
-    val control: Array<Vector2>,
+    val control: List<Vector2>,
     val end: Vector2,
     val corner: Boolean = false
 ) : ShapeContourProvider {
@@ -271,11 +271,11 @@ data class Segment(
             val tStart = (transform * (start.xy01)).div.xy
             val tEnd = (transform * (end.xy01)).div.xy
             val tControl = when (control.size) {
-                2 -> arrayOf((transform * control[0].xy01).div.xy, (transform * control[1].xy01).div.xy)
-                1 -> arrayOf((transform * control[0].xy01).div.xy)
-                else -> emptyArray()
+                2 -> listOf((transform * control[0].xy01).div.xy, (transform * control[1].xy01).div.xy)
+                1 -> listOf((transform * control[0].xy01).div.xy)
+                else -> emptyList()
             }
-            copy(tStart, tControl, tEnd)
+            copy(start = tStart, control = tControl, end = tEnd)
         }
     }
 
@@ -407,7 +407,7 @@ data class Segment(
 
 
     private fun dPoints(): List<List<Vector2>> {
-        val points = listOf(start, *control, end)
+        val points = listOf(start) + control + listOf(end)
         var d = points.size
         var c = d - 1
         val dPoints = mutableListOf<List<Vector2>>()
@@ -624,8 +624,7 @@ data class Segment(
         } else {
             when (control.size) {
                 2 -> {
-                    @Suppress("UnnecessaryVariable")
-                    val z = u
+                    @Suppress("UnnecessaryVariable") val z = u
                     val z2 = z * z
                     val z3 = z * z * z
                     val iz = 1 - z
@@ -673,8 +672,7 @@ data class Segment(
                 }
 
                 1 -> {
-                    @Suppress("UnnecessaryVariable")
-                    val z = u
+                    @Suppress("UnnecessaryVariable") val z = u
                     val iz = 1 - z
                     val iz2 = iz * iz
                     val z2 = z * z
@@ -737,7 +735,7 @@ data class Segment(
     }
 
     override fun toString(): String {
-        return "Segment(start=$start, end=$end, control=${control.contentToString()})"
+        return "Segment(start=$start, end=$end, control=${control})"
     }
 
 
@@ -751,13 +749,13 @@ data class Segment(
 
         if (start != other.start) return false
         if (end != other.end) return false
-        return control.contentEquals(other.control)
+        return control == other.control
     }
 
     override fun hashCode(): Int {
         var result = start.hashCode()
         result = 31 * result + end.hashCode()
-        result = 31 * result + control.contentHashCode()
+        result = 31 * result + control.hashCode()
         return result
     }
 
@@ -891,7 +889,7 @@ private fun sumDifferences(points: List<Vector2>) =
 
 fun Segment(start: Vector2, end: Vector2, corner: Boolean = true) = Segment(
     start,
-    emptyArray<Vector2>(),
+    emptyList<Vector2>(),
     end,
     corner
 )
@@ -905,7 +903,7 @@ fun Segment(start: Vector2, end: Vector2, corner: Boolean = true) = Segment(
  */
 fun Segment(start: Vector2, c0: Vector2, end: Vector2, corner: Boolean = true) = Segment(
     start,
-    arrayOf(c0),
+    listOf(c0),
     end,
     corner
 )
@@ -920,7 +918,7 @@ fun Segment(start: Vector2, c0: Vector2, end: Vector2, corner: Boolean = true) =
  */
 fun Segment(start: Vector2, c0: Vector2, c1: Vector2, end: Vector2, corner: Boolean = true) = Segment(
     start,
-    arrayOf(c0, c1),
+    listOf(c0, c1),
     end,
     corner
 )
