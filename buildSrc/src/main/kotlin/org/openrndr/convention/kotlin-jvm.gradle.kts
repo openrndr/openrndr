@@ -27,6 +27,7 @@ dependencies {
     implementation(libs.kotlin.stdlib)
     implementation(libs.kotlin.logging)
     testImplementation(libs.kotlin.test)
+    testRuntimeOnly(libs.slf4j.simple)
 }
 
 kotlin {
