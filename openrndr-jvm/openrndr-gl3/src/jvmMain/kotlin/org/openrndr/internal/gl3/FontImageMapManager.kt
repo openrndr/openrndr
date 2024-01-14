@@ -1,6 +1,6 @@
 package org.openrndr.internal.gl3
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.lwjgl.system.MemoryUtil
 import org.openrndr.binpack.IntPacker
 import org.openrndr.binpack.PackNode

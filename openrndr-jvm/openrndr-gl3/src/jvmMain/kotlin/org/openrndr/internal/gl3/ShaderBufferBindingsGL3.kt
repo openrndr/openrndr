@@ -1,6 +1,6 @@
 package org.openrndr.internal.gl3
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.lwjgl.opengl.GL15C.glBindBuffer
 import org.lwjgl.opengl.GL15C.glGenBuffers
 import org.lwjgl.opengl.GL30C.glBindBufferBase
@@ -81,7 +81,7 @@ interface ShaderBufferBindingsGL3 : ShaderBufferBindings, ShaderUniformsGL3 {
                 glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo)
                 glBindBufferBase(GL_SHADER_STORAGE_BUFFER, bindingIndex, shaderStorageBuffer.buffer)
             } else {
-                logger.warn("no binding index for '${name}'")
+                logger.warn { "no binding index for '${name}'" }
             }
         }
     }

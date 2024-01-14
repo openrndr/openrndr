@@ -1,6 +1,6 @@
 package org.openrndr.internal.gl3
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.lwjgl.glfw.GLFWNativeWin32
 import org.lwjgl.system.MemoryUtil
 import org.lwjgl.system.windows.*

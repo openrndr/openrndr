@@ -1,6 +1,6 @@
 package org.openrndr.extensions
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.openrndr.AssetMetadata
 import org.openrndr.Extension
 import org.openrndr.Program

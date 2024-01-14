@@ -1,7 +1,7 @@
 @file:JvmName("FontMapJVM")
 package org.openrndr.draw
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.File
 import java.net.MalformedURLException
 import java.net.URL

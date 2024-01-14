@@ -1,7 +1,7 @@
 package org.openrndr
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
-import mu.KotlinLogging
 import org.openrndr.math.Vector2
 
 private val logger = KotlinLogging.logger {}

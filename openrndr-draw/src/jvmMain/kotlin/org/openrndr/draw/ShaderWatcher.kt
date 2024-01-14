@@ -1,7 +1,7 @@
 package org.openrndr.draw
 
 import com.sun.nio.file.SensitivityWatchEventModifier
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.File
 import java.net.URL
 import java.nio.file.FileSystems

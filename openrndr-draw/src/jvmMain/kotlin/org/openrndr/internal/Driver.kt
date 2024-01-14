@@ -1,6 +1,6 @@
 package org.openrndr.internal
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.openrndr.draw.*
 import java.io.InputStream
 import java.nio.Buffer

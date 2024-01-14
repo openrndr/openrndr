@@ -1,6 +1,6 @@
 package org.openrndr.svg
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.jsoup.nodes.*
 import org.openrndr.color.*
 import org.openrndr.math.*

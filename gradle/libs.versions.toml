@@ -4,7 +4,7 @@ kotlinLanguage = "1.9"
 kotlin = "1.9.22"
 jvmTarget = "11"
 kotlinxCoroutines = "1.7.3"
-kotlinLogging = "3.0.0"
+kotlinLogging = "6.0.2"
 kotlinxSerialization = "1.6.2"
 dokka = "1.8.10"
 nebulaRelease = "18.0.7"
@@ -20,7 +20,7 @@ kotest = "5.8.0"
 slf4j = "2.0.10"
 
 [libraries]
-kotlin-logging = { group = "io.github.microutils", name = "kotlin-logging", version.ref = "kotlinLogging" }
+kotlin-logging = { group = "io.github.oshai", name = "kotlin-logging", version.ref = "kotlinLogging" }
 kotlin-coroutines = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
 kotlin-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
 kotlin-serialization-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-core", version.ref = "kotlinxSerialization" }

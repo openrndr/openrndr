@@ -1,6 +1,6 @@
 package org.openrndr.internal.gl3
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.ARBSeparateShaderObjects.glProgramUniform3f
 import org.lwjgl.opengl.GL41C
@@ -475,7 +475,7 @@ interface ShaderUniformsGL3 : ShaderUniforms {
                 floatValues[i * 4] = value[i].r.toFloat()
                 floatValues[i * 4 + 1] = value[i].g.toFloat()
                 floatValues[i * 4 + 2] = value[i].b.toFloat()
-                floatValues[i * 4 + 3] = value[i].a.toFloat()
+                floatValues[i * 4 + 3] = value[i].alpha.toFloat()
             }
             if (useProgramUniform) {
                 glProgramUniform4fv(programObject, index, floatValues)

@@ -1,6 +1,6 @@
 package org.openrndr.internal.gl3
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.lwjgl.opengl.GL33C.*
 
 private val logger = KotlinLogging.logger {}

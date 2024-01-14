@@ -1,6 +1,6 @@
 package org.openrndr.draw
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.openrndr.events.Event
 import org.openrndr.internal.ColorBufferLoader
 import org.openrndr.internal.colorBufferLoader

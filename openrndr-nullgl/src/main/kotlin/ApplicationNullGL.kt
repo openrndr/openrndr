@@ -1,7 +1,7 @@
 package org.openrndr.internal.nullgl
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
-import mu.KotlinLogging
 import org.openrndr.*
 
 

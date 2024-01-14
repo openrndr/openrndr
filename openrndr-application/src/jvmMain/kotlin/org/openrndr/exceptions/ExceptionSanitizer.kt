@@ -1,6 +1,6 @@
 package org.openrndr.exceptions
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.openrndr.platform.Platform
 import org.openrndr.platform.PlatformType
 import java.lang.Thread.UncaughtExceptionHandler

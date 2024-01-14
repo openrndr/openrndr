@@ -1,7 +1,7 @@
 package org.openrndr.internal.gl3
 
 import kotlinx.coroutines.runBlocking
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.lwjgl.BufferUtils
 import org.lwjgl.PointerBuffer
 import org.lwjgl.glfw.Callbacks.glfwFreeCallbacks

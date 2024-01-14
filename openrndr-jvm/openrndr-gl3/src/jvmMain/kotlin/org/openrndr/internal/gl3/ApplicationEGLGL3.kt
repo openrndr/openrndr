@@ -1,7 +1,7 @@
 package org.openrndr.internal.gl3
 
 import kotlinx.coroutines.runBlocking
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.lwjgl.BufferUtils
 import org.lwjgl.egl.EGL15.*
 import org.lwjgl.opengl.GL

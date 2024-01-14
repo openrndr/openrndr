@@ -1,7 +1,7 @@
 package org.openrndr
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.*
-import mu.KotlinLogging
 import kotlin.coroutines.CoroutineContext
 
 private val logger = KotlinLogging.logger {}

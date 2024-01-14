@@ -1,6 +1,6 @@
 package org.openrndr.ffmpeg
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.bytedeco.ffmpeg.ffmpeg
 import org.bytedeco.javacpp.Loader
 import org.lwjgl.BufferUtils

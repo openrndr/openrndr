@@ -1,4 +1,4 @@
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.openrndr.*
 import org.openrndr.extensions.Screenshots
 import java.io.File
