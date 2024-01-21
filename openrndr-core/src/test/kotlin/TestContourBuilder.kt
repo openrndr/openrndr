@@ -193,7 +193,7 @@ class TestContourBuilder : DescribeSpec({
             c[1].segments.size `should be equal to` 1
         }
 
-        it("supports multiple open org.openrndr.shape.contours") {
+        it("supports multiple closed org.openrndr.shape.contours") {
             val c = contours {
                 moveTo(200.0, 200.0)
                 lineTo(300.0, 200.0)
