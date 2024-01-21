@@ -23,6 +23,8 @@ data class IntRectangle(val corner: IntVector2, val width: Int, val height: Int)
     /** The unitless area covered by this [IntRectangle]. */
     val area get() = width * height
 
+    /** The dimensions of the [IntRectangle]. */
+    val dimensions get() = IntVector2(width, height)
 
     /** Casts [IntRectangle] to [Rectangle]. */
     val rectangle get() = Rectangle(corner.vector2, width.toDouble(), height.toDouble())
