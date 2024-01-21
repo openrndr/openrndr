@@ -49,7 +49,7 @@ class TestRectangle : DescribeSpec({
 
         it("can be sampled for equidistant positions") {
             val eps = c.equidistantPositions(10)
-            eps.size `should be equal to` 11
+            eps.size `should be equal to` 10
 
             for (p in eps) {
                 p.x `should be greater or equal to` 100.0 - 1E-6

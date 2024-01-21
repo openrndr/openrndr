@@ -399,7 +399,7 @@ data class ShapeContour @JvmOverloads constructor(
             sampleEquidistant(
                 adaptivePositions(distanceTolerance),
                 pointCount + if (closed) 1 else 0
-            )
+            ).take(pointCount)
         }
 
     fun equidistantPositionsWithT(pointCount: Int, distanceTolerance: Double = 0.5) =
@@ -409,7 +409,7 @@ data class ShapeContour @JvmOverloads constructor(
             sampleEquidistantWithT(
                 adaptivePositionsWithT(distanceTolerance),
                 pointCount + if (closed) 1 else 0
-            )
+            ).take(pointCount)
         }
 
     /**
@@ -427,19 +427,12 @@ data class ShapeContour @JvmOverloads constructor(
         }
 
     /** Samples the [ShapeContour] into equidistant linear [Segment]s. */
-    fun sampleEquidistant(pointCount: Int): ShapeContour {
+    fun sampleEquidistant(pointCount: Int) =
         if (empty) {
-            return EMPTY
+            EMPTY
+        } else {
+            fromPoints(equidistantPositions(pointCount.coerceAtLeast(2)), closed, polarity)
         }
-        val points = equidistantPositions(pointCount.coerceAtLeast(2))
-        val segments = (0 until points.size - 1).map {
-            Segment(
-                points[it],
-                points[it + 1]
-            )
-        }
-        return ShapeContour(segments, closed, polarity)
-    }
 
     /** Applies linear transformation to [ShapeContour]. */
     fun transform(transform: Matrix44) =

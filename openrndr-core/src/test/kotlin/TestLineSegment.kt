@@ -14,21 +14,21 @@ class TestLineSegment : DescribeSpec({
         }
     }
 
-    describe("a T shaped crossing horizontal and vertical line segment") {
+    describe("a ┬ shaped crossing of horizontal and vertical line segments") {
         val h = LineSegment(-100.0, 0.0, 100.0, 0.0)
         val v = LineSegment(0.0, 0.0, 0.0, 100.0)
 
-        it("they should intersect") {
+        it("should intersect") {
             val i = intersection(h, v, eps = 0.0)
             i `should be near` Vector2.ZERO
         }
     }
 
-    describe("a T shaped crossing horizontal and vertical line segment") {
+    describe("a ├ shaped crossing of horizontal and vertical line segments") {
         val h = LineSegment(0.0, 0.0, 100.0, 0.0)
         val v = LineSegment(0.0, -100.0, 0.0, 100.0)
 
-        it("they should intersect") {
+        it("should intersect") {
             val i = intersection(h, v, eps = 0.0)
             i `should be near` Vector2.ZERO
         }
