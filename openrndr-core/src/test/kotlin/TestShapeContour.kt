@@ -105,6 +105,9 @@ class TestShapeContour : DescribeSpec({
             continueTo(Vector2(0.9 * width, 0.3 * height))
         }
 
+        it("returns the expected number of points for equidistantPositions") {
+            curve.equidistantPositions(100).size `should be equal to` 100
+        }
     }
 
     describe("a simple closed contour") {
@@ -141,6 +144,10 @@ class TestShapeContour : DescribeSpec({
                 resampled.position(0.0) `should be near` curve.position(0.0)
                 resampled.position(1.0) `should be near` curve.position(1.0)
             }
+        }
+
+        it("returns the expected number of points for equidistantPositions") {
+            curve.equidistantPositions(100).size `should be equal to` 100
         }
     }
 
@@ -212,14 +219,14 @@ class TestShapeContour : DescribeSpec({
             curve.sub(-1.0, -1.0)
 
         }
-        it("it can be subbed from 0.0 to 0.001 ") {
+//        it("it can be subbed from 0.0 to 0.001 ") {
 //            for (i in -2000 .. 10000) {
 //                val o = i / 10000
 //                val s = curve.sub(0.0 + o, 0.01 + o)
 //                s.position(0.0) `should be somewhat near` curve.position(0.0 + o)
 //                s.position(1.0) `should be somewhat near` curve.position(0.01+ o)
 //            }
-        }
+//        }
 
         it("it can be subbed from 0.0 to 0.001 ") {
             val s = curve.sub(0.0, 1 / 100000.0)
