@@ -99,7 +99,7 @@ class DepthBufferGL3(
                         BufferMultisample.Disabled -> {
                             val glFormat = when (format) {
                                 DepthFormat.DEPTH16, DepthFormat.DEPTH24, DepthFormat.DEPTH32F -> GL_DEPTH_COMPONENT
-                                DepthFormat.DEPTH_STENCIL, DepthFormat.DEPTH24_STENCIL8, DepthFormat.DEPTH32F_STENCIL8 -> GL_DEPTH_STENCIL
+                                DepthFormat.DEPTH_STENCIL, DepthFormat.DEPTH24_STENCIL8, DepthFormat.DEPTH32F_STENCIL8 -> GL_DEPTH_COMPONENT
                                 DepthFormat.STENCIL8 -> {
                                     (Driver.instance as DriverGL3).version.require(DriverVersionGL.GL_VERSION_4_4); GL_STENCIL_INDEX
                                 }
