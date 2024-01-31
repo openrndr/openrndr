@@ -26,12 +26,12 @@ actual class ShadeStyleGLSL {
             boundsSize: String
         ) = """
         |// -- fragmentConstants
-        |int c_instance = $instance;
-        |int c_element = $element;
-        |vec2 c_screenPosition = $screenPosition;
-        |float c_contourPosition = $contourPosition;
-        |vec3 c_boundsPosition = $boundsPosition;
-        |vec3 c_boundsSize = $boundsSize;""".trimMargin()
+        |#define c_instance ($instance)
+        |#define c_element ($element)
+        |#define c_screenPosition ($screenPosition)
+        |#define c_contourPosition ($contourPosition)
+        |#define c_boundsPosition ($boundsPosition)
+        |#define c_boundsSize ($boundsSize)""".trimMargin()
 
         /**
          * This granule is used inside the main() function of vertex shaders to set up
@@ -41,8 +41,8 @@ actual class ShadeStyleGLSL {
             instance: String,
             element: String
         ) = """
-        |int c_instance = $instance;
-        |int c_element = $element;""".trimMargin()
+        |#define c_instance $instance;
+        |#define c_element ($element)""".trimMargin()
 
         /**
          * This granule is used in the preamble of a fragment shader. It sets up the declarations of

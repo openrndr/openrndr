@@ -22,7 +22,7 @@ class ComputeShaderGL43(
     ShaderBufferBindingsGL3, ShaderUniformsGL3, ShaderImageBindingsGL43 {
 
     override val uniforms = mutableMapOf<String, Int>()
-    override val useProgramUniform = (Driver.instance as DriverGL3).version >= DriverVersionGL.VERSION_4_1
+    override val useProgramUniform = (Driver.instance as DriverGL3).version >= DriverVersionGL.GL_VERSION_4_1
     private var destroyed = false
 
     override fun execute(width: Int, height: Int, depth: Int) {
@@ -52,6 +52,12 @@ class ComputeShaderGL43(
     companion object {
         fun createFromCode(code: String, name: String): ComputeShaderGL43 {
             val shaderObject = glCreateShader(GL_COMPUTE_SHADER)
+            checkGLErrors() {
+                when(it) {
+                    GL_INVALID_ENUM -> "Compute shaders are not supported"
+                    else -> null
+                }
+            }
             glShaderSource(shaderObject, code)
             checkGLErrors()
             glCompileShader(shaderObject)

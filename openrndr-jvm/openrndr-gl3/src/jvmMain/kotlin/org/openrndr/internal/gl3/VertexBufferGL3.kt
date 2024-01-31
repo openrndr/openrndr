@@ -81,7 +81,7 @@ class VertexBufferGL3(
             glBindBuffer(GL_ARRAY_BUFFER, buffer)
             debugGLErrors()
             val sizeInBytes = vertexFormat.size * vertexCount
-            val useBufferStorage = (Driver.instance as DriverGL3).version >= DriverVersionGL.VERSION_4_4
+            val useBufferStorage = (Driver.instance as DriverGL3).version >= DriverVersionGL.GL_VERSION_4_4 && (Driver.instance as DriverGL3).version.type == DriverTypeGL.GL
 
             if (useBufferStorage) {
                 glBufferStorage(GL_ARRAY_BUFFER, sizeInBytes.toLong(), GL_DYNAMIC_STORAGE_BIT)
@@ -104,7 +104,7 @@ class VertexBufferGL3(
             return realShadow ?: error("no shadow")
         }
 
-    private val useNamedBuffer = (Driver.instance as DriverGL3).version >= DriverVersionGL.VERSION_4_5
+    private val useNamedBuffer = (Driver.instance as DriverGL3).version >= DriverVersionGL.GL_VERSION_4_5 && (Driver.instance as DriverGL3).version.type == DriverTypeGL.GL
     override fun write(data: ByteBuffer, offsetInBytes: Int) {
         if (isDestroyed) {
             error("buffer is destroyed")
@@ -154,18 +154,25 @@ class VertexBufferGL3(
         if (isDestroyed) {
             error("buffer is destroyed")
         }
-        if (data.isDirect) {
-            if (useNamedBuffer) {
-                glGetNamedBufferSubData(buffer, offsetInBytes.toLong(), data)
-            } else {
-                bind()
-                glGetBufferSubData(GL_ARRAY_BUFFER, offsetInBytes.toLong(), data)
-                debugGLErrors()
+        when (Driver.glType) {
+            DriverTypeGL.GL -> {
+                if (data.isDirect) {
+                    if (useNamedBuffer) {
+                        glGetNamedBufferSubData(buffer, offsetInBytes.toLong(), data)
+                    } else {
+                        bind()
+                        glGetBufferSubData(GL_ARRAY_BUFFER, offsetInBytes.toLong(), data)
+                        debugGLErrors()
+                    }
+                } else {
+                    val temp = BufferUtils.createByteBuffer(data.capacity())
+                    read(temp, offsetInBytes)
+                    data.put(temp)
+                }
             }
-        } else {
-            val temp = BufferUtils.createByteBuffer(data.capacity())
-            read(temp, offsetInBytes)
-            data.put(temp)
+            DriverTypeGL.GLES -> {
+                TODO()
+            }
         }
     }
 

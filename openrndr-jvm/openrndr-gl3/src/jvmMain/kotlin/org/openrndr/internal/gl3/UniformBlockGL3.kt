@@ -38,7 +38,7 @@ class UniformBlockGL3(override val layout: UniformBlockLayout, val blockBinding:
                 val ubo = glGenBuffers()
                 glBindBuffer(GL_UNIFORM_BUFFER, ubo)
 
-                val useBufferStorage = (Driver.instance as DriverGL3).version >= DriverVersionGL.VERSION_4_4
+                val useBufferStorage = (Driver.instance as DriverGL3).version >= DriverVersionGL.GL_VERSION_4_4 && (Driver.instance as DriverGL3).version.type == DriverTypeGL.GL
                 if (useBufferStorage) {
                     glBufferStorage(GL_UNIFORM_BUFFER, layout.sizeInBytes.toLong(), GL_DYNAMIC_STORAGE_BIT)
                 } else {
@@ -289,7 +289,7 @@ class UniformBlockGL3(override val layout: UniformBlockLayout, val blockBinding:
         realDirty = false
         shadowBuffer.safeRewind()
 
-        val useNamedBuffer = (Driver.instance as DriverGL3).version >= DriverVersionGL.VERSION_4_5
+        val useNamedBuffer = (Driver.instance as DriverGL3).version >= DriverVersionGL.GL_VERSION_4_5 && (Driver.instance as DriverGL3).version.type == DriverTypeGL.GL
         if (useNamedBuffer) {
             glNamedBufferSubData(ubo, 0L, shadowBuffer)
         } else {

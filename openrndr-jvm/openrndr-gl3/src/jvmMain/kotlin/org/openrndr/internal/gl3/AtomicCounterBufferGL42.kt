@@ -8,7 +8,6 @@ import org.lwjgl.opengl.GL45C.glGetNamedBufferSubData
 import org.lwjgl.opengl.GL45C.glNamedBufferSubData
 import org.openrndr.draw.AtomicCounterBuffer
 import org.openrndr.internal.Driver
-import org.openrndr.utils.resettableLazy
 
 class AtomicCounterBufferGL42(val buffer: Int, override val size: Int) : AtomicCounterBuffer {
 
@@ -18,7 +17,7 @@ class AtomicCounterBufferGL42(val buffer: Int, override val size: Int) : AtomicC
         fun create(counterCount: Int): AtomicCounterBufferGL42 {
             val counterBuffer = glGenBuffers()
             glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, counterBuffer)
-            val useBufferStorage = (Driver.instance as DriverGL3).version >= DriverVersionGL.VERSION_4_4
+            val useBufferStorage = (Driver.instance as DriverGL3).version >= DriverVersionGL.GL_VERSION_4_4
             if (useBufferStorage) {
                 glBufferData(GL_ATOMIC_COUNTER_BUFFER, IntArray(counterCount), GL_DYNAMIC_DRAW)
             } else {
@@ -28,7 +27,7 @@ class AtomicCounterBufferGL42(val buffer: Int, override val size: Int) : AtomicC
         }
     }
 
-    val useNamedBuffers = (Driver.instance as DriverGL3).version >= DriverVersionGL.VERSION_4_5
+    val useNamedBuffers = (Driver.instance as DriverGL3).version >= DriverVersionGL.GL_VERSION_4_5
 
 
     override fun write(data: IntArray) {

@@ -103,7 +103,7 @@ class ShaderGL3(
 
     override val ssbo: Int = createSSBO()
     override val ssboResourceIndices = mutableMapOf<String, Int>()
-    override val useProgramUniform = (Driver.instance as DriverGL3).version >= DriverVersionGL.VERSION_4_2
+    override val useProgramUniform = (Driver.glVersion >= DriverVersionGL.GL_VERSION_4_2 && Driver.glVersion.type == DriverTypeGL.GL)
 
     override val types: Set<ShaderType> =
         if (geometryShader != null) setOf(ShaderType.VERTEX, ShaderType.GEOMETRY, ShaderType.FRAGMENT) else

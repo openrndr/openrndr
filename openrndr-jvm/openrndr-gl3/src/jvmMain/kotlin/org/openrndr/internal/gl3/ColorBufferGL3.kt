@@ -12,10 +12,13 @@ import org.lwjgl.opengl.EXTTextureCompressionS3TC.*
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic.GL_TEXTURE_MAX_ANISOTROPY_EXT
 import org.lwjgl.opengl.EXTTextureSRGB.*
 import org.lwjgl.opengl.GL33C.*
+import org.lwjgl.opengl.GL41C
 import org.lwjgl.opengl.GL42C.glTexStorage2D
 import org.lwjgl.opengl.GL43C.glCopyImageSubData
 import org.lwjgl.opengl.GL43C.glTexStorage2DMultisample
+import org.lwjgl.opengl.GL44.glClearTexImage
 import org.lwjgl.opengl.GL44C
+import org.lwjgl.opengles.GLES30
 import org.lwjgl.stb.STBIWriteCallback
 import org.lwjgl.stb.STBImageWrite
 import org.lwjgl.system.MemoryUtil
@@ -304,7 +307,7 @@ class ColorBufferGL3(
 
                             is SampleCount -> glTexImage2DMultisample(
                                 GL_TEXTURE_2D_MULTISAMPLE,
-                                multisample.sampleCount.coerceAtMost(glGetInteger(GL_MAX_COLOR_TEXTURE_SAMPLES)),
+                                multisample.sampleCount,
                                 internalFormat,
                                 effectiveWidth / div,
                                 effectiveHeight / div,
@@ -596,7 +599,7 @@ class ColorBufferGL3(
             readTarget.destroy()
         } else {
             if (type == target.type && format == target.format) {
-                if (Driver.glVersion >= DriverVersionGL.VERSION_4_3) {
+                if (Driver.glVersion >= DriverVersionGL.GL_VERSION_4_3) {
                     val tgl = target as ArrayTextureGL3
                     val fromDiv = 1 shl fromLevel
                     glCopyImageSubData(
@@ -643,7 +646,7 @@ class ColorBufferGL3(
             color.alpha.toFloat()
         )
         when {
-            (Driver.glVersion < DriverVersionGL.VERSION_4_4) -> {
+            (Driver.glVersion < DriverVersionGL.GL_VERSION_4_4 || Driver.glType == DriverTypeGL.GLES)  -> {
                 val writeTarget = renderTarget(width, height, contentScale) {
                     colorBuffer(this@ColorBufferGL3)
                 } as RenderTargetGL3
@@ -658,7 +661,7 @@ class ColorBufferGL3(
             }
 
             else -> {
-                GL44C.glClearTexImage(
+                glClearTexImage(
                     texture,
                     0,
                     ColorFormat.RGBa.glFormat(),
@@ -820,35 +823,66 @@ class ColorBufferGL3(
         if (!targetBuffer.isDirect) {
             throw IllegalArgumentException("buffer is not a direct buffer.")
         }
-        if (multisample == Disabled) {
-            bound {
-                logger.trace {
-                    "Reading from color buffer in: $format ${format.glFormat()}, $type ${type.glType()} "
-                }
-                debugGLErrors()
-                glPixelStorei(GL_PACK_ALIGNMENT, 1)
-                debugGLErrors()
-                val packAlignment = glGetInteger(GL_PACK_ALIGNMENT)
-                targetBuffer.order(ByteOrder.nativeOrder())
-                (targetBuffer as Buffer).rewind()
-                if (!targetType.compressed) {
-                    val internalType = internalFormat(targetFormat, targetType).second
-                    glGetTexImage(target, level, internalType, targetType.glType(), targetBuffer)
-                } else {
-                    require(targetType == type && targetFormat == format) {
-                        "source format/type (${format}/${type}) and target format/type ${targetFormat}/${targetType}) must match"
+        require(multisample == Disabled) { "can not read from multisampled Colorbuffers" }
+        when (Driver.glType) {
+            DriverTypeGL.GL -> {
+
+                bound {
+                    logger.trace {
+                        "Reading from color buffer in: $format ${format.glFormat()}, $type ${type.glType()} "
                     }
-                    glGetCompressedTexImage(target, level, targetBuffer)
+                    debugGLErrors()
+                    glPixelStorei(GL_PACK_ALIGNMENT, 1)
+                    debugGLErrors()
+                    val packAlignment = glGetInteger(GL_PACK_ALIGNMENT)
+                    targetBuffer.order(ByteOrder.nativeOrder())
+                    (targetBuffer as Buffer).rewind()
+                    if (!targetType.compressed) {
+                        val internalType = internalFormat(targetFormat, targetType).second
+                        glGetTexImage(target, level, internalType, targetType.glType(), targetBuffer)
+                    } else {
+                        require(targetType == type && targetFormat == format) {
+                            "source format/type (${format}/${type}) and target format/type ${targetFormat}/${targetType}) must match"
+                        }
+                        glGetCompressedTexImage(target, level, targetBuffer)
+                    }
+                    debugGLErrors()
+                    (targetBuffer as Buffer).rewind()
+                    glPixelStorei(GL_PACK_ALIGNMENT, packAlignment)
+                    debugGLErrors()
                 }
-                debugGLErrors()
-                (targetBuffer as Buffer).rewind()
-                glPixelStorei(GL_PACK_ALIGNMENT, packAlignment)
-                debugGLErrors()
             }
-        } else {
-            throw IllegalArgumentException("multisample targets cannot be read from")
+
+            DriverTypeGL.GLES -> {
+                val fb = glGenFramebuffers()
+                val currentFB = glGetInteger(GL_FRAMEBUFFER_BINDING)
+
+                glBindFramebuffer(GL_FRAMEBUFFER, fb)
+                glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, target, texture, level)
+                val internalType = internalFormat(targetFormat, targetType).second
+
+                type.glType()
+                glPixelStorei(GL_PACK_ALIGNMENT, 1)
+                checkGLErrors()
+                GLES30.glReadBuffer(GL_COLOR_ATTACHMENT0)
+                checkGLErrors()
+                GLES30.glReadPixels(
+                    0,
+                    0,
+                    effectiveWidth,
+                    effectiveHeight,
+                    format.glFormat(),
+                    type.glType(),
+                    targetBuffer
+                )
+                checkGLErrors()
+                glDeleteFramebuffers(fb)
+                glBindFramebuffer(GL_FRAMEBUFFER, currentFB)
+
+            }
         }
     }
+
 
     @OptIn(DelicateCoroutinesApi::class)
     override fun saveToFile(file: File, imageFileFormat: ImageFileFormat, async: Boolean) {
@@ -1016,7 +1050,8 @@ class ColorBufferGL3(
         read(pixels)
         (pixels as Buffer).rewind()
         if (!flipV) {
-            val flippedPixels = BufferUtils.createByteBuffer(effectiveWidth * effectiveHeight * format.componentCount)
+            val flippedPixels =
+                BufferUtils.createByteBuffer(effectiveWidth * effectiveHeight * format.componentCount)
             (flippedPixels as Buffer).rewind()
             val stride = effectiveWidth * format.componentCount
             val row = ByteArray(stride)

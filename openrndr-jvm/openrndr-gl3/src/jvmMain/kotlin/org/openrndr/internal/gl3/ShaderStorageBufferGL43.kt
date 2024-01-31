@@ -4,7 +4,6 @@ import org.lwjgl.opengl.GL11C
 import org.lwjgl.opengl.GL15C.glBufferSubData
 import org.lwjgl.opengl.GL30C
 import org.lwjgl.opengl.GL33C
-import org.lwjgl.opengl.GL43C.*
 import org.lwjgl.opengl.GL45C.*
 import org.openrndr.draw.*
 import org.openrndr.internal.Driver
@@ -14,7 +13,7 @@ class ShaderStorageBufferGL43(val buffer: Int, override val format: ShaderStorag
     private var destroyed = false
 
     override fun clear() {
-        if ((Driver.instance as DriverGL3).version >= DriverVersionGL.VERSION_4_5) {
+        if ((Driver.instance as DriverGL3).version >= DriverVersionGL.GL_VERSION_4_5) {
             glClearNamedBufferData(buffer,
                 GL_R8UI,
                 GL30C.GL_RED_INTEGER,
@@ -36,7 +35,7 @@ class ShaderStorageBufferGL43(val buffer: Int, override val format: ShaderStorag
     override fun write(source: ByteBuffer, writeOffset: Int) {
         val allowed = format.size - writeOffset
         require(source.remaining() <= allowed)
-        if ((Driver.instance as DriverGL3).version <= DriverVersionGL.VERSION_4_5) {
+        if ((Driver.instance as DriverGL3).version <= DriverVersionGL.GL_VERSION_4_5) {
             GL33C.glBindBuffer(GL_SHADER_STORAGE_BUFFER, buffer)
             debugGLErrors()
             glBufferSubData(GL_SHADER_STORAGE_BUFFER, writeOffset.toLong(), source)
@@ -102,11 +101,11 @@ class ShaderStorageBufferGL43(val buffer: Int, override val format: ShaderStorag
 
     companion object {
         fun create(format: ShaderStorageFormat, session: Session?) : ShaderStorageBufferGL43 {
-            val ssbo = GL33C.glGenBuffers()
-            GL33C.glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo)
+            val ssbo = glGenBuffers()
+            glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo)
             checkGLErrors()
 
-            val useBufferStorage = (Driver.instance as DriverGL3).version >= DriverVersionGL.VERSION_4_4
+            val useBufferStorage = (Driver.instance as DriverGL3).version >= DriverVersionGL.GL_VERSION_4_4 && Driver.glType == DriverTypeGL.GL
 
             if (useBufferStorage) {
                 glBufferStorage(GL_SHADER_STORAGE_BUFFER, format.size.toLong(), GL_DYNAMIC_STORAGE_BIT)

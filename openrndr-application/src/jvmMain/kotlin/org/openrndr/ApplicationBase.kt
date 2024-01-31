@@ -34,7 +34,14 @@ actual abstract class ApplicationBase {
             }
 
             return when (val applicationProperty: String? = System.getProperty("org.openrndr.application")) {
-                null, "", "GLFW" -> ApplicationBase::class.java.classLoader.loadClass("org.openrndr.internal.gl3.ApplicationBaseGLFWGL3")
+                null, "", "GLFW" -> {
+                    val cl = ApplicationBase::class.java.classLoader
+
+                    val c = try { cl.loadClass("org.openrndr.internal.gl3.ApplicationBaseGLFWGL3") } catch (e:ClassNotFoundException) { null } ?:
+                    try { cl.loadClass("org.openrndr.internal.gles3.ApplicationBaseGLFWGLES3") } catch (e:ClassNotFoundException) { null }
+
+                    c!!
+                }
                 "EGL" -> ApplicationBase::class.java.classLoader.loadClass("org.openrndr.internal.gl3.ApplicationBaseEGLGL3")
                 else -> throw IllegalArgumentException("Unknown value '${applicationProperty}' provided for org.openrndr.application")
             }

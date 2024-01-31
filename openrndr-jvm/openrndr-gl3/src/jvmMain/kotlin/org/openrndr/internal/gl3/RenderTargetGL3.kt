@@ -1,9 +1,7 @@
 package org.openrndr.internal.gl3
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.lwjgl.opengl.GL33C.*
-import org.lwjgl.opengl.GL40C.glBlendEquationi
-import org.lwjgl.opengl.GL40C.glBlendFunci
+import org.lwjgl.opengl.GL30C.*
 import org.lwjgl.system.MemoryStack
 import org.openrndr.Program
 import org.openrndr.color.ColorRGBa
@@ -469,20 +467,31 @@ open class RenderTargetGL3(
         bound {
             depthBuffer as DepthBufferGL3
 
-            if (depthBuffer.hasDepth) {
-                glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthBuffer.target, depthBuffer.texture, 0)
-                checkGLErrors { null }
-            }
+            if (depthBuffer.texture != -1) {
+                if (depthBuffer.hasDepth) {
+                    glFramebufferTexture2D(
+                        GL_FRAMEBUFFER,
+                        GL_DEPTH_ATTACHMENT,
+                        depthBuffer.target,
+                        depthBuffer.texture,
+                        0
+                    )
+                    checkGLErrors { null }
+                }
 
-            if (depthBuffer.hasStencil) {
-                glFramebufferTexture2D(
-                    GL_FRAMEBUFFER,
-                    GL_STENCIL_ATTACHMENT,
-                    depthBuffer.target,
-                    depthBuffer.texture,
-                    0
-                )
-                checkGLErrors { null }
+                if (depthBuffer.hasStencil) {
+                    glFramebufferTexture2D(
+                        GL_FRAMEBUFFER,
+                        GL_STENCIL_ATTACHMENT,
+                        depthBuffer.target,
+                        depthBuffer.texture,
+                        0
+                    )
+                    checkGLErrors { null }
+                }
+            } else {
+                glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBuffer.buffer)
+
             }
             this.depthBuffer = depthBuffer
             checkFramebufferStatus()
@@ -509,6 +518,8 @@ open class RenderTargetGL3(
                 GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT -> throw GL3Exception("Attachment incomplete")
                 GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT -> throw GL3Exception("Attachment missing")
                 GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER -> throw GL3Exception("Incomplete draw buffer")
+                GL_FRAMEBUFFER_UNSUPPORTED -> throw GL3Exception("the combination of internal formats of the attached images violates an implementation-dependent set of restrictions")
+                GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE -> throw GL3Exception(" the value of GL_RENDERBUFFER_SAMPLES is not the same for all attached renderbuffers; if the value of GL_TEXTURE_SAMPLES is the not same for all attached textures; or, if the attached images are a mix of renderbuffers and textures, the value of GL_RENDERBUFFER_SAMPLES does not match the value of GL_TEXTURE_SAMPLES.")
             }
             throw GL3Exception("error creating framebuffer $status")
         }

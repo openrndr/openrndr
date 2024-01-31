@@ -1,5 +1,6 @@
 plugins {
     org.openrndr.convention.`kotlin-jvm`
+    java
 }
 dependencies {
     runtimeOnly(libs.bundles.lwjgl.full) {

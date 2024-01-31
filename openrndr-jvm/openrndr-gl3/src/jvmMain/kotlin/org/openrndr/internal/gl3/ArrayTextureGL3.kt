@@ -26,7 +26,7 @@ class ArrayTextureGL3(val target: Int,
             val texture = glGenTextures()
 
             val storageMode = when {
-                (Driver.instance as DriverGL3).version >= DriverVersionGL.VERSION_4_3 -> TextureStorageModeGL.STORAGE
+                (Driver.instance as DriverGL3).version >= DriverVersionGL.GL_VERSION_4_3 -> TextureStorageModeGL.STORAGE
                 else -> TextureStorageModeGL.IMAGE
             }
 

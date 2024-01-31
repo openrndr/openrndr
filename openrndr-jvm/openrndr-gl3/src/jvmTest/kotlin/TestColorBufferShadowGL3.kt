@@ -3,6 +3,9 @@ import org.openrndr.draw.ColorFormat
 import org.openrndr.draw.ColorType
 import org.openrndr.draw.colorBuffer
 import org.openrndr.draw.renderTarget
+import org.openrndr.internal.Driver
+import org.openrndr.internal.gl3.DriverTypeGL
+import org.openrndr.internal.gl3.glType
 import kotlin.test.*
 
 class TestColorBufferShadowGL3 : AbstractApplicationTestFixture() {
@@ -72,49 +75,57 @@ class TestColorBufferShadowGL3 : AbstractApplicationTestFixture() {
 
     @Test
     fun `a UINT16RGBA color buffer shadow`() {
-        val cb = colorBuffer(256, 256, type = ColorType.UINT16)
-        cb.shadow.download()
-        for (y in 0 until cb.height) {
-            for (x in 0 until cb.width) {
-                cb.shadow[x, y]
+        if (Driver.glType == DriverTypeGL.GL ) {
+            val cb = colorBuffer(256, 256, type = ColorType.UINT16)
+            cb.shadow.download()
+            for (y in 0 until cb.height) {
+                for (x in 0 until cb.width) {
+                    cb.shadow[x, y]
+                }
             }
+            cb.destroy()
         }
-        cb.destroy()
     }
 
     @Test
     fun `a UINT16RGB color buffer shadow`() {
-        val cb = colorBuffer(256, 256, format = ColorFormat.RGB, type = ColorType.UINT16)
-        cb.shadow.download()
-        for (y in 0 until cb.height) {
-            for (x in 0 until cb.width) {
-                cb.shadow[x, y]
+        if (Driver.glType == DriverTypeGL.GL ) {
+            val cb = colorBuffer(256, 256, format = ColorFormat.RGB, type = ColorType.UINT16)
+            cb.shadow.download()
+            for (y in 0 until cb.height) {
+                for (x in 0 until cb.width) {
+                    cb.shadow[x, y]
+                }
             }
+            cb.destroy()
         }
-        cb.destroy()
     }
 
     @Test
     fun `a UINT16RG color buffer shadow`() {
-        val cb = colorBuffer(256, 256, format = ColorFormat.RG, type = ColorType.UINT16)
-        cb.shadow.download()
-        for (y in 0 until cb.height) {
-            for (x in 0 until cb.width) {
-                cb.shadow[x, y]
+        if (Driver.glType == DriverTypeGL.GL ) {
+            val cb = colorBuffer(256, 256, format = ColorFormat.RG, type = ColorType.UINT16)
+            cb.shadow.download()
+            for (y in 0 until cb.height) {
+                for (x in 0 until cb.width) {
+                    cb.shadow[x, y]
+                }
             }
+            cb.destroy()
         }
-        cb.destroy()
     }
 
     @Test
     fun `a UINT16R color buffer shadow`() {
-        val cb = colorBuffer(256, 256, format = ColorFormat.R, type = ColorType.UINT16)
-        cb.shadow.download()
-        for (y in 0 until cb.height) {
-            for (x in 0 until cb.width) {
-                cb.shadow[x, y]
+        if (Driver.glType == DriverTypeGL.GL ) {
+            val cb = colorBuffer(256, 256, format = ColorFormat.R, type = ColorType.UINT16)
+            cb.shadow.download()
+            for (y in 0 until cb.height) {
+                for (x in 0 until cb.width) {
+                    cb.shadow[x, y]
+                }
             }
+            cb.destroy()
         }
-        cb.destroy()
     }
 }

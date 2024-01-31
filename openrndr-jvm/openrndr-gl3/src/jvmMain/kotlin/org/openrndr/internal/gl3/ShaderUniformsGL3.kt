@@ -2,8 +2,6 @@ package org.openrndr.internal.gl3
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.lwjgl.BufferUtils
-import org.lwjgl.opengl.ARBSeparateShaderObjects.glProgramUniform3f
-import org.lwjgl.opengl.GL41C
 import org.lwjgl.opengl.GL41C.*
 import org.lwjgl.opengl.GL43C
 import org.lwjgl.system.MemoryStack.stackPush
@@ -15,9 +13,8 @@ import java.nio.Buffer
 private val logger = KotlinLogging.logger {}
 
 interface ShaderUniformsGL3 : ShaderUniforms {
-
     fun bound(f: () -> Unit) {
-        GL43C.glUseProgram(programObject)
+        glUseProgram(programObject)
         f()
     }
 
@@ -29,8 +26,7 @@ interface ShaderUniformsGL3 : ShaderUniforms {
 
     fun uniformIndex(uniform: String, query: Boolean = false): Int =
         uniforms.getOrPut(uniform) {
-
-            val location = GL43C.glGetUniformLocation(programObject, uniform)
+            val location = glGetUniformLocation(programObject, uniform)
             debugGLErrors()
             if (location == -1 && !query) {
                 logger.warn {
@@ -44,7 +40,7 @@ interface ShaderUniformsGL3 : ShaderUniforms {
         val index = uniformIndex(name)
         if (index != -1) {
             if (useProgramUniform) {
-                GL41C.glProgramUniform4f(
+                glProgramUniform4f(
                     programObject,
                     index,
                     value.r.toFloat(),
@@ -54,7 +50,7 @@ interface ShaderUniformsGL3 : ShaderUniforms {
                 )
             } else {
                 bound {
-                    GL43C.glUniform4f(
+                    glUniform4f(
                         index,
                         value.r.toFloat(),
                         value.g.toFloat(),
@@ -71,10 +67,10 @@ interface ShaderUniformsGL3 : ShaderUniforms {
         val index = uniformIndex(name)
         if (index != -1) {
             if (useProgramUniform) {
-                GL43C.glProgramUniform3f(programObject, index, value.x.toFloat(), value.y.toFloat(), value.z.toFloat())
+                glProgramUniform3f(programObject, index, value.x.toFloat(), value.y.toFloat(), value.z.toFloat())
             } else {
                 bound {
-                    GL43C.glUniform3f(index, value.x.toFloat(), value.y.toFloat(), value.z.toFloat())
+                    glUniform3f(index, value.x.toFloat(), value.y.toFloat(), value.z.toFloat())
                     postUniformCheck(name, index, value)
                 }
             }
@@ -85,7 +81,7 @@ interface ShaderUniformsGL3 : ShaderUniforms {
         val index = uniformIndex(name)
         if (index != -1) {
             if (useProgramUniform) {
-                GL43C.glProgramUniform4f(
+                glProgramUniform4f(
                     programObject,
                     index,
                     value.x.toFloat(),
@@ -95,7 +91,7 @@ interface ShaderUniformsGL3 : ShaderUniforms {
                 )
             } else {
                 bound {
-                    GL43C.glUniform4f(index, value.x.toFloat(), value.y.toFloat(), value.z.toFloat(), value.w.toFloat())
+                    glUniform4f(index, value.x.toFloat(), value.y.toFloat(), value.z.toFloat(), value.w.toFloat())
                     postUniformCheck(name, index, value)
                 }
             }
@@ -106,10 +102,10 @@ interface ShaderUniformsGL3 : ShaderUniforms {
         val index = uniformIndex(name)
         if (index != -1) {
             if (useProgramUniform) {
-                GL43C.glProgramUniform4f(programObject, index, x, y, z, w)
+                glProgramUniform4f(programObject, index, x, y, z, w)
             } else {
                 bound {
-                    GL43C.glUniform4f(index, x, y, z, w)
+                    glUniform4f(index, x, y, z, w)
                 }
             }
         }
@@ -122,7 +118,7 @@ interface ShaderUniformsGL3 : ShaderUniforms {
                 glProgramUniform3f(programObject, index, x, y, z)
             } else {
                 bound {
-                    GL43C.glUniform3f(index, x, y, z)
+                    glUniform3f(index, x, y, z)
                 }
             }
         }
@@ -135,7 +131,7 @@ interface ShaderUniformsGL3 : ShaderUniforms {
                 glProgramUniform2f(programObject, index, x, y)
             }
             bound {
-                GL43C.glUniform2f(index, x, y)
+                glUniform2f(index, x, y)
             }
         }
     }
@@ -147,7 +143,7 @@ interface ShaderUniformsGL3 : ShaderUniforms {
                 glProgramUniform1i(programObject, index, value)
             } else {
                 bound {
-                    GL43C.glUniform1i(index, value)
+                    glUniform1i(index, value)
                     postUniformCheck(name, index, value)
                 }
             }
@@ -203,7 +199,7 @@ interface ShaderUniformsGL3 : ShaderUniforms {
                 glProgramUniform1i(programObject, index, if (value) 1 else 0)
             }
             bound {
-                GL43C.glUniform1i(index, if (value) 1 else 0)
+                glUniform1i(index, if (value) 1 else 0)
                 postUniformCheck(name, index, value)
             }
         }
@@ -216,7 +212,7 @@ interface ShaderUniformsGL3 : ShaderUniforms {
                 glProgramUniform2f(programObject, index, value.x.toFloat(), value.y.toFloat())
             } else {
                 bound {
-                    GL43C.glUniform2f(index, value.x.toFloat(), value.y.toFloat())
+                    glUniform2f(index, value.x.toFloat(), value.y.toFloat())
                     postUniformCheck(name, index, value)
                 }
             }
@@ -230,7 +226,7 @@ interface ShaderUniformsGL3 : ShaderUniforms {
                 glProgramUniform1f(programObject, index, value)
             } else {
                 bound {
-                    GL43C.glUniform1f(index, value)
+                    glUniform1f(index, value)
                     postUniformCheck(name, index, value)
                 }
             }
@@ -245,7 +241,7 @@ interface ShaderUniformsGL3 : ShaderUniforms {
                 glProgramUniform1f(programObject, index, value.toFloat())
             } else {
                 bound {
-                    GL43C.glUniform1f(index, value.toFloat())
+                    glUniform1f(index, value.toFloat())
                     postUniformCheck(name, index, value)
                 }
             }
@@ -260,7 +256,7 @@ interface ShaderUniformsGL3 : ShaderUniforms {
             } else {
                 bound {
                     logger.trace { "Setting uniform '$name' to $value" }
-                    GL43C.glUniformMatrix3fv(index, false, value.toFloatArray())
+                    glUniformMatrix3fv(index, false, value.toFloatArray())
                     postUniformCheck(name, index, value)
                 }
             }
@@ -277,7 +273,7 @@ interface ShaderUniformsGL3 : ShaderUniforms {
             } else {
                 bound {
                     logger.trace { "Setting uniform '$name' to $value" }
-                    GL43C.glUniformMatrix4fv(index, false, value.toFloatArray())
+                    glUniformMatrix4fv(index, false, value.toFloatArray())
                     postUniformCheck(name, index, value)
                 }
             }
@@ -301,7 +297,7 @@ interface ShaderUniformsGL3 : ShaderUniforms {
                 glProgramUniform4iv(programObject, index, intValues)
             } else {
                 bound {
-                    GL43C.glUniform4iv(index, intValues)
+                    glUniform4iv(index, intValues)
                     postUniformCheck(name, index, value)
                 }
             }
@@ -324,7 +320,7 @@ interface ShaderUniformsGL3 : ShaderUniforms {
                 glProgramUniform3iv(programObject, index, intValues)
             } else {
                 bound {
-                    GL43C.glUniform3iv(index, intValues)
+                    glUniform3iv(index, intValues)
                     postUniformCheck(name, index, value)
                 }
             }
@@ -346,7 +342,7 @@ interface ShaderUniformsGL3 : ShaderUniforms {
                 glProgramUniform2iv(programObject, index, intValues)
             } else {
                 bound {
-                    GL43C.glUniform2iv(index, intValues)
+                    glUniform2iv(index, intValues)
                     postUniformCheck(name, index, value)
                 }
             }
@@ -366,7 +362,7 @@ interface ShaderUniformsGL3 : ShaderUniforms {
                 glProgramUniform2fv(programObject, index, floatValues)
             } else {
                 bound {
-                    GL43C.glUniform2fv(index, floatValues)
+                    glUniform2fv(index, floatValues)
                     postUniformCheck(name, index, value)
                 }
             }
@@ -387,7 +383,7 @@ interface ShaderUniformsGL3 : ShaderUniforms {
                 glProgramUniform3fv(programObject, index, floatValues)
             } else {
                 bound {
-                    GL43C.glUniform3fv(index, floatValues)
+                    glUniform3fv(index, floatValues)
                     postUniformCheck(name, index, value)
                 }
             }
@@ -410,7 +406,7 @@ interface ShaderUniformsGL3 : ShaderUniforms {
                 glProgramUniform4fv(programObject, index, floatValues)
             } else {
                 bound {
-                    GL43C.glUniform4fv(index, floatValues)
+                    glUniform4fv(index, floatValues)
                     postUniformCheck(name, index, value)
                 }
             }
@@ -426,7 +422,7 @@ interface ShaderUniformsGL3 : ShaderUniforms {
                 glProgramUniform1fv(programObject, index, value)
             } else {
                 bound {
-                    GL43C.glUniform1fv(index, value)
+                    glUniform1fv(index, value)
                     postUniformCheck(name, index, value)
                 }
             }
@@ -441,7 +437,7 @@ interface ShaderUniformsGL3 : ShaderUniforms {
                 glProgramUniform1iv(programObject, index, value)
             } else {
                 bound {
-                    GL43C.glUniform1iv(index, value)
+                    glUniform1iv(index, value)
                     postUniformCheck(name, index, value)
                 }
             }
@@ -457,7 +453,7 @@ interface ShaderUniformsGL3 : ShaderUniforms {
                 glProgramUniform1fv(programObject, index, fvalue)
             } else {
                 bound {
-                    GL43C.glUniform1fv(index, fvalue)
+                    glUniform1fv(index, fvalue)
                     postUniformCheck(name, index, fvalue)
                 }
             }
@@ -481,7 +477,7 @@ interface ShaderUniformsGL3 : ShaderUniforms {
                 glProgramUniform4fv(programObject, index, floatValues)
             } else {
                 bound {
-                    GL43C.glUniform4fv(index, floatValues)
+                    glUniform4fv(index, floatValues)
                     postUniformCheck(name, index, value)
                 }
             }
@@ -513,7 +509,7 @@ interface ShaderUniformsGL3 : ShaderUniforms {
     }
     private fun postUniformCheck(name: String, index: Int, @Suppress("UNUSED_PARAMETER") value: Any) {
         debugGLErrors {
-            val currentProgram = GL43C.glGetInteger(GL43C.GL_CURRENT_PROGRAM)
+            val currentProgram = glGetInteger(GL43C.GL_CURRENT_PROGRAM)
 
             fun checkUniform(): String {
                 if (currentProgram > 0) {
@@ -522,7 +518,7 @@ interface ShaderUniformsGL3 : ShaderUniforms {
                     val typeBuffer = BufferUtils.createIntBuffer(1)
                     val nameBuffer = BufferUtils.createByteBuffer(256)
 
-                    GL43C.glGetActiveUniform(currentProgram, index, lengthBuffer, sizeBuffer, typeBuffer, nameBuffer)
+                    glGetActiveUniform(currentProgram, index, lengthBuffer, sizeBuffer, typeBuffer, nameBuffer)
                     val nameBytes = ByteArray(lengthBuffer[0])
                     (nameBuffer as Buffer).rewind()
                     nameBuffer.get(nameBytes)

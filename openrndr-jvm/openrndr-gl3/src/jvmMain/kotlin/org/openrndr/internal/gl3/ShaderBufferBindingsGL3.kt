@@ -29,7 +29,7 @@ interface ShaderBufferBindingsGL3 : ShaderBufferBindings, ShaderUniformsGL3 {
     }
 
     fun createSSBO(): Int {
-        return if ((Driver.instance as DriverGL3).version >= DriverVersionGL.VERSION_4_3) {
+        return if ((Driver.instance as DriverGL3).version >= DriverVersionGL.GL_VERSION_4_3 && (Driver.instance as DriverGL3).version.type == DriverTypeGL.GL) {
             glGenBuffers()
         } else {
             -1

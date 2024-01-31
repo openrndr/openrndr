@@ -1,22 +1,33 @@
 package org.openrndr.internal.gl3
 
 import org.lwjgl.opengl.GL33C.*
+import org.lwjgl.opengles.ANGLEDepthTexture.GL_DEPTH_COMPONENT32_OES
+import org.lwjgl.opengles.ANGLEDepthTexture.GL_UNSIGNED_INT_24_8_OES
 import org.openrndr.draw.*
 import org.openrndr.internal.Driver
 import java.nio.ByteBuffer
 
-class DepthBufferGL3(val texture: Int,
-                     val target: Int,
-                     override val width: Int,
-                     override val height: Int,
-                     override val format: DepthFormat,
-                     override val multisample: BufferMultisample,
-                     override val session: Session?) : DepthBuffer {
+class DepthBufferGL3(
+    val texture: Int,
+    val buffer: Int,
+    val target: Int,
+    override val width: Int,
+    override val height: Int,
+    override val format: DepthFormat,
+    override val multisample: BufferMultisample,
+    override val session: Session?
+) : DepthBuffer {
 
     private var destroyed = false
 
     companion object {
-        fun create(width: Int, height: Int, format: DepthFormat, multisample: BufferMultisample, session: Session?): DepthBufferGL3 {
+        fun create(
+            width: Int,
+            height: Int,
+            format: DepthFormat,
+            multisample: BufferMultisample,
+            session: Session?
+        ): DepthBufferGL3 {
             checkGLErrors {
                 "pre-existing error"
             }
@@ -29,36 +40,104 @@ class DepthBufferGL3(val texture: Int,
             checkGLErrors()
             val nullBuffer: ByteBuffer? = null
 
-            when (multisample) {
-                BufferMultisample.Disabled -> {
-                    val glFormat = when(format) {
+            return when (Driver.glType) {
+                DriverTypeGL.GLES -> {
+                    val glFormat = when (format) {
                         DepthFormat.DEPTH16, DepthFormat.DEPTH24, DepthFormat.DEPTH32F -> GL_DEPTH_COMPONENT
-                        DepthFormat.DEPTH_STENCIL, DepthFormat.DEPTH24_STENCIL8, DepthFormat.DEPTH32F_STENCIL8 -> GL_DEPTH_COMPONENT
-                        DepthFormat.STENCIL8 -> { (Driver.instance as DriverGL3).version.require(DriverVersionGL.VERSION_4_4); GL_STENCIL_INDEX }
+                        DepthFormat.DEPTH_STENCIL, DepthFormat.DEPTH24_STENCIL8, DepthFormat.DEPTH32F_STENCIL8 -> GL_DEPTH_STENCIL
+                        DepthFormat.STENCIL8 -> {
+                            (Driver.instance as DriverGL3).version.require(DriverVersionGL.GL_VERSION_4_4); GL_STENCIL_INDEX
+                        }
                     }
+                    val type = when (format) {
+                        DepthFormat.DEPTH32F -> GL_DEPTH_COMPONENT32F
+                        DepthFormat.DEPTH24 -> GL_DEPTH_COMPONENT24
+                        DepthFormat.DEPTH32F_STENCIL8 -> GL_DEPTH32F_STENCIL8
+                        DepthFormat.DEPTH_STENCIL, DepthFormat.DEPTH24_STENCIL8 -> GL_DEPTH24_STENCIL8
+                        else -> error("format $format not supported")
+                    }
+                    when (multisample) {
+                        BufferMultisample.Disabled -> {
+                            val buffer = glGenRenderbuffers()
+                            glBindRenderbuffer(GL_RENDERBUFFER, buffer)
+                            glRenderbufferStorage(
+                                GL_RENDERBUFFER,
+                                type,
+                                width,
+                                height
+                            )
+                            checkGLErrors {
+                                when (it) {
+                                    GL_INVALID_ENUM -> "$format not supported?"
+                                    else -> null
+                                }
+                            }
 
-                    glTexImage2D(/* target = */ GL_TEXTURE_2D,
-                        /* level = */ 0,
-                        /* internalformat = */ format.toGLFormat(),
-                        /* width = */ width,
-                        /* height = */ height,
-                        /* border = */ 0,
-                        /* format = */ glFormat,
-                        /* type = */ GL_UNSIGNED_BYTE,
-                        /* pixels = */
-                        nullBuffer)
-                    checkGLErrors()
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
+                            glBindRenderbuffer(GL_RENDERBUFFER, 0)
+                            DepthBufferGL3(-1, buffer, target, width, height, format, multisample, session)
+                        }
+
+                        is BufferMultisample.SampleCount -> {
+                            val buffer = glGenRenderbuffers()
+                            glBindRenderbuffer(GL_RENDERBUFFER, buffer)
+                            glRenderbufferStorageMultisample(
+                                GL_RENDERBUFFER,
+                                multisample.sampleCount,
+                                GL_DEPTH32F_STENCIL8,
+                                width,
+                                height
+                            )
+                            checkGLErrors()
+                            glBindRenderbuffer(GL_RENDERBUFFER, 0)
+                            DepthBufferGL3(-1, buffer, target, width, height, format, multisample, session)
+                        }
+                    }
                 }
-                is BufferMultisample.SampleCount -> {
-                    glTexImage2DMultisample(target, multisample.sampleCount.coerceAtMost(glGetInteger(GL_MAX_DEPTH_TEXTURE_SAMPLES)), format.toGLFormat(), width, height, true)
-                    checkGLErrors()
+
+                DriverTypeGL.GL -> {
+                    when (multisample) {
+                        BufferMultisample.Disabled -> {
+                            val glFormat = when (format) {
+                                DepthFormat.DEPTH16, DepthFormat.DEPTH24, DepthFormat.DEPTH32F -> GL_DEPTH_COMPONENT
+                                DepthFormat.DEPTH_STENCIL, DepthFormat.DEPTH24_STENCIL8, DepthFormat.DEPTH32F_STENCIL8 -> GL_DEPTH_STENCIL
+                                DepthFormat.STENCIL8 -> {
+                                    (Driver.instance as DriverGL3).version.require(DriverVersionGL.GL_VERSION_4_4); GL_STENCIL_INDEX
+                                }
+                            }
+                            glTexImage2D(/* target = */ GL_TEXTURE_2D,
+                                /* level = */ 0,
+                                /* internalformat = */ format.toGLFormat(),
+                                /* width = */ width,
+                                /* height = */ height,
+                                /* border = */ 0,
+                                /* format = */ glFormat,
+                                /* type = */ GL_UNSIGNED_BYTE,
+                                /* pixels = */
+                                nullBuffer
+                            )
+                            checkGLErrors()
+                            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
+                            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
+                            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
+                            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
+                            DepthBufferGL3(glTexture, -1, target, width, height, format, multisample, session)
+                        }
+
+                        is BufferMultisample.SampleCount -> {
+                            glTexImage2DMultisample(
+                                target,
+                                multisample.sampleCount.coerceAtMost(glGetInteger(GL_MAX_DEPTH_TEXTURE_SAMPLES)),
+                                format.toGLFormat(),
+                                width,
+                                height,
+                                true
+                            )
+                            checkGLErrors()
+                            DepthBufferGL3(glTexture, -1, target, width, height, format, multisample, session)
+                        }
+                    }
                 }
             }
-            return DepthBufferGL3(glTexture, target, width, height, format, multisample, session)
         }
     }
 

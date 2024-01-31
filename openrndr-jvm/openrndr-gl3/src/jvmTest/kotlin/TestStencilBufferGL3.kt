@@ -2,9 +2,7 @@ import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
 import org.openrndr.draw.*
 import org.openrndr.internal.Driver
-import org.openrndr.internal.gl3.DriverGL3
-import org.openrndr.internal.gl3.DriverVersionGL
-import org.openrndr.internal.gl3.checkGLErrors
+import org.openrndr.internal.gl3.*
 import org.openrndr.shape.Circle
 import kotlin.test.*
 
@@ -96,7 +94,7 @@ class TestStencilBufferGL3 : AbstractApplicationTestFixture() {
 
     @Test
     fun `drawing contour on render target with stencil should pass`() {
-        if ((Driver.instance as DriverGL3).version >= DriverVersionGL.VERSION_4_4) {
+        if ((Driver.instance as DriverGL3).version >= DriverVersionGL.GL_VERSION_4_4 && Driver.glType == DriverTypeGL.GL) {
             val formats = listOf(DepthFormat.STENCIL8)
 
             for (format in formats) {

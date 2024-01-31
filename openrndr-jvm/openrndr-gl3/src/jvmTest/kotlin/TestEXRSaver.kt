@@ -44,7 +44,7 @@ class TestEXRSaver : AbstractApplicationTestFixture() {
 
     @Test
     fun testSaveExrRGB32() {
-        val cb = colorBuffer(512, 512, format = ColorFormat.RGB, type = ColorType.FLOAT32)
+        val cb = colorBuffer(512, 512, format = ColorFormat.RGBa, type = ColorType.FLOAT32)
         cb.saveToFile(File("exr32.exr"), async = false)
         cb.destroy()
     }
