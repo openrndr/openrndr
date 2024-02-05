@@ -34,10 +34,15 @@ class Path3D(val segments: List<Segment3D>, val closed: Boolean) {
 
 
     fun position(ut: Double): Vector3 {
-        val t = ut.coerceIn(0.0, 1.0)
-        val segment = (t * segments.size).toInt()
-        val segmentOffset = (t * segments.size) - segment
-        return segments[min(segments.size - 1, segment)].position(segmentOffset)
+        return when(val t = ut.coerceIn(0.0, 1.0)) {
+            0.0 -> segments[0].start
+            1.0 -> segments.last().end
+            else -> {
+                val segment = (t * segments.size).toInt()
+                val segmentOffset = (t * segments.size) - segment
+                segments[min(segments.size - 1, segment)].position(segmentOffset)
+            }
+        }
     }
 
     fun adaptivePositions(distanceTolerance: Double = 0.5): List<Vector3> {
