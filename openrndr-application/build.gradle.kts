@@ -10,6 +10,7 @@ kotlin {
                 api(project(":openrndr-math"))
                 api(project(":openrndr-draw"))
                 api(project(":openrndr-animatable"))
+                api(project(":openrndr-platform"))
             }
         }
 
