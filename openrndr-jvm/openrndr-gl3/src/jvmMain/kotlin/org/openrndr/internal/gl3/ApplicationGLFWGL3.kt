@@ -12,6 +12,7 @@ import org.lwjgl.opengl.GL43C as GL
 import org.lwjgl.opengl.GLUtil
 import org.lwjgl.opengles.GLES
 import org.lwjgl.opengles.GLES30
+import org.lwjgl.system.MemoryStack
 
 import org.lwjgl.system.MemoryStack.stackPush
 import org.lwjgl.system.MemoryUtil.NULL
@@ -26,6 +27,9 @@ import org.openrndr.internal.Driver
 import org.openrndr.internal.gl3.angle.loadAngleLibraries
 
 import org.openrndr.math.Vector2
+import org.openrndr.platform.Platform
+import org.openrndr.platform.PlatformArchitecture
+import org.openrndr.platform.PlatformType
 import java.io.File
 import java.nio.Buffer
 import java.util.*
@@ -198,20 +202,32 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
             realWindowTitle = value
         }
 
-    private fun negotiateDriverType() : DriverTypeGL {
-        val os = System.getProperty("os.name")
-        val arch = System.getProperty("os.arch")
-        return when (Pair(os, arch)) {
-            Pair("Mac OS X", "aarch64") -> DriverTypeGL.GLES
+    private fun negotiateDriverType(): DriverTypeGL {
+        val forced = when (Platform.property("org.openrndr.gl3.gl_type")) {
+            "gl" -> DriverTypeGL.GL
+            "gles" -> DriverTypeGL.GLES
+            else -> null
+        }
+
+        return forced ?: when (Pair(Platform.type, Platform.architecture)) {
+            Pair(PlatformType.MAC, PlatformArchitecture.AARCH64) -> DriverTypeGL.GLES
             else -> DriverTypeGL.GL
         }
     }
 
-    private fun negotiateGlesBackend() : GlesBackend {
-        val os = System.getProperty("os.name")
-        val arch = System.getProperty("os.arch")
-        return when (Pair(os, arch)) {
-            Pair("Mac OS X", "aarch64") -> GlesBackend.ANGLE
+    private fun negotiateGlesBackend(): GlesBackend {
+        val forced = when (Platform.property("org.openrndr.gl3.gles_backend")) {
+            "system" -> GlesBackend.SYSTEM
+            "angle" -> {
+                require(Platform.type == PlatformType.MAC && Platform.architecture == PlatformArchitecture.AARCH64) {
+                    "Angle is only supported on macOS AArch64"
+                }
+                GlesBackend.ANGLE
+            }
+            else -> null
+        }
+        return forced ?: when (Pair(Platform.type, Platform.architecture)) {
+            Pair(PlatformType.MAC, PlatformArchitecture.AARCH64) -> GlesBackend.ANGLE
             else -> GlesBackend.SYSTEM
         }
     }
@@ -246,6 +262,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
                 glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL.GL_TRUE)
                 glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE)
             }
+
             DriverTypeGL.GLES -> {
                 val useAngle = negotiateGlesBackend() == GlesBackend.ANGLE
                 if (useAngle) {
@@ -373,7 +390,9 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
         }
 
 
-        if (System.getProperty("os.name").contains("windows", true) && System.getProperty("org.openrndr.pointerevents") != null) {
+        if (System.getProperty("os.name")
+                .contains("windows", true) && System.getProperty("org.openrndr.pointerevents") != null
+        ) {
             logger.info { "experimental touch input enabled" }
             pointerInput = PointerInputManagerWin32(window, this)
         }
@@ -592,6 +611,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
                     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL.GL_TRUE)
                     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE)
                 }
+
                 DriverTypeGL.GLES -> {
                     glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API)
                     val useAngle = negotiateGlesBackend() == GlesBackend.ANGLE
@@ -633,9 +653,8 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
     fun preloop() {
         when (type) {
             DriverTypeGL.GL -> org.lwjgl.opengl.GL.createCapabilities()
-            DriverTypeGL.GLES -> org.lwjgl.opengles.GLES.createCapabilities()
+            DriverTypeGL.GLES -> GLES.createCapabilities()
         }
-
 
         if (useDebugContext) {
             GLUtil.setupDebugMessageCallback()
@@ -646,8 +665,10 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
         program.drawer = Drawer(Driver.instance)
 
         when (type) {
-            DriverTypeGL.GL -> { }
-            DriverTypeGL.GLES -> (Driver.instance as DriverGL3).setupExtensions(GLES.getFunctionProvider() ?: error("no function provider"))
+            DriverTypeGL.GL -> {}
+            DriverTypeGL.GLES -> (Driver.instance as DriverGL3).setupExtensions(
+                GLES.getFunctionProvider() ?: error("no function provider")
+            )
         }
 
         defaultRenderTarget.bind()
@@ -832,43 +853,39 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
                 GLFW_MOUSE_BUTTON_MIDDLE -> MouseButton.CENTER
                 else -> MouseButton.NONE
             }
-
-
             val buttonsDown = BitSet()
 
-
-            if (action == GLFW_PRESS) {
-                down = true
-                lastDragPosition = program.mouse.position
-                lastMouseButtonDown = mouseButton
-                program.mouse.buttonDown.trigger(
-                    MouseEvent(
-                        program.mouse.position,
-                        Vector2.ZERO,
-                        Vector2.ZERO,
-                        MouseEventType.BUTTON_DOWN,
-                        mouseButton,
-                        modifiers
+            when (action) {
+                GLFW_PRESS -> {
+                    down = true
+                    lastDragPosition = program.mouse.position
+                    lastMouseButtonDown = mouseButton
+                    program.mouse.buttonDown.trigger(
+                        MouseEvent(
+                            program.mouse.position,
+                            Vector2.ZERO,
+                            Vector2.ZERO,
+                            MouseEventType.BUTTON_DOWN,
+                            mouseButton,
+                            modifiers
+                        )
                     )
-                )
-
-                buttonsDown.set(button, true)
-            }
-
-            if (action == GLFW_RELEASE) {
-                down = false
-                program.mouse.buttonUp.trigger(
-                    MouseEvent(
-                        program.mouse.position,
-                        Vector2.ZERO,
-                        Vector2.ZERO,
-                        MouseEventType.BUTTON_UP,
-                        mouseButton,
-                        modifiers
+                    buttonsDown.set(button, true)
+                }
+                GLFW_RELEASE -> {
+                    down = false
+                    program.mouse.buttonUp.trigger(
+                        MouseEvent(
+                            program.mouse.position,
+                            Vector2.ZERO,
+                            Vector2.ZERO,
+                            MouseEventType.BUTTON_UP,
+                            mouseButton,
+                            modifiers
+                        )
                     )
-                )
-
-                buttonsDown.set(button, false)
+                    buttonsDown.set(button, false)
+                }
             }
         }
 
@@ -931,7 +948,6 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
                 println(GLES30.glGetStringi(GLES30.GL_EXTENSIONS, i))
             }
         }
-
 
         if (configuration.hideCursor) {
             cursorVisible = false
