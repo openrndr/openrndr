@@ -23,19 +23,7 @@ class ImageDrawer {
     }
 
 
-    private fun negotiateSingleInstanceAttributesCount(): Int {
-        return if (Platform.property("org.openrndr.gl3.disable_vertex_buffer_optimizations") != null) {
-            1
-        } else {
-            if (Platform.type == PlatformType.MAC) {
-                100
-            } else {
-                1
-            }
-        }
-    }
-
-    private val singleInstanceAttributes = List(negotiateSingleInstanceAttributesCount()) {
+    private val singleInstanceAttributes = List(DrawerConfiguration.vertexBufferMultiBufferCount) {
         vertexBuffer(instanceFormat, 1, Session.root)
     }
 

@@ -18,19 +18,7 @@ class RectangleDrawer {
 
     private var count = 0
 
-    private fun negotiateSingleBatchCount(): Int {
-        return if (Platform.property("org.openrndr.gl3.disable_vertex_buffer_optimizations") != null) {
-            1
-        } else {
-            if (Platform.type == PlatformType.MAC) {
-                100
-            } else {
-                1
-            }
-        }
-    }
-
-    private val singleBatches = (0 until negotiateSingleBatchCount()).map { RectangleBatch.create(1) }
+    private val singleBatches = (0 until DrawerConfiguration.vertexBufferMultiBufferCount).map { RectangleBatch.create(1) }
 
     internal var batch = RectangleBatch.create(10_000, Session.root)
 

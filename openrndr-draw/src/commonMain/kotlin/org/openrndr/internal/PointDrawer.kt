@@ -16,19 +16,8 @@ class PointDrawer {
     internal var batch = PointBatch.create(10_000, session = Session.root)
     private var count = 0
 
-    private fun negotiateSingleBatchCount(): Int {
-        return if (Platform.property("org.openrndr.gl3.disable_vertex_buffer_optimizations") != null) {
-            1
-        } else {
-            if (Platform.type == PlatformType.MAC) {
-                200
-            } else {
-                1
-            }
-        }
-    }
 
-    private val singleBatches = (0 until negotiateSingleBatchCount()).map { PointBatch.create(1) }
+    private val singleBatches = (0 until DrawerConfiguration.vertexBufferMultiBufferCount).map { PointBatch.create(1) }
 
 
     private val shaderManager: ShadeStyleManager = ShadeStyleManager.fromGenerators("point",

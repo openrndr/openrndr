@@ -12,7 +12,6 @@ import org.lwjgl.opengl.GL43C as GL
 import org.lwjgl.opengl.GLUtil
 import org.lwjgl.opengles.GLES
 import org.lwjgl.opengles.GLES30
-import org.lwjgl.system.MemoryStack
 
 import org.lwjgl.system.MemoryStack.stackPush
 import org.lwjgl.system.MemoryUtil.NULL
@@ -203,30 +202,14 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
         }
 
     private fun negotiateDriverType(): DriverTypeGL {
-        val forced = when (Platform.property("org.openrndr.gl3.gl_type")) {
-            "gl" -> DriverTypeGL.GL
-            "gles" -> DriverTypeGL.GLES
-            else -> null
-        }
-
-        return forced ?: when (Pair(Platform.type, Platform.architecture)) {
+        return DriverGL3Configuration.glDriverTypeHint ?: when (Pair(Platform.type, Platform.architecture)) {
             Pair(PlatformType.MAC, PlatformArchitecture.AARCH64) -> DriverTypeGL.GLES
             else -> DriverTypeGL.GL
         }
     }
 
     private fun negotiateGlesBackend(): GlesBackend {
-        val forced = when (Platform.property("org.openrndr.gl3.gles_backend")) {
-            "system" -> GlesBackend.SYSTEM
-            "angle" -> {
-                require(Platform.type == PlatformType.MAC && Platform.architecture == PlatformArchitecture.AARCH64) {
-                    "Angle is only supported on macOS AArch64"
-                }
-                GlesBackend.ANGLE
-            }
-            else -> null
-        }
-        return forced ?: when (Pair(Platform.type, Platform.architecture)) {
+        return DriverGL3Configuration.glesBackendHint ?: when (Pair(Platform.type, Platform.architecture)) {
             Pair(PlatformType.MAC, PlatformArchitecture.AARCH64) -> GlesBackend.ANGLE
             else -> GlesBackend.SYSTEM
         }
@@ -298,7 +281,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
 
         logger.info { glfwGetVersionString() }
 
-        if (useDebugContext) {
+        if (DriverGL3Configuration.useDebugContext) {
             glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE)
         }
 
@@ -656,7 +639,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
             DriverTypeGL.GLES -> GLES.createCapabilities()
         }
 
-        if (useDebugContext) {
+        if (DriverGL3Configuration.useDebugContext) {
             GLUtil.setupDebugMessageCallback()
             glEnable(GL.GL_DEBUG_OUTPUT_SYNCHRONOUS)
         }

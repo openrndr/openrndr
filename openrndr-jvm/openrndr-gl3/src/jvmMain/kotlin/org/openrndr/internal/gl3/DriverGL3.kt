@@ -20,7 +20,7 @@ import java.nio.FloatBuffer
 import java.util.*
 
 private val logger = KotlinLogging.logger {}
-internal val useDebugContext = System.getProperty("org.openrndr.gl3.debug") != null
+
 
 enum class GlesBackend {
     SYSTEM,
