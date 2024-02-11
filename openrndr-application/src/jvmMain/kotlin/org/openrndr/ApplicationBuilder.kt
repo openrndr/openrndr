@@ -3,21 +3,21 @@ package org.openrndr
 import org.openrndr.exceptions.installUncaughtExceptionHandler
 import java.io.BufferedReader
 import java.io.InputStreamReader
-import java.util.ArrayList
 import java.lang.management.ManagementFactory
 
 private fun restartJVM(): Boolean {
     // based on http://www.java-gaming.org/topics/starting-jvm-on-mac-with-xstartonfirstthread-programmatically/37697/view.html
-
     val osName = System.getProperty("os.name")
 
     // if not a mac return false
     if (!osName.startsWith("Mac") && !osName.startsWith("Darwin")) {
         return false
     }
+    val bean = ManagementFactory.getRuntimeMXBean()
+
     // get current jvm process pid
     val pid =
-        ManagementFactory.getRuntimeMXBean().name.split("@".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()[0]
+        bean.name.split("@".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()[0]
     // get environment variable on whether XstartOnFirstThread is enabled
     val env = System.getenv("JAVA_STARTED_ON_FIRST_THREAD_$pid")
 
@@ -25,7 +25,15 @@ private fun restartJVM(): Boolean {
     if (env != null && env == "1") {
         return false
     }
-    System.err.println("Warning: Running on macOS without -XstartOnFirstThread JVM argument. Restarting JVM with -XstartOnFirstThread.")
+
+    // Detect if a debugger is attached
+    if (bean.inputArguments.any { it.contains("jdwp") }) {
+        error("Running on macOS with a debugger attached, but not on the first thread. The process is stopped to prevent the debugger from losing the process. Run with -XstartOnFirstThread to continue.")
+    }
+    // Detect if a profiler is attached
+    if (bean.inputArguments.any { it.contains("jfrsync=profile")}) {
+        error("Running on macOS with a profiler attached, but not on the first thread. The process is stopped to prevent the profiler from losing the process. Run with -XstartOnFirstThread to continue.")
+    }
 
     // restart jvm with -XstartOnFirstThread
     val separator = System.getProperty("file.separator") ?: error("file.separator not set")
@@ -71,7 +79,6 @@ private fun restartJVM(): Boolean {
     } catch (e: Exception) {
         e.printStackTrace()
     }
-
     return true
 }
 
