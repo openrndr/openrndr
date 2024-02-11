@@ -54,6 +54,7 @@ tasks {
     withType<KotlinCompile>() {
         kotlinOptions.apiVersion = libs.versions.kotlinApi.get()
         kotlinOptions.languageVersion = libs.versions.kotlinLanguage.get()
+        kotlinOptions.freeCompilerArgs += "-Xexpect-actual-classes"
     }
 }
 
