@@ -3,7 +3,8 @@ package org.openrndr.convention
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.gradle.accessors.dm.LibrariesForLibs
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.jetbrains.kotlin.gradle.dsl.KotlinCompile
+
 
 val libs = the<LibrariesForLibs>()
 val shouldPublish = project.name !in setOf("openrndr-demos")
@@ -25,9 +26,10 @@ repositories {
 
 group = "org.openrndr"
 
-tasks.withType<KotlinCompile>() {
+tasks.withType<KotlinCompile<*>>() {
     kotlinOptions.apiVersion = libs.versions.kotlinApi.get()
     kotlinOptions.languageVersion = libs.versions.kotlinLanguage.get()
+    kotlinOptions.freeCompilerArgs += "-Xexpect-actual-classes"
 }
 
 kotlin {
