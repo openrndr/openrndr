@@ -1031,10 +1031,6 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
         logger.debug { "Triggering program ended event" }
         program.ended.trigger(ProgramEvent(ProgramEventType.ENDED))
 
-        exception?.let {
-            it.printStackTrace()
-
-        }
         if (exception == null) {
             Session.root.end()
         }
@@ -1054,7 +1050,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
         logger.debug { "done" }
 
         exception?.let {
-            logger.info { "OPENRNDR program ended with exception. (${exception.message})}" }
+            logger.error { "OPENRNDR program ended with exception. (${exception.message})}" }
             throw it
         }
     }
