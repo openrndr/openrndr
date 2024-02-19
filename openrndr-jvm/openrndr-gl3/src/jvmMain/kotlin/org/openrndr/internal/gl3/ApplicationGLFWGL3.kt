@@ -23,6 +23,7 @@ import org.openrndr.draw.Drawer
 import org.openrndr.draw.Session
 import org.openrndr.internal.Driver
 import org.openrndr.internal.gl3.ApplicationGlfwConfiguration.fixWindowSize
+import org.openrndr.internal.gl3.angle.loadAngleLibraries
 
 import org.openrndr.math.Vector2
 import org.openrndr.platform.Platform
@@ -569,7 +570,9 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
     }
 
     private fun createPrimaryWindow() {
-
+        if (DriverGL3Configuration.glesBackend == GlesBackend.ANGLE) {
+            loadAngleLibraries()
+        }
 
 
         if (primaryWindow == NULL) {

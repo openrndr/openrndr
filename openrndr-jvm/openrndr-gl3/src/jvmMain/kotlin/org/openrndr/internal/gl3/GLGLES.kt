@@ -12,7 +12,7 @@ import java.nio.IntBuffer
 import org.lwjgl.opengl.GL45C as GL
 import org.lwjgl.opengles.GLES32 as GLES
 
-var driverType = DriverTypeGL.GL
+var driverType = DriverGL3Configuration.driverType
 
 inline fun glEnable(target: Int) {
     return when (driverType) {
