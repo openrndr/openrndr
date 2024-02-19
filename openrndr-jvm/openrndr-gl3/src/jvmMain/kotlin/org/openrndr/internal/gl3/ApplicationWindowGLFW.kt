@@ -214,7 +214,6 @@ class ApplicationWindowGLFW(
         var readyFrames = 0
 
         glfwSetKeyCallback(window) { _, key, scancode, action, _ ->
-            println("yo key $key $action")
             val name = when (key) {
                 GLFW_KEY_SPACE -> "space"
                 GLFW_KEY_ENTER -> "enter"
