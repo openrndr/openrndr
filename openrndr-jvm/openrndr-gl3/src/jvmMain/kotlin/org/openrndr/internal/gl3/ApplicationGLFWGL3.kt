@@ -20,14 +20,12 @@ import org.openrndr.WindowMultisample.*
 import org.openrndr.animatable.Animatable
 import org.openrndr.animatable.Clock
 import org.openrndr.draw.Drawer
-import org.openrndr.draw.RenderTarget
 import org.openrndr.draw.Session
 import org.openrndr.internal.Driver
-import org.openrndr.internal.gl3.angle.loadAngleLibraries
+import org.openrndr.internal.gl3.ApplicationGlfwConfiguration.fixWindowSize
 
 import org.openrndr.math.Vector2
 import org.openrndr.platform.Platform
-import org.openrndr.platform.PlatformArchitecture
 import org.openrndr.platform.PlatformType
 import java.io.File
 import java.nio.Buffer
@@ -37,7 +35,15 @@ import kotlin.math.ceil
 private val logger = KotlinLogging.logger {}
 internal var primaryWindow: Long = NULL
 
+object ApplicationGlfwConfiguration {
+    val fixWindowSize by lazy {
+        Platform.type == PlatformType.WINDOWS || Platform.type == PlatformType.GENERIC
+    }
+}
+
 class ApplicationGLFWGL3(override var program: Program, override var configuration: Configuration) : Application() {
+
+    internal var windows: MutableList<ApplicationWindowGLFW> = mutableListOf()
 
     private var pointerInput: PointerInputManager? = null
     private var windowFocused = true
@@ -46,8 +52,6 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
     private var realWindowTitle = configuration.title
     private var exitRequested = false
     private var exitHandled = false
-    private val fixWindowSize = System.getProperty("os.name").contains("windows", true) ||
-            System.getProperty("os.name").contains("linux", true)
     private var setupCalled = false
 
     override var presentationMode: PresentationMode = PresentationMode.AUTOMATIC
@@ -201,25 +205,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
             realWindowTitle = value
         }
 
-    private fun negotiateDriverType(): DriverTypeGL {
-        return DriverGL3Configuration.glDriverTypeHint ?: when (Pair(Platform.type, Platform.architecture)) {
-            Pair(PlatformType.MAC, PlatformArchitecture.AARCH64) -> DriverTypeGL.GLES
-            else -> DriverTypeGL.GL
-        }
-    }
-
-    private fun negotiateGlesBackend(): GlesBackend {
-        return DriverGL3Configuration.glesBackendHint ?: when (Pair(Platform.type, Platform.architecture)) {
-            Pair(PlatformType.MAC, PlatformArchitecture.AARCH64) -> GlesBackend.ANGLE
-            else -> GlesBackend.SYSTEM
-        }
-    }
-
-    val type = negotiateDriverType()
-
     init {
-        driverType = type
-
         Runtime.getRuntime().addShutdownHook(object : Thread() {
             override fun run() {
                 logger.debug { "Program interrupted" }
@@ -234,20 +220,20 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
         logger.trace { "trace level enabled" }
 
 
-        createPrimaryWindow(type)
+        createPrimaryWindow()
         program.application = this
     }
 
     override suspend fun setup() {
         glfwDefaultWindowHints()
-        when (type) {
+        when (DriverGL3Configuration.driverType) {
             DriverTypeGL.GL -> {
                 glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL.GL_TRUE)
                 glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE)
             }
 
             DriverTypeGL.GLES -> {
-                val useAngle = negotiateGlesBackend() == GlesBackend.ANGLE
+                val useAngle = DriverGL3Configuration.glesBackend == GlesBackend.ANGLE
                 if (useAngle) {
                     glfwWindowHint(GLFW_ANGLE_PLATFORM_TYPE, GLFW_ANGLE_PLATFORM_TYPE_METAL)
                 }
@@ -314,7 +300,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
         }
 
 
-        val versions = DriverGL3.candidateVersions(type)
+        val versions = DriverGL3.candidateVersions()
         var versionIndex = 0
         while (window == NULL && versionIndex < versions.size) {
 
@@ -489,7 +475,6 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
                     )
                 )
             }
-
             readyFrames++
         }
 
@@ -565,12 +550,27 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
         glfwSwapBuffers(window)
     }
 
+    override fun createChildWindow(configuration: WindowConfiguration, program: Program) : ApplicationWindow {
+        val window = createApplicationWindowGlfw(configuration, program)
+        program.application = this
+        (program as WindowProgram).applicationWindow = window
+        program.drawer = this@ApplicationGLFWGL3.program.drawer
 
-    private fun createPrimaryWindow(type: DriverTypeGL) {
+        window.setupGlfwEvents(this)
 
-        if (negotiateGlesBackend() == GlesBackend.ANGLE) {
-            loadAngleLibraries()
+        window.updateSize()
+        runBlocking {
+            program.setup()
         }
+        synchronized(windows) {
+            windows.add(window)
+        }
+        return window
+    }
+
+    private fun createPrimaryWindow() {
+
+
 
         if (primaryWindow == NULL) {
             glfwSetErrorCallback(GLFWErrorCallback.create { error, description ->
@@ -586,10 +586,10 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
 
             val title = "OPENRNDR primary window"
 
-            val versions = DriverGL3.candidateVersions(type)
+            val versions = DriverGL3.candidateVersions()
             println("got the following versions: $versions")
             glfwDefaultWindowHints()
-            when (type) {
+            when (DriverGL3Configuration.driverType) {
                 DriverTypeGL.GL -> {
                     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL.GL_TRUE)
                     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE)
@@ -597,7 +597,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
 
                 DriverTypeGL.GLES -> {
                     glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API)
-                    val useAngle = negotiateGlesBackend() == GlesBackend.ANGLE
+                    val useAngle = DriverGL3Configuration.glesBackend == GlesBackend.ANGLE
                     if (useAngle) {
                         glfwWindowHint(GLFW_ANGLE_PLATFORM_TYPE, GLFW_ANGLE_PLATFORM_TYPE_METAL)
                     }
@@ -624,7 +624,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
             }
 
             if (primaryWindow == 0L) {
-                throw IllegalStateException("primary window could not be created using $type context")
+                throw IllegalStateException("primary window could not be created using ${DriverGL3Configuration.driverType} context")
             }
             Driver.driver = DriverGL3(foundVersion ?: error("no version found"))
         }
@@ -634,12 +634,13 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
 
     val defaultRenderTarget by lazy { ProgramRenderTargetGL3(program) }
     fun preloop() {
-        when (type) {
+        when (Driver.glType) {
             DriverTypeGL.GL -> org.lwjgl.opengl.GL.createCapabilities()
             DriverTypeGL.GLES -> GLES.createCapabilities()
         }
 
         if (DriverGL3Configuration.useDebugContext) {
+            println("setting up debug context")
             GLUtil.setupDebugMessageCallback()
             glEnable(GL.GL_DEBUG_OUTPUT_SYNCHRONOUS)
         }
@@ -647,7 +648,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
         program.driver = Driver.instance
         program.drawer = Drawer(Driver.instance)
 
-        when (type) {
+        when (Driver.glType) {
             DriverTypeGL.GL -> {}
             DriverTypeGL.GLES -> (Driver.instance as DriverGL3).setupExtensions(
                 GLES.getFunctionProvider() ?: error("no function provider")
@@ -965,6 +966,8 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
 
         var exception: Throwable? = null
         while (!exitRequested && !glfwWindowShouldClose(window)) {
+            glfwMakeContextCurrent(window)
+
 
             if (presentationMode == PresentationMode.AUTOMATIC || drawRequested) {
                 drawRequested = false
@@ -990,15 +993,27 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
                 deliverEvents()
                 program.dispatcher.execute()
             }
+
+            for (window in windows) {
+                window.update()
+            }
+
         }
         logger.debug { "Exiting draw loop" }
+
+
         postloop(exception)
     }
 
     fun postloop(exception: Throwable? = null) {
+
+
+        // this breaks on multi window programs
+/*
         if (RenderTarget.active != defaultRenderTarget) {
             defaultRenderTarget.bindTarget()
         }
+*/
 
 
         logger.debug { "Shutting down extensions" }
@@ -1076,7 +1091,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
             logger.trace { "window: ${program.window.size.x.toInt()}x${program.window.size.y.toInt()} program: ${program.width}x${program.height}" }
             program.drawImpl()
         } catch (e: Throwable) {
-            logger.error { "Caught exception inside program the program loop. (${e.message})" }
+            logger.error { "Caught exception inside the program loop. (${e.message})" }
             return e
         }
         return null

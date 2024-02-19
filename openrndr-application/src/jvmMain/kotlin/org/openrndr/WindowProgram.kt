@@ -1,5 +1,3 @@
-@file:Suppress("unused")
-
 package org.openrndr
 
 import org.openrndr.animatable.Animatable
@@ -9,165 +7,7 @@ import org.openrndr.events.Event
 import org.openrndr.internal.Driver
 import org.openrndr.math.Vector2
 
-expect fun rootClassName(): String
-
-enum class WindowEventType {
-    MOVED,
-    RESIZED,
-    FOCUSED,
-    UNFOCUSED,
-    MINIMIZED,
-    RESTORED,
-    CLOSED
-}
-
-/**
- * window event message
- */
-data class WindowEvent(val type: WindowEventType, val position: Vector2, val size: Vector2, val focused: Boolean)
-
-/**
- * window drop item event message
- */
-data class DropEvent(val position: Vector2, val files: List<String>)
-
-/**
- * program event type
- */
-enum class ProgramEventType {
-    /**
-     * indicates the program has ended
-     */
-    ENDED
-}
-
-/**
- * program event message
- */
-data class ProgramEvent(val type: ProgramEventType)
-
-data class RequestAssetsEvent(val origin: Any, val program: Program)
-data class ProduceAssetsEvent(val origin: Any, val program: Program, val assetMetadata: AssetMetadata)
-
-data class AssetMetadata(
-    val programName: String,
-    val assetBaseName: String,
-    val assetProperties: Map<String, String>
-)
-
-interface InputEvents {
-    val mouse: MouseEvents
-    val keyboard: KeyEvents
-    val pointers: Pointers
-}
-
-interface Clipboard {
-    var contents: String?
-}
-
-interface Clock {
-    val seconds: Double
-}
-
-interface Program : InputEvents, ExtensionHost, Clock {
-
-    /**
-     * A map that can be used to store arbitrary data, including functions
-     */
-    var userProperties: MutableMap<String, Any>
-
-    var name: String
-
-    var width: Int
-    var height: Int
-    var isNested: Boolean
-    var drawer: Drawer
-    var driver: Driver
-
-    val dispatcher: Dispatcher
-    val window: Window
-    var application: Application
-
-    suspend fun setup()
-
-    fun drawImpl()
-    fun draw()
-
-    val produceAssets: Event<ProduceAssetsEvent>
-    val requestAssets: Event<RequestAssetsEvent>
-    var assetMetadata: () -> AssetMetadata
-    var assetProperties: MutableMap<String, String>
-    var clock: () -> Double
-    var ended: Event<ProgramEvent>
-    var backgroundColor: ColorRGBa?
-    val frameCount: Int
-    val clipboard: ProgramImplementation.ApplicationClipboard
-
-    fun updateFrameSecondsFromClock()
-}
-
-interface Window {
-    var title: String
-    var size: Vector2
-    var contentScale: Double
-    var presentationMode: PresentationMode
-    var multisample: WindowMultisample
-    var resizable: Boolean
-
-    fun requestFocus()
-
-    fun requestDraw()
-
-    /**
-     * Window focused event, triggered when the window receives focus
-     */
-    val focused: Event<WindowEvent>
-
-    /**
-     * Window focused event, triggered when the window loses focus
-     */
-    val unfocused: Event<WindowEvent>
-
-    /**
-     * Window moved event
-     */
-    val moved: Event<WindowEvent>
-
-    /**
-     * Window sized event
-     */
-    val sized: Event<WindowEvent>
-
-    /**
-     * Window minimized event
-     */
-    val minimized: Event<WindowEvent>
-
-    /**
-     * Window restored (from minimization) event
-     */
-    val restored: Event<WindowEvent>
-
-    /**
-     * Window restored (from minimization) event
-     */
-    val closed: Event<WindowEvent>
-
-    /**
-     * Drop event, triggered when a file is dropped on the window
-     */
-    val drop: Event<DropEvent>
-
-    /**
-     * Window position
-     */
-    var position: Vector2
-}
-
-/**
- * The Program class, this is where most user implementations start.
- */
-open class ProgramImplementation(val suspend: Boolean = false) : Program {
+open class WindowProgram(val suspend: Boolean = false) : Program {
     override var width = 0
     override var height = 0
 
@@ -183,6 +23,7 @@ open class ProgramImplementation(val suspend: Boolean = false) : Program {
     override lateinit var driver: Driver
 
     override lateinit var application: Application
+    lateinit var applicationWindow: ApplicationWindow
 
     /** This is checked at runtime to disallow nesting [extend] blocks. */
     override var isNested: Boolean = false
@@ -234,6 +75,8 @@ open class ProgramImplementation(val suspend: Boolean = false) : Program {
     private var lastSeconds: Double = -1.0
 
     override var frameCount = 0
+    override val clipboard: ProgramImplementation.ApplicationClipboard
+        get() = TODO("Not yet implemented")
 
     /**
      * The number of [seconds] since program start, or the time from a custom [clock].
@@ -258,7 +101,6 @@ open class ProgramImplementation(val suspend: Boolean = false) : Program {
             }
     }
 
-    override val clipboard = ApplicationClipboard()
 
     /**
      * list of installed extensions
@@ -333,15 +175,15 @@ open class ProgramImplementation(val suspend: Boolean = false) : Program {
      */
     inner class Window : org.openrndr.Window {
         override var title: String
-            get() = application.windowTitle
+            get() = applicationWindow.windowTitle
             set(value) {
-                application.windowTitle = value
+                applicationWindow.windowTitle = value
             }
 
         override var size
-            get() = application.windowSize
+            get() = applicationWindow.windowSize
             set(value) {
-                application.windowSize = value
+                applicationWindow.windowSize = value
             }
 
         override var contentScale
@@ -358,7 +200,7 @@ open class ProgramImplementation(val suspend: Boolean = false) : Program {
 
         override var multisample: WindowMultisample
             get() {
-                return application.windowMultisample
+                return applicationWindow.windowMultisample
             }
             set(value) {
                 application.windowMultisample = value
@@ -430,7 +272,7 @@ open class ProgramImplementation(val suspend: Boolean = false) : Program {
 
 
     override val keyboard by lazy { Keyboard() }
-    override val mouse by lazy { ApplicationMouse(application = { application }) }
+    override val mouse by lazy { ApplicationWindowMouse(applicationWindow = { applicationWindow }) }
     override val pointers by lazy { Pointers(application = { application }) }
 
     /**
@@ -476,10 +318,14 @@ open class ProgramImplementation(val suspend: Boolean = false) : Program {
         frameSeconds = clock()
     }
 }
+fun Program.window(
+    configuration: WindowConfiguration = WindowConfiguration(),
+    init: suspend Program.() -> Unit): ApplicationWindow {
 
-
-
-
-
-
-expect fun Program.namedTimestamp(extension: String = "", path: String? = null): String
+    val program  = object : WindowProgram() {
+        override suspend fun setup() {
+            init()
+        }
+    }
+    return application.createChildWindow(configuration, program)
+}

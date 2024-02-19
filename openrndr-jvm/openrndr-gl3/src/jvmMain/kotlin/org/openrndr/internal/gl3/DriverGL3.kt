@@ -1,6 +1,7 @@
 package org.openrndr.internal.gl3
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.lwjgl.glfw.GLFW
 import org.lwjgl.opengl.*
 import org.lwjgl.opengl.GL40C.*
 import org.lwjgl.system.FunctionProvider
@@ -93,7 +94,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
     }
 
     companion object {
-        fun candidateVersions(type: DriverTypeGL): List<DriverVersionGL> {
+        fun candidateVersions(type: DriverTypeGL = DriverGL3Configuration.driverType): List<DriverVersionGL> {
             val property = System.getProperty("org.openrndr.gl3.version", "all")
             return DriverVersionGL.entries.find { it.type == DriverTypeGL.GL && "${it.majorVersion}.${it.minorVersion}" == property }
                 ?.let { listOf(it) }
@@ -103,7 +104,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
 
     override val contextID: Long
         get() {
-            return Thread.currentThread().id
+            return GLFW.glfwGetCurrentContext()
         }
 
     override fun createResourceThread(session: Session?, f: () -> Unit): ResourceThread {
@@ -513,7 +514,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         shader as ShaderGL3
         // -- find or create a VAO for our shader + vertex buffers combination
         val shaderVertexDescription = ShaderVertexDescription(
-            contextID,
+            Driver.instance.contextID,
             shader.programObject,
             IntArray(vertexBuffers.size) { (vertexBuffers[it] as VertexBufferGL3).buffer },
             IntArray(0)
@@ -561,25 +562,29 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         val shader: Int,
         val vertexBuffers: IntArray,
         val instanceAttributeBuffers: IntArray
-    ) {
+    )  {
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
             if (javaClass != other?.javaClass) return false
 
             other as ShaderVertexDescription
+
+            if (context != other.context) return false
             if (shader != other.shader) return false
             if (!vertexBuffers.contentEquals(other.vertexBuffers)) return false
-            return instanceAttributeBuffers.contentEquals(other.instanceAttributeBuffers)
+            if (!instanceAttributeBuffers.contentEquals(other.instanceAttributeBuffers)) return false
+
+            return true
         }
 
         override fun hashCode(): Int {
-            var result = shader
+            var result = context.hashCode()
+            result = 31 * result + shader
             result = 31 * result + vertexBuffers.contentHashCode()
             result = 31 * result + instanceAttributeBuffers.contentHashCode()
             return result
         }
     }
-
 
     override fun drawIndexedVertexBuffer(
         shader: Shader,
@@ -693,7 +698,9 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
             arrays[0]
         }
 
+        debugGLErrors()
         glBindVertexArray(vao)
+        debugGLErrors()
 
         logger.trace { "drawing $instanceCount instances with $drawPrimitive(${drawPrimitive.glType()}) and $vertexCount vertices with vertexOffset $vertexOffset " }
         if (instanceOffset == 0) {
@@ -982,9 +989,16 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
     }
 
 
-    private val cached = DrawStyle()
-    private var dirty = true
+    private val dirtyPerContext = mutableMapOf<Long, Boolean>()
+    private val cachedPerContext = mutableMapOf<Long, DrawStyle>()
+
+    //private val cached = DrawStyle()
+    //private var dirty = true
     override fun setState(drawStyle: DrawStyle) {
+
+        val dirty = dirtyPerContext.getOrDefault(contextID, true)
+        val cached = cachedPerContext.getOrPut(contextID) { DrawStyle() }
+
         if (dirty || cached.clip != drawStyle.clip) {
             if (drawStyle.clip != null) {
                 drawStyle.clip?.let { it: Rectangle ->
@@ -1245,7 +1259,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
             }
             cached.cullTestPass = drawStyle.cullTestPass
         }
-        dirty = false
+        dirtyPerContext[contextID] = false
         debugGLErrors()
 
     }
@@ -1260,7 +1274,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
             defaultVAOs.remove(context)
         }
         destroyAllVAOs()
-        dirty = true
+        dirtyPerContext.remove(context)
     }
 
     override val activeRenderTarget: RenderTarget

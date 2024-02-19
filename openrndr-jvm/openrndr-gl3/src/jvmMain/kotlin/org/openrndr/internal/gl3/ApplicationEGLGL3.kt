@@ -65,14 +65,16 @@ class ApplicationEGLGL3(override var program: Program, override var configuratio
         stackPush().use {
             val configCount = it.mallocInt(1)
 
-            val attributes = it.ints(EGL_SURFACE_TYPE, EGL_PBUFFER_BIT,
-                    EGL_BLUE_SIZE, 8,
-                    EGL_GREEN_SIZE, 8,
-                    EGL_RED_SIZE, 8,
-                    EGL_DEPTH_SIZE, 24,
-                    EGL_STENCIL_SIZE, 8,
-                    EGL_RENDERABLE_TYPE, EGL_OPENGL_BIT,
-                    EGL_NONE)
+            val attributes = it.ints(
+                EGL_SURFACE_TYPE, EGL_PBUFFER_BIT,
+                EGL_BLUE_SIZE, 8,
+                EGL_GREEN_SIZE, 8,
+                EGL_RED_SIZE, 8,
+                EGL_DEPTH_SIZE, 24,
+                EGL_STENCIL_SIZE, 8,
+                EGL_RENDERABLE_TYPE, EGL_OPENGL_BIT,
+                EGL_NONE
+            )
 
             if (!eglChooseConfig(display, attributes, null, configCount)) {
                 throw RuntimeException("${eglGetError()}")
@@ -88,10 +90,11 @@ class ApplicationEGLGL3(override var program: Program, override var configuratio
             val EGL_CONTEXT_FLAGS = 0x30FC
 
             val contextAttributes = it.ints(
-                    EGL_CONTEXT_MAJOR_VERSION, 3,
-                    EGL_CONTEXT_MINOR_VERSION, 3,
-                    EGL_CONTEXT_FLAGS, EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT,
-                    EGL_NONE)
+                EGL_CONTEXT_MAJOR_VERSION, 3,
+                EGL_CONTEXT_MINOR_VERSION, 3,
+                EGL_CONTEXT_FLAGS, EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT,
+                EGL_NONE
+            )
 
             val context = eglCreateContext(display, configs[0], EGL_NO_CONTEXT, contextAttributes)
             println("context: $context")
@@ -183,4 +186,9 @@ class ApplicationEGLGL3(override var program: Program, override var configuratio
     override var windowContentScale: Double
         get() = 1.0
         set(value) {}
+
+    override fun createChildWindow(configuration: WindowConfiguration, program: Program): ApplicationWindow {
+        TODO("Not yet implemented")
+    }
+
 }

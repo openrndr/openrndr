@@ -51,7 +51,7 @@ open class RenderTargetGL3(
     override val contentScale: Double,
     override val multisample: BufferMultisample,
     override val session: Session?,
-    private val thread: Thread = Thread.currentThread()
+    private val contextID: Long = Driver.instance.contextID
 ) : RenderTarget {
     var destroyed = false
 
@@ -73,7 +73,13 @@ open class RenderTargetGL3(
 
         val activeRenderTarget: RenderTargetGL3
             get() {
-                val stack = active.getOrPut(Driver.instance.contextID) { Stack() }
+                val stack = active.getOrPut(Driver.instance.contextID) {
+                    logger.debug { "creating active render target stack for context ${Driver.instance.contextID}" }
+                    Stack()
+                }
+                if (stack.isEmpty()) {
+                    logger.error { "empty stack while looking for active render target for context ${Driver.instance.contextID}" }
+                }
                 return stack.peek()
             }
     }
@@ -108,8 +114,8 @@ open class RenderTargetGL3(
         debugGLErrors { null }
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer)
 
-        if (Thread.currentThread() != thread) {
-            throw IllegalStateException("this render target is created by $thread and cannot be bound to ${Thread.currentThread()}")
+        if (Driver.instance.contextID != contextID) {
+            throw IllegalStateException("this render target is created by $contextID and cannot be bound to ${Driver.instance.contextID}")
         }
 
         debugGLErrors { null }
@@ -143,6 +149,7 @@ open class RenderTargetGL3(
             previous as RenderTargetGL3
             logger.trace { "restoring to previous render target $previous" }
             previous.bindTarget()
+            bound = false
         } else {
             throw RuntimeException("target not bound")
         }

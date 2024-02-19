@@ -1,6 +1,8 @@
 package org.openrndr.internal.gl3
 
+import org.lwjgl.glfw.GLFW
 import org.lwjgl.opengl.GL33C.*
+import org.openrndr.internal.Driver
 
 class GL3Exception(message: String) : Exception(message)
 
@@ -17,7 +19,7 @@ inline fun checkGLErrors(crossinline errorFunction: ((Int) -> String?) = { null 
             GL_STACK_OVERFLOW -> "GL_STACK_OVERFLOW"
             else -> "<untranslated: $error>"
         }
-        throw GL3Exception("GL ERROR: $message ${errorFunction.invoke(error)}")
+        throw GL3Exception("[context=${Driver.instance.contextID}] GL ERROR: $message ${errorFunction.invoke(error)}")
     }
 }
 

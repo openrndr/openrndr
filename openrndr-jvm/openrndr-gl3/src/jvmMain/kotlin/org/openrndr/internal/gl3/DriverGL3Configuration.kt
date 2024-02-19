@@ -23,14 +23,32 @@ object DriverGL3Configuration {
         }
     }
 
-    val glesBackendHint by lazy { when (Platform.property("org.openrndr.gl3.gles_backend")) {
-        "system" -> GlesBackend.SYSTEM
-        "angle" -> {
-            require(Platform.type == PlatformType.MAC && Platform.architecture == PlatformArchitecture.AARCH64) {
-                "Angle is only supported on macOS AArch64"
+    val glesBackendHint by lazy {
+        when (Platform.property("org.openrndr.gl3.gles_backend")) {
+            "system" -> GlesBackend.SYSTEM
+            "angle" -> {
+                require(Platform.type == PlatformType.MAC && Platform.architecture == PlatformArchitecture.AARCH64) {
+                    "Angle is only supported on macOS AArch64"
+                }
+                GlesBackend.ANGLE
             }
-            GlesBackend.ANGLE
+
+            else -> null
         }
-        else -> null
-    } }
+    }
+
+    val glesBackend by lazy {
+        glesBackendHint ?: when (Pair(Platform.type, Platform.architecture)) {
+            Pair(PlatformType.MAC, PlatformArchitecture.AARCH64) -> GlesBackend.ANGLE
+            else -> GlesBackend.SYSTEM
+        }
+    }
+
+    val driverType by lazy {
+        glDriverTypeHint ?: when (Pair(Platform.type, Platform.architecture)) {
+            Pair(PlatformType.MAC, PlatformArchitecture.AARCH64) -> DriverTypeGL.GLES
+            else -> DriverTypeGL.GL
+        }
+    }
+
 }
