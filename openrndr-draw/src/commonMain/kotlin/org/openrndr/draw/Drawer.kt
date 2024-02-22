@@ -1151,6 +1151,13 @@ class Drawer(val driver: Driver) {
     }
 
     /**
+     * Draws an image ([ColorBuffer]) into a [target] area
+     */
+    fun image(colorBuffer: ColorBuffer, target: Rectangle) {
+        imageDrawer.drawImage(context, drawStyle, colorBuffer, target.x, target.y, target.width, target.height)
+    }
+
+    /**
      * Draws an image with its top-left corner at ([x], [y]) and dimensions ([width], [height])
      */
     fun image(colorBuffer: ColorBuffer, x: Double, y: Double, width: Double = colorBuffer.width.toDouble(), height: Double = colorBuffer.height.toDouble()) {
