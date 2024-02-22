@@ -997,10 +997,8 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
                 program.dispatcher.execute()
             }
 
-            synchronized(windows) {
-                for (window in windows) {
-                    window.update()
-                }
+            for (window in windows) {
+                window.update()
             }
 
         }
