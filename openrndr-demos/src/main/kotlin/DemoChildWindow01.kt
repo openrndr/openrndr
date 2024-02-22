@@ -8,8 +8,19 @@ import org.openrndr.window
 fun main() {
     application {
         program {
-
             var w1Position = Vector2.ZERO
+            keyboard.character.listen {
+                if (it.character == 'w') {
+                    window {
+                        keyboard.character.listen {
+
+                        }
+                        extend {
+                            drawer.clear(ColorRGBa.CYAN)
+                        }
+                    }
+                }
+            }
 
             val w1 = window {
                 extend(Screenshots())
@@ -19,7 +30,6 @@ fun main() {
                 extend {
                     drawer.clear(ColorRGBa.PINK)
                     drawer.circle(w1Position, 100.0)
-
                 }
             }
 
@@ -28,10 +38,8 @@ fun main() {
                 extend {
                     drawer.clear(ColorRGBa.GRAY)
                     drawer.circle(w1Position, 100.0)
-
                 }
             }
-
 
             extend {
                 drawer.clear(ColorRGBa.BLACK)

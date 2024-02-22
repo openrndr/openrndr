@@ -20,6 +20,7 @@ import org.openrndr.WindowMultisample.*
 import org.openrndr.animatable.Animatable
 import org.openrndr.animatable.Clock
 import org.openrndr.draw.Drawer
+import org.openrndr.draw.RenderTarget
 import org.openrndr.draw.Session
 import org.openrndr.internal.Driver
 import org.openrndr.internal.gl3.ApplicationGlfwConfiguration.fixWindowSize
@@ -31,6 +32,7 @@ import org.openrndr.platform.PlatformType
 import java.io.File
 import java.nio.Buffer
 import java.util.*
+import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.math.ceil
 
 private val logger = KotlinLogging.logger {}
@@ -44,7 +46,7 @@ object ApplicationGlfwConfiguration {
 
 class ApplicationGLFWGL3(override var program: Program, override var configuration: Configuration) : Application() {
 
-    internal var windows: MutableList<ApplicationWindowGLFW> = mutableListOf()
+    internal val windows: CopyOnWriteArrayList<ApplicationWindowGLFW> = CopyOnWriteArrayList()
 
     private var pointerInput: PointerInputManager? = null
     private var windowFocused = true
@@ -552,21 +554,29 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
     }
 
     override fun createChildWindow(configuration: WindowConfiguration, program: Program) : ApplicationWindow {
-        val window = createApplicationWindowGlfw(configuration, program)
-        program.application = this
-        (program as WindowProgram).applicationWindow = window
-        program.drawer = this@ApplicationGLFWGL3.program.drawer
+        // acquire current context, we may be calling this from another context that we want to return to
+        val currentActiveContext = glfwGetCurrentContext()
+        try {
+            val window = createApplicationWindowGlfw(this, configuration, program)
+            program.application = this
+            (program as WindowProgram).applicationWindow = window
+            program.drawer = this@ApplicationGLFWGL3.program.drawer
 
-        window.setupGlfwEvents(this)
+            window.setupGlfwEvents(this)
 
-        window.updateSize()
-        runBlocking {
-            program.setup()
+            window.updateSize()
+            runBlocking {
+                program.setup()
+            }
+            synchronized(windows) {
+                windows.add(window)
+            }
+            return window
+        } finally {
+            if (currentActiveContext != 0L) {
+                glfwMakeContextCurrent(currentActiveContext)
+            }
         }
-        synchronized(windows) {
-            windows.add(window)
-        }
-        return window
     }
 
     private fun createPrimaryWindow() {
@@ -586,18 +596,14 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
             if (!glfwInit()) {
                 throw IllegalStateException("Unable to initialize GLFW")
             }
-
             val title = "OPENRNDR primary window"
-
             val versions = DriverGL3.candidateVersions()
-            println("got the following versions: $versions")
             glfwDefaultWindowHints()
             when (DriverGL3Configuration.driverType) {
                 DriverTypeGL.GL -> {
                     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL.GL_TRUE)
                     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE)
                 }
-
                 DriverTypeGL.GLES -> {
                     glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API)
                     val useAngle = DriverGL3Configuration.glesBackend == GlesBackend.ANGLE
@@ -922,9 +928,6 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
             glfwPollEvents()
         }
 
-
-        //println(org.lwjgl.opengles.GLES30.glGetString(org.lwjgl.opengles.GLES30.GL_VENDOR))
-
         logger.info { "OpenGL vendor: ${glGetString(GL.GL_VENDOR)}" }
         logger.info { "OpenGL renderer: ${glGetString(GL.GL_RENDERER)}" }
         logger.info { "OpenGL version: ${glGetString(GL.GL_VERSION)}" }
@@ -966,11 +969,9 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
 
         setupCalled = true
 
-
         var exception: Throwable? = null
         while (!exitRequested && !glfwWindowShouldClose(window)) {
             glfwMakeContextCurrent(window)
-
 
             if (presentationMode == PresentationMode.AUTOMATIC || drawRequested) {
                 drawRequested = false
@@ -997,27 +998,29 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
                 program.dispatcher.execute()
             }
 
-            for (window in windows) {
-                window.update()
+            synchronized(windows) {
+                for (window in windows) {
+                    window.update()
+                }
             }
 
         }
         logger.debug { "Exiting draw loop" }
 
-
         postloop(exception)
     }
 
     fun postloop(exception: Throwable? = null) {
+        // a child window's context may be current at this point
+        glfwMakeContextCurrent(window)
 
-
-        // this breaks on multi window programs
-/*
         if (RenderTarget.active != defaultRenderTarget) {
             defaultRenderTarget.bindTarget()
         }
-*/
 
+        for (window in windows) {
+            window.destroy()
+        }
 
         logger.debug { "Shutting down extensions" }
         synchronized(program.extensions) {
@@ -1044,16 +1047,15 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
         exitHandled = true
         logger.debug { "Exit handled" }
 
-        // TODO: take care of these when all windows are closed
-        //glfwTerminate()
-        //glfwSetErrorCallback(null)?.free()
+        glfwSetErrorCallback(null)?.free()
+        glfwTerminate()
+
         logger.debug { "done" }
 
         exception?.let {
             logger.info { "OPENRNDR program ended with exception. (${exception.message})}" }
             throw it
         }
-
     }
 
 

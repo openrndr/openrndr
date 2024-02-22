@@ -54,6 +54,8 @@ abstract class ApplicationWindow(val program: Program) {
     abstract var presentationMode: PresentationMode
     abstract fun requestDraw()
     abstract var windowContentScale: Double
+
+    abstract fun destroy()
 }
 
 /**

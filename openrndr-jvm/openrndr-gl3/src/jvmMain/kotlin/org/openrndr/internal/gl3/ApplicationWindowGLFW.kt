@@ -22,6 +22,7 @@ import kotlin.math.ceil
 private val logger = KotlinLogging.logger { }
 
 class ApplicationWindowGLFW(
+    val application: ApplicationGLFWGL3,
     val window: Long,
     windowTitle: String,
     override val windowResizable: Boolean,
@@ -392,10 +393,8 @@ class ApplicationWindowGLFW(
 
 
         glfwSetWindowCloseCallback(window) {
-            glfwDestroyWindow(window)
-            synchronized(application.windows) {
-                application.windows.remove(this)
-            }
+            destroy()
+
         }
 
         glfwSetCursorEnterCallback(window) { _, entered ->
@@ -513,21 +512,27 @@ class ApplicationWindowGLFW(
         program.mouse.entered.deliver()
         program.mouse.exited.deliver()
     }
+
+    override fun destroy() {
+        for (extension in program.extensions) {
+            extension.shutdown(program)
+        }
+        glfwDestroyWindow(window)
+        application.windows.remove(this)
+    }
 }
 
-
 fun createApplicationWindowGlfw(
+    application: ApplicationGLFWGL3,
     configuration: WindowConfiguration,
     program: Program
 ): ApplicationWindowGLFW {
 
     glfwDefaultWindowHints()
     glfwWindowHint(GLFW_FLOATING, GLFW_TRUE)
-    glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE)
     glfwWindowHint(GLFW_AUTO_ICONIFY, GLFW_FALSE)
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE)
-    glfwWindowHint(GLFW_DECORATED, GLFW_TRUE)
-
+    glfwWindowHint(GLFW_RESIZABLE, if (configuration.resizable) GLFW_TRUE else GLFW_FALSE)
+    glfwWindowHint(GLFW_DECORATED, if (configuration.hideDecorations) GLFW_FALSE else GLFW_TRUE)
 
     when (DriverGL3Configuration.driverType) {
         DriverTypeGL.GL -> {
@@ -550,6 +555,7 @@ fun createApplicationWindowGlfw(
     glfwWindowHint(GLFW_STENCIL_BITS, 8)
     glfwWindowHint(GLFW_DEPTH_BITS, 24)
     glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE)
+
     val position = configuration.position
     if (position != null) {
         glfwWindowHint(GLFW_POSITION_X, position.x)
@@ -562,7 +568,6 @@ fun createApplicationWindowGlfw(
         is WindowMultisample.SampleCount -> glfwWindowHint(GLFW_SAMPLES, ms.count)
     }
 
-
     val version = Driver.glVersion
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, version.majorVersion)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, version.minorVersion)
@@ -574,25 +579,24 @@ fun createApplicationWindowGlfw(
         primaryWindow
     )
     logger.debug { "created child window $childWindow" }
+
+    glfwMakeContextCurrent(childWindow)
     glfwShowWindow(childWindow)
     glfwSwapBuffers(childWindow)
 
-
     val window = ApplicationWindowGLFW(
+        application,
         childWindow,
         configuration.title,
         windowResizable = configuration.resizable,
         windowMultisample = configuration.multisample,
         program)
 
-    glfwMakeContextCurrent(childWindow)
-
     if (DriverGL3Configuration.useDebugContext) {
         println("setting up debug context")
         GLUtil.setupDebugMessageCallback()
         glEnable(GL43C.GL_DEBUG_OUTPUT_SYNCHRONOUS)
     }
-
     window.setDefaultIcon()
     return window
 }
