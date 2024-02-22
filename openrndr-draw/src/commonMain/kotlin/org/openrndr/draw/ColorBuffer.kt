@@ -112,7 +112,16 @@ expect abstract class ColorBuffer {
      * @param sourceType the [ColorType] that is used for the image data stored in [sourceBuffer], default is [ColorBuffer.type]
      * @param level the mipmap-level of [ColorBuffer] to write to
      */
-    abstract fun write(sourceBuffer: MPPBuffer, sourceFormat: ColorFormat, sourceType: ColorType, x:Int = 0, y:Int = 0, width:Int, height:Int, level:Int = 0)
+    abstract fun write(
+        sourceBuffer: MPPBuffer,
+        sourceFormat: ColorFormat,
+        sourceType: ColorType,
+        x: Int = 0,
+        y: Int = 0,
+        width: Int,
+        height: Int,
+        level: Int = 0
+    )
 
     /** the (unitless?) degree of anisotropy to be used in filtering */
     abstract var anisotropy: Double
@@ -130,7 +139,6 @@ expect abstract class ColorBuffer {
     abstract var wrapV: WrapMode
 
     abstract fun filter(filterMin: MinifyingFilter, filterMag: MagnifyingFilter)
-
 
 
 //    abstract fun copyTo(
@@ -261,6 +269,14 @@ fun ColorBuffer.createEquivalent(
 /**
  * load an image from a file or url encoded as [String], also accepts base64 encoded data urls
  */
-expect fun loadImage(fileOrUrl: String, formatHint: ImageFileFormat? = null, session: Session? = Session.active): ColorBuffer
+expect fun loadImage(
+    fileOrUrl: String,
+    formatHint: ImageFileFormat? = ImageFileFormat.guessFromExtension(fileOrUrl.split(".").last()),
+    session: Session? = Session.active
+): ColorBuffer
 
-expect suspend fun loadImageSuspend(fileOrUrl: String, formatHint: ImageFileFormat? = null, session: Session? = Session.active): ColorBuffer
+expect suspend fun loadImageSuspend(
+    fileOrUrl: String,
+    formatHint: ImageFileFormat? = null,
+    session: Session? = Session.active
+): ColorBuffer

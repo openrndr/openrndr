@@ -2,9 +2,7 @@ package org.openrndr.internal.nullgl
 
 import org.openrndr.draw.*
 import org.openrndr.internal.*
-import java.io.InputStream
 import java.nio.Buffer
-import java.nio.ByteBuffer
 
 class DriverNullGL: Driver {
     override val contextID: Long
@@ -44,34 +42,6 @@ class DriverNullGL: Driver {
         return ColorBufferNullGL(width, height, contentScale, format, type, levels, multisample, session)
     }
 
-    override suspend fun createColorBufferFromUrlSuspend(
-        url: String,
-        formatHint: ImageFileFormat?,
-        session: Session?
-    ): ColorBuffer {
-        TODO("Not yet implemented")
-    }
-
-    override fun createColorBufferFromUrl(url: String, formatHint: ImageFileFormat?, session: Session?): ColorBuffer {
-        return ColorBufferNullGL(256, 256, 1.0, ColorFormat.RGBa, ColorType.UINT8, -1, BufferMultisample.Disabled, session)
-    }
-
-    override fun createColorBufferFromFile(filename: String, formatHint: ImageFileFormat?, session: Session?): ColorBuffer {
-        return ColorBufferNullGL(256, 256, 1.0, ColorFormat.RGBa, ColorType.UINT8, -1, BufferMultisample.Disabled, session)
-    }
-
-    override fun createColorBufferFromStream(stream: InputStream, name: String?, formatHint: ImageFileFormat?, session: Session?): ColorBuffer {
-        return ColorBufferNullGL(256, 256, 1.0, ColorFormat.RGBa, ColorType.UINT8, -1, BufferMultisample.Disabled, session)
-    }
-
-    override fun createColorBufferFromArray(array: ByteArray, offset: Int, length: Int, name: String?, formatHint: ImageFileFormat?, session: Session?): ColorBuffer {
-        return ColorBufferNullGL(256, 256, 1.0, ColorFormat.RGBa, ColorType.UINT8, -1, BufferMultisample.Disabled, session)
-    }
-
-    override fun createColorBufferFromBuffer(buffer: ByteBuffer, name: String?, formatHint: ImageFileFormat?, session: Session?): ColorBuffer {
-        return ColorBufferNullGL(256, 256, 1.0, ColorFormat.RGBa, ColorType.UINT8, -1, BufferMultisample.Disabled, session)
-    }
-
     override fun createDepthBuffer(width: Int, height: Int, format: DepthFormat, multisample: BufferMultisample, session: Session?): DepthBuffer {
         return DepthBufferNullGL(width, height, format, multisample, session)
     }
@@ -81,14 +51,6 @@ class DriverNullGL: Driver {
     }
 
     override fun createCubemap(width: Int, format: ColorFormat, type: ColorType, levels: Int, session: Session?): Cubemap {
-        TODO("Not yet implemented")
-    }
-
-    override fun createCubemapFromUrls(urls: List<String>, formatHint: ImageFileFormat?, session: Session?): Cubemap {
-        TODO("Not yet implemented")
-    }
-
-    override fun createCubemapFromFiles(filenames: List<String>, formatHint: ImageFileFormat?, session: Session?): Cubemap {
         TODO("Not yet implemented")
     }
 

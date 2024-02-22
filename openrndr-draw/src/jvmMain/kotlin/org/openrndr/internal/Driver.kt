@@ -2,6 +2,7 @@ package org.openrndr.internal
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.openrndr.draw.*
+import org.openrndr.utils.buffer.MPPBuffer
 import java.io.InputStream
 import java.nio.Buffer
 import java.nio.ByteBuffer
@@ -12,19 +13,6 @@ private val logger = KotlinLogging.logger {}
  */
 actual interface Driver {
 
-        fun createColorBufferFromStream(
-        stream: InputStream,
-        name: String? = null,
-        formatHint: ImageFileFormat? = null,
-        session: Session? = Session.active
-    ): ColorBuffer
-
-    fun createColorBufferFromBuffer(
-        buffer: ByteBuffer,
-        name: String? = null,
-        formatHint: ImageFileFormat? = null,
-        session: Session? = Session.active
-    ): ColorBuffer
 
     fun createResourceThread(session: Session? = Session.active, f: () -> Unit): ResourceThread
     fun createDrawThread(session: Session? = Session.active): DrawThread
@@ -108,33 +96,6 @@ actual interface Driver {
         session: Session?
     ): ColorBuffer
 
-    actual fun createColorBufferFromUrl(
-        url: String,
-        formatHint: ImageFileFormat?,
-        session: Session?
-    ): ColorBuffer
-
-    actual suspend fun createColorBufferFromUrlSuspend(
-        url: String,
-        formatHint: ImageFileFormat?,
-        session: Session?
-    ): ColorBuffer
-
-    actual fun createColorBufferFromFile(
-        filename: String,
-        formatHint: ImageFileFormat?,
-        session: Session?
-    ): ColorBuffer
-
-    actual fun createColorBufferFromArray(
-        array: ByteArray,
-        offset: Int,
-        length: Int,
-        name: String?,
-        formatHint: ImageFileFormat?,
-        session: Session?
-    ): ColorBuffer
-
     actual fun createDepthBuffer(
         width: Int,
         height: Int,
@@ -155,18 +116,6 @@ actual interface Driver {
         format: ColorFormat,
         type: ColorType,
         levels: Int,
-        session: Session?
-    ): Cubemap
-
-    actual fun createCubemapFromUrls(
-        urls: List<String>,
-        formatHint: ImageFileFormat?,
-        session: Session?
-    ): Cubemap
-
-    actual fun createCubemapFromFiles(
-        filenames: List<String>,
-        formatHint: ImageFileFormat?,
         session: Session?
     ): Cubemap
 

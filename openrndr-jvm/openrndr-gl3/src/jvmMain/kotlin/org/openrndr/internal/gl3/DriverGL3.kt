@@ -14,9 +14,7 @@ import org.openrndr.internal.glcommon.ShaderGeneratorsGLCommon
 import org.openrndr.math.Matrix33
 import org.openrndr.math.Matrix44
 import org.openrndr.shape.Rectangle
-import java.io.InputStream
 import java.nio.Buffer
-import java.nio.ByteBuffer
 import java.nio.FloatBuffer
 import java.util.*
 
@@ -308,33 +306,6 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         return cubemap
     }
 
-    override fun createCubemapFromUrls(urls: List<String>, formatHint: ImageFileFormat?, session: Session?): Cubemap {
-        logger.trace { "creating cubemap from urls $urls" }
-        val cubemap = when (urls.size) {
-            1 -> CubemapGL3.fromUrl(urls[0], formatHint, session)
-            6 -> CubemapGL3.fromUrls(urls, formatHint, session)
-            else -> throw RuntimeException("expected 1 or 6 urls")
-        }
-        session?.track(cubemap)
-        return cubemap
-    }
-
-    override fun createCubemapFromFiles(
-        filenames: List<String>,
-        formatHint: ImageFileFormat?,
-        session: Session?
-    ): Cubemap {
-        val urls = filenames.map { "file:$it" }
-        logger.trace { "creating cubemap from urls $urls" }
-        val cubemap = when (urls.size) {
-            1 -> CubemapGL3.fromUrl(urls[0], formatHint, session)
-            6 -> CubemapGL3.fromUrls(urls, formatHint, session)
-            else -> throw RuntimeException("expected 1 or 6 urls")
-        }
-        session?.track(cubemap)
-        return cubemap
-    }
-
     override fun createVolumeTexture(
         width: Int,
         height: Int,
@@ -396,67 +367,6 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
             session?.track(colorBuffer)
             return colorBuffer
         }
-    }
-
-    override fun createColorBufferFromUrl(url: String, formatHint: ImageFileFormat?, session: Session?): ColorBuffer {
-        val colorBuffer = ColorBufferGL3.fromUrl(url, formatHint, session)
-        session?.track(colorBuffer)
-        return colorBuffer
-    }
-
-    override suspend fun createColorBufferFromUrlSuspend(
-        url: String,
-        formatHint: ImageFileFormat?,
-        session: Session?
-    ): ColorBuffer {
-        val colorBuffer = ColorBufferGL3.fromUrl(url, formatHint, session)
-        session?.track(colorBuffer)
-        return colorBuffer
-    }
-
-    override fun createColorBufferFromFile(
-        filename: String,
-        formatHint: ImageFileFormat?,
-        session: Session?
-    ): ColorBuffer {
-        val colorBuffer = ColorBufferGL3.fromFile(filename, formatHint, session)
-        session?.track(colorBuffer)
-        return colorBuffer
-    }
-
-    override fun createColorBufferFromStream(
-        stream: InputStream,
-        name: String?,
-        formatHint: ImageFileFormat?,
-        session: Session?
-    ): ColorBuffer {
-        val colorBuffer = ColorBufferGL3.fromStream(stream, name, formatHint, session)
-        session?.track(colorBuffer)
-        return colorBuffer
-    }
-
-    override fun createColorBufferFromArray(
-        array: ByteArray,
-        offset: Int,
-        length: Int,
-        name: String?,
-        formatHint: ImageFileFormat?,
-        session: Session?
-    ): ColorBuffer {
-        val colorBuffer = ColorBufferGL3.fromArray(array, offset, length, name, formatHint, session)
-        session?.track(colorBuffer)
-        return colorBuffer
-    }
-
-    override fun createColorBufferFromBuffer(
-        buffer: ByteBuffer,
-        name: String?,
-        formatHint: ImageFileFormat?,
-        session: Session?
-    ): ColorBuffer {
-        val colorBuffer = ColorBufferGL3.fromBuffer(buffer, name, formatHint, session)
-        session?.track(colorBuffer)
-        return colorBuffer
     }
 
     override fun createDepthBuffer(

@@ -1,6 +1,7 @@
 @file:JvmName("CubemapFunctions")
 package org.openrndr.draw
 
+import org.openrndr.internal.CubemapImageData
 import org.openrndr.internal.Driver
 import org.openrndr.math.Vector3
 import org.openrndr.utils.buffer.MPPBuffer
@@ -57,4 +58,34 @@ fun cubemap(
     session: Session? = Session.active
 ) : Cubemap {
     return Driver.instance.createCubemap(width, format, type, levels, session)
+}
+
+
+fun loadCubemap(data: CubemapImageData, session: Session? = Session.active): Cubemap {
+    try {
+        val cm = cubemap(data.width, data.format, data.type, data.mipmaps, session)
+        for (level in 0 until data.mipmaps) {
+            val levelWidth = data.width / (1 shl level)
+            for (side in CubemapSide.entries) {
+                cm.write(
+                    side,
+                    data.side(side, level),
+                    data.format,
+                    data.type,
+                    x = 0,
+                    y = 0,
+                    width = levelWidth,
+                    height = levelWidth,
+                    level = level
+                )
+            }
+        }
+        if (data.mipmaps == 1) {
+            cm.generateMipmaps()
+        }
+        cm.filter(MinifyingFilter.LINEAR_MIPMAP_LINEAR, MagnifyingFilter.LINEAR)
+        return cm
+    } finally {
+        data.close()
+    }
 }

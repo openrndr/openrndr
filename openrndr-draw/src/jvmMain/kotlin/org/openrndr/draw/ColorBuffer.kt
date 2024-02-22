@@ -1,9 +1,11 @@
 @file:JvmName("ColorBufferJVM")
+
 package org.openrndr.draw
 
 import kotlinx.coroutines.runBlocking
 import org.openrndr.color.ColorRGBa
 import org.openrndr.internal.Driver
+import org.openrndr.internal.ImageDriver
 import org.openrndr.math.Vector2
 import org.openrndr.shape.IntRectangle
 import org.openrndr.shape.Rectangle
@@ -70,7 +72,7 @@ actual abstract class ColorBuffer {
     /** save the [ColorBuffer] to [File] */
     abstract fun saveToFile(
         file: File,
-        imageFileFormat: ImageFileFormat = ImageFileFormat.guessFromExtension(file.extension),
+        imageFileFormat: ImageFileFormat = ImageFileFormat.guessFromExtension(file.extension) ?: ImageFileFormat.PNG,
         async: Boolean = true
     )
 
@@ -90,7 +92,12 @@ actual abstract class ColorBuffer {
      * @param targetType the [ColorType] that is used for the image data stored in [targetBuffer], default is [ColorBuffer.type]
      * @param level the mipmap-level of [ColorBuffer] to read from
      */
-    abstract fun read(targetBuffer: ByteBuffer, targetFormat: ColorFormat = format, targetType: ColorType = type, level: Int = 0)
+    abstract fun read(
+        targetBuffer: ByteBuffer,
+        targetFormat: ColorFormat = format,
+        targetType: ColorType = type,
+        level: Int = 0
+    )
 
     /**
      * create a cropped copy of the [ColorBuffer]
@@ -143,6 +150,7 @@ actual abstract class ColorBuffer {
 
     /** the filter to use when displaying at sizes smaller than the original */
     abstract var filterMin: MinifyingFilter
+
     /** the filter to use when display at sizes larger than the original */
     abstract var filterMag: MagnifyingFilter
 
@@ -154,104 +162,6 @@ actual abstract class ColorBuffer {
     actual abstract fun filter(filterMin: MinifyingFilter, filterMag: MagnifyingFilter)
 
     companion object {
-        /**
-         * create a [ColorBuffer] from a [File] containing a formatted image
-         * @param url the location of a formatted image
-         * @param formatHint an optional [ImageFileFormat] hint, default is null
-         * @param session the [Session] under which the [ColorBuffer] should be created, default is [Session.active]
-         * @see loadImage
-         */
-        fun fromUrl(url: String, formatHint: ImageFileFormat? = null, session: Session? = Session.active): ColorBuffer {
-            return runBlocking {
-                Driver.instance.createColorBufferFromUrl(url, formatHint, session)
-            }
-        }
-
-        /**
-         * create a [ColorBuffer] from a [File] containing a formatted image
-         * @param file a [File] containing a formatted image
-         * @param formatHint an optional [ImageFileFormat] hint, default is null
-         * @param session the [Session] under which the [ColorBuffer] should be created, default is [Session.active]
-         * @see loadImage
-         */
-        fun fromFile(file: File, formatHint: ImageFileFormat? = null, session: Session? = Session.active): ColorBuffer {
-            return runBlocking {
-                Driver.instance.createColorBufferFromFile(file.absolutePath, formatHint = formatHint, session)
-            }
-        }
-
-        /**
-         * create a [ColorBuffer] from a file indicated by [filename] containing a formatted image
-         * @param filename a file containing a formatted image
-         * @param formatHint an optional [ImageFileFormat] hint, default is null
-         * @param session the [Session] under which the [ColorBuffer] should be created, default is [Session.active]
-         * @see loadImage
-         */
-        fun fromFile(filename: String, formatHint: ImageFileFormat?, session: Session? = Session.active): ColorBuffer {
-            return runBlocking {
-                Driver.instance.createColorBufferFromFile(filename, formatHint = formatHint, session)
-            }
-        }
-
-        /**
-         * create a [ColorBuffer] from an [InputStream] containing a formatted image
-         * @param stream an [InputStream] holding a formatted image
-         * @param formatHint optional [ImageFileFormat] hint, default is null
-         * @param session the [Session] under which to create this [ColorBuffer]
-         */
-        fun fromStream(
-            stream: InputStream,
-            formatHint: ImageFileFormat? = null,
-            session: Session? = Session.active
-        ): ColorBuffer {
-            return Driver.instance.createColorBufferFromStream(
-                stream,
-                formatHint = formatHint,
-                session = session
-            )
-        }
-
-        /**
-         * create a [ColorBuffer] from a [ByteArray] containing a formatted image (meaning any of the formats in [ImageFileFormat])
-         * @param bytes a [ByteArray] containing a formatted image
-         * @param offset offset used for reading from [bytes], default is 0
-         * @param length number of bytes to be used from [bytes], default is [bytes].size
-         * @param formatHint an optional [ImageFileFormat] hint, default is null
-         */
-        fun fromArray(
-            bytes: ByteArray,
-            offset: Int = 0,
-            length: Int = bytes.size,
-            formatHint: ImageFileFormat?,
-            session: Session? = Session.active
-        ): ColorBuffer {
-            return Driver.instance.createColorBufferFromArray(
-                bytes,
-                offset,
-                length,
-                formatHint = formatHint,
-                session = session,
-                name = null
-            )
-        }
-
-        /**
-         * create a [ColorBuffer] from a [ByteBuffer] holding a formatted image (meaning any of the formats in [ImageFileFormat]
-         * @param bytes a [ByteBuffer] containing a formatted image
-         * @param formatHint an optional [ImageFileFormat] hint
-         * @param session the [Session] under which this [ColorBuffer] should be created, default is [Session.active]
-         */
-        fun fromBuffer(
-            bytes: ByteBuffer,
-            formatHint: ImageFileFormat?,
-            session: Session? = Session.active
-        ): ColorBuffer {
-            return Driver.instance.createColorBufferFromBuffer(
-                bytes,
-                formatHint = formatHint,
-                session = session
-            )
-        }
     }
 
     /** permanently destroy the underlying [ColorBuffer] resources, [ColorBuffer] can not be used after it is destroyed */
@@ -288,39 +198,52 @@ actual abstract class ColorBuffer {
  * load an image from a file or url encoded as [String], also accepts base64 encoded data urls
  */
 actual fun loadImage(fileOrUrl: String, formatHint: ImageFileFormat?, session: Session?): ColorBuffer {
+    val data = ImageDriver.instance.loadImage(fileOrUrl, formatHint)
     return try {
-        if (!fileOrUrl.startsWith("data:")) {
-            URL(fileOrUrl)
-        }
-        ColorBuffer.fromUrl(fileOrUrl, formatHint, session)
-    } catch (e: MalformedURLException) {
-        loadImage(File(fileOrUrl), formatHint, session)
+        val cb = colorBuffer(data.width, data.height, 1.0, data.format, data.type, session = session)
+        cb.write(data.data?.byteBuffer ?: error("no data"))
+        cb
+    } finally {
+        data.close()
+    }
+}
+
+fun loadImage(
+    buffer: MPPBuffer,
+    name: String? = null,
+    formatHint: ImageFileFormat? = null,
+    session: Session?
+): ColorBuffer {
+    val data = ImageDriver.instance.loadImage(buffer, name, formatHint)
+    return try {
+        val cb = colorBuffer(data.width, data.height, 1.0, data.format, data.type, session = session)
+        cb.write(data.data?.byteBuffer ?: error("no data"))
+        cb
+    } finally {
+        data.close()
     }
 }
 
 /**
  * load an image from [File]
  */
-fun loadImage(file: File, formatHint: ImageFileFormat? = null, session: Session? = Session.active): ColorBuffer {
-    require(file.exists()) {
-        "failed to load image: file '${file.absolutePath}' does not exist."
-    }
-    try {
-        return ColorBuffer.fromFile(file, formatHint, session)
-    } catch(e: Throwable) {
-        throw RuntimeException("failed to load image: file '${file.absolutePath}'", e)
-    }
+fun loadImage(
+    file: File,
+    formatHint: ImageFileFormat? = ImageFileFormat.guessFromExtension(file.extension),
+    session: Session? = Session.active
+): ColorBuffer {
+    return loadImage(file.absolutePath, formatHint, session)
 }
 
 /**
  * load an image from an [url]
  */
-fun loadImage(url: URL, formatHint: ImageFileFormat?, session: Session? = Session.active): ColorBuffer {
-    try {
-        return ColorBuffer.fromUrl(url.toExternalForm(), formatHint, session)
-    } catch(e: Throwable) {
-        throw RuntimeException("failed to load image: url '${url.toExternalForm()}'", e)
-    }
+fun loadImage(
+    url: URL,
+    formatHint: ImageFileFormat? = ImageFileFormat.guessFromExtension(url.toExternalForm().split(".").lastOrNull()),
+    session: Session? = Session.active
+): ColorBuffer {
+    return loadImage(url.toExternalForm(), formatHint, session)
 }
 
 actual suspend fun loadImageSuspend(

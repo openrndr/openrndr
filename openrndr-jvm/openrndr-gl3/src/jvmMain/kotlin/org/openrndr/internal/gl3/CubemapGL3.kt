@@ -1,15 +1,11 @@
 package org.openrndr.internal.gl3
 
 import org.lwjgl.opengl.GL33C.*
-import org.openrndr.dds.loadDDS
 import org.openrndr.draw.*
 import org.openrndr.utils.buffer.MPPBuffer
-import java.net.URL
 import java.nio.Buffer
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
-import kotlin.math.ceil
-import kotlin.math.log
 
 val CubemapSide.glTextureTarget
     get() = when (this) {
@@ -22,7 +18,6 @@ val CubemapSide.glTextureTarget
     }
 
 class CubemapGL3(val texture: Int, override val width: Int, override val type: ColorType, override val format: ColorFormat, levels: Int, override val session: Session?) : Cubemap {
-
 
     override var levels = levels
         private set(value) {
@@ -37,7 +32,13 @@ class CubemapGL3(val texture: Int, override val width: Int, override val type: C
     private var destroyed = false
 
     companion object {
-        fun create(width: Int, format: ColorFormat, type: ColorType, levels: Int, session: Session? = Session.active): CubemapGL3 {
+        fun create(
+            width: Int,
+            format: ColorFormat,
+            type: ColorType,
+            levels: Int,
+            session: Session? = Session.active
+        ): CubemapGL3 {
 
             require(levels >= 1) {
                 """should have at least 1 level (has $levels)"""
@@ -47,26 +48,26 @@ class CubemapGL3(val texture: Int, override val width: Int, override val type: C
             glGenTextures(textures)
             glActiveTexture(GL_TEXTURE0)
             glBindTexture(GL_TEXTURE_CUBE_MAP, textures[0])
+            glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS)
 
             val effectiveWidth = width
-            val effectiveHeight = width
-            val (internalFormat, _) = internalFormat(format, type)
 
+            val (internalFormat, _) = internalFormat(format, type)
 
             for (side in CubemapSide.values()) {
                 for (level in 0 until levels) {
                     val div = 1 shl level
                     val nullBB: ByteBuffer? = null
                     glTexImage2D(
-                            side.glTextureTarget,
-                            level,
-                            internalFormat,
-                            effectiveWidth / div,
-                            effectiveHeight / div,
-                            0,
-                            format.glFormat(),
-                            type.glType(),
-                            nullBB
+                        side.glTextureTarget,
+                        level,
+                        internalFormat,
+                        effectiveWidth / div,
+                        effectiveWidth / div,
+                        0,
+                        format.glFormat(),
+                        type.glType(),
+                        nullBB
                     )
                     checkGLErrors()
                 }
@@ -76,52 +77,7 @@ class CubemapGL3(val texture: Int, override val width: Int, override val type: C
 
             return CubemapGL3(textures[0], width, type, format, levels, session)
         }
-
-        fun fromUrl(url: String, formatHint: ImageFileFormat?, session: Session?): CubemapGL3 {
-            glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS)
-            if (url.endsWith(".dds") || formatHint==ImageFileFormat.DDS) {
-                val textures = IntArray(1)
-                glGenTextures(textures)
-                checkGLErrors()
-                glActiveTexture(GL_TEXTURE0)
-                checkGLErrors()
-                glBindTexture(GL_TEXTURE_CUBE_MAP, textures[0])
-                checkGLErrors()
-
-                val realUrl = URL(url)
-                val data = realUrl.openStream().use { loadDDS(it) }
-                val cubemap = data.toCubemap(session) as CubemapGL3
-                if (data.mipmaps == 1) {
-                    cubemap.generateMipmaps()
-                }
-                return cubemap
-            } else {
-                throw RuntimeException("only dds files can be loaded through a single url")
-            }
-        }
-
-        fun fromUrls(urls: List<String>, formatHint: ImageFileFormat?, session: Session?): CubemapGL3 {
-            if (urls.size != 6) {
-                throw RuntimeException("6 urls are needed for a cubemap")
-            }
-            val textures = IntArray(1)
-            glGenTextures(textures)
-            glActiveTexture(GL_TEXTURE0)
-            glBindTexture(GL_TEXTURE_CUBE_MAP, textures[0])
-            val sides = mutableListOf<ColorBufferGL3>()
-
-            urls.forEachIndexed { index, it ->
-                val data = ColorBufferDataGL3.fromUrl(it, formatHint)
-                val (internalFormat, _) = internalFormat(data.format, data.type)
-                val nullBB: ByteBuffer? = null
-
-                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + index, 0, internalFormat, data.width, data.height, 0, data.format.glFormat(), data.type.glType(), nullBB)
-                sides.add(ColorBufferGL3(GL_TEXTURE_CUBE_MAP_POSITIVE_X + index, textures[0], TextureStorageModeGL.IMAGE, data.width, data.width, 1.0, data.format, data.type, 1, BufferMultisample.Disabled, session))
-            }
-            return CubemapGL3(textures[0], sides[0].width, sides[0].type, sides[0].format, 0, session)
-        }
     }
-
     internal fun glFormat(): Int {
         return internalFormat(format, type).first
     }
@@ -145,7 +101,7 @@ class CubemapGL3(val texture: Int, override val width: Int, override val type: C
         require(!destroyed)
         val fromDiv = 1 shl fromLevel
         val toDiv = 1 shl toLevel
-        for (side in CubemapSide.values()) {
+        for (side in CubemapSide.entries) {
             val readTarget = renderTarget(width / fromDiv, width / fromDiv) {
                 cubemap(this@CubemapGL3, side, fromLevel)
             } as RenderTargetGL3

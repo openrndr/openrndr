@@ -1,10 +1,9 @@
 package org.openrndr.draw
 
+import org.openrndr.internal.CubemapImageData
 import org.openrndr.internal.Driver
+import org.openrndr.internal.ImageDriver
 import org.openrndr.utils.buffer.MPPBuffer
-import java.io.File
-import java.net.MalformedURLException
-import java.net.URL
 import java.nio.ByteBuffer
 
 actual interface Cubemap {
@@ -19,28 +18,24 @@ actual interface Cubemap {
         ): Cubemap {
             return Driver.instance.createCubemap(width, format, type, levels, session)
         }
-
-        fun fromUrl(url: String, formatHint: ImageFileFormat?, session: Session? = Session.active): Cubemap {
-            return Driver.instance.createCubemapFromUrls(listOf(url), formatHint, session)
-        }
-
-        fun fromUrls(urls: List<String>, formatHint: ImageFileFormat?, session: Session? = Session.active): Cubemap {
-            return Driver.instance.createCubemapFromUrls(urls, formatHint, session)
-        }
-
-        fun fromFile(file: File, formatHint: ImageFileFormat?, session: Session? = Session.active): Cubemap {
-            return Driver.instance.createCubemapFromFiles(listOf(file.absolutePath), formatHint, session)
-        }
-
-        fun fromFiles(filenames: List<File>, formatHint: ImageFileFormat?, session: Session? = Session.active): Cubemap {
-            return Driver.instance.createCubemapFromFiles(filenames.map { it.absolutePath }, formatHint, session)
-        }
     }
 
+    fun read(
+        side: CubemapSide,
+        target: ByteBuffer,
+        targetFormat: ColorFormat = format,
+        targetType: ColorType = type,
+        level: Int = 0
+    )
 
+    fun write(
+        side: CubemapSide,
+        source: ByteBuffer,
+        sourceFormat: ColorFormat = format,
+        sourceType: ColorType = type,
+        level: Int = 0
+    )
 
-    fun read(side: CubemapSide, target: ByteBuffer, targetFormat: ColorFormat = format, targetType: ColorType = type, level: Int = 0)
-    fun write(side: CubemapSide, source: ByteBuffer, sourceFormat: ColorFormat = format, sourceType: ColorType = type, level: Int = 0)
     actual val session: Session?
     actual val width: Int
     actual val format: ColorFormat
@@ -78,13 +73,11 @@ actual interface Cubemap {
     )
 }
 
-fun loadCubemap(fileOrUrl: String, formatHint: ImageFileFormat?, session: Session? = Session.active): Cubemap {
-    return try {
-        if (!fileOrUrl.startsWith("data:")) {
-            URL(fileOrUrl)
-        }
-        Cubemap.fromUrl(fileOrUrl, formatHint, session)
-    } catch (e: MalformedURLException) {
-        Cubemap.fromFile(File(fileOrUrl), formatHint, session)
+fun loadCubemap(fileOrUrl: String, formatHint: ImageFileFormat? = ImageFileFormat.DDS, session: Session? = Session.active): Cubemap {
+    val data = ImageDriver.instance.loadCubemapImage(fileOrUrl, formatHint)
+    try {
+        return loadCubemap(data, session)
+    } finally {
+        data.close()
     }
 }
