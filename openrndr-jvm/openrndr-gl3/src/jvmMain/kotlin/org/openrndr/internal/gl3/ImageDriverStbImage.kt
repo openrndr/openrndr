@@ -263,6 +263,7 @@ class ImageDriverStbImage : ImageDriver {
                         }
                     }
                     val data8 = tdata8?.let {
+                        // Convert grayscale images to RGB to avoid having them rendered in red.
                         if (ca[0] == 1) {
                             var roffset = 0
                             var woffset = 0
@@ -323,7 +324,7 @@ class ImageDriverStbImage : ImageDriver {
                     return ImageDataStb(
                         wa[0], ha[0],
                         when (ca[0]) {
-                            1 -> ColorFormat.RGB
+                            1 -> if (tdata16 != null) ColorFormat.R else ColorFormat.RGB
                             2 -> ColorFormat.RG
                             3 -> ColorFormat.RGB
                             4 -> ColorFormat.RGBa
@@ -332,7 +333,6 @@ class ImageDriverStbImage : ImageDriver {
                         targetType, false,
                         MPPBuffer(copyData)
                     )
-
                 }
 
                 ImageFileFormat.HDR -> {
