@@ -23,7 +23,6 @@ import org.openrndr.draw.RenderTarget
 import org.openrndr.draw.Session
 import org.openrndr.internal.Driver
 import org.openrndr.internal.gl3.ApplicationGlfwConfiguration.fixWindowSize
-import org.openrndr.internal.gl3.angle.loadAngleLibraries
 
 import org.openrndr.math.Vector2
 import org.openrndr.platform.Platform
@@ -579,11 +578,6 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
     }
 
     private fun createPrimaryWindow() {
-        if (DriverGL3Configuration.glesBackend == GlesBackend.ANGLE) {
-            loadAngleLibraries()
-        }
-
-
         if (primaryWindow == NULL) {
             glfwSetErrorCallback(GLFWErrorCallback.create { error, description ->
                 logger.debug(
@@ -623,6 +617,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
             for (version in versions) {
                 glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, version.majorVersion)
                 glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, version.minorVersion)
+
                 primaryWindow = glfwCreateWindow(640, 480, title, NULL, NULL)
                 foundVersion = version
                 if (primaryWindow != 0L) {
@@ -632,7 +627,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
             }
 
             if (primaryWindow == 0L) {
-                throw IllegalStateException("primary window could not be created using ${DriverGL3Configuration.driverType} context")
+                error("primary window could not be created using ${DriverGL3Configuration.driverType} context")
             }
             Driver.driver = DriverGL3(foundVersion ?: error("no version found"))
         }
@@ -648,9 +643,10 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
         }
 
         if (DriverGL3Configuration.useDebugContext) {
-            println("setting up debug context")
-            GLUtil.setupDebugMessageCallback()
-            glEnable(GL.GL_DEBUG_OUTPUT_SYNCHRONOUS)
+            if (Driver.glType == DriverTypeGL.GL) {
+                GLUtil.setupDebugMessageCallback()
+                glEnable(GL.GL_DEBUG_OUTPUT_SYNCHRONOUS)
+            }
         }
 
         program.driver = Driver.instance

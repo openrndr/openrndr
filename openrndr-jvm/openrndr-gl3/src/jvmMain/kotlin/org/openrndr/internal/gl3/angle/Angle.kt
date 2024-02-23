@@ -7,7 +7,7 @@ import java.io.File
 private class Angle
 
 private val logger = KotlinLogging.logger { }
-fun loadAngleLibraries() {
+fun extractAngleLibraries() {
     logger.info { "Loading ANGLE libraries from resources" }
     val targetDirectory = File(".")// Platform.tempDirectory()
     val egl = Angle::class.java.getResourceAsStream("/org/openrndr/internal/gl3/angle/libEGL.dylib") ?: error("libEGL.dylib not found in resources")
