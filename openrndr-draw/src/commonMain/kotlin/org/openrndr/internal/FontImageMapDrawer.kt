@@ -3,7 +3,6 @@ package org.openrndr.internal
 import org.openrndr.draw.*
 import org.openrndr.math.Vector2
 import kotlin.math.floor
-import kotlin.math.round
 
 class GlyphRectangle(val character: Char, val x: Double, val y: Double, val width: Double, val height: Double)
 
@@ -15,16 +14,32 @@ class FontImageMapDrawer {
         fsGenerator = Driver.instance.shaderGenerators::fontImageMapFragmentShader
     )
 
-    private val maxQuads = 20000
+    private val maxQuads = 20_000
 
-    private val vertices = VertexBuffer.createDynamic(VertexFormat().apply {
+    private val vertexFormat = VertexFormat().apply {
         textureCoordinate(2)
         attribute("bounds", VertexElementType.VECTOR4_FLOAT32)
         position(3)
         attribute("instance", VertexElementType.FLOAT32)
-    }, 6 * maxQuads)
+    }
+
+    private val fewQuads = List(DrawerConfiguration.vertexBufferMultiBufferCount) {
+        vertexBuffer(vertexFormat, 6 * 128)
+    }
+
+    private val manyQuads = VertexBuffer.createDynamic(vertexFormat, 6 * maxQuads)
 
     private var quadCount = 0
+
+    var counter = 0
+
+    fun getQueue(size: Int): VertexBuffer {
+        if (size < 128) {
+            return fewQuads[counter.mod(fewQuads.size)]
+        } else {
+            return manyQuads
+        }
+    }
 
     fun drawText(
         context: DrawContext,
@@ -41,6 +56,8 @@ class FontImageMapDrawer {
         texts: List<String>,
         positions: List<Vector2>
     ): List<List<GlyphRectangle>> {
+        val vertices = if (texts.sumOf { it.length } < 128) fewQuads[counter.mod(fewQuads.size)] else manyQuads
+
         val fontMap = drawStyle.fontMap as? FontImageMap
         if (fontMap != null) {
             var instance = 0
@@ -74,7 +91,7 @@ class FontImageMapDrawer {
                 }
                 instance++
             }
-            flush(context, drawStyle)
+            flush(context, drawStyle, vertices)
         }
         return emptyList()
     }
@@ -88,6 +105,7 @@ class FontImageMapDrawer {
         tracking: Double = 0.0,
         kerning: KernMode, // = KernMode.METRIC,
         textSetting: TextSettingMode,// = TextSettingMode.PIXEL,
+        vertices: VertexBuffer,
     ) {
         val bw = vertices.shadow.writer()
         bw.position = vertices.vertexFormat.size * quadCount * 6
@@ -102,7 +120,7 @@ class FontImageMapDrawer {
                 if (kerning == KernMode.METRIC) {
                     cursorX += if (lc != null) fontMap.kerning(lc, it) else 0.0
                 }
-                val (dx, _ ) = insertCharacterQuad(
+                val (dx, _) = insertCharacterQuad(
                     fontMap,
                     bw,
                     it,
@@ -119,7 +137,7 @@ class FontImageMapDrawer {
     }
 
 
-    fun flush(context: DrawContext, drawStyle: DrawStyle) {
+    fun flush(context: DrawContext, drawStyle: DrawStyle, vertices: VertexBuffer) {
         if (quadCount > 0) {
             vertices.shadow.uploadElements(0, quadCount * 6)
             val shader = shaderManager.shader(drawStyle.shadeStyle, vertices.vertexFormat)
@@ -141,6 +159,9 @@ class FontImageMapDrawer {
             quadCount = 0
         }
         queuedInstances = 0
+        if (vertices != manyQuads) {
+            counter++
+        }
     }
 
     private fun insertCharacterQuad(

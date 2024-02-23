@@ -108,6 +108,7 @@ class Writer(val drawerRef: Drawer?) {
     fun drawTextTokens(tokens: List<TextToken>) {
         drawerRef?.let { d ->
             val renderer = d.fontImageMapDrawer
+            val queue = renderer.getQueue(tokens.size)
             tokens.forEach {
                 renderer.queueText(
                     fontMap = d.drawStyle.fontMap!!,
@@ -116,10 +117,11 @@ class Writer(val drawerRef: Drawer?) {
                     y = it.y,
                     tracking = style.tracking,
                     kerning = drawStyle.kerning,
-                    textSetting = drawStyle.textSetting
+                    textSetting = drawStyle.textSetting,
+                    queue
                 )
             }
-            renderer.flush(d.context, d.drawStyle)
+            renderer.flush(d.context, d.drawStyle, queue)
         }
     }
 
