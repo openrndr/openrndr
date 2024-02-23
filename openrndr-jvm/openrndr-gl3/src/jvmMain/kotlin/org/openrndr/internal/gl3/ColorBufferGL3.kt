@@ -345,16 +345,20 @@ class ColorBufferGL3(
         }
     }
 
-    fun bound(f: ColorBufferGL3.() -> Unit) {
+    fun <T> bound(f: ColorBufferGL3.() -> T):T {
         checkDestroyed()
         glActiveTexture(GL_TEXTURE0)
+        debugGLErrors()
         val current = when (multisample) {
             Disabled -> glGetInteger(GL_TEXTURE_BINDING_2D)
             is SampleCount -> glGetInteger(GL_TEXTURE_BINDING_2D_MULTISAMPLE)
         }
         glBindTexture(target, texture)
-        this.f()
+        debugGLErrors()
+        val t = this.f()
         glBindTexture(target, current)
+        debugGLErrors()
+        return t
     }
 
     fun destroyShadow() {
@@ -397,6 +401,11 @@ class ColorBufferGL3(
         filter: MagnifyingFilter
     ) {
         checkDestroyed()
+        if (Driver.glType == DriverTypeGL.GLES) {
+            require(type.isFloat == target.type.isFloat) {
+                "cannot convert from int to float or from float to int ($type -> ${target.type})"
+            }
+        }
 
         val fromDiv = 1 shl fromLevel
         val toDiv = 1 shl toLevel
@@ -496,6 +505,7 @@ class ColorBufferGL3(
                     debugGLErrors {
                         when (it) {
                             GL_INVALID_VALUE -> "level ($toLevel) less than 0, effective target is GL_TEXTURE_RECTANGLE (${target.target == GL_TEXTURE_RECTANGLE} and level is not 0"
+
                             else -> null
                         }
                     }
@@ -681,7 +691,11 @@ class ColorBufferGL3(
         }
 
     override var anisotropy: Double
-        get() = TODO("not implemented")
+        get() {
+            return bound {
+                glGetTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT).toDouble()
+            }
+        }
         set(value) {
             bound {
                 glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, value.toFloat())
@@ -794,6 +808,7 @@ class ColorBufferGL3(
 
 
     override fun read(targetBuffer: ByteBuffer, targetFormat: ColorFormat, targetType: ColorType, level: Int) {
+        debugGLErrors()
         checkDestroyed()
         if (!targetBuffer.isDirect) {
             throw IllegalArgumentException("buffer is not a direct buffer.")
@@ -830,16 +845,18 @@ class ColorBufferGL3(
 
             DriverTypeGL.GLES -> {
                 val fb = glGenFramebuffers()
+                checkGLErrors()
                 val currentFB = glGetInteger(GL_FRAMEBUFFER_BINDING)
-
+                debugGLErrors()
                 glBindFramebuffer(GL_FRAMEBUFFER, fb)
+                debugGLErrors()
                 glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, target, texture, level)
-
+                debugGLErrors()
                 type.glType()
                 glPixelStorei(GL_PACK_ALIGNMENT, 1)
-                checkGLErrors()
+                debugGLErrors()
                 GLES30.glReadBuffer(GL_COLOR_ATTACHMENT0)
-                checkGLErrors()
+                debugGLErrors()
                 GLES30.glReadPixels(
                     0,
                     0,
@@ -849,9 +866,11 @@ class ColorBufferGL3(
                     type.glType(),
                     targetBuffer
                 )
-                checkGLErrors()
+                debugGLErrors()
                 glDeleteFramebuffers(fb)
+                debugGLErrors()
                 glBindFramebuffer(GL_FRAMEBUFFER, currentFB)
+                debugGLErrors()
             }
         }
     }
