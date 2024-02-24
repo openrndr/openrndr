@@ -17,6 +17,7 @@ kotlin {
         }
 
         testRuns["test"].executionTask {
+            allJvmArgs = allJvmArgs + "-Dorg.openrndr.gl3.skip_glfw_termination"
             useJUnitPlatform {
                 if (System.getenv("CI") != null) {
                     exclude("**/*.class")
@@ -25,11 +26,13 @@ kotlin {
             testLogging.exceptionFormat = TestExceptionFormat.FULL
         }
         testRuns.create("heavy") {
+
             setExecutionSourceFrom(
                 testRuns["test"].executionSource.classpath,
                 testRuns["test"].executionSource.testClassesDirs
             )
             executionTask {
+                allJvmArgs = allJvmArgs + "-Dorg.openrndr.gl3.skip_glfw_termination"
                 useJUnitPlatform()
                 testLogging.exceptionFormat = TestExceptionFormat.FULL
             }
