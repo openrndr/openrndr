@@ -41,6 +41,7 @@ kotlin {
             if (DefaultNativePlatform.getCurrentOperatingSystem().isMacOsX) {
                 allJvmArgs = allJvmArgs + "-XstartOnFirstThread"
             }
+            allJvmArgs = allJvmArgs + "-Dorg.openrndr.gl3.skip_glfw_termination"
             useJUnitPlatform()
             testLogging.exceptionFormat = TestExceptionFormat.FULL
         }

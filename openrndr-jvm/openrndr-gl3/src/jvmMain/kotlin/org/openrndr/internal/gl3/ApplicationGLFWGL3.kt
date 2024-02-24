@@ -12,7 +12,6 @@ import org.lwjgl.opengl.GL43C as GL
 import org.lwjgl.opengl.GLUtil
 import org.lwjgl.opengles.GLES
 import org.lwjgl.opengles.GLES30
-
 import org.lwjgl.system.MemoryStack.stackPush
 import org.lwjgl.system.MemoryUtil.NULL
 import org.openrndr.*
@@ -358,7 +357,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
             versionIndex++
         }
         if (window == NULL) {
-            throw IllegalStateException("Window creation failed")
+            throw IllegalStateException("Window creation failed. ${DriverGL3Configuration.driverType}")
         }
 
 
@@ -1048,7 +1047,9 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
         logger.debug { "Exit handled" }
 
         glfwSetErrorCallback(null)?.free()
-        glfwTerminate()
+        if (!DriverGL3Configuration.skipGlfwTermination) {
+            glfwTerminate()
+        }
 
         logger.debug { "done" }
 

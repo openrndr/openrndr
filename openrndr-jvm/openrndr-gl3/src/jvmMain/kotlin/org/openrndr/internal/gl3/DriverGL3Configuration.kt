@@ -15,6 +15,13 @@ object DriverGL3Configuration {
      */
     val useDebugContext by lazy { Platform.property("org.openrndr.gl3.debug") != null }
 
+    /**
+     * Should calling glfwTerminate be skipped on application shutdown? This is used to remedy problems during
+     * testing. It looks like glfw can not be re-initialized after terminating it.
+     * @since openrndr 0.4.5
+     */
+    val skipGlfwTermination by lazy { Platform.property("org.openrndr.gl3.skip_glfw_termination") != null }
+
     val glDriverTypeHint by lazy {
         when (Platform.property("org.openrndr.gl3.gl_type")) {
             "gl" -> DriverTypeGL.GL
@@ -23,6 +30,11 @@ object DriverGL3Configuration {
         }
     }
 
+    /**
+     * Provided hints for selecting a GLES back-end.
+     *
+     * Hints can be provided using by passing `-Dorg.openrndr.gl3.gles_backend=[angle|system]`
+     */
     val glesBackendHint by lazy {
         when (Platform.property("org.openrndr.gl3.gles_backend")) {
             "system" -> GlesBackend.SYSTEM
@@ -43,6 +55,11 @@ object DriverGL3Configuration {
             else -> GlesBackend.SYSTEM
         }
     }
+
+    /**
+     * Determines which type of driver will be used
+     * @see glDriverTypeHint
+     */
 
     val driverType by lazy {
         glDriverTypeHint ?: when (Pair(Platform.type, Platform.architecture)) {
