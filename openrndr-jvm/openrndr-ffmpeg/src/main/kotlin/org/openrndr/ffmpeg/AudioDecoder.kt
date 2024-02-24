@@ -4,6 +4,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import org.bytedeco.ffmpeg.avcodec.AVCodecContext
 import org.bytedeco.ffmpeg.avcodec.AVPacket
 import org.bytedeco.ffmpeg.avutil.AVBufferRef
+import org.bytedeco.ffmpeg.avutil.AVChannelLayout
 import org.bytedeco.ffmpeg.global.avcodec
 import org.bytedeco.ffmpeg.global.avutil
 import org.bytedeco.ffmpeg.global.avutil.*
@@ -59,8 +60,15 @@ internal class AudioDecoder(
 
     init {
         resampleContext = swr_alloc_set_opts(
-            null, AV_CH_LAYOUT_STEREO, AV_SAMPLE_FMT_S16, output.sampleRate,
-            audioCodecContext.channel_layout(), audioCodecContext.sample_fmt(), audioCodecContext.sample_rate(), 0, null
+            /* s = */ null,
+            /* out_ch_layout = */ AV_CH_LAYOUT_STEREO,
+            /* out_sample_fmt = */ AV_SAMPLE_FMT_S16,
+            /* out_sample_rate = */ output.sampleRate,
+            /* in_ch_layout = */ audioCodecContext.channel_layout(),
+            /* in_sample_fmt = */ audioCodecContext.sample_fmt(),
+            /* in_sample_rate = */ audioCodecContext.sample_rate(),
+            /* log_offset = */ 0,
+            /* log_ctx = */ null
         )
 
         swr_init(resampleContext).checkAVError()

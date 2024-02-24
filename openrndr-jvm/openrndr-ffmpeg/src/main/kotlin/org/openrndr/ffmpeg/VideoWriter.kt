@@ -287,9 +287,9 @@ class VideoWriter {
             try {
                 movieStream!!.close()
                 try {
-                    logger.info("waiting for ffmpeg to finish")
+                    logger.info { "waiting for ffmpeg to finish" }
                     ffmpeg!!.waitFor()
-                    logger.info("ffmpeg finished")
+                    logger.info{ "ffmpeg finished" }
                 } catch (e: InterruptedException) {
                     e.printStackTrace()
                 }

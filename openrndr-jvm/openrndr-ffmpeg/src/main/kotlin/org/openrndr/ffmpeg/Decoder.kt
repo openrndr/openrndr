@@ -113,7 +113,7 @@ internal class Decoder(private val statistics: VideoStatistics,
             }
             // Extract audio info.
             val audio = audioContext?.run {
-                AudioInfo(sample_rate(), channels())
+                AudioInfo(sample_rate(), ch_layout().nb_channels())
             }
             return Pair(Decoder(statistics, configuration, context, videoStreamIndex, audioStreamIndex, videoContext, audioContext, hwType), CodecInfo(video, audio))
         }
