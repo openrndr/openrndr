@@ -1,12 +1,12 @@
-import org.openrndr.applicationAsync
+import org.openrndr.application
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.ColorFormat
 import org.openrndr.draw.isolatedWithTarget
 import org.openrndr.draw.renderTarget
 import org.openrndr.shape.Circle
 
-suspend fun main() {
-    applicationAsync {
+fun main() {
+    application {
         configure {
             title = "openrndr-webgl-demo"
         }

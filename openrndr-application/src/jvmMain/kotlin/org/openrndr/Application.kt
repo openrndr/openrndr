@@ -95,10 +95,6 @@ actual abstract class Application {
         this.loop()
     }
 
-    internal actual suspend fun runAsync() {
-        throw NotImplementedError("Asynchronous application is unsupported, use Application.run()")
-    }
-
     actual abstract fun requestDraw()
     actual abstract fun requestFocus()
 
@@ -135,12 +131,4 @@ actual fun application(program: Program, configuration: Configuration) {
     val applicationBase: ApplicationBase = ApplicationBase.initialize()
     val application = applicationBase.build(program, configuration)
     application.run()
-}
-
-/**
- * Runs [program] as an asynchronous application with the given [configuration].
- * @see applicationAsync
- */
-actual suspend fun applicationAsync(program: Program, configuration: Configuration) {
-    throw NotImplementedError("Asynchronous application is unsupported, use application()")
 }

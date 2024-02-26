@@ -38,11 +38,9 @@ expect abstract class Application {
     abstract var configuration: Configuration
 
     internal fun run()
-    internal suspend fun runAsync()
 
     abstract fun requestDraw()
     abstract fun requestFocus()
-
 
     abstract fun exit()
     abstract suspend fun setup()
@@ -70,4 +68,3 @@ expect abstract class Application {
 }
 
 expect fun application(program: Program, configuration: Configuration = Configuration())
-expect suspend fun applicationAsync(program: Program, configuration: Configuration = Configuration())

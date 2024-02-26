@@ -98,14 +98,6 @@ actual fun application(build: ApplicationBuilder.() -> Unit) {
     }
 }
 
-/**
- * Creates and runs an asynchronous OPENRNDR application using the provided [ApplicationBuilder].
- * @see <a href="https://guide.openrndr.org/">the OPENRNDR guide</a>
- */
-actual suspend fun applicationAsync(build: ApplicationBuilder.() -> Unit) {
-    throw NotImplementedError("Asynchronous application is unsupported, use application()")
-}
-
 @Suppress("DeprecatedCallableAddReplaceWith")
 class ApplicationBuilderJVM : ApplicationBuilder() {
     override val configuration = Configuration()
@@ -134,10 +126,6 @@ class ApplicationBuilderJVM : ApplicationBuilder() {
 
     @Deprecated("Cannot construct application in an application block.", level = DeprecationLevel.ERROR)
     override fun application(build: ApplicationBuilder.() -> Unit): Nothing =
-        error("Cannot construct application in an application block.")
-
-    @Deprecated("Cannot construct application in an application block.", level = DeprecationLevel.ERROR)
-    override fun applicationAsync(build: ApplicationBuilder.() -> Unit): Nothing =
         error("Cannot construct application in an application block.")
 
     @Deprecated("Cannot construct program in a program block.", level = DeprecationLevel.ERROR)
