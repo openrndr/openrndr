@@ -580,11 +580,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
     private fun createPrimaryWindow() {
         if (primaryWindow == NULL) {
             glfwSetErrorCallback(GLFWErrorCallback.create { error, description ->
-                logger.debug(
-                    "LWJGL Error - Code: {}, Description: {}",
-                    Integer.toHexString(error),
-                    GLFWErrorCallback.getDescription(description)
-                )
+                logger.debug { "LWJGL Error - Code: ${Integer.toHexString(error)}, Description: ${GLFWErrorCallback.getDescription(description)}" }
             })
             if (!glfwInit()) {
                 throw IllegalStateException("Unable to initialize GLFW")
