@@ -7,6 +7,7 @@ plugins {
 include(
     listOf(
         "openrndr-application",
+        "openrndr-common-demo",
         "openrndr-core",
         "openrndr-demos",
         "openrndr-draw",
