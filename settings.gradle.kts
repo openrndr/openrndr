@@ -42,6 +42,7 @@ include(
         "openrndr-jvm:openrndr-openal-natives-macos-arm64",
         "openrndr-jvm:openrndr-openal-natives-windows",
         "openrndr-js:openrndr-webgl",
+        "openrndr-js:openrndr-webgl-demo",
         "openrndr-extensions",
         "openrndr-nullgl",
         "openrndr-utils",
