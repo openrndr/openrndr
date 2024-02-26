@@ -38,8 +38,22 @@ kotlin {
         }
 
         val jvmMain by getting {
+            val openrndrOS = when(org.gradle.internal.os.OperatingSystem.current()) {
+                org.gradle.internal.os.OperatingSystem.WINDOWS -> "windows"
+                org.gradle.internal.os.OperatingSystem.LINUX -> "linux-x64"
+                org.gradle.internal.os.OperatingSystem.MAC_OS -> {
+                    when (System.getProperty("os.arch")) {
+                        "x86-64", "x86_64", "amd64", "x64" -> "macos"
+                        "aarch64", "arm-v8" -> "macos-arm64"
+                        else -> error("arch not supported")
+                    }
+                }
+                else -> error("platform not supported")
+
+            }
+
             dependencies {
-                runtimeOnly(project(":openrndr-jvm:openrndr-gl3-natives-macos-arm64"))
+                runtimeOnly(project(":openrndr-jvm:openrndr-gl3-natives-$openrndrOS"))
                 runtimeOnly(project(":openrndr-jvm:openrndr-gl3"))
                 runtimeOnly(libs.slf4j.simple)
             }
