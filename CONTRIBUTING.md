@@ -9,12 +9,9 @@ the issue form.
 
 ## I want to contribute code
 
-While building the project is fairly trivial (detailed in the README),
-more [complex build setups](https://github.com/openrndr/openrndr/wiki/Building-OPENRNDR) are
-possible to create even faster feedback loops as you'll be able to test your own changes to OPENRNDR
-on your [openrndr-template](https://github.com/openrndr/openrndr-template).
+A detailed walk-through for contributing code to the OPENRNDR and ORX repositories can be found in the [wiki](https://github.com/openrndr/openrndr/wiki/Building-OPENRNDR-and-ORX).
 
-Feel free to ask for more advice
+Feel free to ask for advice
 on [our forums or Slack](https://github.com/openrndr/openrndr#community).
 
 ### Style guide
