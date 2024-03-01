@@ -57,6 +57,8 @@ In order to use the OPENRNDR build from your applications one has to install OPE
 ./gradlew publishToMavenLocal snapshot
 ```
 
+A more detailed walk-through of building, publishing to Maven local and contributing can be found in the [wiki](https://github.com/openrndr/openrndr/wiki/Building-OPENRNDR-and-ORX).
+
 ## Community
 
 Visit the [OPENRNDR website](https://openrndr.org) for the latest news on OPENRNDR, showcases and events 
