@@ -11,14 +11,6 @@ private val logger = KotlinLogging.logger {}
 actual abstract class ApplicationBase {
     companion object {
         fun initialize(): ApplicationBase {
-            if (enableProfiling) {
-                Runtime.getRuntime().addShutdownHook(object : Thread() {
-                    override fun run() {
-                        report()
-                    }
-                })
-            }
-
             val applicationBaseClass = loadApplicationBase()
             return applicationBaseClass.declaredConstructors[0].newInstance() as ApplicationBase
         }
