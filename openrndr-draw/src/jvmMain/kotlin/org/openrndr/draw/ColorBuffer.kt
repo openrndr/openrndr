@@ -10,9 +10,8 @@ import org.openrndr.math.Vector2
 import org.openrndr.shape.IntRectangle
 import org.openrndr.shape.Rectangle
 import org.openrndr.utils.buffer.MPPBuffer
+
 import java.io.File
-import java.io.InputStream
-import java.net.MalformedURLException
 import java.net.URL
 import java.nio.ByteBuffer
 
@@ -208,21 +207,7 @@ actual fun loadImage(fileOrUrl: String, formatHint: ImageFileFormat?, session: S
     }
 }
 
-fun loadImage(
-    buffer: MPPBuffer,
-    name: String? = null,
-    formatHint: ImageFileFormat? = null,
-    session: Session?
-): ColorBuffer {
-    val data = ImageDriver.instance.loadImage(buffer, name, formatHint)
-    return try {
-        val cb = colorBuffer(data.width, data.height, 1.0, data.format, data.type, session = session)
-        cb.write(data.data?.byteBuffer ?: error("no data"))
-        cb
-    } finally {
-        data.close()
-    }
-}
+
 
 /**
  * load an image from [File]

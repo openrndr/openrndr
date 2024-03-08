@@ -2,6 +2,7 @@ package org.openrndr.draw
 
 import org.openrndr.color.ColorRGBa
 import org.openrndr.internal.Driver
+import org.openrndr.internal.ImageDriver
 import org.openrndr.shape.IntRectangle
 import org.openrndr.shape.Rectangle
 import org.openrndr.utils.buffer.MPPBuffer
@@ -114,12 +115,12 @@ expect abstract class ColorBuffer {
      */
     abstract fun write(
         sourceBuffer: MPPBuffer,
-        sourceFormat: ColorFormat,
-        sourceType: ColorType,
+        sourceFormat: ColorFormat = format,
+        sourceType: ColorType = type,
         x: Int = 0,
         y: Int = 0,
-        width: Int,
-        height: Int,
+        width: Int = effectiveWidth,
+        height: Int = effectiveHeight,
         level: Int = 0
     )
 
@@ -274,6 +275,22 @@ expect fun loadImage(
     formatHint: ImageFileFormat? = ImageFileFormat.guessFromExtension(fileOrUrl.split(".").last()),
     session: Session? = Session.active
 ): ColorBuffer
+
+fun loadImage(
+    buffer: MPPBuffer,
+    name: String? = null,
+    formatHint: ImageFileFormat? = null,
+    session: Session? = Session.active
+): ColorBuffer {
+    val data = ImageDriver.instance.loadImage(buffer, name, formatHint)
+    return try {
+        val cb = colorBuffer(data.width, data.height, 1.0, data.format, data.type, session = session)
+        cb.write(data.data ?: error("no data") )
+        cb
+    } finally {
+        data.close()
+    }
+}
 
 expect suspend fun loadImageSuspend(
     fileOrUrl: String,
