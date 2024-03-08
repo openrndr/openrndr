@@ -402,9 +402,7 @@ data class DDSData(
         cm.filter(MinifyingFilter.LINEAR, MagnifyingFilter.LINEAR)
         return cm
     }
-
 }
-
 
 fun loadDDS(data: MPPBuffer, bgrIsRgb: Boolean = false): DDSData {
     val primarySurfaces = mutableListOf<MPPBuffer>()

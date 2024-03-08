@@ -6,7 +6,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val libs = the<LibrariesForLibs>()
 
-val shouldPublish = project.name !in setOf("openrndr-demos")
+val shouldPublish = project.name !in setOf("openrndr-demos", "openrndr-webgl-demo", "openrndr-common-demo")
 
 plugins {
     java
@@ -42,6 +42,7 @@ tasks {
     val test by getting(Test::class) {
         useJUnitPlatform()
         testLogging.exceptionFormat = TestExceptionFormat.FULL
+        allJvmArgs = allJvmArgs + "-Dorg.openrndr.gl3.skip_glfw_termination"
     }
 
     @Suppress("UNUSED_VARIABLE")

@@ -6,6 +6,10 @@ import java.io.InputStreamReader
 import java.lang.management.ManagementFactory
 
 private fun restartJVM(): Boolean {
+    if (!ApplicationConfiguration.checkThread0) {
+        return false
+    }
+
     // based on http://www.java-gaming.org/topics/starting-jvm-on-mac-with-xstartonfirstthread-programmatically/37697/view.html
     val osName = System.getProperty("os.name")
 
@@ -33,6 +37,9 @@ private fun restartJVM(): Boolean {
     // Detect if a profiler is attached
     if (bean.inputArguments.any { it.contains("jfrsync=profile")}) {
         error("Running on macOS with a profiler attached, but not on the first thread. The process is stopped to prevent the profiler from losing the process. Run with -XstartOnFirstThread to continue.")
+    }
+    if (!ApplicationConfiguration.restartJvmOnThread0) {
+        error("Running on macOS but not on the first thread and ApplicationConfiguration.restartJvmOnThread0 is set to false. Run with -XstartOnFirstThread to continue.")
     }
 
     // restart jvm with -XstartOnFirstThread
@@ -98,14 +105,6 @@ actual fun application(build: ApplicationBuilder.() -> Unit) {
     }
 }
 
-/**
- * Creates and runs an asynchronous OPENRNDR application using the provided [ApplicationBuilder].
- * @see <a href="https://guide.openrndr.org/">the OPENRNDR guide</a>
- */
-actual suspend fun applicationAsync(build: ApplicationBuilder.() -> Unit) {
-    throw NotImplementedError("Asynchronous application is unsupported, use application()")
-}
-
 @Suppress("DeprecatedCallableAddReplaceWith")
 class ApplicationBuilderJVM : ApplicationBuilder() {
     override val configuration = Configuration()
@@ -134,10 +133,6 @@ class ApplicationBuilderJVM : ApplicationBuilder() {
 
     @Deprecated("Cannot construct application in an application block.", level = DeprecationLevel.ERROR)
     override fun application(build: ApplicationBuilder.() -> Unit): Nothing =
-        error("Cannot construct application in an application block.")
-
-    @Deprecated("Cannot construct application in an application block.", level = DeprecationLevel.ERROR)
-    override fun applicationAsync(build: ApplicationBuilder.() -> Unit): Nothing =
         error("Cannot construct application in an application block.")
 
     @Deprecated("Cannot construct program in a program block.", level = DeprecationLevel.ERROR)

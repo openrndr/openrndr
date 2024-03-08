@@ -39,6 +39,11 @@ actual class Dispatcher : MainCoroutineDispatcher(), Delay {
         }
     }
 
+    val shouldExecute : Boolean
+        get() {
+            val time = System.currentTimeMillis()
+            return toRun.isNotEmpty() || toRunAfter.any { it.first <= time } || toContinueAfter.any { it.first <= time }
+        }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     fun execute() {

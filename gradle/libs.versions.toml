@@ -34,6 +34,7 @@ lwjgl-core = { group = "org.lwjgl", name = "lwjgl", version.ref = "lwjgl" }
 lwjgl-glfw = { group = "org.lwjgl", name = "lwjgl-glfw", version.ref = "lwjgl" }
 lwjgl-jemalloc = { group = "org.lwjgl", name = "lwjgl-jemalloc", version.ref = "lwjgl" }
 lwjgl-opengl = { group = "org.lwjgl", name = "lwjgl-opengl", version.ref = "lwjgl" }
+lwjgl-opengles = { group = "org.lwjgl", name = "lwjgl-opengles", version.ref = "lwjgl" }
 lwjgl-stb = { group = "org.lwjgl", name = "lwjgl-stb", version.ref = "lwjgl" }
 lwjgl-tinyexr = { group = "org.lwjgl", name = "lwjgl-tinyexr", version.ref = "lwjgl" }
 
@@ -61,7 +62,7 @@ gradle-nexus-publish = { id = "io.github.gradle-nexus.publish-plugin", version.r
 
 [bundles]
 lwjgl-openal = ["lwjgl-core", "lwjgl-openal"]
-lwjgl-full = ["lwjgl-core", "lwjgl-glfw", "lwjgl-jemalloc", "lwjgl-opengl", "lwjgl-stb", "lwjgl-tinyexr", "lwjgl-nfd"]
+lwjgl-full = ["lwjgl-core", "lwjgl-glfw", "lwjgl-jemalloc", "lwjgl-opengl", "lwjgl-opengles", "lwjgl-stb", "lwjgl-tinyexr", "lwjgl-nfd"]
 javacpp-ffmpeg = ["ffmpeg"]
 javacpp = ["javacpp"]
 jupiter = ["jupiter-api", "jupiter-engine"]

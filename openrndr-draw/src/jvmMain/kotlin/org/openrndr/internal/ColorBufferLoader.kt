@@ -3,6 +3,7 @@ package org.openrndr.internal
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.openrndr.draw.ColorBuffer
 import org.openrndr.draw.ColorBufferProxy
+import org.openrndr.draw.loadImage
 import java.io.IOException
 import java.util.WeakHashMap
 
@@ -64,7 +65,7 @@ class ColorBufferLoader {
                             best
                         }
                         try {
-                            val cb = ColorBuffer.fromUrl(proxy.url)
+                            val cb = loadImage(proxy.url)//ColorBuffer.fromUrl(proxy.url)
                             proxy.colorBuffer = cb
                             proxy.state = ColorBufferProxy.State.LOADED
                             if (!proxy.persistent) {

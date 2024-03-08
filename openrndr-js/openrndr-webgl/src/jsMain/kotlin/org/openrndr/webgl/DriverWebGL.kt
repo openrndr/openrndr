@@ -198,33 +198,6 @@ class DriverWebGL(val context: WebGL2RenderingContext) : Driver {
         return ColorBufferWebGL.create(context, width, height, contentScale, format, type, multisample, levels, session)
     }
 
-    override fun createColorBufferFromUrl(url: String, formatHint: ImageFileFormat?, session: Session?): ColorBuffer {
-        return ColorBufferWebGL.fromUrl(context, url, session)
-    }
-
-
-    override suspend fun createColorBufferFromUrlSuspend(url: String, formatHint: ImageFileFormat?, session: Session?): ColorBuffer {
-        return ColorBufferWebGL.fromUrlSuspend(context, url, session)
-    }
-
-    override fun createColorBufferFromFile(
-        filename: String,
-        formatHint: ImageFileFormat?,
-        session: Session?
-    ): ColorBuffer {
-        error("loading from file is not supported")
-    }
-
-    override fun createColorBufferFromArray(
-        array: ByteArray,
-        offset: Int,
-        length: Int,
-        name: String?,
-        formatHint: ImageFileFormat?,
-        session: Session?
-    ): ColorBuffer {
-        TODO("Not yet implemented")
-    }
 
     override fun createDepthBuffer(
         width: Int,
@@ -253,18 +226,6 @@ class DriverWebGL(val context: WebGL2RenderingContext) : Driver {
         session: Session?
     ): Cubemap {
         return CubemapWebGL.create(context, width, format, type, levels, session)
-    }
-
-    override fun createCubemapFromUrls(urls: List<String>, formatHint: ImageFileFormat?, session: Session?): Cubemap {
-        TODO("Not yet implemented")
-    }
-
-    override fun createCubemapFromFiles(
-        filenames: List<String>,
-        formatHint: ImageFileFormat?,
-        session: Session?
-    ): Cubemap {
-        TODO("Not yet implemented")
     }
 
     override fun createVolumeTexture(

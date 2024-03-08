@@ -2,10 +2,22 @@ package org.openrndr
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.openrndr.math.Vector2
+import kotlin.coroutines.Continuation
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
+import kotlin.coroutines.startCoroutine
 
 private val logger = KotlinLogging.logger {}
 
 var applicationBaseFunc: (() -> ApplicationBase)? = null
+
+fun launch(block: suspend () -> Unit) {
+    block.startCoroutine(object : Continuation<Unit> {
+        override val context: CoroutineContext get() = EmptyCoroutineContext
+        override fun resumeWith(result: Result<Unit>) {
+        }
+    })
+}
 
 /**
  * Application interface
@@ -15,12 +27,10 @@ actual abstract class Application {
     actual abstract var configuration: Configuration
 
     internal actual fun run() {
-        throw NotImplementedError("Synchronous application is unsupported, use Application.runAsync()")
-    }
-
-    internal actual suspend fun runAsync() {
-        setup()
-        loop()
+        launch {
+            setup()
+            loop()
+        }
     }
 
     actual abstract fun requestDraw()
@@ -54,15 +64,7 @@ actual abstract class Application {
  * @see application
  */
 actual fun application(program: Program, configuration: Configuration){
-    throw NotImplementedError("Synchronous application is unsupported, use applicationAsync()")
-}
-
-/**
- * Runs [program] as an asynchronous application with the given [configuration].
- * @see applicationAsync
- */
-actual suspend fun applicationAsync(program: Program, configuration: Configuration) {
     val applicationBase = applicationBaseFunc?.invoke() ?: error("applicationBaseFunc not set")
     val application = applicationBase.build(program, configuration)
-    application.runAsync()
+    application.run()
 }

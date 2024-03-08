@@ -96,7 +96,7 @@ class ArrayCubemapGL4(val target: Int,
         val fromDiv = 1 shl fromLevel
         val toDiv = 1 shl toLevel
 
-        for (side in CubemapSide.values()) {
+        for (side in CubemapSide.entries) {
             val readTarget = renderTarget(width / fromDiv, width / fromDiv) {
                 arrayCubemap(this@ArrayCubemapGL4, side, layer, fromLevel)
             } as RenderTargetGL3
@@ -119,7 +119,7 @@ class ArrayCubemapGL4(val target: Int,
         val fromDiv = 1 shl fromLevel
         val toDiv = 1 shl toLevel
 
-        for (side in CubemapSide.values()) {
+        for (side in CubemapSide.entries) {
             val readTarget = renderTarget(width / fromDiv, width / fromDiv) {
                 arrayCubemap(this@ArrayCubemapGL4, side, layer, fromLevel)
             } as RenderTargetGL3

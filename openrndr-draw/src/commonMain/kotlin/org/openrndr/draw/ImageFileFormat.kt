@@ -7,16 +7,22 @@ enum class ImageFileFormat(val mimeType: String, val extensions: List<String>) {
     JPG("image/jpeg", listOf("jpg", "jpeg")),
     PNG("image/png", listOf("png")),
     DDS("image/vnd.ms-dds", listOf("dds")),
-    EXR("image/x-exr", listOf("exr"));
+    EXR("image/x-exr", listOf("exr")),
+    HDR("image/vnd.radiance", listOf("hdr"))
+    ;
 
     companion object {
-        fun guessFromExtension(extension: String): ImageFileFormat {
-            return when (val candidate = extension.lowercase()) {
+        /**
+         * Guess the image file format from extension
+         */
+        fun guessFromExtension(extension: String?): ImageFileFormat? {
+            return when (val candidate = extension?.lowercase()) {
                 "jpg", "jpeg" -> JPG
                 "png" -> PNG
                 "dds" -> DDS
                 "exr" -> EXR
-                else -> throw IllegalArgumentException("unsupported format: \"$candidate\"")
+                "hdr" -> HDR
+                else -> null
             }
         }
     }

@@ -8,10 +8,10 @@ import org.lwjgl.glfw.Callbacks.glfwFreeCallbacks
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.glfw.GLFWImage
-import org.lwjgl.opengl.GL.createCapabilities
-import org.lwjgl.opengl.GL33C.*
-import org.lwjgl.opengl.GL43C.GL_DEBUG_OUTPUT_SYNCHRONOUS
+import org.lwjgl.opengl.GL43C as GL
 import org.lwjgl.opengl.GLUtil
+import org.lwjgl.opengles.GLES
+import org.lwjgl.opengles.GLES30
 import org.lwjgl.system.MemoryStack.stackPush
 import org.lwjgl.system.MemoryUtil.NULL
 import org.openrndr.*
@@ -22,16 +22,29 @@ import org.openrndr.draw.Drawer
 import org.openrndr.draw.RenderTarget
 import org.openrndr.draw.Session
 import org.openrndr.internal.Driver
+import org.openrndr.internal.gl3.ApplicationGlfwConfiguration.fixWindowSize
+
 import org.openrndr.math.Vector2
+import org.openrndr.platform.Platform
+import org.openrndr.platform.PlatformType
 import java.io.File
 import java.nio.Buffer
 import java.util.*
+import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.math.ceil
 
 private val logger = KotlinLogging.logger {}
 internal var primaryWindow: Long = NULL
 
+object ApplicationGlfwConfiguration {
+    val fixWindowSize by lazy {
+        Platform.type == PlatformType.WINDOWS || Platform.type == PlatformType.GENERIC
+    }
+}
+
 class ApplicationGLFWGL3(override var program: Program, override var configuration: Configuration) : Application() {
+
+    internal val windows: CopyOnWriteArrayList<ApplicationWindowGLFW> = CopyOnWriteArrayList()
 
     private var pointerInput: PointerInputManager? = null
     private var windowFocused = true
@@ -40,8 +53,6 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
     private var realWindowTitle = configuration.title
     private var exitRequested = false
     private var exitHandled = false
-    private val fixWindowSize = System.getProperty("os.name").contains("windows", true) ||
-            System.getProperty("os.name").contains("linux", true)
     private var setupCalled = false
 
     override var presentationMode: PresentationMode = PresentationMode.AUTOMATIC
@@ -200,7 +211,8 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
             override fun run() {
                 logger.debug { "Program interrupted" }
                 exitRequested = true
-                while (!exitHandled) {
+                val start = System.currentTimeMillis()
+                while (!exitHandled && System.currentTimeMillis() - start < 2000) {
                     sleep(10)
                 }
             }
@@ -208,14 +220,29 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
         logger.debug { "debug output enabled" }
         logger.trace { "trace level enabled" }
 
+
         createPrimaryWindow()
         program.application = this
     }
 
     override suspend fun setup() {
         glfwDefaultWindowHints()
-        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE)
-        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE)
+        when (DriverGL3Configuration.driverType) {
+            DriverTypeGL.GL -> {
+                glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL.GL_TRUE)
+                glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE)
+            }
+
+            DriverTypeGL.GLES -> {
+                val useAngle = DriverGL3Configuration.glesBackend == GlesBackend.ANGLE
+                if (useAngle) {
+                    glfwWindowHint(GLFW_ANGLE_PLATFORM_TYPE, GLFW_ANGLE_PLATFORM_TYPE_METAL)
+                }
+                glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API)
+                glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_EGL_CONTEXT_API);
+            }
+        }
+
 
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE)
         glfwWindowHint(GLFW_AUTO_ICONIFY, GLFW_FALSE)
@@ -241,7 +268,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
 
         logger.info { glfwGetVersionString() }
 
-        if (useDebugContext) {
+        if (DriverGL3Configuration.useDebugContext) {
             glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE)
         }
 
@@ -329,11 +356,13 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
             versionIndex++
         }
         if (window == NULL) {
-            throw IllegalStateException("Window creation failed")
+            throw IllegalStateException("Window creation failed. ${DriverGL3Configuration.driverType}")
         }
 
 
-        if (System.getProperty("os.name").contains("windows", true) && System.getProperty("org.openrndr.pointerevents") != null) {
+        if (System.getProperty("os.name")
+                .contains("windows", true) && System.getProperty("org.openrndr.pointerevents") != null
+        ) {
             logger.info { "experimental touch input enabled" }
             pointerInput = PointerInputManagerWin32(window, this)
         }
@@ -447,7 +476,6 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
                     )
                 )
             }
-
             readyFrames++
         }
 
@@ -523,27 +551,57 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
         glfwSwapBuffers(window)
     }
 
+    override fun createChildWindow(configuration: WindowConfiguration, program: Program) : ApplicationWindow {
+        // acquire current context, we may be calling this from another context that we want to return to
+        val currentActiveContext = glfwGetCurrentContext()
+        try {
+            val window = createApplicationWindowGlfw(this, configuration, program)
+            program.application = this
+            (program as WindowProgram).applicationWindow = window
+            program.drawer = this@ApplicationGLFWGL3.program.drawer
+
+            window.setupGlfwEvents(this)
+
+            window.updateSize()
+            runBlocking {
+                program.setup()
+            }
+            synchronized(windows) {
+                windows.add(window)
+            }
+            return window
+        } finally {
+            if (currentActiveContext != 0L) {
+                glfwMakeContextCurrent(currentActiveContext)
+            }
+        }
+    }
 
     private fun createPrimaryWindow() {
         if (primaryWindow == NULL) {
             glfwSetErrorCallback(GLFWErrorCallback.create { error, description ->
-                logger.debug(
-                    "LWJGL Error - Code: {}, Description: {}",
-                    Integer.toHexString(error),
-                    GLFWErrorCallback.getDescription(description)
-                )
+                logger.debug { "LWJGL Error - Code: ${Integer.toHexString(error)}, Description: ${GLFWErrorCallback.getDescription(description)}" }
             })
             if (!glfwInit()) {
                 throw IllegalStateException("Unable to initialize GLFW")
             }
-
             val title = "OPENRNDR primary window"
-
-
             val versions = DriverGL3.candidateVersions()
             glfwDefaultWindowHints()
-            glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE)
-            glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE)
+            when (DriverGL3Configuration.driverType) {
+                DriverTypeGL.GL -> {
+                    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL.GL_TRUE)
+                    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE)
+                }
+                DriverTypeGL.GLES -> {
+                    glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API)
+                    val useAngle = DriverGL3Configuration.glesBackend == GlesBackend.ANGLE
+                    if (useAngle) {
+                        glfwWindowHint(GLFW_ANGLE_PLATFORM_TYPE, GLFW_ANGLE_PLATFORM_TYPE_METAL)
+                    }
+                    glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_EGL_CONTEXT_API);
+                }
+            }
             glfwWindowHint(GLFW_RED_BITS, 8)
             glfwWindowHint(GLFW_GREEN_BITS, 8)
             glfwWindowHint(GLFW_BLUE_BITS, 8)
@@ -555,6 +613,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
             for (version in versions) {
                 glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, version.majorVersion)
                 glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, version.minorVersion)
+
                 primaryWindow = glfwCreateWindow(640, 480, title, NULL, NULL)
                 foundVersion = version
                 if (primaryWindow != 0L) {
@@ -564,7 +623,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
             }
 
             if (primaryWindow == 0L) {
-                throw IllegalStateException("primary window could not be created")
+                error("primary window could not be created using ${DriverGL3Configuration.driverType} context")
             }
             Driver.driver = DriverGL3(foundVersion ?: error("no version found"))
         }
@@ -574,16 +633,27 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
 
     val defaultRenderTarget by lazy { ProgramRenderTargetGL3(program) }
     fun preloop() {
-        createCapabilities()
+        when (Driver.glType) {
+            DriverTypeGL.GL -> org.lwjgl.opengl.GL.createCapabilities()
+            DriverTypeGL.GLES -> GLES.createCapabilities()
+        }
 
-        if (useDebugContext) {
-            GLUtil.setupDebugMessageCallback()
-            glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS)
+        if (DriverGL3Configuration.useDebugContext) {
+            if (Driver.glType == DriverTypeGL.GL) {
+                GLUtil.setupDebugMessageCallback()
+                glEnable(GL.GL_DEBUG_OUTPUT_SYNCHRONOUS)
+            }
         }
 
         program.driver = Driver.instance
         program.drawer = Drawer(Driver.instance)
 
+        when (Driver.glType) {
+            DriverTypeGL.GL -> {}
+            DriverTypeGL.GLES -> (Driver.instance as DriverGL3).setupExtensions(
+                GLES.getFunctionProvider() ?: error("no function provider")
+            )
+        }
 
         defaultRenderTarget.bind()
 
@@ -597,8 +667,6 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
     override fun loop() {
         logger.debug { "starting loop" }
         preloop()
-
-
 
         var lastDragPosition = Vector2.ZERO
         var lastMouseButtonDown = MouseButton.NONE
@@ -769,43 +837,39 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
                 GLFW_MOUSE_BUTTON_MIDDLE -> MouseButton.CENTER
                 else -> MouseButton.NONE
             }
-
-
             val buttonsDown = BitSet()
 
-
-            if (action == GLFW_PRESS) {
-                down = true
-                lastDragPosition = program.mouse.position
-                lastMouseButtonDown = mouseButton
-                program.mouse.buttonDown.trigger(
-                    MouseEvent(
-                        program.mouse.position,
-                        Vector2.ZERO,
-                        Vector2.ZERO,
-                        MouseEventType.BUTTON_DOWN,
-                        mouseButton,
-                        modifiers
+            when (action) {
+                GLFW_PRESS -> {
+                    down = true
+                    lastDragPosition = program.mouse.position
+                    lastMouseButtonDown = mouseButton
+                    program.mouse.buttonDown.trigger(
+                        MouseEvent(
+                            program.mouse.position,
+                            Vector2.ZERO,
+                            Vector2.ZERO,
+                            MouseEventType.BUTTON_DOWN,
+                            mouseButton,
+                            modifiers
+                        )
                     )
-                )
-
-                buttonsDown.set(button, true)
-            }
-
-            if (action == GLFW_RELEASE) {
-                down = false
-                program.mouse.buttonUp.trigger(
-                    MouseEvent(
-                        program.mouse.position,
-                        Vector2.ZERO,
-                        Vector2.ZERO,
-                        MouseEventType.BUTTON_UP,
-                        mouseButton,
-                        modifiers
+                    buttonsDown.set(button, true)
+                }
+                GLFW_RELEASE -> {
+                    down = false
+                    program.mouse.buttonUp.trigger(
+                        MouseEvent(
+                            program.mouse.position,
+                            Vector2.ZERO,
+                            Vector2.ZERO,
+                            MouseEventType.BUTTON_UP,
+                            mouseButton,
+                            modifiers
+                        )
                     )
-                )
-
-                buttonsDown.set(button, false)
+                    buttonsDown.set(button, false)
+                }
             }
         }
 
@@ -840,23 +904,31 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
             // clear the front buffer
             glDepthMask(true)
             glClearColor(0.0f, 0.0f, 0.0f, 0.0f)
-            glClear(GL_COLOR_BUFFER_BIT or GL_STENCIL_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
+            glClear(GL.GL_COLOR_BUFFER_BIT or GL.GL_STENCIL_BUFFER_BIT or GL.GL_DEPTH_BUFFER_BIT)
 
             // swap the color buffers
             glfwSwapBuffers(window)
 
             // clear the back buffer
             glClearColor(0.0f, 0.0f, 0.0f, 0.0f)
-            glClear(GL_COLOR_BUFFER_BIT or GL_STENCIL_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
+            glClear(GL.GL_COLOR_BUFFER_BIT or GL.GL_STENCIL_BUFFER_BIT or GL.GL_DEPTH_BUFFER_BIT)
             glDepthMask(false)
             glfwSwapBuffers(window)
 
             pointerInput?.pollEvents()
             glfwPollEvents()
         }
-        logger.info { "OpenGL vendor: ${glGetString(GL_VENDOR)}" }
-        logger.info { "OpenGL renderer: ${glGetString(GL_RENDERER)}" }
-        logger.info { "OpenGL version: ${glGetString(GL_VERSION)}" }
+
+        logger.info { "OpenGL vendor: ${glGetString(GL.GL_VENDOR)}" }
+        logger.info { "OpenGL renderer: ${glGetString(GL.GL_RENDERER)}" }
+        logger.info { "OpenGL version: ${glGetString(GL.GL_VERSION)}" }
+
+        if (driverType == DriverTypeGL.GLES) {
+            val extensionCount = glGetInteger(GLES30.GL_NUM_EXTENSIONS)
+            for (i in 0 until extensionCount) {
+                println(GLES30.glGetStringi(GLES30.GL_EXTENSIONS, i))
+            }
+        }
 
         if (configuration.hideCursor) {
             cursorVisible = false
@@ -888,9 +960,9 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
 
         setupCalled = true
 
-
         var exception: Throwable? = null
         while (!exitRequested && !glfwWindowShouldClose(window)) {
+            glfwMakeContextCurrent(window)
 
             if (presentationMode == PresentationMode.AUTOMATIC || drawRequested) {
                 drawRequested = false
@@ -916,16 +988,28 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
                 deliverEvents()
                 program.dispatcher.execute()
             }
+
+            for (window in windows) {
+                window.update()
+            }
+
         }
         logger.debug { "Exiting draw loop" }
+
         postloop(exception)
     }
 
     fun postloop(exception: Throwable? = null) {
+        // a child window's context may be current at this point
+        glfwMakeContextCurrent(window)
+
         if (RenderTarget.active != defaultRenderTarget) {
             defaultRenderTarget.bindTarget()
         }
 
+        for (window in windows) {
+            window.destroy()
+        }
 
         logger.debug { "Shutting down extensions" }
         synchronized(program.extensions) {
@@ -948,16 +1032,17 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
         exitHandled = true
         logger.debug { "Exit handled" }
 
-        // TODO: take care of these when all windows are closed
-        //glfwTerminate()
-        //glfwSetErrorCallback(null)?.free()
+        glfwSetErrorCallback(null)?.free()
+        if (!DriverGL3Configuration.skipGlfwTermination) {
+            glfwTerminate()
+        }
+
         logger.debug { "done" }
 
         exception?.let {
             logger.error { "OPENRNDR program ended with exception. (${exception.message})}" }
             throw it
         }
-
     }
 
 
@@ -998,7 +1083,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
             logger.trace { "window: ${program.window.size.x.toInt()}x${program.window.size.y.toInt()} program: ${program.width}x${program.height}" }
             program.drawImpl()
         } catch (e: Throwable) {
-            logger.error { "Caught exception inside program the program loop. (${e.message})" }
+            logger.error { "Caught exception inside the program loop. (${e.message})" }
             return e
         }
         return null

@@ -2,6 +2,7 @@ package org.openrndr.internal.gl3
 
 import org.lwjgl.opengl.*
 import org.lwjgl.opengl.GL12C.*
+import org.lwjgl.opengl.GL13.GL_TEXTURE0
 import org.lwjgl.opengl.GL42C.glTexStorage3D
 import org.lwjgl.opengl.GL45C.glTextureStorage3D
 import org.openrndr.color.ColorRGBa
@@ -82,7 +83,7 @@ class VolumeTextureGL3(
     }
 
     override fun fill(color: ColorRGBa) {
-        (Driver.instance as DriverGL3).version.require(DriverVersionGL.VERSION_4_4)
+        (Driver.instance as DriverGL3).version.require(DriverVersionGL.GL_VERSION_4_4)
         require(storageMode == TextureStorageModeGL.STORAGE)
         val floatData = floatArrayOf(color.r.toFloat(), color.g.toFloat(), color.b.toFloat(), color.alpha.toFloat())
         for (level in 0 until levels) {
@@ -185,24 +186,24 @@ class VolumeTextureGL3(
     }
 
     override fun filter(min: MinifyingFilter, mag: MagnifyingFilter) {
-        GL33C.glTexParameteri(GL33C.GL_TEXTURE_3D, GL33C.GL_TEXTURE_MIN_FILTER, min.toGLFilter())
-        GL33C.glTexParameteri(GL33C.GL_TEXTURE_3D, GL33C.GL_TEXTURE_MAG_FILTER, mag.toGLFilter())
+        glTexParameteri(GL33C.GL_TEXTURE_3D, GL33C.GL_TEXTURE_MIN_FILTER, min.toGLFilter())
+        glTexParameteri(GL33C.GL_TEXTURE_3D, GL33C.GL_TEXTURE_MAG_FILTER, mag.toGLFilter())
     }
 
     override fun bind(textureUnit: Int) {
         require(!destroyed)
-        GL33C.glActiveTexture(GL33C.GL_TEXTURE0 + textureUnit)
-        GL33C.glBindTexture(GL33C.GL_TEXTURE_3D, texture)
+        glActiveTexture(GL33C.GL_TEXTURE0 + textureUnit)
+        glBindTexture(GL33C.GL_TEXTURE_3D, texture)
     }
 
     override fun generateMipmaps() {
         bound {
-            GL33C.glGenerateMipmap(GL33C.GL_TEXTURE_CUBE_MAP)
+            glGenerateMipmap(GL33C.GL_TEXTURE_CUBE_MAP)
         }
     }
 
     companion object {
-        val useNamedTexture = (Driver.instance as DriverGL3).version >= DriverVersionGL.VERSION_4_5
+        val useNamedTexture = Driver.glVersion >= DriverVersionGL.GL_VERSION_4_5 && Driver.glType == DriverTypeGL.GL
 
         fun create(
             width: Int,
@@ -218,7 +219,7 @@ class VolumeTextureGL3(
             }
             val (internalFormat, _) = internalFormat(format, type)
 
-            GL33C.glTexImage3D(
+            glTexImage3D(
                 GL33C.GL_PROXY_TEXTURE_3D,
                 0,
                 internalFormat,
@@ -229,26 +230,29 @@ class VolumeTextureGL3(
                 format.glFormat(),
                 type.glType(), null as ByteBuffer?
             )
-            val proxyWidth = glGetTexLevelParameteri(
-                GL_PROXY_TEXTURE_3D, 0,
-                GL_TEXTURE_WIDTH
-            )
+            if (Driver.glType == DriverTypeGL.GL) {
 
-            require(proxyWidth == width) {
-                glGetError()
-                "failed to create ${width}x${height}x${depth} volume texture with format ${format} and type ${type}"
+                val proxyWidth = glGetTexLevelParameteri(
+                    GL_PROXY_TEXTURE_3D, 0,
+                    GL_TEXTURE_WIDTH
+                )
+
+                require(proxyWidth == width) {
+                    glGetError()
+                    "failed to create ${width}x${height}x${depth} volume texture with format ${format} and type ${type}"
+                }
             }
 
 
-            val textures = IntArray(1)
-            GL33C.glGenTextures(textures)
-            GL33C.glActiveTexture(GL33C.GL_TEXTURE0)
-            GL33C.glBindTexture(GL33C.GL_TEXTURE_3D, textures[0])
+
+            val texture = glGenTextures()
+            glActiveTexture(GL_TEXTURE0)
+            glBindTexture(GL_TEXTURE_3D, texture)
 
             val version = (Driver.instance as DriverGL3).version
 
             val storageMode = when {
-                version >= DriverVersionGL.VERSION_4_3 -> {
+                version >= DriverVersionGL.GL_VERSION_4_3 && Driver.glType == DriverTypeGL.GL -> {
                     TextureStorageModeGL.STORAGE
                 }
                 else -> {
@@ -259,7 +263,7 @@ class VolumeTextureGL3(
             when (storageMode) {
                 TextureStorageModeGL.STORAGE -> {
                     if (useNamedTexture) {
-                        glTextureStorage3D(textures[0], levels, internalFormat, width, height, depth)
+                        glTextureStorage3D(texture, levels, internalFormat, width, height, depth)
                     } else {
                         glTexStorage3D(GL_TEXTURE_3D, levels, internalFormat, width, height, depth)
                     }
@@ -270,7 +274,7 @@ class VolumeTextureGL3(
                     for (level in 0 until levels) {
                         val div = 1 shl level
                         val nullBB: ByteBuffer? = null
-                        GL33C.glTexImage3D(
+                        glTexImage3D(
                             GL33C.GL_TEXTURE_3D,
                             level,
                             internalFormat,
@@ -286,9 +290,9 @@ class VolumeTextureGL3(
                     }
                 }
             }
-            GL33C.glTexParameteri(GL33C.GL_TEXTURE_3D, GL33C.GL_TEXTURE_BASE_LEVEL, 0)
-            GL33C.glTexParameteri(GL33C.GL_TEXTURE_3D, GL33C.GL_TEXTURE_MAX_LEVEL, levels - 1)
-            return VolumeTextureGL3(textures[0], storageMode, width, height, depth, format, type, levels, session)
+            glTexParameteri(GL33C.GL_TEXTURE_3D, GL33C.GL_TEXTURE_BASE_LEVEL, 0)
+            glTexParameteri(GL33C.GL_TEXTURE_3D, GL33C.GL_TEXTURE_MAX_LEVEL, levels - 1)
+            return VolumeTextureGL3(texture, storageMode, width, height, depth, format, type, levels, session)
         }
     }
 }

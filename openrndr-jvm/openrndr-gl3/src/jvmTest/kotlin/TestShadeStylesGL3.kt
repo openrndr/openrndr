@@ -1,8 +1,6 @@
 import org.openrndr.draw.*
 import org.openrndr.internal.Driver
-import org.openrndr.internal.gl3.DriverGL3
-import org.openrndr.internal.gl3.DriverVersionGL
-import org.openrndr.internal.gl3.VertexBufferGL3
+import org.openrndr.internal.gl3.*
 import org.openrndr.math.Vector2
 import org.openrndr.math.Vector3
 import org.openrndr.resourceUrl
@@ -92,7 +90,7 @@ class TestShadeStylesGL3 : AbstractApplicationTestFixture() {
 
     @Test
     fun ssbo() {
-        if ((Driver.instance as DriverGL3).version >= DriverVersionGL.VERSION_4_3) {
+        if ((Driver.instance as DriverGL3).version >= DriverVersionGL.GL_VERSION_4_3 && Driver.glType == DriverTypeGL.GL) {
             val ssbo = shaderStorageBuffer(shaderStorageFormat {
                 primitive("floats", BufferPrimitiveType.FLOAT32, 100)
             })
@@ -109,7 +107,7 @@ class TestShadeStylesGL3 : AbstractApplicationTestFixture() {
 
     @Test
     fun structuredBuffers() {
-        if ((Driver.instance as DriverGL3).version >= DriverVersionGL.VERSION_4_3) {
+        if ((Driver.instance as DriverGL3).version >= DriverVersionGL.GL_VERSION_4_3 && Driver.glType == DriverTypeGL.GL) {
             class CustomStruct: Struct<CustomStruct>() {
                 var floats by arrayField<Double>(100)
             }
@@ -128,7 +126,7 @@ class TestShadeStylesGL3 : AbstractApplicationTestFixture() {
 
     @Test
     fun unusedStructuredBuffers() {
-        if ((Driver.instance as DriverGL3).version >= DriverVersionGL.VERSION_4_3) {
+        if ((Driver.instance as DriverGL3).version >= DriverVersionGL.GL_VERSION_4_3 && Driver.glType == DriverTypeGL.GL) {
             class CustomStruct: Struct<CustomStruct>() {
                 var floats by arrayField<Double>(100)
             }

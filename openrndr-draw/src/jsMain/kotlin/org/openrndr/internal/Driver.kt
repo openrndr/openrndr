@@ -106,33 +106,6 @@ actual interface Driver {
         session: Session?
     ): ColorBuffer
 
-    actual fun createColorBufferFromUrl(
-        url: String,
-        formatHint: ImageFileFormat?,
-        session: Session?
-    ): ColorBuffer
-
-    actual suspend fun createColorBufferFromUrlSuspend(
-        url: String,
-        formatHint: ImageFileFormat?,
-        session: Session?
-    ): ColorBuffer
-
-    actual fun createColorBufferFromFile(
-        filename: String,
-        formatHint: ImageFileFormat?,
-        session: Session?
-    ): ColorBuffer
-
-    actual fun createColorBufferFromArray(
-        array: ByteArray,
-        offset: Int,
-        length: Int,
-        name: String?,
-        formatHint: ImageFileFormat?,
-        session: Session?
-    ): ColorBuffer
-
     actual fun createDepthBuffer(
         width: Int,
         height: Int,
@@ -153,18 +126,6 @@ actual interface Driver {
         format: ColorFormat,
         type: ColorType,
         levels: Int,
-        session: Session?
-    ): Cubemap
-
-    actual fun createCubemapFromUrls(
-        urls: List<String>,
-        formatHint: ImageFileFormat?,
-        session: Session?
-    ): Cubemap
-
-    actual fun createCubemapFromFiles(
-        filenames: List<String>,
-        formatHint: ImageFileFormat?,
         session: Session?
     ): Cubemap
 

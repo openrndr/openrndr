@@ -6,11 +6,11 @@ import org.lwjgl.opengl.GL40C
 class GeometryShaderGL3(val shaderObject: Int, val name: String) {
     companion object {
         fun fromString(code: String, name: String): GeometryShaderGL3 {
-            val shaderObject = GL33C.glCreateShader(GL33C.GL_GEOMETRY_SHADER)
-            GL33C.glShaderSource(shaderObject, code)
-            GL33C.glCompileShader(shaderObject)
+            val shaderObject = glCreateShader(GL33C.GL_GEOMETRY_SHADER)
+            glShaderSource(shaderObject, code)
+            glCompileShader(shaderObject)
             val compileStatus = IntArray(1)
-            GL33C.glGetShaderiv(shaderObject, GL33C.GL_COMPILE_STATUS, compileStatus)
+            glGetShaderiv(shaderObject, GL33C.GL_COMPILE_STATUS, compileStatus)
             if (compileStatus[0] != GL33C.GL_TRUE) {
                 checkShaderInfoLog(shaderObject, code, name)
                 throw Exception("could not compile vertex shader")
@@ -24,10 +24,10 @@ class TessellationControlShaderGL3(val shaderObject: Int, val name: String) {
     companion object {
         fun fromString(code: String, name: String): TessellationControlShaderGL3 {
             val shaderObject = GL33C.glCreateShader(GL40C.GL_TESS_CONTROL_SHADER)
-            GL33C.glShaderSource(shaderObject, code)
-            GL33C.glCompileShader(shaderObject)
+            glShaderSource(shaderObject, code)
+            glCompileShader(shaderObject)
             val compileStatus = IntArray(1)
-            GL33C.glGetShaderiv(shaderObject, GL33C.GL_COMPILE_STATUS, compileStatus)
+            glGetShaderiv(shaderObject, GL33C.GL_COMPILE_STATUS, compileStatus)
             if (compileStatus[0] != GL33C.GL_TRUE) {
                 checkShaderInfoLog(shaderObject, code, name)
                 throw Exception("could not compile vertex shader")
@@ -40,11 +40,11 @@ class TessellationControlShaderGL3(val shaderObject: Int, val name: String) {
 class TessellationEvaluationShaderGL3(val shaderObject: Int, val name: String) {
     companion object {
         fun fromString(code: String, name: String): TessellationEvaluationShaderGL3 {
-            val shaderObject = GL33C.glCreateShader(GL40C.GL_TESS_EVALUATION_SHADER)
-            GL33C.glShaderSource(shaderObject, code)
-            GL33C.glCompileShader(shaderObject)
+            val shaderObject = glCreateShader(GL40C.GL_TESS_EVALUATION_SHADER)
+            glShaderSource(shaderObject, code)
+            glCompileShader(shaderObject)
             val compileStatus = IntArray(1)
-            GL33C.glGetShaderiv(shaderObject, GL33C.GL_COMPILE_STATUS, compileStatus)
+            glGetShaderiv(shaderObject, GL33C.GL_COMPILE_STATUS, compileStatus)
             if (compileStatus[0] != GL33C.GL_TRUE) {
                 checkShaderInfoLog(shaderObject, code, name)
                 throw Exception("could not compile vertex shader")

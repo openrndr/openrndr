@@ -6,7 +6,18 @@ plugins {
 
 kotlin {
     jvm {
+
+        compilations {
+            val main by getting
+
+            @Suppress("UNUSED_VARIABLE")
+            val demo by creating {
+                associateWith(main)
+            }
+        }
+
         testRuns["test"].executionTask {
+            allJvmArgs = allJvmArgs + "-Dorg.openrndr.gl3.skip_glfw_termination"
             useJUnitPlatform {
                 if (System.getenv("CI") != null) {
                     exclude("**/*.class")
@@ -15,11 +26,13 @@ kotlin {
             testLogging.exceptionFormat = TestExceptionFormat.FULL
         }
         testRuns.create("heavy") {
+
             setExecutionSourceFrom(
                 testRuns["test"].executionSource.classpath,
                 testRuns["test"].executionSource.testClassesDirs
             )
             executionTask {
+                allJvmArgs = allJvmArgs + "-Dorg.openrndr.gl3.skip_glfw_termination"
                 useJUnitPlatform()
                 testLogging.exceptionFormat = TestExceptionFormat.FULL
             }
@@ -34,12 +47,14 @@ kotlin {
                 implementation(project(":openrndr-shape"))
                 implementation(project(":openrndr-binpack"))
                 implementation(project(":openrndr-dds"))
+                implementation(project(":openrndr-extensions"))
                 implementation(project(":openrndr-gl-common"))
                 implementation(libs.kotlin.coroutines)
                 implementation(libs.lwjgl.core)
                 implementation(libs.lwjgl.glfw)
                 implementation(libs.lwjgl.jemalloc)
                 implementation(libs.lwjgl.opengl)
+                implementation(libs.lwjgl.opengles)
                 implementation(libs.lwjgl.stb)
                 implementation(libs.lwjgl.tinyexr)
                 implementation(libs.lwjgl.openal)
@@ -57,6 +72,14 @@ kotlin {
                 runtimeOnly(libs.slf4j.simple)
             }
         }
+
+        val jvmDemo by getting {
+            dependencies {
+                runtimeOnly(libs.slf4j.simple)
+                runtimeOnly(project(":openrndr-jvm:openrndr-gl3-natives-macos-arm64"))
+                runtimeOnly(project(":openrndr-jvm:openrndr-gl3"))
+            }
+        }
     }
 }
 
@@ -66,3 +89,12 @@ gradle.taskGraph.whenReady {
         tasks["jvmHeavyTest"].enabled = false
     }
 }
+
+kotlin {
+    jvm().mainRun {
+        classpath(kotlin.jvm().compilations.getByName("demo").output.allOutputs)
+        classpath(kotlin.jvm().compilations.getByName("demo").configurations.runtimeDependencyConfiguration!!)
+    }
+}
+
+tasks.withType<JavaExec>().matching { it.name == "jvmRun" }.configureEach { workingDir = rootDir }

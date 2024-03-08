@@ -5,7 +5,6 @@ import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL33C.*
 import org.lwjgl.opengl.GL44C.GL_DYNAMIC_STORAGE_BIT
 import org.lwjgl.opengl.GL44C.glBufferStorage
-import org.lwjgl.system.MemoryUtil
 import org.openrndr.draw.IndexBuffer
 import org.openrndr.draw.IndexType
 import org.openrndr.internal.Driver
@@ -24,7 +23,7 @@ class IndexBufferGL3(val buffer: Int, override val indexCount: Int, override val
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer)
             checkGLErrors()
             val sizeInBytes = type.sizeInBytes * elementCount
-            val useBufferStorage = (Driver.instance as DriverGL3).version >= DriverVersionGL.VERSION_4_4
+            val useBufferStorage = (Driver.instance as DriverGL3).version >= DriverVersionGL.GL_VERSION_4_4 && Driver.glVersion.type == DriverTypeGL.GL
             if (useBufferStorage) {
                 glBufferStorage(GL_ELEMENT_ARRAY_BUFFER, sizeInBytes.toLong(), GL_DYNAMIC_STORAGE_BIT)
             } else {

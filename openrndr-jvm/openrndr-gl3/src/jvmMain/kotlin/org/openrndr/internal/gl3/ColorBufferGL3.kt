@@ -1,12 +1,6 @@
 package org.openrndr.internal.gl3
 
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.lwjgl.BufferUtils
-import org.lwjgl.PointerBuffer
 import org.lwjgl.opengl.ARBTextureCompressionBPTC.*
 import org.lwjgl.opengl.EXTTextureCompressionS3TC.*
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic.GL_TEXTURE_MAX_ANISOTROPY_EXT
@@ -15,27 +9,22 @@ import org.lwjgl.opengl.GL33C.*
 import org.lwjgl.opengl.GL42C.glTexStorage2D
 import org.lwjgl.opengl.GL43C.glCopyImageSubData
 import org.lwjgl.opengl.GL43C.glTexStorage2DMultisample
-import org.lwjgl.opengl.GL44C
-import org.lwjgl.stb.STBIWriteCallback
-import org.lwjgl.stb.STBImageWrite
+import org.lwjgl.opengl.GL44.glClearTexImage
+import org.lwjgl.opengles.GLES30
 import org.lwjgl.system.MemoryUtil
-import org.lwjgl.util.tinyexr.EXRChannelInfo
-import org.lwjgl.util.tinyexr.EXRHeader
-import org.lwjgl.util.tinyexr.EXRImage
-import org.lwjgl.util.tinyexr.TinyEXR.*
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
 import org.openrndr.draw.BufferMultisample.Disabled
 import org.openrndr.draw.BufferMultisample.SampleCount
 import org.openrndr.internal.Driver
+import org.openrndr.internal.ImageData
+import org.openrndr.internal.ImageDriver
 import org.openrndr.shape.IntRectangle
 import org.openrndr.utils.buffer.MPPBuffer
 import java.io.File
-import java.io.InputStream
 import java.nio.Buffer
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
-import java.util.*
 
 internal data class ConversionEntry(val format: ColorFormat, val type: ColorType, val glFormat: Int, val glType: Int)
 
@@ -144,7 +133,7 @@ class ColorBufferGL3(
     }
 
     companion object {
-        fun fromColorBufferData(data: ColorBufferDataGL3, session: Session?): ColorBuffer {
+        fun fromColorBufferData(data: ImageData, session: Session?): ColorBuffer {
             val cb = create(
                 data.width,
                 data.height,
@@ -157,60 +146,46 @@ class ColorBufferGL3(
             )
             return cb.apply {
                 this.flipV = data.flipV
-                val d = data.data
+                val d = data.data?.byteBuffer
                 if (d != null) {
                     cb.write(d)
                     if (data.mipmapData.isEmpty()) {
                         cb.generateMipmaps()
                     } else {
                         for (i in data.mipmapData.indices) {
-                            cb.write(data.mipmapData[i], level = i + 1)
+                            cb.write(data.mipmapData[i].byteBuffer, level = i + 1)
                         }
                     }
                 } else {
                     throw RuntimeException("data is null")
                 }
-                data.destroy()
                 glFlush()
                 glFinish()
             }
         }
 
         fun fromUrl(url: String, formatHint: ImageFileFormat?, session: Session?): ColorBuffer {
-            val data = ColorBufferDataGL3.fromUrl(url, formatHint)
-            return fromColorBufferData(data, session)
+            val data = ImageDriver.instance.loadImage(url, formatHint)
+            return try {
+                fromColorBufferData(data, session)
+            } finally {
+                data.close()
+            }
         }
 
         fun fromFile(
             filename: String,
-            @Suppress("UNUSED_PARAMETER") formatHint: ImageFileFormat?,
+            formatHint: ImageFileFormat? = ImageFileFormat.guessFromExtension(filename),
             session: Session?
         ): ColorBuffer {
-            val data = ColorBufferDataGL3.fromFile(filename)
-            return fromColorBufferData(data, session)
+            val data = ImageDriver.instance.loadImage(filename, formatHint)
+            return try {
+                fromColorBufferData(data, session)
+            } finally {
+                data.close()
+            }
         }
 
-        fun fromStream(
-            stream: InputStream,
-            name: String?,
-            @Suppress("UNUSED_PARAMETER") formatHint: ImageFileFormat?,
-            session: Session?
-        ): ColorBuffer {
-            val data = ColorBufferDataGL3.fromStream(stream, name)
-            return fromColorBufferData(data, session)
-        }
-
-        fun fromArray(
-            array: ByteArray,
-            offset: Int = 0,
-            length: Int = array.size,
-            name: String?,
-            formatHint: ImageFileFormat?,
-            session: Session?
-        ): ColorBuffer {
-            val data = ColorBufferDataGL3.fromArray(array, offset, length, name, formatHint)
-            return fromColorBufferData(data, session)
-        }
 
         fun fromBuffer(
             buffer: ByteBuffer,
@@ -218,8 +193,12 @@ class ColorBufferGL3(
             formatHint: ImageFileFormat?,
             session: Session?
         ): ColorBuffer {
-            val data = ColorBufferDataGL3.fromByteBuffer(buffer, name, formatHint)
-            return fromColorBufferData(data, session)
+            val data = ImageDriver.instance.loadImage(MPPBuffer(buffer), name, formatHint)
+            return try {
+                fromColorBufferData(data, session)
+            } finally {
+                data.close()
+            }
         }
 
         fun create(
@@ -232,7 +211,6 @@ class ColorBufferGL3(
             levels: Int,
             session: Session?
         ): ColorBufferGL3 {
-
             if (type.compressed && multisample is SampleCount) {
                 error("cannot create ColorBuffer that is both compressed and multi-sampled")
             }
@@ -304,7 +282,7 @@ class ColorBufferGL3(
 
                             is SampleCount -> glTexImage2DMultisample(
                                 GL_TEXTURE_2D_MULTISAMPLE,
-                                multisample.sampleCount.coerceAtMost(glGetInteger(GL_MAX_COLOR_TEXTURE_SAMPLES)),
+                                multisample.sampleCount,
                                 internalFormat,
                                 effectiveWidth / div,
                                 effectiveHeight / div,
@@ -367,16 +345,20 @@ class ColorBufferGL3(
         }
     }
 
-    fun bound(f: ColorBufferGL3.() -> Unit) {
+    fun <T> bound(f: ColorBufferGL3.() -> T):T {
         checkDestroyed()
         glActiveTexture(GL_TEXTURE0)
+        debugGLErrors()
         val current = when (multisample) {
             Disabled -> glGetInteger(GL_TEXTURE_BINDING_2D)
             is SampleCount -> glGetInteger(GL_TEXTURE_BINDING_2D_MULTISAMPLE)
         }
         glBindTexture(target, texture)
-        this.f()
+        debugGLErrors()
+        val t = this.f()
         glBindTexture(target, current)
+        debugGLErrors()
+        return t
     }
 
     fun destroyShadow() {
@@ -419,6 +401,11 @@ class ColorBufferGL3(
         filter: MagnifyingFilter
     ) {
         checkDestroyed()
+        if (Driver.glType == DriverTypeGL.GLES) {
+            require(type.isFloat == target.type.isFloat) {
+                "cannot convert from int to float or from float to int ($type -> ${target.type})"
+            }
+        }
 
         val fromDiv = 1 shl fromLevel
         val toDiv = 1 shl toLevel
@@ -518,6 +505,7 @@ class ColorBufferGL3(
                     debugGLErrors {
                         when (it) {
                             GL_INVALID_VALUE -> "level ($toLevel) less than 0, effective target is GL_TEXTURE_RECTANGLE (${target.target == GL_TEXTURE_RECTANGLE} and level is not 0"
+
                             else -> null
                         }
                     }
@@ -596,7 +584,7 @@ class ColorBufferGL3(
             readTarget.destroy()
         } else {
             if (type == target.type && format == target.format) {
-                if (Driver.glVersion >= DriverVersionGL.VERSION_4_3) {
+                if (Driver.glVersion >= DriverVersionGL.GL_VERSION_4_3) {
                     val tgl = target as ArrayTextureGL3
                     val fromDiv = 1 shl fromLevel
                     glCopyImageSubData(
@@ -643,7 +631,7 @@ class ColorBufferGL3(
             color.alpha.toFloat()
         )
         when {
-            (Driver.glVersion < DriverVersionGL.VERSION_4_4) -> {
+            (Driver.glVersion < DriverVersionGL.GL_VERSION_4_4 || Driver.glType == DriverTypeGL.GLES) -> {
                 val writeTarget = renderTarget(width, height, contentScale) {
                     colorBuffer(this@ColorBufferGL3)
                 } as RenderTargetGL3
@@ -658,7 +646,7 @@ class ColorBufferGL3(
             }
 
             else -> {
-                GL44C.glClearTexImage(
+                glClearTexImage(
                     texture,
                     0,
                     ColorFormat.RGBa.glFormat(),
@@ -703,7 +691,11 @@ class ColorBufferGL3(
         }
 
     override var anisotropy: Double
-        get() = TODO("not implemented")
+        get() {
+            return bound {
+                glGetTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT).toDouble()
+            }
+        }
         set(value) {
             bound {
                 glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, value.toFloat())
@@ -816,245 +808,102 @@ class ColorBufferGL3(
 
 
     override fun read(targetBuffer: ByteBuffer, targetFormat: ColorFormat, targetType: ColorType, level: Int) {
+        debugGLErrors()
         checkDestroyed()
         if (!targetBuffer.isDirect) {
             throw IllegalArgumentException("buffer is not a direct buffer.")
         }
-        if (multisample == Disabled) {
-            bound {
-                logger.trace {
-                    "Reading from color buffer in: $format ${format.glFormat()}, $type ${type.glType()} "
+        require(multisample == Disabled) { "can not read from multisampled Colorbuffers" }
+        when (Driver.glType) {
+            DriverTypeGL.GL -> {
+
+                bound {
+                    logger.trace {
+                        "Reading from color buffer in: $format ${format.glFormat()}, $type ${type.glType()} "
+                    }
+                    debugGLErrors()
+                    glPixelStorei(GL_PACK_ALIGNMENT, 1)
+                    debugGLErrors()
+                    val packAlignment = glGetInteger(GL_PACK_ALIGNMENT)
+                    targetBuffer.order(ByteOrder.nativeOrder())
+                    (targetBuffer as Buffer).rewind()
+                    if (!targetType.compressed) {
+                        val internalType = internalFormat(targetFormat, targetType).second
+                        glGetTexImage(target, level, internalType, targetType.glType(), targetBuffer)
+                    } else {
+                        require(targetType == type && targetFormat == format) {
+                            "source format/type (${format}/${type}) and target format/type ${targetFormat}/${targetType}) must match"
+                        }
+                        glGetCompressedTexImage(target, level, targetBuffer)
+                    }
+                    debugGLErrors()
+                    (targetBuffer as Buffer).rewind()
+                    glPixelStorei(GL_PACK_ALIGNMENT, packAlignment)
+                    debugGLErrors()
                 }
+            }
+
+            DriverTypeGL.GLES -> {
+                val fb = glGenFramebuffers()
+                checkGLErrors()
+                val currentFB = glGetInteger(GL_FRAMEBUFFER_BINDING)
                 debugGLErrors()
+                glBindFramebuffer(GL_FRAMEBUFFER, fb)
+                debugGLErrors()
+                glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, target, texture, level)
+                debugGLErrors()
+                type.glType()
                 glPixelStorei(GL_PACK_ALIGNMENT, 1)
                 debugGLErrors()
-                val packAlignment = glGetInteger(GL_PACK_ALIGNMENT)
-                targetBuffer.order(ByteOrder.nativeOrder())
-                (targetBuffer as Buffer).rewind()
-                if (!targetType.compressed) {
-                    val internalType = internalFormat(targetFormat, targetType).second
-                    glGetTexImage(target, level, internalType, targetType.glType(), targetBuffer)
-                } else {
-                    require(targetType == type && targetFormat == format) {
-                        "source format/type (${format}/${type}) and target format/type ${targetFormat}/${targetType}) must match"
-                    }
-                    glGetCompressedTexImage(target, level, targetBuffer)
-                }
+                GLES30.glReadBuffer(GL_COLOR_ATTACHMENT0)
                 debugGLErrors()
-                (targetBuffer as Buffer).rewind()
-                glPixelStorei(GL_PACK_ALIGNMENT, packAlignment)
+                GLES30.glReadPixels(
+                    0,
+                    0,
+                    effectiveWidth,
+                    effectiveHeight,
+                    format.glFormat(),
+                    type.glType(),
+                    targetBuffer
+                )
+                debugGLErrors()
+                glDeleteFramebuffers(fb)
+                debugGLErrors()
+                glBindFramebuffer(GL_FRAMEBUFFER, currentFB)
                 debugGLErrors()
             }
-        } else {
-            throw IllegalArgumentException("multisample targets cannot be read from")
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
+    fun toImageData(): ImageData {
+        val buffer = MemoryUtil.memAlloc(effectiveWidth * effectiveHeight * format.componentCount * type.componentSize)
+        read(buffer)
+        val data = ImageDataStb(effectiveWidth, effectiveHeight, format, type, flipV, MPPBuffer(buffer))
+        return data
+    }
+
     override fun saveToFile(file: File, imageFileFormat: ImageFileFormat, async: Boolean) {
         checkDestroyed()
-        if (multisample == Disabled) {
-            if (type == ColorType.UINT8) {
-                var pixels = BufferUtils.createByteBuffer(effectiveWidth * effectiveHeight * format.componentCount)
-                (pixels as Buffer).rewind()
-                read(pixels)
-                (pixels as Buffer).rewind()
-
-                runBlocking {
-                    val job = GlobalScope.launch {
-                        if (!flipV) {
-                            val flippedPixels =
-                                BufferUtils.createByteBuffer(effectiveWidth * effectiveHeight * format.componentCount)
-                            (flippedPixels as Buffer).rewind()
-                            val stride = effectiveWidth * format.componentCount
-                            val row = ByteArray(stride)
-
-                            for (y in 0 until effectiveHeight) {
-                                (pixels as Buffer).position((effectiveHeight - y - 1) * stride)
-                                pixels.get(row)
-                                flippedPixels.put(row)
-                            }
-
-                            (flippedPixels as Buffer).rewind()
-                            pixels = flippedPixels
-                        }
-
-                        when (imageFileFormat) {
-                            ImageFileFormat.JPG -> STBImageWrite.stbi_write_jpg(
-                                file.absolutePath,
-                                effectiveWidth, effectiveHeight,
-                                format.componentCount, pixels, 90
-                            )
-
-                            ImageFileFormat.PNG -> STBImageWrite.stbi_write_png(
-                                file.absolutePath,
-                                effectiveWidth, effectiveHeight,
-                                format.componentCount, pixels, effectiveWidth * format.componentCount
-                            )
-
-                            else -> error("format not supported")
-                        }
-                    }
-                    if (!async) {
-                        job.join()
-                    }
-                }
-            } else if (type == ColorType.FLOAT16 || type == ColorType.FLOAT32) {
-                require(imageFileFormat == ImageFileFormat.EXR) { "can only save floating point color buffers to EXR" }
-                require(format == ColorFormat.RGB || format == ColorFormat.RGBa) { "can only save RGB and RGBA formats" }
-
-                val exrType = if (type == ColorType.FLOAT16) TINYEXR_PIXELTYPE_HALF else TINYEXR_PIXELTYPE_FLOAT
-
-                val exrImage = EXRImage.create()
-                InitEXRImage(exrImage)
-
-                val exrHeader = EXRHeader.create()
-                InitEXRHeader(exrHeader)
-
-                exrHeader.num_channels(3)
-
-                val exrChannels = EXRChannelInfo.calloc(3)
-                exrChannels[0].name(
-                    ByteBuffer.allocateDirect(2)
-                        .apply { put('B'.code.toByte()); put(0.toByte()); (this as Buffer).rewind() })
-                exrChannels[1].name(
-                    ByteBuffer.allocateDirect(2)
-                        .apply { put('G'.code.toByte()); put(0.toByte()); (this as Buffer).rewind() })
-                exrChannels[2].name(
-                    ByteBuffer.allocateDirect(2)
-                        .apply { put('R'.code.toByte()); put(0.toByte()); (this as Buffer).rewind() })
-
-                exrHeader.channels(exrChannels)
-
-                val data = ByteBuffer.allocateDirect(type.componentSize * 3 * effectiveWidth * effectiveHeight)
-                    .order(ByteOrder.nativeOrder())
-                (data as Buffer).rewind()
-                read(data, targetFormat = ColorFormat.RGB)
-                (data as Buffer).rewind()
-                val bBuffer =
-                    ByteBuffer.allocateDirect(effectiveWidth * effectiveHeight * 4).order(ByteOrder.nativeOrder())
-                val gBuffer =
-                    ByteBuffer.allocateDirect(effectiveWidth * effectiveHeight * 4).order(ByteOrder.nativeOrder())
-                val rBuffer =
-                    ByteBuffer.allocateDirect(effectiveWidth * effectiveHeight * 4).order(ByteOrder.nativeOrder())
-
-                // -- de-interleave and flip data
-                for (y in 0 until height) {
-                    val row = if (!flipV) effectiveHeight - 1 - y else y
-                    val offset = row * effectiveWidth * type.componentSize * 3
-
-                    (data as Buffer).position(offset)
-
-                    for (x in 0 until effectiveWidth) {
-                        for (i in 0 until type.componentSize) {
-                            val b = data.get()
-                            bBuffer.put(b)
-                        }
-                        for (i in 0 until type.componentSize) {
-                            val g = data.get()
-                            gBuffer.put(g)
-                        }
-                        for (i in 0 until type.componentSize) {
-                            val r = data.get()
-                            rBuffer.put(r)
-                        }
-                    }
-                }
-
-                (bBuffer as Buffer).rewind()
-                (gBuffer as Buffer).rewind()
-                (rBuffer as Buffer).rewind()
-
-                val pixelTypes = BufferUtils.createIntBuffer(4 * 3).apply {
-                    put(exrType); put(exrType); put(exrType); (this as Buffer).rewind()
-                }
-                exrHeader.pixel_types(pixelTypes)
-                (pixelTypes as Buffer).rewind()
-                exrHeader.requested_pixel_types(pixelTypes)
-
-                exrImage.width(width)
-                exrImage.height(height)
-                exrImage.num_channels(3)
-
-                val images = PointerBuffer.allocateDirect(3)
-                images.put(0, bBuffer)
-                images.put(1, gBuffer)
-                images.put(2, rBuffer)
-                images.rewind()
-                exrImage.images(images)
-
-                val errors = PointerBuffer.allocateDirect(1)
-                val result = SaveEXRImageToFile(exrImage, exrHeader, file.path, errors)
-
-                require(result == 0) {
-                    "failed to save to ${file.path}, [result=$result]"
-                }
-                exrImage.images(null as PointerBuffer?)
-                FreeEXRImage(exrImage)
-            }
-        } else {
-            throw IllegalArgumentException("multisample targets cannot be saved to file")
+        require(multisample == Disabled)
+        val data = toImageData()
+        try {
+            ImageDriver.instance.saveImage(data, file.absolutePath, imageFileFormat)
+        } finally {
+            data.close()
         }
     }
 
     override fun toDataUrl(imageFileFormat: ImageFileFormat): String {
         checkDestroyed()
-
         require(multisample == Disabled)
         require(type == ColorType.UINT8)
 
-        val saveBuffer = ByteBuffer.allocate(1_024 * 1_024 * 2)
-        val writeFunc = object : STBIWriteCallback() {
-            override fun invoke(context: Long, data: Long, size: Int) {
-                val sourceBuffer = MemoryUtil.memByteBuffer(data, size)
-                saveBuffer?.put(sourceBuffer)
-            }
+        val data = toImageData()
+        return try {
+            ImageDriver.instance.imageToDataUrl(data, imageFileFormat)
+        } finally {
+            data.close()
         }
-
-        var pixels = BufferUtils.createByteBuffer(effectiveWidth * effectiveHeight * format.componentCount)
-        (pixels as Buffer).rewind()
-        read(pixels)
-        (pixels as Buffer).rewind()
-        if (!flipV) {
-            val flippedPixels = BufferUtils.createByteBuffer(effectiveWidth * effectiveHeight * format.componentCount)
-            (flippedPixels as Buffer).rewind()
-            val stride = effectiveWidth * format.componentCount
-            val row = ByteArray(stride)
-
-            for (y in 0 until effectiveHeight) {
-                (pixels as Buffer).position((effectiveHeight - y - 1) * stride)
-                pixels.get(row)
-                flippedPixels.put(row)
-            }
-
-            (flippedPixels as Buffer).rewind()
-            pixels = flippedPixels
-        }
-
-        when (imageFileFormat) {
-            ImageFileFormat.JPG -> STBImageWrite.stbi_write_jpg_to_func(
-                writeFunc, 0L,
-                effectiveWidth, effectiveHeight,
-                format.componentCount, pixels, 90
-            )
-
-            ImageFileFormat.PNG -> STBImageWrite.stbi_write_png_to_func(
-                writeFunc, 0L,
-                effectiveWidth, effectiveHeight,
-                format.componentCount, pixels, effectiveWidth * format.componentCount
-            )
-
-            else -> {
-                // do nothing
-            }
-        }
-
-        val byteArray = ByteArray((saveBuffer as Buffer).position())
-        (saveBuffer as Buffer).rewind()
-        saveBuffer.get(byteArray)
-        val base64Data = Base64.getEncoder().encodeToString(byteArray)
-
-        return "data:${imageFileFormat.mimeType};base64,$base64Data"
     }
 
     override fun destroy() {

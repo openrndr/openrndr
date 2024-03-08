@@ -6,6 +6,7 @@ import org.khronos.webgl.ArrayBufferView
 import org.khronos.webgl.TexImageSource
 import org.openrndr.color.ColorRGBa
 import org.openrndr.internal.Driver
+import org.openrndr.internal.ImageDriver
 import org.openrndr.shape.IntRectangle
 import org.openrndr.shape.Rectangle
 import org.openrndr.utils.buffer.MPPBuffer
@@ -175,8 +176,23 @@ actual fun loadImage(
     formatHint: ImageFileFormat?,
     session: Session?
 ): ColorBuffer {
-    return Driver.instance.createColorBufferFromUrl(fileOrUrl, null, session)
+    val data = ImageDriver.instance.loadImage(fileOrUrl, formatHint)
+    return try {
+        val cb = colorBuffer(
+            data.width,
+            data.height,
+            1.0,
+            data.format,
+            data.type,
+            BufferMultisample.Disabled,
+            data.mipmapData.size + 1,
+            session
+        )
 
+        cb
+    } finally {
+        data.close()
+    }
 }
 
 actual suspend fun loadImageSuspend(
@@ -184,5 +200,5 @@ actual suspend fun loadImageSuspend(
     formatHint: ImageFileFormat?,
     session: Session?
 ): ColorBuffer {
-    return Driver.instance.createColorBufferFromUrlSuspend(fileOrUrl, null, session)
+    return loadImage(fileOrUrl, formatHint, session)
 }

@@ -3,6 +3,8 @@ package org.openrndr.internal
 import org.openrndr.draw.*
 import org.openrndr.math.Vector2
 import org.openrndr.math.Vector3
+import org.openrndr.platform.Platform
+import org.openrndr.platform.PlatformType
 import org.openrndr.shape.Rectangle
 import kotlin.math.abs
 import kotlin.math.min
@@ -13,6 +15,10 @@ class RectangleDrawer {
         normal(3)
         textureCoordinate(2)
     }, 6, Session.root)
+
+    private var count = 0
+
+    private val singleBatches = (0 until DrawerConfiguration.vertexBufferMultiBufferCount).map { RectangleBatch.create(1) }
 
     internal var batch = RectangleBatch.create(10_000, Session.root)
 
@@ -119,6 +125,8 @@ class RectangleDrawer {
                       drawStyle: DrawStyle, x: Double, y: Double, width: Double, height: Double) {
         ensureBatchSize(1)
 
+        val batch = singleBatches[count.mod(singleBatches.size)]
+
         batch.geometry.put {
             write(
                 (x + min(0.0, width)).toFloat(),
@@ -129,6 +137,7 @@ class RectangleDrawer {
             write(drawStyle)
         }
         drawRectangles(drawContext, drawStyle, batch, 1)
+        count++
     }
 
     fun drawRectangles(drawContext: DrawContext, drawStyle: DrawStyle, batch: RectangleBatch, count: Int) {

@@ -225,6 +225,15 @@ enum class ColorType {
                 else -> false
             }
         }
+
+    val isFloat: Boolean
+        get() {
+            return when (this) {
+                FLOAT16, FLOAT32, BPTC_FLOAT, BPTC_UFLOAT -> true
+                else -> false
+            }
+        }
+
 }
 
 /**

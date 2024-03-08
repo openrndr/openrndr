@@ -3,6 +3,8 @@ package org.openrndr.internal
 import org.openrndr.draw.*
 import org.openrndr.math.Vector2
 import org.openrndr.math.Vector3
+import org.openrndr.platform.Platform
+import org.openrndr.platform.PlatformType
 import kotlin.jvm.JvmName
 
 class PointDrawer {
@@ -12,6 +14,11 @@ class PointDrawer {
     }, 1)
 
     internal var batch = PointBatch.create(10_000, session = Session.root)
+    private var count = 0
+
+
+    private val singleBatches = (0 until DrawerConfiguration.vertexBufferMultiBufferCount).map { PointBatch.create(1) }
+
 
     private val shaderManager: ShadeStyleManager = ShadeStyleManager.fromGenerators("point",
             vsGenerator = Driver.instance.shaderGenerators::pointVertexShader,
@@ -75,6 +82,9 @@ class PointDrawer {
     fun drawPoint(drawContext: DrawContext,
                   drawStyle: DrawStyle, x: Double, y: Double, z: Double) {
         ensureBatchSize(1)
+
+        val batch = singleBatches[count.mod(singleBatches.size)]
+
         batch.geometry.put {
             write(Vector3(x, y, z))
         }

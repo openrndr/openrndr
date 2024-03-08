@@ -7,6 +7,7 @@ plugins {
 include(
     listOf(
         "openrndr-application",
+        "openrndr-common-demo",
         "openrndr-core",
         "openrndr-demos",
         "openrndr-draw",
@@ -17,7 +18,9 @@ include(
         "openrndr-event",
         "openrndr-binpack",
         "openrndr-filter",
+        "openrndr-platform",
         "openrndr-svg",
+
         "openrndr-animatable",
         "openrndr-jvm:openrndr-dialogs",
         "openrndr-jvm:openrndr-ffmpeg",
@@ -26,6 +29,7 @@ include(
         "openrndr-jvm:openrndr-ffmpeg-natives-macos-arm64",
         "openrndr-jvm:openrndr-ffmpeg-natives-linux-x64",
         "openrndr-jvm:openrndr-ffmpeg-natives-linux-arm64",
+
         "openrndr-jvm:openrndr-gl3",
         "openrndr-jvm:openrndr-gl3-natives-linux-x64",
         "openrndr-jvm:openrndr-gl3-natives-linux-arm64",
@@ -39,6 +43,7 @@ include(
         "openrndr-jvm:openrndr-openal-natives-macos-arm64",
         "openrndr-jvm:openrndr-openal-natives-windows",
         "openrndr-js:openrndr-webgl",
+        "openrndr-js:openrndr-webgl-demo",
         "openrndr-extensions",
         "openrndr-nullgl",
         "openrndr-utils",

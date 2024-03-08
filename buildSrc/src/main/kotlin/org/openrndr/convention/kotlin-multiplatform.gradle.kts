@@ -7,7 +7,7 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinCompile
 
 
 val libs = the<LibrariesForLibs>()
-val shouldPublish = project.name !in setOf("openrndr-demos")
+val shouldPublish = project.name !in setOf("openrndr-demos", "openrndr-webgl-demo", "openrndr-common-demo")
 
 plugins {
     kotlin("multiplatform")
@@ -43,6 +43,7 @@ kotlin {
             if (DefaultNativePlatform.getCurrentOperatingSystem().isMacOsX) {
                 allJvmArgs = allJvmArgs + "-XstartOnFirstThread"
             }
+            allJvmArgs = allJvmArgs + "-Dorg.openrndr.gl3.skip_glfw_termination"
             useJUnitPlatform()
             testLogging.exceptionFormat = TestExceptionFormat.FULL
         }

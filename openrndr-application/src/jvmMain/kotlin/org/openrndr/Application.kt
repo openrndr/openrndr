@@ -2,7 +2,9 @@ package org.openrndr
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
+import org.openrndr.ApplicationConfiguration.preloadClassName
 import org.openrndr.math.Vector2
+import org.openrndr.platform.Platform
 
 private val logger = KotlinLogging.logger {}
 
@@ -31,6 +33,28 @@ open class ApplicationPreload {
     open fun onProgramSetup(program: Program) {}
 }
 
+
+abstract class ApplicationWindow(val program: Program) {
+    abstract var windowTitle: String
+    abstract var windowPosition: Vector2
+    abstract var windowSize: Vector2
+    abstract val windowResizable: Boolean
+    abstract val windowMultisample: WindowMultisample
+    abstract val windowFocused: Boolean
+
+    abstract var cursorPosition: Vector2
+    abstract var cursorVisible: Boolean
+    abstract var cursorHideMode: MouseCursorHideMode
+    abstract var cursorType: CursorType
+    abstract val cursorInWindow: Boolean
+
+    abstract var presentationMode: PresentationMode
+    abstract fun requestDraw()
+    abstract var windowContentScale: Double
+
+    abstract fun destroy()
+}
+
 /**
  * This class is responsible for selecting and initializing the appropriate graphics backend.
  *
@@ -42,9 +66,6 @@ open class ApplicationPreload {
 actual abstract class Application {
     companion object {
         fun setupPreload(program: Program, configuration: Configuration) {
-            val preloadClassName =
-                (System.getProperties()["org.openrndr.preloadclass"] as? String)
-                    ?: "org.openrndr.Preload"
             val preload = try {
                 @Suppress("UNCHECKED_CAST") val c =
                     Application::class.java.classLoader.loadClass(preloadClassName) as Class<ApplicationPreload>
@@ -69,10 +90,6 @@ actual abstract class Application {
             this@Application.setup()
         }
         this.loop()
-    }
-
-    internal actual suspend fun runAsync() {
-        throw NotImplementedError("Asynchronous application is unsupported, use Application.run()")
     }
 
     actual abstract fun requestDraw()
@@ -100,6 +117,7 @@ actual abstract class Application {
 
     actual abstract var presentationMode: PresentationMode
     actual abstract var windowContentScale: Double
+    abstract fun createChildWindow(configuration: WindowConfiguration, program: Program): ApplicationWindow
 }
 
 /**
@@ -110,12 +128,4 @@ actual fun application(program: Program, configuration: Configuration) {
     val applicationBase: ApplicationBase = ApplicationBase.initialize()
     val application = applicationBase.build(program, configuration)
     application.run()
-}
-
-/**
- * Runs [program] as an asynchronous application with the given [configuration].
- * @see applicationAsync
- */
-actual suspend fun applicationAsync(program: Program, configuration: Configuration) {
-    throw NotImplementedError("Asynchronous application is unsupported, use application()")
 }

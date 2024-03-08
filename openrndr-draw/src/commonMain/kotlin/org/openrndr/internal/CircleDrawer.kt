@@ -4,6 +4,8 @@ import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
 import org.openrndr.math.Vector2
 import org.openrndr.math.Vector3
+import org.openrndr.platform.Platform
+import org.openrndr.platform.PlatformType
 import org.openrndr.shape.Circle
 import kotlin.math.abs
 
@@ -16,6 +18,9 @@ class CircleDrawer {
     }, 6, Session.root)
 
     internal var batch = CircleBatch.create(10_000)
+    private var count = 0
+
+    private val singleBatches = (0 until DrawerConfiguration.vertexBufferMultiBufferCount).map { CircleBatch.create(1) }
 
     private val shaderManager: ShadeStyleManager = ShadeStyleManager.fromGenerators(
         "circle",
@@ -124,11 +129,15 @@ class CircleDrawer {
         drawCircles(drawContext, drawStyle, circles.size)
     }
 
+
     fun drawCircle(
         drawContext: DrawContext,
         drawStyle: DrawStyle, x: Double, y: Double, radius: Double
     ) {
-        ensureBatchSize(1)
+
+        val batch = singleBatches[count.mod(singleBatches.size)]
+
+        //ensureBatchSize(1)
         batch.geometry.shadow.writer().apply {
             rewind()
             write(Vector3(x, y, 0.0))
@@ -146,7 +155,8 @@ class CircleDrawer {
         }
         batch.drawStyle.shadow.uploadElements(0, 1)
 
-        drawCircles(drawContext, drawStyle, 1)
+        drawCircles(drawContext, drawStyle, batch, 1)
+        count++
     }
 
     private fun drawCircles(drawContext: DrawContext, drawStyle: DrawStyle, count: Int) {

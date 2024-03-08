@@ -6,11 +6,16 @@ import org.openrndr.math.Vector3
 import kotlin.jvm.JvmName
 
 class PerformanceLineDrawer {
-    private val vertices: VertexBuffer = VertexBuffer.createDynamic(VertexFormat().apply {
+
+    val vertexFormat = vertexFormat {
         position(3)
         attribute("instance", VertexElementType.FLOAT32)
         attribute("vertexOffset", VertexElementType.FLOAT32)
-    }, 1024 * 1024, Session.root)
+    }
+    private val manyVertices = vertexBuffer(vertexFormat, 1024 * 1024, Session.root)
+    private val fewVertices = List(DrawerConfiguration.vertexBufferMultiBufferCount) { vertexBuffer(vertexFormat, 128, Session.root) }
+
+    private var counter = 0
 
     private val shaderManager: ShadeStyleManager = ShadeStyleManager.fromGenerators("performance-line",
             vsGenerator = Driver.instance.shaderGenerators::fastLineVertexShader,
@@ -18,9 +23,9 @@ class PerformanceLineDrawer {
 
     @JvmName("drawLineSegments3d")
     fun drawLineSegments(drawContext: DrawContext,
-                         drawStyle: DrawStyle, segments: Iterable<Vector3>) {
-
-        val shader = shaderManager.shader(drawStyle.shadeStyle, vertices.vertexFormat)
+                         drawStyle: DrawStyle, segments: List<Vector3>) {
+        val vertices = vertices(segments.size)
+        val shader = shaderManager.shader(drawStyle.shadeStyle, vertexFormat)
         shader.begin()
         drawContext.applyToShader(shader)
         drawStyle.applyToShader(shader)
@@ -41,10 +46,20 @@ class PerformanceLineDrawer {
         shader.end()
     }
 
-    fun drawLineSegments(drawContext: DrawContext,
-                         drawStyle: DrawStyle, segments: Iterable<Vector2>) {
+    private fun vertices(count: Int): VertexBuffer {
+        return if (count < 64) {
+            counter++
+            fewVertices[counter.mod(fewVertices.size)]
+        } else {
+            manyVertices
+        }
+    }
 
-        val shader = shaderManager.shader(drawStyle.shadeStyle, vertices.vertexFormat)
+    fun drawLineSegments(drawContext: DrawContext,
+                         drawStyle: DrawStyle, segments: List<Vector2>) {
+
+        val vertices = vertices(segments.size)
+        val shader = shaderManager.shader(drawStyle.shadeStyle, vertexFormat)
         shader.begin()
         drawContext.applyToShader(shader)
         drawStyle.applyToShader(shader)
@@ -67,9 +82,10 @@ class PerformanceLineDrawer {
     }
 
     fun drawLineLoops(drawContext: DrawContext,
-                      drawStyle: DrawStyle, loops: Iterable<List<Vector2>>) {
+                      drawStyle: DrawStyle, loops: List<List<Vector2>>) {
 
-        val shader = shaderManager.shader(drawStyle.shadeStyle, vertices.vertexFormat)
+        val vertices = vertices(loops.sumOf { it.size })
+        val shader = shaderManager.shader(drawStyle.shadeStyle, vertexFormat)
         shader.begin()
         drawContext.applyToShader(shader)
         drawStyle.applyToShader(shader)
@@ -99,7 +115,8 @@ class PerformanceLineDrawer {
 
     @JvmName("drawLineLoops3d")
     fun drawLineLoops(drawContext: DrawContext,
-                      drawStyle: DrawStyle, loops: Iterable<List<Vector3>>) {
+                      drawStyle: DrawStyle, loops: List<List<Vector3>>) {
+        val vertices = vertices(loops.sumOf { it.size })
         val shader = shaderManager.shader(drawStyle.shadeStyle, vertices.vertexFormat)
         shader.begin()
         drawContext.applyToShader(shader)
@@ -124,5 +141,4 @@ class PerformanceLineDrawer {
         Driver.instance.drawVertexBuffer(shader, listOf(vertices), DrawPrimitive.LINES, 0, vertexCount, verticesPerPatch = 0)
         shader.end()
     }
-
 }

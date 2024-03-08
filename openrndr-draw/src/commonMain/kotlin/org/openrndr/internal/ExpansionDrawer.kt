@@ -19,12 +19,14 @@ internal class ExpansionDrawer {
         attribute("vertexOffset", VertexElementType.FLOAT32)
     }
 
-    var vertices = VertexBuffer.createDynamic(vertexFormat, 4 * 1024 * 1024, Session.root)
-    var quad = VertexBuffer.createDynamic(vertexFormat, 6, Session.root)
+    val manyVertices = VertexBuffer.createDynamic(vertexFormat, 4 * 1024 * 1024, Session.root)
+    val fewVertices = List(DrawerConfiguration.vertexBufferMultiBufferCount) { vertexBuffer(vertexFormat, 4 * 128, Session.root) }
+
+    val quads = List(DrawerConfiguration.vertexBufferMultiBufferCount) { VertexBuffer.createDynamic(vertexFormat, 6, Session.root) }
 
     fun renderStrokeCommands(drawContext: DrawContext, drawStyle: DrawStyle, commands: List<Command>, fringeWidth: Double) {
 
-        val shader = shaderManager.shader(drawStyle.shadeStyle, listOf(vertices.vertexFormat), emptyList())
+        val shader = shaderManager.shader(drawStyle.shadeStyle, listOf(vertexFormat), emptyList())
         shader.begin()
         drawContext.applyToShader(shader)
         drawStyle.applyToShader(shader)
@@ -68,7 +70,7 @@ internal class ExpansionDrawer {
 
     fun renderStrokeCommandsInterleaved(drawContext: DrawContext, drawStyle: DrawStyle, commands: List<Command>, fringeScale: Double) {
         if (commands.isNotEmpty()) {
-            val shader = shaderManager.shader(drawStyle.shadeStyle, listOf(vertices.vertexFormat))
+            val shader = shaderManager.shader(drawStyle.shadeStyle, listOf(vertexFormat))
             shader.begin()
             drawContext.applyToShader(shader)
             drawStyle.applyToShader(shader)
@@ -110,7 +112,7 @@ internal class ExpansionDrawer {
     }
 
     fun renderConvexFillCommands(drawContext: DrawContext, drawStyle: DrawStyle, commands: List<Command>, fringeScale: Double) {
-        val shader = shaderManager.shader(drawStyle.shadeStyle, vertices.vertexFormat)
+        val shader = shaderManager.shader(drawStyle.shadeStyle, vertexFormat)
         shader.begin()
         drawContext.applyToShader(shader)
         drawStyle.applyToShader(shader)
@@ -133,12 +135,11 @@ internal class ExpansionDrawer {
     }
 
     fun renderFillCommands(drawContext: DrawContext, drawStyle: DrawStyle, commands: List<Command>, fringeWidth: Double) {
-
         if (commands.isEmpty()) {
             return
         }
 
-        val shader = shaderManager.shader(drawStyle.shadeStyle, vertices.vertexFormat)
+        val shader = shaderManager.shader(drawStyle.shadeStyle, vertexFormat)
         shader.begin()
         drawContext.applyToShader(shader)
         drawStyle.applyToShader(shader)
@@ -208,6 +209,7 @@ internal class ExpansionDrawer {
         localStyle.channelWriteMask = ChannelMask.ALL
         localStyle.cullTestPass = CullTestPass.ALWAYS
 
+        val quad = quads[quadCounter.mod(quads.size)]
         quad.shadow.writer().apply {
             rewind()
             write(minX.toFloat(), minY.toFloat()); write(0.5f, 1.0f, 0.0f)
@@ -219,6 +221,7 @@ internal class ExpansionDrawer {
             write(minX.toFloat(), minY.toFloat()); write(0.5f, 1.0f, 0.0f)
         }
         quad.shadow.upload()
+        quadCounter++
         Driver.instance.setState(localStyle)
             Driver.instance.drawVertexBuffer(shader, listOf(quad), DrawPrimitive.TRIANGLES, 0, 6, verticesPerPatch = 0)
 
@@ -265,23 +268,35 @@ internal class ExpansionDrawer {
         return commands
     }
 
+    private var counter = 0
+    private var quadCounter = 0
+
+    private fun vertices(count: Int): VertexBuffer {
+        return if (count < 128) {
+            counter++
+            fewVertices[counter.mod(fewVertices.size)]
+        } else {
+            manyVertices
+        }
+    }
+
     fun renderStroke(drawContext: DrawContext, drawStyle: DrawStyle, expansion: Expansion, fringeScale: Double) {
-        renderStrokeCommands(drawContext, drawStyle, toCommands(vertices, listOf(expansion)), fringeScale)
+        renderStrokeCommands(drawContext, drawStyle, toCommands(vertices(expansion.vertexCount), listOf(expansion)), fringeScale)
     }
 
     fun renderStrokes(drawContext: DrawContext, drawStyle: DrawStyle, expansions: List<Expansion>, fringeScale: Double) {
-        renderStrokeCommandsInterleaved(drawContext, drawStyle, toCommands(vertices, expansions), fringeScale)
+        renderStrokeCommandsInterleaved(drawContext, drawStyle, toCommands(vertices(expansions.sumOf { it.vertexCount }), expansions), fringeScale)
     }
 
     fun renderFill(drawContext: DrawContext, drawStyle: DrawStyle, expansions: List<Expansion>, convex: Boolean, fringeScale: Double) {
         if (convex) {
-            renderConvexFillCommands(drawContext, drawStyle, toCommands(vertices, expansions), fringeScale)
+            renderConvexFillCommands(drawContext, drawStyle, toCommands(vertices(expansions.sumOf { it.vertexCount }), expansions), fringeScale)
         } else {
-            renderFillCommands(drawContext, drawStyle, toCommands(vertices, expansions), fringeScale)
+            renderFillCommands(drawContext, drawStyle, toCommands(vertices(expansions.sumOf { it.vertexCount }), expansions), fringeScale)
         }
     }
 
     fun renderFills(drawContext: DrawContext, drawStyle: DrawStyle, expansions: List<Expansion>, fringeScale: Double) {
-        renderFillCommands(drawContext, drawStyle, toCommands(vertices, expansions), fringeScale)
+        renderFillCommands(drawContext, drawStyle, toCommands(vertices(expansions.sumOf { it.vertexCount }), expansions), fringeScale)
     }
 }

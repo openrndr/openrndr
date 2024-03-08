@@ -3,6 +3,7 @@
 package org.openrndr.internal
 
 import org.openrndr.draw.*
+import org.openrndr.utils.buffer.MPPBuffer
 import kotlin.jvm.JvmName
 
 
@@ -86,47 +87,6 @@ expect interface Driver {
         session: Session? = Session.active
     ): ColorBuffer
 
-    fun createColorBufferFromUrl(
-        url: String,
-        formatHint: ImageFileFormat? = null,
-        session: Session? = Session.active
-    ): ColorBuffer
-
-    suspend fun createColorBufferFromUrlSuspend(
-        url: String,
-        formatHint: ImageFileFormat? = null,
-        session: Session? = Session.active
-    ): ColorBuffer
-
-    fun createColorBufferFromFile(
-        filename: String,
-        formatHint: ImageFileFormat? = null,
-        session: Session? = Session.active
-    ): ColorBuffer
-
-//    fun createColorBufferFromStream(
-//        stream: InputStream,
-//        name: String? = null,
-//        formatHint: ImageFileFormat? = null,
-//        session: Session? = Session.active
-//    ): ColorBuffer
-
-    fun createColorBufferFromArray(
-        array: ByteArray,
-        offset: Int = 0,
-        length: Int = 0,
-        name: String? = null,
-        formatHint: ImageFileFormat? = null,
-        session: Session? = Session.active
-    ): ColorBuffer
-
-//    fun createColorBufferFromBuffer(
-//        buffer: ByteBuffer,
-//        name: String? = null,
-//        formatHint: ImageFileFormat? = null,
-//        session: Session? = Session.active
-//    ): ColorBuffer
-
     fun createDepthBuffer(
         width: Int,
         height: Int,
@@ -147,18 +107,6 @@ expect interface Driver {
         format: ColorFormat,
         type: ColorType,
         levels: Int,
-        session: Session? = Session.active
-    ): Cubemap
-
-    fun createCubemapFromUrls(
-        urls: List<String>,
-        formatHint: ImageFileFormat? = null,
-        session: Session? = Session.active
-    ): Cubemap
-
-    fun createCubemapFromFiles(
-        filenames: List<String>,
-        formatHint: ImageFileFormat? = null,
         session: Session? = Session.active
     ): Cubemap
 

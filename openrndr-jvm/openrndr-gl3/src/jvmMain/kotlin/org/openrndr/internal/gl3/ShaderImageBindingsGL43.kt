@@ -9,7 +9,7 @@ import org.openrndr.internal.Driver
 interface ShaderImageBindingsGL43 : ShaderImageBindings, ShaderUniformsGL3 {
 
     override fun image(name: String, image: Int, imageBinding: ImageBinding) {
-        (Driver.instance as DriverGL3).version.require(DriverVersionGL.VERSION_4_3)
+        (Driver.instance as DriverGL3).version.require(DriverVersionGL.GL_VERSION_4_3)
 
         when (imageBinding) {
             is BufferTextureImageBinding -> {

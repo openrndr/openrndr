@@ -12,6 +12,7 @@ kotlin {
                 api(project(":openrndr-shape"))
                 api(project(":openrndr-event"))
                 implementation(project(":openrndr-utils"))
+                implementation(project(":openrndr-platform"))
                 implementation(libs.kotlin.coroutines)
             }
         }

@@ -93,4 +93,8 @@ class ApplicationNullGL(override var program: Program, override var configuratio
     override var windowContentScale: Double
         get() = 1.0
         set(_) {}
+
+    override fun createChildWindow(configuration: WindowConfiguration, program: Program): ApplicationWindow {
+        TODO("Not yet implemented")
+    }
 }

@@ -15,7 +15,7 @@ abstract class AbstractApplicationTestFixture {
 
     @BeforeTest
     open fun setup() {
-        System.setProperty("org.openrndr.gl3.debug",  "true")
+        //System.setProperty("org.openrndr.gl3.debug",  "true")
         program = ProgramImplementation()
         applicationBase = ApplicationBaseGLFWGL3()
         application = applicationBase.build(program, Configuration()) as ApplicationGLFWGL3

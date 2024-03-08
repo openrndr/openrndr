@@ -26,7 +26,7 @@ internal sealed class SVGElement(element: Element?) {
             Prop.FILL -> style.fill = SVGParse.color(value)
             Prop.FILL_OPACITY -> style.fillOpacity = SVGParse.number(value)
             Prop.OPACITY -> style.opacity = SVGParse.number(value)
-            else -> logger.warn("Unknown property: $key")
+            else -> logger.warn { "Unknown property: $key" }
         }
     }
 
@@ -147,7 +147,7 @@ internal class SVGPath(val element: Element? = null) : SVGElement(element) {
             compound.commands.forEach { command ->
 
                 if (command.op !in listOf("z", "Z") && command.operands.isEmpty()) {
-                    logger.error("Invalid amount of arguments provided for: ${command.op}")
+                    logger.error { "Invalid amount of arguments provided for: ${command.op}" }
                     return@forEach
                 }
 
@@ -155,7 +155,7 @@ internal class SVGPath(val element: Element? = null) : SVGElement(element) {
 
                 // TODO: Rethink this check
                 if (points == null && command.op.lowercase() !in listOf("a", "h", "v")) {
-                    logger.error("Invalid amount of arguments provided for: ${command.op}")
+                    logger.error { "Invalid amount of arguments provided for: ${command.op}" }
                     return@forEach
                 }
 
@@ -165,7 +165,7 @@ internal class SVGPath(val element: Element? = null) : SVGElement(element) {
                         // Special case as it also has boolean values
                         val contours = command.operands.toList().windowed(7, 7, true).map m@{
                             if (it.size != 7) {
-                                logger.error("Invalid amount of arguments provided for: ${command.op}")
+                                logger.error { "Invalid amount of arguments provided for: ${command.op}" }
                                 return@forEach
                             } else {
                                 val rx = it[0]
@@ -175,7 +175,7 @@ internal class SVGPath(val element: Element? = null) : SVGElement(element) {
                                 val sweepFlag = it[4].toBoolean()
 
                                 if (largeArcFlag == null || sweepFlag == null || rx == 0.0 || ry == 0.0) {
-                                    logger.error("Invalid values provided for: ${command.op}")
+                                    logger.error { "Invalid values provided for: ${command.op}" }
                                     return@forEach
                                 }
 
@@ -272,7 +272,7 @@ internal class SVGPath(val element: Element? = null) : SVGElement(element) {
                     "C" -> {
                         segments += points!!.windowed(3, 3, true).map {
                             if (it.size != 3) {
-                                logger.error("Invalid amount of arguments provided for: ${command.op}")
+                                logger.error { "Invalid amount of arguments provided for: ${command.op}" }
                                 return@forEach
                             } else {
                                 val (cp1, cp2, target) = it
@@ -286,7 +286,7 @@ internal class SVGPath(val element: Element? = null) : SVGElement(element) {
                     "c" -> {
                         segments += points!!.windowed(3, 3, true).map {
                             if (it.size != 3) {
-                                logger.error("Invalid amount of arguments provided for: ${command.op}")
+                                logger.error { "Invalid amount of arguments provided for: ${command.op}" }
                                 return@forEach
                             } else {
                                 val (cp1, cp2, target) = it.map { v -> cursor + v }
@@ -300,7 +300,7 @@ internal class SVGPath(val element: Element? = null) : SVGElement(element) {
                     "S" -> {
                         segments += points!!.windowed(2, 2, true).map {
                             if (it.size != 2) {
-                                logger.error("Invalid amount of arguments provided for: ${command.op}")
+                                logger.error { "Invalid amount of arguments provided for: ${command.op}" }
                                 return@forEach
                             } else {
                                 val cp1 = 2.0 * cursor - (prevCubicCtrlPoint ?: cursor)
@@ -315,7 +315,7 @@ internal class SVGPath(val element: Element? = null) : SVGElement(element) {
                     "s" -> {
                         segments += points!!.windowed(2, 2, true).map {
                             if (it.size != 2) {
-                                logger.error("Invalid amount of arguments provided for: ${command.op}")
+                                logger.error { "Invalid amount of arguments provided for: ${command.op}" }
                                 return@forEach
                             } else {
                                 val cp1 = 2.0 * cursor - (prevCubicCtrlPoint ?: cursor)
@@ -330,7 +330,7 @@ internal class SVGPath(val element: Element? = null) : SVGElement(element) {
                     "Q" -> {
                         segments += points!!.windowed(2, 2, true).map {
                             if (it.size != 2) {
-                                logger.error("Invalid amount of arguments provided for: ${command.op}")
+                                logger.error { "Invalid amount of arguments provided for: ${command.op}" }
                                 return@forEach
                             } else {
                                 val (cp, target) = it
@@ -344,7 +344,7 @@ internal class SVGPath(val element: Element? = null) : SVGElement(element) {
                     "q" -> {
                         segments += points!!.windowed(2, 2, true).map {
                             if (it.size != 2) {
-                                logger.error("Invalid amount of arguments provided for: ${command.op}")
+                                logger.error { "Invalid amount of arguments provided for: ${command.op}" }
                                 return@forEach
                             } else {
                                 val (cp, target) = it.map { v -> cursor + v }
@@ -384,7 +384,7 @@ internal class SVGPath(val element: Element? = null) : SVGElement(element) {
                         // The spec declares we should still attempt to render
                         // the path up until the erroneous command as to visually
                         // signal the user where the error occurred.
-                        logger.error("Invalid path operator: ${command.op}")
+                        logger.error { "Invalid path operator: ${command.op}" }
                         return@forEach
                     }
                 }

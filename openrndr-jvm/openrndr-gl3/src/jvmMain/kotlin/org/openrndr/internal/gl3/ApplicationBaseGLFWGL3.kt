@@ -7,13 +7,22 @@ import org.openrndr.*
 import org.openrndr.draw.font.FontDriverStbTt
 import org.openrndr.draw.font.internal.FontDriver
 import org.openrndr.internal.ImageDriver
+import org.openrndr.internal.gl3.angle.extractAngleLibraries
 
 private val logger = KotlinLogging.logger {  }
 class ApplicationBaseGLFWGL3 : ApplicationBase() {
     init {
         logger.debug { "initializing ApplicationBaseGLFWGL3" }
+        if (!ApplicationConfiguration.checkThread0) {
+            org.lwjgl.system.Configuration.GLFW_CHECK_THREAD0.set(false)
+        }
+
         if (!glfwInit()) {
             throw IllegalStateException("Unable to initialize GLFW")
+        }
+
+        if (DriverGL3Configuration.driverType == DriverTypeGL.GLES && DriverGL3Configuration.glesBackend == GlesBackend.ANGLE) {
+            extractAngleLibraries()
         }
         ImageDriver.driver = ImageDriverStbImage()
         FontDriver.driver = FontDriverStbTt()

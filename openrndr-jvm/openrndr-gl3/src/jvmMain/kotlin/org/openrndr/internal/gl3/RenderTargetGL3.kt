@@ -1,9 +1,7 @@
 package org.openrndr.internal.gl3
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.lwjgl.opengl.GL33C.*
-import org.lwjgl.opengl.GL40C.glBlendEquationi
-import org.lwjgl.opengl.GL40C.glBlendFunci
+import org.lwjgl.opengl.GL30C.*
 import org.lwjgl.system.MemoryStack
 import org.openrndr.Program
 import org.openrndr.color.ColorRGBa
@@ -53,7 +51,7 @@ open class RenderTargetGL3(
     override val contentScale: Double,
     override val multisample: BufferMultisample,
     override val session: Session?,
-    private val thread: Thread = Thread.currentThread()
+    private val contextID: Long = Driver.instance.contextID
 ) : RenderTarget {
     var destroyed = false
 
@@ -75,7 +73,13 @@ open class RenderTargetGL3(
 
         val activeRenderTarget: RenderTargetGL3
             get() {
-                val stack = active.getOrPut(Driver.instance.contextID) { Stack() }
+                val stack = active.getOrPut(Driver.instance.contextID) {
+                    logger.debug { "creating active render target stack for context ${Driver.instance.contextID}" }
+                    Stack()
+                }
+                if (stack.isEmpty()) {
+                    logger.error { "empty stack while looking for active render target for context ${Driver.instance.contextID}" }
+                }
                 return stack.peek()
             }
     }
@@ -110,8 +114,8 @@ open class RenderTargetGL3(
         debugGLErrors { null }
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer)
 
-        if (Thread.currentThread() != thread) {
-            throw IllegalStateException("this render target is created by $thread and cannot be bound to ${Thread.currentThread()}")
+        if (Driver.instance.contextID != contextID) {
+            throw IllegalStateException("this render target is created by $contextID and cannot be bound to ${Driver.instance.contextID}")
         }
 
         debugGLErrors { null }
@@ -145,6 +149,7 @@ open class RenderTargetGL3(
             previous as RenderTargetGL3
             logger.trace { "restoring to previous render target $previous" }
             previous.bindTarget()
+            bound = false
         } else {
             throw RuntimeException("target not bound")
         }
@@ -469,20 +474,31 @@ open class RenderTargetGL3(
         bound {
             depthBuffer as DepthBufferGL3
 
-            if (depthBuffer.hasDepth) {
-                glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthBuffer.target, depthBuffer.texture, 0)
-                checkGLErrors { null }
-            }
+            if (depthBuffer.texture != -1) {
+                if (depthBuffer.hasDepth) {
+                    glFramebufferTexture2D(
+                        GL_FRAMEBUFFER,
+                        GL_DEPTH_ATTACHMENT,
+                        depthBuffer.target,
+                        depthBuffer.texture,
+                        0
+                    )
+                    checkGLErrors { null }
+                }
 
-            if (depthBuffer.hasStencil) {
-                glFramebufferTexture2D(
-                    GL_FRAMEBUFFER,
-                    GL_STENCIL_ATTACHMENT,
-                    depthBuffer.target,
-                    depthBuffer.texture,
-                    0
-                )
-                checkGLErrors { null }
+                if (depthBuffer.hasStencil) {
+                    glFramebufferTexture2D(
+                        GL_FRAMEBUFFER,
+                        GL_STENCIL_ATTACHMENT,
+                        depthBuffer.target,
+                        depthBuffer.texture,
+                        0
+                    )
+                    checkGLErrors { null }
+                }
+            } else {
+                glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBuffer.buffer)
+
             }
             this.depthBuffer = depthBuffer
             checkFramebufferStatus()
@@ -509,6 +525,8 @@ open class RenderTargetGL3(
                 GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT -> throw GL3Exception("Attachment incomplete")
                 GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT -> throw GL3Exception("Attachment missing")
                 GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER -> throw GL3Exception("Incomplete draw buffer")
+                GL_FRAMEBUFFER_UNSUPPORTED -> throw GL3Exception("the combination of internal formats of the attached images violates an implementation-dependent set of restrictions")
+                GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE -> throw GL3Exception(" the value of GL_RENDERBUFFER_SAMPLES is not the same for all attached renderbuffers; if the value of GL_TEXTURE_SAMPLES is the not same for all attached textures; or, if the attached images are a mix of renderbuffers and textures, the value of GL_RENDERBUFFER_SAMPLES does not match the value of GL_TEXTURE_SAMPLES.")
             }
             throw GL3Exception("error creating framebuffer $status")
         }

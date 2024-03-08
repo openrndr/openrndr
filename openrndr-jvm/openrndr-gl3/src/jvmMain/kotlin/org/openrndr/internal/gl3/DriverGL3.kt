@@ -4,31 +4,50 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.opengl.*
 import org.lwjgl.opengl.GL40C.*
+import org.lwjgl.system.FunctionProvider
 import org.openrndr.draw.*
 import org.openrndr.internal.*
+import org.openrndr.internal.gl3.extensions.AngleExtensions
 import org.openrndr.internal.glcommon.ComputeStyleManagerGLCommon
 import org.openrndr.internal.glcommon.ShadeStyleManagerGLCommon
 import org.openrndr.internal.glcommon.ShaderGeneratorsGLCommon
 import org.openrndr.math.Matrix33
 import org.openrndr.math.Matrix44
 import org.openrndr.shape.Rectangle
-import java.io.InputStream
 import java.nio.Buffer
-import java.nio.ByteBuffer
 import java.nio.FloatBuffer
 import java.util.*
 
 private val logger = KotlinLogging.logger {}
-internal val useDebugContext = System.getProperty("org.openrndr.gl3.debug") != null
 
-enum class DriverVersionGL(val glslVersion: String, val majorVersion: Int, val minorVersion: Int) {
-    VERSION_3_3("330 core", 3, 3),
-    VERSION_4_1("410 core", 4, 1),
-    VERSION_4_2("420 core", 4, 2),
-    VERSION_4_3("430 core", 4, 3),
-    VERSION_4_4("440 core", 4, 4),
-    VERSION_4_5("450 core", 4, 5),
-    VERSION_4_6("460 core", 4, 6);
+
+enum class GlesBackend {
+    SYSTEM,
+    ANGLE
+}
+
+enum class DriverTypeGL {
+    GL,
+    GLES
+}
+
+enum class DriverVersionGL(
+    val type: DriverTypeGL,
+    val glslVersion: String,
+    val majorVersion: Int,
+    val minorVersion: Int
+) {
+    GL_VERSION_3_3(DriverTypeGL.GL, "330 core", 3, 3),
+    GL_VERSION_4_1(DriverTypeGL.GL, "410 core", 4, 1),
+    GL_VERSION_4_2(DriverTypeGL.GL, "420 core", 4, 2),
+    GL_VERSION_4_3(DriverTypeGL.GL, "430 core", 4, 3),
+    GL_VERSION_4_4(DriverTypeGL.GL, "440 core", 4, 4),
+    GL_VERSION_4_5(DriverTypeGL.GL, "450 core", 4, 5),
+    GL_VERSION_4_6(DriverTypeGL.GL, "460 core", 4, 6),
+
+    GLES_VERSION_3_0(DriverTypeGL.GLES, "300 es", 3, 0),
+    GLES_VERSION_3_1(DriverTypeGL.GLES, "310 es", 3, 1),
+    GLES_VERSION_3_2(DriverTypeGL.GLES, "320 es", 3, 2);
 
     val versionString
         get() = "$majorVersion.$minorVersion"
@@ -42,6 +61,16 @@ inline fun DriverVersionGL.require(minimum: DriverVersionGL) {
 }
 
 class DriverGL3(val version: DriverVersionGL) : Driver {
+
+    var angleExtensions: AngleExtensions? = null
+
+    fun setupExtensions(functionProvider: FunctionProvider) {
+        val isAngle = version.type == DriverTypeGL.GLES && glGetString(GL_RENDERER)?.contains("ANGLE") == true
+        if (isAngle) {
+            angleExtensions = AngleExtensions(functionProvider)
+        }
+    }
+
     override val shaderLanguage: ShaderLanguage
         get() {
             return GLSL(version.glslVersion)
@@ -50,7 +79,12 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
     override fun shaderConfiguration(): String = """
         #version ${version.glslVersion}
         #define OR_IN_OUT
-        #define OR_GL
+        ${when(version.type) {
+      DriverTypeGL.GL -> "#define OR_GL"
+      DriverTypeGL.GLES -> """#define OR_GLES
+          |precision highp float;
+      """.trimMargin()  
+    }}       
     """.trimIndent()
 
     override fun createComputeStyleManager(session: Session?): ComputeStyleManager {
@@ -58,17 +92,17 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
     }
 
     companion object {
-        fun candidateVersions(): List<DriverVersionGL> {
+        fun candidateVersions(type: DriverTypeGL = DriverGL3Configuration.driverType): List<DriverVersionGL> {
             val property = System.getProperty("org.openrndr.gl3.version", "all")
-            return DriverVersionGL.values().find { "${it.majorVersion}.${it.minorVersion}" == property }
+            return DriverVersionGL.entries.find { it.type == DriverTypeGL.GL && "${it.majorVersion}.${it.minorVersion}" == property }
                 ?.let { listOf(it) }
-                ?: DriverVersionGL.values().reversed()
+                ?: DriverVersionGL.entries.filter { it.type == type }.reversed()
         }
     }
 
     override val contextID: Long
         get() {
-            return Thread.currentThread().id
+            return GLFW.glfwGetCurrentContext()
         }
 
     override fun createResourceThread(session: Session?, f: () -> Unit): ResourceThread {
@@ -221,12 +255,12 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
     }
 
     override fun createComputeShader(code: String, name: String, session: Session?): ComputeShader {
-        version.require(DriverVersionGL.VERSION_4_3)
+        version.require(DriverVersionGL.GL_VERSION_4_3)
         return ComputeShaderGL43.createFromCode(code, name)
     }
 
     override fun createAtomicCounterBuffer(counterCount: Int, session: Session?): AtomicCounterBuffer {
-        version.require(DriverVersionGL.VERSION_4_3)
+        version.require(DriverVersionGL.GL_VERSION_4_3)
         val atomicCounterBuffer = AtomicCounterBufferGL42.create(counterCount)
         session?.track(atomicCounterBuffer)
         return atomicCounterBuffer
@@ -272,33 +306,6 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         return cubemap
     }
 
-    override fun createCubemapFromUrls(urls: List<String>, formatHint: ImageFileFormat?, session: Session?): Cubemap {
-        logger.trace { "creating cubemap from urls $urls" }
-        val cubemap = when (urls.size) {
-            1 -> CubemapGL3.fromUrl(urls[0], formatHint, session)
-            6 -> CubemapGL3.fromUrls(urls, formatHint, session)
-            else -> throw RuntimeException("expected 1 or 6 urls")
-        }
-        session?.track(cubemap)
-        return cubemap
-    }
-
-    override fun createCubemapFromFiles(
-        filenames: List<String>,
-        formatHint: ImageFileFormat?,
-        session: Session?
-    ): Cubemap {
-        val urls = filenames.map { "file:$it" }
-        logger.trace { "creating cubemap from urls $urls" }
-        val cubemap = when (urls.size) {
-            1 -> CubemapGL3.fromUrl(urls[0], formatHint, session)
-            6 -> CubemapGL3.fromUrls(urls, formatHint, session)
-            else -> throw RuntimeException("expected 1 or 6 urls")
-        }
-        session?.track(cubemap)
-        return cubemap
-    }
-
     override fun createVolumeTexture(
         width: Int,
         height: Int,
@@ -337,7 +344,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         session: Session?
     ): ArrayCubemap {
         logger.trace { "creating array texture" }
-        version.require(DriverVersionGL.VERSION_4_1)
+        version.require(DriverVersionGL.GL_VERSION_4_1)
         val arrayTexture = ArrayCubemapGL4.create(width, layers, format, type, levels, session)
         session?.track(arrayTexture)
         return arrayTexture
@@ -362,67 +369,6 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         }
     }
 
-    override fun createColorBufferFromUrl(url: String, formatHint: ImageFileFormat?, session: Session?): ColorBuffer {
-        val colorBuffer = ColorBufferGL3.fromUrl(url, formatHint, session)
-        session?.track(colorBuffer)
-        return colorBuffer
-    }
-
-    override suspend fun createColorBufferFromUrlSuspend(
-        url: String,
-        formatHint: ImageFileFormat?,
-        session: Session?
-    ): ColorBuffer {
-        val colorBuffer = ColorBufferGL3.fromUrl(url, formatHint, session)
-        session?.track(colorBuffer)
-        return colorBuffer
-    }
-
-    override fun createColorBufferFromFile(
-        filename: String,
-        formatHint: ImageFileFormat?,
-        session: Session?
-    ): ColorBuffer {
-        val colorBuffer = ColorBufferGL3.fromFile(filename, formatHint, session)
-        session?.track(colorBuffer)
-        return colorBuffer
-    }
-
-    override fun createColorBufferFromStream(
-        stream: InputStream,
-        name: String?,
-        formatHint: ImageFileFormat?,
-        session: Session?
-    ): ColorBuffer {
-        val colorBuffer = ColorBufferGL3.fromStream(stream, name, formatHint, session)
-        session?.track(colorBuffer)
-        return colorBuffer
-    }
-
-    override fun createColorBufferFromArray(
-        array: ByteArray,
-        offset: Int,
-        length: Int,
-        name: String?,
-        formatHint: ImageFileFormat?,
-        session: Session?
-    ): ColorBuffer {
-        val colorBuffer = ColorBufferGL3.fromArray(array, offset, length, name, formatHint, session)
-        session?.track(colorBuffer)
-        return colorBuffer
-    }
-
-    override fun createColorBufferFromBuffer(
-        buffer: ByteBuffer,
-        name: String?,
-        formatHint: ImageFileFormat?,
-        session: Session?
-    ): ColorBuffer {
-        val colorBuffer = ColorBufferGL3.fromBuffer(buffer, name, formatHint, session)
-        session?.track(colorBuffer)
-        return colorBuffer
-    }
-
     override fun createDepthBuffer(
         width: Int,
         height: Int,
@@ -433,7 +379,6 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         logger.trace { "creating depth buffer $width x $height @ $format" }
         synchronized(this) {
             val depthBuffer = DepthBufferGL3.create(width, height, format, multisample, session)
-            session?.track(depthBuffer)
             return depthBuffer
         }
     }
@@ -471,7 +416,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         }
 
         if (drawPrimitive == DrawPrimitive.PATCHES) {
-            if (Driver.glVersion >= DriverVersionGL.VERSION_4_1) {
+            if (Driver.glVersion >= DriverVersionGL.GL_VERSION_4_1) {
                 glPatchParameteri(GL_PATCH_VERTICES, verticesPerPatch)
             }
         }
@@ -479,7 +424,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         shader as ShaderGL3
         // -- find or create a VAO for our shader + vertex buffers combination
         val shaderVertexDescription = ShaderVertexDescription(
-            contextID,
+            Driver.instance.contextID,
             shader.programObject,
             IntArray(vertexBuffers.size) { (vertexBuffers[it] as VertexBufferGL3).buffer },
             IntArray(0)
@@ -527,25 +472,29 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         val shader: Int,
         val vertexBuffers: IntArray,
         val instanceAttributeBuffers: IntArray
-    ) {
+    )  {
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
             if (javaClass != other?.javaClass) return false
 
             other as ShaderVertexDescription
+
+            if (context != other.context) return false
             if (shader != other.shader) return false
             if (!vertexBuffers.contentEquals(other.vertexBuffers)) return false
-            return instanceAttributeBuffers.contentEquals(other.instanceAttributeBuffers)
+            if (!instanceAttributeBuffers.contentEquals(other.instanceAttributeBuffers)) return false
+
+            return true
         }
 
         override fun hashCode(): Int {
-            var result = shader
+            var result = context.hashCode()
+            result = 31 * result + shader
             result = 31 * result + vertexBuffers.contentHashCode()
             result = 31 * result + instanceAttributeBuffers.contentHashCode()
             return result
         }
     }
-
 
     override fun drawIndexedVertexBuffer(
         shader: Shader,
@@ -561,7 +510,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         indexBuffer as IndexBufferGL3
 
         if (drawPrimitive == DrawPrimitive.PATCHES) {
-            if (Driver.glVersion >= DriverVersionGL.VERSION_4_1) {
+            if (Driver.glVersion >= DriverVersionGL.GL_VERSION_4_1) {
                 glPatchParameteri(GL_PATCH_VERTICES, verticesPerPatch)
             }
         }
@@ -627,12 +576,12 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         instanceCount: Int,
         verticesPerPatch: Int
     ) {
-        require(instanceOffset == 0 || Driver.glVersion >= DriverVersionGL.VERSION_4_2) {
+        require(instanceOffset == 0 || Driver.glVersion >= DriverVersionGL.GL_VERSION_4_2) {
             "non-zero instance offsets require OpenGL 4.2 (current config: ${Driver.glVersion.versionString})"
         }
 
         if (drawPrimitive == DrawPrimitive.PATCHES) {
-            if (Driver.glVersion >= DriverVersionGL.VERSION_4_1) {
+            if (Driver.glVersion >= DriverVersionGL.GL_VERSION_4_1) {
                 glPatchParameteri(GL_PATCH_VERTICES, verticesPerPatch)
             }
         }
@@ -659,7 +608,9 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
             arrays[0]
         }
 
+        debugGLErrors()
         glBindVertexArray(vao)
+        debugGLErrors()
 
         logger.trace { "drawing $instanceCount instances with $drawPrimitive(${drawPrimitive.glType()}) and $vertexCount vertices with vertexOffset $vertexOffset " }
         if (instanceOffset == 0) {
@@ -698,12 +649,12 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         instanceCount: Int,
         verticesPerPatch: Int
     ) {
-        require(instanceOffset == 0 || Driver.glVersion >= DriverVersionGL.VERSION_4_2) {
+        require(instanceOffset == 0 || (Driver.glVersion >= DriverVersionGL.GL_VERSION_4_2 && Driver.glVersion.type == DriverTypeGL.GL)) {
             "non-zero instance offsets require OpenGL 4.2 (current config: ${Driver.glVersion.versionString})"
         }
 
         if (drawPrimitive == DrawPrimitive.PATCHES) {
-            if (Driver.glVersion >= DriverVersionGL.VERSION_4_1) {
+            if (Driver.glVersion >= DriverVersionGL.GL_VERSION_4_1) {
                 glPatchParameteri(GL_PATCH_VERTICES, verticesPerPatch)
             }
         }
@@ -948,9 +899,16 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
     }
 
 
-    private val cached = DrawStyle()
-    private var dirty = true
+    private val dirtyPerContext = mutableMapOf<Long, Boolean>()
+    private val cachedPerContext = mutableMapOf<Long, DrawStyle>()
+
+    //private val cached = DrawStyle()
+    //private var dirty = true
     override fun setState(drawStyle: DrawStyle) {
+
+        val dirty = dirtyPerContext.getOrDefault(contextID, true)
+        val cached = cachedPerContext.getOrPut(contextID) { DrawStyle() }
+
         if (dirty || cached.clip != drawStyle.clip) {
             if (drawStyle.clip != null) {
                 drawStyle.clip?.let { it: Rectangle ->
@@ -1009,12 +967,12 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
                         glStencilOp(drawStyle.stencil.depthPassOperation)
                     )
                     debugGLErrors()
-                    glStencilMaskSeparate(GL_FRONT_AND_BACK,drawStyle.stencil.stencilWriteMask)
+                    glStencilMaskSeparate(GL_FRONT_AND_BACK, drawStyle.stencil.stencilWriteMask)
                     debugGLErrors()
                 }
             } else {
-                require(drawStyle.frontStencil.stencilTest !=StencilTest.DISABLED)
-                require(drawStyle.backStencil.stencilTest !=StencilTest.DISABLED)
+                require(drawStyle.frontStencil.stencilTest != StencilTest.DISABLED)
+                require(drawStyle.backStencil.stencilTest != StencilTest.DISABLED)
                 glEnable(GL_STENCIL_TEST)
                 glStencilFuncSeparate(
                     GL_FRONT,
@@ -1052,7 +1010,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
             when (drawStyle.blendMode) {
                 BlendMode.OVER -> {
                     glEnable(GL_BLEND)
-                    if (version >= DriverVersionGL.VERSION_4_1) {
+                    if (version >= DriverVersionGL.GL_VERSION_4_1 && version.type == DriverTypeGL.GL) {
                         glBlendEquationi(0, GL_FUNC_ADD)
                         glBlendFunci(0, GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
                     } else {
@@ -1063,7 +1021,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
 
                 BlendMode.BLEND -> {
                     glEnable(GL_BLEND)
-                    if (version >= DriverVersionGL.VERSION_4_1) {
+                    if (version >= DriverVersionGL.GL_VERSION_4_1 && version.type == DriverTypeGL.GL) {
                         glBlendEquationi(0, GL_FUNC_ADD)
                         glBlendFunci(0, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
                     } else {
@@ -1074,7 +1032,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
 
                 BlendMode.ADD -> {
                     glEnable(GL_BLEND)
-                    if (version >= DriverVersionGL.VERSION_4_1) {
+                    if (version >= DriverVersionGL.GL_VERSION_4_1 && version.type == DriverTypeGL.GL) {
                         glBlendEquationi(0, GL_FUNC_ADD)
                         glBlendFunci(0, GL_ONE, GL_ONE)
                     } else {
@@ -1089,7 +1047,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
 
                 BlendMode.SUBTRACT -> {
                     glEnable(GL_BLEND)
-                    if (version >= DriverVersionGL.VERSION_4_1) {
+                    if (version >= DriverVersionGL.GL_VERSION_4_1 && version.type == DriverTypeGL.GL) {
                         glBlendEquationSeparatei(0, GL_FUNC_REVERSE_SUBTRACT, GL_FUNC_ADD)
                         glBlendFuncSeparatei(0, GL_SRC_ALPHA, GL_ONE, GL_ONE, GL_ONE)
                     } else {
@@ -1100,7 +1058,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
 
                 BlendMode.MULTIPLY -> {
                     glEnable(GL_BLEND)
-                    if (version >= DriverVersionGL.VERSION_4_1) {
+                    if (version >= DriverVersionGL.GL_VERSION_4_1 && version.type == DriverTypeGL.GL) {
                         glBlendEquationi(0, GL_FUNC_ADD)
                         glBlendFunci(0, GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA)
                     } else {
@@ -1111,7 +1069,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
 
                 BlendMode.REMOVE -> {
                     glEnable(GL_BLEND)
-                    if (version >= DriverVersionGL.VERSION_4_1) {
+                    if (version >= DriverVersionGL.GL_VERSION_4_1 && version.type == DriverTypeGL.GL) {
                         glBlendEquationi(0, GL_FUNC_ADD)
                         glBlendFunci(0, GL_ZERO, GL_ONE_MINUS_SRC_ALPHA)
                     } else {
@@ -1122,7 +1080,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
 
                 BlendMode.MIN -> {
                     glEnable(GL_BLEND)
-                    if (version >= DriverVersionGL.VERSION_4_1) {
+                    if (version >= DriverVersionGL.GL_VERSION_4_1 && version.type == DriverTypeGL.GL) {
                         glBlendEquationi(0, GL_MIN)
                         glBlendFunci(0, GL_ONE, GL_ONE)
                     } else {
@@ -1133,7 +1091,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
 
                 BlendMode.MAX -> {
                     glEnable(GL_BLEND)
-                    if (version >= DriverVersionGL.VERSION_4_1) {
+                    if (version >= DriverVersionGL.GL_VERSION_4_1 && version.type == DriverTypeGL.GL) {
                         glBlendEquationi(0, GL_MAX)
                         glBlendFunci(0, GL_ONE, GL_ONE)
                     } else {
@@ -1146,10 +1104,10 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         }
         if (dirty || cached.alphaToCoverage != drawStyle.alphaToCoverage) {
             if (drawStyle.alphaToCoverage) {
-                GL33C.glEnable(GL13C.GL_SAMPLE_ALPHA_TO_COVERAGE)
-                GL33C.glDisable(GL11C.GL_BLEND)
+                glEnable(GL13C.GL_SAMPLE_ALPHA_TO_COVERAGE)
+                glDisable(GL11C.GL_BLEND)
             } else {
-                GL33C.glDisable(GL13C.GL_SAMPLE_ALPHA_TO_COVERAGE)
+                glDisable(GL13C.GL_SAMPLE_ALPHA_TO_COVERAGE)
             }
             cached.alphaToCoverage = drawStyle.alphaToCoverage
         }
@@ -1211,7 +1169,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
             }
             cached.cullTestPass = drawStyle.cullTestPass
         }
-        dirty = false
+        dirtyPerContext[contextID] = false
         debugGLErrors()
 
     }
@@ -1226,7 +1184,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
             defaultVAOs.remove(context)
         }
         destroyAllVAOs()
-        dirty = true
+        dirtyPerContext.remove(context)
     }
 
     override val activeRenderTarget: RenderTarget
@@ -1266,7 +1224,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
     fun destroyAllVAOs() {
         vaos.keys.forEach {
             val value = vaos[it]!!
-            GL30C.glDeleteVertexArrays(value)
+            glDeleteVertexArrays(value)
             debugGLErrors()
         }
         vaos.clear()
@@ -1388,3 +1346,6 @@ internal fun Matrix33.toFloatArray(): FloatArray = floatArrayOf(
 
 val Driver.Companion.glVersion
     get() = (instance as DriverGL3).version
+
+val Driver.Companion.glType
+    get() = (instance as DriverGL3).version.type

@@ -326,7 +326,7 @@ class ShaderWebGL(
     override fun uniform(name: String, value: Array<Double>) {
         val floatValues = Float32Array(value.size)
         for (i in value.indices) {
-            floatValues[i * 3] = value[i].toFloat()
+            floatValues[i] = value[i].toFloat()
 
         }
         val index = uniformIndex(name)
@@ -339,7 +339,7 @@ class ShaderWebGL(
     override fun uniform(name: String, value: FloatArray) {
         val floatValues = Float32Array(value.size)
         for (i in value.indices) {
-            floatValues[i * 3] = value[i].toFloat()
+            floatValues[i] = value[i].toFloat()
 
         }
         val index = uniformIndex(name)
