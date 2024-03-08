@@ -33,9 +33,6 @@ open class ApplicationPreload {
     open fun onProgramSetup(program: Program) {}
 }
 
-object ApplicationConfiguration {
-    val preloadClassName by lazy { Platform.property("org.openrndr.preloadclass") ?: "org.openrndr.Preload" }
-}
 
 abstract class ApplicationWindow(val program: Program) {
     abstract var windowTitle: String
