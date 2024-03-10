@@ -16,6 +16,7 @@ import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
 import org.openrndr.draw.BufferMultisample.Disabled
 import org.openrndr.draw.BufferMultisample.SampleCount
+import org.openrndr.filter.color.copy
 import org.openrndr.internal.Driver
 import org.openrndr.internal.ImageData
 import org.openrndr.internal.ImageDriver
@@ -309,6 +310,7 @@ class ColorBufferGL3(
                 }
             }
             checkGLErrors {
+                logger.error { "Texture creation failed. width: $width, height: $height, contentScale: $contentScale, format: $format, type: $type, multisample: $multisample" }
                 when (it) {
                     GL_INVALID_OPERATION -> """format is GL_DEPTH_COMPONENT (${format.glFormat() == GL_DEPTH_COMPONENT}) and internalFormat is not GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT16, GL_DEPTH_COMPONENT24, or GL_DEPTH_COMPONENT32F"""
                     GL_INVALID_FRAMEBUFFER_OPERATION -> "buh?"
@@ -401,11 +403,7 @@ class ColorBufferGL3(
         filter: MagnifyingFilter
     ) {
         checkDestroyed()
-        if (Driver.glType == DriverTypeGL.GLES) {
-            require(type.isFloat == target.type.isFloat) {
-                "cannot convert from int to float or from float to int ($type -> ${target.type})"
-            }
-        }
+
 
         val fromDiv = 1 shl fromLevel
         val toDiv = 1 shl toLevel
@@ -413,6 +411,17 @@ class ColorBufferGL3(
 
         val useTexSubImage =
             target.type.compressed || (refRectangle == sourceRectangle && refRectangle == targetRectangle && multisample == target.multisample)
+
+        val useCopyFilter = Driver.glType == DriverTypeGL.GLES && (
+                this.multisample is Disabled && target.multisample is SampleCount ||
+                type.isFloat != target.type.isFloat
+                )
+
+        if (useCopyFilter) {
+            copy.apply(this, target)
+            return
+        }
+
 
         if (!useTexSubImage) {
             val readTarget = renderTarget(
@@ -435,6 +444,7 @@ class ColorBufferGL3(
 
             writeTarget.bind()
             glBindFramebuffer(GL_READ_FRAMEBUFFER, readTarget.framebuffer)
+            debugGLErrors()
 
             val ssx = sourceRectangle.x
             val ssy = sourceRectangle.y
@@ -464,8 +474,16 @@ class ColorBufferGL3(
                 tex,
                 tflip(tey),
                 GL_COLOR_BUFFER_BIT,
-                filter.toGLFilter()
+                if (Driver.glType == DriverTypeGL.GLES) GL_NEAREST else filter.toGLFilter()
             )
+            debugGLErrors() {
+                logger.error {
+                    """failed to copy ${this@ColorBufferGL3} to ${target}, source rect: ${sourceRectangle}, target rect: ${targetRectangle}"""
+                }
+                when (it) {
+                    else -> null
+                }
+            }
             writeTarget.unbind()
 
             writeTarget.detachColorAttachments()
@@ -604,6 +622,7 @@ class ColorBufferGL3(
                         effectiveHeight / fromDiv,
                         1
                     )
+                    debugGLErrors()
                 } else {
                     val copyBuffer = MemoryUtil.memAlloc(bufferSize(fromLevel).toInt())
                     try {

@@ -59,6 +59,7 @@ kotlin {
                 implementation(libs.lwjgl.tinyexr)
                 implementation(libs.lwjgl.openal)
                 implementation(libs.lwjgl.egl)
+                implementation(project(":openrndr-filter"))
             }
         }
 
