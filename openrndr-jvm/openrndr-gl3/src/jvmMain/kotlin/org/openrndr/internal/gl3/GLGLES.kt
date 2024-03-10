@@ -547,6 +547,20 @@ fun glVertexAttribPointer(
     }
 }
 
+fun glVertexAttribIPointer(
+    @NativeType("GLuint") index: Int,
+    @NativeType("GLint") size: Int,
+    @NativeType("GLenum") type: Int,
+    @NativeType("GLsizei") stride: Int,
+    @NativeType("void const *") pointer: Long
+) {
+    when (driverType) {
+        DriverTypeGL.GL -> GL.glVertexAttribIPointer(index, size, type, stride, pointer)
+        DriverTypeGL.GLES -> GLES.glVertexAttribIPointer(index, size, type, stride, pointer)
+    }
+}
+
+
 // --- [ glVertexAttribDivisor ] ---
 fun glVertexAttribDivisor(@NativeType("GLuint") index: Int, @NativeType("GLuint") divisor: Int) {
     when (driverType) {
