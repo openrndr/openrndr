@@ -3,6 +3,7 @@ package org.openrndr.internal.gl3
 import org.lwjgl.opengl.ARBTextureCompressionBPTC
 import org.lwjgl.opengl.EXTTextureCompressionS3TC
 import org.lwjgl.opengl.GL33C.*
+import org.openrndr.draw.DepthFormat
 import org.openrndr.internal.Driver
 
 class GL3Exception(message: String) : Exception(message)
@@ -34,7 +35,14 @@ fun glEnumName(enum: Int): String {
         EXTTextureCompressionS3TC.GL_COMPRESSED_RGBA_S3TC_DXT3_EXT -> "GL_COMPRESSED_RGBA_S3TC_DXT3_EXT"
         EXTTextureCompressionS3TC.GL_COMPRESSED_RGBA_S3TC_DXT5_EXT -> "GL_COMPRESSED_RGBA_S3TC_DXT5_EXT"
         ARBTextureCompressionBPTC.GL_COMPRESSED_RGBA_BPTC_UNORM_ARB -> "GL_COMPRESSED_RGBA_BPTC_UNORM_ARB"
-
+        GL_DEPTH_COMPONENT16 -> "GL_DEPTH_COMPONENT16"
+        GL_DEPTH_COMPONENT24 -> "GL_DEPTH_COMPONENT24"
+        GL_DEPTH_COMPONENT32 -> "GL_DEPTH_COMPONENT32"
+        GL_DEPTH_COMPONENT32F -> "GL_DEPTH_COMPONENT32F"
+        GL_DEPTH32F_STENCIL8 -> "GL_DEPTH32F_STENCIL8"
+        GL_DEPTH_STENCIL -> "GL_DEPTH_STENCIL"
+        GL_STENCIL_INDEX -> "GL_STENCIL_INDEX"
+        GL_STENCIL_INDEX8 -> "GL_STENCIL_INDEX8"
         else -> "[$enum]"
     }
 }

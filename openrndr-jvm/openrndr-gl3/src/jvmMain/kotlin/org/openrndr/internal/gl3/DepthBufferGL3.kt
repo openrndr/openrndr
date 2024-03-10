@@ -1,11 +1,12 @@
 package org.openrndr.internal.gl3
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.lwjgl.opengl.GL33C.*
-import org.lwjgl.opengles.ANGLEDepthTexture.GL_DEPTH_COMPONENT32_OES
-import org.lwjgl.opengles.ANGLEDepthTexture.GL_UNSIGNED_INT_24_8_OES
 import org.openrndr.draw.*
 import org.openrndr.internal.Driver
 import java.nio.ByteBuffer
+
+private val logger = KotlinLogging.logger {  }
 
 class DepthBufferGL3(
     val texture: Int,
@@ -67,6 +68,9 @@ class DepthBufferGL3(
                                 height
                             )
                             checkGLErrors {
+                                logger.error {
+                                    """failed to create depth buffer. width: $width, height: $height, format: $format, multisample: $multisample"""
+                                }
                                 when (it) {
                                     GL_INVALID_ENUM -> "$format not supported?"
                                     else -> null
@@ -87,7 +91,12 @@ class DepthBufferGL3(
                                 width,
                                 height
                             )
-                            checkGLErrors()
+                            checkGLErrors() {
+                                logger.error {
+                                    """failed to create depth buffer. width: $width, height: $height, format: $format, multisample: $multisample"""
+                                }
+                                null
+                            }
                             glBindRenderbuffer(GL_RENDERBUFFER, 0)
                             DepthBufferGL3(-1, buffer, target, width, height, format, multisample, session)
                         }
@@ -115,7 +124,12 @@ class DepthBufferGL3(
                                 /* pixels = */
                                 nullBuffer
                             )
-                            checkGLErrors()
+                            checkGLErrors() {
+                                logger.error { """glTexImage2D failed. format: $format, multisample: $multisample
+                                    |internalformat=${glEnumName(format.toGLFormat())}, format=${glEnumName(glFormat)}
+                                """.trimMargin() }
+                                null
+                            }
                             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
                             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
                             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
@@ -132,7 +146,12 @@ class DepthBufferGL3(
                                 height,
                                 true
                             )
-                            checkGLErrors()
+                            checkGLErrors {
+                                logger.error { """glTexImage2D failed. format: $format, multisample: $multisample
+                                    |internalformat=${glEnumName(format.toGLFormat())}}
+                                """.trimMargin() }
+                                null
+                            }
                             DepthBufferGL3(glTexture, -1, target, width, height, format, multisample, session)
                         }
                     }
