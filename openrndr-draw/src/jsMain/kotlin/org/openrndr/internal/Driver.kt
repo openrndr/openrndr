@@ -226,6 +226,7 @@ actual interface Driver {
 
     actual val shaderLanguage: ShaderLanguage
     actual fun createComputeStyleManager(session: Session?): ComputeStyleManager
+    actual val properties: DriverProperties
 
 
 }

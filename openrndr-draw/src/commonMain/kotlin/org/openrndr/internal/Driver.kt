@@ -11,10 +11,20 @@ sealed class ShaderLanguage
 class GLSL(val version: String) : ShaderLanguage()
 class WebGLSL(val version: String) : ShaderLanguage()
 
+data class DriverProperties(
+    val maxRenderTargetSamples: Int,
+    val maxTextureSamples: Int,
+    val maxTextureSize: Int
+)
+
+
 /**
  * Driver interface. This is the internal interface
  */
 expect interface Driver {
+
+    val properties: DriverProperties
+
     val contextID: Long
     /**
      * Create a shader from code

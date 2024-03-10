@@ -80,7 +80,7 @@ class DriverWebGL(val context: WebGL2RenderingContext) : Driver {
     }
 
     data class Capabilities(
-        val instancedArrays : Boolean,
+        val instancedArrays: Boolean,
         val standardDerivatives: Boolean,
         val halfFloatTextures: Boolean,
         val floatTextures: Boolean,
@@ -97,7 +97,7 @@ class DriverWebGL(val context: WebGL2RenderingContext) : Driver {
     val capabilities = Capabilities(
         instancedArrays = extensions.instancedArrays != null,
         standardDerivatives = extensions.standardDerivatives != null,
-        halfFloatTextures =true,  //extensions.halfFloatTextures != null,
+        halfFloatTextures = true,  //extensions.halfFloatTextures != null,
         floatTextures = true, //extensions.floatTextures != null,
         colorBufferHalfFloat = extensions.colorBufferHalfFloat != null,
         colorBufferFloat = extensions.colorBufferFloat != null,
@@ -261,9 +261,17 @@ class DriverWebGL(val context: WebGL2RenderingContext) : Driver {
         error("not supported")
     }
 
-    private fun setupFormat(vertexBuffer: List<VertexBuffer>, instanceAttributes: List<VertexBuffer>, shader: ShaderWebGL) {
+    private fun setupFormat(
+        vertexBuffer: List<VertexBuffer>,
+        instanceAttributes: List<VertexBuffer>,
+        shader: ShaderWebGL
+    ) {
         val scalarVectorTypes = setOf(
-            VertexElementType.FLOAT32, VertexElementType.VECTOR2_FLOAT32, VertexElementType.VECTOR3_FLOAT32, VertexElementType.VECTOR4_FLOAT32)
+            VertexElementType.FLOAT32,
+            VertexElementType.VECTOR2_FLOAT32,
+            VertexElementType.VECTOR3_FLOAT32,
+            VertexElementType.VECTOR4_FLOAT32
+        )
 
         var attribute0Used = false
 
@@ -290,9 +298,11 @@ class DriverWebGL(val context: WebGL2RenderingContext) : Driver {
                                 context.enableVertexAttribArray(attributeIndex + i)
                                 val glType = item.type.glType()
                                 if (glType == GL.FLOAT) {
-                                    context.vertexAttribPointer(attributeIndex + i,
+                                    context.vertexAttribPointer(
+                                        attributeIndex + i,
                                         item.type.componentCount,
-                                        glType, false, format.size, item.offset.toInt() + i * item.type.sizeInBytes)
+                                        glType, false, format.size, item.offset.toInt() + i * item.type.sizeInBytes
+                                    )
                                 } else {
                                     error("integer attributes are not supported by WebGL")
                                 }
@@ -300,30 +310,40 @@ class DriverWebGL(val context: WebGL2RenderingContext) : Driver {
                                 attributeBindings++
                             }
                         }
+
                         VertexElementType.MATRIX44_FLOAT32 -> {
                             for (i in 0 until item.arraySize) {
                                 for (column in 0 until 4) {
                                     context.enableVertexAttribArray(attributeIndex + column + i * 4)
-                                    context.vertexAttribPointer(attributeIndex + column + i * 4,
+                                    context.vertexAttribPointer(
+                                        attributeIndex + column + i * 4,
                                         4,
-                                        item.type.glType(), false, format.size, item.offset.toInt() + column * 16 + i * 64)
+                                        item.type.glType(),
+                                        false,
+                                        format.size,
+                                        item.offset.toInt() + column * 16 + i * 64
+                                    )
                                     context.vertexAttribDivisor(attributeIndex + column + i * 4, divisor)
                                     attributeBindings++
                                 }
                             }
                         }
+
                         VertexElementType.MATRIX33_FLOAT32 -> {
                             for (i in 0 until item.arraySize) {
                                 for (column in 0 until 3) {
                                     context.enableVertexAttribArray(attributeIndex + column + i * 3)
-                                    context.vertexAttribPointer(attributeIndex + column + i * 3,
+                                    context.vertexAttribPointer(
+                                        attributeIndex + column + i * 3,
                                         3,
-                                        item.type.glType(), false, format.size, item.offset + column * 12 + i * 48)
+                                        item.type.glType(), false, format.size, item.offset + column * 12 + i * 48
+                                    )
                                     context.vertexAttribDivisor(attributeIndex + column + i * 3, divisor)
                                     attributeBindings++
                                 }
                             }
                         }
+
                         else -> {
                             TODO("implement support for ${item.type}")
                         }
@@ -365,9 +385,9 @@ class DriverWebGL(val context: WebGL2RenderingContext) : Driver {
 
         val vao = vaos.getOrPut(shaderVertexDescription) {
             val localVao = context.createVertexArray()
-                context.bindVertexArray(localVao)
-                setupFormat(vertexBuffers, emptyList(), shader)
-                context.bindVertexArray(null)
+            context.bindVertexArray(localVao)
+            setupFormat(vertexBuffers, emptyList(), shader)
+            context.bindVertexArray(null)
             localVao
         }
 
@@ -436,7 +456,12 @@ class DriverWebGL(val context: WebGL2RenderingContext) : Driver {
             if (drawStyle.clip != null) {
                 drawStyle.clip?.let {
                     val target = RenderTarget.active
-                    context.scissor((it.x * target.contentScale).toInt(), (target.height * target.contentScale - it.y * target.contentScale - it.height * target.contentScale).toInt(), (it.width * target.contentScale).toInt(), (it.height * target.contentScale).toInt())
+                    context.scissor(
+                        (it.x * target.contentScale).toInt(),
+                        (target.height * target.contentScale - it.y * target.contentScale - it.height * target.contentScale).toInt(),
+                        (it.width * target.contentScale).toInt(),
+                        (it.height * target.contentScale).toInt()
+                    )
                     context.enable(GL.SCISSOR_TEST)
                 }
             } else {
@@ -445,13 +470,18 @@ class DriverWebGL(val context: WebGL2RenderingContext) : Driver {
             cached.clip = drawStyle.clip
         }
         if (dirty || cached.channelWriteMask != drawStyle.channelWriteMask) {
-            context.colorMask(drawStyle.channelWriteMask.red, drawStyle.channelWriteMask.green, drawStyle.channelWriteMask.blue, drawStyle.channelWriteMask.alpha)
+            context.colorMask(
+                drawStyle.channelWriteMask.red,
+                drawStyle.channelWriteMask.green,
+                drawStyle.channelWriteMask.blue,
+                drawStyle.channelWriteMask.alpha
+            )
             cached.channelWriteMask = drawStyle.channelWriteMask
         }
         if (dirty || cached.depthWrite != drawStyle.depthWrite) {
             when (drawStyle.depthWrite) {
                 true -> context.depthMask(true)
-                false ->context.depthMask(false)
+                false -> context.depthMask(false)
             }
             context.enable(GL.DEPTH_TEST)
             cached.depthWrite = drawStyle.depthWrite
@@ -461,19 +491,47 @@ class DriverWebGL(val context: WebGL2RenderingContext) : Driver {
                 context.disable(GL.STENCIL_TEST)
             } else {
                 context.enable(GL.STENCIL_TEST)
-                context.stencilFunc(glStencilTest(drawStyle.stencil.stencilTest), drawStyle.stencil.stencilTestReference, drawStyle.stencil.stencilTestMask)
+                context.stencilFunc(
+                    glStencilTest(drawStyle.stencil.stencilTest),
+                    drawStyle.stencil.stencilTestReference,
+                    drawStyle.stencil.stencilTestMask
+                )
                 //debugGLErrors()
-                context.stencilOp(glStencilOp(drawStyle.stencil.stencilFailOperation), glStencilOp(drawStyle.stencil.depthFailOperation), glStencilOp(drawStyle.stencil.depthPassOperation))
+                context.stencilOp(
+                    glStencilOp(drawStyle.stencil.stencilFailOperation),
+                    glStencilOp(drawStyle.stencil.depthFailOperation),
+                    glStencilOp(drawStyle.stencil.depthPassOperation)
+                )
                 //debugGLErrors()
                 context.stencilMask(drawStyle.stencil.stencilWriteMask)
                 //debugGLErrors()
             }
         } else {
             context.enable(GL.STENCIL_TEST)
-            context.stencilFuncSeparate(GL.FRONT, glStencilTest(drawStyle.frontStencil.stencilTest), drawStyle.frontStencil.stencilTestReference, drawStyle.frontStencil.stencilTestMask)
-            context.stencilFuncSeparate(GL.BACK, glStencilTest(drawStyle.backStencil.stencilTest), drawStyle.backStencil.stencilTestReference, drawStyle.backStencil.stencilTestMask)
-            context.stencilOpSeparate(GL.FRONT, glStencilOp(drawStyle.frontStencil.stencilFailOperation), glStencilOp(drawStyle.frontStencil.depthFailOperation), glStencilOp(drawStyle.frontStencil.depthPassOperation))
-            context.stencilOpSeparate(GL.BACK, glStencilOp(drawStyle.backStencil.stencilFailOperation), glStencilOp(drawStyle.backStencil.depthFailOperation), glStencilOp(drawStyle.backStencil.depthPassOperation))
+            context.stencilFuncSeparate(
+                GL.FRONT,
+                glStencilTest(drawStyle.frontStencil.stencilTest),
+                drawStyle.frontStencil.stencilTestReference,
+                drawStyle.frontStencil.stencilTestMask
+            )
+            context.stencilFuncSeparate(
+                GL.BACK,
+                glStencilTest(drawStyle.backStencil.stencilTest),
+                drawStyle.backStencil.stencilTestReference,
+                drawStyle.backStencil.stencilTestMask
+            )
+            context.stencilOpSeparate(
+                GL.FRONT,
+                glStencilOp(drawStyle.frontStencil.stencilFailOperation),
+                glStencilOp(drawStyle.frontStencil.depthFailOperation),
+                glStencilOp(drawStyle.frontStencil.depthPassOperation)
+            )
+            context.stencilOpSeparate(
+                GL.BACK,
+                glStencilOp(drawStyle.backStencil.stencilFailOperation),
+                glStencilOp(drawStyle.backStencil.depthFailOperation),
+                glStencilOp(drawStyle.backStencil.depthPassOperation)
+            )
             context.stencilMaskSeparate(GL.FRONT, drawStyle.frontStencil.stencilWriteMask)
             context.stencilMaskSeparate(GL.BACK, drawStyle.backStencil.stencilWriteMask)
         }
@@ -484,11 +542,13 @@ class DriverWebGL(val context: WebGL2RenderingContext) : Driver {
                     context.blendEquation(GL.FUNC_ADD)
                     context.blendFunc(GL.ONE, GL.ONE_MINUS_SRC_ALPHA)
                 }
+
                 BlendMode.BLEND -> {
                     context.enable(GL.BLEND)
                     context.blendEquation(GL.FUNC_ADD)
                     context.blendFunc(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
                 }
+
                 BlendMode.ADD -> {
                     context.enable(GL.BLEND)
                     context.blendEquation(GL.FUNC_ADD)
@@ -498,26 +558,31 @@ class DriverWebGL(val context: WebGL2RenderingContext) : Driver {
                 BlendMode.REPLACE -> {
                     context.disable(GL.BLEND)
                 }
+
                 BlendMode.SUBTRACT -> {
                     context.enable(GL.BLEND)
                     context.blendEquationSeparate(GL.FUNC_REVERSE_SUBTRACT, GL.FUNC_ADD)
                     context.blendFuncSeparate(GL.SRC_ALPHA, GL.ONE, GL.ONE, GL.ONE)
                 }
+
                 BlendMode.MULTIPLY -> {
                     context.enable(GL.BLEND)
                     context.blendEquation(GL.FUNC_ADD)
                     context.blendFunc(GL.DST_COLOR, GL.ONE_MINUS_SRC_ALPHA)
                 }
+
                 BlendMode.REMOVE -> {
                     context.enable(GL.BLEND)
                     context.blendEquation(GL.FUNC_ADD)
                     context.blendFunc(GL.ZERO, GL.ONE_MINUS_SRC_ALPHA)
                 }
+
                 BlendMode.MIN -> {
                     context.enable(GL.BLEND)
                     context.blendEquation(WebGL2RenderingContext.MIN)
                     context.blendFunc(GL.ONE, GL.ONE)
                 }
+
                 BlendMode.MAX -> {
                     context.enable(GL.BLEND)
                     context.blendEquation(WebGL2RenderingContext.MAX)
@@ -540,21 +605,27 @@ class DriverWebGL(val context: WebGL2RenderingContext) : Driver {
                 DepthTestPass.ALWAYS -> {
                     context.depthFunc(GL.ALWAYS)
                 }
+
                 DepthTestPass.GREATER -> {
                     context.depthFunc(GL.GREATER)
                 }
+
                 DepthTestPass.GREATER_OR_EQUAL -> {
                     context.depthFunc(GL.GEQUAL)
                 }
+
                 DepthTestPass.LESS -> {
                     context.depthFunc(GL.LESS)
                 }
+
                 DepthTestPass.LESS_OR_EQUAL -> {
                     context.depthFunc(GL.LEQUAL)
                 }
+
                 DepthTestPass.EQUAL -> {
                     context.depthFunc(GL.EQUAL)
                 }
+
                 DepthTestPass.NEVER -> {
                     context.depthFunc(GL.NEVER)
                 }
@@ -567,14 +638,17 @@ class DriverWebGL(val context: WebGL2RenderingContext) : Driver {
                 CullTestPass.ALWAYS -> {
                     context.disable(GL.CULL_FACE)
                 }
+
                 CullTestPass.FRONT -> {
                     context.enable(GL.CULL_FACE)
                     context.cullFace(GL.BACK)
                 }
+
                 CullTestPass.BACK -> {
                     context.enable(GL.CULL_FACE)
                     context.cullFace(GL.FRONT)
                 }
+
                 CullTestPass.NEVER -> {
                     context.enable(GL.CULL_FACE)
                     context.cullFace(GL.FRONT_AND_BACK)
@@ -626,6 +700,7 @@ class DriverWebGL(val context: WebGL2RenderingContext) : Driver {
                 }
                 """
             }
+
             else -> error("unknown resource '$resourceId'")
         }
     }
@@ -635,6 +710,14 @@ class DriverWebGL(val context: WebGL2RenderingContext) : Driver {
 
     override fun createComputeStyleManager(session: Session?): ComputeStyleManager {
         TODO("Not yet implemented")
+    }
+
+    override val properties: DriverProperties by lazy {
+        DriverProperties(
+            maxRenderTargetSamples = 4,
+            maxTextureSamples = 4,
+            maxTextureSize = context.getParameter(GL.MAX_TEXTURE_SIZE) as? Int ?: 4096
+        )
     }
 
 

@@ -2,12 +2,15 @@ package org.openrndr.internal.gl3
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.lwjgl.opengl.GL30C.*
+import org.lwjgl.opengl.GL32C.GL_MAX_COLOR_TEXTURE_SAMPLES
+import org.lwjgl.opengl.GL32C.GL_MAX_DEPTH_TEXTURE_SAMPLES
 import org.lwjgl.system.MemoryStack
 import org.openrndr.Program
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
 import org.openrndr.internal.Driver
 import java.util.*
+import kotlin.math.min
 
 private val logger = KotlinLogging.logger {}
 
@@ -68,6 +71,20 @@ open class RenderTargetGL3(
         ): RenderTargetGL3 {
             logger.trace { "created new render target ($width*$height) @ ${contentScale}x $multisample" }
             val framebuffer = glGenFramebuffers()
+            if (multisample is BufferMultisample.SampleCount) {
+                val maxColorTextureSamples = glGetInteger(GL_MAX_COLOR_TEXTURE_SAMPLES)
+                val maxDepthTextureSamples = glGetInteger(GL_MAX_DEPTH_TEXTURE_SAMPLES)
+
+                val maxSamples = min(maxColorTextureSamples, maxDepthTextureSamples)
+                if (maxSamples > multisample.sampleCount) {
+                    logger.info {
+                        "requested multisampling with ${multisample.sampleCount} samples, but only ${maxSamples} are supported"
+                    }
+                }
+
+                BufferMultisample.SampleCount(min(multisample.sampleCount, maxSamples))
+            }
+
             return RenderTargetGL3(framebuffer, width, height, contentScale, multisample, session)
         }
 

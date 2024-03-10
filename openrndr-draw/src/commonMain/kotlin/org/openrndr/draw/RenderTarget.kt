@@ -415,11 +415,22 @@ fun renderTarget(width: Int, height: Int,
         callsInPlace(builder, InvocationKind.EXACTLY_ONCE)
     }
 
-    if (width <= 0 || height <= 0) {
-        throw IllegalArgumentException("unsupported resolution ($width×$height)")
+    if (width <= 0 || height <= 0 || width > Driver.instance.properties.maxTextureSize || height > Driver.instance.properties.maxTextureSize) {
+        error("unsupported resolution ($width×$height)")
     }
 
-    val renderTarget = Driver.instance.createRenderTarget(width, height, contentScale, multisample, session)
+    val effectiveMultisample = when (multisample) {
+        is BufferMultisample.SampleCount -> {
+            if (multisample.sampleCount > Driver.instance.properties.maxRenderTargetSamples) {
+                BufferMultisample.SampleCount(Driver.instance.properties.maxRenderTargetSamples)
+            } else {
+                multisample
+            }
+        }
+        else -> multisample
+    }
+
+    val renderTarget = Driver.instance.createRenderTarget(width, height, contentScale, effectiveMultisample, session)
     RenderTargetBuilder(renderTarget).builder()
     return renderTarget
 }

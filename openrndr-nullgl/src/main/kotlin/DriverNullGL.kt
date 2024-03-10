@@ -175,5 +175,10 @@ class DriverNullGL: Driver {
         TODO("Not yet implemented")
     }
 
+    override val properties: DriverProperties by lazy {
+        DriverProperties(maxRenderTargetSamples = 4, maxTextureSamples = 4, maxTextureSize = 16384)
+    }
+
+
 
 }

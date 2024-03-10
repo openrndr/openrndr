@@ -8,6 +8,8 @@ import java.nio.Buffer
 import java.nio.ByteBuffer
 
 private val logger = KotlinLogging.logger {}
+
+
 /**
  * Driver interface. This is the internal interface
  */
@@ -218,5 +220,6 @@ actual interface Driver {
 
     actual fun shaderConfiguration(): String
     actual fun createComputeStyleManager(session: Session?): ComputeStyleManager
+    actual val properties: DriverProperties
 
 }
