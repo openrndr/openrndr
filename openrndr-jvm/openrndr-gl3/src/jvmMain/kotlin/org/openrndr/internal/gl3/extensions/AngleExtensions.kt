@@ -13,15 +13,6 @@ class AngleExtensions(functionProvider: FunctionProvider) {
     val glGetTexLevelParameterivANGLEAddress = functionProvider.getFunctionAddress("glGetTexLevelParameterivANGLE")
     val glGetTexLevelParameterfvANGLEAddress = functionProvider.getFunctionAddress("glGetTexLevelParameterfvANGLE")
 
-    init {
-        println("glTexLevelParameteriANGLEAddress $glGetTexLevelParameterivANGLEAddress")
-        println("glTexLevelParameterfANGLEAddress $glGetTexLevelParameterfvANGLEAddress")
-    }
-
-//    void GetTexLevelParameter{if}vANGLE(enum target, int level,
-//    enum pname, T *params );
-
-
     fun glTexLevelParameterivANGLE(target: Int, level: Int, pname: Int, params: IntArray) {
         require(glGetTexLevelParameterivANGLEAddress != 0L)
         JNI.callPV(target, level, pname, params, glGetTexLevelParameterivANGLEAddress)

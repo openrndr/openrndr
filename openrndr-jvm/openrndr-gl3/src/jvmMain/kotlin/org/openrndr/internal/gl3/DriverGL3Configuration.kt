@@ -11,7 +11,7 @@ import org.openrndr.platform.PlatformType
 object DriverGL3Configuration {
 
     /**
-     * Should a debug context be used
+     * Should a debug context be used, default is false
      */
     val useDebugContext by lazy { Platform.property("org.openrndr.gl3.debug") != null }
 
@@ -34,6 +34,7 @@ object DriverGL3Configuration {
      * Provided hints for selecting a GLES back-end.
      *
      * Hints can be provided using by passing `-Dorg.openrndr.gl3.gles_backend=[angle|system]`
+     * @since openrndr 0.4.5
      */
     val glesBackendHint by lazy {
         when (Platform.property("org.openrndr.gl3.gles_backend")) {
@@ -59,6 +60,7 @@ object DriverGL3Configuration {
     /**
      * Determines which type of driver will be used
      * @see glDriverTypeHint
+     * @since openrndr 0.4.5
      */
 
     val driverType by lazy {
@@ -68,4 +70,20 @@ object DriverGL3Configuration {
         }
     }
 
+    /**
+     * Determines if the Angle runtime should be overwritten if one already exists, default is false.
+     * @since openrndr 0.4.5
+     */
+    val overwriteExistingAngle by lazy {
+        Platform.property("org.openrndr.gl3.overwrite_existing_angle") == "true"
+    }
+
+
+    /**
+     * Determines if the Angle runtime should be deleted on exit, default is true.
+     * @since openrndr 0.4.5
+     */
+    val deleteAngleOnExit by lazy {
+        Platform.property("org.openrndr.gl3.delete_angle_on_exit") != "false"
+    }
 }

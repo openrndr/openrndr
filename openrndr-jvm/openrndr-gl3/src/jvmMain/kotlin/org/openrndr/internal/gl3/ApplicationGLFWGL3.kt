@@ -923,13 +923,6 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
         logger.info { "OpenGL renderer: ${glGetString(GL.GL_RENDERER)}" }
         logger.info { "OpenGL version: ${glGetString(GL.GL_VERSION)}" }
 
-        if (driverType == DriverTypeGL.GLES) {
-            val extensionCount = glGetInteger(GLES30.GL_NUM_EXTENSIONS)
-            for (i in 0 until extensionCount) {
-                println(GLES30.glGetStringi(GLES30.GL_EXTENSIONS, i))
-            }
-        }
-
         if (configuration.hideCursor) {
             cursorVisible = false
         }
