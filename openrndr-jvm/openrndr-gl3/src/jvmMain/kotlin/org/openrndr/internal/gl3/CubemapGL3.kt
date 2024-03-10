@@ -1,6 +1,8 @@
 package org.openrndr.internal.gl3
 
-import org.lwjgl.opengl.GL33C.*
+import org.lwjgl.opengl.AMDSeamlessCubemapPerTexture.GL_TEXTURE_CUBE_MAP_SEAMLESS
+import org.lwjgl.opengl.GL13.*
+import org.lwjgl.opengl.GL30C.GL_COLOR_ATTACHMENT0
 import org.openrndr.draw.*
 import org.openrndr.utils.buffer.MPPBuffer
 import java.nio.Buffer
@@ -44,17 +46,18 @@ class CubemapGL3(val texture: Int, override val width: Int, override val type: C
                 """should have at least 1 level (has $levels)"""
             }
 
-            val textures = IntArray(1)
-            glGenTextures(textures)
+
+            val texture = glGenTextures()
+
             glActiveTexture(GL_TEXTURE0)
-            glBindTexture(GL_TEXTURE_CUBE_MAP, textures[0])
+            glBindTexture(GL_TEXTURE_CUBE_MAP, texture)
             glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS)
 
             val effectiveWidth = width
 
             val (internalFormat, _) = internalFormat(format, type)
 
-            for (side in CubemapSide.values()) {
+            for (side in CubemapSide.entries) {
                 for (level in 0 until levels) {
                     val div = 1 shl level
                     val nullBB: ByteBuffer? = null
@@ -69,13 +72,17 @@ class CubemapGL3(val texture: Int, override val width: Int, override val type: C
                         type.glType(),
                         nullBB
                     )
-                    checkGLErrors()
+                    checkGLErrors { it ->
+                        "width: $width, format: $format, type: $type -> target: ${glEnumName(side.glTextureTarget)}, level: ${level}, internalFormat: ${glEnumName(internalFormat)}" +
+                                "format: ${glEnumName(format.glFormat())}, type: ${glEnumName(type.glType())}"
+
+                    }
                 }
             }
             glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_BASE_LEVEL, 0)
             glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAX_LEVEL, levels - 1)
 
-            return CubemapGL3(textures[0], width, type, format, levels, session)
+            return CubemapGL3(texture, width, type, format, levels, session)
         }
     }
     internal fun glFormat(): Int {
@@ -124,7 +131,7 @@ class CubemapGL3(val texture: Int, override val width: Int, override val type: C
         require(!destroyed)
         val fromDiv = 1 shl fromLevel
         val toDiv = 1 shl toLevel
-        for (side in CubemapSide.values()) {
+        for (side in CubemapSide.entries) {
             val readTarget = renderTarget(width / fromDiv, width / fromDiv) {
                 cubemap(this@CubemapGL3, side, fromLevel)
                 debugGLErrors()

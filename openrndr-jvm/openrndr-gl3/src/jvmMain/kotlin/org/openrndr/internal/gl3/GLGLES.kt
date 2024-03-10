@@ -86,6 +86,19 @@ inline fun glBindFramebuffer(target: Int, framebuffer: Int) {
     }
 }
 
+// --- [ glScissor ] ---
+fun glScissor(
+    @NativeType("GLint") x: Int,
+    @NativeType("GLint") y: Int,
+    @NativeType("GLsizei") width: Int,
+    @NativeType("GLsizei") height: Int
+) {
+    return when (driverType) {
+        DriverTypeGL.GL -> GL.glScissor(x, y, width, height)
+        DriverTypeGL.GLES -> GLES.glScissor(x, y, width, height)
+    }
+}
+
 // --- [ glViewport ] ---
 inline fun glViewport(
     @NativeType("GLint") x: Int,
@@ -367,7 +380,6 @@ fun glGetActiveUniformName(
     return when (driverType) {
         DriverTypeGL.GL -> GL.glGetActiveUniformName(program, uniformIndex, bufSize)
         DriverTypeGL.GLES -> {
-            //public static void glGetActiveUniform(@NativeType("GLuint") int program, @NativeType("GLuint") int index, @Nullable @NativeType("GLsizei *") int[] length, @NativeType("GLint *") int[] size, @NativeType("GLenum *") int[] type, @NativeType("GLchar *") ByteBuffer name) {
             val length = IntArray(1) { 1024 }
             val type = IntArray(1)
             val size = IntArray(1)
@@ -375,7 +387,6 @@ fun glGetActiveUniformName(
             GLES.glGetActiveUniform(program, uniformIndex, length, size, type, name)
             val ascii = memASCII(name, length.get(0))
             MemoryUtil.memFree(name)
-            println("name: $ascii")
             ascii
         }
     }
@@ -487,6 +498,32 @@ inline fun glDrawArraysInstanced(
         DriverTypeGL.GLES -> GLES.glDrawArraysInstanced(mode, first, count, primcount)
     }
 }
+
+fun glDrawElements(
+    @NativeType("GLenum") mode: Int,
+    @NativeType("GLsizei") count: Int,
+    @NativeType("GLenum") type: Int,
+    @NativeType("void const *") indices: Long
+) {
+    when (driverType) {
+        DriverTypeGL.GL -> GL.glDrawElements(mode, count, type, indices)
+        DriverTypeGL.GLES -> GLES.glDrawElements(mode, count, type, indices)
+    }
+}
+
+fun glDrawElementsInstanced(
+    @NativeType("GLenum") mode: Int,
+    @NativeType("GLsizei") count: Int,
+    @NativeType("GLenum") type: Int,
+    @NativeType("void const *") indices: Long,
+    @NativeType("GLsizei") primcount: Int
+) {
+    when (driverType) {
+        DriverTypeGL.GL -> GL.glDrawElementsInstanced(mode, count, type, indices, primcount)
+        DriverTypeGL.GLES -> GLES.glDrawElementsInstanced(mode, count, type, indices, primcount)
+    }
+}
+
 
 // --- [ glEnableVertexAttribArray ] ---
 inline fun glEnableVertexAttribArray(@NativeType("GLuint") index: Int) {
