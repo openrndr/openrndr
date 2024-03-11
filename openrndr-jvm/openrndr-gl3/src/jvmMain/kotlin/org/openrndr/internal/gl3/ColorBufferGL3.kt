@@ -418,6 +418,11 @@ class ColorBufferGL3(
                 )
 
         if (useCopyFilter) {
+            require(
+                this.effectiveWidth == target.effectiveWidth && this.effectiveHeight == target.effectiveHeight &&
+                sourceRectangle.x == 0 && sourceRectangle.y == 0 && sourceRectangle == targetRectangle && sourceRectangle.width == effectiveWidth && sourceRectangle.height == effectiveHeight
+            )
+
             copy.apply(this, target)
             return
         }
