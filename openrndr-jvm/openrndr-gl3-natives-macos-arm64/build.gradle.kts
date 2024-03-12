@@ -1,5 +1,6 @@
 plugins {
     org.openrndr.convention.`kotlin-jvm`
+    org.openrndr.convention.`publish-jvm`
     java
 }
 dependencies {

@@ -2,6 +2,7 @@ import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 
 plugins {
     org.openrndr.convention.`kotlin-multiplatform`
+    org.openrndr.convention.`publish-multiplatform`
 }
 
 kotlin {
