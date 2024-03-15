@@ -19,7 +19,6 @@ include(
         "openrndr-binpack",
         "openrndr-filter",
         "openrndr-platform",
-        "openrndr-svg",
 
         "openrndr-animatable",
         "openrndr-jvm:openrndr-dialogs",

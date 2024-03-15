@@ -26,33 +26,6 @@ fun Program.launch(
     return GlobalScope.launch(context, start, block)
 }
 
-// Derives Composition dimensions from current Drawer
-@OptIn(ExperimentalContracts::class)
-fun Program.drawComposition(
-    documentBounds: CompositionDimensions = CompositionDimensions(0.0.pixels, 0.0.pixels, this.drawer.width.toDouble().pixels, this.drawer.height.toDouble().pixels),
-    composition: Composition? = null,
-    cursor: GroupNode? = composition?.root as? GroupNode,
-    drawFunction: CompositionDrawer.() -> Unit
-): Composition {
-    contract {
-        callsInPlace(drawFunction, InvocationKind.EXACTLY_ONCE)
-    }
-    return CompositionDrawer(documentBounds, composition, cursor).apply { drawFunction() }.composition
-}
-
-@OptIn(ExperimentalContracts::class)
-fun Program.drawComposition(
-    documentBounds: Rectangle,
-    composition: Composition? = null,
-    cursor: GroupNode? = composition?.root as? GroupNode,
-    drawFunction: CompositionDrawer.() -> Unit
-): Composition {
-    contract {
-        callsInPlace(drawFunction, InvocationKind.EXACTLY_ONCE)
-    }
-    return CompositionDrawer(CompositionDimensions(documentBounds), composition, cursor).apply { drawFunction() }.composition
-}
-
 actual fun Program.namedTimestamp(extension: String, path: String?):
         String {
     val now = LocalDateTime.now()

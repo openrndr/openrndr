@@ -3,14 +3,9 @@
 package org.openrndr.draw
 
 import org.openrndr.shape.Circle
-import org.openrndr.shape.CompositionNode
-import org.openrndr.shape.GroupNode
-import org.openrndr.shape.ImageNode
 import org.openrndr.shape.Path3D
 import org.openrndr.shape.Segment3D
-import org.openrndr.shape.ShapeNode
 import org.openrndr.shape.ShapeTopology
-import org.openrndr.shape.TextNode
 import org.openrndr.collections.pop
 import org.openrndr.collections.push
 import org.openrndr.color.ColorRGBa
@@ -18,14 +13,12 @@ import org.openrndr.internal.*
 import org.openrndr.math.Matrix44
 import org.openrndr.math.Vector2
 import org.openrndr.math.Vector3
-import org.openrndr.math.YPolarity
 import org.openrndr.math.transforms.rotate
 import org.openrndr.math.transforms.rotateZ
 import org.openrndr.math.transforms.scale
 import org.openrndr.math.transforms.translate
 import org.openrndr.shape.*
 import kotlin.jvm.JvmName
-import org.openrndr.shape.Paint
 import org.openrndr.shape.Rectangle
 import org.openrndr.shape.Shape
 import kotlin.contracts.ExperimentalContracts
@@ -1050,97 +1043,6 @@ class Drawer(val driver: Driver) {
      */
     fun path(path: Path3D) {
         lineStrip(path.adaptivePositions(0.03))
-    }
-
-    /**
-     * Draws a [Composition]
-     * @param composition The composition to draw
-     * @see contour
-     * @see contours
-     * @see shape
-     * @see shapes
-     */
-    fun composition(composition: Composition) {
-        pushModel()
-        pushStyle()
-
-        // viewBox transformation
-        model *= composition.calculateViewportTransform()
-
-        fun node(compositionNode: CompositionNode) {
-            pushModel()
-            pushStyle()
-            model *= compositionNode.style.transform.value
-
-            shadeStyle = (compositionNode.style.shadeStyle as Shade.Value).value
-
-            when (compositionNode) {
-                is ShapeNode -> {
-
-                    compositionNode.style.stroke.let {
-                        stroke = when (it) {
-                            is Paint.RGB -> it.value.copy(alpha = 1.0)
-                            Paint.None -> null
-                            Paint.CurrentColor -> null
-                        }
-                    }
-                    compositionNode.style.strokeOpacity.let {
-                        stroke = when (it) {
-                            is Numeric.Rational -> stroke?.opacify(it.value)
-                        }
-                    }
-                    compositionNode.style.strokeWeight.let {
-                        strokeWeight = when (it) {
-                            is Length.Pixels -> it.value
-                            is Length.Percent -> composition.normalizedDiagonalLength() * it.value / 100.0
-                        }
-                    }
-                    compositionNode.style.miterLimit.let {
-                        miterLimit = when (it) {
-                            is Numeric.Rational -> it.value
-                        }
-                    }
-                    compositionNode.style.lineCap.let {
-                        lineCap = it.value
-                    }
-                    compositionNode.style.lineJoin.let {
-                        lineJoin = it.value
-                    }
-                    compositionNode.style.fill.let {
-                        fill = when (it) {
-                            is Paint.RGB -> it.value.copy(alpha = 1.0)
-                            is Paint.None -> null
-                            is Paint.CurrentColor -> null
-                        }
-                    }
-                    compositionNode.style.fillOpacity.let {
-                        fill = when (it) {
-                            is Numeric.Rational -> fill?.opacify(it.value)
-                        }
-                    }
-                    compositionNode.style.opacity.let {
-                        when (it) {
-                            is Numeric.Rational -> {
-                                stroke = stroke?.opacify(it.value)
-                                fill = fill?.opacify(it.value)
-                            }
-                        }
-                    }
-                    shape(compositionNode.shape)
-                }
-                is ImageNode -> {
-                    image(compositionNode.image)
-                }
-                is TextNode -> TODO()
-                is GroupNode -> compositionNode.children.forEach { node(it) }
-            }
-
-            popModel()
-            popStyle()
-        }
-        node(composition.root)
-        popModel()
-        popStyle()
     }
 
     /**
