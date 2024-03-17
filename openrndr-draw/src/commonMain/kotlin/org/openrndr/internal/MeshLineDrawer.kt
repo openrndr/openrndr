@@ -50,7 +50,7 @@ class MeshLineDrawer {
         weights: List<Double> = emptyList(),
         colors: List<ColorRGBa> = emptyList()
     ) {
-        val vertices = vertices(segments.size * 2)
+        val vertices = vertices(segments.size * 6)
 
         val colorCount = colors.size
         val defaultColor = colors.lastOrNull() ?: drawStyle.stroke ?: ColorRGBa.TRANSPARENT
@@ -144,7 +144,7 @@ class MeshLineDrawer {
         colors: List<ColorRGBa> = emptyList(),
         closed: List<Boolean> = emptyList()
     ) {
-        val vertices = vertices(strips.sumOf { it.size + 4 })
+        val vertices = vertices(strips.sumOf { it.size * 4 + 4 })
 
         val colorCount = colors.size
         val defaultColor = colors.lastOrNull() ?: drawStyle.stroke ?: ColorRGBa.TRANSPARENT
