@@ -514,8 +514,13 @@ open class RenderTargetGL3(
                     checkGLErrors { null }
                 }
             } else {
-                glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBuffer.buffer)
-
+                when (Pair(depthBuffer.hasDepth, depthBuffer.hasStencil)) {
+                    Pair(true, true) -> glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, depthBuffer.buffer)
+                    Pair(false, true) -> glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, depthBuffer.buffer)
+                    Pair(true, false) -> glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBuffer.buffer)
+                    else -> error("DepthBuffer should have at least depth or stencil components")
+                }
+                checkGLErrors()
             }
             this.depthBuffer = depthBuffer
             checkFramebufferStatus()
