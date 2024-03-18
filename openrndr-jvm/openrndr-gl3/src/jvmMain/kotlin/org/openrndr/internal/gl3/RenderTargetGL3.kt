@@ -76,7 +76,7 @@ open class RenderTargetGL3(
                 val maxDepthTextureSamples = glGetInteger(GL_MAX_DEPTH_TEXTURE_SAMPLES)
 
                 val maxSamples = min(maxColorTextureSamples, maxDepthTextureSamples)
-                if (maxSamples > multisample.sampleCount) {
+                if (maxSamples < multisample.sampleCount) {
                     logger.info {
                         "requested multisampling with ${multisample.sampleCount} samples, but only ${maxSamples} are supported"
                     }
