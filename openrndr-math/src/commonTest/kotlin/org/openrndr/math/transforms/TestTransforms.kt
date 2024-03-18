@@ -257,25 +257,22 @@ class TestTransforms {
     fun shouldProject() {
 
         it("should project a 3D point to 2D") {
-
-            val p = perspective(45.0, 4.0 / 3, 0.1)
-            val l = lookAt(Vector3.UNIT_Y, Vector3.ZERO)
-            val r = project(Vector3(10.0, 10.0, 10.0), p, l, 100, 100)
-
-            r.closeTo(Vector3(50.0, 50.0, -0.1111111111111111), maxError)
+            val p = perspective(45.0, 1.0, 0.1, zFar = 1.0)
+            val l = Matrix44.IDENTITY
+            val r = project(Vector3(0.0, 0.0, -0.2), p, l, 100, 100)
+            r.closeTo(Vector3(50.0, 50.0, 0.5555555555555556), maxError)
         }
+    }
 
-        /* this test should be fixed
+    @Test
+    fun unproject() {
         it("should un-project a projected point back into 3D ") {
-
-            val c = Vector3(10.0, 10.0, 10.0)
-            val p = perspective(45.0, 4.0 / 3, 0.1)
-            val v = lookAt(Vector3(1.0, 2.0, 3.0), Vector3.ZERO)
+            val c = Vector3(0.0, 0.0, -0.2)
+            val p = perspective(45.0, 1.0, 0.1, zFar = 1.0)
+            val v = Matrix44.IDENTITY
             val r = project(c, p, v, 100, 100)
-
             unproject(r, p, v, 100, 100).closeTo(c, maxError)
         }
-         */
     }
 
     @Test

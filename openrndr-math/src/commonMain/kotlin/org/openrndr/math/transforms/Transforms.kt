@@ -318,24 +318,19 @@ fun Matrix44.Companion.scale(x: Double, y: Double, z: Double): Matrix44 {
  * [height] the height of the projection surface
  */
 fun project(point: Vector3, projection: Matrix44, view: Matrix44, width: Int, height: Int): Vector3 {
-
-    val homo = Vector4(point.x, point.y, point.z, 1.0)
-    val projectedHomo = (projection * view) * homo
-
-    // Homogeneous division
-    val rhw = 1 / projectedHomo.w
+    val projected = ((projection * view) * point.xyz1).div
 
     return Vector3(
-            (projectedHomo.x * rhw + 1) * width / 2,
-            (1 - projectedHomo.y * rhw) * height / 2,
-            rhw)
+            (projected.x  + 1) * width / 2,
+            (1 - projected.y ) * height / 2,
+        (projected.z + 1) / 2.0
+    )
 }
-
 
 fun unproject(point: Vector3, projection: Matrix44, view: Matrix44, width: Int, height: Int): Vector3 {
     val ipm = (projection * view).inversed
     val v = Vector3(2 * point.x / width - 1, 2 * point.y / height - 1, 2 * point.z - 1)
-    return (ipm * v.xyz1).xyz
+    return (ipm * v.xyz1).div
 }
 
 /**
