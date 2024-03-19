@@ -1,6 +1,6 @@
 import org.openrndr.application
 import org.openrndr.math.Vector2
-import org.openrndr.shape.Segment
+import org.openrndr.shape.Segment2D
 import io.kotest.core.spec.style.DescribeSpec
 
 class TestDrawSegments : DescribeSpec({
@@ -9,7 +9,7 @@ class TestDrawSegments : DescribeSpec({
             application {
                 program {
                     val segments = List(10) {
-                        Segment(
+                        Segment2D(
                             Vector2(
                                 (it * 1001.0) % width,
                                 (it * 1337.0) % height
@@ -38,7 +38,7 @@ class TestDrawSegments : DescribeSpec({
             application {
                 program {
                     val segments = List(1) {
-                        Segment(
+                        Segment2D(
                             Vector2(
                                 (it * 1001.0) % width,
                                 (it * 1337.0) % height

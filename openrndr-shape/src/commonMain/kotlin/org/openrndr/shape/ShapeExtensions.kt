@@ -19,8 +19,8 @@ fun Shape.intersections(other: Shape) = intersections(this, other)
 /** Calculates a [List] of all points where the [Shape] and a [ShapeContour] intersect. */
 fun Shape.intersections(other: ShapeContour) = intersections(this, other.shape)
 
-/** Calculates a [List] of all points where the [Shape] and a [Segment] intersect. */
-fun Shape.intersections(other: Segment) = intersections(this, other.contour.shape)
+/** Calculates a [List] of all points where the [Shape] and a [Segment2D] intersect. */
+fun Shape.intersections(other: Segment2D) = intersections(this, other.contour.shape)
 
 /** Returns true if given [Vector2] is inside the [Shape]. */
 operator fun Shape.contains(v: Vector2): Boolean {

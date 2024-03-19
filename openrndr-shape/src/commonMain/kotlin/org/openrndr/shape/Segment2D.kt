@@ -8,28 +8,22 @@ import org.openrndr.shape.internal.BezierCubicSamplerT
 import org.openrndr.shape.internal.BezierQuadraticSamplerT
 import kotlin.math.*
 
-/**
- * Creates a new [Segment], which specifies a linear
- * or a Bézier curve path between two anchor points
- * (and up to two control points for curvature).
- */
-@Serializable
-data class Segment(
-    val start: Vector2,
-    val control: List<Vector2>,
-    val end: Vector2,
-    val corner: Boolean = false
-) : ShapeContourProvider {
-    /** The start point of the [Segment]. */
+
+interface BezierSegment<T : EuclideanVector<T>> {
+    val start: T
+    val control: List<T>
+    val end: T
 
     /**
-     * Indicates whether the [Segment] is [linear][SegmentType.LINEAR].
+     * Indicates whether the [Segment2D] is [linear][SegmentType.LINEAR].
      */
+    @Transient
     val linear: Boolean get() = control.isEmpty()
 
     /**
      * Returns the type of the segment.
      */
+    @Transient
     val type: SegmentType
         get() {
             return if (linear) {
@@ -43,9 +37,144 @@ data class Segment(
             }
         }
 
+    /**
+     * Returns a point on the segment.
+     *
+     * @param ut unfiltered [t](https://pomax.github.io/bezierinfo/#explanation), will be clamped between 0.0 and 1.0.
+     * @return [T] that lies on the [BezierSegment].
+     */
+    fun position(ut: Double): T
+
+    fun derivative(t: Double): T
+
+    /** Returns the direction [T] of between the [Segment2D] anchor points. */
+    fun direction(): T = (end - start).normalized
+
+    fun direction(t: Double): T = derivative(t).normalized
+
+    /**
+     * Samples a new [Segment2D] from the current [Segment2D] starting at [t0] and ending at [t1].
+     *
+     * @param t0 The starting value of [t](https://pomax.github.io/bezierinfo/#explanation) in the range of `0.0` to `1.0`.
+     * @param t1 The ending value of *t* in the range of `0.0` to `1.0`.
+     */
+    fun sub(t0: Double, t1: Double): BezierSegment<T> {
+        // ftp://ftp.fu-berlin.de/tex/CTAN/dviware/dvisvgm/src/Bezier.cpp
+        var z0 = t0
+        var z1 = t1
+
+        if (t0 > t1) {
+            z1 = t0
+            z0 = t1
+        }
+
+        return when {
+            z0 == 0.0 -> split(z1)[0]
+            z1 == 1.0 -> split(z0).last()
+            else -> split(z0).last().split(map(z0, 1.0, 0.0, 1.0, z1))[0]
+        }
+    }
+
+    /**
+     * Splits the path into one or two parts, depending on if the cut was successful.
+     *
+     * @param t The point at which to split the [Segment2D] at.
+     * @return An array of parts, depending on the split point this is one or two entries long.
+     */
+    fun split(t: Double): Array<out BezierSegment<T>>
+
+    @Transient
+    val length: Double
+
+    @Transient
+    val cubic: BezierSegment<T>
+
+    /**
+     * Estimate [t](https://pomax.github.io/bezierinfo/#explanation) value for a given length
+     * @return A value between `0.0` and `1.0`.
+     */
+    fun tForLength(length: Double): Double
+
+    /**
+     * Calculates the point at a given distance along this [Segment2D].
+     * @param length the distance along the [Segment2D].
+     * @param distanceTolerance the tolerance used for simplifying the [Segment2D], lower values
+     * result in more accurate results, but slower calculation.
+     *
+     * @see [Segment2D.adaptivePositions]
+     */
+    fun pointAtLength(length: Double, distanceTolerance: Double): T {
+        when {
+            length <= 0.0 -> return start
+            length >= this.length -> return end
+        }
+        var remainingLength = length
+        var currentPoint = start
+        val points = adaptivePositions(distanceTolerance)
+        for (point in points) {
+            val segmentLength = currentPoint.distanceTo(point)
+            if (remainingLength <= segmentLength) {
+                val currentVector = point - currentPoint
+                val tangent = currentVector / segmentLength
+                return currentPoint + tangent * remainingLength
+            }
+            remainingLength -= segmentLength
+            currentPoint = point
+        }
+        return end
+    }
+
+    @Transient
+    val reverse: BezierSegment<T>
+
+    /**
+     * Recursively subdivides [Segment2D] to approximate Bézier curve.
+     *
+     * @param distanceTolerance The square of the maximal distance of each point from curve.
+     */
+    fun adaptivePositions(distanceTolerance: Double = 0.5): List<T> =
+        adaptivePositionsWithT(distanceTolerance).map { it.first }
+
+
+    fun adaptivePositionsWithT(distanceTolerance: Double = 0.5): List<Pair<T, Double>> = when (control.size) {
+        0 -> listOf(start to 0.0, end to 1.0)
+        1 -> BezierQuadraticSamplerT<T>().apply { this.distanceTolerance = distanceTolerance }
+            .sample(start, control[0], end)
+
+        2 -> BezierCubicSamplerT<T>().apply { this.distanceTolerance = distanceTolerance }
+            .sample(start, control[0], control[1], end)
+
+        else -> throw RuntimeException("unsupported number of control points")
+    }
+
+    /**
+     * Samples specified amount of points on the [Segment2D].
+     * @param pointCount The number of points to sample.
+     */
+    fun equidistantPositions(pointCount: Int, distanceTolerance: Double = 0.5): List<T> {
+        return sampleEquidistant(adaptivePositions(distanceTolerance), pointCount)
+    }
+
+    fun equidistantPositionsWithT(pointCount: Int, distanceTolerance: Double = 0.5): List<Pair<T, Double>> {
+        return sampleEquidistantWithT(adaptivePositionsWithT(distanceTolerance), pointCount)
+    }
+}
+
+/**
+ * Creates a new [Segment2D], which specifies a linear
+ * or a Bézier curve path between two anchor points
+ * (and up to two control points for curvature).
+ */
+@Serializable
+data class Segment2D(
+    override val start: Vector2,
+    override val control: List<Vector2>,
+    override val end: Vector2,
+    val corner: Boolean = false
+) : BezierSegment<Vector2>, ShapeContourProvider {
+
     @Transient
     private var lut: List<Vector2>? = null
-
 
     @Suppress("unused")
     fun lut(size: Int = 100): List<Vector2> {
@@ -53,6 +182,10 @@ data class Segment(
             lut = (0..size).map { position((it.toDouble() / size)) }
         }
         return lut!!
+    }
+
+    override fun sub(t0: Double, t1: Double): Segment2D {
+        return super.sub(t0, t1) as Segment2D
     }
 
     fun on(point: Vector2, error: Double = 5.0): Double? {
@@ -68,11 +201,8 @@ data class Segment(
         return if (hits > 0) t / hits else null
     }
 
-    /**
-     * Estimate [t](https://pomax.github.io/bezierinfo/#explanation) value for a given length
-     * @return A value between `0.0` and `1.0`.
-     */
-    fun tForLength(length: Double): Double {
+
+    override fun tForLength(length: Double): Double {
         if (type == SegmentType.LINEAR) {
             return (length / this.length).coerceIn(0.0, 1.0)
         }
@@ -108,34 +238,6 @@ data class Segment(
         return 1.0
     }
 
-    /**
-     * Calculates the point at a given distance along this [Segment].
-     * @param length the distance along the [Segment].
-     * @param distanceTolerance the tolerance used for simplifying the [Segment], lower values
-     * result in more accurate results, but slower calculation.
-     *
-     * @see [Segment.adaptivePositions]
-     */
-    fun pointAtLength(length: Double, distanceTolerance: Double = 0.5): Vector2 {
-        when {
-            length <= 0.0 -> return start
-            length >= this.length -> return end
-        }
-        var remainingLength = length
-        var currentPoint = start
-        val points = adaptivePositions(distanceTolerance)
-        for (point in points) {
-            val segmentLength = currentPoint.distanceTo(point)
-            if (remainingLength <= segmentLength) {
-                val currentVector = point - currentPoint
-                val tangent = currentVector / segmentLength
-                return currentPoint + tangent * remainingLength
-            }
-            remainingLength -= segmentLength
-            currentPoint = point
-        }
-        return end
-    }
 
     @Suppress("unused")
     private fun closest(points: List<Vector2>, query: Vector2): Pair<Int, Vector2> {
@@ -264,7 +366,7 @@ data class Segment(
     /**
      * Applies given linear transformation.
      */
-    fun transform(transform: Matrix44): Segment {
+    fun transform(transform: Matrix44): Segment2D {
         return if (transform === Matrix44.IDENTITY) {
             this
         } else {
@@ -279,59 +381,16 @@ data class Segment(
         }
     }
 
-    /**
-     * Recursively subdivides [Segment] to approximate Bézier curve.
-     *
-     * @param distanceTolerance The square of the maximal distance of each point from curve.
-     */
-    fun adaptivePositions(distanceTolerance: Double = 0.5): List<Vector2> =
-        adaptivePositionsWithT(distanceTolerance).map { it.first }
-
-
-    fun adaptivePositionsWithT(distanceTolerance: Double = 0.5): List<Pair<Vector2, Double>> = when (control.size) {
-        0 -> listOf(start to 0.0, end to 1.0)
-        1 -> BezierQuadraticSamplerT<Vector2>().apply { this.distanceTolerance = distanceTolerance }
-            .sample(start, control[0], end)
-
-        2 -> BezierCubicSamplerT<Vector2>().apply { this.distanceTolerance = distanceTolerance }
-            .sample(start, control[0], control[1], end)
-
-        else -> throw RuntimeException("unsupported number of control points")
-    }
-
-    /**
-     * Samples specified amount of points on the [Segment].
-     * @param pointCount The number of points to sample.
-     */
-    fun equidistantPositions(pointCount: Int, distanceTolerance: Double = 0.5): List<Vector2> {
-        return sampleEquidistant(adaptivePositions(distanceTolerance), pointCount)
-    }
-
-    fun equidistantPositionsWithT(pointCount: Int, distanceTolerance: Double = 0.5): List<Pair<Vector2, Double>> {
-        return sampleEquidistantWithT(adaptivePositionsWithT(distanceTolerance), pointCount)
-    }
-
-
-    // work around length-by-lazy property being initialized before the secondary constructor initializes the relevant fields
-    private val internalLength: Double
-        get() = when (control.size) {
+    /** Calculates approximate Euclidean length of the [Segment2D]. */
+    override val length by lazy {
+        when (control.size) {
             0 -> (end - start).length
             1, 2 -> sumDifferences(adaptivePositions())
             else -> throw RuntimeException("unsupported number of control points")
         }
-
-    /** Calculates approximate Euclidean length of the [Segment]. */
-    val length by lazy {
-        internalLength
     }
 
-    /**
-     * Returns a point on the segment.
-     *
-     * @param ut unfiltered [t](https://pomax.github.io/bezierinfo/#explanation), will be clamped between 0.0 and 1.0.
-     * @return [Vector2] that lies on the [Segment].
-     */
-    fun position(ut: Double): Vector2 {
+    override fun position(ut: Double): Vector2 {
         val t = ut.coerceIn(0.0, 1.0)
         return when (control.size) {
             0 -> Vector2(
@@ -345,10 +404,6 @@ data class Segment(
         }
     }
 
-    /** Returns the direction [Vector2] of between the [Segment] anchor points. */
-    fun direction(): Vector2 = (end - start).normalized
-
-    fun direction(t: Double): Vector2 = derivative(t).normalized
 
     /**
      * Calculates the pose [Matrix44] (i.e. translation and rotation) that describes an orthonormal basis
@@ -371,7 +426,7 @@ data class Segment(
 
     /**
      * Returns the [t](https://pomax.github.io/bezierinfo/#explanation)
-     * values of the extrema for the current [Segment].
+     * values of the extrema for the current [Segment2D].
      *
      * Either one or two *t* values in which the curve
      * is the most distant from an imaginary
@@ -397,7 +452,7 @@ data class Segment(
         }
     }
 
-    /** Returns the extrema points as [Vector2]s for current [Segment] */
+    /** Returns the extrema points as [Vector2]s for current [Segment2D] */
     @Suppress("unused")
     fun extremaPoints(): List<Vector2> = extrema().map { position(it) }
 
@@ -442,9 +497,9 @@ data class Segment(
     }
 
     /**
-     * Determines if the [Segment] forms a straight line.
+     * Determines if the [Segment2D] forms a straight line.
      *
-     * If the given [Segment] has control points,
+     * If the given [Segment2D] has control points,
      * the function verifies that they do not add any curvature to the path.
      *
      * @param tolerance The margin of error for what's considered a straight line.
@@ -497,16 +552,15 @@ data class Segment(
         }
 
 
-
     val clockwise
         get() = angle(start, end, control[0]) > 0
 
-    /** Converts the [Segment] to a cubic Bézier curve. */
-    val cubic: Segment
+    /** Converts the [Segment2D] to a cubic Bézier curve. */
+    override val cubic: Segment2D
         get() = when {
             control.size == 2 -> this
             control.size == 1 -> {
-                Segment(
+                Segment2D(
                     start,
                     start * (1.0 / 3.0) + control[0] * (2.0 / 3.0),
                     control[0] * (2.0 / 3.0) + end * (1.0 / 3.0),
@@ -517,7 +571,7 @@ data class Segment(
 
             linear -> {
                 val delta = end - start
-                Segment(
+                Segment2D(
                     start,
                     start + delta * (1.0 / 3.0),
                     start + delta * (2.0 / 3.0),
@@ -530,20 +584,20 @@ data class Segment(
         }
 
 
-    /** Converts the [Segment] to a quadratic Bézier curve. */
-    val quadratic: Segment
+    /** Converts the [Segment2D] to a quadratic Bézier curve. */
+    val quadratic: Segment2D
         get() = when {
             control.size == 1 -> this
             linear -> {
                 val delta = end - start
-                Segment(start, start + delta * (1.0 / 2.0), end, corner)
+                Segment2D(start, start + delta * (1.0 / 2.0), end, corner)
             }
 
             else -> error("cannot convert to quadratic segment")
         }
 
 
-    fun derivative(t: Double): Vector2 = when {
+    override fun derivative(t: Double): Vector2 = when {
         linear -> end - start
         control.size == 1 -> safeDerivative(start, control[0], end, t)
         control.size == 2 -> safeDerivative(
@@ -566,61 +620,33 @@ data class Segment(
         return direction(ut).perpendicular(polarity)
     }
 
-    /** Reverses the order of control points of the given path [Segment]. */
-    val reverse: Segment
+    /** Reverses the order of control points of the given path [Segment2D]. */
+    override val reverse: Segment2D
         get() {
             return when (control.size) {
-                0 -> Segment(end, start)
-                1 -> Segment(end, control[0], start)
-                2 -> Segment(end, control[1], control[0], start)
+                0 -> Segment2D(end, start)
+                1 -> Segment2D(end, control[0], start)
+                2 -> Segment2D(end, control[1], control[0], start)
                 else -> throw RuntimeException("unsupported number of control points")
             }
         }
 
-    /**
-     * Samples a new [Segment] from the current [Segment] starting at [t0] and ending at [t1].
-     *
-     * @param t0 The starting value of [t](https://pomax.github.io/bezierinfo/#explanation) in the range of `0.0` to `1.0`.
-     * @param t1 The ending value of *t* in the range of `0.0` to `1.0`.
-     */
-    fun sub(t0: Double, t1: Double): Segment {
-        // ftp://ftp.fu-berlin.de/tex/CTAN/dviware/dvisvgm/src/Bezier.cpp
-        var z0 = t0
-        var z1 = t1
 
-        if (t0 > t1) {
-            z1 = t0
-            z0 = t1
-        }
-
-        return when {
-            z0 == 0.0 -> split(z1)[0]
-            z1 == 1.0 -> split(z0).last()
-            else -> split(z0).last().split(map(z0, 1.0, 0.0, 1.0, z1))[0]
-        }
-    }
-
-    /**
-     * Splits the path into one or two parts, depending on if the cut was successful.
-     *
-     * @param t The point at which to split the [Segment] at.
-     * @return An array of parts, depending on the split point this is one or two entries long.
-     */
-    fun split(t: Double): Array<Segment> {
+    override fun split(t: Double): Array<Segment2D> {
         val u = t.clamp(0.0, 1.0)
         val splitSigma = 10E-6
 
         if (u < splitSigma) {
-            return arrayOf(Segment(start, start), this)
+            return arrayOf(Segment2D(start, start), this)
         }
 
         if (u >= 1.0 - splitSigma) {
-            return arrayOf(this, Segment(end, end))
+            return arrayOf(this, Segment2D(end, end))
         }
 
         if (linear) {
             val cut = start + (end.minus(start) * u)
-            return arrayOf(Segment(start, cut), Segment(cut, end))
+            return arrayOf(Segment2D(start, cut), Segment2D(cut, end))
         } else {
             when (control.size) {
                 2 -> {
@@ -649,7 +675,7 @@ data class Segment(
                     val pl2 = Vector2(plx.z, ply.z)
                     val pl3 = Vector2(plx.w, ply.w)
 
-                    val left = Segment(pl0, pl1, pl2, pl3)
+                    val left = Segment2D(pl0, pl1, pl2, pl3)
 
                     val rsm = Matrix44(
                         iz3, 3.0 * iz2 * z, 3.0 * iz * z2, z3,
@@ -666,7 +692,7 @@ data class Segment(
                     val pr2 = Vector2(prx.z, pry.z)
                     val pr3 = Vector2(prx.w, pry.w)
 
-                    val right = Segment(pr0, pr1, pr2, pr3)
+                    val right = Segment2D(pr0, pr1, pr2, pr3)
 
                     return arrayOf(left, right)
                 }
@@ -690,7 +716,7 @@ data class Segment(
                     val plx = lsm * px
                     val ply = lsm * py
 
-                    val left = Segment(
+                    val left = Segment2D(
                         Vector2(plx.x, ply.x),
                         Vector2(plx.y, ply.y),
                         Vector2(plx.z, ply.z)
@@ -720,7 +746,7 @@ data class Segment(
                         "Q end/c0 overlap after split on $t $this"
                     }
 
-                    val right = Segment(
+                    val right = Segment2D(
                         Vector2(prx.x, pry.x),
                         Vector2(prx.y, pry.y),
                         Vector2(prx.z, pry.z)
@@ -739,13 +765,12 @@ data class Segment(
     }
 
 
-
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other == null) return false
         if (this::class != other::class) return false
 
-        other as Segment
+        other as Segment2D
 
         if (start != other.start) return false
         if (end != other.end) return false
@@ -759,16 +784,16 @@ data class Segment(
         return result
     }
 
-    operator fun times(scale: Double): Segment {
+    operator fun times(scale: Double): Segment2D {
         return when (type) {
-            SegmentType.LINEAR -> Segment(start * scale, end * scale)
-            SegmentType.QUADRATIC -> Segment(
+            SegmentType.LINEAR -> Segment2D(start * scale, end * scale)
+            SegmentType.QUADRATIC -> Segment2D(
                 start * scale,
                 control[0] * scale,
                 end * scale
             )
 
-            SegmentType.CUBIC -> Segment(
+            SegmentType.CUBIC -> Segment2D(
                 start * scale,
                 control[0] * scale,
                 control[1] * scale,
@@ -777,16 +802,16 @@ data class Segment(
         }
     }
 
-    operator fun div(scale: Double): Segment {
+    operator fun div(scale: Double): Segment2D {
         return when (type) {
-            SegmentType.LINEAR -> Segment(start / scale, end / scale)
-            SegmentType.QUADRATIC -> Segment(
+            SegmentType.LINEAR -> Segment2D(start / scale, end / scale)
+            SegmentType.QUADRATIC -> Segment2D(
                 start / scale,
                 control[0] / scale,
                 end / scale
             )
 
-            SegmentType.CUBIC -> Segment(
+            SegmentType.CUBIC -> Segment2D(
                 start / scale,
                 control[0] / scale,
                 control[1] / scale,
@@ -795,21 +820,21 @@ data class Segment(
         }
     }
 
-    operator fun minus(right: Segment): Segment {
+    operator fun minus(right: Segment2D): Segment2D {
         return if (this.type == right.type) {
             when (type) {
-                SegmentType.LINEAR -> Segment(
+                SegmentType.LINEAR -> Segment2D(
                     start - right.start,
                     end - right.end
                 )
 
-                SegmentType.QUADRATIC -> Segment(
+                SegmentType.QUADRATIC -> Segment2D(
                     start - right.start,
                     control[0] - right.control[0],
                     end - right.end
                 )
 
-                SegmentType.CUBIC -> Segment(
+                SegmentType.CUBIC -> Segment2D(
                     start - right.start,
                     control[0] - right.control[0],
                     control[1] - right.control[1],
@@ -833,21 +858,21 @@ data class Segment(
         }
     }
 
-    operator fun plus(right: Segment): Segment {
+    operator fun plus(right: Segment2D): Segment2D {
         return if (this.type == right.type) {
             when (type) {
-                SegmentType.LINEAR -> Segment(
+                SegmentType.LINEAR -> Segment2D(
                     start + right.start,
                     end + right.end
                 )
 
-                SegmentType.QUADRATIC -> Segment(
+                SegmentType.QUADRATIC -> Segment2D(
                     start + right.start,
                     control[0] + right.control[0],
                     end + right.end
                 )
 
-                SegmentType.CUBIC -> Segment(
+                SegmentType.CUBIC -> Segment2D(
                     start + right.start,
                     control[0] + right.control[0],
                     control[1] + right.control[1],
@@ -887,12 +912,8 @@ private fun sumDifferences(points: List<Vector2>) =
  * @param end The ending anchor point.
  */
 
-fun Segment(start: Vector2, end: Vector2, corner: Boolean = true) = Segment(
-    start,
-    emptyList<Vector2>(),
-    end,
-    corner
-)
+fun Segment2D(start: Vector2, end: Vector2, corner: Boolean = true) =
+    Segment2D(start, emptyList(), end, corner)
 
 /**
  * Quadratic Bézier segment constructor.
@@ -901,12 +922,8 @@ fun Segment(start: Vector2, end: Vector2, corner: Boolean = true) = Segment(
  * @param c0 The control point.
  * @param end The ending anchor point.
  */
-fun Segment(start: Vector2, c0: Vector2, end: Vector2, corner: Boolean = true) = Segment(
-    start,
-    listOf(c0),
-    end,
-    corner
-)
+fun Segment2D(start: Vector2, c0: Vector2, end: Vector2, corner: Boolean = true) =
+    Segment2D(start, listOf(c0), end, corner)
 
 /**
  * Cubic Bézier segment constructor.
@@ -916,9 +933,5 @@ fun Segment(start: Vector2, c0: Vector2, end: Vector2, corner: Boolean = true) =
  * @param c1 The second control point
  * @param end The ending anchor point.
  */
-fun Segment(start: Vector2, c0: Vector2, c1: Vector2, end: Vector2, corner: Boolean = true) = Segment(
-    start,
-    listOf(c0, c1),
-    end,
-    corner
-)
+fun Segment2D(start: Vector2, c0: Vector2, c1: Vector2, end: Vector2, corner: Boolean = true) =
+    Segment2D(start, listOf(c0, c1), end, corner)

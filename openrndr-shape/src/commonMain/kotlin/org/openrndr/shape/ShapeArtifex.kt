@@ -16,7 +16,7 @@ private fun Vec2.toVector2(): Vector2 {
     return Vector2(x, y)
 }
 
-internal fun Segment.toCurve2(): Curve2 {
+internal fun Segment2D.toCurve2(): Curve2 {
     return when (control.size) {
         0 -> Line2.line(start.toVec2(), end.toVec2())
         1 -> Bezier2.curve(start.toVec2(), control[0].toVec2(), end.toVec2())
@@ -59,11 +59,11 @@ private fun Region2.toShapes(): List<Shape> {
     return shapes
 }
 
-private fun Curve2.toSegment(): Segment {
+private fun Curve2.toSegment(): Segment2D {
     return when (this) {
-        is Line2 -> Segment(this.start().toVector2(), this.end().toVector2())
-        is Bezier2.QuadraticBezier2 -> Segment(this.p0.toVector2(), this.p1.toVector2(), this.p2.toVector2())
-        is Bezier2.CubicBezier2 -> Segment(
+        is Line2 -> Segment2D(this.start().toVector2(), this.end().toVector2())
+        is Bezier2.QuadraticBezier2 -> Segment2D(this.p0.toVector2(), this.p1.toVector2(), this.p2.toVector2())
+        is Bezier2.CubicBezier2 -> Segment2D(
             this.p0.toVector2(),
             this.p1.toVector2(),
             this.p2.toVector2(),
@@ -577,8 +577,8 @@ fun intersection(from: List<Shape>, with: List<List<Shape>>): List<Shape> {
 
 class SegmentIntersection(val a: SegmentPoint, val b: SegmentPoint, val position: Vector2)
 
-/** Calculates a [List] of all points where two [Segment]s intersect. */
-fun intersections(a: Segment, b: Segment, vertexThreshold: Double = 1E-5): List<SegmentIntersection> {
+/** Calculates a [List] of all points where two [Segment2D]s intersect. */
+fun intersections(a: Segment2D, b: Segment2D, vertexThreshold: Double = 1E-5): List<SegmentIntersection> {
 
     if ((a.linear && a.length == 0.0) || (b.linear && b.length == 0.0)) {
         return emptyList()

@@ -15,14 +15,14 @@ private const val closeEpsilon = 1E-6
 private const val consecutiveEpsilon = 1E-6
 
 /**
- * A [List] for managing a collection of [Segment]s.
+ * A [List] for managing a collection of [Segment2D]s.
  */
 @Serializable
 data class ShapeContour @JvmOverloads constructor(
-    val segments: List<Segment>,
-    val closed: Boolean,
+    override val segments: List<Segment2D>,
+    override val closed: Boolean,
     val polarity: YPolarity = YPolarity.CW_NEGATIVE_Y
-) : ShapeProvider, ShapeContourProvider {
+) : ShapeProvider, ShapeContourProvider, Path<Vector2> {
     companion object {
         /**
          * An empty [ShapeContour] object.
@@ -33,7 +33,7 @@ data class ShapeContour @JvmOverloads constructor(
 
         @JvmOverloads
         fun fromSegments(
-            segments: List<Segment>,
+            segments: List<Segment2D>,
             closed: Boolean,
             polarity: YPolarity = YPolarity.CW_NEGATIVE_Y,
             distanceTolerance: Double = 1E-3,
@@ -52,7 +52,7 @@ data class ShapeContour @JvmOverloads constructor(
             )
         }
 
-        /** Creates a [ShapeContour] by converting [points] to [Segment]s. */
+        /** Creates a [ShapeContour] by converting [points] to [Segment2D]s. */
         @JvmOverloads
         fun fromPoints(
             points: List<Vector2>,
@@ -63,7 +63,7 @@ data class ShapeContour @JvmOverloads constructor(
         } else {
             if (!closed) {
                 ShapeContour((0 until points.size - 1).map {
-                    Segment(
+                    Segment2D(
                         points[it],
                         points[it + 1]
                     )
@@ -72,7 +72,7 @@ data class ShapeContour @JvmOverloads constructor(
                 val d = (points.last() - points.first()).squaredLength
                 val usePoints = if (d > closeEpsilon) points else points.dropLast(1)
                 ShapeContour((usePoints.indices).map {
-                    Segment(
+                    Segment2D(
                         usePoints[it],
                         usePoints[(it + 1) % usePoints.size]
                     )
@@ -94,7 +94,9 @@ data class ShapeContour @JvmOverloads constructor(
     override val shape: Shape get() = Shape(listOf(this))
 
     /** Calculates approximate Euclidean length of the contour. */
-    val length by lazy { segments.sumOf { it.length } }
+    override val length by lazy { segments.sumOf { it.length } }
+    override val infinity: Vector2 = Vector2.INFINITY
+
 
     /** Calculates the bounding box of the contour as [Rectangle]. */
     val bounds by lazy {
@@ -133,7 +135,7 @@ data class ShapeContour @JvmOverloads constructor(
     }
 
 
-    /** Converts to a [List] of single [Segment]s. */
+    /** Converts to a [List] of single [Segment2D]s. */
     @Suppress("unused")
     val exploded: List<ShapeContour>
         get() = segments.map { ShapeContour(listOf(it), false, polarity) }
@@ -158,11 +160,11 @@ data class ShapeContour @JvmOverloads constructor(
                 return this
             }
         }
-        val segments = mutableListOf<Segment>()
+        val segments = mutableListOf<Segment2D>()
         segments.addAll(this.segments)
         if ((this.segments[this.segments.size - 1].end - other.segments[0].start).length > consecutiveEpsilon) {
             segments.add(
-                Segment(
+                Segment2D(
                     this.segments[this.segments.size - 1].end,
                     other.segments[0].start
                 )
@@ -172,99 +174,13 @@ data class ShapeContour @JvmOverloads constructor(
         return ShapeContour(segments, false, polarity)
     }
 
-    /**
-     * Estimates the [t](https://pomax.github.io/bezierinfo/#explanation) value for a given length.
-     *
-     * @return The value of *t* between `0.0` and `1.0`.
-     */
-    @Suppress("unused")
-    fun tForLength(length: Double): Double {
-        var remaining = length
-        if (length <= 0.0) {
-            return 0.0
-        }
-        if (segments.size == 1) {
-            return segments.first().tForLength(length)
-        }
-        for ((index, segment) in segments.withIndex()) {
-            val segmentLength = segment.length
-            if (segmentLength > remaining) {
-                return (segment.tForLength(remaining) + index) / segments.size
-            } else {
-                remaining -= segmentLength
-            }
-        }
-        return 1.0
-    }
 
-    /**
-     * Calculates the point at a given distance along this [ShapeContour].
-     * @param length the distance along the [ShapeContour]
-     * @param distanceTolerance the tolerance used for simplifying the [ShapeContour], lower values
-     * result in more accurate results, but slower calculation
-     *
-     * @return Resulting [Vector2] or [Vector2.INFINITY] for an empty [ShapeContour].
-     *
-     * @see [Segment.pointAtLength]
-     */
-    fun pointAtLength(length: Double, distanceTolerance: Double = 0.5): Vector2 {
-        when {
-            empty -> return Vector2.INFINITY
-            length <= 0.0 -> return segments.first().start
-            length >= this.length -> return segments.last().end
-        }
-        var remainingLength = length
-        for (segment in segments) {
-            val segmentLength = segment.length
-            if (segmentLength > remainingLength) {
-                return segment.pointAtLength(remainingLength, distanceTolerance)
-            }
-            remainingLength -= segmentLength
-        }
-        return segments.last().end
-    }
-
-    /** Returns true if [ShapeContour] doesn't contain any [Segment]s. */
-    val empty: Boolean
+    /** Returns true if [ShapeContour] doesn't contain any [Segment2D]s. */
+    override val empty: Boolean
         get() {
             return this === EMPTY || segments.isEmpty()
         }
 
-    /**
-     * Returns a point on the path of the [ShapeContour].
-     *
-     * To make the computation easier in the presence of non-linear Segments,
-     * the result is derived first from the corresponding Segment in the ShapeContour,
-     * and then within that Segment.
-     *
-     * For example, if the ShapeContour is composed of 10 Segments, asking for position ut=0.03
-     * will return the point 30% of the along the 1st Segment, and ut=0.51 will return the point
-     * 10% of the along the 6th.
-     *
-     *
-     * If the component Segments are of wildly different lengths, the resulting point can be very
-     * different from what would be arrived at if the ShapeContour were treated strictly as a whole.
-     * In that case, consider using [ShapeContour.equidistantPositions] instead.
-     *
-     * Also see: [Segment.position].
-     *
-     * @param ut unfiltered t parameter, will be clamped between 0.0 and 1.0.
-     * @return [Vector2] that lies on the path of the [ShapeContour].
-     */
-    fun position(ut: Double): Vector2 {
-        if (empty) {
-            return Vector2.INFINITY
-        }
-
-        return when (val t = ut.coerceIn(0.0, 1.0)) {
-            0.0 -> segments[0].start
-            1.0 -> segments.last().end
-            else -> {
-                val (segment, segmentOffset) = segment(t)
-                segments[segment].position(segmentOffset)
-            }
-        }
-    }
 
     /**
      * Calculates the normal for the given [ut].
@@ -287,26 +203,6 @@ data class ShapeContour @JvmOverloads constructor(
         }
     }
 
-    /**
-     * Returns segment number and segment offset
-     * in a [ShapeContour] for the given [ut].
-     * @param ut unfiltered t parameter, will be clamped between 0.0 and 1.0.
-     */
-    fun segment(ut: Double): Pair<Int, Double> {
-        if (empty) {
-            return Pair(0, 0.0)
-        }
-
-        return when (val t = ut.coerceIn(0.0, 1.0)) {
-            0.0 -> Pair(0, 0.0)
-            1.0 -> Pair(segments.size - 1, 1.0)
-            else -> {
-                val segment = (t * segments.size).toInt()
-                val segmentOffset = (t * segments.size) - segment
-                return Pair(segment, segmentOffset)
-            }
-        }
-    }
 
 
     /**
@@ -329,39 +225,16 @@ data class ShapeContour @JvmOverloads constructor(
         return Matrix44.fromColumnVectors(dx, dy, Vector4.UNIT_Z, dt)
     }
 
-    /**
-     * Recursively subdivides linear [Segment]s to approximate Bézier curves.
-     *
-     * Works similar to [adaptivePositionsAndCorners] but it only returns
-     * the positions without the corners.
-     */
-    fun adaptivePositions(distanceTolerance: Double = 0.5): List<Vector2> {
-        return adaptivePositionsAndCorners(distanceTolerance).first
-    }
 
-    fun adaptivePositionsWithT(distanceTolerance: Double = 0.5): List<Pair<Vector2, Double>> {
-        val adaptivePoints = mutableListOf<Pair<Vector2, Double>>()
-        val segmentCount = segments.size
-        for ((segmentIndex, segment) in this.segments.withIndex()) {
-            val samples = segment.adaptivePositionsWithT(distanceTolerance)
-            samples.forEach {
-                val last = adaptivePoints.lastOrNull()
-                if (last == null || last.first.squaredDistanceTo(it.first) > 0.0) {
-                    adaptivePoints.add(it.copy(second = (it.second + segmentIndex) / segmentCount))
-                }
-            }
-        }
-        return adaptivePoints
-    }
 
     /**
-     * Recursively subdivides linear [Segment]s to approximate Bézier curves.
+     * Recursively subdivides linear [Segment2D]s to approximate Bézier curves.
      *
-     * Also see [Segment.adaptivePositions].
+     * Also see [Segment2D.adaptivePositions].
      *
      * @param distanceTolerance The square of the maximal distance of each point from curve.
      * @return A pair containing a list of points and a list of
-     * respective boolean values for each point, indicating if the point is on a [Segment] boundary or not.
+     * respective boolean values for each point, indicating if the point is on a [Segment2D] boundary or not.
      */
     fun adaptivePositionsAndCorners(distanceTolerance: Double = 0.5): Pair<List<Vector2>, List<Boolean>> {
         if (empty) {
@@ -389,35 +262,13 @@ data class ShapeContour @JvmOverloads constructor(
     }
 
 
-    /**
-     * Returns specified amount of points of equal distance from each other.
-     */
-    fun equidistantPositions(pointCount: Int, distanceTolerance: Double = 0.5) =
-        if (empty) {
-            emptyList()
-        } else {
-            sampleEquidistant(
-                adaptivePositions(distanceTolerance),
-                pointCount + if (closed) 1 else 0
-            ).take(pointCount)
-        }
-
-    fun equidistantPositionsWithT(pointCount: Int, distanceTolerance: Double = 0.5) =
-        if (empty) {
-            emptyList()
-        } else {
-            sampleEquidistantWithT(
-                adaptivePositionsWithT(distanceTolerance),
-                pointCount + if (closed) 1 else 0
-            ).take(pointCount)
-        }
 
     /**
      * Adaptively samples the contour into a new [ShapeContour] of
-     * [linear][SegmentType.LINEAR] [Segment]s while still approximating the original contour.
+     * [linear][SegmentType.LINEAR] [Segment2D]s while still approximating the original contour.
      *
      * @param distanceTolerance Controls the precision of the approximation, higher values result in lower accuracy.
-     * @return A [ShapeContour] composed of linear [Segment]s
+     * @return A [ShapeContour] composed of linear [Segment2D]s
      */
     fun sampleLinear(distanceTolerance: Double = 0.5) =
         if (empty) {
@@ -426,7 +277,7 @@ data class ShapeContour @JvmOverloads constructor(
             fromPoints(adaptivePositions(distanceTolerance), closed, polarity)
         }
 
-    /** Samples the [ShapeContour] into equidistant linear [Segment]s. */
+    /** Samples the [ShapeContour] into equidistant linear [Segment2D]s. */
     fun sampleEquidistant(pointCount: Int) =
         if (empty) {
             EMPTY
@@ -458,7 +309,7 @@ data class ShapeContour @JvmOverloads constructor(
      * @param t1 Ending point in range `0.0` to less than `1.0`.
      * @return Subcontour
      */
-    fun sub(t0: Double, t1: Double): ShapeContour {
+    override fun sub(t0: Double, t1: Double): ShapeContour {
         if (empty) {
             return EMPTY
         }
@@ -527,18 +378,18 @@ data class ShapeContour @JvmOverloads constructor(
         segment1 = min(segments.size - 1, segment1)
         segment0 = min(segments.size - 1, segment0)
 
-        val newSegments = mutableListOf<Segment>()
+        val newSegments = mutableListOf<Segment2D>()
 
         for (s in segment0..segment1) {
             if (s == segment0 && s == segment1) {
                 //if (Math.abs(segmentOffset0-segmentOffset1) > epsilon)
-                newSegments.add(segments[s].sub(segmentOffset0, segmentOffset1))
+                newSegments.add(segments[s].sub(segmentOffset0, segmentOffset1) as Segment2D)
             } else if (s == segment0) {
                 if (segmentOffset0 < 1.0 - subEpsilon)
-                    newSegments.add(segments[s].sub(segmentOffset0, 1.0))
+                    newSegments.add(segments[s].sub(segmentOffset0, 1.0) as Segment2D)
             } else if (s == segment1) {
                 if (segmentOffset1 > subEpsilon)
-                    newSegments.add(segments[s].sub(0.0, segmentOffset1))
+                    newSegments.add(segments[s].sub(0.0, segmentOffset1) as Segment2D)
             } else {
                 newSegments.add(segments[s])
             }
@@ -588,17 +439,17 @@ data class ShapeContour @JvmOverloads constructor(
     /**
      * Closes the path of the [ShapeContour].
      *
-     * The path is closed by creating a new connecting [Segment]
-     * between the first and last [Segment] in the contour.
+     * The path is closed by creating a new connecting [Segment2D]
+     * between the first and last [Segment2D] in the contour.
      * If the distance between the beginning of the first and the finish of the last point is negligible (`<0.001`),
-     * then no new [Segment]s are added.
+     * then no new [Segment2D]s are added.
      */
     fun close() = if (empty) EMPTY else {
         if ((segments.last().end - segments.first().start).squaredLength < closeEpsilon)
             ShapeContour(segments, true, polarity)
         else
             ShapeContour(
-                segments + Segment(
+                segments + Segment2D(
                     segments.last().end,
                     segments.first().start
                 ), true, polarity
@@ -606,9 +457,9 @@ data class ShapeContour @JvmOverloads constructor(
     }
 
     /**
-     * Reverses the direction of [Segment]s and their order.
+     * Reverses the direction of [Segment2D]s and their order.
      *
-     * For more information, see [Segment.reverse].
+     * For more information, see [Segment2D.reverse].
      */
     val reversed
         get():ShapeContour = ShapeContour(

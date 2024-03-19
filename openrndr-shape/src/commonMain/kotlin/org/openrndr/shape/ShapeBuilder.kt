@@ -42,7 +42,7 @@ class ContourBuilder(private val multipleContours: Boolean) {
     var anchor = Vector2.INFINITY
 
 
-    val segments = mutableListOf<Segment>()
+    val segments = mutableListOf<Segment2D>()
 
     internal val contours = mutableListOf<ShapeContour>()
 
@@ -140,7 +140,7 @@ class ContourBuilder(private val multipleContours: Boolean) {
             "use moveTo first"
         }
         if ((position - cursor).length > 0.0) {
-            val segment = Segment(cursor, position)
+            val segment = Segment2D(cursor, position)
             segments.add(segment)
             cursor = position
         }
@@ -160,7 +160,7 @@ class ContourBuilder(private val multipleContours: Boolean) {
             "use moveTo first"
         }
         if ((position - cursor).squaredLength > 0.0) {
-            val segment = Segment(cursor, control, position)
+            val segment = Segment2D(cursor, control, position)
             segments.add(segment)
             cursor = position
         }
@@ -179,7 +179,7 @@ class ContourBuilder(private val multipleContours: Boolean) {
             "use moveTo first"
         }
         if ((position - cursor).squaredLength > 0.0) {
-            val segment = Segment(cursor, control0, control1, position)
+            val segment = Segment2D(cursor, control0, control1, position)
             segments.add(segment)
             cursor = position
         }
@@ -200,7 +200,7 @@ class ContourBuilder(private val multipleContours: Boolean) {
         }
 
         if ((anchor - cursor).length > 0.001) {
-            segments.add(Segment(cursor, anchor))
+            segments.add(Segment2D(cursor, anchor))
         }
         contours.add(ShapeContour(segments.map { it }, true))
         segments.clear()
@@ -430,7 +430,7 @@ class ContourBuilder(private val multipleContours: Boolean) {
         return coordinates
     }
 
-    fun segment(segment: Segment) {
+    fun segment(segment: Segment2D) {
         if (cursor !== Vector2.INFINITY) {
             require((segment.start - cursor).length < 10E-3) {
                 "segment is disconnected: cursor: ${cursor}, segment.start: ${segment.start}, distance: ${(cursor - segment.start).length}"
@@ -451,7 +451,7 @@ class ContourBuilder(private val multipleContours: Boolean) {
         }
     }
 
-    fun undo(): Segment? {
+    fun undo(): Segment2D? {
         return if (segments.isNotEmpty()) {
             val r = segments.removeAt(segments.lastIndex)
             cursor = r.start
@@ -461,7 +461,7 @@ class ContourBuilder(private val multipleContours: Boolean) {
         }
     }
 
-    val lastSegment: Segment?
+    val lastSegment: Segment2D?
         get() = segments.lastOrNull()
 
 

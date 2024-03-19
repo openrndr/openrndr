@@ -3,7 +3,6 @@
 package org.openrndr.shape
 
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
 import org.openrndr.math.LinearType
 import org.openrndr.math.Vector2
 import org.openrndr.math.YPolarity
@@ -17,8 +16,8 @@ import kotlin.math.sign
 /**
  * A strictly linear 2D segment.
  *
- * Think of [LineSegment] as a more limited representation of the [Segment], .
- * While both [LineSegment] and [Segment] are capable of describing straight lines, [LineSegment] is only capable of dealing with straight lines
+ * Think of [LineSegment] as a more limited representation of the [Segment2D], .
+ * While both [LineSegment] and [Segment2D] are capable of describing straight lines, [LineSegment] is only capable of dealing with straight lines
  * you'd generally only use [LineSegment] if you strictly
  * want to work with problems in the linear segment domain.
  *
@@ -171,9 +170,9 @@ data class LineSegment(val start: Vector2, val end: Vector2) : LinearType<LineSe
     val squaredLength: Double
         get() = start.squaredDistanceTo(end)
 
-    /** Returns [Segment] representation of the [LineSegment]. */
-    val segment: Segment
-        get() = Segment(start, end)
+    /** Returns [Segment2D] representation of the [LineSegment]. */
+    val segment: Segment2D
+        get() = Segment2D(start, end)
 
     /** Returns [ShapeContour] representation of the [LineSegment]. */
     override val contour: ShapeContour

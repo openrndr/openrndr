@@ -1,6 +1,6 @@
 import org.amshove.kluent.*
 import org.openrndr.math.Vector2
-import org.openrndr.shape.Segment
+import org.openrndr.shape.Segment2D
 import io.kotest.core.spec.style.DescribeSpec
 import java.lang.Math.sqrt
 
@@ -17,12 +17,12 @@ infix fun Vector2.`should be somewhat near`(other: Vector2) {
 
 class TestSegment : DescribeSpec({
     describe("a horizontal segment") {
-        val segment = Segment(Vector2(0.0, 100.0), Vector2(100.0, 100.0))
+        val segment = Segment2D(Vector2(0.0, 100.0), Vector2(100.0, 100.0))
         segment.normal(0.0) `should be near` Vector2(0.0, -1.0)
     }
 
     describe("a linear segment") {
-        val segment = Segment(Vector2(0.0, 0.0), Vector2(100.0, 100.0))
+        val segment = Segment2D(Vector2(0.0, 0.0), Vector2(100.0, 100.0))
         it("has evaluable and correct bounds") {
             val bounds = segment.bounds
             bounds.x `should be equal to` segment.start.x
@@ -110,7 +110,7 @@ class TestSegment : DescribeSpec({
     }
 
     describe("a quadratic segment with co-inciding p0/c0") {
-        val segment = Segment(Vector2(10.0, 10.0), Vector2(10.0, 10.0), Vector2(100.0, 100.0))
+        val segment = Segment2D(Vector2(10.0, 10.0), Vector2(10.0, 10.0), Vector2(100.0, 100.0))
 
         it("has a non-zero derivative at t=0") {
             segment.derivative(0.0).squaredLength `should be greater than` 0.0
@@ -134,7 +134,7 @@ class TestSegment : DescribeSpec({
     }
 
     describe("a quadratic segment with co-inciding p1/c0") {
-        val segment = Segment(Vector2.ZERO, Vector2(100.0, 100.0), Vector2(100.0, 100.0))
+        val segment = Segment2D(Vector2.ZERO, Vector2(100.0, 100.0), Vector2(100.0, 100.0))
 
         it("has a non-zero derivative at t=0") {
             segment.derivative(0.0).squaredLength `should be greater than` 0.0
@@ -157,7 +157,7 @@ class TestSegment : DescribeSpec({
     }
 
     describe("a cubic segment with co-inciding p0/c0") {
-        val segment = Segment(Vector2(10.0, 10.0), Vector2(10.0, 10.0), Vector2(50.0, 50.0), Vector2(100.0, 100.0))
+        val segment = Segment2D(Vector2(10.0, 10.0), Vector2(10.0, 10.0), Vector2(50.0, 50.0), Vector2(100.0, 100.0))
 
         it("has a non-zero derivative at t=0") {
             segment.derivative(0.0).squaredLength `should be greater than` 0.0
@@ -187,7 +187,7 @@ class TestSegment : DescribeSpec({
     }
 
     describe("a cubic segment with co-inciding p1/c1") {
-        val segment = Segment(Vector2(10.0, 10.0), Vector2(50.0, 50.0), Vector2(100.0, 100.0), Vector2(100.0, 100.0))
+        val segment = Segment2D(Vector2(10.0, 10.0), Vector2(50.0, 50.0), Vector2(100.0, 100.0), Vector2(100.0, 100.0))
 
         it("has a non-zero derivative at t=0") {
             segment.derivative(0.0).squaredLength `should be greater than` 0.0
@@ -218,7 +218,7 @@ class TestSegment : DescribeSpec({
 
 
     describe("a cubic segment with co-inciding p0/c0 and p1/c1") {
-        val segment = Segment(Vector2(10.0, 10.0), Vector2(10.0, 10.0), Vector2(100.0, 100.0), Vector2(100.0, 100.0))
+        val segment = Segment2D(Vector2(10.0, 10.0), Vector2(10.0, 10.0), Vector2(100.0, 100.0), Vector2(100.0, 100.0))
 
         it("has a non-zero derivative at t=0") {
             segment.derivative(0.0).squaredLength `should be greater than` 0.0
@@ -254,7 +254,7 @@ class TestSegment : DescribeSpec({
 
 
     describe("a cubic segment with co-inciding c0/c1") {
-        val segment = Segment(Vector2(10.0, 10.0), Vector2(50.0, 50.0), Vector2(50.0, 50.0), Vector2(100.0, 100.0))
+        val segment = Segment2D(Vector2(10.0, 10.0), Vector2(50.0, 50.0), Vector2(50.0, 50.0), Vector2(100.0, 100.0))
 
         it("has a non-zero derivative at t=0") {
             segment.derivative(0.0).squaredLength `should be greater than` 0.0
@@ -290,7 +290,7 @@ class TestSegment : DescribeSpec({
 
 
     describe("a cubic segment") {
-        val segment = Segment(Vector2(0.0, 0.0), Vector2(100.0, 100.0), Vector2(50.0, 100.0), Vector2(0.0, 100.0))
+        val segment = Segment2D(Vector2(0.0, 0.0), Vector2(100.0, 100.0), Vector2(50.0, 100.0), Vector2(0.0, 100.0))
 
         it("has evaluable bounds") {
             segment.bounds

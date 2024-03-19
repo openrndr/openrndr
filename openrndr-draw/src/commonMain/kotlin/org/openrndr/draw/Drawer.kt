@@ -996,7 +996,7 @@ class Drawer(val driver: Driver) {
      * Draw a single segment
      * @see contour
      */
-    fun segment(segment: Segment) {
+    fun segment(segment: Segment2D) {
         val distanceTolerance = 0.5 / (modelViewScaling * log2(strokeWeight).coerceAtLeast(1.0))
         if (abs(modelViewScaling) < 1E-6){
             return
@@ -1015,7 +1015,7 @@ class Drawer(val driver: Driver) {
      * Draws a list of 2D segments
      */
     @JvmName("segments2d")
-    fun segments(segments: List<Segment>) {
+    fun segments(segments: List<Segment2D>) {
         val distanceTolerance = 0.5 / (modelViewScaling * log2(strokeWeight).coerceAtLeast(1.0))
         if (abs(modelViewScaling) < 1E-6){
             return

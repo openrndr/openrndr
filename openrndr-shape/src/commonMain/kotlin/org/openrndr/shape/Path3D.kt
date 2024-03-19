@@ -2,20 +2,45 @@ package org.openrndr.shape
 
 import kotlinx.serialization.Serializable
 import org.openrndr.math.Matrix44
+import org.openrndr.math.Vector2
 import org.openrndr.math.Vector3
+import org.openrndr.math.YPolarity
+import kotlin.jvm.JvmOverloads
 import kotlin.math.abs
 import kotlin.math.min
 
 class PathProjection3D(val segmentProjection: SegmentProjection3D, val projection: Double, val distance: Double, val point: Vector3)
 
 @Serializable
-class Path3D(val segments: List<Segment3D>, val closed: Boolean) {
+class Path3D(override val segments: List<Segment3D>, override val closed: Boolean) : Path<Vector3> {
     companion object {
+
+        val EMPTY: Path3D = Path3D(emptyList(), false)
+
         fun fromPoints(points: List<Vector3>, closed: Boolean) =
                 if (!closed)
                     Path3D((0 until points.size - 1).map { Segment3D(points[it], points[it + 1]) }, closed)
                 else
                     Path3D((points.indices).map { Segment3D(points[it], points[(it + 1) % points.size]) }, closed)
+
+        fun fromSegments(
+            segments: List<Segment3D>,
+            closed: Boolean,
+            distanceTolerance: Double = 1E-3,
+        ): Path3D {
+            if (segments.isEmpty()) {
+                return EMPTY
+            }
+            return Path3D(
+                segments.zipWithNext().map {
+                    val distance = it.first.end.squaredDistanceTo(it.second.start)
+                    require(distance < distanceTolerance) {
+                        "distance between segment end and start is $distance (max: $distanceTolerance)"
+                    }
+                    it.first.copy(end = it.second.start)
+                } + segments.last(), closed
+            )
+        }
     }
 
     val exploded: List<Path3D>
@@ -32,69 +57,12 @@ class Path3D(val segments: List<Segment3D>, val closed: Boolean) {
         return Path3D(segments, false)
     }
 
+    override val infinity: Vector3 = Vector3.INFINITY
 
-    fun position(ut: Double): Vector3 {
-        return when(val t = ut.coerceIn(0.0, 1.0)) {
-            0.0 -> segments[0].start
-            1.0 -> segments.last().end
-            else -> {
-                val segment = (t * segments.size).toInt()
-                val segmentOffset = (t * segments.size) - segment
-                segments[min(segments.size - 1, segment)].position(segmentOffset)
-            }
+    override val empty: Boolean
+        get() {
+            return segments.isEmpty()
         }
-    }
-
-    fun adaptivePositions(distanceTolerance: Double = 0.5): List<Vector3> {
-        val adaptivePoints = mutableListOf<Vector3>()
-        var last: Vector3? = null
-        for (segment in this.segments) {
-            val samples = segment.adaptivePositions(distanceTolerance)
-            if (samples.isNotEmpty()) {
-                val r = samples[0]
-                if (last == null || last.minus(r).length > 0.01) {
-                    adaptivePoints.add(r)
-                }
-                for (i in 1 until samples.size) {
-                    adaptivePoints.add(samples[i])
-                    last = samples[i]
-                }
-            }
-        }
-        return adaptivePoints
-    }
-
-    fun adaptivePositionsWithT(distanceTolerance: Double = 0.5): List<Pair<Vector3, Double>> {
-        val adaptivePoints = mutableListOf<Pair<Vector3, Double>>()
-        var last: Vector3? = null
-        for (segment in this.segments) {
-            val samples = segment.adaptivePositionsWithT(distanceTolerance)
-            if (samples.isNotEmpty()) {
-                val r = samples[0]
-                if (last == null || last.minus(r.first).length > 0.01) {
-                    adaptivePoints.add(r)
-                }
-                for (i in 1 until samples.size) {
-                    adaptivePoints.add(samples[i])
-                    last = samples[i].first
-                }
-            }
-        }
-        return adaptivePoints
-    }
-
-
-
-    /**
-     *
-     */
-    fun equidistantPositions(pointCount: Int, distanceTolerance: Double = 0.5): List<Vector3> {
-        return sampleEquidistant(adaptivePositions(distanceTolerance), pointCount)
-    }
-
-    fun equidistantPositionsWithT(pointCount: Int, distanceTolerance: Double = 0.5): List<Pair<Vector3, Double>> {
-        return sampleEquidistantWithT(adaptivePositionsWithT(distanceTolerance), pointCount)
-    }
 
 
     /**
@@ -125,7 +93,7 @@ class Path3D(val segments: List<Segment3D>, val closed: Boolean) {
      * @param t1 ending point in [0, 1)
      * @return sub contour
      */
-    fun sub(t0: Double, t1: Double): Path3D {
+    override fun sub(t0: Double, t1: Double): Path3D {
         var u0 = t0
         var u1 = t1
 
@@ -190,13 +158,13 @@ class Path3D(val segments: List<Segment3D>, val closed: Boolean) {
         for (s in segment0..segment1) {
             if (s == segment0 && s == segment1) {
                 //if (Math.abs(segmentOffset0-segmentOffset1) > epsilon)
-                newSegments.add(segments[s].sub(segmentOffset0, segmentOffset1))
+                newSegments.add(segments[s].sub(segmentOffset0, segmentOffset1) as Segment3D)
             } else if (s == segment0) {
                 if (segmentOffset0 < 1.0 - epsilon)
-                    newSegments.add(segments[s].sub(segmentOffset0, 1.0))
+                    newSegments.add(segments[s].sub(segmentOffset0, 1.0) as Segment3D)
             } else if (s == segment1) {
                 if (segmentOffset1 > epsilon)
-                    newSegments.add(segments[s].sub(0.0, segmentOffset1))
+                    newSegments.add(segments[s].sub(0.0, segmentOffset1) as Segment3D)
             } else {
                 newSegments.add(segments[s])
             }
@@ -238,8 +206,6 @@ class Path3D(val segments: List<Segment3D>, val closed: Boolean) {
     }
 
     val reversed: Path3D get() = Path3D(segments.map { it.reverse }.reversed(), closed)
-
-    val length get() = segments.sumOf { it.length }
 
 
     fun map(closed: Boolean = this.closed, mapper: (Segment3D) -> Segment3D): Path3D {

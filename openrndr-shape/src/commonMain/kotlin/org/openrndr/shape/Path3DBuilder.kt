@@ -9,6 +9,45 @@ class Path3DBuilder {
     internal var closed = false
 
     val segments = mutableListOf<Segment3D>()
+
+    fun copy(source: Path3D, connectEpsilon: Double = 1E-6) {
+        if (this.segments.isEmpty() && !source.empty) {
+            segments.addAll(source.segments)
+            anchor = segments.first().start
+            cursor = segments.last().end
+        } else if (!source.empty) {
+            val d = cursor - source.segments.first().start
+            if (d.squaredLength > connectEpsilon * connectEpsilon) {
+                lineTo(source.segments.first().start)
+            }
+            for (segment in source.segments) {
+                segment(segment)
+            }
+        }
+    }
+
+    fun segment(segment: Segment3D) {
+        if (cursor !== Vector3.INFINITY) {
+            require((segment.start - cursor).length < 10E-3) {
+                "segment is disconnected: cursor: ${cursor}, segment.start: ${segment.start}, distance: ${(cursor - segment.start).length}"
+            }
+        }
+        if (cursor === Vector3.INFINITY) {
+            moveTo(segment.start)
+        }
+
+        if (segment.linear) {
+            lineTo(segment.end)
+        } else {
+            if (segment.control.size == 1) {
+                curveTo(segment.control[0], segment.end)
+            } else {
+                curveTo(segment.control[0], segment.control[1], segment.end)
+            }
+        }
+    }
+
+
     fun moveTo(position: Vector3) {
         cursor = position
         anchor = position

@@ -92,7 +92,7 @@ class Shape(val contours: List<ShapeContour>) : ShapeProvider {
 
     /**
      * Returns true if [Shape] consists solely of [ShapeContour]s,
-     * where each [Segment] is a [line segment][SegmentType.LINEAR].
+     * where each [Segment2D] is a [line segment][SegmentType.LINEAR].
      */
     val linear get() = contours.all { it.segments.all { segment -> segment.linear } }
     fun polygon(distanceTolerance: Double = 0.5) =

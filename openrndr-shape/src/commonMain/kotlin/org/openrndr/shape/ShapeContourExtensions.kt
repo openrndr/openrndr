@@ -2,7 +2,6 @@ package org.openrndr.shape
 
 import org.openrndr.kartifex.Vec2
 import org.openrndr.math.Vector2
-import kotlin.math.sqrt
 
 /** Returns true if given [point] lies inside the [ShapeContour]. */
 operator fun ShapeContour.contains(point: Vector2): Boolean = closed && this.ring2.test(
@@ -67,9 +66,9 @@ fun  ShapeContour.difference(other: Shape): Shape = difference(this, other)
 @Suppress("unused")
 fun  ShapeContour.intersection(other: Shape): Shape = intersection(this, other)
 
-/** Calculates a [List] of all intersections between the [ShapeContour] and a [Segment]. */
+/** Calculates a [List] of all intersections between the [ShapeContour] and a [Segment2D]. */
 @Suppress("unused")
-fun  ShapeContour.intersections(other: Segment) = intersections(this, other.contour)
+fun  ShapeContour.intersections(other: Segment2D) = intersections(this, other.contour)
 
 /** Calculates a [List] of all intersections between the [ShapeContour] and another [ShapeContour]. */
 @Suppress("unused")

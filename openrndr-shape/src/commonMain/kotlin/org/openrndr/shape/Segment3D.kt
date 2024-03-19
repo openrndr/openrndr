@@ -6,24 +6,20 @@ import org.openrndr.shape.internal.BezierCubicSamplerT
 import org.openrndr.shape.internal.BezierQuadraticSamplerT
 
 private fun sumDifferences(points: List<Vector3>) =
-        (0 until points.size - 1).sumOf { (points[it] - points[it + 1]).length }
+    (0 until points.size - 1).sumOf { (points[it] - points[it + 1]).length }
 
 
 class SegmentProjection3D(val segment: Segment3D, val projection: Double, val distance: Double, val point: Vector3)
 
 @Serializable
-class Segment3D(val start: Vector3, val control: Array<Vector3>, val end: Vector3) {
-
-
-    val linear: Boolean get() = control.isEmpty()
+class Segment3D(
+    override val start: Vector3,
+    override val control: List<Vector3>,
+    override val end: Vector3
+) : BezierSegment<Vector3> {
 
     private var lut: List<Vector3>? = null
 
-    /**
-     * Linear segment constructor
-     * @param start starting point of the segment
-     * @param end end point of the segment
-     */
 
     fun lut(size: Int = 100): List<Vector3> {
         if (lut == null || lut!!.size != size) {
@@ -50,7 +46,7 @@ class Segment3D(val start: Vector3, val control: Array<Vector3>, val end: Vector
         var closestValue = points[0]
 
         var closestDistance = Double.POSITIVE_INFINITY
-        for (i in 0 until points.size) {
+        for (i in points.indices) {
             val distance = (points[i] - query).squaredLength
             if (distance < closestDistance) {
                 closestIndex = i
@@ -98,61 +94,34 @@ class Segment3D(val start: Vector3, val control: Array<Vector3>, val end: Vector
         val tstart = (transform * (start.xyz1)).div
         val tend = (transform * (end.xyz1)).div
         val tcontrol = when (control.size) {
-            2 -> arrayOf((transform * control[0].xyz1).div, (transform * control[1].xyz1).div)
-            1 -> arrayOf((transform * control[0].xyz1).div)
-            else -> emptyArray()
+            2 -> listOf((transform * control[0].xyz1).div, (transform * control[1].xyz1).div)
+            1 -> listOf((transform * control[0].xyz1).div)
+            else -> emptyList()
         }
         return Segment3D(tstart, tcontrol, tend)
     }
-    @Deprecated("inconsistent naming", replaceWith = ReplaceWith("adaptivePositions"))
-    fun sampleAdaptive(distanceTolerance: Double = 0.5): List<Vector3> = adaptivePositions(distanceTolerance)
 
-    fun adaptivePositions(distanceTolerance: Double = 0.5): List<Vector3> =
-        adaptivePositionsWithT(distanceTolerance).map { it.first }
-
-    fun adaptivePositionsWithT(distanceTolerance: Double = 0.5): List<Pair<Vector3, Double>> = when (control.size) {
-        0 -> listOf(start to 0.0, end to 1.0)
-        1 -> BezierQuadraticSamplerT<Vector3>().apply { this.distanceTolerance = distanceTolerance }.sample(start, control[0], end)
-        2 -> BezierCubicSamplerT<Vector3>().apply { this.distanceTolerance = distanceTolerance }.sample(start, control[0], control[1], end)
-        else -> throw RuntimeException("unsupported number of control points")
-    }
-
-    /**
-     * Samples specified amount of points on the [Segment3D].
-     * @param pointCount The number of points to sample.
-     */
-    fun equidistantPositions(pointCount: Int, distanceTolerance: Double = 0.5): List<Vector3> {
-        return sampleEquidistant(adaptivePositions(distanceTolerance), pointCount)
-    }
-
-    fun equidistantPositionsWithT(pointCount: Int, distanceTolerance: Double = 0.5): List<Pair<Vector3, Double>> {
-        return sampleEquidistantWithT(adaptivePositionsWithT(distanceTolerance), pointCount)
-    }
-
-
-    val length: Double
-        get() = when (control.size) {
+    override val length: Double by lazy {
+        when (control.size) {
             0 -> (end - start).length
             1, 2 -> sumDifferences(adaptivePositions())
             else -> throw RuntimeException("unsupported number of control points")
         }
+    }
 
-    fun position(ut: Double): Vector3 {
+    override fun position(ut: Double): Vector3 {
         val t = ut.coerceIn(0.0, 1.0)
         return when (control.size) {
-            0 -> Vector3(start.x * (1.0 - t) + end.x * t, start.y * (1.0 - t) + end.y * t, start.z * (1.0 - t) + end.z * t)
+            0 -> Vector3(
+                start.x * (1.0 - t) + end.x * t,
+                start.y * (1.0 - t) + end.y * t,
+                start.z * (1.0 - t) + end.z * t
+            )
+
             1 -> bezier(start, control[0], end, t)
             2 -> bezier(start, control[0], control[1], end, t)
             else -> throw RuntimeException("unsupported number of control points")
         }
-    }
-
-    fun direction(): Vector3 {
-        return (start - end).normalized
-    }
-
-    fun direction(t: Double): Vector3 {
-        return derivative(t).normalized
     }
 
     fun extrema(): List<Double> {
@@ -164,11 +133,13 @@ class Segment3D(val start: Vector3, val control: Array<Vector3>, val end: Vector
                 val yRoots = roots(dpoints[0].map { it.y })
                 (xRoots + yRoots).distinct().sorted().filter { it in 0.0..1.0 }
             }
+
             control.size == 2 -> {
                 val xRoots = roots(dpoints[0].map { it.x }) + roots(dpoints[1].map { it.x })
                 val yRoots = roots(dpoints[0].map { it.y }) + roots(dpoints[1].map { it.y })
                 (xRoots + yRoots).distinct().sorted().filter { it in 0.0..1.0 }
             }
+
             else -> throw RuntimeException("not supported")
         }
     }
@@ -177,7 +148,7 @@ class Segment3D(val start: Vector3, val control: Array<Vector3>, val end: Vector
 
 
     private fun dpoints(): List<List<Vector3>> {
-        val points = listOf(start, *control, end)
+        val points = listOf(start) + control + listOf(end)
         var d = points.size
         var c = d - 1
         val dpoints = mutableListOf<List<Vector3>>()
@@ -199,7 +170,7 @@ class Segment3D(val start: Vector3, val control: Array<Vector3>, val end: Vector
     /**
      * Cubic version of segment
      */
-    val cubic: Segment3D
+    override val cubic: Segment3D
         get() = when {
             control.size == 2 -> this
             control.size == 1 -> {
@@ -210,6 +181,7 @@ class Segment3D(val start: Vector3, val control: Array<Vector3>, val end: Vector
                     end
                 )
             }
+
             linear -> {
                 val delta = end - start
                 Segment3D(
@@ -219,17 +191,18 @@ class Segment3D(val start: Vector3, val control: Array<Vector3>, val end: Vector
                     end
                 )
             }
+
             else -> throw RuntimeException("cannot convert to cubic segment")
         }
 
-    fun derivative(t: Double): Vector3 = when {
+    override fun derivative(t: Double): Vector3 = when {
         linear -> start - end
         control.size == 1 -> derivative(start, control[0], end, t)
         control.size == 2 -> derivative(start, control[0], control[1], end, t)
         else -> throw RuntimeException("not implemented")
     }
 
-    val reverse: Segment3D
+    override val reverse: Segment3D
         get() {
             return when (control.size) {
                 0 -> Segment3D(end, start)
@@ -239,29 +212,12 @@ class Segment3D(val start: Vector3, val control: Array<Vector3>, val end: Vector
             }
         }
 
-    fun sub(t0: Double, t1: Double): Segment3D {
-        // ftp://ftp.fu-berlin.de/tex/CTAN/dviware/dvisvgm/src/Bezier.cpp
-        var z0 = t0
-        var z1 = t1
-
-        if (t0 > t1) {
-            z1 = t0
-            z0 = t1
-        }
-
-        return when {
-            z0 == 0.0 -> split(z1)[0]
-            z1 == 1.0 -> split(z0)[1]
-            else -> split(z0)[1].split(map(z0, 1.0, 0.0, 1.0, z1))[0]
-        }
-    }
-
     /**
      * Split the contour
      * @param t the point to split the contour at
      * @return array of parts, depending on the split point this is one or two entries long
      */
-    fun split(t: Double): Array<Segment3D> {
+    override fun split(t: Double): Array<Segment3D> {
         val u = t.coerceIn(0.0, 1.0)
 
         if (linear) {
@@ -281,7 +237,8 @@ class Segment3D(val start: Vector3, val control: Array<Vector3>, val end: Vector
                         1.0, 0.0, 0.0, 0.0,
                         iz, z, 0.0, 0.0,
                         iz2, 2.0 * iz * z, z2, 0.0,
-                        iz3, 3.0 * iz2 * z, 3.0 * iz * z2, z3)
+                        iz3, 3.0 * iz2 * z, 3.0 * iz * z2, z3
+                    )
 
                     val px = Vector4(start.x, control[0].x, control[1].x, end.x)
                     val py = Vector4(start.y, control[0].y, control[1].y, end.y)
@@ -318,6 +275,7 @@ class Segment3D(val start: Vector3, val control: Array<Vector3>, val end: Vector
 
                     return arrayOf(left, right)
                 }
+
                 1 -> {
                     val z = u
                     val iz = 1 - z
@@ -328,7 +286,8 @@ class Segment3D(val start: Vector3, val control: Array<Vector3>, val end: Vector
                         1.0, 0.0, 0.0, 0.0,
                         iz, z, 0.0, 0.0,
                         iz2, 2.0 * iz * z, z2, 0.0,
-                        0.0, 0.0, 0.0, 0.0)
+                        0.0, 0.0, 0.0, 0.0
+                    )
 
                     val px = Vector4(start.x, control[0].x, end.x, 0.0)
                     val py = Vector4(start.y, control[0].y, end.y, 0.0)
@@ -348,7 +307,8 @@ class Segment3D(val start: Vector3, val control: Array<Vector3>, val end: Vector
                         iz2, 2.0 * iz * z, z2, 0.0,
                         0.0, iz, z, 0.0,
                         0.0, 0.0, 1.0, 0.0,
-                        0.0, 0.0, 0.0, 0.0)
+                        0.0, 0.0, 0.0, 0.0
+                    )
 
                     val prx = rsm * px
                     val pry = rsm * py
@@ -363,16 +323,17 @@ class Segment3D(val start: Vector3, val control: Array<Vector3>, val end: Vector
                     return arrayOf(left, right)
 
                 }
+
                 else -> throw RuntimeException("not implemented")
             }
         }
     }
 
     override fun toString(): String {
-        return "Segment(start=$start, end=$end, control=${control.contentToString()})"
+        return "Segment(start=$start, end=$end, control=${control})"
     }
 
-    fun copy(start: Vector3 = this.start, control: Array<Vector3> = this.control, end: Vector3 = this.end): Segment3D {
+    fun copy(start: Vector3 = this.start, control: List<Vector3> = this.control, end: Vector3 = this.end): Segment3D {
         return Segment3D(start, control, end)
     }
 
@@ -385,20 +346,55 @@ class Segment3D(val start: Vector3, val control: Array<Vector3>, val end: Vector
 
         if (start != other.start) return false
         if (end != other.end) return false
-        return control.contentEquals(other.control)
+        return control == other.control
     }
 
     override fun hashCode(): Int {
         var result = start.hashCode()
         result = 31 * result + end.hashCode()
-        result = 31 * result + control.contentHashCode()
+        result = 31 * result + control.hashCode()
         return result
     }
 
+    override fun tForLength(length: Double): Double {
+        if (type == SegmentType.LINEAR) {
+            return (length / this.length).coerceIn(0.0, 1.0)
+        }
+
+        val segmentLength = this.length
+        val cLength = length.coerceIn(0.0, segmentLength)
+
+        if (cLength == 0.0) {
+            return 0.0
+        }
+        if (cLength >= segmentLength) {
+            return 1.0
+        }
+        var summedLength = 0.0
+        lut(100)
+        val cLut = lut ?: error("no lut")
+        val partitionCount = cLut.size - 1
+
+        val dt = 1.0 / partitionCount
+        for ((index, _ /*point*/) in lut!!.withIndex()) {
+            if (index < lut!!.size - 1) {
+                val p0 = cLut[index]
+                val p1 = cLut[index + 1]
+                val partitionLength = p0.distanceTo(p1)
+                summedLength += partitionLength
+                if (summedLength >= length) {
+                    val localT = index.toDouble() / partitionCount
+                    val overshoot = summedLength - length
+                    return localT + (overshoot / partitionLength) * dt
+                }
+            }
+        }
+        return 1.0
+    }
 
 }
 
-fun Segment3D(start: Vector3, end: Vector3) = Segment3D(start, emptyArray(), end)
+fun Segment3D(start: Vector3, end: Vector3) = Segment3D(start, emptyList(), end)
 
 
 /**
@@ -407,7 +403,7 @@ fun Segment3D(start: Vector3, end: Vector3) = Segment3D(start, emptyArray(), end
  * @param c0 control point
  * @param end end point of the segment
  */
-fun Segment3D(start: Vector3, c0: Vector3, end: Vector3) = Segment3D(start, arrayOf(c0), end)
+fun Segment3D(start: Vector3, c0: Vector3, end: Vector3) = Segment3D(start, listOf(c0), end)
 
 
 /**
@@ -417,5 +413,5 @@ fun Segment3D(start: Vector3, c0: Vector3, end: Vector3) = Segment3D(start, arra
  * @param c1 second control point
  * @param end end point of the segment
  */
-fun Segment3D(start: Vector3, c0: Vector3, c1: Vector3, end: Vector3) = Segment3D(start, arrayOf(c0, c1), end)
+fun Segment3D(start: Vector3, c0: Vector3, c1: Vector3, end: Vector3) = Segment3D(start, listOf(c0, c1), end)
 
