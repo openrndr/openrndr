@@ -22,7 +22,7 @@ import kotlin.math.floor
  */
 @Suppress("unused")
 @Serializable
-data class ColorHSVa @JvmOverloads constructor (val h: Double, val s: Double, val v: Double, override val alpha: Double = 1.0) :
+data class ColorHSVa constructor (val h: Double, val s: Double, val v: Double, override val alpha: Double = 1.0) :
         ColorModel<ColorHSVa>,
         ShadableColor<ColorHSVa>,
         HueShiftableColor<ColorHSVa>,

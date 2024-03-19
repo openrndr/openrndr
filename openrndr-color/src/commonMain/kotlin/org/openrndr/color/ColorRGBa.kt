@@ -52,7 +52,7 @@ enum class Linearity(val certainty: Int) {
  */
 @Serializable
 @Suppress("EqualsOrHashCode") // generated equals() is ok, only hashCode() needs to be overridden
-data class ColorRGBa @JvmOverloads constructor(
+data class ColorRGBa(
     val r: Double,
     val g: Double,
     val b: Double,
@@ -261,16 +261,12 @@ data class ColorRGBa @JvmOverloads constructor(
     fun toXSLa(): ColorXSLa = ColorHSLa.fromRGBa(this.toSRGB()).toXSLa()
     fun toXYZa(): ColorXYZa = ColorXYZa.fromRGBa(this.toLinear())
 
-    @JvmOverloads
     fun toLABa(ref: ColorXYZa = ColorXYZa.NEUTRAL): ColorLABa = ColorLABa.fromRGBa(this.toLinear(), ref)
 
-    @JvmOverloads
     fun toLUVa(ref: ColorXYZa = ColorXYZa.NEUTRAL): ColorLUVa = ColorLUVa.fromRGBa(this.toLinear(), ref)
 
-    @JvmOverloads
     fun toLCHABa(ref: ColorXYZa = ColorXYZa.NEUTRAL): ColorLCHABa = toXYZa().toLABa(ref).toLCHABa()
 
-    @JvmOverloads
     fun toLCHUVa(ref: ColorXYZa = ColorXYZa.NEUTRAL): ColorLCHUVa = toLUVa(ref).toLCHUVa()
 
     fun toLinear(): ColorRGBa {

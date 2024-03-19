@@ -18,7 +18,7 @@ import kotlin.math.*
  * @see ColorLUVa
  */
 @Serializable
-data class ColorLCHUVa @JvmOverloads constructor (
+data class ColorLCHUVa(
     val l: Double,
     val c: Double,
     val h: Double,

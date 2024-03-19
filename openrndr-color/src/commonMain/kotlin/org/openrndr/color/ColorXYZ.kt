@@ -14,7 +14,7 @@ import kotlin.math.min
  * @param alpha alpha as a percentage between 0.0 and 1.0
  */
 @Serializable
-data class ColorXYZa @JvmOverloads constructor (val x: Double, val y: Double, val z: Double, override val alpha: Double = 1.0) :
+data class ColorXYZa(val x: Double, val y: Double, val z: Double, override val alpha: Double = 1.0) :
     ColorModel<ColorXYZa>,
     AlgebraicColor<ColorXYZa> {
 

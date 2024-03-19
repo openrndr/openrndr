@@ -14,7 +14,7 @@ import kotlin.jvm.JvmOverloads
  * @see ColorXSVa
  */
 @Serializable
-data class ColorXSLa @JvmOverloads constructor (val x: Double, val s: Double, val l: Double, override val alpha: Double = 1.0) :
+data class ColorXSLa(val x: Double, val s: Double, val l: Double, override val alpha: Double = 1.0) :
     ColorModel<ColorXSLa>,
     ShadableColor<ColorXSLa>,
     HueShiftableColor<ColorXSLa>,

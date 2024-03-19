@@ -292,7 +292,6 @@ open class Animatable {
      * Updates the animation state with a user supplied time
      * @param timeInNs the time to use for updating the animation state
      */
-    @JvmOverloads
     fun updateAnimation(timeInNs: Long = clock.timeNanos) {
         lastTimeInNs = timeInNs
         createAtTimeInNs = lastTimeInNs

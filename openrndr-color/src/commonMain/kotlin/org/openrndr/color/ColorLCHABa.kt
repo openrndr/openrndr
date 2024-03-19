@@ -18,7 +18,7 @@ import kotlin.math.*
  * @see ColorLABa
  */
 @Serializable
-data class ColorLCHABa @JvmOverloads constructor (
+data class ColorLCHABa(
     val l: Double,
     val c: Double,
     val h: Double,

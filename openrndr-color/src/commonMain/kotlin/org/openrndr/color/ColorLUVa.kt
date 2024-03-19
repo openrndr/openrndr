@@ -15,7 +15,7 @@ import kotlin.math.pow
  */
 @Suppress("unused", "UNUSED_PARAMETER")
 @Serializable
-data class ColorLUVa @JvmOverloads constructor(
+data class ColorLUVa(
     val l: Double,
     val u: Double,
     val v: Double,

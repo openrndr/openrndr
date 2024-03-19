@@ -18,7 +18,7 @@ private const val consecutiveEpsilon = 1E-6
  * A [List] for managing a collection of [Segment2D]s.
  */
 @Serializable
-data class ShapeContour @JvmOverloads constructor(
+data class ShapeContour(
     override val segments: List<Segment2D>,
     override val closed: Boolean,
     val polarity: YPolarity = YPolarity.CW_NEGATIVE_Y
@@ -31,7 +31,6 @@ data class ShapeContour @JvmOverloads constructor(
          */
         val EMPTY: ShapeContour = ShapeContour(emptyList(), false)
 
-        @JvmOverloads
         fun fromSegments(
             segments: List<Segment2D>,
             closed: Boolean,
@@ -53,7 +52,6 @@ data class ShapeContour @JvmOverloads constructor(
         }
 
         /** Creates a [ShapeContour] by converting [points] to [Segment2D]s. */
-        @JvmOverloads
         fun fromPoints(
             points: List<Vector2>,
             closed: Boolean,

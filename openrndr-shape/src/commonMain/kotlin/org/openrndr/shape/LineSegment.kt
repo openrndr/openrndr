@@ -106,7 +106,6 @@ data class LineSegment(val start: Vector2, val end: Vector2) : LinearType<LineSe
      * @param t The [t](https://pomax.github.io/bezierinfo/#explanation) value
      *      of the point on the segment to rotate around, default is `0.5` (mid-point).
      */
-    @JvmOverloads
     @Deprecated("t value is not according to convention", replaceWith = ReplaceWith("rotateBy"))
     fun rotate(degrees: Double, t: Double = 0.5): LineSegment {
         val anchorPoint = end.mix(start, t.coerceIn(0.0, 1.0))
@@ -212,7 +211,6 @@ data class LineSegment(val start: Vector2, val end: Vector2) : LinearType<LineSe
  * @param b The second line segment.
  * @param eps How far outside the [t](https://pomax.github.io/bezierinfo/#explanation) value are intersections considered.
  */
-@JvmOverloads
 fun intersection(a: LineSegment, b: LineSegment, eps: Double = 0.0): Vector2 =
     intersection(a.start, a.end, b.start, b.end, eps)
 
@@ -227,7 +225,6 @@ fun intersection(a: LineSegment, b: LineSegment, eps: Double = 0.0): Vector2 =
  * @param b1 The end of the second line segment.
  * @param eps How far outside the [t](https://pomax.github.io/bezierinfo/#explanation) value are intersections considered.
  */
-@JvmOverloads
 fun intersection(a0: Vector2, a1: Vector2, b0: Vector2, b1: Vector2, eps: Double = 0.0): Vector2 {
     val x0 = a0.x
     val x1 = a1.x

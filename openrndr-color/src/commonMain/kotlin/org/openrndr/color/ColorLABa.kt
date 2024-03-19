@@ -18,7 +18,7 @@ import kotlin.math.pow
  * @param ref reference white against which the color values are calculated
  */
 @Serializable
-data class ColorLABa @JvmOverloads constructor (
+data class ColorLABa constructor (
     val l: Double,
     val a: Double,
     val b: Double,

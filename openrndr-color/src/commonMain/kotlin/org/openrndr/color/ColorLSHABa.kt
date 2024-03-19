@@ -12,7 +12,7 @@ import kotlin.jvm.JvmOverloads
  * @see ColorLCHABa
  */
 @Serializable
-data class ColorLSHABa @JvmOverloads constructor(
+data class ColorLSHABa(
     val l: Double,
     val s: Double,
     val h: Double,

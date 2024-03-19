@@ -17,7 +17,7 @@ import kotlin.jvm.JvmOverloads
  */
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 @Serializable
-data class ColorHSLa @JvmOverloads constructor (val h: Double, val s: Double, val l: Double, override val alpha: Double = 1.0) :
+data class ColorHSLa(val h: Double, val s: Double, val l: Double, override val alpha: Double = 1.0) :
         ColorModel<ColorHSLa>,
         ShadableColor<ColorHSLa>,
         HueShiftableColor<ColorHSLa>,

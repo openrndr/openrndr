@@ -14,7 +14,7 @@ import kotlin.jvm.JvmOverloads
  */
 @Suppress("LocalVariableName")
 @Serializable
-data class ColorYxya @JvmOverloads constructor (
+data class ColorYxya(
     val yy: Double,
     val x: Double,
     val y: Double,
