@@ -202,7 +202,6 @@ data class ShapeContour(
     }
 
 
-
     /**
      * Calculates the pose [Matrix44] (i.e. translation and rotation) that describes an orthonormal basis
      * formed by normal and tangent of the contour at [t](https://pomax.github.io/bezierinfo/#explanation).

@@ -50,6 +50,21 @@ interface Path<T : EuclideanVector<T>> {
         }
     }
 
+    fun direction(ut: Double): T {
+        if (empty) {
+            return infinity
+        }
+
+        return when (val t = ut.coerceIn(0.0, 1.0)) {
+            0.0 -> segments[0].direction(0.0)
+            1.0 -> segments.last().direction(1.0)
+            else -> {
+                val (segment, segmentOffset) = segment(t)
+                segments[segment].direction(segmentOffset)
+            }
+        }
+    }
+
     /**
      * Estimates the [t](https://pomax.github.io/bezierinfo/#explanation) value for a given length.
      *
