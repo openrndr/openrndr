@@ -12,7 +12,7 @@ jobs:
       - uses: actions/setup-java@v3
         with:
           distribution: temurin
-          java-version: 17
+          java-version: 21
       - name: Build and publish to local maven
         run: ./gradlew -Prelease.useLastTag=true build
       - name: Decode
