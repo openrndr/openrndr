@@ -2,12 +2,14 @@ package org.openrndr.convention
 
 import org.gradle.accessors.dm.LibrariesForLibs
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 
 val libs = the<LibrariesForLibs>()
 
 plugins {
-    java
+    //java
     kotlin("jvm")
 }
 
@@ -24,13 +26,6 @@ dependencies {
     testRuntimeOnly(libs.slf4j.simple)
 }
 
-kotlin {
-    jvmToolchain {
-        languageVersion.set(JavaLanguageVersion.of(libs.versions.jvmTarget.get()))
-        vendor.set(JvmVendorSpec.ADOPTIUM)
-    }
-}
-
 tasks {
     @Suppress("UNUSED_VARIABLE")
     val test by getting(Test::class) {
@@ -40,8 +35,13 @@ tasks {
     }
 
     withType<KotlinCompile>() {
+        kotlinOptions.jvmTarget = libs.versions.jvmTarget.get()
         kotlinOptions.apiVersion = libs.versions.kotlinApi.get()
         kotlinOptions.languageVersion = libs.versions.kotlinLanguage.get()
         kotlinOptions.freeCompilerArgs += "-Xexpect-actual-classes"
+        kotlinOptions.freeCompilerArgs += "-Xjdk-release=${libs.versions.jvmTarget.get()}"
     }
+}
+java {
+    targetCompatibility = JavaVersion.valueOf("VERSION_${libs.versions.jvmTarget.get()}")
 }

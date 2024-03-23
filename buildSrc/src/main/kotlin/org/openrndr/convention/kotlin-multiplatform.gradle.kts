@@ -3,7 +3,10 @@ package org.openrndr.convention
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.gradle.accessors.dm.LibrariesForLibs
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinCompile
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
+import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 
 
 val libs = the<LibrariesForLibs>()
@@ -22,14 +25,17 @@ tasks.withType<KotlinCompile<*>>() {
     kotlinOptions.apiVersion = libs.versions.kotlinApi.get()
     kotlinOptions.languageVersion = libs.versions.kotlinLanguage.get()
     kotlinOptions.freeCompilerArgs += "-Xexpect-actual-classes"
+    kotlinOptions.freeCompilerArgs += "-Xjdk-release=${libs.versions.jvmTarget.get()}"
+
 }
+tasks.withType<KotlinJvmCompile>().configureEach {
+    compilerOptions.jvmTarget.set(JvmTarget.fromTarget(libs.versions.jvmTarget.get()))
+}
+
 
 kotlin {
     jvm {
-        jvmToolchain {
-            languageVersion.set(JavaLanguageVersion.of(libs.versions.jvmTarget.get()))
-            vendor.set(JvmVendorSpec.ADOPTIUM)
-        }
+
 
         testRuns["test"].executionTask {
             if (DefaultNativePlatform.getCurrentOperatingSystem().isMacOsX) {
@@ -84,3 +90,6 @@ kotlin {
     }
 }
 
+//java{
+//    targetCompatibility = JavaVersion.VERSION_11
+//}
