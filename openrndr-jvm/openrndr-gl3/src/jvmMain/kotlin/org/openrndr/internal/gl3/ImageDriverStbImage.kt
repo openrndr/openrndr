@@ -474,9 +474,34 @@ class ImageDriverStbImage : ImageDriver {
     }
 
     override fun saveImage(imageData: ImageData, filename: String, formatHint: ImageFileFormat?) {
+
+        fun flipImage(inputBuffer: ByteBuffer) : ByteBuffer {
+            return if (imageData.flipV) inputBuffer else {
+                val flippedPixels =
+                    MemoryUtil.memAlloc(imageData.width * imageData.height * imageData.format.componentCount * imageData.type.componentSize)
+                val stride = imageData.width * imageData.format.componentCount
+                println(stride)
+                val row = ByteArray(stride)
+                flippedPixels.rewind()
+
+                for (y in 0 until imageData.height) {
+                    inputBuffer.position((imageData.height - y - 1) * stride)
+                    inputBuffer.get(row)
+                    flippedPixels.put(row)
+                }
+
+                inputBuffer.rewind()
+                inputBuffer.put(flippedPixels)
+                inputBuffer.rewind()
+                flippedPixels.rewind()
+                flippedPixels
+            }
+        }
+
         val format = formatHint ?: ImageFileFormat.PNG
         when (format) {
             ImageFileFormat.PNG -> {
+                val buffer = flipImage(imageData.data?.byteBuffer ?: error("no data"))
                 when (Pair(imageData.format, imageData.type)) {
                     Pair(ColorFormat.R, ColorType.UINT8),
                     Pair(ColorFormat.RGB, ColorType.UINT8),
@@ -486,19 +511,22 @@ class ImageDriverStbImage : ImageDriver {
                                 filename,
                                 imageData.width,
                                 imageData.height,
-                                imageData.format.componentCount, imageData.data?.byteBuffer ?: error("no data"),
+                                imageData.format.componentCount, buffer,
                                 imageData.width * imageData.format.componentCount
                             )
                         ) {
                             "write to png failed"
                         }
                     }
-
                     else -> error("unsupported input for PNG (${imageData.type}/${imageData.type}")
+                }
+                if (!imageData.flipV) {
+                    MemoryUtil.memFree(buffer)
                 }
             }
 
             ImageFileFormat.JPG -> {
+                val buffer = flipImage(imageData.data?.byteBuffer ?: error("no data"))
                 when (Pair(imageData.format, imageData.type)) {
                     Pair(ColorFormat.R, ColorType.UINT8),
                     Pair(ColorFormat.RGB, ColorType.UINT8),
@@ -508,7 +536,7 @@ class ImageDriverStbImage : ImageDriver {
                                 filename,
                                 imageData.width,
                                 imageData.height,
-                                imageData.format.componentCount, imageData.data?.byteBuffer ?: error("no data"),
+                                imageData.format.componentCount, buffer,
                                 imageData.width * imageData.format.componentCount
                             )
                         ) {
@@ -517,6 +545,9 @@ class ImageDriverStbImage : ImageDriver {
                     }
 
                     else -> error("unsupported input for JPG (${imageData.type}/${imageData.type}")
+                }
+                if (!imageData.flipV) {
+                    MemoryUtil.memFree(buffer)
                 }
             }
 

@@ -901,32 +901,7 @@ class ColorBufferGL3(
 
     fun toImageData(): ImageData {
         val buffer = MemoryUtil.memAlloc(effectiveWidth * effectiveHeight * format.componentCount * type.componentSize)
-        try {
-            read(buffer)
-            buffer.rewind()
-            if (!flipV) {
-                val flippedPixels =
-                    MemoryUtil.memAlloc(effectiveWidth * effectiveHeight * format.componentCount * type.componentSize)
-                val stride = effectiveWidth * format.componentCount
-                val row = ByteArray(stride)
-
-                for (y in 0 until effectiveHeight) {
-                    buffer.position((effectiveHeight - y - 1) * stride)
-                    buffer.get(row)
-                    flippedPixels.put(row)
-                }
-
-                flippedPixels.flip()
-                buffer.rewind()
-                buffer.put(flippedPixels)
-                buffer.flip()
-                MemoryUtil.memFree(flippedPixels)
-            }
-        } catch (t: Throwable) {
-            MemoryUtil.memFree(buffer)
-            throw t
-        }
-
+        read(buffer)
         val data = ImageDataStb(effectiveWidth, effectiveHeight, format, type, flipV, MPPBuffer(buffer))
         return data
     }
