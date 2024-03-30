@@ -54,12 +54,13 @@ enum class KeyEventType {
  * @property propagationCancelled a flag that can be set to indicate that this event is handled and should not
  * be processed further
  */
-class KeyEvent(
+data class KeyEvent(
         val type: KeyEventType,
         val key: Int,
         val name: String,
         val modifiers: Set<KeyModifier>,
-        var propagationCancelled: Boolean = false) {
+) {
+    var propagationCancelled: Boolean = false
     fun cancelPropagation() {
         propagationCancelled = true
     }
