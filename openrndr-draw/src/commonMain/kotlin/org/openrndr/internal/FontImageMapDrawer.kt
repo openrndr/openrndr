@@ -34,10 +34,10 @@ class FontImageMapDrawer {
     var counter = 0
 
     fun getQueue(size: Int): VertexBuffer {
-        if (size < 128) {
-            return fewQuads[counter.mod(fewQuads.size)]
+        return if (size < 128) {
+            fewQuads[counter.mod(fewQuads.size)]
         } else {
-            return manyQuads
+            manyQuads
         }
     }
 
@@ -56,7 +56,8 @@ class FontImageMapDrawer {
         texts: List<String>,
         positions: List<Vector2>
     ): List<List<GlyphRectangle>> {
-        val vertices = if (texts.sumOf { it.length } < 128) fewQuads[counter.mod(fewQuads.size)] else manyQuads
+        val count = texts.sumOf { it.length }
+        val vertices = getQueue(count)
 
         val fontMap = drawStyle.fontMap as? FontImageMap
         if (fontMap != null) {
