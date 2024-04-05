@@ -72,10 +72,7 @@ open class RenderTargetGL3(
             logger.trace { "created new render target ($width*$height) @ ${contentScale}x $multisample" }
             val framebuffer = glGenFramebuffers()
             if (multisample is BufferMultisample.SampleCount) {
-                val maxColorTextureSamples = glGetInteger(GL_MAX_COLOR_TEXTURE_SAMPLES)
-                val maxDepthTextureSamples = glGetInteger(GL_MAX_DEPTH_TEXTURE_SAMPLES)
-
-                val maxSamples = min(maxColorTextureSamples, maxDepthTextureSamples)
+                val maxSamples = glGetInteger(GL_MAX_SAMPLES)
                 if (maxSamples < multisample.sampleCount) {
                     logger.info {
                         "requested multisampling with ${multisample.sampleCount} samples, but only ${maxSamples} are supported"
