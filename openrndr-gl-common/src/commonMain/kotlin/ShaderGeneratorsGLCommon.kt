@@ -395,7 +395,7 @@ void main() {
 
     ${shadeStructure.varyingBridge ?: ""}
 
-    vec2 effectiveRadius = i_radius.xy + vec2(1.25) / (u_modelViewScalingFactor);
+    vec2 effectiveRadius = i_radius.xy + vec2(1.25 / u_contentScale) / (u_modelViewScalingFactor);
 
     v_boundsSize = vec3(effectiveRadius.xy, 0.0);
     ${preVertexTransform}
