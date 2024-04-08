@@ -188,7 +188,7 @@ internal class ExpansionDrawer {
         // -- pass 2: draw anti-aliased fringes
         localStyle.channelWriteMask = ChannelMask.ALL
         shader.uniform("strokeThr", 0.0f)
-        shader.uniform("strokeMult", 2.0)
+        shader.uniform("strokeMult", 1.0)
         localStyle.stencil.stencilFunc(stencilTest = StencilTest.EQUAL, testReference = 0x00, writeMask = 0xff)
         localStyle.stencil.stencilOp(onStencilTestFail = StencilOperation.KEEP, onDepthTestFail = StencilOperation.KEEP, onDepthTestPass = StencilOperation.KEEP)
 

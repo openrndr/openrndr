@@ -5,6 +5,7 @@ import org.openrndr.draw.renderTarget
 import org.openrndr.math.Vector2
 import org.openrndr.math.Vector3
 import org.openrndr.math.transforms.buildTransform
+import org.openrndr.shape.Circle
 
 fun main() = application {
     configure {
@@ -28,6 +29,8 @@ fun main() = application {
                 drawer.ortho(rt)
                 drawer.circle(drawer.bounds.center - Vector2(9.0, 0.0), 9.0)
                 drawer.circle(drawer.bounds.center + Vector2(9.0, 0.0), 9.0)
+
+                drawer.lineSegment(10.0, 10.0, 62.0, 62.0)
             }
 
             drawer.strokeWeight = 4.0
@@ -42,6 +45,10 @@ fun main() = application {
             }
             drawer.circle(drawer.bounds.center - Vector2(90.0, 0.0), 90.0)
             drawer.circle(drawer.bounds.center + Vector2(90.0, 0.0), 90.0)
+
+            val c = Circle(drawer.bounds.position(0.25, 0.25), 90.0).contour
+            drawer.contour(c)
+
         }
     }
 }

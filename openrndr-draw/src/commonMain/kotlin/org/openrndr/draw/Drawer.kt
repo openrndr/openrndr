@@ -81,7 +81,7 @@ class Drawer(val driver: Driver) {
     private var modelViewScalingFactor = 1.0
     private val modelViewScaling: Double
     get() {
-        return modelViewScalingFactor
+        return modelViewScalingFactor * RenderTarget.active.contentScale
     }
 
     /** The active model matrix */
