@@ -104,7 +104,7 @@ class ObservableHashmap<K, V>(val b: MutableMap<K, V>, inline val onChange: () -
 open class ShadeStyle : StyleParameters, StyleBufferBindings, StyleImageBindings {
     var dirty = true
 
-    override var textureBaseIndex = 0
+    override var textureBaseIndex = 2
 
     var vertexPreamble: String? = null
         set(value) {

@@ -26,7 +26,7 @@ class ComputeStyle : StyleParameters, StyleBufferBindings, StyleImageBindings {
     var computePreamble: String = ""
     var computeTransform: String = ""
 
-    override var textureBaseIndex: Int = 0
+    override var textureBaseIndex: Int = 2
 
     /**
      * The size of the compute work group
