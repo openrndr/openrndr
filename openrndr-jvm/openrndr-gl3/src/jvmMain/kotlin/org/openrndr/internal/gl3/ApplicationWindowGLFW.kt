@@ -390,11 +390,11 @@ class ApplicationWindowGLFW(
             }
         }
 
-
-
         glfwSetWindowCloseCallback(window) {
+            logger.debug { "window $window closed" }
+            program.window.closed.postpone = false
+            program.window.closed.trigger(WindowEvent(WindowEventType.CLOSED, Vector2.ZERO, Vector2.ZERO, false))
             destroy()
-
         }
 
         glfwSetCursorEnterCallback(window) { _, entered ->
@@ -493,6 +493,7 @@ class ApplicationWindowGLFW(
             }
         }
     }
+
     private fun deliverEvents() {
         program.window.drop.deliver()
         program.window.sized.deliver()
@@ -514,6 +515,7 @@ class ApplicationWindowGLFW(
     }
 
     override fun destroy() {
+        logger.debug { "destroying window ${window}" }
         for (extension in program.extensions) {
             extension.shutdown(program)
         }
@@ -529,7 +531,7 @@ fun createApplicationWindowGlfw(
 ): ApplicationWindowGLFW {
 
     glfwDefaultWindowHints()
-    glfwWindowHint(GLFW_FLOATING, GLFW_TRUE)
+    glfwWindowHint(GLFW_FLOATING, GLFW_FALSE)
     glfwWindowHint(GLFW_AUTO_ICONIFY, GLFW_FALSE)
     glfwWindowHint(GLFW_RESIZABLE, if (configuration.resizable) GLFW_TRUE else GLFW_FALSE)
     glfwWindowHint(GLFW_DECORATED, if (configuration.hideDecorations) GLFW_FALSE else GLFW_TRUE)
@@ -590,7 +592,8 @@ fun createApplicationWindowGlfw(
         configuration.title,
         windowResizable = configuration.resizable,
         windowMultisample = configuration.multisample,
-        program)
+        program
+    )
 
     if (DriverGL3Configuration.useDebugContext) {
         println("setting up debug context")

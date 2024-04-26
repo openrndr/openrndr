@@ -321,10 +321,14 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
                 val primaryDisplayScale = FloatArray(1)
                 glfwGetMonitorContentScale(glfwGetPrimaryMonitor(), primaryDisplayScale, null)
 
+                logger.debug { "primary display content scale: ${primaryDisplayScale[0]}" }
+
                 val adjustedWidth =
                     if (fixWindowSize) (primaryDisplayScale[0] * configuration.width).toInt() else configuration.width
                 val adjustedHeight =
                     if (fixWindowSize) (primaryDisplayScale[0] * configuration.height).toInt() else configuration.height
+
+                logger.debug { "adjusted width x height $adjustedWidth x $adjustedHeight" }
 
                 glfwCreateWindow(
                     adjustedWidth,
@@ -462,7 +466,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
         }
 
         glfwSetFramebufferSizeCallback(window) { window, width, height ->
-            logger.trace { "resizing window ($window) to ${width}x$height " }
+            logger.debug { "resizing window ($window) to ${width}x$height " }
             _windowSize = null
 
             if (readyFrames > 0) {
@@ -602,6 +606,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
                     glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_EGL_CONTEXT_API);
                 }
             }
+            glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_TRUE)
             glfwWindowHint(GLFW_RED_BITS, 8)
             glfwWindowHint(GLFW_GREEN_BITS, 8)
             glfwWindowHint(GLFW_BLUE_BITS, 8)
