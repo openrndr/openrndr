@@ -20,7 +20,7 @@ class MeshLineDrawer {
         attribute("next", VertexElementType.VECTOR3_FLOAT32)
         attribute("side", VertexElementType.FLOAT32)
         attribute("width", VertexElementType.FLOAT32)
-        attribute("uv", VertexElementType.VECTOR2_FLOAT32)
+        textureCoordinate(2)
         attribute("element", VertexElementType.FLOAT32)
         color(4)
     }
@@ -150,6 +150,10 @@ class MeshLineDrawer {
         val defaultColor = colors.lastOrNull() ?: drawStyle.stroke ?: ColorRGBa.TRANSPARENT
         val vertexCount = vertices.put {
             for ((element, strip) in strips.withIndex()) {
+
+                val stripLength = strip.asSequence().windowed(2, 1).sumOf { it[0].distanceTo(it[1]) }
+                var offset = 0.0
+
                 val stripClosed = closed.getOrNull(element) ?: false
                 val color = if (element < colorCount) colors[element] else defaultColor
 
@@ -169,12 +173,13 @@ class MeshLineDrawer {
                     write(color)
 
                     for ((current, next) in strip.zipWithNext()) {
+                        val segmentLength = current.distanceTo(next)
                         write(previous)
                         write(current)
                         write(next)
                         write(-1.0f)
                         write(width)
-                        write(Vector2.ZERO)
+                        write(Vector2(0.0, offset / stripLength))
                         write(elementF)
                         write(color)
 
@@ -183,10 +188,12 @@ class MeshLineDrawer {
                         write(next)
                         write(1.0f)
                         write(width)
-                        write(Vector2.ZERO)
+                        write(Vector2(1.0, offset / stripLength))
                         write(elementF)
                         write(color)
                         previous = current
+
+                        offset += segmentLength
                     }
 
                     // last point
@@ -195,7 +202,7 @@ class MeshLineDrawer {
                     write(strip.last())
                     write(-1.0f)
                     write(width)
-                    write(Vector2.ZERO)
+                    write(Vector2(0.0, offset / stripLength))
                     write(elementF)
                     write(color)
 
@@ -204,7 +211,7 @@ class MeshLineDrawer {
                     write(strip.last())
                     write(1.0f)
                     write(width)
-                    write(Vector2.ZERO)
+                    write(Vector2(1.0, offset / stripLength))
                     write(elementF)
                     write(color)
 
