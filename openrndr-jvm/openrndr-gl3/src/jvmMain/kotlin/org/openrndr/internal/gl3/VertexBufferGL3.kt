@@ -177,16 +177,18 @@ class VertexBufferGL3(
     }
 
     override fun destroy() {
-        logger.debug {
-            "destroying vertex buffer with id $buffer"
+        if (!isDestroyed) {
+            logger.debug {
+                "destroying vertex buffer with id $buffer"
+            }
+            session?.untrack(this)
+            isDestroyed = true
+            realShadow = null
+            glDeleteBuffers(buffer)
+            (Driver.instance as DriverGL3).destroyVAOsForVertexBuffer(this)
+            checkGLErrors()
+            Session.active.untrack(this)
         }
-        session?.untrack(this)
-        isDestroyed = true
-        realShadow = null
-        glDeleteBuffers(buffer)
-        (Driver.instance as DriverGL3).destroyVAOsForVertexBuffer(this)
-        checkGLErrors()
-        Session.active.untrack(this)
     }
 
     fun bind() {

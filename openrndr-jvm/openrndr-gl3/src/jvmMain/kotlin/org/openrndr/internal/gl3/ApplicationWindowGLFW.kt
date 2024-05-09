@@ -519,6 +519,7 @@ class ApplicationWindowGLFW(
         for (extension in program.extensions) {
             extension.shutdown(program)
         }
+        Driver.instance.destroyContext(window)
         glfwDestroyWindow(window)
         application.windows.remove(this)
     }
