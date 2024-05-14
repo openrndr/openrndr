@@ -29,10 +29,7 @@ class ApplicationWindowGLFW(
     override val windowMultisample: WindowMultisample,
     program: Program,
 ) : ApplicationWindow(program) {
-    var defaultRenderTargetGL3: ProgramRenderTargetGL3? = null
-
-    private var size: Vector2 = Vector2(0.0, 0.0)
-
+    private var defaultRenderTargetGL3: ProgramRenderTargetGL3? = null
     private var drawRequested = true
 
     internal fun updateSize() {
@@ -495,6 +492,10 @@ class ApplicationWindowGLFW(
     }
 
     private fun deliverEvents() {
+        /*
+        Here we should check first if any events need to be delivered before switching the context
+         */
+        glfwMakeContextCurrent(window)
         program.window.drop.deliver()
         program.window.sized.deliver()
         program.window.unfocused.deliver()
