@@ -480,7 +480,6 @@ class ImageDriverStbImage : ImageDriver {
                 val flippedPixels =
                     MemoryUtil.memAlloc(imageData.width * imageData.height * imageData.format.componentCount * imageData.type.componentSize)
                 val stride = imageData.width * imageData.format.componentCount
-                println(stride)
                 val row = ByteArray(stride)
                 flippedPixels.rewind()
 
