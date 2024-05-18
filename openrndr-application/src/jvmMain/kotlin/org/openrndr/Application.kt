@@ -38,6 +38,7 @@ abstract class ApplicationWindow(val program: Program) {
     abstract var windowTitle: String
     abstract var windowPosition: Vector2
     abstract var windowSize: Vector2
+    abstract val windowClosable: Boolean
     abstract val windowResizable: Boolean
     abstract val windowMultisample: WindowMultisample
     abstract val windowFocused: Boolean

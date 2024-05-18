@@ -27,6 +27,7 @@ class ApplicationWindowGLFW(
     windowTitle: String,
     override val windowResizable: Boolean,
     override val windowMultisample: WindowMultisample,
+    override val windowClosable: Boolean,
     program: Program,
 ) : ApplicationWindow(program) {
     private var defaultRenderTargetGL3: ProgramRenderTargetGL3? = null
@@ -388,10 +389,12 @@ class ApplicationWindowGLFW(
         }
 
         glfwSetWindowCloseCallback(window) {
-            logger.debug { "window $window closed" }
-            program.window.closed.postpone = false
-            program.window.closed.trigger(WindowEvent(WindowEventType.CLOSED, Vector2.ZERO, Vector2.ZERO, false))
-            destroy()
+            if (windowClosable) {
+                logger.debug { "window $window closed" }
+                program.window.closed.postpone = false
+                program.window.closed.trigger(WindowEvent(WindowEventType.CLOSED, Vector2.ZERO, Vector2.ZERO, false))
+                destroy()
+            }
         }
 
         glfwSetCursorEnterCallback(window) { _, entered ->
@@ -594,6 +597,7 @@ fun createApplicationWindowGlfw(
         configuration.title,
         windowResizable = configuration.resizable,
         windowMultisample = configuration.multisample,
+        windowClosable = configuration.closable,
         program
     )
 
