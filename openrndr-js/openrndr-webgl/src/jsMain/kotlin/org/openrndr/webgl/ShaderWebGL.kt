@@ -150,27 +150,46 @@ class ShaderWebGL(
         val index = uniformIndex(name)
         if (index != null) {
             context.uniform2fv(index, value.toFloat32Array())
-            context.checkErrors("$name $value")
         }
     }
 
     override fun uniform(name: String, value: IntVector4) {
-        TODO("Not yet implemented")
+        val index = uniformIndex(name)
+        if (index != null) {
+            context.uniform4i(index, value.x, value.y, value.z, value.w)
+        }
     }
 
     override fun uniform(name: String, value: IntVector3) {
-        TODO("Not yet implemented")
+        val index = uniformIndex(name)
+        if (index != null) {
+            context.uniform3i(index, value.x, value.y, value.z)
+        }
     }
 
     override fun uniform(name: String, value: IntVector2) {
-        TODO("Not yet implemented")
+        val index = uniformIndex(name)
+        if (index != null) {
+            context.uniform2i(index, value.x, value.y)
+        }
+    }
+
+    override fun uniform(name: String, value: BooleanVector4) {
+        uniform(name, value.toIntVector4())
+    }
+
+    override fun uniform(name: String, value: BooleanVector3) {
+        uniform(name, value.toIntVector3())
+    }
+
+    override fun uniform(name: String, value: BooleanVector2) {
+        uniform(name, value.toIntVector2())
     }
 
     override fun uniform(name: String, x: Float, y: Float, z: Float, w: Float) {
         val index = uniformIndex(name)
         if (index != null) {
             context.uniform4f(index, x, y, z, w)
-            context.checkErrors("$name $x $y $z $w")
         }
     }
 
@@ -178,7 +197,6 @@ class ShaderWebGL(
         val index = uniformIndex(name)
         if (index != null) {
             context.uniform3f(index, x, y, z)
-            context.checkErrors("$name $x $y $z")
         }
     }
 
@@ -186,15 +204,13 @@ class ShaderWebGL(
         val index = uniformIndex(name)
         if (index != null) {
             context.uniform2f(index, x, y)
-            context.checkErrors("$name $x $y")
         }
     }
 
     override fun uniform(name: String, value: Float) {
         val index = uniformIndex(name)
         if (index != null) {
-            context.uniform1f(index, value.toFloat())
-            context.checkErrors("$name $value")
+            context.uniform1f(index, value)
         }
     }
 

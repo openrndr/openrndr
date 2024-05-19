@@ -150,6 +150,18 @@ interface ShaderUniformsGL3 : ShaderUniforms {
         }
     }
 
+    override fun uniform(name: String, value: BooleanVector2) {
+        uniform(name, value.toIntVector2())
+    }
+
+    override fun uniform(name: String, value: BooleanVector3) {
+        uniform(name, value.toIntVector3())
+    }
+
+    override fun uniform(name: String, value: BooleanVector4) {
+        uniform(name, value.toIntVector4())
+    }
+
     override fun uniform(name: String, value: IntVector2) {
         val index = uniformIndex(name)
         if (index != -1) {

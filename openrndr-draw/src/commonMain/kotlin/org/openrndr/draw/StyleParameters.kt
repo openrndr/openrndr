@@ -103,6 +103,21 @@ interface StyleParameters {
         parameterTypes[name] = shadeStyleType<IntVector4>()
     }
 
+    fun parameter(name: String, value: BooleanVector2) {
+        parameterValues[name] = value
+        parameterTypes[name] = shadeStyleType<BooleanVector2>()
+    }
+
+    fun parameter(name: String, value: BooleanVector3) {
+        parameterValues[name] = value
+        parameterTypes[name] = shadeStyleType<BooleanVector3>()
+    }
+
+    fun parameter(name: String, value: BooleanVector4) {
+        parameterValues[name] = value
+        parameterTypes[name] = shadeStyleType<BooleanVector4>()
+    }
+
     fun parameter(name: String, value: ColorRGBa) {
         parameterValues[name] = value
         parameterTypes[name] = shadeStyleType<ColorRGBa>()
