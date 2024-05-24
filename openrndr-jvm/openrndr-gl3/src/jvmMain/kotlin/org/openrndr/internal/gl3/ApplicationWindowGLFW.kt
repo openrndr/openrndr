@@ -578,6 +578,11 @@ fun createApplicationWindowGlfw(
     val version = Driver.glVersion
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, version.majorVersion)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, version.minorVersion)
+
+    if (configuration.alwaysOnTop) {
+        glfwWindowHint(GLFW_FLOATING, GLFW_TRUE)
+    }
+
     val childWindow = glfwCreateWindow(
         configuration.width,
         configuration.height,
@@ -585,6 +590,8 @@ fun createApplicationWindowGlfw(
         MemoryUtil.NULL,
         primaryWindow
     )
+
+
     logger.debug { "created child window $childWindow" }
 
     glfwMakeContextCurrent(childWindow)

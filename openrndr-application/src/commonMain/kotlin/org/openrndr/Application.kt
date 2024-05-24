@@ -27,6 +27,7 @@ data class WindowConfiguration(
     val height: Int = 480,
     val resizable: Boolean = false,
     val closable: Boolean = true,
+    val alwaysOnTop: Boolean = false,
     val hideDecorations: Boolean = false,
     val multisample: WindowMultisample = WindowMultisample.Disabled
     )
