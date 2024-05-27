@@ -5,4 +5,7 @@ interface Clock {
     val timeNanos: Long get() = time * 1000
 }
 
-expect class DefaultClock() : Clock
+expect class DefaultClock() : Clock {
+    override val time: Long
+    override val timeNanos : Long
+}
