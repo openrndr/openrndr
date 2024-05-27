@@ -115,7 +115,7 @@ class TestShadeStylesGL3 : AbstractApplicationTestFixture() {
             val sb = structuredBuffer(CustomStruct())
             val ss = shadeStyle {
                 fragmentTransform = """float n = b_buffer.floats[0];"""
-                buffer("buffer", sb)
+                buffer("buffer", sb.ssbo)
             }
             program.drawer.isolated {
                 program.drawer.shadeStyle = ss
@@ -133,7 +133,7 @@ class TestShadeStylesGL3 : AbstractApplicationTestFixture() {
 
             val sb = structuredBuffer(CustomStruct())
             val ss = shadeStyle {
-                buffer("buffer", sb)
+                buffer("buffer", sb.ssbo)
             }
             program.drawer.isolated {
                 program.drawer.shadeStyle = ss

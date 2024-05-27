@@ -34,6 +34,6 @@ inline fun <reified T : Struct<T>> StyleBufferBindings.registerStructuredBuffer(
 
 inline fun <reified T : Struct<T>> StyleBufferBindings.structuredBuffer(name: String, buffer: StructuredBuffer<T>) {
     bufferValues[name] = buffer
-    buffers[name] = buffer.format.hashCode().toString()
+    buffers[name] = buffer.ssbo.format.hashCode().toString()
     bufferTypes[name] = "struct ${T::class.simpleName}"
 }

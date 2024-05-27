@@ -115,6 +115,7 @@ open class RenderTargetGL3(
 
     override fun bind() {
         require(!destroyed)
+        require(Driver.instance.contextID == contextID) { "can't bind render target on context ${Driver.instance.contextID} it is created on ${contextID}"}
         if (bound) {
             throw RuntimeException("already bound")
         } else {

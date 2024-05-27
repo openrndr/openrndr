@@ -85,7 +85,7 @@ data class ShadeStyleOutput(
 )
 
 
-class ObservableHashmap<K, V>(val b: MutableMap<K, V>, inline val onChange: () -> Unit) : MutableMap<K, V> by b {
+class ObservableHashmap<K, V>(val b: MutableMap<K, V>,  val onChange: () -> Unit) : MutableMap<K, V> by b {
     override fun put(key: K, value: V): V? {
         if (key in this) {
             if (get(key) != value) {

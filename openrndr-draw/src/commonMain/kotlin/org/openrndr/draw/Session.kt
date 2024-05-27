@@ -146,6 +146,8 @@ class Session(val parent: Session?) {
      * Ends the session, destroys any GPU resources in use by the session
      */
     fun end() {
+        require(Driver.instance.contextID == context)
+
         parent?.children?.remove(this)
 
         for (child in children.map { it }) {

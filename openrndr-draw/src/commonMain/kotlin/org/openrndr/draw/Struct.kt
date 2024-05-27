@@ -99,7 +99,7 @@ ${if (!bufferDefinition) { """};
 """
 }
 
-inline fun <reified T : Struct<T>> Struct<T>.typeDef(name: String = T::class.simpleName!!, bufferDefinition: Boolean = false): String {
+inline fun <reified T : Struct<out T>> Struct<out T>.typeDef(name: String = T::class.simpleName!!, bufferDefinition: Boolean = false): String {
     return typeDefImpl(name, bufferDefinition)
 }
 
