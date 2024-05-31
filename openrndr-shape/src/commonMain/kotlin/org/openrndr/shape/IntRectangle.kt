@@ -3,6 +3,7 @@ package org.openrndr.shape
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.openrndr.math.IntVector2
+import kotlin.jvm.JvmRecord
 
 /**
  * Creates a new [IntRectangle].
@@ -13,6 +14,7 @@ import org.openrndr.math.IntVector2
  */
 @Suppress("MemberVisibilityCanBePrivate", "unused")
 @Serializable
+@JvmRecord
 data class IntRectangle(val corner: IntVector2, val width: Int, val height: Int) {
     val x get() = corner.x
 

@@ -4,6 +4,7 @@ package org.openrndr
 import org.openrndr.math.IntVector2
 import org.openrndr.math.Vector2
 import kotlin.jvm.JvmName
+import kotlin.jvm.JvmRecord
 
 /**
  * PresentationMode describes modes of frame presentation
@@ -20,6 +21,7 @@ enum class PresentationMode {
     MANUAL,
 }
 
+@JvmRecord
 data class WindowConfiguration(
     val title: String = "OPENRNDR",
     val position: IntVector2? = null,

@@ -1,6 +1,7 @@
 package org.openrndr.math
 
 import kotlinx.serialization.Serializable
+import kotlin.jvm.JvmRecord
 import kotlin.math.*
 
 enum class YPolarity {
@@ -10,6 +11,7 @@ enum class YPolarity {
 
 /** Double-precision 2D vector. */
 @Serializable
+@JvmRecord
 data class Vector2(val x: Double, val y: Double) : LinearType<Vector2>, EuclideanVector<Vector2> {
 
     constructor(x: Double) : this(x, x)

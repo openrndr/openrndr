@@ -7,6 +7,7 @@ import kotlinx.serialization.Transient
 import org.openrndr.kartifex.Region2
 import org.openrndr.math.*
 import org.openrndr.utils.resettableLazy
+import kotlin.jvm.JvmRecord
 import kotlin.random.Random
 
 @Serializable

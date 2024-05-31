@@ -8,6 +8,7 @@ import org.openrndr.math.Vector2
 import org.openrndr.math.YPolarity
 import org.openrndr.math.clamp
 import kotlin.jvm.JvmName
+import kotlin.jvm.JvmRecord
 import kotlin.math.absoluteValue
 import kotlin.math.max
 import kotlin.math.min
@@ -21,6 +22,7 @@ import kotlin.math.min
  * Also see [IntRectangle].
  */
 @Serializable
+@JvmRecord
 data class Rectangle(val corner: Vector2, val width: Double, val height: Double = width) : Movable, Scalable2D,
     ShapeProvider, ShapeContourProvider {
 

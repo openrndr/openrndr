@@ -1,12 +1,14 @@
 package org.openrndr.math
 
 import kotlinx.serialization.Serializable
+import kotlin.jvm.JvmRecord
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt
 
 /** Double-precision 4D vector. */
 @Serializable
+@JvmRecord
 data class Vector4(val x: Double, val y: Double, val z: Double, val w: Double) : LinearType<Vector4>, EuclideanVector<Vector4> {
     constructor(x: Double) : this(x, x, x, x)
 

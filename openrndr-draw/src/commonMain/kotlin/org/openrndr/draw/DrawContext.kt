@@ -4,6 +4,7 @@ import org.openrndr.internal.Driver
 import org.openrndr.math.Matrix44
 import org.openrndr.math.Vector2
 import org.openrndr.math.transforms.normalMatrix
+import kotlin.jvm.JvmRecord
 
 private var lastModel = Matrix44.IDENTITY
 private var lastModelNormal = Matrix44.IDENTITY
@@ -15,6 +16,7 @@ expect val useContextBlock : Boolean
 
 
 @Suppress("MemberVisibilityCanPrivate")
+@JvmRecord
 data class DrawContext(val model: Matrix44, val view: Matrix44, val projection: Matrix44, val width: Int, val height: Int, val contentScale: Double, val modelViewScalingFactor:Double) {
     fun applyToShader(shader: Shader) {
         if (!useContextBlock) {

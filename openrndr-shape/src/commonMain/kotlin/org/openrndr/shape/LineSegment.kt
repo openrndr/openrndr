@@ -8,6 +8,7 @@ import org.openrndr.math.Vector2
 import org.openrndr.math.YPolarity
 import org.openrndr.math.map
 import kotlin.jvm.JvmOverloads
+import kotlin.jvm.JvmRecord
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -29,6 +30,7 @@ import kotlin.math.sign
  */
 @Suppress("MemberVisibilityCanBePrivate", "unused")
 @Serializable
+@JvmRecord
 data class LineSegment(val start: Vector2, val end: Vector2) : LinearType<LineSegment>,
     ShapeProvider,
     ShapeContourProvider {

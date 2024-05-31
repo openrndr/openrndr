@@ -1,6 +1,7 @@
 package org.openrndr.math
 
 import kotlinx.serialization.Serializable
+import kotlin.jvm.JvmRecord
 import kotlin.math.atan2
 
 /**
@@ -10,6 +11,7 @@ import kotlin.math.atan2
  * @param theta The angle in degrees.
  */
 @Serializable
+@JvmRecord
 data class Polar(val theta: Double, val radius: Double = 1.0) : LinearType<Polar> {
 
     /**

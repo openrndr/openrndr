@@ -2,6 +2,7 @@ package org.openrndr
 
 import org.openrndr.draw.BufferMultisample
 import org.openrndr.math.IntVector2
+import kotlin.jvm.JvmRecord
 
 /**
  *

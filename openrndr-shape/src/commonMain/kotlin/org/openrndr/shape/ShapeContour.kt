@@ -7,6 +7,7 @@ import org.openrndr.kartifex.Ring2
 import org.openrndr.math.*
 import org.openrndr.utils.resettableLazy
 import kotlin.jvm.JvmOverloads
+import kotlin.jvm.JvmRecord
 import kotlin.math.abs
 import kotlin.math.min
 

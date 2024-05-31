@@ -4,10 +4,12 @@ import kotlinx.serialization.Serializable
 import org.openrndr.math.*
 import org.openrndr.shape.internal.BezierCubicSamplerT
 import org.openrndr.shape.internal.BezierQuadraticSamplerT
+import kotlin.jvm.JvmRecord
 import kotlin.math.max
 
 @Serializable
-class Segment1D(val start: Double, val control: Array<Double>, val end: Double): LinearType<Segment1D> {
+@JvmRecord
+data class Segment1D(val start: Double, val control: Array<Double>, val end: Double): LinearType<Segment1D> {
 
     /**
      * control points, zero-length iff the segment is linear

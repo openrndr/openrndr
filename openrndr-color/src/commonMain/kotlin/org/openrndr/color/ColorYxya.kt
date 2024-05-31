@@ -3,6 +3,7 @@ package org.openrndr.color
 import kotlinx.serialization.Serializable
 import org.openrndr.math.Vector4
 import kotlin.jvm.JvmOverloads
+import kotlin.jvm.JvmRecord
 
 /**
  * The Yxy color space, also known as the
@@ -14,6 +15,7 @@ import kotlin.jvm.JvmOverloads
  */
 @Suppress("LocalVariableName")
 @Serializable
+@JvmRecord
 data class ColorYxya(
     val yy: Double,
     val x: Double,
@@ -29,9 +31,6 @@ data class ColorYxya(
             return ColorYxya(yy, x, y, xyza.alpha)
         }
     }
-
-    @Deprecated("Legacy alpha parameter name", ReplaceWith("alpha"))
-    val a = alpha
 
     fun toXYZa(): ColorXYZa {
         val X = (yy / y) * x

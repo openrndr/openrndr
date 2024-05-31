@@ -2,6 +2,7 @@ package org.openrndr.shape
 
 import kotlinx.serialization.Serializable
 import org.openrndr.math.Vector2
+import kotlin.jvm.JvmRecord
 
 /**
  * Creates a new [Ellipse].
@@ -12,6 +13,7 @@ import org.openrndr.math.Vector2
  * @param yRadius Vertical radius.
  */
 @Serializable
+@JvmRecord
 data class Ellipse(val center: Vector2, val xRadius: Double, val yRadius: Double): Movable, Scalable2D, ShapeProvider, ShapeContourProvider {
 
     /** The top-left corner of the [Ellipse]. */
@@ -58,7 +60,8 @@ data class Ellipse(val center: Vector2, val xRadius: Double, val yRadius: Double
         return corner + Vector2(u * 2 * xRadius, v * 2 * yRadius)
     }
 
-    override val shape: Shape = Shape(listOf(contour))
+    override val shape: Shape
+        get() = Shape(listOf(contour))
     override val contour: ShapeContour
         get() {
             val x = center.x - xRadius

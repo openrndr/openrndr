@@ -2,6 +2,7 @@ package org.openrndr.shape
 
 import org.openrndr.math.EuclideanVector
 import org.openrndr.math.Vector2
+import kotlin.jvm.JvmRecord
 
 interface BezierSegmentPoint<T : EuclideanVector<T>> {
     val segment: BezierSegment<T>
@@ -16,6 +17,7 @@ interface BezierSegmentPoint<T : EuclideanVector<T>> {
  * @param segmentT The [t](https://pomax.github.io/bezierinfo/#explanation) value of the point on the [Segment2D].
  * @param position The position of the point.
  */
+@JvmRecord
 data class SegmentPoint(
     override val segment: Segment2D,
     override val segmentT: Double,
@@ -32,6 +34,7 @@ data class SegmentPoint(
  * @param segmentT The *t* value of the point on the [Segment2D] in the range of `0.0` to `1.0`.
  * @param position The position of the point.
  */
+@JvmRecord
 data class ContourPoint(
     val contour: ShapeContour,
     val contourT: Double,

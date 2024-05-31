@@ -1,6 +1,7 @@
 package org.openrndr.math
 
 import kotlinx.serialization.Serializable
+import kotlin.jvm.JvmRecord
 import kotlin.math.acos
 import kotlin.math.atan2
 
@@ -14,6 +15,7 @@ import kotlin.math.atan2
 private const val EPS = 0.000001
 
 @Serializable
+@JvmRecord
 data class Spherical(val theta: Double, val phi: Double, val radius: Double) : LinearType<Spherical> {
 
     fun makeSafe() = Spherical(

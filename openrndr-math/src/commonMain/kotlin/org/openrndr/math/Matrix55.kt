@@ -1,11 +1,13 @@
 package org.openrndr.math
 
 import kotlinx.serialization.Serializable
+import kotlin.jvm.JvmRecord
 
 /**
  * A 5x5 matrix with double precision
  */
 @Serializable
+@JvmRecord
 data class Matrix55(
         val c0r0: Double = 0.0, val c1r0: Double = 0.0, val c2r0: Double = 0.0, val c3r0: Double = 0.0, val c4r0: Double = 0.0,
         val c0r1: Double = 0.0, val c1r1: Double = 0.0, val c2r1: Double = 0.0, val c3r1: Double = 0.0, val c4r1: Double = 0.0,

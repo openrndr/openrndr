@@ -1,12 +1,14 @@
 package org.openrndr.math
 
 import kotlinx.serialization.Serializable
+import kotlin.jvm.JvmRecord
 import kotlin.math.sqrt
 
 
 /** Integer 4D vector, exclusively for integer calculations. */
 @Suppress("unused")
 @Serializable
+@JvmRecord
 data class IntVector4(val x: Int, val y: Int, val z: Int, val w: Int) {
     companion object {
         val ZERO = IntVector4(0, 0, 0, 0)

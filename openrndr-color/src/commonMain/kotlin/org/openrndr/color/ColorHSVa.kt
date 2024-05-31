@@ -7,6 +7,7 @@ import org.openrndr.math.Vector4
 import org.openrndr.math.mixAngle
 import org.openrndr.math.mod
 import kotlin.jvm.JvmOverloads
+import kotlin.jvm.JvmRecord
 import kotlin.math.floor
 
 
@@ -22,6 +23,7 @@ import kotlin.math.floor
  */
 @Suppress("unused")
 @Serializable
+@JvmRecord
 data class ColorHSVa constructor (val h: Double, val s: Double, val v: Double, override val alpha: Double = 1.0) :
         ColorModel<ColorHSVa>,
         ShadableColor<ColorHSVa>,
@@ -67,8 +69,7 @@ data class ColorHSVa constructor (val h: Double, val s: Double, val v: Double, o
         }
     }
 
-    @Deprecated("Legacy alpha parameter name", ReplaceWith("alpha"))
-    val a = alpha
+
 
     override fun opacify(factor: Double): ColorHSVa = copy(alpha = alpha * factor)
     override fun withHue(hue: Double) = copy(h = hue)

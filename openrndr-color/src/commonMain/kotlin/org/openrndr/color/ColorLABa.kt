@@ -3,6 +3,7 @@ package org.openrndr.color
 import kotlinx.serialization.Serializable
 import org.openrndr.math.Vector4
 import kotlin.jvm.JvmOverloads
+import kotlin.jvm.JvmRecord
 import kotlin.math.pow
 
 /**
@@ -18,6 +19,7 @@ import kotlin.math.pow
  * @param ref reference white against which the color values are calculated
  */
 @Serializable
+@JvmRecord
 data class ColorLABa constructor (
     val l: Double,
     val a: Double,

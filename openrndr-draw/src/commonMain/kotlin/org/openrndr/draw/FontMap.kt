@@ -2,6 +2,7 @@ package org.openrndr.draw
 
 import org.openrndr.internal.Driver
 import org.openrndr.shape.IntRectangle
+import kotlin.jvm.JvmRecord
 
 private val standard = charArrayOf(
         'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
@@ -38,12 +39,15 @@ abstract class FontMap {
 
 expect val defaultFontMap: FontImageMap?
 
+@JvmRecord
 data class GlyphMetrics(val advanceWidth: Double, val leftSideBearing: Double, val xBitmapShift: Double, val yBitmapShift: Double)
 
+@JvmRecord
 data class FontImageMapDescriptor(val fontUrl: String, val size: Double, val alphabet:Set<Char>, val contentScale: Double)
 
 private val fontImageMaps: MutableMap<FontImageMapDescriptor, FontImageMap> = mutableMapOf()
 
+@JvmRecord
 data class CharacterPair(val left: Char, val right: Char)
 
 /**

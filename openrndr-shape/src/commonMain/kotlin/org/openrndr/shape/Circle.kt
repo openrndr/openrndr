@@ -4,6 +4,7 @@ import kotlinx.serialization.Serializable
 import org.openrndr.math.Polar
 import org.openrndr.math.Vector2
 import org.openrndr.math.asDegrees
+import kotlin.jvm.JvmRecord
 import kotlin.math.acos
 import kotlin.math.sqrt
 import kotlin.math.abs
@@ -15,6 +16,7 @@ import kotlin.math.PI
  * Alternatively, see [Ellipse].
  */
 @Serializable
+@JvmRecord
 data class Circle(val center: Vector2, val radius: Double): Movable, Scalable1D, ShapeProvider, ShapeContourProvider {
 
     companion object {

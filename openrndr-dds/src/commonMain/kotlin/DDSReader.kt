@@ -9,6 +9,7 @@ package org.openrndr.dds
 
 import org.openrndr.draw.*
 import org.openrndr.utils.buffer.MPPBuffer
+import kotlin.jvm.JvmRecord
 
 private const val DDPF_ALPHAPIXELS = 0x1
 private const val DDPF_ALPHA = 0x2
@@ -341,6 +342,7 @@ private class DDSHeader(header: MPPBuffer) {
 
 private const val DDS_MAGIC = 0x20534444
 
+@JvmRecord
 data class DDSData(
     val format: ColorFormat,
     val type: ColorType,

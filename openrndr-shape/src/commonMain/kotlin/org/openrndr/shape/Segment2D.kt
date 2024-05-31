@@ -6,6 +6,7 @@ import org.openrndr.math.*
 
 import org.openrndr.shape.internal.BezierCubicSamplerT
 import org.openrndr.shape.internal.BezierQuadraticSamplerT
+import kotlin.jvm.JvmRecord
 import kotlin.math.*
 
 

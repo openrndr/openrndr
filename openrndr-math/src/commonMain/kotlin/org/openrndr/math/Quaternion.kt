@@ -1,6 +1,7 @@
 package org.openrndr.math
 
 import kotlinx.serialization.Serializable
+import kotlin.jvm.JvmRecord
 import kotlin.math.acos
 import kotlin.math.cos
 import kotlin.math.sin
@@ -11,6 +12,7 @@ import kotlin.math.sqrt
  */
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 @Serializable
+@JvmRecord
 data class Quaternion(val x: Double, val y: Double, val z: Double, val w: Double) {
 
     companion object {

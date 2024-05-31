@@ -1,10 +1,12 @@
 package org.openrndr.math
 
 import kotlinx.serialization.Serializable
+import kotlin.jvm.JvmRecord
 import kotlin.math.*
 
 /** Double-precision 3D vector. */
 @Serializable
+@JvmRecord
 data class Vector3(val x: Double, val y: Double, val z: Double) : LinearType<Vector3>, EuclideanVector<Vector3> {
     constructor(x: Double) : this(x, x, x)
 

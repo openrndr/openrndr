@@ -4,6 +4,7 @@ import kotlinx.serialization.Serializable
 import org.openrndr.math.Vector4
 import org.openrndr.math.mixAngle
 import kotlin.jvm.JvmOverloads
+import kotlin.jvm.JvmRecord
 
 /**
  * The [HSL color space](https://en.wikipedia.org/wiki/HSL_and_HSV).
@@ -17,6 +18,7 @@ import kotlin.jvm.JvmOverloads
  */
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 @Serializable
+@JvmRecord
 data class ColorHSLa(val h: Double, val s: Double, val l: Double, override val alpha: Double = 1.0) :
         ColorModel<ColorHSLa>,
         ShadableColor<ColorHSLa>,
@@ -58,9 +60,6 @@ data class ColorHSLa(val h: Double, val s: Double, val l: Double, override val a
             return ColorHSLa(h, s, l, srgb.alpha)
         }
     }
-
-    @Deprecated("Legacy alpha parameter name", ReplaceWith("alpha"))
-    val a = alpha
 
     override fun opacify(factor: Double): ColorHSLa = copy(alpha = alpha * factor)
 

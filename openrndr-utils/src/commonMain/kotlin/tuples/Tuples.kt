@@ -1,5 +1,8 @@
 package org.openrndr.utils.tuples
 
+import kotlin.jvm.JvmRecord
+
+@JvmRecord
 data class Quadruple<out A, out B, out C, out D>(
     val first: A,
     val second: B,
@@ -11,6 +14,7 @@ data class Quadruple<out A, out B, out C, out D>(
     }
 }
 
+@JvmRecord
 data class Quintuple<out A, out B, out C, out D, out E>(
     val first: A,
     val second: B,
@@ -23,6 +27,7 @@ data class Quintuple<out A, out B, out C, out D, out E>(
     }
 }
 
+@JvmRecord
 data class Sextuple<out A, out B, out C, out D, out E, out F>(
     val first: A,
     val second: B,

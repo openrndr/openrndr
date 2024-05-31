@@ -1,10 +1,12 @@
 package org.openrndr.math
 
 import kotlinx.serialization.Serializable
+import kotlin.jvm.JvmRecord
 
 /** Boolean 4D vector */
 @Suppress("unused")
 @Serializable
+@JvmRecord
 data class BooleanVector4(val x: Boolean, val y: Boolean, val z: Boolean, val w: Boolean) {
     companion object {
         val FALSE = BooleanVector4(false, false, false, false)

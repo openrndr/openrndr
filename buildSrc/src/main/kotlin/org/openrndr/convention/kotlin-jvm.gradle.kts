@@ -34,7 +34,12 @@ tasks {
         allJvmArgs = allJvmArgs + "-Dorg.openrndr.gl3.skip_glfw_termination"
     }
 
+
     withType<KotlinCompile>() {
+//        compilerOptions {
+//            jvmTarget.set(JvmTarget.valueOf(libs.versions.jvmTarget.get()))
+//        }
+
         kotlinOptions.jvmTarget = libs.versions.jvmTarget.get()
         kotlinOptions.apiVersion = libs.versions.kotlinApi.get()
         kotlinOptions.languageVersion = libs.versions.kotlinLanguage.get()

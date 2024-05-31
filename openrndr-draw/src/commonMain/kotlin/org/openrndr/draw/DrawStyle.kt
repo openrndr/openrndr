@@ -4,6 +4,7 @@ import org.openrndr.color.ColorRGBa
 import org.openrndr.internal.Driver
 import org.openrndr.math.Matrix55
 import org.openrndr.shape.*
+import kotlin.jvm.JvmRecord
 
 /**
  * Line join enumeration
@@ -296,6 +297,7 @@ enum class TextSettingMode {
 }
 
 @Suppress("unused")
+@JvmRecord
 data class ChannelMask(val red: Boolean, val green: Boolean, val blue: Boolean, val alpha: Boolean) {
     companion object {
         const val RED = 1

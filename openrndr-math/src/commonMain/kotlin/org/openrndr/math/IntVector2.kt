@@ -1,11 +1,13 @@
 package org.openrndr.math
 
 import kotlinx.serialization.Serializable
+import kotlin.jvm.JvmRecord
 import kotlin.math.sqrt
 
 /** Integer 2D vector, exclusively for integer calculations. */
 @Suppress("unused")
 @Serializable
+@JvmRecord
 data class IntVector2(val x: Int, val y: Int) {
     companion object {
         val ZERO = IntVector2(0, 0)

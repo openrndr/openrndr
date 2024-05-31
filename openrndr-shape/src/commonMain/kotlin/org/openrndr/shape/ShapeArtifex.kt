@@ -6,6 +6,7 @@ import org.openrndr.kartifex.utils.Intersections
 import org.openrndr.math.Vector2
 import org.openrndr.math.YPolarity
 import kotlin.jvm.JvmName
+import kotlin.jvm.JvmRecord
 import kotlin.math.abs
 
 private fun Vector2.toVec2(): Vec2 {
@@ -612,6 +613,7 @@ fun intersections(a: Segment2D, b: Segment2D, vertexThreshold: Double = 1E-5): L
     }
 }
 
+@JvmRecord
 data class ContourIntersection(val a: ContourPoint, val b: ContourPoint, val position: Vector2)
 
 /**

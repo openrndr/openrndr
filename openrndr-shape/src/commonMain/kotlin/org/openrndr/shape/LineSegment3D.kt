@@ -1,9 +1,13 @@
 package org.openrndr.shape
 
+import kotlinx.serialization.Serializable
 import org.openrndr.math.Vector3
+import kotlin.jvm.JvmRecord
 import kotlin.math.max
 import kotlin.math.min
 
+@Serializable
+@JvmRecord
 data class LineSegment3D(val start: Vector3, val end: Vector3) {
 
 

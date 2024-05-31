@@ -8,6 +8,7 @@ import org.openrndr.draw.Drawer
 import org.openrndr.events.Event
 import org.openrndr.internal.Driver
 import org.openrndr.math.Vector2
+import kotlin.jvm.JvmRecord
 
 expect fun rootClassName(): String
 
@@ -24,11 +25,13 @@ enum class WindowEventType {
 /**
  * window event message
  */
+@JvmRecord
 data class WindowEvent(val type: WindowEventType, val position: Vector2, val size: Vector2, val focused: Boolean)
 
 /**
  * window drop item event message
  */
+@JvmRecord
 data class DropEvent(val position: Vector2, val files: List<String>)
 
 /**
@@ -44,11 +47,16 @@ enum class ProgramEventType {
 /**
  * program event message
  */
+@JvmRecord
 data class ProgramEvent(val type: ProgramEventType)
 
+@JvmRecord
 data class RequestAssetsEvent(val origin: Any, val program: Program)
+
+@JvmRecord
 data class ProduceAssetsEvent(val origin: Any, val program: Program, val assetMetadata: AssetMetadata)
 
+@JvmRecord
 data class AssetMetadata(
     val programName: String,
     val assetBaseName: String,
