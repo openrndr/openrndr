@@ -1,6 +1,9 @@
 package org.openrndr.kartifex
 
-class Line2 private constructor(
+import kotlin.jvm.JvmRecord
+
+@JvmRecord
+data class Line2(
     private val ax: Double,
     private val ay: Double,
     private val bx: Double,

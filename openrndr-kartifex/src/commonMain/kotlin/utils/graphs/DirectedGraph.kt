@@ -1,6 +1,7 @@
 package org.openrndr.kartifex.utils.graphs
 
 import org.openrndr.collections.PriorityQueue
+import kotlin.jvm.JvmRecord
 import kotlin.math.max
 import kotlin.math.min
 
@@ -10,7 +11,8 @@ interface IEdge<V, E> {
     fun value(): E
 }
 
-class Edge<V, E>(val _value: E, val _from: V, val _to: V) : IEdge<V, E> {
+@JvmRecord
+data class Edge<V, E>(val _value: E, val _from: V, val _to: V) : IEdge<V, E> {
     override fun from(): V {
         return _from
     }

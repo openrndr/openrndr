@@ -1,40 +1,14 @@
 package org.openrndr.kartifex
 
 import org.openrndr.kartifex.utils.Scalars
+import kotlin.jvm.JvmRecord
 
-
-class Path2 {
-    private val curves: Array<Curve2>
-    private val bounds: Box2
+@JvmRecord
+data class Path2(
+    private val curves: Array<Curve2>,
+    private val bounds: Box2,
     val isRing: Boolean
-
-    internal constructor(ring: Ring2) {
-        curves = ring.curves
-        bounds = ring.bounds
-        isRing = true
-    }
-
-    constructor(cs: Iterable<Curve2>) {
-        val l = ArrayDeque<Curve2>()
-        var bounds = Box2.EMPTY
-        for (a in cs) {
-            for (b in a.split(a.inflections())) {
-                l.addLast(b)
-                bounds = bounds.union(b.start()).union(b.end())
-            }
-        }
-        this.bounds = bounds
-        isRing = Vec.equals(l.first().start(), l.last().end(), Scalars.EPSILON)
-        curves = l.toTypedArray()
-        for (i in 0 until curves.size - 1) {
-            curves[i] = curves[i].endpoints(curves[i].start(), curves[i + 1].start())
-        }
-        if (isRing) {
-            val lastIdx = curves.size - 1
-            curves[lastIdx] = curves[lastIdx].endpoints(curves[lastIdx].start(), curves[0].start())
-        }
-    }
-
+) {
     fun reverse() = Path2(curves.map {
         it.reverse()
     }.reversed())
@@ -78,4 +52,27 @@ class Path2 {
             return Path2(segments)
         }
     }
+}
+
+
+fun Path2(cs: Iterable<Curve2>): Path2 {
+    val l = ArrayDeque<Curve2>()
+    var bounds = Box2.EMPTY
+    for (a in cs) {
+        for (b in a.split(a.inflections())) {
+            l.addLast(b)
+            bounds = bounds.union(b.start()).union(b.end())
+        }
+    }
+    val isRing = Vec.equals(l.first().start(), l.last().end(), Scalars.EPSILON)
+    val curves = l.toTypedArray()
+    for (i in 0 until curves.size - 1) {
+        curves[i] = curves[i].endpoints(curves[i].start(), curves[i + 1].start())
+    }
+    if (isRing) {
+        val lastIdx = curves.size - 1
+        curves[lastIdx] = curves[lastIdx].endpoints(curves[lastIdx].start(), curves[0].start())
+    }
+
+    return Path2(curves, bounds, isRing)
 }

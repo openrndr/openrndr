@@ -20,8 +20,8 @@ class Ring2 {
         }
 
         companion object {
-            val INSIDE: Ring2.Result = Ring2.Result(true, null)
-            val OUTSIDE: Ring2.Result = Ring2.Result(false, null)
+            val INSIDE: Result = Result(true, null)
+            val OUTSIDE: Result = Result(false, null)
         }
     }
 
@@ -69,9 +69,9 @@ class Ring2 {
         return Region2(listOf(this))
     }
 
-    fun path(): Path2 {
-        return Path2(this)
-    }
+//    fun path(): Path2 {
+//        return Path2(this)
+//    }
 
 //    fun reverse(): Ring2 {
 //        return Ring2(
@@ -90,9 +90,9 @@ class Ring2 {
 //        )
 //    }
 
-    fun test(p: Vec2): Ring2.Result {
+    fun test(p: Vec2): Result {
         if (!bounds.expand(Intersections.SPATIAL_EPSILON).contains(p)) {
-            return Ring2.Result.Companion.OUTSIDE
+            return Result.OUTSIDE
         }
         val ray: Line2 = Line2.line(p, Vec2(bounds.ux + 1, p.y))
         var count = 0
@@ -133,7 +133,7 @@ class Ring2 {
                 if (i != null) {
                     //System.out.println(i);
                     if (i.x == 0.0) {
-                        return Ring2.Result(c)
+                        return Result(c)
                     } else if (!flat && p.y < b.uy) {
                         //System.out.println("intersected, incrementing");
                         count++
@@ -145,7 +145,7 @@ class Ring2 {
         }
 
         //System.out.println(count);
-        return if (count % 2 == 1) Ring2.Result.Companion.INSIDE else Ring2.Result.Companion.OUTSIDE
+        return if (count % 2 == 1) Result.Companion.INSIDE else Result.Companion.OUTSIDE
     }
 
     fun transform(m: Matrix3): Ring2 = Ring2(curves.map { c -> c.transform(m) })

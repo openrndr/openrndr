@@ -1,12 +1,14 @@
 package org.openrndr.kartifex
 
 import org.openrndr.utils.Hashes
+import kotlin.jvm.JvmRecord
 import kotlin.math.PI
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
 
-class Vec2(val x: Double, val y: Double) : Vec<Vec2> {
+@JvmRecord
+data class Vec2(val x: Double, val y: Double) : Vec<Vec2> {
 
 
     override fun map(f: DoubleUnaryOperator): Vec2 {

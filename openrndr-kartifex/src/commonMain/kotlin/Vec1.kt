@@ -1,8 +1,10 @@
 package org.openrndr.kartifex
 
 import org.openrndr.utils.Hashes
+import kotlin.jvm.JvmRecord
 
-class Vec1(val x: Double) : Vec<Vec1> {
+@JvmRecord
+data class Vec1(val x: Double) : Vec<Vec1> {
     fun vec2(y: Double): Vec2 {
         return Vec2(x, y)
     }

@@ -3,12 +3,12 @@ package org.openrndr.kartifex
 
 class Box3 internal constructor(ax: Double, ay: Double, az: Double, bx: Double, by: Double, bz: Double) :
     Box<Vec3, Box3>() {
-    var lx = 0.0
-    var ly = 0.0
-    var lz = 0.0
-    var ux = 0.0
-    var uy = 0.0
-    var uz = 0.0
+    val lx: Double
+    val ly: Double
+    val lz: Double
+    val ux: Double
+    val uy: Double
+    val uz: Double
 
     constructor(a: Vec3, b: Vec3) : this(a.x, a.y, a.z, b.x, b.y, b.z) {}
 

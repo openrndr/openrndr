@@ -6,10 +6,10 @@ package org.openrndr.kartifex
  */
 class Box2 internal constructor(ax: Double, ay: Double, bx: Double, by: Double) :
     Box<Vec2, Box2>() {
-    var lx = 0.0
-    var ly = 0.0
-    var ux = 0.0
-    var uy = 0.0
+    val lx: Double
+    val ly: Double
+    val ux: Double
+    val uy: Double
     fun box3(lz: Double, uz: Double): Box3 {
         return Box3(lx, ly, lz, ux, uy, uz)
     }

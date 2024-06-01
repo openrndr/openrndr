@@ -1,8 +1,10 @@
 package org.openrndr.kartifex
 
 import org.openrndr.utils.Hashes
+import kotlin.jvm.JvmRecord
 
-class Vec3(val x: Double, val y: Double, val z: Double) : Vec<Vec3> {
+@JvmRecord
+data class Vec3(val x: Double, val y: Double, val z: Double) : Vec<Vec3> {
     override fun map(f: DoubleUnaryOperator): Vec3 {
         return Vec3(f(x), f(y), f(z))
     }

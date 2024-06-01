@@ -11,14 +11,14 @@ class Box4 private constructor(
     bw: Double
 ) :
     Box<Vec4, Box4>() {
-    private var lx = 0.0
-    private var ly = 0.0
-    private var lz = 0.0
-    private var lw = 0.0
-    private var ux = 0.0
-    private var uy = 0.0
-    private var uz = 0.0
-    private var uw = 0.0
+    private val lx: Double
+    private val ly: Double
+    private val lz: Double
+    private val lw: Double
+    private val ux: Double
+    private val uy: Double
+    private val uz: Double
+    private val uw: Double
 
     constructor(a: Vec4, b: Vec4) : this(a.x, a.y, a.z, a.w, b.x, b.y, b.z, b.w) {}
 
