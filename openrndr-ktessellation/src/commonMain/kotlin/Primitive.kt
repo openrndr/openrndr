@@ -2,7 +2,7 @@ package org.openrndr.ktessellation
 
 import org.openrndr.math.Vector2
 
-class Primitive(
+data class Primitive(
     /**
      * The OpenGL constant defining the type of this primitive
      *
