@@ -1,11 +1,16 @@
 # Contributing to OPENRNDR
 
+Thank you for your interest in contributing to OPENRNDR :-)
+
+This repository contains the core engine that renders graphics to a display. The [ORX extras](https://github.com/openrndr/orx/), the [guide](https://github.com/openrndr/openrndr-guide/) and the [template](https://github.com/openrndr/openrndr-template/) are other repositories you can contribute to.
+
+There are various ways one can contribute:
+
 ## I have an issue or request
 
-Before you file a new issue, take a quick look through
-the [existing issues](https://github.com/openrndr/openrndr/issues) to make sure it isn't a known
-problem. If you can't find anything relevant to your situation, just file a new issue and fill out
-the issue form.
+If you are not sure whether something is an issue, you can ask in [Discussions](https://github.com/openrndr/openrndr/discussions) or in the [forum](https://openrndr.discourse.group/).
+If it is indeed an issue, please take a quick look through the [existing issues](https://github.com/openrndr/openrndr/issues) to make sure it isn't a known problem. 
+If you can't find anything relevant to your situation, just file a new issue and fill out the issue form.
 
 ## I want to contribute code
 
@@ -75,7 +80,7 @@ can find such demos:
   new location)
 - [Core OPENRNDR demos](https://github.com/openrndr/orx/tree/master/openrndr-demos/src/demo/kotlin) (
   old location)
-- orx demos. They are found in various subfolders corresponding each orx, for
+- ORX demos. They are found in various subfolders corresponding each orx, for
   example [this one](https://github.com/openrndr/orx/tree/master/orx-jumpflood/src/demo/kotlin) for
   orx-jumpflood.
 
