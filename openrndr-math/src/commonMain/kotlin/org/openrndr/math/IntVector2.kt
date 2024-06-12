@@ -11,6 +11,7 @@ import kotlin.math.sqrt
 data class IntVector2(val x: Int, val y: Int) {
     companion object {
         val ZERO = IntVector2(0, 0)
+        val ONE = IntVector2(1, 1)
         val UNIT_X = IntVector2(1, 0)
         val UNIT_Y = IntVector2(0, 1)
     }
