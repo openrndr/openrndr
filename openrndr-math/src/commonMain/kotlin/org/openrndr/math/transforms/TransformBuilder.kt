@@ -10,43 +10,82 @@ import kotlin.contracts.contract
 import kotlin.jvm.JvmName
 import kotlin.reflect.KMutableProperty0
 
+/**
+ * Build a [Matrix44] transform
+ */
 class TransformBuilder(baseTransform: Matrix44 = Matrix44.IDENTITY) {
     var transform: Matrix44 = baseTransform
 
-    fun rotate(degrees: Double) = rotate(Vector3.UNIT_Z, degrees)
+    /**
+     * rotate [degreesInAngles] around [Vector3.UNIT_Z]
+     */
+    fun rotate(degreesInAngles: Double) = rotate(Vector3.UNIT_Z, degreesInAngles)
 
-    fun rotate(axis: Quaternion) {
-        transform *= axis.matrix.matrix44
+    /**
+     * rotate by [quaternion]
+     */
+    fun rotate(quaternion: Quaternion) {
+        if (quaternion !== Quaternion.IDENTITY) {
+            transform *= quaternion.matrix.matrix44
+        }
     }
 
     fun rotate(axis: Vector3 = Vector3.UNIT_Z, degrees: Double) {
-        transform *= Matrix44.rotate(axis, degrees)
+        if (degrees != 0.0) {
+            transform *= Matrix44.rotate(axis, degrees)
+        }
     }
 
+    /**
+     * translate by [offset]
+     */
     fun translate(offset: Vector3) {
-        transform *= Matrix44.translate(offset)
+        if (offset !== Vector3.ZERO) {
+            transform *= Matrix44.translate(offset)
+        }
     }
 
+    /**
+     * translate by [offset]
+     */
     fun translate(offset: Vector2) {
-        transform *= Matrix44.translate(offset.xy0)
+        if (offset !== Vector2.ZERO) {
+            transform *= Matrix44.translate(offset.xy0)
+        }
     }
 
+    /**
+     * translate by [x], [y], [z]
+     */
     fun translate(x: Double, y: Double, z: Double = 0.0) {
         transform *= Matrix44.translate(Vector3(x, y, z))
     }
 
+    /**
+     * scale by [scale]
+     */
     fun scale(scale: Double) {
-        transform *= Matrix44.scale(scale, scale, scale)
+        if (scale != 1.0) {
+            transform *= Matrix44.scale(scale, scale, scale)
+        }
     }
 
     fun scale(scaleX: Double, scaleY: Double, scaleZ: Double = 1.0) {
         transform *= Matrix44.scale(scaleX, scaleY, scaleZ)
     }
 
+    /**
+     * scale by [scale]
+     */
     fun scale(scale: Vector3) {
-        transform *= Matrix44.scale(scale.x, scale.y, scale.z)
+        if (scale !== Vector3.ONE) {
+            transform *= Matrix44.scale(scale.x, scale.y, scale.z)
+        }
     }
 
+    /**
+     * multiply by [matrix]
+     */
     fun multiply(matrix: Matrix44) {
         transform *= matrix
     }
