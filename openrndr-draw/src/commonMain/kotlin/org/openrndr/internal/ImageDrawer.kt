@@ -89,13 +89,13 @@ class ImageDrawer {
             """multisample color buffer $colorBuffer needs to be resolved first"""
         }
 
+        assertInstanceSize(rectangles.size)
+
         val instanceAttributes = if (rectangles.size == 1) {
             singleInstanceAttributes[count.mod(singleInstanceAttributes.size)]
         } else {
             instanceAttributes
         }
-
-        assertInstanceSize(rectangles.size)
 
         val shader = shaderManager.shader(
             drawStyle.shadeStyle,
