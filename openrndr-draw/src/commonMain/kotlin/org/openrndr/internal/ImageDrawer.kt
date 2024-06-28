@@ -4,8 +4,6 @@ import org.openrndr.math.Vector2
 import org.openrndr.draw.*
 import org.openrndr.math.Vector3
 import org.openrndr.math.Vector4
-import org.openrndr.platform.Platform
-import org.openrndr.platform.PlatformType
 import org.openrndr.shape.Rectangle
 
 class ImageDrawer {
@@ -89,21 +87,21 @@ class ImageDrawer {
             """multisample color buffer $colorBuffer needs to be resolved first"""
         }
 
-        val instanceAttributes = if (rectangles.size == 1) {
+        assertInstanceSize(rectangles.size)
+
+        val localInstanceAttributes = if (rectangles.size == 1) {
             singleInstanceAttributes[count.mod(singleInstanceAttributes.size)]
         } else {
             instanceAttributes
         }
 
-        assertInstanceSize(rectangles.size)
-
         val shader = shaderManager.shader(
             drawStyle.shadeStyle,
             listOf(vertices.vertexFormat),
-            listOf(instanceAttributes.vertexFormat)
+            listOf(localInstanceAttributes.vertexFormat)
         )
 
-        val iw = instanceAttributes.shadow.writer()
+        val iw = localInstanceAttributes.shadow.writer()
         iw.rewind()
 
         rectangles.forEach {
@@ -119,7 +117,7 @@ class ImageDrawer {
             iw.write(Vector4(target.corner.x, target.corner.y, target.width, target.height))
             iw.write(0.0f)
         }
-        instanceAttributes.shadow.uploadElements(0, rectangles.size)
+        localInstanceAttributes.shadow.uploadElements(0, rectangles.size)
 
         colorBuffer.bind(0)
         shader.begin()
@@ -130,7 +128,7 @@ class ImageDrawer {
         Driver.instance.drawInstances(
             shader,
             listOf(vertices),
-            listOf(instanceAttributes) + (drawStyle.shadeStyle?.attributes ?: emptyList()),
+            listOf(localInstanceAttributes) + (drawStyle.shadeStyle?.attributes ?: emptyList()),
             DrawPrimitive.TRIANGLES,
             0,
             6,
