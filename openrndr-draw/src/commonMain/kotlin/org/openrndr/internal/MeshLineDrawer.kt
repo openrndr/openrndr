@@ -14,7 +14,7 @@ class MeshLineDrawer {
         fsGenerator = Driver.instance.shaderGenerators::meshLineFragmentShader
     )
 
-    private val vertexFormat = VertexFormat().apply {
+    private val vertexFormat = vertexFormat {
         attribute("previous", VertexElementType.VECTOR3_FLOAT32)
         position(3)
         attribute("next", VertexElementType.VECTOR3_FLOAT32)
@@ -162,68 +162,66 @@ class MeshLineDrawer {
                     val elementF = element.toFloat()
 
                     var previous = if (stripClosed) strip.last() else strip[0]
-                    // leading degenerate
-                    write(strip[0])
-                    write(strip[0])
-                    write(strip[1])
-                    write(-1.0f)
-                    write(width)
-                    write(Vector2.ZERO)
-                    write(elementF)
-                    write(color)
 
-                    for ((current, next) in strip.zipWithNext()) {
+                    val edgeCount = strip.size + if (stripClosed) 1 else 0
+
+                    for (i in 0 until edgeCount) {
+                        val current = strip[i.mod(strip.size)]
+                        val next = strip[(i + 1).mod(strip.size)]
+
                         val segmentLength = current.distanceTo(next)
-                        write(previous)
-                        write(current)
-                        write(next)
-                        write(-1.0f)
-                        write(width)
-                        write(Vector2(0.0, offset / stripLength))
-                        write(elementF)
-                        write(color)
 
-                        write(previous)
-                        write(current)
-                        write(next)
-                        write(1.0f)
-                        write(width)
-                        write(Vector2(1.0, offset / stripLength))
-                        write(elementF)
-                        write(color)
-                        previous = current
+                        if (i == 0) {
+                            write(previous)
+                            write(Float.NaN)
+                            write(Float.NaN)
+                            write(Float.NaN)
+                            write(next)
+                            write(-1.0f)
+                            write(width)
+                            write(Vector2(0.0, offset / stripLength))
+                            write(elementF)
+                            write(color)
+                        }
+                        for (r in 0 until if (i == 0) 1 else 1) {
+                            write(previous)
+                            write(current)
+                            write(next)
+                            write(-1.0f)
+                            write(width)
+                            write(Vector2(0.0, offset / stripLength))
+                            write(elementF)
+                            write(color)
+                        }
+
+                        for (r in 0 until if (i == edgeCount-1) 1 else 1) {
+                            write(previous)
+                            write(current)
+                            write(next)
+                            write(1.0f)
+                            write(width)
+                            write(Vector2(1.0, offset / stripLength))
+                            write(elementF)
+                            write(color)
+                            previous = current
+                        }
+
+                        if (i == edgeCount-1) {
+                            write(previous)
+                            write(Float.NaN)
+                            write(Float.NaN)
+                            write(Float.NaN)
+                            write(next)
+                            write(1.0f)
+                            write(width)
+                            write(Vector2(1.0, offset / stripLength))
+                            write(elementF)
+                            write(color)
+                            previous = current
+                        }
 
                         offset += segmentLength
                     }
-
-                    // last point
-                    write(previous)
-                    write(strip.last())
-                    write(strip.last())
-                    write(-1.0f)
-                    write(width)
-                    write(Vector2(0.0, offset / stripLength))
-                    write(elementF)
-                    write(color)
-
-                    write(previous)
-                    write(strip.last())
-                    write(strip.last())
-                    write(1.0f)
-                    write(width)
-                    write(Vector2(1.0, offset / stripLength))
-                    write(elementF)
-                    write(color)
-
-                    // -- degenerate
-                    write(previous)
-                    write(strip.last())
-                    write(strip.last())
-                    write(1.0f)
-                    write(width)
-                    write(Vector2.ZERO)
-                    write(elementF)
-                    write(color)
                 }
             }
         }
