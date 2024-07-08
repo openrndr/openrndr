@@ -1125,7 +1125,7 @@ class Drawer(val driver: Driver) {
      */
     fun path(path: Path3D) {
         if (path.closed) {
-            lineLoop(path.adaptivePositions(0.03))
+            lineLoop(path.adaptivePositions(0.03).dropLast(1))
         } else {
             lineStrip(path.adaptivePositions(0.03))
         }
@@ -1141,7 +1141,7 @@ class Drawer(val driver: Driver) {
         meshLineDrawer.drawLineStrips(
             context,
             drawStyle,
-            paths.map { it.adaptivePositions(0.03) },
+            paths.map { p -> p.adaptivePositions(0.03).let { if (p.closed) it.dropLast(1) else it} },
             weights,
             colors,
             closed = paths.map { it.closed })

@@ -160,14 +160,13 @@ class MeshLineDrawer {
                 if (strip.size >= 2) {
                     val width = weights.getOrElse(element) { drawStyle.strokeWeight }.toFloat()
                     val elementF = element.toFloat()
-
                     var previous = if (stripClosed) strip.last() else strip[0]
-
                     val edgeCount = strip.size + if (stripClosed) 1 else 0
 
                     for (i in 0 until edgeCount) {
                         val current = strip[i.mod(strip.size)]
-                        val next = strip[(i + 1).mod(strip.size)]
+                        val next =
+                            if (stripClosed) strip[(i + 1).mod(strip.size)] else strip[(i + 1).coerceIn(strip.indices)]
 
                         val segmentLength = current.distanceTo(next)
 
@@ -194,7 +193,7 @@ class MeshLineDrawer {
                             write(color)
                         }
 
-                        for (r in 0 until if (i == edgeCount-1) 1 else 1) {
+                        for (r in 0 until if (i == edgeCount - 1) 1 else 1) {
                             write(previous)
                             write(current)
                             write(next)
@@ -206,7 +205,7 @@ class MeshLineDrawer {
                             previous = current
                         }
 
-                        if (i == edgeCount-1) {
+                        if (i == edgeCount - 1) {
                             write(previous)
                             write(Float.NaN)
                             write(Float.NaN)
