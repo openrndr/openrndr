@@ -601,9 +601,11 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
                     glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API)
                     val useAngle = DriverGL3Configuration.glesBackend == GlesBackend.ANGLE
                     if (useAngle) {
+
                         glfwWindowHint(GLFW_ANGLE_PLATFORM_TYPE, GLFW_ANGLE_PLATFORM_TYPE_METAL)
                     }
-                    glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_EGL_CONTEXT_API);
+
+                    glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_EGL_CONTEXT_API)
                 }
             }
             glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_TRUE)

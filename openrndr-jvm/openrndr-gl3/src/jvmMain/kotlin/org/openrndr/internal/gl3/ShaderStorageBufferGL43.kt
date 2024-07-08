@@ -1,33 +1,46 @@
 package org.openrndr.internal.gl3
 
 import org.lwjgl.opengl.GL11C
-import org.lwjgl.opengl.GL15C.glBufferSubData
 import org.lwjgl.opengl.GL30C
 import org.lwjgl.opengl.GL33C
 import org.lwjgl.opengl.GL45C.*
+import org.lwjgl.opengles.GLES30
 import org.openrndr.draw.*
 import org.openrndr.internal.Driver
 import java.nio.ByteBuffer
 
-class ShaderStorageBufferGL43(val buffer: Int, override val format: ShaderStorageFormat, override val session: Session? = Session.active) : ShaderStorageBuffer {
+class ShaderStorageBufferGL43(
+    val buffer: Int,
+    override val format: ShaderStorageFormat,
+    override val session: Session? = Session.active
+) : ShaderStorageBuffer {
     private var destroyed = false
 
     override fun clear() {
-        if ((Driver.instance as DriverGL3).version >= DriverVersionGL.GL_VERSION_4_5) {
-            glClearNamedBufferData(buffer,
-                GL_R8UI,
-                GL30C.GL_RED_INTEGER,
-                GL11C.GL_UNSIGNED_BYTE,
-                intArrayOf(0) )
-        } else {
-            GL33C.glBindBuffer(GL_SHADER_STORAGE_BUFFER, buffer)
-            glClearBufferData(
-                GL_SHADER_STORAGE_BUFFER,
-                GL_R8UI,
-                GL30C.GL_RED_INTEGER,
-                GL11C.GL_UNSIGNED_BYTE,
-                intArrayOf(0)
-            )
+        when (Driver.glType) {
+            DriverTypeGL.GL -> {
+                if ((Driver.instance as DriverGL3).version >= DriverVersionGL.GL_VERSION_4_5) {
+                    glClearNamedBufferData(
+                        buffer,
+                        GL_R8UI,
+                        GL30C.GL_RED_INTEGER,
+                        GL11C.GL_UNSIGNED_BYTE,
+                        intArrayOf(0)
+                    )
+                } else {
+                    GL33C.glBindBuffer(GL_SHADER_STORAGE_BUFFER, buffer)
+                    glClearBufferData(
+                        GL_SHADER_STORAGE_BUFFER,
+                        GL_R8UI,
+                        GL30C.GL_RED_INTEGER,
+                        GL11C.GL_UNSIGNED_BYTE,
+                        intArrayOf(0)
+                    )
+                }
+            }
+            DriverTypeGL.GLES -> {
+                error("not supported")
+            }
         }
     }
 
@@ -35,12 +48,14 @@ class ShaderStorageBufferGL43(val buffer: Int, override val format: ShaderStorag
     override fun write(source: ByteBuffer, writeOffset: Int) {
         val allowed = format.size - writeOffset
         require(source.remaining() <= allowed)
-        if ((Driver.instance as DriverGL3).version <= DriverVersionGL.GL_VERSION_4_5) {
-            GL33C.glBindBuffer(GL_SHADER_STORAGE_BUFFER, buffer)
+        if (Driver.glType == DriverTypeGL.GL && Driver.glVersion <= DriverVersionGL.GL_VERSION_4_5 ||
+            Driver.glType == DriverTypeGL.GLES
+        ) {
+            glBindBuffer(GL_SHADER_STORAGE_BUFFER, buffer)
             debugGLErrors()
             glBufferSubData(GL_SHADER_STORAGE_BUFFER, writeOffset.toLong(), source)
             debugGLErrors()
-            GL33C.glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0)
+            glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0)
         } else {
             glNamedBufferSubData(buffer, writeOffset.toLong(), source)
             debugGLErrors()
@@ -51,17 +66,38 @@ class ShaderStorageBufferGL43(val buffer: Int, override val format: ShaderStorag
         val needed = format.size - readOffset
         require(target.remaining() >= needed)
 
-        GL33C.glBindBuffer(GL_SHADER_STORAGE_BUFFER, buffer)
-        debugGLErrors()
-        glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, readOffset.toLong(), target)
-        debugGLErrors()
-        GL33C.glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0)
-        debugGLErrors()
+        when (Driver.glType) {
+            DriverTypeGL.GL -> {
+                glBindBuffer(GL_SHADER_STORAGE_BUFFER, buffer)
+                debugGLErrors()
+                glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, readOffset.toLong(), target)
+                debugGLErrors()
+                glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0)
+                debugGLErrors()
+            }
+
+            DriverTypeGL.GLES -> {
+                glBindBuffer(GL_SHADER_STORAGE_BUFFER, buffer)
+                debugGLErrors()
+                val mappedBuffer = GLES30.glMapBufferRange(
+                    GL_SHADER_STORAGE_BUFFER,
+                    readOffset.toLong(),
+                    target.remaining().toLong(),
+                    GL_MAP_READ_BIT
+                )
+                checkGLErrors()
+                require(mappedBuffer != null)
+                target.put(mappedBuffer)
+                GLES30.glUnmapBuffer(GL_SHADER_STORAGE_BUFFER)
+                glBindBuffer(GL_COPY_READ_BUFFER, 0)
+                debugGLErrors()
+            }
+        }
     }
 
     override fun destroy() {
         if (!destroyed) {
-            GL33C.glDeleteBuffers(buffer)
+            glDeleteBuffers(buffer)
             session?.untrack(this)
         }
     }
@@ -100,17 +136,18 @@ class ShaderStorageBufferGL43(val buffer: Int, override val format: ShaderStorag
     }
 
     companion object {
-        fun create(format: ShaderStorageFormat, session: Session?) : ShaderStorageBufferGL43 {
+        fun create(format: ShaderStorageFormat, session: Session?): ShaderStorageBufferGL43 {
             val ssbo = glGenBuffers()
             glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo)
             checkGLErrors()
 
-            val useBufferStorage = (Driver.instance as DriverGL3).version >= DriverVersionGL.GL_VERSION_4_4 && Driver.glType == DriverTypeGL.GL
+            val useBufferStorage =
+                (Driver.instance as DriverGL3).version >= DriverVersionGL.GL_VERSION_4_4 && Driver.glType == DriverTypeGL.GL
 
             if (useBufferStorage) {
                 glBufferStorage(GL_SHADER_STORAGE_BUFFER, format.size.toLong(), GL_DYNAMIC_STORAGE_BIT)
             } else {
-                GL33C.glBufferData(GL_SHADER_STORAGE_BUFFER, format.size.toLong(), GL33C.GL_DYNAMIC_COPY)
+                glBufferData(GL_SHADER_STORAGE_BUFFER, format.size.toLong(), GL33C.GL_DYNAMIC_COPY)
             }
             checkGLErrors()
             return ShaderStorageBufferGL43(ssbo, format, session)

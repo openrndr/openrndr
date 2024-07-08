@@ -1,6 +1,8 @@
 import org.intellij.lang.annotations.Language
 import org.openrndr.application
 import org.openrndr.draw.*
+import org.openrndr.internal.Driver
+import org.openrndr.internal.gl3.DriverGL3
 import org.openrndr.math.IntVector3
 import org.openrndr.math.Vector2
 import org.openrndr.math.Vector3
@@ -29,8 +31,8 @@ fun main() = application {
     }
 
     program {
-        val shader = """
-            #version 450 core
+        val shader = """#version ${(Driver.instance as DriverGL3).version.glslVersion}
+            //#extension GL_EXT_shader_implicit_conversions: require
             
             layout (local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
             
@@ -59,15 +61,15 @@ fun main() = application {
             void main(void) {
                 ivec2 id = ivec2(gl_GlobalInvocationID.xy);
                 int idx = id.x * 6;
-                float k =  1.0 + id.x;
+                float k =  1.0 + float(id.x);
                           
-                results[idx + 0] = particles[0].position.x / k;
-                results[idx + 1] = particles[0].position.y / k;
-                results[idx + 2] = particles[0].position.z / k;
+                results[idx + 0] = float(particles[0].position.x) / k;
+                results[idx + 1] = float(particles[0].position.y) / k;
+                results[idx + 2] = float(particles[0].position.z) / k;
                 
-                results[idx + 3] = agents[0].position.x / k;
-                results[idx + 4] = agents[0].position.y / k;
-                results[idx + 5] = agents[0].position.z / k;
+                results[idx + 3] = float(agents[0].position.x) / k;
+                results[idx + 4] = float(agents[0].position.y) / k;
+                results[idx + 5] = float(agents[0].position.z) / k;
             }
         """.trimIndent()
 

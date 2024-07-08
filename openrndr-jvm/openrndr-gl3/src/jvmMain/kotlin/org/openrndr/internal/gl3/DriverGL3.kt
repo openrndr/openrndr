@@ -1033,7 +1033,9 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
             when (drawStyle.blendMode) {
                 BlendMode.OVER -> {
                     glEnable(GL_BLEND)
-                    if (version >= DriverVersionGL.GL_VERSION_4_1 && version.type == DriverTypeGL.GL) {
+                    if ((version >= DriverVersionGL.GL_VERSION_4_1 && version.type == DriverTypeGL.GL) ||
+                        (version >= DriverVersionGL.GLES_VERSION_3_2 && version.type == DriverTypeGL.GLES)
+                    ) {
                         glBlendEquationi(0, GL_FUNC_ADD)
                         glBlendFunci(0, GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
                     } else {
@@ -1044,7 +1046,9 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
 
                 BlendMode.BLEND -> {
                     glEnable(GL_BLEND)
-                    if (version >= DriverVersionGL.GL_VERSION_4_1 && version.type == DriverTypeGL.GL) {
+                    if ((version >= DriverVersionGL.GL_VERSION_4_1 && version.type == DriverTypeGL.GL) ||
+                        (version >= DriverVersionGL.GLES_VERSION_3_2 && version.type == DriverTypeGL.GLES)
+                    ) {
                         glBlendEquationi(0, GL_FUNC_ADD)
                         glBlendFunci(0, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
                     } else {
@@ -1055,7 +1059,9 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
 
                 BlendMode.ADD -> {
                     glEnable(GL_BLEND)
-                    if (version >= DriverVersionGL.GL_VERSION_4_1 && version.type == DriverTypeGL.GL) {
+                    if ((version >= DriverVersionGL.GL_VERSION_4_1 && version.type == DriverTypeGL.GL) ||
+                        (version >= DriverVersionGL.GLES_VERSION_3_2 && version.type == DriverTypeGL.GLES)
+                    ) {
                         glBlendEquationi(0, GL_FUNC_ADD)
                         glBlendFunci(0, GL_ONE, GL_ONE)
                     } else {
@@ -1070,7 +1076,9 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
 
                 BlendMode.SUBTRACT -> {
                     glEnable(GL_BLEND)
-                    if (version >= DriverVersionGL.GL_VERSION_4_1 && version.type == DriverTypeGL.GL) {
+                    if ((version >= DriverVersionGL.GL_VERSION_4_1 && version.type == DriverTypeGL.GL) ||
+                        (version >= DriverVersionGL.GLES_VERSION_3_2 && version.type == DriverTypeGL.GLES)
+                    ) {
                         glBlendEquationSeparatei(0, GL_FUNC_REVERSE_SUBTRACT, GL_FUNC_ADD)
                         glBlendFuncSeparatei(0, GL_SRC_ALPHA, GL_ONE, GL_ONE, GL_ONE)
                     } else {
@@ -1081,7 +1089,9 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
 
                 BlendMode.MULTIPLY -> {
                     glEnable(GL_BLEND)
-                    if (version >= DriverVersionGL.GL_VERSION_4_1 && version.type == DriverTypeGL.GL) {
+                    if ((version >= DriverVersionGL.GL_VERSION_4_1 && version.type == DriverTypeGL.GL) ||
+                        (version >= DriverVersionGL.GLES_VERSION_3_2 && version.type == DriverTypeGL.GLES)
+                    ) {
                         glBlendEquationi(0, GL_FUNC_ADD)
                         glBlendFunci(0, GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA)
                     } else {
@@ -1092,7 +1102,9 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
 
                 BlendMode.REMOVE -> {
                     glEnable(GL_BLEND)
-                    if (version >= DriverVersionGL.GL_VERSION_4_1 && version.type == DriverTypeGL.GL) {
+                    if ((version >= DriverVersionGL.GL_VERSION_4_1 && version.type == DriverTypeGL.GL) ||
+                        (version >= DriverVersionGL.GLES_VERSION_3_2 && version.type == DriverTypeGL.GLES)
+                    ){
                         glBlendEquationi(0, GL_FUNC_ADD)
                         glBlendFunci(0, GL_ZERO, GL_ONE_MINUS_SRC_ALPHA)
                     } else {
@@ -1103,7 +1115,9 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
 
                 BlendMode.MIN -> {
                     glEnable(GL_BLEND)
-                    if (version >= DriverVersionGL.GL_VERSION_4_1 && version.type == DriverTypeGL.GL) {
+                    if ((version >= DriverVersionGL.GL_VERSION_4_1 && version.type == DriverTypeGL.GL) ||
+                        (version >= DriverVersionGL.GLES_VERSION_3_2 && version.type == DriverTypeGL.GLES)
+                    ) {
                         glBlendEquationi(0, GL_MIN)
                         glBlendFunci(0, GL_ONE, GL_ONE)
                     } else {
@@ -1114,7 +1128,9 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
 
                 BlendMode.MAX -> {
                     glEnable(GL_BLEND)
-                    if (version >= DriverVersionGL.GL_VERSION_4_1 && version.type == DriverTypeGL.GL) {
+                    if ((version >= DriverVersionGL.GL_VERSION_4_1 && version.type == DriverTypeGL.GL) ||
+                        (version >= DriverVersionGL.GLES_VERSION_3_2 && version.type == DriverTypeGL.GLES)
+                    ) {
                         glBlendEquationi(0, GL_MAX)
                         glBlendFunci(0, GL_ONE, GL_ONE)
                     } else {
@@ -1207,7 +1223,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
             defaultVAOs.remove(context)
         }
 
-            destroyAllVAOs()
+        destroyAllVAOs()
 
         dirtyPerContext.remove(context)
     }

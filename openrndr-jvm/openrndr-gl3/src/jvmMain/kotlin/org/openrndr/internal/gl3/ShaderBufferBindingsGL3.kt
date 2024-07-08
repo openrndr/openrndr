@@ -1,13 +1,13 @@
 package org.openrndr.internal.gl3
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.lwjgl.opengl.GL15C.glBindBuffer
-import org.lwjgl.opengl.GL15C.glGenBuffers
-import org.lwjgl.opengl.GL30C.glBindBufferBase
-import org.lwjgl.opengl.GL30C.glGetProgrami
-import org.lwjgl.opengl.GL42C.GL_ATOMIC_COUNTER_BUFFER
-import org.lwjgl.opengl.GL43C.*
-import org.lwjgl.opengl.GL45C
+import org.lwjgl.opengl.ARBShaderStorageBufferObject.GL_SHADER_STORAGE_BUFFER
+import org.lwjgl.opengl.GL20.GL_ACTIVE_UNIFORMS
+import org.lwjgl.opengl.GL20.glGetProgrami
+import org.lwjgl.opengl.GL42C.*
+import org.lwjgl.opengl.GL43C.GL_SHADER_STORAGE_BLOCK
+import org.lwjgl.opengl.GL43C.GL_BUFFER_BINDING
+import org.lwjgl.opengl.GL43C.GL_UNIFORM_ATOMIC_COUNTER_BUFFER_INDEX
 import org.openrndr.draw.*
 import org.openrndr.internal.Driver
 
@@ -19,7 +19,7 @@ interface ShaderBufferBindingsGL3 : ShaderBufferBindings, ShaderUniformsGL3 {
     val ssboResourceIndices: MutableMap<String, Int>
 
     fun resourceIndex(name: String): Int = ssboResourceIndices.getOrPut(name) {
-        val resourceIndex = GL45C.glGetProgramResourceIndex(programObject, GL_SHADER_STORAGE_BLOCK, name)
+        val resourceIndex = glGetProgramResourceIndex(programObject, GL_SHADER_STORAGE_BLOCK, name)
         if (resourceIndex == -1) {
             logger.warn {
                 "no resource index for buffer '${name}'"
@@ -29,7 +29,9 @@ interface ShaderBufferBindingsGL3 : ShaderBufferBindings, ShaderUniformsGL3 {
     }
 
     fun createSSBO(): Int {
-        return if ((Driver.instance as DriverGL3).version >= DriverVersionGL.GL_VERSION_4_3 && (Driver.instance as DriverGL3).version.type == DriverTypeGL.GL) {
+        return if ((Driver.glVersion >= DriverVersionGL.GL_VERSION_4_3 && Driver.glType == DriverTypeGL.GL) ||
+            (Driver.glVersion >= DriverVersionGL.GLES_VERSION_3_1 && Driver.glType == DriverTypeGL.GLES)
+        ) {
             glGenBuffers()
         } else {
             -1

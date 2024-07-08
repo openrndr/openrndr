@@ -2,7 +2,6 @@ package org.openrndr.internal.gl3
 
 import org.lwjgl.opengl.GL11C.GL_INVALID_ENUM
 import org.lwjgl.opengl.GL11C.GL_INVALID_VALUE
-import org.lwjgl.opengl.GL43C
 import org.openrndr.draw.*
 import org.openrndr.internal.Driver
 
@@ -17,7 +16,7 @@ interface ShaderImageBindingsGL43 : ShaderImageBindings, ShaderUniformsGL3 {
                 require(bufferTexture.format.componentCount != 3) {
                     "color buffer has unsupported format (${imageBinding.bufferTexture.format}), only formats with 1, 2 or 4 components are supported"
                 }
-                GL43C.glBindImageTexture(
+                glBindImageTexture(
                     image,
                     bufferTexture.texture,
                     imageBinding.level,
@@ -33,7 +32,7 @@ interface ShaderImageBindingsGL43 : ShaderImageBindings, ShaderUniformsGL3 {
                 require(colorBuffer.format.componentCount != 3) {
                     "color buffer has unsupported format (${imageBinding.colorBuffer.format}), only formats with 1, 2 or 4 components are supported"
                 }
-                GL43C.glBindImageTexture(
+                glBindImageTexture(
                     image,
                     colorBuffer.texture,
                     imageBinding.level,
@@ -49,7 +48,7 @@ interface ShaderImageBindingsGL43 : ShaderImageBindings, ShaderUniformsGL3 {
                 require(arrayTexture.format.componentCount != 3) {
                     "color buffer has unsupported format (${imageBinding.arrayTexture.format}), only formats with 1, 2 or 4 components are supported"
                 }
-                GL43C.glBindImageTexture(
+                glBindImageTexture(
                     image,
                     arrayTexture.texture,
                     imageBinding.level,
@@ -65,7 +64,7 @@ interface ShaderImageBindingsGL43 : ShaderImageBindings, ShaderUniformsGL3 {
                 require(cubemap.format.componentCount != 3) {
                     "color buffer has unsupported format (${imageBinding.cubemap.format}), only formats with 1, 2 or 4 components are supported"
                 }
-                GL43C.glBindImageTexture(
+                glBindImageTexture(
                     image,
                     cubemap.texture,
                     imageBinding.level,
@@ -81,7 +80,7 @@ interface ShaderImageBindingsGL43 : ShaderImageBindings, ShaderUniformsGL3 {
                 require(arrayCubemap.format.componentCount != 3) {
                     "color buffer has unsupported format (${imageBinding.arrayCubemap.format}), only formats with 1, 2 or 4 components are supported"
                 }
-                GL43C.glBindImageTexture(
+                glBindImageTexture(
                     image,
                     arrayCubemap.texture,
                     imageBinding.level,
@@ -97,7 +96,7 @@ interface ShaderImageBindingsGL43 : ShaderImageBindings, ShaderUniformsGL3 {
                 require(volumeTexture.format.componentCount != 3) {
                     "color buffer has unsupported format (${imageBinding.volumeTexture.format}), only formats with 1, 2 or 4 components are supported"
                 }
-                GL43C.glBindImageTexture(
+                glBindImageTexture(
                     image,
                     volumeTexture.texture,
                     imageBinding.level,
@@ -119,7 +118,7 @@ interface ShaderImageBindingsGL43 : ShaderImageBindings, ShaderUniformsGL3 {
         }
         debugGLErrors()
         val index = uniformIndex(name)
-        GL43C.glProgramUniform1i(programObject, index, image)
+        glProgramUniform1i(programObject, index, image)
         debugGLErrors()
     }
 

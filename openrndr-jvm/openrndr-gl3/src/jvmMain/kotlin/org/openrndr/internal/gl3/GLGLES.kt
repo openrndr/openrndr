@@ -372,6 +372,18 @@ fun glGetActiveUniformsiv(
     }
 }
 
+fun glGetActiveUniformsiv(
+    @NativeType("GLuint") program: Int,
+    @NativeType("GLuint const *") uniformIndices: IntArray,
+    @NativeType("GLenum") pname: Int,
+    @NativeType("GLint *") params: IntArray
+) {
+    return when (driverType) {
+        DriverTypeGL.GL -> GL.glGetActiveUniformsiv(program, uniformIndices, pname, params)
+        DriverTypeGL.GLES -> GLES.glGetActiveUniformsiv(program, uniformIndices, pname, params)
+    }
+}
+
 fun glGetActiveUniformName(
     @NativeType("GLuint") program: Int,
     @NativeType("GLuint") uniformIndex: Int,
@@ -390,6 +402,11 @@ fun glGetActiveUniformName(
             ascii
         }
     }
+}
+
+fun glGetActiveUniformName(@NativeType("GLuint") program: Int, @NativeType("GLuint") uniformIndex: Int): String? {
+    return glGetActiveUniformName(program, uniformIndex, 1024)
+
 }
 
 // --- [ glGetError ] ---
@@ -1508,11 +1525,26 @@ fun glTexImage2DMultisample(
     @NativeType("GLboolean") fixedsamplelocations: Boolean
 ) {
     return when (driverType) {
-        DriverTypeGL.GL -> GL.glTexImage2DMultisample(target, samples, internalformat, width, height, fixedsamplelocations)
+        DriverTypeGL.GL -> GL.glTexImage2DMultisample(
+            target,
+            samples,
+            internalformat,
+            width,
+            height,
+            fixedsamplelocations
+        )
+
         DriverTypeGL.GLES -> {
             val angle = (Driver.instance as DriverGL3).angleExtensions
             if (angle != null && angle.glTexStorage2DMultisampleANGLEAddress != 0L) {
-                angle.glTexStorage2DMultisampleANGLE(target, samples, internalformat, width, height, fixedsamplelocations)
+                angle.glTexStorage2DMultisampleANGLE(
+                    target,
+                    samples,
+                    internalformat,
+                    width,
+                    height,
+                    fixedsamplelocations
+                )
             } else {
                 error("not supported")
             }
@@ -1527,14 +1559,14 @@ fun glFramebufferRenderbuffer(
     @NativeType("GLenum") renderbuffertarget: Int,
     @NativeType("GLuint") renderbuffer: Int
 ) {
-    return when(driverType) {
+    return when (driverType) {
         DriverTypeGL.GL -> GL.glFramebufferRenderbuffer(target, attachment, renderbuffertarget, renderbuffer)
         DriverTypeGL.GLES -> GLES.glFramebufferRenderbuffer(target, attachment, renderbuffertarget, renderbuffer)
     }
 }
 
 fun glGenRenderbuffers(): Int {
-    return when(driverType) {
+    return when (driverType) {
         DriverTypeGL.GL -> GL.glGenRenderbuffers()
         DriverTypeGL.GLES -> GLES.glGenRenderbuffers()
     }
@@ -1542,7 +1574,7 @@ fun glGenRenderbuffers(): Int {
 
 // --- [ glBindRenderbuffer ] ---
 fun glBindRenderbuffer(@NativeType("GLenum") target: Int, @NativeType("GLuint") renderbuffer: Int) {
-    return when(driverType) {
+    return when (driverType) {
         DriverTypeGL.GL -> GL.glBindRenderbuffer(target, renderbuffer)
         DriverTypeGL.GLES -> GLES.glBindRenderbuffer(target, renderbuffer)
     }
@@ -1555,7 +1587,7 @@ fun glRenderbufferStorage(
     @NativeType("GLsizei") width: Int,
     @NativeType("GLsizei") height: Int
 ) {
-    return when(driverType) {
+    return when (driverType) {
         DriverTypeGL.GL -> GL.glRenderbufferStorage(target, internalformat, width, height)
         DriverTypeGL.GLES -> GLES.glRenderbufferStorage(target, internalformat, width, height)
     }
@@ -1569,7 +1601,7 @@ fun glRenderbufferStorageMultisample(
     @NativeType("GLsizei") width: Int,
     @NativeType("GLsizei") height: Int
 ) {
-    return when(driverType) {
+    return when (driverType) {
         DriverTypeGL.GL -> GL.glRenderbufferStorageMultisample(target, samples, internalformat, width, height)
         DriverTypeGL.GLES -> GLES.glRenderbufferStorageMultisample(target, samples, internalformat, width, height)
     }
@@ -1580,7 +1612,7 @@ fun glClearBufferfv(
     @NativeType("GLint") drawbuffer: Int,
     @NativeType("GLfloat const *") value: FloatArray
 ) {
-    return when(driverType) {
+    return when (driverType) {
         DriverTypeGL.GL -> GL.glClearBufferfv(buffer, drawbuffer, value)
         DriverTypeGL.GLES -> GLES.glClearBufferfv(buffer, drawbuffer, value)
     }
@@ -1588,8 +1620,88 @@ fun glClearBufferfv(
 
 // --- [ glFlush ] ---
 fun glFlush() {
-    return when(driverType) {
+    return when (driverType) {
         DriverTypeGL.GL -> GL.glFlush()
         DriverTypeGL.GLES -> GLES.glFlush()
+    }
+}
+
+
+/// compute shader / ssbo
+fun glGetProgramResourceiv(
+    @NativeType("GLuint") program: Int,
+    @NativeType("GLenum") programInterface: Int,
+    @NativeType("GLuint") index: Int,
+    @NativeType("GLenum const *") props: IntArray?,
+    @NativeType("GLsizei *") length: IntArray?,
+    @NativeType("GLint *") params: IntArray?
+) {
+    when (driverType) {
+        DriverTypeGL.GL -> GL.glGetProgramResourceiv(program, programInterface, index, props, length, params)
+        DriverTypeGL.GLES -> GLES.glGetProgramResourceiv(program, programInterface, index, props, length, params)
+    }
+}
+
+fun glGetProgramResourceIndex(
+    @NativeType("GLuint") program: Int,
+    @NativeType("GLenum") programInterface: Int,
+    @NativeType("GLchar const *") name: CharSequence?
+): Int {
+    return when (driverType) {
+        DriverTypeGL.GL -> GL.glGetProgramResourceIndex(program, programInterface, name)
+        DriverTypeGL.GLES -> GLES.glGetProgramResourceIndex(program, programInterface, name)
+    }
+}
+
+fun glGetProgrami(@NativeType("GLuint") program: Int, @NativeType("GLenum") pname: Int): Int {
+    return when (driverType) {
+        DriverTypeGL.GL -> GL.glGetProgrami(program, pname)
+        DriverTypeGL.GLES -> GLES.glGetProgrami(program, pname)
+    }
+}
+
+// --- [ glDispatchCompute ] ---
+fun glDispatchCompute(
+    @NativeType("GLuint") num_groups_x: Int,
+    @NativeType("GLuint") num_groups_y: Int,
+    @NativeType("GLuint") num_groups_z: Int
+) {
+    return when (driverType) {
+        DriverTypeGL.GL -> GL.glDispatchCompute(num_groups_x, num_groups_y, num_groups_z)
+        DriverTypeGL.GLES -> GLES.glDispatchCompute(num_groups_x, num_groups_y, num_groups_z)
+    }
+}
+
+// --- [ glMemoryBarrier ] ---
+fun glMemoryBarrier(@NativeType("GLbitfield") barriers: Int) {
+    return when (driverType) {
+        DriverTypeGL.GL -> GL.glMemoryBarrier(barriers)
+        DriverTypeGL.GLES -> GLES.glMemoryBarrier(barriers)
+    }
+}
+
+// --- [ glBindImageTexture ] ---
+fun glBindImageTexture(
+    @NativeType("GLuint") unit: Int,
+    @NativeType("GLuint") texture: Int,
+    @NativeType("GLint") level: Int,
+    @NativeType("GLboolean") layered: Boolean,
+    @NativeType("GLint") layer: Int,
+    @NativeType("GLenum") access: Int,
+    @NativeType("GLenum") format: Int
+) {
+    when (driverType) {
+        DriverTypeGL.GL -> GL.glBindImageTexture(unit, texture, level, layered, layer, access, format)
+        DriverTypeGL.GLES -> GLES.glBindImageTexture(unit, texture, level, layered, layer, access, format)
+    }
+}
+
+// tessellation
+
+// --- [ glPatchParameteri ] ---
+fun glPatchParameteri(@NativeType("GLenum") pname: Int, @NativeType("GLint") value: Int) {
+    when (driverType) {
+        DriverTypeGL.GL -> GL.glPatchParameteri(pname, value)
+        DriverTypeGL.GLES -> GLES.glPatchParameteri(pname, value)
     }
 }
