@@ -201,7 +201,7 @@ vec4 colorTransform(vec4 color, float[25] matrix) {
 ${fragmentMainConstants(boundsPosition = "v_boundsPosition")}
 ${shadeStructure.fragmentPreamble ?: ""}
 void main(void) {
-    vec4 x_fill = texture(image, vec3(va_texCoord0, v_layer*1.0));
+    vec4 x_fill = texture(image, vec3(va_texCoord0, float(v_layer) * 1.0));
     vec4 x_stroke = u_stroke;
     {
 ${shadeStructure.fragmentTransform?.prependIndent("        ") ?: ""}

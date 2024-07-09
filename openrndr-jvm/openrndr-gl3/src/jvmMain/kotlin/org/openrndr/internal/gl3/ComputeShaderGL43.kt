@@ -26,7 +26,6 @@ class ComputeShaderGL43(
     private var destroyed = false
 
     override fun execute(width: Int, height: Int, depth: Int) {
-
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo)
         checkGLErrors()
         glUseProgram(this.programObject)

@@ -103,6 +103,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
             DriverTypeGL.GL -> "#define OR_GL"
             DriverTypeGL.GLES -> """#define OR_GLES
           |precision highp float;
+          |precision highp sampler2DArray;
       """.trimMargin()
         }
     }       

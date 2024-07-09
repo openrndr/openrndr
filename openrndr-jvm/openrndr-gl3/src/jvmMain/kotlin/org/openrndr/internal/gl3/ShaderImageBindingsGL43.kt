@@ -25,6 +25,7 @@ interface ShaderImageBindingsGL43 : ShaderImageBindings, ShaderUniformsGL3 {
                     imageBinding.access.gl(),
                     bufferTexture.glFormat()
                 )
+                checkGLErrors()
             }
 
             is ColorBufferImageBinding -> {
@@ -41,6 +42,7 @@ interface ShaderImageBindingsGL43 : ShaderImageBindings, ShaderUniformsGL3 {
                     imageBinding.access.gl(),
                     colorBuffer.glFormat()
                 )
+                checkGLErrors()
             }
 
             is ArrayTextureImageBinding -> {
@@ -57,6 +59,7 @@ interface ShaderImageBindingsGL43 : ShaderImageBindings, ShaderUniformsGL3 {
                     imageBinding.access.gl(),
                     arrayTexture.glFormat()
                 )
+                checkGLErrors()
             }
 
             is CubemapImageBinding -> {
@@ -73,6 +76,7 @@ interface ShaderImageBindingsGL43 : ShaderImageBindings, ShaderUniformsGL3 {
                     imageBinding.access.gl(),
                     cubemap.glFormat()
                 )
+                checkGLErrors()
             }
 
             is ArrayCubemapImageBinding -> {
@@ -89,6 +93,7 @@ interface ShaderImageBindingsGL43 : ShaderImageBindings, ShaderUniformsGL3 {
                     imageBinding.access.gl(),
                     arrayCubemap.glFormat()
                 )
+                checkGLErrors()
             }
 
             is VolumeTextureImageBinding -> {
@@ -118,7 +123,12 @@ interface ShaderImageBindingsGL43 : ShaderImageBindings, ShaderUniformsGL3 {
         }
         debugGLErrors()
         val index = uniformIndex(name)
-        glProgramUniform1i(programObject, index, image)
+        if (index != -1) {
+            if (Driver.glType == DriverTypeGL.GL) {
+                glProgramUniform1i(programObject, index, image)
+            }
+        }
+        checkGLErrors()
         debugGLErrors()
     }
 

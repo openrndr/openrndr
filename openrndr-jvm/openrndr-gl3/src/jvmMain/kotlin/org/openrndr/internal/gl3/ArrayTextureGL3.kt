@@ -1,7 +1,6 @@
 package org.openrndr.internal.gl3
 
 import org.lwjgl.opengl.GL33C.*
-import org.lwjgl.opengl.GL42C.glTexStorage3D
 import org.openrndr.draw.*
 import org.openrndr.internal.Driver
 import java.nio.ByteBuffer
@@ -26,7 +25,8 @@ class ArrayTextureGL3(val target: Int,
             val texture = glGenTextures()
 
             val storageMode = when {
-                (Driver.instance as DriverGL3).version >= DriverVersionGL.GL_VERSION_4_3 -> TextureStorageModeGL.STORAGE
+                (Driver.glType == DriverTypeGL.GL && Driver.glVersion >= DriverVersionGL.GL_VERSION_4_3) -> TextureStorageModeGL.STORAGE
+                (Driver.glType == DriverTypeGL.GLES && Driver.glVersion >= DriverVersionGL.GLES_VERSION_3_1) -> TextureStorageModeGL.STORAGE
                 else -> TextureStorageModeGL.IMAGE
             }
 
@@ -40,7 +40,7 @@ class ArrayTextureGL3(val target: Int,
                         glTexImage3D(GL_TEXTURE_2D_ARRAY,
                                 level, internalFormat(format, type).first,
                                 width / div, height / div, layers,
-                                0, GL_RGB, GL_UNSIGNED_BYTE, null as ByteBuffer?)
+                                0, GL_RGBA, GL_UNSIGNED_BYTE, null as ByteBuffer?)
 
                         checkGLErrors()
                     }
