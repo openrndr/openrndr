@@ -9,6 +9,9 @@ import org.openrndr.internal.gl3.DriverGL3
 import org.openrndr.internal.gl3.DriverTypeGL
 import org.openrndr.internal.gl3.DriverVersionGL
 import org.openrndr.internal.gl3.glType
+import org.openrndr.math.IntVector2
+import org.openrndr.math.IntVector3
+import org.openrndr.math.IntVector4
 import kotlin.test.Test
 
 class TestComputeStyleGL3 : AbstractApplicationTestFixture() {
@@ -53,4 +56,18 @@ class TestComputeStyleGL3 : AbstractApplicationTestFixture() {
         }
 
     }
+
+    @Test
+    fun testIntVectors() {
+        if ((Driver.instance as DriverGL3).version >= DriverVersionGL.GL_VERSION_4_3 && Driver.glType == DriverTypeGL.GL) {
+            val cs = computeStyle {
+                computeTransform = "p_ivec2; p_ivec3; p_ivec4;"
+                parameter("ivec2", IntVector2.ZERO)
+                parameter("ivec3", IntVector3.ZERO)
+                parameter("ivec4", IntVector4.ZERO)
+            }
+            cs.execute(1, 1, 1)
+        }
+    }
+
 }
