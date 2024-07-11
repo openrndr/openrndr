@@ -25,6 +25,9 @@ interface StyleManagerDispatchUniform {
             is Vector4 -> shader.uniform(targetName, value)
             is Vector3 -> shader.uniform(targetName, value)
             is Vector2 -> shader.uniform(targetName, value)
+            is IntVector2 -> shader.uniform(targetName, value)
+            is IntVector3 -> shader.uniform(targetName, value)
+            is IntVector4 -> shader.uniform(targetName, value)
             is ColorRGBa -> shader.uniform(targetName, value)
             is ColorBuffer -> {
                 value.bind(textureIndex)
