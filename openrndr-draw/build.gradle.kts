@@ -5,7 +5,6 @@ plugins {
 
 kotlin {
     sourceSets {
-        @Suppress("UNUSED_VARIABLE")
         val commonMain by getting {
             dependencies {
                 api(project(":openrndr-math"))
@@ -15,6 +14,11 @@ kotlin {
                 implementation(project(":openrndr-utils"))
                 implementation(project(":openrndr-platform"))
                 implementation(libs.kotlin.coroutines)
+            }
+        }
+        val commonTest by getting {
+            dependencies {
+                implementation(libs.kotest.assertions)
             }
         }
     }
