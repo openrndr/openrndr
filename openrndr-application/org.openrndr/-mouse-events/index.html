@@ -1,0 +1,195 @@
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>MouseEvents</title>
+<link href="../../../images/logo-icon.svg" rel="icon" type="image/svg"><script>var pathToRoot = "../../../";</script>    <script>const storage = localStorage.getItem("dokka-dark-mode")
+    if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    } else {
+        const savedDarkMode = JSON.parse(storage)
+        if(savedDarkMode === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    }
+    </script>
+<script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async></script>
+<link href="../../../styles/style.css" rel="Stylesheet">
+<link href="../../../styles/jetbrains-mono.css" rel="Stylesheet">
+<link href="../../../styles/main.css" rel="Stylesheet">
+<link href="../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../scripts/clipboard.js" async></script>
+<script type="text/javascript" src="../../../scripts/navigation-loader.js" async></script>
+<script type="text/javascript" src="../../../scripts/platform-content-handler.js" async></script>
+<script type="text/javascript" src="../../../scripts/main.js" defer></script>
+<script type="text/javascript" src="../../../scripts/prism.js" async></script>
+<script type="text/javascript" src="../../../scripts/symbol-parameters-wrapper_deferred.js" defer></script></head>
+<body>
+<div class="navigation-wrapper" id="navigation-wrapper">
+    <div id="leftToggler"><span class="icon-toggler"></span></div>
+    <div class="library-name">
+<a href="../../../index.html">
+<span>openrndr</span>            </a>    </div>
+    <div>0.4.5-dev.17+38f5452
+    </div>
+    <div class="pull-right d-flex">
+        <div class="filter-section" id="filter-section">
+                <button class="platform-tag platform-selector common-like" data-active="" data-filter=":openrndr-application:dokkaHtmlPartial/commonMain">common</button>
+        </div>
+        <button id="theme-toggle-button"><span id="theme-toggle"></span></button>
+        <div id="searchBar"></div>
+    </div>
+</div>
+<div id="container">
+    <div id="leftColumn">
+        <div id="sideMenu"></div>
+    </div>
+    <div id="main">
+<div class="main-content" data-page-type="classlike" id="content" pageids="openrndr-application::org.openrndr/MouseEvents///PointingToDeclaration//1622697244">
+  <div class="breadcrumbs"><a href="../../index.html">openrndr-application</a><span class="delimiter">/</span><a href="../index.html">org.openrndr</a><span class="delimiter">/</span><span class="current">MouseEvents</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span>Mouse</span><wbr><span><span>Events</span></span></h1>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-application:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">interface </span><a href="index.html">MouseEvents</a><span class="clearfix"><span class="floating-right">(<a href="https://github.com/openrndr/openrndr/blob/master/openrndr-application/src/commonMain/kotlin/org/openrndr/Mouse.kt#L47">source</a>)</span></span></div><h4 class="">Inheritors</h4><div class="table"><div class="table-row" data-filterable-current=":openrndr-application:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-application:dokkaHtmlPartial/commonMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../-application-mouse/index.html">ApplicationMouse</a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":openrndr-application:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-application:dokkaHtmlPartial/commonMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../../../openrndr-application/org.openrndr/-application-window-mouse/index.html">ApplicationWindowMouse</a></div></span></div><div></div></div></div></div></div></div>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,FUNCTION,PROPERTY">Members</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="PROPERTY">
+        <h2 class="">Properties</h2>
+        <div class="table"><a data-name="854315143%2FProperties%2F1622697244" anchor-label="buttonDown" id="854315143%2FProperties%2F1622697244" data-filterable-set=":openrndr-application:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-application:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-application:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="button-down.html"><span>button</span><wbr><span><span>Down</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="854315143%2FProperties%2F1622697244"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-application:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword"></span><span class="token keyword">val </span><a href="button-down.html">buttonDown</a><span class="token operator">: </span><a href="../../../openrndr-event/org.openrndr.events/-event/index.html">Event</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="../-mouse-event/index.html">MouseEvent</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">mouse button down event</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-807355474%2FProperties%2F1622697244" anchor-label="buttonUp" id="-807355474%2FProperties%2F1622697244" data-filterable-set=":openrndr-application:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-application:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-application:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="button-up.html"><span>button</span><wbr><span><span>Up</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-807355474%2FProperties%2F1622697244"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-application:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword"></span><span class="token keyword">val </span><a href="button-up.html">buttonUp</a><span class="token operator">: </span><a href="../../../openrndr-event/org.openrndr.events/-event/index.html">Event</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="../-mouse-event/index.html">MouseEvent</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">mouse button up event</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1229092333%2FProperties%2F1622697244" anchor-label="dragged" id="1229092333%2FProperties%2F1622697244" data-filterable-set=":openrndr-application:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-application:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-application:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="dragged.html"><span><span>dragged</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1229092333%2FProperties%2F1622697244"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-application:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword"></span><span class="token keyword">val </span><a href="dragged.html">dragged</a><span class="token operator">: </span><a href="../../../openrndr-event/org.openrndr.events/-event/index.html">Event</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="../-mouse-event/index.html">MouseEvent</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">mouse dragged event</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1862542936%2FProperties%2F1622697244" anchor-label="entered" id="-1862542936%2FProperties%2F1622697244" data-filterable-set=":openrndr-application:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-application:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-application:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="entered.html"><span><span>entered</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1862542936%2FProperties%2F1622697244"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-application:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword"></span><span class="token keyword">val </span><a href="entered.html">entered</a><span class="token operator">: </span><a href="../../../openrndr-event/org.openrndr.events/-event/index.html">Event</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="../-mouse-event/index.html">MouseEvent</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">mouse entered event</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="2087294046%2FProperties%2F1622697244" anchor-label="exited" id="2087294046%2FProperties%2F1622697244" data-filterable-set=":openrndr-application:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-application:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-application:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="exited.html"><span><span>exited</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2087294046%2FProperties%2F1622697244"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-application:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword"></span><span class="token keyword">val </span><a href="exited.html">exited</a><span class="token operator">: </span><a href="../../../openrndr-event/org.openrndr.events/-event/index.html">Event</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="../-mouse-event/index.html">MouseEvent</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">mouse exited event</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-190780308%2FProperties%2F1622697244" anchor-label="moved" id="-190780308%2FProperties%2F1622697244" data-filterable-set=":openrndr-application:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-application:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-application:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="moved.html"><span><span>moved</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-190780308%2FProperties%2F1622697244"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-application:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword"></span><span class="token keyword">val </span><a href="moved.html">moved</a><span class="token operator">: </span><a href="../../../openrndr-event/org.openrndr.events/-event/index.html">Event</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="../-mouse-event/index.html">MouseEvent</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">mouse moved event</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1295694706%2FProperties%2F1622697244" anchor-label="position" id="1295694706%2FProperties%2F1622697244" data-filterable-set=":openrndr-application:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-application:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-application:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="position.html"><span><span>position</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1295694706%2FProperties%2F1622697244"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-application:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword"></span><span class="token keyword">val </span><a href="position.html">position</a><span class="token operator">: </span><a href="../../../openrndr-math/org.openrndr.math/-vector2/index.html">Vector2</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1947321905%2FProperties%2F1622697244" anchor-label="scrolled" id="-1947321905%2FProperties%2F1622697244" data-filterable-set=":openrndr-application:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-application:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-application:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="scrolled.html"><span><span>scrolled</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1947321905%2FProperties%2F1622697244"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-application:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword"></span><span class="token keyword">val </span><a href="scrolled.html">scrolled</a><span class="token operator">: </span><a href="../../../openrndr-event/org.openrndr.events/-event/index.html">Event</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="../-mouse-event/index.html">MouseEvent</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">mouse scroll wheel event</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      <div class="footer">
+        <span class="go-to-top-icon"><a href="#content" id="go-to-top-link"></a></span><span>© 2024 Copyright</span><span class="pull-right"><span>Generated by </span><a href="https://github.com/Kotlin/dokka"><span>dokka</span><span class="padded-icon"></span></a></span>
+      </div>
+    </div>
+</div>
+</body>
+</html>
+

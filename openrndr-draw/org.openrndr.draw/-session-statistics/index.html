@@ -1,0 +1,289 @@
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>SessionStatistics</title>
+<link href="../../../images/logo-icon.svg" rel="icon" type="image/svg"><script>var pathToRoot = "../../../";</script>    <script>const storage = localStorage.getItem("dokka-dark-mode")
+    if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    } else {
+        const savedDarkMode = JSON.parse(storage)
+        if(savedDarkMode === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    }
+    </script>
+<script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async></script>
+<link href="../../../styles/style.css" rel="Stylesheet">
+<link href="../../../styles/jetbrains-mono.css" rel="Stylesheet">
+<link href="../../../styles/main.css" rel="Stylesheet">
+<link href="../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../scripts/clipboard.js" async></script>
+<script type="text/javascript" src="../../../scripts/navigation-loader.js" async></script>
+<script type="text/javascript" src="../../../scripts/platform-content-handler.js" async></script>
+<script type="text/javascript" src="../../../scripts/main.js" defer></script>
+<script type="text/javascript" src="../../../scripts/prism.js" async></script>
+<script type="text/javascript" src="../../../scripts/symbol-parameters-wrapper_deferred.js" defer></script></head>
+<body>
+<div class="navigation-wrapper" id="navigation-wrapper">
+    <div id="leftToggler"><span class="icon-toggler"></span></div>
+    <div class="library-name">
+<a href="../../../index.html">
+<span>openrndr</span>            </a>    </div>
+    <div>0.4.5-dev.17+38f5452
+    </div>
+    <div class="pull-right d-flex">
+        <div class="filter-section" id="filter-section">
+                <button class="platform-tag platform-selector common-like" data-active="" data-filter=":openrndr-draw:dokkaHtmlPartial/commonMain">common</button>
+        </div>
+        <button id="theme-toggle-button"><span id="theme-toggle"></span></button>
+        <div id="searchBar"></div>
+    </div>
+</div>
+<div id="container">
+    <div id="leftColumn">
+        <div id="sideMenu"></div>
+    </div>
+    <div id="main">
+<div class="main-content" data-page-type="classlike" id="content" pageids="openrndr-draw::org.openrndr.draw/SessionStatistics///PointingToDeclaration//546126440">
+  <div class="breadcrumbs"><a href="../../index.html">openrndr-draw</a><span class="delimiter">/</span><a href="../index.html">org.openrndr.draw</a><span class="delimiter">/</span><span class="current">SessionStatistics</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span>Session</span><wbr><span><span>Statistics</span></span></h1>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">class </span><a href="index.html">SessionStatistics</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>renderTargets<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>colorBuffers<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>depthBuffers<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>bufferTextures<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>indexBuffers<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>vertexBuffers<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>shaders<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>cubemaps<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>arrayTextures<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>computeShaders<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>atomicCounterBuffers<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>arrayCubemaps<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>shaderStorageBuffers<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span><span class="clearfix"><span class="floating-right">(<a href="https://github.com/openrndr/openrndr/blob/master/openrndr-draw/src/commonMain/kotlin/org/openrndr/draw/Session.kt#L10">source</a>)</span></span></div><p class="paragraph">Session statistics</p></div></div>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,FUNCTION,PROPERTY">Members</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="CONSTRUCTOR">
+        <h2 class="">Constructors</h2>
+        <div class="table"><a data-name="-400293325%2FConstructors%2F546126440" anchor-label="SessionStatistics" id="-400293325%2FConstructors%2F546126440" data-filterable-set=":openrndr-draw:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-togglable="CONSTRUCTOR" data-filterable-current=":openrndr-draw:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-draw:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-session-statistics.html"><span>Session</span><wbr><span><span>Statistics</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-400293325%2FConstructors%2F546126440"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">renderTargets<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">colorBuffers<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">depthBuffers<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">bufferTextures<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">indexBuffers<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">vertexBuffers<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">shaders<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">cubemaps<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">arrayTextures<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">computeShaders<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">atomicCounterBuffers<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">arrayCubemaps<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">shaderStorageBuffers<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="PROPERTY">
+        <h2 class="">Properties</h2>
+        <div class="table"><a data-name="-1397273207%2FProperties%2F546126440" anchor-label="arrayCubemaps" id="-1397273207%2FProperties%2F546126440" data-filterable-set=":openrndr-draw:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-draw:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-draw:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="array-cubemaps.html"><span>array</span><wbr><span><span>Cubemaps</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1397273207%2FProperties%2F546126440"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">val </span><a href="array-cubemaps.html">arrayCubemaps</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="755693725%2FProperties%2F546126440" anchor-label="arrayTextures" id="755693725%2FProperties%2F546126440" data-filterable-set=":openrndr-draw:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-draw:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-draw:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="array-textures.html"><span>array</span><wbr><span><span>Textures</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="755693725%2FProperties%2F546126440"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">val </span><a href="array-textures.html">arrayTextures</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1224496970%2FProperties%2F546126440" anchor-label="atomicCounterBuffers" id="1224496970%2FProperties%2F546126440" data-filterable-set=":openrndr-draw:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-draw:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-draw:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="atomic-counter-buffers.html"><span>atomic</span><wbr><span>Counter</span><wbr><span><span>Buffers</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1224496970%2FProperties%2F546126440"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">val </span><a href="atomic-counter-buffers.html">atomicCounterBuffers</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1459839532%2FProperties%2F546126440" anchor-label="bufferTextures" id="-1459839532%2FProperties%2F546126440" data-filterable-set=":openrndr-draw:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-draw:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-draw:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="buffer-textures.html"><span>buffer</span><wbr><span><span>Textures</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1459839532%2FProperties%2F546126440"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">val </span><a href="buffer-textures.html">bufferTextures</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="177159260%2FProperties%2F546126440" anchor-label="colorBuffers" id="177159260%2FProperties%2F546126440" data-filterable-set=":openrndr-draw:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-draw:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-draw:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="color-buffers.html"><span>color</span><wbr><span><span>Buffers</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="177159260%2FProperties%2F546126440"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">val </span><a href="color-buffers.html">colorBuffers</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-2102627115%2FProperties%2F546126440" anchor-label="computeShaders" id="-2102627115%2FProperties%2F546126440" data-filterable-set=":openrndr-draw:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-draw:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-draw:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="compute-shaders.html"><span>compute</span><wbr><span><span>Shaders</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2102627115%2FProperties%2F546126440"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">val </span><a href="compute-shaders.html">computeShaders</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1783329184%2FProperties%2F546126440" anchor-label="cubemaps" id="-1783329184%2FProperties%2F546126440" data-filterable-set=":openrndr-draw:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-draw:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-draw:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="cubemaps.html"><span><span>cubemaps</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1783329184%2FProperties%2F546126440"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">val </span><a href="cubemaps.html">cubemaps</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1985173436%2FProperties%2F546126440" anchor-label="depthBuffers" id="1985173436%2FProperties%2F546126440" data-filterable-set=":openrndr-draw:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-draw:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-draw:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="depth-buffers.html"><span>depth</span><wbr><span><span>Buffers</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1985173436%2FProperties%2F546126440"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">val </span><a href="depth-buffers.html">depthBuffers</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1699330507%2FProperties%2F546126440" anchor-label="indexBuffers" id="1699330507%2FProperties%2F546126440" data-filterable-set=":openrndr-draw:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-draw:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-draw:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index-buffers.html"><span>index</span><wbr><span><span>Buffers</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1699330507%2FProperties%2F546126440"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">val </span><a href="index-buffers.html">indexBuffers</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-240632158%2FProperties%2F546126440" anchor-label="renderTargets" id="-240632158%2FProperties%2F546126440" data-filterable-set=":openrndr-draw:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-draw:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-draw:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="render-targets.html"><span>render</span><wbr><span><span>Targets</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-240632158%2FProperties%2F546126440"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">val </span><a href="render-targets.html">renderTargets</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1310318336%2FProperties%2F546126440" anchor-label="shaders" id="1310318336%2FProperties%2F546126440" data-filterable-set=":openrndr-draw:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-draw:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-draw:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="shaders.html"><span><span>shaders</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1310318336%2FProperties%2F546126440"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">val </span><a href="shaders.html">shaders</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1732364495%2FProperties%2F546126440" anchor-label="shaderStorageBuffers" id="1732364495%2FProperties%2F546126440" data-filterable-set=":openrndr-draw:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-draw:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-draw:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="shader-storage-buffers.html"><span>shader</span><wbr><span>Storage</span><wbr><span><span>Buffers</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1732364495%2FProperties%2F546126440"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">val </span><a href="shader-storage-buffers.html">shaderStorageBuffers</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="323685535%2FProperties%2F546126440" anchor-label="vertexBuffers" id="323685535%2FProperties%2F546126440" data-filterable-set=":openrndr-draw:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-draw:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-draw:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="vertex-buffers.html"><span>vertex</span><wbr><span><span>Buffers</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="323685535%2FProperties%2F546126440"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">val </span><a href="vertex-buffers.html">vertexBuffers</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      <div class="footer">
+        <span class="go-to-top-icon"><a href="#content" id="go-to-top-link"></a></span><span>© 2024 Copyright</span><span class="pull-right"><span>Generated by </span><a href="https://github.com/Kotlin/dokka"><span>dokka</span><span class="padded-icon"></span></a></span>
+      </div>
+    </div>
+</div>
+</body>
+</html>
+

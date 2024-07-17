@@ -1,0 +1,233 @@
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>StencilStyle</title>
+<link href="../../../images/logo-icon.svg" rel="icon" type="image/svg"><script>var pathToRoot = "../../../";</script>    <script>const storage = localStorage.getItem("dokka-dark-mode")
+    if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    } else {
+        const savedDarkMode = JSON.parse(storage)
+        if(savedDarkMode === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    }
+    </script>
+<script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async></script>
+<link href="../../../styles/style.css" rel="Stylesheet">
+<link href="../../../styles/jetbrains-mono.css" rel="Stylesheet">
+<link href="../../../styles/main.css" rel="Stylesheet">
+<link href="../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../scripts/clipboard.js" async></script>
+<script type="text/javascript" src="../../../scripts/navigation-loader.js" async></script>
+<script type="text/javascript" src="../../../scripts/platform-content-handler.js" async></script>
+<script type="text/javascript" src="../../../scripts/main.js" defer></script>
+<script type="text/javascript" src="../../../scripts/prism.js" async></script>
+<script type="text/javascript" src="../../../scripts/symbol-parameters-wrapper_deferred.js" defer></script></head>
+<body>
+<div class="navigation-wrapper" id="navigation-wrapper">
+    <div id="leftToggler"><span class="icon-toggler"></span></div>
+    <div class="library-name">
+<a href="../../../index.html">
+<span>openrndr</span>            </a>    </div>
+    <div>0.4.5-dev.17+38f5452
+    </div>
+    <div class="pull-right d-flex">
+        <div class="filter-section" id="filter-section">
+                <button class="platform-tag platform-selector common-like" data-active="" data-filter=":openrndr-draw:dokkaHtmlPartial/commonMain">common</button>
+        </div>
+        <button id="theme-toggle-button"><span id="theme-toggle"></span></button>
+        <div id="searchBar"></div>
+    </div>
+</div>
+<div id="container">
+    <div id="leftColumn">
+        <div id="sideMenu"></div>
+    </div>
+    <div id="main">
+<div class="main-content" data-page-type="classlike" id="content" pageids="openrndr-draw::org.openrndr.draw/StencilStyle///PointingToDeclaration//546126440">
+  <div class="breadcrumbs"><a href="../../index.html">openrndr-draw</a><span class="delimiter">/</span><a href="../index.html">org.openrndr.draw</a><span class="delimiter">/</span><span class="current">StencilStyle</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span>Stencil</span><wbr><span><span>Style</span></span></h1>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">class </span><a href="index.html">StencilStyle</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">var </span>stencilFailOperation<span class="token operator">: </span><a href="../-stencil-operation/index.html">StencilOperation</a><span class="token operator"> = </span>StencilOperation.KEEP<span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">var </span>depthFailOperation<span class="token operator">: </span><a href="../-stencil-operation/index.html">StencilOperation</a><span class="token operator"> = </span>StencilOperation.KEEP<span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">var </span>depthPassOperation<span class="token operator">: </span><a href="../-stencil-operation/index.html">StencilOperation</a><span class="token operator"> = </span>StencilOperation.KEEP<span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">var </span>stencilTestMask<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">255</span><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">var </span>stencilTestReference<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">0</span><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">var </span>stencilWriteMask<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">255</span><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">var </span>stencilTest<span class="token operator">: </span><a href="../-stencil-test/index.html">StencilTest</a><span class="token operator"> = </span>StencilTest.DISABLED</span></span><span class="token punctuation">)</span><span class="clearfix"><span class="floating-right">(<a href="https://github.com/openrndr/openrndr/blob/master/openrndr-draw/src/commonMain/kotlin/org/openrndr/draw/DrawStyle.kt#L87">source</a>)</span></span></div></div></div>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,FUNCTION,PROPERTY">Members</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="CONSTRUCTOR">
+        <h2 class="">Constructors</h2>
+        <div class="table"><a data-name="684169832%2FConstructors%2F546126440" anchor-label="StencilStyle" id="684169832%2FConstructors%2F546126440" data-filterable-set=":openrndr-draw:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-togglable="CONSTRUCTOR" data-filterable-current=":openrndr-draw:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-draw:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-stencil-style.html"><span>Stencil</span><wbr><span><span>Style</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="684169832%2FConstructors%2F546126440"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">stencilFailOperation<span class="token operator">: </span><a href="../-stencil-operation/index.html">StencilOperation</a><span class="token operator"> = </span>StencilOperation.KEEP<span class="token punctuation">, </span></span><span class="parameter ">depthFailOperation<span class="token operator">: </span><a href="../-stencil-operation/index.html">StencilOperation</a><span class="token operator"> = </span>StencilOperation.KEEP<span class="token punctuation">, </span></span><span class="parameter ">depthPassOperation<span class="token operator">: </span><a href="../-stencil-operation/index.html">StencilOperation</a><span class="token operator"> = </span>StencilOperation.KEEP<span class="token punctuation">, </span></span><span class="parameter ">stencilTestMask<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">255</span><span class="token punctuation">, </span></span><span class="parameter ">stencilTestReference<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">0</span><span class="token punctuation">, </span></span><span class="parameter ">stencilWriteMask<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">255</span><span class="token punctuation">, </span></span><span class="parameter ">stencilTest<span class="token operator">: </span><a href="../-stencil-test/index.html">StencilTest</a><span class="token operator"> = </span>StencilTest.DISABLED</span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="FUNCTION">
+        <h2 class="">Functions</h2>
+        <div class="table"><a data-name="1227230642%2FFunctions%2F546126440" anchor-label="stencilFunc" id="1227230642%2FFunctions%2F546126440" data-filterable-set=":openrndr-draw:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-draw:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-draw:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="stencil-func.html"><span>stencil</span><wbr><span><span>Func</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1227230642%2FFunctions%2F546126440"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">fun </span><a href="stencil-func.html"><span class="token function">stencilFunc</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">stencilTest<span class="token operator">: </span><a href="../-stencil-test/index.html">StencilTest</a><span class="token punctuation">, </span></span><span class="parameter ">testReference<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">writeMask<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="232343642%2FFunctions%2F546126440" anchor-label="stencilOp" id="232343642%2FFunctions%2F546126440" data-filterable-set=":openrndr-draw:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-draw:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-draw:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="stencil-op.html"><span>stencil</span><wbr><span><span>Op</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="232343642%2FFunctions%2F546126440"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">fun </span><a href="stencil-op.html"><span class="token function">stencilOp</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">onStencilTestFail<span class="token operator">: </span><a href="../-stencil-operation/index.html">StencilOperation</a><span class="token punctuation">, </span></span><span class="parameter ">onDepthTestFail<span class="token operator">: </span><a href="../-stencil-operation/index.html">StencilOperation</a><span class="token punctuation">, </span></span><span class="parameter ">onDepthTestPass<span class="token operator">: </span><a href="../-stencil-operation/index.html">StencilOperation</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="PROPERTY">
+        <h2 class="">Properties</h2>
+        <div class="table"><a data-name="930810968%2FProperties%2F546126440" anchor-label="depthFailOperation" id="930810968%2FProperties%2F546126440" data-filterable-set=":openrndr-draw:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-draw:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-draw:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="depth-fail-operation.html"><span>depth</span><wbr><span>Fail</span><wbr><span><span>Operation</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="930810968%2FProperties%2F546126440"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">var </span><a href="depth-fail-operation.html">depthFailOperation</a><span class="token operator">: </span><a href="../-stencil-operation/index.html">StencilOperation</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1595579531%2FProperties%2F546126440" anchor-label="depthPassOperation" id="1595579531%2FProperties%2F546126440" data-filterable-set=":openrndr-draw:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-draw:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-draw:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="depth-pass-operation.html"><span>depth</span><wbr><span>Pass</span><wbr><span><span>Operation</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1595579531%2FProperties%2F546126440"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">var </span><a href="depth-pass-operation.html">depthPassOperation</a><span class="token operator">: </span><a href="../-stencil-operation/index.html">StencilOperation</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="537190481%2FProperties%2F546126440" anchor-label="stencilFailOperation" id="537190481%2FProperties%2F546126440" data-filterable-set=":openrndr-draw:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-draw:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-draw:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="stencil-fail-operation.html"><span>stencil</span><wbr><span>Fail</span><wbr><span><span>Operation</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="537190481%2FProperties%2F546126440"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">var </span><a href="stencil-fail-operation.html">stencilFailOperation</a><span class="token operator">: </span><a href="../-stencil-operation/index.html">StencilOperation</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1070299538%2FProperties%2F546126440" anchor-label="stencilTest" id="-1070299538%2FProperties%2F546126440" data-filterable-set=":openrndr-draw:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-draw:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-draw:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="stencil-test.html"><span>stencil</span><wbr><span><span>Test</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1070299538%2FProperties%2F546126440"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">var </span><a href="stencil-test.html">stencilTest</a><span class="token operator">: </span><a href="../-stencil-test/index.html">StencilTest</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-567439262%2FProperties%2F546126440" anchor-label="stencilTestMask" id="-567439262%2FProperties%2F546126440" data-filterable-set=":openrndr-draw:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-draw:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-draw:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="stencil-test-mask.html"><span>stencil</span><wbr><span>Test</span><wbr><span><span>Mask</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-567439262%2FProperties%2F546126440"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">var </span><a href="stencil-test-mask.html">stencilTestMask</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-582176927%2FProperties%2F546126440" anchor-label="stencilTestReference" id="-582176927%2FProperties%2F546126440" data-filterable-set=":openrndr-draw:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-draw:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-draw:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="stencil-test-reference.html"><span>stencil</span><wbr><span>Test</span><wbr><span><span>Reference</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-582176927%2FProperties%2F546126440"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">var </span><a href="stencil-test-reference.html">stencilTestReference</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1320246897%2FProperties%2F546126440" anchor-label="stencilWriteMask" id="-1320246897%2FProperties%2F546126440" data-filterable-set=":openrndr-draw:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-draw:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-draw:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="stencil-write-mask.html"><span>stencil</span><wbr><span>Write</span><wbr><span><span>Mask</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1320246897%2FProperties%2F546126440"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-draw:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">var </span><a href="stencil-write-mask.html">stencilWriteMask</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      <div class="footer">
+        <span class="go-to-top-icon"><a href="#content" id="go-to-top-link"></a></span><span>© 2024 Copyright</span><span class="pull-right"><span>Generated by </span><a href="https://github.com/Kotlin/dokka"><span>dokka</span><span class="padded-icon"></span></a></span>
+      </div>
+    </div>
+</div>
+</body>
+</html>
+
