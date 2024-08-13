@@ -1,7 +1,7 @@
 [versions]
 kotlinApi = "2.0"
 kotlinLanguage = "2.0"
-kotlin = "2.0.0"
+kotlin = "2.0.10"
 jvmTarget = "17"
 kotlinxCoroutines = "1.8.0"
 kotlinLogging = "7.0.0"
@@ -9,14 +9,14 @@ kotlinxSerialization = "1.7.1"
 dokka = "1.8.10"
 nebulaRelease = "18.0.7"
 gradleNexusPublish = "2.0.0"
-lwjgl = "3.3.3"
+lwjgl = "3.3.4"
 javacpp = "1.5.10"
 # ffmpeg version suffix should match javacpp version
 ffmpeg = "6.1.1-1.5.10"
 junitJupiter = "5.10.3"
 kluent = "1.73"
 kotest = "5.9.1"
-slf4j = "2.0.13"
+slf4j = "2.0.16"
 
 [libraries]
 kotlin-logging = { group = "io.github.oshai", name = "kotlin-logging", version.ref = "kotlinLogging" }
