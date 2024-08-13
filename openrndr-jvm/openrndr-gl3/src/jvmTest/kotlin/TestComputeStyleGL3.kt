@@ -1,14 +1,8 @@
-import org.openrndr.draw.colorBuffer
-import org.openrndr.draw.computeStyle
-import org.openrndr.draw.execute
+import org.openrndr.draw.*
 import org.openrndr.draw.font.BufferAccess
 import org.openrndr.draw.font.BufferFlag
-import org.openrndr.draw.volumeTexture
 import org.openrndr.internal.Driver
-import org.openrndr.internal.gl3.DriverGL3
-import org.openrndr.internal.gl3.DriverTypeGL
-import org.openrndr.internal.gl3.DriverVersionGL
-import org.openrndr.internal.gl3.glType
+import org.openrndr.internal.gl3.*
 import org.openrndr.math.IntVector2
 import org.openrndr.math.IntVector3
 import org.openrndr.math.IntVector4
@@ -17,7 +11,9 @@ import kotlin.test.Test
 class TestComputeStyleGL3 : AbstractApplicationTestFixture() {
     @Test
     fun test() {
-        if ((Driver.instance as DriverGL3).version >= DriverVersionGL.GL_VERSION_4_3 && Driver.glType == DriverTypeGL.GL) {
+        if ((Driver.glVersion >= DriverVersionGL.GL_VERSION_4_3 && Driver.glType == DriverTypeGL.GL) ||
+            (Driver.glVersion >= DriverVersionGL.GLES_VERSION_3_1 && Driver.glType == DriverTypeGL.GLES)
+        ) {
             val cs = computeStyle {
                 computeTransform = ""
             }
@@ -27,11 +23,17 @@ class TestComputeStyleGL3 : AbstractApplicationTestFixture() {
 
     @Test
     fun testImageBinding() {
-        val img = colorBuffer(256, 256)
-        if ((Driver.instance as DriverGL3).version >= DriverVersionGL.GL_VERSION_4_3 && Driver.glType == DriverTypeGL.GL) {
+        val img = colorBuffer(256, 256, type = ColorType.UINT8)
+        if ((Driver.glVersion >= DriverVersionGL.GL_VERSION_4_3 && Driver.glType == DriverTypeGL.GL) ||
+            (Driver.glVersion >= DriverVersionGL.GLES_VERSION_3_1 && Driver.glType == DriverTypeGL.GLES)
+        ) {
             val cs = computeStyle {
                 computeTransform = "p_img;"
-                registerImageBinding("img", BufferAccess.READ_WRITE, setOf(BufferFlag.COHERENT, BufferFlag.RESTRICT))
+                registerImageBinding(
+                    "img",
+                    BufferAccess.READ_WRITE,
+                    setOf(BufferFlag.COHERENT, BufferFlag.RESTRICT)
+                )
                 image("img", img, 0)
             }
             cs.execute(1, 1, 1)
@@ -41,12 +43,17 @@ class TestComputeStyleGL3 : AbstractApplicationTestFixture() {
 
     @Test
     fun testVolumeImageBinding() {
-
-        if ((Driver.instance as DriverGL3).version >= DriverVersionGL.GL_VERSION_4_3 && Driver.glType == DriverTypeGL.GL) {
-            val img = volumeTexture(16, 16, 16)
+        if ((Driver.glVersion >= DriverVersionGL.GL_VERSION_4_3 && Driver.glType == DriverTypeGL.GL) ||
+            (Driver.glVersion >= DriverVersionGL.GLES_VERSION_3_1 && Driver.glType == DriverTypeGL.GLES)
+        ) {
+            val img = volumeTexture(16, 16, 16, type = ColorType.UINT8)
             val cs = computeStyle {
                 computeTransform = "p_img; p_imgArray[0];"
-                registerImageBinding("img", BufferAccess.READ_WRITE, setOf(BufferFlag.COHERENT, BufferFlag.RESTRICT))
+                registerImageBinding(
+                    "img",
+                    BufferAccess.READ_WRITE,
+                    setOf(BufferFlag.COHERENT, BufferFlag.RESTRICT)
+                )
                 registerImageBinding("imgArray", BufferAccess.READ_WRITE, setOf(BufferFlag.COHERENT), 3)
                 image("img", img, 0)
                 image("imgArray", arrayOf(img, img, img), arrayOf(0, 0, 0))
