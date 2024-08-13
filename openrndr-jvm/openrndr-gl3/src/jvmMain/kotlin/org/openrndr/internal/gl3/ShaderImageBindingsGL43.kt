@@ -1,7 +1,8 @@
 package org.openrndr.internal.gl3
 
-import org.lwjgl.opengl.GL11C.GL_INVALID_ENUM
-import org.lwjgl.opengl.GL11C.GL_INVALID_VALUE
+import org.lwjgl.opengl.GL11C.*
+import org.lwjgl.opengl.GL42.GL_MAX_IMAGE_UNITS
+import org.lwjgl.opengles.GLES31
 import org.openrndr.draw.*
 import org.openrndr.internal.Driver
 
@@ -9,6 +10,8 @@ interface ShaderImageBindingsGL43 : ShaderImageBindings, ShaderUniformsGL3 {
 
     override fun image(name: String, image: Int, imageBinding: ImageBinding) {
         (Driver.instance as DriverGL3).version.require(DriverVersionGL.GL_VERSION_4_3)
+
+        checkGLErrors { "pre-existing error" }
 
         when (imageBinding) {
             is BufferTextureImageBinding -> {
@@ -42,7 +45,16 @@ interface ShaderImageBindingsGL43 : ShaderImageBindings, ShaderUniformsGL3 {
                     imageBinding.access.gl(),
                     colorBuffer.glFormat()
                 )
-                checkGLErrors()
+                checkGLErrors {
+                    when (it) {
+                        GL_INVALID_OPERATION -> """* unit ($image) greater than or equal to the value of GL_MAX_IMAGE_UNITS (${glGetInteger(GL_MAX_IMAGE_UNITS)})
+                            |* texture (${colorBuffer.texture} is not the name of existing texture object ${GLES31.glIsTexture(colorBuffer.texture)}
+                            |* level (${imageBinding.level}) or layer (0) is less than zero
+                        """.trimMargin()
+
+                        else -> null
+                    }
+                }
             }
 
             is ArrayTextureImageBinding -> {

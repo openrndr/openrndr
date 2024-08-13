@@ -102,7 +102,9 @@ class ShaderGL3(
 
     override val ssbo: Int = createSSBO()
     override val ssboResourceIndices = mutableMapOf<String, Int>()
-    override val useProgramUniform = (Driver.glVersion >= DriverVersionGL.GL_VERSION_4_2 && Driver.glVersion.type == DriverTypeGL.GL)
+    override val useProgramUniform =
+        ((Driver.glVersion >= DriverVersionGL.GL_VERSION_4_2 && Driver.glVersion.type == DriverTypeGL.GL)) ||
+                (Driver.glVersion >= DriverVersionGL.GLES_VERSION_3_1 && Driver.glVersion.type == DriverTypeGL.GLES)
 
     override val types: Set<ShaderType> =
         if (geometryShader != null) setOf(ShaderType.VERTEX, ShaderType.GEOMETRY, ShaderType.FRAGMENT) else
@@ -205,13 +207,29 @@ class ShaderGL3(
         val blockSize = run {
             val blockSizeBuffer = BufferUtils.createIntBuffer(1)
             glGetActiveUniformBlockiv(programObject, blockIndex, GL_UNIFORM_BLOCK_DATA_SIZE, blockSizeBuffer)
+            checkGLErrors() {
+                when (it) {
+                    GL_INVALID_VALUE -> "uniformBlockIndex ($blockIndex) is greater than or equal to the value of GL_ACTIVE_UNIFORM_BLOCKS (${
+                        glGetInteger(
+                            GL_ACTIVE_UNIFORM_BLOCKS
+                        )
+                    }) or is not the index of an active uniform block in program.\n"
+                    else -> null
+                }
+            }
             blockSizeBuffer[0]
         }
 
         if (blockSize != 0) {
             val uniformCount = run {
                 val uniformCountBuffer = BufferUtils.createIntBuffer(1)
-                glGetActiveUniformBlockiv(programObject, blockIndex, GL_UNIFORM_BLOCK_ACTIVE_UNIFORMS, uniformCountBuffer)
+                glGetActiveUniformBlockiv(
+                    programObject,
+                    blockIndex,
+                    GL_UNIFORM_BLOCK_ACTIVE_UNIFORMS,
+                    uniformCountBuffer
+                )
+                checkGLErrors()
                 uniformCountBuffer[0]
             }
 
@@ -223,6 +241,7 @@ class ShaderGL3(
                     GL_UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES,
                     uniformIndicesBuffer
                 )
+                checkGLErrors()
                 (uniformIndicesBuffer as Buffer).rewind()
                 val array = IntArray(uniformCount)
                 uniformIndicesBuffer.get(array)
@@ -234,6 +253,7 @@ class ShaderGL3(
             val uniformTypes = run {
                 val buffer = BufferUtils.createIntBuffer(uniformCount)
                 glGetActiveUniformsiv(programObject, uniformIndicesBuffer, GL_UNIFORM_TYPE, buffer)
+                checkGLErrors()
                 (buffer as Buffer).rewind()
                 val array = IntArray(uniformCount)
                 buffer.get(array)
@@ -242,6 +262,7 @@ class ShaderGL3(
             val uniformSizes = run {
                 val buffer = BufferUtils.createIntBuffer(uniformCount)
                 glGetActiveUniformsiv(programObject, uniformIndicesBuffer, GL_UNIFORM_SIZE, buffer)
+                checkGLErrors()
                 (buffer as Buffer).rewind()
                 val array = IntArray(uniformCount)
                 buffer.get(array)
@@ -251,6 +272,7 @@ class ShaderGL3(
             val uniformOffsets = run {
                 val buffer = BufferUtils.createIntBuffer(uniformCount)
                 glGetActiveUniformsiv(programObject, uniformIndicesBuffer, GL_UNIFORM_OFFSET, buffer)
+                checkGLErrors()
                 (buffer as Buffer).rewind()
                 val array = IntArray(uniformCount)
                 buffer.get(array)
@@ -260,6 +282,7 @@ class ShaderGL3(
             val uniformStrides = run {
                 val buffer = BufferUtils.createIntBuffer(uniformCount)
                 glGetActiveUniformsiv(programObject, uniformIndicesBuffer, GL_UNIFORM_ARRAY_STRIDE, buffer)
+                checkGLErrors()
                 (buffer as Buffer).rewind()
                 val array = IntArray(uniformCount)
                 buffer.get(array)
@@ -267,10 +290,11 @@ class ShaderGL3(
             }
 
             val uniformNames = uniformIndices.map {
-                glGetActiveUniformName(programObject, it, 128)
+                glGetActiveUniformName(programObject, it, 128).also {
+                    checkGLErrors()
+                }
             }
 
-            checkGLErrors()
 
             return UniformBlockLayout(blockSize, (0 until uniformCount).map {
                 UniformDescription(
@@ -310,7 +334,9 @@ class ShaderGL3(
 
     fun blockIndex(block: String): Int {
         return blocks.getOrPut(block) {
-            glGetUniformBlockIndex(programObject, block)
+            glGetUniformBlockIndex(programObject, block).also {
+                checkGLErrors()
+            }
         }
     }
 

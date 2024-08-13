@@ -41,6 +41,10 @@ class ColorBufferWebGL(
 
 ) : ColorBuffer() {
 
+    override fun close() {
+        destroy()
+    }
+
     companion object {
         fun create(
             context: WebGL2RenderingContext,
@@ -48,7 +52,7 @@ class ColorBufferWebGL(
             height: Int,
             contentScale: Double = 1.0,
             format: ColorFormat = ColorFormat.RGBa,
-            type: ColorType = ColorType.UINT8,
+            type: ColorType = defaultColorType(format),
             multisample: BufferMultisample,
             levels: Int,
             session: Session?
@@ -95,6 +99,7 @@ class ColorBufferWebGL(
             } else {
                 for (level in 0 until levels) {
                     val div = 1 shl level
+
                     @Suppress("UNCHECKED_CAST_TO_EXTERNAL_INTERFACE")
                     val fcontext = context as? WebGLRenderingFixedCompressedTexImage ?: error("cast failed")
                     fcontext.compressedTexImage2D(
@@ -137,7 +142,11 @@ class ColorBufferWebGL(
             )
         }
 
-        fun fromImage(context: WebGL2RenderingContext, image: Image, session: Session? = Session.active): ColorBufferWebGL {
+        fun fromImage(
+            context: WebGL2RenderingContext,
+            image: Image,
+            session: Session? = Session.active
+        ): ColorBufferWebGL {
             val texture = context.createTexture() ?: error("failed to create texture")
             context.activeTexture(GL.TEXTURE0)
             context.bindTexture(GL.TEXTURE_2D, texture)
@@ -151,7 +160,7 @@ class ColorBufferWebGL(
             context.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_WRAP_T, GL.CLAMP_TO_EDGE)
             return ColorBufferWebGL(
                 context, GL.TEXTURE_2D, texture, image.width, image.height, 1.0,
-                ColorFormat.RGBa, ColorType.UINT8, 1, BufferMultisample.Disabled, session
+                ColorFormat.RGBa, ColorType.UINT8_SRGB, 1, BufferMultisample.Disabled, session
             )
         }
 
@@ -162,7 +171,11 @@ class ColorBufferWebGL(
             //return fromImage(context, image, session)
         }
 
-        suspend fun fromUrlSuspend(context: WebGL2RenderingContext, url: String, session: Session? = Session.active): ColorBufferWebGL {
+        suspend fun fromUrlSuspend(
+            context: WebGL2RenderingContext,
+            url: String,
+            session: Session? = Session.active
+        ): ColorBufferWebGL {
             val image = promiseImage(url).await()
             return fromImage(context, image, session)
         }
@@ -229,8 +242,8 @@ class ColorBufferWebGL(
         val toDiv = 1 shl toLevel
         val refRectangle = IntRectangle(0, 0, effectiveWidth / fromDiv, effectiveHeight / fromDiv)
 
-        val useTexSubImage =false
-            //target.type.compressed || (refRectangle == sourceRectangle && refRectangle == targetRectangle && multisample == target.multisample)
+        val useTexSubImage = false
+        //target.type.compressed || (refRectangle == sourceRectangle && refRectangle == targetRectangle && multisample == target.multisample)
 
         if (!useTexSubImage) {
             val readTarget = renderTarget(
@@ -349,7 +362,7 @@ class ColorBufferWebGL(
         y: Int,
         width: Int,
         height: Int,
-        level:Int
+        level: Int
     ) {
         require(!type.compressed)
         bind(0)
@@ -417,7 +430,7 @@ class ColorBufferWebGL(
         bind(0)
         val current = context.getParameter(GL.FRAMEBUFFER_BINDING) as WebGLFramebuffer?
         context.bindFramebuffer(GL.FRAMEBUFFER, readFrameBuffer)
-        context.framebufferTexture2D(GL.FRAMEBUFFER, GL.COLOR_ATTACHMENT0, this.target, texture,0)
+        context.framebufferTexture2D(GL.FRAMEBUFFER, GL.COLOR_ATTACHMENT0, this.target, texture, 0)
         context.readPixels(x, y, effectiveWidth, effectiveHeight, GL.RGBA, GL.UNSIGNED_BYTE, target)
         context.bindFramebuffer(GL.FRAMEBUFFER, current)
     }
@@ -441,7 +454,8 @@ class ColorBufferWebGL(
         } as RenderTargetWebGL
 
         writeTarget.bind()
-        val floatColorData = float32Array(color.r.toFloat(), color.g.toFloat(), color.b.toFloat(), color.alpha.toFloat())
+        val floatColorData =
+            float32Array(color.r.toFloat(), color.g.toFloat(), color.b.toFloat(), color.alpha.toFloat())
         context.clearBufferfv(WebGL2RenderingContext.COLOR, 0, floatColorData)
         writeTarget.unbind()
 

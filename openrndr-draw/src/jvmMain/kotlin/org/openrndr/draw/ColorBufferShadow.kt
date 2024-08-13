@@ -14,7 +14,13 @@ interface ColorBufferShadow {
     fun writer(): BufferWriter
     fun write(x: Int, y: Int, r: Double, g: Double, b: Double, a: Double)
     fun write(x: Int, y: Int, color: ColorRGBa) {
-        write(x, y, color.r, color.g, color.b, color.alpha)
+        val lcolor = if (colorBuffer.type.isSRGB) {
+            color.toSRGB()
+        } else {
+            color.toLinear()
+        }
+
+        write(x, y, lcolor.r, lcolor.g, lcolor.b, lcolor.alpha)
     }
 
     fun write(x: Int, y: Int, r: Float, g: Float, b: Float, a: Float) {

@@ -29,7 +29,7 @@ fun <T> T.structDefinitions(): String where T : StyleParameters, T : StyleBuffer
 }
 
 fun StyleParameters.uniforms(): String {
-    return parameterTypes.map { mapTypeToUniform(it.value, it.key) }.joinToString("\n")
+    return parameterTypes.map { mapTypeToUniform(it.value, it.key, ) }.joinToString("\n")
 }
 
 fun StyleImageBindings.images(): String {
@@ -54,7 +54,7 @@ fun StyleImageBindings.images(): String {
                     else -> "[$length]"
                 }
 
-                listOf("layout($layout)",
+                listOf("layout($layout, binding = ${imageBindings[it.key]})",
                     (imageFlags[it.key] ?: emptySet()).joinToString(" ") { flag -> flag.glsl },
                     (imageAccess[it.key] ?: ImageAccess.READ_WRITE).glsl,
                     "uniform $samplerType$sampler p_${it.key}${arraySpec};").joinToString(" ")

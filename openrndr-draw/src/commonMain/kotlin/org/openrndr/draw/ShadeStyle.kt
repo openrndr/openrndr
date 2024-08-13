@@ -88,7 +88,7 @@ data class ShadeStyleOutput(
 )
 
 
-class ObservableHashmap<K, V>(val b: MutableMap<K, V>,  val onChange: () -> Unit) : MutableMap<K, V> by b {
+class ObservableHashmap<K, V>(val b: MutableMap<K, V>, val onChange: () -> Unit) : MutableMap<K, V> by b {
     override fun put(key: K, value: V): V? {
         if (key in this) {
             if (get(key) != value) {
@@ -103,7 +103,6 @@ class ObservableHashmap<K, V>(val b: MutableMap<K, V>,  val onChange: () -> Unit
         return b.remove(key)
     }
 }
-
 
 
 @Suppress("unused")
@@ -159,6 +158,7 @@ open class ShadeStyle : StyleParameters, StyleBufferBindings, StyleImageBindings
     override val imageAccess: MutableMap<String, ImageAccess> = mutableMapOf()
     override val imageFlags: MutableMap<String, Set<ImageFlag>> = mutableMapOf()
     override val imageArrayLength: MutableMap<String, Int> = mutableMapOf()
+    override val imageBindings: MutableMap<String, Int> = mutableMapOf()
 
 
     var outputs = ObservableHashmap(HashMap<String, ShadeStyleOutput>()) { dirty = true }

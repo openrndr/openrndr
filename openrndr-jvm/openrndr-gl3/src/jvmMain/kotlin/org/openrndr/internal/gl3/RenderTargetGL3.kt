@@ -7,6 +7,7 @@ import org.lwjgl.opengl.GL32C.GL_MAX_DEPTH_TEXTURE_SAMPLES
 import org.lwjgl.system.MemoryStack
 import org.openrndr.Program
 import org.openrndr.color.ColorRGBa
+import org.openrndr.color.Linearity
 import org.openrndr.draw.*
 import org.openrndr.internal.Driver
 import java.util.*
@@ -439,9 +440,12 @@ open class RenderTargetGL3(
     }
 
     override fun clearColor(index: Int, color: ColorRGBa) {
+        val type = (colorAttachments[index] as ColorBufferAttachment).colorBuffer.type
+        val targetColor = color.toLinearity(if (type.isSRGB) Linearity.SRGB else Linearity.LINEAR)
+
         require(!destroyed)
         bound {
-            val ca = floatArrayOf(color.r.toFloat(), color.g.toFloat(), color.b.toFloat(), color.alpha.toFloat())
+            val ca = floatArrayOf(targetColor.r.toFloat(), targetColor.g.toFloat(), targetColor.b.toFloat(), targetColor.alpha.toFloat())
             glClearBufferfv(GL_COLOR, index, ca)
         }
     }

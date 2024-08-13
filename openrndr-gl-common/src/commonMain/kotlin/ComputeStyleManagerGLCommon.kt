@@ -24,7 +24,7 @@ class ComputeStyleManagerGLCommon : ComputeStyleManager(), StyleManagerDispatchU
     override fun shader(style: ComputeStyle, name: String): ComputeShader {
         val structure = style.structure()
         val shader = shaders.getOrPut(structure) {
-            val code = """#version 450 core
+            val code = """${Driver.instance.shaderConfiguration()}
 layout(local_size_x = ${structure.workGroupSize.x}, local_size_y = ${structure.workGroupSize.y}, local_size_z = ${structure.workGroupSize.z}) in;
 
 ${structure.structDefinitions ?: ""}

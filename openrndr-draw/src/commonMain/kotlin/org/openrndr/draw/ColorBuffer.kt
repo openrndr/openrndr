@@ -58,8 +58,15 @@ enum class MagnifyingFilter {
     LINEAR
 }
 
+/**
+ * Return the default color type for [format]
+ */
+fun defaultColorType(format: ColorFormat): ColorType = when (format) {
+    ColorFormat.RGB, ColorFormat.RGBa -> ColorType.UINT8_SRGB
+    else -> ColorType.UINT8
+}
 
-expect abstract class ColorBuffer {
+expect abstract class ColorBuffer : AutoCloseable {
     abstract val session: Session?
 
     /** the width of the [ColorBuffer] in device units */
@@ -213,7 +220,7 @@ fun colorBuffer(
     height: Int,
     contentScale: Double = 1.0,
     format: ColorFormat = ColorFormat.RGBa,
-    type: ColorType = ColorType.UINT8,
+    type: ColorType = defaultColorType(format),
     multisample: BufferMultisample = BufferMultisample.Disabled,
     levels: Int = 1,
     session: Session? = Session.active
@@ -273,6 +280,8 @@ fun ColorBuffer.createEquivalent(
 expect fun loadImage(
     fileOrUrl: String,
     formatHint: ImageFileFormat? = ImageFileFormat.guessFromExtension(fileOrUrl.split(".").last()),
+    allowSRGB: Boolean = true,
+    loadMipmaps: Boolean = true,
     session: Session? = Session.active
 ): ColorBuffer
 
@@ -280,12 +289,13 @@ fun loadImage(
     buffer: MPPBuffer,
     name: String? = null,
     formatHint: ImageFileFormat? = null,
+    allowSRGB: Boolean = true,
     session: Session? = Session.active
 ): ColorBuffer {
-    val data = ImageDriver.instance.loadImage(buffer, name, formatHint)
+    val data = ImageDriver.instance.loadImage(buffer, name, formatHint, allowSRGB)
     return try {
         val cb = colorBuffer(data.width, data.height, 1.0, data.format, data.type, session = session)
-        cb.write(data.data ?: error("no data") )
+        cb.write(data.data ?: error("no data"))
         cb
     } finally {
         data.close()
@@ -295,5 +305,6 @@ fun loadImage(
 expect suspend fun loadImageSuspend(
     fileOrUrl: String,
     formatHint: ImageFileFormat? = null,
+    allowSRGB: Boolean = true,
     session: Session? = Session.active
 ): ColorBuffer

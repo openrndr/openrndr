@@ -8,8 +8,8 @@ import org.openrndr.shape.Rectangle
 import kotlin.jvm.JvmName
 
 fun BufferWriter.write(drawStyle: DrawStyle) {
-    write(drawStyle.fill ?: ColorRGBa.TRANSPARENT)
-    write(drawStyle.stroke ?: ColorRGBa.TRANSPARENT)
+    write(drawStyle.fill?.toLinear() ?: ColorRGBa.TRANSPARENT)
+    write(drawStyle.stroke?.toLinear() ?: ColorRGBa.TRANSPARENT)
     val weight = if (drawStyle.stroke == null || drawStyle.stroke?.alpha == 0.0) 0.0 else
         drawStyle.strokeWeight
     write(weight.toFloat())
@@ -39,7 +39,7 @@ val pointFormat = vertexFormat {
 /**
  * Stored circle batch
  */
-class CircleBatch(val geometry: VertexBuffer, val drawStyle: VertexBuffer) {
+class CircleBatch(val geometry: VertexBuffer, val drawStyle: VertexBuffer) : AutoCloseable {
     init {
         require(geometry.vertexFormat == circleFormat)
         require(drawStyle.vertexFormat == drawStyleFormat)
@@ -55,10 +55,7 @@ class CircleBatch(val geometry: VertexBuffer, val drawStyle: VertexBuffer) {
         }
     }
 
-    /**
-     * Destroy the stored batch
-     */
-    fun destroy() {
+    override fun close() {
         geometry.destroy()
         drawStyle.destroy()
     }
@@ -88,11 +85,11 @@ open class BatchBuilder(val drawer: Drawer) {
  */
 class CircleBatchBuilder(drawer: Drawer) : BatchBuilder(drawer) {
     class Entry(
-            val fill: ColorRGBa?,
-            val stroke: ColorRGBa?,
-            val strokeWeight: Double,
-            val offset: Vector3,
-            val radius: Vector2
+        val fill: ColorRGBa?,
+        val stroke: ColorRGBa?,
+        val strokeWeight: Double,
+        val offset: Vector3,
+        val radius: Vector2
     )
 
     val entries = mutableListOf<Entry>()
@@ -101,21 +98,37 @@ class CircleBatchBuilder(drawer: Drawer) : BatchBuilder(drawer) {
      * Add a circle to the batch
      */
     fun circle(x: Double, y: Double, radius: Double) {
-        entries.add(Entry(fill, stroke, strokeWeight, Vector3(x, y, 0.0), Vector2(radius, radius)))
+        entries.add(
+            Entry(
+                fill?.toLinear(),
+                stroke?.toLinear(),
+                strokeWeight,
+                Vector3(x, y, 0.0),
+                Vector2(radius, radius)
+            )
+        )
     }
 
     /**
      * Add a circle to the batch
      */
     fun circle(position: Vector2, radius: Double) {
-        entries.add(Entry(fill, stroke, strokeWeight, position.xy0, Vector2(radius, radius)))
+        entries.add(Entry(fill?.toLinear(), stroke?.toLinear(), strokeWeight, position.xy0, Vector2(radius, radius)))
     }
 
     /**
      * Add a circle to the batch
      */
     fun circle(circle: Circle) {
-        entries.add(Entry(fill, stroke, strokeWeight, circle.center.xy0, Vector2(circle.radius, circle.radius)))
+        entries.add(
+            Entry(
+                fill?.toLinear(),
+                stroke?.toLinear(),
+                strokeWeight,
+                circle.center.xy0,
+                Vector2(circle.radius, circle.radius)
+            )
+        )
     }
 
     /**
@@ -131,8 +144,10 @@ class CircleBatchBuilder(drawer: Drawer) : BatchBuilder(drawer) {
      * Add circles to the batch
      */
     fun circles(centers: List<Vector2>, radius: Double) {
+        val lfill = fill?.toLinear()
+        val lstroke = stroke?.toLinear()
         for (center in centers) {
-            entries.add(Entry(fill, stroke, strokeWeight, center.xy0, Vector2(radius, radius)))
+            entries.add(Entry(lfill, lstroke, strokeWeight, center.xy0, Vector2(radius, radius)))
         }
     }
 
@@ -141,8 +156,10 @@ class CircleBatchBuilder(drawer: Drawer) : BatchBuilder(drawer) {
      */
     fun circles(centers: List<Vector2>, radii: List<Double>) {
         require(centers.size == radii.size)
+        val lfill = fill?.toLinear()
+        val lstroke = stroke?.toLinear()
         for (i in centers.indices) {
-            entries.add(Entry(fill, stroke, strokeWeight, centers[i].xy0, Vector2(radii[i], radii[i])))
+            entries.add(Entry(lfill, lstroke, strokeWeight, centers[i].xy0, Vector2(radii[i], radii[i])))
         }
     }
 
@@ -161,8 +178,8 @@ class CircleBatchBuilder(drawer: Drawer) : BatchBuilder(drawer) {
         val drawStyle = existingBatch?.drawStyle ?: vertexBuffer(drawStyleFormat, entries.size)
         drawStyle.put {
             for (entry in entries) {
-                write(entry.fill ?: ColorRGBa.TRANSPARENT)
-                write(entry.stroke ?: ColorRGBa.TRANSPARENT)
+                write(entry.fill?.toLinear() ?: ColorRGBa.TRANSPARENT)
+                write(entry.stroke?.toLinear() ?: ColorRGBa.TRANSPARENT)
                 write(if (entry.stroke == null || entry.stroke.alpha == 0.0) 0.0f else entry.strokeWeight.toFloat())
             }
         }
@@ -192,7 +209,10 @@ class RectangleBatch(val geometry: VertexBuffer, val drawStyle: VertexBuffer) {
 
     companion object {
         fun create(size: Int, session: Session? = Session.active): RectangleBatch {
-            return RectangleBatch(vertexBuffer(rectangleFormat, size, session), vertexBuffer(drawStyleFormat, size, session))
+            return RectangleBatch(
+                vertexBuffer(rectangleFormat, size, session),
+                vertexBuffer(drawStyleFormat, size, session)
+            )
         }
     }
 
@@ -208,26 +228,53 @@ class RectangleBatch(val geometry: VertexBuffer, val drawStyle: VertexBuffer) {
 
 class RectangleBatchBuilder(drawer: Drawer) : BatchBuilder(drawer) {
     class Entry(
-            val fill: ColorRGBa?,
-            val stroke: ColorRGBa?,
-            val strokeWeight: Double,
-            val offset: Vector3,
-            val dimensions: Vector2,
-            val rotation: Double
+        val fill: ColorRGBa?,
+        val stroke: ColorRGBa?,
+        val strokeWeight: Double,
+        val offset: Vector3,
+        val dimensions: Vector2,
+        val rotation: Double
     )
 
     val entries = mutableListOf<Entry>()
 
     fun rectangle(x: Double, y: Double, width: Double, height: Double, rotationInDegrees: Double = 0.0) {
-        entries.add(Entry(fill, stroke, strokeWeight, Vector3(x, y, 0.0), Vector2(width, height), rotationInDegrees))
+        entries.add(
+            Entry(
+                fill?.toLinear(),
+                stroke?.toLinear(),
+                strokeWeight,
+                Vector3(x, y, 0.0),
+                Vector2(width, height),
+                rotationInDegrees
+            )
+        )
     }
 
     fun rectangle(corner: Vector2, width: Double, height: Double, rotationInDegrees: Double = 0.0) {
-        entries.add(Entry(fill, stroke, strokeWeight, corner.xy0, Vector2(width, height), rotationInDegrees))
+        entries.add(
+            Entry(
+                fill?.toLinear(),
+                stroke?.toLinear(),
+                strokeWeight,
+                corner.xy0,
+                Vector2(width, height),
+                rotationInDegrees
+            )
+        )
     }
 
     fun rectangle(rectangle: Rectangle, rotationInDegrees: Double = 0.0) {
-        entries.add(Entry(fill, stroke, strokeWeight, rectangle.corner.xy0, Vector2(rectangle.width, rectangle.height), rotationInDegrees))
+        entries.add(
+            Entry(
+                fill?.toLinear(),
+                stroke?.toLinear(),
+                strokeWeight,
+                rectangle.corner.xy0,
+                Vector2(rectangle.width, rectangle.height),
+                rotationInDegrees
+            )
+        )
     }
 
     fun rectangles(rectangles: List<Rectangle>) {
@@ -252,8 +299,8 @@ class RectangleBatchBuilder(drawer: Drawer) : BatchBuilder(drawer) {
         val drawStyle = existingBatch?.drawStyle ?: vertexBuffer(drawStyleFormat, entries.size)
         drawStyle.put {
             for (entry in entries) {
-                write(entry.fill ?: ColorRGBa.TRANSPARENT)
-                write(entry.stroke ?: ColorRGBa.TRANSPARENT)
+                write(entry.fill?.toLinear() ?: ColorRGBa.TRANSPARENT)
+                write(entry.stroke?.toLinear() ?: ColorRGBa.TRANSPARENT)
                 write(if (entry.stroke == null) 0.0f else entry.strokeWeight.toFloat())
             }
         }
@@ -296,8 +343,8 @@ class PointBatch(val geometry: VertexBuffer, val drawStyle: VertexBuffer) {
 }
 
 /**
-* Create a stored batch of points
-*/
+ * Create a stored batch of points
+ */
 fun Drawer.pointBatch(build: PointBatchBuilder.() -> Unit): PointBatch {
     val pointBatchBuilder = PointBatchBuilder(this)
     pointBatchBuilder.build()
@@ -307,26 +354,26 @@ fun Drawer.pointBatch(build: PointBatchBuilder.() -> Unit): PointBatch {
 
 class PointBatchBuilder(drawer: Drawer) : BatchBuilder(drawer) {
     class Entry(
-            val fill: ColorRGBa?,
-            val offset: Vector3
+        val fill: ColorRGBa?,
+        val offset: Vector3
     )
 
     val entries = mutableListOf<Entry>()
 
     fun point(x: Double, y: Double) {
-        entries.add(Entry(fill, Vector3(x, y, 0.0)))
+        entries.add(Entry(fill?.toLinear(), Vector3(x, y, 0.0)))
     }
 
     fun point(x: Double, y: Double, z: Double) {
-        entries.add(Entry(fill, Vector3(x, y, z)))
+        entries.add(Entry(fill?.toLinear(), Vector3(x, y, z)))
     }
 
     fun point(position: Vector2) {
-        entries.add(Entry(fill, position.xy0))
+        entries.add(Entry(fill?.toLinear(), position.xy0))
     }
 
     fun point(position: Vector3) {
-        entries.add(Entry(fill, position))
+        entries.add(Entry(fill?.toLinear(), position))
     }
 
     @JvmName("points3D")
@@ -335,6 +382,7 @@ class PointBatchBuilder(drawer: Drawer) : BatchBuilder(drawer) {
             point(position)
         }
     }
+
     @JvmName("points2D")
     fun points(positions: List<Vector2>) {
         for (position in positions) {
@@ -357,8 +405,8 @@ class PointBatchBuilder(drawer: Drawer) : BatchBuilder(drawer) {
         val drawStyle = existingBatch?.drawStyle ?: vertexBuffer(drawStyleFormat, entries.size)
         drawStyle.put {
             for (entry in entries) {
-                write(entry.fill ?: ColorRGBa.TRANSPARENT)
-                write(entry.fill ?: ColorRGBa.TRANSPARENT)
+                write(entry.fill?.toLinear() ?: ColorRGBa.TRANSPARENT)
+                write(entry.fill?.toLinear() ?: ColorRGBa.TRANSPARENT)
                 write(1.0f)
             }
         }

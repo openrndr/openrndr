@@ -24,7 +24,14 @@ actual interface ArrayCubemap {
      * @param sourceFormat the format of the data in buffer
      * @param sourceType the type of the data in buffer
      */
-    fun write(side: CubemapSide, layer: Int, buffer: ByteBuffer, sourceFormat: ColorFormat = format, sourceType: ColorType = type, level: Int = 0)
+    fun write(
+        side: CubemapSide,
+        layer: Int,
+        buffer: ByteBuffer,
+        sourceFormat: ColorFormat = format,
+        sourceType: ColorType = type,
+        level: Int = 0
+    )
 
     fun read(layer: Int, buffer: ByteBuffer, level: Int = 0)
 
@@ -70,7 +77,14 @@ actual interface ArrayCubemap {
  * @param format the color format (ColorFormat) to be used in each layer
  * @param type the color type to be used in each layer
  */
-fun arrayCubemap(width: Int, layers: Int, format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.UINT8, levels: Int = 1, session: Session = Session.active): ArrayCubemap {
+fun arrayCubemap(
+    width: Int,
+    layers: Int,
+    format: ColorFormat = ColorFormat.RGBa,
+    type: ColorType = defaultColorType(format),
+    levels: Int = 1,
+    session: Session = Session.active
+): ArrayCubemap {
     return Driver.instance.createArrayCubemap(width, layers, format, type, levels).apply {
         session.track(this)
     }

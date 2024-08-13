@@ -14,6 +14,10 @@ import org.openrndr.utils.buffer.MPPBuffer
 import java.io.File
 import java.net.URL
 import java.nio.ByteBuffer
+import kotlin.math.floor
+import kotlin.math.log2
+import kotlin.math.max
+import kotlin.math.min
 
 
 /**
@@ -22,7 +26,7 @@ import java.nio.ByteBuffer
  * [ColorBuffer] is an unmanaged GPU resource, the user is responsible for destroying a [ColorBuffer] once it is no
  * longer used.
  */
-actual abstract class ColorBuffer {
+actual abstract class ColorBuffer: AutoCloseable {
     actual abstract val session: Session?
 
     /** the width of the [ColorBuffer] in device units */
@@ -196,17 +200,27 @@ actual abstract class ColorBuffer {
 /**
  * load an image from a file or url encoded as [String], also accepts base64 encoded data urls
  */
-actual fun loadImage(fileOrUrl: String, formatHint: ImageFileFormat?, session: Session?): ColorBuffer {
-    val data = ImageDriver.instance.loadImage(fileOrUrl, formatHint)
+actual fun loadImage(
+    fileOrUrl: String,
+    formatHint: ImageFileFormat?,
+    allowSRGB: Boolean,
+    loadMipmaps: Boolean,
+    session: Session?
+): ColorBuffer {
+    val data = ImageDriver.instance.loadImage(fileOrUrl, formatHint, allowSRGB)
     return try {
-        val cb = colorBuffer(data.width, data.height, 1.0, data.format, data.type, session = session)
+        val size = min(data.width, data.height)
+        val levels = if (loadMipmaps) floor(log2(size.toDouble())).toInt() + 1 else 1
+        val cb = colorBuffer(data.width, data.height, 1.0, data.format, data.type, levels = levels, session = session)
         cb.write(data.data?.byteBuffer ?: error("no data"))
+        if (loadMipmaps) {
+            cb.generateMipmaps()
+        }
         cb
     } finally {
         data.close()
     }
 }
-
 
 
 /**
@@ -215,9 +229,11 @@ actual fun loadImage(fileOrUrl: String, formatHint: ImageFileFormat?, session: S
 fun loadImage(
     file: File,
     formatHint: ImageFileFormat? = ImageFileFormat.guessFromExtension(file.extension),
+    allowSRGB: Boolean = true,
+    loadMipmaps: Boolean = true,
     session: Session? = Session.active
 ): ColorBuffer {
-    return loadImage(file.absolutePath, formatHint, session)
+    return loadImage(file.absolutePath, formatHint, allowSRGB, loadMipmaps, session)
 }
 
 /**
@@ -226,17 +242,20 @@ fun loadImage(
 fun loadImage(
     url: URL,
     formatHint: ImageFileFormat? = ImageFileFormat.guessFromExtension(url.toExternalForm().split(".").lastOrNull()),
+    allowSRGB: Boolean = true,
+    loadMipmaps: Boolean = true,
     session: Session? = Session.active
 ): ColorBuffer {
-    return loadImage(url.toExternalForm(), formatHint, session)
+    return loadImage(url.toExternalForm(), formatHint, allowSRGB, loadMipmaps, session)
 }
 
 actual suspend fun loadImageSuspend(
     fileOrUrl: String,
     formatHint: ImageFileFormat?,
+    allowSRGB: Boolean,
     session: Session?
 ): ColorBuffer {
     return runBlocking {
-        loadImage(fileOrUrl, formatHint, session)
+        loadImage(fileOrUrl, formatHint, allowSRGB, true, session)
     }
 }

@@ -2,6 +2,7 @@ package org.openrndr.webgl
 
 import WebGL2RenderingContext
 import WebGLVertexArrayObject
+import org.openrndr.color.ColorRGBa
 import org.khronos.webgl.WebGLRenderingContext as GL
 import org.openrndr.draw.*
 import org.openrndr.internal.*
@@ -240,8 +241,8 @@ class DriverWebGL(val context: WebGL2RenderingContext) : Driver {
         error("not supported")
     }
 
-    override fun clear(r: Double, g: Double, b: Double, a: Double) {
-        context.clearColor(r.toFloat(), g.toFloat(), b.toFloat(), a.toFloat())
+    override fun clear(color: ColorRGBa) {
+        context.clearColor(color.r.toFloat(), color.g.toFloat(), color.b.toFloat(), color.alpha.toFloat())
         context.clearDepth(1.0f)
         context.disable(GL.SCISSOR_TEST)
         context.depthMask(true)
@@ -737,8 +738,6 @@ internal fun ColorFormat.glFormat(): Int {
         ColorFormat.RG -> GL.LUMINANCE_ALPHA
         ColorFormat.RGB -> GL.RGB
         ColorFormat.RGBa -> GL.RGBA
-        ColorFormat.sRGB -> GL.RGB
-        ColorFormat.sRGBa -> GL.RGBA
         ColorFormat.BGR -> error("BGR not supported")
         ColorFormat.BGRa -> error("BGRa not supported")
     }
@@ -746,7 +745,7 @@ internal fun ColorFormat.glFormat(): Int {
 
 internal fun ColorType.glType(): Int {
     return when (this) {
-        ColorType.UINT8, ColorType.UINT8_INT -> GL.UNSIGNED_BYTE
+        ColorType.UINT8_SRGB, ColorType.UINT8, ColorType.UINT8_INT -> GL.UNSIGNED_BYTE
         ColorType.SINT8_INT -> GL.BYTE
         ColorType.UINT16, ColorType.UINT16_INT -> GL.UNSIGNED_SHORT
         ColorType.SINT16_INT -> GL.SHORT
@@ -755,6 +754,7 @@ internal fun ColorType.glType(): Int {
         ColorType.FLOAT16 -> HALF_FLOAT_OES
         ColorType.FLOAT32 -> GL.FLOAT
         ColorType.DXT1, ColorType.DXT3, ColorType.DXT5,
-        ColorType.BPTC_UNORM, ColorType.BPTC_FLOAT, ColorType.BPTC_UFLOAT -> throw RuntimeException("gl type of compressed types cannot be queried")
+        ColorType.DXT1_SRGB, ColorType.DXT3_SRGB, ColorType.DXT5_SRGB,
+        ColorType.BPTC_UNORM, ColorType.BPTC_UNORM_SRGB, ColorType.BPTC_FLOAT, ColorType.BPTC_UFLOAT -> throw RuntimeException("gl type of compressed types cannot be queried")
     }
 }

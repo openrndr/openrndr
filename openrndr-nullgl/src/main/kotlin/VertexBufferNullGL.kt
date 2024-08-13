@@ -93,6 +93,10 @@ class VertexBufferShadowNullGL(override val vertexBuffer: VertexBuffer) : Vertex
 }
 
 class VertexBufferNullGL(override val vertexFormat: VertexFormat, override val vertexCount: Int, override val session: Session?) : VertexBuffer() {
+
+    override fun close() {
+        destroy()
+    }
     override val shadow: VertexBufferShadow
         get() = VertexBufferShadowNullGL(this)
 

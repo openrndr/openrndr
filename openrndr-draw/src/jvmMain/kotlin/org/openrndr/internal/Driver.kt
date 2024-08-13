@@ -1,11 +1,9 @@
 package org.openrndr.internal
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
-import org.openrndr.utils.buffer.MPPBuffer
-import java.io.InputStream
 import java.nio.Buffer
-import java.nio.ByteBuffer
 
 private val logger = KotlinLogging.logger {}
 
@@ -131,7 +129,7 @@ actual interface Driver {
         session: Session?
     ): VolumeTexture
 
-    actual fun clear(r: Double, g: Double, b: Double, a: Double)
+    actual fun clear(color: ColorRGBa)
     actual fun createDynamicVertexBuffer(
         format: VertexFormat,
         vertexCount: Int,
@@ -207,7 +205,7 @@ actual interface Driver {
     actual companion object {
         actual var driver: Driver? = null
             set(value) {
-                logger.debug {"setting driver instance to $value" }
+                logger.debug { "setting driver instance to $value" }
                 field = value
             }
         actual val instance: Driver

@@ -131,7 +131,7 @@ actual class ShadeStyleGLSL {
             |// <drawer-uniforms($contextBlock, $styleBlock)> (ShadeStyleGLSL.kt)
             ${contextBlock.trueOrEmpty {
                 """
-                |layout(shared) uniform ContextBlock {
+                |${useContextBlock.trueOrEmpty { "layout(shared) uniform ContextBlock {"}}  
                 |    uniform mat4 u_modelNormalMatrix;
                 |    uniform mat4 u_modelMatrix;
                 |    uniform mat4 u_viewNormalMatrix;
@@ -140,17 +140,17 @@ actual class ShadeStyleGLSL {
                 |    uniform float u_contentScale;
                 |    uniform float u_modelViewScalingFactor;
                 |    uniform vec2 u_viewDimensions;
-                |};"""
+                |${useContextBlock.trueOrEmpty { "};" }}"""
                 }
             }
             ${styleBlock.trueOrEmpty {
                 """
-                |layout(shared) uniform StyleBlock {
+                |${useStyleBlock.trueOrEmpty { "layout(shared) uniform StyleBlock {"}} 
                 |    uniform vec4 u_fill;
                 |    uniform vec4 u_stroke;
                 |    uniform float u_strokeWeight;
                 |    uniform float[25] u_colorMatrix;
-                |};"""
+                |${useStyleBlock.trueOrEmpty { "};" }}"""
                 }
             }
             |// </drawer-uniforms>

@@ -18,11 +18,11 @@ class ColorRGBaTest {
     @Test
     fun mixTwoColors() {
         val mixed = mix(
-            ColorRGBa(1.0, 0.0, 0.0, 1.0, Linearity.ASSUMED_LINEAR),
+            ColorRGBa(1.0, 0.0, 0.0, 1.0, Linearity.LINEAR),
             ColorRGBa(1.0, 1.0, 1.0, 0.0, Linearity.LINEAR),
             0.5
         )
-        assertEquals(mixed.linearity, Linearity.ASSUMED_LINEAR)
+        assertEquals(mixed.linearity, Linearity.LINEAR)
     }
 
     @Test

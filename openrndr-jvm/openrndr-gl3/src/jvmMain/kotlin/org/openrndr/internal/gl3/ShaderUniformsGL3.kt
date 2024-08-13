@@ -37,25 +37,26 @@ interface ShaderUniformsGL3 : ShaderUniforms {
         }
 
     override fun uniform(name: String, value: ColorRGBa) {
+        val linearValue = value.toLinear()
         val index = uniformIndex(name)
         if (index != -1) {
             if (useProgramUniform) {
                 glProgramUniform4f(
                     programObject,
                     index,
-                    value.r.toFloat(),
-                    value.g.toFloat(),
-                    value.b.toFloat(),
-                    value.alpha.toFloat()
+                    linearValue.r.toFloat(),
+                    linearValue.g.toFloat(),
+                    linearValue.b.toFloat(),
+                    linearValue.alpha.toFloat()
                 )
             } else {
                 bound {
                     glUniform4f(
                         index,
-                        value.r.toFloat(),
-                        value.g.toFloat(),
-                        value.b.toFloat(),
-                        value.alpha.toFloat()
+                        linearValue.r.toFloat(),
+                        linearValue.g.toFloat(),
+                        linearValue.b.toFloat(),
+                        linearValue.alpha.toFloat()
                     )
                     postUniformCheck(name, index, value)
                 }
@@ -478,12 +479,14 @@ interface ShaderUniformsGL3 : ShaderUniforms {
         if (index != -1) {
             logger.trace { "Setting uniform '$name' to $value" }
 
+
             val floatValues = FloatArray(value.size * 4)
             for (i in value.indices) {
-                floatValues[i * 4] = value[i].r.toFloat()
-                floatValues[i * 4 + 1] = value[i].g.toFloat()
-                floatValues[i * 4 + 2] = value[i].b.toFloat()
-                floatValues[i * 4 + 3] = value[i].alpha.toFloat()
+                val lvalue = value[i].toLinear()
+                floatValues[i * 4] = lvalue.r.toFloat()
+                floatValues[i * 4 + 1] = lvalue.g.toFloat()
+                floatValues[i * 4 + 2] = lvalue.b.toFloat()
+                floatValues[i * 4 + 3] = lvalue.alpha.toFloat()
             }
             if (useProgramUniform) {
                 glProgramUniform4fv(programObject, index, floatValues)

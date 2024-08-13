@@ -86,4 +86,14 @@ object DriverGL3Configuration {
     val deleteAngleOnExit by lazy {
         Platform.property("org.openrndr.gl3.delete_angle_on_exit") != "false"
     }
+
+    val useBackBufferExtension by lazy {
+        when (driverType) {
+            DriverTypeGL.GL -> false
+            DriverTypeGL.GLES -> {
+                val useVulkan = System.getenv("ANGLE_DEFAULT_PLATFORM") == "vulkan"
+                !useVulkan
+            }
+        }
+    }
 }

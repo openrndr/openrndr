@@ -63,7 +63,15 @@ expect abstract class ArrayTexture {
  * @param format the color format (ColorFormat) to be used in each layer
  * @param type the color type to be used in each layer
  */
-fun arrayTexture(width: Int, height: Int, layers: Int, format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.UINT8, levels: Int = 1, session: Session = Session.active): ArrayTexture {
+fun arrayTexture(
+    width: Int,
+    height: Int,
+    layers: Int,
+    format: ColorFormat = ColorFormat.RGBa,
+    type: ColorType = defaultColorType(format),
+    levels: Int = 1,
+    session: Session = Session.active
+): ArrayTexture {
     return Driver.instance.createArrayTexture(width, height, layers, format, type, levels).apply {
         session.track(this)
     }

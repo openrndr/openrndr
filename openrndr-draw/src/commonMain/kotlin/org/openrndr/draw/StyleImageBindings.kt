@@ -6,6 +6,7 @@ interface StyleImageBindings {
     val imageAccess: MutableMap<String, ImageAccess>
     val imageFlags: MutableMap<String, Set<ImageFlag>>
     val imageArrayLength: MutableMap<String, Int>
+    val imageBindings: MutableMap<String, Int>
 
     @Deprecated("renamed to image", ReplaceWith("image"))
     fun parameter(name: String, value: ImageBinding) {
@@ -24,6 +25,7 @@ interface StyleImageBindings {
         imageAccess[name] = access
         imageFlags[name] = flags
         imageArrayLength[name] = arrayLength
+        imageBindings.getOrPut(name) { imageBindings.size }
     }
 
     /**
@@ -40,6 +42,7 @@ interface StyleImageBindings {
         imageValues[name] = arrayOf(value)
         imageTypes[name] = imageBindingType(value)
         imageArrayLength[name] = -1
+        imageBindings.getOrPut(name) { imageBindings.size }
     }
 
     /**
@@ -59,6 +62,7 @@ interface StyleImageBindings {
         imageValues[name] = values
         imageTypes[name] = imageBindingType(values[0])
         imageArrayLength[name] = values.size
+        imageBindings.getOrPut(name) { imageBindings.size }
     }
 
     /**

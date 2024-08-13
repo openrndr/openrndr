@@ -42,6 +42,7 @@ class ComputeStyle : StyleParameters, StyleBufferBindings, StyleImageBindings {
     override val bufferAccess = mutableMapOf<String, BufferAccess>()
     override val bufferFlags: MutableMap<String, Set<BufferFlag>> = mutableMapOf()
 
+    override val imageBindings: MutableMap<String, Int> = mutableMapOf()
     override val imageTypes: MutableMap<String, String> = mutableMapOf()
     override val imageValues: MutableMap<String, Array<out ImageBinding>> = mutableMapOf()
     override val imageAccess: MutableMap<String, ImageAccess> = mutableMapOf()

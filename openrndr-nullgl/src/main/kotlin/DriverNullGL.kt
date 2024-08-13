@@ -1,5 +1,6 @@
 package org.openrndr.internal.nullgl
 
+import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
 import org.openrndr.internal.*
 import java.nio.Buffer
@@ -66,7 +67,7 @@ class DriverNullGL: Driver {
         TODO("Not yet implemented")
     }
 
-    override fun clear(r: Double, g: Double, b: Double, a: Double) {
+    override fun clear(color: ColorRGBa) {
 
     }
 

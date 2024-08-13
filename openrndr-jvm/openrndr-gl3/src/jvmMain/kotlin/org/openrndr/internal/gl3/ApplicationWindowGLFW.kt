@@ -50,15 +50,20 @@ class ApplicationWindowGLFW(
         }
     }
 
+    fun setupRenderTarget() {
+        glfwMakeContextCurrent(window)
+        if (defaultRenderTargetGL3 == null) {
+            logger.debug { "creating default render target for context ${Driver.instance.contextID}" }
+            defaultRenderTargetGL3 = ProgramRenderTargetGL3(program)
+            defaultRenderTargetGL3!!.bind()
+        }
+    }
+
     fun update() {
         deliverEvents()
         if (presentationMode == PresentationMode.AUTOMATIC || drawRequested || program.dispatcher.shouldExecute) {
-            glfwMakeContextCurrent(window)
-            if (defaultRenderTargetGL3 == null) {
-                logger.debug { "creating default render target for context ${Driver.instance.contextID}" }
-                defaultRenderTargetGL3 = ProgramRenderTargetGL3(program)
-                defaultRenderTargetGL3!!.bind()
-            }
+            //glfwMakeContextCurrent(window)
+            setupRenderTarget()
             updateSize()
             program.drawer.reset()
             program.drawer.ortho()
@@ -561,6 +566,8 @@ fun createApplicationWindowGlfw(
     glfwWindowHint(GLFW_BLUE_BITS, 8)
     glfwWindowHint(GLFW_STENCIL_BITS, 8)
     glfwWindowHint(GLFW_DEPTH_BITS, 24)
+    glfwWindowHint(GLFW_SRGB_CAPABLE, GLFW_TRUE)
+
     glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE)
 
     val position = configuration.position

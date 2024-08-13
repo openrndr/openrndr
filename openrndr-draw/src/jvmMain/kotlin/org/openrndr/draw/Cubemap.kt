@@ -12,7 +12,7 @@ actual interface Cubemap {
         fun create(
             width: Int,
             format: ColorFormat = ColorFormat.RGBa,
-            type: ColorType = ColorType.UINT8,
+            type: ColorType = defaultColorType(format),
             levels: Int = -1,
             session: Session? = Session.active
         ): Cubemap {

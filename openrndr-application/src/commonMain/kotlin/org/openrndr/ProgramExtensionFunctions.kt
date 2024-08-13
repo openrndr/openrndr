@@ -23,7 +23,7 @@ fun Program.drawImage(
     height: Int,
     contentScale: Double? = null,
     format: ColorFormat = ColorFormat.RGBa,
-    type: ColorType = ColorType.UINT8,
+    type: ColorType = defaultColorType(format),
     multisample: BufferMultisample? = null,
     drawFunction: Drawer.() -> Unit
 ): ColorBuffer {

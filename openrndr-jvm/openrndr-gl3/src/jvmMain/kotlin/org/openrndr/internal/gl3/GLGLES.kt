@@ -1552,6 +1552,51 @@ fun glTexImage2DMultisample(
     }
 }
 
+// --- [ glTexStorage2D ] ---
+fun glTexStorage2D(
+    @NativeType("GLenum") target: Int,
+    @NativeType("GLsizei") levels: Int,
+    @NativeType("GLenum") internalformat: Int,
+    @NativeType("GLsizei") width: Int,
+    @NativeType("GLsizei") height: Int
+) {
+    when (driverType) {
+        DriverTypeGL.GL -> GL.glTexStorage2D(target, levels, internalformat, width, height)
+        DriverTypeGL.GLES -> GLES.glTexStorage2D(target, levels, internalformat, width, height)
+    }
+}
+
+// --- [ glTexStorage2DMultisample ] ---
+fun glTexStorage2DMultisample(
+    @NativeType("GLenum") target: Int,
+    @NativeType("GLsizei") samples: Int,
+    @NativeType("GLenum") internalformat: Int,
+    @NativeType("GLsizei") width: Int,
+    @NativeType("GLsizei") height: Int,
+    @NativeType("GLboolean") fixedsamplelocations: Boolean
+) {
+    when (driverType) {
+        DriverTypeGL.GL -> GL.glTexStorage2DMultisample(
+            target,
+            samples,
+            internalformat,
+            width,
+            height,
+            fixedsamplelocations
+        )
+
+        DriverTypeGL.GLES -> GLES.glTexStorage2DMultisample(
+            target,
+            samples,
+            internalformat,
+            width,
+            height,
+            fixedsamplelocations
+        )
+    }
+}
+
+
 // --- [ glTexStorage3D ] ---
 fun glTexStorage3D(
     @NativeType("GLenum") target: Int,

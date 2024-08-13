@@ -1,4 +1,5 @@
 @file:JvmName("CubemapFunctions")
+
 package org.openrndr.draw
 
 import org.openrndr.internal.CubemapImageData
@@ -53,10 +54,10 @@ expect interface Cubemap {
 fun cubemap(
     width: Int,
     format: ColorFormat = ColorFormat.RGBa,
-    type: ColorType = ColorType.UINT8,
+    type: ColorType = defaultColorType(format),
     levels: Int = 1,
     session: Session? = Session.active
-) : Cubemap {
+): Cubemap {
     return Driver.instance.createCubemap(width, format, type, levels, session)
 }
 

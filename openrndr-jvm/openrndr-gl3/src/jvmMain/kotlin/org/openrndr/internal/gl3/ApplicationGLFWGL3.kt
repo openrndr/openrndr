@@ -23,6 +23,7 @@ import org.openrndr.draw.RenderTarget
 import org.openrndr.draw.Session
 import org.openrndr.internal.Driver
 import org.openrndr.internal.gl3.ApplicationGlfwConfiguration.fixWindowSize
+import org.openrndr.internal.gl3.extensions.BackBuffer
 
 import org.openrndr.math.Vector2
 import org.openrndr.platform.Platform
@@ -234,15 +235,10 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
             }
 
             DriverTypeGL.GLES -> {
-                val useAngle = DriverGL3Configuration.glesBackend == GlesBackend.ANGLE
-                if (useAngle) {
-                    glfwWindowHint(GLFW_ANGLE_PLATFORM_TYPE, GLFW_ANGLE_PLATFORM_TYPE_METAL)
-                }
                 glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API)
                 glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_EGL_CONTEXT_API);
             }
         }
-
 
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE)
         glfwWindowHint(GLFW_AUTO_ICONIFY, GLFW_FALSE)
@@ -261,6 +257,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
         glfwWindowHint(GLFW_BLUE_BITS, 8)
         glfwWindowHint(GLFW_STENCIL_BITS, 8)
         glfwWindowHint(GLFW_DEPTH_BITS, 24)
+        glfwWindowHint(GLFW_SRGB_CAPABLE, GLFW_TRUE)
 
         if (configuration.windowAlwaysOnTop) {
             glfwWindowHint(GLFW_FLOATING, GLFW_TRUE)
@@ -555,7 +552,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
         glfwSwapBuffers(window)
     }
 
-    override fun createChildWindow(configuration: WindowConfiguration, program: Program) : ApplicationWindow {
+    override fun createChildWindow(configuration: WindowConfiguration, program: Program): ApplicationWindow {
         // acquire current context, we may be calling this from another context that we want to return to
         val currentActiveContext = glfwGetCurrentContext()
         try {
@@ -567,9 +564,15 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
             window.setupGlfwEvents(this)
 
             window.updateSize()
+            window.setupRenderTarget()
+            if (DriverGL3Configuration.useBackBufferExtension) {
+                program.extend(BackBuffer())
+            }
+
             runBlocking {
                 program.setup()
             }
+
             synchronized(windows) {
                 windows.add(window)
             }
@@ -584,11 +587,14 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
     private fun createPrimaryWindow() {
         if (primaryWindow == NULL) {
             glfwSetErrorCallback(GLFWErrorCallback.create { error, description ->
-                logger.debug { "LWJGL Error - Code: ${Integer.toHexString(error)}, Description: ${GLFWErrorCallback.getDescription(description)}" }
+                logger.debug {
+                    "LWJGL Error - Code: ${Integer.toHexString(error)}, Description: ${
+                        GLFWErrorCallback.getDescription(
+                            description
+                        )
+                    }"
+                }
             })
-            if (!glfwInit()) {
-                throw IllegalStateException("Unable to initialize GLFW")
-            }
             val title = "OPENRNDR primary window"
             val versions = DriverGL3.candidateVersions()
             glfwDefaultWindowHints()
@@ -597,6 +603,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
                     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL.GL_TRUE)
                     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE)
                 }
+
                 DriverTypeGL.GLES -> {
                     glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API)
                     val useAngle = DriverGL3Configuration.glesBackend == GlesBackend.ANGLE
@@ -614,6 +621,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
             glfwWindowHint(GLFW_BLUE_BITS, 8)
             glfwWindowHint(GLFW_STENCIL_BITS, 8)
             glfwWindowHint(GLFW_DEPTH_BITS, 24)
+            glfwWindowHint(GLFW_SRGB_CAPABLE, GLFW_TRUE)
             glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE)
 
             var foundVersion = null as? DriverVersionGL?
@@ -655,6 +663,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
         program.driver = Driver.instance
         program.drawer = Drawer(Driver.instance)
 
+
         when (Driver.glType) {
             DriverTypeGL.GL -> {}
             DriverTypeGL.GLES -> (Driver.instance as DriverGL3).setupExtensions(
@@ -665,6 +674,10 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
         defaultRenderTarget.bind()
 
         setupSizes()
+        if (DriverGL3Configuration.useBackBufferExtension) {
+            program.extend(BackBuffer())
+        }
+
         setupPreload(program, configuration)
         program.drawer.ortho()
     }
@@ -863,6 +876,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
                     )
                     buttonsDown.set(button, true)
                 }
+
                 GLFW_RELEASE -> {
                     down = false
                     program.mouse.buttonUp.trigger(

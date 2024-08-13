@@ -12,7 +12,7 @@ actual interface VolumeTexture {
             height: Int,
             depth: Int,
             format: ColorFormat = ColorFormat.RGBa,
-            type: ColorType = ColorType.UINT8,
+            type: ColorType = defaultColorType(format),
             levels: Int = 1,
             session: Session? = Session.active
         ): VolumeTexture {
@@ -51,7 +51,7 @@ fun volumeTexture(
     height: Int,
     depth: Int,
     format: ColorFormat = ColorFormat.RGBa,
-    type: ColorType = ColorType.UINT8,
+    type: ColorType = defaultColorType(format),
     levels: Int = 1,
     session: Session? = Session.active
 ): VolumeTexture {

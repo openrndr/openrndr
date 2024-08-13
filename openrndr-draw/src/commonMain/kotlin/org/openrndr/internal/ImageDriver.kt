@@ -35,7 +35,7 @@ interface ImageDriver {
      * @return an [ImageData] instance that the user must close after use
      * @since 0.4.5
      */
-    fun loadImage(fileOrUrl: String, formatHint: ImageFileFormat?): ImageData
+    fun loadImage(fileOrUrl: String, formatHint: ImageFileFormat?, allowSRGB: Boolean): ImageData
 
     /**
      * Load an image located at [fileOrUrl]
@@ -45,7 +45,7 @@ interface ImageDriver {
      * @return an [ImageData] instance that the user must close after use
      * @since 0.4.5
      */
-    fun loadImage(buffer: MPPBuffer, name: String?, formatHint: ImageFileFormat?): ImageData
+    fun loadImage(buffer: MPPBuffer, name: String?, formatHint: ImageFileFormat?, allowSRGB: Boolean): ImageData
 
     /**
      * Save an image to [filename]

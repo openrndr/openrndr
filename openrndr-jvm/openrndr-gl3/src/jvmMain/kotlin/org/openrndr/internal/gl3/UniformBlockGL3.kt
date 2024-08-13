@@ -36,13 +36,16 @@ class UniformBlockGL3(override val layout: UniformBlockLayout, val blockBinding:
         fun create(layout: UniformBlockLayout): UniformBlockGL3 {
             synchronized(Driver.instance) {
                 val ubo = glGenBuffers()
+                checkGLErrors()
                 glBindBuffer(GL_UNIFORM_BUFFER, ubo)
-
+                checkGLErrors()
                 val useBufferStorage = (Driver.instance as DriverGL3).version >= DriverVersionGL.GL_VERSION_4_4 && (Driver.instance as DriverGL3).version.type == DriverTypeGL.GL
                 if (useBufferStorage) {
                     glBufferStorage(GL_UNIFORM_BUFFER, layout.sizeInBytes.toLong(), GL_DYNAMIC_STORAGE_BIT)
+                    checkGLErrors()
                 } else {
                     glBufferData(GL_UNIFORM_BUFFER, layout.sizeInBytes.toLong(), GL_DYNAMIC_DRAW)
+                    checkGLErrors()
                 }
                 glBindBuffer(GL_UNIFORM_BUFFER, 0)
 
@@ -110,13 +113,14 @@ class UniformBlockGL3(override val layout: UniformBlockLayout, val blockBinding:
 
     override fun uniform(name: String, value: ColorRGBa) {
         if (lastValues[name] != value) {
+            val lvalue = value.toLinear()
             val entry = layout.entries[name]
             if (entry != null) {
                 if (entry.type == UniformType.VECTOR4_FLOAT32 && entry.size == 1) {
-                    shadowBuffer.putFloat(entry.offset, value.r.toFloat())
-                    shadowBuffer.putFloat(entry.offset + 4, value.g.toFloat())
-                    shadowBuffer.putFloat(entry.offset + 8, value.b.toFloat())
-                    shadowBuffer.putFloat(entry.offset + 12, value.alpha.toFloat())
+                    shadowBuffer.putFloat(entry.offset, lvalue.r.toFloat())
+                    shadowBuffer.putFloat(entry.offset + 4, lvalue.g.toFloat())
+                    shadowBuffer.putFloat(entry.offset + 8, lvalue.b.toFloat())
+                    shadowBuffer.putFloat(entry.offset + 12, lvalue.alpha.toFloat())
                 } else {
                     throw RuntimeException("uniform mismatch")
                 }

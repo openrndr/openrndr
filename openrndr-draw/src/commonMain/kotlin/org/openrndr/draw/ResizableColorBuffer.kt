@@ -5,7 +5,7 @@ class ResizableColorBuffer(
     height: Int,
     contentScale: Double = 1.0,
     format: ColorFormat = ColorFormat.RGBa,
-    type: ColorType = ColorType.UINT8,
+    type: ColorType = defaultColorType(format),
     multisample: BufferMultisample = BufferMultisample.Disabled,
     levels: Int = 1,
     session: Session? = Session.active
@@ -35,7 +35,7 @@ fun resizableColorBuffer(
     height: Int,
     contentScale: Double = 1.0,
     format: ColorFormat = ColorFormat.RGBa,
-    type: ColorType = ColorType.UINT8,
+    type: ColorType = defaultColorType(format),
     multisample: BufferMultisample = BufferMultisample.Disabled,
     levels: Int = 1,
     session: Session? = Session.active

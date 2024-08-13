@@ -6,10 +6,9 @@ import org.lwjgl.opengl.EXTTextureCompressionS3TC.*
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic.GL_TEXTURE_MAX_ANISOTROPY_EXT
 import org.lwjgl.opengl.EXTTextureSRGB.*
 import org.lwjgl.opengl.GL33C.*
-import org.lwjgl.opengl.GL42C.glTexStorage2D
 import org.lwjgl.opengl.GL43C.glCopyImageSubData
-import org.lwjgl.opengl.GL43C.glTexStorage2DMultisample
 import org.lwjgl.opengl.GL44.glClearTexImage
+import org.lwjgl.opengl.GL45C.glGenerateTextureMipmap
 import org.lwjgl.opengles.GLES30
 import org.lwjgl.system.MemoryUtil
 import org.openrndr.color.ColorRGBa
@@ -82,18 +81,18 @@ internal fun internalFormat(format: ColorFormat, type: ColorType): Pair<Int, Int
         ConversionEntry(ColorFormat.RGBa, ColorType.FLOAT16, GL_RGBA16F, GL_RGBA),
         ConversionEntry(ColorFormat.RGBa, ColorType.FLOAT32, GL_RGBA32F, GL_RGBA),
 
-        ConversionEntry(ColorFormat.sRGB, ColorType.UINT8, GL_SRGB8, GL_RGB),
-        ConversionEntry(ColorFormat.sRGBa, ColorType.UINT8, GL_SRGB8_ALPHA8, GL_RGBA),
+        ConversionEntry(ColorFormat.RGB, ColorType.UINT8_SRGB, GL_SRGB8, GL_RGB),
+        ConversionEntry(ColorFormat.RGBa, ColorType.UINT8_SRGB, GL_SRGB8_ALPHA8, GL_RGBA),
         ConversionEntry(ColorFormat.RGBa, ColorType.DXT1, GL_COMPRESSED_RGBA_S3TC_DXT1_EXT, GL_RGBA),
         ConversionEntry(ColorFormat.RGBa, ColorType.DXT3, GL_COMPRESSED_RGBA_S3TC_DXT3_EXT, GL_RGBA),
         ConversionEntry(ColorFormat.RGBa, ColorType.DXT5, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, GL_RGBA),
         ConversionEntry(ColorFormat.RGB, ColorType.DXT1, GL_COMPRESSED_RGB_S3TC_DXT1_EXT, GL_RGBA),
-        ConversionEntry(ColorFormat.sRGBa, ColorType.DXT1, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT, GL_RGBA),
-        ConversionEntry(ColorFormat.sRGBa, ColorType.DXT3, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT, GL_RGBA),
-        ConversionEntry(ColorFormat.sRGBa, ColorType.DXT5, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT, GL_RGBA),
-        ConversionEntry(ColorFormat.sRGB, ColorType.DXT1, GL_COMPRESSED_SRGB_S3TC_DXT1_EXT, GL_RGBA),
+        ConversionEntry(ColorFormat.RGBa, ColorType.DXT1_SRGB, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT, GL_RGBA),
+        ConversionEntry(ColorFormat.RGBa, ColorType.DXT3_SRGB, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT, GL_RGBA),
+        ConversionEntry(ColorFormat.RGBa, ColorType.DXT5_SRGB, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT, GL_RGBA),
+        ConversionEntry(ColorFormat.RGB, ColorType.DXT1_SRGB, GL_COMPRESSED_SRGB_S3TC_DXT1_EXT, GL_RGBA),
         ConversionEntry(ColorFormat.RGBa, ColorType.BPTC_UNORM, GL_COMPRESSED_RGBA_BPTC_UNORM_ARB, GL_RGBA),
-        ConversionEntry(ColorFormat.sRGBa, ColorType.BPTC_UNORM, GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM_ARB, GL_RGBA),
+        ConversionEntry(ColorFormat.RGBa, ColorType.BPTC_UNORM_SRGB, GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM_ARB, GL_RGBA),
         ConversionEntry(ColorFormat.RGB, ColorType.BPTC_FLOAT, GL_COMPRESSED_RGB_BPTC_SIGNED_FLOAT_ARB, GL_RGBA),
         ConversionEntry(ColorFormat.RGB, ColorType.BPTC_UFLOAT, GL_COMPRESSED_RGB_BPTC_UNSIGNED_FLOAT_ARB, GL_RGBA)
     )
@@ -125,6 +124,9 @@ class ColorBufferGL3(
     override val session: Session?
 ) : ColorBuffer() {
 
+    override fun close() {
+        destroy()
+    }
 
     private var destroyed = false
     override var flipV: Boolean = false
@@ -165,8 +167,8 @@ class ColorBufferGL3(
             }
         }
 
-        fun fromUrl(url: String, formatHint: ImageFileFormat?, session: Session?): ColorBuffer {
-            val data = ImageDriver.instance.loadImage(url, formatHint)
+        fun fromUrl(url: String, formatHint: ImageFileFormat?, allowSRGB: Boolean, session: Session?): ColorBuffer {
+            val data = ImageDriver.instance.loadImage(url, formatHint, allowSRGB)
             return try {
                 fromColorBufferData(data, session)
             } finally {
@@ -177,9 +179,10 @@ class ColorBufferGL3(
         fun fromFile(
             filename: String,
             formatHint: ImageFileFormat? = ImageFileFormat.guessFromExtension(filename),
+            allowSRGB: Boolean = true,
             session: Session?
         ): ColorBuffer {
-            val data = ImageDriver.instance.loadImage(filename, formatHint)
+            val data = ImageDriver.instance.loadImage(filename, formatHint, allowSRGB)
             return try {
                 fromColorBufferData(data, session)
             } finally {
@@ -192,9 +195,10 @@ class ColorBufferGL3(
             buffer: ByteBuffer,
             name: String?,
             formatHint: ImageFileFormat?,
+            allowSRGB: Boolean,
             session: Session?
         ): ColorBuffer {
-            val data = ImageDriver.instance.loadImage(MPPBuffer(buffer), name, formatHint)
+            val data = ImageDriver.instance.loadImage(MPPBuffer(buffer), name, formatHint, allowSRGB)
             return try {
                 fromColorBufferData(data, session)
             } finally {
@@ -222,12 +226,11 @@ class ColorBufferGL3(
             }
             checkGLErrors()
 
-            // We have some problems with mipmaps when using STORAGE mode
-//            val storageMode = when {
-//                (Driver.instance as DriverGL3).version >= DriverVersionGL.VERSION_4_3 -> TextureStorageModeGL.STORAGE
-//                else -> TextureStorageModeGL.IMAGE
-//            }
-            val storageMode = TextureStorageModeGL.IMAGE
+            val storageMode = when {
+                (Driver.glType == DriverTypeGL.GL && Driver.glVersion >= DriverVersionGL.GL_VERSION_4_3) -> TextureStorageModeGL.STORAGE
+                (Driver.glType == DriverTypeGL.GLES && Driver.glVersion >= DriverVersionGL.GLES_VERSION_3_1) -> TextureStorageModeGL.STORAGE
+                else -> TextureStorageModeGL.IMAGE
+            }
 
             val texture = glGenTextures()
             checkGLErrors()
@@ -347,7 +350,7 @@ class ColorBufferGL3(
         }
     }
 
-    fun <T> bound(f: ColorBufferGL3.() -> T):T {
+    fun <T> bound(f: ColorBufferGL3.() -> T): T {
         checkDestroyed()
         glActiveTexture(GL_TEXTURE0)
         debugGLErrors()
@@ -368,10 +371,29 @@ class ColorBufferGL3(
     }
 
     override fun generateMipmaps() {
+        if (levels == 1) {
+            return
+        }
+
+        if (Driver.glType == DriverTypeGL.GLES) {
+            if (format.componentCount == 3) {
+                return
+            }
+        }
+        val useGenerateTextureMipmap =
+            Driver.glType == DriverTypeGL.GL && Driver.glVersion >= DriverVersionGL.GL_VERSION_4_5
+
         checkDestroyed()
         if (multisample == Disabled) {
-            bound {
-                glGenerateMipmap(target)
+            if (useGenerateTextureMipmap) {
+                glGenerateTextureMipmap(texture)
+            } else {
+                bound {
+                    glGenerateMipmap(target)
+                    debugGLErrors() {
+                        "failed to generate mipmap for ${this}"
+                    }
+                }
             }
         } else {
             throw IllegalArgumentException("generating Mipmaps for multisample targets is not possible")
@@ -414,13 +436,13 @@ class ColorBufferGL3(
 
         val useCopyFilter = Driver.glType == DriverTypeGL.GLES && (
                 this.multisample is Disabled && target.multisample is SampleCount ||
-                type.isFloat != target.type.isFloat
+                        type.isFloat != target.type.isFloat
                 )
 
         if (useCopyFilter) {
             require(
                 this.effectiveWidth == target.effectiveWidth && this.effectiveHeight == target.effectiveHeight &&
-                sourceRectangle.x == 0 && sourceRectangle.y == 0 && sourceRectangle == targetRectangle && sourceRectangle.width == effectiveWidth && sourceRectangle.height == effectiveHeight
+                        sourceRectangle.x == 0 && sourceRectangle.y == 0 && sourceRectangle == targetRectangle && sourceRectangle.width == effectiveWidth && sourceRectangle.height == effectiveHeight
             )
 
             copy.apply(this, target)
@@ -920,7 +942,7 @@ class ColorBufferGL3(
     override fun toDataUrl(imageFileFormat: ImageFileFormat): String {
         checkDestroyed()
         require(multisample == Disabled)
-        require(type == ColorType.UINT8)
+        require(type == ColorType.UINT8 || type == ColorType.UINT8_SRGB)
 
         val data = toImageData()
         return try {
@@ -988,8 +1010,6 @@ internal fun ColorFormat.glFormat(): Int {
         ColorFormat.RG -> GL_RG
         ColorFormat.RGB -> GL_RGB
         ColorFormat.RGBa -> GL_RGBA
-        ColorFormat.sRGB -> GL_RGB
-        ColorFormat.sRGBa -> GL_RGBA
         ColorFormat.BGR -> GL_BGR
         ColorFormat.BGRa -> GL_BGRA
     }
@@ -997,7 +1017,7 @@ internal fun ColorFormat.glFormat(): Int {
 
 internal fun ColorType.glType(): Int {
     return when (this) {
-        ColorType.UINT8, ColorType.UINT8_INT -> GL_UNSIGNED_BYTE
+        ColorType.UINT8, ColorType.UINT8_SRGB, ColorType.UINT8_INT -> GL_UNSIGNED_BYTE
         ColorType.SINT8_INT -> GL_BYTE
         ColorType.UINT16, ColorType.UINT16_INT -> GL_UNSIGNED_SHORT
         ColorType.SINT16_INT -> GL_SHORT
@@ -1006,6 +1026,8 @@ internal fun ColorType.glType(): Int {
         ColorType.FLOAT16 -> GL_HALF_FLOAT
         ColorType.FLOAT32 -> GL_FLOAT
         ColorType.DXT1, ColorType.DXT3, ColorType.DXT5,
+        ColorType.DXT1_SRGB, ColorType.DXT3_SRGB, ColorType.DXT5_SRGB,
+        ColorType.BPTC_UNORM_SRGB,
         ColorType.BPTC_UNORM, ColorType.BPTC_FLOAT, ColorType.BPTC_UFLOAT -> throw RuntimeException("gl type of compressed types cannot be queried")
     }
 }
@@ -1017,24 +1039,17 @@ internal fun compressedType(format: ColorFormat, type: ColorType): Int {
             ColorType.DXT1 -> GL_COMPRESSED_RGBA_S3TC_DXT1_EXT
             ColorType.DXT3 -> GL_COMPRESSED_RGBA_S3TC_DXT3_EXT
             ColorType.DXT5 -> GL_COMPRESSED_RGBA_S3TC_DXT5_EXT
+            ColorType.DXT1_SRGB -> GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT
+            ColorType.DXT3_SRGB -> GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT
+            ColorType.DXT5_SRGB -> GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT
             ColorType.BPTC_UNORM -> GL_COMPRESSED_RGBA_BPTC_UNORM_ARB
-            else -> throw IllegalArgumentException()
-        }
-
-        ColorFormat.sRGBa -> return when (type) {
-            ColorType.DXT1 -> GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT
-            ColorType.DXT3 -> GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT
-            ColorType.DXT5 -> GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT
+            ColorType.BPTC_UNORM_SRGB -> GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM_ARB
             else -> throw IllegalArgumentException()
         }
 
         ColorFormat.RGB -> return when (type) {
             ColorType.DXT1 -> GL_COMPRESSED_RGB_S3TC_DXT1_EXT
-            else -> throw IllegalArgumentException()
-        }
-
-        ColorFormat.sRGB -> return when (type) {
-            ColorType.DXT1 -> GL_COMPRESSED_SRGB_S3TC_DXT1_EXT
+            ColorType.DXT1_SRGB -> GL_COMPRESSED_SRGB_S3TC_DXT1_EXT
             else -> throw IllegalArgumentException()
         }
 

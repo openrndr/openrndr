@@ -5,6 +5,7 @@ import org.lwjgl.glfw.GLFW
 import org.lwjgl.opengl.*
 import org.lwjgl.opengl.GL40C.*
 import org.lwjgl.system.FunctionProvider
+import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
 import org.openrndr.internal.*
 import org.openrndr.internal.gl3.extensions.AngleExtensions
@@ -104,6 +105,13 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
             DriverTypeGL.GLES -> """#define OR_GLES
           |precision highp float;
           |precision highp sampler2DArray;
+          |${
+                if (Driver.glVersion >= DriverVersionGL.GLES_VERSION_3_1) {
+                    "precision highp image2D;"
+                } else {
+                    ""
+                }
+            }
       """.trimMargin()
         }
     }       
@@ -199,9 +207,20 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
             TODO("not implemented")
         }
 
-    override fun clear(r: Double, g: Double, b: Double, a: Double) {
+    override fun clear(color: ColorRGBa) {
+        val isBackBuffer = RenderTarget.active is ProgramRenderTarget
+
+        val targetColor = if (isBackBuffer) {
+            color.toLinear()
+        } else if (RenderTarget.active.colorAttachments[0].type.isSRGB) {
+            color.toLinear()
+        } else {
+            color.toLinear()
+        }
+
+
         debugGLErrors()
-        glClearColor(r.toFloat(), g.toFloat(), b.toFloat(), a.toFloat())
+        glClearColor(targetColor.r.toFloat(), targetColor.g.toFloat(), targetColor.b.toFloat(), targetColor.a.toFloat())
         glClearDepth(1.0)
         val depthWriteMask = glGetInteger(GL_DEPTH_WRITEMASK) != 0
         glDisable(GL_SCISSOR_TEST)
@@ -926,9 +945,11 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
     private val dirtyPerContext = mutableMapOf<Long, Boolean>()
     private val cachedPerContext = mutableMapOf<Long, DrawStyle>()
 
-    //private val cached = DrawStyle()
-//private var dirty = true
     override fun setState(drawStyle: DrawStyle) {
+
+        if (Driver.glType == DriverTypeGL.GL) {
+            glEnable(GL_FRAMEBUFFER_SRGB)
+        }
 
         val dirty = dirtyPerContext.getOrDefault(contextID, true)
         val cached = cachedPerContext.getOrPut(contextID) { DrawStyle() }
@@ -1105,7 +1126,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
                     glEnable(GL_BLEND)
                     if ((version >= DriverVersionGL.GL_VERSION_4_1 && version.type == DriverTypeGL.GL) ||
                         (version >= DriverVersionGL.GLES_VERSION_3_2 && version.type == DriverTypeGL.GLES)
-                    ){
+                    ) {
                         glBlendEquationi(0, GL_FUNC_ADD)
                         glBlendFunci(0, GL_ZERO, GL_ONE_MINUS_SRC_ALPHA)
                     } else {

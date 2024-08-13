@@ -3,6 +3,7 @@ package org.openrndr.internal.gl3
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.lwjgl.BufferUtils
 import org.openrndr.color.ColorRGBa
+import org.openrndr.color.Linearity
 import org.openrndr.draw.BufferWriter
 import org.openrndr.draw.ColorBufferShadow
 import org.openrndr.draw.ColorType
@@ -16,6 +17,10 @@ class ColorBufferShadowGL3(override val colorBuffer: ColorBufferGL3) : ColorBuff
     val size = colorBuffer.effectiveWidth * colorBuffer.effectiveHeight
     val elementSize = colorBuffer.format.componentCount * colorBuffer.type.componentSize
     override val buffer: ByteBuffer = BufferUtils.createByteBuffer(elementSize * size)
+
+    val linearity =
+        if (colorBuffer.type == ColorType.UINT8_SRGB) Linearity.SRGB else Linearity.LINEAR
+
 
     override fun download() {
         logger.trace {
@@ -38,7 +43,7 @@ class ColorBufferShadowGL3(override val colorBuffer: ColorBufferGL3) : ColorBuff
             (ay * colorBuffer.effectiveWidth + x) * colorBuffer.format.componentCount * colorBuffer.type.componentSize
         val cc = colorBuffer.format.componentCount
         when (colorBuffer.type) {
-            ColorType.UINT8 -> {
+            ColorType.UINT8, ColorType.UINT8_SRGB -> {
                 val ir = (r * 255).coerceIn(0.0, 255.0).toInt().toByte()
                 val ig = (g * 255).coerceIn(0.0, 255.0).toInt().toByte()
                 val ib = (b * 255).coerceIn(0.0, 255.0).toInt().toByte()
@@ -83,12 +88,12 @@ class ColorBufferShadowGL3(override val colorBuffer: ColorBufferGL3) : ColorBuff
         val cc = colorBuffer.format.componentCount
 
         return when (colorBuffer.type) {
-            ColorType.UINT8 -> {
+            ColorType.UINT8, ColorType.UINT8_SRGB -> {
                 val ir = buffer.get(offset).toUByte()
                 val ig = if (cc >= 2) buffer.get(offset + 1).toUByte() else 0U
                 val ib = if (cc >= 3) buffer.get(offset + 2).toUByte() else 0U
                 val ia = if (cc >= 4) buffer.get(offset + 3).toUByte() else 255U
-                ColorRGBa(ir.toDouble() / 255.0, ig.toDouble() / 255.0, ib.toDouble() / 255.0, ia.toDouble() / 255.0)
+                ColorRGBa(ir.toDouble() / 255.0, ig.toDouble() / 255.0, ib.toDouble() / 255.0, ia.toDouble() / 255.0, linearity)
             }
 
             ColorType.UINT16 -> {
@@ -100,7 +105,8 @@ class ColorBufferShadowGL3(override val colorBuffer: ColorBufferGL3) : ColorBuff
                     ir.toDouble() / 65535.0,
                     ig.toDouble() / 65535.0,
                     ib.toDouble() / 65535.0,
-                    ia.toDouble() / 65535.0
+                    ia.toDouble() / 65535.0,
+                    linearity
                 )
             }
 
@@ -109,7 +115,7 @@ class ColorBufferShadowGL3(override val colorBuffer: ColorBufferGL3) : ColorBuff
                 val fg = if (cc >= 2) buffer.getFloat(offset + 4) else 0.0f
                 val fb = if (cc >= 3) buffer.getFloat(offset + 8) else 0.0f
                 val fa = if (cc >= 4) (buffer.getFloat(offset + 12)) else 1.0f
-                ColorRGBa(fr.toDouble(), fg.toDouble(), fb.toDouble(), fa.toDouble())
+                ColorRGBa(fr.toDouble(), fg.toDouble(), fb.toDouble(), fa.toDouble(), linearity)
             }
 
             else -> TODO("support for ${colorBuffer.type}")

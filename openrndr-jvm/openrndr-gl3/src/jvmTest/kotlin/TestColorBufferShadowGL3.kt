@@ -23,7 +23,7 @@ class TestColorBufferShadowGL3 : AbstractApplicationTestFixture() {
 
     @Test
     fun `a UINT8RGB color buffer shadow`() {
-        val cb = colorBuffer(256, 256, format = ColorFormat.RGB)
+        val cb = colorBuffer(256, 256, format = ColorFormat.RGBa)
         cb.shadow.download()
         for (y in 0 until cb.height) {
             for (x in 0 until cb.width) {

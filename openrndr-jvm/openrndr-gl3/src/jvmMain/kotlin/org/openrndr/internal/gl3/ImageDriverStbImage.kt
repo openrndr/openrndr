@@ -124,7 +124,7 @@ class ImageDriverStbImage : ImageDriver {
         return null
     }
 
-    override fun loadImage(fileOrUrl: String, formatHint: ImageFileFormat?): ImageData {
+    override fun loadImage(fileOrUrl: String, formatHint: ImageFileFormat?, allowSRGB: Boolean): ImageData {
         if (fileOrUrl.startsWith("data:")) {
             val decoder = Base64.getDecoder()
             val commaIndex = fileOrUrl.indexOf(",")
@@ -133,7 +133,7 @@ class ImageDriverStbImage : ImageDriver {
             val buffer = ByteBuffer.allocateDirect(decoded.size)
             buffer.put(decoded)
             (buffer as Buffer).rewind()
-            return loadImage(MPPBuffer(buffer), "data-url", formatHint)
+            return loadImage(MPPBuffer(buffer), "data-url", formatHint, allowSRGB)
         } else {
             val url = try {
                 URL(fileOrUrl)
@@ -151,7 +151,7 @@ class ImageDriverStbImage : ImageDriver {
                     buffer.put(byteArray)
                     buffer.flip()
                     try {
-                        loadImage(MPPBuffer(buffer), fileOrUrl, formatHint)
+                        loadImage(MPPBuffer(buffer), fileOrUrl, formatHint, allowSRGB)
                     } finally {
                         MemoryUtil.memFree(buffer)
                     }
@@ -163,7 +163,7 @@ class ImageDriverStbImage : ImageDriver {
                     channel.read(buffer)
                     buffer.flip()
                     try {
-                        loadImage(MPPBuffer(buffer), fileOrUrl, formatHint)
+                        loadImage(MPPBuffer(buffer), fileOrUrl, formatHint, allowSRGB)
                     } finally {
                         MemoryUtil.memFree(buffer)
                     }
@@ -172,7 +172,7 @@ class ImageDriverStbImage : ImageDriver {
         }
     }
 
-    override fun loadImage(buffer: MPPBuffer, name: String?, formatHint: ImageFileFormat?): ImageData {
+    override fun loadImage(buffer: MPPBuffer, name: String?, formatHint: ImageFileFormat?, allowSRGB: Boolean): ImageData {
         var assumedFormat = ImageFileFormat.PNG
 
         val inputIsDirect = buffer.byteBuffer.isDirect
@@ -218,7 +218,7 @@ class ImageDriverStbImage : ImageDriver {
                     val blueOffset = 2
                     when (bitsPerChannel) {
                         8 -> {
-                            targetType = ColorType.UINT8
+                            targetType = if (allowSRGB) ColorType.UINT8_SRGB else ColorType.UINT8
                             mask = 0xff
                         }
 
@@ -504,7 +504,9 @@ class ImageDriverStbImage : ImageDriver {
                 when (Pair(imageData.format, imageData.type)) {
                     Pair(ColorFormat.R, ColorType.UINT8),
                     Pair(ColorFormat.RGB, ColorType.UINT8),
-                    Pair(ColorFormat.RGBa, ColorType.UINT8) -> {
+                    Pair(ColorFormat.RGBa, ColorType.UINT8),
+                    Pair(ColorFormat.RGB, ColorType.UINT8_SRGB),
+                    Pair(ColorFormat.RGBa, ColorType.UINT8_SRGB) -> {
                         require(
                             STBImageWrite.stbi_write_png(
                                 filename,
@@ -529,7 +531,9 @@ class ImageDriverStbImage : ImageDriver {
                 when (Pair(imageData.format, imageData.type)) {
                     Pair(ColorFormat.R, ColorType.UINT8),
                     Pair(ColorFormat.RGB, ColorType.UINT8),
-                    Pair(ColorFormat.RGBa, ColorType.UINT8) -> {
+                    Pair(ColorFormat.RGBa, ColorType.UINT8),
+                    Pair(ColorFormat.RGB, ColorType.UINT8),
+                    Pair(ColorFormat.RGBa, ColorType.UINT8_SRGB) -> {
                         require(
                             STBImageWrite.stbi_write_jpg(
                                 filename,

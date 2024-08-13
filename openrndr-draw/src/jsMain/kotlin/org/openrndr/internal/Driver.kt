@@ -1,5 +1,6 @@
 package org.openrndr.internal
 
+import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
 
 /**
@@ -139,7 +140,7 @@ actual interface Driver {
         session: Session?
     ): VolumeTexture
 
-    actual fun clear(r: Double, g: Double, b: Double, a: Double)
+    actual fun clear(color: ColorRGBa)
     actual fun createDynamicVertexBuffer(
         format: VertexFormat,
         vertexCount: Int,

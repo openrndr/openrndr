@@ -2,8 +2,8 @@
 
 package org.openrndr.internal
 
+import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
-import org.openrndr.utils.buffer.MPPBuffer
 import kotlin.jvm.JvmName
 
 
@@ -130,14 +130,9 @@ expect interface Driver {
         session: Session? = Session.active
     ): VolumeTexture
 
-//    fun createResourceThread(session: Session? = Session.active, f: () -> Unit): ResourceThread
-//    fun createDrawThread(session: Session? = Session.active): DrawThread
 
-    fun clear(r: Double, g: Double, b: Double, a: Double)
+    fun clear(color: ColorRGBa)
 
-//    fun clear(color: ColorRGBa) {
-//        clear(color.r, color.g, color.b, color.a)
-//    }
 
     fun createDynamicVertexBuffer(
         format: VertexFormat,

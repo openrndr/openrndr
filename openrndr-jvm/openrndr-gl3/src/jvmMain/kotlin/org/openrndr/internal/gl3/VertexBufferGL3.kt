@@ -59,6 +59,10 @@ class VertexBufferGL3(
     override val session: Session?
 ) : VertexBuffer() {
 
+    override fun close() {
+        destroy()
+    }
+
     internal val bufferHash = bufferId.getAndAdd(1)
     internal var realShadow: VertexBufferShadowGL3? = null
 

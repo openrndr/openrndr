@@ -275,22 +275,9 @@ class Drawer(val driver: Driver) {
         transform(target) *= Matrix44.rotate(axis, rotationInDegrees)
     }
 
-    fun clear(r: Double, g: Double, b: Double, a: Double) {
-        driver.clear(r, g, b, a)
-    }
 
     fun clear(color: ColorRGBa) {
-        driver.clear(color.r, color.g, color.b, color.alpha)
-    }
-
-    @Deprecated("background will be replaced by clear", replaceWith = ReplaceWith("clear(r,g,b,a)"))
-    fun background(r: Double, g: Double, b: Double, a: Double) {
-        driver.clear(r, g, b, a)
-    }
-
-    @Deprecated("background will be replaced by clear", replaceWith = ReplaceWith("clear(color)"))
-    fun background(color: ColorRGBa) {
-        driver.clear(color.r, color.g, color.b, color.alpha)
+        driver.clear(color)
     }
 
     /**
@@ -1141,7 +1128,7 @@ class Drawer(val driver: Driver) {
         meshLineDrawer.drawLineStrips(
             context,
             drawStyle,
-            paths.map { p -> p.adaptivePositions(0.03).let { if (p.closed) it.dropLast(1) else it} },
+            paths.map { p -> p.adaptivePositions(0.03).let { if (p.closed) it.dropLast(1) else it } },
             weights,
             colors,
             closed = paths.map { it.closed })

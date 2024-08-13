@@ -10,10 +10,8 @@ import org.openrndr.internal.ImageDriver
 import org.openrndr.shape.IntRectangle
 import org.openrndr.shape.Rectangle
 import org.openrndr.utils.buffer.MPPBuffer
-import org.w3c.dom.CanvasRenderingContext2D
 
-actual abstract class ColorBuffer {
-
+actual abstract class ColorBuffer : AutoCloseable {
 
     /**
      * write the contents from [sourceBuffer] to the [ColorBuffer], potentially with format and type conversions
@@ -174,9 +172,11 @@ actual abstract class ColorBuffer {
 actual fun loadImage(
     fileOrUrl: String,
     formatHint: ImageFileFormat?,
+    allowSRGB: Boolean,
+    loadMipmaps: Boolean,
     session: Session?
 ): ColorBuffer {
-    val data = ImageDriver.instance.loadImage(fileOrUrl, formatHint)
+    val data = ImageDriver.instance.loadImage(fileOrUrl, formatHint, allowSRGB)
     return try {
         val cb = colorBuffer(
             data.width,
@@ -198,7 +198,8 @@ actual fun loadImage(
 actual suspend fun loadImageSuspend(
     fileOrUrl: String,
     formatHint: ImageFileFormat?,
+    allowSRGB: Boolean,
     session: Session?
 ): ColorBuffer {
-    return loadImage(fileOrUrl, formatHint, session)
+    return loadImage(fileOrUrl, formatHint, allowSRGB, true, session)
 }

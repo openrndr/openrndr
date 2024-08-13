@@ -14,13 +14,13 @@ import org.openrndr.draw.depthBuffer as _depthBuffer
  * @param index the binding index for [RenderTarget]
  * @param name an optional name for the binding, defaults to `null`
  */
-sealed class ColorAttachment(val index: Int, val name: String?)
+sealed class ColorAttachment(val index: Int, val name: String?, val format: ColorFormat, val type: ColorType)
 class ColorBufferAttachment(
     index: Int,
     name: String?,
     val colorBuffer: ColorBuffer,
     val level: Int
-) : ColorAttachment(index, name)
+) : ColorAttachment(index, name, colorBuffer.format, colorBuffer.type)
 
 class ArrayTextureAttachment(
     index: Int,
@@ -28,14 +28,14 @@ class ArrayTextureAttachment(
     val arrayTexture: ArrayTexture,
     val layer: Int,
     val level: Int
-) : ColorAttachment(index, name)
+) : ColorAttachment(index, name, arrayTexture.format, arrayTexture.type)
 
 class LayeredArrayTextureAttachment(
     index: Int,
     name: String?,
     val arrayTexture: ArrayTexture,
     val level: Int
-) : ColorAttachment(index, name)
+) : ColorAttachment(index, name, arrayTexture.format, arrayTexture.type)
 
 class VolumeTextureAttachment(
     index: Int,
@@ -43,14 +43,14 @@ class VolumeTextureAttachment(
     val volumeTexture: VolumeTexture,
     val layer: Int,
     val level: Int
-) : ColorAttachment(index, name)
+) : ColorAttachment(index, name, volumeTexture.format, volumeTexture.type)
 
 class LayeredVolumeTextureAttachment(
     index: Int,
     name: String?,
     val volumeTexture: VolumeTexture,
     val level: Int
-) : ColorAttachment(index, name)
+) : ColorAttachment(index, name, volumeTexture.format, volumeTexture.type)
 
 class ArrayCubemapAttachment(
     index: Int,
@@ -59,14 +59,14 @@ class ArrayCubemapAttachment(
     val side: CubemapSide,
     val layer: Int,
     val level: Int
-) : ColorAttachment(index, name)
+) : ColorAttachment(index, name, arrayCubemap.format, arrayCubemap.type)
 
 class LayeredArrayCubemapAttachment(
     index: Int,
     name: String?,
     val arrayCubemap: ArrayCubemap,
     val level: Int
-) : ColorAttachment(index, name)
+) : ColorAttachment(index, name, arrayCubemap.format, arrayCubemap.type)
 
 class CubemapAttachment(
     index: Int,
@@ -74,14 +74,14 @@ class CubemapAttachment(
     val cubemap: Cubemap,
     val side: CubemapSide,
     val level: Int
-) : ColorAttachment(index, name)
+) : ColorAttachment(index, name, cubemap.format, cubemap.type)
 
 class LayeredCubemapAttachment(
     index: Int,
     name: String?,
     val cubemap: Cubemap,
     val level: Int
-) : ColorAttachment(index, name)
+) : ColorAttachment(index, name, cubemap.format, cubemap.type)
 
 interface RenderTarget {
     /** [Session] in which this render target is created. */
@@ -154,7 +154,10 @@ interface RenderTarget {
     /** Detach all color attachments. */
     fun detachColorAttachments()
 
-    @Deprecated("detachColorBuffer is deprecated, use detachColorAttachments", replaceWith = ReplaceWith("detachColorAttachments"))
+    @Deprecated(
+        "detachColorBuffer is deprecated, use detachColorAttachments",
+        replaceWith = ReplaceWith("detachColorAttachments")
+    )
     fun detachColorBuffers()
 
     /** Detach the [depthBuffer]. */
@@ -217,14 +220,19 @@ interface RenderTarget {
                 is ColorBufferAttachment -> {
                     // TODO remove sourceRectangle and targetRectangle arguments when https://youtrack.jetbrains.com/issue/KT-45542 is fixed
                     val sourceRectangle = IntRectangle(
-                    0,
-                    0,
-                    this.effectiveWidth / (1 shl 0),
-                    this.effectiveHeight / (1 shl 0)
+                        0,
+                        0,
+                        this.effectiveWidth / (1 shl 0),
+                        this.effectiveHeight / (1 shl 0)
                     )
-                    val targetRectangle = IntRectangle(0,0, sourceRectangle.width, sourceRectangle.height)
-                    a.colorBuffer.copyTo((to.colorAttachments[i] as ColorBufferAttachment).colorBuffer, sourceRectangle = sourceRectangle, targetRectangle = targetRectangle)
+                    val targetRectangle = IntRectangle(0, 0, sourceRectangle.width, sourceRectangle.height)
+                    a.colorBuffer.copyTo(
+                        (to.colorAttachments[i] as ColorBufferAttachment).colorBuffer,
+                        sourceRectangle = sourceRectangle,
+                        targetRectangle = targetRectangle
+                    )
                 }
+
                 else -> {
 
                 }
@@ -241,7 +249,14 @@ class RenderTargetBuilder(private val renderTarget: RenderTarget) {
 
     @Deprecated("you should not use this", replaceWith = ReplaceWith("colorBuffer()"), level = DeprecationLevel.ERROR)
     @Suppress("UNUSED_PARAMETER")
-    fun colorBuffer(width: Int, height: Int, contentScale: Double = 1.0, format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.UINT8, multisample: BufferMultisample): Nothing {
+    fun colorBuffer(
+        width: Int,
+        height: Int,
+        contentScale: Double = 1.0,
+        format: ColorFormat = ColorFormat.RGBa,
+        type: ColorType = defaultColorType(format),
+        multisample: BufferMultisample
+    ): Nothing {
         throw IllegalStateException("use colorBuffer without width and height arguments")
     }
 
@@ -272,20 +287,34 @@ class RenderTargetBuilder(private val renderTarget: RenderTarget) {
      * create a new [ColorBuffer] and create a named attachment to the [RenderTarget]
      * @param name the name for the attachment
      * @param format the [ColorFormat] for the [ColorBuffer], default is [ColorFormat.RGBa]
-     * @param type the [ColorType] for the [ColorBuffer], default is [ColorType.UINT8]
+     * @param type the [ColorType] for the [ColorBuffer], default is [ColorType.UINT8_SRGB]
      */
-    fun colorBuffer(name: String, format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.UINT8) {
-        val cb = _colorBuffer(renderTarget.width, renderTarget.height, renderTarget.contentScale, format, type, renderTarget.multisample)
+    fun colorBuffer(name: String, format: ColorFormat = ColorFormat.RGBa, type: ColorType = defaultColorType(format)) {
+        val cb = _colorBuffer(
+            renderTarget.width,
+            renderTarget.height,
+            renderTarget.contentScale,
+            format,
+            type,
+            renderTarget.multisample
+        )
         renderTarget.attach(cb, 0, name)
     }
 
     /**
      * create a new [ColorBuffer] and create a nameless attachment to the [RenderTarget]
      * @param format the [ColorFormat] for the [ColorBuffer], default is [ColorFormat.RGBa]
-     * @param type the [ColorType] for the [ColorBuffer], default is [ColorType.UINT8]
+     * @param type the [ColorType] for the [ColorBuffer], default is [ColorType.UINT8_SRGB]
      */
-    fun colorBuffer(format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.UINT8) {
-        val cb = _colorBuffer(renderTarget.width, renderTarget.height, renderTarget.contentScale, format, type, renderTarget.multisample)
+    fun colorBuffer(format: ColorFormat = ColorFormat.RGBa, type: ColorType = defaultColorType(format)) {
+        val cb = _colorBuffer(
+            renderTarget.width,
+            renderTarget.height,
+            renderTarget.contentScale,
+            format,
+            type,
+            renderTarget.multisample
+        )
         renderTarget.attach(cb)
     }
 
@@ -380,7 +409,14 @@ class RenderTargetBuilder(private val renderTarget: RenderTarget) {
      * @param format the [DepthFormat] for the [DepthBuffer], default is [DepthFormat.DEPTH_STENCIL]
      */
     fun depthBuffer(format: DepthFormat = DepthFormat.DEPTH_STENCIL) {
-        renderTarget.attach(_depthBuffer(renderTarget.effectiveWidth, renderTarget.effectiveHeight, format, renderTarget.multisample))
+        renderTarget.attach(
+            _depthBuffer(
+                renderTarget.effectiveWidth,
+                renderTarget.effectiveHeight,
+                format,
+                renderTarget.multisample
+            )
+        )
         renderTarget.clearDepth()
     }
 
@@ -405,11 +441,13 @@ class RenderTargetBuilder(private val renderTarget: RenderTarget) {
  * @param session specify the session under which the [RenderTarget] should be created, default is [Session.active]
  */
 @OptIn(ExperimentalContracts::class)
-fun renderTarget(width: Int, height: Int,
-                 contentScale: Double = 1.0,
-                 multisample: BufferMultisample = BufferMultisample.Disabled,
-                 session: Session? = Session.active,
-                 builder: RenderTargetBuilder.() -> Unit): RenderTarget {
+fun renderTarget(
+    width: Int, height: Int,
+    contentScale: Double = 1.0,
+    multisample: BufferMultisample = BufferMultisample.Disabled,
+    session: Session? = Session.active,
+    builder: RenderTargetBuilder.() -> Unit
+): RenderTarget {
 
     contract {
         callsInPlace(builder, InvocationKind.EXACTLY_ONCE)
@@ -427,6 +465,7 @@ fun renderTarget(width: Int, height: Int,
                 multisample
             }
         }
+
         else -> multisample
     }
 

@@ -29,7 +29,6 @@ class VertexBufferShadowWebGL(override val vertexBuffer: VertexBuffer) : VertexB
 
 }
 
-
 class VertexBufferWebGL(
     val context: GL,
     val buffer: WebGLBuffer,
@@ -37,6 +36,10 @@ class VertexBufferWebGL(
     override val vertexCount: Int,
     override val session: Session?
 ) : VertexBuffer() {
+
+    override fun close() {
+        destroy()
+    }
 
     private var destroyed = false
 

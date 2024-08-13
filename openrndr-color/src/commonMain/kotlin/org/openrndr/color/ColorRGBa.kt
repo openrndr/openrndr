@@ -10,11 +10,8 @@ import kotlin.math.pow
 
 @Serializable
 enum class Linearity(val certainty: Int) {
-    UNKNOWN(-1),
     LINEAR(1),
     SRGB(1),
-    ASSUMED_LINEAR(0),
-    ASSUMED_SRGB(0)
     ;
 
     fun leastCertain(other: Linearity): Linearity {
@@ -26,15 +23,7 @@ enum class Linearity(val certainty: Int) {
     }
 
     fun isEquivalent(other: Linearity): Boolean {
-        return if (this == UNKNOWN || other == UNKNOWN) {
-            false
-        } else if (this == other) {
-            true
-        } else {
-            if ((this == LINEAR || this == ASSUMED_LINEAR) && (other == LINEAR || other == ASSUMED_LINEAR)) {
-                true
-            } else (this == SRGB || this == ASSUMED_SRGB) && (other == SRGB || other == ASSUMED_SRGB)
-        }
+        return this == other
     }
 
 }
@@ -57,7 +46,7 @@ data class ColorRGBa(
     val g: Double,
     val b: Double,
     override val alpha: Double = 1.0,
-    val linearity: Linearity = Linearity.UNKNOWN
+    val linearity: Linearity = Linearity.LINEAR
 ) :
     ColorModel<ColorRGBa>,
     ShadableColor<ColorRGBa>,
@@ -161,14 +150,14 @@ data class ColorRGBa(
         val GRAY = ColorRGBa(0.5, 0.5, 0.5, 1.0, Linearity.SRGB)
 
         /** @suppress */
-        val TRANSPARENT = ColorRGBa(0.0, 0.0, 0.0, 0.0, Linearity.SRGB)
+        val TRANSPARENT = ColorRGBa(0.0, 0.0, 0.0, 0.0, Linearity.LINEAR)
 
         /**
          * Create a ColorRGBa object from a [Vector3]
          * @param vector input vector, `[x, y, z]` is mapped to `[r, g, b]`
          * @param alpha optional alpha value, default is 1.0
          */
-        fun fromVector(vector: Vector3, alpha: Double = 1.0, linearity: Linearity = Linearity.SRGB): ColorRGBa {
+        fun fromVector(vector: Vector3, alpha: Double = 1.0, linearity: Linearity = Linearity.LINEAR): ColorRGBa {
             return ColorRGBa(vector.x, vector.y, vector.z, alpha, linearity)
         }
 
@@ -177,7 +166,7 @@ data class ColorRGBa(
          * Create a ColorRGBa object from a [Vector4]
          * @param vector input vector, `[x, y, z, w]` is mapped to `[r, g, b, a]`
          */
-        fun fromVector(vector: Vector4, linearity: Linearity = Linearity.SRGB): ColorRGBa {
+        fun fromVector(vector: Vector4, linearity: Linearity = Linearity.LINEAR): ColorRGBa {
             return ColorRGBa(vector.x, vector.y, vector.z, vector.w, linearity)
         }
     }
@@ -245,6 +234,13 @@ data class ColorRGBa(
             else -> 0.2126 * r + 0.7152 * g + 0.0722 * b
         }
 
+    fun toLinearity(linearity: Linearity): ColorRGBa {
+        return when (linearity) {
+            Linearity.SRGB -> toSRGB()
+            Linearity.LINEAR -> toLinear()
+        }
+    }
+
     /**
      * calculate the contrast value between this color and the given color
      * contrast value is accordingo to <a>// see http://www.w3.org/TR/2008/REC-WCAG20-20081211/#contrast-ratiodef</a>
@@ -275,8 +271,7 @@ data class ColorRGBa(
         }
         return when (linearity) {
             Linearity.SRGB -> ColorRGBa(t(r), t(g), t(b), alpha, Linearity.LINEAR)
-            Linearity.UNKNOWN, Linearity.ASSUMED_SRGB -> ColorRGBa(t(r), t(g), t(b), alpha, Linearity.ASSUMED_LINEAR)
-            Linearity.ASSUMED_LINEAR, Linearity.LINEAR -> this
+            else -> this
         }
     }
 
@@ -290,8 +285,7 @@ data class ColorRGBa(
         }
         return when (linearity) {
             Linearity.LINEAR -> ColorRGBa(t(r), t(g), t(b), alpha, Linearity.SRGB)
-            Linearity.UNKNOWN, Linearity.ASSUMED_LINEAR -> ColorRGBa(t(r), t(g), t(b), alpha, Linearity.ASSUMED_SRGB)
-            Linearity.ASSUMED_SRGB, Linearity.SRGB -> this
+            else -> this
         }
     }
 
@@ -350,11 +344,11 @@ fun mix(left: ColorRGBa, right: ColorRGBa, x: Double): ColorRGBa {
         )
     } else {
         return when (right.linearity) {
-            Linearity.LINEAR, Linearity.ASSUMED_LINEAR -> {
+            Linearity.LINEAR -> {
                 mix(left.toLinear(), right.toLinear(), x)
             }
 
-            Linearity.SRGB, Linearity.ASSUMED_SRGB -> {
+            Linearity.SRGB -> {
                 mix(left.toSRGB(), right.toSRGB(), x)
             }
 

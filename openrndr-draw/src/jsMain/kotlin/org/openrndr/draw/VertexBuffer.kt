@@ -4,7 +4,7 @@ import org.khronos.webgl.Float32Array
 import org.openrndr.internal.Driver
 import org.openrndr.utils.buffer.MPPBuffer
 
-actual abstract class VertexBuffer {
+actual abstract class VertexBuffer : AutoCloseable {
     actual abstract val session: Session?
     actual abstract val vertexFormat: VertexFormat
     actual abstract val vertexCount: Int
@@ -23,7 +23,7 @@ actual abstract class VertexBuffer {
         w.positionElements = elementOffset
         w.putter()
         // *4 is because the underlying buffer is 4-byte floats
-        if (w.position*4 % vertexFormat.size != 0) {
+        if (w.position * 4 % vertexFormat.size != 0) {
             throw RuntimeException("incomplete vertices written at ${w.position}. likely violating the specified vertex format $vertexFormat")
         }
         val count = w.positionElements - elementOffset
@@ -49,8 +49,8 @@ actual abstract class VertexBuffer {
         }
     }
 
-    abstract fun write(data: FloatArray, offsetBytes:Int, floatCount: Int)
-    abstract fun write(data: Float32Array, offsetBytes:Int, floatCount : Int)
+    abstract fun write(data: FloatArray, offsetBytes: Int, floatCount: Int)
+    abstract fun write(data: Float32Array, offsetBytes: Int, floatCount: Int)
     actual abstract fun write(
         source: MPPBuffer,
         targetByteOffset: Int,

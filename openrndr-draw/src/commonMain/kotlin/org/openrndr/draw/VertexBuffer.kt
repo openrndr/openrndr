@@ -3,7 +3,7 @@ package org.openrndr.draw
 import org.openrndr.utils.buffer.MPPBuffer
 
 
-expect abstract class VertexBuffer {
+expect abstract class VertexBuffer : AutoCloseable {
     abstract val session: Session?
 
     abstract val vertexFormat: VertexFormat
@@ -13,6 +13,7 @@ expect abstract class VertexBuffer {
      * Gives a read/write shadow for the vertex buffer
      */
     abstract val shadow: VertexBufferShadow
+
     /**
      * Destroy the vertex buffer
      */

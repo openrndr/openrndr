@@ -4,7 +4,7 @@ import org.openrndr.internal.Driver
 import org.openrndr.utils.buffer.MPPBuffer
 import java.nio.ByteBuffer
 
-actual abstract class VertexBuffer {
+actual abstract class VertexBuffer: AutoCloseable {
     actual abstract val session: Session?
 
     actual companion object {

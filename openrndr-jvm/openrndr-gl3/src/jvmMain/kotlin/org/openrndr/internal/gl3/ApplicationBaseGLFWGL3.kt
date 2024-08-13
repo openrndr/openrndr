@@ -9,7 +9,8 @@ import org.openrndr.draw.font.internal.FontDriver
 import org.openrndr.internal.ImageDriver
 import org.openrndr.internal.gl3.angle.extractAngleLibraries
 
-private val logger = KotlinLogging.logger {  }
+private val logger = KotlinLogging.logger { }
+
 class ApplicationBaseGLFWGL3 : ApplicationBase() {
     init {
         logger.debug { "initializing ApplicationBaseGLFWGL3" }
@@ -17,13 +18,21 @@ class ApplicationBaseGLFWGL3 : ApplicationBase() {
             org.lwjgl.system.Configuration.GLFW_CHECK_THREAD0.set(false)
         }
 
-        if (!glfwInit()) {
-            throw IllegalStateException("Unable to initialize GLFW")
+        if (DriverGL3Configuration.driverType == DriverTypeGL.GLES) {
+            val useAngle = DriverGL3Configuration.glesBackend == GlesBackend.ANGLE
+            if (useAngle) {
+                //glfwInitHint(GLFW_ANGLE_PLATFORM_TYPE, GLFW_ANGLE_PLATFORM_TYPE_METAL)
+            }
         }
 
         if (DriverGL3Configuration.driverType == DriverTypeGL.GLES && DriverGL3Configuration.glesBackend == GlesBackend.ANGLE) {
             extractAngleLibraries()
         }
+
+        if (!glfwInit()) {
+            throw IllegalStateException("Unable to initialize GLFW")
+        }
+
         ImageDriver.driver = ImageDriverStbImage()
         FontDriver.driver = FontDriverStbTt()
     }
@@ -39,8 +48,10 @@ class ApplicationBaseGLFWGL3 : ApplicationBase() {
                     val monitor = detectedMonitors[i]
                     val videoMode = glfwGetVideoMode(monitor)
                     glfwGetMonitorPos(monitor, x, y)
+                    videoMode?.refreshRate()
                     // vertical scale is reportedly flaky, so we disregard it
                     glfwGetMonitorContentScale(monitor, contentScale, null)
+
                     DisplayGLFWGL3(
                         monitor, glfwGetMonitorName(monitor), x[0], y[0],
                         videoMode?.width(), videoMode?.height(), contentScale[0].toDouble()

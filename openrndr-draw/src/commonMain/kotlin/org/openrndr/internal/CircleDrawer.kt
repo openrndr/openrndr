@@ -30,7 +30,7 @@ class CircleDrawer {
 
     internal fun ensureBatchSize(size: Int) {
         if (batch.size < size) {
-            batch.destroy()
+            batch.close()
             batch = CircleBatch.create(size, session = Session.root)
         }
     }
@@ -147,8 +147,8 @@ class CircleDrawer {
 
         batch.drawStyle.shadow.writer().apply {
             rewind()
-            write(drawStyle.fill ?: ColorRGBa.TRANSPARENT)
-            write(drawStyle.stroke ?: ColorRGBa.TRANSPARENT)
+            write(drawStyle.fill?.toLinear() ?: ColorRGBa.TRANSPARENT)
+            write(drawStyle.stroke?.toLinear() ?: ColorRGBa.TRANSPARENT)
             val weight = if (drawStyle.stroke == null || drawStyle.stroke?.alpha == 0.0) 0.0 else
                 drawStyle.strokeWeight
             write(weight.toFloat())

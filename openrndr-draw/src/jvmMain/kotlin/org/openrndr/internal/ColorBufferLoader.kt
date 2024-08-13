@@ -1,7 +1,7 @@
 package org.openrndr.internal
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.openrndr.draw.ColorBuffer
+import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.ColorBufferProxy
 import org.openrndr.draw.loadImage
 import java.io.IOException
@@ -102,7 +102,7 @@ class ColorBufferLoader {
                             }
                         }
                     }
-                    Driver.instance.clear(0.0, 0.0, 0.0, 1.0)
+                    Driver.instance.clear(ColorRGBa.BLACK)
                     Thread.sleep(5)
                 }
             }

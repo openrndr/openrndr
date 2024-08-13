@@ -4,6 +4,7 @@ import org.lwjgl.glfw.GLFW
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL33C.GL_TRUE
 import org.lwjgl.system.MemoryUtil
+import org.openrndr.color.ColorRGBa
 import org.openrndr.internal.Driver
 import org.openrndr.internal.ResourceThread
 import kotlin.concurrent.thread
@@ -30,7 +31,7 @@ class ResourceThreadGL3 : ResourceThread {
             thread(isDaemon = true, name = "ResourceThread") {
                 GLFW.glfwMakeContextCurrent(contextWindow)
                 GL.createCapabilities()
-                Driver.instance.clear(0.0, 0.0, 0.0, 1.0)
+                Driver.instance.clear(ColorRGBa.BLACK)
                 f()
                 GLFW.glfwDestroyWindow(contextWindow)
             }
