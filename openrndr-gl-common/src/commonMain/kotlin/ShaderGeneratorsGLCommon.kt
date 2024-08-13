@@ -44,6 +44,7 @@ class ShaderGeneratorsGLCommon : ShaderGenerators {
 |${if (!shadeStructure.suppressDefaultOutput) "out vec4 o_color;" else ""}
 
 |flat in int v_instance;
+|flat in float va_pointSize;
 |${fragmentMainConstants(element = "v_instance")}
 |${shadeStructure.fragmentPreamble ?: ""}
 |void main(void) {
@@ -72,6 +73,7 @@ ${transformVaryingOut}
 ${shadeStructure.vertexPreamble ?: ""}
 
 flat out int v_instance;
+flat out float va_pointSize;
 void main() {
     int instance = gl_InstanceID; // this will go use c_instance instead
 ${vertexMainConstants()}
@@ -79,6 +81,7 @@ ${shadeStructure.varyingBridge ?: ""}
     vec3 x_normal = vec3(0.0, 0.0, 0.0);
     ${if (shadeStructure.attributes?.contains("vec3 a_normal;") == true) "x_normal = a_normal;" else ""}
     vec3 x_position = a_position;
+    float x_pointSize = 1.0;
 
     ${preVertexTransform}
     {
@@ -88,6 +91,8 @@ ${shadeStructure.vertexTransform?.prependIndent("        ") ?: ""}
 
     v_instance = instance;
     gl_Position = v_clipPosition;
+    gl_PointSize = x_pointSize;
+    va_pointSize = x_pointSize;
 }
             """.trimMargin()
 
@@ -271,6 +276,7 @@ ${if (!shadeStructure.suppressDefaultOutput) "out vec4 o_color;" else ""}
 
 flat in int v_instance;
 in vec3 v_boundsSize;
+flat in float va_pointSize;
 ${
         fragmentMainConstants(boundsPosition = "vec3(0.0, 0.0, 0.0)", boundsSize = "v_boundsSize")
     }
@@ -304,6 +310,7 @@ ${shadeStructure.vertexPreamble ?: ""}
 
 flat out int v_instance;
 out vec3 v_boundsSize;
+flat out float va_pointSize;
 void main() {
     v_instance = gl_InstanceID;
 
@@ -313,12 +320,15 @@ void main() {
     ${preVertexTransform}
     vec3 x_normal = vec3(0.0, 0.0, 1.0);
     vec3 x_position = a_position  + i_offset;
+    float x_pointSize = 1.0;
     {
 ${shadeStructure.vertexTransform?.prependIndent("        ") ?: ""}
     }
     va_position = x_position;
     ${postVertexTransform}
     gl_Position = v_clipPosition;
+    gl_PointSize = x_pointSize;
+    va_pointSize = x_pointSize;
 }"""
 
 
