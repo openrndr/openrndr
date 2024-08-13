@@ -208,17 +208,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         }
 
     override fun clear(color: ColorRGBa) {
-        val isBackBuffer = RenderTarget.active is ProgramRenderTarget
-
-        val targetColor = if (isBackBuffer) {
-            color.toLinear()
-        } else if (RenderTarget.active.colorAttachments[0].type.isSRGB) {
-            color.toLinear()
-        } else {
-            color.toLinear()
-        }
-
-
+        val targetColor = color.toLinear()
         debugGLErrors()
         glClearColor(targetColor.r.toFloat(), targetColor.g.toFloat(), targetColor.b.toFloat(), targetColor.a.toFloat())
         glClearDepth(1.0)
