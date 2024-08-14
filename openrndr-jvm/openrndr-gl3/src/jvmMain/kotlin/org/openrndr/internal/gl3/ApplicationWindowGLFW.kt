@@ -615,11 +615,6 @@ fun createApplicationWindowGlfw(
         program
     )
 
-    if (DriverGL3Configuration.useDebugContext) {
-        println("setting up debug context")
-        GLUtil.setupDebugMessageCallback()
-        glEnable(GL43C.GL_DEBUG_OUTPUT_SYNCHRONOUS)
-    }
     window.setDefaultIcon()
     return window
 }

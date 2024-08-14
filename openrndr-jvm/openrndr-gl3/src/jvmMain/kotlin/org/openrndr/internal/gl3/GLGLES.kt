@@ -268,6 +268,17 @@ fun glGetShaderInfoLog(
     }
 }
 
+fun glGetProgramInfoLog(
+    @NativeType("GLuint") program: Int,
+    @NativeType("GLsizei *") length: IntArray?,
+    @NativeType("GLchar *") infoLog: ByteBuffer
+) {
+    return when (driverType) {
+        DriverTypeGL.GL -> GL.glGetProgramInfoLog(program, length, infoLog)
+        DriverTypeGL.GLES -> GLES.glGetProgramInfoLog(program, length, infoLog)
+    }
+}
+
 // --- [ glCreateProgram ] ---
 fun glCreateProgram(): Int {
     return when (driverType) {

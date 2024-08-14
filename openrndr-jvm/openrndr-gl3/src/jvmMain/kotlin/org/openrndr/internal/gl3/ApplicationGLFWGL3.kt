@@ -11,7 +11,6 @@ import org.lwjgl.glfw.GLFWImage
 import org.lwjgl.opengl.GL43C as GL
 import org.lwjgl.opengl.GLUtil
 import org.lwjgl.opengles.GLES
-import org.lwjgl.opengles.GLES30
 import org.lwjgl.system.MemoryStack.stackPush
 import org.lwjgl.system.MemoryUtil.NULL
 import org.openrndr.*
@@ -652,10 +651,17 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
             DriverTypeGL.GL -> org.lwjgl.opengl.GL.createCapabilities()
             DriverTypeGL.GLES -> GLES.createCapabilities()
         }
+        logger.info { "OpenGL vendor: ${glGetString(GL.GL_VENDOR)}" }
+        logger.info { "OpenGL renderer: ${glGetString(GL.GL_RENDERER)}" }
+        logger.info { "OpenGL version: ${glGetString(GL.GL_VERSION)}" }
 
         if (DriverGL3Configuration.useDebugContext) {
             if (Driver.glType == DriverTypeGL.GL) {
                 GLUtil.setupDebugMessageCallback()
+                glEnable(GL.GL_DEBUG_OUTPUT_SYNCHRONOUS)
+            }
+            if (Driver.glType == DriverTypeGL.GLES) {
+                GLESUtil.setupDebugMessageCallback()
                 glEnable(GL.GL_DEBUG_OUTPUT_SYNCHRONOUS)
             }
         }
@@ -939,10 +945,6 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
             pointerInput?.pollEvents()
             glfwPollEvents()
         }
-
-        logger.info { "OpenGL vendor: ${glGetString(GL.GL_VENDOR)}" }
-        logger.info { "OpenGL renderer: ${glGetString(GL.GL_RENDERER)}" }
-        logger.info { "OpenGL version: ${glGetString(GL.GL_VERSION)}" }
 
         if (configuration.hideCursor) {
             cursorVisible = false
