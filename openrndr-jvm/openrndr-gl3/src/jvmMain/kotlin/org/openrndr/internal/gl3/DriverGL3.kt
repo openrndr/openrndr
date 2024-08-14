@@ -1221,7 +1221,9 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
             cached.cullTestPass = drawStyle.cullTestPass
         }
 
-        glEnable(GL_VERTEX_PROGRAM_POINT_SIZE)
+        if (Driver.glType == DriverTypeGL.GL) {
+            glEnable(GL_VERTEX_PROGRAM_POINT_SIZE)
+        }
 
         dirtyPerContext[contextID] = false
         debugGLErrors()
