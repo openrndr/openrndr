@@ -90,10 +90,7 @@ object DriverGL3Configuration {
     val useBackBufferExtension by lazy {
         when (driverType) {
             DriverTypeGL.GL -> false
-            DriverTypeGL.GLES -> {
-                val useVulkan = System.getenv("ANGLE_DEFAULT_PLATFORM") == "vulkan"
-                !useVulkan
-            }
+            DriverTypeGL.GLES -> false
         }
     }
 }
