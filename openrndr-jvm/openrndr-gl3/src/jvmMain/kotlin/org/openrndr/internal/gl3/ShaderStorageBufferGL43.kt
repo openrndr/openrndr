@@ -38,6 +38,7 @@ class ShaderStorageBufferGL43(
                     )
                 }
             }
+
             DriverTypeGL.GLES -> {
                 error("not supported")
             }
@@ -64,7 +65,9 @@ class ShaderStorageBufferGL43(
 
     override fun read(target: ByteBuffer, readOffset: Int) {
         val needed = format.size - readOffset
-        require(target.remaining() >= needed)
+        require(target.remaining() >= needed) {
+            "target buffer remaining bytes: ${target.remaining()}, need ${needed} bytes"
+        }
 
         when (Driver.glType) {
             DriverTypeGL.GL -> {
