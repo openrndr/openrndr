@@ -1,5 +1,6 @@
 import org.openrndr.application
 import org.openrndr.draw.*
+import org.openrndr.internal.Driver
 
 /**
  * Create an array of textures (layers)
@@ -37,9 +38,10 @@ fun main() {
              * The pattern in each layer depends on the layer id.
              */
             val glsl = """
-                #version 450
+                ${Driver.instance.shaderConfiguration()}
+                
                 layout(local_size_x=8, local_size_y=8) in;
-                layout(rgba32f) uniform writeonly image2DArray writeTex;
+                layout(rgba32f) uniform writeonly highp image2DArray writeTex;
                 uniform int numLayers;
                 void main() {
                     for (int layerId=0; layerId<numLayers; layerId++) {
@@ -48,8 +50,8 @@ fun main() {
                                              gl_GlobalInvocationID.y, 
                                              layerId);
                         // The color for that pixel
-                        float bri = sin(layerId * coords.x * 0.01) *
-                                    cos(layerId * coords.y * 0.03) * 0.5 + 0.5;
+                        float bri = sin(float(layerId) * float(coords.x) * 0.01) *
+                                    cos(float(layerId) * float(coords.y) * 0.03) * 0.5 + 0.5;
                         
                         // Update the pixel
                         imageStore(writeTex, coords, vec4(bri));
