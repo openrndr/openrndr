@@ -14,43 +14,44 @@ import org.openrndr.draw.depthBuffer as _depthBuffer
  * @param index the binding index for [RenderTarget]
  * @param name an optional name for the binding, defaults to `null`
  */
-sealed class ColorAttachment(val index: Int, val name: String?, val format: ColorFormat, val type: ColorType)
+sealed class ColorAttachment(val index: Int, val name: String?, val format: ColorFormat, val type: ColorType, val ownedByRenderTarget: Boolean)
 class ColorBufferAttachment(
     index: Int,
     name: String?,
     val colorBuffer: ColorBuffer,
-    val level: Int
-) : ColorAttachment(index, name, colorBuffer.format, colorBuffer.type)
+    val level: Int,
+    ownedByRenderTarget: Boolean
+) : ColorAttachment(index, name, colorBuffer.format, colorBuffer.type, ownedByRenderTarget)
 
 class ArrayTextureAttachment(
     index: Int,
     name: String?,
     val arrayTexture: ArrayTexture,
     val layer: Int,
-    val level: Int
-) : ColorAttachment(index, name, arrayTexture.format, arrayTexture.type)
+    val level: Int,
+) : ColorAttachment(index, name, arrayTexture.format, arrayTexture.type, false)
 
 class LayeredArrayTextureAttachment(
     index: Int,
     name: String?,
     val arrayTexture: ArrayTexture,
-    val level: Int
-) : ColorAttachment(index, name, arrayTexture.format, arrayTexture.type)
+    val level: Int,
+) : ColorAttachment(index, name, arrayTexture.format, arrayTexture.type, false)
 
 class VolumeTextureAttachment(
     index: Int,
     name: String?,
     val volumeTexture: VolumeTexture,
     val layer: Int,
-    val level: Int
-) : ColorAttachment(index, name, volumeTexture.format, volumeTexture.type)
+    val level: Int,
+) : ColorAttachment(index, name, volumeTexture.format, volumeTexture.type, false)
 
 class LayeredVolumeTextureAttachment(
     index: Int,
     name: String?,
     val volumeTexture: VolumeTexture,
-    val level: Int
-) : ColorAttachment(index, name, volumeTexture.format, volumeTexture.type)
+    val level: Int,
+) : ColorAttachment(index, name, volumeTexture.format, volumeTexture.type, false)
 
 class ArrayCubemapAttachment(
     index: Int,
@@ -58,30 +59,30 @@ class ArrayCubemapAttachment(
     val arrayCubemap: ArrayCubemap,
     val side: CubemapSide,
     val layer: Int,
-    val level: Int
-) : ColorAttachment(index, name, arrayCubemap.format, arrayCubemap.type)
+    val level: Int,
+) : ColorAttachment(index, name, arrayCubemap.format, arrayCubemap.type, false)
 
 class LayeredArrayCubemapAttachment(
     index: Int,
     name: String?,
     val arrayCubemap: ArrayCubemap,
-    val level: Int
-) : ColorAttachment(index, name, arrayCubemap.format, arrayCubemap.type)
+    val level: Int,
+) : ColorAttachment(index, name, arrayCubemap.format, arrayCubemap.type, false)
 
 class CubemapAttachment(
     index: Int,
     name: String?,
     val cubemap: Cubemap,
     val side: CubemapSide,
-    val level: Int
-) : ColorAttachment(index, name, cubemap.format, cubemap.type)
+    val level: Int,
+) : ColorAttachment(index, name, cubemap.format, cubemap.type, false)
 
 class LayeredCubemapAttachment(
     index: Int,
     name: String?,
     val cubemap: Cubemap,
     val level: Int
-) : ColorAttachment(index, name, cubemap.format, cubemap.type)
+) : ColorAttachment(index, name, cubemap.format, cubemap.type, false)
 
 interface RenderTarget {
     /** [Session] in which this render target is created. */
@@ -138,8 +139,8 @@ interface RenderTarget {
             get() = Driver.instance.activeRenderTarget
     }
 
-    fun attach(colorBuffer: ColorBuffer, level: Int = 0, name: String? = null)
-    fun attach(depthBuffer: DepthBuffer)
+    fun attach(colorBuffer: ColorBuffer, level: Int = 0, name: String? = null, ownedByRenderTarget: Boolean)
+    fun attach(depthBuffer: DepthBuffer, ownedByRenderTarget: Boolean)
 
     fun attach(arrayTexture: ArrayTexture, layer: Int, level: Int = 0, name: String? = null)
     fun attach(arrayCubemap: ArrayCubemap, side: CubemapSide, layer: Int, level: Int = 0, name: String? = null)
@@ -266,7 +267,7 @@ class RenderTargetBuilder(private val renderTarget: RenderTarget) {
      * @param level the [ColorBuffer]'s mipmap-level to attach, default is 0
      */
     fun colorBuffer(colorBuffer: ColorBuffer, level: Int = 0) {
-        renderTarget.attach(colorBuffer, level)
+        renderTarget.attach(colorBuffer, level, ownedByRenderTarget = false)
     }
 
     /**
@@ -277,7 +278,7 @@ class RenderTargetBuilder(private val renderTarget: RenderTarget) {
      */
     fun colorBuffer(name: String, colorBuffer: ColorBuffer, level: Int = 0) {
         if (colorBuffer.multisample == renderTarget.multisample) {
-            renderTarget.attach(colorBuffer, level, name)
+            renderTarget.attach(colorBuffer, level, name, ownedByRenderTarget = false)
         } else {
             throw IllegalArgumentException("${colorBuffer.multisample} != ${renderTarget.multisample}")
         }
@@ -298,7 +299,7 @@ class RenderTargetBuilder(private val renderTarget: RenderTarget) {
             type,
             renderTarget.multisample
         )
-        renderTarget.attach(cb, 0, name)
+        renderTarget.attach(cb, 0, name, ownedByRenderTarget = true)
     }
 
     /**
@@ -315,7 +316,7 @@ class RenderTargetBuilder(private val renderTarget: RenderTarget) {
             type,
             renderTarget.multisample
         )
-        renderTarget.attach(cb)
+        renderTarget.attach(cb, ownedByRenderTarget = true)
     }
 
     /**
@@ -415,7 +416,7 @@ class RenderTargetBuilder(private val renderTarget: RenderTarget) {
                 renderTarget.effectiveHeight,
                 format,
                 renderTarget.multisample
-            )
+            ), ownedByRenderTarget = true
         )
         renderTarget.clearDepth()
     }
@@ -426,7 +427,7 @@ class RenderTargetBuilder(private val renderTarget: RenderTarget) {
      */
     fun depthBuffer(depthBuffer: DepthBuffer) {
         if (depthBuffer.multisample == renderTarget.multisample) {
-            renderTarget.attach(depthBuffer)
+            renderTarget.attach(depthBuffer, ownedByRenderTarget = false)
         } else {
             throw IllegalArgumentException("${depthBuffer.multisample} != ${renderTarget.multisample}")
         }

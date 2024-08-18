@@ -69,7 +69,7 @@ open class RenderTargetWebGL(
         context.checkErrors("viewport")
     }
 
-    override fun attach(colorBuffer: ColorBuffer, level: Int, name: String?) {
+    override fun attach(colorBuffer: ColorBuffer, level: Int, name: String?, ownedByRenderTarget: Boolean) {
         bindTarget()
         val caps = (Driver.instance as DriverWebGL).capabilities
         if (colorBuffer.type == ColorType.FLOAT16) {
@@ -109,11 +109,11 @@ open class RenderTargetWebGL(
             "status: $status, while attaching $colorBuffer"
         }
 
-        colorAttachments.add(ColorBufferAttachment(colorAttachments.size, name, colorBuffer, level))
+        colorAttachments.add(ColorBufferAttachment(colorAttachments.size, name, colorBuffer, level, ownedByRenderTarget))
 
     }
 
-    override fun attach(depthBuffer: DepthBuffer) {
+    override fun attach(depthBuffer: DepthBuffer, ownedByRenderTarget: Boolean) {
         depthBuffer as DepthBufferWebGL
 
         val webGlAttachment =

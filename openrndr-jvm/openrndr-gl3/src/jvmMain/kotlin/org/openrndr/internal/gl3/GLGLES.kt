@@ -1643,6 +1643,13 @@ fun glGenRenderbuffers(): Int {
     }
 }
 
+fun glDeleteRenderbuffers(@NativeType("GLuint const *") renderbuffer:Int) {
+    return when (driverType) {
+        DriverTypeGL.GL -> GL.glDeleteRenderbuffers(renderbuffer)
+        DriverTypeGL.GLES -> GLES.glDeleteRenderbuffers(renderbuffer)
+    }
+}
+
 // --- [ glBindRenderbuffer ] ---
 fun glBindRenderbuffer(@NativeType("GLenum") target: Int, @NativeType("GLuint") renderbuffer: Int) {
     return when (driverType) {

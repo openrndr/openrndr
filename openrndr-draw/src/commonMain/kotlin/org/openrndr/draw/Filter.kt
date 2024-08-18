@@ -87,7 +87,7 @@ void main() {
         val renderTarget = renderTarget(target[0].width, target[0].height, target[0].contentScale) {}
 
         target.forEach {
-            renderTarget.attach(it)
+            renderTarget.attach(it, ownedByRenderTarget = false)
         }
 
         for (i in 1 until target.size) {
@@ -96,7 +96,7 @@ void main() {
 
         apply(source, renderTarget, clip)
         depthBufferOut?.let {
-            renderTarget.attach(it)
+            renderTarget.attach(it, false)
         }
 
         if (depthBufferOut != null) {

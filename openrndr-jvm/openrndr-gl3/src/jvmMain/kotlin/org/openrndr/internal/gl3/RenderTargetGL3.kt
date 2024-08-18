@@ -21,7 +21,6 @@ class NullRenderTargetGL3 : RenderTargetGL3(0, 640, 480, 1.0, BufferMultisample.
 
 class ProgramRenderTargetGL3(override val program: Program) : ProgramRenderTarget,
     RenderTargetGL3(glGetInteger(GL_FRAMEBUFFER_BINDING), 0, 0, 1.0, BufferMultisample.Disabled, Session.root) {
-
     private var cachedSize = program.window.size
     private var cachedContentScale = program.window.contentScale
 
@@ -58,7 +57,7 @@ open class RenderTargetGL3(
     private val contextID: Long = Driver.instance.contextID
 ) : RenderTarget {
     var destroyed = false
-
+    private var ownDepthBuffer = false
     override val colorAttachments: MutableList<ColorAttachment> = mutableListOf()
     override var depthBuffer: DepthBuffer? = null
 
@@ -106,8 +105,6 @@ open class RenderTargetGL3(
     override val hasStencilBuffer: Boolean get() = depthBuffer?.hasStencil == true
 
 
-
-
     override fun colorBuffer(index: Int): ColorBuffer {
         require(!destroyed)
         return (colorAttachments[index] as? ColorBufferAttachment)?.colorBuffer
@@ -116,7 +113,7 @@ open class RenderTargetGL3(
 
     override fun bind() {
         require(!destroyed)
-        require(Driver.instance.contextID == contextID) { "can't bind render target on context ${Driver.instance.contextID} it is created on ${contextID}"}
+        require(Driver.instance.contextID == contextID) { "can't bind render target on context ${Driver.instance.contextID} it is created on ${contextID}" }
         if (bound) {
             throw RuntimeException("already bound")
         } else {
@@ -171,7 +168,7 @@ open class RenderTargetGL3(
         }
     }
 
-    override fun attach(colorBuffer: ColorBuffer, level: Int, name: String?) {
+    override fun attach(colorBuffer: ColorBuffer, level: Int, name: String?, ownedByRenderTarget: Boolean) {
         require(!destroyed)
 
         val context = Driver.instance.contextID
@@ -194,7 +191,15 @@ open class RenderTargetGL3(
         )
         debugGLErrors { null }
 
-        colorAttachments.add(ColorBufferAttachment(colorAttachments.size, name, colorBuffer, level))
+        colorAttachments.add(
+            ColorBufferAttachment(
+                colorAttachments.size,
+                name,
+                colorBuffer,
+                level,
+                ownedByRenderTarget
+            )
+        )
 
         if (active[context]?.peek() != null)
             (active[context]?.peek() as RenderTargetGL3).bindTarget()
@@ -402,31 +407,37 @@ open class RenderTargetGL3(
                 glBlendEquationi(index, GL_FUNC_ADD)
                 glBlendFunci(index, GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
             }
+
             BlendMode.BLEND -> {
                 glEnable(GL_BLEND)
                 glBlendEquationi(index, GL_FUNC_ADD)
                 glBlendFunci(index, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
             }
+
             BlendMode.REPLACE -> {
                 glEnable(GL_BLEND)
                 glBlendEquationi(index, GL_FUNC_ADD)
                 glBlendFunci(index, GL_ONE, GL_ZERO)
             }
+
             BlendMode.ADD -> {
                 glEnable(GL_BLEND)
                 glBlendEquationi(index, GL_FUNC_ADD)
                 glBlendFunci(index, GL_ONE, GL_ONE)
             }
+
             BlendMode.MIN -> {
                 glEnable(GL_BLEND)
                 glBlendEquationi(index, GL_MIN)
                 glBlendFunci(index, GL_ONE, GL_ONE)
             }
+
             BlendMode.MAX -> {
                 glEnable(GL_BLEND)
                 glBlendEquationi(index, GL_MAX)
                 glBlendFunci(index, GL_ONE, GL_ONE)
             }
+
             else -> {
                 error("unsupported blend mode: $blendMode")
             }
@@ -445,7 +456,12 @@ open class RenderTargetGL3(
 
         require(!destroyed)
         bound {
-            val ca = floatArrayOf(targetColor.r.toFloat(), targetColor.g.toFloat(), targetColor.b.toFloat(), targetColor.alpha.toFloat())
+            val ca = floatArrayOf(
+                targetColor.r.toFloat(),
+                targetColor.g.toFloat(),
+                targetColor.b.toFloat(),
+                targetColor.alpha.toFloat()
+            )
             glClearBufferfv(GL_COLOR, index, ca)
         }
     }
@@ -481,8 +497,11 @@ open class RenderTargetGL3(
         }
     }
 
-    override fun attach(depthBuffer: DepthBuffer) {
+    override fun attach(depthBuffer: DepthBuffer, ownedByRenderTarget: Boolean) {
         require(!destroyed)
+        require(this.depthBuffer == null) { "a depth buffer is already attached" }
+
+        ownDepthBuffer = ownedByRenderTarget
         if (!(depthBuffer.width == effectiveWidth && depthBuffer.height == effectiveHeight)) {
             throw IllegalArgumentException("buffer dimension mismatch")
         }
@@ -517,9 +536,27 @@ open class RenderTargetGL3(
                 }
             } else {
                 when (Pair(depthBuffer.hasDepth, depthBuffer.hasStencil)) {
-                    Pair(true, true) -> glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, depthBuffer.buffer)
-                    Pair(false, true) -> glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, depthBuffer.buffer)
-                    Pair(true, false) -> glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBuffer.buffer)
+                    Pair(true, true) -> glFramebufferRenderbuffer(
+                        GL_FRAMEBUFFER,
+                        GL_DEPTH_STENCIL_ATTACHMENT,
+                        GL_RENDERBUFFER,
+                        depthBuffer.buffer
+                    )
+
+                    Pair(false, true) -> glFramebufferRenderbuffer(
+                        GL_FRAMEBUFFER,
+                        GL_STENCIL_ATTACHMENT,
+                        GL_RENDERBUFFER,
+                        depthBuffer.buffer
+                    )
+
+                    Pair(true, false) -> glFramebufferRenderbuffer(
+                        GL_FRAMEBUFFER,
+                        GL_DEPTH_ATTACHMENT,
+                        GL_RENDERBUFFER,
+                        depthBuffer.buffer
+                    )
+
                     else -> error("DepthBuffer should have at least depth or stencil components")
                 }
                 checkGLErrors()
@@ -576,6 +613,22 @@ open class RenderTargetGL3(
     }
 
     override fun destroy() {
+        for (colorAttachment in colorAttachments) {
+            if (colorAttachment.ownedByRenderTarget) {
+                when (colorAttachment) {
+                    is ColorBufferAttachment -> colorAttachment.colorBuffer.destroy()
+                    else -> {}
+                }
+            }
+        }
+
+        if (ownDepthBuffer) {
+            depthBuffer?.destroy()
+        }
+
+        detachColorAttachments()
+        detachDepthBuffer()
+
         session?.untrack(this)
         destroyed = true
         glDeleteFramebuffers(framebuffer)

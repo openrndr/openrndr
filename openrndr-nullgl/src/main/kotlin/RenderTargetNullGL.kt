@@ -7,11 +7,11 @@ class RenderTargetNullGL(override val width: Int, override val height: Int, over
     override val colorAttachments : MutableList<ColorAttachment> = mutableListOf()
 
     override var depthBuffer: DepthBuffer? = null
-    override fun attach(colorBuffer: ColorBuffer, level: Int, name: String?) {
-        colorAttachments.add(ColorBufferAttachment(colorAttachments.size, name, colorBuffer, level))
+    override fun attach(colorBuffer: ColorBuffer, level: Int, name: String?, ownedByRenderTarget: Boolean) {
+        colorAttachments.add(ColorBufferAttachment(colorAttachments.size, name, colorBuffer, level, ownedByRenderTarget))
     }
 
-    override fun attach(depthBuffer: DepthBuffer) {
+    override fun attach(depthBuffer: DepthBuffer, ownedByRenderTarget: Boolean) {
         this.depthBuffer = depthBuffer
     }
 

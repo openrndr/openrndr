@@ -3,7 +3,6 @@ package org.openrndr.internal.gl3
 import org.lwjgl.opengl.*
 import org.lwjgl.opengl.GL12C.*
 import org.lwjgl.opengl.GL13.GL_TEXTURE0
-import org.lwjgl.opengl.GL42C.glTexStorage3D
 import org.lwjgl.opengl.GL45C.glTextureStorage3D
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
@@ -93,7 +92,6 @@ class VolumeTextureGL3(
     }
 
 
-
     override fun read(layer: Int, target: ByteBuffer, targetFormat: ColorFormat, targetType: ColorType, level: Int) {
         if (useNamedTexture) {
             GL45.glGetTextureSubImage(
@@ -162,9 +160,9 @@ class VolumeTextureGL3(
 
             target as ColorBufferGL3
             readTarget.bind()
-            GL33C.glReadBuffer(GL33C.GL_COLOR_ATTACHMENT0)
+            glReadBuffer(GL33C.GL_COLOR_ATTACHMENT0)
             target.bound {
-                GL33C.glCopyTexSubImage2D(
+                glCopyTexSubImage2D(
                     target.target,
                     toLevel,
                     0,
@@ -219,29 +217,47 @@ class VolumeTextureGL3(
             }
             val (internalFormat, _) = internalFormat(format, type)
 
-            glTexImage3D(
-                GL33C.GL_PROXY_TEXTURE_3D,
-                0,
-                internalFormat,
-                width,
-                height,
-                depth,
-                0,
-                format.glFormat(),
-                type.glType(), null as ByteBuffer?
-            )
+            debugGLErrors() { "pre-existing errors"}
+
+            val useStorage = Driver.glType == DriverTypeGL.GLES && Driver.glVersion >= DriverVersionGL.GLES_VERSION_3_1
+
+            /*
+            if (useStorage) {
+                glTexStorage3D(
+                    GL33C.GL_PROXY_TEXTURE_3D,
+                    0,
+                    internalFormat,
+                    width,
+                    height,
+                    depth
+                )
+            } else {
+                glTexImage3D(
+                    GL33C.GL_PROXY_TEXTURE_3D,
+                    0,
+                    internalFormat,
+                    width,
+                    height,
+                    depth,
+                    0,
+                    format.glFormat(),
+                    type.glType(), null as ByteBuffer?
+                )
+            }
+            checkGLErrors() { "failure after createing GL_PROXY_TEXTURE_3D texture. ${format}/${type}"}
             if (Driver.glType == DriverTypeGL.GL) {
 
                 val proxyWidth = glGetTexLevelParameteri(
                     GL_PROXY_TEXTURE_3D, 0,
                     GL_TEXTURE_WIDTH
                 )
+                checkGLErrors() { "failure after glGetTexLevelParameteri"}
 
                 require(proxyWidth == width) {
                     glGetError()
                     "failed to create ${width}x${height}x${depth} volume texture with format ${format} and type ${type}"
                 }
-            }
+            }*/
 
 
 
@@ -252,14 +268,17 @@ class VolumeTextureGL3(
             val version = (Driver.instance as DriverGL3).version
 
             val storageMode = when {
-                version >= DriverVersionGL.GL_VERSION_4_3 && Driver.glType == DriverTypeGL.GL -> {
+                version >= DriverVersionGL.GL_VERSION_4_3 && Driver.glType == DriverTypeGL.GL ||
+                        version >= DriverVersionGL.GLES_VERSION_3_1 && Driver.glType == DriverTypeGL.GLES -> {
                     TextureStorageModeGL.STORAGE
                 }
+
                 else -> {
                     TextureStorageModeGL.IMAGE
                 }
             }
 
+            checkGLErrors()
             when (storageMode) {
                 TextureStorageModeGL.STORAGE -> {
                     if (useNamedTexture) {
