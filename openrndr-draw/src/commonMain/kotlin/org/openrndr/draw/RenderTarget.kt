@@ -139,8 +139,8 @@ interface RenderTarget {
             get() = Driver.instance.activeRenderTarget
     }
 
-    fun attach(colorBuffer: ColorBuffer, level: Int = 0, name: String? = null, ownedByRenderTarget: Boolean)
-    fun attach(depthBuffer: DepthBuffer, ownedByRenderTarget: Boolean)
+    fun attach(colorBuffer: ColorBuffer, level: Int = 0, name: String? = null, ownedByRenderTarget: Boolean = false)
+    fun attach(depthBuffer: DepthBuffer, ownedByRenderTarget: Boolean = false)
 
     fun attach(arrayTexture: ArrayTexture, layer: Int, level: Int = 0, name: String? = null)
     fun attach(arrayCubemap: ArrayCubemap, side: CubemapSide, layer: Int, level: Int = 0, name: String? = null)
