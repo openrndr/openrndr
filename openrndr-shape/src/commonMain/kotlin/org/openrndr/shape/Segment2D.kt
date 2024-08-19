@@ -511,7 +511,7 @@ data class Segment2D(
             2 -> {
                 val dl = (end - start).normalized
                 val d0 = (control[0] - start).normalized
-                val d1 = (end - control[0]).normalized
+                val d1 = (end - control[1]).normalized
 
                 val dp0 = dl.dot(d0)
                 val dp1 = (-dl).dot(d1)
