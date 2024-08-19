@@ -334,15 +334,19 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
 
             } else {
                 logger.info { "creating fullscreen window" }
-
                 var requestWidth = configuration.width
                 var requestHeight = configuration.height
+
 
                 if (configuration.fullscreen == Fullscreen.CURRENT_DISPLAY_MODE) {
                     val mode = glfwGetVideoMode(display)
                     if (mode != null) {
                         requestWidth = mode.width()
                         requestHeight = mode.height()
+                        val refreshRate = mode.refreshRate()
+                        logger.info { "creating fullscreen window at $requestWidth x $requestHeight @ ${refreshRate}hz" }
+                        glfwWindowHint(GLFW_REFRESH_RATE, refreshRate)
+                        mode.refreshRate()
                     } else {
                         throw RuntimeException("failed to determine current video mode")
                     }
