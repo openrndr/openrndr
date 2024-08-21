@@ -54,6 +54,7 @@ class VertexBufferShadowGL3(override val vertexBuffer: VertexBufferGL3) : Vertex
 
 class VertexBufferGL3(
     val buffer: Int,
+    val offset: Long,
     override val vertexFormat: VertexFormat,
     override val vertexCount: Int,
     override val session: Session?
@@ -93,7 +94,7 @@ class VertexBufferGL3(
                 glBufferData(GL_ARRAY_BUFFER, sizeInBytes.toLong(), GL_DYNAMIC_DRAW)
             }
             debugGLErrors()
-            return VertexBufferGL3(buffer, vertexFormat, vertexCount, session)
+            return VertexBufferGL3(buffer, 0L, vertexFormat, vertexCount, session)
         }
     }
 

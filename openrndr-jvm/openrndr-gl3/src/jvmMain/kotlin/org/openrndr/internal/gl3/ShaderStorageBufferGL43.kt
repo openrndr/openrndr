@@ -132,10 +132,37 @@ class ShaderStorageBufferGL43(
             return realShadow!!
         }
 
-    override fun vertexBufferView(): VertexBuffer {
-        val vertexFormat = shaderStorageFormatToVertexFormat(this.format)
+    private fun elementPosition(elementName: String): Long {
+        var position = 0L
+        for (element in format.elements) {
+            if (element.name == elementName) {
+                break
+            } else {
+                if (element is ShaderStorageStruct) {
+                    TODO("struct sizes not implemented yet")
+                } else {
+                    val s = when (val t = (element as ShaderStoragePrimitive).type) {
+                        BufferPrimitiveType.VECTOR3_FLOAT32, BufferPrimitiveType.VECTOR3_INT32,
+                        BufferPrimitiveType.VECTOR4_FLOAT32, BufferPrimitiveType.VECTOR4_INT32 -> 16
+
+                        BufferPrimitiveType.VECTOR2_FLOAT32, BufferPrimitiveType.VECTOR2_INT32 -> 8
+                        BufferPrimitiveType.FLOAT32, BufferPrimitiveType.INT32 -> 4
+                        else -> TODO("size not implemented for $t")
+                    }
+                    position += s * element.arraySize.coerceAtLeast(1)
+                }
+            }
+        }
+        return position
+    }
+
+    override fun vertexBufferView(elementName: String?): VertexBuffer {
+        val vertexFormat = shaderStorageFormatToVertexFormat(this.format, elementName)
         val vertexCount = this.format.elements.first().arraySize
-        return VertexBufferGL3(this.buffer, vertexFormat, vertexCount, this.session)
+        val offset = if (vertexFormat.items.first().attribute == this.format.elements.first().name) 0 else {
+            elementPosition(elementName!!)
+        }
+        return VertexBufferGL3(this.buffer, offset, vertexFormat, vertexCount, this.session)
     }
 
     companion object {

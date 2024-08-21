@@ -791,7 +791,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
                 VertexElementType.VECTOR4_FLOAT32
             )
 
-            fun setupBuffer(buffer: VertexBuffer, divisor: Int = 0) {
+            fun setupBuffer(buffer: VertexBufferGL3, divisor: Int = 0) {
                 val prefix = if (divisor == 0) "a" else "i"
                 var attributeBindings = 0
 
@@ -822,13 +822,18 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
                                         glVertexAttribPointer(
                                             attributeIndex + i,
                                             item.type.componentCount,
-                                            glType, false, format.size, item.offset.toLong() + i * item.type.sizeInBytes
+                                            glType,
+                                            false,
+                                            format.size,
+                                            buffer.offset + item.offset.toLong() + i * item.type.sizeInBytes
                                         )
                                     } else {
                                         glVertexAttribIPointer(
                                             attributeIndex + i,
                                             item.type.componentCount,
-                                            glType, format.size, item.offset.toLong() + i * item.type.sizeInBytes
+                                            glType,
+                                            format.size,
+                                            buffer.offset + item.offset.toLong() + i * item.type.sizeInBytes
                                         )
 
                                     }
@@ -855,7 +860,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
                                             item.type.glType(),
                                             false,
                                             format.size,
-                                            item.offset.toLong() + column * 16 + i * 64
+                                            buffer.offset + item.offset.toLong() + column * 16 + i * 64
                                         )
                                         debugGLErrors()
 
@@ -878,7 +883,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
                                             item.type.glType(),
                                             false,
                                             format.size,
-                                            item.offset.toLong() + column * 12 + i * 48
+                                            buffer.offset + item.offset.toLong() + column * 12 + i * 48
                                         )
                                         debugGLErrors()
 
@@ -906,7 +911,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
             }
 
             instanceAttributes.forEach {
-                setupBuffer(it, 1)
+                setupBuffer(it as VertexBufferGL3, 1)
             }
         }
     }

@@ -11,5 +11,5 @@ actual interface ShaderStorageBuffer {
         putter: BufferWriterStd430.() -> Unit
     ): Int
 
-    actual fun vertexBufferView(): VertexBuffer
+    actual fun vertexBufferView(elementName: String?): VertexBuffer
 }

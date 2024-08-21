@@ -16,7 +16,7 @@ expect interface ShaderStorageBuffer {
 
     fun put(elementOffset: Int = 0, putter: BufferWriterStd430.() -> Unit): Int
 
-    fun vertexBufferView(): VertexBuffer
+    fun vertexBufferView(elementName: String? = null): VertexBuffer
 }
 
 interface ShaderStorageElement {
@@ -221,10 +221,17 @@ fun shaderStorageFormat(builder: ShaderStorageFormat.() -> Unit): ShaderStorageF
     }
 }
 
-fun shaderStorageFormatToVertexFormat(format: ShaderStorageFormat): VertexFormat {
+fun shaderStorageFormatToVertexFormat(format: ShaderStorageFormat, elementName: String?): VertexFormat {
 
+    val elementIndex = if (elementName == null) 0 else {
+        format.elements.indexOfFirst { it.name == elementName }
+    }
+
+    require(elementIndex != -1) {
+        "no such element: $elementName"
+    }
     return vertexFormat {
-        if (format.elements.first() is ShaderStorageStruct) {
+        if (format.elements[elementIndex] is ShaderStorageStruct) {
             val outerStruct = format.elements.first() as ShaderStorageStruct
             for (member in outerStruct.elements) {
                 if (member is ShaderStoragePrimitive) {
@@ -236,14 +243,11 @@ fun shaderStorageFormatToVertexFormat(format: ShaderStorageFormat): VertexFormat
                     }
                 }
             }
-        } else if (format.elements.size == 1) {
-            val member = format.elements.first() as ShaderStoragePrimitive
+        } else {
+            val member = format.elements[elementIndex] as ShaderStoragePrimitive
             val vet = vertexElementType(member)
             attribute(member.name, vet)
-        } else {
-            error("first item of storage buffer format must be a struct")
         }
-
     }
 }
 
