@@ -228,19 +228,7 @@ fun shaderStorageFormatToVertexFormat(format: ShaderStorageFormat): VertexFormat
             val outerStruct = format.elements.first() as ShaderStorageStruct
             for (member in outerStruct.elements) {
                 if (member is ShaderStoragePrimitive) {
-                    val vet = when (member.type) {
-                        BufferPrimitiveType.VECTOR4_FLOAT32 -> VertexElementType.VECTOR4_FLOAT32
-                        BufferPrimitiveType.VECTOR3_FLOAT32 -> VertexElementType.VECTOR3_FLOAT32
-                        BufferPrimitiveType.VECTOR2_FLOAT32 -> VertexElementType.VECTOR2_FLOAT32
-                        BufferPrimitiveType.MATRIX22_FLOAT32 -> VertexElementType.MATRIX33_FLOAT32
-                        BufferPrimitiveType.MATRIX33_FLOAT32 -> VertexElementType.MATRIX33_FLOAT32
-                        BufferPrimitiveType.MATRIX44_FLOAT32 -> VertexElementType.MATRIX44_FLOAT32
-                        BufferPrimitiveType.INT32 -> VertexElementType.INT32
-                        BufferPrimitiveType.UINT32 -> VertexElementType.UINT32
-                        BufferPrimitiveType.FLOAT32 -> VertexElementType.FLOAT32
-                        else -> error("unsupported type '${member.type}")
-                    }
-
+                    val vet = vertexElementType(member)
                     val padding = member.padding
                     attribute(member.name, vet)
                     if (padding > 0) {
@@ -248,11 +236,28 @@ fun shaderStorageFormatToVertexFormat(format: ShaderStorageFormat): VertexFormat
                     }
                 }
             }
+        } else if (format.elements.size == 1) {
+            val member = format.elements.first() as ShaderStoragePrimitive
+            val vet = vertexElementType(member)
+            attribute(member.name, vet)
         } else {
             error("first item of storage buffer format must be a struct")
         }
 
     }
+}
+
+private fun vertexElementType(member: ShaderStoragePrimitive) = when (member.type) {
+    BufferPrimitiveType.VECTOR4_FLOAT32 -> VertexElementType.VECTOR4_FLOAT32
+    BufferPrimitiveType.VECTOR3_FLOAT32 -> VertexElementType.VECTOR3_FLOAT32
+    BufferPrimitiveType.VECTOR2_FLOAT32 -> VertexElementType.VECTOR2_FLOAT32
+    BufferPrimitiveType.MATRIX22_FLOAT32 -> VertexElementType.MATRIX33_FLOAT32
+    BufferPrimitiveType.MATRIX33_FLOAT32 -> VertexElementType.MATRIX33_FLOAT32
+    BufferPrimitiveType.MATRIX44_FLOAT32 -> VertexElementType.MATRIX44_FLOAT32
+    BufferPrimitiveType.INT32 -> VertexElementType.INT32
+    BufferPrimitiveType.UINT32 -> VertexElementType.UINT32
+    BufferPrimitiveType.FLOAT32 -> VertexElementType.FLOAT32
+    else -> error("unsupported type '${member.type}")
 }
 
 fun shaderStorageBuffer(format: ShaderStorageFormat): ShaderStorageBuffer {
