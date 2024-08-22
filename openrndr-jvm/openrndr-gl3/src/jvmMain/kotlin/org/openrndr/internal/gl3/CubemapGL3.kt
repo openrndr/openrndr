@@ -4,6 +4,7 @@ import org.lwjgl.opengl.AMDSeamlessCubemapPerTexture.GL_TEXTURE_CUBE_MAP_SEAMLES
 import org.lwjgl.opengl.GL13.*
 import org.lwjgl.opengl.GL30C.GL_COLOR_ATTACHMENT0
 import org.openrndr.draw.*
+import org.openrndr.internal.Driver
 import org.openrndr.utils.buffer.MPPBuffer
 import java.nio.Buffer
 import java.nio.ByteBuffer
@@ -19,7 +20,14 @@ val CubemapSide.glTextureTarget
         CubemapSide.NEGATIVE_Z -> GL_TEXTURE_CUBE_MAP_NEGATIVE_Z
     }
 
-class CubemapGL3(val texture: Int, override val width: Int, override val type: ColorType, override val format: ColorFormat, levels: Int, override val session: Session?) : Cubemap {
+class CubemapGL3(
+    val texture: Int,
+    override val width: Int,
+    override val type: ColorType,
+    override val format: ColorFormat,
+    levels: Int,
+    override val session: Session?
+) : Cubemap {
 
     override var levels = levels
         private set(value) {
@@ -51,31 +59,46 @@ class CubemapGL3(val texture: Int, override val width: Int, override val type: C
 
             glActiveTexture(GL_TEXTURE0)
             glBindTexture(GL_TEXTURE_CUBE_MAP, texture)
-            glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS)
+
+            if (Driver.glType == DriverTypeGL.GL) {
+                glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS)
+            }
 
             val effectiveWidth = width
-
             val (internalFormat, _) = internalFormat(format, type)
 
-            for (side in CubemapSide.entries) {
-                for (level in 0 until levels) {
-                    val div = 1 shl level
-                    val nullBB: ByteBuffer? = null
-                    glTexImage2D(
-                        side.glTextureTarget,
-                        level,
-                        internalFormat,
-                        effectiveWidth / div,
-                        effectiveWidth / div,
-                        0,
-                        format.glFormat(),
-                        type.glType(),
-                        nullBB
-                    )
-                    checkGLErrors { it ->
-                        "width: $width, format: $format, type: $type -> target: ${glEnumName(side.glTextureTarget)}, level: ${level}, internalFormat: ${glEnumName(internalFormat)}" +
-                                "format: ${glEnumName(format.glFormat())}, type: ${glEnumName(type.glType())}"
+            val useStorage =
+                Driver.glType == DriverTypeGL.GLES && Driver.glVersion >= DriverVersionGL.GLES_VERSION_3_1 ||
+                        Driver.glType == DriverTypeGL.GL && Driver.glVersion >= DriverVersionGL.GL_VERSION_4_2
 
+            if (useStorage) {
+                glTexStorage2D(GL_TEXTURE_CUBE_MAP, levels, internalFormat, effectiveWidth, effectiveWidth)
+                checkGLErrors()
+            } else {
+                for (side in CubemapSide.entries) {
+                    for (level in 0 until levels) {
+                        val div = 1 shl level
+                        val nullBB: ByteBuffer? = null
+                        glTexImage2D(
+                            side.glTextureTarget,
+                            level,
+                            internalFormat,
+                            effectiveWidth / div,
+                            effectiveWidth / div,
+                            0,
+                            format.glFormat(),
+                            type.glType(),
+                            nullBB
+                        )
+                        checkGLErrors { it ->
+                            "width: $width, format: $format, type: $type -> target: ${glEnumName(side.glTextureTarget)}, level: ${level}, internalFormat: ${
+                                glEnumName(
+                                    internalFormat
+                                )
+                            }" +
+                                    "format: ${glEnumName(format.glFormat())}, type: ${glEnumName(type.glType())}"
+
+                        }
                     }
                 }
             }
@@ -85,6 +108,7 @@ class CubemapGL3(val texture: Int, override val width: Int, override val type: C
             return CubemapGL3(texture, width, type, format, levels, session)
         }
     }
+
     internal fun glFormat(): Int {
         return internalFormat(format, type).first
     }
@@ -92,8 +116,6 @@ class CubemapGL3(val texture: Int, override val width: Int, override val type: C
     override fun generateMipmaps() {
         bound {
             glGenerateMipmap(GL_TEXTURE_CUBE_MAP)
-            //levels = ceil(log(width.toDouble(), 2.0)).toInt()
-            //glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAX_LEVEL, levels)
         }
     }
 
@@ -117,7 +139,17 @@ class CubemapGL3(val texture: Int, override val width: Int, override val type: C
             readTarget.bind()
             glReadBuffer(GL_COLOR_ATTACHMENT0)
             target.bound {
-                glCopyTexSubImage3D(target.target, toLevel, 0, 0, layer * 6 + side.ordinal, 0, 0, target.width / toDiv, target.width / toDiv)
+                glCopyTexSubImage3D(
+                    target.target,
+                    toLevel,
+                    0,
+                    0,
+                    layer * 6 + side.ordinal,
+                    0,
+                    0,
+                    target.width / toDiv,
+                    target.width / toDiv
+                )
                 debugGLErrors()
             }
             readTarget.unbind()
@@ -143,7 +175,16 @@ class CubemapGL3(val texture: Int, override val width: Int, override val type: C
             debugGLErrors()
 
             target.bound {
-                glCopyTexSubImage2D(side.glTextureTarget, toLevel, 0, 0, 0, 0, target.width / toDiv, target.width / toDiv)
+                glCopyTexSubImage2D(
+                    side.glTextureTarget,
+                    toLevel,
+                    0,
+                    0,
+                    0,
+                    0,
+                    target.width / toDiv,
+                    target.width / toDiv
+                )
                 debugGLErrors()
             }
             readTarget.unbind()
@@ -177,7 +218,13 @@ class CubemapGL3(val texture: Int, override val width: Int, override val type: C
         readTarget.destroy()
     }
 
-    override fun read(side: CubemapSide, target: ByteBuffer, targetFormat: ColorFormat, targetType: ColorType, level: Int) {
+    override fun read(
+        side: CubemapSide,
+        target: ByteBuffer,
+        targetFormat: ColorFormat,
+        targetType: ColorType,
+        level: Int
+    ) {
         bound {
             glPixelStorei(GL_PACK_ALIGNMENT, 1)
             glGetTexImage(side.glTextureTarget, level, targetFormat.glFormat(), targetType.glType(), target)
@@ -185,7 +232,13 @@ class CubemapGL3(val texture: Int, override val width: Int, override val type: C
         }
     }
 
-    override fun write(side: CubemapSide, source: ByteBuffer, sourceFormat: ColorFormat, sourceType: ColorType, level: Int) {
+    override fun write(
+        side: CubemapSide,
+        source: ByteBuffer,
+        sourceFormat: ColorFormat,
+        sourceType: ColorType,
+        level: Int
+    ) {
         require(!destroyed)
         val div = 1 shl level
 
@@ -196,7 +249,8 @@ class CubemapGL3(val texture: Int, override val width: Int, override val type: C
         val effectiveWidth = width
         val effectiveHeight = width
         if (!sourceType.compressed) {
-            val bytesNeeded = sourceFormat.componentCount * sourceType.componentSize * (effectiveWidth / div) * (effectiveHeight / div)
+            val bytesNeeded =
+                sourceFormat.componentCount * sourceType.componentSize * (effectiveWidth / div) * (effectiveHeight / div)
             require(bytesNeeded <= source.remaining()) {
                 "write of ${width}x${width} of $format/$type pixels to level $level requires $bytesNeeded bytes, buffer only has ${source.remaining()} bytes left, buffer capacity is ${source.capacity()}"
             }
@@ -211,7 +265,16 @@ class CubemapGL3(val texture: Int, override val width: Int, override val type: C
             glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
 
             if (sourceType.compressed) {
-                glCompressedTexSubImage2D(side.glTextureTarget, level, 0, 0, width / div, width / div, compressedType(sourceFormat, sourceType), source)
+                glCompressedTexSubImage2D(
+                    side.glTextureTarget,
+                    level,
+                    0,
+                    0,
+                    width / div,
+                    width / div,
+                    compressedType(sourceFormat, sourceType),
+                    source
+                )
                 debugGLErrors {
                     when (it) {
                         GL_INVALID_VALUE -> "data size mismatch? ${source.remaining()}"
@@ -219,7 +282,17 @@ class CubemapGL3(val texture: Int, override val width: Int, override val type: C
                     }
                 }
             } else {
-                glTexSubImage2D(side.glTextureTarget, level, 0, 0, width / div, width / div, sourceFormat.glFormat(), sourceType.glType(), source)
+                glTexSubImage2D(
+                    side.glTextureTarget,
+                    level,
+                    0,
+                    0,
+                    width / div,
+                    width / div,
+                    sourceFormat.glFormat(),
+                    sourceType.glType(),
+                    source
+                )
                 debugGLErrors()
             }
             glPixelStorei(GL_UNPACK_ALIGNMENT, currentPack[0])
