@@ -107,7 +107,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
           |precision highp sampler2DArray;
           |${
                 if (Driver.glVersion >= DriverVersionGL.GLES_VERSION_3_1) {
-                    "precision highp image2D;"
+                    "precision highp image2D; precision highp image3D;"
                 } else {
                     ""
                 }
