@@ -3,13 +3,12 @@ package org.openrndr.convention
 import org.gradle.accessors.dm.LibrariesForLibs
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 
 val libs = the<LibrariesForLibs>()
 
 plugins {
-    //java
     kotlin("jvm")
 }
 
@@ -27,26 +26,23 @@ dependencies {
 }
 
 tasks {
-    @Suppress("UNUSED_VARIABLE")
     val test by getting(Test::class) {
         useJUnitPlatform()
         testLogging.exceptionFormat = TestExceptionFormat.FULL
         allJvmArgs = allJvmArgs + "-Dorg.openrndr.gl3.skip_glfw_termination"
     }
 
-
-    withType<KotlinCompile>() {
-//        compilerOptions {
-//            jvmTarget.set(JvmTarget.valueOf(libs.versions.jvmTarget.get()))
-//        }
-
-        kotlinOptions.jvmTarget = libs.versions.jvmTarget.get()
-        kotlinOptions.apiVersion = libs.versions.kotlinApi.get()
-        kotlinOptions.languageVersion = libs.versions.kotlinLanguage.get()
-        kotlinOptions.freeCompilerArgs += "-Xexpect-actual-classes"
-        kotlinOptions.freeCompilerArgs += "-Xjdk-release=${libs.versions.jvmTarget.get()}"
+    withType<KotlinCompile> {
+        compilerOptions {
+            jvmTarget.set(JvmTarget.valueOf("JVM_${libs.versions.jvmTarget.get()}"))
+            freeCompilerArgs.add("-Xexpect-actual-classes")
+            freeCompilerArgs.add("-Xjdk-release=${libs.versions.jvmTarget.get()}")
+            apiVersion.set(KotlinVersion.valueOf("KOTLIN_${libs.versions.kotlinApi.get().replace(".", "_")}"))
+            languageVersion.set(KotlinVersion.valueOf("KOTLIN_${libs.versions.kotlinApi.get().replace(".", "_")}"))
+        }
     }
 }
+
 java {
     targetCompatibility = JavaVersion.valueOf("VERSION_${libs.versions.jvmTarget.get()}")
 }

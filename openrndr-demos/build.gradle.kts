@@ -1,3 +1,5 @@
+@file:Suppress("INACCESSIBLE_TYPE")
+
 plugins {
     org.openrndr.convention.`kotlin-jvm`
 }

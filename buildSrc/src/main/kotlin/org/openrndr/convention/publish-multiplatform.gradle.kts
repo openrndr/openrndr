@@ -1,9 +1,6 @@
 package org.openrndr.convention
 
-import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.gradle.accessors.dm.LibrariesForLibs
-import org.gradle.api.tasks.testing.logging.TestExceptionFormat
-import org.jetbrains.kotlin.gradle.dsl.KotlinCompile
 
 val libs = the<LibrariesForLibs>()
 

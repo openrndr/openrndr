@@ -1,11 +1,11 @@
+@file:Suppress("INACCESSIBLE_TYPE")
+
 plugins {
     org.openrndr.convention.`kotlin-multiplatform`
 }
 
 kotlin {
-
     js(IR) {
-
         browser {
             commonWebpackConfig {
                 outputFileName = "openrndr-program.js"
@@ -16,10 +16,8 @@ kotlin {
         }
         binaries.executable()
     }
-    jvm {
 
-
-    }
+    jvm {}
 
     sourceSets {
         val commonMain by getting {
@@ -38,7 +36,7 @@ kotlin {
         }
 
         val jvmMain by getting {
-            val openrndrOS = when(org.gradle.internal.os.OperatingSystem.current()) {
+            val openrndrOS = when (org.gradle.internal.os.OperatingSystem.current()) {
                 org.gradle.internal.os.OperatingSystem.WINDOWS -> "windows"
                 org.gradle.internal.os.OperatingSystem.LINUX -> "linux-x64"
                 org.gradle.internal.os.OperatingSystem.MAC_OS -> {
@@ -48,6 +46,7 @@ kotlin {
                         else -> error("arch not supported")
                     }
                 }
+
                 else -> error("platform not supported")
 
             }
@@ -58,6 +57,5 @@ kotlin {
                 runtimeOnly(libs.slf4j.simple)
             }
         }
-
     }
 }
