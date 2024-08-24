@@ -17,6 +17,7 @@ class PriorityQueue<Key> : Iterable<Key> {
     }
 
     constructor(keys: Array<Key>) : this(keys.size) {
+        @Suppress("UNCHECKED_CAST")
         pq = arrayOfNulls<Any?>(keys.size + 1) as Array<Key?>
         n = keys.size
         for (i in 0 until n) {

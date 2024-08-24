@@ -107,8 +107,13 @@ fun transform(baseTransform: Matrix44 = Matrix44.IDENTITY, builder: TransformBui
 /**
  * An alias for transform, useful for those cases in which the word transform is used too often
  */
-fun buildTransform(baseTransform: Matrix44 = Matrix44.IDENTITY, builder: TransformBuilder.() -> Unit) =
-    transform(baseTransform, builder)
+@OptIn(ExperimentalContracts::class)
+fun buildTransform(baseTransform: Matrix44 = Matrix44.IDENTITY, builder: TransformBuilder.() -> Unit): Matrix44 {
+    contract {
+        callsInPlace(builder, InvocationKind.EXACTLY_ONCE)
+    }
+    return transform(baseTransform, builder)
+}
 
 /**
  * Matrix44 transform helper

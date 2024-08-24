@@ -45,7 +45,7 @@ private fun cleanMethodName(name: String): String {
 }
 
 fun findUserCause(throwable: Throwable) {
-    logger.info("Set -Dorg.openrndr.exceptions=JVM for conventional exception-handling")
+    logger.info { "Set -Dorg.openrndr.exceptions=JVM for conventional exception-handling" }
 
     val bestSolution = throwable.stackTrace.reversed().indexOfLast { !(it.className.contains("org.openrndr")) }
 

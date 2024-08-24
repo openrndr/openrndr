@@ -18,7 +18,7 @@ fun Program.launch(
     block: suspend CoroutineScope.() -> Unit
 ): Job {
     contract {
-        callsInPlace(block, InvocationKind.EXACTLY_ONCE)
+        callsInPlace(block, InvocationKind.AT_MOST_ONCE)
     }
     return GlobalScope.launch(context, start, block)
 }
