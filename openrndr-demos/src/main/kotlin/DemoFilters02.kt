@@ -1,10 +1,7 @@
 import org.openrndr.application
 import org.openrndr.color.ColorRGBa
-import org.openrndr.draw.colorBuffer
 import org.openrndr.draw.createEquivalent
 import org.openrndr.drawImage
-import org.openrndr.filter.color.delinearize
-import org.openrndr.filter.color.hybridLogGamma
 import org.openrndr.filter.color.linearize
 import org.openrndr.shape.Rectangle
 
