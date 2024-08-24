@@ -31,7 +31,7 @@ class TestComputeStyleGL3 : AbstractApplicationTestFixture() {
                 computeTransform = "p_img;"
                 registerImageBinding(
                     "img",
-                    BufferAccess.READ_WRITE,
+                    BufferAccess.READ,
                     setOf(BufferFlag.COHERENT, BufferFlag.RESTRICT)
                 )
                 image("img", img, 0)
@@ -51,10 +51,10 @@ class TestComputeStyleGL3 : AbstractApplicationTestFixture() {
                 computeTransform = "p_img; p_imgArray[0];"
                 registerImageBinding(
                     "img",
-                    BufferAccess.READ_WRITE,
+                    BufferAccess.READ,
                     setOf(BufferFlag.COHERENT, BufferFlag.RESTRICT)
                 )
-                registerImageBinding("imgArray", BufferAccess.READ_WRITE, setOf(BufferFlag.COHERENT), 3)
+                registerImageBinding("imgArray", BufferAccess.READ, setOf(BufferFlag.COHERENT), 3)
                 image("img", img, 0)
                 image("imgArray", arrayOf(img, img, img), arrayOf(0, 0, 0))
             }

@@ -1,6 +1,9 @@
 import org.openrndr.draw.ColorFormat
 import org.openrndr.draw.ColorType
 import org.openrndr.draw.colorBuffer
+import org.openrndr.internal.Driver
+import org.openrndr.internal.gl3.DriverTypeGL
+import org.openrndr.internal.gl3.glType
 import java.io.File
 import kotlin.test.*
 
@@ -30,9 +33,13 @@ class TestEXRSaver : AbstractApplicationTestFixture() {
 
     @Test
     fun testSaveExrRGB16() {
-        val cb = colorBuffer(512, 512, format = ColorFormat.RGB, type = ColorType.FLOAT16)
-        cb.saveToFile(File("exr16.exr"), async = false)
-        cb.destroy()
+        if (Driver.glType == DriverTypeGL.GL) {
+            val cb = colorBuffer(512, 512, format = ColorFormat.RGB, type = ColorType.FLOAT16)
+            cb.saveToFile(File("exr16.exr"), async = false)
+            cb.destroy()
+        } else {
+            // TODO implement gles compatible saver
+        }
     }
 
     @Test
