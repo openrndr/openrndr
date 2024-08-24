@@ -1,5 +1,6 @@
 package org.openrndr.draw
 
+import org.openrndr.color.ColorRGBa
 import org.openrndr.internal.Driver
 import org.openrndr.shape.Rectangle
 
@@ -16,6 +17,7 @@ expect abstract class ArrayTexture {
 
     abstract fun bind(unit: Int)
 
+    abstract fun fill(color: ColorRGBa, layer: Int, level: Int = 0)
 
     /**
      * Copy contents in layer to target ColorBuffer

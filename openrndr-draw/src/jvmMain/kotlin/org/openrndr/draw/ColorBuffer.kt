@@ -4,7 +4,6 @@ package org.openrndr.draw
 
 import kotlinx.coroutines.runBlocking
 import org.openrndr.color.ColorRGBa
-import org.openrndr.internal.Driver
 import org.openrndr.internal.ImageDriver
 import org.openrndr.math.Vector2
 import org.openrndr.shape.IntRectangle
@@ -16,7 +15,6 @@ import java.net.URL
 import java.nio.ByteBuffer
 import kotlin.math.floor
 import kotlin.math.log2
-import kotlin.math.max
 import kotlin.math.min
 
 
@@ -143,7 +141,7 @@ actual abstract class ColorBuffer: AutoCloseable {
 
     actual abstract fun copyTo(target: ArrayTexture, layer: Int, fromLevel: Int, toLevel: Int)
 
-    actual abstract fun fill(color: ColorRGBa)
+    actual abstract fun fill(color: ColorRGBa, level: Int)
 
     /** the wrapping mode to use in the horizontal direction */
     actual abstract var wrapU: WrapMode

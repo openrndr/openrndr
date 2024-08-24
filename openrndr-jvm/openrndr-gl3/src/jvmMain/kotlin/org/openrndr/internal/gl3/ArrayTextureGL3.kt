@@ -1,8 +1,11 @@
 package org.openrndr.internal.gl3
 
 import org.lwjgl.opengl.GL33C.*
+import org.lwjgl.opengl.GL44.glClearTexSubImage
+import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
 import org.openrndr.internal.Driver
+import java.lang.Math.pow
 import java.nio.ByteBuffer
 
 class ArrayTextureGL3(val target: Int,
@@ -17,6 +20,9 @@ class ArrayTextureGL3(val target: Int,
                       override val session: Session?) : ArrayTexture() {
 
     companion object {
+
+
+
         fun create(width: Int, height: Int, layers: Int, format: ColorFormat, type: ColorType, levels: Int, session: Session?): ArrayTextureGL3 {
             val maximumLayers = glGetInteger(GL_MAX_ARRAY_TEXTURE_LAYERS)
             if (layers > maximumLayers) {
@@ -59,6 +65,55 @@ class ArrayTextureGL3(val target: Int,
             glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, MagnifyingFilter.LINEAR.toGLFilter())
             checkGLErrors()
             return ArrayTextureGL3(GL_TEXTURE_2D_ARRAY, texture, storageMode, width, height, layers, format, type, levels, session)
+        }
+    }
+
+    override fun fill(color: ColorRGBa, layer: Int, level: Int) {
+
+        require(layer < layers)
+        require(level < levels)
+
+        val lcolor = color.toLinear()
+        val floatColorData = floatArrayOf(
+            lcolor.r.toFloat(),
+            lcolor.g.toFloat(),
+            lcolor.b.toFloat(),
+            lcolor.alpha.toFloat()
+        )
+        when {
+            (Driver.glVersion < DriverVersionGL.GL_VERSION_4_4 || Driver.glType == DriverTypeGL.GLES) -> {
+
+                val lwidth = (width / pow(2.0, level.toDouble())).toInt()
+                val lheight = (height / pow(2.0, level.toDouble())).toInt()
+                val writeTarget = renderTarget(lwidth, lheight) {
+                    this.arrayTexture(this@ArrayTextureGL3, layer, level)
+                } as RenderTargetGL3
+
+                writeTarget.bind()
+                glClearBufferfv(GL_COLOR, 0, floatColorData)
+                debugGLErrors()
+                writeTarget.unbind()
+
+                writeTarget.detachColorAttachments()
+                writeTarget.destroy()
+            }
+
+            else -> {
+                glClearTexSubImage(
+                    texture,
+                    level,
+                    0,
+                    0,
+                    layer,
+                    width,
+                    height,
+                    1,
+                    ColorFormat.RGBa.glFormat(),
+                    ColorType.FLOAT32.glType(),
+                    floatColorData
+                )
+                debugGLErrors()
+            }
         }
     }
 

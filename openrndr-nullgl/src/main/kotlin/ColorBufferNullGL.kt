@@ -82,7 +82,7 @@ class ColorBufferNullGL(
 
     }
 
-    override fun fill(color: ColorRGBa) {
+    override fun fill(color: ColorRGBa, level: Int) {
 
     }
 

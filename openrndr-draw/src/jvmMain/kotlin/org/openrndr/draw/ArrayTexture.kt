@@ -1,5 +1,6 @@
 package org.openrndr.draw
 
+import org.openrndr.color.ColorRGBa
 import org.openrndr.math.Vector2
 import org.openrndr.shape.Rectangle
 import java.nio.ByteBuffer
@@ -17,6 +18,7 @@ actual abstract class ArrayTexture {
 
     actual abstract fun bind(unit: Int)
 
+    actual abstract fun fill(color: ColorRGBa, layer: Int, level: Int)
     /**
      * Write to a single layer in the array texture
      * @param layer the layer index to write to

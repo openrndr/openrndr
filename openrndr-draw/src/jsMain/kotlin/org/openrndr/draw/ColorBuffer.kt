@@ -1,11 +1,8 @@
 package org.openrndr.draw
 
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import org.khronos.webgl.ArrayBufferView
 import org.khronos.webgl.TexImageSource
 import org.openrndr.color.ColorRGBa
-import org.openrndr.internal.Driver
 import org.openrndr.internal.ImageDriver
 import org.openrndr.shape.IntRectangle
 import org.openrndr.shape.Rectangle
@@ -162,7 +159,7 @@ actual abstract class ColorBuffer : AutoCloseable {
      * sets all pixels in the color buffer to [color]
      * @param color the color used for filling
      */
-    actual abstract fun fill(color: ColorRGBa)
+    actual abstract fun fill(color: ColorRGBa, level: Int)
 
 }
 

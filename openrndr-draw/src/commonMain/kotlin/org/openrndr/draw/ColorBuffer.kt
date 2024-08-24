@@ -199,7 +199,7 @@ expect abstract class ColorBuffer : AutoCloseable {
      * sets all pixels in the color buffer to [color]
      * @param color the color used for filling
      */
-    abstract fun fill(color: ColorRGBa)
+    abstract fun fill(color: ColorRGBa, level: Int = 0)
 }
 
 

@@ -13,6 +13,7 @@ import org.w3c.dom.Image
 import kotlin.js.Promise
 import kotlin.math.log2
 import org.khronos.webgl.WebGLRenderingContext as GL
+import kotlin.math.pow
 
 internal fun promiseImage(url: String): Promise<Image> {
     return Promise<Image>() { resolve, _ ->
@@ -448,14 +449,18 @@ class ColorBufferWebGL(
         get() = TODO("Not yet implemented")
         set(_) {}
 
-    override fun fill(color: ColorRGBa) {
-        val writeTarget = renderTarget(width, height, contentScale) {
-            colorBuffer(this@ColorBufferWebGL)
+    override fun fill(color: ColorRGBa, level: Int) {
+        val lcolor = color.toLinear()
+        val lwidth = (width / 2.0.pow(level.toDouble())).toInt()
+        val lheight = (height / 2.0.pow(level.toDouble())).toInt()
+
+        val writeTarget = renderTarget(lwidth, lheight, contentScale) {
+            colorBuffer(this@ColorBufferWebGL, level)
         } as RenderTargetWebGL
 
         writeTarget.bind()
         val floatColorData =
-            float32Array(color.r.toFloat(), color.g.toFloat(), color.b.toFloat(), color.alpha.toFloat())
+            float32Array(lcolor.r.toFloat(), lcolor.g.toFloat(), lcolor.b.toFloat(), lcolor.alpha.toFloat())
         context.clearBufferfv(WebGL2RenderingContext.COLOR, 0, floatColorData)
         writeTarget.unbind()
 

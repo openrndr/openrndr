@@ -22,6 +22,7 @@ import org.openrndr.internal.ImageDriver
 import org.openrndr.shape.IntRectangle
 import org.openrndr.utils.buffer.MPPBuffer
 import java.io.File
+import java.lang.Math.pow
 import java.nio.Buffer
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -590,6 +591,25 @@ class ColorBufferGL3(
         require(fromLevel < this.levels) { """requested to copy from mipmap level $fromLevel, but source colorbuffer has $levels mipmap levels.""" }
         require(toLevel < target.levels) { """requested to copy to mipmap level $toLevel, but target array texture only has $levels mipmap levels.""" }
 
+        val useCopyFilter = Driver.glType == DriverTypeGL.GLES && (
+
+                type.isFloat != target.type.isFloat
+                )
+
+        if (useCopyFilter) {
+            require(
+                this.effectiveWidth == target.width && this.effectiveHeight == target.width
+            )
+
+            val rt = renderTarget(target.width, target.height) {
+                arrayTexture(target, layer)
+            }
+            copy.apply(arrayOf(this), rt)
+            rt.destroy()
+            return
+        }
+
+
         if (!type.compressed) {
             checkDestroyed()
             val fromDiv = 1 shl fromLevel
@@ -667,19 +687,25 @@ class ColorBufferGL3(
         }
     }
 
-    override fun fill(color: ColorRGBa) {
+    override fun fill(color: ColorRGBa, level: Int) {
         checkDestroyed()
+        require(level < levels)
+        val lwidth = (width / pow(2.0, level.toDouble())).toInt()
+        val lheight = (height / pow(2.0, level.toDouble())).toInt()
+
+        val lcolor = color.toLinear()
 
         val floatColorData = floatArrayOf(
-            color.r.toFloat(),
-            color.g.toFloat(),
-            color.b.toFloat(),
-            color.alpha.toFloat()
+            lcolor.r.toFloat(),
+            lcolor.g.toFloat(),
+            lcolor.b.toFloat(),
+            lcolor.alpha.toFloat()
         )
         when {
             (Driver.glVersion < DriverVersionGL.GL_VERSION_4_4 || Driver.glType == DriverTypeGL.GLES) -> {
-                val writeTarget = renderTarget(width, height, contentScale) {
-                    colorBuffer(this@ColorBufferGL3)
+
+                val writeTarget = renderTarget(lwidth, lheight, contentScale) {
+                    colorBuffer(this@ColorBufferGL3, level)
                 } as RenderTargetGL3
 
                 writeTarget.bind()
@@ -694,7 +720,7 @@ class ColorBufferGL3(
             else -> {
                 glClearTexImage(
                     texture,
-                    0,
+                    level,
                     ColorFormat.RGBa.glFormat(),
                     ColorType.FLOAT32.glType(),
                     floatColorData
