@@ -1710,9 +1710,9 @@ fun glGetProgramResourceiv(
     @NativeType("GLuint") program: Int,
     @NativeType("GLenum") programInterface: Int,
     @NativeType("GLuint") index: Int,
-    @NativeType("GLenum const *") props: IntArray?,
+    @NativeType("GLenum const *") props: IntArray,
     @NativeType("GLsizei *") length: IntArray?,
-    @NativeType("GLint *") params: IntArray?
+    @NativeType("GLint *") params: IntArray
 ) {
     when (driverType) {
         DriverTypeGL.GL -> GL.glGetProgramResourceiv(program, programInterface, index, props, length, params)
@@ -1723,7 +1723,7 @@ fun glGetProgramResourceiv(
 fun glGetProgramResourceIndex(
     @NativeType("GLuint") program: Int,
     @NativeType("GLenum") programInterface: Int,
-    @NativeType("GLchar const *") name: CharSequence?
+    @NativeType("GLchar const *") name: CharSequence
 ): Int {
     return when (driverType) {
         DriverTypeGL.GL -> GL.glGetProgramResourceIndex(program, programInterface, name)
