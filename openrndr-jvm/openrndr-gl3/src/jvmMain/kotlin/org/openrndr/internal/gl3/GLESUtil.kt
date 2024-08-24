@@ -25,7 +25,6 @@ object GLESUtil {
      * Detects the best debug output functionality to use and creates a callback that prints information to [APIUtil.DEBUG_STREAM]. The callback
      * function is returned as a [Callback], that should be [freed][Callback.free] when no longer needed.
      */
-    @JvmOverloads
     fun setupDebugMessageCallback() {
         val caps = GLES.getCapabilities()
 
