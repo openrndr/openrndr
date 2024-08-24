@@ -33,7 +33,7 @@ class VolumeTextureGL3(
     override fun destroy() {
         if (!destroyed) {
             session?.untrack(this)
-            GL33C.glDeleteTextures(texture)
+            glDeleteTextures(texture)
             destroyed = true
             checkGLErrors()
         }
