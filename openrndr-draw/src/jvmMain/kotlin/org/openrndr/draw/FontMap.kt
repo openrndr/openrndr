@@ -1,4 +1,5 @@
 @file:JvmName("FontMapJVM")
+
 package org.openrndr.draw
 
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -8,7 +9,12 @@ import java.net.URL
 
 private val logger = KotlinLogging.logger {}
 
-fun loadFont(fileOrUrl: String, size: Double, characterSet: Set<Char> = defaultFontmapCharacterSet, contentScale: Double = 1.0): FontImageMap {
+fun loadFont(
+    fileOrUrl: String,
+    size: Double,
+    characterSet: Set<Char> = defaultFontmapCharacterSet,
+    contentScale: Double = 1.0
+): FontImageMap {
     val activeSet = if (characterSet.contains(' ')) characterSet else (characterSet + ' ')
     return try {
         URL(fileOrUrl)
@@ -28,10 +34,10 @@ fun loadFont(fileOrUrl: String, size: Double, characterSet: Set<Char> = defaultF
 actual val defaultFontMap by lazy {
     val defaultFontPath = File("data/fonts/default.otf")
     if (defaultFontPath.isFile) {
-        logger.info("loading default font from ${defaultFontPath.absolutePath}")
+        logger.info { "loading default font from ${defaultFontPath.absolutePath}" }
         loadFont(defaultFontPath.path, 16.0, contentScale = RenderTarget.active.contentScale)
     } else {
-        logger.warn("default font ${defaultFontPath.absolutePath} not found")
+        logger.warn { "default font ${defaultFontPath.absolutePath} not found" }
         null
     }
 }
