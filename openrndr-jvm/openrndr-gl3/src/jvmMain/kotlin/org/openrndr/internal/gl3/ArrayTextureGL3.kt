@@ -5,24 +5,22 @@ import org.lwjgl.opengl.GL44.glClearTexSubImage
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
 import org.openrndr.internal.Driver
-import java.lang.Math.pow
 import java.nio.ByteBuffer
+import kotlin.math.pow
 
-class ArrayTextureGL3(val target: Int,
-                      val texture: Int,
-                      val storageMode: TextureStorageModeGL,
-                      override val width: Int,
-                      override val height: Int,
-                      override val layers: Int,
-                      override val format: ColorFormat,
-                      override val type: ColorType,
-                      override val levels: Int,
-                      override val session: Session?) : ArrayTexture() {
+class ArrayTextureGL3(
+    val target: Int,
+    val texture: Int,
+    override val width: Int,
+    override val height: Int,
+    override val layers: Int,
+    override val format: ColorFormat,
+    override val type: ColorType,
+    override val levels: Int,
+    override val session: Session?
+) : ArrayTexture() {
 
     companion object {
-
-
-
         fun create(width: Int, height: Int, layers: Int, format: ColorFormat, type: ColorType, levels: Int, session: Session?): ArrayTextureGL3 {
             val maximumLayers = glGetInteger(GL_MAX_ARRAY_TEXTURE_LAYERS)
             if (layers > maximumLayers) {
@@ -31,8 +29,7 @@ class ArrayTextureGL3(val target: Int,
             val texture = glGenTextures()
 
             val storageMode = when {
-                (Driver.glType == DriverTypeGL.GL && Driver.glVersion >= DriverVersionGL.GL_VERSION_4_3) -> TextureStorageModeGL.STORAGE
-                (Driver.glType == DriverTypeGL.GLES && Driver.glVersion >= DriverVersionGL.GLES_VERSION_3_1) -> TextureStorageModeGL.STORAGE
+                Driver.capabilities.textureStorage -> TextureStorageModeGL.STORAGE
                 else -> TextureStorageModeGL.IMAGE
             }
 
@@ -64,7 +61,7 @@ class ArrayTextureGL3(val target: Int,
             glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, MinifyingFilter.LINEAR.toGLFilter())
             glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, MagnifyingFilter.LINEAR.toGLFilter())
             checkGLErrors()
-            return ArrayTextureGL3(GL_TEXTURE_2D_ARRAY, texture, storageMode, width, height, layers, format, type, levels, session)
+            return ArrayTextureGL3(GL_TEXTURE_2D_ARRAY, texture, width, height, layers, format, type, levels, session)
         }
     }
 
@@ -73,7 +70,7 @@ class ArrayTextureGL3(val target: Int,
         require(layer < layers)
         require(level < levels)
 
-        val lcolor = color.toLinear()
+        @Suppress("SpellCheckingInspection") val lcolor = color.toLinear()
         val floatColorData = floatArrayOf(
             lcolor.r.toFloat(),
             lcolor.g.toFloat(),
@@ -83,8 +80,8 @@ class ArrayTextureGL3(val target: Int,
         when {
             (Driver.glVersion < DriverVersionGL.GL_VERSION_4_4 || Driver.glType == DriverTypeGL.GLES) -> {
 
-                val lwidth = (width / pow(2.0, level.toDouble())).toInt()
-                val lheight = (height / pow(2.0, level.toDouble())).toInt()
+                @Suppress("SpellCheckingInspection") val lwidth = (width / 2.0.pow(level.toDouble())).toInt()
+                @Suppress("SpellCheckingInspection") val lheight = (height / 2.0.pow(level.toDouble())).toInt()
                 val writeTarget = renderTarget(lwidth, lheight) {
                     this.arrayTexture(this@ArrayTextureGL3, layer, level)
                 } as RenderTargetGL3

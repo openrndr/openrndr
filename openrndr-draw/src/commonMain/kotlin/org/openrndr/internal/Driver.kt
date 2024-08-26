@@ -192,24 +192,8 @@ expect interface Driver {
 
     val shaderLanguage: ShaderLanguage
 
-
     companion object {
         var driver: Driver?
-
-//        = null
-//            set(value) {
-//                logger.debug {"setting driver instance to $value" }
-//                field = value
-//            }
-
         val instance: Driver
-//        get() = driver ?: error("No graphical context has been set up yet.")
     }
-}
-
-/**
- * Wait for the [Driver] to finish drawing
- */
-fun finish() {
-    Driver.instance.finish()
 }

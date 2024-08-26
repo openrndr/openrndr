@@ -1,11 +1,8 @@
 package org.openrndr.internal.gl3
 
-import io.github.oshai.kotlinlogging.KotlinLogging
 import org.lwjgl.opengl.GL43C.*
 import org.openrndr.draw.*
 import org.openrndr.internal.Driver
-
-private val logger = KotlinLogging.logger {}
 
 fun ImageAccess.gl(): Int {
     return when (this) {
@@ -22,7 +19,7 @@ class ComputeShaderGL43(
     ShaderBufferBindingsGL3, ShaderUniformsGL3, ShaderImageBindingsGL43 {
 
     override val uniforms = mutableMapOf<String, Int>()
-    override val useProgramUniform = (Driver.instance as DriverGL3).version >= DriverVersionGL.GL_VERSION_4_1
+    override val useProgramUniform = Driver.capabilities.programUniform
     private var destroyed = false
 
     override fun execute(width: Int, height: Int, depth: Int) {
@@ -40,7 +37,6 @@ class ComputeShaderGL43(
     override val ssbo: Int = createSSBO()
     override val ssboResourceIndices = mutableMapOf<String, Int>()
 
-
     override fun destroy() {
         if (!destroyed) {
             glDeleteProgram(this.programObject)
@@ -51,7 +47,7 @@ class ComputeShaderGL43(
     companion object {
         fun createFromCode(code: String, name: String): ComputeShaderGL43 {
             val shaderObject = glCreateShader(GL_COMPUTE_SHADER)
-            checkGLErrors() {
+            checkGLErrors {
                 when(it) {
                     GL_INVALID_ENUM -> "Compute shaders are not supported"
                     else -> null
@@ -80,7 +76,4 @@ class ComputeShaderGL43(
             return ComputeShaderGL43(program, name)
         }
     }
-
-
-
 }

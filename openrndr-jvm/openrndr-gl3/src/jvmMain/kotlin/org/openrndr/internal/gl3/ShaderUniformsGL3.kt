@@ -36,6 +36,7 @@ interface ShaderUniformsGL3 : ShaderUniforms {
             location
         }
 
+    @Suppress("DuplicatedCode")
     override fun uniform(name: String, value: ColorRGBa) {
         val linearValue = value.toLinear()
         val index = uniformIndex(name)
@@ -78,6 +79,7 @@ interface ShaderUniformsGL3 : ShaderUniforms {
         }
     }
 
+    @Suppress("DuplicatedCode")
     override fun uniform(name: String, value: Vector4) {
         val index = uniformIndex(name)
         if (index != -1) {
@@ -461,7 +463,7 @@ interface ShaderUniformsGL3 : ShaderUniforms {
         val index = uniformIndex(name)
         if (index != -1) {
             logger.trace { "Setting uniform '$name' to $value" }
-            val fvalue = value.map { it.toFloat() }.toFloatArray()
+            @Suppress("SpellCheckingInspection") val fvalue = value.map { it.toFloat() }.toFloatArray()
             if (useProgramUniform) {
                 glProgramUniform1fv(programObject, index, fvalue)
             } else {

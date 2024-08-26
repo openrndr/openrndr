@@ -92,19 +92,17 @@ fun checkProgramInfoLog(`object`: Int, sourceFile: String) {
 class ShaderGL3(
     override val programObject: Int,
     override val name: String,
-    vertexShader: VertexShaderGL3,
-    tessellationControlShader: TessellationControlShaderGL3?,
-    tessellationEvaluationShader: TessellationEvaluationShaderGL3?,
+    @Suppress("UNUSED_PARAMETER") vertexShader: VertexShaderGL3,
+    @Suppress("UNUSED_PARAMETER") tessellationControlShader: TessellationControlShaderGL3?,
+    @Suppress("UNUSED_PARAMETER") tessellationEvaluationShader: TessellationEvaluationShaderGL3?,
     geometryShader: GeometryShaderGL3?,
-    fragmentShader: FragmentShaderGL3,
+    @Suppress("UNUSED_PARAMETER") fragmentShader: FragmentShaderGL3,
     override val session: Session?
 ) : Shader, ShaderUniformsGL3, ShaderBufferBindingsGL3, ShaderImageBindingsGL43 {
 
     override val ssbo: Int = createSSBO()
     override val ssboResourceIndices = mutableMapOf<String, Int>()
-    override val useProgramUniform =
-        ((Driver.glVersion >= DriverVersionGL.GL_VERSION_4_2 && Driver.glVersion.type == DriverTypeGL.GL)) ||
-                (Driver.glVersion >= DriverVersionGL.GLES_VERSION_3_1 && Driver.glVersion.type == DriverTypeGL.GLES)
+    override val useProgramUniform = Driver.capabilities.programUniform
 
     override val types: Set<ShaderType> =
         if (geometryShader != null) setOf(ShaderType.VERTEX, ShaderType.GEOMETRY, ShaderType.FRAGMENT) else
@@ -150,7 +148,6 @@ class ShaderGL3(
                     glAttachShader(program, it.shaderObject)
                     debugGLErrors()
                 }
-
 
                 glAttachShader(program, fragmentShader.shaderObject)
                 debugGLErrors()
@@ -207,7 +204,7 @@ class ShaderGL3(
         val blockSize = run {
             val blockSizeBuffer = BufferUtils.createIntBuffer(1)
             glGetActiveUniformBlockiv(programObject, blockIndex, GL_UNIFORM_BLOCK_DATA_SIZE, blockSizeBuffer)
-            checkGLErrors() {
+            checkGLErrors {
                 when (it) {
                     GL_INVALID_VALUE -> "uniformBlockIndex ($blockIndex) is greater than or equal to the value of GL_ACTIVE_UNIFORM_BLOCKS (${
                         glGetInteger(
@@ -297,6 +294,7 @@ class ShaderGL3(
 
 
             return UniformBlockLayout(blockSize, (0 until uniformCount).map {
+                @Suppress("RegExpRedundantEscape")
                 UniformDescription(
                     uniformNames[it].replace(Regex("\\[.*\\]"), ""),
                     uniformTypes[it].toUniformType(),
@@ -332,14 +330,13 @@ class ShaderGL3(
         }
     }
 
-    fun blockIndex(block: String): Int {
+    private fun blockIndex(block: String): Int {
         return blocks.getOrPut(block) {
             glGetUniformBlockIndex(programObject, block).also {
                 checkGLErrors()
             }
         }
     }
-
 
     override fun begin() {
         if (ssbo != -1) {

@@ -23,16 +23,19 @@ import kotlin.math.min
 private val logger = KotlinLogging.logger {}
 
 
+@Suppress("SpellCheckingInspection")
 enum class GlesBackend {
     SYSTEM,
     ANGLE
 }
 
+@Suppress("SpellCheckingInspection")
 enum class DriverTypeGL {
     GL,
     GLES
 }
 
+@Suppress("SpellCheckingInspection")
 enum class DriverVersionGL(
     val type: DriverTypeGL,
     val glslVersion: String,
@@ -53,6 +56,11 @@ enum class DriverVersionGL(
 
     val versionString
         get() = "$majorVersion.$minorVersion"
+
+    fun isAtLeast(vararg version: DriverVersionGL): Boolean =
+        version.any {
+            (this >= it && it.type == type)
+        }
 }
 
 @Suppress("NOTHING_TO_INLINE")
@@ -64,6 +72,17 @@ inline fun DriverVersionGL.require(minimum: DriverVersionGL) {
 
 class DriverGL3(val version: DriverVersionGL) : Driver {
 
+    data class Capabilities(
+        val programUniform: Boolean,
+        val textureStorage: Boolean,
+        val compute: Boolean,
+    )
+
+    val capabilities = Capabilities(
+        programUniform = version.isAtLeast(DriverVersionGL.GL_VERSION_4_1, DriverVersionGL.GLES_VERSION_3_1),
+        textureStorage = version.isAtLeast(DriverVersionGL.GL_VERSION_4_1, DriverVersionGL.GLES_VERSION_3_0),
+        compute = version.isAtLeast(DriverVersionGL.GL_VERSION_4_3, DriverVersionGL.GLES_VERSION_3_1)
+    )
     override val properties: DriverProperties by lazy {
         DriverProperties(
             maxRenderTargetSamples = when (Driver.glType) {
@@ -96,6 +115,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
             return GLSL(version.glslVersion)
         }
 
+    @Suppress("SpellCheckingInspection")
     override fun shaderConfiguration(): String = """
         #version ${version.glslVersion}
         #define OR_IN_OUT
@@ -123,7 +143,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
 
     companion object {
         fun candidateVersions(type: DriverTypeGL = DriverGL3Configuration.driverType): List<DriverVersionGL> {
-            val property = System.getProperty("org.openrndr.gl3.version", "all")
+            @Suppress("SpellCheckingInspection") val property = System.getProperty("org.openrndr.gl3.version", "all")
             return DriverVersionGL.entries.find { it.type == DriverTypeGL.GL && "${it.majorVersion}.${it.minorVersion}" == property }
                 ?.let { listOf(it) }
                 ?: DriverVersionGL.entries.filter { it.type == type }.reversed()
@@ -157,27 +177,6 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
     override val shaderGenerators: ShaderGenerators = ShaderGeneratorsGLCommon()
     private val vaos = mutableMapOf<ShaderVertexDescription, Int>()
 
-    private fun hash(
-        shader: ShaderGL3,
-        vertexBuffers: List<VertexBuffer>,
-        instanceAttributes: List<VertexBuffer>
-    ): Long {
-        var hash = contextID
-        hash = hash * 31 + shader.programObject.toLong()
-        logger.hashCode()
-
-        for (vb in vertexBuffers) {
-            hash = hash * 31 + vb.vertexFormat.hashCode()
-        }
-        hash *= 31
-
-        for (vb in instanceAttributes) {
-            hash = hash * 31 + vb.vertexFormat.hashCode()
-        }
-
-        return hash
-    }
-
     override fun internalShaderResource(resourceId: String): String {
         val resource = this.javaClass.getResource("shaders/$resourceId")
         if (resource != null) {
@@ -210,7 +209,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
     override fun clear(color: ColorRGBa) {
         val targetColor = color.toLinear()
         debugGLErrors()
-        glClearColor(targetColor.r.toFloat(), targetColor.g.toFloat(), targetColor.b.toFloat(), targetColor.a.toFloat())
+        glClearColor(targetColor.r.toFloat(), targetColor.g.toFloat(), targetColor.b.toFloat(), targetColor.alpha.toFloat())
         glClearDepth(1.0)
         val depthWriteMask = glGetInteger(GL_DEPTH_WRITEMASK) != 0
         glDisable(GL_SCISSOR_TEST)
@@ -331,7 +330,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         levels: Int,
         session: Session?
     ): Cubemap {
-        logger.trace { "creating cubemap $width" }
+        logger.trace { "creating cube map $width" }
         val cubemap = CubemapGL3.create(width, format, type, levels, session)
         session?.track(cubemap)
         return cubemap
@@ -596,6 +595,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
     }
 
 
+    @Suppress("DuplicatedCode")
     override fun drawInstances(
         shader: Shader,
         vertexBuffers: List<VertexBuffer>,
@@ -670,6 +670,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         glBindVertexArray(defaultVAO)
     }
 
+    @Suppress("DuplicatedCode")
     override fun drawIndexedInstances(
         shader: Shader,
         indexBuffer: IndexBuffer,
@@ -795,7 +796,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
                 val prefix = if (divisor == 0) "a" else "i"
                 var attributeBindings = 0
 
-                glBindBuffer(GL_ARRAY_BUFFER, (buffer as VertexBufferGL3).buffer)
+                glBindBuffer(GL_ARRAY_BUFFER, buffer.buffer)
                 val format = buffer.vertexFormat
                 for (item in format.items) {
                     // skip over padding attributes
@@ -915,27 +916,6 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
             }
         }
     }
-
-    private fun teardownFormat(format: VertexFormat, shader: ShaderGL3) {
-        for (item in format.items) {
-            // custom attribute
-            val attributeIndex = shader.attributeIndex(item.attribute)
-            if (attributeIndex != -1) {
-                glDisableVertexAttribArray(attributeIndex)
-                debugGLErrors()
-            }
-        }
-    }
-
-    private fun teardownFormat(
-        vertexBuffers: List<VertexBuffer>,
-        instanceAttributes: List<VertexBuffer>,
-        shader: ShaderGL3
-    ) {
-        vertexBuffers.forEach { teardownFormat(it.vertexFormat, shader) }
-        instanceAttributes.forEach { teardownFormat(it.vertexFormat, shader) }
-    }
-
 
     private val dirtyPerContext = mutableMapOf<Long, Boolean>()
     private val cachedPerContext = mutableMapOf<Long, DrawStyle>()
@@ -1258,6 +1238,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         glFinish()
     }
 
+    @Suppress("DuplicatedCode")
     fun destroyVAOsForVertexBuffer(vertexBuffer: VertexBufferGL3) {
         val candidates = vaos.keys.filter {
             it.vertexBuffers.contains(vertexBuffer.buffer) || it.instanceAttributeBuffers.contains(vertexBuffer.buffer)
@@ -1284,7 +1265,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         }
     }
 
-    fun destroyAllVAOs() {
+    private fun destroyAllVAOs() {
         defaultVAOs.keys.forEach {
             val value = defaultVAOs[it]!!
             glDeleteVertexArrays(value)
@@ -1367,6 +1348,7 @@ private fun VertexElementType.glType(): Int = when (this) {
     VertexElementType.VECTOR4_FLOAT32 -> GL_FLOAT
 }
 
+@Suppress("DuplicatedCode")
 internal fun Matrix44.put(fb: FloatBuffer) {
     fb.put(c0r0.toFloat())
     fb.put(c0r1.toFloat())
@@ -1419,3 +1401,9 @@ val Driver.Companion.glVersion
 
 val Driver.Companion.glType
     get() = (instance as DriverGL3).version.type
+
+/**
+ * Quick access to capabilities
+ */
+val Driver.Companion.capabilities
+    get() = (instance as DriverGL3).capabilities

@@ -22,10 +22,10 @@ import org.openrndr.internal.ImageDriver
 import org.openrndr.shape.IntRectangle
 import org.openrndr.utils.buffer.MPPBuffer
 import java.io.File
-import java.lang.Math.pow
 import java.nio.Buffer
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import kotlin.math.pow
 
 internal data class ConversionEntry(val format: ColorFormat, val type: ColorType, val glFormat: Int, val glType: Int)
 
@@ -105,16 +105,10 @@ internal fun internalFormat(format: ColorFormat, type: ColorType): Pair<Int, Int
     throw Exception("no conversion entry for $format/$type")
 }
 
-private val IntProgression.size: Int
-    get() {
-        return 1 + (this.last - this.first) / this.step
-    }
-
 @Suppress("MemberVisibilityCanBePrivate")
 class ColorBufferGL3(
     val target: Int,
     val texture: Int,
-    val storageMode: TextureStorageModeGL,
     override val width: Int,
     override val height: Int,
     override val contentScale: Double,
@@ -137,76 +131,6 @@ class ColorBufferGL3(
     }
 
     companion object {
-        fun fromColorBufferData(data: ImageData, session: Session?): ColorBuffer {
-            val cb = create(
-                data.width,
-                data.height,
-                1.0,
-                data.format,
-                data.type,
-                Disabled,
-                1 + data.mipmapData.size,
-                session
-            )
-            return cb.apply {
-                this.flipV = data.flipV
-                val d = data.data?.byteBuffer
-                if (d != null) {
-                    cb.write(d)
-                    if (data.mipmapData.isEmpty()) {
-                        cb.generateMipmaps()
-                    } else {
-                        for (i in data.mipmapData.indices) {
-                            cb.write(data.mipmapData[i].byteBuffer, level = i + 1)
-                        }
-                    }
-                } else {
-                    throw RuntimeException("data is null")
-                }
-                glFlush()
-                glFinish()
-            }
-        }
-
-        fun fromUrl(url: String, formatHint: ImageFileFormat?, allowSRGB: Boolean, session: Session?): ColorBuffer {
-            val data = ImageDriver.instance.loadImage(url, formatHint, allowSRGB)
-            return try {
-                fromColorBufferData(data, session)
-            } finally {
-                data.close()
-            }
-        }
-
-        fun fromFile(
-            filename: String,
-            formatHint: ImageFileFormat? = ImageFileFormat.guessFromExtension(filename),
-            allowSRGB: Boolean = true,
-            session: Session?
-        ): ColorBuffer {
-            val data = ImageDriver.instance.loadImage(filename, formatHint, allowSRGB)
-            return try {
-                fromColorBufferData(data, session)
-            } finally {
-                data.close()
-            }
-        }
-
-
-        fun fromBuffer(
-            buffer: ByteBuffer,
-            name: String?,
-            formatHint: ImageFileFormat?,
-            allowSRGB: Boolean,
-            session: Session?
-        ): ColorBuffer {
-            val data = ImageDriver.instance.loadImage(MPPBuffer(buffer), name, formatHint, allowSRGB)
-            return try {
-                fromColorBufferData(data, session)
-            } finally {
-                data.close()
-            }
-        }
-
         fun create(
             width: Int,
             height: Int,
@@ -228,8 +152,7 @@ class ColorBufferGL3(
             checkGLErrors()
 
             val storageMode = when {
-                (Driver.glType == DriverTypeGL.GL && Driver.glVersion >= DriverVersionGL.GL_VERSION_4_3) -> TextureStorageModeGL.STORAGE
-                (Driver.glType == DriverTypeGL.GLES && Driver.glVersion >= DriverVersionGL.GLES_VERSION_3_1) -> TextureStorageModeGL.STORAGE
+                Driver.capabilities.textureStorage -> TextureStorageModeGL.STORAGE
                 else -> TextureStorageModeGL.IMAGE
             }
 
@@ -338,7 +261,6 @@ class ColorBufferGL3(
             return ColorBufferGL3(
                 target,
                 texture,
-                storageMode,
                 width,
                 height,
                 contentScale,
@@ -391,8 +313,8 @@ class ColorBufferGL3(
             } else {
                 bound {
                     glGenerateMipmap(target)
-                    debugGLErrors() {
-                        "failed to generate mipmap for ${this}"
+                    debugGLErrors {
+                        "failed to generate mipmap for $this"
                     }
                 }
             }
@@ -484,10 +406,12 @@ class ColorBufferGL3(
             val tex = targetRectangle.width + tsx
             val tey = targetRectangle.height + tsy
 
+            @Suppress("SpellCheckingInspection")
             fun sflip(y: Int): Int {
                 return this.effectiveHeight / fromDiv - y
             }
 
+            @Suppress("SpellCheckingInspection")
             fun tflip(y: Int): Int {
                 return target.effectiveHeight / toDiv - y
             }
@@ -504,13 +428,11 @@ class ColorBufferGL3(
                 GL_COLOR_BUFFER_BIT,
                 if (Driver.glType == DriverTypeGL.GLES) GL_NEAREST else filter.toGLFilter()
             )
-            debugGLErrors() {
+            debugGLErrors {
                 logger.error {
-                    """failed to copy ${this@ColorBufferGL3} to ${target}, source rect: ${sourceRectangle}, target rect: ${targetRectangle}"""
+                    """failed to copy ${this@ColorBufferGL3} to $target, source rect: $sourceRectangle, target rect: $targetRectangle"""
                 }
-                when (it) {
-                    else -> null
-                }
+                null
             }
             writeTarget.unbind()
 
@@ -588,7 +510,7 @@ class ColorBufferGL3(
         debugGLErrors {
             "leaking error"
         }
-        require(fromLevel < this.levels) { """requested to copy from mipmap level $fromLevel, but source colorbuffer has $levels mipmap levels.""" }
+        require(fromLevel < this.levels) { """requested to copy from mipmap level $fromLevel, but source color buffer has $levels mipmap levels.""" }
         require(toLevel < target.levels) { """requested to copy to mipmap level $toLevel, but target array texture only has $levels mipmap levels.""" }
 
         val useCopyFilter = Driver.glType == DriverTypeGL.GLES && (
@@ -690,10 +612,9 @@ class ColorBufferGL3(
     override fun fill(color: ColorRGBa, level: Int) {
         checkDestroyed()
         require(level < levels)
-        val lwidth = (width / pow(2.0, level.toDouble())).toInt()
-        val lheight = (height / pow(2.0, level.toDouble())).toInt()
-
-        val lcolor = color.toLinear()
+        @Suppress("SpellCheckingInspection") val lwidth = (width / 2.0.pow(level.toDouble())).toInt()
+        @Suppress("SpellCheckingInspection") val lheight = (height / 2.0.pow(level.toDouble())).toInt()
+        @Suppress("SpellCheckingInspection") val lcolor = color.toLinear()
 
         val floatColorData = floatArrayOf(
             lcolor.r.toFloat(),
@@ -885,7 +806,7 @@ class ColorBufferGL3(
         if (!targetBuffer.isDirect) {
             throw IllegalArgumentException("buffer is not a direct buffer.")
         }
-        require(multisample == Disabled) { "can not read from multisampled Colorbuffers" }
+        require(multisample == Disabled) { "can not read from multi-sampled color buffers" }
         when (Driver.glType) {
             DriverTypeGL.GL -> {
 
@@ -957,11 +878,8 @@ class ColorBufferGL3(
     override fun saveToFile(file: File, imageFileFormat: ImageFileFormat, async: Boolean) {
         checkDestroyed()
         require(multisample == Disabled)
-        val data = toImageData()
-        try {
+        toImageData().use { data ->
             ImageDriver.instance.saveImage(data, file.absolutePath, imageFileFormat)
-        } finally {
-            data.close()
         }
     }
 
@@ -970,11 +888,8 @@ class ColorBufferGL3(
         require(multisample == Disabled)
         require(type == ColorType.UINT8 || type == ColorType.UINT8_SRGB)
 
-        val data = toImageData()
-        return try {
+        return toImageData().use { data ->
             ImageDriver.instance.imageToDataUrl(data, imageFileFormat)
-        } finally {
-            data.close()
         }
     }
 
@@ -995,7 +910,7 @@ class ColorBufferGL3(
 
     private fun checkDestroyed() {
         if (destroyed) {
-            throw IllegalStateException("colorbuffer is destroyed")
+            throw IllegalStateException("color buffer is destroyed")
         }
     }
 

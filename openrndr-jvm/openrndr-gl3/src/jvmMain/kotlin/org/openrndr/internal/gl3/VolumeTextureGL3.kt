@@ -219,8 +219,6 @@ class VolumeTextureGL3(
 
             debugGLErrors() { "pre-existing errors"}
 
-            val useStorage = Driver.glType == DriverTypeGL.GLES && Driver.glVersion >= DriverVersionGL.GLES_VERSION_3_1
-
             /*
             if (useStorage) {
                 glTexStorage3D(
@@ -265,17 +263,9 @@ class VolumeTextureGL3(
             glActiveTexture(GL_TEXTURE0)
             glBindTexture(GL_TEXTURE_3D, texture)
 
-            val version = (Driver.instance as DriverGL3).version
-
             val storageMode = when {
-                version >= DriverVersionGL.GL_VERSION_4_3 && Driver.glType == DriverTypeGL.GL ||
-                        version >= DriverVersionGL.GLES_VERSION_3_1 && Driver.glType == DriverTypeGL.GLES -> {
-                    TextureStorageModeGL.STORAGE
-                }
-
-                else -> {
-                    TextureStorageModeGL.IMAGE
-                }
+                Driver.capabilities.textureStorage -> TextureStorageModeGL.STORAGE
+                else -> TextureStorageModeGL.IMAGE
             }
 
             checkGLErrors()

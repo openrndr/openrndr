@@ -11,9 +11,7 @@ import kotlin.test.Test
 class TestComputeStyleGL3 : AbstractApplicationTestFixture() {
     @Test
     fun test() {
-        if ((Driver.glVersion >= DriverVersionGL.GL_VERSION_4_3 && Driver.glType == DriverTypeGL.GL) ||
-            (Driver.glVersion >= DriverVersionGL.GLES_VERSION_3_1 && Driver.glType == DriverTypeGL.GLES)
-        ) {
+        if (Driver.capabilities.compute) {
             val cs = computeStyle {
                 computeTransform = ""
             }
@@ -24,9 +22,7 @@ class TestComputeStyleGL3 : AbstractApplicationTestFixture() {
     @Test
     fun testImageBinding() {
         val img = colorBuffer(256, 256, type = ColorType.UINT8)
-        if ((Driver.glVersion >= DriverVersionGL.GL_VERSION_4_3 && Driver.glType == DriverTypeGL.GL) ||
-            (Driver.glVersion >= DriverVersionGL.GLES_VERSION_3_1 && Driver.glType == DriverTypeGL.GLES)
-        ) {
+        if (Driver.capabilities.compute) {
             val cs = computeStyle {
                 computeTransform = "p_img;"
                 registerImageBinding(
@@ -43,9 +39,7 @@ class TestComputeStyleGL3 : AbstractApplicationTestFixture() {
 
     @Test
     fun testVolumeImageBinding() {
-        if ((Driver.glVersion >= DriverVersionGL.GL_VERSION_4_3 && Driver.glType == DriverTypeGL.GL) ||
-            (Driver.glVersion >= DriverVersionGL.GLES_VERSION_3_1 && Driver.glType == DriverTypeGL.GLES)
-        ) {
+        if (Driver.capabilities.compute) {
             val img = volumeTexture(16, 16, 16, type = ColorType.UINT8)
             val cs = computeStyle {
                 computeTransform = "p_img; p_imgArray[0];"
@@ -66,7 +60,7 @@ class TestComputeStyleGL3 : AbstractApplicationTestFixture() {
 
     @Test
     fun testIntVectors() {
-        if ((Driver.instance as DriverGL3).version >= DriverVersionGL.GL_VERSION_4_3 && Driver.glType == DriverTypeGL.GL) {
+        if (Driver.capabilities.compute) {
             val cs = computeStyle {
                 computeTransform = "p_ivec2; p_ivec3; p_ivec4;"
                 parameter("ivec2", IntVector2.ZERO)
@@ -76,5 +70,4 @@ class TestComputeStyleGL3 : AbstractApplicationTestFixture() {
             cs.execute(1, 1, 1)
         }
     }
-
 }
