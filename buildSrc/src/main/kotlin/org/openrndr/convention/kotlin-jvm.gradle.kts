@@ -38,7 +38,7 @@ tasks {
             freeCompilerArgs.add("-Xexpect-actual-classes")
             freeCompilerArgs.add("-Xjdk-release=${libs.versions.jvmTarget.get()}")
             apiVersion.set(KotlinVersion.valueOf("KOTLIN_${libs.versions.kotlinApi.get().replace(".", "_")}"))
-            languageVersion.set(KotlinVersion.valueOf("KOTLIN_${libs.versions.kotlinApi.get().replace(".", "_")}"))
+            languageVersion.set(KotlinVersion.valueOf("KOTLIN_${libs.versions.kotlinLanguage.get().replace(".", "_")}"))
         }
     }
 }

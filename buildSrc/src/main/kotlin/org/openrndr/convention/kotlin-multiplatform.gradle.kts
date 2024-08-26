@@ -21,10 +21,10 @@ repositories {
 
 group = "org.openrndr"
 
-tasks.withType<KotlinCompilationTask<*>>() {
+tasks.withType<KotlinCompilationTask<*>> {
     compilerOptions {
         apiVersion.set(KotlinVersion.valueOf("KOTLIN_${libs.versions.kotlinApi.get().replace(".", "_")}"))
-        languageVersion.set(KotlinVersion.valueOf("KOTLIN_${libs.versions.kotlinApi.get().replace(".", "_")}"))
+        languageVersion.set(KotlinVersion.valueOf("KOTLIN_${libs.versions.kotlinLanguage.get().replace(".", "_")}"))
         freeCompilerArgs.add("-Xexpect-actual-classes")
     }
 }
