@@ -177,6 +177,8 @@ void main() {
                     is IntVector4 -> shader.uniform(uniform, value as Array<IntVector4>)
                     is ColorRGBa -> shader.uniform(uniform, value as Array<ColorRGBa>)
                     is Double -> shader.uniform(uniform, value as Array<Double>)
+                    is Matrix33 -> shader.uniform(uniform, value as Array<Matrix33>)
+                    is Matrix44 -> shader.uniform(uniform, value as Array<Matrix44>)
                     else -> throw IllegalArgumentException("unsupported array value: ${value[0]!!::class}")
                     //is ColorRGBa -> shader.uniform(uniform, value as Array<ColorRGBa>)
                 }

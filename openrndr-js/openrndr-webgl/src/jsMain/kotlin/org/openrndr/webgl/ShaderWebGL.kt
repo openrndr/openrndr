@@ -250,6 +250,23 @@ class ShaderWebGL(
         }
     }
 
+    override fun uniform(name: String, value: Array<Matrix33>) {
+        val floatValues = Float32Array(value.size * 3 * 3)
+        var offset = 0
+        for (j in value.indices) {
+            val mf = value[j].toFloat32Array()
+            for (i in 0 until 9) {
+                floatValues[offset] = mf[i]
+                offset++
+            }
+        }
+        val index = uniformIndex(name)
+        if (index != null) {
+            context.uniformMatrix3fv(index, false, floatValues)
+            context.checkErrors("$name $value")
+        }
+    }
+
     override fun uniform(name: String, value: Array<Matrix44>) {
         val floatValues = Float32Array(value.size * 4 * 4)
         var offset = 0

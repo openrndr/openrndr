@@ -33,6 +33,6 @@ interface ShaderUniforms {
     fun uniform(name: String, value: IntArray)
     fun uniform(name: String, value: Array<ColorRGBa>)
     fun uniform(name: String, value: Array<Double>)
+    fun uniform(name: String, value: Array<Matrix33>)
     fun uniform(name: String, value: Array<Matrix44>)
-
 }

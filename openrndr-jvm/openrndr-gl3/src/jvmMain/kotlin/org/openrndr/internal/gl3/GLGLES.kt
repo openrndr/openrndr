@@ -740,11 +740,104 @@ inline fun glUniform1f(@NativeType("GLint") location: Int, @NativeType("GLint") 
     }
 }
 
+// --- [ glUniform2i ] ---
+fun glUniform2i(@NativeType("GLint") location: Int, @NativeType("GLint") v0: Int, @NativeType("GLint") v1: Int) {
+    when (driverType) {
+        DriverTypeGL.GL -> GL.glUniform2i(location, v0, v1)
+        DriverTypeGL.GLES -> GLES.glUniform2i(location, v0, v1)
+    }
+}
+
+// --- [ glUniform3i ] ---
+fun glUniform3i(
+    @NativeType("GLint") location: Int,
+    @NativeType("GLint") v0: Int,
+    @NativeType("GLint") v1: Int,
+    @NativeType("GLint") v2: Int
+) {
+    when (driverType) {
+        DriverTypeGL.GL -> GL.glUniform3i(location, v0, v1, v2)
+        DriverTypeGL.GLES -> GLES.glUniform3i(location, v0, v1, v2)
+    }
+}
+
+// --- [ glUniform4i ] ---
+fun glUniform4i(
+    @NativeType("GLint") location: Int,
+    @NativeType("GLint") v0: Int,
+    @NativeType("GLint") v1: Int,
+    @NativeType("GLint") v2: Int,
+    @NativeType("GLint") v3: Int,
+) {
+    when (driverType) {
+        DriverTypeGL.GL -> GL.glUniform4i(location, v0, v1, v2, v3)
+        DriverTypeGL.GLES -> GLES.glUniform4i(location, v0, v1, v2, v3)
+    }
+}
+
+
+// --- [ glProgramUniform2i ] ---
+fun glProgramUniform2i(
+    @NativeType("GLuint") program: Int,
+    @NativeType("GLint") location: Int,
+    @NativeType("GLint") x: Int,
+    @NativeType("GLint") y: Int
+) {
+    when (driverType) {
+        DriverTypeGL.GL -> GL.glProgramUniform2i(program, location, x, y)
+        DriverTypeGL.GLES -> GLES.glProgramUniform2i(program, location, x, y)
+    }
+}
+
+// --- [ glProgramUniform3i ] ---
+fun glProgramUniform3i(
+    @NativeType("GLuint") program: Int,
+    @NativeType("GLint") location: Int,
+    @NativeType("GLint") x: Int,
+    @NativeType("GLint") y: Int,
+    @NativeType("GLint") z: Int
+
+) {
+    when (driverType) {
+        DriverTypeGL.GL -> GL.glProgramUniform3i(program, location, x, y, z)
+        DriverTypeGL.GLES -> GLES.glProgramUniform3i(program, location, x, y, z)
+    }
+}
+
+// --- [ glProgramUniform4i ] ---
+fun glProgramUniform4i(
+    @NativeType("GLuint") program: Int,
+    @NativeType("GLint") location: Int,
+    @NativeType("GLint") x: Int,
+    @NativeType("GLint") y: Int,
+    @NativeType("GLint") z: Int,
+    @NativeType("GLint") w: Int
+
+) {
+    when (driverType) {
+        DriverTypeGL.GL -> GL.glProgramUniform4i(program, location, x, y, z, w)
+        DriverTypeGL.GLES -> GLES.glProgramUniform4i(program, location, x, y, z, w)
+    }
+}
+
 fun glProgramUniformMatrix3fv(
     @NativeType("GLuint") program: Int,
     @NativeType("GLint") location: Int,
     @NativeType("GLboolean") transpose: Boolean,
     @NativeType("GLfloat const *") value: FloatArray
+) {
+    when (driverType) {
+        DriverTypeGL.GL -> GL.glProgramUniformMatrix3fv(program, location, transpose, value)
+        DriverTypeGL.GLES -> GLES.glProgramUniformMatrix3fv(program, location, transpose, value)
+    }
+}
+
+
+fun glProgramUniformMatrix3fv(
+    @NativeType("GLuint") program: Int,
+    @NativeType("GLint") location: Int,
+    @NativeType("GLboolean") transpose: Boolean,
+    @NativeType("GLfloat const *") value: FloatBuffer
 ) {
     when (driverType) {
         DriverTypeGL.GL -> GL.glProgramUniformMatrix3fv(program, location, transpose, value)
@@ -941,6 +1034,17 @@ fun glProgramUniformMatrix4fv(
     when (driverType) {
         DriverTypeGL.GL -> GL.glProgramUniformMatrix4fv(program, location, transpose, value)
         DriverTypeGL.GLES -> GLES.glProgramUniformMatrix4fv(program, location, transpose, value)
+    }
+}
+
+fun glUniformMatrix3fv(
+    @NativeType("GLint") location: Int,
+    @NativeType("GLboolean") transpose: Boolean,
+    @NativeType("GLfloat const *") value: FloatBuffer
+) {
+    when (driverType) {
+        DriverTypeGL.GL -> GL.glUniformMatrix3fv(location, transpose, value)
+        DriverTypeGL.GLES -> GLES.glUniformMatrix3fv(location, transpose, value)
     }
 }
 
@@ -1643,7 +1747,7 @@ fun glGenRenderbuffers(): Int {
     }
 }
 
-fun glDeleteRenderbuffers(@NativeType("GLuint const *") renderbuffer:Int) {
+fun glDeleteRenderbuffers(@NativeType("GLuint const *") renderbuffer: Int) {
     return when (driverType) {
         DriverTypeGL.GL -> GL.glDeleteRenderbuffers(renderbuffer)
         DriverTypeGL.GLES -> GLES.glDeleteRenderbuffers(renderbuffer)

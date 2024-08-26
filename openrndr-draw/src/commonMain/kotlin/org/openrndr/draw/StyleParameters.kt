@@ -6,7 +6,6 @@ import org.openrndr.math.*
 interface StyleParameters {
     var parameterValues: MutableMap<String, Any>
     var parameterTypes: ObservableHashmap<String, String>
-
     var textureBaseIndex: Int
 
     fun parameter(name: String, value: Cubemap) {
@@ -36,6 +35,11 @@ interface StyleParameters {
     fun parameter(name: String, value: Matrix44) {
         parameterValues[name] = value
         parameterTypes[name] = shadeStyleType<Matrix44>()
+    }
+
+    fun parameter(name: String, value: Array<Matrix33>) {
+        parameterValues[name] = value
+        parameterTypes[name] = "${shadeStyleType<Matrix33>()},${value.size}"
     }
 
     fun parameter(name: String, value: Array<Matrix44>) {
@@ -182,9 +186,6 @@ interface StyleParameters {
             else -> "VolumeTexture"
         }
     }
-
-
-
 }
 
 inline fun <reified T : Struct<T>> StyleParameters.parameter(name: String, value: T) {

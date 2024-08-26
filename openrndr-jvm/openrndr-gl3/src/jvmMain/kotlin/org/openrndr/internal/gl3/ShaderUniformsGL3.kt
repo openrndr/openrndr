@@ -2,8 +2,8 @@ package org.openrndr.internal.gl3
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.lwjgl.BufferUtils
-import org.lwjgl.opengl.GL41C.*
-import org.lwjgl.opengl.GL43C
+import org.lwjgl.opengl.GL11C.GL_INVALID_OPERATION
+import org.lwjgl.opengl.GL20C.GL_CURRENT_PROGRAM
 import org.lwjgl.system.MemoryStack.stackPush
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.ShaderUniforms
@@ -170,7 +170,7 @@ interface ShaderUniformsGL3 : ShaderUniforms {
                 glProgramUniform2i(programObject, index, value.x, value.y)
             } else {
                 bound {
-                    GL43C.glUniform2i(index, value.x, value.y)
+                    glUniform2i(index, value.x, value.y)
                     postUniformCheck(name, index, value)
                 }
             }
@@ -184,7 +184,7 @@ interface ShaderUniformsGL3 : ShaderUniforms {
                 glProgramUniform3i(programObject, index, value.x, value.y, value.z)
             } else {
                 bound {
-                    GL43C.glUniform3i(index, value.x, value.y, value.z)
+                    glUniform3i(index, value.x, value.y, value.z)
                     postUniformCheck(name, index, value)
                 }
             }
@@ -198,7 +198,7 @@ interface ShaderUniformsGL3 : ShaderUniforms {
                 glProgramUniform4i(programObject, index, value.x, value.y, value.z, value.w)
             } else {
                 bound {
-                    GL43C.glUniform4i(index, value.x, value.y, value.z, value.w)
+                    glUniform4i(index, value.x, value.y, value.z, value.w)
                     postUniformCheck(name, index, value)
                 }
             }
@@ -499,6 +499,28 @@ interface ShaderUniformsGL3 : ShaderUniforms {
         }
     }
 
+    override fun uniform(name: String, value: Array<Matrix33>) {
+        val index = uniformIndex(name)
+        if (index != -1) {
+            logger.trace { "Setting uniform '$name' to $value" }
+            stackPush().use { stack ->
+                val floatValues = stack.mallocFloat(value.size * 3 * 3)
+                for (j in value.indices) {
+                    value[j].put(floatValues)
+                }
+                floatValues.flip()
+                if (useProgramUniform) {
+                    glProgramUniformMatrix3fv(programObject, index, false, floatValues)
+                } else {
+                    bound {
+                        glUniformMatrix3fv(index, false, floatValues)
+                    }
+                }
+            }
+            postUniformCheck(name, index, value)
+        }
+    }
+
     override fun uniform(name: String, value: Array<Matrix44>) {
         val index = uniformIndex(name)
         if (index != -1) {
@@ -512,7 +534,7 @@ interface ShaderUniformsGL3 : ShaderUniforms {
                 floatValues.flip()
                 if (useProgramUniform) {
                     glProgramUniformMatrix4fv(programObject, index, false, floatValues)
-                }else {
+                } else {
                     bound {
                         glUniformMatrix4fv(index, false, floatValues)
                     }
@@ -522,9 +544,10 @@ interface ShaderUniformsGL3 : ShaderUniforms {
             postUniformCheck(name, index, value)
         }
     }
+
     private fun postUniformCheck(name: String, index: Int, @Suppress("UNUSED_PARAMETER") value: Any) {
         debugGLErrors {
-            val currentProgram = glGetInteger(GL43C.GL_CURRENT_PROGRAM)
+            val currentProgram = glGetInteger(GL_CURRENT_PROGRAM)
 
             fun checkUniform(): String {
                 if (currentProgram > 0) {
@@ -544,7 +567,7 @@ interface ShaderUniformsGL3 : ShaderUniforms {
             }
 
             when (it) {
-                GL43C.GL_INVALID_OPERATION -> "no current program object ($currentProgram), or uniform type mismatch (${checkUniform()}"
+                GL_INVALID_OPERATION -> "no current program object ($currentProgram), or uniform type mismatch (${checkUniform()}"
                 else -> null
             }
         }
