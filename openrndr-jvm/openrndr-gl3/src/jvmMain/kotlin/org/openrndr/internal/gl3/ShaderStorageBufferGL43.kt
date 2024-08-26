@@ -66,7 +66,7 @@ class ShaderStorageBufferGL43(
     override fun read(target: ByteBuffer, readOffset: Int) {
         val needed = format.size - readOffset
         require(target.remaining() >= needed) {
-            "target buffer remaining bytes: ${target.remaining()}, need ${needed} bytes"
+            "target buffer remaining bytes: ${target.remaining()}, need $needed bytes"
         }
 
         when (Driver.glType) {

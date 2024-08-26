@@ -7,14 +7,12 @@ plugins {
 
 kotlin {
     sourceSets {
-        @Suppress("UNUSED_VARIABLE")
         val commonMain by getting {
             dependencies {
                 implementation(libs.kotlin.serialization.core)
             }
         }
 
-        @Suppress("UNUSED_VARIABLE")
         val commonTest by getting {
             dependencies {
                 implementation(libs.kotlin.serialization.json)
@@ -22,7 +20,6 @@ kotlin {
             }
         }
 
-        @Suppress("UNUSED_VARIABLE")
         val jvmTest by getting {
             dependencies {
                 implementation(libs.kotlin.serialization.json)

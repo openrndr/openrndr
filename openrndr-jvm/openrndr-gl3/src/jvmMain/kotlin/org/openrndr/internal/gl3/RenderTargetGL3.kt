@@ -2,8 +2,6 @@ package org.openrndr.internal.gl3
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.lwjgl.opengl.GL30C.*
-import org.lwjgl.opengl.GL32C.GL_MAX_COLOR_TEXTURE_SAMPLES
-import org.lwjgl.opengl.GL32C.GL_MAX_DEPTH_TEXTURE_SAMPLES
 import org.lwjgl.system.MemoryStack
 import org.openrndr.Program
 import org.openrndr.color.ColorRGBa
@@ -75,7 +73,7 @@ open class RenderTargetGL3(
                 val maxSamples = glGetInteger(GL_MAX_SAMPLES)
                 if (maxSamples < multisample.sampleCount) {
                     logger.info {
-                        "requested multisampling with ${multisample.sampleCount} samples, but only ${maxSamples} are supported"
+                        "requested multisampling with ${multisample.sampleCount} samples, but only $maxSamples are supported"
                     }
                 }
 
@@ -113,7 +111,7 @@ open class RenderTargetGL3(
 
     override fun bind() {
         require(!destroyed)
-        require(Driver.instance.contextID == contextID) { "can't bind render target on context ${Driver.instance.contextID} it is created on ${contextID}" }
+        require(Driver.instance.contextID == contextID) { "can't bind render target on context ${Driver.instance.contextID} it is created on $contextID" }
         if (bound) {
             throw RuntimeException("already bound")
         } else {

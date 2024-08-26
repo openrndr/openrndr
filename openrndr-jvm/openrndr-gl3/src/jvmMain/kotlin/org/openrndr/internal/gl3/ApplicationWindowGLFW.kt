@@ -65,6 +65,7 @@ class ApplicationWindowGLFW(
             //glfwMakeContextCurrent(window)
             setupRenderTarget()
             updateSize()
+            @Suppress("DEPRECATION")
             program.drawer.reset()
             program.drawer.ortho()
 
@@ -524,7 +525,7 @@ class ApplicationWindowGLFW(
     }
 
     override fun destroy() {
-        logger.debug { "destroying window ${window}" }
+        logger.debug { "destroying window $window" }
         for (extension in program.extensions) {
             extension.shutdown(program)
         }

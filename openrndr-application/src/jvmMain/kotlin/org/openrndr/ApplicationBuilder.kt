@@ -4,6 +4,7 @@ import org.openrndr.exceptions.installUncaughtExceptionHandler
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.lang.management.ManagementFactory
+import java.nio.file.FileSystems
 
 private fun restartJVM(): Boolean {
     if (!ApplicationConfiguration.checkThread0) {
@@ -43,7 +44,7 @@ private fun restartJVM(): Boolean {
     }
 
     // restart jvm with -XstartOnFirstThread
-    val separator = System.getProperty("file.separator") ?: error("file.separator not set")
+    val separator = FileSystems.getDefault().separator ?: error("file.separator not set")
     val classpath = System.getProperty("java.class.path") ?: error("java.class.path not set")
 
     val mainClass = System.getenv("JAVA_MAIN_CLASS_$pid") ?: System.getProperty("sun.java.command")

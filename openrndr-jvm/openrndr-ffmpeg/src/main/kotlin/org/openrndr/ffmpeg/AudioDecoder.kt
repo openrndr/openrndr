@@ -4,9 +4,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import org.bytedeco.ffmpeg.avcodec.AVCodecContext
 import org.bytedeco.ffmpeg.avcodec.AVPacket
 import org.bytedeco.ffmpeg.avutil.AVBufferRef
-import org.bytedeco.ffmpeg.avutil.AVChannelLayout
 import org.bytedeco.ffmpeg.global.avcodec
-import org.bytedeco.ffmpeg.global.avutil
 import org.bytedeco.ffmpeg.global.avutil.*
 import org.bytedeco.ffmpeg.global.swresample.*
 import org.bytedeco.ffmpeg.swresample.SwrContext
@@ -35,7 +33,7 @@ private fun SampleFormat.toAVSampleFormat() = when (this) {
 internal data class AudioInfo(val sampleRate: Int, val channels: Int)
 
 internal class AudioFrame(val buffer: AVBufferRef, var position: Int, val size: Int, val timeStamp: Double) {
-    fun unref() = avutil.av_buffer_unref(buffer)
+    fun unref() = av_buffer_unref(buffer)
 }
 
 internal data class AudioDecoderOutput(

@@ -124,7 +124,7 @@ interface ShaderImageBindingsGL43 : ShaderImageBindings, ShaderUniformsGL3 {
                 )
                 debugGLErrors {
                     when (it) {
-                        GL_INVALID_VALUE -> "unit ${image} greater than or equal to the value of GL_MAX_IMAGE_UNITS. OR texture (${volumeTexture.texture} is not the name of an existing texture object. OR level (${imageBinding.level} or layer (0) is less than zero."
+                        GL_INVALID_VALUE -> "unit $image greater than or equal to the value of GL_MAX_IMAGE_UNITS. OR texture (${volumeTexture.texture} is not the name of an existing texture object. OR level (${imageBinding.level} or layer (0) is less than zero."
                         GL_INVALID_ENUM -> "access or format is not one of the supported tokens."
                         else -> null
                     }

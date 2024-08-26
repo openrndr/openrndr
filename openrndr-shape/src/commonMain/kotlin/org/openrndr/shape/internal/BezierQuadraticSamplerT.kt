@@ -77,12 +77,12 @@ internal class BezierQuadraticSamplerT<T : EuclideanVector<T>> {
                     // We can leave just two endpoints
                     return
                 }
-                if (dl <= 0)
-                    dl = x2.squaredDistanceTo(x1)
+                dl = if (dl <= 0)
+                    x2.squaredDistanceTo(x1)
                 else if (dl >= 1)
-                    dl = x2.squaredDistanceTo(x3)
+                    x2.squaredDistanceTo(x3)
                 else
-                    dl = x2.squaredDistanceTo(x1 + d * dl)//squaredDistance(x2.x, x2.y, x1.x + d * dx, x1.y + d * dy)
+                    x2.squaredDistanceTo(x1 + d * dl)//squaredDistance(x2.x, x2.y, x1.x + d * dx, x1.y + d * dy)
             }
             if (dl < distanceToleranceSquare) {
                 if (points.last().squaredDistanceTo(x2) > 0.0) {

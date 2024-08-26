@@ -216,7 +216,7 @@ object Intersections {
                     a.nearestPoint(b.start()),
                     PARAMETRIC_EPSILON
                 )
-                if (0.0 <= s && s <= 1.0) {
+                if (s in 0.0..1.0) {
                     result.add(Vec2(s, 0.0))
                 }
 
@@ -226,7 +226,7 @@ object Intersections {
                     a.nearestPoint(b.end()),
                     PARAMETRIC_EPSILON
                 )
-                if (0 <= s && s <= 1) {
+                if (s in 0.0..1.0) {
                     result.add(Vec2(s, 1.0))
                 }
 
@@ -297,7 +297,7 @@ object Intersections {
             fun from(c: Curve2): Array<CurveInterval?> {
                 val ts: DoubleArray = c.inflections()
                 ts.sort()
-                return if (ts.size == 0) {
+                return if (ts.isEmpty()) {
                     arrayOf(CurveInterval(c, 0.0, 1.0, c.start(), c.end()))
                 } else {
                     val ls = arrayOfNulls<CurveInterval>(ts.size + 1)
@@ -369,25 +369,33 @@ object Intersections {
     }
 
     fun fatLineWidth(c: Curve2): Interval {
-        return if (c is Line2) {
-            Interval.interval(0.0, 0.0)
-        } else if (c is Bezier2.QuadraticBezier2) {
-            val b: Bezier2.QuadraticBezier2 = c
-            Interval.interval(0.0, signedDistance(b.p1, b.p0, b.p2) / 2)
-        } else if (c is Bezier2.CubicBezier2) {
-            val b: Bezier2.CubicBezier2 = c
-            val d1 = signedDistance(b.p1, b.p0, b.p3)
-            val d2 = signedDistance(b.p2, b.p0, b.p3)
-            val k = if (d1 * d2 < 0) 4 / 9.0 else 3 / 4.0
-            Interval.interval(
-                min(
-                    0.0,
-                    min(d1, d2)
-                ) * k,
-                max(0.0, max(d1, d2)) * k
-            )
-        } else {
-            throw IllegalStateException()
+        return when (c) {
+            is Line2 -> {
+                Interval.interval(0.0, 0.0)
+            }
+
+            is Bezier2.QuadraticBezier2 -> {
+                val b: Bezier2.QuadraticBezier2 = c
+                Interval.interval(0.0, signedDistance(b.p1, b.p0, b.p2) / 2)
+            }
+
+            is Bezier2.CubicBezier2 -> {
+                val b: Bezier2.CubicBezier2 = c
+                val d1 = signedDistance(b.p1, b.p0, b.p3)
+                val d2 = signedDistance(b.p2, b.p0, b.p3)
+                val k = if (d1 * d2 < 0) 4 / 9.0 else 3 / 4.0
+                Interval.interval(
+                    min(
+                        0.0,
+                        min(d1, d2)
+                    ) * k,
+                    max(0.0, max(d1, d2)) * k
+                )
+            }
+
+            else -> {
+                throw IllegalStateException()
+            }
         }
     }
 
@@ -707,7 +715,7 @@ object Intersections {
             val t: Double = i.toDouble() / MAX_CUBIC_CUBIC_INTERSECTIONS
             val pa: Vec2 = a.position(Scalars.lerp(`is`[0].x, `is`[1].x, t))
             val pb: Vec2 = b.position(Scalars.lerp(`is`[0].y, `is`[1].y, t))
-            if (!Vec.equals<Vec2>(
+            if (!Vec.equals(
                     pa,
                     pb,
                     SPATIAL_EPSILON

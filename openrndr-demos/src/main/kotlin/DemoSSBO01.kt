@@ -1,6 +1,8 @@
-import org.intellij.lang.annotations.Language
 import org.openrndr.application
-import org.openrndr.draw.*
+import org.openrndr.draw.BufferPrimitiveType
+import org.openrndr.draw.ComputeShader
+import org.openrndr.draw.shaderStorageBuffer
+import org.openrndr.draw.shaderStorageFormat
 import org.openrndr.internal.Driver
 import org.openrndr.internal.gl3.DriverGL3
 import org.openrndr.math.IntVector3

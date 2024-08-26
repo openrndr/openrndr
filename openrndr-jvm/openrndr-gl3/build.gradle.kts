@@ -11,7 +11,6 @@ kotlin {
         compilations {
             val main by getting
 
-            @Suppress("UNUSED_VARIABLE")
             val demo by creating {
                 associateWith(main)
             }
@@ -40,7 +39,6 @@ kotlin {
         }
     }
     sourceSets {
-        @Suppress("UNUSED_VARIABLE")
         val jvmMain by getting {
             dependencies {
                 implementation(project(":openrndr-application"))
@@ -64,7 +62,6 @@ kotlin {
             }
         }
 
-        @Suppress("UNUSED_VARIABLE")
         val jvmTest by getting {
             dependencies {
                 runtimeOnly(project(":openrndr-jvm:openrndr-gl3-natives-windows"))

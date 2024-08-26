@@ -91,7 +91,7 @@ class DepthBufferGL3(
                                 width,
                                 height
                             )
-                            checkGLErrors() {
+                            checkGLErrors {
                                 logger.error {
                                     """failed to create depth buffer. width: $width, height: $height, format: $format, multisample: $multisample"""
                                 }
@@ -124,7 +124,7 @@ class DepthBufferGL3(
                                 /* pixels = */
                                 nullBuffer
                             )
-                            checkGLErrors() {
+                            checkGLErrors {
                                 logger.error { """glTexImage2D failed. format: $format, multisample: $multisample
                                     |internalformat=${glEnumName(format.toGLFormat())}, format=${glEnumName(glFormat)}
                                 """.trimMargin() }

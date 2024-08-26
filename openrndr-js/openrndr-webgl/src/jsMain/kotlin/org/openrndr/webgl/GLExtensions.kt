@@ -1,7 +1,5 @@
 package org.openrndr.webgl
 
-import org.khronos.webgl.WebGLRenderingContext
-
 
 external interface OESStandardDerivatives
 const val FRAGMENT_SHADER_DERIVATIVE_HINT_OES = 0x8b8b
@@ -20,6 +18,7 @@ external interface OESTextureHalfFloat
 external interface OESTextureFloatLinear
 external interface OESTextureHalfFloatLinear
 
+@Suppress("ClassName")
 external interface EXT_color_buffer_float
 
 external interface EXTColorBufferHalfFloat

@@ -9,12 +9,12 @@ import kotlin.jvm.JvmRecord
 @JvmRecord
 data class BooleanVector4(val x: Boolean, val y: Boolean, val z: Boolean, val w: Boolean) {
     companion object {
-        val FALSE = BooleanVector4(false, false, false, false)
-        val TRUE = BooleanVector4(true, true, true, true)
-        val UNIT_X = BooleanVector4(true, false, false, false)
-        val UNIT_Y = BooleanVector4(false, true, false, false)
-        val UNIT_Z = BooleanVector4(false, false, true,  false)
-        val UNIT_W = BooleanVector4(false, false, false, true)
+        val FALSE = BooleanVector4(x = false, y = false, z = false, w = false)
+        val TRUE = BooleanVector4(x = true, y = true, z = true, w = true)
+        val UNIT_X = BooleanVector4(x = true, y = false, z = false, w = false)
+        val UNIT_Y = BooleanVector4(x = false, y = true, z = false, w = false)
+        val UNIT_Z = BooleanVector4(x = false, y = false, z = true, w = false)
+        val UNIT_W = BooleanVector4(x = false, y = false, z = false, w = true)
     }
 
     /** Casts to [Vector4]. */

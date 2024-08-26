@@ -2,9 +2,6 @@ package org.openrndr.shape
 
 import kotlinx.serialization.Serializable
 import org.openrndr.math.*
-import org.openrndr.shape.internal.BezierCubicSamplerT
-import org.openrndr.shape.internal.BezierQuadraticSamplerT
-import kotlin.jvm.JvmRecord
 
 private fun sumDifferences(points: List<Vector3>) =
     (0 until points.size - 1).sumOf { (points[it] - points[it + 1]).length }

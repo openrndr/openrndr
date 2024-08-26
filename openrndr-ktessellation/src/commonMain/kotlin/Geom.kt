@@ -8,7 +8,7 @@ internal object Geom {
     /* Given three vertices u,v,w such that VertLeq(u,v) && VertLeq(v,w),
      * evaluates the t-coord of the edge uw at the s-coord of the vertex v.
      * Returns v->t - (uw)(v->s), ie. the signed distance from uw to v.
-     * If uw is vertical (and thus passes thru v), the result is zero.
+     * If uw is vertical (and thus passes through v), the result is zero.
      *
      * The calculation is extremely accurate and stable, even when v
      * is very close to u or w.  In particular if we set v->t = 0 and
@@ -114,7 +114,7 @@ internal object Geom {
  * or (x+y)/2 if a==b==0.  It requires that a,b >= 0, and enforces
  * this in the rare case that one argument is slightly negative.
  * The implementation is extremely stable numerically.
- * In particular it guarantees that the result r satisfies
+ * In particular, it guarantees that the result r satisfies
  * MIN(x,y) <= r <= MAX(x,y), and the results are very accurate
  * even when a and b differ greatly in magnitude.
  */

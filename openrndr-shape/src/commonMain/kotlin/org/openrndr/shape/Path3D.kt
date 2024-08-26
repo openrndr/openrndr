@@ -2,10 +2,7 @@ package org.openrndr.shape
 
 import kotlinx.serialization.Serializable
 import org.openrndr.math.Matrix44
-import org.openrndr.math.Vector2
 import org.openrndr.math.Vector3
-import org.openrndr.math.YPolarity
-import kotlin.jvm.JvmOverloads
 import kotlin.math.abs
 import kotlin.math.min
 

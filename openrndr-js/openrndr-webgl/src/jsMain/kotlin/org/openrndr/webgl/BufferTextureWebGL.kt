@@ -21,7 +21,7 @@ class BufferTextureShadowWebGL: BufferTextureShadow() {
 }
 
 class BufferTextureWebGL: BufferTexture() {
-    override val session: Session?
+    override val session: Session
         get() = TODO("Not yet implemented")
     override val shadow: BufferTextureShadowWebGL
         get() = TODO("Not yet implemented")

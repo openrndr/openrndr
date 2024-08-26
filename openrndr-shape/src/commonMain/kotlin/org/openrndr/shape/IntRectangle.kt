@@ -1,7 +1,6 @@
 package org.openrndr.shape
 
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
 import org.openrndr.math.IntVector2
 import kotlin.jvm.JvmRecord
 

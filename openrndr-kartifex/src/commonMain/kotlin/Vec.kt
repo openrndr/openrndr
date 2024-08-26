@@ -53,7 +53,7 @@ interface Vec<T : Vec<T>> : Comparable<T> {
         }
 
         fun <T : Vec<T>> equals(a: T, b: T, tolerance: Double): Boolean {
-            return a.zip(b, Vec.DELTA).every { i: Double -> i <= tolerance }
+            return a.zip(b, DELTA).every { i: Double -> i <= tolerance }
         }
     }
 

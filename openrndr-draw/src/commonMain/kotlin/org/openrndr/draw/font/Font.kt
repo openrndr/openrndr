@@ -53,7 +53,6 @@ interface Glyph {
 /**
  * A face (font) representation
  */
-@OptIn(ExperimentalStdlibApi::class)
 interface Face: AutoCloseable {
 
     fun ascent(size: Double): Double

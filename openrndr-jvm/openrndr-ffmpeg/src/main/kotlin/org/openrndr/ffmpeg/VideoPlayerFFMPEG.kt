@@ -188,7 +188,7 @@ class VideoPlayerConfiguration {
     var packetTimeout = 60.0
 }
 
-private object defaultLogger : Callback_Pointer_int_String_Pointer() {
+private object DefaultLogger : Callback_Pointer_int_String_Pointer() {
     override fun call(source: Pointer?, level: Int, formatStr: String?, params: Pointer?) {
         av_log_default_callback(source, level, formatStr, params)
     }
@@ -344,7 +344,7 @@ class VideoPlayerFFMPEG private constructor(
             avformat_free_context(context)
 
             // -- switch back to the default logger
-            defaultLogger.install()
+            DefaultLogger.install()
             return result
         }
 

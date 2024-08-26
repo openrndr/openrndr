@@ -1,8 +1,6 @@
 package org.openrndr.draw
 
-import org.openrndr.color.ColorRGBa
 import org.openrndr.internal.Driver
-import org.openrndr.math.*
 
 
 enum class ShaderType {

@@ -99,7 +99,7 @@ internal class Decoder(private val statistics: VideoStatistics,
 
                 if (hwType != AV_HWDEVICE_TYPE_NONE) {
                     val hwContextPtr = PointerPointer<AVHWDeviceContext>(1)
-                    val name = av_hwdevice_get_type_name(hwType).getString()
+                    val name = av_hwdevice_get_type_name(hwType).string
                     logger.debug { "creating hw device context (type: $name)" }
                     av_hwdevice_ctx_create(hwContextPtr, hwType, null, null, 0).checkAVError()
                     val hwContext = AVHWDeviceContext(hwContextPtr[0])

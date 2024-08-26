@@ -10,7 +10,7 @@ interface Curve2 {
     fun position(t: Double): Vec2
 
     /**
-     * Given a ring of curves, the sum of area() will be the are enclosed by that ring. For clockwise rings, the sum will
+     * Given a ring of curves, the sum of area() will be the area enclosed by that ring. For clockwise rings, the sum will
      * be negative, for counter-clockwise rings it will be positive.
      *
      * @return the signed area of the curve

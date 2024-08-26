@@ -3,7 +3,6 @@
 package org.openrndr.shape
 
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
 import org.openrndr.math.Vector2
 import org.openrndr.math.YPolarity
 import org.openrndr.math.clamp

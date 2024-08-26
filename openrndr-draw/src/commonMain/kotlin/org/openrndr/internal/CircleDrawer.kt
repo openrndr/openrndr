@@ -4,8 +4,6 @@ import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
 import org.openrndr.math.Vector2
 import org.openrndr.math.Vector3
-import org.openrndr.platform.Platform
-import org.openrndr.platform.PlatformType
 import org.openrndr.shape.Circle
 import kotlin.math.abs
 

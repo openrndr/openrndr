@@ -162,8 +162,7 @@ actual abstract class ColorBuffer: AutoCloseable {
      */
     actual abstract fun filter(filterMin: MinifyingFilter, filterMag: MagnifyingFilter)
 
-    companion object {
-    }
+    companion object;
 
     /** permanently destroy the underlying [ColorBuffer] resources, [ColorBuffer] can not be used after it is destroyed */
     actual abstract fun destroy()

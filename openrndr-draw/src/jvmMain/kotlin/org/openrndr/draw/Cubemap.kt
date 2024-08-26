@@ -1,6 +1,5 @@
 package org.openrndr.draw
 
-import org.openrndr.internal.CubemapImageData
 import org.openrndr.internal.Driver
 import org.openrndr.internal.ImageDriver
 import org.openrndr.utils.buffer.MPPBuffer

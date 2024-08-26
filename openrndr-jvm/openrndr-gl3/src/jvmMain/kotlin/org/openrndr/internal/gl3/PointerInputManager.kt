@@ -96,10 +96,12 @@ internal class PointerInputManagerWin32(val window: Long, val application: Appli
     }
 
     companion object {
+        @Suppress("FunctionName")
         fun HIWORD(x: Long): Int {
             return ((x shr 16) and 0xffff).toInt()
         }
 
+        @Suppress("FunctionName")
         fun LOWORD(x: Long): Int {
             return (x and 0xffff).toInt()
         }

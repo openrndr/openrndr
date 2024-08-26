@@ -11,15 +11,19 @@ object Equations {
 
     // adapted from https://github.com/paperjs/paper.js/blob/develop/src/util/Numerical.js
     private fun trim(acc: DoubleArray, len: Int): DoubleArray {
-        return if (len == acc.size) {
-            acc
-        } else if (len == 0) {
-            DoubleArray(0)
-        } else {
-            val result = DoubleArray(len)
-            //java.lang.System.arraycopy(acc, 0, result, 0, len)
-            acc.copyInto(result, 0, 0, len)
-            result
+        return when (len) {
+            acc.size -> {
+                acc
+            }
+            0 -> {
+                DoubleArray(0)
+            }
+            else -> {
+                val result = DoubleArray(len)
+                //java.lang.System.arraycopy(acc, 0, result, 0, len)
+                acc.copyInto(result, 0, 0, len)
+                result
+            }
         }
     }
 

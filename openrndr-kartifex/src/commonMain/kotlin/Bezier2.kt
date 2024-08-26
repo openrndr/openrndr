@@ -132,7 +132,7 @@ object Bezier2 {
         }
 
         override fun subdivide(error: Double): Array<Vec2> {
-            val points: ArrayList<Vec2> = ArrayList<Vec2>()
+            val points: ArrayList<Vec2> = ArrayList()
             subdivide(
                 points, this,
                 { b: QuadraticBezier2 ->
@@ -327,7 +327,7 @@ object Bezier2 {
         }
 
         override fun subdivide(error: Double): Array<Vec2> {
-            val points: MutableList<Vec2> = ArrayList<Vec2>()
+            val points: MutableList<Vec2> = ArrayList()
             subdivide(
                 points, this,
                 { b: CubicBezier2 ->
@@ -421,7 +421,7 @@ object Bezier2 {
             val a2: Vec2 = p3.sub(p2.mul(3.0)).add(p1.mul(3.0)).sub(p0)
             val s1: DoubleArray = Equations.solveQuadratic(a2.x, a1.x, a0.x)
             val s2: DoubleArray = Equations.solveQuadratic(a2.y, a1.y, a0.y)
-            val acc: DoubleAccumulator = DoubleAccumulator()
+            val acc = DoubleAccumulator()
             for (n in s1) if (Scalars.inside(epsilon, n, 1 - epsilon)) acc.add(n)
             for (n in s2) if (Scalars.inside(epsilon, n, 1 - epsilon)) acc.add(n)
             noInflections = acc.size() == 0
@@ -449,7 +449,7 @@ object Bezier2 {
 
         /**
          * @param error the maximum distance between the reference cubic curve and the returned quadratic curves
-         * @return an array of one or more quadratic bezier curves
+         * @return an array of one or more quadratic Bézier curves
          */
         fun approximate(error: Double): Array<QuadraticBezier2> {
             val threshold = error * error

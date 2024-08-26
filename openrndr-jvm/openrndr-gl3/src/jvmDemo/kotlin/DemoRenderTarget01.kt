@@ -1,9 +1,11 @@
 import org.openrndr.application
 import org.openrndr.color.ColorRGBa
-import org.openrndr.draw.*
+import org.openrndr.draw.BufferMultisample
+import org.openrndr.draw.colorBuffer
+import org.openrndr.draw.isolatedWithTarget
+import org.openrndr.draw.renderTarget
 import org.openrndr.extensions.Screenshots
 import org.openrndr.shape.Circle
-import java.nio.ByteBuffer
 
 fun main() {
     application {

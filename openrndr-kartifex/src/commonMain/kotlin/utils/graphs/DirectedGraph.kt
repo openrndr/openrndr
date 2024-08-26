@@ -108,7 +108,7 @@ class DirectedGraph<V, E>(
         return if (out.contains(vertex)) {
             this
         } else {
-            out.put(vertex, mutableMapOf())
+            out[vertex] = mutableMapOf()
             `in`[vertex] = mutableSetOf()
             this
         }
@@ -139,7 +139,7 @@ class DirectedGraph<V, E>(
         }
         for (entry in `in`.entries) {
             if (entry.key in selection) {
-                newIn[entry.key] = entry.value.filter { it -> it in selection }.toMutableSet()
+                newIn[entry.key] = entry.value.filter { it in selection }.toMutableSet()
             }
         }
         return DirectedGraph(newOut, newIn)
@@ -209,7 +209,7 @@ object Graphs {
                     var ws: TarjanState? = state[w]
                     if (ws == null) {
                         ws = TarjanState(state.size)
-                        state.put(w, ws)
+                        state[w] = ws
                         stack.addLast(w)
                         path.add(w)
                         branches.add(graph.out(w).iterator())
@@ -453,7 +453,7 @@ object Graphs {
                 } else {
                     continue
                 }
-                states.put(v, next)
+                states[v] = next
                 queue.add(next)
             }
         }

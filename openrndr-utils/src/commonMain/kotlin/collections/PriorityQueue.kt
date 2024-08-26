@@ -106,11 +106,11 @@ class PriorityQueue<Key> : Iterable<Key> {
         if (k > n) return true
         val left = 2 * k
         val right = 2 * k + 1
-        when {
-            left <= n && greater(k, left) -> return false
-            right <= n && greater(k, right) -> return false
+        return when {
+            left <= n && greater(k, left) -> false
+            right <= n && greater(k, right) -> false
             else -> {
-                return isMinHeap(left) && isMinHeap(right)
+                isMinHeap(left) && isMinHeap(right)
             }
         }
     }
@@ -126,7 +126,7 @@ class PriorityQueue<Key> : Iterable<Key> {
 
     class HeapIterator<out Key>(comparator: Comparator<Key>?, size: Int, n: Int, pq: Array<Key?>) : Iterator<Key> {
 
-        private val copy: PriorityQueue<Key> = if (comparator == null) PriorityQueue<Key>(size) else PriorityQueue<Key>(size, comparator)
+        private val copy: PriorityQueue<Key> = if (comparator == null) PriorityQueue(size) else PriorityQueue(size, comparator)
 
         override fun hasNext(): Boolean {
             return !copy.isEmpty()

@@ -2,11 +2,11 @@ import io.kotest.matchers.ints.shouldBeExactly
 import io.lacuna.artifex.Bezier2
 import io.lacuna.artifex.Line2
 import io.lacuna.artifex.Vec2
-import io.lacuna.artifex.utils.Intersections
 import kotlin.test.Test
 import org.openrndr.kartifex.Bezier2 as KBezier2
-import org.openrndr.kartifex.Vec2 as KVec2
 import org.openrndr.kartifex.Line2 as KLine2
+import org.openrndr.kartifex.Vec2 as KVec2
+
 class TestIntersections {
 
     @Test

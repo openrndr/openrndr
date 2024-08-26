@@ -96,6 +96,7 @@ fun setDefaultPathForContext(programName: String = stackRootClassName(), context
  * @see openFilesDialog
  * @see saveFileDialog
  */
+@Suppress("GrazieInspection")
 fun openFileDialog(
     programName: String = stackRootClassName(),
     contextID: String = "global",

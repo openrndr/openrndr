@@ -415,7 +415,7 @@ fun glGetActiveUniformName(
     }
 }
 
-fun glGetActiveUniformName(@NativeType("GLuint") program: Int, @NativeType("GLuint") uniformIndex: Int): String? {
+fun glGetActiveUniformName(@NativeType("GLuint") program: Int, @NativeType("GLuint") uniformIndex: Int): String {
     return glGetActiveUniformName(program, uniformIndex, 1024)
 
 }

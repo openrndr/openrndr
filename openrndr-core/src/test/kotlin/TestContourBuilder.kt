@@ -38,7 +38,7 @@ class TestContourBuilder : DescribeSpec({
         it("support a single arc segment ") {
             val c = contour {
                 moveTo(0.0, 0.0)
-                arcTo(100.0, 100.0, 40.0, false, false, 200.0, 200.0)
+                arcTo(100.0, 100.0, 40.0, largeArcFlag = false, sweepFlag = false, tx = 200.0, ty = 200.0)
             }
             c.closed `should be equal to` false
         }
@@ -114,7 +114,7 @@ class TestContourBuilder : DescribeSpec({
         it("detects arcTo before moveTo") {
             invoking {
                 contour {
-                    arcTo(100.0, 100.0, 40.0, false, false, 200.0, 200.0)
+                    arcTo(100.0, 100.0, 40.0, largeArcFlag = false, sweepFlag = false, tx = 200.0, ty = 200.0)
 
                 }
             } `should throw` IllegalArgumentException::class

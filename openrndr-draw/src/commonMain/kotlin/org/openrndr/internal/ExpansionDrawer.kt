@@ -1,6 +1,5 @@
 package org.openrndr.internal
 
-import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
 import org.openrndr.math.Vector4
 
@@ -83,7 +82,7 @@ internal class ExpansionDrawer {
             shader.uniform("strokeFillFactor", 0.0)
 
             shader.uniform("bounds", Vector4(-1000.0, -1000.0, 2000.0, 2000.0))
-            localStyle.channelWriteMask = ChannelMask(true, true, true, true)
+            localStyle.channelWriteMask = ChannelMask(red = true, green = true, blue = true, alpha = true)
             // -- pre
             shader.uniform("strokeThr", 1.0f - 0.5f / 255.0f)
             localStyle.stencil.stencilFunc(StencilTest.EQUAL, 0x00, 0xff)
@@ -99,14 +98,14 @@ internal class ExpansionDrawer {
             Driver.instance.drawVertexBuffer(shader, listOf(commands[0].vertexBuffer), DrawPrimitive.TRIANGLE_STRIP, commands[0].vertexOffset, vertexCount, verticesPerPatch = 0)
 
             // -- reset stencil
-            localStyle.channelWriteMask = ChannelMask(false, false, false, false)
+            localStyle.channelWriteMask = ChannelMask(red = false, green = false, blue = false, alpha = false)
             localStyle.stencil.stencilFunc(StencilTest.ALWAYS, 0x0, 0xff)
             localStyle.stencil.stencilOp(StencilOperation.ZERO, StencilOperation.ZERO, StencilOperation.ZERO)
             Driver.instance.setState(localStyle)
             Driver.instance.drawVertexBuffer(shader, listOf(commands[0].vertexBuffer), DrawPrimitive.TRIANGLE_STRIP, commands[0].vertexOffset, vertexCount, verticesPerPatch = 0)
 
             localStyle.stencil.stencilTest = StencilTest.DISABLED
-            localStyle.channelWriteMask = ChannelMask(true, true, true, true)
+            localStyle.channelWriteMask = ChannelMask(red = true, green = true, blue = true, alpha = true)
             Driver.instance.setState(localStyle)
         }
     }

@@ -2,7 +2,6 @@ package org.openrndr.math
 
 import kotlinx.serialization.Serializable
 import kotlin.jvm.JvmRecord
-import kotlin.math.sqrt
 
 /** Boolean 2D vector */
 @Suppress("unused")
@@ -10,15 +9,15 @@ import kotlin.math.sqrt
 @JvmRecord
 data class BooleanVector2(val x: Boolean, val y: Boolean) {
     companion object {
-        val FALSE = BooleanVector2(false, false)
-        val TRUE = BooleanVector2(true, true)
-        val UNIT_X = BooleanVector2(true, false)
-        val UNIT_Y = BooleanVector2(false, true)
+        val FALSE = BooleanVector2(x = false, y = false)
+        val TRUE = BooleanVector2(x = true, y = true)
+        val UNIT_X = BooleanVector2(x = true, y = false)
+        val UNIT_Y = BooleanVector2(x = false, y = true)
     }
 
-    val yx: BooleanVector2 get() = BooleanVector2(y, x)
-    val xx: BooleanVector2 get() = BooleanVector2(x, x)
-    val yy: BooleanVector2 get() = BooleanVector2(y, y)
+    val yx: BooleanVector2 get() = BooleanVector2(x = y, y = x)
+    val xx: BooleanVector2 get() = BooleanVector2(x = x, y = x)
+    val yy: BooleanVector2 get() = BooleanVector2(x = y, y = y)
 
     /** Casts to [Vector2]. */
     fun toVector2(

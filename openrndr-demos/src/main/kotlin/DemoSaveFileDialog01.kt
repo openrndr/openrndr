@@ -1,5 +1,4 @@
 import org.openrndr.application
-import org.openrndr.dialogs.openFolderDialog
 import org.openrndr.dialogs.saveFileDialog
 
 fun main() {

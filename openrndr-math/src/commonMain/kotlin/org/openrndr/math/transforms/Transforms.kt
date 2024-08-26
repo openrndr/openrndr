@@ -277,7 +277,7 @@ fun Matrix44.Companion.translate(translation: Vector3): Matrix44 {
  * [z] translate direction
  */
 fun Matrix44.Companion.translate(x: Double, y: Double, z: Double): Matrix44 {
-    return Matrix44.fromColumnVectors(
+    return fromColumnVectors(
             Vector4.UNIT_X,
             Vector4.UNIT_Y,
             Vector4.UNIT_Z,

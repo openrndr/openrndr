@@ -16,7 +16,6 @@ kotlin {
     kotlin.sourceSets.getByName("commonMain").kotlin.srcDir(embedShaders.outputDir)
     sourceSets {
 
-        @Suppress("UNUSED_VARIABLE")
         val commonMain by getting {
             dependencies {
                 implementation(project(":openrndr-draw"))

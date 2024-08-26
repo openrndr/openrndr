@@ -7,7 +7,6 @@ import org.openrndr.math.LinearType
 import org.openrndr.math.Vector2
 import org.openrndr.math.YPolarity
 import org.openrndr.math.map
-import kotlin.jvm.JvmOverloads
 import kotlin.jvm.JvmRecord
 import kotlin.math.abs
 import kotlin.math.max

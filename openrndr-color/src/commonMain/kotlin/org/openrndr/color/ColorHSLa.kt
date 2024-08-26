@@ -3,7 +3,6 @@ package org.openrndr.color
 import kotlinx.serialization.Serializable
 import org.openrndr.math.Vector4
 import org.openrndr.math.mixAngle
-import kotlin.jvm.JvmOverloads
 import kotlin.jvm.JvmRecord
 
 /**

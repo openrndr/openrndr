@@ -1,8 +1,10 @@
 package org.openrndr.color
 
 import kotlinx.serialization.Serializable
-import org.openrndr.math.*
-import kotlin.jvm.JvmOverloads
+import org.openrndr.math.Vector4
+import org.openrndr.math.asDegrees
+import org.openrndr.math.asRadians
+import org.openrndr.math.mixAngle
 import kotlin.math.*
 
 /**

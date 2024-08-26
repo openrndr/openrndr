@@ -11,7 +11,7 @@ repositories {
     mavenCentral()
 }
 
-tasks.withType<DokkaTaskPartial>() {
+tasks.withType<DokkaTaskPartial> {
     dokkaSourceSets {
         configureEach {
             skipDeprecated.set(true)

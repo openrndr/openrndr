@@ -6,8 +6,6 @@ import org.openrndr.kartifex.Path2
 import org.openrndr.kartifex.Ring2
 import org.openrndr.math.*
 import org.openrndr.utils.resettableLazy
-import kotlin.jvm.JvmOverloads
-import kotlin.jvm.JvmRecord
 import kotlin.math.abs
 import kotlin.math.min
 
@@ -381,13 +379,13 @@ data class ShapeContour(
         for (s in segment0..segment1) {
             if (s == segment0 && s == segment1) {
                 //if (Math.abs(segmentOffset0-segmentOffset1) > epsilon)
-                newSegments.add(segments[s].sub(segmentOffset0, segmentOffset1) as Segment2D)
+                newSegments.add(segments[s].sub(segmentOffset0, segmentOffset1))
             } else if (s == segment0) {
                 if (segmentOffset0 < 1.0 - subEpsilon)
-                    newSegments.add(segments[s].sub(segmentOffset0, 1.0) as Segment2D)
+                    newSegments.add(segments[s].sub(segmentOffset0, 1.0))
             } else if (s == segment1) {
                 if (segmentOffset1 > subEpsilon)
-                    newSegments.add(segments[s].sub(0.0, segmentOffset1) as Segment2D)
+                    newSegments.add(segments[s].sub(0.0, segmentOffset1))
             } else {
                 newSegments.add(segments[s])
             }

@@ -1,7 +1,7 @@
 package org.openrndr.kartifex.utils
 
 object Combinatorics {
-    val MAX_RESULTS = 32
+    const val MAX_RESULTS = 32
     inline fun <reified V> permutations(values: List<V>): List<List<V>> {
         // if exhaustive searching is out of the question, put your trust in the RNG
         if (values.size > 4) {

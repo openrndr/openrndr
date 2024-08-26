@@ -1,7 +1,7 @@
 package org.openrndr.ffmpeg
 
 internal class Queue<T>(val maxSize: Int) {
-    private val array = kotlin.arrayOfNulls<Any>(maxSize)
+    private val array = arrayOfNulls<Any>(maxSize)
     private var head = 0
     private var tail = 0
 

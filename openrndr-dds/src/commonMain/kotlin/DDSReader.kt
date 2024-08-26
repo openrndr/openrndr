@@ -47,7 +47,7 @@ class DDSPixelFormat(header: MPPBuffer) {
         dwBBitMask = header.int
         dwABitMask = header.int
 
-        if (dwSize != 32) throw RuntimeException("size is not 32 bytes (is ${dwSize} bytes)")
+        if (dwSize != 32) throw RuntimeException("size is not 32 bytes (is $dwSize bytes)")
 
         hasFlagAlphaPixels = dwFlags and DDPF_ALPHAPIXELS == DDPF_ALPHAPIXELS
         hasFlagAlpha = dwFlags and DDPF_ALPHA == DDPF_ALPHA
@@ -492,7 +492,7 @@ fun loadDDS(data: MPPBuffer, bgrIsRgb: Boolean = false): DDSData {
         val primarySize = size(0)
 
         require(primarySize > 0) {
-            """size of surface is 0 bytes ${header}"""
+            """size of surface is 0 bytes $header"""
         }
         for (i in 0 until surfaceCount) {
             require(inputData.remaining() >= primarySize) {

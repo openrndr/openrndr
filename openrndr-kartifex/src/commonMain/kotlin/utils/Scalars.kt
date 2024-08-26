@@ -37,7 +37,7 @@ object Scalars {
                 //assert(exp <= java.lang.Double.MAX_EXPONENT && exp >= java.lang.Double.MIN_EXPONENT)
 
                 // ulp(x) is usually 2^(SIGNIFICAND_WIDTH-1)*(2^ilogb(x))
-                exp = exp - (SIGNIFICAND_WIDTH - 1)
+                exp -= (SIGNIFICAND_WIDTH - 1)
                 if (exp >= MIN_EXPONENT) {
                     powerOfTwoD(exp.toDouble())
                 } else {

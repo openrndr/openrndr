@@ -58,11 +58,11 @@ object Split {
             val t0 = if (result.size() == 0) 0.0 else result.last()
             val t1 = ts[i]
             if (Scalars.equals(t0, t1, Intersections.PARAMETRIC_EPSILON)
-                || Vec.equals(c.position(t0), c.position(t1), Intersections.SPATIAL_EPSILON)
+                || Vec.equals(c.position(t0), c.position(t1), SPATIAL_EPSILON)
             ) {
                 union.join(c.position(t0), c.position(t1))
             } else if (Scalars.equals(t1, 1.0, Intersections.PARAMETRIC_EPSILON)
-                || Vec.equals(c.position(t1), c.end(), Intersections.SPATIAL_EPSILON)
+                || Vec.equals(c.position(t1), c.end(), SPATIAL_EPSILON)
             ) {
                 union.join(c.position(t1), c.end())
             } else {

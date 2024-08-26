@@ -20,7 +20,7 @@ class Box4 private constructor(
     private val uz: Double
     private val uw: Double
 
-    constructor(a: Vec4, b: Vec4) : this(a.x, a.y, a.z, a.w, b.x, b.y, b.z, b.w) {}
+    constructor(a: Vec4, b: Vec4) : this(a.x, a.y, a.z, a.w, b.x, b.y, b.z, b.w)
 
     fun box3(): Box3 {
         return Box3(lx, ly, lz, ux, uy, uz)
@@ -34,7 +34,7 @@ class Box4 private constructor(
         return Box4(a, b)
     }
 
-    protected override fun empty(): Box4 {
+    override fun empty(): Box4 {
         return EMPTY
     }
 

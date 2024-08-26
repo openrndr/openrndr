@@ -28,6 +28,7 @@ class ColorLCHUVaTest {
         assertTrue(crgb.r == crgb.r && crgb.g == crgb.g && crgb.b == crgb.b)
     }
 
+    @Suppress("GrazieInspection")
     @Test
     fun testIssue269() {
         // addresses https://github.com/openrndr/openrndr/issues/269

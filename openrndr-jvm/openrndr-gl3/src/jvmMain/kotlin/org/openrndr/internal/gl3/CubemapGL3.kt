@@ -64,7 +64,6 @@ class CubemapGL3(
                 glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS)
             }
 
-            val effectiveWidth = width
             val (internalFormat, _) = internalFormat(format, type)
 
             val useStorage =
@@ -72,7 +71,7 @@ class CubemapGL3(
                         Driver.glType == DriverTypeGL.GL && Driver.glVersion >= DriverVersionGL.GL_VERSION_4_2
 
             if (useStorage) {
-                glTexStorage2D(GL_TEXTURE_CUBE_MAP, levels, internalFormat, effectiveWidth, effectiveWidth)
+                glTexStorage2D(GL_TEXTURE_CUBE_MAP, levels, internalFormat, width, width)
                 checkGLErrors()
             } else {
                 for (side in CubemapSide.entries) {
@@ -83,14 +82,14 @@ class CubemapGL3(
                             side.glTextureTarget,
                             level,
                             internalFormat,
-                            effectiveWidth / div,
-                            effectiveWidth / div,
+                            width / div,
+                            width / div,
                             0,
                             format.glFormat(),
                             type.glType(),
                             nullBB
                         )
-                        checkGLErrors { it ->
+                        checkGLErrors {
                             "width: $width, format: $format, type: $type -> target: ${glEnumName(side.glTextureTarget)}, level: ${level}, internalFormat: ${
                                 glEnumName(
                                     internalFormat

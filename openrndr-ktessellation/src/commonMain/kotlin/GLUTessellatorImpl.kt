@@ -363,7 +363,7 @@ open class GLUtessellatorImpl : GLUtessellator {
                 if (!flagBoundary /*&& callMesh == NULL_CB*/) {
 
 /* Try some special code to make the easy cases go quickly
- * (eg. convex polygons).  This code does NOT handle multiple contours,
+ * (e.g. convex polygons).  This code does NOT handle multiple contours,
  * intersections, edge flags, and of course it does not generate
  * an explicit mesh either.
  */

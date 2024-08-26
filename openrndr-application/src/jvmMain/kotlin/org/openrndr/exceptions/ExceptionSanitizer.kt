@@ -18,7 +18,7 @@ fun installUncaughtExceptionHandler() {
     if (Platform.type != PlatformType.WINDOWS) {
         System.err.print(color(0x7f, 0x7f, 0x7f))
         if (System.getProperty("org.openrndr.exceptions") == "pretty") {
-            Thread.setDefaultUncaughtExceptionHandler(SanitizingUncaughtExceptionHandler());
+            Thread.setDefaultUncaughtExceptionHandler(SanitizingUncaughtExceptionHandler())
         }
     }
 }
@@ -65,7 +65,7 @@ fun findUserCause(throwable: Throwable) {
                 val cl = Class.forName(query)
                 if (cl != null) {
                     if (cl.superclass.typeName == "kotlin.jvm.internal.Lambda") {
-                        val annotation = cl.getAnnotation(kotlin.Metadata::class.java)
+                        val annotation = cl.getAnnotation(Metadata::class.java)
                         if (annotation != null) {
                             val types = annotation.data2[2].split(";").filter { it.isNotBlank() }.map {
                                 it.split("/").last()

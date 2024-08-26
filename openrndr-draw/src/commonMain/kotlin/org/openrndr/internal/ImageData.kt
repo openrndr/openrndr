@@ -5,7 +5,6 @@ import org.openrndr.draw.ColorType
 import org.openrndr.draw.CubemapSide
 import org.openrndr.utils.buffer.MPPBuffer
 
-@OptIn(ExperimentalStdlibApi::class)
 abstract class ImageData(
     val width: Int,
     val height: Int,
@@ -16,7 +15,6 @@ abstract class ImageData(
     val mipmapData: List<MPPBuffer> = emptyList(),
 ) : AutoCloseable
 
-@OptIn(ExperimentalStdlibApi::class)
 abstract class CubemapImageData(
     val width: Int,
     val height: Int,

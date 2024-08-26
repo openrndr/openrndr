@@ -235,7 +235,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
 
             DriverTypeGL.GLES -> {
                 glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API)
-                glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_EGL_CONTEXT_API);
+                glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_EGL_CONTEXT_API)
             }
         }
 

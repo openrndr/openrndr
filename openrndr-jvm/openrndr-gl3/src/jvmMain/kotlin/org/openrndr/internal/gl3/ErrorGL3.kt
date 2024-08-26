@@ -3,7 +3,6 @@ package org.openrndr.internal.gl3
 import org.lwjgl.opengl.ARBTextureCompressionBPTC
 import org.lwjgl.opengl.EXTTextureCompressionS3TC
 import org.lwjgl.opengl.GL33C.*
-import org.openrndr.draw.DepthFormat
 import org.openrndr.internal.Driver
 
 class GL3Exception(message: String) : Exception(message)

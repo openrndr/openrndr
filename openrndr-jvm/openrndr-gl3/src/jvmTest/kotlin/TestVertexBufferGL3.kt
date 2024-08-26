@@ -1,5 +1,4 @@
 import org.lwjgl.BufferUtils
-import org.lwjgl.opengl.GL
 import org.openrndr.draw.DrawPrimitive
 import org.openrndr.draw.VertexElementType
 import org.openrndr.draw.vertexFormat
@@ -8,7 +7,10 @@ import org.openrndr.internal.gl3.DriverTypeGL
 import org.openrndr.internal.gl3.VertexBufferGL3
 import org.openrndr.internal.gl3.glType
 import java.nio.ByteBuffer
-import kotlin.test.*
+import kotlin.test.AfterTest
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.test.assertEquals
 
 class TestVertexBufferGL3 : AbstractApplicationTestFixture() {
     lateinit var vbgl3: VertexBufferGL3

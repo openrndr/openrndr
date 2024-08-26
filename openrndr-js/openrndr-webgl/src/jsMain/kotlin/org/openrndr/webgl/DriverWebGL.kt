@@ -302,7 +302,7 @@ class DriverWebGL(val context: WebGL2RenderingContext) : Driver {
                                     context.vertexAttribPointer(
                                         attributeIndex + i,
                                         item.type.componentCount,
-                                        glType, false, format.size, item.offset.toInt() + i * item.type.sizeInBytes
+                                        glType, false, format.size, item.offset + i * item.type.sizeInBytes
                                     )
                                 } else {
                                     error("integer attributes are not supported by WebGL")
@@ -322,7 +322,7 @@ class DriverWebGL(val context: WebGL2RenderingContext) : Driver {
                                         item.type.glType(),
                                         false,
                                         format.size,
-                                        item.offset.toInt() + column * 16 + i * 64
+                                        item.offset + column * 16 + i * 64
                                     )
                                     context.vertexAttribDivisor(attributeIndex + column + i * 4, divisor)
                                     attributeBindings++

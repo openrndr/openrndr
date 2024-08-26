@@ -238,9 +238,9 @@ class ApplicationWebGL(override var program: Program, override var configuration
     }
 
     private fun readFileOrBlobAsDataUrl(file: File): Promise<String> {
-        return Promise() { resolve, _ ->
+        return Promise { resolve, _ ->
             val reader = FileReader()
-            reader.readAsDataURL(file);
+            reader.readAsDataURL(file)
             reader.onloadend = {
                 resolve(reader.result)
             }

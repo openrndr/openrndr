@@ -5,7 +5,7 @@ import org.openrndr.events.Event
 import org.openrndr.math.LinearType
 import kotlin.reflect.KMutableProperty0
 
-class AnimationEvent()
+class AnimationEvent
 
 abstract class PropertyAnimationKey<T>(
         open val property: KMutableProperty0<T>,

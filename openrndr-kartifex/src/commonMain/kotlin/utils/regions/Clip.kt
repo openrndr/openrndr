@@ -257,7 +257,7 @@ object Clip {
         `in`: Set<Vec2>
     ): List<List<Arc>> {
         val result: MutableList<List<Arc>> = mutableListOf()
-        val currIn = (`in` + setOf<Vec2>()).toMutableSet()
+        val currIn = (`in` + setOf()).toMutableSet()
         for (v in out) {
             // this will only happen if a vertex needs to have multiple edges added/removed, but we'll just get it on the
             // next time around

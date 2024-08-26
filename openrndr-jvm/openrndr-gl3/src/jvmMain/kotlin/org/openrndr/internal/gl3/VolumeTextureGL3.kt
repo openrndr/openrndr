@@ -217,7 +217,7 @@ class VolumeTextureGL3(
             }
             val (internalFormat, _) = internalFormat(format, type)
 
-            debugGLErrors() { "pre-existing errors"}
+            debugGLErrors { "pre-existing errors"}
 
             /*
             if (useStorage) {

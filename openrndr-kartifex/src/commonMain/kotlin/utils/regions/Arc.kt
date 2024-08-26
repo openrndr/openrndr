@@ -12,9 +12,9 @@ internal class Arc(val list:MutableList<Curve2> = mutableListOf()) : MutableList
     private var area = Double.NaN
     fun length(): Double {
         if (length.isNaN()) {
-            length = map {  c: Curve2 ->
+            length = sumOf { c: Curve2 ->
                 c.end().sub(c.start()).length()
-            }.sum()
+            }
         }
         return length
     }
@@ -22,8 +22,7 @@ internal class Arc(val list:MutableList<Curve2> = mutableListOf()) : MutableList
     fun signedArea(): Double {
         if (area.isNaN()) {
             area =
-                map{  obj: Curve2 -> obj.signedArea() }
-                    .sum()
+                sumOf { obj: Curve2 -> obj.signedArea() }
         }
         return area
     }
@@ -42,7 +41,7 @@ internal class Arc(val list:MutableList<Curve2> = mutableListOf()) : MutableList
         val threshold = length * t
         for (c in this) {
             val l: Double = c.end().sub(c.start()).length()
-            val i: Interval = Interval(offset, offset + l)
+            val i = Interval(offset, offset + l)
             if (i.contains(threshold)) {
                 return c.position(i.normalize(threshold))
             }

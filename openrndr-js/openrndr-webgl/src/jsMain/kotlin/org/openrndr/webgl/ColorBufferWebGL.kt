@@ -16,7 +16,7 @@ import org.khronos.webgl.WebGLRenderingContext as GL
 import kotlin.math.pow
 
 internal fun promiseImage(url: String): Promise<Image> {
-    return Promise<Image>() { resolve, _ ->
+    return Promise { resolve, _ ->
         val image = Image()
         image.addEventListener("load", {
             resolve(image)
@@ -208,13 +208,13 @@ class ColorBufferWebGL(
     override var flipV: Boolean = false
 
     override fun copyTo(target: ColorBuffer, fromLevel: Int, toLevel: Int, filter: MagnifyingFilter) {
-        val sourceRectangle: IntRectangle = IntRectangle(
+        val sourceRectangle = IntRectangle(
             0,
             0,
             this.effectiveWidth / (1 shl fromLevel),
             this.effectiveHeight / (1 shl fromLevel)
         )
-        val targetRectangle: IntRectangle = IntRectangle(
+        val targetRectangle = IntRectangle(
             0,
             0,
             sourceRectangle.width,
@@ -310,7 +310,7 @@ class ColorBufferWebGL(
             readTarget.destroy()
         } else {
             require(sourceRectangle == refRectangle && targetRectangle == refRectangle) {
-                "cropped or scaled copyTo is not allowed with the selected color buffers: ${this} -> ${target}"
+                "cropped or scaled copyTo is not allowed with the selected color buffers: $this -> $target"
             }
 
             val useFrameBufferCopy =

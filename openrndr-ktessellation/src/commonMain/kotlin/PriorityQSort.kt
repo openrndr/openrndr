@@ -3,7 +3,7 @@ package org.openrndr.ktessellation
 
 import kotlin.math.abs
 
-internal class PriorityQSort(leq: PriorityQ.Leq) :
+internal class PriorityQSort(leq: Leq) :
     PriorityQ() {
     var heap: PriorityQHeap?
     var keys: Array<Any?>?
@@ -15,7 +15,7 @@ internal class PriorityQSort(leq: PriorityQ.Leq) :
     var size: Int
     var max: Int
     var initialized: Boolean
-    var leq: PriorityQ.Leq
+    var leq: Leq
 
     /* really __gl_pqSortDeletePriorityQ */
     override fun pqDeletePriorityQ() {
@@ -160,7 +160,7 @@ internal class PriorityQSort(leq: PriorityQ.Leq) :
         sortMin = keys!![order!![size - 1]]!!
         if (!heap!!.pqIsEmpty()) {
             heapMin = heap!!.pqMinimum()
-            if (PriorityQ.LEQ(leq, heapMin!!, sortMin)) {
+            if (LEQ(leq, heapMin!!, sortMin)) {
                 return heap!!.pqExtractMin()
             }
         }
@@ -208,11 +208,11 @@ internal class PriorityQSort(leq: PriorityQ.Leq) :
     }
 
     companion object {
-        private fun LT(leq: PriorityQ.Leq, x: Any, y: Any): Boolean {
+        private fun LT(leq: Leq, x: Any, y: Any): Boolean {
             return !LEQ(leq, y, x)
         }
 
-        private fun GT(leq: PriorityQ.Leq, x: Any, y: Any): Boolean {
+        private fun GT(leq: Leq, x: Any, y: Any): Boolean {
             return !LEQ(leq, x, y)
         }
 
@@ -228,9 +228,9 @@ internal class PriorityQSort(leq: PriorityQ.Leq) :
 
     init {
         heap = PriorityQHeap(leq)
-        keys = arrayOfNulls(PriorityQ.INIT_SIZE)
+        keys = arrayOfNulls(INIT_SIZE)
         size = 0
-        max = PriorityQ.INIT_SIZE
+        max = INIT_SIZE
         initialized = false
         this.leq = leq
     }

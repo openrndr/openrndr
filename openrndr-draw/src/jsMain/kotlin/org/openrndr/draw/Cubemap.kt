@@ -2,7 +2,6 @@ package org.openrndr.draw
 
 import org.khronos.webgl.ArrayBufferView
 import org.khronos.webgl.TexImageSource
-import org.khronos.webgl.Uint8Array
 import org.openrndr.utils.buffer.MPPBuffer
 
 actual interface Cubemap {

@@ -6,10 +6,9 @@ import kotlin.math.sqrt
 
 
 class Ring2 {
-    class Result private constructor(val inside: Boolean, curve: Curve2?) {
-        val curve: Curve2? = curve
+    class Result private constructor(val inside: Boolean, val curve: Curve2?) {
 
-        constructor(curve: Curve2) : this(true, curve) {}
+        constructor(curve: Curve2) : this(true, curve)
 
         override fun toString(): String {
             return if (inside) {
@@ -145,7 +144,7 @@ class Ring2 {
         }
 
         //System.out.println(count);
-        return if (count % 2 == 1) Result.Companion.INSIDE else Result.Companion.OUTSIDE
+        return if (count % 2 == 1) Result.INSIDE else Result.OUTSIDE
     }
 
     fun transform(m: Matrix3): Ring2 = Ring2(curves.map { c -> c.transform(m) })
@@ -169,7 +168,7 @@ class Ring2 {
         fun circle(): Ring2 {
             // taken from http://whizkidtech.redprince.net/bezier/circle/kappa/
             val k: Double = 4.0 / 3.0 * (sqrt(2.0) - 1)
-            return Ring2.Companion.of(
+            return of(
                 Bezier2.curve(
                     Vec2(1.0, 0.0),
                     Vec2(1.0, k),

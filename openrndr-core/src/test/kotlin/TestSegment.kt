@@ -2,7 +2,7 @@ import org.amshove.kluent.*
 import org.openrndr.math.Vector2
 import org.openrndr.shape.Segment2D
 import io.kotest.core.spec.style.DescribeSpec
-import java.lang.Math.sqrt
+import kotlin.math.sqrt
 
 infix fun Vector2.`should be near`(other: Vector2) {
     x shouldBeInRange (other.x - 0.00001..other.x + 0.00001)

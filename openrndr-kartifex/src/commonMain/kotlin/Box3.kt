@@ -10,17 +10,17 @@ class Box3 internal constructor(ax: Double, ay: Double, az: Double, bx: Double, 
     val uy: Double
     val uz: Double
 
-    constructor(a: Vec3, b: Vec3) : this(a.x, a.y, a.z, b.x, b.y, b.z) {}
+    constructor(a: Vec3, b: Vec3) : this(a.x, a.y, a.z, b.x, b.y, b.z)
 
     fun box2(): Box2 {
         return Box2(lx, ly, ux, uz)
     }
 
-    protected override fun construct(a: Vec3, b: Vec3): Box3 {
+    override fun construct(a: Vec3, b: Vec3): Box3 {
         return Box3(a, b)
     }
 
-    protected override fun empty(): Box3 {
+    override fun empty(): Box3 {
         return EMPTY
     }
 

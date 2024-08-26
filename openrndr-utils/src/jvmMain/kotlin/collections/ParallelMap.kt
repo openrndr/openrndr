@@ -7,7 +7,7 @@ import kotlinx.coroutines.runBlocking
 actual fun <T, R> Iterable<T>.pmap(transform: (T) -> R): List<R> {
     return runBlocking {
         this@pmap.map {
-            @Suppress("EXPERIMENTAL_API_USAGE")
+            @Suppress("EXPERIMENTAL_API_USAGE", "OPT_IN_USAGE")
             GlobalScope.async {
                 transform(it)
             }
@@ -18,7 +18,7 @@ actual fun <T, R> Iterable<T>.pmap(transform: (T) -> R): List<R> {
 actual fun <T, R> Iterable<T>.pflatMap(transform: (T) -> Iterable<R>): List<R> {
     return runBlocking {
         this@pflatMap.map {
-            @Suppress("EXPERIMENTAL_API_USAGE")
+            @Suppress("EXPERIMENTAL_API_USAGE", "OPT_IN_USAGE")
             GlobalScope.async {
                 transform(it)
             }
@@ -41,7 +41,7 @@ actual fun <T, R : Any> Iterable<T>.pmapNotNull(transform: (T) -> R?): List<R> {
 actual fun <T : Any> Iterable<T>.pforEach(transform: (T) -> Unit) {
     runBlocking {
         this@pforEach.map {
-            @Suppress("EXPERIMENTAL_API_USAGE")
+            @Suppress("EXPERIMENTAL_API_USAGE", "OPT_IN_USAGE")
             GlobalScope.async {
                 transform(it)
             }

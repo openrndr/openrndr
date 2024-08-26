@@ -9,7 +9,7 @@ import org.w3c.xhr.XMLHttpRequestResponseType
 import kotlin.js.Promise
 
 suspend fun loadDDS(url: String, bgrIsRgb:Boolean = true) : DDSData {
-    val promise = Promise<ArrayBuffer> { resolve, reject ->
+    val promise = Promise { resolve, reject ->
         val request = XMLHttpRequest()
         request.open("GET", url)
         request.responseType = XMLHttpRequestResponseType.ARRAYBUFFER

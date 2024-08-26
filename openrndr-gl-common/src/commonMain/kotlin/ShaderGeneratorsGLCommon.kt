@@ -22,7 +22,7 @@ private val rotate2 = """mat2 rotate2(float rotationInDegrees) {
 }
 """.trimIndent()
 
-private val glFragCoord = """#ifdef OR_GL    
+private const val glFragCoord = """#ifdef OR_GL    
 layout(origin_upper_left) in vec4 gl_FragCoord;
 #endif   
 """

@@ -29,7 +29,7 @@ fun <T> T.structDefinitions(): String where T : StyleParameters, T : StyleBuffer
 }
 
 fun StyleParameters.uniforms(): String {
-    return parameterTypes.map { mapTypeToUniform(it.value, it.key, ) }.joinToString("\n")
+    return parameterTypes.map { mapTypeToUniform(it.value, it.key ) }.joinToString("\n")
 }
 
 fun StyleImageBindings.images(): String {

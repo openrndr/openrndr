@@ -1,7 +1,6 @@
 package org.openrndr.platform
 
 import java.io.File
-import java.nio.file.Path
 import java.util.*
 
 actual object Platform {

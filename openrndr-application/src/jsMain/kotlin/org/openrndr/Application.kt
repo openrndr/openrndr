@@ -1,13 +1,10 @@
 package org.openrndr
 
-import io.github.oshai.kotlinlogging.KotlinLogging
 import org.openrndr.math.Vector2
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.coroutines.startCoroutine
-
-private val logger = KotlinLogging.logger {}
 
 var applicationBaseFunc: (() -> ApplicationBase)? = null
 

@@ -1,7 +1,7 @@
 import org.openrndr.draw.loadCubemap
-import org.openrndr.internal.gl3.CubemapGL3
 import org.openrndr.resourceUrl
-import kotlin.test.*
+import kotlin.test.Ignore
+import kotlin.test.Test
 
 @Ignore
 class TestCubemapsGL3 : AbstractApplicationTestFixture() {

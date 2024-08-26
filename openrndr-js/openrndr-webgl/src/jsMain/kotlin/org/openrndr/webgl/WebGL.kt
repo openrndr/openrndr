@@ -14,9 +14,7 @@ external interface WebGLRenderingFixedCompressedTexImage {
     )
 }
 
-external interface WebGLVertexArrayObject {
-
-}
+external interface WebGLVertexArrayObject
 
 abstract external class WebGL2RenderingContext : WebGLRenderingContext {
     fun bindBufferBase(target: Int, index: Int, buffer: WebGLBuffer?)

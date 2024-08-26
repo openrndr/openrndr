@@ -1,5 +1,4 @@
 import org.openrndr.application
-import org.openrndr.ffmpeg.VideoPlayerConfiguration
 import org.openrndr.ffmpeg.loadVideoDevice
 
 fun main() {

@@ -22,7 +22,7 @@ class Box2 internal constructor(ax: Double, ay: Double, bx: Double, by: Double) 
         return uy - ly
     }
 
-    constructor(a: Vec2, b: Vec2) : this(a.x, a.y, b.x, b.y) {}
+    constructor(a: Vec2, b: Vec2) : this(a.x, a.y, b.x, b.y)
 
     fun scale(k: Double): Box2 {
         return scale(Vec2(k, k))
@@ -74,11 +74,11 @@ class Box2 internal constructor(ax: Double, ay: Double, bx: Double, by: Double) 
     override val isEmpty: Boolean
         get() = this === EMPTY
 
-    protected override fun construct(a: Vec2, b: Vec2): Box2 {
+    override fun construct(a: Vec2, b: Vec2): Box2 {
         return Box2(a.x, a.y, b.x, b.y)
     }
 
-    protected override fun empty(): Box2 {
+    override fun empty(): Box2 {
         return EMPTY
     }
 

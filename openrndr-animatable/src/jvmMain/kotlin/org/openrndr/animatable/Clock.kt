@@ -2,8 +2,8 @@ package org.openrndr.animatable
 
 
 actual class DefaultClock : Clock {
-    override actual val timeNanos: Long
+    actual override val timeNanos: Long
         get() = System.nanoTime()
 
-    override actual val time get() = timeNanos / 1000
+    actual override val time get() = timeNanos / 1000
 }

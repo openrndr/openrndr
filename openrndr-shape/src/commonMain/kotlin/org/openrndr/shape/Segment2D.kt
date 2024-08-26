@@ -3,11 +3,12 @@ package org.openrndr.shape
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.openrndr.math.*
-
 import org.openrndr.shape.internal.BezierCubicSamplerT
 import org.openrndr.shape.internal.BezierQuadraticSamplerT
-import kotlin.jvm.JvmRecord
-import kotlin.math.*
+import kotlin.math.abs
+import kotlin.math.atan2
+import kotlin.math.max
+import kotlin.math.sign
 
 
 interface BezierSegment<T : EuclideanVector<T>> {
