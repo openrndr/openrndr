@@ -309,6 +309,7 @@ open class Animatable {
                 }
 
                 if (key.animationState == AnimationState.Playing) {
+
                     var dt = (timeInNs - key.startInNs).toDouble()
 
                     if (key.durationInNs > 0) {
@@ -324,6 +325,7 @@ open class Animatable {
                         key.stop()
                     }
                     key.applyToProperty(dt)
+                    key.updated.trigger(AnimationUpdateEvent(dt))
                 }
                 if (key.animationState == AnimationState.Stopped) {
                     triggers.add(key.completed)

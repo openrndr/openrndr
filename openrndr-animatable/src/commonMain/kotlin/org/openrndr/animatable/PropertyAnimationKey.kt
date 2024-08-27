@@ -7,6 +7,8 @@ import kotlin.reflect.KMutableProperty0
 
 class AnimationEvent
 
+class AnimationUpdateEvent(val dt: Double)
+
 abstract class PropertyAnimationKey<T>(
         open val property: KMutableProperty0<T>,
         open val targetValue: T,
@@ -23,6 +25,11 @@ abstract class PropertyAnimationKey<T>(
      * animation completed event
      */
     val completed = Event<AnimationEvent>()
+
+    /**
+     * animation updated event
+     */
+    val updated = Event<AnimationUpdateEvent>()
 
     internal open var startValue: T? = null
 
