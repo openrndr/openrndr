@@ -520,7 +520,7 @@ class ColorBufferGL3(
 
         if (useCopyFilter) {
             require(
-                this.effectiveWidth == target.width && this.effectiveHeight == target.width
+                this.effectiveWidth == target.width && this.effectiveHeight == target.height
             )
 
             val rt = renderTarget(target.width, target.height) {
