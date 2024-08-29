@@ -212,7 +212,11 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         glClearColor(targetColor.r.toFloat(), targetColor.g.toFloat(), targetColor.b.toFloat(), targetColor.alpha.toFloat())
         glClearDepth(1.0)
         val depthWriteMask = glGetInteger(GL_DEPTH_WRITEMASK) != 0
-        glDisable(GL_SCISSOR_TEST)
+        val scissorTestEnabled = glIsEnabled(GL_SCISSOR_TEST)
+        if (scissorTestEnabled) {
+            glDisable(GL_SCISSOR_TEST)
+        }
+
         debugGLErrors()
         glDepthMask(true)
         debugGLErrors()
@@ -227,6 +231,9 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
             }
         }
         glDepthMask(depthWriteMask)
+        if (scissorTestEnabled) {
+            glEnable(GL_SCISSOR_TEST)
+        }
     }
 
     override fun createStaticVertexBuffer(format: VertexFormat, buffer: Buffer, session: Session?): VertexBuffer {
@@ -921,7 +928,6 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
     private val cachedPerContext = mutableMapOf<Long, DrawStyle>()
 
     override fun setState(drawStyle: DrawStyle) {
-
         if (Driver.glType == DriverTypeGL.GL) {
             glEnable(GL_FRAMEBUFFER_SRGB)
         }
@@ -933,13 +939,14 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
             if (drawStyle.clip != null) {
                 drawStyle.clip?.let { it: Rectangle ->
                     val target = RenderTarget.active
+                    glEnable(GL_SCISSOR_TEST)
                     glScissor(
                         (it.x * target.contentScale).toInt(),
                         (target.height * target.contentScale - it.y * target.contentScale - it.height * target.contentScale).toInt(),
                         (it.width * target.contentScale).toInt(),
                         (it.height * target.contentScale).toInt()
                     )
-                    glEnable(GL_SCISSOR_TEST)
+
                 }
             } else {
                 glDisable(GL_SCISSOR_TEST)

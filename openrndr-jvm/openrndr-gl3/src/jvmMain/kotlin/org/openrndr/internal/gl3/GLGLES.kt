@@ -21,6 +21,14 @@ inline fun glEnable(target: Int) {
     }
 }
 
+// --- [ glIsEnabled ] ---
+fun glIsEnabled(@NativeType("GLenum") cap: Int): Boolean {
+    return when (driverType) {
+        DriverTypeGL.GL -> GL.glIsEnabled(cap)
+        DriverTypeGL.GLES -> GLES.glIsEnabled(cap)
+    }
+}
+
 // --- [ glDisable ] ---
 inline fun glDisable(@NativeType("GLenum") target: Int) {
     return when (driverType) {
