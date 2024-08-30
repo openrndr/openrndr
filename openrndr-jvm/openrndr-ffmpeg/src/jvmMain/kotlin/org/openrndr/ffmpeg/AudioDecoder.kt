@@ -3,12 +3,14 @@ package org.openrndr.ffmpeg
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.bytedeco.ffmpeg.avcodec.AVCodecContext
 import org.bytedeco.ffmpeg.avcodec.AVPacket
+import org.bytedeco.ffmpeg.avformat.AVStream
 import org.bytedeco.ffmpeg.avutil.AVBufferRef
 import org.bytedeco.ffmpeg.global.avcodec
 import org.bytedeco.ffmpeg.global.avutil.*
 import org.bytedeco.ffmpeg.global.swresample.*
 import org.bytedeco.ffmpeg.swresample.SwrContext
 import org.bytedeco.javacpp.IntPointer
+import org.bytedeco.javacpp.Pointer
 import org.bytedeco.javacpp.Pointer.memcpy
 
 private val logger = KotlinLogging.logger {}
@@ -50,7 +52,7 @@ internal class AudioDecoder(
     private val audioFrame = av_frame_alloc()
 
     private val resampledAudioFrame = av_frame_alloc()
-    private val resampleContext: SwrContext
+    private val resampleContext: SwrContext //= swr_alloc()
     private val minAudioFrames = 10
     private val maxAudioFrames = 90
 
@@ -68,6 +70,18 @@ internal class AudioDecoder(
             /* log_offset = */ 0,
             /* log_ctx = */ null
         )
+
+//        swr_alloc_set_opts2(
+//            /* ps = */ resampleContext,
+//            /* out_ch_layout = */ AV_CHANNEL_LAYOUT_STEREO(),
+//            /* out_sample_fmt = */ AV_SAMPLE_FMT_S16,
+//            /* out_sample_rate = */ output.sampleRate,
+//            /* in_ch_layout = */ audioCodecContext.ch_layout(),
+//            /* in_sample_fmt = */ audioCodecContext.sample_fmt(),
+//            /* in_sample_rate = */ audioCodecContext.sample_rate(),
+//            /* log_offset = */ 0,
+//            /* log_ctx = */ null
+//        )
 
         swr_init(resampleContext).checkAVError()
     }
@@ -89,7 +103,11 @@ internal class AudioDecoder(
 
     fun isQueueEmpty() = audioQueue.isEmpty()
     fun isQueueAlmostFull() = audioQueue.size() > audioQueue.maxSize - 2
-    fun needMoreFrames() = audioQueue.size() < minAudioFrames
+    fun needMoreFrames() = (audioQueue.size() < minAudioFrames).apply {
+        if (this) {
+            //println("audio player needs more frames: q: ${audioQueue.size()} < ${minAudioFrames}")
+        }
+    }
 
     fun nextFrame(size: Int): AudioFrame? {
         val frame = audioQueue.peek() ?: return null
@@ -110,6 +128,7 @@ internal class AudioDecoder(
     fun queueCount() = audioQueue.size()
 
     fun flushQueue() {
+        logger.debug { "flushing audio queue" }
         try {
             synchronized(audioQueue) {
                 while (!audioQueue.isEmpty()) audioQueue.popOrNull()?.unref()
@@ -124,56 +143,56 @@ internal class AudioDecoder(
     }
 
     var first = 0
-    fun decodeAudioPacket(packet: AVPacket) {
+    fun decodeAudioPacket(stream: AVStream, packet: AVPacket, seekPosition: Double) {
         var ret = avcodec.avcodec_send_packet(audioCodecContext, packet)
-
         if (ret < 0) {
+            logger.error { "error in avcodec_send_packet: $ret" }
+            if (ret == AVERROR_EAGAIN()) {
+                logger.debug { "again" }
+            }
+
             if (ret != AVERROR_EOF)
                 logger.debug { "error in avcodec_send_packet: $ret" }
             return
         }
 
-        while (ret >= 0) {
-            val decodedFrame = av_frame_alloc()
-            ret = avcodec.avcodec_receive_frame(audioCodecContext, decodedFrame)
-            decodedFrame.pts(decodedFrame.best_effort_timestamp())
+        val decodedFrame = av_frame_alloc()
+        ret = avcodec.avcodec_receive_frame(audioCodecContext, decodedFrame)
+        val ptss = (decodedFrame.pts() - stream.start_time()).toDouble() * av_q2d(stream.time_base())
 
-            if (ret == AVERROR_EAGAIN()) {
-                println("error? $ret")
-                av_frame_free(decodedFrame)
-                break
-            }
 
-            if (ret == 0) {
+        if (ret == 0 && ptss > seekPosition) {
 //                println("channel layout ${decodedFrame.channel_layout()}")
 //                println("channels ${decodedFrame.channels()}")
 //                println("format ${decodedFrame.format()}")
 //                println("rate ${decodedFrame.sample_rate()}")
 
-                resampledAudioFrame.sample_rate(44100)
-                resampledAudioFrame.format(AV_SAMPLE_FMT_S16)
-                resampledAudioFrame.channels(2)
+            resampledAudioFrame.sample_rate(44100)
+            resampledAudioFrame.format(AV_SAMPLE_FMT_S16)
+            resampledAudioFrame.channels(2)
 
-                swr_config_frame(resampleContext, resampledAudioFrame, decodedFrame)
-                val result = swr_convert_frame(resampleContext, resampledAudioFrame, decodedFrame)
-                if (result == 0) {
-                    with(resampledAudioFrame) {
-                        val audioFrameSize =
-                            av_samples_get_buffer_size(null as IntPointer?, channels(), nb_samples(), format(), 1)
-                        val buffer = av_buffer_alloc(audioFrameSize.toLong())!!
-                        val ts = (audioFrame.best_effort_timestamp()) * av_q2d(audioCodecContext.time_base())
-                        memcpy(buffer.data(), data()[0], audioFrameSize.toLong())
-                        synchronized(audioQueue) {
-                            audioQueue.push(AudioFrame(buffer, 0, audioFrameSize, ts))
-                        }
+
+            swr_config_frame(resampleContext, resampledAudioFrame, decodedFrame)
+            val result = swr_convert_frame(resampleContext, resampledAudioFrame, decodedFrame)
+            if (result == 0) {
+                with(resampledAudioFrame) {
+                    val audioFrameSize =
+                        av_samples_get_buffer_size(null as IntPointer?, channels(), nb_samples(), format(), 1)
+                    val buffer = av_buffer_alloc(audioFrameSize.toLong())!!
+                    val ts = (audioFrame.best_effort_timestamp()) * av_q2d(audioCodecContext.time_base())
+                    memcpy(buffer.data(), data()[0], audioFrameSize.toLong())
+                    synchronized(audioQueue) {
+                        logger.trace { "queuing audio frame" }
+                        audioQueue.push(AudioFrame(buffer, 0, audioFrameSize, ts))
                     }
-                } else {
-                    logger.error { "there was an error: $result" }
                 }
-                result.checkAVError()
-
+            } else {
+                logger.error { "there was an error: $result" }
             }
-            av_frame_free(decodedFrame)
+            result.checkAVError()
+
         }
+        av_frame_free(decodedFrame)
+
     }
 }

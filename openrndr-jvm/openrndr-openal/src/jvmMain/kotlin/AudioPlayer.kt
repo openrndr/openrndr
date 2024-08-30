@@ -70,7 +70,7 @@ enum class AudioFormat(val alFormat: Int) {
 }
 
 class AudioData(val format: AudioFormat = AudioFormat.STEREO_16,
-                val rate: Int = 48000, val buffer: ByteBuffer) {
+                val rate: Int = 44100, val buffer: ByteBuffer) {
     fun createBuffer(): AudioBuffer {
         val buffer = AL11.alGenBuffers()
         AL11.alBufferData(buffer, format.alFormat, this.buffer, rate)

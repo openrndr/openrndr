@@ -7,7 +7,7 @@ internal class Queue<T>(val maxSize: Int) {
 
     fun push(element: T) {
         if ((tail + 1) % maxSize == head)
-            throw Error("queue overflow: $tail $head")
+            throw Error("queue overflow: tail: $tail, head: $head. size: ${size()}, maxSize: $maxSize")
         array[tail] = element
         tail = (tail + 1) % maxSize
     }

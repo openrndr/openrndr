@@ -17,6 +17,7 @@ import org.bytedeco.javacpp.IntPointer
 import org.bytedeco.javacpp.Pointer
 import org.bytedeco.javacpp.PointerPointer
 import org.openrndr.Program
+import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.ColorBuffer
 import org.openrndr.draw.Drawer
 import org.openrndr.events.Event
@@ -168,14 +169,14 @@ class VideoStatistics {
 }
 
 class VideoPlayerConfiguration {
-    var videoFrameQueueSize = 50
+    var videoFrameQueueSize = 10
     var packetQueueSize = 2500
-    var displayQueueSize = 20
+    var displayQueueSize = 5
     var useHardwareDecoding = true
     var usePacketReaderThread = false
     var realtimeBufferSize = -1L
     var allowFrameSkipping = true
-    var minimumSeekOffset = -2.0
+    var minimumSeekOffset = -0.1
     var maximumSeekOffset = 0.0
     var legacyStreamOpen = false
     var allowArbitrarySeek = false
@@ -221,6 +222,11 @@ class VideoPlayerFFMPEG private constructor(
 
     private val displayQueue = Queue<VideoFrame>(configuration.displayQueueSize)
 
+
+
+    /**
+     * The video duration in seconds
+     */
     var duration: Double = file.context.duration() / 1E6
         private set
 
@@ -509,17 +515,20 @@ class VideoPlayerFFMPEG private constructor(
         this.info?.video?.let {
             colorBuffer = org.openrndr.draw.colorBuffer(it.size.w, it.size.h).apply {
                 flipV = true
+                fill(ColorRGBa.TRANSPARENT, 0)
             }
         }
         val videoOutput = VideoOutput(info.video?.size ?: Dimensions(0, 0), AV_PIX_FMT_RGB32)
-        val audioOutput = if (mode.useAudio) AudioOutput(441000, 2, SampleFormat.S16) else null
+        val audioOutput = if (mode.useAudio) AudioOutput(44100, 2, SampleFormat.S16) else null
         av_format_inject_global_side_data(file.context)
 
         if (mode.useAudio) {
             audioOut = AudioSystem.createQueueSource {
                 if (decoder.audioQueue() != null) {
                     synchronized(decoder.audioQueue() ?: error("no queue")) {
+                        logger.trace { "queuing audio for play. frames in queue: ${decoder.audioQueueSize()}" }
                         val frame = decoder.nextAudioFrame()
+
                         if (frame != null) {
                             val data = frame.buffer.data()
                             data.capacity(frame.size.toLong())
@@ -570,6 +579,7 @@ class VideoPlayerFFMPEG private constructor(
                     if (seekRequested) {
                         logger.debug { "performing seek" }
                         synchronized(displayQueue) {
+                            logger.debug { "flushing display queue" }
                             while (!displayQueue.isEmpty()) {
                                 displayQueue.pop().unref()
                             }
@@ -580,7 +590,8 @@ class VideoPlayerFFMPEG private constructor(
                         seekRequested = false
                     }
 
-                    val duration = (info.video?.fps ?: 1.0)
+                    val rate = (info.video?.fps ?: 1.0)
+                    val duration = 1.0 / rate
 
                     val now = clock()
 
@@ -590,16 +601,23 @@ class VideoPlayerFFMPEG private constructor(
                     }
 
 
-                    if (now - nextFrame > duration * 2 && configuration.synchronizeToClock) {
+                    val delta = now - nextFrame
+                    if (delta > duration * 2 && configuration.synchronizeToClock) {
                         logger.warn {
-                            "resetting next frame time"
+                            "resetting next frame time to ${now}, ${delta/duration} frame difference"
                         }
                         nextFrame = now
                     }
+
                     if (now >= nextFrame || !configuration.synchronizeToClock) {
                         val frame = decoder.nextVideoFrame()
+
+
                         if (frame != null) {
-                            nextFrame += 1.0 / duration
+                            logger.trace { "time stamp: ${frame.timeStamp}" }
+
+
+                            nextFrame += duration
 
                             while (displayQueue.size() >= displayQueue.maxSize - 1) {
                                 logger.warn {
@@ -611,7 +629,7 @@ class VideoPlayerFFMPEG private constructor(
                                 if (!frame.buffer.isNull) {
                                     displayQueue.push(frame)
                                 } else {
-                                    logger.warn { "encountered frame with null buffer in play()" }
+                                    logger.error { "encountered frame with null buffer in play()" }
                                     frame.unref()
                                 }
                             }
@@ -659,6 +677,9 @@ class VideoPlayerFFMPEG private constructor(
     private var seekRequested = false
     private var seekPosition = -1.0
 
+    var position: Double = 0.0
+        private set
+
     /**
      * Seek in the video
      * @param positionInSeconds the desired seeking time in seconds
@@ -697,7 +718,8 @@ class VideoPlayerFFMPEG private constructor(
                         if (!frame.buffer.isNull) {
                             colorBuffer?.write(frame.buffer.data().capacity(frame.frameSize.toLong()).asByteBuffer())
                             colorBuffer?.let { lc ->
-                                newFrame.trigger(FrameEvent(lc, 0.0))
+                                position = frame.timeStamp
+                                newFrame.trigger(FrameEvent(lc, frame.timeStamp))
                             }
                         } else {
                             logger.error {
@@ -714,7 +736,8 @@ class VideoPlayerFFMPEG private constructor(
                             if (!frame.buffer.isNull) {
                                 colorBuffer?.write(frame.buffer.data().capacity(frame.frameSize.toLong()).asByteBuffer())
                                 colorBuffer?.let { lc ->
-                                    newFrame.trigger(FrameEvent(lc, 0.0))
+                                    position = frame.timeStamp
+                                    newFrame.trigger(FrameEvent(lc, frame.timeStamp))
                                 }
                             } else {
                                 logger.error {

@@ -5,6 +5,7 @@ import org.bytedeco.ffmpeg.avcodec.AVCodec
 import org.bytedeco.ffmpeg.avcodec.AVCodecContext
 import org.bytedeco.ffmpeg.avcodec.AVPacket
 import org.bytedeco.ffmpeg.avformat.AVFormatContext
+import org.bytedeco.ffmpeg.avformat.AVStream
 import org.bytedeco.ffmpeg.avutil.AVBufferRef
 import org.bytedeco.ffmpeg.avutil.AVHWDeviceContext
 import org.bytedeco.ffmpeg.global.avcodec.av_packet_alloc
@@ -45,29 +46,38 @@ internal val flushPacket = AVPacket().apply {
     data(BytePointer("FLUSH"))
 }
 
-internal class Decoder(private val statistics: VideoStatistics,
-                       private val configuration: VideoPlayerConfiguration,
-                       private val formatContext: AVFormatContext,
-                       private val videoStreamIndex: Int,
-                       private val audioStreamIndex: Int,
-                       private val videoCodecContext: AVCodecContext?,
-                       private val audioCodecContext: AVCodecContext?,
-                       private val hwType: Int
+internal class Decoder(
+    private val statistics: VideoStatistics,
+    private val configuration: VideoPlayerConfiguration,
+    private val formatContext: AVFormatContext,
+    private val videoStreamIndex: Int,
+    private val audioStreamIndex: Int,
+    private val videoCodecContext: AVCodecContext?,
+    private val audioCodecContext: AVCodecContext?,
+    private val videoStream: AVStream?,
+    private val audioStream: AVStream?,
+    private val hwType: Int
 ) {
     companion object {
-        fun fromContext(statistics: VideoStatistics, configuration: VideoPlayerConfiguration, context: AVFormatContext, useVideo: Boolean, useAudio: Boolean): Pair<Decoder, CodecInfo> {
+        fun fromContext(
+            statistics: VideoStatistics,
+            configuration: VideoPlayerConfiguration,
+            context: AVFormatContext,
+            useVideo: Boolean,
+            useAudio: Boolean
+        ): Pair<Decoder, CodecInfo> {
             val videoStreamIndex =
-                    if (configuration.legacyStreamOpen) {
-                        if (useVideo) context.codecs.indexOfFirst { it?.codec_type() == AVMEDIA_TYPE_VIDEO } else -1
-                    } else {
-                        av_find_best_stream(context, AVMEDIA_TYPE_VIDEO, -1, -1, null as AVCodec?, 0)
-                    }
+                if (configuration.legacyStreamOpen) {
+                    if (useVideo) context.codecs.indexOfFirst { it?.codec_type() == AVMEDIA_TYPE_VIDEO } else -1
+                } else {
+                    av_find_best_stream(context, AVMEDIA_TYPE_VIDEO, -1, -1, null as AVCodec?, 0)
+                }
             val audioStreamIndex =
-                    if (configuration.legacyStreamOpen) {
-                        if (useAudio) context.codecs.indexOfFirst { it?.codec_type() == AVMEDIA_TYPE_AUDIO } else -1
-                    } else {
-                        av_find_best_stream(context, AVMEDIA_TYPE_AUDIO, -1, -1, null as AVCodec?, 0)
-                    }
+                if (configuration.legacyStreamOpen) {
+                    if (useAudio) context.codecs.indexOfFirst { it?.codec_type() == AVMEDIA_TYPE_AUDIO } else -1
+                } else {
+                    av_find_best_stream(context, AVMEDIA_TYPE_AUDIO, -1, -1, null as AVCodec?, 0)
+                }
 
             val videoStream = context.streamAt(videoStreamIndex)
             val audioStream = if (useAudio) context.streamAt(audioStreamIndex) else null
@@ -77,7 +87,12 @@ internal class Decoder(private val statistics: VideoStatistics,
             var hwType = AV_HWDEVICE_TYPE_NONE
             if (configuration.useHardwareDecoding && videoContext != null) {
                 val preferredHW = when (Platform.type) {
-                    PlatformType.WINDOWS -> arrayListOf(AV_HWDEVICE_TYPE_D3D11VA, AV_HWDEVICE_TYPE_DXVA2, AV_HWDEVICE_TYPE_QSV)
+                    PlatformType.WINDOWS -> arrayListOf(
+                        AV_HWDEVICE_TYPE_D3D11VA,
+                        AV_HWDEVICE_TYPE_DXVA2,
+                        AV_HWDEVICE_TYPE_QSV
+                    )
+
                     PlatformType.MAC -> arrayListOf(AV_HWDEVICE_TYPE_VIDEOTOOLBOX)
                     PlatformType.GENERIC -> arrayListOf(AV_HWDEVICE_TYPE_OPENCL)
                     PlatformType.BROWSER -> error("browser not supported")
@@ -115,7 +130,20 @@ internal class Decoder(private val statistics: VideoStatistics,
             val audio = audioContext?.run {
                 AudioInfo(sample_rate(), ch_layout().nb_channels())
             }
-            return Pair(Decoder(statistics, configuration, context, videoStreamIndex, audioStreamIndex, videoContext, audioContext, hwType), CodecInfo(video, audio))
+            return Pair(
+                Decoder(
+                    statistics,
+                    configuration,
+                    context,
+                    videoStreamIndex,
+                    audioStreamIndex,
+                    videoContext,
+                    audioContext,
+                    videoStream,
+                    audioStream,
+                    hwType
+                ), CodecInfo(video, audio)
+            )
         }
     }
 
@@ -162,7 +190,7 @@ internal class Decoder(private val statistics: VideoStatistics,
 
     private var needFlush = false
     private var seekRequested = false
-    private var seekPosition: Double = 0.0
+    private var seekPosition: Double = -1.0
 
     var seekTimedOut = false
 
@@ -171,7 +199,8 @@ internal class Decoder(private val statistics: VideoStatistics,
         seekRequested = true
     }
 
-    fun done() = (packetReader?.endOfFile == true) && (packetReader?.isQueueEmpty() == true) && (videoDecoder?.isQueueEmpty()
+    fun done() =
+        (packetReader?.endOfFile == true) && (packetReader?.isQueueEmpty() == true) && (videoDecoder?.isQueueEmpty()
             ?: true)
 
     fun dispose() {
@@ -182,9 +211,15 @@ internal class Decoder(private val statistics: VideoStatistics,
         packetReader?.dispose()
     }
 
-    private fun needMoreFrames(): Boolean =
-            !seekRequested && ((videoDecoder?.needMoreFrames() ?: false) || (audioDecoder?.needMoreFrames() ?: false))
-                    && !audioOutQueueFull() && !displayQueueFull()
+    private fun needMoreFrames(): Boolean {
+        if (videoDecoder?.isQueueAlmostFull() == true) {
+            return false
+        }
+
+        val needMoreVideoFrames = videoDecoder?.needMoreFrames() ?: false
+        val needMoreAudioFrames = audioDecoder?.needMoreFrames() ?: false
+        return needMoreAudioFrames || needMoreVideoFrames
+    }
 
     private fun decodeIfNeeded() {
         val hasSeeked = seekRequested
@@ -199,7 +234,14 @@ internal class Decoder(private val statistics: VideoStatistics,
             val seekMinTS = ((seekPosition + configuration.minimumSeekOffset) * AV_TIME_BASE).toLong()
             val seekMaxTS = ((seekPosition + configuration.maximumSeekOffset) * AV_TIME_BASE).toLong()
             val seekStarted = System.currentTimeMillis()
-            val seekResult = avformat_seek_file(formatContext, -1, seekMinTS, seekTS, seekMaxTS, if (configuration.allowArbitrarySeek) AVSEEK_FLAG_ANY else 0)
+            val seekResult = avformat_seek_file(
+                formatContext,
+                -1,
+                seekMinTS,
+                seekTS,
+                seekMaxTS,
+                if (configuration.allowArbitrarySeek) AVSEEK_FLAG_ANY else 0
+            )
             logger.debug { "seek completed in ${System.currentTimeMillis() - seekStarted}ms" }
             if (seekResult != 0) {
                 logger.error { "seek failed" }
@@ -213,6 +255,7 @@ internal class Decoder(private val statistics: VideoStatistics,
             videoDecoder?.flushBuffers()
             audioDecoder?.flushBuffers()
         }
+
 
         var packetsReceived = 0
         while (needMoreFrames() && !disposed) {
@@ -229,6 +272,8 @@ internal class Decoder(private val statistics: VideoStatistics,
             }
 
             val packet = if (packetReader != null) packetReader?.nextPacket() else av_packet_alloc()
+            require(videoDecoder?.isQueueAlmostFull() != true)
+            require(audioDecoder?.isQueueAlmostFull() != true)
             val packetResult = av_read_frame(formatContext, packet)
 
             if (packetResult == AVERROR_EOF) {
@@ -247,14 +292,20 @@ internal class Decoder(private val statistics: VideoStatistics,
                 }
 
                 if (hasSeeked && packetsReceived == 2) {
-                    val packetTime = packet.dts() / 1000.0
+                    val packetTime = packet.dts().toDouble() * av_q2d(videoStream?.time_base())
                     logger.debug { "seek error: ${packetTime - seekPosition}" }
                 }
 
-
+                logger.trace { "received packet, index: ${packet.stream_index()}, video: ${packet.stream_index() == videoStreamIndex} audio: ${packet.stream_index() == audioStreamIndex}" }
                 when (packet.stream_index()) {
-                    videoStreamIndex -> videoDecoder?.decodeVideoPacket(packet)
-                    audioStreamIndex -> audioDecoder?.decodeAudioPacket(packet)
+                    videoStreamIndex -> {
+                        require(videoDecoder?.isQueueAlmostFull() != true)
+                        videoDecoder?.decodeVideoPacket(videoStream!!, packet, seekPosition)
+                    }
+                    audioStreamIndex -> {
+                        require(audioDecoder?.isQueueAlmostFull() != true)
+                        audioDecoder?.decodeAudioPacket(audioStream!!, packet, seekPosition)
+                    }
                 }
                 av_packet_unref(packet)
             } else {

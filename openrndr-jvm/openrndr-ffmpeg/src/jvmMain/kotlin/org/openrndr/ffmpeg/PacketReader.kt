@@ -25,6 +25,7 @@ internal class PacketReader(private val configuration: VideoPlayerConfiguration,
 
     fun start() {
         while (!disposed) {
+
             if (queue.size() < configuration.packetQueueSize) {
                 if (!endOfFile) {
                     val packet = avcodec.av_packet_alloc()
@@ -41,7 +42,7 @@ internal class PacketReader(private val configuration: VideoPlayerConfiguration,
                         }
                     }
                 } else {
-                    Thread.sleep(100)
+                    Thread.sleep(5)
                 }
             } else {
                 logger.warn { "queue full" }
