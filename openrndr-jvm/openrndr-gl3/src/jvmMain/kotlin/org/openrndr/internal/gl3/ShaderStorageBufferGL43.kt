@@ -159,8 +159,8 @@ class ShaderStorageBufferGL43(
     override fun vertexBufferView(elementName: String?): VertexBuffer {
         val vertexFormat = shaderStorageFormatToVertexFormat(this.format, elementName)
         val vertexCount = this.format.elements.first().arraySize
-        val offset = if (vertexFormat.items.first().attribute == this.format.elements.first().name) 0 else {
-            elementPosition(elementName!!)
+        val offset = if (elementName == null ||vertexFormat.items.first().attribute == this.format.elements.first().name) 0 else {
+            elementPosition(elementName)
         }
         return VertexBufferGL3(this.buffer, offset, vertexFormat, vertexCount, this.session)
     }
