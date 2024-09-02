@@ -1,6 +1,18 @@
 @file:OptIn(ExperimentalKotlinGradlePluginApi::class)
 
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
+
+val currentOperatingSystemName: String = DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName()
+val currentArchitectureName: String = DefaultNativePlatform.getCurrentArchitecture().name
+
+val arch = when(currentArchitectureName) {
+    "arm64-v8", "aarch64" -> "arm64"
+    "x86_64" -> "x64"
+    else -> error("unknown architecture $currentArchitectureName")
+}
+
+val osArch = "$currentOperatingSystemName-$arch"
 
 plugins {
     org.openrndr.convention.`kotlin-multiplatform`
@@ -34,9 +46,9 @@ kotlin {
         val jvmDemo by getting {
             dependencies {
                 runtimeOnly(libs.slf4j.simple)
-                runtimeOnly(project(":openrndr-jvm:openrndr-gl3-natives-macos-arm64"))
+                runtimeOnly(project(":openrndr-jvm:openrndr-gl3-natives-$osArch"))
                 runtimeOnly(project(":openrndr-jvm:openrndr-gl3"))
-                runtimeOnly(project(":openrndr-jvm:openrndr-ffmpeg-natives-macos-arm64"))
+                runtimeOnly(project(":openrndr-jvm:openrndr-ffmpeg-natives-$osArch"))
             }
         }
     }
