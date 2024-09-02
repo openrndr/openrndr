@@ -8,7 +8,7 @@ val currentArchitectureName: String = DefaultNativePlatform.getCurrentArchitectu
 
 val arch = when(currentArchitectureName) {
     "arm64-v8", "aarch64" -> "arm64"
-    "x86_64" -> "x64"
+    "x86-64", "x86_64" -> "x64"
     else -> error("unknown architecture $currentArchitectureName")
 }
 
@@ -47,6 +47,7 @@ kotlin {
             dependencies {
                 runtimeOnly(libs.slf4j.simple)
                 runtimeOnly(project(":openrndr-jvm:openrndr-gl3-natives-$osArch"))
+                runtimeOnly(project(":openrndr-jvm:openrndr-openal-natives-$osArch"))
                 runtimeOnly(project(":openrndr-jvm:openrndr-gl3"))
                 runtimeOnly(project(":openrndr-jvm:openrndr-ffmpeg-natives-$osArch"))
             }
