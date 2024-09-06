@@ -70,6 +70,8 @@ internal fun checkShaderInfoLog(`object`: Int, code: String, sourceFile: String)
 }
 
 fun checkProgramInfoLog(`object`: Int, sourceFile: String) {
+
+    val linkStatus = glGetProgrami(`object`, GL_LINK_STATUS)
     val logLength = IntArray(1)
     glGetProgramiv(`object`, GL_INFO_LOG_LENGTH, logLength)
 
@@ -81,11 +83,11 @@ fun checkProgramInfoLog(`object`: Int, sourceFile: String) {
         println("GLSL link problems in\n ${String(linkInfoBytes)}")
 
         logger.warn {
-            val infoBytes = ByteArray(logLength[0])
-            infoLog.get(infoBytes)
-            "GLSL link problems in\n ${String(infoBytes)}"
+            "GLSL link problems in\n ${String(linkInfoBytes)}"
         }
-        throw Exception("Shader error: $sourceFile")
+        if (linkStatus != GL_TRUE) {
+            throw Exception("Shader error: $sourceFile")
+        }
     }
 }
 
