@@ -215,7 +215,7 @@ actual interface Driver {
     actual fun finish()
     actual fun internalShaderResource(resourceId: String): String
 
-    actual fun shaderConfiguration(): String
+    actual fun shaderConfiguration(type: ShaderType): String
 
     actual companion object {
         actual var driver: Driver? = null

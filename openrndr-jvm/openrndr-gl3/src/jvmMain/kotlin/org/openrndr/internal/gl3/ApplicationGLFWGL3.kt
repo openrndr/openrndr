@@ -1,14 +1,13 @@
 package org.openrndr.internal.gl3
 
-import kotlinx.coroutines.runBlocking
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.runBlocking
 import org.lwjgl.BufferUtils
 import org.lwjgl.PointerBuffer
 import org.lwjgl.glfw.Callbacks.glfwFreeCallbacks
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.glfw.GLFWImage
-import org.lwjgl.opengl.GL43C as GL
 import org.lwjgl.opengl.GLUtil
 import org.lwjgl.opengles.GLES
 import org.lwjgl.system.MemoryStack.stackPush
@@ -23,7 +22,6 @@ import org.openrndr.draw.Session
 import org.openrndr.internal.Driver
 import org.openrndr.internal.gl3.ApplicationGlfwConfiguration.fixWindowSize
 import org.openrndr.internal.gl3.extensions.BackBuffer
-
 import org.openrndr.math.Vector2
 import org.openrndr.platform.Platform
 import org.openrndr.platform.PlatformType
@@ -32,6 +30,7 @@ import java.nio.Buffer
 import java.util.*
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.math.ceil
+import org.lwjgl.opengl.GL43C as GL
 
 private val logger = KotlinLogging.logger {}
 internal var primaryWindow: Long = NULL

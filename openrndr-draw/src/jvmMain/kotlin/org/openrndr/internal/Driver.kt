@@ -216,7 +216,7 @@ actual interface Driver {
     actual val fontVectorMapManager: FontMapManager
     actual val shaderLanguage: ShaderLanguage
 
-    actual fun shaderConfiguration(): String
+    actual fun shaderConfiguration(type: ShaderType): String
     actual fun createComputeStyleManager(session: Session?): ComputeStyleManager
     actual val properties: DriverProperties
 

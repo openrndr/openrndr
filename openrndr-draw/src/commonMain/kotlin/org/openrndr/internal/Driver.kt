@@ -188,7 +188,7 @@ expect interface Driver {
 
     fun internalShaderResource(resourceId: String): String
 
-    fun shaderConfiguration() : String
+    fun shaderConfiguration(type: ShaderType): String
 
     val shaderLanguage: ShaderLanguage
 

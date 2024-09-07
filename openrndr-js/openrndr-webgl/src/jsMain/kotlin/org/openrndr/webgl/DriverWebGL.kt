@@ -722,7 +722,7 @@ class DriverWebGL(val context: WebGL2RenderingContext) : Driver {
     }
 
 
-    override fun shaderConfiguration(): String {
+    override fun shaderConfiguration(type: ShaderType): String {
         return """
             #version 300 es
             precision highp float;

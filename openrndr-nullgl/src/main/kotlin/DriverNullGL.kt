@@ -171,7 +171,7 @@ class DriverNullGL: Driver {
         return "mock"
     }
 
-    override fun shaderConfiguration(): String = ""
+    override fun shaderConfiguration(type: ShaderType): String = ""
     override fun createComputeStyleManager(session: Session?): ComputeStyleManager {
         TODO("Not yet implemented")
     }

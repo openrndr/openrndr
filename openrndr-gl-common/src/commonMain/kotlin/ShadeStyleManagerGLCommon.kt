@@ -1,9 +1,7 @@
 package org.openrndr.internal.glcommon
 
-import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
 import org.openrndr.internal.Driver
-import org.openrndr.math.*
 
 
 class ShadeStyleManagerGLCommon(
@@ -30,18 +28,18 @@ class ShadeStyleManagerGLCommon(
         val outputInstanceFormats = instanceFormats + (style?.attributes
             ?: emptyList()).map { it.vertexFormat }
 
-        fun String.prependConfig(): String = """${Driver.instance.shaderConfiguration()}
+        fun String.prependConfig(type: ShaderType): String = """${Driver.instance.shaderConfiguration(type)}
 $this"""
         if (style == null) {
             return run {
                 if (defaultShader == null) {
                     val structure = structureFromShadeStyle(style, vertexFormats, outputInstanceFormats)
                     defaultShader = Shader.createFromCode(
-                        vsCode = vsGenerator(structure).prependConfig(),
-                        tcsCode = tcsGenerator?.invoke(structure)?.prependConfig(),
-                        tesCode = tesGenerator?.invoke(structure)?.prependConfig(),
-                        gsCode = gsGenerator?.invoke(structure)?.prependConfig(),
-                        fsCode = fsGenerator(structure).prependConfig(),
+                        vsCode = vsGenerator(structure).prependConfig(ShaderType.VERTEX),
+                        tcsCode = tcsGenerator?.invoke(structure)?.prependConfig(ShaderType.TESSELLATION_CONTROL),
+                        tesCode = tesGenerator?.invoke(structure)?.prependConfig(ShaderType.TESSELLATION_EVALUATION),
+                        gsCode = gsGenerator?.invoke(structure)?.prependConfig(ShaderType.GEOMETRY),
+                        fsCode = fsGenerator(structure).prependConfig(ShaderType.FRAGMENT),
                         name = "shade-style-default:$name",
                         session = Session.root
                     )
@@ -56,11 +54,11 @@ $this"""
                 val shader = shaders.getOrPut(structure) {
                     try {
                         Shader.createFromCode(
-                            vsCode = vsGenerator(structure).prependConfig(),
-                            tcsCode = tcsGenerator?.invoke(structure)?.prependConfig(),
-                            tesCode = tesGenerator?.invoke(structure)?.prependConfig(),
-                            gsCode = gsGenerator?.invoke(structure)?.prependConfig(),
-                            fsCode = fsGenerator(structure).prependConfig(),
+                            vsCode = vsGenerator(structure).prependConfig(ShaderType.VERTEX),
+                            tcsCode = tcsGenerator?.invoke(structure)?.prependConfig(ShaderType.TESSELLATION_CONTROL),
+                            tesCode = tesGenerator?.invoke(structure)?.prependConfig(ShaderType.TESSELLATION_EVALUATION),
+                            gsCode = gsGenerator?.invoke(structure)?.prependConfig(ShaderType.GEOMETRY),
+                            fsCode = fsGenerator(structure).prependConfig(ShaderType.FRAGMENT),
                             name = "shade-style-custom:$name-${structure.hashCode()}",
                             session = Session.root
                         )

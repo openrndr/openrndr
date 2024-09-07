@@ -38,7 +38,7 @@ fun main() {
              * The pattern in each layer depends on the layer id.
              */
             val glsl = """
-                ${Driver.instance.shaderConfiguration()}
+                ${Driver.instance.shaderConfiguration(ShaderType.COMPUTE)}
                 
                 layout(local_size_x=8, local_size_y=8) in;
                 layout(rgba32f) uniform writeonly highp image2DArray writeTex;

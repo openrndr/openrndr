@@ -4,6 +4,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.opengl.*
 import org.lwjgl.opengl.GL40C.*
+import org.lwjgl.opengl.KHRBlendEquationAdvanced.*
 import org.lwjgl.system.FunctionProvider
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
@@ -116,9 +117,16 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         }
 
     @Suppress("SpellCheckingInspection")
-    override fun shaderConfiguration(): String = """
+    override fun shaderConfiguration(type: ShaderType): String = """
         #version ${version.glslVersion}
         #define OR_IN_OUT
+        ${if (type == ShaderType.FRAGMENT) {"""#extension GL_KHR_blend_equation_advanced : enable
+            |#ifdef GL_KHR_blend_equation_advanced
+            |layout(blend_support_all_equations) out;
+            |#endif
+            |
+        """.trimMargin() } else ""}
+        
         ${
         when (version.type) {
             DriverTypeGL.GL -> "#define OR_GL"
@@ -209,7 +217,12 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
     override fun clear(color: ColorRGBa) {
         val targetColor = color.toLinear()
         debugGLErrors()
-        glClearColor(targetColor.r.toFloat(), targetColor.g.toFloat(), targetColor.b.toFloat(), targetColor.alpha.toFloat())
+        glClearColor(
+            targetColor.r.toFloat(),
+            targetColor.g.toFloat(),
+            targetColor.b.toFloat(),
+            targetColor.alpha.toFloat()
+        )
         glClearDepth(1.0)
         val depthWriteMask = glGetInteger(GL_DEPTH_WRITEMASK) != 0
         val scissorTestEnabled = glIsEnabled(GL_SCISSOR_TEST)
@@ -1034,12 +1047,22 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         }
 
         if (dirty || cached.blendMode != drawStyle.blendMode) {
+
+            fun setAdvancedEq(eq: Int) {
+                glEnable(GL_BLEND)
+                if (Driver.glVersion.isAtLeast(DriverVersionGL.GL_VERSION_4_1, DriverVersionGL.GLES_VERSION_3_2)) {
+                    glBlendEquationi(0, eq)
+                    glBlendFunci(0, GL_ONE, GL_ONE)
+                } else {
+                    glBlendEquation(eq)
+                    glBlendFunc(GL_ONE, GL_ONE)
+                }
+            }
+
             when (drawStyle.blendMode) {
                 BlendMode.OVER -> {
                     glEnable(GL_BLEND)
-                    if ((version >= DriverVersionGL.GL_VERSION_4_1 && version.type == DriverTypeGL.GL) ||
-                        (version >= DriverVersionGL.GLES_VERSION_3_2 && version.type == DriverTypeGL.GLES)
-                    ) {
+                    if (Driver.glVersion.isAtLeast(DriverVersionGL.GL_VERSION_4_1, DriverVersionGL.GLES_VERSION_3_2)) {
                         glBlendEquationi(0, GL_FUNC_ADD)
                         glBlendFunci(0, GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
                     } else {
@@ -1050,9 +1073,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
 
                 BlendMode.BLEND -> {
                     glEnable(GL_BLEND)
-                    if ((version >= DriverVersionGL.GL_VERSION_4_1 && version.type == DriverTypeGL.GL) ||
-                        (version >= DriverVersionGL.GLES_VERSION_3_2 && version.type == DriverTypeGL.GLES)
-                    ) {
+                    if (Driver.glVersion.isAtLeast(DriverVersionGL.GL_VERSION_4_1, DriverVersionGL.GLES_VERSION_3_2)) {
                         glBlendEquationi(0, GL_FUNC_ADD)
                         glBlendFunci(0, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
                     } else {
@@ -1063,9 +1084,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
 
                 BlendMode.ADD -> {
                     glEnable(GL_BLEND)
-                    if ((version >= DriverVersionGL.GL_VERSION_4_1 && version.type == DriverTypeGL.GL) ||
-                        (version >= DriverVersionGL.GLES_VERSION_3_2 && version.type == DriverTypeGL.GLES)
-                    ) {
+                    if (Driver.glVersion.isAtLeast(DriverVersionGL.GL_VERSION_4_1, DriverVersionGL.GLES_VERSION_3_2)) {
                         glBlendEquationi(0, GL_FUNC_ADD)
                         glBlendFunci(0, GL_ONE, GL_ONE)
                     } else {
@@ -1080,9 +1099,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
 
                 BlendMode.SUBTRACT -> {
                     glEnable(GL_BLEND)
-                    if ((version >= DriverVersionGL.GL_VERSION_4_1 && version.type == DriverTypeGL.GL) ||
-                        (version >= DriverVersionGL.GLES_VERSION_3_2 && version.type == DriverTypeGL.GLES)
-                    ) {
+                    if (Driver.glVersion.isAtLeast(DriverVersionGL.GL_VERSION_4_1, DriverVersionGL.GLES_VERSION_3_2)) {
                         glBlendEquationSeparatei(0, GL_FUNC_REVERSE_SUBTRACT, GL_FUNC_ADD)
                         glBlendFuncSeparatei(0, GL_SRC_ALPHA, GL_ONE, GL_ONE, GL_ONE)
                     } else {
@@ -1093,9 +1110,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
 
                 BlendMode.MULTIPLY -> {
                     glEnable(GL_BLEND)
-                    if ((version >= DriverVersionGL.GL_VERSION_4_1 && version.type == DriverTypeGL.GL) ||
-                        (version >= DriverVersionGL.GLES_VERSION_3_2 && version.type == DriverTypeGL.GLES)
-                    ) {
+                    if (Driver.glVersion.isAtLeast(DriverVersionGL.GL_VERSION_4_1, DriverVersionGL.GLES_VERSION_3_2)) {
                         glBlendEquationi(0, GL_FUNC_ADD)
                         glBlendFunci(0, GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA)
                     } else {
@@ -1106,9 +1121,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
 
                 BlendMode.REMOVE -> {
                     glEnable(GL_BLEND)
-                    if ((version >= DriverVersionGL.GL_VERSION_4_1 && version.type == DriverTypeGL.GL) ||
-                        (version >= DriverVersionGL.GLES_VERSION_3_2 && version.type == DriverTypeGL.GLES)
-                    ) {
+                    if (Driver.glVersion.isAtLeast(DriverVersionGL.GL_VERSION_4_1, DriverVersionGL.GLES_VERSION_3_2)) {
                         glBlendEquationi(0, GL_FUNC_ADD)
                         glBlendFunci(0, GL_ZERO, GL_ONE_MINUS_SRC_ALPHA)
                     } else {
@@ -1119,9 +1132,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
 
                 BlendMode.MIN -> {
                     glEnable(GL_BLEND)
-                    if ((version >= DriverVersionGL.GL_VERSION_4_1 && version.type == DriverTypeGL.GL) ||
-                        (version >= DriverVersionGL.GLES_VERSION_3_2 && version.type == DriverTypeGL.GLES)
-                    ) {
+                    if (Driver.glVersion.isAtLeast(DriverVersionGL.GL_VERSION_4_1, DriverVersionGL.GLES_VERSION_3_2)) {
                         glBlendEquationi(0, GL_MIN)
                         glBlendFunci(0, GL_ONE, GL_ONE)
                     } else {
@@ -1132,9 +1143,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
 
                 BlendMode.MAX -> {
                     glEnable(GL_BLEND)
-                    if ((version >= DriverVersionGL.GL_VERSION_4_1 && version.type == DriverTypeGL.GL) ||
-                        (version >= DriverVersionGL.GLES_VERSION_3_2 && version.type == DriverTypeGL.GLES)
-                    ) {
+                    if (Driver.glVersion.isAtLeast(DriverVersionGL.GL_VERSION_4_1, DriverVersionGL.GLES_VERSION_3_2)) {
                         glBlendEquationi(0, GL_MAX)
                         glBlendFunci(0, GL_ONE, GL_ONE)
                     } else {
@@ -1142,6 +1151,21 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
                         glBlendFunc(GL_ONE, GL_ONE)
                     }
                 }
+
+                BlendMode.SCREEN -> setAdvancedEq(GL_SCREEN_KHR)
+                BlendMode.OVERLAY -> setAdvancedEq(GL_OVERLAY_KHR)
+                BlendMode.DARKEN -> setAdvancedEq(GL_DARKEN_KHR)
+                BlendMode.LIGHTEN -> setAdvancedEq(GL_LIGHTEN_KHR)
+                BlendMode.COLOR_DODGE -> setAdvancedEq(GL_COLORDODGE_KHR)
+                BlendMode.COLOR_BURN -> setAdvancedEq(GL_COLORBURN_KHR)
+                BlendMode.HARD_LIGHT -> setAdvancedEq(GL_HARDLIGHT_KHR)
+                BlendMode.SOFT_LIGHT -> setAdvancedEq(GL_SOFTLIGHT_KHR)
+                BlendMode.DIFFERENCE -> setAdvancedEq(GL_DIFFERENCE_KHR)
+                BlendMode.EXCLUSION -> setAdvancedEq(GL_EXCLUSION_KHR)
+                BlendMode.HSL_HUE -> setAdvancedEq(GL_HSL_HUE_KHR)
+                BlendMode.HSL_SATURATION -> setAdvancedEq(GL_HSL_SATURATION_KHR)
+                BlendMode.HSL_COLOR -> setAdvancedEq(GL_HSL_COLOR_KHR)
+                BlendMode.HSL_LUMINOSITY -> setAdvancedEq(GL_HSL_LUMINOSITY_KHR)
             }
             cached.blendMode = drawStyle.blendMode
         }

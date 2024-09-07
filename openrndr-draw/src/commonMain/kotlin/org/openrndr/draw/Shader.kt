@@ -5,8 +5,11 @@ import org.openrndr.internal.Driver
 
 enum class ShaderType {
     VERTEX,
+    TESSELLATION_CONTROL,
+    TESSELLATION_EVALUATION,
     GEOMETRY,
-    FRAGMENT
+    FRAGMENT,
+    COMPUTE
 }
 
 interface Shader : ShaderImageBindings, ShaderUniforms, ShaderBufferBindings {

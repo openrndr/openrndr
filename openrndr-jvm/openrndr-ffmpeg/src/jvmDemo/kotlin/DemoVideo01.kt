@@ -18,6 +18,10 @@ fun main() {
             val video = loadVideo(videoFile)
             video.play()
 
+            video.ended.listen {
+                println("video ended")
+            }
+
             mouse.buttonDown.listen {
                 video.seek((it.position.x / width) * (video.duration))
             }

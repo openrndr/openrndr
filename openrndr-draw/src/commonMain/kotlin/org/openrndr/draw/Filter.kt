@@ -20,7 +20,7 @@ fun filterShaderFromCode(fragmentShaderCode: String, name: String, includeShader
     } else {
         Shader.createFromCode(
             vsCode = Filter.filterVertexCode,
-            fsCode = "${Driver.instance.shaderConfiguration()}\n$fragmentShaderCode",
+            fsCode = "${Driver.instance.shaderConfiguration(ShaderType.FRAGMENT)}\n$fragmentShaderCode",
             name = name
         )
     }
@@ -50,7 +50,7 @@ open class Filter(private val shader: Shader? = null, private val watcher: Shade
     companion object {
         val filterVertexCode: String
             get() {
-                return Driver.instance.shaderConfiguration() + """
+                return Driver.instance.shaderConfiguration(ShaderType.VERTEX) + """
 
 #ifdef OR_IN_OUT
 in vec2 a_texCoord0;

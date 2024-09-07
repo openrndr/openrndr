@@ -1,9 +1,7 @@
 import org.openrndr.application
-import org.openrndr.draw.ComputeShader
-import org.openrndr.draw.colorBuffer
-import org.openrndr.draw.computeShader2DExecuteSize
+import org.openrndr.draw.*
 import org.openrndr.draw.font.BufferAccess
-import org.openrndr.draw.imageBinding
+import org.openrndr.internal.Driver
 import org.openrndr.math.IntVector2
 import org.openrndr.math.IntVector3
 
@@ -23,7 +21,7 @@ fun main() = application {
         val resolution = IntVector2(image.width, image.height)
         val shader = ComputeShader.fromCode(
             code = """
-                |#version 430
+                |${Driver.instance.shaderConfiguration(ShaderType.COMPUTE)}
                 |layout (local_size_x = 8, local_size_y = 8) in;
                 |uniform writeonly restrict image2D image;
                 |uniform ivec2 resolution;
@@ -35,8 +33,8 @@ fun main() = application {
                 |        return;
                 |    }
                 |    vec4 color = vec4(
-                |        coord.x / float(resolution.x),
-                |        coord.y / float(resolution.y),
+                |        float(coord.x) / float(resolution.x),
+                |        float(coord.y) / float(resolution.y),
                 |        sin(seconds) * .5 + .5,
                 |        1.0
                 |    );
