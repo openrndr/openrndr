@@ -41,8 +41,10 @@ class ShaderGeneratorsGLCommon : ShaderGenerators {
 |${shadeStructure.outputs ?: ""}
 |${transformVaryingIn}
 
+|#ifndef OUTPUT_color
 |${if (!shadeStructure.suppressDefaultOutput) "out vec4 o_color;" else ""}
-
+|#endif
+|
 |flat in int v_instance;
 |flat in float va_pointSize;
 |${fragmentMainConstants(element = "v_instance")}
@@ -110,7 +112,9 @@ ${transformVaryingIn}
 
 ${shadeStructure.outputs ?: ""}
 
+#ifndef OUTPUT_color
 ${if (!shadeStructure.suppressDefaultOutput) "out vec4 o_color;" else ""}
+#endif
 
 in vec3 v_boundsPosition;
 flat in int v_instance;
@@ -188,8 +192,9 @@ ${drawerUniforms()}
 ${shadeStructure.varyingIn ?: ""}
 ${transformVaryingIn}
 
+#ifndef OUTPUT_color
 ${if (!shadeStructure.suppressDefaultOutput) "out vec4 o_color;" else ""}
-
+#endif
 
 
 in vec3 v_boundsPosition;
@@ -270,8 +275,9 @@ ${drawerUniforms(styleBlock = false)}
 ${shadeStructure.varyingIn ?: ""}
 ${transformVaryingIn}
 
+#ifndef OUTPUT_color
 ${if (!shadeStructure.suppressDefaultOutput) "out vec4 o_color;" else ""}
-
+#endif
 
 
 flat in int v_instance;
@@ -343,7 +349,9 @@ ${drawerUniforms(styleBlock = false)}
 ${shadeStructure.varyingIn ?: ""}
 ${transformVaryingIn}
 
+#ifndef OUTPUT_color
 ${if (!shadeStructure.suppressDefaultOutput) "out vec4 o_color;" else ""}
+#endif
 
 ${shadeStructure.fragmentPreamble ?: ""}
 
@@ -436,7 +444,9 @@ ${drawerUniforms()}
 ${shadeStructure.varyingIn ?: ""}
 ${transformVaryingIn}
 
+#ifndef OUTPUT_color
 ${if (!shadeStructure.suppressDefaultOutput) "out vec4 o_color;" else ""}
+#endif
 
 ${shadeStructure.fragmentPreamble ?: ""}
 
@@ -507,7 +517,9 @@ ${shadeStructure.varyingIn ?: ""}
 ${shadeStructure.outputs ?: ""}
 ${transformVaryingIn}
 
+#ifndef OUTPUT_color
 ${if (!shadeStructure.suppressDefaultOutput) "out vec4 o_color;" else ""}
+#endif
 
 ${shadeStructure.fragmentPreamble ?: ""}
 flat in int v_instance;
@@ -601,7 +613,10 @@ uniform vec4 bounds;
 
 in vec3 v_objectPosition;
 in vec2 v_ftcoord;
+
+#ifndef OUTPUT_color
 ${if (!shadeStructure.suppressDefaultOutput) "out vec4 o_color;" else ""}
+#endif
 
 ${shadeStructure.fragmentPreamble ?: ""}
 
@@ -690,7 +705,10 @@ ${drawerUniforms()}
 ${shadeStructure.varyingIn ?: ""}
 $transformVaryingIn
 flat in int v_instance;
+
+#ifndef OUTPUT_color
 ${if (!shadeStructure.suppressDefaultOutput) "out vec4 o_color;" else ""}
+#endif
 
 ${shadeStructure.fragmentPreamble ?: ""}
 
@@ -755,7 +773,9 @@ ${shadeStructure.vertexTransform?.prependIndent("        ") ?: ""}
         |${shadeStructure.varyingIn ?: ""}
         |$transformVaryingIn
         |flat in int v_instance;
+        |#ifndef OUTPUT_color
         |${if (!shadeStructure.suppressDefaultOutput) "out vec4 o_color;" else ""}
+        |#endif
         |   ${fragmentMainConstants()}
         |void main(void) {
         |   vec4 x_fill = u_fill;
@@ -873,7 +893,9 @@ ${shadeStructure.vertexTransform?.prependIndent("        ") ?: ""}
         |${drawerUniforms()}
         |// -- shadeStructure.outputs
         |${shadeStructure.outputs ?: ""}
+        |#ifndef OUTPUT_color
         |${if (!shadeStructure.suppressDefaultOutput) "out vec4 o_color;" else ""}
+        |#endif
         |// -- shadeStructure.uniforms
         |${shadeStructure.uniforms ?: ""}
         |// -- shadeStructure.fragmentPreamble

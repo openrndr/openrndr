@@ -34,7 +34,9 @@ fun structureFromShadeStyle(
 
                         structDefinitions = shadeStyle.structDefinitions()
                         outputs =
-                            shadeStyle.outputs.map { "// -- output-from  ${it.value} \nlayout(location = ${it.value.attachment}) out ${it.value.glslType} o_${it.key};\n" }
+                            shadeStyle.outputs.map { "// -- output-from ${it.value} \n" +
+                                    "#define OUTPUT_${it.key} \n" +
+                                    "layout(location = ${it.value.attachment}) out ${it.value.glslType} o_${it.key};\n" }
                                 .joinToString("")
                         uniforms = shadeStyle.uniforms()
                         buffers = listOf(shadeStyle.buffers(), shadeStyle.images()).joinToString("\n")
