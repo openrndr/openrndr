@@ -16,14 +16,25 @@ import org.openrndr.draw.depthBuffer as _depthBuffer
  * @param index the binding index for [RenderTarget]
  * @param name an optional name for the binding, defaults to `null`
  */
-sealed class ColorAttachment(val index: Int, val name: String?, val format: ColorFormat, val type: ColorType, val ownedByRenderTarget: Boolean)
+sealed class ColorAttachment(
+    val index: Int,
+    val name: String?,
+    val format: ColorFormat,
+    val type: ColorType,
+    val ownedByRenderTarget: Boolean
+)
+
 class ColorBufferAttachment(
     index: Int,
     name: String?,
     val colorBuffer: ColorBuffer,
     val level: Int,
     ownedByRenderTarget: Boolean
-) : ColorAttachment(index, name, colorBuffer.format, colorBuffer.type, ownedByRenderTarget)
+) : ColorAttachment(index, name, colorBuffer.format, colorBuffer.type, ownedByRenderTarget) {
+    override fun toString(): String {
+        return "ColorBufferAttachment(index=$index, name=$name, colorBuffer=$colorBuffer, level=$level)"
+    }
+}
 
 class ArrayTextureAttachment(
     index: Int,
@@ -31,14 +42,22 @@ class ArrayTextureAttachment(
     val arrayTexture: ArrayTexture,
     val layer: Int,
     val level: Int,
-) : ColorAttachment(index, name, arrayTexture.format, arrayTexture.type, false)
+) : ColorAttachment(index, name, arrayTexture.format, arrayTexture.type, false) {
+    override fun toString(): String {
+        return "ArrayTextureAttachment(index=$index, name=$name, arrayTexture=$arrayTexture, layer=$layer, level=$level)"
+    }
+}
 
 class LayeredArrayTextureAttachment(
     index: Int,
     name: String?,
     val arrayTexture: ArrayTexture,
     val level: Int,
-) : ColorAttachment(index, name, arrayTexture.format, arrayTexture.type, false)
+) : ColorAttachment(index, name, arrayTexture.format, arrayTexture.type, false) {
+    override fun toString(): String {
+        return "LayeredArrayTextureAttachment(index=$index, name=$name, arrayTexture=$arrayTexture, level=$level)"
+    }
+}
 
 class VolumeTextureAttachment(
     index: Int,
@@ -46,14 +65,22 @@ class VolumeTextureAttachment(
     val volumeTexture: VolumeTexture,
     val layer: Int,
     val level: Int,
-) : ColorAttachment(index, name, volumeTexture.format, volumeTexture.type, false)
+) : ColorAttachment(index, name, volumeTexture.format, volumeTexture.type, false) {
+    override fun toString(): String {
+        return "VolumeTextureAttachment(index=$index, name=$name, volumeTexture=$volumeTexture, layer=$layer, level=$level)"
+    }
+}
 
 class LayeredVolumeTextureAttachment(
     index: Int,
     name: String?,
     val volumeTexture: VolumeTexture,
     val level: Int,
-) : ColorAttachment(index, name, volumeTexture.format, volumeTexture.type, false)
+) : ColorAttachment(index, name, volumeTexture.format, volumeTexture.type, false) {
+    override fun toString(): String {
+        return "LayeredVolumeTextureAttachment(index=$index, name=$name, volumeTexture=$volumeTexture, level=$level)"
+    }
+}
 
 class ArrayCubemapAttachment(
     index: Int,
@@ -62,14 +89,22 @@ class ArrayCubemapAttachment(
     val side: CubemapSide,
     val layer: Int,
     val level: Int,
-) : ColorAttachment(index, name, arrayCubemap.format, arrayCubemap.type, false)
+) : ColorAttachment(index, name, arrayCubemap.format, arrayCubemap.type, false) {
+    override fun toString(): String {
+        return "ArrayCubemapAttachment(index=$index, name=$name, arrayCubemap=$arrayCubemap, side=$side, layer=$layer, level=$level)"
+    }
+}
 
 class LayeredArrayCubemapAttachment(
     index: Int,
     name: String?,
     val arrayCubemap: ArrayCubemap,
     val level: Int,
-) : ColorAttachment(index, name, arrayCubemap.format, arrayCubemap.type, false)
+) : ColorAttachment(index, name, arrayCubemap.format, arrayCubemap.type, false) {
+    override fun toString(): String {
+        return "LayeredArrayCubemapAttachment(index=$index, name=$name, arrayCubemap=$arrayCubemap, level=$level)"
+    }
+}
 
 class CubemapAttachment(
     index: Int,
@@ -77,14 +112,22 @@ class CubemapAttachment(
     val cubemap: Cubemap,
     val side: CubemapSide,
     val level: Int,
-) : ColorAttachment(index, name, cubemap.format, cubemap.type, false)
+) : ColorAttachment(index, name, cubemap.format, cubemap.type, false) {
+    override fun toString(): String {
+        return "CubemapAttachment(index=$index, name=$name, cubemap=$cubemap, side=$side, level=$level)"
+    }
+}
 
 class LayeredCubemapAttachment(
     index: Int,
     name: String?,
     val cubemap: Cubemap,
     val level: Int
-) : ColorAttachment(index, name, cubemap.format, cubemap.type, false)
+) : ColorAttachment(index, name, cubemap.format, cubemap.type, false) {
+    override fun toString(): String {
+        return "LayeredCubemapAttachment(index=$index, name=$name, cubemap=$cubemap, level=$level)"
+    }
+}
 
 interface RenderTarget {
     /** [Session] in which this render target is created. */
@@ -239,8 +282,6 @@ interface RenderTarget {
                 else -> {
 
                 }
-
-
             }
         }
         depthBuffer?.resolveTo((to.depthBuffer!!))
