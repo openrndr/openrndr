@@ -589,6 +589,7 @@ class DriverWebGL(val context: WebGL2RenderingContext) : Driver {
                     context.blendEquation(WebGL2RenderingContext.MAX)
                     context.blendFunc(GL.ONE, GL.ONE)
                 }
+                else -> error("blendmode ${drawStyle.blendMode} is not supported")
             }
             cached.blendMode = drawStyle.blendMode
         }
