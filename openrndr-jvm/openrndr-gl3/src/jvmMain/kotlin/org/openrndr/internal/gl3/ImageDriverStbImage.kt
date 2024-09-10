@@ -128,7 +128,9 @@ class ImageDriverStbImage : ImageDriver {
         if (fileOrUrl.startsWith("data:")) {
             val decoder = Base64.getDecoder()
             val commaIndex = fileOrUrl.indexOf(",")
-            val base64Data = fileOrUrl.drop(commaIndex + 1).replace("\n", "")
+            val base64Data = fileOrUrl.drop(commaIndex + 1)
+                .replace("\r\n", "")
+                .replace("\n", "")
             val decoded = decoder.decode(base64Data)
             val buffer = ByteBuffer.allocateDirect(decoded.size)
             buffer.put(decoded)
@@ -172,7 +174,12 @@ class ImageDriverStbImage : ImageDriver {
         }
     }
 
-    override fun loadImage(buffer: MPPBuffer, name: String?, formatHint: ImageFileFormat?, allowSRGB: Boolean): ImageData {
+    override fun loadImage(
+        buffer: MPPBuffer,
+        name: String?,
+        formatHint: ImageFileFormat?,
+        allowSRGB: Boolean
+    ): ImageData {
         var assumedFormat = ImageFileFormat.PNG
 
         val inputIsDirect = buffer.byteBuffer.isDirect
@@ -475,7 +482,7 @@ class ImageDriverStbImage : ImageDriver {
 
     override fun saveImage(imageData: ImageData, filename: String, formatHint: ImageFileFormat?) {
 
-        fun flipImage(inputBuffer: ByteBuffer) : ByteBuffer {
+        fun flipImage(inputBuffer: ByteBuffer): ByteBuffer {
             return if (imageData.flipV) inputBuffer else {
                 val flippedPixels =
                     MemoryUtil.memAlloc(imageData.width * imageData.height * imageData.format.componentCount * imageData.type.componentSize)
@@ -519,6 +526,7 @@ class ImageDriverStbImage : ImageDriver {
                             "write to png failed"
                         }
                     }
+
                     else -> error("unsupported input for PNG (${imageData.type}/${imageData.type}")
                 }
                 if (!imageData.flipV) {
