@@ -3,6 +3,8 @@ package org.openrndr.shape
 import kotlinx.serialization.Serializable
 import org.openrndr.math.IntVector2
 import kotlin.jvm.JvmRecord
+import kotlin.math.max
+import kotlin.math.min
 
 /**
  * Creates a new [IntRectangle].
@@ -15,6 +17,14 @@ import kotlin.jvm.JvmRecord
 @Serializable
 @JvmRecord
 data class IntRectangle(val corner: IntVector2, val width: Int, val height: Int) {
+
+    val xRange
+        get() = min(corner.x, corner.x + width)..<max(corner.x, corner.x + width)
+
+    val yRange
+        get() = min(corner.y, corner.y + height)..<max(corner.y, corner.y + height)
+
+
     val x get() = corner.x
 
     val y get() = corner.y

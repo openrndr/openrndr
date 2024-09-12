@@ -25,6 +25,12 @@ import kotlin.math.min
 data class Rectangle(val corner: Vector2, val width: Double, val height: Double = width) : Movable, Scalable2D,
     ShapeProvider, ShapeContourProvider {
 
+    val xRange
+        get() = min(corner.x, corner.x + width)..<max(corner.x, corner.x + width)
+
+    val yRange
+        get() = min(corner.y, corner.y + height)..<max(corner.y, corner.y + height)
+
 
     /** The center of the [Rectangle]. */
     val center: Vector2
@@ -216,6 +222,21 @@ data class Rectangle(val corner: Vector2, val width: Double, val height: Double 
     operator fun minus(right: Rectangle) =
         Rectangle(corner - right.corner, width - right.width, height - right.height)
 
+
+    /**
+     * Return a sub-rectangle spanning over the provided u and v ranges.
+     *
+     * For example to obtain one quadrant of the rectangle one uses `.sub(0.0 .. 0.5, 0.0 .. 0.5)`
+     */
+    fun sub(u: ClosedFloatingPointRange<Double>, v: ClosedFloatingPointRange<Double>): Rectangle {
+        return sub(u.start, v.start, u.endInclusive, v.endInclusive)
+    }
+
+    /**
+     * Return a sub-rectangle spanning from (u0, v0) to (u1, v1)
+     *
+     * For example to obtain one quadrant of the rectangle one uses `.sub(0.0, 0.0, 0.5, 0.5)`
+     */
     fun sub(u0: Double, v0: Double, u1: Double, v1: Double): Rectangle {
         val p0 = position(u0, v0)
         val p1 = position(u1, v1)
@@ -243,10 +264,6 @@ data class Rectangle(val corner: Vector2, val width: Double, val height: Double 
             return Rectangle(nx, ny, width.absoluteValue, height.absoluteValue)
         }
 }
-
-/** calculates [Rectangle]-bounds for a list of [Vector2] instances */
-@Deprecated("use List<Vector2>.bounds instead", ReplaceWith("points.bounds"))
-fun vector2Bounds(points: List<Vector2>) = points.bounds
 
 /**
  * Calculates [Rectangle]-bounds from a [List] of [Vector2] instances.

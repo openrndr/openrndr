@@ -10,6 +10,14 @@ sealed interface Movable {
     fun movedTo(position: Vector2): Movable
 }
 
+sealed interface Movable3D {
+    /** Creates a new shape with the same size but the current position [offset] by the given amount. */
+    fun movedBy(offset: Vector3): Movable3D
+
+    /** Creates a new shape with the same size but the current position is set to [position]. */
+    fun movedTo(position: Vector3): Movable3D
+}
+
 sealed interface Scalable1D {
     /** Current scale of this shape. Generally equivalent to its dimensions. */
     val scale: Vector2
