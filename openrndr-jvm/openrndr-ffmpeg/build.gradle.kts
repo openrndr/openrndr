@@ -12,7 +12,11 @@ val arch = when(currentArchitectureName) {
     else -> error("unknown architecture $currentArchitectureName")
 }
 
-val osArch = "$currentOperatingSystemName-$arch"
+val osArch = when(val c = "$currentOperatingSystemName-$arch") {
+    "windows-x64" -> "windows"
+    "macos-x64" -> "macos"
+    else -> c
+}
 
 plugins {
     org.openrndr.convention.`kotlin-multiplatform`
