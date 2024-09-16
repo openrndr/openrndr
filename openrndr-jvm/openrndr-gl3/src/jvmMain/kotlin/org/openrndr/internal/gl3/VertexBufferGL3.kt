@@ -8,6 +8,7 @@ import org.lwjgl.opengl.GL44C.GL_DYNAMIC_STORAGE_BIT
 import org.lwjgl.opengl.GL44C.glBufferStorage
 import org.lwjgl.opengl.GL45C.glGetNamedBufferSubData
 import org.lwjgl.opengl.GL45C.glNamedBufferSubData
+import org.lwjgl.opengles.GLES30
 import org.openrndr.draw.*
 import org.openrndr.internal.Driver
 import org.openrndr.utils.buffer.MPPBuffer
@@ -16,6 +17,7 @@ import java.nio.Buffer
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.util.concurrent.atomic.AtomicInteger
+
 private val logger = KotlinLogging.logger {}
 
 private val bufferId = AtomicInteger(0)
@@ -86,7 +88,8 @@ class VertexBufferGL3(
             glBindBuffer(GL_ARRAY_BUFFER, buffer)
             debugGLErrors()
             val sizeInBytes = vertexFormat.size * vertexCount
-            val useBufferStorage = (Driver.instance as DriverGL3).version >= DriverVersionGL.GL_VERSION_4_4 && (Driver.instance as DriverGL3).version.type == DriverTypeGL.GL
+            val useBufferStorage =
+                (Driver.instance as DriverGL3).version >= DriverVersionGL.GL_VERSION_4_4 && (Driver.instance as DriverGL3).version.type == DriverTypeGL.GL
 
             if (useBufferStorage) {
                 glBufferStorage(GL_ARRAY_BUFFER, sizeInBytes.toLong(), GL_DYNAMIC_STORAGE_BIT)
@@ -109,7 +112,9 @@ class VertexBufferGL3(
             return realShadow ?: error("no shadow")
         }
 
-    private val useNamedBuffer = (Driver.instance as DriverGL3).version >= DriverVersionGL.GL_VERSION_4_5 && (Driver.instance as DriverGL3).version.type == DriverTypeGL.GL
+    private val useNamedBuffer =
+        (Driver.instance as DriverGL3).version >= DriverVersionGL.GL_VERSION_4_5 && (Driver.instance as DriverGL3).version.type == DriverTypeGL.GL
+
     override fun write(data: ByteBuffer, offsetInBytes: Int) {
         if (isDestroyed) {
             error("buffer is destroyed")
@@ -175,8 +180,18 @@ class VertexBufferGL3(
                     data.put(temp)
                 }
             }
+
             DriverTypeGL.GLES -> {
-                TODO()
+                bind()
+                val bufferLengthInBytes = (vertexFormat.size * vertexCount) - offsetInBytes
+                val buffer = GLES30.glMapBufferRange(
+                    GL_ARRAY_BUFFER,
+                    offsetInBytes.toLong(),
+                    bufferLengthInBytes.toLong(),
+                    GL_MAP_READ_BIT
+                )
+                data.put(buffer)
+                GLES30.glUnmapBuffer(GL_ARRAY_BUFFER)
             }
         }
     }
