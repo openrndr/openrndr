@@ -739,7 +739,6 @@ class ColorBufferGL3(
                 logger.trace {
                     "Writing to color buffer in: $format ${format.glFormat()}, $type ${type.glType()}"
                 }
-                (sourceBuffer as Buffer).rewind()
                 sourceBuffer.order(ByteOrder.nativeOrder())
                 val currentPack = intArrayOf(0)
                 glGetIntegerv(GL_UNPACK_ALIGNMENT, currentPack)
@@ -779,7 +778,6 @@ class ColorBufferGL3(
                 }
                 glPixelStorei(GL_UNPACK_ALIGNMENT, currentPack[0])
                 debugGLErrors()
-                (sourceBuffer as Buffer).rewind()
             }
         } else {
             throw IllegalArgumentException("multisample targets cannot be written to")
