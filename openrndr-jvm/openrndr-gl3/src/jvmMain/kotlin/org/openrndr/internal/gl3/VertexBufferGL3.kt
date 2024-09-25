@@ -17,6 +17,7 @@ import java.nio.Buffer
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.util.concurrent.atomic.AtomicInteger
+import kotlin.math.max
 
 private val logger = KotlinLogging.logger {}
 
@@ -92,9 +93,9 @@ class VertexBufferGL3(
                 (Driver.instance as DriverGL3).version >= DriverVersionGL.GL_VERSION_4_4 && (Driver.instance as DriverGL3).version.type == DriverTypeGL.GL
 
             if (useBufferStorage) {
-                glBufferStorage(GL_ARRAY_BUFFER, sizeInBytes.toLong(), GL_DYNAMIC_STORAGE_BIT)
+                glBufferStorage(GL_ARRAY_BUFFER, max(1L, sizeInBytes.toLong()), GL_DYNAMIC_STORAGE_BIT)
             } else {
-                glBufferData(GL_ARRAY_BUFFER, sizeInBytes.toLong(), GL_DYNAMIC_DRAW)
+                glBufferData(GL_ARRAY_BUFFER, max(1L, sizeInBytes.toLong()), GL_DYNAMIC_DRAW)
             }
             debugGLErrors()
             return VertexBufferGL3(buffer, 0L, vertexFormat, vertexCount, session)
