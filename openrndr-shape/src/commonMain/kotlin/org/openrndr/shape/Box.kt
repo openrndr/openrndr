@@ -70,18 +70,25 @@ data class Box(val corner: Vector3, val width: Double, val height: Double, val d
         )
     }
 
+    /**
+     * Convert to box-coordinates [u], [v], [w] to
+     */
     fun position(u: Double, v: Double, w: Double): Vector3 {
         return corner + Vector3(u * width, v * height, w * depth)
     }
 
+    /**
+     * Extract a sub-box
+     */
     fun sub(
         u: ClosedFloatingPointRange<Double>,
         v: ClosedFloatingPointRange<Double>,
         w: ClosedFloatingPointRange<Double>
-    ): Box {
-        return sub(u.start, v.start, w.start, u.endInclusive, v.endInclusive, w.endInclusive)
-    }
+    ): Box = sub(u.start, v.start, w.start, u.endInclusive, v.endInclusive, w.endInclusive)
 
+    /**
+     * Extract a sub-box
+     */
     fun sub(u0: Double, v0: Double, w0: Double, u1: Double, v1: Double, w1: Double): Box {
         val p0 = position(u0, v0, w0)
         val p1 = position(u1, v1, w1)
@@ -116,8 +123,34 @@ data class Box(val corner: Vector3, val width: Double, val height: Double, val d
         return !(above || below || leftOf || rightOf || inFrontOf || behind)
     }
 
+    /**
+     * Convert to [IntBox]
+     */
     fun toInt(): IntBox {
         return IntBox(corner.toInt(), width.toInt(), height.toInt(), depth.toInt())
+    }
+
+    companion object {
+        /** Creates a new [Box] by specifying the [center] position with dimensions [width], [height] and [depth]. */
+        fun fromCenter(center: Vector3, width: Double, height: Double = width, depth: Double = width) =
+            Box.fromAnchor(Vector3(0.5, 0.5, 0.5), center, width, height)
+
+        /** Create a new [Box] by specifying the [anchorUVW], [anchor] positions with dimensions [width] and [height]. */
+        fun fromAnchor(
+            anchorUVW: Vector3,
+            anchor: Vector3,
+            width: Double,
+            height: Double = width,
+            depth: Double = width
+        ) =
+            Box(
+                anchor.x - width * anchorUVW.x,
+                anchor.y - height * anchorUVW.y,
+                anchor.z - depth * anchorUVW.z,
+                width, height, depth
+            )
+
+        val EMPTY = Box(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
     }
 }
 
@@ -130,7 +163,7 @@ fun Box(x: Double, y: Double, z: Double, width: Double, height: Double = width, 
  * The provided list should consist of more than one item for optimal results.
  */
 val List<Vector3>.bounds: Box
-    @JvmName("getVector2Bounds") get() {
+    @JvmName("getVector3Bounds") get() {
         var minX = Double.POSITIVE_INFINITY
         var minY = Double.POSITIVE_INFINITY
         var minZ = Double.POSITIVE_INFINITY
