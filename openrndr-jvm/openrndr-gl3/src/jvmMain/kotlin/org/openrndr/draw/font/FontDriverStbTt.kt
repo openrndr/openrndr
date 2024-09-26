@@ -9,6 +9,7 @@ import org.openrndr.shape.*
 import org.openrndr.utils.buffer.MPPBuffer
 import org.openrndr.utils.url.resolveFileOrUrl
 import java.nio.ByteBuffer
+import kotlin.math.abs
 
 class FaceStbTt(data: ByteBuffer, fontInfo: STBTTFontinfo) : Face {
 
@@ -25,7 +26,11 @@ class FaceStbTt(data: ByteBuffer, fontInfo: STBTTFontinfo) : Face {
     private val state = State(data, fontInfo)
 
     internal fun scaleForSize(size: Double): Double {
-        return (STBTruetype.stbtt_ScaleForPixelHeight(state.fontInfo, size.toFloat())).toDouble()
+        return if (size >= 0.0) {
+            (STBTruetype.stbtt_ScaleForPixelHeight(state.fontInfo, size.toFloat())).toDouble()
+        } else {
+            (STBTruetype.stbtt_ScaleForMappingEmToPixels(state.fontInfo, abs(size).toFloat())).toDouble()
+        }
     }
 
     override fun ascent(size: Double): Double {
