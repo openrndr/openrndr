@@ -9,7 +9,6 @@ import org.openrndr.shape.*
 import org.openrndr.utils.buffer.MPPBuffer
 import org.openrndr.utils.url.resolveFileOrUrl
 import java.nio.ByteBuffer
-import kotlin.math.abs
 
 class FaceStbTt(data: ByteBuffer, fontInfo: STBTTFontinfo) : Face {
 
@@ -25,42 +24,35 @@ class FaceStbTt(data: ByteBuffer, fontInfo: STBTTFontinfo) : Face {
         }
     private val state = State(data, fontInfo)
 
-    internal fun scaleForSize(size: Double): Double {
-        return if (size >= 0.0) {
-            (STBTruetype.stbtt_ScaleForPixelHeight(state.fontInfo, size.toFloat())).toDouble()
-        } else {
-            (STBTruetype.stbtt_ScaleForMappingEmToPixels(state.fontInfo, abs(size).toFloat())).toDouble()
-        }
-    }
 
-    override fun ascent(size: Double): Double {
+    override fun ascentMetrics(): Int {
         stackPush().use {
             val ascent = it.mallocInt(1)
             STBTruetype.stbtt_GetFontVMetrics(state.fontInfo, ascent, null, null)
-            return ascent.get(0) * scaleForSize(size)
+            return ascent.get(0)
         }
     }
 
-    override fun descent(size: Double): Double {
+    override fun descentMetrics(): Int {
         stackPush().use {
             val descent = it.mallocInt(1)
             STBTruetype.stbtt_GetFontVMetrics(state.fontInfo, null, descent, null)
-            return descent.get(0) * scaleForSize(size)
+            return descent.get(0)
         }
     }
 
-    override fun lineGap(size: Double): Double {
+    override fun lineGapMetrics(): Int {
         stackPush().use {
             val lineGap = it.mallocInt(1)
             STBTruetype.stbtt_GetFontVMetrics(state.fontInfo, null, null, lineGap)
-            return lineGap.get(0) * scaleForSize(size)
+            return lineGap.get(0)
         }
     }
 
-    override fun kernAdvance(size: Double, left: Char, right: Char): Double {
+    override fun kernAdvance(scale: Double, left: Char, right: Char): Double {
         val leftIdx = STBTruetype.stbtt_FindGlyphIndex(state.fontInfo, left.code)
         val rightIdx = STBTruetype.stbtt_FindGlyphIndex(state.fontInfo, right.code)
-        return STBTruetype.stbtt_GetGlyphKernAdvance(state.fontInfo, leftIdx, rightIdx) * scaleForSize(size)
+        return STBTruetype.stbtt_GetGlyphKernAdvance(state.fontInfo, leftIdx, rightIdx) * scale
     }
 
     override fun glyphForCharacter(character: Char): Glyph {
@@ -68,8 +60,7 @@ class FaceStbTt(data: ByteBuffer, fontInfo: STBTTFontinfo) : Face {
         return GlyphStbTt(this, character, glyphIndex)
     }
 
-    override fun bounds(size: Double): Rectangle {
-        val scale = scaleForSize(size)
+    override fun bounds(scale: Double): Rectangle {
         stackPush().use { stack ->
             val px0 = stack.mallocInt(1)
             val px1 = stack.mallocInt(1)
@@ -88,12 +79,18 @@ class FaceStbTt(data: ByteBuffer, fontInfo: STBTTFontinfo) : Face {
     override fun close() {
         state.destroy()
     }
+
+    override fun unitsPerEm(): Int {
+        stackPush().use {
+            val scale = STBTruetype.stbtt_ScaleForMappingEmToPixels(state.fontInfo, 1000.0f)
+            return (1000.0f / scale).toInt()
+        }
+    }
 }
 
 class GlyphStbTt(private val face: FaceStbTt, private val character: Char, private val glyphIndex: Int) : Glyph {
-    override fun shape(size: Double): Shape {
+    override fun shape(scale: Double): Shape {
         val shapeBuffer = STBTruetype.stbtt_GetCodepointShape(face.fontInfo, character.code) ?: return Shape.EMPTY
-        val scale = face.scaleForSize(size)
 
         // returned values are for up=+y, convert to up=-y
         val shapeContours = contours {
@@ -138,28 +135,27 @@ class GlyphStbTt(private val face: FaceStbTt, private val character: Char, priva
         }
     }
 
-    override fun advanceWidth(size: Double): Double {
+    override fun advanceWidth(scale: Double): Double {
         stackPush().use { stack ->
             val pAdvanceWidth = stack.mallocInt(1)
             STBTruetype.stbtt_GetGlyphHMetrics(face.fontInfo, glyphIndex, pAdvanceWidth, null)
-            return pAdvanceWidth.get(0) * face.scaleForSize(size)
+            return pAdvanceWidth.get(0) * scale
         }
     }
 
-    override fun leftSideBearing(size: Double): Double {
+    override fun leftSideBearing(scale: Double): Double {
         stackPush().use { stack ->
             val pLeftSideBearing = stack.mallocInt(1)
             STBTruetype.stbtt_GetGlyphHMetrics(face.fontInfo, glyphIndex, null, pLeftSideBearing)
-            return pLeftSideBearing.get(0) * face.scaleForSize(size)
+            return pLeftSideBearing.get(0) * scale
         }
     }
 
-    override fun topSideBearing(size: Double): Double {
+    override fun topSideBearing(scale: Double): Double {
         return 0.0
     }
 
-    override fun bounds(size: Double): Rectangle {
-        val scale = face.scaleForSize(size)
+    override fun bounds(scale: Double): Rectangle {
         stackPush().use { stack ->
             val px0 = stack.mallocInt(1)
             val px1 = stack.mallocInt(1)
@@ -176,8 +172,8 @@ class GlyphStbTt(private val face: FaceStbTt, private val character: Char, priva
         }
     }
 
-    override fun bitmapBounds(size: Double, subpixel: Boolean): IntRectangle {
-        val scale = face.scaleForSize(size).toFloat()
+    override fun bitmapBounds(scale: Double, subpixel: Boolean): IntRectangle {
+        @Suppress("NAME_SHADOWING") val scale = scale.toFloat()
         stackPush().use { stack ->
             val px0 = stack.mallocInt(1)
             val px1 = stack.mallocInt(1)
@@ -212,19 +208,17 @@ class GlyphStbTt(private val face: FaceStbTt, private val character: Char, priva
         }
     }
 
-    override fun rasterize(size: Double, bitmap: MPPBuffer, stride: Int, subpixel: Boolean) {
+    override fun rasterize(scale: Double, bitmap: MPPBuffer, stride: Int, subpixel: Boolean) {
         val bitmapBuffer = bitmap.byteBuffer
-
-        val scale = face.scaleForSize(size).toFloat()
-        val bounds = bitmapBounds(size, subpixel)
+        val bounds = bitmapBounds(scale, subpixel)
         STBTruetype.stbtt_MakeGlyphBitmapSubpixel(
             face.fontInfo,
             bitmapBuffer,
             bounds.width,
             bounds.height,
             stride,
-            scale,
-            scale,
+            scale.toFloat(),
+            scale.toFloat(),
             0.0f,
             0.0f,
             glyphIndex

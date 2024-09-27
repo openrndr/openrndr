@@ -13,28 +13,28 @@ import org.openrndr.utils.buffer.MPPBuffer
 interface Glyph {
     /**
      * Generate a [Shape] for this glyph
-     * @param size the size at which to generate the shape
+     * @param scale the scale at which to generate the shape
      * @since 0.4.3
      */
-    fun shape(size: Double): Shape
+    fun shape(scale: Double): Shape
 
-    fun advanceWidth(size: Double): Double
+    fun advanceWidth(scale: Double): Double
 
-    fun leftSideBearing(size: Double): Double
+    fun leftSideBearing(scale: Double): Double
 
-    fun topSideBearing(size: Double): Double
+    fun topSideBearing(scale: Double): Double
 
     /**
      * Compute the glyph bounds in up=+y space
      */
-    fun bounds(size: Double): Rectangle
+    fun bounds(scale: Double): Rectangle
 
     /**
      * Compute the bitmap bounds of the glyph
-     * @param size the size for which the bounds should be found
+     * @param scale the size for which the bounds should be found
      * @since 0.4.3
      */
-    fun bitmapBounds(size: Double, subpixel:Boolean = true): IntRectangle
+    fun bitmapBounds(scale: Double, subpixel:Boolean = true): IntRectangle
 
     /**
      * Rasterize the glyph at the given size
@@ -43,7 +43,7 @@ interface Glyph {
      * @param subpixel should subpixel rendering be used?
      * @since 0.4.3
      */
-    fun rasterize(size: Double,
+    fun rasterize(scale: Double,
                   bitmap: MPPBuffer,
                   stride: Int,
                   subpixel: Boolean)
@@ -55,21 +55,30 @@ interface Glyph {
  */
 interface Face: AutoCloseable {
 
-    fun ascent(size: Double): Double
 
-    fun descent(size: Double): Double
+    fun ascentMetrics() : Int
 
-    fun lineGap(size: Double): Double
+    fun descentMetrics(): Int
 
-    fun lineSpace(size: Double): Double = ascent(size) - descent(size) + lineGap(size)
+    fun lineGapMetrics(): Int
 
-    fun kernAdvance(size: Double, left: Char, right: Char): Double
+    fun unitsPerEm() : Int
+
+    fun ascent(scale: Double): Double = ascentMetrics() * scale
+
+    fun descent(scale: Double): Double = descentMetrics() * scale
+
+    fun lineGap(scale: Double): Double = lineGapMetrics() * scale
+
+    fun lineSpace(scale: Double): Double = ascent(scale) - descent(scale) + lineGap(scale)
+
+    fun kernAdvance(scale: Double, left: Char, right: Char): Double
 
     /**
      * Return the glyph for a given character
      */
     fun glyphForCharacter(character: Char): Glyph
-    fun bounds(size: Double): Rectangle
+    fun bounds(scale: Double): Rectangle
 }
 
 /**
@@ -79,4 +88,16 @@ interface Face: AutoCloseable {
  */
 fun loadFace(fileOrUrl: String): Face {
     return FontDriver.instance.loadFace(fileOrUrl)
+}
+
+/**
+ * Scale font based on ascender + descender height
+ */
+fun fontHeightScaler(font: Face) : Double = 1.0 / (font.ascentMetrics() - font.descentMetrics())
+
+/**
+ * Scale font based on units per em
+ */
+fun fontEmScaler(font: Face) = 1.0 / font.unitsPerEm().also {
+    println("units per em: $it")
 }
