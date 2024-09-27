@@ -59,7 +59,7 @@ class TestShadeStylesSuppressOutput : AbstractApplicationTestFixture() {
 
     @Test
     fun `font image maps`() {
-        val font = FontImageMap.fromUrl(resourceUrl("/fonts/Roboto-Medium.ttf"), 18.0)
+        val font = program.loadFont(resourceUrl("/fonts/Roboto-Medium.ttf"), 18.0)
         program.drawer.fontMap = font
         program.drawer.text("this is a test", 0.0, 0.0)
     }
