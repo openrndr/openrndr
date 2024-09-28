@@ -1,5 +1,6 @@
 package org.openrndr.shape
 
+import kotlinx.serialization.Serializable
 import org.openrndr.math.LinearType
 import org.openrndr.math.Vector3
 import kotlin.jvm.JvmName
@@ -12,6 +13,7 @@ import kotlin.math.min
  * A 3D Box defined by an anchor point ([corner]), [width], [height] and [depth].
  */
 @JvmRecord
+@Serializable
 data class Box(val corner: Vector3, val width: Double, val height: Double, val depth: Double) : LinearType<Box> {
 
     val xRange
