@@ -156,6 +156,7 @@ internal class Decoder(
     var audioOutQueueFull: () -> Boolean = { false }
     var seekCompleted: () -> Unit = { }
     var reachedEndOfFile: () -> Unit = { }
+    private var atEndOfFile = false
     var lastPacketReceived = 0L
 
     fun start(videoOutput: VideoDecoderOutput?, audioOutput: AudioDecoderOutput?) {
@@ -195,6 +196,7 @@ internal class Decoder(
     var seekTimedOut = false
 
     fun seek(positionInSeconds: Double) {
+        logger.debug { "requesting decoder to seek"}
         seekPosition = positionInSeconds
         seekRequested = true
     }
@@ -222,8 +224,6 @@ internal class Decoder(
     }
 
     private fun decodeIfNeeded() {
-        val hasSeeked = seekRequested
-
         if (seekRequested) {
             videoDecoder?.flushQueue()
             audioDecoder?.flushQueue()
@@ -234,6 +234,7 @@ internal class Decoder(
             val seekMinTS = ((seekPosition + configuration.minimumSeekOffset) * AV_TIME_BASE).toLong()
             val seekMaxTS = ((seekPosition + configuration.maximumSeekOffset) * AV_TIME_BASE).toLong()
             val seekStarted = System.currentTimeMillis()
+
             val seekResult = avformat_seek_file(
                 formatContext,
                 -1,
@@ -277,8 +278,16 @@ internal class Decoder(
             val packetResult = av_read_frame(formatContext, packet)
 
             if (packetResult == AVERROR_EOF) {
-                reachedEndOfFile()
-                Thread.sleep(50)
+
+                if (!atEndOfFile) {
+                    logger.debug { "decoder reached end of file"}
+                    reachedEndOfFile()
+                    atEndOfFile = true
+                } else {
+                    //logger.debug { "already at end of file" }
+                }
+                return
+
             } else if (packetResult < 0) {
                 return
             }
@@ -286,12 +295,13 @@ internal class Decoder(
             if (packet != null) {
                 lastPacketReceived = System.currentTimeMillis()
                 packetsReceived++
-                if (hasSeeked && packetsReceived == 1) {
+                if (seekRequested && packetsReceived == 1) {
                     logger.debug { "seek completed" }
+                    atEndOfFile = false
                     seekCompleted()
                 }
 
-                if (hasSeeked && packetsReceived == 2) {
+                if (seekRequested && packetsReceived == 2) {
                     val packetTime = packet.dts().toDouble() * av_q2d(videoStream?.time_base())
                     logger.debug { "seek error: ${packetTime - seekPosition}" }
                 }

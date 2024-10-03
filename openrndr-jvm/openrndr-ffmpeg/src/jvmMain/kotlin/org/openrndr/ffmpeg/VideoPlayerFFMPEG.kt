@@ -19,7 +19,9 @@ import org.bytedeco.javacpp.PointerPointer
 import org.openrndr.Program
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.ColorBuffer
+import org.openrndr.draw.ColorType
 import org.openrndr.draw.Drawer
+import org.openrndr.draw.colorBuffer
 import org.openrndr.events.Event
 import org.openrndr.openal.AudioData
 import org.openrndr.openal.AudioQueueSource
@@ -30,6 +32,7 @@ import org.openrndr.shape.Rectangle
 import java.io.File
 import java.nio.ByteBuffer
 import kotlin.concurrent.thread
+import kotlin.math.log
 
 private val logger = KotlinLogging.logger {}
 
@@ -176,6 +179,7 @@ class VideoPlayerConfiguration {
     var usePacketReaderThread = false
     var realtimeBufferSize = -1L
     var allowFrameSkipping = true
+    var allowSRGB = true
     var minimumSeekOffset = -0.1
     var maximumSeekOffset = 0.0
     var legacyStreamOpen = false
@@ -513,7 +517,8 @@ class VideoPlayerFFMPEG private constructor(
         this.info = info
 
         this.info?.video?.let {
-            colorBuffer = org.openrndr.draw.colorBuffer(it.size.w, it.size.h).apply {
+            val type = if (configuration.allowSRGB) ColorType.UINT8_SRGB else ColorType.UINT8
+            colorBuffer = colorBuffer(it.size.w, it.size.h, type = type).apply {
                 flipV = true
                 fill(ColorRGBa.TRANSPARENT, 0)
             }
@@ -563,6 +568,7 @@ class VideoPlayerFFMPEG private constructor(
         startTimeMillis = System.currentTimeMillis()
 
         decoder.reachedEndOfFile = {
+            logger.debug { "end of file reached" }
             endOfFileReached = true
         }
 
@@ -576,6 +582,12 @@ class VideoPlayerFFMPEG private constructor(
                 }
 
                 while (!disposed) {
+
+                    if (state != State.PLAYING) {
+                        Thread.sleep(3)
+                        continue
+                    }
+
                     if (seekRequested) {
                         logger.debug { "performing seek" }
                         synchronized(displayQueue) {
@@ -692,7 +704,11 @@ class VideoPlayerFFMPEG private constructor(
         seekRequested = true
         endOfFileReached = false
         seekPosition = positionInSeconds
+        state = State.PLAYING
+
     }
+
+
 
     private fun update() {
         if (state == State.PLAYING) {
@@ -751,7 +767,11 @@ class VideoPlayerFFMPEG private constructor(
             }
         }
         if (endOfFileReached && displayQueue.isEmpty() && (decoder?.videoQueueSize() ?: 0) == 0) {
-            ended.trigger(VideoEvent())
+            if (state == State.PLAYING) {
+                logger.debug { "stopping playback"}
+                ended.trigger(VideoEvent())
+                state = State.STOPPED
+            }
         }
     }
 
