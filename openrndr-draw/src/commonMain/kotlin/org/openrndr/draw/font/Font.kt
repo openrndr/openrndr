@@ -92,12 +92,12 @@ fun loadFace(fileOrUrl: String): Face {
 
 /**
  * Scale font based on ascender + descender height
+ * @since 0.4.5
  */
 fun fontHeightScaler(font: Face) : Double = 1.0 / (font.ascentMetrics() - font.descentMetrics())
 
 /**
  * Scale font based on units per em
+ * @since 0.4.5
  */
-fun fontEmScaler(font: Face) = 1.0 / font.unitsPerEm().also {
-    println("units per em: $it")
-}
+fun fontEmScaler(font: Face) = 1.0 / font.unitsPerEm()
