@@ -1,6 +1,7 @@
 package org.openrndr.shape
 
 import kotlinx.serialization.Serializable
+import org.openrndr.math.LinearType
 import org.openrndr.math.Polar
 import org.openrndr.math.Vector2
 import org.openrndr.math.asDegrees
@@ -17,7 +18,7 @@ import kotlin.math.PI
  */
 @Serializable
 @JvmRecord
-data class Circle(val center: Vector2, val radius: Double): Movable, Scalable1D, ShapeProvider, ShapeContourProvider {
+data class Circle(val center: Vector2, val radius: Double): Movable, Scalable1D, ShapeProvider, ShapeContourProvider, LinearType<Circle> {
 
     companion object {
         val INVALID = Circle(Vector2.INFINITY, 0.0)
@@ -182,14 +183,14 @@ data class Circle(val center: Vector2, val radius: Double): Movable, Scalable1D,
         return Pair(tp, tp2)
     }
 
-    operator fun times(scale: Double) = Circle(center * scale, radius * scale)
+    override operator fun times(scale: Double) = Circle(center * scale, radius * scale)
 
-    operator fun div(scale: Double) = Circle(center / scale, radius / scale)
+    override operator fun div(scale: Double) = Circle(center / scale, radius / scale)
 
-    operator fun plus(right: Circle) =
+    override operator fun plus(right: Circle) =
         Circle(center + right.center, radius + right.radius)
 
-    operator fun minus(right: Circle) =
+    override operator fun minus(right: Circle) =
         Circle(center - right.center, radius - right.radius)
 
 }

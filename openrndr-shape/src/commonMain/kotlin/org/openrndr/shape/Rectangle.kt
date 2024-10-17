@@ -3,6 +3,7 @@
 package org.openrndr.shape
 
 import kotlinx.serialization.Serializable
+import org.openrndr.math.LinearType
 import org.openrndr.math.Vector2
 import org.openrndr.math.YPolarity
 import org.openrndr.math.clamp
@@ -23,7 +24,7 @@ import kotlin.math.min
 @Serializable
 @JvmRecord
 data class Rectangle(val corner: Vector2, val width: Double, val height: Double = width) : Movable, Scalable2D,
-    ShapeProvider, ShapeContourProvider {
+    ShapeProvider, ShapeContourProvider, LinearType<Rectangle> {
 
     val xRange
         get() = min(corner.x, corner.x + width)..<max(corner.x, corner.x + width)
@@ -212,14 +213,14 @@ data class Rectangle(val corner: Vector2, val width: Double, val height: Double 
         val EMPTY = Rectangle(0.0, 0.0, 0.0, 0.0)
     }
 
-    operator fun times(scale: Double) = Rectangle(corner * scale, width * scale, height * scale)
+    override operator fun times(scale: Double) = Rectangle(corner * scale, width * scale, height * scale)
 
-    operator fun div(scale: Double) = Rectangle(corner / scale, width / scale, height / scale)
+    override operator fun div(scale: Double) = Rectangle(corner / scale, width / scale, height / scale)
 
-    operator fun plus(right: Rectangle) =
+    override operator fun plus(right: Rectangle) =
         Rectangle(corner + right.corner, width + right.width, height + right.height)
 
-    operator fun minus(right: Rectangle) =
+    override operator fun minus(right: Rectangle) =
         Rectangle(corner - right.corner, width - right.width, height - right.height)
 
 
