@@ -1,7 +1,7 @@
 [versions]
 kotlinApi = "2.0"
 kotlinLanguage = "2.0"
-kotlin = "2.0.20"
+kotlin = "2.0.21"
 jvmTarget = "17"
 kotlinxCoroutines = "1.9.0"
 kotlinLogging = "7.0.0"
@@ -13,7 +13,7 @@ lwjgl = "3.3.4"
 javacpp = "1.5.10"
 # ffmpeg version suffix should match javacpp version
 ffmpeg = "6.1.1-1.5.10"
-junitJupiter = "5.11.0"
+junitJupiter = "5.11.2"
 kluent = "1.73"
 kotest = "5.9.1"
 slf4j = "2.0.16"
