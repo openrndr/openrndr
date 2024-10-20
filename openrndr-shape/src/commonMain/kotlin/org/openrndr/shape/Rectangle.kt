@@ -287,15 +287,6 @@ val List<Vector2>.bounds: Rectangle
         return Rectangle(Vector2(minX, minY), maxX - minX, maxY - minY)
     }
 
-/** calculates [Rectangle]-bounds for a list of [Rectangle] instances */
-@Deprecated(
-    "use List<Rectangle>.bounds instead",
-    ReplaceWith("rectangles.bounds")
-)
-fun rectangleBounds(rectangles: List<Rectangle>): Rectangle {
-    return rectangles.bounds
-}
-
 /** Calculates [Rectangle]-bounds for a list of [Rectangle] instances. */
 val List<Rectangle>.bounds: Rectangle
     @JvmName("getRectangleBounds") get() {

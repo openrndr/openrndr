@@ -145,31 +145,6 @@ class Shape(val contours: List<ShapeContour>) : ShapeProvider {
         contours.forEach { it.resetCache() }
     }
 
-    /**
-     * Generates specified amount of random points that lie inside the [Shape].
-     *
-     * @param pointCount The number of points to generate.
-     * @param random The [Random] number generator to use, defaults to [Random.Default].
-     */
-    fun randomPoints(pointCount: Int, random: Random = Random.Default): List<Vector2> {
-        val randomValues = List(pointCount) { random.nextDouble() * area }.sortedDescending().toMutableList()
-        var sum = 0.0
-        val result = mutableListOf<Vector2>()
-        for (triangle in triangulation) {
-            sum += triangle.area
-            if (randomValues.isEmpty()) {
-                break
-            }
-            while (sum > randomValues.last()) {
-                result.add(triangle.randomPoint())
-                randomValues.removeLastOrNull()
-                if (randomValues.isEmpty()) {
-                    break
-                }
-            }
-        }
-        return result
-    }
 
 
     /** The outline of the shape. */

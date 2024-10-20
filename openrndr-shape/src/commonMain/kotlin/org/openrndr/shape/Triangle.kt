@@ -5,7 +5,6 @@ import org.openrndr.math.Matrix33
 import org.openrndr.math.Polar
 import org.openrndr.math.Vector2
 import org.openrndr.math.Vector3
-import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt
@@ -45,10 +44,8 @@ data class Triangle(val x1: Vector2, val x2: Vector2, val x3: Vector2) : ShapePr
 
     override val shape: Shape
         get() = Shape(listOf(contour))
-    /** Generates a random point that lies inside the [Triangle]. */
-    fun randomPoint(random: Random = Random.Default): Vector2 {
-        val u = random.nextDouble()
-        val v = random.nextDouble()
+
+    fun position(u: Double, v: Double): Vector2 {
         val su0 = sqrt(u)
         val b0 = 1.0 - su0
         val b1 = v * su0
@@ -61,7 +58,7 @@ data class Triangle(val x1: Vector2, val x2: Vector2, val x3: Vector2) : ShapePr
     val area by lazy {
         val u = x2 - x1
         val v = x3 - x1
-        abs(u cross v) / 2.0
+        u.areaBetween(v) / 2.0
     }
 
     /** The centroid of the [Triangle]. */
