@@ -17,6 +17,8 @@ import org.openrndr.math.Matrix33
 import org.openrndr.math.Matrix44
 import org.openrndr.shape.Rectangle
 import java.nio.Buffer
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
 import java.nio.FloatBuffer
 import java.util.*
 import kotlin.math.min
@@ -84,6 +86,34 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         textureStorage = version.isAtLeast(DriverVersionGL.GL_VERSION_4_1, DriverVersionGL.GLES_VERSION_3_0),
         compute = version.isAtLeast(DriverVersionGL.GL_VERSION_4_3, DriverVersionGL.GLES_VERSION_3_1)
     )
+
+    class Quirks {
+        val clearIgnoresSRGB: Boolean by lazy {
+            val rt = renderTarget(64, 64) {
+                colorBuffer()
+            }
+            rt.bind()
+            (Driver.driver as DriverGL3).clearImpl(ColorRGBa(0.5, 0.5, 0.5, 1.0))
+            rt.unbind()
+            val buffer = ByteBuffer.allocateDirect(64 * 64 * 4).order(
+                ByteOrder.nativeOrder()
+            )
+            buffer.rewind()
+            (Driver.instance as DriverGL3).finish()
+            rt.colorBuffer(0).read(buffer)
+            (Driver.instance as DriverGL3).finish()
+            val c = buffer.getInt(0).toUInt()
+            val quirky = (c and (0xff.toUInt())) == (0x7f).toUInt()
+            if (quirky) {
+                logger.warn { "quirk: clear ignores sRGB setting" }
+            }
+            rt.destroy()
+            quirky
+        }
+    }
+
+    val quirks = Quirks()
+
     override val properties: DriverProperties by lazy {
         DriverProperties(
             maxRenderTargetSamples = when (Driver.glType) {
@@ -120,12 +150,16 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
     override fun shaderConfiguration(type: ShaderType): String = """
         #version ${version.glslVersion}
         #define OR_IN_OUT
-        ${if (type == ShaderType.FRAGMENT) {"""#extension GL_KHR_blend_equation_advanced : enable
+        ${
+        if (type == ShaderType.FRAGMENT) {
+            """#extension GL_KHR_blend_equation_advanced : enable
             |#ifdef GL_KHR_blend_equation_advanced
             |layout(blend_support_all_equations) out;
             |#endif
             |
-        """.trimMargin() } else ""}
+        """.trimMargin()
+        } else ""
+    }
         
         ${
         when (version.type) {
@@ -214,9 +248,12 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
             TODO("not implemented")
         }
 
-    override fun clear(color: ColorRGBa) {
-        val targetColor = color.toLinear()
+    fun clearImpl(color: ColorRGBa) {
+        val targetColor = color
         debugGLErrors()
+        if (Driver.glType == DriverTypeGL.GL) {
+            glEnable(GL_FRAMEBUFFER_SRGB)
+        }
         glClearColor(
             targetColor.r.toFloat(),
             targetColor.g.toFloat(),
@@ -246,6 +283,18 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         glDepthMask(depthWriteMask)
         if (scissorTestEnabled) {
             glEnable(GL_SCISSOR_TEST)
+        }
+    }
+
+    override fun clear(color: ColorRGBa) {
+        if (RenderTarget.active.colorAttachments.firstOrNull()?.type?.isSRGB == true || RenderTarget.active is ProgramRenderTargetGL3) {
+            if (quirks.clearIgnoresSRGB) {
+                clearImpl(color.toSRGB())
+            } else {
+                clearImpl(color.toLinear())
+            }
+        } else {
+            clearImpl(color.toLinear())
         }
     }
 
@@ -1263,6 +1312,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
 
     override val activeRenderTarget: RenderTarget
         get() = RenderTargetGL3.activeRenderTarget
+
 
     override fun finish() {
         glFlush()
