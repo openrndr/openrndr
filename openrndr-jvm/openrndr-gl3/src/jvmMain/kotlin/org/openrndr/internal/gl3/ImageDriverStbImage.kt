@@ -240,12 +240,12 @@ class ImageDriverStbImage : ImageDriver {
                     val (tdata8, tdata16) = when (bitsPerChannel) {
                         8 -> Pair(
                             STBImage.stbi_load_from_memory(buffer, wa, ha, ca, 0)
-                                ?: error("stbi_load returned null"), null as ShortBuffer?
+                                ?: error("stbi_load returned null while loading '$name'"), null as ShortBuffer?
                         )
 
                         16 -> Pair(
                             null as ByteBuffer?, STBImage.stbi_load_16_from_memory(buffer, wa, ha, ca, 0)
-                                ?: error("stdi_load returned null")
+                                ?: error("stdi_load returned while loading '$name'")
                         )
 
                         else -> error("unsupported bits per channel: $bitsPerChannel")
