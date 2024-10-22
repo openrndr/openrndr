@@ -366,9 +366,14 @@ class VideoPlayerFFMPEG private constructor(
                      mode: PlayMode = PlayMode.BOTH,
                      configuration: VideoPlayerConfiguration = VideoPlayerConfiguration(),
                      clock: () -> Double = { System.currentTimeMillis() / 1000.0 }): VideoPlayerFFMPEG {
+            val file = File(fileName)
+            require(file.exists()) {
+                "Can not play video: file '${file.absolutePath}' does not exist."
+            }
+
             av_log_set_level(AV_LOG_QUIET)
-            val file = AVFile(configuration, fileName, mode)
-            return VideoPlayerFFMPEG(file, mode, configuration, clock)
+            val avfile = AVFile(configuration, fileName, mode)
+            return VideoPlayerFFMPEG(avfile, mode, configuration, clock)
         }
 
         /**
