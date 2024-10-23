@@ -1,0 +1,293 @@
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>ShadeStyleManagerGLCommon</title>
+<link href="../../../images/logo-icon.svg" rel="icon" type="image/svg"><script>var pathToRoot = "../../../";</script>    <script>const storage = localStorage.getItem("dokka-dark-mode")
+    if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    } else {
+        const savedDarkMode = JSON.parse(storage)
+        if(savedDarkMode === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    }
+    </script>
+<script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async></script>
+<link href="../../../styles/style.css" rel="Stylesheet">
+<link href="../../../styles/jetbrains-mono.css" rel="Stylesheet">
+<link href="../../../styles/main.css" rel="Stylesheet">
+<link href="../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../scripts/clipboard.js" async></script>
+<script type="text/javascript" src="../../../scripts/navigation-loader.js" async></script>
+<script type="text/javascript" src="../../../scripts/platform-content-handler.js" async></script>
+<script type="text/javascript" src="../../../scripts/main.js" defer></script>
+<script type="text/javascript" src="../../../scripts/prism.js" async></script>
+<script type="text/javascript" src="../../../scripts/symbol-parameters-wrapper_deferred.js" defer></script></head>
+<body>
+<div class="navigation-wrapper" id="navigation-wrapper">
+    <div id="leftToggler"><span class="icon-toggler"></span></div>
+    <div class="library-name">
+<a href="../../../index.html">
+<span>openrndr</span>            </a>    </div>
+    <div>0.4.5-dev.72+cb9c0e2
+    </div>
+    <div class="pull-right d-flex">
+        <div class="filter-section" id="filter-section">
+                <button class="platform-tag platform-selector common-like" data-active="" data-filter=":openrndr-gl-common:dokkaHtmlPartial/commonMain">common</button>
+        </div>
+        <button id="theme-toggle-button"><span id="theme-toggle"></span></button>
+        <div id="searchBar"></div>
+    </div>
+</div>
+<div id="container">
+    <div id="leftColumn">
+        <div id="sideMenu"></div>
+    </div>
+    <div id="main">
+<div class="main-content" data-page-type="classlike" id="content" pageids="openrndr-gl-common::org.openrndr.internal.glcommon/ShadeStyleManagerGLCommon///PointingToDeclaration//631309689">
+  <div class="breadcrumbs"><a href="../../index.html">openrndr-gl-common</a><span class="delimiter">/</span><a href="../index.html">org.openrndr.internal.glcommon</a><span class="delimiter">/</span><span class="current">ShadeStyleManagerGLCommon</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span>Shade</span><wbr><span>Style</span><wbr><span>Manager</span><wbr><span><span>GLCommon</span></span></h1>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-gl-common:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">class </span><a href="index.html">ShadeStyleManagerGLCommon</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">name<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>vsGenerator<span class="token operator">: </span><span class="token punctuation">(</span><span class="token keyword"></span><a href="../../../openrndr-application/org.openrndr.draw/-shade-structure/index.html">ShadeStructure</a><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><span class="token keyword"></span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>tcsGenerator<span class="token operator">: </span><span class="token punctuation">(</span><span class="token keyword"></span><a href="../../../openrndr-application/org.openrndr.draw/-shade-structure/index.html">ShadeStructure</a><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><span class="token keyword"></span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>tesGenerator<span class="token operator">: </span><span class="token punctuation">(</span><span class="token keyword"></span><a href="../../../openrndr-application/org.openrndr.draw/-shade-structure/index.html">ShadeStructure</a><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><span class="token keyword"></span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>gsGenerator<span class="token operator">: </span><span class="token punctuation">(</span><span class="token keyword"></span><a href="../../../openrndr-application/org.openrndr.draw/-shade-structure/index.html">ShadeStructure</a><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><span class="token keyword"></span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>fsGenerator<span class="token operator">: </span><span class="token punctuation">(</span><span class="token keyword"></span><a href="../../../openrndr-application/org.openrndr.draw/-shade-structure/index.html">ShadeStructure</a><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><span class="token keyword"></span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span> : <a href="../../../openrndr-application/org.openrndr.draw/-shade-style-manager/index.html">ShadeStyleManager</a>, <a href="../-style-manager-dispatch-uniform/index.html">StyleManagerDispatchUniform</a>, <a href="../-style-manager-dispatch-image-bindings/index.html">StyleManagerDispatchImageBindings</a>, <a href="../-style-manager-dispatch-buffer-bindings/index.html">StyleManagerDispatchBufferBindings</a><span class="clearfix"><span class="floating-right">(<a href="https://github.com/openrndr/openrndr/blob/master/openrndr-gl-common/src/commonMain/kotlin/ShadeStyleManagerGLCommon.kt#L7">source</a>)</span></span></div></div></div>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,FUNCTION,PROPERTY">Members</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="CONSTRUCTOR">
+        <h2 class="">Constructors</h2>
+        <div class="table"><a data-name="-1314914484%2FConstructors%2F631309689" anchor-label="ShadeStyleManagerGLCommon" id="-1314914484%2FConstructors%2F631309689" data-filterable-set=":openrndr-gl-common:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-togglable="CONSTRUCTOR" data-filterable-current=":openrndr-gl-common:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-gl-common:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-shade-style-manager-g-l-common.html"><span>Shade</span><wbr><span>Style</span><wbr><span>Manager</span><wbr><span><span>GLCommon</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1314914484%2FConstructors%2F631309689"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-gl-common:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">name<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">vsGenerator<span class="token operator">: </span><span class="token punctuation">(</span><span class="token keyword"></span><a href="../../../openrndr-application/org.openrndr.draw/-shade-structure/index.html">ShadeStructure</a><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><span class="token keyword"></span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">tcsGenerator<span class="token operator">: </span><span class="token punctuation">(</span><span class="token keyword"></span><a href="../../../openrndr-application/org.openrndr.draw/-shade-structure/index.html">ShadeStructure</a><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><span class="token keyword"></span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span><span class="token punctuation">, </span></span><span class="parameter ">tesGenerator<span class="token operator">: </span><span class="token punctuation">(</span><span class="token keyword"></span><a href="../../../openrndr-application/org.openrndr.draw/-shade-structure/index.html">ShadeStructure</a><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><span class="token keyword"></span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span><span class="token punctuation">, </span></span><span class="parameter ">gsGenerator<span class="token operator">: </span><span class="token punctuation">(</span><span class="token keyword"></span><a href="../../../openrndr-application/org.openrndr.draw/-shade-structure/index.html">ShadeStructure</a><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><span class="token keyword"></span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span><span class="token punctuation">, </span></span><span class="parameter ">fsGenerator<span class="token operator">: </span><span class="token punctuation">(</span><span class="token keyword"></span><a href="../../../openrndr-application/org.openrndr.draw/-shade-structure/index.html">ShadeStructure</a><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><span class="token keyword"></span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="FUNCTION">
+        <h2 class="">Functions</h2>
+        <div class="table"><a data-name="-1875600311%2FFunctions%2F631309689" anchor-label="dispatchBufferBindings" id="-1875600311%2FFunctions%2F631309689" data-filterable-set=":openrndr-gl-common:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-gl-common:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-gl-common:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../-style-manager-dispatch-buffer-bindings/dispatch-buffer-bindings.html"><span>dispatch</span><wbr><span>Buffer</span><wbr><span><span>Bindings</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1875600311%2FFunctions%2F631309689"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-gl-common:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword"></span><span class="token keyword">fun </span><span class="token operator">&lt;</span><span class="token keyword"></span><a href="../-style-manager-dispatch-buffer-bindings/dispatch-buffer-bindings.html">T</a><span class="token operator"> : </span><a href="../../../openrndr-application/org.openrndr.draw/-shader-buffer-bindings/index.html">ShaderBufferBindings</a><span class="token operator">&gt; </span><a href="../-style-manager-dispatch-buffer-bindings/dispatch-buffer-bindings.html"><span class="token function">dispatchBufferBindings</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">style<span class="token operator">: </span><a href="../../../openrndr-application/org.openrndr.draw/-style-buffer-bindings/index.html">StyleBufferBindings</a><span class="token punctuation">, </span></span><span class="parameter ">shader<span class="token operator">: </span><a href="../-style-manager-dispatch-buffer-bindings/dispatch-buffer-bindings.html">T</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="2080845611%2FFunctions%2F631309689" anchor-label="dispatchImageBindings" id="2080845611%2FFunctions%2F631309689" data-filterable-set=":openrndr-gl-common:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-gl-common:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-gl-common:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../-style-manager-dispatch-image-bindings/dispatch-image-bindings.html"><span>dispatch</span><wbr><span>Image</span><wbr><span><span>Bindings</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2080845611%2FFunctions%2F631309689"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-gl-common:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword"></span><span class="token keyword">fun </span><span class="token operator">&lt;</span><span class="token keyword"></span><a href="../-style-manager-dispatch-image-bindings/dispatch-image-bindings.html">T</a><span class="token operator"> : </span><a href="../../../openrndr-application/org.openrndr.draw/-shader-image-bindings/index.html">ShaderImageBindings</a><span class="token operator">&gt; </span><a href="../-style-manager-dispatch-image-bindings/dispatch-image-bindings.html"><span class="token function">dispatchImageBindings</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">style<span class="token operator">: </span><a href="../../../openrndr-application/org.openrndr.draw/-style-image-bindings/index.html">StyleImageBindings</a><span class="token punctuation">, </span></span><span class="parameter ">shader<span class="token operator">: </span><a href="../-style-manager-dispatch-image-bindings/dispatch-image-bindings.html">T</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1621173430%2FFunctions%2F631309689" anchor-label="dispatchParameters" id="1621173430%2FFunctions%2F631309689" data-filterable-set=":openrndr-gl-common:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-gl-common:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-gl-common:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../-style-manager-dispatch-uniform/dispatch-parameters.html"><span>dispatch</span><wbr><span><span>Parameters</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1621173430%2FFunctions%2F631309689"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-gl-common:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword"></span><span class="token keyword">fun </span><span class="token operator">&lt;</span><span class="token keyword"></span><a href="../-style-manager-dispatch-uniform/dispatch-parameters.html">T</a><span class="token operator"> : </span><a href="../../../openrndr-application/org.openrndr.draw/-shader-uniforms/index.html">ShaderUniforms</a><span class="token operator">&gt; </span><a href="../-style-manager-dispatch-uniform/dispatch-parameters.html"><span class="token function">dispatchParameters</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">style<span class="token operator">: </span><a href="../../../openrndr-application/org.openrndr.draw/-style-parameters/index.html">StyleParameters</a><span class="token punctuation">, </span></span><span class="parameter ">shader<span class="token operator">: </span><a href="../-style-manager-dispatch-uniform/dispatch-parameters.html">T</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1804279212%2FFunctions%2F631309689" anchor-label="setUniform" id="1804279212%2FFunctions%2F631309689" data-filterable-set=":openrndr-gl-common:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-gl-common:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-gl-common:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../-style-manager-dispatch-uniform/set-uniform.html"><span>set</span><wbr><span><span>Uniform</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1804279212%2FFunctions%2F631309689"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-gl-common:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword"></span><span class="token keyword">fun </span><span class="token operator">&lt;</span><span class="token keyword"></span><a href="../-style-manager-dispatch-uniform/set-uniform.html">T</a><span class="token operator"> : </span><a href="../../../openrndr-application/org.openrndr.draw/-shader-uniforms/index.html">ShaderUniforms</a><span class="token operator">&gt; </span><a href="../-style-manager-dispatch-uniform/set-uniform.html"><span class="token function">setUniform</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">shader<span class="token operator">: </span><a href="../-style-manager-dispatch-uniform/set-uniform.html">T</a><span class="token punctuation">, </span></span><span class="parameter ">targetName<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">name<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">value<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-any/index.html">Any</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1859504819%2FFunctions%2F631309689" anchor-label="shader" id="-1859504819%2FFunctions%2F631309689" data-filterable-set=":openrndr-gl-common:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-gl-common:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-gl-common:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#452210816%2FFunctions%2F631309689"><span><span>shader</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1859504819%2FFunctions%2F631309689"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-gl-common:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">fun </span><a href="index.html#452210816%2FFunctions%2F631309689"><span class="token function">shader</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">style<span class="token operator">: </span><a href="../../../openrndr-application/org.openrndr.draw/-shade-style/index.html">ShadeStyle</a><span class="token operator">?</span><span class="token punctuation">, </span></span><span class="parameter ">format<span class="token operator">: </span><a href="../../../openrndr-application/org.openrndr.draw/-vertex-format/index.html">VertexFormat</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../../openrndr-application/org.openrndr.draw/-shader/index.html">Shader</a></div><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="shader.html"><span class="token function">shader</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">style<span class="token operator">: </span><a href="../../../openrndr-application/org.openrndr.draw/-shade-style/index.html">ShadeStyle</a><span class="token operator">?</span><span class="token punctuation">, </span></span><span class="parameter ">vertexFormats<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="../../../openrndr-application/org.openrndr.draw/-vertex-format/index.html">VertexFormat</a><span class="token operator">&gt;</span><span class="token punctuation">, </span></span><span class="parameter ">instanceFormats<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="../../../openrndr-application/org.openrndr.draw/-vertex-format/index.html">VertexFormat</a><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../../openrndr-application/org.openrndr.draw/-shader/index.html">Shader</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="PROPERTY">
+        <h2 class="">Properties</h2>
+        <div class="table"><a data-name="-786145173%2FProperties%2F631309689" anchor-label="fsGenerator" id="-786145173%2FProperties%2F631309689" data-filterable-set=":openrndr-gl-common:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-gl-common:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-gl-common:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="fs-generator.html"><span>fs</span><wbr><span><span>Generator</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-786145173%2FProperties%2F631309689"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-gl-common:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">val </span><a href="fs-generator.html">fsGenerator</a><span class="token operator">: </span><span class="token punctuation">(</span><span class="token keyword"></span><a href="../../../openrndr-application/org.openrndr.draw/-shade-structure/index.html">ShadeStructure</a><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><span class="token keyword"></span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1164155082%2FProperties%2F631309689" anchor-label="gsGenerator" id="1164155082%2FProperties%2F631309689" data-filterable-set=":openrndr-gl-common:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-gl-common:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-gl-common:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="gs-generator.html"><span>gs</span><wbr><span><span>Generator</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1164155082%2FProperties%2F631309689"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-gl-common:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">val </span><a href="gs-generator.html">gsGenerator</a><span class="token operator">: </span><span class="token punctuation">(</span><span class="token keyword"></span><a href="../../../openrndr-application/org.openrndr.draw/-shade-structure/index.html">ShadeStructure</a><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><span class="token keyword"></span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1537068430%2FProperties%2F631309689" anchor-label="imageIndex" id="-1537068430%2FProperties%2F631309689" data-filterable-set=":openrndr-gl-common:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-gl-common:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-gl-common:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="image-index.html"><span>image</span><wbr><span><span>Index</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1537068430%2FProperties%2F631309689"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-gl-common:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">var </span><a href="image-index.html">imageIndex</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1403795377%2FProperties%2F631309689" anchor-label="name" id="1403795377%2FProperties%2F631309689" data-filterable-set=":openrndr-gl-common:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-gl-common:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-gl-common:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#1403795377%2FProperties%2F631309689"><span><span>name</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1403795377%2FProperties%2F631309689"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-gl-common:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">val </span><a href="index.html#1403795377%2FProperties%2F631309689">name</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1369530202%2FProperties%2F631309689" anchor-label="tcsGenerator" id="1369530202%2FProperties%2F631309689" data-filterable-set=":openrndr-gl-common:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-gl-common:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-gl-common:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="tcs-generator.html"><span>tcs</span><wbr><span><span>Generator</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1369530202%2FProperties%2F631309689"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-gl-common:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">val </span><a href="tcs-generator.html">tcsGenerator</a><span class="token operator">: </span><span class="token punctuation">(</span><span class="token keyword"></span><a href="../../../openrndr-application/org.openrndr.draw/-shade-structure/index.html">ShadeStructure</a><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><span class="token keyword"></span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="975163416%2FProperties%2F631309689" anchor-label="tesGenerator" id="975163416%2FProperties%2F631309689" data-filterable-set=":openrndr-gl-common:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-gl-common:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-gl-common:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="tes-generator.html"><span>tes</span><wbr><span><span>Generator</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="975163416%2FProperties%2F631309689"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-gl-common:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">val </span><a href="tes-generator.html">tesGenerator</a><span class="token operator">: </span><span class="token punctuation">(</span><span class="token keyword"></span><a href="../../../openrndr-application/org.openrndr.draw/-shade-structure/index.html">ShadeStructure</a><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><span class="token keyword"></span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1217283278%2FProperties%2F631309689" anchor-label="textureIndex" id="-1217283278%2FProperties%2F631309689" data-filterable-set=":openrndr-gl-common:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-gl-common:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-gl-common:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="texture-index.html"><span>texture</span><wbr><span><span>Index</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1217283278%2FProperties%2F631309689"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-gl-common:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">var </span><a href="texture-index.html">textureIndex</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="353887835%2FProperties%2F631309689" anchor-label="vsGenerator" id="353887835%2FProperties%2F631309689" data-filterable-set=":openrndr-gl-common:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-gl-common:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-gl-common:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="vs-generator.html"><span>vs</span><wbr><span><span>Generator</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="353887835%2FProperties%2F631309689"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-gl-common:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">val </span><a href="vs-generator.html">vsGenerator</a><span class="token operator">: </span><span class="token punctuation">(</span><span class="token keyword"></span><a href="../../../openrndr-application/org.openrndr.draw/-shade-structure/index.html">ShadeStructure</a><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><span class="token keyword"></span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      <div class="footer">
+        <span class="go-to-top-icon"><a href="#content" id="go-to-top-link"></a></span><span>© 2024 Copyright</span><span class="pull-right"><span>Generated by </span><a href="https://github.com/Kotlin/dokka"><span>dokka</span><span class="padded-icon"></span></a></span>
+      </div>
+    </div>
+</div>
+</body>
+</html>
+
