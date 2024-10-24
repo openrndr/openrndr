@@ -31,7 +31,7 @@ enum class VertexElementType(val componentCount: Int, val sizeInBytes: Int) {
     VECTOR3_UINT32(3, 12),
     VECTOR3_INT32(3, 12),
 
-    VECTOR4_UINT8(3, 3),
+    VECTOR4_UINT8(4, 4),
     VECTOR4_INT8(4, 4),
     VECTOR4_UINT16(4, 8),
     VECTOR4_INT16(4, 8),
