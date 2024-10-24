@@ -8,6 +8,7 @@ import org.lwjgl.opengles.GLES30
 import org.openrndr.draw.*
 import org.openrndr.internal.Driver
 import java.nio.ByteBuffer
+import java.nio.ByteOrder
 
 class ShaderStorageBufferGL43(
     val buffer: Int,
@@ -98,6 +99,17 @@ class ShaderStorageBufferGL43(
         }
     }
 
+    /**
+     * Create a byte buffer matching the format size
+     * to be able to download the SSBO to the CPU.
+     * Note that the buffer will contain padding
+     * following elements that need it.
+     *
+     * @return a [ByteBuffer] with the expected size.
+     */
+    override fun createByteBuffer(): ByteBuffer =
+        ByteBuffer.allocateDirect(format.size).order(ByteOrder.nativeOrder())
+
     override fun destroy() {
         if (!destroyed) {
             glDeleteBuffers(buffer)
@@ -111,7 +123,7 @@ class ShaderStorageBufferGL43(
         w.positionElements = elementOffset
         w.putter()
         if (w.position % format.size != 0) {
-            throw RuntimeException("incomplete members written. likely violating the specified shaders storage format $format")
+            throw RuntimeException("incomplete members written (position: ${w.position}, size: ${format.size}). likely violating the specified shaders storage format $format")
         }
         val count = w.positionElements
         shadow.uploadElements(elementOffset, count)
