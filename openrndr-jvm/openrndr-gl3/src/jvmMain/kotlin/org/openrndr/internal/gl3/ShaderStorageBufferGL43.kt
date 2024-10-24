@@ -100,14 +100,14 @@ class ShaderStorageBufferGL43(
     }
 
     /**
-     * Make a byte buffer matching the format size
+     * Create a byte buffer matching the format size
      * to be able to download the SSBO to the CPU.
      * Note that the buffer will contain padding
      * following elements that need it.
      *
      * @return a [ByteBuffer] with the expected size.
      */
-    override fun makeByteBuffer(): ByteBuffer =
+    override fun createByteBuffer(): ByteBuffer =
         ByteBuffer.allocateDirect(format.size).order(ByteOrder.nativeOrder())
 
     override fun destroy() {
