@@ -6,6 +6,7 @@ actual interface ShaderStorageBuffer {
 
     fun write(source: ByteBuffer, writeOffset: Int = 0)
     fun read(target: ByteBuffer, readOffset: Int = 0)
+    fun createByteBuffer(): ByteBuffer
     actual val session: Session?
     actual val format: ShaderStorageFormat
     actual fun clear()
