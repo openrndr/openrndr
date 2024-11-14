@@ -5,18 +5,31 @@ import kotlin.jvm.JvmRecord
 import kotlin.math.acos
 import kotlin.math.atan2
 
-/**
- * Ref: https://en.wikipedia.org/wiki/Spherical_coordinate_system
- *
- * The poles (phi) are at the positive and negative y-axis.
- * The equator starts at positive z.
- */
 
 private const val EPS = 0.000001
 
 @Serializable
 @JvmRecord
-data class Spherical(val theta: Double, val phi: Double, val radius: Double) : LinearType<Spherical> {
+/**
+ * Spherical coordinate. The poles (phi) are at the positive and negative y-axis. The equator starts at positive z.
+ * @param theta the counterclockwise angle from the z-axis at which a point in the xz-plane lies.
+ * @param phi the angle measured from the y-axis. The north-pole is at 0 degrees, the south-pole is at 180 degrees.
+ * @param radius the radius of the sphere
+ * @see <a href="https://en.wikipedia.org/wiki/Spherical_coordinate_system">Spherical coordinate system</a>
+ */
+data class Spherical(
+    /**
+     * the counterclockwise angle from the z-axis at which a point in the xz-plane lies.
+     */
+    val theta: Double,
+    /**
+     * the angle measured from the y-axis. The north-pole is at 0 degrees, the south-pole is at 180 degrees.
+     */
+    val phi: Double,
+    /**
+     * the radius of the sphere
+     */
+    val radius: Double) : LinearType<Spherical> {
 
     fun makeSafe() = Spherical(
             theta,
@@ -25,6 +38,13 @@ data class Spherical(val theta: Double, val phi: Double, val radius: Double) : L
     )
 
     companion object {
+        /** A [Spherical] that points to [Vector3.UNIT_X] */
+        val UNIT_X = Spherical(90.0, 90.0, 1.0)
+        /** A [Spherical] that points to [Vector3.UNIT_Y] */
+        val UNIT_Y = Spherical(0.0, 0.0, 1.0)
+        /** A [Spherical] that points to [Vector3.UNIT_Z] */
+        val UNIT_Z = Spherical(0.0, 90.0, 1.0)
+
         fun fromVector(vector: Vector3): Spherical {
             val r = vector.length
             return Spherical(

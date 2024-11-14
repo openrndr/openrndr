@@ -4,13 +4,22 @@ import io.kotest.matchers.shouldBe
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlin.test.Test
+import kotlin.test.assertTrue
 
 class TestSpherical {
+
+    @Test
+    fun shouldConform() {
+        assertTrue(Spherical.UNIT_X.cartesian.distanceTo(Vector3.UNIT_X) < 1E-9)
+        assertTrue(Spherical.UNIT_Y.cartesian.distanceTo(Vector3.UNIT_Y) < 1E-9)
+        assertTrue(Spherical.UNIT_Z.cartesian.distanceTo(Vector3.UNIT_Z) < 1E-9)
+    }
 
     @Test
     fun shouldBeConvertibleToCartesianAndBack() {
         // given
         val sp = Spherical(100.0, 140.0, 140.0)
+        sp.phi
         val v = sp.cartesian
         val sp2 = v.spherical
 
