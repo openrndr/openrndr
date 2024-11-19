@@ -10,7 +10,6 @@ import org.bytedeco.ffmpeg.global.avutil.*
 import org.bytedeco.ffmpeg.global.swresample.*
 import org.bytedeco.ffmpeg.swresample.SwrContext
 import org.bytedeco.javacpp.IntPointer
-import org.bytedeco.javacpp.Pointer
 import org.bytedeco.javacpp.Pointer.memcpy
 
 private val logger = KotlinLogging.logger {}
@@ -52,36 +51,27 @@ internal class AudioDecoder(
     private val audioFrame = av_frame_alloc()
 
     private val resampledAudioFrame = av_frame_alloc()
-    private val resampleContext: SwrContext //= swr_alloc()
+    private val resampleContext: SwrContext
     private val minAudioFrames = 10
     private val maxAudioFrames = 90
 
     internal val audioQueue = Queue<AudioFrame>(maxAudioFrames)
 
     init {
-        resampleContext = swr_alloc_set_opts(
-            /* s = */ null,
-            /* out_ch_layout = */ AV_CH_LAYOUT_STEREO,
+        resampleContext = swr_alloc()
+
+        val result: Int = swr_alloc_set_opts2(
+            /* ps = */ resampleContext,
+            /* out_ch_layout = */ AV_CHANNEL_LAYOUT_STEREO,
             /* out_sample_fmt = */ AV_SAMPLE_FMT_S16,
             /* out_sample_rate = */ output.sampleRate,
-            /* in_ch_layout = */ audioCodecContext.channel_layout(),
+            /* in_ch_layout = */ audioCodecContext.ch_layout(),
             /* in_sample_fmt = */ audioCodecContext.sample_fmt(),
             /* in_sample_rate = */ audioCodecContext.sample_rate(),
             /* log_offset = */ 0,
             /* log_ctx = */ null
         )
-
-//        swr_alloc_set_opts2(
-//            /* ps = */ resampleContext,
-//            /* out_ch_layout = */ AV_CHANNEL_LAYOUT_STEREO(),
-//            /* out_sample_fmt = */ AV_SAMPLE_FMT_S16,
-//            /* out_sample_rate = */ output.sampleRate,
-//            /* in_ch_layout = */ audioCodecContext.ch_layout(),
-//            /* in_sample_fmt = */ audioCodecContext.sample_fmt(),
-//            /* in_sample_rate = */ audioCodecContext.sample_rate(),
-//            /* log_offset = */ 0,
-//            /* log_ctx = */ null
-//        )
+        require(result == 0)
 
         swr_init(resampleContext).checkAVError()
     }
@@ -167,9 +157,9 @@ internal class AudioDecoder(
 //                println("format ${decodedFrame.format()}")
 //                println("rate ${decodedFrame.sample_rate()}")
 
-            resampledAudioFrame.sample_rate(44100)
+            resampledAudioFrame.sample_rate(output.sampleRate)
             resampledAudioFrame.format(AV_SAMPLE_FMT_S16)
-            resampledAudioFrame.channels(2)
+            resampledAudioFrame.ch_layout(AV_CHANNEL_LAYOUT_STEREO)
 
 
             swr_config_frame(resampleContext, resampledAudioFrame, decodedFrame)
@@ -177,7 +167,13 @@ internal class AudioDecoder(
             if (result == 0) {
                 with(resampledAudioFrame) {
                     val audioFrameSize =
-                        av_samples_get_buffer_size(null as IntPointer?, channels(), nb_samples(), format(), 1)
+                        av_samples_get_buffer_size(
+                            null as IntPointer?,
+                            ch_layout().nb_channels(),
+                            nb_samples(),
+                            format(),
+                            1
+                        )
                     val buffer = av_buffer_alloc(audioFrameSize.toLong())!!
                     val ts = (audioFrame.best_effort_timestamp()) * av_q2d(audioCodecContext.time_base())
                     memcpy(buffer.data(), data()[0], audioFrameSize.toLong())
@@ -188,8 +184,9 @@ internal class AudioDecoder(
                 }
             } else {
                 logger.error { "there was an error: $result" }
+                result.checkAVError()
             }
-            result.checkAVError()
+
 
         }
         av_frame_free(decodedFrame)

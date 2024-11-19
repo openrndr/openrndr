@@ -12,7 +12,7 @@ gradleNexusPublish = "2.0.0"
 lwjgl = "3.3.4"
 javacpp = "1.5.10"
 # ffmpeg version suffix should match javacpp version
-ffmpeg = "6.1.1-1.5.10"
+ffmpeg = "7.1-1.5.11"
 junitJupiter = "5.11.2"
 kluent = "1.73"
 kotest = "5.9.1"

@@ -529,7 +529,7 @@ class VideoPlayerFFMPEG private constructor(
             }
         }
         val videoOutput = VideoOutput(info.video?.size ?: Dimensions(0, 0), AV_PIX_FMT_RGB32)
-        val audioOutput = if (mode.useAudio) AudioOutput(44100, 2, SampleFormat.S16) else null
+        val audioOutput = if (mode.useAudio) AudioOutput(48000, 2, SampleFormat.S16) else null
         av_format_inject_global_side_data(file.context)
 
         if (mode.useAudio) {
