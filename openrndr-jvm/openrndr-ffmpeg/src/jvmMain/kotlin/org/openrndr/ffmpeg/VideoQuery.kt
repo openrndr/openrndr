@@ -71,7 +71,7 @@ class VideoQuery {
     }
 
     /**
-     * Start writing to the video file
+     * Query video file metadata
      */
     fun query(filename: String): VideoMetadata {
         logger.debug { "Querying video metadata of $filename" }
