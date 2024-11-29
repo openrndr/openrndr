@@ -15,30 +15,52 @@ private val logger = KotlinLogging.logger {}
 
 private val builtInFfprobeBinary by lazy { Loader.load(ffprobe::class.java) }
 
+/**
+ * @Serializable data classes exposing a subset of what ffprobe returns.
+ *
+ * The reason they are nullable is that video streams and audio streams
+ * have each a subset of these properties. The missing ones will be null.
+ *
+ * The full JSON returned by `ffprobe` is logged in debug mode and can be studied
+ * to add missing entries if needed.
+ */
+
 @Serializable
-data class VideoMetadataStream(
-    val width: Int = 0,
-    val height: Int = 0,
-    val codec_type: String,
-    val pix_fmt: String = "",
-    val bit_rate: Int,
-    val nb_frames: Int
+data class MetadataStream(
+    val width: Int? = null,
+    val height: Int? = null,
+    val codec_type: String? = null,
+    val codec_name: String? = null,
+    val pix_fmt: String? = null,
+    val bit_rate: Int? = null,
+    val nb_frames: Int? = null,
+    val sample_rate: Int? = null,
+    val channels: Int? = null,
 )
 
 @Serializable
-data class VideoMetadataFormat(
-    val duration: Double,
+data class MetadataFormat(
+    val filename: String? = null,
+    val size: Int? = null,
+    val start_time: Double? = null,
+    val duration: Double? = null,
+    val bit_rate: Int? = null,
+    val nb_streams: Int? = null,
 )
 
 @Serializable
-data class VideoMetadata(
-    val streams: List<VideoMetadataStream>,
-    val format: VideoMetadataFormat
+data class MetadataContainer(
+    val streams: List<MetadataStream>,
+    val format: MetadataFormat
 )
 
 private val jsonFormat = Json { ignoreUnknownKeys = true }
 
-class VideoQuery {
+/**
+ * A class to retrieve metadata, typically from video files, but compatible with any
+ * media accepted by ffprobe.
+ */
+class MetadataRetriever {
     private var ffprobe: Process? = null
 
     fun findFfprobe(): File? {
@@ -73,24 +95,19 @@ class VideoQuery {
     /**
      * Query video file metadata
      */
-    fun query(filename: String): VideoMetadata {
+    fun query(filename: String): MetadataContainer {
         logger.debug { "Querying video metadata of $filename" }
-
-        val arguments = mutableListOf(
-            "-v", "quiet",
-            "-print_format", "json",
-            "-show_format",
-            "-show_streams"
-        )
 
         val ffprobeFile = findFfprobe()
 
-        if (ffprobeFile != null) {
-            arguments.add(0, ffprobeFile.toString())
-        } else {
-            arguments.add(0, builtInFfprobeBinary)
-        }
-        arguments.add(filename)
+        val arguments = listOf(
+            ffprobeFile?.toString() ?: builtInFfprobeBinary,
+            "-v", "quiet",
+            "-print_format", "json",
+            "-show_format",
+            "-show_streams",
+            filename
+        )
 
         logger.debug {
             "using arguments: ${arguments.joinToString()}"
@@ -117,7 +134,11 @@ class VideoQuery {
                 throw IOException("ffprobe failed with exit code ${ffprobe!!.exitValue()}: $error")
             }
 
-            return jsonFormat.decodeFromString<VideoMetadata>(output)
+            logger.debug {
+                "json to parse: $output"
+            }
+
+            return jsonFormat.decodeFromString<MetadataContainer>(output)
         } catch (e: IOException) {
             logger.error { "system path: ${System.getenv("path")}" }
             logger.error { "command: ${arguments.joinToString(" ")}" }
