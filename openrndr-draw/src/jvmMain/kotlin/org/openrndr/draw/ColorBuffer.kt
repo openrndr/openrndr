@@ -5,6 +5,8 @@ package org.openrndr.draw
 import kotlinx.coroutines.runBlocking
 import org.openrndr.color.ColorRGBa
 import org.openrndr.internal.ImageDriver
+import org.openrndr.internal.ImageSaveConfiguration
+import org.openrndr.internal.ImageSaveContext
 import org.openrndr.math.Vector2
 import org.openrndr.shape.IntRectangle
 import org.openrndr.shape.Rectangle
@@ -76,6 +78,22 @@ actual abstract class ColorBuffer: AutoCloseable {
         imageFileFormat: ImageFileFormat = ImageFileFormat.guessFromExtension(file.extension) ?: ImageFileFormat.PNG,
         async: Boolean = true
     )
+
+    /** save the [ColorBuffer] to [File] */
+    abstract fun saveToFile(
+        file: File,
+        async: Boolean = true,
+        configuration: ImageSaveConfiguration
+    )
+
+    /** save the [ColorBuffer] to [File] */
+    fun saveToFile(
+        file: File,
+        async: Boolean = true,
+        configurator: ImageSaveContext.() -> ImageSaveConfiguration
+    ) {
+        saveToFile(file, async, ImageSaveContext().configurator())
+    }
 
     /** return a base64 data url representation */
     abstract fun toDataUrl(imageFileFormat: ImageFileFormat = ImageFileFormat.JPG): String

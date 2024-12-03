@@ -15,9 +15,7 @@ import org.openrndr.draw.ColorFormat
 import org.openrndr.draw.ColorType
 import org.openrndr.draw.ImageFileDetails
 import org.openrndr.draw.ImageFileFormat
-import org.openrndr.internal.CubemapImageData
-import org.openrndr.internal.ImageData
-import org.openrndr.internal.ImageDriver
+import org.openrndr.internal.*
 import org.openrndr.utils.buffer.MPPBuffer
 import org.openrndr.utils.url.resolveFileOrUrl
 import java.net.MalformedURLException
@@ -480,7 +478,7 @@ class ImageDriverStbImage : ImageDriver {
         }
     }
 
-    override fun saveImage(imageData: ImageData, filename: String, formatHint: ImageFileFormat?) {
+    override fun saveImage(imageData: ImageData, filename: String, configuration: ImageSaveConfiguration) {
 
         fun flipImage(inputBuffer: ByteBuffer): ByteBuffer {
             return if (imageData.flipV) inputBuffer else {
@@ -504,9 +502,9 @@ class ImageDriverStbImage : ImageDriver {
             }
         }
 
-        val format = formatHint ?: ImageFileFormat.PNG
-        when (format) {
-            ImageFileFormat.PNG -> {
+
+        when (configuration) {
+            is PngImageSaveConfiguration -> {
                 val buffer = flipImage(imageData.data?.byteBuffer ?: error("no data"))
                 when (Pair(imageData.format, imageData.type)) {
                     Pair(ColorFormat.R, ColorType.UINT8),
@@ -534,7 +532,7 @@ class ImageDriverStbImage : ImageDriver {
                 }
             }
 
-            ImageFileFormat.JPG -> {
+            is JpegImageSaveConfiguration -> {
                 val buffer = flipImage(imageData.data?.byteBuffer ?: error("no data"))
                 when (Pair(imageData.format, imageData.type)) {
                     Pair(ColorFormat.R, ColorType.UINT8),
@@ -548,7 +546,7 @@ class ImageDriverStbImage : ImageDriver {
                                 imageData.width,
                                 imageData.height,
                                 imageData.format.componentCount, buffer,
-                                imageData.width * imageData.format.componentCount
+                                configuration.quality
                             )
                         ) {
                             "write to jpg failed"
@@ -562,7 +560,7 @@ class ImageDriverStbImage : ImageDriver {
                 }
             }
 
-            ImageFileFormat.HDR -> {
+            is HdrImageSaveConfiguration -> {
                 when (Pair(imageData.format, imageData.type)) {
                     Pair(ColorFormat.RGB, ColorType.FLOAT32) -> {
                         require(
@@ -582,7 +580,7 @@ class ImageDriverStbImage : ImageDriver {
                 }
             }
 
-            ImageFileFormat.EXR -> {
+            is ExrImageSaveConfiguration -> {
                 require(imageData.format == ColorFormat.RGB || imageData.format == ColorFormat.RGBa) { "can only save RGB and RGBa formats in EXR format" }
 
                 val exrType =
@@ -675,7 +673,7 @@ class ImageDriverStbImage : ImageDriver {
                 FreeEXRImage(exrImage)
             }
 
-            else -> error("unsupported file format $format")
+            else -> error("unsupported file format when saving '${filename}' using ${configuration::class.simpleName}")
         }
     }
 

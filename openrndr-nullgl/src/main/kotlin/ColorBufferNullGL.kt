@@ -2,6 +2,7 @@ package org.openrndr.internal.nullgl
 
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
+import org.openrndr.internal.ImageSaveConfiguration
 import org.openrndr.shape.IntRectangle
 import org.openrndr.utils.buffer.MPPBuffer
 import java.io.File
@@ -23,6 +24,10 @@ class ColorBufferNullGL(
     }
 
     override fun saveToFile(file: File, imageFileFormat: ImageFileFormat, async: Boolean) {
+
+    }
+
+    override fun saveToFile(file: File, async: Boolean, configuration: ImageSaveConfiguration) {
 
     }
 

@@ -19,6 +19,7 @@ import org.openrndr.filter.color.copy
 import org.openrndr.internal.Driver
 import org.openrndr.internal.ImageData
 import org.openrndr.internal.ImageDriver
+import org.openrndr.internal.ImageSaveConfiguration
 import org.openrndr.shape.IntRectangle
 import org.openrndr.utils.buffer.MPPBuffer
 import java.io.File
@@ -878,6 +879,14 @@ class ColorBufferGL3(
         require(multisample == Disabled)
         toImageData().use { data ->
             ImageDriver.instance.saveImage(data, file.absolutePath, imageFileFormat)
+        }
+    }
+
+    override fun saveToFile(file: File, async: Boolean, configuration: ImageSaveConfiguration) {
+        checkDestroyed()
+        require(multisample == Disabled)
+        toImageData().use { data ->
+            ImageDriver.instance.saveImage(data, file.absolutePath, configuration)
         }
     }
 

@@ -7,6 +7,22 @@ import org.openrndr.draw.ImageFileFormat
 import org.openrndr.utils.buffer.MPPBuffer
 import kotlin.jvm.JvmName
 
+class ImageSaveContext
+
+sealed interface ImageSaveConfiguration
+
+fun ImageSaveContext.jpeg(configuration: JpegImageSaveConfiguration.() -> Unit): JpegImageSaveConfiguration =
+    JpegImageSaveConfiguration().apply(configuration)
+
+class JpegImageSaveConfiguration(var quality: Int = 95) : ImageSaveConfiguration
+
+class ExrImageSaveConfiguration() : ImageSaveConfiguration
+
+class PngImageSaveConfiguration() : ImageSaveConfiguration
+
+class HdrImageSaveConfiguration() : ImageSaveConfiguration
+
+class DdsImageSaveConfiguration() : ImageSaveConfiguration
 
 /**
  * ImageDriver is responsible for probing, loading and saving images
@@ -54,7 +70,24 @@ interface ImageDriver {
      * @param formatHint the format to use
      * @since 0.4.5
      */
-    fun saveImage(imageData: ImageData, filename: String, formatHint: ImageFileFormat?)
+    fun saveImage(imageData: ImageData, filename: String, formatHint: ImageFileFormat?) {
+        val assumedFormat = formatHint ?: ImageFileFormat.PNG
+        val config = when (assumedFormat) {
+            ImageFileFormat.JPG -> JpegImageSaveConfiguration()
+            ImageFileFormat.EXR -> ExrImageSaveConfiguration()
+            ImageFileFormat.PNG -> PngImageSaveConfiguration()
+            ImageFileFormat.DDS -> DdsImageSaveConfiguration()
+            ImageFileFormat.HDR -> HdrImageSaveConfiguration()
+        }
+        return saveImage(imageData, filename, config)
+    }
+
+    fun saveImage(imageData: ImageData, filename: String, configuration: ImageSaveConfiguration)
+
+    fun saveImage(imageData: ImageData, filename: String, saveContext: ImageSaveContext.() -> ImageSaveConfiguration) {
+        val context = ImageSaveContext()
+        val config = context.saveContext()
+    }
 
     /**
      * Convert an image to a data-url
