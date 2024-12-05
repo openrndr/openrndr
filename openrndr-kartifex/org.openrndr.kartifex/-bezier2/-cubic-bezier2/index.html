@@ -1,0 +1,443 @@
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>CubicBezier2</title>
+<link href="../../../../images/logo-icon.svg" rel="icon" type="image/svg"><script>var pathToRoot = "../../../../";</script>    <script>const storage = localStorage.getItem("dokka-dark-mode")
+    if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    } else {
+        const savedDarkMode = JSON.parse(storage)
+        if(savedDarkMode === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    }
+    </script>
+<script type="text/javascript" src="../../../../scripts/sourceset_dependencies.js" async></script>
+<link href="../../../../styles/style.css" rel="Stylesheet">
+<link href="../../../../styles/jetbrains-mono.css" rel="Stylesheet">
+<link href="../../../../styles/main.css" rel="Stylesheet">
+<link href="../../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../../styles/logo-styles.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../../scripts/clipboard.js" async></script>
+<script type="text/javascript" src="../../../../scripts/navigation-loader.js" async></script>
+<script type="text/javascript" src="../../../../scripts/platform-content-handler.js" async></script>
+<script type="text/javascript" src="../../../../scripts/main.js" defer></script>
+<script type="text/javascript" src="../../../../scripts/prism.js" async></script>
+<script type="text/javascript" src="../../../../scripts/symbol-parameters-wrapper_deferred.js" defer></script></head>
+<body>
+<div class="navigation-wrapper" id="navigation-wrapper">
+    <div id="leftToggler"><span class="icon-toggler"></span></div>
+    <div class="library-name">
+<a href="../../../../index.html">
+<span>openrndr</span>            </a>    </div>
+    <div>0.4.5-dev.9+28d315c
+    </div>
+    <div class="pull-right d-flex">
+        <div class="filter-section" id="filter-section">
+                <button class="platform-tag platform-selector common-like" data-active="" data-filter=":openrndr-kartifex:dokkaHtmlPartial/commonMain">common</button>
+        </div>
+        <button id="theme-toggle-button"><span id="theme-toggle"></span></button>
+        <div id="searchBar"></div>
+    </div>
+</div>
+<div id="container">
+    <div id="leftColumn">
+        <div id="sideMenu"></div>
+    </div>
+    <div id="main">
+<div class="main-content" data-page-type="classlike" id="content" pageids="openrndr-kartifex::org.openrndr.kartifex/Bezier2.CubicBezier2///PointingToDeclaration//1861687684">
+  <div class="breadcrumbs"><a href="../../../index.html">openrndr-kartifex</a><span class="delimiter">/</span><a href="../../index.html">org.openrndr.kartifex</a><span class="delimiter">/</span><a href="../index.html">Bezier2</a><span class="delimiter">/</span><span class="current">CubicBezier2</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span>Cubic</span><wbr><span><span>Bezier2</span></span></h1>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-kartifex:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">class </span><a href="index.html">CubicBezier2</a> : <a href="../../-curve2/index.html">Curve2</a><span class="clearfix"><span class="floating-right">(<a href="https://github.com/openrndr/openrndr/blob/master/openrndr-kartifex/src/commonMain/kotlin/Bezier2.kt#L234">source</a>)</span></span></div></div></div>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,FUNCTION,PROPERTY">Members</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="TYPE">
+        <h2 class="">Types</h2>
+        <div class="table"><a data-name="-1800626696%2FClasslikes%2F1861687684" anchor-label="Companion" id="-1800626696%2FClasslikes%2F1861687684" data-filterable-set=":openrndr-kartifex:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-kartifex:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-kartifex:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-companion/index.html"><span><span>Companion</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1800626696%2FClasslikes%2F1861687684"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-kartifex:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">object </span><a href="-companion/index.html">Companion</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="FUNCTION">
+        <h2 class="">Functions</h2>
+        <div class="table"><a data-name="-2037980857%2FFunctions%2F1861687684" anchor-label="approximate" id="-2037980857%2FFunctions%2F1861687684" data-filterable-set=":openrndr-kartifex:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-kartifex:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-kartifex:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="approximate.html"><span><span>approximate</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2037980857%2FFunctions%2F1861687684"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-kartifex:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">fun </span><a href="approximate.html"><span class="token function">approximate</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">error<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-double/index.html">Double</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-array/index.html">Array</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="../-quadratic-bezier2/index.html">Bezier2.QuadraticBezier2</a><span class="token operator">&gt;</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="951045684%2FFunctions%2F1861687684" anchor-label="bounds" id="951045684%2FFunctions%2F1861687684" data-filterable-set=":openrndr-kartifex:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-kartifex:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-kartifex:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="bounds.html"><span><span>bounds</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="951045684%2FFunctions%2F1861687684"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-kartifex:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="bounds.html"><span class="token function">bounds</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../-box2/index.html">Box2</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="34097266%2FFunctions%2F1861687684" anchor-label="direction" id="34097266%2FFunctions%2F1861687684" data-filterable-set=":openrndr-kartifex:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-kartifex:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-kartifex:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="direction.html"><span><span>direction</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="34097266%2FFunctions%2F1861687684"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-kartifex:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="direction.html"><span class="token function">direction</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">t<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-double/index.html">Double</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../-vec2/index.html">Vec2</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1948264246%2FFunctions%2F1861687684" anchor-label="end" id="1948264246%2FFunctions%2F1861687684" data-filterable-set=":openrndr-kartifex:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-kartifex:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-kartifex:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="end.html"><span><span>end</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1948264246%2FFunctions%2F1861687684"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-kartifex:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="end.html"><span class="token function">end</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../-vec2/index.html">Vec2</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1112960812%2FFunctions%2F1861687684" anchor-label="endpoints" id="1112960812%2FFunctions%2F1861687684" data-filterable-set=":openrndr-kartifex:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-kartifex:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-kartifex:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="endpoints.html"><span><span>endpoints</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1112960812%2FFunctions%2F1861687684"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-kartifex:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="endpoints.html"><span class="token function">endpoints</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">start<span class="token operator">: </span><a href="../../-vec2/index.html">Vec2</a><span class="token punctuation">, </span></span><span class="parameter ">end<span class="token operator">: </span><a href="../../-vec2/index.html">Vec2</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">Bezier2.CubicBezier2</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="414070139%2FFunctions%2F1861687684" anchor-label="inflections" id="414070139%2FFunctions%2F1861687684" data-filterable-set=":openrndr-kartifex:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-kartifex:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-kartifex:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="inflections.html"><span><span>inflections</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="414070139%2FFunctions%2F1861687684"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-kartifex:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="inflections.html"><span class="token function">inflections</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-double-array/index.html">DoubleArray</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1811919025%2FFunctions%2F1861687684" anchor-label="intersections" id="-1811919025%2FFunctions%2F1861687684" data-filterable-set=":openrndr-kartifex:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-kartifex:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-kartifex:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../-curve2/intersections.html"><span><span>intersections</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1811919025%2FFunctions%2F1861687684"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-kartifex:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword"></span><span class="token keyword">fun </span><a href="../../-curve2/intersections.html"><span class="token function">intersections</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">c<span class="token operator">: </span><a href="../../-curve2/index.html">Curve2</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-array/index.html">Array</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="../../-vec2/index.html">Vec2</a><span class="token operator">&gt;</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1128353310%2FFunctions%2F1861687684" anchor-label="isFlat" id="1128353310%2FFunctions%2F1861687684" data-filterable-set=":openrndr-kartifex:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-kartifex:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-kartifex:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="is-flat.html"><span>is</span><wbr><span><span>Flat</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1128353310%2FFunctions%2F1861687684"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-kartifex:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="is-flat.html"><span class="token function">isFlat</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">epsilon<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-double/index.html">Double</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-857935069%2FFunctions%2F1861687684" anchor-label="length" id="-857935069%2FFunctions%2F1861687684" data-filterable-set=":openrndr-kartifex:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-kartifex:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-kartifex:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="length.html"><span><span>length</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-857935069%2FFunctions%2F1861687684"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-kartifex:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="length.html"><span class="token function">length</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-double/index.html">Double</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-416763645%2FFunctions%2F1861687684" anchor-label="nearestPoint" id="-416763645%2FFunctions%2F1861687684" data-filterable-set=":openrndr-kartifex:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-kartifex:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-kartifex:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="nearest-point.html"><span>nearest</span><wbr><span><span>Point</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-416763645%2FFunctions%2F1861687684"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-kartifex:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="nearest-point.html"><span class="token function">nearestPoint</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">p<span class="token operator">: </span><a href="../../-vec2/index.html">Vec2</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-double/index.html">Double</a></div><div class="brief "><p class="paragraph">This quintic solver is adapted from https://github.com/Chlumsky/msdfgen, which is available under the MIT license.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1239130628%2FFunctions%2F1861687684" anchor-label="position" id="1239130628%2FFunctions%2F1861687684" data-filterable-set=":openrndr-kartifex:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-kartifex:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-kartifex:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="position.html"><span><span>position</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1239130628%2FFunctions%2F1861687684"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-kartifex:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="position.html"><span class="token function">position</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">t<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-double/index.html">Double</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../-vec2/index.html">Vec2</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1052780338%2FFunctions%2F1861687684" anchor-label="range" id="1052780338%2FFunctions%2F1861687684" data-filterable-set=":openrndr-kartifex:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-kartifex:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-kartifex:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../-curve2/range.html"><span><span>range</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1052780338%2FFunctions%2F1861687684"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-kartifex:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword"></span><span class="token keyword">fun </span><a href="../../-curve2/range.html"><span class="token function">range</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">interval<span class="token operator">: </span><a href="../../-interval/index.html">Interval</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../-curve2/index.html">Curve2</a></div><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword"></span><span class="token keyword">fun </span><a href="../../-curve2/range.html"><span class="token function">range</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">tMin<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter ">tMax<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-double/index.html">Double</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../-curve2/index.html">Curve2</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1963276017%2FFunctions%2F1861687684" anchor-label="reverse" id="-1963276017%2FFunctions%2F1861687684" data-filterable-set=":openrndr-kartifex:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-kartifex:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-kartifex:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="reverse.html"><span><span>reverse</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1963276017%2FFunctions%2F1861687684"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-kartifex:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="reverse.html"><span class="token function">reverse</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">Bezier2.CubicBezier2</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-59852896%2FFunctions%2F1861687684" anchor-label="signedArea" id="-59852896%2FFunctions%2F1861687684" data-filterable-set=":openrndr-kartifex:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-kartifex:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-kartifex:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="signed-area.html"><span>signed</span><wbr><span><span>Area</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-59852896%2FFunctions%2F1861687684"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-kartifex:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="signed-area.html"><span class="token function">signedArea</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-double/index.html">Double</a></div><div class="brief "><p class="paragraph">Given a ring of curves, the sum of area() will be the area enclosed by that ring. For clockwise rings, the sum will be negative, for counter-clockwise rings it will be positive.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="222682908%2FFunctions%2F1861687684" anchor-label="split" id="222682908%2FFunctions%2F1861687684" data-filterable-set=":openrndr-kartifex:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-kartifex:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-kartifex:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="split.html"><span><span>split</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="222682908%2FFunctions%2F1861687684"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-kartifex:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="split.html"><span class="token function">split</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">t<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-double/index.html">Double</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-array/index.html">Array</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="../../-curve2/index.html">Curve2</a><span class="token operator">&gt;</span></div><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword"></span><span class="token keyword">fun </span><a href="../../-curve2/split.html"><span class="token function">split</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">unsafeTs<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-double-array/index.html">DoubleArray</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-array/index.html">Array</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="../../-curve2/index.html">Curve2</a><span class="token operator">&gt;</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1887570801%2FFunctions%2F1861687684" anchor-label="start" id="-1887570801%2FFunctions%2F1861687684" data-filterable-set=":openrndr-kartifex:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-kartifex:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-kartifex:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="start.html"><span><span>start</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1887570801%2FFunctions%2F1861687684"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-kartifex:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="start.html"><span class="token function">start</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../-vec2/index.html">Vec2</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-942436308%2FFunctions%2F1861687684" anchor-label="subdivide" id="-942436308%2FFunctions%2F1861687684" data-filterable-set=":openrndr-kartifex:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-kartifex:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-kartifex:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="subdivide.html"><span><span>subdivide</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-942436308%2FFunctions%2F1861687684"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-kartifex:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="subdivide.html"><span class="token function">subdivide</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">error<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-double/index.html">Double</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-array/index.html">Array</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="../../-vec2/index.html">Vec2</a><span class="token operator">&gt;</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="857049949%2FFunctions%2F1861687684" anchor-label="toString" id="857049949%2FFunctions%2F1861687684" data-filterable-set=":openrndr-kartifex:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-kartifex:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-kartifex:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="to-string.html"><span>to</span><wbr><span><span>String</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="857049949%2FFunctions%2F1861687684"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-kartifex:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="to-string.html"><span class="token function">toString</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-693255647%2FFunctions%2F1861687684" anchor-label="transform" id="-693255647%2FFunctions%2F1861687684" data-filterable-set=":openrndr-kartifex:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-kartifex:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-kartifex:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="transform.html"><span><span>transform</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-693255647%2FFunctions%2F1861687684"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-kartifex:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="transform.html"><span class="token function">transform</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">m<span class="token operator">: </span><a href="../../-matrix3/index.html">Matrix3</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../-curve2/index.html">Curve2</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="PROPERTY">
+        <h2 class="">Properties</h2>
+        <div class="table"><a data-name="-1709191287%2FProperties%2F1861687684" anchor-label="p0" id="-1709191287%2FProperties%2F1861687684" data-filterable-set=":openrndr-kartifex:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-kartifex:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-kartifex:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="p0.html"><span><span>p0</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1709191287%2FProperties%2F1861687684"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-kartifex:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">val </span><a href="p0.html">p0</a><span class="token operator">: </span><a href="../../-vec2/index.html">Vec2</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1678171480%2FProperties%2F1861687684" anchor-label="p1" id="-1678171480%2FProperties%2F1861687684" data-filterable-set=":openrndr-kartifex:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-kartifex:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-kartifex:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="p1.html"><span><span>p1</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1678171480%2FProperties%2F1861687684"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-kartifex:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">val </span><a href="p1.html">p1</a><span class="token operator">: </span><a href="../../-vec2/index.html">Vec2</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1647151673%2FProperties%2F1861687684" anchor-label="p2" id="-1647151673%2FProperties%2F1861687684" data-filterable-set=":openrndr-kartifex:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-kartifex:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-kartifex:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="p2.html"><span><span>p2</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1647151673%2FProperties%2F1861687684"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-kartifex:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">val </span><a href="p2.html">p2</a><span class="token operator">: </span><a href="../../-vec2/index.html">Vec2</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1616131866%2FProperties%2F1861687684" anchor-label="p3" id="-1616131866%2FProperties%2F1861687684" data-filterable-set=":openrndr-kartifex:dokkaHtmlPartial/commonMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-kartifex:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-kartifex:dokkaHtmlPartial/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="p3.html"><span><span>p3</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1616131866%2FProperties%2F1861687684"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-kartifex:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">val </span><a href="p3.html">p3</a><span class="token operator">: </span><a href="../../-vec2/index.html">Vec2</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      <div class="footer">
+        <span class="go-to-top-icon"><a href="#content" id="go-to-top-link"></a></span><span>© 2024 Copyright</span><span class="pull-right"><span>Generated by </span><a href="https://github.com/Kotlin/dokka"><span>dokka</span><span class="padded-icon"></span></a></span>
+      </div>
+    </div>
+</div>
+</body>
+</html>
+
