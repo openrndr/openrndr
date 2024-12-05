@@ -8,8 +8,7 @@ import org.bytedeco.ffmpeg.avformat.AVFormatContext
 import org.bytedeco.ffmpeg.avformat.AVStream
 import org.bytedeco.ffmpeg.avutil.AVBufferRef
 import org.bytedeco.ffmpeg.avutil.AVHWDeviceContext
-import org.bytedeco.ffmpeg.global.avcodec.av_packet_alloc
-import org.bytedeco.ffmpeg.global.avcodec.av_packet_unref
+import org.bytedeco.ffmpeg.global.avcodec.*
 import org.bytedeco.ffmpeg.global.avformat.*
 import org.bytedeco.ffmpeg.global.avutil.*
 import org.bytedeco.javacpp.BytePointer
@@ -67,17 +66,10 @@ internal class Decoder(
             useAudio: Boolean
         ): Pair<Decoder, CodecInfo> {
             val videoStreamIndex =
-                if (configuration.legacyStreamOpen) {
-                    if (useVideo) context.codecs.indexOfFirst { it?.codec_type() == AVMEDIA_TYPE_VIDEO } else -1
-                } else {
-                    av_find_best_stream(context, AVMEDIA_TYPE_VIDEO, -1, -1, null as AVCodec?, 0)
-                }
+                av_find_best_stream(context, AVMEDIA_TYPE_VIDEO, -1, -1, null as AVCodec?, 0)
+
             val audioStreamIndex =
-                if (configuration.legacyStreamOpen) {
-                    if (useAudio) context.codecs.indexOfFirst { it?.codec_type() == AVMEDIA_TYPE_AUDIO } else -1
-                } else {
-                    av_find_best_stream(context, AVMEDIA_TYPE_AUDIO, -1, -1, null as AVCodec?, 0)
-                }
+                av_find_best_stream(context, AVMEDIA_TYPE_AUDIO, -1, -1, null as AVCodec?, 0)
 
             val videoStream = context.streamAt(videoStreamIndex)
             val audioStream = if (useAudio) context.streamAt(audioStreamIndex) else null
@@ -193,10 +185,8 @@ internal class Decoder(
     private var seekRequested = false
     private var seekPosition: Double = -1.0
 
-    var seekTimedOut = false
-
     fun seek(positionInSeconds: Double) {
-        logger.debug { "requesting decoder to seek"}
+        logger.debug { "requesting decoder to seek" }
         seekPosition = positionInSeconds
         seekRequested = true
     }
@@ -280,15 +270,19 @@ internal class Decoder(
             if (packetResult == AVERROR_EOF) {
 
                 if (!atEndOfFile) {
-                    logger.debug { "decoder reached end of file"}
+                    logger.debug { "decoder reached end of file" }
                     reachedEndOfFile()
                     atEndOfFile = true
                 } else {
                     //logger.debug { "already at end of file" }
                 }
+                av_packet_free(packet)
+                Thread.sleep(10)
                 return
 
             } else if (packetResult < 0) {
+                Thread.sleep(10)
+                av_packet_free(packet)
                 return
             }
 
@@ -312,6 +306,7 @@ internal class Decoder(
                         require(videoDecoder?.isQueueAlmostFull() != true)
                         videoDecoder?.decodeVideoPacket(videoStream!!, packet, seekPosition)
                     }
+
                     audioStreamIndex -> {
                         require(audioDecoder?.isQueueAlmostFull() != true)
                         audioDecoder?.decodeAudioPacket(audioStream!!, packet, seekPosition)

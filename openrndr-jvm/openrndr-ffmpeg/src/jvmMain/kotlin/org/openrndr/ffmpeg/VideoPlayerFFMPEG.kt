@@ -182,7 +182,6 @@ class VideoPlayerConfiguration {
     var allowSRGB = true
     var minimumSeekOffset = -0.1
     var maximumSeekOffset = 0.0
-    var legacyStreamOpen = false
     var allowArbitrarySeek = false
     var synchronizeToClock = true
     var displayQueueCooldown = 10
@@ -619,7 +618,7 @@ class VideoPlayerFFMPEG private constructor(
 
 
                     val delta = now - nextFrame
-                    if (delta > duration * 2 && configuration.synchronizeToClock) {
+                    if (!endOfFileReached && delta > duration * 2 && configuration.synchronizeToClock) {
                         logger.warn {
                             "resetting next frame time to ${now}, ${delta/duration} frame difference"
                         }
@@ -632,8 +631,6 @@ class VideoPlayerFFMPEG private constructor(
 
                         if (frame != null) {
                             logger.trace { "time stamp: ${frame.timeStamp}" }
-
-
                             nextFrame += duration
 
                             while (displayQueue.size() >= displayQueue.maxSize - 1) {
