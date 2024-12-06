@@ -16,7 +16,10 @@ fun ImageSaveContext.jpeg(configuration: JpegImageSaveConfiguration.() -> Unit):
 
 class JpegImageSaveConfiguration(var quality: Int = 95) : ImageSaveConfiguration
 
-class ExrImageSaveConfiguration() : ImageSaveConfiguration
+fun ImageSaveContext.exr(configuration: ExrImageSaveConfiguration.() -> Unit): ExrImageSaveConfiguration =
+    ExrImageSaveConfiguration().apply(configuration)
+
+class ExrImageSaveConfiguration(var compression: Int = 0) : ImageSaveConfiguration
 
 class PngImageSaveConfiguration() : ImageSaveConfiguration
 

@@ -576,7 +576,7 @@ class ImageDriverStbImage : ImageDriver {
                         }
                     }
 
-                    else -> error("unsupported input for JPG (${imageData.type}/${imageData.type}")
+                    else -> error("unsupported input for HDR (${imageData.type}/${imageData.type}")
                 }
             }
 
@@ -592,61 +592,50 @@ class ImageDriverStbImage : ImageDriver {
                 val exrHeader = EXRHeader.create()
                 InitEXRHeader(exrHeader)
 
-                exrHeader.num_channels(3)
+                val channelCount = imageData.format.componentCount
 
-                val exrChannels = EXRChannelInfo.calloc(3)
-                exrChannels[0].name(
-                    ByteBuffer.allocateDirect(2)
-                        .apply { put('B'.code.toByte()); put(0.toByte()); (this as Buffer).rewind() })
-                exrChannels[1].name(
-                    ByteBuffer.allocateDirect(2)
-                        .apply { put('G'.code.toByte()); put(0.toByte()); (this as Buffer).rewind() })
-                exrChannels[2].name(
-                    ByteBuffer.allocateDirect(2)
-                        .apply { put('R'.code.toByte()); put(0.toByte()); (this as Buffer).rewind() })
+                exrHeader.num_channels(channelCount)
+                exrHeader.compression_type(configuration.compression)
+
+                val exrChannels = EXRChannelInfo.calloc(channelCount)
+                val channelNames = "RGBA"
+
+                for(ch in 0 until channelCount) {
+                    exrChannels[ch].name(
+                        ByteBuffer.allocateDirect(2)
+                            .apply { put(channelNames[ch].code.toByte()); put(0.toByte()); (this as Buffer).rewind() })
+                }
 
                 exrHeader.channels(exrChannels)
 
-
-                val bBuffer =
+                val buffers = List(channelCount) {
                     ByteBuffer.allocateDirect(imageData.width * imageData.height * 4).order(ByteOrder.nativeOrder())
-                val gBuffer =
-                    ByteBuffer.allocateDirect(imageData.width * imageData.height * 4).order(ByteOrder.nativeOrder())
-                val rBuffer =
-                    ByteBuffer.allocateDirect(imageData.width * imageData.height * 4).order(ByteOrder.nativeOrder())
+                }
 
                 val data = imageData.data?.byteBuffer ?: error("no buffer")
 
                 // -- de-interleave and flip data
                 for (y in 0 until imageData.height) {
                     val row = if (!imageData.flipV) imageData.height - 1 - y else y
-                    val offset = row * imageData.width * imageData.type.componentSize * 3
+                    val offset = row * imageData.width * imageData.type.componentSize * channelCount
 
                     (data as Buffer).position(offset)
 
                     for (x in 0 until imageData.width) {
-                        for (i in 0 until imageData.type.componentSize) {
-                            val b = data.get()
-                            bBuffer.put(b)
-                        }
-                        for (i in 0 until imageData.type.componentSize) {
-                            val g = data.get()
-                            gBuffer.put(g)
-                        }
-                        for (i in 0 until imageData.type.componentSize) {
-                            val r = data.get()
-                            rBuffer.put(r)
+                        buffers.forEach {
+                            for (i in 0 until imageData.type.componentSize) {
+                                val d = data.get()
+                                it.put(d)
+                            }
                         }
                     }
                 }
 
-                (bBuffer as Buffer).rewind()
-                (gBuffer as Buffer).rewind()
-                (rBuffer as Buffer).rewind()
+                buffers.forEach { (it as Buffer).rewind() }
 
-
-                val pixelTypes = BufferUtils.createIntBuffer(4 * 3).apply {
-                    put(exrType); put(exrType); put(exrType); (this as Buffer).rewind()
+                val pixelTypes = BufferUtils.createIntBuffer(4 * channelCount).apply {
+                    repeat(channelCount) { put(exrType) }
+                    (this as Buffer).rewind()
                 }
                 exrHeader.pixel_types(pixelTypes)
                 (pixelTypes as Buffer).rewind()
@@ -654,12 +643,13 @@ class ImageDriverStbImage : ImageDriver {
 
                 exrImage.width(imageData.width)
                 exrImage.height(imageData.height)
-                exrImage.num_channels(3)
+                exrImage.num_channels(channelCount)
 
-                val images = PointerBuffer.allocateDirect(3)
-                images.put(0, bBuffer)
-                images.put(1, gBuffer)
-                images.put(2, rBuffer)
+                val images = PointerBuffer.allocateDirect(channelCount)
+
+                buffers.forEachIndexed { i, it ->
+                    images.put(channelCount - 1 - i, it)
+                }
                 images.rewind()
                 exrImage.images(images)
 
