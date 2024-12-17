@@ -82,7 +82,7 @@ ${vertexMainConstants()}
 ${shadeStructure.varyingBridge ?: ""}
     vec3 x_normal = vec3(0.0, 0.0, 0.0);
     ${if (shadeStructure.attributes?.contains("vec3 a_normal;") == true) "x_normal = a_normal;" else ""}
-    vec3 x_position = a_position;
+    vec3 x_position = a_position.xyz;
     float x_pointSize = 1.0;
 
     ${preVertexTransform}
@@ -165,7 +165,7 @@ void main() {
     ${shadeStructure.varyingBridge ?: ""}
     ${preVertexTransform}
     vec3 x_normal = a_normal;
-    vec3 x_position = a_position;
+    vec3 x_position = a_position.xyz;
     x_position.xy = a_position.xy * i_target.zw + i_target.xy;
     v_boundsPosition = vec3(a_texCoord0.xy, 1.0);
     va_texCoord0.xy = a_texCoord0.xy * i_source.zw + i_source.xy;
@@ -248,7 +248,7 @@ void main() {
     ${shadeStructure.varyingBridge ?: ""}
     ${preVertexTransform}
     vec3 x_normal = a_normal;
-    vec3 x_position = a_position;
+    vec3 x_position = a_position.xyz;
     x_position.xy = a_position.xy * i_target.zw + i_target.xy;
     v_boundsPosition = vec3(a_texCoord0.xy, 1.0);
     va_texCoord0.xy = a_texCoord0.xy * i_source.zw + i_source.xy;
@@ -325,7 +325,7 @@ void main() {
     v_boundsSize = vec3(0, 0.0, 0.0);
     ${preVertexTransform}
     vec3 x_normal = vec3(0.0, 0.0, 1.0);
-    vec3 x_position = a_position  + i_offset;
+    vec3 x_position = a_position.xyz + i_offset;
     float x_pointSize = 1.0;
     {
 ${shadeStructure.vertexTransform?.prependIndent("        ") ?: ""}
@@ -749,7 +749,7 @@ void main() {
     ${shadeStructure.varyingBridge ?: ""}
     $preVertexTransform
     vec3 x_normal = vec3(0.0, 0.0, 1.0);
-    vec3 x_position = a_position;
+    vec3 x_position = a_position.xyz;
     {
 ${shadeStructure.vertexTransform?.prependIndent("        ") ?: ""}
     }
@@ -817,7 +817,7 @@ ${shadeStructure.fragmentTransform?.prependIndent("        ") ?: ""}
         |   ${shadeStructure.varyingBridge ?: ""}
         |   $preVertexTransform
         |   vec3 x_normal = vec3(0.0, 0.0, 1.0);
-        |   vec3 x_position = a_position;
+        |   vec3 x_position = a_position.xyz;
         |   {
 ${shadeStructure.vertexTransform?.prependIndent("        ") ?: ""}
         |   }
