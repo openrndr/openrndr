@@ -1,0 +1,66 @@
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>error</title>
+<link href="../../../images/logo-icon.svg" rel="icon" type="image/svg"><script>var pathToRoot = "../../../";</script>    <script>const storage = localStorage.getItem("dokka-dark-mode")
+    if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    } else {
+        const savedDarkMode = JSON.parse(storage)
+        if(savedDarkMode === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    }
+    </script>
+<script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async></script>
+<link href="../../../styles/style.css" rel="Stylesheet">
+<link href="../../../styles/jetbrains-mono.css" rel="Stylesheet">
+<link href="../../../styles/main.css" rel="Stylesheet">
+<link href="../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../scripts/clipboard.js" async></script>
+<script type="text/javascript" src="../../../scripts/navigation-loader.js" async></script>
+<script type="text/javascript" src="../../../scripts/platform-content-handler.js" async></script>
+<script type="text/javascript" src="../../../scripts/main.js" defer></script>
+<script type="text/javascript" src="../../../scripts/prism.js" async></script>
+<script type="text/javascript" src="../../../scripts/symbol-parameters-wrapper_deferred.js" defer></script></head>
+<body>
+<div class="navigation-wrapper" id="navigation-wrapper">
+    <div id="leftToggler"><span class="icon-toggler"></span></div>
+    <div class="library-name">
+<a href="../../../index.html">
+<span>openrndr</span>            </a>    </div>
+    <div>0.4.5-dev.13.uncommitted+30f3abb
+    </div>
+    <div class="pull-right d-flex">
+        <div class="filter-section" id="filter-section">
+                <button class="platform-tag platform-selector common-like" data-active="" data-filter=":openrndr-ktessellation:dokkaHtmlPartial/commonMain">common</button>
+        </div>
+        <button id="theme-toggle-button"><span id="theme-toggle"></span></button>
+        <div id="searchBar"></div>
+    </div>
+</div>
+<div id="container">
+    <div id="leftColumn">
+        <div id="sideMenu"></div>
+    </div>
+    <div id="main">
+<div class="main-content" data-page-type="member" id="content" pageids="openrndr-ktessellation::org.openrndr.ktessellation/GLUtessellatorCallbackAdapter/error/#kotlin.Int/PointingToDeclaration//-159663360">
+  <div class="breadcrumbs"><a href="../../index.html">openrndr-ktessellation</a><span class="delimiter">/</span><a href="../index.html">org.openrndr.ktessellation</a><span class="delimiter">/</span><a href="index.html">GLUtessellatorCallbackAdapter</a><span class="delimiter">/</span><span class="current">error</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span><span>error</span></span></h1>
+  </div>
+  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-ktessellation:dokkaHtmlPartial/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="error.html"><span class="token function">error</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">errnum<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span><span class="clearfix"><span class="floating-right">(<a href="https://github.com/openrndr/openrndr/blob/master/openrndr-ktessellation/src/commonMain/kotlin/GLUtessellatorCallbackAdapter.kt#L11">source</a>)</span></span></div><p class="paragraph">The <strong>error</strong> callback method is called when an error is encountered. The one argument is of type int; it indicates the specific error that occurred and will be set to one of <strong>GLU_TESS_MISSING_BEGIN_POLYGON</strong>, <strong>GLU_TESS_MISSING_END_POLYGON</strong>, <strong>GLU_TESS_MISSING_BEGIN_CONTOUR</strong>, <strong>GLU_TESS_MISSING_END_CONTOUR</strong>, <strong>GLU_TESS_COORD_TOO_LARGE</strong>, <strong>GLU_TESS_NEED_COMBINE_CALLBACK</strong> or <strong>GLU_OUT_OF_MEMORY</strong>. Character strings describing these errors can be retrieved with the <a href="../-g-l-u/glu-error-string.html">gluErrorString</a> call.</p><p></p><p class="paragraph">The GLU library will recover from the first four errors by inserting the missing call(s). <strong>GLU_TESS_COORD_TOO_LARGE</strong> indicates that some vertex coordinate exceeded the predefined constant <strong>GLU_TESS_MAX_COORD</strong> in absolute value, and that the value has been clamped. (Coordinate values must be small enough so that two can be multiplied together without overflow.) <strong>GLU_TESS_NEED_COMBINE_CALLBACK</strong> indicates that the tessellation detected an intersection between two edges in the input data, and the <strong>GLU_TESS_COMBINE</strong> or <strong>GLU_TESS_COMBINE_DATA</strong> callback was not provided. No output is generated. <strong>GLU_OUT_OF_MEMORY</strong> indicates that there is not enough memory so no output is generated.</p><h4 class="">Parameters</h4><div class="table"><div class="table-row" data-filterable-current=":openrndr-ktessellation:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-ktessellation:dokkaHtmlPartial/commonMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>errnum</span></span></u></div></span></div><div><div class="title"><p class="paragraph">Specifics the error number code.</p></div></div></div></div></div><h4 class="">See also</h4><div class="table"><div class="table-row" data-filterable-current=":openrndr-ktessellation:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-ktessellation:dokkaHtmlPartial/commonMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><span>GLU.</span><wbr><span>glu</span><wbr><span>Tess</span><wbr><span><span>Callback</span></span></div></span></div><div><div class="title"><p class="paragraph">gluTessCallback</p></div></div></div></div><div class="table-row" data-filterable-current=":openrndr-ktessellation:dokkaHtmlPartial/commonMain" data-filterable-set=":openrndr-ktessellation:dokkaHtmlPartial/commonMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div></div></span></div><div><div class="title"><p class="paragraph">.errorData errorData </p><p></p></div></div></div></div></div></div></div>
+</div>
+      <div class="footer">
+        <span class="go-to-top-icon"><a href="#content" id="go-to-top-link"></a></span><span>© 2024 Copyright</span><span class="pull-right"><span>Generated by </span><a href="https://github.com/Kotlin/dokka"><span>dokka</span><span class="padded-icon"></span></a></span>
+      </div>
+    </div>
+</div>
+</body>
+</html>
+

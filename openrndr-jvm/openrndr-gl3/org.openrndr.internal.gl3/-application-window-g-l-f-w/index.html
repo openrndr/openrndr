@@ -1,0 +1,443 @@
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>ApplicationWindowGLFW</title>
+<link href="../../../../images/logo-icon.svg" rel="icon" type="image/svg"><script>var pathToRoot = "../../../../";</script>    <script>const storage = localStorage.getItem("dokka-dark-mode")
+    if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    } else {
+        const savedDarkMode = JSON.parse(storage)
+        if(savedDarkMode === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    }
+    </script>
+<script type="text/javascript" src="../../../../scripts/sourceset_dependencies.js" async></script>
+<link href="../../../../styles/style.css" rel="Stylesheet">
+<link href="../../../../styles/jetbrains-mono.css" rel="Stylesheet">
+<link href="../../../../styles/main.css" rel="Stylesheet">
+<link href="../../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../../styles/logo-styles.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../../scripts/clipboard.js" async></script>
+<script type="text/javascript" src="../../../../scripts/navigation-loader.js" async></script>
+<script type="text/javascript" src="../../../../scripts/platform-content-handler.js" async></script>
+<script type="text/javascript" src="../../../../scripts/main.js" defer></script>
+<script type="text/javascript" src="../../../../scripts/prism.js" async></script>
+<script type="text/javascript" src="../../../../scripts/symbol-parameters-wrapper_deferred.js" defer></script></head>
+<body>
+<div class="navigation-wrapper" id="navigation-wrapper">
+    <div id="leftToggler"><span class="icon-toggler"></span></div>
+    <div class="library-name">
+<a href="../../../../index.html">
+<span>openrndr</span>            </a>    </div>
+    <div>0.4.5-dev.13.uncommitted+30f3abb
+    </div>
+    <div class="pull-right d-flex">
+        <div class="filter-section" id="filter-section">
+                <button class="platform-tag platform-selector jvm-like" data-active="" data-filter=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain">jvm</button>
+        </div>
+        <button id="theme-toggle-button"><span id="theme-toggle"></span></button>
+        <div id="searchBar"></div>
+    </div>
+</div>
+<div id="container">
+    <div id="leftColumn">
+        <div id="sideMenu"></div>
+    </div>
+    <div id="main">
+<div class="main-content" data-page-type="classlike" id="content" pageids="openrndr-gl3::org.openrndr.internal.gl3/ApplicationWindowGLFW///PointingToDeclaration//659783480">
+  <div class="breadcrumbs"><a href="../../index.html">openrndr-gl3</a><span class="delimiter">/</span><a href="../index.html">org.openrndr.internal.gl3</a><span class="delimiter">/</span><span class="current">ApplicationWindowGLFW</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span>Application</span><wbr><span>Window</span><wbr><span><span>GLFW</span></span></h1>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain"><div class="symbol monospace"><span class="token keyword">class </span><a href="index.html">ApplicationWindowGLFW</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>application<span class="token operator">: </span><a href="../-application-g-l-f-w-g-l3/index.html">ApplicationGLFWGL3</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>window<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-long/index.html">Long</a><span class="token punctuation">, </span></span><span class="parameter ">windowTitle<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>windowResizable<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>windowMultisample<span class="token operator">: </span><a href="../../../../openrndr-application/org.openrndr/-window-multisample/index.html">WindowMultisample</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>windowClosable<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token punctuation">, </span></span><span class="parameter ">program<span class="token operator">: </span><a href="../../../../openrndr-application/org.openrndr/-program/index.html">Program</a></span></span><span class="token punctuation">)</span> : <a href="../../../../openrndr-application/org.openrndr/-application-window/index.html">ApplicationWindow</a><span class="clearfix"><span class="floating-right">(<a href="https://github.com/openrndr/openrndr/blob/master/openrndr-gl3/src/jvmMain/kotlin/org/openrndr/internal/gl3/ApplicationWindowGLFW.kt#L24">source</a>)</span></span></div></div></div>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,FUNCTION,PROPERTY">Members</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="CONSTRUCTOR">
+        <h2 class="">Constructors</h2>
+        <div class="table"><a data-name="1017118007%2FConstructors%2F659783480" anchor-label="ApplicationWindowGLFW" id="1017118007%2FConstructors%2F659783480" data-filterable-set=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain"></a>
+          <div class="table-row" data-togglable="CONSTRUCTOR" data-filterable-current=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-application-window-g-l-f-w.html"><span>Application</span><wbr><span>Window</span><wbr><span><span>GLFW</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1017118007%2FConstructors%2F659783480"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">application<span class="token operator">: </span><a href="../-application-g-l-f-w-g-l3/index.html">ApplicationGLFWGL3</a><span class="token punctuation">, </span></span><span class="parameter ">window<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-long/index.html">Long</a><span class="token punctuation">, </span></span><span class="parameter ">windowTitle<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">windowResizable<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token punctuation">, </span></span><span class="parameter ">windowMultisample<span class="token operator">: </span><a href="../../../../openrndr-application/org.openrndr/-window-multisample/index.html">WindowMultisample</a><span class="token punctuation">, </span></span><span class="parameter ">windowClosable<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token punctuation">, </span></span><span class="parameter ">program<span class="token operator">: </span><a href="../../../../openrndr-application/org.openrndr/-program/index.html">Program</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="FUNCTION">
+        <h2 class="">Functions</h2>
+        <div class="table"><a data-name="1481551422%2FFunctions%2F659783480" anchor-label="destroy" id="1481551422%2FFunctions%2F659783480" data-filterable-set=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="destroy.html"><span><span>destroy</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1481551422%2FFunctions%2F659783480"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="destroy.html"><span class="token function">destroy</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1740394085%2FFunctions%2F659783480" anchor-label="requestDraw" id="1740394085%2FFunctions%2F659783480" data-filterable-set=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="request-draw.html"><span>request</span><wbr><span><span>Draw</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1740394085%2FFunctions%2F659783480"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="request-draw.html"><span class="token function">requestDraw</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="2078335114%2FFunctions%2F659783480" anchor-label="setDefaultIcon" id="2078335114%2FFunctions%2F659783480" data-filterable-set=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="set-default-icon.html"><span>set</span><wbr><span>Default</span><wbr><span><span>Icon</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2078335114%2FFunctions%2F659783480"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">fun </span><a href="set-default-icon.html"><span class="token function">setDefaultIcon</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1011030653%2FFunctions%2F659783480" anchor-label="setupGlfwEvents" id="-1011030653%2FFunctions%2F659783480" data-filterable-set=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="setup-glfw-events.html"><span>setup</span><wbr><span>Glfw</span><wbr><span><span>Events</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1011030653%2FFunctions%2F659783480"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">fun </span><a href="setup-glfw-events.html"><span class="token function">setupGlfwEvents</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">application<span class="token operator">: </span><a href="../-application-g-l-f-w-g-l3/index.html">ApplicationGLFWGL3</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1689056812%2FFunctions%2F659783480" anchor-label="setupRenderTarget" id="-1689056812%2FFunctions%2F659783480" data-filterable-set=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="setup-render-target.html"><span>setup</span><wbr><span>Render</span><wbr><span><span>Target</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1689056812%2FFunctions%2F659783480"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">fun </span><a href="setup-render-target.html"><span class="token function">setupRenderTarget</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1443102329%2FFunctions%2F659783480" anchor-label="update" id="1443102329%2FFunctions%2F659783480" data-filterable-set=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="update.html"><span><span>update</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1443102329%2FFunctions%2F659783480"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">fun </span><a href="update.html"><span class="token function">update</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="PROPERTY">
+        <h2 class="">Properties</h2>
+        <div class="table"><a data-name="-1879785432%2FProperties%2F659783480" anchor-label="application" id="-1879785432%2FProperties%2F659783480" data-filterable-set=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="application.html"><span><span>application</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1879785432%2FProperties%2F659783480"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">val </span><a href="application.html">application</a><span class="token operator">: </span><a href="../-application-g-l-f-w-g-l3/index.html">ApplicationGLFWGL3</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="493826823%2FProperties%2F659783480" anchor-label="cursorHideMode" id="493826823%2FProperties%2F659783480" data-filterable-set=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="cursor-hide-mode.html"><span>cursor</span><wbr><span>Hide</span><wbr><span><span>Mode</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="493826823%2FProperties%2F659783480"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">var </span><a href="cursor-hide-mode.html">cursorHideMode</a><span class="token operator">: </span><a href="../../../../openrndr-application/org.openrndr/-mouse-cursor-hide-mode/index.html">MouseCursorHideMode</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-919771753%2FProperties%2F659783480" anchor-label="cursorInWindow" id="-919771753%2FProperties%2F659783480" data-filterable-set=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="cursor-in-window.html"><span>cursor</span><wbr><span>In</span><wbr><span><span>Window</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-919771753%2FProperties%2F659783480"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">var </span><a href="cursor-in-window.html">cursorInWindow</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1492499357%2FProperties%2F659783480" anchor-label="cursorPosition" id="-1492499357%2FProperties%2F659783480" data-filterable-set=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="cursor-position.html"><span>cursor</span><wbr><span><span>Position</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1492499357%2FProperties%2F659783480"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">var </span><a href="cursor-position.html">cursorPosition</a><span class="token operator">: </span><a href="../../../../openrndr-math/org.openrndr.math/-vector2/index.html">Vector2</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1717320974%2FProperties%2F659783480" anchor-label="cursorType" id="-1717320974%2FProperties%2F659783480" data-filterable-set=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="cursor-type.html"><span>cursor</span><wbr><span><span>Type</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1717320974%2FProperties%2F659783480"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">var </span><a href="cursor-type.html">cursorType</a><span class="token operator">: </span><a href="../../../../openrndr-application/org.openrndr/-cursor-type/index.html">CursorType</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="382368764%2FProperties%2F659783480" anchor-label="cursorVisible" id="382368764%2FProperties%2F659783480" data-filterable-set=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="cursor-visible.html"><span>cursor</span><wbr><span><span>Visible</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="382368764%2FProperties%2F659783480"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">var </span><a href="cursor-visible.html">cursorVisible</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1125895077%2FProperties%2F659783480" anchor-label="presentationMode" id="1125895077%2FProperties%2F659783480" data-filterable-set=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="presentation-mode.html"><span>presentation</span><wbr><span><span>Mode</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1125895077%2FProperties%2F659783480"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">var </span><a href="presentation-mode.html">presentationMode</a><span class="token operator">: </span><a href="../../../../openrndr-application/org.openrndr/-presentation-mode/index.html">PresentationMode</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1062329991%2FProperties%2F659783480" anchor-label="program" id="-1062329991%2FProperties%2F659783480" data-filterable-set=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#-1062329991%2FProperties%2F659783480"><span><span>program</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1062329991%2FProperties%2F659783480"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">val </span><a href="index.html#-1062329991%2FProperties%2F659783480">program</a><span class="token operator">: </span><a href="../../../../openrndr-application/org.openrndr/-program/index.html">Program</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-312384206%2FProperties%2F659783480" anchor-label="window" id="-312384206%2FProperties%2F659783480" data-filterable-set=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="window.html"><span><span>window</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-312384206%2FProperties%2F659783480"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">val </span><a href="window.html">window</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-long/index.html">Long</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="836990731%2FProperties%2F659783480" anchor-label="windowClosable" id="836990731%2FProperties%2F659783480" data-filterable-set=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="window-closable.html"><span>window</span><wbr><span><span>Closable</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="836990731%2FProperties%2F659783480"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">val </span><a href="window-closable.html">windowClosable</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="534770273%2FProperties%2F659783480" anchor-label="windowContentScale" id="534770273%2FProperties%2F659783480" data-filterable-set=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="window-content-scale.html"><span>window</span><wbr><span>Content</span><wbr><span><span>Scale</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="534770273%2FProperties%2F659783480"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">var </span><a href="window-content-scale.html">windowContentScale</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-double/index.html">Double</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1390624463%2FProperties%2F659783480" anchor-label="windowFocused" id="-1390624463%2FProperties%2F659783480" data-filterable-set=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="window-focused.html"><span>window</span><wbr><span><span>Focused</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1390624463%2FProperties%2F659783480"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">var </span><a href="window-focused.html">windowFocused</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="217640069%2FProperties%2F659783480" anchor-label="windowMultisample" id="217640069%2FProperties%2F659783480" data-filterable-set=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="window-multisample.html"><span>window</span><wbr><span><span>Multisample</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="217640069%2FProperties%2F659783480"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">val </span><a href="window-multisample.html">windowMultisample</a><span class="token operator">: </span><a href="../../../../openrndr-application/org.openrndr/-window-multisample/index.html">WindowMultisample</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-561416439%2FProperties%2F659783480" anchor-label="windowPosition" id="-561416439%2FProperties%2F659783480" data-filterable-set=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="window-position.html"><span>window</span><wbr><span><span>Position</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-561416439%2FProperties%2F659783480"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">var </span><a href="window-position.html">windowPosition</a><span class="token operator">: </span><a href="../../../../openrndr-math/org.openrndr.math/-vector2/index.html">Vector2</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-767715907%2FProperties%2F659783480" anchor-label="windowResizable" id="-767715907%2FProperties%2F659783480" data-filterable-set=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="window-resizable.html"><span>window</span><wbr><span><span>Resizable</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-767715907%2FProperties%2F659783480"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">val </span><a href="window-resizable.html">windowResizable</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-586381903%2FProperties%2F659783480" anchor-label="windowSize" id="-586381903%2FProperties%2F659783480" data-filterable-set=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="window-size.html"><span>window</span><wbr><span><span>Size</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-586381903%2FProperties%2F659783480"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">var </span><a href="window-size.html">windowSize</a><span class="token operator">: </span><a href="../../../../openrndr-math/org.openrndr.math/-vector2/index.html">Vector2</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-184893392%2FProperties%2F659783480" anchor-label="windowTitle" id="-184893392%2FProperties%2F659783480" data-filterable-set=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain"></a>
+          <div class="table-row" data-filterable-current=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain" data-filterable-set=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="window-title.html"><span>window</span><wbr><span><span>Title</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-184893392%2FProperties%2F659783480"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":openrndr-jvm:openrndr-gl3:dokkaHtmlPartial/jvmMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">var </span><a href="window-title.html">windowTitle</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      <div class="footer">
+        <span class="go-to-top-icon"><a href="#content" id="go-to-top-link"></a></span><span>© 2024 Copyright</span><span class="pull-right"><span>Generated by </span><a href="https://github.com/Kotlin/dokka"><span>dokka</span><span class="padded-icon"></span></a></span>
+      </div>
+    </div>
+</div>
+</body>
+</html>
+
