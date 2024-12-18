@@ -50,7 +50,7 @@ internal class PointerInputManagerWin32(val window: Long, val application: Appli
             when (uMsg) {
                 in User32.WM_MOUSEMOVE..User32.WM_MOUSEWHEEL,
                 in User32.WM_KEYDOWN..User32.WM_UNICHAR -> {
-                    User32.SendMessage(this.hwnd, uMsg, wParam, lParam)
+                    User32.SendMessage(null, this.hwnd, uMsg, wParam, lParam)
                     0
                 }
 
@@ -63,13 +63,14 @@ internal class PointerInputManagerWin32(val window: Long, val application: Appli
         windowClass.lpszClassName(MemoryUtil.memUTF16("touchs", true))
         windowClass.hIcon(0L)
 
-        val res = User32.RegisterClassEx(windowClass)
+        val res = User32.RegisterClassEx(null, windowClass)
         require(res != 0.toShort()) {
             "RegisterClassEx failed"
         }
 
         logger.info { "parent window $hwnd" }
         touchHwnd = User32.CreateWindowEx(
+            null,
             /* dwExStyle = */ 0,
             /* lpClassName = */ "touchs",
             /* lpWindowName = */ "touch",
@@ -85,14 +86,14 @@ internal class PointerInputManagerWin32(val window: Long, val application: Appli
         )
         require(touchHwnd != 0L) { "CreateWindowEx failed" }
 
-        val windowStyle = User32.GetWindowLongPtr(hwnd, User32.GWL_STYLE)
-        User32.SetWindowLongPtr(hwnd, User32.GWL_STYLE, windowStyle xor User32.WS_CLIPCHILDREN.toLong())
+        val windowStyle = User32.GetWindowLongPtr(null, hwnd, User32.GWL_STYLE)
+        User32.SetWindowLongPtr(null, hwnd, User32.GWL_STYLE, windowStyle xor User32.WS_CLIPCHILDREN.toLong())
 
         logger.info { "created touch window window $touchHwnd" }
-        User32.RegisterTouchWindow(touchHwnd, 0)
+        User32.RegisterTouchWindow(null, touchHwnd, 0)
         User32.ShowWindow(touchHwnd, User32.SW_SHOW)
 
-        require(User32.MoveWindow(touchHwnd, 0, 0, 8192, 8192, false))
+        require(User32.MoveWindow(null, touchHwnd, 0, 0, 8192, 8192, false))
     }
 
     companion object {

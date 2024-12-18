@@ -85,7 +85,9 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
             } else {
                 when (cursorHideMode) {
                     MouseCursorHideMode.HIDE -> glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN)
-                    MouseCursorHideMode.DISABLE -> glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED)
+                    MouseCursorHideMode.DISABLE -> {
+                        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED)
+                    }
                 }
             }
         }

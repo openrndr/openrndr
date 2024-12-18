@@ -11,6 +11,7 @@ import org.lwjgl.opengl.GL44.glClearTexImage
 import org.lwjgl.opengl.GL45C.glGenerateTextureMipmap
 import org.lwjgl.opengles.GLES30
 import org.lwjgl.system.MemoryUtil
+import org.lwjgl.util.tinyexr.TinyEXR.*
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
 import org.openrndr.draw.BufferMultisample.Disabled
@@ -35,6 +36,21 @@ private val logger = KotlinLogging.logger {}
 enum class TextureStorageModeGL {
     IMAGE,
     STORAGE
+}
+
+/**
+ * Exposes TINYEXR_COMPRESSIONTYPE for convention
+ */
+class ExrCompression {
+    companion object {
+        val NONE = TINYEXR_COMPRESSIONTYPE_NONE
+        val RLE = TINYEXR_COMPRESSIONTYPE_RLE
+        val ZIPS = TINYEXR_COMPRESSIONTYPE_ZIPS
+        val ZIP = TINYEXR_COMPRESSIONTYPE_ZIP
+        val PIZ = TINYEXR_COMPRESSIONTYPE_PIZ
+        // experimental, see https://tinyexr.docsforge.com/master/getting-started/#zfp
+        val ZFP = TINYEXR_COMPRESSIONTYPE_ZFP
+    }
 }
 
 internal fun internalFormat(format: ColorFormat, type: ColorType): Pair<Int, Int> {
@@ -123,6 +139,8 @@ class ColorBufferGL3(
     override fun close() {
         destroy()
     }
+
+    var exrCompression = ExrCompression.NONE
 
     private var destroyed = false
     override var flipV: Boolean = false
