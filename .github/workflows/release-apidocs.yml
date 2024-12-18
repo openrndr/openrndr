@@ -22,7 +22,7 @@ jobs:
           cache: gradle
 
       - name: Build apidocs
-        run: ./gradlew dokkaHtmlMultiModule -Dorg.gradle.jvmargs=-Xmx1536M
+        run: ./gradlew :dokkaGenerate -Dorg.gradle.jvmargs=-Xmx1536M
 
       - name: Publish to gh-pages
         run: |
@@ -31,7 +31,7 @@ jobs:
           git checkout --orphan gh-pages
           git reset HEAD -- .
           git clean -df
-          mv ../build/dokka/htmlMultiModule/* .
+          mv ../build/dokka/html/* .
           cp ../dokka/styles/* styles/
           echo api.openrndr.org > CNAME
           git status

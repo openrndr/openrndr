@@ -29,9 +29,29 @@ subprojects {
     }
 }
 
-dokkaHtmlMultiModule {
-    dependsOn("openrndr-js:dokkaHtmlMultiModule")
-    dependsOn("openrndr-jvm:dokkaHtmlMultiModule")
+dependencies {
+    dokka(project(":openrndr-animatable:"))
+    dokka(project(":openrndr-application:"))
+    dokka(project(":openrndr-binpack:"))
+    dokka(project(":openrndr-color:"))
+    dokka(project(":openrndr-dds:"))
+    dokka(project(":openrndr-jvm:openrndr-dialogs:"))
+    dokka(project(":openrndr-draw:"))
+    dokka(project(":openrndr-event:"))
+    dokka(project(":openrndr-extensions:"))
+    dokka(project(":openrndr-jvm:openrndr-ffmpeg:"))
+    dokka(project(":openrndr-filter:"))
+    dokka(project(":openrndr-gl-common:"))
+    dokka(project(":openrndr-jvm:openrndr-gl3:"))
+    dokka(project(":openrndr-kartifex:"))
+    dokka(project(":openrndr-ktessellation:"))
+    dokka(project(":openrndr-math:"))
+    dokka(project(":openrndr-nullgl:"))
+    dokka(project(":openrndr-jvm:openrndr-openal:"))
+    dokka(project(":openrndr-platform:"))
+    dokka(project(":openrndr-shape:"))
+    dokka(project(":openrndr-utils:"))
+    dokka(project(":openrndr-js:openrndr-webgl:"))
 }
 
 gradle.buildFinished {
