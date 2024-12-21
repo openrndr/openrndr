@@ -21,6 +21,7 @@ val osArch = when(val c = "$currentOperatingSystemName-$arch") {
 plugins {
     org.openrndr.convention.`kotlin-multiplatform`
     org.openrndr.convention.`publish-multiplatform`
+    alias(libs.plugins.kotlin.serialization)
 }
 
 
@@ -44,6 +45,8 @@ kotlin {
                 implementation(libs.ffmpeg)
                 implementation(project(":openrndr-jvm:openrndr-openal"))
                 implementation(libs.kotlin.coroutines)
+                implementation(libs.kotlin.serialization.core)
+                implementation(libs.kotlin.serialization.json)
             }
         }
 
