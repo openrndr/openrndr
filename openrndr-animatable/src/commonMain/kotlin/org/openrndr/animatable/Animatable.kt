@@ -4,8 +4,8 @@ import org.openrndr.animatable.easing.Easer
 import org.openrndr.animatable.easing.Easing
 import org.openrndr.events.Event
 import org.openrndr.math.LinearType
+import org.openrndr.math.Quaternion
 import kotlin.jvm.JvmName
-import kotlin.jvm.JvmOverloads
 import kotlin.reflect.KMutableProperty
 import kotlin.reflect.KMutableProperty0
 
@@ -68,7 +68,29 @@ open class Animatable {
      * @param predelayInMs time to wait in milliseconds before the animation starts
      */
     @JvmName("animateProp")
-    fun KMutableProperty0<Double>.animate(targetValue: Double, durationInMs: Long, easing: Easing = Easing.None, predelayInMs: Long = 0): PropertyAnimationKey<Double> {
+    fun KMutableProperty0<Double>.animate(
+        targetValue: Double,
+        durationInMs: Long,
+        easing: Easing = Easing.None,
+        predelayInMs: Long = 0
+    ): PropertyAnimationKey<Double> {
+        return animate(this, targetValue, durationInMs, easing, predelayInMs)
+    }
+
+    /**
+     * animate [Double] property
+     * @param targetValue the target animation value
+     * @param durationInMs animation duration in milliseconds
+     * @param easing the easing to use during the animation, default is [Easing.None]
+     * @param predelayInMs time to wait in milliseconds before the animation starts
+     */
+    @JvmName("animatePropQuaternion")
+    fun KMutableProperty0<Quaternion>.animate(
+        targetValue: Quaternion,
+        durationInMs: Long,
+        easing: Easing = Easing.None,
+        predelayInMs: Long = 0
+    ): PropertyAnimationKey<Quaternion> {
         return animate(this, targetValue, durationInMs, easing, predelayInMs)
     }
 
@@ -80,7 +102,12 @@ open class Animatable {
      * @param predelayInMs time to wait in milliseconds before the animation starts
      */
     @JvmName("animatePropLinearType")
-    fun <T : LinearType<T>> KMutableProperty0<T>.animate(targetValue: T, durationInMs: Long, easing: Easing = Easing.None, predelayInMs: Long = 0): PropertyAnimationKey<T> {
+    fun <T : LinearType<T>> KMutableProperty0<T>.animate(
+        targetValue: T,
+        durationInMs: Long,
+        easing: Easing = Easing.None,
+        predelayInMs: Long = 0
+    ): PropertyAnimationKey<T> {
         return animate(this, targetValue, durationInMs, easing, predelayInMs)
     }
 
@@ -178,9 +205,9 @@ open class Animatable {
         get() = propertyAnimationKeys.find { it.property == this } != null
 
     internal fun <T> List<PropertyAnimationKey<*>>.durationInMs(property: KMutableProperty0<T>) =
-            filter { it.property == property }.maxByOrNull { it.endInNs }?.let {
-                (it.endInNs - lastTimeInNs) / 1000L
-            } ?: 0L
+        filter { it.property == property }.maxByOrNull { it.endInNs }?.let {
+            (it.endInNs - lastTimeInNs) / 1000L
+        } ?: 0L
 
     /**
      * remaining duration of queued and activate animation groups for [Unit] property
@@ -380,16 +407,42 @@ open class Animatable {
         }
     }
 
-    fun <T : LinearType<T>> animate(variable: KMutableProperty0<T>, target: T, durationMillis: Long,
-                                    easing: Easing = Easing.None, predelayInMs: Long = 0): PropertyAnimationKey<T> {
-        val key = LinearTypeAnimationKey(variable, target, durationMillis * 1000, createAtTimeInNs + predelayInMs * 1000, easing)
+    fun <T : LinearType<T>> animate(
+        variable: KMutableProperty0<T>, target: T, durationMillis: Long,
+        easing: Easing = Easing.None, predelayInMs: Long = 0
+    ): PropertyAnimationKey<T> {
+        val key = LinearTypeAnimationKey(
+            variable,
+            target,
+            durationMillis * 1000,
+            createAtTimeInNs + predelayInMs * 1000,
+            easing
+        )
         propertyAnimationKeys.add(key)
         return key
     }
 
-    fun animate(variable: KMutableProperty0<Double>, target: Double, durationMillis: Long,
-                easing: Easing = Easing.None, predelayInMs: Long = 0): PropertyAnimationKey<Double> {
-        val key = DoubleAnimationKey(variable, target, durationMillis * 1000, createAtTimeInNs + predelayInMs * 1000, easing)
+    fun animate(
+        variable: KMutableProperty0<Double>, target: Double, durationMillis: Long,
+        easing: Easing = Easing.None, predelayInMs: Long = 0
+    ): PropertyAnimationKey<Double> {
+        val key =
+            DoubleAnimationKey(variable, target, durationMillis * 1000, createAtTimeInNs + predelayInMs * 1000, easing)
+        propertyAnimationKeys.add(key)
+        return key
+    }
+
+    fun animate(
+        variable: KMutableProperty0<Quaternion>, target: Quaternion, durationMillis: Long,
+        easing: Easing = Easing.None, predelayInMs: Long = 0
+    ): PropertyAnimationKey<Quaternion> {
+        val key = QuaternionAnimationKey(
+            variable,
+            target,
+            durationMillis * 1000,
+            createAtTimeInNs + predelayInMs * 1000,
+            easing
+        )
         propertyAnimationKeys.add(key)
         return key
     }

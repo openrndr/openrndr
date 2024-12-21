@@ -3,6 +3,8 @@ package org.openrndr.animatable
 import org.openrndr.animatable.easing.Easing
 import org.openrndr.events.Event
 import org.openrndr.math.LinearType
+import org.openrndr.math.Quaternion
+import org.openrndr.math.slerp
 import kotlin.reflect.KMutableProperty0
 
 class AnimationEvent
@@ -82,6 +84,21 @@ internal class DoubleAnimationKey(
     override fun applyToProperty(t: Double) {
         val et = easing.easer.ease(t, 0.0, 1.0, 1.0)
         property.set(startValue!! * (1.0 - et) + targetValue * et)
+    }
+}
+
+internal class QuaternionAnimationKey(
+    override val property: KMutableProperty0<Quaternion>,
+    override val targetValue: Quaternion,
+    duration: Long,
+    start: Long,
+    easing: Easing
+) : PropertyAnimationKey<Quaternion>(property, targetValue, duration, start, easing) {
+    override var startValue: Quaternion? = null
+
+    override fun applyToProperty(t: Double) {
+        val et = easing.easer.ease(t, 0.0, 1.0, 1.0)
+        property.set(slerp(startValue!!, targetValue, et))
     }
 }
 
