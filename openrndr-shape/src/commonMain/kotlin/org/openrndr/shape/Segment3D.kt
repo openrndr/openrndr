@@ -2,6 +2,7 @@ package org.openrndr.shape
 
 import kotlinx.serialization.Serializable
 import org.openrndr.math.*
+import kotlin.math.pow
 
 private fun sumDifferences(points: List<Vector3>) =
     (0 until points.size - 1).sumOf { (points[it] - points[it + 1]).length }
@@ -198,6 +199,28 @@ class Segment3D(
         control.size == 1 -> derivative(start, control[0], end, t)
         control.size == 2 -> derivative(start, control[0], control[1], end, t)
         else -> throw RuntimeException("not implemented")
+    }
+
+    override fun derivative2(t: Double): Vector3 = when {
+        linear -> Vector3.ZERO
+        control.size == 1 -> cubic.derivative2(t)
+        control.size == 2 -> derivative2(
+            start,
+            control[0],
+            control[1],
+            end,
+            t
+        )
+
+        else -> throw RuntimeException("not implemented")
+    }
+
+    override fun curvature(t: Double): Double {
+        val d = derivative(t)
+        val dd = derivative2(t)
+        val numerator = d.cross(dd).length
+        val denominator = d.length.pow(3.0)
+        return numerator/denominator
     }
 
     override val reverse: Segment3D

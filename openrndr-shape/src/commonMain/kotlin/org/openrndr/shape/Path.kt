@@ -65,6 +65,20 @@ interface Path<T : EuclideanVector<T>> {
         }
     }
 
+    fun curvature(ut: Double): Double {
+        if (empty) {
+            return 0.0
+        }
+        return when (val t = ut.coerceIn(0.0, 1.0)) {
+            0.0 -> segments[0].curvature(0.0)
+            1.0 -> segments.last().curvature(1.0)
+            else -> {
+                val (segment, segmentOffset) = segment(t)
+                segments[segment].curvature(segmentOffset)
+            }
+        }
+    }
+
     /**
      * Estimates the [t](https://pomax.github.io/bezierinfo/#explanation) value for a given length.
      *

@@ -5,10 +5,7 @@ import kotlinx.serialization.Transient
 import org.openrndr.math.*
 import org.openrndr.shape.internal.BezierCubicSamplerT
 import org.openrndr.shape.internal.BezierQuadraticSamplerT
-import kotlin.math.abs
-import kotlin.math.atan2
-import kotlin.math.max
-import kotlin.math.sign
+import kotlin.math.*
 
 
 interface BezierSegment<T : EuclideanVector<T>> {
@@ -48,6 +45,10 @@ interface BezierSegment<T : EuclideanVector<T>> {
     fun position(ut: Double): T
 
     fun derivative(t: Double): T
+
+    fun derivative2(t: Double): T
+
+    fun curvature(t: Double): Double
 
     /** Returns the direction [T] of between the [Segment2D] anchor points. */
     fun direction(): T = (end - start).normalized
@@ -612,6 +613,29 @@ data class Segment2D(
 
         else -> throw RuntimeException("not implemented")
     }
+
+    override fun derivative2(t: Double): Vector2 = when {
+        linear -> Vector2.ZERO
+        control.size == 1 -> cubic.derivative2(t)
+        control.size == 2 -> derivative2(
+            start,
+            control[0],
+            control[1],
+            end,
+            t
+        )
+
+        else -> throw RuntimeException("not implemented")
+    }
+
+    override fun curvature(t: Double): Double {
+        val d = derivative(t)
+        val dd = derivative2(t)
+        val numerator = d.cross(dd)
+        val denominator = d.length.pow(3.0)
+        return numerator/denominator
+    }
+
 
     /**
      * Returns a normal [Vector2] at given value of
