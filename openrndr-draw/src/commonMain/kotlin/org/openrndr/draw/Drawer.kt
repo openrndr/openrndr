@@ -1330,9 +1330,12 @@ fun Drawer.isolated(function: Drawer.() -> Unit) {
     }
     pushTransforms()
     pushStyle()
-    function()
-    popStyle()
-    popTransforms()
+    try {
+        function()
+    } finally {
+        popStyle()
+        popTransforms()
+    }
 }
 
 /**
@@ -1345,8 +1348,11 @@ fun Drawer.isolatedWithTarget(target: RenderTarget, function: Drawer.() -> Unit)
         callsInPlace(function, kotlin.contracts.InvocationKind.EXACTLY_ONCE)
     }
     target.bind()
-    isolated(function)
-    target.unbind()
+    try {
+        isolated(function)
+    } finally {
+        target.unbind()
+    }
 }
 
 
