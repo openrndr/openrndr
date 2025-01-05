@@ -9,7 +9,7 @@ kotlinxSerialization = "1.7.3"
 dokka = "2.0.0"
 nebulaRelease = "18.0.7"
 gradleNexusPublish = "2.0.0"
-lwjgl = "3.3.5"
+lwjgl = "3.3.6"
 javacpp = "1.5.11"
 # ffmpeg version suffix should match javacpp version
 ffmpeg = "7.1-1.5.11"
