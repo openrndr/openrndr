@@ -20,6 +20,7 @@ fun main() {
 
             video.ended.listen {
                 println("video ended")
+                video.seek(0.0)
             }
 
             mouse.buttonDown.listen {

@@ -159,6 +159,7 @@ open class RenderTargetGL3(
             }
             previous as RenderTargetGL3
             logger.trace { "restoring to previous render target $previous" }
+            Driver.instance.finish()
             previous.bindTarget()
             bound = false
         } else {
