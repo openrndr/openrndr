@@ -18,13 +18,6 @@ class ApplicationBaseGLFWGL3 : ApplicationBase() {
             org.lwjgl.system.Configuration.GLFW_CHECK_THREAD0.set(false)
         }
 
-        if (DriverGL3Configuration.driverType == DriverTypeGL.GLES) {
-            val useAngle = DriverGL3Configuration.glesBackend == GlesBackend.ANGLE
-            if (useAngle) {
-                //glfwInitHint(GLFW_ANGLE_PLATFORM_TYPE, GLFW_ANGLE_PLATFORM_TYPE_METAL)
-            }
-        }
-
         if (DriverGL3Configuration.driverType == DriverTypeGL.GLES && DriverGL3Configuration.glesBackend == GlesBackend.ANGLE) {
             extractAngleLibraries()
         }

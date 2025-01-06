@@ -18,33 +18,25 @@ fun extractAngleLibraries() {
         else -> error("architecture not supported")
     }
 
+    val libraries = listOf("libEGL.dylib", "libGLESv2.dylib", "libMoltenVK.dylib")
 
-    logger.info { "Loading ANGLE libraries from resources" }
-    val targetDirectory = File(".")// Platform.tempDirectory()
-    val egl = Angle::class.java.getResourceAsStream("/org/openrndr/internal/gl3/angle/$platform/$arch/libEGL.dylib")
-        ?: error("libEGL.dylib not found in resources")
-    val targetEgl = File(targetDirectory, "libEGL.dylib")
+    logger.debug { "Loading ANGLE libraries from resources" }
+    val targetDirectory = File(".")
 
-    if (!targetEgl.exists() || DriverGL3Configuration.overwriteExistingAngle) {
-        targetEgl.outputStream().use {
-            egl.copyTo(it)
+    for (library in libraries) {
+        val resource = Angle::class.java.getResourceAsStream("/org/openrndr/internal/gl3/angle/$platform/$arch/$library")
+            ?: error("$library not found in resources")
+        val target = File(targetDirectory, library)
+
+        if (!target.exists() || DriverGL3Configuration.overwriteExistingAngle) {
+            target.outputStream().use {
+                resource.copyTo(it)
+            }
         }
-    }
 
-
-    val targetGlesv2 = File(targetDirectory, "libGLESv2.dylib")
-    if (!targetGlesv2.exists() || DriverGL3Configuration.overwriteExistingAngle) {
-        val glesv2 = Angle::class.java.getResourceAsStream("/org/openrndr/internal/gl3/angle/$platform/$arch/libGLESv2.dylib") ?: error(
-            "libGLESv2.dylib not found in resources"
-        )
-        targetGlesv2.outputStream().use {
-            glesv2.copyTo(it)
+        if (DriverGL3Configuration.deleteAngleOnExit) {
+            target.deleteOnExit()
         }
-    }
-
-    if (DriverGL3Configuration.deleteAngleOnExit) {
-        File(targetDirectory, "libGLESv2.dylib").deleteOnExit()
-        File(targetDirectory, "libEGL.dylib").deleteOnExit()
     }
 }
 

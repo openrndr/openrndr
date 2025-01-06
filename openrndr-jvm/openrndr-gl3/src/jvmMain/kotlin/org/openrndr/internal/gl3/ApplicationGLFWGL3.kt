@@ -610,12 +610,6 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
 
                 DriverTypeGL.GLES -> {
                     glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API)
-                    val useAngle = DriverGL3Configuration.glesBackend == GlesBackend.ANGLE
-                    if (useAngle) {
-
-                        glfwWindowHint(GLFW_ANGLE_PLATFORM_TYPE, GLFW_ANGLE_PLATFORM_TYPE_METAL)
-                    }
-
                     glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_EGL_CONTEXT_API)
                 }
             }
@@ -642,7 +636,12 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
             }
 
             if (primaryWindow == 0L) {
-                error("primary window could not be created using ${DriverGL3Configuration.driverType} context")
+                stackPush().use {
+                    val pb = it.mallocPointer(1)
+                    glfwGetError(pb)
+                    val error = pb.stringASCII
+                    error("primary window could not be created using ${DriverGL3Configuration.driverType} context. $error")
+                }
             }
             Driver.driver = DriverGL3(foundVersion ?: error("no version found"))
         }
