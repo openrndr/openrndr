@@ -59,7 +59,7 @@ data class Rectangle(val corner: Vector2, val width: Double, val height: Double 
     val y: Double get() = corner.y
 
     /** Returns [Shape] representation of the [Rectangle]. */
-    override val shape:Shape get() = Shape(listOf(contour))
+    override val shape: Shape get() = Shape(listOf(contour))
 
     /** Returns [ShapeContour] representation of the [Rectangle]. */
     override val contour: ShapeContour
@@ -251,6 +251,28 @@ data class Rectangle(val corner: Vector2, val width: Double, val height: Double 
      */
     fun toInt() = IntRectangle(x.toInt(), y.toInt(), width.toInt(), height.toInt())
 
+    val majorAxis: Vector2.Axis
+        get() {
+            return if (width >= height) {
+                Vector2.Axis.X
+            } else {
+                Vector2.Axis.Y
+            }
+        }
+
+    val minorAxis: Vector2.Axis
+        get() {
+            return if (width <= height) {
+                Vector2.Axis.X
+            } else {
+                Vector2.Axis.Y
+            }
+        }
+
+    fun ratio(axis: Vector2.Axis = majorAxis): Rectangle {
+        val scale = 1.0 / dimensions.dot(axis.direction)
+        return fromCenter(Vector2.ZERO, width * scale, height * scale)
+    }
 
     val normalized: Rectangle
         get() {

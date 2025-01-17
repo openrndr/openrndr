@@ -1,5 +1,19 @@
 package org.openrndr.draw
 
+/**
+ * A class that represents a render target capable of being resized dynamically.
+ *
+ * This class manages a [RenderTarget] instance and allows its dimensions and content scale to be
+ * updated after creation. Existing GPU resources associated with the current [RenderTarget] are
+ * properly destroyed and the [RenderTarget] is reconstructed when resized.
+ *
+ * @param width The initial width of the render target.
+ * @param height The initial height of the render target.
+ * @param contentScale The scaling factor for the render target's pixel density.
+ * @param multisample The multisample configuration for the render target.
+ * @param session The session managing the GPU resources of the render target. Can be null.
+ * @param builder A function used to configure the render target during its construction.
+ */
 class ResizableRenderTarget(
     width: Int,
     height: Int,

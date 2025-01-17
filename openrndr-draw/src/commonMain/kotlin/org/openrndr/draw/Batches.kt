@@ -7,6 +7,14 @@ import org.openrndr.shape.Circle
 import org.openrndr.shape.Rectangle
 import kotlin.jvm.JvmName
 
+/**
+ * Writes the specified `DrawStyle` properties to the buffer. This includes
+ * linearized fill color, linearized stroke color, and an adjusted stroke weight
+ * based on the presence and transparency of the stroke.
+ *
+ * @param drawStyle the `DrawStyle` instance containing fill color, stroke color,
+ * and stroke weight to be written to the buffer
+ */
 fun BufferWriter.write(drawStyle: DrawStyle) {
     write(drawStyle.fill?.toLinear() ?: ColorRGBa.TRANSPARENT)
     write(drawStyle.stroke?.toLinear() ?: ColorRGBa.TRANSPARENT)

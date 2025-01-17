@@ -31,6 +31,14 @@ import org.openrndr.math.transforms.ortho as _ortho
 import org.openrndr.math.transforms.perspective as _perspective
 
 
+/**
+ * Represents the target of a transformation within a graphical or computational system.
+ *
+ * The enumeration contains the following values:
+ * - MODEL: Targeting the model transformation, which typically applies to object-space transformations.
+ * - VIEW: Targeting the view transformation, which determines the position and orientation of the camera or observer.
+ * - PROJECTION: Targeting the projection transformation, which handles the conversion of 3D space to a 2D representation.
+ */
 @Suppress("MemberVisibilityCanPrivate")
 
 enum class TransformTarget {
@@ -40,9 +48,7 @@ enum class TransformTarget {
 }
 
 
-/**
- * The Drawer
- */
+
 @Suppress("MemberVisibilityCanPrivate", "unused")
 class Drawer(val driver: Driver) {
 
@@ -81,14 +87,34 @@ class Drawer(val driver: Driver) {
             return modelViewScalingFactor * RenderTarget.active.contentScale
         }
 
-    /** The active model matrix */
+
+    /**
+     * Represents the transformation matrix of a model.
+     *
+     * This variable holds a 4x4 matrix (`Matrix44`) that defines the current
+     * transformation state of the model, such as translation, rotation,
+     * and scaling. It defaults to the identity matrix (`Matrix44.IDENTITY`).
+     *
+     * When this variable is updated, it automatically recalculates the
+     * `modelViewScalingFactor` using the product of the view matrix and
+     * the updated model matrix. The scaling factor is derived from the
+     * length of the transformed unit vector, providing a measure of
+     * scaling applied along all axes.
+     */
     var model: Matrix44 = Matrix44.IDENTITY
         set(value) {
             field = value
             modelViewScalingFactor = ((view * model).matrix33 * Vector3.UNIT_XYZ).length
         }
 
-    /** The active view matrix */
+
+    /**
+     * Represents the transformation matrix for the view in a 3D rendering context.
+     *
+     * This matrix is used to define the position, orientation, and scaling of the view.
+     * When updated, it recalculates the `modelViewScalingFactor` based on the current
+     * view and model matrices to account for changes in scaling.
+     */
     var view: Matrix44 = Matrix44.IDENTITY
         set(value) {
             field = value
@@ -96,11 +122,20 @@ class Drawer(val driver: Driver) {
         }
 
 
-    /** The active projection matrix */
-    var projection: Matrix44 = Matrix44.IDENTITY
 
     /**
-     * The draw context holds references to model, view, projection matrices, width, height and content-scale
+     * Represents a 4x4 transformation matrix used for projection in graphics rendering.
+     * Typically utilized in 3D rendering to define views, perspectives, or transformations.
+     * Defaults to the identity matrix, meaning no transformation is applied.
+     */
+    var projection: Matrix44 = Matrix44.IDENTITY
+
+
+    /**
+     * Provides the current drawing context for rendering operations. This includes information
+     * about the model matrix, view matrix, projection matrix, the active render target's dimensions,
+     * content scale, and the model-view scaling factor. The provided context is dynamically
+     * derived based on the active rendering state.
      */
     val context: DrawContext
         get() = DrawContext(
@@ -113,8 +148,13 @@ class Drawer(val driver: Driver) {
             modelViewScalingFactor
         )
 
+    /**
+     * Represents the style settings used for drawing operations.
+     * This variable specifies how shapes or paths should be rendered,
+     * such as stroke, fill, or other stylistic configurations.
+     */
     var drawStyle = DrawStyle()
-    /** The active draw style */
+
 
     /**
      * @see isolatedWithTarget
@@ -192,6 +232,14 @@ class Drawer(val driver: Driver) {
         projection = _perspective(fovY, aspectRatio, zNear, zFar)
     }
 
+    /**
+     * Rotates a transform to look at a given target point in 3D space.
+     *
+     * @param from The starting point of the look-at operation as a Vector3.
+     * @param to The target point to look at as a Vector3.
+     * @param up The "up" direction as a Vector3, defaulting to UNIT_Y.
+     * @param target The transformation target, defaulting to TransformTarget.VIEW.
+     */
     fun lookAt(
         from: Vector3,
         to: Vector3,
@@ -793,6 +841,13 @@ class Drawer(val driver: Driver) {
         }
     }
 
+    /**
+     * Draws a series of line segments with specified weights
+     *
+     * @param segments A list of `Vector2` instances representing the points of the line segments.
+     *                 Each consecutive pair of points defines a single line segment.
+     * @param weights  A list of `Double` values representing the weights (thickness) of each line segment.
+     */
     fun lineSegments(segments: List<Vector2>, weights: List<Double>) {
         val fringeWidth = 0.5 / modelViewScaling
         if (abs(modelViewScaling) < 1E-6) {
@@ -811,6 +866,11 @@ class Drawer(val driver: Driver) {
         }
     }
 
+    /**
+     * Draws line segments using the specified list of 3D vectors.
+     *
+     * @param segments A list of [Vector3] objects representing the line segments to be drawn.
+     */
     @JvmName("lineSegments3d")
     fun lineSegments(segments: List<Vector3>) {
         when (drawStyle.quality) {
@@ -819,6 +879,12 @@ class Drawer(val driver: Driver) {
         }
     }
 
+    /**
+     * Draws a series of line segments based on the provided 3D vectors and weights.
+     *
+     * @param segments A list of Vector3 objects representing the points that define the line segments.
+     * @param weights A list of Double values representing the weights for each line segment, influencing their appearance.
+     */
     @JvmName("lineSegments3d")
     fun lineSegments(segments: List<Vector3>, weights: List<Double>) {
         when (drawStyle.quality) {
@@ -859,6 +925,12 @@ class Drawer(val driver: Driver) {
         }
     }
 
+    /**
+     * Renders a closed loop of connected line segments given a list of points.
+     *
+     * @param points A list of 2D vectors representing the points to create the line loop.
+     * Each point in the list is connected sequentially, with the last point connecting back to the first.
+     */
     fun lineLoop(points: List<Vector2>) {
         val fringeWidth = 1.0 / modelViewScaling
         if (abs(modelViewScaling) < 1E-6) {
@@ -877,6 +949,11 @@ class Drawer(val driver: Driver) {
         }
     }
 
+    /**
+     * Draws a closed loop connecting given 3D points.
+     *
+     * @param points A list of `Vector3` objects representing the 3D points to form the closed loop.
+     */
     @JvmName("lineLoop3d")
     fun lineLoop(points: List<Vector3>) {
         if (abs(modelViewScaling) < 1E-6) {
@@ -893,6 +970,11 @@ class Drawer(val driver: Driver) {
         }
     }
 
+    /**
+     * Renders a list of line loops based on the current drawing style and quality settings.
+     *
+     * @param loops A list of line loops, where each loop is represented as a list of Vector2 points.
+     */
     fun lineLoops(loops: List<List<Vector2>>) {
         val fringeWidth = 1.0 / modelViewScaling
         if (abs(modelViewScaling) < 1E-6) {
@@ -910,6 +992,11 @@ class Drawer(val driver: Driver) {
         }
     }
 
+    /**
+     * Draws a series of line loops based on the provided list of loops.
+     *
+     * @param loops A list of line loops where each loop is represented as a list of `Vector3` points.
+     */
     @JvmName("lineLoops3d")
     fun lineLoops(loops: List<List<Vector3>>) {
         when (drawStyle.quality) {
@@ -1193,10 +1280,26 @@ class Drawer(val driver: Driver) {
         imageDrawer.drawImage(context, drawStyle, arrayTexture, layer, x, y, width, height)
     }
 
+    /**
+     * Draws an image from a specified layer of an ArrayTexture onto a target rectangle.
+     *
+     * @param arrayTexture the ArrayTexture that contains the image layers.
+     * @param layer the layer of the texture to use, defaults to 0 if not specified.
+     * @param source the rectangle defining the region of the texture to draw.
+     * @param target the rectangle defining the region on the target to draw the texture onto.
+     */
     fun image(arrayTexture: ArrayTexture, layer: Int = 0, source: Rectangle, target: Rectangle) {
         imageDrawer.drawImage(context, drawStyle, arrayTexture, listOf(layer), listOf(source to target))
     }
 
+    /**
+     * Draws an image using the given array texture, layers, and mapping of rectangles.
+     *
+     * @param arrayTexture The texture containing the image data to be drawn.
+     * @param layers The list of layer indices to be used from the array texture.
+     * @param rectangles A list of pairs where each pair maps a rectangle in the array texture
+     * to a corresponding rectangle in the target space.
+     */
     fun image(arrayTexture: ArrayTexture, layers: List<Int>, rectangles: List<Pair<Rectangle, Rectangle>>) {
         imageDrawer.drawImage(context, drawStyle, arrayTexture, layers, rectangles)
     }
@@ -1240,6 +1343,14 @@ class Drawer(val driver: Driver) {
         vertexBuffer(listOf(vertexBuffer), primitive, vertexOffset, vertexCount)
     }
 
+    /**
+     * Draws the specified vertex buffers using the given draw primitive and parameters.
+     *
+     * @param vertexBuffers A list of vertex buffers to be drawn.
+     * @param primitive The type of drawing primitive to use for rendering (e.g., triangles, lines).
+     * @param offset The starting index in the vertex buffer from which to begin drawing. Default is 0.
+     * @param vertexCount The number of vertices to be drawn from the vertex buffer. Default is the vertex count of the first buffer in the list.
+     */
     fun vertexBuffer(
         vertexBuffers: List<VertexBuffer>,
         primitive: DrawPrimitive,

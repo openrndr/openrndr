@@ -105,6 +105,25 @@ class ObservableHashmap<K, V>(val b: MutableMap<K, V>, val onChange: () -> Unit)
 }
 
 
+/**
+ * Represents a customizable and composable style for shaders and rendering pipelines.
+ * This class allows defining transformations, preambles, and shader outputs
+ * as well as binding buffers and images for use in rendering.
+ *
+ * ShadeStyle provides mechanisms for combining different styles and managing
+ * parameters for complex rendering effects.
+ *
+ * Primary Features:
+ *
+ * - Shader Transformations: Define custom vertex, geometry, and fragment transformations.
+ * - Shader Preambles: Specify custom preamble code blocks for vertex, geometry, and fragment shaders.
+ * - Parameter Management: Facilitate management of shader parameters and types.
+ * - Outputs: Manage shader outputs such as fragment colors.
+ * - Buffer and Image Bindings: Enable configuration and binding of buffers and images.
+ *
+ * ShadeStyle is designed for flexibility and modularity in shader-based rendering pipelines,
+ * enabling advanced rendering techniques and reusable styles.
+ */
 @Suppress("unused")
 open class ShadeStyle : StyleParameters, StyleBufferBindings, StyleImageBindings {
     var dirty = true

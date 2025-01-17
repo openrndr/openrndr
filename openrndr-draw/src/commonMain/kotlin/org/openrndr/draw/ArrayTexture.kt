@@ -4,6 +4,11 @@ import org.openrndr.color.ColorRGBa
 import org.openrndr.internal.Driver
 import org.openrndr.shape.Rectangle
 
+/**
+ * Represents a texture with multiple layers, commonly referred to as an array texture.
+ * This abstract class defines properties and operations essential for managing the texture,
+ * including binding, filling, copying contents, and mipmap generation.
+ */
 expect abstract class ArrayTexture {
     abstract val session: Session?
 

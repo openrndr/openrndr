@@ -3,6 +3,10 @@ package org.openrndr.draw
 import org.openrndr.internal.Driver
 import kotlin.math.max
 
+/**
+ * Represents a shader storage buffer, which is an interface for managing
+ * GPU memory used for reading and writing data within shaders.
+ */
 expect interface ShaderStorageBuffer {
     val session: Session?
     val format: ShaderStorageFormat

@@ -24,6 +24,20 @@ sealed class ColorAttachment(
     val ownedByRenderTarget: Boolean
 )
 
+/**
+ * Represents a color buffer attachment for a render target.
+ *
+ * A `ColorBufferAttachment` binds a `ColorBuffer` object to a render target slot, allowing
+ * the render target to use the color data stored in the attached `ColorBuffer`. This attachment
+ * is used in rendering pipelines for operations such as off-screen rendering or image processing.
+ *
+ * @constructor Creates a new `ColorBufferAttachment`.
+ * @param index The binding index for the render target.
+ * @param name An optional name for the binding, defaults to `null`.
+ * @param colorBuffer The [`ColorBuffer`][ColorBuffer] object to attach.
+ * @param level The mipmap level of the attached `ColorBuffer` to use.
+ * @param ownedByRenderTarget Whether the `ColorBuffer` is owned by the render target.
+ */
 class ColorBufferAttachment(
     index: Int,
     name: String?,
@@ -36,6 +50,18 @@ class ColorBufferAttachment(
     }
 }
 
+/**
+ * Represents a color attachment that targets a specific layer and mip level of an array texture.
+ * This class extends [ColorAttachment] and provides a mechanism to associate an array texture's
+ * layer and level with a render target.
+ *
+ * @constructor
+ * @param index The binding index for the render target.
+ * @param name The optional name for the binding, can be null.
+ * @param arrayTexture The array texture instance used for this attachment.
+ * @param layer The specific layer of the array texture to be used for this attachment.
+ * @param level The mip level of the specified layer to be used for this attachment.
+ */
 class ArrayTextureAttachment(
     index: Int,
     name: String?,
@@ -48,6 +74,19 @@ class ArrayTextureAttachment(
     }
 }
 
+/**
+ * Represents a specific color attachment for a layered array texture.
+ *
+ * This class links a single `ArrayTexture` to a rendering target, allowing the texture
+ * to be used as a color attachment in a rendering process.
+ *
+ * @constructor
+ * @param index The binding index for the attachment in the `RenderTarget`.
+ * @param name An optional name for the attachment, or `null` if no name is provided.
+ * @param arrayTexture The `ArrayTexture` bound to this attachment, representing
+ *  a texture with multiple layers.
+ * @param level The mipmap level of the texture to be used for this attachment.
+ */
 class LayeredArrayTextureAttachment(
     index: Int,
     name: String?,
@@ -106,6 +145,22 @@ class LayeredArrayCubemapAttachment(
     }
 }
 
+/**
+ * Represents a color attachment for a specific side of a cubemap in a render target.
+ *
+ * This class allows targeting a specific side of a cubemap at a given mipmap level for rendering purposes.
+ *
+ * @constructor
+ * @param index The binding index for the render target.
+ * @param name An optional name for the attachment, can be `null`.
+ * @param cubemap The cubemap instance associated with this attachment.
+ * @param side The specific side of the cubemap to be used as the attachment target.
+ * @param level The mipmap level of the cubemap to be used.
+ *
+ * @see Cubemap
+ * @see CubemapSide
+ * @see ColorAttachment
+ */
 class CubemapAttachment(
     index: Int,
     name: String?,
@@ -129,6 +184,11 @@ class LayeredCubemapAttachment(
     }
 }
 
+/**
+ * Represents a rendering target for graphics operations, which can be used to handle color, depth,
+ * and stencil attachments with configurability for attributes such as width, height, content scaling,
+ * and multisampling.
+ */
 interface RenderTarget {
     /** [Session] in which this render target is created. */
     val session: Session?

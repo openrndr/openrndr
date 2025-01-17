@@ -1,5 +1,10 @@
 package org.openrndr.draw
 
+/**
+ * Represents a shadow interface for managing a shader storage buffer.
+ * The shadow allows operations such as uploading, downloading, and releasing resources,
+ * as well as providing a means to obtain a writer for structured buffer data manipulation.
+ */
 interface ShaderStorageBufferShadow {
     val shaderStorageBuffer: ShaderStorageBuffer
 

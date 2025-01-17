@@ -14,7 +14,9 @@ private const val closeEpsilon = 1E-6
 private const val consecutiveEpsilon = 1E-6
 
 /**
- * A [List] for managing a collection of [Segment2D]s.
+ * Represents a geometric contour within a 2D shape. A ShapeContour consists of a collection of segments,
+ * which define its path. The shape can be open or closed, and additional properties provide detailed
+ * information about its geometry.
  */
 @Serializable
 data class ShapeContour(
@@ -30,6 +32,16 @@ data class ShapeContour(
          */
         val EMPTY: ShapeContour = ShapeContour(emptyList(), false)
 
+        /**
+         * Creates a new ShapeContour object from a list of Segment2D objects.
+         *
+         * @param segments A list of Segment2D objects representing the segments of the contour.
+         * @param closed A boolean indicating whether the contour is closed (true) or open (false).
+         * @param polarity The YPolarity of the contour, defaulting to YPolarity.CW_NEGATIVE_Y.
+         * @param distanceTolerance The maximum allowable distance between the end of one segment and the start of the next, defaulting to 1E-3.
+         * @return A ShapeContour object constructed from the provided segments, adhering to the closure and polarity settings.
+         * @throws IllegalArgumentException If the distance between the end of one segment and the start of the next exceeds the distanceTolerance.
+         */
         fun fromSegments(
             segments: List<Segment2D>,
             closed: Boolean,
@@ -50,7 +62,15 @@ data class ShapeContour(
             )
         }
 
-        /** Creates a [ShapeContour] by converting [points] to [Segment2D]s. */
+
+        /**
+         * Creates a ShapeContour from a list of points, specifying whether the contour is closed and its y-axis polarity.
+         *
+         * @param points A list of points (Vector2) defining the vertices of the contour.
+         * @param closed Boolean indicating whether the contour should be closed (forms a loop).
+         * @param polarity The y-axis polarity for the contour, default is YPolarity.CW_NEGATIVE_Y.
+         * @return A ShapeContour object representing the resulting contour.
+         */
         fun fromPoints(
             points: List<Vector2>,
             closed: Boolean,

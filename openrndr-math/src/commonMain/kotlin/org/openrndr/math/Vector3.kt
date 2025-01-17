@@ -8,6 +8,13 @@ import kotlin.math.*
 @Serializable
 @JvmRecord
 data class Vector3(val x: Double, val y: Double, val z: Double) : LinearType<Vector3>, EuclideanVector<Vector3> {
+
+    enum class Axis(val direction: Vector3) {
+        X(UNIT_X),
+        Y(UNIT_Y),
+        Z(UNIT_Y)
+    }
+
     constructor(x: Double) : this(x, x, x)
 
     override val zero: Vector3 get() = ZERO

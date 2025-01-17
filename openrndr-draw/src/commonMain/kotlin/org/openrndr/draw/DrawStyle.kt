@@ -88,6 +88,20 @@ enum class DepthFormat(val hasDepth: Boolean, val hasStencil: Boolean) {
     DEPTH_STENCIL(true, true),
 }
 
+/**
+ * Represents a style for stencil operations and tests used in rendering pipelines.
+ *
+ * This class defines the operations to perform based on different stencil and depth test scenarios,
+ * as well as parameters to configure the stencil test and operation behavior.
+ *
+ * @property stencilFailOperation Operation to perform when the stencil test fails.
+ * @property depthFailOperation Operation to perform when the depth test fails after passing the stencil test.
+ * @property depthPassOperation Operation to perform when both stencil and depth tests pass.
+ * @property stencilTestMask Mask to apply during stencil testing.
+ * @property stencilTestReference Reference value to compare with during stencil testing.
+ * @property stencilWriteMask Mask to apply while writing to the stencil buffer.
+ * @property stencilTest Specifies the stencil test function to use.
+ */
 data class StencilStyle(
     var stencilFailOperation: StencilOperation = StencilOperation.KEEP,
     var depthFailOperation: StencilOperation = StencilOperation.KEEP,
@@ -364,6 +378,16 @@ enum class TextSettingMode {
     SUBPIXEL
 }
 
+/**
+ * Represents a mask for RGBA color channels.
+ *
+ * This data class is used to specify the inclusion or exclusion of the red, green, blue, and alpha channels.
+ *
+ * @property red Indicates whether the red channel is included in the mask.
+ * @property green Indicates whether the green channel is included in the mask.
+ * @property blue Indicates whether the blue channel is included in the mask.
+ * @property alpha Indicates whether the alpha channel is included in the mask.
+ */
 @Suppress("unused")
 @JvmRecord
 data class ChannelMask(val red: Boolean, val green: Boolean, val blue: Boolean, val alpha: Boolean) {

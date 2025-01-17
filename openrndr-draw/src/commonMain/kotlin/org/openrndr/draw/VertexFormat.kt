@@ -4,6 +4,14 @@ import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 
+/**
+ * Represents a single element within a vertex, describing the structure of vertex data in a graphics pipeline.
+ *
+ * @property attribute The name of the attribute this element corresponds to (e.g., position, color, normal).
+ * @property offset The byte offset of this element within a vertex structure.
+ * @property type The data type of this vertex element, represented by [VertexElementType].
+ * @property arraySize The number of elements in this vertex attribute array; typically 1 for non-array attributes.
+ */
 data class VertexElement(val attribute: String, val offset: Int, val type: VertexElementType, val arraySize: Int)
 
 /**

@@ -63,3 +63,10 @@ sealed interface Scalable2D : Scalable1D {
     /** Creates a new shape at the same position with the given dimensions. */
     fun scaledTo(width: Double, height: Double): Scalable2D
 }
+
+interface Scalable3D {
+
+    fun scaledBy(scale: Double, uAnchor: Double = 0.5, vAnchor: Double = 0.5, wAnchor: Double = 0.5): Scalable3D
+
+    fun scaledBy(xScale: Double, yScale: Double, zScale: Double, uAnchor: Double = 0.5, vAnchor: Double = 0.5, wAnchor: Double = 0.5): Scalable3D
+}

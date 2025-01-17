@@ -23,7 +23,11 @@ class SessionStatistics(
         val shaderStorageBuffers: Int)
 
 /**
- * Session
+ * Represents a GPU resource management session. A session is responsible for tracking and managing
+ * GPU resources in a hierarchical manner. Sessions can be forked, creating child sessions, and
+ * ended, destroying all GPU resources associated with the session.
+ *
+ * @property parent The parent session, or null if this is a root session.
  */
 class Session(val parent: Session?) {
     val context = Driver.instance.contextID

@@ -8,18 +8,42 @@ import kotlin.math.min
 
 class PathProjection3D(val segmentProjection: SegmentProjection3D, val projection: Double, val distance: Double, val point: Vector3)
 
+/**
+ * Represents a 3D path composed of multiple segments. The class supports operations on the path,
+ * such as transformations, sampling, sub-path extraction, and various geometric calculations.
+ * It also provides methods for creating paths from points or segments and combines functionality
+ * for both open and closed paths.
+ *
+ * @property segments A list of the segments forming the path.
+ * @property closed Indicates whether the path is closed (i.e., the last point connects to the first point).
+ */
 @Serializable
 class Path3D(override val segments: List<Segment3D>, override val closed: Boolean) : Path<Vector3> {
     companion object {
 
         val EMPTY: Path3D = Path3D(emptyList(), false)
 
+        /**
+         * Constructs a Path3D object from a list of 3D points, optionally closing the path.
+         *
+         * @param points A list of [Vector3] representing the points that define the path.
+         * @param closed A boolean indicating whether the path should be closed, connecting the last point back to the first.
+         */
         fun fromPoints(points: List<Vector3>, closed: Boolean) =
                 if (!closed)
                     Path3D((0 until points.size - 1).map { Segment3D(points[it], points[it + 1]) }, closed)
                 else
                     Path3D((points.indices).map { Segment3D(points[it], points[(it + 1) % points.size]) }, closed)
 
+        /**
+         * Constructs a Path3D instance from a list of 3D segments.
+         *
+         * @param segments the list of 3D segments that define the path
+         * @param closed a boolean indicating whether the path is closed
+         * @param distanceTolerance the maximum allowable squared distance between segment endpoints for the path, default is 1E-3
+         * @return a Path3D instance constructed from the segments
+         * @throws IllegalArgumentException if the distance between consecutive segment ends and starts exceeds the specified tolerance
+         */
         fun fromSegments(
             segments: List<Segment3D>,
             closed: Boolean,
@@ -40,6 +64,21 @@ class Path3D(override val segments: List<Segment3D>, override val closed: Boolea
         }
     }
 
+    /**
+     * A computed property that calculates and returns the bounding box of the `Path3D`.
+     * The bounding box is determined by mapping and aggregating the individual bounding boxes
+     * of all segments in the path.
+     */
+    val bounds: Box get() {
+        val b = segments.map { it.bounds }
+        return b.bounds
+    }
+
+    /**
+     * A computed property that provides a list of individual `Path3D` instances,
+     * each wrapping a single segment from the `segments` property of the current `Path3D`.
+     * Each of these paths is not closed.
+     */
     val exploded: List<Path3D>
         get() = segments.map { Path3D(listOf(it), false) }
 
@@ -80,6 +119,12 @@ class Path3D(override val segments: List<Segment3D>, override val closed: Boolea
     }
 
 
+    /**
+     * Transforms the current Path3D using the provided transformation matrix.
+     *
+     * @param transform the transformation matrix of type Matrix44 to apply to the Path3D.
+     * @return a new Path3D instance with its segments transformed by the provided matrix.
+     */
     fun transform(transform: Matrix44) = Path3D(segments.map { it.transform(transform) }, closed)
 
     private fun mod(a: Double, b: Double) = ((a % b) + b) % b
@@ -202,9 +247,21 @@ class Path3D(override val segments: List<Segment3D>, override val closed: Boolea
 
     }
 
+    /**
+     * Retrieves a new `Path3D` instance where the order of the segments is reversed and
+     * each segment is individually reversed. The closed property of the path is preserved.
+     */
     val reversed: Path3D get() = Path3D(segments.map { it.reverse }.reversed(), closed)
 
 
+    /**
+     * Transforms the segments of the current Path3D by applying a given mapping function, and optionally adjusts
+     * the connections between the segments to maintain continuity.
+     *
+     * @param closed Specifies whether the resulting Path3D should be closed or open. Defaults to the current Path3D's closed state.
+     * @param mapper A lambda function that applies a transformation to each segment of the Path3D.
+     * @return A new Path3D instance with its segments transformed by the provided mapping function.
+     */
     fun map(closed: Boolean = this.closed, mapper: (Segment3D) -> Segment3D): Path3D {
         val segments = segments.map(mapper)
         val fixedSegments = mutableListOf<Segment3D>()

@@ -1,5 +1,10 @@
 package org.openrndr.draw
 
+/**
+ * Represents a texture buffer residing in the GPU.
+ * Buffer textures provide a mechanism for storing structured data
+ * that can be accessed in shaders as a one-dimensional texture.
+ */
 expect abstract class BufferTexture {
     abstract val session: Session?
     abstract val shadow: BufferTextureShadow

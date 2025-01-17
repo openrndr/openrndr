@@ -66,6 +66,11 @@ fun defaultColorType(format: ColorFormat): ColorType = when (format) {
     else -> ColorType.UINT8
 }
 
+/**
+ * Represents a color buffer, which is an abstract resource used for storing image data and managing
+ * operations like mipmapping, filtering, and copying of image data. A `ColorBuffer` can be used in
+ * various scenarios such as rendering to textures or managing image storage in graphics applications.
+ */
 expect abstract class ColorBuffer : AutoCloseable {
     abstract val session: Session?
 
@@ -100,6 +105,10 @@ expect abstract class ColorBuffer : AutoCloseable {
     /** the height of the [ColorBuffer] in pixels */
     val effectiveHeight: Int
 
+    /**
+     * Defines the rectangular bounds of this [ColorBuffer]. The bounds typically represent
+     * the width and height.
+     */
     val bounds: Rectangle
 
     /** permanently destroy the underlying [ColorBuffer] resources, [ColorBuffer] can not be used after it is destroyed */

@@ -56,6 +56,14 @@ class Segment3D(
         return Pair(closestIndex, closestValue)
     }
 
+    /**
+     * Projects a given point onto the segment, calculating the closest position on the segment
+     * and its associated properties such as projection parameter, distance, and position.
+     *
+     * @param point The 3D point to project onto the segment.
+     * @return A SegmentProjection3D object containing the projection parameter, the squared distance
+     *         between the point and the projected position, and the projected position itself.
+     */
     fun project(point: Vector3): SegmentProjection3D {
         // based on bezier.js
         val lut = lut()
@@ -89,6 +97,13 @@ class Segment3D(
         }
     }
 
+    /**
+     * Applies a transformation matrix to the segment, transforming its start, end,
+     * and control points, and returns a new transformed segment.
+     *
+     * @param transform The 4x4 transformation matrix to apply to the segment.
+     * @return A new instance of Segment3D representing the transformed segment.
+     */
     fun transform(transform: Matrix44): Segment3D {
         val tstart = (transform * (start.xyz1)).div
         val tend = (transform * (end.xyz1)).div
@@ -123,8 +138,16 @@ class Segment3D(
         }
     }
 
+    /**
+     * Computes the parameter values at which the extrema (minimums and maximums) occur
+     * for the given segment. This includes analyzing changes in direction for the x
+     * and y components of control points or derivatives, depending on the control size.
+     *
+     * @return A list of parameter values representing the extrema, filtered to be
+     * within the range [0.0, 1.0].
+     */
     fun extrema(): List<Double> {
-        val dpoints = dpoints()
+        val dpoints = dPoints()
         return when {
             linear -> emptyList()
             control.size == 1 -> {
@@ -143,10 +166,18 @@ class Segment3D(
         }
     }
 
+    /**
+     * Computes the points in 3D space where the extrema (minimums and maximums) occur
+     * for the given 3D segment. These extrema correspond to parameter values derived
+     * from the segment's control points or derivatives and are transformed into their
+     * respective positions in 3D space.
+     *
+     * @return A list of 3D vectors ([Vector3]) representing the extrema points of the segment.
+     */
     fun extremaPoints(): List<Vector3> = extrema().map { position(it) }
 
 
-    private fun dpoints(): List<List<Vector3>> {
+    private fun dPoints(): List<List<Vector3>> {
         val points = listOf(start) + control + listOf(end)
         var d = points.size
         var c = d - 1
@@ -358,6 +389,9 @@ class Segment3D(
         return Segment3D(start, control, end)
     }
 
+    val bounds: Box
+        get() = (listOf(start, end) + extremaPoints()).bounds
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other == null) return false
@@ -415,6 +449,12 @@ class Segment3D(
 
 }
 
+/**
+ * Creates a 3D segment defined by a start and an end point in 3D space.
+ *
+ * @param start The starting point of the segment represented as a [Vector3].
+ * @param end The ending point of the segment represented as a [Vector3].
+ */
 fun Segment3D(start: Vector3, end: Vector3) = Segment3D(start, emptyList(), end)
 
 

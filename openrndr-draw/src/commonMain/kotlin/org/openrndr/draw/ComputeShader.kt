@@ -4,6 +4,10 @@ import org.openrndr.internal.Driver
 import org.openrndr.math.*
 import kotlin.math.ceil
 
+/**
+ * Represents a Compute Shader, which is a type of shader used for general-purpose GPU computations.
+ * A Compute Shader can bind images, buffers, and uniforms for processing data on the GPU.
+ */
 interface ComputeShader : ShaderImageBindings, ShaderBufferBindings, ShaderUniforms {
     companion object {
         /**
@@ -21,6 +25,11 @@ interface ComputeShader : ShaderImageBindings, ShaderBufferBindings, ShaderUnifo
      */
     fun execute(width: Int = 1, height: Int = 1, depth: Int = 1)
 
+    /**
+     * Executes the compute shader using the given dimensions specified by an IntVector3.
+     *
+     * @param dimensions A 3D vector specifying the global width, height, and depth.
+     */
     fun execute(dimensions: IntVector3) = execute(dimensions.x, dimensions.y, dimensions.z)
 
     /**

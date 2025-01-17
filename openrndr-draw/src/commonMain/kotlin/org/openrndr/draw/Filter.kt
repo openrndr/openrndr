@@ -26,8 +26,20 @@ fun filterShaderFromCode(fragmentShaderCode: String, name: String, includeShader
     }
 }
 
+
 /**
- * Filter base class. Renders "full-screen" quads.
+ * The `Filter` class represents a rendering filter used to process graphical content by applying shaders
+ * and other configurations. This class provides mechanisms to apply the filter to color buffers, manage
+ * shader parameters, and handle associated rendering operations such as clip rectangles and blending modes.
+ *
+ * The `Filter` class supports a flexible set of parameters, enabling it to accommodate different use cases
+ * and rendering scenarios. It can operate on various combinations of source and target color buffers or
+ * render targets, as well as optionally handle depth buffers.
+ *
+ * @constructor
+ * Creates a new filter instance, optionally initializing it with a shader or shader watcher.
+ * @param shader The optional `Shader` instance to be used by the filter.
+ * @param watcher The optional `ShaderWatcher` to dynamically manage the shader during execution.
  */
 open class Filter(private val shader: Shader? = null, private val watcher: ShaderWatcher? = null) {
 
