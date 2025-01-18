@@ -6,7 +6,7 @@ package org.openrndr.draw
  * systems. This is a common interface to be implemented in various
  * target languages.
  */
-expect interface ArrayCubemap {
+expect interface ArrayCubemap : AutoCloseable {
     val session: Session?
 
     val width: Int

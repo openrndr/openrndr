@@ -1,6 +1,6 @@
 package org.openrndr.draw
 
-actual interface ArrayCubemap {
+actual interface ArrayCubemap: AutoCloseable {
     actual val session: Session?
     actual val width: Int
     actual val layers: Int

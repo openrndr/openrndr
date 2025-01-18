@@ -7,7 +7,7 @@ import kotlin.math.max
  * Represents a shader storage buffer, which is an interface for managing
  * GPU memory used for reading and writing data within shaders.
  */
-expect interface ShaderStorageBuffer {
+expect interface ShaderStorageBuffer: AutoCloseable {
     val session: Session?
     val format: ShaderStorageFormat
 
@@ -18,11 +18,36 @@ expect interface ShaderStorageBuffer {
     fun clear()
     fun destroy()
 
+    /**
+     * Writes data to the shader storage buffer starting at the specified element offset.
+     *
+     * @param elementOffset The offset (in elements) within the buffer where writing should begin.
+     *                      Defaults to 0 if not specified.
+     * @param putter A lambda expression that defines the data to write to the buffer.
+     *               It provides a `BufferWriterStd430` context for writing the desired data to the buffer.
+     * @return The number of elements written to the buffer.
+     */
     fun put(elementOffset: Int = 0, putter: BufferWriterStd430.() -> Unit): Int
 
+    /**
+     * Creates a vertex buffer view for a specific element within the shader storage buffer.
+     *
+     * This method allows you to extract a view of the underlying GPU memory as a vertex buffer
+     * formatted according to the vertex format associated with the given element name.
+     *
+     * @param elementName The name of the element in the shader storage buffer to view as a vertex buffer.
+     *                    If null, the view is created for the entire buffer.
+     * @return A [VertexBuffer] representing the specified element or the entire buffer if no element name is provided.
+     */
     fun vertexBufferView(elementName: String? = null): VertexBuffer
 }
 
+/**
+ * Represents an element in shader storage, typically used in GPU programming
+ * for storing data buffers. This interface defines the core properties
+ * of such an element, including its name, memory offset, and size when
+ * represented as an array.
+ */
 interface ShaderStorageElement {
     val name: String
     val offset: Int
@@ -63,6 +88,17 @@ enum class BufferPrimitiveType(val componentCount: Int, val sizeInBytes: Int, va
     MATRIX44_FLOAT32(16, 16 * 4, 16),
 }
 
+/**
+ * Represents a primitive element within a shader storage buffer.
+ * This class enables detailed definition of a primitive type and its properties
+ * such as the buffer primitive type, array size, memory offset, and padding.
+ **
+ * @property name The name of the shader storage primitive.
+ * @property type The type of the primitive, represented by the `BufferPrimitiveType` enumeration.
+ * @property arraySize The number of elements in the array, default value is 1.
+ * @property offset The memory offset of this primitive in the buffer.
+ * @property padding Additional custom padding applied after the primitive to align subsequent data structures.
+ */
 data class ShaderStoragePrimitive(
     override val name: String,
     val type: BufferPrimitiveType,
@@ -72,6 +108,16 @@ data class ShaderStoragePrimitive(
 ) : ShaderStorageElement
 
 
+/**
+ * Represents a structure within shader storage, typically used for
+ * organizing and grouping related shader storage elements.
+ *
+ * @property structName The name of the structure as defined in the shader.
+ * @property name The name identifier for this specific instance of the structure.
+ * @property elements A list of elements contained within the structure.
+ * @property arraySize The size of the structure when represented as an array. Defaults to 1.
+ * @property offset The memory offset for the structure's data. Defaults to 0.
+ */
 data class ShaderStorageStruct(
     val structName: String,
     override val name: String,
@@ -80,6 +126,19 @@ data class ShaderStorageStruct(
     override var offset: Int = 0,
 ) : ShaderStorageElement
 
+/**
+ * Represents the format specification for a shader storage buffer.
+ * Defines the structure, primitives, and memory layout for data
+ * used in GPU programming.
+ *
+ * The [ShaderStorageFormat] class allows users to describe and
+ * organize shader storage elements, compute memory alignments, and
+ * manage offsets and paddings accordingly.
+ *
+ * The format consists of multiple elements that can be primitives
+ * or nested structures, and it ensures that the overall memory layout
+ * adheres to GPU alignment and padding requirements.
+ */
 class ShaderStorageFormat {
     var elements: MutableList<ShaderStorageElement> = mutableListOf()
     private var formatSize = 0
@@ -218,6 +277,12 @@ class ShaderStorageFormat {
     }
 }
 
+/**
+ * Constructs a new [ShaderStorageFormat] instance and allows the caller to configure it using a lambda.
+ *
+ * @param builder A lambda function used to configure the [ShaderStorageFormat] instance.
+ * @return A fully constructed and committed [ShaderStorageFormat] instance.
+ */
 fun shaderStorageFormat(builder: ShaderStorageFormat.() -> Unit): ShaderStorageFormat {
     return ShaderStorageFormat().apply {
         builder()
@@ -268,6 +333,12 @@ private fun vertexElementType(member: ShaderStoragePrimitive) = when (member.typ
     else -> error("unsupported type '${member.type}")
 }
 
+/**
+ * Creates a shader storage buffer based on the given format.
+ *
+ * @param format The [ShaderStorageFormat] specifying the structure and layout of the shader storage buffer.
+ * @return A [ShaderStorageBuffer] instance configured according to the provided format.
+ */
 fun shaderStorageBuffer(format: ShaderStorageFormat): ShaderStorageBuffer {
     return Driver.instance.createShaderStorageBuffer(format)
 }

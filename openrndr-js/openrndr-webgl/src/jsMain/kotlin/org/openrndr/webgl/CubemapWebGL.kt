@@ -158,6 +158,10 @@ class CubemapWebGL(
     ) {
         write(side, source.dataView, sourceFormat, sourceType, x, y, width, height, level)
     }
+
+    override fun close() {
+        destroy()
+    }
 }
 
 val CubemapSide.glTextureTarget

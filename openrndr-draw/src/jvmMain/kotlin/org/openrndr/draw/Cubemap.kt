@@ -5,7 +5,7 @@ import org.openrndr.internal.ImageDriver
 import org.openrndr.utils.buffer.MPPBuffer
 import java.nio.ByteBuffer
 
-actual interface Cubemap {
+actual interface Cubemap:AutoCloseable {
 
     companion object {
         fun create(

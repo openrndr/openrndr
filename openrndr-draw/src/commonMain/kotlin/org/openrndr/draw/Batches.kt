@@ -205,7 +205,7 @@ fun Drawer.circleBatch(build: CircleBatchBuilder.() -> Unit): CircleBatch {
 }
 
 
-class RectangleBatch(val geometry: VertexBuffer, val drawStyle: VertexBuffer) {
+class RectangleBatch(val geometry: VertexBuffer, val drawStyle: VertexBuffer): AutoCloseable {
     init {
         require(geometry.vertexFormat == rectangleFormat)
         require(drawStyle.vertexFormat == drawStyleFormat)
@@ -230,6 +230,10 @@ class RectangleBatch(val geometry: VertexBuffer, val drawStyle: VertexBuffer) {
     fun destroy() {
         geometry.destroy()
         drawStyle.destroy()
+    }
+
+    override fun close() {
+        destroy()
     }
 }
 

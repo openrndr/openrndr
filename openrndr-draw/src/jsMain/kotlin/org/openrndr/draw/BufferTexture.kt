@@ -1,6 +1,6 @@
 package org.openrndr.draw
 
-actual abstract class BufferTexture {
+actual abstract class BufferTexture: AutoCloseable {
     actual abstract val session: Session?
     actual abstract val shadow: BufferTextureShadow
     actual abstract val format: ColorFormat

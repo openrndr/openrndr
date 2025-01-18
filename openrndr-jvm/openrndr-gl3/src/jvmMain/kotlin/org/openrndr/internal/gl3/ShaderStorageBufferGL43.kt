@@ -10,8 +10,21 @@ import org.openrndr.internal.Driver
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
-class ShaderStorageBufferGL43(
+/**
+ * Represents an OpenGL Shader Storage Buffer Object (SSBO) for use in the OpenGL 4.3+ context.
+ *
+ * This class is utilized to manage shader storage buffers, allowing them to be cleared, written to,
+ * read from, and manipulated as per the shader storage format provided. The ShaderStorageBufferGL43
+ * is tied to a session and its lifecycle can be controlled through the session or its manual destruction.
+ *
+ * @property buffer The OpenGL buffer identifier (ID), representing the underlying SSBO.
+ * @property ownsBuffer Indicates if this instance owns the buffer, determining responsibility for cleanup.
+ * @property format Defines the shader storage format specifying the data layout in the shader storage buffer.
+ * @property session The session tied to the buffer, used for tracking and resource management.
+ */
+data class ShaderStorageBufferGL43(
     val buffer: Int,
+    val ownsBuffer: Boolean,
     override val format: ShaderStorageFormat,
     override val session: Session? = Session.active
 ) : ShaderStorageBuffer {
@@ -112,7 +125,9 @@ class ShaderStorageBufferGL43(
 
     override fun destroy() {
         if (!destroyed) {
-            glDeleteBuffers(buffer)
+            if (ownsBuffer) {
+                glDeleteBuffers(buffer)
+            }
             session?.untrack(this)
         }
     }
@@ -177,6 +192,10 @@ class ShaderStorageBufferGL43(
         return VertexBufferGL3(this.buffer, offset, vertexFormat, vertexCount, this.session)
     }
 
+    override fun close() {
+        destroy()
+    }
+
     companion object {
         fun create(format: ShaderStorageFormat, session: Session?): ShaderStorageBufferGL43 {
             val ssbo = glGenBuffers()
@@ -192,7 +211,7 @@ class ShaderStorageBufferGL43(
                 glBufferData(GL_SHADER_STORAGE_BUFFER, format.size.toLong(), GL33C.GL_DYNAMIC_COPY)
             }
             checkGLErrors()
-            return ShaderStorageBufferGL43(ssbo, format, session)
+            return ShaderStorageBufferGL43(ssbo, true, format, session)
         }
     }
 }

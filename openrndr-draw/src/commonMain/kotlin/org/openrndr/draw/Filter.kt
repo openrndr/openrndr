@@ -41,7 +41,7 @@ fun filterShaderFromCode(fragmentShaderCode: String, name: String, includeShader
  * @param shader The optional `Shader` instance to be used by the filter.
  * @param watcher The optional `ShaderWatcher` to dynamically manage the shader during execution.
  */
-open class Filter(private val shader: Shader? = null, private val watcher: ShaderWatcher? = null) {
+open class Filter(private val shader: Shader? = null, private val watcher: ShaderWatcher? = null): AutoCloseable {
 
     private val filterDrawStyle = DrawStyle().apply {
         blendMode = BlendMode.REPLACE
@@ -252,6 +252,10 @@ void main() {
     }
 
     protected val format get() = filterQuadFormat
+
+    override fun close() {
+        destroy()
+    }
 }
 
 open class Filter1to1(shader: Shader? = null, watcher: ShaderWatcher? = null) :

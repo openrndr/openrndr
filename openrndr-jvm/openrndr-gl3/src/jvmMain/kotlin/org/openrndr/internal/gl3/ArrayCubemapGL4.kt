@@ -174,4 +174,8 @@ class ArrayCubemapGL4(val target: Int,
         this.f()
         glBindTexture(target, current)
     }
+
+    override fun close() {
+        destroy()
+    }
 }

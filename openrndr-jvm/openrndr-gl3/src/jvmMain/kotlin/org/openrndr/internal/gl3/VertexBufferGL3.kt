@@ -212,6 +212,39 @@ class VertexBufferGL3(
         }
     }
 
+    override fun shaderStorageBufferView(): ShaderStorageBuffer {
+        require(
+            (Driver.instance as DriverGL3).version.isAtLeast(
+                DriverVersionGL.GL_VERSION_4_3,
+                DriverVersionGL.GLES_VERSION_3_1
+            )
+        ) {
+
+        }
+        val ssf = shaderStorageFormat {
+            struct("Vertex_${vertexFormat.hashCode().toUInt()}", "vertex", vertexCount) {
+                for (item in vertexFormat.items) {
+                    val bpt = when (item.type) {
+                        VertexElementType.INT32 -> BufferPrimitiveType.INT32
+                        VertexElementType.VECTOR2_INT32 -> BufferPrimitiveType.VECTOR2_INT32
+                        VertexElementType.VECTOR3_INT32 -> BufferPrimitiveType.VECTOR3_INT32
+                        VertexElementType.VECTOR4_INT32 -> BufferPrimitiveType.VECTOR4_INT32
+                        VertexElementType.FLOAT32 -> BufferPrimitiveType.FLOAT32
+                        VertexElementType.VECTOR2_FLOAT32 -> BufferPrimitiveType.VECTOR2_FLOAT32
+                        VertexElementType.VECTOR3_FLOAT32 -> BufferPrimitiveType.VECTOR3_FLOAT32
+                        VertexElementType.VECTOR4_FLOAT32 -> BufferPrimitiveType.VECTOR4_FLOAT32
+                        VertexElementType.MATRIX22_FLOAT32 -> BufferPrimitiveType.MATRIX22_FLOAT32
+                        VertexElementType.MATRIX33_FLOAT32 -> BufferPrimitiveType.MATRIX33_FLOAT32
+                        VertexElementType.MATRIX44_FLOAT32 -> BufferPrimitiveType.MATRIX44_FLOAT32
+                        else -> error("Unsupported vertex element type: ${item.type}")
+                    }
+                    primitive(item.attribute, bpt, item.arraySize)
+                }
+            }
+        }
+        return ShaderStorageBufferGL43(buffer, false, ssf, session)
+    }
+
     fun bind() {
         if (isDestroyed) {
             error("buffer is destroyed")

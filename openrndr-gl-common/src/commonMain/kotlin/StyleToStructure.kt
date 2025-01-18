@@ -7,6 +7,11 @@ fun <T> T.structDefinitions(): String where T : StyleParameters, T : StyleBuffer
     val structs = parameterTypes.filterValues {
         it.startsWith("struct")
     } + bufferTypes.filterValues { it.startsWith("struct") }
+
+    val bufferStructs = bufferValues.values.mapNotNull { it as? ShaderStorageBuffer }.flatMap {
+        it.format.elements.filter { it is ShaderStorageStruct }.map { it as ShaderStorageStruct }.distinctBy { it.structName }
+    }
+
     val structValues = structs.keys.map {
         if ((parameterValues[it] ?: bufferValues[it]) is Array<*>) {
             @Suppress("UNCHECKED_CAST") val array = (parameterValues[it] ?: bufferValues[it]) as Array<Struct<*>>
@@ -25,7 +30,7 @@ fun <T> T.structDefinitions(): String where T : StyleParameters, T : StyleBuffer
             (parameterTypes[it.first]
                 ?: bufferTypes[it.first])!!.split(" ")[1].split(",")[0]
         )
-    }
+    } + bufferStructs.joinToString("\n") { it.glslDefinition }
 }
 
 fun StyleParameters.uniforms(): String {

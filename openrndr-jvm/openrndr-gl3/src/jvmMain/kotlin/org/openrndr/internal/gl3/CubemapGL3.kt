@@ -340,4 +340,8 @@ class CubemapGL3(
         this.f()
         glBindTexture(GL_TEXTURE_CUBE_MAP, current)
     }
+
+    override fun close() {
+        destroy()
+    }
 }

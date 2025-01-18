@@ -2,7 +2,7 @@ package org.openrndr.draw
 
 import java.nio.ByteBuffer
 
-actual interface ShaderStorageBuffer {
+actual interface ShaderStorageBuffer: AutoCloseable {
 
     fun write(source: ByteBuffer, writeOffset: Int = 0)
     fun read(target: ByteBuffer, readOffset: Int = 0)

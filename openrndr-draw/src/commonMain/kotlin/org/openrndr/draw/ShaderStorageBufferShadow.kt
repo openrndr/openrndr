@@ -5,7 +5,7 @@ package org.openrndr.draw
  * The shadow allows operations such as uploading, downloading, and releasing resources,
  * as well as providing a means to obtain a writer for structured buffer data manipulation.
  */
-interface ShaderStorageBufferShadow {
+interface ShaderStorageBufferShadow: AutoCloseable {
     val shaderStorageBuffer: ShaderStorageBuffer
 
     fun upload(offset: Int = 0, size: Int = shaderStorageBuffer.format.size)

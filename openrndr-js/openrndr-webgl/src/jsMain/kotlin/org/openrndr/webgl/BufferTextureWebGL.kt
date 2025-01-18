@@ -18,6 +18,9 @@ class BufferTextureShadowWebGL: BufferTextureShadow() {
         TODO("Not yet implemented")
     }
 
+    override fun close() {
+        destroy()
+    }
 }
 
 class BufferTextureWebGL: BufferTexture() {
@@ -40,4 +43,7 @@ class BufferTextureWebGL: BufferTexture() {
         TODO("Not yet implemented")
     }
 
+    override fun close() {
+        destroy()
+    }
 }

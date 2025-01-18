@@ -20,7 +20,7 @@ enum class IndexType(val sizeInBytes:Int) {
  * are processed by the rendering pipeline. This interface provides functionality to
  * manage and destroy an index buffer, as well as query its properties.
  */
-expect interface IndexBuffer {
+expect interface IndexBuffer: AutoCloseable {
     companion object {
         fun createDynamic(elementCount: Int, type: IndexType): IndexBuffer
     }

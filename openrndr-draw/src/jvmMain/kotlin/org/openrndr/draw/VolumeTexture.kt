@@ -4,7 +4,7 @@ import org.openrndr.color.ColorRGBa
 import org.openrndr.internal.Driver
 import java.nio.ByteBuffer
 
-actual interface VolumeTexture {
+actual interface VolumeTexture: AutoCloseable {
 
     companion object {
         fun create(

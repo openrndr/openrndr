@@ -5,11 +5,12 @@ package org.openrndr.draw
  * with a buffer residing in GPU memory. This interface provides methods to upload, download, and manage
  * vertex data in a buffer.
  */
-interface VertexBufferShadow {
+interface VertexBufferShadow : AutoCloseable {
     /**
      * The underlying GPU-resident vertex buffer that serves as the data source for this shadow buffer.
      */
     val vertexBuffer: VertexBuffer
+
     /**
      * Uploads vertex data to the GPU memory from the shadow buffer.
      *
@@ -18,6 +19,7 @@ interface VertexBufferShadow {
      *                    and vertex format of the associated [VertexBuffer].
      */
     fun upload(offsetInBytes: Int = 0, sizeInBytes: Int = vertexBuffer.vertexCount * vertexBuffer.vertexFormat.size)
+
     /**
      * Uploads a specified range of vertices from the shadow buffer to the GPU memory.
      *
@@ -35,6 +37,7 @@ interface VertexBufferShadow {
      */
     fun download()
     fun destroy()
+
     /**
      * Creates and returns a [BufferWriter] to facilitate writing operations to the shadow buffer.
      * The returned [BufferWriter] allows structured data, such as vectors or matrices, to be written

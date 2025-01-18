@@ -23,7 +23,8 @@ class IndexBufferGL3(val buffer: Int, override val indexCount: Int, override val
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer)
             checkGLErrors()
             val sizeInBytes = type.sizeInBytes * elementCount
-            val useBufferStorage = (Driver.instance as DriverGL3).version >= DriverVersionGL.GL_VERSION_4_4 && Driver.glVersion.type == DriverTypeGL.GL
+            val useBufferStorage =
+                (Driver.instance as DriverGL3).version >= DriverVersionGL.GL_VERSION_4_4 && Driver.glVersion.type == DriverTypeGL.GL
             if (useBufferStorage) {
                 glBufferStorage(GL_ELEMENT_ARRAY_BUFFER, sizeInBytes.toLong(), GL_DYNAMIC_STORAGE_BIT)
             } else {
@@ -79,10 +80,14 @@ class IndexBufferGL3(val buffer: Int, override val indexCount: Int, override val
         isDestroyed = true
     }
 
-    private fun bound(f:IndexBufferGL3.() -> Unit) {
+    private fun bound(f: IndexBufferGL3.() -> Unit) {
         bind()
         this.f()
         unbind()
+    }
+
+    override fun close() {
+        destroy()
     }
 }
 

@@ -1,6 +1,6 @@
 package org.openrndr.draw
 
-actual interface ShaderStorageBuffer {
+actual interface ShaderStorageBuffer: AutoCloseable {
     actual val session: Session?
     actual val format: ShaderStorageFormat
     actual fun clear()

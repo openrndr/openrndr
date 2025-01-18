@@ -1,6 +1,6 @@
 package org.openrndr.draw
 
-expect abstract class BufferTextureShadow {
+expect abstract class BufferTextureShadow: AutoCloseable {
     abstract val bufferTexture: BufferTexture
 
     //abstract fun upload(offset: Int = 0, sizeInBytes: Int = bufferTexture.elementCount * bufferTexture.format.componentCount * bufferTexture.type.componentSize )

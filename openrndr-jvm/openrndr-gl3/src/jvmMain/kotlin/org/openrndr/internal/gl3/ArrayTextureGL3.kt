@@ -241,4 +241,8 @@ class ArrayTextureGL3(
         this.f()
         glBindTexture(target, current)
     }
+
+    override fun close() {
+        destroy()
+    }
 }

@@ -76,4 +76,8 @@ class ComputeShaderGL43(
             return ComputeShaderGL43(program, name)
         }
     }
+
+    override fun close() {
+        destroy()
+    }
 }

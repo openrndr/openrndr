@@ -4,7 +4,7 @@ import org.openrndr.internal.Driver
 import java.nio.ByteBuffer
 
 
-actual interface IndexBuffer {
+actual interface IndexBuffer: AutoCloseable {
     actual companion object {
         actual fun createDynamic(elementCount: Int, type: IndexType): IndexBuffer = Driver.instance.createDynamicIndexBuffer(elementCount, type, session = Session.active)
         //fun createStatic(format: VertexFormat, buffer:Buffer):VertexBuffer

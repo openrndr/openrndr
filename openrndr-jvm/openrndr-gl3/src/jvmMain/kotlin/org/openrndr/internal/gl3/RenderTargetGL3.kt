@@ -636,4 +636,8 @@ open class RenderTargetGL3(
     override fun toString(): String {
         return "RenderTargetGL3(framebuffer=$framebuffer, width=$width, height=$height, contentScale=$contentScale, multisample=$multisample, session=$session, destroyed=$destroyed, colorAttachments=$colorAttachments, depthBuffer=$depthBuffer)"
     }
+
+    override fun close() {
+        destroy()
+    }
 }

@@ -244,4 +244,8 @@ open class RenderTargetWebGL(
     override val hasColorAttachments: Boolean
         get() = colorAttachments.isNotEmpty()
 
+
+    override fun close() {
+        destroy()
+    }
 }

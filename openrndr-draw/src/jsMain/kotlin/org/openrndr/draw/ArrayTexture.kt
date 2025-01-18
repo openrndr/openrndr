@@ -3,7 +3,7 @@ package org.openrndr.draw
 import org.openrndr.color.ColorRGBa
 import org.openrndr.shape.Rectangle
 
-actual abstract class ArrayTexture {
+actual abstract class ArrayTexture: AutoCloseable {
     actual abstract val session: Session?
     actual abstract val width: Int
     actual abstract val height: Int

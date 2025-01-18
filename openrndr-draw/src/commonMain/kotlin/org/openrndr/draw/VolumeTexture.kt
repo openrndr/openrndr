@@ -5,7 +5,7 @@ package org.openrndr.draw
  * stored in a 3D space, identified by its width, height, and depth dimensions. It can be used
  * in various applications, such as 3D data visualization, texture maps for 3D objects, and more.
  **/
-expect interface VolumeTexture {
+expect interface VolumeTexture: AutoCloseable {
     val session: Session?
 
     val width: Int

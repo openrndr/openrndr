@@ -27,6 +27,10 @@ class VertexBufferShadowWebGL(override val vertexBuffer: VertexBuffer) : VertexB
         return BufferWriterWebGL(shadow, vertexBuffer.vertexFormat.size)
     }
 
+    override fun close() {
+        destroy()
+    }
+
 }
 
 class VertexBufferWebGL(

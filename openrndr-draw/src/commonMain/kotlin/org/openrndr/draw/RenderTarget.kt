@@ -189,7 +189,7 @@ class LayeredCubemapAttachment(
  * and stencil attachments with configurability for attributes such as width, height, content scaling,
  * and multisampling.
  */
-interface RenderTarget {
+interface RenderTarget: AutoCloseable {
     /** [Session] in which this render target is created. */
     val session: Session?
 

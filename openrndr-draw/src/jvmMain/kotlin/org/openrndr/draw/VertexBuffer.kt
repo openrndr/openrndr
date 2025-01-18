@@ -4,7 +4,7 @@ import org.openrndr.internal.Driver
 import org.openrndr.utils.buffer.MPPBuffer
 import java.nio.ByteBuffer
 
-actual abstract class VertexBuffer: AutoCloseable {
+actual abstract class VertexBuffer : AutoCloseable {
     actual abstract val session: Session?
 
     actual companion object {
@@ -60,4 +60,6 @@ actual abstract class VertexBuffer: AutoCloseable {
         sourceByteOffset: Int,
         byteLength: Int
     )
+
+    abstract fun shaderStorageBufferView(): ShaderStorageBuffer
 }

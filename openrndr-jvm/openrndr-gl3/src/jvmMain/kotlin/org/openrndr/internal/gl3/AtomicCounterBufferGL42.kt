@@ -66,4 +66,8 @@ class AtomicCounterBufferGL42(val buffer: Int, override val size: Int) : AtomicC
             glDeleteBuffers(buffer)
         }
     }
+
+    override fun close() {
+        destroy()
+    }
 }

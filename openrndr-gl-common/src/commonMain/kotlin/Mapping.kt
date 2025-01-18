@@ -128,18 +128,28 @@ internal val VertexElementType.glslVaryingQualifier: String
         }
     }
 
+internal val ShaderStorageStruct.glslDefinition: String
+    get() = """#ifndef STRUCT_${structName}
+#define STRUCT_${structName}
+struct $structName {
+    ${glslLayout.prependIndent("    ")}
+};
+#endif
+"""
+
+internal val ShaderStoragePrimitive.glslDefinition: String
+    get() {
+        return if (arraySize == 1) {
+            "${type.glslType} ${name};"
+        } else {
+            "${type.glslType}[${arraySize}] ${name};"
+        }
+    }
 
 internal val ShaderStorageFormat.glslLayout: String
     get() = elements.joinToString("\n") {
         when (it) {
-            is ShaderStoragePrimitive -> {
-                if (it.arraySize == 1) {
-                    "${it.type.glslType} ${it.name};"
-                } else {
-                    "${it.type.glslType}[${it.arraySize}] ${it.name};"
-                }
-            }
-
+            is ShaderStoragePrimitive -> it.glslDefinition
             is ShaderStorageStruct -> {
                 if (it.arraySize == 1) {
                     "${it.structName} ${it.name};"
@@ -148,6 +158,21 @@ internal val ShaderStorageFormat.glslLayout: String
                 }
             }
 
+            else -> ""
+        }
+    }
+
+internal val ShaderStorageStruct.glslLayout: String
+    get() = elements.joinToString("\n") {
+        when (it) {
+            is ShaderStoragePrimitive -> it.glslDefinition
+            is ShaderStorageStruct -> {
+                if (it.arraySize == 1) {
+                    "${it.structName} ${it.name};"
+                } else {
+                    "${it.structName}[${it.arraySize}] ${it.name};"
+                }
+            }
             else -> ""
         }
     }
@@ -193,6 +218,7 @@ internal fun mapTypeToUniform(type: String, name: String): String {
                 ImageAccess.WRITE -> "layout($layout) writeonly $u $sampler p_$name;"
             }
         }
+
         else -> "$u ${shadeStyleTypeToGLSL(tokens[0])} p_$name${arraySize.arraySizeDefinition()}"
     }
 }

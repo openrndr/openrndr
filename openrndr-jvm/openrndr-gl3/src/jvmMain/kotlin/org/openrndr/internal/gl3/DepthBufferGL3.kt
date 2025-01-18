@@ -229,6 +229,10 @@ class DepthBufferGL3(
         glActiveTexture(GL_TEXTURE0 + textureUnit)
         glBindTexture(target, texture)
     }
+
+    override fun close() {
+        destroy()
+    }
 }
 
 private fun DepthFormat.toGLFormat(): Int {

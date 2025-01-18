@@ -2,7 +2,7 @@ package org.openrndr.draw
 
 import org.openrndr.internal.Driver
 
-interface AtomicCounterBuffer {
+interface AtomicCounterBuffer: AutoCloseable {
     companion object {
         fun create(counterCount: Int) = Driver.instance.createAtomicCounterBuffer(counterCount)
     }

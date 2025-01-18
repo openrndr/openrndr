@@ -21,7 +21,7 @@ class ResizableRenderTarget(
     multisample: BufferMultisample = BufferMultisample.Disabled,
     session: Session?,
     val builder: RenderTargetBuilder.() -> Unit
-) {
+): AutoCloseable {
     var renderTarget = renderTarget(width, height, contentScale, multisample, session, builder)
 
     fun resize(renderTarget: RenderTarget) {
@@ -55,6 +55,10 @@ class ResizableRenderTarget(
                 builder
             )
         }
+    }
+
+    override fun close() {
+        renderTarget.close()
     }
 }
 

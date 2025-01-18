@@ -99,4 +99,8 @@ class RenderTargetNullGL(override val width: Int, override val height: Int, over
 
     override val hasColorAttachments: Boolean
         get() = colorAttachments.isNotEmpty()
+
+    override fun close() {
+        destroy()
+    }
 }

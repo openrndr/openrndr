@@ -4,7 +4,7 @@ import org.khronos.webgl.ArrayBufferView
 import org.khronos.webgl.TexImageSource
 import org.openrndr.utils.buffer.MPPBuffer
 
-actual interface Cubemap {
+actual interface Cubemap: AutoCloseable {
     actual val session: Session?
     actual val width: Int
     actual val format: ColorFormat

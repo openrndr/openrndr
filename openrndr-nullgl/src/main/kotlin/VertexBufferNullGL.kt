@@ -90,6 +90,10 @@ class VertexBufferShadowNullGL(override val vertexBuffer: VertexBuffer) : Vertex
     override fun writer(): BufferWriter {
         return BufferWriterNullGL()
     }
+
+    override fun close() {
+        destroy()
+    }
 }
 
 class VertexBufferNullGL(override val vertexFormat: VertexFormat, override val vertexCount: Int, override val session: Session?) : VertexBuffer() {
@@ -111,5 +115,9 @@ class VertexBufferNullGL(override val vertexFormat: VertexFormat, override val v
     }
 
     override fun destroy() {
+    }
+
+    override fun shaderStorageBufferView(): ShaderStorageBuffer {
+        TODO("Not yet implemented")
     }
 }

@@ -8,7 +8,7 @@ import kotlin.math.ceil
  * Represents a Compute Shader, which is a type of shader used for general-purpose GPU computations.
  * A Compute Shader can bind images, buffers, and uniforms for processing data on the GPU.
  */
-interface ComputeShader : ShaderImageBindings, ShaderBufferBindings, ShaderUniforms {
+interface ComputeShader : ShaderImageBindings, ShaderBufferBindings, ShaderUniforms, AutoCloseable {
     companion object {
         /**
          * Create a compute shader from (GLSL) code as a String

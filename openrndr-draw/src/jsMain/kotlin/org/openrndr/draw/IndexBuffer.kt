@@ -1,6 +1,6 @@
 package org.openrndr.draw
 
-actual interface IndexBuffer {
+actual interface IndexBuffer: AutoCloseable {
     actual companion object {
         actual fun createDynamic(
             elementCount: Int,

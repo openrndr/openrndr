@@ -5,7 +5,7 @@ import org.openrndr.math.Vector2
 import org.openrndr.shape.Rectangle
 import java.nio.ByteBuffer
 
-actual abstract class ArrayTexture {
+actual abstract class ArrayTexture: AutoCloseable {
     actual abstract val session: Session?
 
     actual abstract val width: Int

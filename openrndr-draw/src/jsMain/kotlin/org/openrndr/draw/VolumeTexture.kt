@@ -1,6 +1,6 @@
 package org.openrndr.draw
 
-actual interface VolumeTexture {
+actual interface VolumeTexture: AutoCloseable {
     actual val session: Session?
     actual val width: Int
     actual val height: Int

@@ -304,4 +304,8 @@ class VolumeTextureGL3(
             return VolumeTextureGL3(texture, storageMode, width, height, depth, format, type, levels, session)
         }
     }
+
+    override fun close() {
+        destroy()
+    }
 }

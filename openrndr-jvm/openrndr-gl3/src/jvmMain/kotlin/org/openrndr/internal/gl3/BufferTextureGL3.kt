@@ -36,6 +36,10 @@ class BufferTextureShadowGL3(override val bufferTexture: BufferTextureGL3) : Buf
     override fun writer(): BufferWriter {
         return BufferWriterGL3(buffer, bufferTexture.format.componentCount * bufferTexture.type.componentSize)
     }
+
+    override fun close() {
+        destroy()
+    }
 }
 
 class BufferTextureGL3(val texture: Int, val buffer: Int, override val elementCount: Int, override val format: ColorFormat, override val type: ColorType, override val session: Session?) : BufferTexture() {
@@ -103,5 +107,9 @@ class BufferTextureGL3(val texture: Int, val buffer: Int, override val elementCo
             glDeleteTextures(texture)
             destroyed = true
         }
+    }
+
+    override fun close() {
+        destroy()
     }
 }

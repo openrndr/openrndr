@@ -33,4 +33,7 @@ class IndexBufferWebGL(val context: GL,
         context.deleteBuffer(buffer)
     }
 
+    override fun close() {
+        destroy()
+    }
 }

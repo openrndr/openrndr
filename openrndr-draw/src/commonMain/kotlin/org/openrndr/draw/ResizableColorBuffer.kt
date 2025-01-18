@@ -24,7 +24,7 @@ class ResizableColorBuffer(
     multisample: BufferMultisample = BufferMultisample.Disabled,
     levels: Int = 1,
     session: Session? = Session.active
-) {
+) : AutoCloseable {
     var colorBuffer = colorBuffer(width, height, contentScale, format, type, multisample, levels, session)
     fun resize(
         newWidth: Int = colorBuffer.width,
@@ -42,6 +42,10 @@ class ResizableColorBuffer(
 
     fun resize(renderTarget: RenderTarget) {
         resize(renderTarget.width, renderTarget.height, renderTarget.contentScale)
+    }
+
+    override fun close() {
+        colorBuffer.close()
     }
 }
 

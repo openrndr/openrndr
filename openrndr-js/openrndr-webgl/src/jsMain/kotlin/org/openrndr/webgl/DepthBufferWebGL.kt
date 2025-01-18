@@ -56,5 +56,8 @@ class DepthBufferWebGL(
         TODO("Not yet implemented")
     }
 
+    override fun close() {
+        destroy()
+    }
 
 }

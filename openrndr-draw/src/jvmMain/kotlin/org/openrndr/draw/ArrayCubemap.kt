@@ -5,7 +5,7 @@ import org.openrndr.math.Vector2
 import org.openrndr.shape.Rectangle
 import java.nio.ByteBuffer
 
-actual interface ArrayCubemap {
+actual interface ArrayCubemap : AutoCloseable {
     actual val session: Session?
 
     actual val width: Int
