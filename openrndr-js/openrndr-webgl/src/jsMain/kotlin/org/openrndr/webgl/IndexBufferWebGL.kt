@@ -4,20 +4,22 @@ import org.khronos.webgl.WebGLBuffer
 import org.khronos.webgl.WebGLRenderingContext as GL
 import org.openrndr.draw.IndexBuffer
 import org.openrndr.draw.IndexType
+import org.openrndr.draw.Session
 
 class IndexBufferWebGL(val context: GL,
     val buffer: WebGLBuffer,
     override val type: IndexType,
-    override val indexCount: Int
+    override val indexCount: Int,
+    override val session: Session?
 ) : IndexBuffer {
 
     companion object {
-        fun create(context: GL, type: IndexType, indexCount: Int) : IndexBufferWebGL {
+        fun create(context: GL, type: IndexType, indexCount: Int, session: Session?) : IndexBufferWebGL {
             val buffer = context.createBuffer() ?: error("failed to create buffer")
             context.bindBuffer(GL.ELEMENT_ARRAY_BUFFER, buffer)
             val sizeInBytes = type.sizeInBytes * indexCount
             context.bufferData(GL.ELEMENT_ARRAY_BUFFER, sizeInBytes, GL.DYNAMIC_DRAW)
-            return IndexBufferWebGL(context, buffer, type, indexCount)
+            return IndexBufferWebGL(context, buffer, type, indexCount, session)
         }
     }
 

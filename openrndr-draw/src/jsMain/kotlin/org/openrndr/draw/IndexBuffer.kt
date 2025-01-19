@@ -13,5 +13,5 @@ actual interface IndexBuffer: AutoCloseable {
     actual val indexCount: Int
     actual val type: IndexType
     actual fun destroy()
-
+    actual val session: Session?
 }
