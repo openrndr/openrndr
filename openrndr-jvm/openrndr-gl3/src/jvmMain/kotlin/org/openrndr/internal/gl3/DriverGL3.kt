@@ -484,7 +484,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
 
     override fun createDynamicIndexBuffer(elementCount: Int, type: IndexType, session: Session?): IndexBuffer {
         synchronized(this) {
-            val indexBuffer = IndexBufferGL3.create(elementCount, type)
+            val indexBuffer = IndexBufferGL3.create(elementCount, type, session)
             session?.track(indexBuffer)
             return indexBuffer
         }

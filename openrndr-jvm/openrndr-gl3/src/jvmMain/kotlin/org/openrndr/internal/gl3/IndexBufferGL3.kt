@@ -1,23 +1,38 @@
 package org.openrndr.internal.gl3
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL33C.*
 import org.lwjgl.opengl.GL44C.GL_DYNAMIC_STORAGE_BIT
 import org.lwjgl.opengl.GL44C.glBufferStorage
-import org.openrndr.draw.IndexBuffer
-import org.openrndr.draw.IndexType
+import org.lwjgl.opengles.GLES30
+import org.openrndr.draw.*
 import org.openrndr.internal.Driver
 import java.nio.ByteBuffer
 
 private val logger = KotlinLogging.logger {}
 
-class IndexBufferGL3(val buffer: Int, override val indexCount: Int, override val type: IndexType) : IndexBuffer {
+/**
+ * Represents an OpenGL index buffer
+ *
+ * This class encapsulates an index buffer object (IBO) used for storing index data
+ * in GPU memory, which is essential for indexed rendering in OpenGL. It provides
+ * methods to bind, unbind, write, read, and destroy the buffer.
+ *
+ * @property buffer The OpenGL buffer ID.
+ * @property indexCount The number of indices in the buffer.
+ * @property type The type of indices stored in the buffer (e.g., INT16, INT32).
+ * @property session The session associated with the index buffer, if any.
+ *
+ * Implements the [IndexBuffer] interface.
+ */
+class IndexBufferGL3(
+    val buffer: Int, override val indexCount: Int, override val type: IndexType, override val session: Session?
+) : IndexBuffer {
 
     private var isDestroyed = false
 
     companion object {
-        fun create(elementCount: Int, type: IndexType): IndexBufferGL3 {
+        fun create(elementCount: Int, type: IndexType, session: Session?): IndexBufferGL3 {
             val cb = glGetInteger(GL_ELEMENT_ARRAY_BUFFER_BINDING)
             val buffer = glGenBuffers()
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer)
@@ -32,7 +47,7 @@ class IndexBufferGL3(val buffer: Int, override val indexCount: Int, override val
             }
             checkGLErrors()
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cb)
-            return IndexBufferGL3(buffer, elementCount, type)
+            return IndexBufferGL3(buffer, elementCount, type, session)
         }
     }
 
@@ -51,28 +66,45 @@ class IndexBufferGL3(val buffer: Int, override val indexCount: Int, override val
         debugGLErrors()
     }
 
-    override fun write(data: ByteBuffer, offset: Int) {
-        bound {
-            glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, offset.toLong(), data)
+    override fun write(data: ByteBuffer, offsetInBytes: Int) {
+        require(!isDestroyed)
+        require(data.isDirect) { "data is not a direct ByteBuffer." }
+
+        when (Driver.glType) {
+            DriverTypeGL.GL -> bound {
+                glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, offsetInBytes.toLong(), data)
+                debugGLErrors()
+            }
+
+            DriverTypeGL.GLES -> {
+                glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, offsetInBytes.toLong(), data)
+            }
         }
-        checkGLErrors()
     }
 
-    override fun read(data: ByteBuffer, offset: Int) {
-        if (isDestroyed) {
-            throw IllegalStateException("buffer is destroyed")
-        }
+    override fun read(data: ByteBuffer, offsetInBytes: Int) {
+        require(!isDestroyed)
+        require(data.isDirect) { "data is not a direct ByteBuffer." }
 
-        if (data.isDirect) {
-            bound {
-                glGetBufferSubData(GL_ELEMENT_ARRAY_BUFFER, offset.toLong(), data)
+        when (Driver.glType) {
+            DriverTypeGL.GL -> bound {
+                glGetBufferSubData(GL_ELEMENT_ARRAY_BUFFER, offsetInBytes.toLong(), data)
             }
-            checkGLErrors()
-        } else {
-            val temp = BufferUtils.createByteBuffer(data.capacity())
-            read(temp, offset)
-            data.put(temp)
+
+            DriverTypeGL.GLES -> {
+                bind()
+                val bufferLengthInBytes = (type.sizeInBytes * indexCount) - offsetInBytes
+                val buffer = GLES30.glMapBufferRange(
+                    GL_ELEMENT_ARRAY_BUFFER,
+                    offsetInBytes.toLong(),
+                    bufferLengthInBytes.toLong(),
+                    GL_MAP_READ_BIT
+                )
+                data.put(buffer)
+                GLES30.glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER)
+            }
         }
+        checkGLErrors()
     }
 
     override fun destroy() {
@@ -80,10 +112,21 @@ class IndexBufferGL3(val buffer: Int, override val indexCount: Int, override val
         isDestroyed = true
     }
 
+
     private fun bound(f: IndexBufferGL3.() -> Unit) {
         bind()
         this.f()
         unbind()
+    }
+
+    override fun shaderStorageBufferView(): ShaderStorageBuffer {
+        val sbf = when (type) {
+            IndexType.INT16 -> error("16 bit indices are not supported.")
+            IndexType.INT32 -> shaderStorageFormat {
+                primitive("indices", BufferPrimitiveType.INT32, indexCount)
+            }
+        }
+        return ShaderStorageBufferGL43(buffer, false, sbf, session)
     }
 
     override fun close() {

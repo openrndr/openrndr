@@ -21,6 +21,8 @@ enum class IndexType(val sizeInBytes:Int) {
  * manage and destroy an index buffer, as well as query its properties.
  */
 expect interface IndexBuffer: AutoCloseable {
+
+    val session: Session?
     companion object {
         fun createDynamic(elementCount: Int, type: IndexType): IndexBuffer
     }
