@@ -30,7 +30,7 @@ fun <E> Set<E>.indexOf(e: E): Int {
     val i = iterator()
     var index = 0
     while (i.hasNext()) {
-        if (i.next() == e) {
+        if (i.next() === e) {
             return index
         }
         index++
