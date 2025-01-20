@@ -40,7 +40,7 @@ class VertexFormat {
     fun padding(paddingInBytes: Int) = attribute("_", VertexElementType.UINT8, paddingInBytes)
 
 
-    fun paddingFloat(sizeInFloats: Int) = attribute("paddingFloat_${items.size}", VertexElementType.FLOAT32, sizeInFloats)
+    fun paddingFloat(sizeInFloats: Int) = attribute("_", VertexElementType.FLOAT32, sizeInFloats)
 
 
     private fun floatTypeFromDimensions(dimensions: Int): VertexElementType {

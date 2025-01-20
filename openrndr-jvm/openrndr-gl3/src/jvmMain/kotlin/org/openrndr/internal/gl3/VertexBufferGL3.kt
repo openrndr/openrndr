@@ -224,11 +224,18 @@ class VertexBufferGL3(
         val ssf = shaderStorageFormat {
             struct("Vertex_${vertexFormat.hashCode().toUInt()}", "vertex", vertexCount) {
                 for (item in vertexFormat.items) {
+                    if (item.attribute == "_") {
+                        continue
+                    }
                     val bpt = when (item.type) {
                         VertexElementType.INT32 -> BufferPrimitiveType.INT32
+                        VertexElementType.UINT32 -> BufferPrimitiveType.UINT32
                         VertexElementType.VECTOR2_INT32 -> BufferPrimitiveType.VECTOR2_INT32
                         VertexElementType.VECTOR3_INT32 -> BufferPrimitiveType.VECTOR3_INT32
                         VertexElementType.VECTOR4_INT32 -> BufferPrimitiveType.VECTOR4_INT32
+                        VertexElementType.VECTOR2_UINT32 -> BufferPrimitiveType.VECTOR2_UINT32
+                        VertexElementType.VECTOR3_UINT32 -> BufferPrimitiveType.VECTOR3_UINT32
+                        VertexElementType.VECTOR4_UINT32 -> BufferPrimitiveType.VECTOR4_UINT32
                         VertexElementType.FLOAT32 -> BufferPrimitiveType.FLOAT32
                         VertexElementType.VECTOR2_FLOAT32 -> BufferPrimitiveType.VECTOR2_FLOAT32
                         VertexElementType.VECTOR3_FLOAT32 -> BufferPrimitiveType.VECTOR3_FLOAT32
