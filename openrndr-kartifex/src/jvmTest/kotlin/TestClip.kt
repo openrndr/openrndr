@@ -4,7 +4,7 @@ import io.kotest.matchers.longs.shouldBeExactly
 import io.lacuna.artifex.*
 import io.lacuna.artifex.utils.regions.Split
 
-import org.openrndr.kartifex.utils.regions.Split as KSplit
+import org.openrndr.kartifex.utils.regions.*
 import org.openrndr.kartifex.Matrix3 as KMatrix3
 import org.openrndr.kartifex.Vec2 as KVec2
 import org.openrndr.kartifex.Ring2 as KRing2
@@ -124,7 +124,7 @@ class TestClip {
             KBezier2.curve(KVec2(0.0, 100.0), KVec2(-50.0, 50.0), KVec2(0.0, 0.0))
         ).transform(KMatrix3.translate(110.0, 0.0)))
 
-        val ksplit = KSplit.split(kc0, kc1)
+        val ksplit = split(kc0, kc1)
         ksplit.splits.size.shouldBeExactly(2)
     }
 }
