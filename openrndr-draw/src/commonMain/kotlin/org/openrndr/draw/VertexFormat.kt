@@ -1,5 +1,6 @@
 package org.openrndr.draw
 
+import org.openrndr.draw.VertexElementType.*
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
@@ -48,7 +49,7 @@ class VertexFormat {
             1 -> VertexElementType.FLOAT32
             2 -> VertexElementType.VECTOR2_FLOAT32
             3 -> VertexElementType.VECTOR3_FLOAT32
-            4 -> VertexElementType.VECTOR4_FLOAT32
+            4 -> VECTOR4_FLOAT32
             else -> throw IllegalArgumentException("dimensions can only be 1, 2, 3 or 4 (got $dimensions)")
         }
     }
@@ -65,7 +66,8 @@ class VertexFormat {
      */
     fun color(dimensions: Int) = attribute("color", floatTypeFromDimensions(dimensions))
 
-    fun textureCoordinate(dimensions: Int = 2, index: Int = 0) = attribute("texCoord$index", floatTypeFromDimensions(dimensions))
+    fun textureCoordinate(dimensions: Int = 2, index: Int = 0) =
+        attribute("texCoord$index", floatTypeFromDimensions(dimensions))
 
 
     /**
@@ -98,6 +100,52 @@ class VertexFormat {
         return items.hashCode()
     }
 
+    /**
+     * Evaluates if the vertex format adheres to the `std430` memory layout rules.
+     *
+     * The `std430` layout requires proper alignment of each data type based on its size and characteristics.
+     * It ensures that:
+     * - The alignment of each item within the layout matches the specified alignment for its type.
+     * - The vertex size respects the maximum alignment of all items.
+     *
+     * The determination involves validating the alignment of offsets for each item in `items` based on their type
+     * and verifying that `size` is aligned with the computed `maxAlign` value.
+     *
+     * The alignment rules are derived as follows:
+     * - Matrices (`MATRIX33_FLOAT32`, `MATRIX44_FLOAT32`, `MATRIX22_FLOAT32`) and 4-component vector types
+     *   (`VECTOR4_UINT32`, `VECTOR4_FLOAT32`, `VECTOR4_INT32`) have an alignment of 16 bytes.
+     * - 3-component vectors (`VECTOR3_UINT32`, `VECTOR3_FLOAT32`, `VECTOR3_INT32`) have an alignment of 16 bytes.
+     * - 2-component vectors (`VECTOR2_UINT32`, `VECTOR2_FLOAT32`, `VECTOR2_INT32`) have an alignment of 8 bytes.
+     * - Scalars (`FLOAT32`, `UINT32`, `INT32`) have an alignment of 4 bytes.
+     *
+     * If any item or the overall vertex size violates the alignment rules, the result will be `false`.
+     *
+     * @return `true` if the vertex format satisfies the alignment constraints of the `std430` layout, otherwise `false`.
+     */
+    val isInStd430Layout: Boolean
+        get() {
+            var maxAlign = 4
+            vertexSize
+            for (item in items) {
+                val alignSize = when (item.type) {
+                    MATRIX33_FLOAT32,
+                    MATRIX44_FLOAT32,
+                    MATRIX22_FLOAT32,
+                    VECTOR4_UINT32, VECTOR4_FLOAT32, VECTOR4_INT32,
+                    VECTOR3_UINT32, VECTOR3_FLOAT32, VECTOR3_INT32 -> 16
+                    VECTOR2_UINT32, VECTOR2_FLOAT32, VECTOR2_INT32 -> 8
+                    FLOAT32, UINT32, INT32 -> 4
+                    else -> error("unsupported item type ${item.type}")
+                }
+                maxAlign = alignSize
+                val aligned = item.offset.mod(alignSize) == 0
+                if (!aligned) {
+                    return false
+                }
+            }
+
+            return size.mod(maxAlign) == 0
+        }
 
 }
 

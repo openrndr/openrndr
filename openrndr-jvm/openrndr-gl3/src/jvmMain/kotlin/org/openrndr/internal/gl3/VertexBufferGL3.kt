@@ -221,6 +221,7 @@ class VertexBufferGL3(
         ) {
 
         }
+        require(vertexFormat.isInStd430Layout) { "Vertex buffer is not according to Std 430 layout rules."}
         val ssf = shaderStorageFormat {
             struct("Vertex_${vertexFormat.hashCode().toUInt()}", "vertex", vertexCount) {
                 for (item in vertexFormat.items) {
