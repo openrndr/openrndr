@@ -188,7 +188,7 @@ object Intersections {
             writeIdx = -1
             while (readIdx < limit) {
                 val i: Vec2 = intersections[readIdx]
-                if (writeIdx < 0 || equals(intersections[writeIdx].x, i.x, SCALAR_EPSILON)) {
+                if (writeIdx < 0 || !equals(intersections[writeIdx].x, i.x, SCALAR_EPSILON)) {
                     intersections[++writeIdx] = i
                 }
                 readIdx++
