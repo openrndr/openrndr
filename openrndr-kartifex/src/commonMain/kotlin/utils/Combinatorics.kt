@@ -5,7 +5,7 @@ object Combinatorics {
     inline fun <reified V> permutations(values: List<V>): List<List<V>> {
         // if exhaustive searching is out of the question, put your trust in the RNG
         if (values.size > 4) {
-            List(MAX_RESULTS) {
+            return List(MAX_RESULTS) {
                 values.shuffled()
             }
         }
