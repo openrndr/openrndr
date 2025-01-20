@@ -1,6 +1,6 @@
 package org.openrndr.kartifex
 
-import org.openrndr.kartifex.utils.Scalars
+import org.openrndr.kartifex.utils.SCALAR_EPSILON
 import kotlin.jvm.JvmRecord
 
 @JvmRecord
@@ -26,7 +26,7 @@ data class Path2(
             } else {
                 val t1 = result[result.size - 1].sub(result[result.size - 2]).norm()
                 val t2 = segments[1].sub(segments[0]).norm()
-                if (Vec.equals(t1, t2, Scalars.EPSILON)) {
+                if (Vec.equals(t1, t2, SCALAR_EPSILON)) {
                     result.removeAt(result.size - 1)
                 }
                 for (i in 1 until segments.size) {
@@ -45,7 +45,7 @@ data class Path2(
             for (i in 0 until vertices.size - 1) {
                 val a = vertices[i]
                 val b = vertices[i + 1]
-                if (!Vec.equals(a, b, Scalars.EPSILON)) {
+                if (!Vec.equals(a, b, SCALAR_EPSILON)) {
                     segments.add(Line2.line(vertices[i], vertices[i + 1]))
                 }
             }
@@ -64,7 +64,7 @@ fun Path2(cs: Iterable<Curve2>): Path2 {
             bounds = bounds.union(b.start()).union(b.end())
         }
     }
-    val isRing = Vec.equals(l.first().start(), l.last().end(), Scalars.EPSILON)
+    val isRing = Vec.equals(l.first().start(), l.last().end(), SCALAR_EPSILON)
     val curves = l.toTypedArray()
     for (i in 0 until curves.size - 1) {
         curves[i] = curves[i].endpoints(curves[i].start(), curves[i + 1].start())

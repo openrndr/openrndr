@@ -1,8 +1,8 @@
 package org.openrndr.kartifex
 
 
-import org.openrndr.kartifex.utils.Scalars
-import org.openrndr.utils.Hashes
+import org.openrndr.kartifex.utils.lerp
+import org.openrndr.utils.hash
 import kotlin.math.max
 import kotlin.math.min
 
@@ -60,14 +60,14 @@ class Interval(a: Double, b: Double) {
         return Interval(normalize(i.lo), normalize(i.hi))
     }
 
-    fun lerp(t: Double) = if (t == 1.0) hi else Scalars.lerp(lo, hi, t)
+    fun lerp(t: Double) = if (t == 1.0) hi else lerp(lo, hi, t)
 
     fun lerp(i: Interval) = Interval(lerp(i.lo), lerp(i.hi))
 
     fun size() = hi - lo
 
     ///
-    override fun hashCode() = Hashes.hash(lo, hi)
+    override fun hashCode() = hash(lo, hi)
 
     override fun equals(other: Any?) = when {
         other === this -> true

@@ -1,7 +1,7 @@
 package org.openrndr.kartifex
 
 
-import org.openrndr.kartifex.utils.Scalars
+import org.openrndr.kartifex.utils.getExponent
 import kotlin.math.*
 
 interface Vec<T : Vec<T>> : Comparable<T> {
@@ -135,7 +135,7 @@ interface Vec<T : Vec<T>> : Comparable<T> {
     }
 
     fun pseudoNorm(): T {
-        val exponent: Int = Scalars.getExponent(reduce(MAX))
+        val exponent: Int = getExponent(reduce(MAX))
         return if (exponent < -8.0 || exponent > 8.0)
             mul(2.0.pow(-exponent.toDouble()))
         else {

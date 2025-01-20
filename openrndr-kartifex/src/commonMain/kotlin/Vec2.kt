@@ -1,6 +1,6 @@
 package org.openrndr.kartifex
 
-import org.openrndr.utils.Hashes
+import org.openrndr.utils.hash
 import kotlin.jvm.JvmRecord
 import kotlin.math.PI
 import kotlin.math.atan2
@@ -93,7 +93,7 @@ data class Vec2(val x: Double, val y: Double) : Vec<Vec2> {
     }
 
     override fun hashCode(): Int {
-        return Hashes.hash(x, y)
+        return hash(x, y)
     }
 
     override fun equals(other: Any?): Boolean {

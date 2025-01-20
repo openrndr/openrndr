@@ -1,8 +1,7 @@
 package org.openrndr.kartifex
 
 
-import org.openrndr.kartifex.utils.Scalars
-import kotlin.math.max
+import org.openrndr.kartifex.utils.max
 import kotlin.math.min
 import kotlin.math.sqrt
 
@@ -23,7 +22,7 @@ abstract class Box<T : Vec<T>, U : Box<T, U>> {
         return u.zip(
             l
         ) { a: Double, b: Double ->
-            Scalars.max(
+            max(
                 0.0,
                 a,
                 b
@@ -55,8 +54,10 @@ abstract class Box<T : Vec<T>, U : Box<T, U>> {
         return if (isEmpty) {
             construct(v, v)
         } else construct(
-            lower().zip(v
-            ) { a, b -> min(a, b) }, upper().zip(v
+            lower().zip(
+                v
+            ) { a, b -> min(a, b) }, upper().zip(
+                v
             ) { a, b -> max(a, b) }
         )
     }
@@ -87,7 +88,8 @@ abstract class Box<T : Vec<T>, U : Box<T, U>> {
     }
 
     fun clamp(v: T): T {
-        return v.zip(lower(), { a: Double, b: Double -> max(a, b) }).zip(upper(),
+        return v.zip(lower(), { a: Double, b: Double -> max(a, b) }).zip(
+            upper(),
             { a: Double, b: Double -> min(a, b) })
     }
 

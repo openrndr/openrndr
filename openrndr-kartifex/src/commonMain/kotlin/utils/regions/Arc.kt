@@ -4,6 +4,12 @@ import org.openrndr.kartifex.Curve2
 import org.openrndr.kartifex.Interval
 import org.openrndr.kartifex.Vec2
 
+/**
+ * Represents an arc, which is a collection of curves that form a continuous shape.
+ * This class implements the `MutableList` interface and delegates behavior to the underlying list of `Curve2` objects.
+ *
+ * @property list The mutable list of curves that constitute the arc.
+ */
 internal class Arc(val list:MutableList<Curve2> = mutableListOf()) : MutableList<Curve2> by list {
 
     private var hashProxy = 0.5

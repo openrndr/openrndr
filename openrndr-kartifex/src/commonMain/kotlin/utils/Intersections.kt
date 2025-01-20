@@ -81,12 +81,12 @@ object Intersections {
         val c: Vec2 = q.p0
         val dir: Vec2 = p.end().sub(p.start())
         val n = Vec2(-dir.y, dir.x)
-        val roots: DoubleArray = Equations.solveQuadratic(
+        val roots: DoubleArray = solveQuadratic(
             Vec.dot(n, a),
             Vec.dot(n, b),
             Vec.dot(n, c) + Vec2.cross(p.start(), p.end())
         )
-        val result: Array<Vec2> = if (Scalars.equals(dir.x, 0.0, Scalars.EPSILON)) {
+        val result: Array<Vec2> = if (equals(dir.x, 0.0, SCALAR_EPSILON)) {
             val y0: Double = p.start().y
             Array(roots.size) { i ->
                 val t = roots[i]
@@ -116,7 +116,7 @@ object Intersections {
         val dir: Vec2 = p.end().sub(p.start())
         val dLen: Double = dir.length()
         val n = Vec2(-dir.y, dir.x)
-        val roots: DoubleArray = Equations.solveCubic(
+        val roots: DoubleArray = solveCubic(
             Vec.dot(n, a),
             Vec.dot(n, b),
             Vec.dot(n, c),
@@ -169,7 +169,7 @@ object Intersections {
             writeIdx = -1
             while (readIdx < limit) {
                 val i: Vec2 = intersections[readIdx]
-                if (writeIdx < 0 || !Scalars.equals(intersections[writeIdx].y, i.y, Scalars.EPSILON)) {
+                if (writeIdx < 0 || !equals(intersections[writeIdx].y, i.y, SCALAR_EPSILON)) {
                     intersections[++writeIdx] = i
                 }
                 readIdx++
@@ -188,7 +188,7 @@ object Intersections {
             writeIdx = -1
             while (readIdx < limit) {
                 val i: Vec2 = intersections[readIdx]
-                if (writeIdx < 0 || !Scalars.equals(intersections[writeIdx].x, i.x, Scalars.EPSILON)) {
+                if (writeIdx < 0 || equals(intersections[writeIdx].x, i.x, SCALAR_EPSILON)) {
                     intersections[++writeIdx] = i
                 }
                 readIdx++
@@ -326,9 +326,9 @@ object Intersections {
 
     // post-processing
     fun round(n: Double, epsilon: Double): Double {
-        return if (Scalars.equals(n, 0.0, epsilon)) {
+        return if (equals(n, 0.0, epsilon)) {
             0.0
-        } else if (Scalars.equals(n, 1.0, epsilon)) {
+        } else if (equals(n, 1.0, epsilon)) {
             1.0
         } else {
             n
@@ -473,7 +473,7 @@ object Intersections {
                             lo, max(a.x, b.x)
                         )
                     } else {
-                        val t = Scalars.lerp(a.x, b.x, (y - a.y) / (b.y - a.y))
+                        val t = lerp(a.x, b.x, (y - a.y) / (b.y - a.y))
                         lo = min(lo, t)
                         hi = max(hi, t)
                     }
@@ -713,8 +713,8 @@ object Intersections {
         }
         for (i in 0 until MAX_CUBIC_CUBIC_INTERSECTIONS + 1) {
             val t: Double = i.toDouble() / MAX_CUBIC_CUBIC_INTERSECTIONS
-            val pa: Vec2 = a.position(Scalars.lerp(`is`[0].x, `is`[1].x, t))
-            val pb: Vec2 = b.position(Scalars.lerp(`is`[0].y, `is`[1].y, t))
+            val pa: Vec2 = a.position(lerp(`is`[0].x, `is`[1].x, t))
+            val pb: Vec2 = b.position(lerp(`is`[0].y, `is`[1].y, t))
             if (!Vec.equals(
                     pa,
                     pb,

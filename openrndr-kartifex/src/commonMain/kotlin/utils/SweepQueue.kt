@@ -40,8 +40,8 @@ class SweepQueue<T> {
     private val queue: PriorityQueue<Event<T>> = PriorityQueue(Event.COMPARATOR as Comparator<Event<T>>)
     private val set = mutableSetOf<T>()
     fun add(value: T, a: Double, b: Double) {
-        queue.add(Event(min(a, b) - Scalars.EPSILON, value, OPEN))
-        queue.add(Event(max(a, b) + Scalars.EPSILON, value, CLOSED))
+        queue.add(Event(min(a, b) - SCALAR_EPSILON, value, OPEN))
+        queue.add(Event(max(a, b) + SCALAR_EPSILON, value, CLOSED))
     }
 
     fun peek(): Double {

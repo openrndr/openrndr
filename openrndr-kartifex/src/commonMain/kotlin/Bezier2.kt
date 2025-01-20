@@ -1,7 +1,10 @@
 package org.openrndr.kartifex
 
-import org.openrndr.kartifex.utils.Equations
-import org.openrndr.kartifex.utils.Scalars
+
+import org.openrndr.kartifex.utils.SCALAR_EPSILON
+import org.openrndr.kartifex.utils.inside
+import org.openrndr.kartifex.utils.solveCubic
+import org.openrndr.kartifex.utils.solveQuadratic
 import utils.DoubleAccumulator
 import kotlin.math.abs
 import kotlin.math.max
@@ -165,7 +168,7 @@ object Bezier2 {
             val b: Double = 3 * Vec.dot(ab, br)
             val c: Double = 2 * Vec.dot(ab, ab) + Vec.dot(qa, br)
             val d: Double = Vec.dot(qa, ab)
-            val ts: DoubleArray = Equations.solveCubic(a, b, c, d)
+            val ts: DoubleArray = solveCubic(a, b, c, d)
             for (t in ts) {
                 if (t > 0 && t < 1) {
                     val endpoint: Vec2 = position(t)
@@ -206,8 +209,8 @@ object Bezier2 {
                 DoubleArray(0)
             } else {
                 val v: Vec2 = p0.sub(p1).div(div)
-                val x = Scalars.inside(epsilon, v.x, 1 - epsilon)
-                val y = Scalars.inside(epsilon, v.y, 1 - epsilon)
+                val x = inside(epsilon, v.x, 1 - epsilon)
+                val y = inside(epsilon, v.y, 1 - epsilon)
                 if (x && y) {
                     doubleArrayOf(v.x, v.y)
                 } else if (x xor y) {
@@ -380,7 +383,7 @@ object Bezier2 {
                         d1,
                         d1
                     ) + Vec.dot(qpt, d2))
-                    if (abs(dt) < Scalars.EPSILON) {
+                    if (abs(dt) < SCALAR_EPSILON) {
                         break
                     }
                     t -= dt
@@ -419,11 +422,11 @@ object Bezier2 {
             val a0: Vec2 = p1.sub(p0)
             val a1: Vec2 = p2.sub(p1).sub(a0).mul(2.0)
             val a2: Vec2 = p3.sub(p2.mul(3.0)).add(p1.mul(3.0)).sub(p0)
-            val s1: DoubleArray = Equations.solveQuadratic(a2.x, a1.x, a0.x)
-            val s2: DoubleArray = Equations.solveQuadratic(a2.y, a1.y, a0.y)
+            val s1: DoubleArray = solveQuadratic(a2.x, a1.x, a0.x)
+            val s2: DoubleArray = solveQuadratic(a2.y, a1.y, a0.y)
             val acc = DoubleAccumulator()
-            for (n in s1) if (Scalars.inside(epsilon, n, 1 - epsilon)) acc.add(n)
-            for (n in s2) if (Scalars.inside(epsilon, n, 1 - epsilon)) acc.add(n)
+            for (n in s1) if (inside(epsilon, n, 1 - epsilon)) acc.add(n)
+            for (n in s2) if (inside(epsilon, n, 1 - epsilon)) acc.add(n)
             noInflections = acc.size() == 0
             return acc.toArray()
         }

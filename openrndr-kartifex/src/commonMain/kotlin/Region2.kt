@@ -1,6 +1,9 @@
 package org.openrndr.kartifex
 
-import org.openrndr.kartifex.utils.regions.Clip
+import org.openrndr.kartifex.utils.regions.difference
+import org.openrndr.kartifex.utils.regions.intersection
+import org.openrndr.kartifex.utils.regions.union
+
 
 class Region2(val rings: Array<Ring2>) {
     val bounds: Box2
@@ -36,15 +39,15 @@ class Region2(val rings: Array<Ring2>) {
     }
 
     fun intersection(region: Region2): Region2 {
-        return Clip.intersection(this, region)
+        return intersection(this, region)
     }
 
     fun union(region: Region2): Region2 {
-        return Clip.union(this, region)
+        return union(this, region)
     }
 
     fun difference(region: Region2): Region2 {
-        return Clip.difference(this, region)
+        return difference(this, region)
     }
 
     companion object {
@@ -56,8 +59,7 @@ class Region2(val rings: Array<Ring2>) {
     init {
         rings.sortBy { it.area }
 
-        bounds = rings.
-            map { r: Ring2 -> r.bounds }
+        bounds = rings.map { r: Ring2 -> r.bounds }
             .fold(Box2.EMPTY) { obj, b -> obj.union(b) }
     }
 }
