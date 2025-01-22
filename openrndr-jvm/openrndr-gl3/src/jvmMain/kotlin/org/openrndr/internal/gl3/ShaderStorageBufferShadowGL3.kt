@@ -33,12 +33,16 @@ class ShaderStorageBufferShadowGL3(override val shaderStorageBuffer: ShaderStora
         shaderStorageBuffer.realShadow = null
     }
 
-    override fun writer(): BufferWriterStd430 {
-        return BufferWriterStd430GL3(buffer, shaderStorageBuffer.format.elements, shaderStorageBuffer.format.size)
+    override fun writer(): BufferWriter {
+        return BufferWriterGL3(buffer,  shaderStorageBuffer.format.size, BufferAlignment.STD430)
     }
 
     override fun close() {
+        destroy()
+    }
 
+    override fun reader(): BufferReader {
+        return ByteBufferReader(buffer, BufferAlignment.STD430)
     }
 }
 

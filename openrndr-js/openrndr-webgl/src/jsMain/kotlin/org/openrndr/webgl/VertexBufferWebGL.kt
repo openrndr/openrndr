@@ -31,6 +31,10 @@ class VertexBufferShadowWebGL(override val vertexBuffer: VertexBuffer) : VertexB
         destroy()
     }
 
+    override fun reader(): BufferReader {
+        TODO("Not yet implemented")
+    }
+
 }
 
 class VertexBufferWebGL(

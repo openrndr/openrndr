@@ -33,10 +33,18 @@ actual abstract class VertexBuffer : AutoCloseable {
         w.rewind()
         w.positionElements = elementOffset
         w.putter()
-        if (w.position % vertexFormat.size != 0) {
-            throw RuntimeException("incomplete vertices written at ${w.position}. likely violating the specified vertex format $vertexFormat")
+        var position = w.position
+        if (vertexFormat.alignment == BufferAlignment.STD430) {
+            val lastAlignmentInBytes = vertexFormat.items.last().type.std430AlignmentInBytes
+            if (position.mod(lastAlignmentInBytes) != 0) {
+                position += (lastAlignmentInBytes - position.mod(lastAlignmentInBytes))
+            }
         }
-        val count = w.positionElements - elementOffset
+
+        if (position % vertexFormat.size != 0) {
+            error("incomplete vertices written at ${w.position}. likely violating the specified vertex format $vertexFormat")
+        }
+        val count = position / vertexFormat.size - elementOffset
         shadow.uploadElements(elementOffset, count)
         w.rewind()
         return count

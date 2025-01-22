@@ -27,7 +27,7 @@ expect interface ShaderStorageBuffer: AutoCloseable {
      *               It provides a `BufferWriterStd430` context for writing the desired data to the buffer.
      * @return The number of elements written to the buffer.
      */
-    fun put(elementOffset: Int = 0, putter: BufferWriterStd430.() -> Unit): Int
+    fun put(elementOffset: Int = 0, putter: BufferWriter.() -> Unit): Int
 
     /**
      * Creates a vertex buffer view for a specific element within the shader storage buffer.
@@ -48,7 +48,7 @@ expect interface ShaderStorageBuffer: AutoCloseable {
  * of such an element, including its name, memory offset, and size when
  * represented as an array.
  */
-interface ShaderStorageElement {
+sealed interface ShaderStorageElement {
     val name: String
     val offset: Int
     val arraySize: Int
@@ -148,6 +148,14 @@ class ShaderStorageFormat {
      */
     val size get() = formatSize
 
+
+    fun lastAlignmentInBytes(elements: List<ShaderStorageElement> = this.elements) :Int {
+        val last = elements.last()
+        return when (last) {
+            is ShaderStoragePrimitive -> last.type.alignmentInBytes
+            is ShaderStorageStruct -> lastAlignmentInBytes(last.elements)
+        }
+    }
 
     /**
      * Adds a custom member to the [ShaderStorageFormat]

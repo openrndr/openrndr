@@ -5,6 +5,11 @@ import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 
+enum class BufferAlignment {
+    NONE,
+    STD430
+}
+
 /**
  * Represents a single element within a vertex, describing the structure of vertex data in a graphics pipeline.
  *
@@ -18,15 +23,26 @@ data class VertexElement(val attribute: String, val offset: Int, val type: Verte
 /**
  * VertexBuffer Layout describes how data is organized in the VertexBuffer
  */
-class VertexFormat {
+class VertexFormat(val alignment: BufferAlignment = BufferAlignment.NONE) {
 
     var items: MutableList<VertexElement> = mutableListOf()
-    private var vertexSize = 0
+    private var vertexSizeInBytes = 0
 
     /**
      * The size of the [VertexFormat] in bytes
      */
-    val size get() = vertexSize
+    val size: Int get() {
+        return if (alignment == BufferAlignment.STD430) {
+            val maxAlign = items.maxOfOrNull { it.type.std430AlignmentInBytes } ?: 0
+            if (vertexSizeInBytes.mod(maxAlign) != 0) {
+                vertexSizeInBytes + (maxAlign - vertexSizeInBytes.mod(maxAlign))
+            } else {
+                vertexSizeInBytes
+            }
+        } else {
+            vertexSizeInBytes
+        }
+    }
 
     /**
      * Appends a position component to the layout
@@ -38,17 +54,17 @@ class VertexFormat {
      * Insert padding in the layout
      * @param paddingInBytes the amount of padding in bytes
      */
-    fun padding(paddingInBytes: Int) = attribute("_", VertexElementType.UINT8, paddingInBytes)
+    fun padding(paddingInBytes: Int) = attribute("_", UINT8, paddingInBytes)
 
 
-    fun paddingFloat(sizeInFloats: Int) = attribute("_", VertexElementType.FLOAT32, sizeInFloats)
+    fun paddingFloat(sizeInFloats: Int) = attribute("_", FLOAT32, sizeInFloats)
 
 
     private fun floatTypeFromDimensions(dimensions: Int): VertexElementType {
         return when (dimensions) {
-            1 -> VertexElementType.FLOAT32
-            2 -> VertexElementType.VECTOR2_FLOAT32
-            3 -> VertexElementType.VECTOR3_FLOAT32
+            1 -> FLOAT32
+            2 -> VECTOR2_FLOAT32
+            3 -> VECTOR3_FLOAT32
             4 -> VECTOR4_FLOAT32
             else -> throw IllegalArgumentException("dimensions can only be 1, 2, 3 or 4 (got $dimensions)")
         }
@@ -74,16 +90,26 @@ class VertexFormat {
      * Adds a custom attribute to the [VertexFormat]
      */
     fun attribute(name: String, type: VertexElementType, arraySize: Int = 1) {
-        val offset = items.sumOf { it.arraySize * it.type.sizeInBytes }
+        var offset = vertexSizeInBytes
+        if (alignment == BufferAlignment.STD430) {
+            val alignmentInBytes = when (type) {
+                VECTOR3_FLOAT32, VECTOR3_UINT32, VECTOR3_INT32 -> 16
+                MATRIX33_FLOAT32 -> 16
+                else -> type.sizeInBytes
+            }
+            if (offset.mod(alignmentInBytes) != 0) {
+                offset += (alignmentInBytes - offset.mod(alignmentInBytes))
+            }
+        }
         val item = VertexElement(name, offset, type, arraySize)
         items.add(item)
-        vertexSize += type.sizeInBytes * arraySize
+        vertexSizeInBytes = offset + type.sizeInBytes * arraySize
     }
 
     override fun toString(): String {
         return "VertexFormat{" +
                 "items=" + items +
-                ", vertexSize=" + vertexSize +
+                ", vertexSize=" + vertexSizeInBytes +
                 '}'
     }
 
@@ -125,7 +151,7 @@ class VertexFormat {
     val isInStd430Layout: Boolean
         get() {
             var maxAlign = 4
-            vertexSize
+            vertexSizeInBytes
             for (item in items) {
                 val alignSize = when (item.type) {
                     MATRIX33_FLOAT32,
@@ -153,10 +179,10 @@ class VertexFormat {
  * Build a vertex format
  */
 @OptIn(ExperimentalContracts::class)
-fun vertexFormat(builder: VertexFormat.() -> Unit): VertexFormat {
+fun vertexFormat(alignment: BufferAlignment = BufferAlignment.NONE, builder: VertexFormat.() -> Unit): VertexFormat {
     contract {
         callsInPlace(builder, InvocationKind.EXACTLY_ONCE)
     }
 
-    return VertexFormat().apply { builder() }
+    return VertexFormat(alignment).apply { builder() }
 }

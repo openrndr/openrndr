@@ -4,6 +4,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import org.lwjgl.BufferUtils
 import org.openrndr.color.ColorRGBa
 import org.openrndr.color.Linearity
+import org.openrndr.draw.BufferAlignment
 import org.openrndr.draw.BufferWriter
 import org.openrndr.draw.ColorBufferShadow
 import org.openrndr.draw.ColorType
@@ -123,6 +124,6 @@ class ColorBufferShadowGL3(override val colorBuffer: ColorBufferGL3) : ColorBuff
     }
 
     override fun writer(): BufferWriter {
-        return BufferWriterGL3(buffer)
+        return BufferWriterGL3(buffer, alignment = BufferAlignment.NONE)
     }
 }

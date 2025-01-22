@@ -15,5 +15,6 @@ interface ShaderStorageBufferShadow: AutoCloseable {
 
     fun download()
     fun destroy()
-    fun writer(): BufferWriterStd430
+    fun writer(): BufferWriter
+    fun reader(): BufferReader
 }

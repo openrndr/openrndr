@@ -46,4 +46,6 @@ interface VertexBufferShadow : AutoCloseable {
      * @return a [BufferWriter] instance for writing data to the shadow buffer
      */
     fun writer(): BufferWriter
+
+    fun reader(): BufferReader
 }

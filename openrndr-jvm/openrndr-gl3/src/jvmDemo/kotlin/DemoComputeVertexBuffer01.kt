@@ -19,9 +19,8 @@ import org.openrndr.math.IntVector3
 fun main() {
     application {
         program {
-            val vb0 = vertexBuffer(vertexFormat {
+            val vb0 = vertexBuffer(vertexFormat(BufferAlignment.STD430) {
                 position(3)
-                paddingFloat(1)
             }, 99)
 
             val vb1 = vertexBuffer(vb0.vertexFormat, vb0.vertexCount)
@@ -35,7 +34,6 @@ fun main() {
                     val x = Math.random() * width
                     val y = Math.random() * height
                     write(x.toFloat(), y.toFloat(), 0.0f)
-                    write(0.0f)
                 }
             }
             extend {

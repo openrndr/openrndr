@@ -48,7 +48,11 @@ class VertexBufferShadowGL3(override val vertexBuffer: VertexBufferGL3) : Vertex
     }
 
     override fun writer(): BufferWriter {
-        return BufferWriterGL3(buffer, vertexBuffer.vertexFormat.size)
+        return BufferWriterGL3(buffer, vertexBuffer.vertexFormat.size, vertexBuffer.vertexFormat.alignment)
+    }
+
+    override fun reader(): BufferReader {
+        return ByteBufferReader(buffer, vertexBuffer.vertexFormat.alignment)
     }
 
     override fun close() {

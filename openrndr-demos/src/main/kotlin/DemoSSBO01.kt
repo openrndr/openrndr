@@ -114,7 +114,7 @@ fun main() = application {
                 // age
                 write(20f * i)
                 // isActive
-                write(Random.nextBoolean())
+                write(if (Random.nextBoolean()) 1 else 0)
             }
 
             // agents

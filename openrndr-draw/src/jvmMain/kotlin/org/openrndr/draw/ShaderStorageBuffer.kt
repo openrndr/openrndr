@@ -12,7 +12,7 @@ actual interface ShaderStorageBuffer: AutoCloseable {
     actual fun clear()
     actual fun destroy()
 
-    actual fun put(elementOffset: Int, putter: BufferWriterStd430.() -> Unit): Int
+    actual fun put(elementOffset: Int, putter: BufferWriter.() -> Unit): Int
     actual val shadow: ShaderStorageBufferShadow
     actual fun vertexBufferView(elementName: String?): VertexBuffer
 }

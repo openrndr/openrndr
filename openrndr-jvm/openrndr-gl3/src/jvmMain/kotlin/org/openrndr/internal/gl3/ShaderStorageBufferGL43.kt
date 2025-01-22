@@ -132,17 +132,23 @@ data class ShaderStorageBufferGL43(
         }
     }
 
-    override fun put(elementOffset: Int, putter: BufferWriterStd430.() -> Unit): Int {
+    override fun put(elementOffset: Int, putter: BufferWriter.() -> Unit): Int {
         val w = shadow.writer()
         w.rewind()
         w.positionElements = elementOffset
         w.putter()
-        if (w.position % format.size != 0) {
+
+        var position = w.position
+        val alignment = format.lastAlignmentInBytes()
+        if (position.mod(alignment) != 0) {
+            position += alignment - (position.mod(alignment))
+        }
+
+        if (position.mod(format.size) != 0) {
             throw RuntimeException("incomplete members written (position: ${w.position}, size: ${format.size}). likely violating the specified shaders storage format $format")
         }
-        val count = w.positionElements
+        val count = position / format.size
         shadow.uploadElements(elementOffset, count)
-        w.rewind()
         return count
     }
 
@@ -186,9 +192,10 @@ data class ShaderStorageBufferGL43(
     override fun vertexBufferView(elementName: String?): VertexBuffer {
         val vertexFormat = shaderStorageFormatToVertexFormat(this.format, elementName)
         val vertexCount = this.format.elements.first().arraySize
-        val offset = if (elementName == null ||vertexFormat.items.first().attribute == this.format.elements.first().name) 0 else {
-            elementPosition(elementName)
-        }
+        val offset =
+            if (elementName == null || vertexFormat.items.first().attribute == this.format.elements.first().name) 0 else {
+                elementPosition(elementName)
+            }
         return VertexBufferGL3(this.buffer, offset, vertexFormat, vertexCount, this.session)
     }
 
