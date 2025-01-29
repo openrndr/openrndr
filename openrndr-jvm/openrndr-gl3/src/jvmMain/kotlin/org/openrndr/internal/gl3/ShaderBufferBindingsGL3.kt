@@ -39,28 +39,7 @@ interface ShaderBufferBindingsGL3 : ShaderBufferBindings, ShaderUniformsGL3 {
     }
 
     override fun buffer(name: String, vertexBuffer: VertexBuffer) {
-        require(ssbo != -1)
-        val resourceIndex = resourceIndex(name)
-
-        if (resourceIndex != -1) {
-            val result = IntArray(1)
-            glGetProgramResourceiv(
-                programObject,
-                GL_SHADER_STORAGE_BLOCK,
-                resourceIndex,
-                intArrayOf(GL_BUFFER_BINDING),
-                intArrayOf(1),
-                result
-            )
-            val bindingIndex = result[0]
-            vertexBuffer as VertexBufferGL3
-            if (bindingIndex != -1) {
-                glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo)
-                glBindBufferBase(GL_SHADER_STORAGE_BUFFER, bindingIndex, vertexBuffer.buffer)
-            } else {
-                error("no binding index for '${name}'")
-            }
-        }
+        buffer(name, vertexBuffer.shaderStorageBufferView())
     }
 
     override fun buffer(name: String, shaderStorageBuffer: ShaderStorageBuffer) {

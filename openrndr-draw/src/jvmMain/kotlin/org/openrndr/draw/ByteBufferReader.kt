@@ -11,7 +11,42 @@ private fun ByteBuffer.alignTo(alignment: Int) {
     }
 }
 
-class ByteBufferReader(val buffer: ByteBuffer, val alignment: BufferAlignment = BufferAlignment.NONE) : BufferReader {
+class ByteBufferReader(val buffer: ByteBuffer,
+                       val alignment: BufferAlignment = BufferAlignment.NONE,
+                       val elementIterator: Iterator<ShaderStorageElement>?
+
+    ) : BufferReader {
+
+    /**
+     * Processes the next element in the `elementIterator` based on the specified `BufferPrimitiveType`.
+     * Aligns buffer position if necessary and validates type consistency. Recursively processes
+     * nested structures when encountered.
+     *
+     * @param type The expected type of the next buffer primitive, represented as a `BufferPrimitiveType`.
+     */
+    private fun next(type: BufferPrimitiveType) {
+        if (elementIterator != null) {
+            val element = elementIterator.next()
+            when (element) {
+                is ShaderStoragePrimitive -> {
+                    require(element.type == type) {
+                        "Type mismatch in ShaderStoragePrimitive: expected '${element.type}', but received '${type}'."
+                    }
+                }
+
+                is ShaderStorageStruct -> {
+                    if (buffer.position().mod(element.alignmentInBytes()) != 0) {
+                        buffer.position(
+                            buffer.position() + element.alignmentInBytes() - (buffer.position().mod(element.alignmentInBytes()))
+                        )
+                    }
+                    next(type)
+                }
+            }
+        }
+    }
+
+
     override fun rewind() {
         buffer.rewind()
     }
@@ -21,6 +56,7 @@ class ByteBufferReader(val buffer: ByteBuffer, val alignment: BufferAlignment = 
             buffer.alignTo(8)
         }
 
+        next(BufferPrimitiveType.VECTOR2_FLOAT32)
         val x = buffer.float.toDouble()
         val y = buffer.float.toDouble()
         return Vector2(x, y)
@@ -31,6 +67,7 @@ class ByteBufferReader(val buffer: ByteBuffer, val alignment: BufferAlignment = 
             buffer.alignTo(16)
         }
 
+        next(BufferPrimitiveType.VECTOR3_FLOAT32)
         val x = buffer.float.toDouble()
         val y = buffer.float.toDouble()
         val z = buffer.float.toDouble()
@@ -41,6 +78,7 @@ class ByteBufferReader(val buffer: ByteBuffer, val alignment: BufferAlignment = 
         if (alignment == BufferAlignment.STD430) {
             buffer.alignTo(16)
         }
+        next(BufferPrimitiveType.VECTOR4_FLOAT32)
         val x = buffer.float.toDouble()
         val y = buffer.float.toDouble()
         val z = buffer.float.toDouble()
@@ -52,6 +90,7 @@ class ByteBufferReader(val buffer: ByteBuffer, val alignment: BufferAlignment = 
         if (alignment == BufferAlignment.STD430) {
             buffer.alignTo(8)
         }
+        next(BufferPrimitiveType.VECTOR2_INT32)
         val x = buffer.int
         val y = buffer.int
         return IntVector2(x, y)
@@ -61,6 +100,7 @@ class ByteBufferReader(val buffer: ByteBuffer, val alignment: BufferAlignment = 
         if (alignment == BufferAlignment.STD430) {
             buffer.alignTo(16)
         }
+        next(BufferPrimitiveType.VECTOR3_INT32)
         val x = buffer.int
         val y = buffer.int
         val z = buffer.int
@@ -71,6 +111,7 @@ class ByteBufferReader(val buffer: ByteBuffer, val alignment: BufferAlignment = 
         if (alignment == BufferAlignment.STD430) {
             buffer.alignTo(16)
         }
+        next(BufferPrimitiveType.VECTOR4_INT32)
         val x = buffer.int
         val y = buffer.int
         val z = buffer.int
@@ -82,6 +123,7 @@ class ByteBufferReader(val buffer: ByteBuffer, val alignment: BufferAlignment = 
         if (alignment == BufferAlignment.STD430) {
             buffer.alignTo(16)
         }
+        next(BufferPrimitiveType.VECTOR4_FLOAT32)
         val r = buffer.float.toDouble()
         val g = buffer.float.toDouble()
         val b = buffer.float.toDouble()
@@ -93,6 +135,7 @@ class ByteBufferReader(val buffer: ByteBuffer, val alignment: BufferAlignment = 
         if (alignment == BufferAlignment.STD430) {
             buffer.alignTo(4)
         }
+        next(BufferPrimitiveType.FLOAT32)
         return buffer.float
     }
 
@@ -100,7 +143,7 @@ class ByteBufferReader(val buffer: ByteBuffer, val alignment: BufferAlignment = 
         if (alignment == BufferAlignment.STD430) {
             buffer.alignTo(16)
         }
-
+        next(BufferPrimitiveType.MATRIX33_FLOAT32)
         val m00 = buffer.float.toDouble()
         val m01 = buffer.float.toDouble()
         val m02 = buffer.float.toDouble()
@@ -126,6 +169,10 @@ class ByteBufferReader(val buffer: ByteBuffer, val alignment: BufferAlignment = 
     }
 
     override fun readMatrix44(): Matrix44 {
+        if (alignment == BufferAlignment.STD430) {
+            buffer.alignTo(16)
+        }
+        next(BufferPrimitiveType.MATRIX44_FLOAT32)
         val m00 = buffer.float.toDouble()
         val m01 = buffer.float.toDouble()
         val m02 = buffer.float.toDouble()

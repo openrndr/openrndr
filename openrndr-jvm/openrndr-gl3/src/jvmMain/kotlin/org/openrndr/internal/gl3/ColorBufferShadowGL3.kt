@@ -124,6 +124,6 @@ class ColorBufferShadowGL3(override val colorBuffer: ColorBufferGL3) : ColorBuff
     }
 
     override fun writer(): BufferWriter {
-        return BufferWriterGL3(buffer, alignment = BufferAlignment.NONE)
+        return BufferWriterGL3(buffer, alignment = BufferAlignment.NONE, elementIterator = null)
     }
 }

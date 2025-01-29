@@ -5,6 +5,12 @@ import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 
+/**
+ * An enumeration representing the memory alignment strategies for buffers.
+ *
+ * NONE: No specific memory alignment is applied.
+ * STD430: Alignment rules as defined by the std430 storage layout in GLSL.
+ */
 enum class BufferAlignment {
     NONE,
     STD430
@@ -175,8 +181,13 @@ class VertexFormat(val alignment: BufferAlignment = BufferAlignment.NONE) {
 
 }
 
+
 /**
- * Build a vertex format
+ * Creates a new instance of `VertexFormat` using a specified alignment and a builder block to configure its attributes.
+ *
+ * @param alignment Specifies how the data should be aligned in the vertex buffer. Defaults to `BufferAlignment.NONE`.
+ * @param builder A lambda block to configure the vertex format by defining its attributes.
+ * @return A fully constructed `VertexFormat` object with the specified alignment and attributes.
  */
 @OptIn(ExperimentalContracts::class)
 fun vertexFormat(alignment: BufferAlignment = BufferAlignment.NONE, builder: VertexFormat.() -> Unit): VertexFormat {

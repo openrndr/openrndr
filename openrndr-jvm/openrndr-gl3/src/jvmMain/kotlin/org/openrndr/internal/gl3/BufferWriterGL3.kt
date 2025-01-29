@@ -1,8 +1,7 @@
 package org.openrndr.internal.gl3
 
 import org.openrndr.color.ColorRGBa
-import org.openrndr.draw.BufferAlignment
-import org.openrndr.draw.BufferWriter
+import org.openrndr.draw.*
 import org.openrndr.math.*
 import java.nio.Buffer
 
@@ -16,9 +15,44 @@ private fun ByteBuffer.alignTo(alignment: Int) {
 }
 
 
-class BufferWriterGL3(val buffer: ByteBuffer, val elementSize: Int = 1, val alignment: BufferAlignment) : BufferWriter() {
+class BufferWriterGL3(
+    val buffer: ByteBuffer,
+    val elementSize: Int = 1,
+    val alignment: BufferAlignment,
+    val elementIterator: Iterator<ShaderStorageElement>?
+
+) : BufferWriter() {
     init {
         buffer.order(ByteOrder.nativeOrder())
+    }
+
+    /**
+     * Processes the next element in the `elementIterator` based on the specified `BufferPrimitiveType`.
+     * Aligns buffer position if necessary and validates type consistency. Recursively processes
+     * nested structures when encountered.
+     *
+     * @param type The expected type of the next buffer primitive, represented as a `BufferPrimitiveType`.
+     */
+    private fun next(type: BufferPrimitiveType) {
+        if (elementIterator != null) {
+            val element = elementIterator.next()
+            when (element) {
+                is ShaderStoragePrimitive -> {
+                    require(element.type == type) {
+                        "Type mismatch in ShaderStoragePrimitive: expected '${element.type}', but received '${type}'."
+                    }
+                }
+
+                is ShaderStorageStruct -> {
+                    if (buffer.position().mod(element.alignmentInBytes()) != 0) {
+                        buffer.position(
+                            buffer.position() + element.alignmentInBytes() - (buffer.position().mod(element.alignmentInBytes()))
+                        )
+                    }
+                    next(type)
+                }
+            }
+        }
     }
 
     override fun copyBuffer(sourceBuffer: ByteBuffer, sourceOffset: Int, sourceSizeInBytes: Int) {
@@ -34,17 +68,18 @@ class BufferWriterGL3(val buffer: ByteBuffer, val elementSize: Int = 1, val alig
 
     override fun write(vararg v: Vector3) {
         for (i in v) {
+            next(BufferPrimitiveType.VECTOR3_FLOAT32)
             write(i)
         }
     }
 
     override fun write(v: Byte) {
-        require(alignment == BufferAlignment.NONE)
+        require(alignment == BufferAlignment.NONE && elementIterator == null)
         buffer.put(v)
     }
 
     override fun write(v: Short) {
-        require(alignment == BufferAlignment.NONE)
+        require(alignment == BufferAlignment.NONE && elementIterator == null)
         buffer.putShort(v)
     }
 
@@ -52,6 +87,7 @@ class BufferWriterGL3(val buffer: ByteBuffer, val elementSize: Int = 1, val alig
         if (alignment == BufferAlignment.STD430) {
             buffer.alignTo(4)
         }
+        next(BufferPrimitiveType.INT32)
         buffer.putInt(v)
     }
 
@@ -59,6 +95,7 @@ class BufferWriterGL3(val buffer: ByteBuffer, val elementSize: Int = 1, val alig
         if (alignment == BufferAlignment.STD430) {
             buffer.alignTo(8)
         }
+        next(BufferPrimitiveType.VECTOR2_INT32)
         buffer.putInt(v.x)
         buffer.putInt(v.y)
     }
@@ -67,6 +104,7 @@ class BufferWriterGL3(val buffer: ByteBuffer, val elementSize: Int = 1, val alig
         if (alignment == BufferAlignment.STD430) {
             buffer.alignTo(16)
         }
+        next(BufferPrimitiveType.VECTOR3_INT32)
         buffer.putInt(v.x)
         buffer.putInt(v.y)
         buffer.putInt(v.z)
@@ -76,6 +114,7 @@ class BufferWriterGL3(val buffer: ByteBuffer, val elementSize: Int = 1, val alig
         if (alignment == BufferAlignment.STD430) {
             buffer.alignTo(16)
         }
+        next(BufferPrimitiveType.VECTOR4_INT32)
         buffer.putInt(v.x)
         buffer.putInt(v.y)
         buffer.putInt(v.z)
@@ -94,6 +133,7 @@ class BufferWriterGL3(val buffer: ByteBuffer, val elementSize: Int = 1, val alig
         if (alignment == BufferAlignment.STD430) {
             buffer.alignTo(16)
         }
+        next(BufferPrimitiveType.VECTOR3_FLOAT32)
         buffer.putFloat(v.x.toFloat())
         buffer.putFloat(v.y.toFloat())
         buffer.putFloat(v.z.toFloat())
@@ -103,6 +143,7 @@ class BufferWriterGL3(val buffer: ByteBuffer, val elementSize: Int = 1, val alig
         if (alignment == BufferAlignment.STD430) {
             buffer.alignTo(8)
         }
+        next(BufferPrimitiveType.VECTOR2_FLOAT32)
         buffer.putFloat(v.x.toFloat())
         buffer.putFloat(v.y.toFloat())
     }
@@ -111,6 +152,7 @@ class BufferWriterGL3(val buffer: ByteBuffer, val elementSize: Int = 1, val alig
         if (alignment == BufferAlignment.STD430) {
             buffer.alignTo(16)
         }
+        next(BufferPrimitiveType.VECTOR4_FLOAT32)
         buffer.putFloat(v.x.toFloat())
         buffer.putFloat(v.y.toFloat())
         buffer.putFloat(v.z.toFloat())
@@ -121,6 +163,8 @@ class BufferWriterGL3(val buffer: ByteBuffer, val elementSize: Int = 1, val alig
         if (alignment == BufferAlignment.STD430) {
             buffer.alignTo(16)
         }
+
+        next(BufferPrimitiveType.MATRIX33_FLOAT32)
         buffer.putFloat(v.c0r0.toFloat())
         buffer.putFloat(v.c0r1.toFloat())
         buffer.putFloat(v.c0r2.toFloat())
@@ -142,6 +186,7 @@ class BufferWriterGL3(val buffer: ByteBuffer, val elementSize: Int = 1, val alig
         if (alignment == BufferAlignment.STD430) {
             buffer.alignTo(16)
         }
+        next(BufferPrimitiveType.MATRIX44_FLOAT32)
         buffer.putFloat(v.c0r0.toFloat())
         buffer.putFloat(v.c0r1.toFloat())
         buffer.putFloat(v.c0r2.toFloat())
@@ -167,6 +212,7 @@ class BufferWriterGL3(val buffer: ByteBuffer, val elementSize: Int = 1, val alig
         if (alignment == BufferAlignment.STD430) {
             buffer.alignTo(4)
         }
+        next(BufferPrimitiveType.FLOAT32)
         buffer.putFloat(v)
     }
 
@@ -174,6 +220,7 @@ class BufferWriterGL3(val buffer: ByteBuffer, val elementSize: Int = 1, val alig
         if (alignment == BufferAlignment.STD430) {
             buffer.alignTo(16)
         }
+        next(BufferPrimitiveType.VECTOR3_FLOAT32)
         buffer.putFloat(x)
         buffer.putFloat(y)
         buffer.putFloat(z)
@@ -183,6 +230,7 @@ class BufferWriterGL3(val buffer: ByteBuffer, val elementSize: Int = 1, val alig
         if (alignment == BufferAlignment.STD430) {
             buffer.alignTo(16)
         }
+        next(BufferPrimitiveType.VECTOR4_FLOAT32)
         buffer.putFloat(x)
         buffer.putFloat(y)
         buffer.putFloat(z)
@@ -193,6 +241,7 @@ class BufferWriterGL3(val buffer: ByteBuffer, val elementSize: Int = 1, val alig
         if (alignment == BufferAlignment.STD430) {
             buffer.alignTo(8)
         }
+        next(BufferPrimitiveType.VECTOR2_FLOAT32)
         buffer.putFloat(x)
         buffer.putFloat(y)
     }
@@ -201,6 +250,7 @@ class BufferWriterGL3(val buffer: ByteBuffer, val elementSize: Int = 1, val alig
         if (alignment == BufferAlignment.STD430) {
             buffer.alignTo(16)
         }
+        next(BufferPrimitiveType.VECTOR4_FLOAT32)
         buffer.putFloat(v.r.toFloat())
         buffer.putFloat(v.g.toFloat())
         buffer.putFloat(v.b.toFloat())

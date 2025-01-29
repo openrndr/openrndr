@@ -1,10 +1,16 @@
 package org.openrndr.draw
+
 /**
- * Vertex element type enumeration
+ * Enum class representing various types of vertex elements used in graphics programming.
+ *
+ * Each vertex element type is associated with specific properties:
+ * - `componentCount`: Number of components in the type (e.g., a scalar has 1, a 4-component vector has 4).
+ * - `sizeInBytes`: Total size in bytes required to store one instance of the type.
+ * - `std430AlignmentInBytes`: Alignment requirement in bytes as per the std430 layout rules in GLSL.
  */
 enum class VertexElementType(val componentCount: Int,
                              val sizeInBytes: Int,
-    val std430AlignmentInBytes: Int
+                             val std430AlignmentInBytes: Int
 
     ) {
     /** signed 8-bit integer */
@@ -12,10 +18,12 @@ enum class VertexElementType(val componentCount: Int,
     /** unsigned 8 bit integer */
     UINT8(1, 1, 4),
 
+    /** unsigned 16-bit integer */
     UINT16(1, 2, 4),
     /** signed 16-bit integer */
     INT16(1, 2, 4),
 
+    /** unsigned 32-bit integer */
     UINT32(1, 4, 4),
 
     /** signed 32-bit integer */

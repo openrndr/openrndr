@@ -48,11 +48,11 @@ class VertexBufferShadowGL3(override val vertexBuffer: VertexBufferGL3) : Vertex
     }
 
     override fun writer(): BufferWriter {
-        return BufferWriterGL3(buffer, vertexBuffer.vertexFormat.size, vertexBuffer.vertexFormat.alignment)
+        return BufferWriterGL3(buffer, vertexBuffer.vertexFormat.size, vertexBuffer.vertexFormat.alignment, null)
     }
 
     override fun reader(): BufferReader {
-        return ByteBufferReader(buffer, vertexBuffer.vertexFormat.alignment)
+        return ByteBufferReader(buffer, vertexBuffer.vertexFormat.alignment, null)
     }
 
     override fun close() {
@@ -248,7 +248,7 @@ class VertexBufferGL3(
                         VertexElementType.MATRIX22_FLOAT32 -> BufferPrimitiveType.MATRIX22_FLOAT32
                         VertexElementType.MATRIX33_FLOAT32 -> BufferPrimitiveType.MATRIX33_FLOAT32
                         VertexElementType.MATRIX44_FLOAT32 -> BufferPrimitiveType.MATRIX44_FLOAT32
-                        else -> error("Unsupported vertex element type: ${item.type}")
+                        else -> error("Unsupported vertex element type: ${item.type}, it is not compatible with the STD430 layout rules.")
                     }
                     primitive(item.attribute, bpt, item.arraySize)
                 }

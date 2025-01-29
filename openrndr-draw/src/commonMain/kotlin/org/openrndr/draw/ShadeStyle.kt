@@ -81,6 +81,15 @@ fun shadeStyleTypeToGLSL(type: String): String {
     return shadeStyleTypeToGLSLOrNull(type) ?: error("unsupported type $type")
 }
 
+/**
+ * Represents the output configuration for a shading style.
+ *
+ * @property attachment The attachment index for the output.
+ * @property format The color format of the output, which determines how color components (e.g., red, green, blue, alpha) are represented.
+ * Defaults to `ColorFormat.RGBa`.
+ * @property type The color type of the output, which specifies the data type or encoding used for handling the colors.
+ * Defaults to `ColorType.FLOAT32`.
+ */
 data class ShadeStyleOutput(
     val attachment: Int,
     val format: ColorFormat = ColorFormat.RGBa,
@@ -130,6 +139,13 @@ open class ShadeStyle : StyleParameters, StyleBufferBindings, StyleImageBindings
 
     override var textureBaseIndex = 2
 
+    /**
+     * Represents the preamble for vertex shading code in the shade style.
+     * This property is used to define custom vertex processing logic and,
+     * when modified, marks the state as dirty to trigger a necessary update.
+     *
+     * A null value indicates that no custom preamble is defined.
+     */
     var vertexPreamble: String? = null
         set(value) {
             dirty = true
@@ -142,12 +158,29 @@ open class ShadeStyle : StyleParameters, StyleBufferBindings, StyleImageBindings
             field = value
         }
 
+    /**
+     * Represents an optional preamble string for a shader's fragment stage.
+     * This property allows customization of the initial setup or definitions
+     * that precede main shader code for the fragment stage.
+     *
+     * When modified, it automatically marks the containing ShadeStyle as dirty,
+     * indicating that the shader configuration has been updated and may require
+     * recompilation or reprocessing.
+     */
     var fragmentPreamble: String? = null
         set(value) {
             dirty = true
             field = value
         }
 
+    /**
+     * Specifies a transformation applied to the vertex shader in the form of a string.
+     *
+     * When the value of this property is changed, the containing shader style is marked as dirty
+     * to indicate that it requires reprocessing or recompilation.
+     *
+     * A null value indicates that no additional vertex transformation is applied.
+     */
     var vertexTransform: String? = null
         set(value) {
             dirty = true
@@ -160,6 +193,12 @@ open class ShadeStyle : StyleParameters, StyleBufferBindings, StyleImageBindings
             field = value
         }
 
+    /**
+     * Specifies the transformation applied to the fragment shader stage.
+     * This property holds an optional string value which represents the GLSL code or expressions
+     * defining the transformation logic. When the value of this property is changed, the `dirty`
+     * flag is set to true, indicating that the shader needs to be recompiled or updated.
+     */
     var fragmentTransform: String? = null
         set(value) {
             dirty = true
@@ -368,6 +407,14 @@ open class ShadeStyle : StyleParameters, StyleBufferBindings, StyleImageBindings
     override var parameterTypes: ObservableHashmap<String, String> = ObservableHashmap(mutableMapOf()) { dirty = true }
 }
 
+/**
+ * Creates and returns a new instance of `ShadeStyle`, configured using the provided builder function.
+ *
+ * @param builder A lambda function that applies custom configurations to the `ShadeStyle` instance.
+ *                This lambda is called exactly once within the scope of this function.
+ * @return A configured `ShadeStyle` instance. The modifications applied in the `builder` lambda
+ *         are incorporated into the returned object.
+ */
 @OptIn(ExperimentalContracts::class)
 fun shadeStyle(builder: ShadeStyle.() -> Unit): ShadeStyle {
     contract {

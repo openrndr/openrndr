@@ -10,6 +10,4 @@ actual interface ShaderStorageBuffer: AutoCloseable {
         elementOffset: Int,
         putter: BufferWriter.() -> Unit
     ): Int
-
-    actual fun vertexBufferView(elementName: String?): VertexBuffer
 }

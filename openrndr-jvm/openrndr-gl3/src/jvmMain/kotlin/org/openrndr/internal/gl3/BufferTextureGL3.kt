@@ -34,7 +34,7 @@ class BufferTextureShadowGL3(override val bufferTexture: BufferTextureGL3) : Buf
     }
 
     override fun writer(): BufferWriter {
-        return BufferWriterGL3(buffer, bufferTexture.format.componentCount * bufferTexture.type.componentSize, BufferAlignment.NONE)
+        return BufferWriterGL3(buffer, bufferTexture.format.componentCount * bufferTexture.type.componentSize, BufferAlignment.NONE, null)
     }
 
     override fun close() {

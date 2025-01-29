@@ -34,7 +34,8 @@ class ShaderStorageBufferShadowGL3(override val shaderStorageBuffer: ShaderStora
     }
 
     override fun writer(): BufferWriter {
-        return BufferWriterGL3(buffer,  shaderStorageBuffer.format.size, BufferAlignment.STD430)
+        buffer.rewind()
+        return BufferWriterGL3(buffer,  shaderStorageBuffer.format.size, BufferAlignment.STD430, shaderStorageBuffer.format.elementSequence().iterator())
     }
 
     override fun close() {
@@ -42,7 +43,8 @@ class ShaderStorageBufferShadowGL3(override val shaderStorageBuffer: ShaderStora
     }
 
     override fun reader(): BufferReader {
-        return ByteBufferReader(buffer, BufferAlignment.STD430)
+        buffer.rewind()
+        return ByteBufferReader(buffer, BufferAlignment.STD430, shaderStorageBuffer.format.elementSequence().iterator())
     }
 }
 
