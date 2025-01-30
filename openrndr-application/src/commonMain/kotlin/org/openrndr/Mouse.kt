@@ -11,7 +11,14 @@ enum class MouseCursorHideMode {
 
 
 /**
- * Mouse event message
+ * Represents a mouse event in a 2D GUI or application.
+ *
+ * @property position The position of the mouse event in 2D space, represented as a [Vector2].
+ * @property rotation The rotational change of the mouse event, typically used for scroll or gesture detection, represented as a [Vector2].
+ * @property dragDisplacement The displacement vector caused by dragging, represented as a [Vector2].
+ * @property type The type of the mouse event, represented by [MouseEventType], such as click, drag, or scroll.
+ * @property button The mouse button involved in the event, represented by [MouseButton].
+ * @property modifiers The set of key modifiers (such as Shift, Ctrl, or Alt) active during the mouse event, represented by [KeyModifier].
  */
 data class MouseEvent(val position: Vector2, val rotation: Vector2, val dragDisplacement: Vector2, val type: MouseEventType, val button: MouseButton, val modifiers: Set<KeyModifier>) {
     /**
@@ -33,7 +40,18 @@ data class MouseEvent(val position: Vector2, val rotation: Vector2, val dragDisp
 }
 
 /**
- * Mouse cursor types
+ * Represents the type of cursor used within an application.
+ *
+ * This enum class is used to define different cursor styles based on
+ * interaction context, providing visual feedback to the user.
+ *
+ * Available cursor types:
+ * - `ARROW_CURSOR`: The default arrow cursor.
+ * - `IBEAM_CURSOR`: A cursor that indicates text input.
+ * - `CROSSHAIR_CURSOR`: A crosshair cursor for precise selection.
+ * - `HAND_CURSOR`: A hand cursor, often used for clickable elements.
+ * - `HRESIZE_CURSOR`: A horizontal resize cursor, typically used for resizing elements horizontally.
+ * - `VRESIZE_CURSOR`: A vertical resize cursor, typically used for resizing elements vertically.
  */
 enum class CursorType {
     ARROW_CURSOR,

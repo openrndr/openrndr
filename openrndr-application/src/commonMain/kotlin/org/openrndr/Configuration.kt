@@ -5,7 +5,13 @@ import org.openrndr.math.IntVector2
 import kotlin.jvm.JvmRecord
 
 /**
+ * Specifies the behavior applied when an application window loses focus.
  *
+ * This enum class defines two modes:
+ *
+ * - `NORMAL`: The application continues to function and render as usual, regardless of the window's focus state.
+ * - `THROTTLE`: The application's rendering or drawing processes are slowed down when the window is unfocused,
+ *               typically to conserve resources.
  */
 enum class UnfocusBehaviour {
     /** Continue as usual **/
@@ -30,6 +36,18 @@ enum class Fullscreen {
 }
 
 sealed class WindowMultisample {
+    /**
+     * Converts the current `WindowMultisample` instance to its equivalent `BufferMultisample` representation.
+     *
+     * The conversion logic depends on the specific type of the `WindowMultisample` instance:
+     * - `SystemDefault` results in an error as it cannot be resolved to a `BufferMultisample`.
+     * - `Disabled` maps to `BufferMultisample.Disabled`.
+     * - `SampleCount` maps to a corresponding `BufferMultisample.SampleCount` with the same sample count value.
+     * - Any other type or invalid instance results in an error.
+     *
+     * @return The corresponding `BufferMultisample` representation for the current `WindowMultisample` instance.
+     * @throws IllegalStateException If the current instance is `SystemDefault` or cannot be resolved.
+     */
     fun bufferEquivalent() : BufferMultisample = when {
         this === SystemDefault -> error("Cannot resolve SystemDefault to BufferMultisample")
         this === Disabled -> BufferMultisample.Disabled
@@ -47,6 +65,9 @@ sealed class WindowMultisample {
     data class SampleCount(val count: Int) : WindowMultisample()
 }
 
+/**
+ * Configuration class to customize the behavior, appearance, and settings of a window in an application.
+ */
 class Configuration {
 
     var canvasId = "openrndr-canvas"

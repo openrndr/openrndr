@@ -8,9 +8,39 @@ package org.openrndr
  * methods that should not be called explicitly, marked as deprecated with error level, to prevent unintended behavior.
  */
 abstract class ApplicationBuilder {
+    /**
+     * Represents the configuration settings for initializing and building the application.
+     *
+     * Provides a set of configurable properties that influence the behavior and appearance
+     * of the application, including window dimensions, fullscreen mode, display options,
+     * cursor visibility, and rendering behavior.
+     *
+     * This property is abstract and must be implemented to supply the desired [Configuration]
+     * instance, which can be further customized by using related configuration methods.
+     */
     abstract val configuration: Configuration
+    /**
+     * Represents the abstract program instance associated with the application being built.
+     *
+     * This variable allows access and manipulation of the program's configuration and lifecycle.
+     * The program instance provides functionalities such as handling input events, managing extensions,
+     * controlling the application clock, and rendering graphics. It serves as the centerpiece of the
+     * application, combining various elements and enabling the execution of a custom program structure.
+     *
+     * Implementing this property in a subclass allows defining the specific `Program` instance
+     * with its unique setup, event handling, rendering logic, and other properties.
+     */
     abstract var program: Program
 
+    /**
+     * Represents the fundamental base of an application within the [ApplicationBuilder].
+     *
+     * This property provides access to an instance of [ApplicationBase], which serves as a core
+     * class containing functionality to build the final application structure.
+     *
+     * It is accessible before the application's construction is finalized, enabling interaction
+     * with and configuration of application elements during the setup phase.
+     */
     abstract val applicationBase: ApplicationBase
 
     /**

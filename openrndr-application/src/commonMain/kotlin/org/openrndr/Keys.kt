@@ -3,7 +3,12 @@ package org.openrndr
 import org.openrndr.events.Event
 
 /**
- * Key modifier enumeration
+ * Represents key modifiers that can be used in combination with keyboard or mouse input.
+ *
+ * Each key modifier is associated with a unique bitmask value, allowing combinations of modifiers
+ * to be represented as a single integer.
+ *
+ * @property mask The bitmask value for this key modifier.
  */
 enum class KeyModifier(val mask: Int) {
     SHIFT(1),
@@ -13,7 +18,13 @@ enum class KeyModifier(val mask: Int) {
 }
 
 /**
- * Mouse button enumeration
+ * Represents mouse buttons commonly used in interaction with graphical user interfaces.
+ *
+ * The enum provides the following values:
+ * - `LEFT`: Represents the primary mouse button, typically the left button.
+ * - `RIGHT`: Represents the secondary mouse button, typically the right button.
+ * - `CENTER`: Represents the middle mouse button, typically the wheel button.
+ * - `NONE`: Represents an absence of any mouse button interaction.
  */
 enum class MouseButton {
     LEFT,
@@ -23,7 +34,10 @@ enum class MouseButton {
 }
 
 /**
- * Mouse event type enumeration
+ * Represents the types of mouse events that can occur in the system.
+ *
+ * This enum class categorizes the different interactions that the mouse can have
+ * within the application, such as movement, button clicks, or scrolling actions.
  */
 enum class MouseEventType {
     MOVED,
@@ -37,7 +51,14 @@ enum class MouseEventType {
 }
 
 /**
- * Key event type enumeration
+ * Represents the type of a key event in an application.
+ *
+ * Key events are typically emitted when a key on a keyboard is pressed, released,
+ * or held down. This enum class categorizes such events into the following types:
+ *
+ * - `KEY_DOWN`: Indicates that a key has been pressed.
+ * - `KEY_UP`: Indicates that a key has been released.
+ * - `KEY_REPEAT`: Indicates that a key is being continuously held down, causing repeated events.
  */
 enum class KeyEventType {
     KEY_DOWN,
@@ -61,6 +82,19 @@ data class KeyEvent(
         val modifiers: Set<KeyModifier>,
 ) {
     var propagationCancelled: Boolean = false
+    /**
+     * Marks the event's propagation as cancelled.
+     *
+     * Calling this method sets the `propagationCancelled` property to `true`.
+     * This serves as an indication that the event has been handled and should
+     * not be processed further by other event listeners.
+     *
+     * It is important to note that cancelling propagation is only a suggestion,
+     * and all event listeners should check the status of `propagationCancelled`
+     * to determine if the event has already been consumed.
+     *
+     * @see propagationCancelled
+     */
     fun cancelPropagation() {
         propagationCancelled = true
     }
@@ -104,6 +138,11 @@ const val KEY_F12 = 301
 const val KEY_LEFT_SHIFT = 340
 const val KEY_RIGHT_SHIFT = 344
 
+/**
+ * Interface for handling keyboard events. This interface provides access
+ * to events related to keyboard interactions such as key presses, releases,
+ * repetitions, and character inputs.
+ */
 interface KeyEvents {
     val keyDown: Event<KeyEvent>
     val keyUp: Event<KeyEvent>
@@ -112,7 +151,10 @@ interface KeyEvents {
 }
 
 /**
- * Keyboard events in a single class
+ * The `Keyboard` class provides event-based interaction for keyboard inputs. It implements
+ * the `KeyEvents` interface to handle various types of keyboard-related events such as
+ * key presses, releases, repetitions, and character inputs. These events are typically
+ * triggered by the `Application` interacting with the underlying system.
  */
 class Keyboard: KeyEvents {
     /**
@@ -142,11 +184,23 @@ class Keyboard: KeyEvents {
 
 }
 
+/**
+ * Tracks the keys currently pressed on the keyboard.
+ *
+ * This class listens to key down and key up events from a provided [KeyEvents] instance
+ * and maintains a set of the currently pressed keys. Keys are identified by their names.
+ *
+ * @constructor Creates a new KeyTracker instance by subscribing to the provided [KeyEvents] object.
+ * @param keyEvents The source of the key events to listen to.
+ */
 class KeyTracker(keyEvents: KeyEvents) {
     private val mutablePressedKeys = mutableSetOf<String>()
 
     /**
-     * set containing the names of the currently pressed keys
+     * A read-only set containing the names of the keys currently pressed on the keyboard.
+     *
+     * This property is dynamically updated based on key press (key down) and release (key up) events,
+     * providing an up-to-date view of active keyboard input.
      */
     val pressedKeys: Set<String> = mutablePressedKeys
 
