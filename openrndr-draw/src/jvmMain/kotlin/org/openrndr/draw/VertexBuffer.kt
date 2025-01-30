@@ -35,9 +35,9 @@ actual abstract class VertexBuffer : AutoCloseable {
         w.putter()
         var position = w.position
         if (vertexFormat.alignment == BufferAlignment.STD430) {
-            val lastAlignmentInBytes = vertexFormat.items.last().type.std430AlignmentInBytes
-            if (position.mod(lastAlignmentInBytes) != 0) {
-                position += (lastAlignmentInBytes - position.mod(lastAlignmentInBytes))
+            val maxAlignmentInBytes = vertexFormat.items.maxOf { it.type.std430AlignmentInBytes }
+            if (position.mod(maxAlignmentInBytes) != 0) {
+                position += (maxAlignmentInBytes - position.mod(maxAlignmentInBytes))
             }
         }
 
