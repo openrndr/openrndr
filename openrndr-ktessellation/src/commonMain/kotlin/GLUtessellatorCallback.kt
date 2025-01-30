@@ -85,8 +85,11 @@ package org.openrndr.ktessellation
 ** Java Port: Nathan Parker Burg, August 2003
 */
 /**
- * **GLUtessellatorCallback** interface provides methods that the user will
- * override to define the callbacks for a tessellation object.
+ * This class represents a callback interface for use with the GLU tessellation utility.
+ * It provides various methods that correspond to different stages and events in the
+ * tessellation process, such as the beginning and ending of primitives, vertex handling,
+ * and edge flag specification. Implementations of this interface can be passed to
+ * GLU tessellation functions to handle tessellation events appropriately.
  *
  * @author Eric Veach, July 1994
  * @author Java Port: Pepijn Van Eeckhoudt, July 2003

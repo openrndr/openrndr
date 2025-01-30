@@ -120,6 +120,14 @@ object GLU {
         }
     }
 
+    /**
+     * Creates and returns a new GLU tessellation object.
+     * The GLU tessellation object is used to process complex polygons,
+     * turning them into simpler primitives like triangles for rendering in OpenGL.
+     * This method initializes and allocates resources for a new tessellator.
+     *
+     * @return A new instance of GLUtessellator, which can be used for tessellation operations.
+     */
     fun gluNewTess(): GLUtessellator {
         return GLUtessellatorImpl()
     }

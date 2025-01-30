@@ -52,6 +52,31 @@
 */
 package org.openrndr.ktessellation
 
+/**
+ * Represents a half-edge in the tessellation algorithm.
+ *
+ * This class is a core part of the tessellation process, managing relationships
+ * between vertices, faces, and neighboring edges. Each half-edge has an
+ * associated symmetric counterpart and participates in various linked lists
+ * that allow traversal and manipulation of the tessellation structure.
+ *
+ * @constructor Creates an instance of GLUhalfEdge, specifying whether this
+ * half-edge is the first in its pair.
+ *
+ * Properties:
+ * - `first`: Indicates whether this half-edge is the primary in a pair of symmetric edges.
+ * - `next`: Points to the next half-edge in the doubly-linked list.
+ * - `Sym`: Points to the symmetric half-edge, which is the same edge in the
+ * opposite direction.
+ * - `Onext`: Points to the next edge counter-clockwise around the origin vertex.
+ * - `Lnext`: Points to the next edge counter-clockwise around the left face.
+ * - `Org`: References the origin vertex of the half-edge.
+ * - `Lface`: References the left face associated with the half-edge.
+ * - `activeRegion`: References the active region that this edge acts as an
+ * upper edge for, used during the sweep algorithm.
+ * - `winding`: Indicates the change in winding number associated with this
+ * edge during traversal.
+ */
 internal class GLUhalfEdge(var first: Boolean) {
     var next /* doubly-linked list (prev==Sym->next) */: GLUhalfEdge? = null
     var Sym /* same edge, opposite direction */: GLUhalfEdge? = null

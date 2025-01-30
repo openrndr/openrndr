@@ -432,12 +432,7 @@ open class GLUtessellatorImpl : GLUtessellator {
         }
     }
 
-    /** */ /* Obsolete calls -- for backward compatibility */
-    override fun gluBeginPolygon() {
-        gluTessBeginPolygon(null)
-        gluTessBeginContour()
-    }
-
+    
     /*ARGSUSED*/
     override fun gluNextContour(type: Int) {
         gluTessEndContour()

@@ -2,6 +2,14 @@
 
 package org.openrndr.ktessellation
 
+/**
+ * An adapter class for the `GLUtessellatorCallback` interface, providing default
+ * empty implementations for all methods. This allows subclasses to override only the
+ * methods they are interested in without the need to implement all methods of the interface.
+ *
+ * It is typically used with the OpenGL Utility Library (GLU) for tessellation, where
+ * callbacks provide mechanisms to handle events during the tessellation process.
+ */
 open class GLUtessellatorCallbackAdapter : GLUtessellatorCallback {
     override fun begin(type: Int) {}
     override fun edgeFlag(boundaryEdge: Boolean) {}
