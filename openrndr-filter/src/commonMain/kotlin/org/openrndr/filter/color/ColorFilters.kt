@@ -6,6 +6,14 @@ import org.openrndr.filter.filter_delinearize
 import org.openrndr.filter.filter_hybrid_log_gamma
 import org.openrndr.filter.filter_linearize
 
+/**
+ * A specialized filter that performs a direct 1-to-1 copy of image data.
+ * It utilizes a shader for processing, with the shader being generated
+ * from predefined code using the `filterShaderFromCode` function.
+ *
+ * The `Copy` class inherits from `Filter1to1`, which is a base class
+ * for filters that map one input to one output using a shader.
+ */
 class Copy : Filter1to1(filterShaderFromCode(filter_copy,"copy"))
 
 /**

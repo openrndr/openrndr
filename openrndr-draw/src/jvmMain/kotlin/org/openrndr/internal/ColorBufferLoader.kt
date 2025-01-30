@@ -13,6 +13,11 @@ val colorBufferLoader by lazy {
     ColorBufferLoader.create()
 }
 
+/**
+ * Manages loading and unloading of `ColorBufferProxy` objects, enabling asynchronous
+ * fetching of color buffer resources from URLs or other sources. This class also
+ * handles caching and resource cleanup for loaded buffers to optimize usage.
+ */
 class ColorBufferLoader {
     private val loadQueue = ArrayDeque<ColorBufferProxy>()
     private val unloadQueue = ArrayDeque<ColorBufferProxy>()
@@ -40,6 +45,15 @@ class ColorBufferLoader {
             proxy
         }
 
+    /**
+     * Cancels the loading or manages the unloading of a specified ColorBufferProxy instance.
+     *
+     * If the proxy is in the load queue, it is removed. If the proxy's state is LOADED, it is
+     * added to the unload queue for further processing.
+     *
+     * @param proxy the ColorBufferProxy instance to be canceled. If it is queued for loading,
+     * it will be removed from the load queue. If it is loaded, it will be scheduled for unloading.
+     */
     fun cancel(proxy: ColorBufferProxy) {
         synchronized(loadQueue) {
             loadQueue.remove(proxy)
