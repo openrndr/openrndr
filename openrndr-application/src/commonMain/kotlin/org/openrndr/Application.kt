@@ -71,4 +71,11 @@ expect abstract class Application {
     abstract var presentationMode: PresentationMode
 }
 
+/**
+ * Configures and initializes an application using the specified program and optional configuration settings.
+ *
+ * @param program the program instance that defines the application's core behavior, lifecycle, and rendering logic.
+ * @param configuration an optional configuration object that defines customization options for the application,
+ * such as preferred window dimensions, debug settings, and display properties. Defaults to a basic configuration.
+ */
 expect fun application(program: Program, configuration: Configuration = Configuration())

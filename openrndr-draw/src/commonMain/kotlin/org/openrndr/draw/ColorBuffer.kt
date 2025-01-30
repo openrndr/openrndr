@@ -58,8 +58,13 @@ enum class MagnifyingFilter {
     LINEAR
 }
 
+
 /**
- * Return the default color type for [format]
+ * Determines the default color type based on the given color format.
+ *
+ * @param format The color format for which the default color type is being determined.
+ * @return The corresponding default color type. Returns [ColorType.UINT8_SRGB] for [ColorFormat.RGB] and [ColorFormat.RGBa].
+ *         For other formats, returns [ColorType.UINT8].
  */
 fun defaultColorType(format: ColorFormat): ColorType = when (format) {
     ColorFormat.RGB, ColorFormat.RGBa -> ColorType.UINT8_SRGB
@@ -213,16 +218,18 @@ expect abstract class ColorBuffer : AutoCloseable {
 
 
 /**
- * create a [ColorBuffer]
- * @param width the width in device units
- * @param height the height in device units
- * @param contentScale content scale used for denoting hi-dpi content
- * @param format the color format
- * @param type the color type
- * @param multisample multisampling mode to use
- * @param format the color format
- * @param levels the number of mip-map levels
- * @param session the [Session] that should track this color buffer
+ * Creates a new color buffer with the specified dimensions and configuration.
+ *
+ * @param width The width of the color buffer in pixels.
+ * @param height The height of the color buffer in pixels.
+ * @param contentScale The content scaling factor, default is 1.0.
+ * @param format The color format of the buffer, default is RGBa.
+ * @param type The color type of the buffer, default depends on the passed color format.
+ * @param multisample Multisample setting for the buffer, default is no multisampling.
+ * @param levels The number of mipmap levels in the buffer, default is 1.
+ * @param session The session information associated with the buffer, defaults to the active session.
+ * @return A new instance of a color buffer with the specified properties.
+ * @see defaultColorType
  */
 fun colorBuffer(
     width: Int,

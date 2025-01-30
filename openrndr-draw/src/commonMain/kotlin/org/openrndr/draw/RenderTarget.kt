@@ -538,11 +538,17 @@ class RenderTargetBuilder(private val renderTarget: RenderTarget) {
 }
 
 /**
- * build a [RenderTarget]
- * @param width positive non-zero width of the [RenderTarget]
- * @param height positive non-zero height of the [RenderTarget]
- * @param multisample determine if the [RenderTarget] uses multi-sampling, default is disabled
- * @param session specify the session under which the [RenderTarget] should be created, default is [Session.active]
+ * Creates a new render target with the specified dimensions and properties.
+ *
+ * @param width The width of the render target in pixels. Must be greater than 0 and less than or equal to the maximum allowed texture size.
+ * @param height The height of the render target in pixels. Must be greater than 0 and less than or equal to the maximum allowed texture size.
+ * @param contentScale A scaling factor to apply to the render target's content. Defaults to 1.0.
+ * @param multisample Specifies the multisampling configuration for the render target. Defaults to [BufferMultisample.Disabled].
+ * @param session The session to which the render target belongs. Defaults to the currently active session.
+ * @param builder A builder block for additional configuration of the render target.
+ *
+ * @return A configured [RenderTarget] instance.
+ * @throws IllegalArgumentException If the specified width or height is out of the supported range.
  */
 @OptIn(ExperimentalContracts::class)
 fun renderTarget(

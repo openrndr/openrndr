@@ -90,10 +90,6 @@ private fun restartJVM(): Boolean {
     return true
 }
 
-/**
- * Creates and runs a synchronous OPENRNDR application using the provided [ApplicationBuilder].
- * @see <a href="https://guide.openrndr.org/">the OPENRNDR guide</a>
- */
 actual fun application(build: ApplicationBuilder.() -> Unit) {
     if (!restartJVM()) {
         installUncaughtExceptionHandler()

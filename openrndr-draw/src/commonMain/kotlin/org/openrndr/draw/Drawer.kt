@@ -49,6 +49,12 @@ enum class TransformTarget {
 
 
 
+/**
+ * The `Drawer` class is a utility that provides various drawing operations such as drawing shapes,
+ * transformations, and managing drawing states in a graphical rendering context.
+ * It serves as the primary interface for rendering graphics and provides control
+ * for styling and transformations.
+ */
 @Suppress("MemberVisibilityCanPrivate", "unused")
 class Drawer(val driver: Driver) {
 
@@ -250,8 +256,10 @@ class Drawer(val driver: Driver) {
     }
 
     /**
-     * Apply a uniform scale to the model matrix
-     * @param s the scaling factor
+     * Scales the target transformation uniformly along all axes by the given scalar value.
+     *
+     * @param s The scalar value by which to scale the transformation.
+     * @param target The target transformation to be scaled. Defaults to the MODEL transformation.
      */
     fun scale(s: Double, target: TransformTarget = TransformTarget.MODEL) {
         transform(target) *= Matrix44.scale(s, s, s)
@@ -267,63 +275,92 @@ class Drawer(val driver: Driver) {
     }
 
     /**
-     * Applies non-uniform scale to the model matrix
-     * @param x the scaling factor for the x-axis
-     * @param y the scaling factor for the y-axis
-     * @param z the scaling factor for the y-axis
-     * @see translate
-     * @see scale
+     * Scales a transformation matrix by the specified factors along the x, y, and z axes.
+     *
+     * @param x The scale factor along the x-axis.
+     * @param y The scale factor along the y-axis.
+     * @param z The scale factor along the z-axis.
+     * @param target The transformation target to which the scaling is applied. Defaults to TransformTarget.MODEL.
      */
     fun scale(x: Double, y: Double, z: Double, target: TransformTarget = TransformTarget.MODEL) {
         transform(target) *= Matrix44.scale(x, y, z)
     }
 
     /**
-     * Applies a two-dimensional translation to the model matrix
+     * Applies a translation transformation to the specified target.
+     *
+     * @param t The translation vector to apply.
+     * @param target The transformation target to which the translation is applied. Defaults to TransformTarget.MODEL.
      */
     fun translate(t: Vector2, target: TransformTarget = TransformTarget.MODEL) {
         transform(target) *= Matrix44.translate(t.vector3())
     }
 
+
     /**
-     * Applies three-dimensional translation to the model matrix
+     * Applies a translation transformation to the specified target.
+     *
+     * @param t The translation vector that specifies the direction and magnitude of the transformation.
+     * @param target The transformation target to which the translation is applied. Defaults to TransformTarget.MODEL.
      */
     fun translate(t: Vector3, target: TransformTarget = TransformTarget.MODEL) {
         transform(target) *= Matrix44.translate(t)
     }
 
     /**
-     * Applies a two-dimensional translation to the model matrix
+     * Translates a point or object by the given x and y offsets.
+     *
+     * @param x The x-axis offset by which the object is translated.
+     * @param y The y-axis offset by which the object is translated.
+     * @param target The transformation target that determines the coordinate system to apply the translation in (default is TransformTarget.MODEL).
      */
     fun translate(x: Double, y: Double, target: TransformTarget = TransformTarget.MODEL) {
         translate(x, y, 0.0, target)
     }
-
+  
     /**
-     * Applies a three-dimensional translation to the model matrix
+     * Translates the target by the specified x, y, and z values.
+     *
+     * @param x The translation value along the X-axis.
+     * @param y The translation value along the Y-axis.
+     * @param z The translation value along the Z-axis.
+     * @param target The target of the transformation. Defaults to TransformTarget.MODEL.
      */
     fun translate(x: Double, y: Double, z: Double, target: TransformTarget = TransformTarget.MODEL) {
         transform(target) *= Matrix44.translate(Vector3(x, y, z))
     }
 
+ 
     /**
-     * Applies a rotation over the z-axis to the model matrix
-     * @param rotationInDegrees the rotation in degrees
+     * Rotates the target by the specified angle in degrees around the Z-axis.
+     *
+     * @param rotationInDegrees The angle in degrees by which to rotate.
+     * @param target The target object to apply the rotation to. Defaults to TransformTarget.MODEL.
      */
     fun rotate(rotationInDegrees: Double, target: TransformTarget = TransformTarget.MODEL) {
         transform(target) *= Matrix44.rotateZ(rotationInDegrees)
     }
 
+ 
     /**
-     * Applies a rotation over an arbitrary axis to the model matrix
-     * @param axis the axis to rotate over, will be normalized
-     * @param rotationInDegrees the rotation in degrees
+     * Rotates a transformation using the specified axis and angle in degrees,
+     * applying the rotation to the given transformation target.
+     *
+     * @param axis the axis of rotation represented as a 3D vector.
+     * @param rotationInDegrees the angle of rotation in degrees.
+     * @param target the transformation target to which the rotation is applied;
+     * defaults to TransformTarget.MODEL.
      */
     fun rotate(axis: Vector3, rotationInDegrees: Double, target: TransformTarget = TransformTarget.MODEL) {
         transform(target) *= Matrix44.rotate(axis, rotationInDegrees)
     }
 
 
+    /**
+     * Clears the current drawing buffer with the specified color.
+     *
+     * @param color The color used to clear the buffer. It is an instance of ColorRGBa.
+     */
     fun clear(color: ColorRGBa) {
         driver.clear(color)
     }
@@ -344,6 +381,12 @@ class Drawer(val driver: Driver) {
         drawStyle = drawStyles.pop().copy()
     }
 
+    /**
+     * Pushes the current view onto the view stack and returns the top entry
+     * of the stack after the push operation.
+     *
+     * @return The top entry of the view stack after the view has been pushed.
+     */
     fun pushView(): Matrix44 = viewStack.push(view)
     fun popView() {
         view = viewStack.pop()
@@ -500,36 +543,83 @@ class Drawer(val driver: Driver) {
             return drawStyle.fontMap
         }
 
+    /**
+     * Draws a rectangle based on the specified properties.
+     *
+     * @param rectangle The Rectangle object containing the x and y coordinates, width, and height of the rectangle.
+     */
     fun rectangle(rectangle: Rectangle) {
         rectangleDrawer.drawRectangle(context, drawStyle, rectangle.x, rectangle.y, rectangle.width, rectangle.height)
     }
 
+    /**
+     * Draws a rectangle on the canvas based on the provided position and dimensions.
+     *
+     * @param x The x-coordinate of the top-left corner of the rectangle.
+     * @param y The y-coordinate of the top-left corner of the rectangle.
+     * @param width The width of the rectangle.
+     * @param height The height of the rectangle. Defaults to the value of width if not specified.
+     */
     fun rectangle(x: Double, y: Double, width: Double, height: Double = width) {
         rectangleDrawer.drawRectangle(context, drawStyle, x, y, width, height)
     }
 
+    /**
+     * Draws a rectangle on the canvas using the specified parameters.
+     *
+     * @param corner The top-left corner of the rectangle represented as a Vector2 object.
+     * @param width The width of the rectangle.
+     * @param height The height of the rectangle. If not specified, it defaults to the width, creating a square.
+     */
     fun rectangle(corner: Vector2, width: Double, height: Double = width) {
         rectangleDrawer.drawRectangle(context, drawStyle, corner.x, corner.y, width, height)
     }
 
+    /**
+     * Draws a set of rectangles based on the given positions and dimensions.
+     *
+     * @param positions A list of Vector2 objects representing the positions where rectangles will be drawn.
+     * @param width The width of each rectangle.
+     * @param height The height of each rectangle. Defaults to the value of the width parameter.
+     */
     fun rectangles(positions: List<Vector2>, width: Double, height: Double = width) {
         rectangleDrawer.drawRectangles(context, drawStyle, positions, width, height)
     }
 
+    /**
+     * Draws multiple rectangles based on the specified positions and dimensions.
+     *
+     * @param positions A list of Vector2 representing the positions of the rectangles.
+     * @param dimensions A list of Vector2 representing the dimensions (width and height) of the rectangles.
+     */
     fun rectangles(positions: List<Vector2>, dimensions: List<Vector2>) {
         rectangleDrawer.drawRectangles(context, drawStyle, positions, dimensions)
     }
 
+    /**
+     * Draws a list of rectangles on the specified context using the given draw style.
+     *
+     * @param rectangles A list of Rectangle objects to be drawn.
+     */
     fun rectangles(rectangles: List<Rectangle>) {
         rectangleDrawer.drawRectangles(context, drawStyle, rectangles)
     }
 
+    /**
+     * Draws a specified number of rectangles from the given rectangle batch.
+     *
+     * @param batch The batch of rectangles to be drawn.
+     * @param count The number of rectangles to draw from the batch. Defaults to the size of the batch.
+     */
     fun rectangles(batch: RectangleBatch, count: Int = batch.size) {
         rectangleDrawer.drawRectangles(context, drawStyle, batch, count)
     }
 
     /**
-     * Create and draw batched rectangles
+     * Facilitates the construction and rendering of rectangles in a batch process.
+     *
+     * @param build A lambda function with receiver of type `RectangleBatchBuilder` to define
+     * the attributes and properties of the rectangles to be drawn.
      */
     fun rectangles(build: RectangleBatchBuilder.() -> Unit) {
         val batchBuilder = RectangleBatchBuilder(this)
@@ -540,36 +630,38 @@ class Drawer(val driver: Driver) {
     }
 
     /**
-     * Draw a single point
-     * @see points
-     * @see circle
+     * Draws a point in a 2D or 3D space.
+     *
+     * @param x The x-coordinate of the point.
+     * @param y The y-coordinate of the point.
+     * @param z The z-coordinate of the point. Defaults to 0.0 for 2D points.
      */
     fun point(x: Double, y: Double, z: Double = 0.0) {
         pointDrawer.drawPoint(context, drawStyle, x, y, z)
     }
 
     /**
-     * Draw a single point
-     * @see points
-     * @see circle
+     * Draws a point on the canvas at the specified vector's coordinates.
+     *
+     * @param vector The 2D vector containing the x and y coordinates where the point will be drawn.
      */
     fun point(vector: Vector2) {
         pointDrawer.drawPoint(context, drawStyle, vector.x, vector.y, 0.0)
     }
 
     /**
-     * Draw a single point
-     * @see points
-     * @see circle
+     * Draws a point in 3D space using the specified vector.
+     *
+     * @param vector The 3D vector containing the coordinates (x, y, z) of the point to be drawn.
      */
     fun point(vector: Vector3) {
         pointDrawer.drawPoint(context, drawStyle, vector.x, vector.y, vector.z)
     }
 
     /**
-     * Draw a list of 2D points
-     * @see point
-     * @see circle
+     * Draws a list of 2D points using the specified context and draw style.
+     *
+     * @param points The list of 2D points to be drawn, represented as Vector2 objects.
      */
     @JvmName("points2D")
     fun points(points: List<Vector2>) {
@@ -577,10 +669,9 @@ class Drawer(val driver: Driver) {
     }
 
     /**
-     * Draw a list of 3D points
-     * @see point
-     * @see circle
-     * @see circles
+     * Draws a list of 3D points using the specified drawing style and context.
+     *
+     * @param points The list of 3D points to be drawn.
      */
     @JvmName("points3D")
     fun points(points: List<Vector3>) {
@@ -588,7 +679,10 @@ class Drawer(val driver: Driver) {
     }
 
     /**
-     * Create and draw batched points
+     * Draws a batch of points using the provided configuration builder.
+     *
+     * @param build A lambda with receiver of type PointBatchBuilder that is used
+     *              to configure the batch of points to be drawn.
      */
     fun points(build: PointBatchBuilder.() -> Unit) {
         val batchBuilder = PointBatchBuilder(this)
@@ -599,48 +693,89 @@ class Drawer(val driver: Driver) {
     }
 
     /**
-     * Draw a stored batch of points
+     * Draws a specified number of points from the given point batch.
+     *
+     * @param batch The batch of points to be drawn.
+     * @param count The number of points to draw from the batch. If not specified, it defaults to the size of the batch.
      */
     fun points(batch: PointBatch, count: Int = batch.size) {
         pointDrawer.drawPoints(context, drawStyle, batch, count)
     }
 
     /**
-     * Draw a circle
+     * Draws a circle with the specified parameters.
+     *
+     * @param x The x-coordinate of the center of the circle.
+     * @param y The y-coordinate of the center of the circle.
+     * @param radius The radius of the circle.
      */
     fun circle(x: Double, y: Double, radius: Double) {
         circleDrawer.drawCircle(context, drawStyle, x, y, radius)
     }
 
+    /**
+     * Draws a circle at the specified position with the given radius.
+     *
+     * @param position The center position of the circle as a Vector2 object.
+     * @param radius The radius of the circle as a Double.
+     */
     fun circle(position: Vector2, radius: Double) {
         circleDrawer.drawCircle(context, drawStyle, position.x, position.y, radius)
     }
 
+    /**
+     * Draws a circle on the given context using the specified draw style and circle properties.
+     *
+     * @param circle The Circle object containing the center coordinates and radius to define the circle to be drawn.
+     */
     fun circle(circle: Circle) {
         circleDrawer.drawCircle(context, drawStyle, circle.center.x, circle.center.y, circle.radius)
     }
 
+    /**
+     * Draws multiple circles at specified positions with a given radius.
+     *
+     * @param positions A list of positions where each circle will be drawn. Each position is represented as a Vector2 object.
+     * @param radius The radius of the circles to be drawn.
+     */
     fun circles(positions: List<Vector2>, radius: Double) {
         circleDrawer.drawCircles(context, drawStyle, positions, radius)
     }
 
+    /**
+     * Draws multiple circles on a given context using specified positions and radii.
+     *
+     * @param positions A list of Vector2 objects representing the positions of the circle centers.
+     * @param radii A list of Double values representing the radii of the circles, corresponding to each position.
+     */
     fun circles(positions: List<Vector2>, radii: List<Double>) {
         circleDrawer.drawCircles(context, drawStyle, positions, radii)
     }
 
+    /**
+     * Draws the given list of circles using the specified drawing context and style.
+     *
+     * @param circles A list of Circle objects to be drawn.
+     */
     fun circles(circles: List<Circle>) {
         circleDrawer.drawCircles(context, drawStyle, circles)
     }
 
     /**
-     * Draw stored circle batch
+     * Draws multiple circles in a batch using the specified drawing context and style.
+     *
+     * @param batch The batch of circles to be drawn.
+     * @param count The number of circles to draw from the batch. Defaults to the size of the batch.
      */
     fun circles(batch: CircleBatch, count: Int = batch.size) {
         circleDrawer.drawCircles(context, drawStyle, batch, count)
     }
 
     /**
-     * Create and draw batched circles
+     * Draws a batch of circles on a canvas using the provided building instructions.
+     *
+     * @param build A lambda with receiver that defines the properties and parameters for
+     * creating a batch of circles using the CircleBatchBuilder.
      */
     fun circles(build: CircleBatchBuilder.() -> Unit) {
         val batchBuilder = CircleBatchBuilder(this)
@@ -652,10 +787,9 @@ class Drawer(val driver: Driver) {
 
 
     /**
-     * Draws a single [Shape] using [fill], [stroke] and [strokeWeight] settings
-     * @see contour
-     * @see shapes
-     * @see contours
+     * Renders a given shape on the current render target. Supports shapes with different topology types: CLOSED, OPEN, and MIXED.
+     *
+     * @param shape The shape to be rendered. It contains the geometric data and topology information for rendering.
      */
     fun shape(shape: Shape) {
         val distanceTolerance = 0.5 / (modelViewScaling * log2(strokeWeight).coerceAtLeast(1.0))
@@ -696,7 +830,7 @@ class Drawer(val driver: Driver) {
                 }
             }
         } else {
-            error("drawing shapes requires a render target with a stencil attachment")
+            error("Drawing shapes requires a render target with a stencil attachment.")
         }
     }
 
@@ -759,7 +893,7 @@ class Drawer(val driver: Driver) {
                 }
             }
         } else {
-            error("drawing org.openrndr.shape.contours requires a render target with a stencil attachment")
+            error("Drawing contours requires a render target with a stencil attachment")
         }
     }
 
@@ -782,10 +916,23 @@ class Drawer(val driver: Driver) {
 
     }
 
+    /**
+     * Draws a line segment between two points in a 2D space.
+     *
+     * @param x0 The x-coordinate of the starting point of the line segment.
+     * @param y0 The y-coordinate of the starting point of the line segment.
+     * @param x1 The x-coordinate of the ending point of the line segment.
+     * @param y1 The y-coordinate of the ending point of the line segment.
+     */
     fun lineSegment(x0: Double, y0: Double, x1: Double, y1: Double) {
         lineSegment(Vector2(x0, y0), Vector2(x1, y1))
     }
 
+    /**
+     * Draws a line segment using the specified `LineSegment`.
+     *
+     * @param lineSegment The `LineSegment` object containing the start and end points of the line segment.
+     */
     fun lineSegment(lineSegment: LineSegment) {
         lineSegment(lineSegment.start, lineSegment.end)
     }
@@ -798,7 +945,6 @@ class Drawer(val driver: Driver) {
         if (abs(modelViewScaling) < 1E-6) {
             return
         }
-
 
         when (drawStyle.quality) {
             DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineSegments(context, drawStyle, listOf(start, end))
@@ -1009,6 +1155,12 @@ class Drawer(val driver: Driver) {
         }
     }
 
+    /**
+     * Renders a series of line loops with specified weights.
+     *
+     * @param loops A list of line loops, where each loop is represented as a list of 2D vectors.
+     * @param weights A list of weights corresponding to each line in the loops, determining their thickness.
+     */
     fun lineLoops(loops: List<List<Vector2>>, weights: List<Double>) {
         val fringeWidth = 1.0 / modelViewScaling
         if (abs(modelViewScaling) < 1E-6) {
@@ -1027,6 +1179,12 @@ class Drawer(val driver: Driver) {
         }
     }
 
+    /**
+     * Draws line loops in either performance or quality mode based on the current draw style.
+     *
+     * @param loops A list of lists representing the points for each line loop, where each inner list defines a single loop using Vector3 points.
+     * @param weights A list of weights corresponding to each line loop, used in the quality drawing mode.
+     */
     @JvmName("lineLoops3d)")
     fun lineLoops(loops: List<List<Vector3>>, weights: List<Double>) {
         when (drawStyle.quality) {
@@ -1266,6 +1424,14 @@ class Drawer(val driver: Driver) {
      */
     fun image(colorBuffer: ColorBuffer) = image(colorBuffer, 0.0, 0.0)
 
+    /**
+     * Draws an image onto the specified context using the provided color buffer and rectangles.
+     *
+     * @param colorBuffer The color buffer containing the image to be drawn.
+     * @param rectangles A list of pairs of rectangles where the first rectangle in each pair represents
+     * the source region in the color buffer, and the second rectangle represents the target region
+     * in the context where the portion of the image will be drawn.
+     */
     fun image(colorBuffer: ColorBuffer, rectangles: List<Pair<Rectangle, Rectangle>>) {
         imageDrawer.drawImage(context, drawStyle, colorBuffer, rectangles)
     }
@@ -1360,6 +1526,15 @@ class Drawer(val driver: Driver) {
         vertexBufferDrawer.drawVertexBuffer(context, drawStyle, primitive, vertexBuffers, offset, vertexCount)
     }
 
+    /**
+     * Draws a vertex buffer using the specified parameters.
+     *
+     * @param indexBuffer The index buffer that contains indices for drawing vertices.
+     * @param vertexBuffers A list of vertex buffers containing vertex data.
+     * @param primitive The primitive type used for drawing (e.g., triangle, line).
+     * @param offset The starting offset in the index buffer to begin drawing. Defaults to 0.
+     * @param indexCount The number of indices to use for drawing. Defaults to the total index count in the index buffer.
+     */
     fun vertexBuffer(
         indexBuffer: IndexBuffer,
         vertexBuffers: List<VertexBuffer>,
@@ -1378,6 +1553,16 @@ class Drawer(val driver: Driver) {
         )
     }
 
+    /**
+     * Issues a draw call for rendering geometry using multiple vertex buffers with instancing.
+     *
+     * @param vertexBuffers A list of vertex buffers containing per-vertex attributes for the geometry.
+     * @param instanceAttributes A list of vertex buffers containing per-instance attributes for instanced rendering.
+     * @param primitive The type of geometric primitive to be drawn (e.g., triangles, lines).
+     * @param instanceCount The number of instances of the geometry to render.
+     * @param offset The starting position in the vertex buffer from which to begin drawing.
+     * @param vertexCount The number of vertices to be rendered. Defaults to the vertex count of the first vertex buffer.
+     */
     fun vertexBufferInstances(
         vertexBuffers: List<VertexBuffer>,
         instanceAttributes: List<VertexBuffer>,
@@ -1398,6 +1583,17 @@ class Drawer(val driver: Driver) {
         )
     }
 
+    /**
+     * Draws instances of a vertex buffer with the specified parameters.
+     *
+     * @param indexBuffer The index buffer containing indices to define the vertices to be drawn.
+     * @param vertexBuffers A list of vertex buffers that define the vertex data for rendering.
+     * @param instanceAttributes A list of vertex buffers that define attributes for each instance.
+     * @param primitive The primitive type used for rendering (e.g., triangles, lines).
+     * @param instanceCount The number of instances to render.
+     * @param offset The starting index in the index buffer for drawing, defaults to 0.
+     * @param indexCount The number of indices to use for drawing, defaults to the total index count in the index buffer.
+     */
     fun vertexBufferInstances(
         indexBuffer: IndexBuffer,
         vertexBuffers: List<VertexBuffer>,
@@ -1420,8 +1616,15 @@ class Drawer(val driver: Driver) {
         )
     }
 
-
-    fun transform(transform: TransformTarget): KMutableProperty0<Matrix44> {
+    /**
+     * Returns a mutable property reference to a specific transformation matrix
+     * based on the provided transform target.
+     *
+     * @param transform the target transformation type to retrieve the matrix for;
+     *                  can be projection, model, or view.
+     * @return a mutable property reference to the corresponding transformation matrix.
+     */
+    private fun transform(transform: TransformTarget): KMutableProperty0<Matrix44> {
         return when (transform) {
             TransformTarget.PROJECTION -> this::projection
             TransformTarget.MODEL -> this::model
@@ -1430,9 +1633,14 @@ class Drawer(val driver: Driver) {
     }
 }
 
+
 /**
- * Pushes style and model-view-projection matrices, calls function and pops.
- * @param function the function that is called in the isolation
+ * Executes a given function within an isolated context where transforms and styles
+ * are managed. Ensures that the applied transforms and styles are reverted after
+ * the function execution, maintaining isolation for the block of code.
+ *
+ * @param function A lambda function that operates within the isolated drawing context.
+ * @see Drawer.isolatedWithTarget
  */
 @OptIn(ExperimentalContracts::class)
 fun Drawer.isolated(function: Drawer.() -> Unit) {
@@ -1449,9 +1657,16 @@ fun Drawer.isolated(function: Drawer.() -> Unit) {
     }
 }
 
+
 /**
- * Pushes style and model-view-projection matrices, sets render target, calls function and pops.
- * @param function the function that is called in the isolation
+ * Executes the given function within an isolated drawing context bound to the specified render target.
+ *
+ * This method binds the provided render target, executes the function within an isolated context,
+ * and then ensures that the render target is unbound after execution.
+ *
+ * @param target The render target to bind during the execution of the provided function.
+ * @param function The drawing function to execute within the isolated context.
+ * @see Drawer.isolated
  */
 @OptIn(ExperimentalContracts::class)
 fun Drawer.isolatedWithTarget(target: RenderTarget, function: Drawer.() -> Unit) {
