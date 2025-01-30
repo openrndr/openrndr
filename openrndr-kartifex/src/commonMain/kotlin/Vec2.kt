@@ -79,19 +79,6 @@ data class Vec2(val x: Double, val y: Double) : Vec<Vec2> {
         return m.transform(this)
     }
 
-    /**
-     * @return a rotated vector
-     */
-    fun rotate(radians: Double): Vec2 {
-        val s: Double = sin(radians)
-        val c: Double = cos(radians)
-        return Vec2(c * x + -s * y, s * x + c * y)
-    }
-
-    fun polar2(): Polar2 {
-        return Polar2(atan2(y, x), length())
-    }
-
     override fun hashCode(): Int {
         return hash(x, y)
     }

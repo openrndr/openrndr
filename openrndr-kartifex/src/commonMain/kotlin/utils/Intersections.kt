@@ -15,6 +15,14 @@ fun <T> Array<T>.sort(start: Int = 0, end: Int = size, selector: (T) -> Double) 
     }
 }
 
+/**
+ * Sorts a given array within a specified range based on a selector function that maps each element to a `Double` value.
+ *
+ * @param a The array to be sorted.
+ * @param start The starting index (inclusive) of the range to sort. Defaults to 0.
+ * @param end The ending index (exclusive) of the range to sort. Defaults to the size of the array.
+ * @param selector A lambda function that takes an element of the array and returns a `Double` value to sort by.
+ */
 @JvmName("kartifexHackSort2")
 fun <T> sort(a: Array<T>, start: Int = 0, end: Int = a.size, selector: (T) -> Double) {
     a.sort(start, end, selector)
@@ -34,6 +42,15 @@ object Intersections {
     val PARAMETRIC_BOUNDS: Box2 =
         Box.box(Vec2(0.0, 0.0), Vec2(1.0, 1.0))
 
+    /**
+     * Calculates the intersection points between a line and a curve in 2D space.
+     *
+     * @param a The first parameter representing the line segment.
+     * @param b The second parameter representing the curve, which can be a line,
+     *          quadratic Bézier curve, or cubic Bézier curve.
+     * @return An array of 2D vectors representing the intersection points between the line and the curve.
+     *         The array may be empty if no intersections are found.
+     */
     fun lineCurve(a: Line2, b: Curve2): Array<Vec2> {
         return if (b is Line2) {
             lineLine(a, b)
@@ -46,6 +63,16 @@ object Intersections {
         }
     }
 
+    /**
+     * Computes the intersection points of two line segments, if any.
+     *
+     * @param a the first line segment, represented as a `Line2` object
+     * @param b the second line segment, represented as a `Line2` object
+     * @return an array of `Vec2` objects representing the intersection points. The array could contain:
+     * - A single point if the segments touch at one point.
+     * - Two points if the segments overlap partially or completely.
+     * - An empty array if the segments do not intersect.
+     */
     fun lineLine(a: Line2, b: Line2): Array<Vec2> {
         val av: Vec2 = a.end().sub(a.start())
         val bv: Vec2 = b.end().sub(b.start())
@@ -71,6 +98,14 @@ object Intersections {
         return arrayOf(Vec2(s, t))
     }
 
+    /**
+     * Finds the intersection points between a 2D line segment and a quadratic Bezier curve.
+     *
+     * @param p the line segment represented by a `Line2` object.
+     * @param q the quadratic Bezier curve represented by a `Bezier2.QuadraticBezier2` object.
+     * @return an array of `Vec2` objects representing the intersection points. Each `Vec2` contains the parameter
+     *         along the line in the x-coordinate and the parameter along the Bezier curve in the y-coordinate.
+     */
     fun lineQuadratic(
         p: Line2,
         q: Bezier2.QuadraticBezier2
@@ -104,6 +139,15 @@ object Intersections {
         return result
     }
 
+    /**
+     * Computes the intersections between a 2D line segment and a cubic Bézier curve.
+     *
+     * @param p the 2D line segment represented as a `Line2` object
+     * @param q the cubic Bézier curve represented as a `CubicBezier2` object
+     * @return an array of `Vec2` objects, where each element represents an intersection point
+     *         in the parameter space (s, t). `s` corresponds to the line's parameter, and `t`
+     *         corresponds to the cubic Bézier curve's parameter.
+     */
     fun lineCubic(
         p: Line2,
         q: Bezier2.CubicBezier2
@@ -132,6 +176,15 @@ object Intersections {
         return result
     }
 
+    /**
+     * Normalizes a given array of `Vec2` intersections. The method applies several operations to ensure that the intersections:
+     * - Are rounded and filtered within a defined parametric range ([0, 1]).
+     * - Are sorted and deduplicated based on their `x` and `y` coordinates.
+     * The final result will be an array of unique, normalized intersections within the defined bounds.
+     *
+     * @param intersections An array of `Vec2` objects representing intersections that need to be normalized.
+     * @return A new array of normalized and deduplicated `Vec2` intersections.
+     */
     fun normalize(intersections: Array<Vec2>): Array<Vec2> {
         var limit = intersections.size
         if (limit == 0) {
@@ -246,7 +299,25 @@ object Intersections {
         return result.toTypedArray()
     }
 
-    // subdivision (slow, but as close to a reference implementation as exists)
+    /**
+     * Represents a parametric interval of a 2D curve, defined by a start and end parameter,
+     * and their corresponding geometric positions.
+     *
+     * The `CurveInterval` class is used for operations such as splitting, bounding box calculations,
+     * and intersection testing within this range of the curve.
+     *
+     * @constructor
+     * Creates a new instance of `CurveInterval` representing the interval of a curve.
+     * It calculates whether the interval is "flat," determines its parameter range, and
+     * sets the starting and ending positions of the interval on the curve.
+     *
+     * @param curve the curve (`Curve2`) to which this interval belongs
+     * @param tLo the lower bound of the parametric range
+     * @param tHi the upper bound of the parametric range
+     * @param pLo the 2D point on the curve corresponding to `tLo`
+     * @param pHi the 2D point on the curve corresponding to `tHi`
+     */
+// subdivision (slow, but as close to a reference implementation as exists)
     class CurveInterval(
         curve: Curve2,
         tLo: Double,
@@ -256,9 +327,33 @@ object Intersections {
     ) {
         val curve: Curve2
         val isFlat: Boolean
+        /**
+         * The lower bound of the parametric range of a curve interval.
+         *
+         * Represents the starting point of the curve's parametric range [tLo, tHi].
+         * Typically used for calculations related to parametric splitting, intersection,
+         * or bounding regions of a curve.
+         */
         val tLo: Double
+        /**
+         * The upper bound of the parametric range for the curve interval.
+         *
+         * Represents the maximum parameter value within the curve segment
+         * and is used for computations involving the range of the interval.
+         */
         val tHi: Double
+        /**
+         * Represents the 2D position corresponding to the lower parametric bound (`tLo`) of the curve interval.
+         *
+         * This property is calculated based on the parametric position `tLo` within the curve, and it gives
+         * the precise geometric point on the curve corresponding to that parameter.
+         */
         val pLo: Vec2
+        /**
+         * Represents the 2D point on the curve corresponding to the upper parameter bound (`tHi`) of the interval.
+         *
+         * This is one of the key endpoints of the parametric curve interval, storing its position in 2D space.
+         */
         val pHi: Vec2
         fun bounds(): Box2 {
             return Box.box(pLo, pHi)
@@ -268,6 +363,16 @@ object Intersections {
             return bounds().expand(SPATIAL_EPSILON).intersects(c.bounds())
         }
 
+        /**
+         * Splits the current curve interval into two sub-intervals.
+         *
+         * If the interval is flat, it will return an array containing the interval itself.
+         * Otherwise, it calculates a midpoint based on the parametric range and position,
+         * creating two new sub-intervals and returning them.
+         *
+         * @return an array of two sub-intervals if the interval is not flat,
+         * or a single-element array containing the current interval if it is flat.
+         */
         fun split(): Array<CurveInterval> {
             return if (isFlat) {
                 arrayOf(this)
@@ -281,6 +386,13 @@ object Intersections {
             }
         }
 
+        /**
+         * Computes the intersection points between the current `CurveInterval` and another provided `CurveInterval`.
+         * The computed intersection points are added to the provided list of `Vec2` objects.
+         *
+         * @param c the `CurveInterval` to test for intersections with the current object
+         * @param acc the `MutableList` where the resulting intersection points will be stored
+         */
         fun intersections(c: CurveInterval, acc: MutableList<Vec2>) {
             for (i in lineLine(Line2.line(pLo, pHi), Line2.line(c.pLo, c.pHi))) {
                 if (PARAMETRIC_BOUNDS.expand(PARAMETRIC_EPSILON).contains(i)) {
@@ -294,6 +406,16 @@ object Intersections {
         }
 
         companion object {
+            /**
+             * Splits a given 2D curve into multiple intervals based on its inflection points.
+             *
+             * If there are no inflection points, the entire curve is returned as a single interval.
+             * Otherwise, the curve is divided into intervals, where each interval spans from one
+             * parametric boundary to the next.
+             *
+             * @param c the input curve to be divided into intervals
+             * @return an array of `CurveInterval` objects, representing the segments of the curve between inflection points
+             */
             fun from(c: Curve2): Array<CurveInterval?> {
                 val ts: DoubleArray = c.inflections()
                 ts.sort()
@@ -324,7 +446,16 @@ object Intersections {
     }
 
 
-    // post-processing
+    /**
+     * Adjusts a given double value based on comparison with specific thresholds (0.0 and 1.0)
+     * within a defined epsilon. If the value is within epsilon of 0.0, it is set to 0.0.
+     * If the value is within epsilon of 1.0, it is set to 1.0. Otherwise, it remains unchanged.
+     *
+     * @param n The value to be adjusted.
+     * @param epsilon The tolerance value used for comparison.
+     * @return The adjusted value as a double.
+     */
+// post-processing
     fun round(n: Double, epsilon: Double): Double {
         return if (equals(n, 0.0, epsilon)) {
             0.0
@@ -335,7 +466,18 @@ object Intersections {
         }
     }
 
-    //
+    /**
+     * Computes the intersection points between two 2D curves.
+     *
+     * The method determines the intersections by considering the types of the input curves,
+     * applying specific algorithms depending on whether one or both curves are lines. If the
+     * bounding boxes of the curves do not intersect, it returns an empty array.
+     *
+     * @param a the first curve to compute intersections with
+     * @param b the second curve to compute intersections with
+     * @return an array of 2D points (`Vec2`) representing the intersection points between the two curves
+     */
+//
     fun intersections(a: Curve2, b: Curve2): Array<Vec2> {
         if (!a.bounds().expand(SPATIAL_EPSILON).intersects(b.bounds())) {
             return emptyArray()
@@ -534,6 +676,25 @@ object Intersections {
         )
     }
 
+    /**
+     * Represents a "fat line," which is a construct used in geometry
+     * for error-bounded approximations of parametric curves. A fat line
+     * is defined by a curve and a parametric range and can be subdivided
+     * recursively as needed for geometric computations like intersection testing.
+     *
+     * This class serves as an abstraction for managing portions of a given
+     * curve within specific parametric intervals, while also maintaining
+     * bounds and line segments for geometric calculations.
+     *
+     * @constructor Creates a new `FatLine` instance for a given curve and parametric interval.
+     * This is an internal constructor and should not be directly instantiated
+     * outside of the class or module.
+     *
+     * @property curve The 2D parametric curve represented by this `FatLine`.
+     * @property range The portion of the curve in the parametric range [t.lo, t.hi].
+     * @property t The parametric interval of the curve for this `FatLine`.
+     * @property _line The associated line segment defined by the endpoints of the range.
+     */
     class FatLine internal constructor(curve: Curve2, t: Interval) {
         val curve: Curve2
         val range: Curve2
@@ -550,10 +711,25 @@ object Intersections {
             return Box.box(range.start(), range.end())
         }
 
+        /**
+         * Determines if the current `FatLine` instance intersects with another `FatLine` instance.
+         * The intersection check is performed by comparing the bounds of the two lines, with an
+         * epsilon margin applied for spatial tolerance.
+         *
+         * @param l The `FatLine` instance to check for intersection with the current instance.
+         * @return `true` if the two `FatLine` instances intersect; `false` otherwise.
+         */
         fun intersects(l: FatLine): Boolean {
             return bounds().expand(SPATIAL_EPSILON * 10).intersects(l.bounds())
         }
 
+        /**
+         * Splits the current `FatLine` instance into smaller segments depending on its flatness.
+         * - If the line is flat, it returns an array containing the current instance.
+         * - If the line is not flat, it divides the line into two segments based on its midpoint.
+         *
+         * @return An array of `FatLine` instances representing the split segments of the original line.
+         */
         fun split(): Array<FatLine> {
             return if (isFlat) {
                 arrayOf(this)
@@ -638,6 +814,13 @@ object Intersections {
 //        return Interval.interval(lo, hi)
 //    }
 
+    /**
+     * Determines the intersection points between two 2D parametric curves using the fat-line algorithm.
+     *
+     * @param a The first 2D parametric curve.
+     * @param b The second 2D parametric curve.
+     * @return An array of 2D points (Vec2) representing the intersection locations between the two curves.
+     */
     fun fatLineCurveCurve(a: Curve2, b: Curve2): Array<Vec2> {
         val queue = ArrayDeque<FatLine>()
         val `as` = FatLine.from(a)

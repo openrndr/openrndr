@@ -77,11 +77,6 @@ data class Vec4(val x: Double, val y: Double, val z: Double, val w: Double) :
     }
 
     companion object {
-        val ORIGIN = Vec4(0.0, 0.0, 0.0, 0.0)
-        val X_AXIS = Vec4(1.0, 0.0, 0.0, 0.0)
-        val Y_AXIS = Vec4(0.0, 1.0, 0.0, 0.0)
-        val Z_AXIS = Vec4(0.0, 0.0, 1.0, 0.0)
-        val W_AXIS = Vec4(0.0, 0.0, 0.0, 1.0)
         val COMPARATOR = compareBy<Vec4>({ v -> v.x }, { v -> v.y }, { v -> v.z }, { v -> v.w })
     }
 }

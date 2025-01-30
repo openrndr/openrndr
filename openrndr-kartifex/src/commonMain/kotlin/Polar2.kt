@@ -6,8 +6,6 @@ import kotlin.math.sin
 
 @JvmRecord
 data class Polar2(val theta: Double, val r: Double) {
-    fun rotate(theta: Double) = Polar2(this.theta + theta, r)
-
     fun vec2(): Vec2 {
         val x = cos(theta)
         val y = sin(theta)

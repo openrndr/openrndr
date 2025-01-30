@@ -11,6 +11,18 @@ interface IEdge<V, E> {
     fun value(): E
 }
 
+/**
+ * Represents a directed edge connecting two vertices in a graph with an associated value.
+ *
+ * This class is part of a graph structure and provides functionality to access the source
+ * and destination vertices as well as the value associated with the edge.
+ *
+ * @param V the type of the vertices.
+ * @param E the type of the edge value.
+ * @property _value the value associated with the edge.
+ * @property _from the source vertex of the edge.
+ * @property _to the destination vertex of the edge.
+ */
 @JvmRecord
 data class Edge<V, E>(val _value: E, val _from: V, val _to: V) : IEdge<V, E> {
     override fun from(): V {
@@ -38,6 +50,16 @@ fun <E> Set<E>.indexOf(e: E): Int {
     return -1
 }
 
+/**
+ * A mutable representation of a directed graph consisting of vertices and directed edges.
+ *
+ * @param V the type representing the vertices in the graph.
+ * @param E the type representing the edges in the graph.
+ * @property out a map where the keys represent vertices and the values are maps of adjacent vertices
+ *                with their associated edge values representing outgoing connections.
+ * @property in a map where keys are vertices, and the values are sets of vertices representing
+ *               the incoming connections to those vertices.
+ */
 class DirectedGraph<V, E>(
     val out: MutableMap<V, MutableMap<V, E>> = mutableMapOf(),
     val `in`: MutableMap<V, MutableSet<V>> = mutableMapOf()
@@ -86,6 +108,14 @@ class DirectedGraph<V, E>(
 
     fun link(from: V, to:V, edge: E) = link(from, to, edge) { _, b -> b }
 
+    /**
+     * Links two vertices in the directed graph with an edge, merging edges if one already exists.
+     *
+     * @param from The starting vertex of the edge.
+     * @param to The ending vertex of the edge.
+     * @param edge The edge to link between the vertices.
+     * @param merge A function to handle the merging of edges when an edge already exists between the vertices.
+     */
     fun link(from: V, to: V, edge: E, merge: (E, E) -> E) {
         add(from)
         add(to)

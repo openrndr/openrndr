@@ -17,26 +17,6 @@ data class Path2(
 
     fun bounds(): Box2 = bounds
 
-    fun vertices(error: Double): Iterable<Vec2> {
-        val result = mutableListOf<Vec2>()
-        for (c in curves) {
-            val segments = c.subdivide(error)
-            if (result.isEmpty()) {
-                result.addAll(segments)
-            } else {
-                val t1 = result[result.size - 1].sub(result[result.size - 2]).norm()
-                val t2 = segments[1].sub(segments[0]).norm()
-                if (Vec.equals(t1, t2, SCALAR_EPSILON)) {
-                    result.removeAt(result.size - 1)
-                }
-                for (i in 1 until segments.size) {
-                    result.add(segments[i])
-                }
-            }
-        }
-        return result
-    }
-
     companion object {
         fun of(vararg curves: Curve2) = Path2(curves.toList())
 

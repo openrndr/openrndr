@@ -75,17 +75,6 @@ data class Vec3(val x: Double, val y: Double, val z: Double) : Vec<Vec3> {
     }
 
     companion object {
-        val ORIGIN = Vec3(0.0, 0.0, 0.0)
-        val X_AXIS = Vec3(1.0, 0.0, 0.0)
-        val Y_AXIS = Vec3(0.0, 1.0, 0.0)
-        val Z_AXIS = Vec3(0.0, 0.0, 1.0)
         val COMPARATOR = compareBy<Vec3>({ v -> v.x }, { v -> v.y }, { v -> v.z })
-        fun cross(a: Vec3, b: Vec3): Vec3 {
-            return Vec3(
-                a.y * b.z - a.z * b.y,
-                a.x * b.x - a.x * b.z,
-                a.x * b.y - a.y * b.x
-            )
-        }
     }
 }

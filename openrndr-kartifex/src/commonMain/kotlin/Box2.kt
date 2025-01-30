@@ -2,7 +2,14 @@ package org.openrndr.kartifex
 
 
 /**
- * @author ztellman
+ * Represents a two-dimensional rectangular box defined by two points: a lower-left point and an upper-right point.
+ * This class extends the generic `Box` class specialized for two-dimensional vectors (`Vec2`).
+ *
+ * @constructor Creates a `Box2` instance from two specified corners of the box.
+ * @property lx The x-coordinate of the lower-left corner.
+ * @property ly The y-coordinate of the lower-left corner.
+ * @property ux The x-coordinate of the upper-right corner.
+ * @property uy The y-coordinate of the upper-right corner.
  */
 class Box2 internal constructor(ax: Double, ay: Double, bx: Double, by: Double) :
     Box<Vec2, Box2>() {
@@ -10,9 +17,6 @@ class Box2 internal constructor(ax: Double, ay: Double, bx: Double, by: Double) 
     val ly: Double
     val ux: Double
     val uy: Double
-    fun box3(lz: Double, uz: Double): Box3 {
-        return Box3(lx, ly, lz, ux, uy, uz)
-    }
 
     fun width(): Double {
         return ux - lx

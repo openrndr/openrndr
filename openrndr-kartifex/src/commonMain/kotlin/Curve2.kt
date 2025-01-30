@@ -2,6 +2,9 @@ package org.openrndr.kartifex
 
 import org.openrndr.kartifex.utils.Intersections
 
+/**
+ * Represents a 2D parametric curve with various geometric methods.
+ */
 interface Curve2 {
     /**
      * @param t a parametric point on the curve, not necessarily within [0, 1]
@@ -119,6 +122,11 @@ interface Curve2 {
      * @return the `t` parameter representing the closest point on the curve, not necessarily within [0,1]
      */
     fun nearestPoint(p: Vec2): Double
+    /**
+     * Computes the bounding box of the curve by evaluating its start, end, and inflection points.
+     *
+     * @return a `Box2` object representing the smallest bounding box that encompasses the curve.
+     */
     fun bounds(): Box2 {
         var bounds: Box2 = Box.box(start(), end())
         for (t in inflections()) {
@@ -129,7 +137,17 @@ interface Curve2 {
 
     fun subdivide(error: Double): Array<Vec2>
     fun transform(m: Matrix3): Curve2
+    /**
+     * Reverses the direction of the curve, swapping its start and end points.
+     *
+     * @return a new curve with the reversed direction.
+     */
     fun reverse(): Curve2
+    /**
+     * Computes the parametric points along the curve where the curve's curvature changes sign.
+     *
+     * @return a DoubleArray of parametric values (t), representing the inflection points, where the curvature of the curve changes.
+     */
     fun inflections(): DoubleArray
 
     fun intersections(c: Curve2) = Intersections.intersections(this, c)

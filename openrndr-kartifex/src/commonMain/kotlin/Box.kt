@@ -87,18 +87,8 @@ abstract class Box<T : Vec<T>, U : Box<T, U>> {
         return Interval.interval(lower().nth(idx), upper().nth(idx))
     }
 
-    fun clamp(v: T): T {
-        return v.zip(lower(), { a: Double, b: Double -> max(a, b) }).zip(
-            upper(),
-            { a: Double, b: Double -> min(a, b) })
-    }
-
     fun size(): T {
         return upper().sub(lower())
-    }
-
-    fun normalize(v: T): T {
-        return v.sub(lower()).div(size())
     }
 
     fun lerp(t: Double): T {
@@ -174,7 +164,6 @@ abstract class Box<T : Vec<T>, U : Box<T, U>> {
             return Box4(a, b)
         }
 
-        private val POSITIVE: DoublePredicate = { d: Double -> d > 0 }
         private val NOT_NEGATIVE: DoublePredicate = { d: Double -> d >= 0 }
 
         fun <T : Vec<T>, U : Box<T, U>> equals(

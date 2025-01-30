@@ -56,10 +56,6 @@ class Interval(a: Double, b: Double) {
 
     fun normalize(n: Double) = if (n == hi) 1.0 else (n - lo) / size()
 
-    fun normalize(i: Interval): Interval {
-        return Interval(normalize(i.lo), normalize(i.hi))
-    }
-
     fun lerp(t: Double) = if (t == 1.0) hi else lerp(lo, hi, t)
 
     fun lerp(i: Interval) = Interval(lerp(i.lo), lerp(i.hi))

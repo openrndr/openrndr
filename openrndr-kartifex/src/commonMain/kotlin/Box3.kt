@@ -1,6 +1,23 @@
 package org.openrndr.kartifex
 
 
+/**
+ * Represents a three-dimensional axis-aligned box defined by two points in 3D space.
+ *
+ * @constructor Initializes the box with the specified lower (`a`) and upper (`b`) points.
+ * Internally determines the correct lower and upper bounds along each axis.
+ * This ensures that, regardless of input order, the box is represented correctly.
+ *
+ * @property lx The lower bound of the box along the x-axis.
+ * @property ly The lower bound of the box along the y-axis.
+ * @property lz The lower bound of the box along the z-axis.
+ * @property ux The upper bound of the box along the x-axis.
+ * @property uy The upper bound of the box along the y-axis.
+ * @property uz The upper bound of the box along the z-axis.
+ *
+ * @constructor A secondary constructor that initializes the box using two `Vec3` objects
+ * representing the lower and upper bounds.
+ */
 class Box3 internal constructor(ax: Double, ay: Double, az: Double, bx: Double, by: Double, bz: Double) :
     Box<Vec3, Box3>() {
     val lx: Double

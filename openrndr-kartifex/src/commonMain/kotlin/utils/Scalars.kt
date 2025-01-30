@@ -98,6 +98,16 @@ fun clamp(min: Double, n: Double, max: Double): Double {
     }
 }
 
+/**
+ * Computes a normalization factor for a given set of four double values.
+ * The normalization ensures values are scaled properly based on their maximum magnitude.
+ *
+ * @param a The first value.
+ * @param b The second value.
+ * @param c The third value.
+ * @param d The fourth value.
+ * @return A double representing the normalization factor.
+ */
 fun normalizationFactor(a: Double, b: Double, c: Double, d: Double): Double {
     val maxValue = max(max(a, b), max(c, d))
     return if (maxValue == 0.0) {
@@ -108,6 +118,15 @@ fun normalizationFactor(a: Double, b: Double, c: Double, d: Double): Double {
     }
 }
 
+/**
+ * Calculates a normalization factor based on the maximum value among the input parameters
+ * and their exponent. It ensures the result lies within a reasonable range for numerical stability.
+ *
+ * @param a the first input value
+ * @param b the second input value
+ * @param c the third input value
+ * @return the computed normalization factor
+ */
 fun normalizationFactor(a: Double, b: Double, c: Double): Double {
     val maxValue = max(a, b, c)
     return if (maxValue == 0.0) {
@@ -118,6 +137,15 @@ fun normalizationFactor(a: Double, b: Double, c: Double): Double {
     }
 }
 
+/**
+ * Calculates a normalization factor based on the maximum value between two given numbers
+ * and the exponent of that maximum value. The normalization factor ensures that values
+ * within a certain range are normalized appropriately.
+ *
+ * @param a the first double value
+ * @param b the second double value
+ * @return the normalization factor based on the input values
+ */
 fun normalizationFactor(a: Double, b: Double): Double {
     val maxValue = max(a, b)
     return if (maxValue == 0.0) {

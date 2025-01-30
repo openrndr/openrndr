@@ -5,6 +5,13 @@ import org.openrndr.collections.PriorityQueue
 import kotlin.math.max
 import kotlin.math.min
 
+/**
+ * Copies the sign of the second argument to the first argument without changing the magnitude of the first argument.
+ *
+ * @param magnitude the value whose magnitude is to be used
+ * @param sign the value whose sign is to be used
+ * @return a value with the magnitude of `magnitude` and the sign of `sign`
+ */
 private fun copySign(magnitude: Double, sign: Double): Double {
     return if (sign < 0.0) {
         if (magnitude < 0.0) {
@@ -21,6 +28,13 @@ private fun copySign(magnitude: Double, sign: Double): Double {
     }
 }
 
+/**
+ * SweepQueue is a data structure designed to manage and process events in a sweep line algorithm.
+ *
+ * It maintains a priority queue to handle events based on their keys, and a set to track currently active elements.
+ *
+ * @param T The type of the values stored in the events processed by this queue.
+ */
 class SweepQueue<T> {
     class Event<T> internal constructor(val key: Double, val value: T, val type: Int) {
         companion object {

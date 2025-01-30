@@ -149,7 +149,4 @@ interface Vec<T : Vec<T>> : Comparable<T> {
         return map { x -> x.coerceIn(min, max) }
     }
 
-    fun clamp(min: T, max: T): T {
-        return zip(min, MAX).zip(max, MIN)
-    }
 }

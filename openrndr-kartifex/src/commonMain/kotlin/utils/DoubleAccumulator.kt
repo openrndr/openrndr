@@ -1,5 +1,9 @@
 package utils
 
+/**
+ * A class for accumulating double-precision floating-point numbers. The accumulator dynamically resizes
+ * to accommodate additional values and provides various utility methods for managing and retrieving the accumulated numbers.
+ */
 class DoubleAccumulator {
     private var values = DoubleArray(2)
     private var index = 0

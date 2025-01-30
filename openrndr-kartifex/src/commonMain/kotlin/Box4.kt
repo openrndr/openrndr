@@ -1,5 +1,23 @@
 package org.openrndr.kartifex
 
+/**
+ * Represents a four-dimensional bounding box defined by two Vec4 points.
+ * This class extends the abstract class `Box`, which provides common functionality for multi-dimensional bounding boxes.
+ * The box is defined by its lower and upper bounds in 4D space.
+ *
+ * This class provides additional capabilities for extracting lower-dimensional bounding boxes (e.g., 3D and 2D boxes),
+ * creating empty boxes, and determining spatial relationships such as containment and intersection.
+ *
+ * @constructor Creates a `Box4` defined by the given lower and upper bounds in all four dimensions.
+ * @param ax The x-coordinate of the first point.
+ * @param ay The y-coordinate of the first point.
+ * @param az The z-coordinate of the first point.
+ * @param aw The w-coordinate of the first point.
+ * @param bx The x-coordinate of the second point.
+ * @param by The y-coordinate of the second point.
+ * @param bz The z-coordinate of the second point.
+ * @param bw The w-coordinate of the second point.
+ */
 class Box4 private constructor(
     ax: Double,
     ay: Double,
@@ -22,10 +40,6 @@ class Box4 private constructor(
 
     constructor(a: Vec4, b: Vec4) : this(a.x, a.y, a.z, a.w, b.x, b.y, b.z, b.w)
 
-    fun box3(): Box3 {
-        return Box3(lx, ly, lz, ux, uy, uz)
-    }
-
     fun box2(): Box2 {
         return Box2(lx, ly, ux, uy)
     }
@@ -45,7 +59,6 @@ class Box4 private constructor(
     override fun upper(): Vec4 {
         return Vec4(ux, uy, uz, uw)
     }
-
 
     override val isEmpty: Boolean
         get() = this === EMPTY

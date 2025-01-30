@@ -61,50 +61,12 @@ class Matrix3 {
         return Matrix3(es)
     }
 
-    fun matrix4(): Matrix4 {
-        return Matrix4(
-            elements[0], elements[1], 0.0, elements[2],
-            elements[3], elements[4], 0.0, elements[5],
-            elements[6], elements[7], elements[8], 0.0,
-            0.0, 0.0, 0.0, 1.0
-        )
-    }
-
-    fun transpose(): Matrix3 {
-        return Matrix3(
-            elements[0], elements[3], elements[6],
-            elements[1], elements[4], elements[7],
-            elements[2], elements[5], elements[8]
-        )
-    }
-
     fun transform(v: Vec2): Vec2 {
         return Vec2(
             v.x * elements[0] + v.y * elements[1] + elements[2],
             v.x * elements[3] + v.y * elements[4] + elements[5]
         )
     }
-//
-//    fun rowMajor(): java.util.PrimitiveIterator.OfDouble {
-//        return object : java.util.PrimitiveIterator.OfDouble() {
-//            var idx = 0
-//            override operator fun hasNext(): Boolean {
-//                return idx < 9
-//            }
-//
-//            override fun nextDouble(): Double {
-//                return if (idx < 9) {
-//                    elements[idx++]
-//                } else {
-//                    throw NoSuchElementException()
-//                }
-//            }
-//        }
-//    }
-//
-//    fun columnMajor(): java.util.PrimitiveIterator.OfDouble {
-//        return transpose().rowMajor()
-//    }
 
     override fun hashCode(): Int {
         var hash = 0
@@ -161,12 +123,6 @@ class Matrix3 {
 
         fun scale(k: Double): Matrix3 {
             return scale(k, k)
-        }
-
-        fun rotate(radians: Double): Matrix3 {
-            val c: Double = cos(radians)
-            val s: Double = sin(radians)
-            return Matrix3(c, -s, 0.0, s, c, 0.0, 0.0, 0.0, 1.0)
         }
 
         fun mul(vararg matrices: Matrix3): Matrix3 {

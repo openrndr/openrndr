@@ -10,9 +10,32 @@ import kotlin.math.abs
 import kotlin.math.max
 
 object Bezier2 {
+    /**
+     * Constructs a line segment between two 2D points.
+     *
+     * @param p0 the starting point of the line segment
+     * @param p1 the ending point of the line segment
+     */
     fun curve(p0: Vec2, p1: Vec2) = Line2.line(p0, p1)
+    /**
+     * Creates a quadratic Bézier curve defined by three control points.
+     *
+     * @param p0 the starting point of the curve
+     * @param p1 the control point that determines the curve's shape
+     * @param p2 the ending point of the curve
+     * @return a new instance of QuadraticBezier2 representing the curve
+     */
     fun curve(p0: Vec2, p1: Vec2, p2: Vec2) = QuadraticBezier2(p0, p1, p2)
 
+    /**
+     * Creates a cubic Bézier curve defined by four control points.
+     *
+     * @param p0 The starting point of the curve.
+     * @param p1 The first control point that determines the curve's shape.
+     * @param p2 The second control point that influences the curve's shape.
+     * @param p3 The ending point of the curve.
+     * @return A cubic Bézier curve represented as a Curve2.
+     */
     fun curve(
         p0: Vec2,
         p1: Vec2,
@@ -44,6 +67,15 @@ object Bezier2 {
         }
     }
 
+    /**
+     * Computes the signed distance from a point `p` to a line defined by two points `a` and `b`.
+     * The sign of the distance indicates on which side of the line the point `p` resides.
+     *
+     * @param p The point for which the signed distance is calculated.
+     * @param a One endpoint of the line.
+     * @param b The other endpoint of the line.
+     * @return The signed distance from the point `p` to the line through points `a` and `b`.
+     */
     fun signedDistance(p: Vec2, a: Vec2, b: Vec2): Double {
         val d: Vec2 = b.sub(a)
         return (Vec2.cross(p, d) + Vec2.cross(b, a)) / d.length()

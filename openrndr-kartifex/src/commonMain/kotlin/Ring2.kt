@@ -68,27 +68,6 @@ class Ring2 {
         return Region2(listOf(this))
     }
 
-//    fun path(): Path2 {
-//        return Path2(this)
-//    }
-
-//    fun reverse(): Ring2 {
-//        return Ring2(
-//            LinearList.from<Curve2>(
-//                io.lacuna.bifurcan.Lists.reverse<Curve2>(
-//                    io.lacuna.bifurcan.Lists.lazyMap<Curve2, Curve2>(io.lacuna.bifurcan.Lists.from<Curve2>(
-//                        curves
-//                    ),
-//                        java.util.function.Function<Curve2, Curve2> { obj: Curve2 -> obj.reverse() })
-//                )
-//            ).toArray(
-//                IntFunction<Array<Curve2>> { _Dummy_.__Array__() }),
-//            bounds,
-//            !isClockwise,
-//            area
-//        )
-//    }
-
     fun test(p: Vec2): Result {
         if (!bounds.expand(Intersections.SPATIAL_EPSILON).contains(p)) {
             return Result.OUTSIDE
