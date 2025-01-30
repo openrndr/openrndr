@@ -6,6 +6,19 @@ import org.openrndr.math.Vector4
 internal data class Command(val vertexBuffer: VertexBuffer, val type: ExpansionType, val vertexOffset: Int, val vertexCount: Int,
                             val minX: Double, val minY: Double, val maxX: Double, val maxY: Double)
 
+/**
+ * A utility class responsible for rendering various types of geometric expansions and fills
+ * utilizing GPU-based rendering techniques. This class provides methods to render both convex
+ * and non-convex shapes, as well as strokes with adjustable fringe scaling and widths.
+ *
+ * @property shaderManager Manages the shaders required for rendering graphical expansions.
+ * @property vertexFormat Specifies the structure of vertex data used for rendering operations.
+ * @property manyVertices A preallocated vertex buffer for handling large vertex sets.
+ * @property fewVertices A preallocated vertex buffer for handling small vertex sets.
+ * @property quads Stores vertex data specifically for rendering quads.
+ * @property counter Tracks the number of handled vertices for rendering.
+ * @property quadCounter Tracks the number of handled quads for rendering.
+ */
 internal class ExpansionDrawer {
 
     private val shaderManager = ShadeStyleManager.fromGenerators("expansion",
@@ -23,7 +36,7 @@ internal class ExpansionDrawer {
 
     val quads = List(DrawerConfiguration.vertexBufferMultiBufferCount) { VertexBuffer.createDynamic(vertexFormat, 6, Session.root) }
 
-    fun renderStrokeCommands(drawContext: DrawContext, drawStyle: DrawStyle, commands: List<Command>, fringeWidth: Double) {
+    private fun renderStrokeCommands(drawContext: DrawContext, drawStyle: DrawStyle, commands: List<Command>, fringeWidth: Double) {
 
         val shader = shaderManager.shader(drawStyle.shadeStyle, listOf(vertexFormat), emptyList())
         shader.begin()
@@ -67,7 +80,7 @@ internal class ExpansionDrawer {
         shader.end()
     }
 
-    fun renderStrokeCommandsInterleaved(drawContext: DrawContext, drawStyle: DrawStyle, commands: List<Command>, fringeScale: Double) {
+    private fun renderStrokeCommandsInterleaved(drawContext: DrawContext, drawStyle: DrawStyle, commands: List<Command>, fringeScale: Double) {
         if (commands.isNotEmpty()) {
             val shader = shaderManager.shader(drawStyle.shadeStyle, listOf(vertexFormat))
             shader.begin()
@@ -110,7 +123,7 @@ internal class ExpansionDrawer {
         }
     }
 
-    fun renderConvexFillCommands(drawContext: DrawContext, drawStyle: DrawStyle, commands: List<Command>, fringeScale: Double) {
+    private fun renderConvexFillCommands(drawContext: DrawContext, drawStyle: DrawStyle, commands: List<Command>, fringeScale: Double) {
         val shader = shaderManager.shader(drawStyle.shadeStyle, vertexFormat)
         shader.begin()
         drawContext.applyToShader(shader)
@@ -133,7 +146,7 @@ internal class ExpansionDrawer {
         }
     }
 
-    fun renderFillCommands(drawContext: DrawContext, drawStyle: DrawStyle, commands: List<Command>, fringeWidth: Double) {
+    private fun renderFillCommands(drawContext: DrawContext, drawStyle: DrawStyle, commands: List<Command>, fringeWidth: Double) {
         if (commands.isEmpty()) {
             return
         }
@@ -229,7 +242,7 @@ internal class ExpansionDrawer {
         shader.end()
     }
 
-    fun toCommand(vertices: VertexBuffer, expansion: Expansion, vertexOffset: Int): Command {
+    private fun toCommand(vertices: VertexBuffer, expansion: Expansion, vertexOffset: Int): Command {
         if (expansion.vertexCount > 0) {
             val command = Command(vertices, expansion.type, vertexOffset, expansion.vertexCount + 2,
                     expansion.minx, expansion.miny, expansion.maxx, expansion.maxy)
@@ -253,7 +266,14 @@ internal class ExpansionDrawer {
         }
     }
 
-    fun toCommands(vertices: VertexBuffer, expansions: List<Expansion>): List<Command> {
+    /**
+     * Converts a list of geometry expansions into a series of commands using the provided vertex buffer.
+     *
+     * @param vertices The vertex buffer used to store vertex data for the generated commands.
+     * @param expansions A list of expansions that define the geometry to be processed into commands.
+     * @return A list of commands resulting from converting the geometry expansions.
+     */
+    private fun toCommands(vertices: VertexBuffer, expansions: List<Expansion>): List<Command> {
         var vertexOffset = 0
         val commands = mutableListOf<Command>()
         expansions.forEach {
@@ -279,14 +299,39 @@ internal class ExpansionDrawer {
         }
     }
 
+    /**
+     * Renders a stroke using the specified drawing context, style, and geometry expansion.
+     *
+     * @param drawContext The drawing context containing transformation matrices and rendering parameters.
+     * @param drawStyle The drawing style defining the appearance of the stroke, such as color and blending.
+     * @param expansion The geometry expansion describing the shape of the stroke to be rendered.
+     * @param fringeScale The scale factor applied to the fringe of the stroke for anti-aliasing or smoothing.
+     */
     fun renderStroke(drawContext: DrawContext, drawStyle: DrawStyle, expansion: Expansion, fringeScale: Double) {
         renderStrokeCommands(drawContext, drawStyle, toCommands(vertices(expansion.vertexCount), listOf(expansion)), fringeScale)
     }
 
+    /**
+     * Renders strokes using the specified drawing context, style, and geometry expansions.
+     *
+     * @param drawContext The drawing context containing transformation matrices and rendering parameters.
+     * @param drawStyle The drawing style defining the appearance of the strokes, such as color and blending.
+     * @param expansions A list of expansions describing the geometry of the strokes to be rendered.
+     * @param fringeScale The scale factor applied to the fringe of the strokes for anti-aliasing or smoothing.
+     */
     fun renderStrokes(drawContext: DrawContext, drawStyle: DrawStyle, expansions: List<Expansion>, fringeScale: Double) {
         renderStrokeCommandsInterleaved(drawContext, drawStyle, toCommands(vertices(expansions.sumOf { it.vertexCount }), expansions), fringeScale)
     }
 
+    /**
+     * Renders filled shapes using the specified drawing context, style, and geometry expansions.
+     *
+     * @param drawContext The drawing context containing transformation matrices and rendering parameters.
+     * @param drawStyle The drawing style defining the appearance of the fill, such as color and blending.
+     * @param expansions A list of expansions describing the geometry of the shapes to be filled.
+     * @param convex A boolean indicating whether the shapes being rendered are convex.
+     * @param fringeScale The scale factor applied to the fringe of the shapes for anti-aliasing or smoothing.
+     */
     fun renderFill(drawContext: DrawContext, drawStyle: DrawStyle, expansions: List<Expansion>, convex: Boolean, fringeScale: Double) {
         if (convex) {
             renderConvexFillCommands(drawContext, drawStyle, toCommands(vertices(expansions.sumOf { it.vertexCount }), expansions), fringeScale)
@@ -295,6 +340,14 @@ internal class ExpansionDrawer {
         }
     }
 
+    /**
+     * Renders filled shapes using the specified drawing context, style, and expansions.
+     *
+     * @param drawContext The drawing context containing transformation matrices and rendering parameters.
+     * @param drawStyle The drawing style defining the appearance of the fill, such as color and blending.
+     * @param expansions A list of expansions describing the geometry of the shapes to be filled.
+     * @param fringeScale The scale factor applied to the fringe of the shapes for anti-aliasing or smoothing.
+     */
     fun renderFills(drawContext: DrawContext, drawStyle: DrawStyle, expansions: List<Expansion>, fringeScale: Double) {
         renderFillCommands(drawContext, drawStyle, toCommands(vertices(expansions.sumOf { it.vertexCount }), expansions), fringeScale)
     }

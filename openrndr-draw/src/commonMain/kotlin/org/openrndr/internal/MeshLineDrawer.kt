@@ -7,6 +7,16 @@ import org.openrndr.draw.*
 import org.openrndr.math.Vector2
 import org.openrndr.math.Vector3
 
+/**
+ * A utility class for rendering mesh-based lines in graphical contexts.
+ * This class provides methods for drawing line segments and strips with
+ * customizable width, color, and other visual properties using shaders.
+ *
+ * The implementation leverages a shader-driven approach for efficient rendering.
+ * It maintains internal management of vertex buffers and shaders to handle
+ * the drawing of complex line geometries.
+ *
+ */
 class MeshLineDrawer {
     private val shaderManager: ShadeStyleManager = ShadeStyleManager.fromGenerators(
         "mesh-line",

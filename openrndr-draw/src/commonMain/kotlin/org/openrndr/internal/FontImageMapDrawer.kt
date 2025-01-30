@@ -6,6 +6,14 @@ import kotlin.math.floor
 
 class GlyphRectangle(val character: Char, val x: Double, val y: Double, val width: Double, val height: Double)
 
+/**
+ * The `FontImageMapDrawer` class facilitates rendering of text based on a font image map. It handles
+ * generating text vertex data, applying draw styles, and efficiently managing resources like vertex buffers
+ * for text rendering tasks.
+ *
+ * This class is designed to support optimized operations such as batching text quads for rendering,
+ * efficient memory management, and high-quality glyph rendering with proper kerning and positioning.
+ */
 class FontImageMapDrawer {
 
     private val shaderManager: ShadeStyleManager = ShadeStyleManager.fromGenerators(
@@ -33,7 +41,7 @@ class FontImageMapDrawer {
 
     var counter = 0
 
-    fun getQueue(size: Int): VertexBuffer {
+    private fun getQueue(size: Int): VertexBuffer {
         return if (size < 128) {
             fewQuads[counter.mod(fewQuads.size)]
         } else {
@@ -41,6 +49,15 @@ class FontImageMapDrawer {
         }
     }
 
+    /**
+     * Draws a single line of text at the specified position using the provided drawing context and style.
+     *
+     * @param context The drawing context that contains transformation matrices and rendering parameters.
+     * @param drawStyle The style to apply when drawing, including attributes like fill color, stroke color, and font map.
+     * @param text The string of text to be drawn.
+     * @param x The x-coordinate of the position where the text starts.
+     * @param y The y-coordinate of the position where the text starts.
+     */
     fun drawText(
         context: DrawContext,
         drawStyle: DrawStyle,
@@ -50,6 +67,17 @@ class FontImageMapDrawer {
     ) = drawTexts(context, drawStyle, listOf(text), listOf(Vector2(x, y)))
 
 
+    /**
+     * Draws multiple text strings at specified positions using the provided drawing context and style.
+     * The method aligns text with precise position information and applies kerning and text settings
+     * based on the given draw style.
+     *
+     * @param context The drawing context containing transformation matrices and rendering parameters.
+     * @param drawStyle The style to apply when drawing, including attributes such as font map, kerning, and text settings.
+     * @param texts A list of strings to be drawn.
+     * @param positions A list of positions where each corresponding string in the `texts` list will be drawn.
+     * @return A nested list of glyph rectangles representing the dimensions and positioning of the drawn glyphs.
+     */
     fun drawTexts(
         context: DrawContext,
         drawStyle: DrawStyle,
@@ -97,7 +125,23 @@ class FontImageMapDrawer {
         return emptyList()
     }
 
-    var queuedInstances = 0
+    private var queuedInstances = 0
+    /**
+     * Queues a single line of text for rendering at the specified position with the given font and settings.
+     *
+     * The method calculates glyph positions and writes vertex data to the provided vertex buffer,
+     * handling kerning, tracking, and other text layout properties. This operation does not perform
+     * rendering itself but prepares the text data for eventual rendering.
+     *
+     * @param fontMap The font map containing the metrics and glyph information necessary for text rendering.
+     * @param text The string to be queued for rendering.
+     * @param x The x-coordinate of the starting position for the text.
+     * @param y The y-coordinate of the starting position for the text.
+     * @param tracking The additional spacing to apply between characters, in pixels. Defaults to 0.0.
+     * @param kerning The kerning mode, determining how character spacing is adjusted based on metrics.
+     * @param textSetting The text setting mode, determining the precision of text rendering (e.g., pixel or subpixel).
+     * @param vertices The vertex buffer to which the text's vertex data will be written.
+     */
     fun queueText(
         fontMap: FontMap,
         text: String,
@@ -138,7 +182,7 @@ class FontImageMapDrawer {
     }
 
 
-    fun flush(context: DrawContext, drawStyle: DrawStyle, vertices: VertexBuffer) {
+    private fun flush(context: DrawContext, drawStyle: DrawStyle, vertices: VertexBuffer) {
         if (quadCount > 0) {
             vertices.shadow.uploadElements(0, quadCount * 6)
             val shader = shaderManager.shader(drawStyle.shadeStyle, vertices.vertexFormat)

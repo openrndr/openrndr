@@ -9,6 +9,12 @@ import kotlin.jvm.JvmName
 
 class ImageSaveContext
 
+/**
+ * Represents a configuration interface for saving images.
+ * Classes implementing this interface define specific strategies or settings
+ * for saving image files, which may include parameters like file format,
+ * compression level, resolution, or output path.
+ */
 sealed interface ImageSaveConfiguration
 
 fun ImageSaveContext.jpeg(configuration: JpegImageSaveConfiguration.() -> Unit): JpegImageSaveConfiguration =
@@ -19,12 +25,31 @@ class JpegImageSaveConfiguration(var quality: Int = 95) : ImageSaveConfiguration
 fun ImageSaveContext.exr(configuration: ExrImageSaveConfiguration.() -> Unit): ExrImageSaveConfiguration =
     ExrImageSaveConfiguration().apply(configuration)
 
+/**
+ * Configuration class for saving images in the EXR format.
+ *
+ * This class provides settings specific to the EXR (OpenEXR) file format,
+ * allowing customization of how EXR images are saved. It supports defining
+ * a compression level to control the quality and size of the saved image.
+ *
+ * @property compression An integer representing the compression level to be applied when saving the EXR image.
+ *                        The valid range and specific levels may depend on the EXR implementation.
+ */
 class ExrImageSaveConfiguration(var compression: Int = 0) : ImageSaveConfiguration
 
+/**
+ * Configuration settings for saving images in the PNG format.
+ */
 class PngImageSaveConfiguration() : ImageSaveConfiguration
 
+/**
+ * Configuration settings for saving images in the HDR format.
+ */
 class HdrImageSaveConfiguration() : ImageSaveConfiguration
 
+/**
+ * Configuration settings for saving images in the DDS format.
+ */
 class DdsImageSaveConfiguration() : ImageSaveConfiguration
 
 /**
@@ -45,7 +70,6 @@ interface ImageDriver {
      * @since 0.4.5
      */
     fun probeImage(buffer: MPPBuffer, formatHint: ImageFileFormat?): ImageFileDetails?
-
 
     /**
      * Load an image located at [fileOrUrl]
@@ -85,8 +109,22 @@ interface ImageDriver {
         return saveImage(imageData, filename, config)
     }
 
+    /**
+     * Saves the provided image data to the specified filename using the given configuration.
+     *
+     * @param imageData The image data to be saved.
+     * @param filename The name of the output file where the image will be saved.
+     * @param configuration The configuration specifying the settings for saving the image.
+     */
     fun saveImage(imageData: ImageData, filename: String, configuration: ImageSaveConfiguration)
 
+    /**
+     * Saves the provided image data to the specified filename using a custom save configuration.
+     *
+     * @param imageData The image data to be saved.
+     * @param filename The name of the output file where the image will be saved.
+     * @param saveContext A lambda defining the custom save configuration within the context of [ImageSaveContext].
+     */
     fun saveImage(imageData: ImageData, filename: String, saveContext: ImageSaveContext.() -> ImageSaveConfiguration) {
         val context = ImageSaveContext()
         val config = context.saveContext()
@@ -100,8 +138,28 @@ interface ImageDriver {
      */
     fun imageToDataUrl(imageData: ImageData, formatHint: ImageFileFormat?): String
 
+    /**
+     * Loads a cubemap image from a file or URL. A cubemap is a texture typically used in 3D rendering,
+     * consisting of six images representing the sides of a cube.
+     *
+     * @param fileOrUrl A string specifying the file location or URL of the cubemap image.
+     * @param formatHint An optional hint for the image file format. This can help the loader
+     *                   interpret the data correctly if the format cannot be inferred automatically.
+     * @return A [CubemapImageData] instance representing the loaded cubemap image. The caller is
+     *         responsible for managing the lifecycle of the returned object and closing it when no longer needed.
+     */
     fun loadCubemapImage(fileOrUrl: String, formatHint: ImageFileFormat?): CubemapImageData
 
+    /**
+     * Loads a cubemap image from the provided buffer. The cubemap is typically a texture with six
+     * faces corresponding to the sides of a cube, used in 3D rendering.
+     *
+     * @param buffer an [MPPBuffer] containing the image data for the cubemap.
+     * @param name an optional name for the image, typically used for error reporting and debugging.
+     * @param formatHint an optional hint for the file format of the image data in the buffer.
+     * @return a [CubemapImageData] instance representing the loaded cubemap image. The caller is responsible
+     * for managing the lifecycle of the returned object and closing it when no longer needed.
+     */
     fun loadCubemapImage(buffer: MPPBuffer, name: String?, formatHint: ImageFileFormat?): CubemapImageData
 
 

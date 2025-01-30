@@ -5,6 +5,10 @@ import org.openrndr.math.Vector2
 import org.openrndr.math.Vector3
 import kotlin.jvm.JvmName
 
+/**
+ * A utility class for rendering points in 2D and 3D space using custom styles, shaders, and batching.
+ * Optimizes point rendering by handling vertex buffers and batching mechanisms.
+ */
 class PointDrawer {
     val vertices: VertexBuffer = VertexBuffer.createDynamic(VertexFormat().apply {
         position(3)
@@ -45,6 +49,13 @@ class PointDrawer {
         vertices.shadow.upload()
     }
 
+    /**
+     * Draws a list of 2D points using the specified drawing context and style.
+     *
+     * @param drawContext The drawing context that provides transformation matrices and rendering parameters.
+     * @param drawStyle The style that defines the visual appearance of the points, such as color and stroke settings.
+     * @param positions The list of 2D points to be drawn, each represented as a `Vector2`.
+     */
     @JvmName("drawPoints2D")
     fun drawPoints(drawContext: DrawContext, drawStyle: DrawStyle, positions: List<Vector2>) {
         ensureBatchSize(positions.size)
@@ -61,6 +72,13 @@ class PointDrawer {
         drawPoints(drawContext, drawStyle, batch, positions.size)
     }
 
+    /**
+     * Draws a list of 3D points using the specified drawing context and style.
+     *
+     * @param drawContext The drawing context that provides transformation matrices and rendering parameters.
+     * @param drawStyle The style that defines the visual appearance of the points, such as color and stroke settings.
+     * @param positions The list of 3D points to be drawn, each represented as a `Vector3`.
+     */
     @JvmName("drawPoints3D")
     fun drawPoints(drawContext: DrawContext, drawStyle: DrawStyle, positions: List<Vector3>) {
         ensureBatchSize(positions.size)
@@ -77,6 +95,15 @@ class PointDrawer {
         drawPoints(drawContext, drawStyle, batch, positions.size)
     }
 
+    /**
+     * Draws a single 3D point using the specified drawing context and style at the given coordinates.
+     *
+     * @param drawContext The drawing context that provides transformation matrices and rendering parameters.
+     * @param drawStyle The style that defines the visual appearance of the point, such as color and stroke settings.
+     * @param x The x-coordinate of the point in 3D space.
+     * @param y The y-coordinate of the point in 3D space.
+     * @param z The z-coordinate of the point in 3D space.
+     */
     fun drawPoint(drawContext: DrawContext,
                   drawStyle: DrawStyle, x: Double, y: Double, z: Double) {
         ensureBatchSize(1)
@@ -93,6 +120,14 @@ class PointDrawer {
     }
 
 
+    /**
+     * Draws a batch of points using the specified drawing context and style.
+     *
+     * @param drawContext The drawing context that provides transformation matrices and rendering parameters.
+     * @param drawStyle The style that defines the visual appearance of the points, such as color and stroke settings.
+     * @param batch A batch containing the geometry and associated drawing styles for the points.
+     * @param count The number of points to be drawn from the batch.
+     */
     fun drawPoints(drawContext: DrawContext, drawStyle: DrawStyle, batch: PointBatch, count: Int) {
         val shader = shaderManager.shader(drawStyle.shadeStyle, listOf(vertices.vertexFormat), listOf(batch.geometry.vertexFormat, batch.drawStyle.vertexFormat))
         shader.begin()

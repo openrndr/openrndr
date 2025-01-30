@@ -6,6 +6,16 @@ import org.openrndr.math.Vector3
 import org.openrndr.math.Vector4
 import org.openrndr.shape.Rectangle
 
+/**
+ * The ImageDrawer class is responsible for rendering 2D images and texture layers onto a drawing surface.
+ * It supports rendering images using vertex and instance attributes, enabling efficient handling
+ * of multiple render operations. The class utilizes vertex and instance buffers, shaders, and configurable
+ * parameters for rendering images within specific geometric regions.
+ *
+ * The class integrates with the rendering system and operates on `ColorBuffer` and `ArrayTexture` data
+ * sources. It supports rendering multiple rectangles or single instances with dynamic resizing of instance
+ * attributes based on the number of render requests.
+ */
 class ImageDrawer {
     private val vertices: VertexBuffer = VertexBuffer.createDynamic(vertexFormat {
         position(3)
@@ -140,6 +150,19 @@ class ImageDrawer {
         count++
     }
 
+    /**
+     * Draws an image using a supplied array texture, associated layer indices, and a list of source and target rectangles.
+     *
+     * This method utilizes the specified drawing context and style to render the image data from the array texture
+     * to specific locations and sizes defined by the target rectangles. It assumes a one-to-one mapping between layers and
+     * the source-target rectangles to properly process each layer.
+     *
+     * @param drawContext The drawing context containing matrices and parameters necessary for rendering.
+     * @param drawStyle The style specifications to apply during rendering, including shading and state settings.
+     * @param arrayTexture The array texture containing the image data to be drawn.
+     * @param layers A list of layer indices corresponding to the layers of the array texture to render.
+     * @param rectangles A list of pairs of source rectangles (within the array texture) and target rectangles (on the canvas) used during rendering.
+     */
     fun drawImage(
         drawContext: DrawContext, drawStyle: DrawStyle, arrayTexture: ArrayTexture,
         layers: List<Int>, rectangles: List<Pair<Rectangle, Rectangle>>
@@ -190,6 +213,17 @@ class ImageDrawer {
         shader.end()
     }
 
+    /**
+     * Draws an image from a `ColorBuffer` onto a specified rectangular area on the canvas.
+     *
+     * @param drawContext The drawing context containing transformation matrices and rendering parameters.
+     * @param drawStyle The style settings to apply during rendering, such as shading and state configurations.
+     * @param colorBuffer The `ColorBuffer` that contains the image data to be drawn.
+     * @param x The x-coordinate of the top-left corner of the target rectangle on the canvas.
+     * @param y The y-coordinate of the top-left corner of the target rectangle on the canvas.
+     * @param width The width of the target rectangle where the image will be drawn.
+     * @param height The height of the target rectangle where the image will be drawn.
+     */
     fun drawImage(
         drawContext: DrawContext,
         drawStyle: DrawStyle, colorBuffer: ColorBuffer, x: Double, y: Double, width: Double, height: Double
@@ -197,6 +231,18 @@ class ImageDrawer {
         drawImage(drawContext, drawStyle, colorBuffer, listOf(colorBuffer.bounds to Rectangle(x, y, width, height)))
     }
 
+    /**
+     * Draws an image from an `ArrayTexture` onto a specified rectangular area on the canvas.
+     *
+     * @param drawContext The drawing context containing transformation matrices and rendering parameters.
+     * @param drawStyle The style settings to apply during rendering, such as shading and state configurations.
+     * @param arrayTexture The array texture that contains the image data to be drawn.
+     * @param layer The index of the layer in the array texture to render.
+     * @param x The x-coordinate of the top-left corner of the target rectangle on the canvas.
+     * @param y The y-coordinate of the top-left corner of the target rectangle on the canvas.
+     * @param width The width of the target rectangle where the image will be drawn.
+     * @param height The height of the target rectangle where the image will be drawn.
+     */
     fun drawImage(
         drawContext: DrawContext,
         drawStyle: DrawStyle,

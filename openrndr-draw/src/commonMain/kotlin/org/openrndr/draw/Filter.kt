@@ -91,6 +91,14 @@ void main() {
             }
     }
 
+    /**
+     * Applies a filter operation using the given source and target arrays of `ColorBuffer`. Optionally, a clipping rectangle
+     * can be used to define the region for the filter operation.
+     *
+     * @param source An array of `ColorBuffer` representing the input for the filter operation.
+     * @param target An array of `ColorBuffer` representing the destination where the filter result will be applied.
+     * @param clip An optional `Rectangle` that defines the clipping region for the filter operation.
+     */
     open fun apply(source: Array<ColorBuffer>, target: Array<ColorBuffer>, clip: Rectangle? = null) {
         if (target.isEmpty() || clip?.area == 0.0) {
             return
@@ -118,6 +126,15 @@ void main() {
         renderTarget.destroy()
     }
 
+    /**
+     * Applies a filter operation using the given source and target using a shader program.
+     * Optionally, a clipping rectangle can be used to define the region for the filter operation.
+     * Custom shader parameters are applied where applicable.
+     *
+     * @param source An array of `ColorBuffer` representing the input for the filter operation.
+     * @param target A `RenderTarget` where the result of the filter operation will be applied.
+     * @param clip An optional `Rectangle` specifying the clipping region for the filter application. Defaults to `null`.
+     */
     fun apply(source: Array<ColorBuffer>, target: RenderTarget, clip: Rectangle? = null) {
         filterDrawStyle.clip = clip
         val shader = if (this.watcher != null) watcher.shader!! else this.shader!!
@@ -240,13 +257,34 @@ void main() {
     fun apply(source: ColorBuffer, target: ColorBuffer, clip: Rectangle? = null) =
         apply(arrayOf(source), arrayOf(target), clip)
 
+    /**
+     * Applies a filter operation using the given source `ColorBuffer` and target array of `ColorBuffer`.
+     * Optionally, a clipping rectangle can be used to define the region for the filter operation.
+     *
+     * @param source A `ColorBuffer` representing the input for the filter operation.
+     * @param target An array of `ColorBuffer` representing the destination where the filter result will be applied.
+     * @param clip An optional `Rectangle` that defines the clipping region for the filter operation. Defaults to `null`.
+     */
     fun apply(source: ColorBuffer, target: Array<ColorBuffer>, clip: Rectangle? = null) = apply(arrayOf(source), target, clip)
+    /**
+     * Applies a filter operation using the given source array of `ColorBuffer` and the target `ColorBuffer`.
+     * Optionally, a clipping rectangle can be used to define the region for the filter operation.
+     *
+     * @param source An array of `ColorBuffer` representing the input for the filter operation.
+     * @param target A `ColorBuffer` representing the destination where the filter result will be applied.
+     * @param clip An optional `Rectangle` specifying the clipping region for the filter operation. Defaults to `null`.
+     */
     fun apply(source: Array<ColorBuffer>, target: ColorBuffer, clip: Rectangle? = null) = apply(source, arrayOf(target), clip)
 
     fun untrack() {
         shader?.let { Session.active.untrack(shader) }
     }
 
+    /**
+     * Releases resources associated with this filter, including those allocated for the shader.
+     * This method should be called when the filter is no longer needed to ensure proper cleanup
+     * and avoid resource leaks.
+     */
     open fun destroy() {
         shader?.destroy()
     }
@@ -258,17 +296,72 @@ void main() {
     }
 }
 
+/**
+ * A filter that processes a single input texture and outputs a single result.
+ *
+ * This class is a specialized type of [Filter] that operates with a one-to-one
+ * relationship between the input and output. It uses an optional [Shader]
+ * and an optional [ShaderWatcher] to manage and apply the desired GPU shader effects.
+ *
+ * @constructor Creates a Filter1to1 with the specified [shader] and [watcher].
+ * @param shader The [Shader] instance used for applying the visual effect.
+ * Can be null if no specific shader functionality is needed.
+ * @param watcher An optional [ShaderWatcher] instance that monitors the [shader].
+ */
 open class Filter1to1(shader: Shader? = null, watcher: ShaderWatcher? = null) :
     Filter(shader, watcher)
 
+/**
+ * A class representing a 2-to-1 filter that applies a shader operation
+ * using two input sources and a single target output.
+ *
+ * @constructor Creates a new instance of the Filter2to1 class.
+ * @param shader An optional shader instance, defining the filter's processing logic.
+ * @param watcher An optional shader watcher instance to track and manage shader changes.
+ */
 open class Filter2to1(shader: Shader? = null, watcher: ShaderWatcher? = null) :
     Filter(shader, watcher) {
+    /**
+     * Applies a shader-based operation to two input color buffers and writes the result to a target color buffer.
+     *
+     * @param source0 The first input color buffer that will be used in the operation.
+     * @param source1 The second input color buffer that will be used in the operation.
+     * @param target The target color buffer where the result of the operation will be written.
+     * @param clip An optional rectangle defining the region of interest for the operation. If null, the entire buffer is used.
+     */
     fun apply(source0: ColorBuffer, source1: ColorBuffer, target: ColorBuffer, clip: Rectangle? = null) =
         apply(arrayOf(source0, source1), arrayOf(target), clip)
 }
 
+/**
+ * A filter implementation that processes three input color buffers and outputs to a single target color buffer.
+ *
+ * This class is a specialization of the `Filter` class designed to handle operations involving three input
+ * color buffers and a single output. A shader can be optionally provided and monitored with an optional
+ * `ShaderWatcher`.
+ *
+ * @constructor Creates an instance of `Filter3to1` with an optional shader and shader watcher.
+ * @param shader An optional shader used for rendering purposes.
+ * @param watcher An optional shader watcher for monitoring shader changes.
+ *
+ * @see Filter
+ */
 open class Filter3to1(shader: Shader? = null, watcher: ShaderWatcher? = null) :
     Filter(shader, watcher) {
+    /**
+     * Applies a processing operation using three input color buffers and a single output color buffer.
+     *
+     * This function takes three source `ColorBuffer` objects as inputs, applies the specified filter
+     * operations on their contents, and writes the result to the target `ColorBuffer`. An optional
+     * clipping rectangle (`clip`) can be provided to restrict the processing to a specific region within
+     * the buffers.
+     *
+     * @param source0 The first input `ColorBuffer` to be processed.
+     * @param source1 The second input `ColorBuffer` to be processed.
+     * @param source2 The third input `ColorBuffer` to be processed.
+     * @param target The target `ColorBuffer` where the processed result is written.
+     * @param clip An optional `Rectangle` defining the area within the buffers to process. When `null`, the entire buffer is processed.
+     */
     fun apply(
         source0: ColorBuffer,
         source1: ColorBuffer,
@@ -279,8 +372,30 @@ open class Filter3to1(shader: Shader? = null, watcher: ShaderWatcher? = null) :
         apply(arrayOf(source0, source1, source2), arrayOf(target), clip)
 }
 
+/**
+ * A specialized filter that combines four input color buffers into one output color buffer.
+ *
+ * This filter processes four input color buffers simultaneously and outputs the result
+ * into a specified target color buffer. It optionally accepts a clipping rectangle to define
+ * the area of processing.
+ *
+ * @constructor Creates an instance of `Filter4to1` with an optional shader and shader watcher.
+ * @param shader The shader used for processing, can be null.
+ * @param watcher The shader watcher that monitors shader changes, can be null.
+ */
 open class Filter4to1(shader: Shader? = null, watcher: ShaderWatcher? = null) :
     Filter(shader, watcher) {
+    /**
+     * Applies a filter that processes four source color buffers and outputs the result to a target color buffer.
+     * Optionally, a clipping rectangle can be provided to specify the area of processing.
+     *
+     * @param source0 The first input color buffer to be processed.
+     * @param source1 The second input color buffer to be processed.
+     * @param source2 The third input color buffer to be processed.
+     * @param source3 The fourth input color buffer to be processed.
+     * @param target The target color buffer where the processed output will be written.
+     * @param clip An optional rectangular area to restrict processing, or null for no restriction.
+     */
     fun apply(
         source0: ColorBuffer,
         source1: ColorBuffer,

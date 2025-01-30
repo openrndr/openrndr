@@ -7,6 +7,13 @@ import org.openrndr.shape.Rectangle
 import kotlin.math.abs
 import kotlin.math.min
 
+/**
+ * This class is responsible for efficiently managing and rendering 2D rectangles, supporting
+ * various configurations, including batch rendering, custom dimensions, and draw styles.
+ *
+ * The rendering process is optimized by leveraging dynamic vertex buffers, shader management,
+ * and batching mechanisms for handling multiple rectangles in a single draw pass.
+ */
 class RectangleDrawer {
     private val vertices: VertexBuffer = VertexBuffer.createDynamic(VertexFormat().apply {
         position(3)

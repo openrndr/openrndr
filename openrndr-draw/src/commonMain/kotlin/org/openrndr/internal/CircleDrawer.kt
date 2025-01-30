@@ -8,6 +8,16 @@ import org.openrndr.shape.Circle
 import kotlin.math.abs
 
 
+/**
+ * A utility class designed for efficient rendering of circles.
+ *
+ * This class manages the creation and maintenance of vertex buffers, shader programs,
+ * and batch rendering for drawing circles. It provides various methods to render
+ * single or multiple circles with configurable positions, radii, and styles.
+ *
+ * The `CircleDrawer` class is optimized for performance by batching rendering
+ * operations and dynamically resizing buffers as needed.
+ */
 class CircleDrawer {
     private val vertices: VertexBuffer = VertexBuffer.createDynamic(VertexFormat().apply {
         position(3)
@@ -135,7 +145,6 @@ class CircleDrawer {
 
         val batch = singleBatches[count.mod(singleBatches.size)]
 
-        //ensureBatchSize(1)
         batch.geometry.shadow.writer().apply {
             rewind()
             write(Vector3(x, y, 0.0))
