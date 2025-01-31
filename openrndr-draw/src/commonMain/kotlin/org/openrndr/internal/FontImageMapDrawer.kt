@@ -41,7 +41,16 @@ class FontImageMapDrawer {
 
     var counter = 0
 
-    private fun getQueue(size: Int): VertexBuffer {
+    /**
+     * Retrieves a vertex buffer based on the specified size.
+     *
+     * If the size is smaller than 128, a buffer from the `fewQuads` array is selected based on the current counter.
+     * Otherwise, the `manyQuads` buffer is returned.
+     *
+     * @param size The desired size of the vertex buffer.
+     * @return A `VertexBuffer` that corresponds to the specified size.
+     */
+    fun getQueue(size: Int): VertexBuffer {
         return if (size < 128) {
             fewQuads[counter.mod(fewQuads.size)]
         } else {
@@ -182,7 +191,18 @@ class FontImageMapDrawer {
     }
 
 
-    private fun flush(context: DrawContext, drawStyle: DrawStyle, vertices: VertexBuffer) {
+    /**
+     * Flushes the currently queued drawing commands and renders them using the specified context,
+     * style, and vertex buffer. This method ensures that the queued vertex data is uploaded,
+     * the appropriate shader is applied, and the rendering pipeline is executed.
+     *
+     * @param context The drawing context containing transformation matrices and rendering parameters.
+     * @param drawStyle The style to apply when drawing, including properties such as fill color,
+     *                  stroke properties, and font settings.
+     * @param vertices The vertex buffer containing vertex data to be rendered.
+     *                 This buffer is used to store data for the current batch of quads.
+     */
+    fun flush(context: DrawContext, drawStyle: DrawStyle, vertices: VertexBuffer) {
         if (quadCount > 0) {
             vertices.shadow.uploadElements(0, quadCount * 6)
             val shader = shaderManager.shader(drawStyle.shadeStyle, vertices.vertexFormat)
