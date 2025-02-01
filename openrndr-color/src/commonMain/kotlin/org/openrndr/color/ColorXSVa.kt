@@ -21,45 +21,31 @@ data class ColorXSVa(val x: Double, val s: Double, val v: Double, override val a
     AlgebraicColor<ColorXSVa> {
 
     companion object {
-        fun fromHSVa(hsva: ColorHSVa): ColorXSVa {
-            val h = hsva.h.mod(360.0)
-            val x = if (0 <= h && h < 35) {
-                map(h, 0.0, 35.0, 0.0, 60.0)
-            } else if (35 <= h && h < 60) {
-                map(h, 35.0, 60.0, 60.0, 120.0)
-            } else if (60 <= h && h < 135.0) {
-                map(h, 60.0, 135.0, 120.0, 180.0)
-            } else if (135.0 <= h && h < 225.0) {
-                map(h, 135.0, 225.0, 180.0, 240.0)
-            } else if (225.0 <= h && h < 275.0) {
-                map(h, 225.0, 275.0, 240.0, 300.0)
-            } else {
-                map(h, 275.0, 360.0, 300.0, 360.0)
-            }
-            return ColorXSVa(x, hsva.s, hsva.v, hsva.alpha)
-        }
+        /**
+         * Converts a color from the HSVa (Hue, Saturation, Value, Alpha) color space to the XSVa
+         * (custom-defined X, Saturation, Value, Alpha) color space.
+         *
+         * The conversion maps the hue value from [0, 360) degrees in the HSVa color space to a custom-defined
+         * "X" scale based on specific intervals.
+         *
+         * @param hsva The input color in the HSVa color space, represented as a [ColorHSVa] object.
+         * @return The converted color in the XSVa color space, represented as a [ColorXSVa] object.
+         */
+        fun fromHSVa(hsva: ColorHSVa): ColorXSVa = ColorXSVa(hueToXue(hsva.hue), hsva.s, hsva.v, hsva.alpha)
     }
 
     @Deprecated("Legacy alpha parameter name", ReplaceWith("alpha"))
     val a = alpha
 
-    fun toHSVa(): ColorHSVa {
-        val x = this.x.mod(360.0)
-        val h = if (0.0 <= x && x < 60.0) {
-            map(x, 0.0, 60.0, 0.0, 35.0)
-        } else if (60.0 <= x && x < 120.0) {
-            map(x, 60.0, 120.0, 35.0, 60.0)
-        } else if (120.0 <= x && x < 180.0) {
-            map(x, 120.0, 180.0, 60.0, 135.0)
-        } else if (180.0 <= x && x < 240.0) {
-            map(x, 180.0, 240.0, 135.0, 225.0)
-        } else if (240.0 <= x && x < 300.0) {
-            map(x, 240.0, 300.0, 225.0, 275.0)
-        } else {
-            map(x, 300.0, 360.0, 275.0, 360.0)
-        }
-        return ColorHSVa(h, s, v, alpha)
-    }
+    /**
+     * Converts this `ColorXSVa` instance to a `ColorHSVa` representation.
+     *
+     * The conversion maps the hue (`x`) from the `ColorXSVa` space to the equivalent hue in the
+     * `ColorHSVa` space while keeping the saturation (`s`), value (`v`), and alpha (`alpha`) unchanged.
+     *
+     * @return A `ColorHSVa` representing the corresponding color in the HSV color model.
+     */
+    fun toHSVa(): ColorHSVa = ColorHSVa(xueToHue(x), s, v, alpha)
 
     override fun toRGBa() = toHSVa().toRGBa()
 
@@ -83,21 +69,19 @@ data class ColorXSVa(val x: Double, val s: Double, val v: Double, override val a
         v = v + right.v,
         alpha = alpha + right.alpha
     )
+
     override fun minus(right: ColorXSVa) = copy(
         x = x - right.x,
         s = s - right.s,
         v = v - right.v,
         alpha = alpha - right.alpha
     )
+
     override fun times(scale: Double) = copy(x = x * scale, s = s * scale, v = v * scale, alpha = alpha * scale)
 
     override fun mix(other: ColorXSVa, factor: Double) = mix(this, other, factor)
 
     override fun toVector4(): Vector4 = Vector4(x, s, v, alpha)
-}
-
-private fun map(x: Double, a: Double, b: Double, c: Double, d: Double): Double {
-    return ((x - a) / (b - a)) * (d - c) + c
 }
 
 /**

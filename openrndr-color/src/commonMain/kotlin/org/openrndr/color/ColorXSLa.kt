@@ -21,45 +21,24 @@ data class ColorXSLa(val x: Double, val s: Double, val l: Double, override val a
     AlgebraicColor<ColorXSLa> {
 
     companion object {
-        fun fromHSLa(hsla: ColorHSLa): ColorXSLa {
-            val h = hsla.h.mod(360.0)
-            val x = if (0 <= h && h < 35) {
-                map(h, 0.0, 35.0, 0.0, 60.0)
-            } else if (35 <= h && h < 60) {
-                map(h, 35.0, 60.0, 60.0, 120.0)
-            } else if (60 <= h && h < 135.0) {
-                map(h, 60.0, 135.0, 120.0, 180.0)
-            } else if (135.0 <= h && h < 225.0) {
-                map(h, 135.0, 225.0, 180.0, 240.0)
-            } else if (225.0 <= h && h < 275.0) {
-                map(h, 225.0, 275.0, 240.0, 300.0)
-            } else {
-                map(h, 275.0, 360.0, 300.0, 360.0)
-            }
-            return ColorXSLa(x, hsla.s, hsla.l, hsla.alpha)
-        }
+        /**
+         * Converts a `ColorHSLa` instance to a `ColorXSLa` instance.
+         *
+         * @param hsla The source color in the HSLa color space.
+         * @return A new `ColorXSLa` instance representing the converted color.
+         */
+        fun fromHSLa(hsla: ColorHSLa): ColorXSLa = ColorXSLa(hueToXue(hsla.h), hsla.s, hsla.l, hsla.alpha)
     }
 
     @Deprecated("Legacy alpha parameter name", ReplaceWith("alpha"))
     val a = alpha
 
-    fun toHSLa(): ColorHSLa {
-        val x = this.x.mod(360.0)
-        val h = if (0.0 <= x && x < 60.0) {
-            map(x, 0.0, 60.0, 0.0, 35.0)
-        } else if (60.0 <= x && x < 120.0) {
-            map(x, 60.0, 120.0, 35.0, 60.0)
-        } else if (120.0 <= x && x < 180.0) {
-            map(x, 120.0, 180.0, 60.0, 135.0)
-        } else if (180.0 <= x && x < 240.0) {
-            map(x, 180.0, 240.0, 135.0, 225.0)
-        } else if (240.0 <= x && x < 300.0) {
-            map(x, 240.0, 300.0, 225.0, 275.0)
-        } else {
-            map(x, 300.0, 360.0, 275.0, 360.0)
-        }
-        return ColorHSLa(h, s, l, alpha)
-    }
+    /**
+     * Converts the current `ColorXSLa` instance to the `ColorHSLa` representation (Hue, Saturation, Lightness, Alpha).
+     *
+     * @return A new `ColorHSLa` instance with the hue calculated based on the `x` value, and the other components retained as is.
+     */
+    fun toHSLa(): ColorHSLa = ColorHSLa(xueToHue(x), s, l, alpha)
 
     override fun toRGBa() = toHSLa().toRGBa()
 
@@ -68,6 +47,7 @@ data class ColorXSLa(val x: Double, val s: Double, val l: Double, override val a
 
     override val hue: Double
         get() = x
+
     override fun withSaturation(saturation: Double): ColorXSLa = copy(s = saturation)
 
     override val saturation: Double
@@ -82,21 +62,19 @@ data class ColorXSLa(val x: Double, val s: Double, val l: Double, override val a
         l = l + right.l,
         alpha = alpha + right.alpha
     )
+
     override fun minus(right: ColorXSLa) = copy(
         x = x - right.x,
         s = s - right.s,
         l = l - right.l,
         alpha = alpha - right.alpha
     )
+
     override fun times(scale: Double) = copy(x = x * scale, s = s * scale, l = l * scale, alpha = alpha * scale)
 
     override fun mix(other: ColorXSLa, factor: Double) = mix(this, other, factor)
 
     override fun toVector4(): Vector4 = Vector4(x, s, l, alpha)
-}
-
-private fun map(x: Double, a: Double, b: Double, c: Double, d: Double): Double {
-    return ((x - a) / (b - a)) * (d - c) + c
 }
 
 /**
