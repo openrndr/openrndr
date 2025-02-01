@@ -6,30 +6,6 @@ import kotlin.jvm.JvmName
 import kotlin.math.max
 import kotlin.math.min
 
-fun mod(a: Double, b: Double) = ((a % b) + b) % b
-fun mod(a: Int, b: Int) = ((a % b) + b) % b
-fun mod(a: Float, b: Float) = ((a % b) + b) % b
-fun mod(a: Long, b: Long) = ((a % b) + b) % b
-
-@Deprecated("deprecated", replaceWith = ReplaceWith("mod"))
-@JvmName("modDouble")
-fun Double.mod_(b: Double) = mod(this, b)
-
-@Suppress("FunctionName")
-@Deprecated("deprecated", replaceWith = ReplaceWith("mod"))
-@JvmName("modInt")
-fun Int.mod_(b: Int) = mod(this, b)
-
-@Suppress("FunctionName")
-@Deprecated("deprecated", replaceWith = ReplaceWith("mod"))
-@JvmName("modFloat")
-fun Float.mod_(b: Float) = mod(this, b)
-
-@Suppress("FunctionName")
-@Deprecated("deprecated", replaceWith = ReplaceWith("mod"))
-@JvmName("modLong")
-fun Long.mod_(b: Long) = mod(this, b)
-
 fun Vector2.mod(b: Vector2) =
         Vector2(x.mod(b.x),
                 y.mod(b.y))

@@ -18,7 +18,7 @@ data class Polar(val theta: Double, val radius: Double = 1.0) : LinearType<Polar
      * make a safe version by bringing [theta] between 0 and 360
      */
     fun makeSafe() = Polar(
-            mod(theta, 360.0),
+        theta.mod(360.0),
             radius
     )
 
