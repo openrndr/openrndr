@@ -342,7 +342,7 @@ data class ShapeContour(
 
         if (closed && (u1 < u0 || u1 > 1.0 || u0 > 1.0 || u0 < 0.0 || u1 < 0.0)) {
             val diff = u1 - u0
-            u0 = mod(u0, 1.0)
+            u0 = u0.mod(1.0)
             if (abs(diff) < (1.0 - subEpsilon)) {
                 return if (diff > 0.0) {
                     u1 = u0 + diff
