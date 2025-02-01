@@ -75,7 +75,12 @@ interface EuclideanVector<T> : LinearType<T> where T : EuclideanVector<T>, T : L
     }
 
     /**
-     * apply [function] to all components
+     * Applies a given function to each component of the vector and returns a new vector
+     * with the transformed components.
+     *
+     * @param function A lambda function that takes a Double and returns a Double,
+     * applied to each component of the vector.
+     * @return A new vector of the same type with components transformed by the given function.
      */
     fun map(function: (Double)->Double) : T
 
