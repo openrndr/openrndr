@@ -208,6 +208,14 @@ data class ColorRGBa(
     )
 
 
+    /**
+     * Returns a new instance of [ColorRGBa] where the red, green, and blue components
+     * are multiplied by the alpha value of the original color. The alpha value and linearity
+     * remain unchanged.
+     *
+     * This computed property is commonly used for adjusting the color intensity based
+     * on its transparency.
+     */
     val alphaMultiplied: ColorRGBa
         get() = ColorRGBa(r * alpha, g * alpha, b * alpha, alpha, linearity)
 
@@ -233,6 +241,13 @@ data class ColorRGBa(
             else -> 0.2126 * r + 0.7152 * g + 0.0722 * b
         }
 
+    /**
+     * Converts this color to the specified linearity.
+     *
+     * @param linearity The target linearity to which the color should be converted.
+     *                  Supported values are [Linearity.SRGB] and [Linearity.LINEAR].
+     * @return A [ColorRGBa] instance in the specified linearity.
+     */
     fun toLinearity(linearity: Linearity): ColorRGBa {
         return when (linearity) {
             Linearity.SRGB -> toSRGB()
@@ -393,6 +408,12 @@ fun rgba(r: Double, g: Double, b: Double, a: Double) = ColorRGBa(r, g, b, a, lin
  */
 fun rgb(hex: String) = ColorRGBa.fromHex(hex)
 
+/**
+ * Multiplies a 5x5 matrix with a ColorRGBa instance.
+ *
+ * @param color The ColorRGBa instance to be transformed by the matrix.
+ * @return A new ColorRGBa instance resulting from the matrix transformation.
+ */
 operator fun Matrix55.times(color: ColorRGBa): ColorRGBa {
     return color.copy(
         r = color.r * c0r0 + color.g * c1r0 + color.b * c2r0 + color.alpha * c3r0 + c4r0,

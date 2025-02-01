@@ -31,6 +31,11 @@ data class ColorYxya(
         }
     }
 
+    /**
+     * Converts the current Yxy color representation into the XYZ color space representation.
+     *
+     * @return A new instance of `ColorXYZa` representing the color in the XYZ color space.
+     */
     fun toXYZa(): ColorXYZa {
         val X = (yy / y) * x
         val Y = yy

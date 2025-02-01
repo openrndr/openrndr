@@ -46,10 +46,24 @@ data class ColorLABa(
             return ColorLABa(l, a, b, xyz.alpha, ref)
         }
 
+        /**
+         * Converts a given color in the RGBa color space to the LABa color space,
+         * optionally referencing a specific illuminant in the XYZa color space.
+         *
+         * @param rgba The color in the RGBa color space to convert.
+         * @param ref The reference color in the XYZa color space to use for the conversion. Defaults to `ColorXYZa.NEUTRAL`.
+         */
         fun fromRGBa(rgba: ColorRGBa, ref: ColorXYZa = ColorXYZa.NEUTRAL) =
             fromXYZa(ColorXYZa.fromRGBa(rgba), ref)
     }
 
+    /**
+     * Converts the current color from the CIE LAB color space (with alpha) to the CIE XYZ color space (with alpha).
+     *
+     * The conversion uses the reference white defined in the inclusive ColorLABa instance.
+     *
+     * @return A `ColorXYZa` instance representing the color in the CIE XYZ color space with the same alpha value.
+     */
     fun toXYZa(): ColorXYZa {
         var x: Double
         var y: Double

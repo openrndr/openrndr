@@ -76,6 +76,17 @@ data class ColorLCHABa(
         }
 
 
+        /**
+         * Converts a color from the LABa color space to the LCHABa color space.
+         *
+         * The conversion maps the lightness (`l`) from LABa to LCHABa, calculates the
+         * chroma (`c`) as the magnitude of the `a` and `b` components, and computes the
+         * hue (`h`) as the angle of the vector formed by the `a` and `b` components.
+         * The alpha and reference white values are retained from the original LABa color.
+         *
+         * @param laba The color in the LABa color space to convert.
+         * @return A `ColorLCHABa` instance representing the color in the LCHABa color space.
+         */
         fun fromLABa(laba: ColorLABa): ColorLCHABa {
             val l = laba.l
             val c = sqrt(laba.a * laba.a + laba.b * laba.b)
@@ -92,12 +103,28 @@ data class ColorLCHABa(
     }
 
 
+    /**
+     * Converts the current color from the LCHABa color space to the LABa color space.
+     *
+     * The method computes the `a` and `b` coordinates using the chroma (`c`) and hue (`h`) values,
+     * while retaining the lightness (`l`) and alpha values of the color.
+     *
+     * @return A `ColorLABa` instance representing the color in the LABa color space.
+     */
     fun toLABa(): ColorLABa {
         val a = c * cos(h.asRadians)
         val b = c * sin(h.asRadians)
         return ColorLABa(l, a, b, alpha, ref)
     }
 
+    /**
+     * Converts the current color from the LCHABa color space to the XYZa color space.
+     *
+     * The method first transforms the color to the LABa color space using the `toLABa` method,
+     * and then converts the resulting LABa color to the XYZa color space.
+     *
+     * @return A `ColorXYZa` instance representing the color in the XYZa color space.
+     */
     fun toXYZa(): ColorXYZa = toLABa().toXYZa()
 
     override fun toRGBa(): ColorRGBa = toLABa().toXYZa().toRGBa()

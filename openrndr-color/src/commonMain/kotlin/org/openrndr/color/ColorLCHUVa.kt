@@ -90,12 +90,30 @@ data class ColorLCHUVa(
     }
 
 
+    /**
+     * Converts the current color in LCHUVa color space to its equivalent in the LUVa color space.
+     *
+     * The conversion involves computing the chromaticity coordinates U and V based on the
+     * chroma (c) and hue (h) of the color, and using the luminance (l) and alpha (opacity) values
+     * of the original color. The reference white point remains the same during the conversion.
+     *
+     * @return a [ColorLUVa] instance representing the color in the LUVa color space.
+     */
     fun toLUVa(): ColorLUVa {
         val u = c * cos(h.asRadians)
         val v = c * sin(h.asRadians)
         return ColorLUVa(l, u, v, alpha, ref)
     }
 
+    /**
+     * Converts the current color in the LCHUVa color space to its equivalent in the LSHUVa color space.
+     *
+     * This transformation normalizes the chroma value relative to the maximum possible chroma at the given luminance
+     * and hue in the specified reference color space. The luminance, hue, and alpha values remain consistent,
+     * while the chroma value is expressed as a fraction of the maximum chroma.
+     *
+     * @return a [ColorLSHUVa] instance representing the color in the LSHUVa color space.
+     */
     fun toLSHUVa() = ColorLSHUVa.fromLCHUVa(this)
     override fun toRGBa() = toLUVa().toRGBa()
 

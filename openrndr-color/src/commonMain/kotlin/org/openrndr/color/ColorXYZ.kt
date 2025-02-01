@@ -45,6 +45,12 @@ data class ColorXYZa(val x: Double, val y: Double, val z: Double, override val a
 
         val NEUTRAL = fromRGBa(ColorRGBa(1.0, 1.0, 1.0, linearity = Linearity.LINEAR))
 
+        /**
+         * Converts a given color from the RGBa color space to the XYZa color space.
+         *
+         * @param rgba The color in the RGBa color space to be converted.
+         * @return A new instance of ColorXYZa representing the converted color.
+         */
         fun fromRGBa(rgba: ColorRGBa): ColorXYZa {
             val linear = rgba.toLinear()
             val x = 0.4124 * linear.r + 0.3576 * linear.g + 0.1805 * linear.b
@@ -68,7 +74,19 @@ data class ColorXYZa(val x: Double, val y: Double, val z: Double, override val a
         return ColorRGBa(r, g, b, alpha, Linearity.LINEAR)
     }
 
+    /**
+     * Converts the color from the XYZ color model to the HSV color model with alpha.
+     * This function uses the intermediate RGB color space as part of the conversion process.
+     *
+     * @return a new instance of [ColorHSVa] representing the color in the HSV color space with alpha.
+     */
     fun toHSVa(): ColorHSVa = toRGBa().toHSVa()
+    /**
+     * Converts the color from the XYZ color model to the HSL color model with alpha.
+     * This transformation uses the intermediate RGB color space as part of the conversion process.
+     *
+     * @return a new instance of [ColorHSLa] representing the color in the HSL color space with alpha.
+     */
     fun toHSLa(): ColorHSLa = toRGBa().toHSLa()
     override fun plus(right: ColorXYZa) = copy(
         x = x + right.x,
