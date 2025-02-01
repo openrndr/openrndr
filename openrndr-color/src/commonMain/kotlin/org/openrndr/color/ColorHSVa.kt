@@ -89,7 +89,7 @@ data class ColorHSVa(val h: Double, val s: Double, val v: Double, override val a
      * a unit presentation of this ColorHSVa, essentially brings the hue back in [0, 360)
      * @return a copy with the hue value in [0, 360)
      */
-    val unit get() = copy(h = ((h % 360) + 360) % 360)
+    val unit get() = copy(h = h.mod(360.0))
 
     override fun toRGBa(): ColorRGBa {
         val i: Int

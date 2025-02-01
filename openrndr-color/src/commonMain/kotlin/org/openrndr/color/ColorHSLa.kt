@@ -75,7 +75,7 @@ data class ColorHSLa(val h: Double, val s: Double, val l: Double, override val a
 
     override fun mix(other: ColorHSLa, factor: Double) = mix(this, other, factor)
 
-    val unit get() = copy(h = ((h % 360) + 360) % 360)
+    val unit get() = copy(h = h.mod(360.0))
 
     override fun toRGBa(): ColorRGBa {
         return if (s == 0.0) {

@@ -22,7 +22,7 @@ data class ColorXSVa(val x: Double, val s: Double, val v: Double, override val a
 
     companion object {
         fun fromHSVa(hsva: ColorHSVa): ColorXSVa {
-            val h = ((hsva.h % 360.0) + 360.0) % 360.0
+            val h = hsva.h.mod(360.0)
             val x = if (0 <= h && h < 35) {
                 map(h, 0.0, 35.0, 0.0, 60.0)
             } else if (35 <= h && h < 60) {
@@ -44,7 +44,7 @@ data class ColorXSVa(val x: Double, val s: Double, val v: Double, override val a
     val a = alpha
 
     fun toHSVa(): ColorHSVa {
-        val x = this.x % 360.0
+        val x = this.x.mod(360.0)
         val h = if (0.0 <= x && x < 60.0) {
             map(x, 0.0, 60.0, 0.0, 35.0)
         } else if (60.0 <= x && x < 120.0) {

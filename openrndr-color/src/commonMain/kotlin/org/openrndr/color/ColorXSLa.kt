@@ -22,7 +22,7 @@ data class ColorXSLa(val x: Double, val s: Double, val l: Double, override val a
 
     companion object {
         fun fromHSLa(hsla: ColorHSLa): ColorXSLa {
-            val h = ((hsla.h % 360.0) + 360.0) % 360.0
+            val h = hsla.h.mod(360.0)
             val x = if (0 <= h && h < 35) {
                 map(h, 0.0, 35.0, 0.0, 60.0)
             } else if (35 <= h && h < 60) {
@@ -44,7 +44,7 @@ data class ColorXSLa(val x: Double, val s: Double, val l: Double, override val a
     val a = alpha
 
     fun toHSLa(): ColorHSLa {
-        val x = this.x % 360.0
+        val x = this.x.mod(360.0)
         val h = if (0.0 <= x && x < 60.0) {
             map(x, 0.0, 60.0, 0.0, 35.0)
         } else if (60.0 <= x && x < 120.0) {
