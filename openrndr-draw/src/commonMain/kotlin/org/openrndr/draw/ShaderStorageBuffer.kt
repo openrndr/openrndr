@@ -70,16 +70,16 @@ enum class BufferPrimitiveType(val componentCount: Int, val sizeInBytes: Int, va
 
     VECTOR2_FLOAT64(2, 16, 16),
 
-    VECTOR3_BOOLEAN(2, 12, 16),
-    VECTOR3_INT32(2, 12, 16),
-    VECTOR3_UINT32(2, 12, 16),
+    VECTOR3_BOOLEAN(3, 12, 16),
+    VECTOR3_INT32(3, 12, 16),
+    VECTOR3_UINT32(3, 12, 16),
     VECTOR3_FLOAT32(3, 12, 16),
 
     VECTOR3_FLOAT64(3, 24, 32),
 
-    VECTOR4_BOOLEAN(2, 16, 16),
-    VECTOR4_INT32(2, 16, 16),
-    VECTOR4_UINT32(2, 16, 16),
+    VECTOR4_BOOLEAN(4, 16, 16),
+    VECTOR4_INT32(4, 16, 16),
+    VECTOR4_UINT32(4, 16, 16),
     VECTOR4_FLOAT32(4, 16, 16),
 
     VECTOR4_FLOAT64(4, 16, 32),
@@ -151,16 +151,6 @@ class ShaderStorageFormat {
      * The size of the [ShaderStorageFormat] in bytes
      */
     val size get() = formatSize
-
-
-    fun lastAlignmentInBytes(elements: List<ShaderStorageElement> = this.elements): Int {
-        val last = elements.last()
-        return when (last) {
-            is ShaderStoragePrimitive -> last.type.alignmentInBytes
-            is ShaderStorageStruct -> lastAlignmentInBytes(last.elements)
-        }
-    }
-
 
     /**
      * Adds a primitive element to the shader storage format.
