@@ -139,9 +139,9 @@ data class ShaderStorageBufferGL43(
         w.putter()
 
         var position = w.position
-        val alignment = format.lastAlignmentInBytes()
-        if (position.mod(alignment) != 0) {
-            position += alignment - (position.mod(alignment))
+        val maxAlignmentInBytes = format.elements.maxOf { it.alignmentInBytes() }
+        if (position.mod(maxAlignmentInBytes) != 0) {
+            position += maxAlignmentInBytes - (position.mod(maxAlignmentInBytes))
         }
 
         if (position.mod(format.size) != 0) {
