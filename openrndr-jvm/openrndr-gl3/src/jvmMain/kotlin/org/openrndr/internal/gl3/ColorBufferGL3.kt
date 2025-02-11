@@ -48,6 +48,7 @@ class ExrCompression {
         val ZIPS = TINYEXR_COMPRESSIONTYPE_ZIPS
         val ZIP = TINYEXR_COMPRESSIONTYPE_ZIP
         val PIZ = TINYEXR_COMPRESSIONTYPE_PIZ
+
         // experimental, see https://tinyexr.docsforge.com/master/getting-started/#zfp
         val ZFP = TINYEXR_COMPRESSIONTYPE_ZFP
     }
@@ -854,6 +855,9 @@ class ColorBufferGL3(
             }
 
             DriverTypeGL.GLES -> {
+                require(targetFormat.componentCount != 3) {
+                    "Reading from ColorBuffers with 3-component format (=$format/$type) is not supported in GLES. "
+                }
                 val fb = glGenFramebuffers()
                 checkGLErrors()
                 val currentFB = glGetInteger(GL_FRAMEBUFFER_BINDING)
@@ -862,7 +866,17 @@ class ColorBufferGL3(
                 debugGLErrors()
                 glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, target, texture, level)
                 debugGLErrors()
-                type.glType()
+                val status = glCheckFramebufferStatus(GL_FRAMEBUFFER)
+                require(status == GL_FRAMEBUFFER_COMPLETE) {
+                    when (status) {
+                        GL_FRAMEBUFFER_UNDEFINED -> "target is the default framebuffer, but the default framebuffer does not exist."
+                        GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT -> "any of the framebuffer attachment points are framebuffer incomplete."
+                        GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT -> "the framebuffer does not have at least one image attached to it."
+                        GL_FRAMEBUFFER_UNSUPPORTED -> "depth and stencil attachments, if present, are not the same renderbuffer, or if the combination of internal formats of the attached images violates an implementation-dependent set of restrictions."
+                        GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE -> "he value of GL_RENDERBUFFER_SAMPLES is not the same for all attached renderbuffers or, if the attached images are a mix of renderbuffers and textures, the value of GL_RENDERBUFFER_SAMPLES is not zero."
+                        else -> "unknown error $status"
+                    }
+                }
                 glPixelStorei(GL_PACK_ALIGNMENT, 1)
                 debugGLErrors()
                 GLES30.glReadBuffer(GL_COLOR_ATTACHMENT0)
@@ -920,6 +934,7 @@ class ColorBufferGL3(
 
     override fun destroy() {
         if (!destroyed) {
+            debugGLErrors { "pre-existing errors before destroying colorbuffer" }
             session?.untrack(this)
             glDeleteTextures(texture)
             destroyed = true
