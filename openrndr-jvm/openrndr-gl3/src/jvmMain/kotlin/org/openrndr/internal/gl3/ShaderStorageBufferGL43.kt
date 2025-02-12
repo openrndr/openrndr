@@ -140,12 +140,15 @@ data class ShaderStorageBufferGL43(
 
         var position = w.position
         val maxAlignmentInBytes = format.elements.maxOf { it.alignmentInBytes() }
-        if (position.mod(maxAlignmentInBytes) != 0) {
-            position += maxAlignmentInBytes - (position.mod(maxAlignmentInBytes))
+
+        if (position.mod(format.size) != 0) {
+            if (position.mod(maxAlignmentInBytes) != 0) {
+                position += maxAlignmentInBytes - (position.mod(maxAlignmentInBytes))
+            }
         }
 
         if (position.mod(format.size) != 0) {
-            throw RuntimeException("incomplete members written (position: ${w.position}, size: ${format.size}). likely violating the specified shaders storage format $format")
+            throw RuntimeException("incomplete members written (position: ${position}, size: ${format.size}). likely violating the specified shaders storage format $format")
         }
         val count = position / format.size
         shadow.uploadElements(elementOffset, count)
