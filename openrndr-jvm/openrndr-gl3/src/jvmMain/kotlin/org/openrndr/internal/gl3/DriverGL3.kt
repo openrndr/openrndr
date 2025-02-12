@@ -167,6 +167,8 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
             DriverTypeGL.GLES -> """#define OR_GLES
           |precision highp float;
           |precision highp sampler2DArray;
+          |precision highp image2DArray;
+          |precision highp imageCube;
           |${
                 if (Driver.glVersion >= DriverVersionGL.GLES_VERSION_3_1) {
                     "precision highp image2D; precision highp image3D;"

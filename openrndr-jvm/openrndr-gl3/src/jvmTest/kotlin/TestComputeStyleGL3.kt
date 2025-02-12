@@ -54,7 +54,96 @@ class TestComputeStyleGL3 : AbstractApplicationTestFixture() {
             cs.execute(1, 1, 1)
             img.destroy()
         }
+    }
 
+    /**
+     * Tests image binding functionality for array textures using compute shaders.
+     *
+     * This test verifies:
+     * - The creation of an array texture with specific dimensions and layers.
+     * - The configuration of a compute style that registers an image binding, using the array texture as the image source.
+     * - The execution of a compute shader leveraging the defined compute style and image binding.
+     * - Proper cleanup and destruction of the allocated array texture resource.
+     *
+     * The test ensures correctness in the setup of image bindings for array textures and their usage
+     * in compute shader executions. It only runs when compute capabilities are supported by the driver.
+     */
+    @Test
+    fun testArrayTextureImageBinding() {
+        if (Driver.capabilities.compute) {
+            val img = arrayTexture(256, 256, 10, type = ColorType.UINT8)
+            val cs = computeStyle {
+                computeTransform = "p_img;"
+                registerImageBinding(
+                    "img",
+                    BufferAccess.READ,
+                    setOf(BufferFlag.COHERENT, BufferFlag.RESTRICT)
+                )
+                image("img", img, 0)
+            }
+            cs.execute(1, 1, 1)
+            img.destroy()
+        }
+    }
+
+    /**
+     * Tests the functionality of cubemap image bindings in compute shaders.
+     *
+     * This test verifies:
+     * - The creation of a cubemap texture with specific dimensions and color type.
+     * - The configuration of a compute style that registers an image binding referencing the created cubemap texture.
+     * - Execution of a compute shader using the defined compute style and image binding.
+     * - Proper cleanup and destruction of the allocated cubemap texture resource.
+     *
+     * This test ensures the correctness of cubemap image binding setup and their usage in compute shader executions.
+     * It is executed only if compute capabilities are supported by the driver.
+     */
+    @Test
+    fun testCubemapImageBinding() {
+        if (Driver.capabilities.compute) {
+            val img = cubemap(256, type = ColorType.UINT8)
+            val cs = computeStyle {
+                computeTransform = "p_img;"
+                registerImageBinding(
+                    "img",
+                    BufferAccess.READ,
+                    setOf(BufferFlag.COHERENT, BufferFlag.RESTRICT)
+                )
+                image("img", img, 0)
+            }
+            cs.execute(1, 1, 1)
+            img.destroy()
+        }
+    }
+
+    /**
+     * Tests the functionality of array cubemap image bindings in compute shaders.
+     *
+     * This test verifies:
+     * - The creation of an array cubemap texture with specific dimensions and layers.
+     * - The configuration of a compute style that registers an image binding referencing the created array cubemap texture.
+     * - Execution of a compute shader using the defined compute style and image binding.
+     * - Proper cleanup and destruction of the allocated array cubemap texture resource.
+     *
+     * The test ensures the correctness of array cubemap image bindings setup and their usage in compute shader executions.
+     * It only runs when compute capabilities are supported by the driver.
+     */
+    @Test
+    fun testArrayCubemapImageBinding() {
+        if (Driver.capabilities.compute) {
+            val img = arrayCubemap(256, 10, type = ColorType.UINT8)
+            val cs = computeStyle {
+                computeTransform = "p_img;"
+                registerImageBinding(
+                    "img",
+                    BufferAccess.READ,
+                    setOf(BufferFlag.COHERENT, BufferFlag.RESTRICT)
+                )
+                image("img", img, 0)
+            }
+            cs.execute(1, 1, 1)
+            img.destroy()
+        }
     }
 
     @Test

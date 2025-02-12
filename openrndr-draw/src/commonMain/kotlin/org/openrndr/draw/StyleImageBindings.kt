@@ -138,6 +138,26 @@ interface StyleImageBindings {
     }
 
     /**
+     * Binds an `ArrayCubemap` as an image to be used in computations such as shaders.
+     * Validates the presence of an existing image binding with the specified name and
+     * configures the binding using the given `ArrayCubemap` and mipmap level.
+     *
+     * @param name The name of the image binding to be used.
+     * @param arrayCubemap The `ArrayCubemap` object to be bound.
+     * @param level The mipmap level to use when binding the `ArrayCubemap`. Defaults to 0.
+     * @throws IllegalArgumentException if the image binding with the given name is not registered.
+     * @since 0.4.5
+     */
+    fun image(name: String, arrayCubemap: ArrayCubemap, level: Int = 0) {
+        require(imageAccess[name] != null) {
+            "image binding '$name' is not registered"
+        }
+        val imageBinding =
+            arrayCubemap.imageBinding(level, imageAccess[name] ?: error("image binding '$name' is not registered"))
+        image(name, imageBinding)
+    }
+
+    /**
      * @since 0.4.4
      */
     fun image(
