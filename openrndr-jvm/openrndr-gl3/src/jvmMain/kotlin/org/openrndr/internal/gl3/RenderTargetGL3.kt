@@ -169,6 +169,11 @@ open class RenderTargetGL3(
 
     override fun attach(colorBuffer: ColorBuffer, level: Int, name: String?, ownedByRenderTarget: Boolean) {
         require(!destroyed)
+        if (Driver.glType == DriverTypeGL.GLES) {
+            require(colorBuffer.format.componentCount != 3) {
+                "attachments with format (=${colorBuffer.format}) are not supported in GLES mode"
+            }
+        }
 
         val context = Driver.instance.contextID
         bindTarget()
@@ -206,6 +211,11 @@ open class RenderTargetGL3(
 
     override fun attach(arrayCubemap: ArrayCubemap, side: CubemapSide, layer: Int, level: Int, name: String?) {
         require(!destroyed)
+
+        require(Driver.glType == DriverTypeGL.GL || arrayCubemap.format.componentCount != 3) {
+            "attachments with format (=${arrayCubemap.format}) are not supported in GLES mode"
+        }
+
         val context = Driver.instance.contextID
         bindTarget()
         val effectiveWidth = (width * contentScale).toInt()
@@ -231,6 +241,10 @@ open class RenderTargetGL3(
     override fun attach(cubemap: Cubemap, side: CubemapSide, level: Int, name: String?) {
         val div = 1 shl level
         require(!destroyed)
+        require(Driver.glType == DriverTypeGL.GL || cubemap.format.componentCount != 3) {
+            "attachments with format (=${cubemap.format}) are not supported in GLES mode"
+        }
+
         val context = Driver.instance.contextID
         bindTarget()
         val effectiveWidth = (width * contentScale).toInt()
@@ -256,8 +270,16 @@ open class RenderTargetGL3(
     }
 
     override fun attach(volumeTexture: VolumeTexture, layer: Int, level: Int, name: String?) {
+        require(Driver.glType == DriverTypeGL.GL) {
+            "Volume texture attachments are not supported in GLES mode"
+        }
         require(!destroyed)
-        require(level >= 0 && level < volumeTexture.depth)
+        require(level >= 0 && level < volumeTexture.depth) {
+            "Invalid attachment operation: level (=$level) is out of valid range [0, ${volumeTexture.depth - 1}]."
+        }
+        require(Driver.glType == DriverTypeGL.GL ||  volumeTexture.format.componentCount != 3) {
+            "attachments with format (=${volumeTexture.format}) are not supported in GLES mode"
+        }
 
         val context = Driver.instance.contextID
         bindTarget()
@@ -286,6 +308,10 @@ open class RenderTargetGL3(
 
     override fun attachLayered(arrayTexture: ArrayTexture, level: Int, name: String?) {
         require(!destroyed)
+        require(Driver.glType == DriverTypeGL.GL || arrayTexture.format.componentCount != 3) {
+            "attachments with format (=${arrayTexture.format}) are not supported in GLES mode"
+        }
+
         val context = Driver.instance.contextID
         bindTarget()
 
@@ -307,6 +333,9 @@ open class RenderTargetGL3(
 
     override fun attachLayered(arrayCubemap: ArrayCubemap, level: Int, name: String?) {
         require(!destroyed)
+        require(Driver.glType == DriverTypeGL.GL || arrayCubemap.format.componentCount != 3) {
+            "attachments with format (=${arrayCubemap.format}) are not supported in GLES mode"
+        }
         val context = Driver.instance.contextID
         bindTarget()
         val effectiveWidth = (width * contentScale).toInt()
@@ -324,8 +353,12 @@ open class RenderTargetGL3(
     }
 
     override fun attachLayered(cubemap: Cubemap, level: Int, name: String?) {
-        val div = 1 shl level
         require(!destroyed)
+        require(Driver.glType == DriverTypeGL.GL || cubemap.format.componentCount != 3) {
+            "attachments with format (=${cubemap.format}) are not supported in GLES mode"
+        }
+        val div = 1 shl level
+
         val context = Driver.instance.contextID
         bindTarget()
         val effectiveWidth = (width * contentScale).toInt()
@@ -351,7 +384,12 @@ open class RenderTargetGL3(
 
     override fun attachLayered(volumeTexture: VolumeTexture, level: Int, name: String?) {
         require(!destroyed)
-        require(level >= 0 && level < volumeTexture.depth)
+        require(level >= 0 && level < volumeTexture.depth) {
+            "level (=$level) out of range [0, ${volumeTexture.depth - 1}]"
+        }
+        require(Driver.glType == DriverTypeGL.GL || volumeTexture.format.componentCount != 3) {
+            "attachments with format (=${volumeTexture.format}) are not supported in GLES mode"
+        }
 
         val context = Driver.instance.contextID
         bindTarget()
@@ -374,6 +412,10 @@ open class RenderTargetGL3(
 
     override fun attach(arrayTexture: ArrayTexture, layer: Int, level: Int, name: String?) {
         require(!destroyed)
+        require(Driver.glType == DriverTypeGL.GL || arrayTexture.format.componentCount != 3) {
+            "attachments with format (=${arrayTexture.format}) are not supported in GLES mode"
+        }
+
         val context = Driver.instance.contextID
         bindTarget()
 

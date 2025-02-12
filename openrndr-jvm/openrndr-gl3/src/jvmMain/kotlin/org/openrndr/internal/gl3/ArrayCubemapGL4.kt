@@ -38,19 +38,8 @@ class ArrayCubemapGL4(val target: Int,
                 null
             }
 
-            for (level in 0 until levels) {
-                val div = 1 shr level
-                glTexImage3D(GL_TEXTURE_CUBE_MAP_ARRAY,
-                        level, internalFormat(format, type).first,
-                        width / div, width / div, layers * 6,
-                        0, GL_RGB, GL_UNSIGNED_BYTE, null as ByteBuffer?)
-                checkGLErrors {
-                    when (it) {
-                        GL_INVALID_VALUE -> "level ($level) is less than 0 ($level < false), or level > max mip level, or width (${width / div}) < 0, or ($layers}) < 0  "
-                        else -> null
-                    }
-                }
-            }
+            glTexStorage3D(GL_TEXTURE_CUBE_MAP_ARRAY, levels, internalFormat(format, type).first, width, width, layers * 6)
+            checkGLErrors()
             if (levels > 1) {
                 glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_MAX_LEVEL, levels - 1)
                 checkGLErrors()
