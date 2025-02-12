@@ -18,6 +18,7 @@ kotlin {
 
         testRuns["test"].executionTask {
             allJvmArgs = allJvmArgs + "-Dorg.openrndr.gl3.skip_glfw_termination"
+            allJvmArgs = allJvmArgs + "-Dorg.openrndr.gl3.debug=true"
             useJUnitPlatform {
                 if (System.getenv("CI") != null) {
                     exclude("**/*.class")

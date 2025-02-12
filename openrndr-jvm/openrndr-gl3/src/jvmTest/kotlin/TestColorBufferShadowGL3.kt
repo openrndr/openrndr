@@ -1,3 +1,4 @@
+import org.junit.jupiter.api.assertThrows
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.ColorFormat
 import org.openrndr.draw.ColorType
@@ -23,8 +24,14 @@ class TestColorBufferShadowGL3 : AbstractApplicationTestFixture() {
 
     @Test
     fun `a UINT8RGB color buffer shadow`() {
-        val cb = colorBuffer(256, 256, format = ColorFormat.RGBa)
-        cb.shadow.download()
+        val cb = colorBuffer(256, 256, format = ColorFormat.RGB, type = ColorType.UINT8)
+        if (Driver.glType == DriverTypeGL.GL) {
+            cb.shadow.download()
+        } else {
+            assertThrows<IllegalArgumentException> {
+                cb.shadow.download()
+            }
+        }
         for (y in 0 until cb.height) {
             for (x in 0 until cb.width) {
                 cb.shadow[x, y]

@@ -14,8 +14,11 @@ import kotlin.jvm.JvmName
 data class ImageFileDetails(val width: Int, val height: Int, val channels: Int)
 
 /**
- * Probe an image located at [fileOrUrl]
- * @param fileOrUrl a string encoded file location or url
+ * Probes an image file or URL to retrieve its details such as dimensions and channels.
+ *
+ * @param fileOrUrl a string representing the file path or a URL to the image resource.
+ * @return an instance of [ImageFileDetails] containing width, height, and channels of the image,
+ *         or `null` if the image could not be probed or does not exist.
  * @since 0.4.3
  */
 fun probeImage(fileOrUrl: String): ImageFileDetails? {

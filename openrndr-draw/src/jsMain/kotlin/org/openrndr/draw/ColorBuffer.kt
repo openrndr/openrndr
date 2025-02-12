@@ -173,7 +173,7 @@ actual fun loadImage(
     loadMipmaps: Boolean,
     session: Session?
 ): ColorBuffer {
-    val data = ImageDriver.instance.loadImage(fileOrUrl, formatHint, allowSRGB)
+    val data = ImageDriver.instance.loadImage(fileOrUrl, formatHint, allowSRGB, null)
     return try {
         val cb = colorBuffer(
             data.width,

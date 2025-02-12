@@ -71,24 +71,40 @@ interface ImageDriver {
      */
     fun probeImage(buffer: MPPBuffer, formatHint: ImageFileFormat?): ImageFileDetails?
 
-    /**
-     * Load an image located at [fileOrUrl]
-     * @param fileOrUrl a string encoded file location or url
-     * @param formatHint a hint for the file format
-     * @return an [ImageData] instance that the user must close after use
-     * @since 0.4.5
-     */
-    fun loadImage(fileOrUrl: String, formatHint: ImageFileFormat?, allowSRGB: Boolean): ImageData
 
     /**
-     * Load an image located at [fileOrUrl]
-     * @param buffer an [MPPBuffer] holding the image data
-     * @param name a name that is used in error reporting only
-     * @param formatHint a hint for the file format used in [buffer]
-     * @return an [ImageData] instance that the user must close after use
-     * @since 0.4.5
+     * Loads an image from a file path or URL.
+     *
+     * @param fileOrUrl The file path or URL of the image to be loaded.
+     * @param formatHint An optional hint for the file format of the image. Can be null if no hint is provided.
+     * @param allowSRGB A flag indicating whether sRGB color space should be allowed for the image.
+     * @param details An optional [ImageFileDetails] object containing additional metadata about the image, such as dimensions and channels.
+     * @return An [ImageData] instance representing the loaded image. The caller is responsible for managing the lifecycle of the returned object.
      */
-    fun loadImage(buffer: MPPBuffer, name: String?, formatHint: ImageFileFormat?, allowSRGB: Boolean): ImageData
+    fun loadImage(
+        fileOrUrl: String,
+        formatHint: ImageFileFormat?,
+        allowSRGB: Boolean,
+        details: ImageFileDetails?
+    ): ImageData
+
+    /**
+     * Loads an image from the provided buffer.
+     *
+     * @param buffer The buffer containing the image data to load.
+     * @param name An optional human-readable name for the image, used for debugging or error reporting purposes.
+     * @param formatHint An optional hint for the format of the image. Can be null if the format can be automatically detected.
+     * @param allowSRGB A flag indicating whether to allow the image to be loaded in the sRGB color space.
+     * @param details An optional [ImageFileDetails] object to populate with additional metadata about the image, such as dimensions and channels.
+     * @return An [ImageData] instance representing the loaded image. The caller is responsible for managing the lifecycle of the returned object.
+     */
+    fun loadImage(
+        buffer: MPPBuffer,
+        name: String?,
+        formatHint: ImageFileFormat?,
+        allowSRGB: Boolean,
+        details: ImageFileDetails? = null
+    ): ImageData
 
     /**
      * Save an image to [filename]

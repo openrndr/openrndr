@@ -122,7 +122,7 @@ class ImageDriverStbImage : ImageDriver {
         return null
     }
 
-    override fun loadImage(fileOrUrl: String, formatHint: ImageFileFormat?, allowSRGB: Boolean): ImageData {
+    override fun loadImage(fileOrUrl: String, formatHint: ImageFileFormat?, allowSRGB: Boolean, details: ImageFileDetails?): ImageData {
         if (fileOrUrl.startsWith("data:")) {
             val decoder = Base64.getDecoder()
             val commaIndex = fileOrUrl.indexOf(",")
@@ -133,7 +133,7 @@ class ImageDriverStbImage : ImageDriver {
             val buffer = ByteBuffer.allocateDirect(decoded.size)
             buffer.put(decoded)
             (buffer as Buffer).rewind()
-            return loadImage(MPPBuffer(buffer), "data-url", formatHint, allowSRGB)
+            return loadImage(MPPBuffer(buffer), "data-url", formatHint, allowSRGB, details)
         } else {
             val url = try {
                 URL(fileOrUrl)
@@ -145,13 +145,14 @@ class ImageDriverStbImage : ImageDriver {
                 return url.openStream().use {
                     val byteArray = url.readBytes()
                     if (byteArray.isEmpty()) {
-                        error("read 0 bytes from stream $fileOrUrl")
+//                        error("read 0 bytes from stream $fileOrUrl")
+                        error("")
                     }
                     val buffer = MemoryUtil.memAlloc(byteArray.size)
                     buffer.put(byteArray)
                     buffer.flip()
                     try {
-                        loadImage(MPPBuffer(buffer), fileOrUrl, formatHint, allowSRGB)
+                        loadImage(MPPBuffer(buffer), fileOrUrl, formatHint, allowSRGB, details)
                     } finally {
                         MemoryUtil.memFree(buffer)
                     }
@@ -163,7 +164,7 @@ class ImageDriverStbImage : ImageDriver {
                     channel.read(buffer)
                     buffer.flip()
                     try {
-                        loadImage(MPPBuffer(buffer), fileOrUrl, formatHint, allowSRGB)
+                        loadImage(MPPBuffer(buffer), fileOrUrl, formatHint, allowSRGB, details)
                     } finally {
                         MemoryUtil.memFree(buffer)
                     }
@@ -176,7 +177,8 @@ class ImageDriverStbImage : ImageDriver {
         buffer: MPPBuffer,
         name: String?,
         formatHint: ImageFileFormat?,
-        allowSRGB: Boolean
+        allowSRGB: Boolean,
+        details: ImageFileDetails?
     ): ImageData {
         var assumedFormat = ImageFileFormat.PNG
 
@@ -235,14 +237,25 @@ class ImageDriverStbImage : ImageDriver {
                         else -> error("unsupported bits per channel: $bitsPerChannel")
                     }
 
+                    val desiredChannelCount = if (details != null) {
+                        when (details.channels) {
+                            1 -> if (bitsPerChannel == 8) 4 else 1
+                            2 -> 2
+                            3 -> 4
+                            4 -> 4
+                            else -> error("")
+                        }
+                    } else {
+                        0
+                    }
                     val (tdata8, tdata16) = when (bitsPerChannel) {
                         8 -> Pair(
-                            STBImage.stbi_load_from_memory(buffer, wa, ha, ca, 0)
+                            STBImage.stbi_load_from_memory(buffer, wa, ha, ca, desiredChannelCount)
                                 ?: error("stbi_load returned null while loading '$name'"), null as ShortBuffer?
                         )
 
                         16 -> Pair(
-                            null as ByteBuffer?, STBImage.stbi_load_16_from_memory(buffer, wa, ha, ca, 0)
+                            null as ByteBuffer?, STBImage.stbi_load_16_from_memory(buffer, wa, ha, ca, desiredChannelCount)
                                 ?: error("stdi_load returned while loading '$name'")
                         )
 
@@ -251,7 +264,7 @@ class ImageDriverStbImage : ImageDriver {
 
                     if (tdata8 != null) {
                         var offset = 0
-                        if (ca[0] == 4) {
+                        if (desiredChannelCount == 4 && ca[0] == 4) {
                             for (y in 0 until ha[0]) {
                                 for (x in 0 until wa[0]) {
                                     val a =
@@ -269,7 +282,7 @@ class ImageDriverStbImage : ImageDriver {
                     }
                     val data8 = tdata8?.let {
                         // Convert grayscale images to RGB to avoid having them rendered in red.
-                        if (ca[0] == 1) {
+                        if (desiredChannelCount == 1) {
                             var roffset = 0
                             var woffset = 0
                             val data8 = ByteBuffer.allocateDirect(tdata8.capacity() * 3)
@@ -291,7 +304,7 @@ class ImageDriverStbImage : ImageDriver {
 
                     if (tdata16 != null) {
                         var offset = 0
-                        if (ca[0] == 4) {
+                        if (desiredChannelCount == 4) {
                             for (y in 0 until ha[0]) {
                                 for (x in 0 until wa[0]) {
                                     val a =
@@ -328,10 +341,9 @@ class ImageDriverStbImage : ImageDriver {
 
                     return ImageDataStb(
                         wa[0], ha[0],
-                        when (ca[0]) {
-                            1 -> if (tdata16 != null) ColorFormat.R else ColorFormat.RGB
+                        when (desiredChannelCount) {
+                            1 -> ColorFormat.R
                             2 -> ColorFormat.RG
-                            3 -> ColorFormat.RGB
                             4 -> ColorFormat.RGBa
                             else -> error("invalid component count ${ca[0]}")
                         },

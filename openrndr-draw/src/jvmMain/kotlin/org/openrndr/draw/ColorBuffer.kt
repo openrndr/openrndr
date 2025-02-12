@@ -222,7 +222,7 @@ actual fun loadImage(
     loadMipmaps: Boolean,
     session: Session?
 ): ColorBuffer {
-    val data = ImageDriver.instance.loadImage(fileOrUrl, formatHint, allowSRGB)
+    val data = ImageDriver.instance.loadImage(fileOrUrl, formatHint, allowSRGB, probeImage(fileOrUrl))
     return try {
         val size = min(data.width, data.height)
         val levels = if (loadMipmaps) floor(log2(size.toDouble())).toInt() + 1 else 1
