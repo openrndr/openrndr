@@ -65,25 +65,21 @@ private val BufferPrimitiveType.glslType: String
             BufferPrimitiveType.INT32 -> "int"
             BufferPrimitiveType.UINT32 -> "uint"
             BufferPrimitiveType.FLOAT32 -> "float"
-            BufferPrimitiveType.FLOAT64 -> "double"
 
             BufferPrimitiveType.VECTOR2_UINT32 -> "uvec2"
             BufferPrimitiveType.VECTOR2_BOOLEAN -> "bvec2"
             BufferPrimitiveType.VECTOR2_INT32 -> "ivec2"
             BufferPrimitiveType.VECTOR2_FLOAT32 -> "vec2"
-            BufferPrimitiveType.VECTOR2_FLOAT64 -> "dvec2"
 
             BufferPrimitiveType.VECTOR3_UINT32 -> "uvec3"
             BufferPrimitiveType.VECTOR3_BOOLEAN -> "bvec3"
             BufferPrimitiveType.VECTOR3_INT32 -> "ivec3"
             BufferPrimitiveType.VECTOR3_FLOAT32 -> "vec3"
-            BufferPrimitiveType.VECTOR3_FLOAT64 -> "dvec3"
 
             BufferPrimitiveType.VECTOR4_UINT32 -> "uvec4"
             BufferPrimitiveType.VECTOR4_BOOLEAN -> "bvec4"
             BufferPrimitiveType.VECTOR4_INT32 -> "ivec4"
             BufferPrimitiveType.VECTOR4_FLOAT32 -> "vec4"
-            BufferPrimitiveType.VECTOR4_FLOAT64 -> "dvec4"
 
             BufferPrimitiveType.MATRIX22_FLOAT32 -> "mat2"
             BufferPrimitiveType.MATRIX33_FLOAT32 -> "mat3"

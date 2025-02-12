@@ -61,28 +61,20 @@ enum class BufferPrimitiveType(val componentCount: Int, val sizeInBytes: Int, va
     BOOLEAN(1, 4, 4),
     FLOAT32(1, 4, 4),
 
-    FLOAT64(1, 8, 8),
-
     VECTOR2_BOOLEAN(2, 8, 8),
     VECTOR2_INT32(2, 8, 8),
     VECTOR2_UINT32(2, 8, 8),
     VECTOR2_FLOAT32(2, 8, 8),
-
-    VECTOR2_FLOAT64(2, 16, 16),
 
     VECTOR3_BOOLEAN(3, 12, 16),
     VECTOR3_INT32(3, 12, 16),
     VECTOR3_UINT32(3, 12, 16),
     VECTOR3_FLOAT32(3, 12, 16),
 
-    VECTOR3_FLOAT64(3, 24, 32),
-
     VECTOR4_BOOLEAN(4, 16, 16),
     VECTOR4_INT32(4, 16, 16),
     VECTOR4_UINT32(4, 16, 16),
     VECTOR4_FLOAT32(4, 16, 16),
-
-    VECTOR4_FLOAT64(4, 16, 32),
 
     MATRIX22_FLOAT32(4, 4 * 4, 8),
     MATRIX33_FLOAT32(9, 9 * 4, 16),
@@ -263,7 +255,7 @@ class ShaderStorageFormat {
                                 formatSize += (element.alignmentInBytes() - formatSize.mod(element.alignmentInBytes()))
                             }
                             val end = formatSize
-                            var structSize = end - start
+                            val structSize = end - start
                             formatSize += structSize * (element.arraySize - 1)
                         }
                     }
