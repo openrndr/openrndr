@@ -369,6 +369,12 @@ class ColorBufferGL3(
     ) {
         checkDestroyed()
 
+        if (Driver.glType == DriverTypeGL.GLES) {
+            require(target.format.componentCount != 3) {
+                "Cannot copy to ColorBuffer with RGB format in GLES mode."
+            }
+        }
+
 
         val fromDiv = 1 shl fromLevel
         val toDiv = 1 shl toLevel
@@ -378,8 +384,9 @@ class ColorBufferGL3(
             target.type.compressed || (refRectangle == sourceRectangle && refRectangle == targetRectangle && multisample == target.multisample)
 
         val useCopyFilter = Driver.glType == DriverTypeGL.GLES && (
-                this.multisample is Disabled && target.multisample is SampleCount ||
-                        type.isFloat != target.type.isFloat
+                (this.multisample is Disabled && target.multisample is SampleCount) ||
+                        (type.isFloat != target.type.isFloat) ||
+                        (format.componentCount == 3)
                 )
 
         if (useCopyFilter) {
