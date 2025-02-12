@@ -2,6 +2,7 @@ import org.openrndr.draw.ColorFormat
 import org.openrndr.draw.ColorType
 import org.openrndr.draw.loadImage
 import java.io.File
+import kotlin.math.log2
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -32,6 +33,7 @@ class TestLoadImageGL3 : AbstractApplicationTestFixture() {
         loadImage(locateImage("data/images/grayscale-8.jpg")).use { img ->
             assertEquals(ColorFormat.RGBa, img.format)
             assertEquals(ColorType.UINT8_SRGB, img.type)
+            assertEquals(log2(img.effectiveWidth.toDouble()).toInt(), img.levels)
         }
     }
 
@@ -47,6 +49,24 @@ class TestLoadImageGL3 : AbstractApplicationTestFixture() {
         loadImage(locateImage("data/images/rgb-8_8_8.jpg")).use { img ->
             assertEquals(ColorFormat.RGBa, img.format)
             assertEquals(ColorType.UINT8_SRGB, img.type)
+            assertEquals(log2(img.effectiveWidth.toDouble()).toInt(), img.levels)
+        }
+    }
+
+    /**
+     * Tests loading an RGB image without generating mipmaps and validates its format and type.
+     *
+     * This function loads an RGB image from a specified file path using the `loadImage` function
+     * with mipmaps disabled. It verifies that the loaded image has the `ColorFormat.RGBa` format,
+     * the `ColorType.UINT8_SRGB` type, and a single mipmap level. After validation, the resources
+     * associated with the image are released.
+     */
+    @Test
+    fun loadRGBImageWithoutMipmap() {
+        loadImage(locateImage("data/images/rgb-8_8_8.jpg"), loadMipmaps = false).use { img ->
+            assertEquals(ColorFormat.RGBa, img.format)
+            assertEquals(ColorType.UINT8_SRGB, img.type)
+            assertEquals(1, img.levels)
         }
     }
 
@@ -63,6 +83,7 @@ class TestLoadImageGL3 : AbstractApplicationTestFixture() {
         loadImage(locateImage("data/images/rgba-8_8_8_8.png")).use { img ->
             assertEquals(ColorFormat.RGBa, img.format)
             assertEquals(ColorType.UINT8_SRGB, img.type)
+            assertEquals(log2(img.effectiveWidth.toDouble()).toInt(), img.levels)
         }
     }
 
@@ -79,6 +100,7 @@ class TestLoadImageGL3 : AbstractApplicationTestFixture() {
         loadImage(locateImage("data/images/rgba-16_16_16_16.png")).use { img ->
             assertEquals(ColorFormat.RGBa, img.format)
             assertEquals(ColorType.UINT16, img.type)
+            assertEquals(log2(img.effectiveWidth.toDouble()).toInt(), img.levels)
         }
     }
 
@@ -95,6 +117,7 @@ class TestLoadImageGL3 : AbstractApplicationTestFixture() {
         loadImage(locateImage("data/images/grayscale-16.png")).use { img ->
             assertEquals(ColorFormat.R, img.format)
             assertEquals(ColorType.UINT16, img.type)
+            assertEquals(log2(img.effectiveWidth.toDouble()).toInt(), img.levels)
         }
     }
 }
