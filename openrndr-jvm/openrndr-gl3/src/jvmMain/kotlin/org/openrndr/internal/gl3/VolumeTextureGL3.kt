@@ -82,36 +82,56 @@ class VolumeTextureGL3(
     }
 
     override fun fill(color: ColorRGBa) {
-        (Driver.instance as DriverGL3).version.require(DriverVersionGL.GL_VERSION_4_4)
-        require(storageMode == TextureStorageModeGL.STORAGE)
-        val floatData = floatArrayOf(color.r.toFloat(), color.g.toFloat(), color.b.toFloat(), color.alpha.toFloat())
-        for (level in 0 until levels) {
-            GL44C.glClearTexImage(texture, level, ColorFormat.RGBa.glFormat(), ColorType.FLOAT32.glType(), floatData)
-            debugGLErrors()
+        if (Driver.glType == DriverTypeGL.GL) {
+            (Driver.instance as DriverGL3).version.require(DriverVersionGL.GL_VERSION_4_4)
+            require(storageMode == TextureStorageModeGL.STORAGE)
+            val floatData = floatArrayOf(color.r.toFloat(), color.g.toFloat(), color.b.toFloat(), color.alpha.toFloat())
+            for (level in 0 until levels) {
+                GL44C.glClearTexImage(
+                    texture,
+                    level,
+                    ColorFormat.RGBa.glFormat(),
+                    ColorType.FLOAT32.glType(),
+                    floatData
+                )
+                debugGLErrors()
+            }
+        } else {
+            error("Volume texture fills are not implemented on the GLEW backend")
         }
     }
 
 
     override fun read(layer: Int, target: ByteBuffer, targetFormat: ColorFormat, targetType: ColorType, level: Int) {
-        if (useNamedTexture) {
-            GL45.glGetTextureSubImage(
-                texture, level, 0, 0, layer, width, height, 1, targetFormat.glFormat(),
-                targetType.glType(), target
-            )
-        } else {
-            error("only implemented for opengl 4.5")
-        }
 
-        debugGLErrors()
+        if (Driver.glType == DriverTypeGL.GL) {
+            if (useNamedTexture) {
+                GL45.glGetTextureSubImage(
+                    texture, level, 0, 0, layer, width, height, 1, targetFormat.glFormat(),
+                    targetType.glType(), target
+                )
+            } else {
+                error("only implemented for opengl 4.5")
+            }
+
+            debugGLErrors()
+        } else {
+            error("Volume texture reads are not implemented on the GLEW backend")
+        }
     }
 
     override fun read(target: ByteBuffer, targetFormat: ColorFormat, targetType: ColorType, level: Int) {
-        if (useNamedTexture) {
-            GL45C.glGetTextureImage(texture, level, targetFormat.glFormat(), targetType.glType(), target)
+
+        if (Driver.glType == DriverTypeGL.GL) {
+            if (useNamedTexture) {
+                GL45C.glGetTextureImage(texture, level, targetFormat.glFormat(), targetType.glType(), target)
+            } else {
+                glGetTexImage(GL_TEXTURE_3D, level, targetFormat.glFormat(), targetType.glType(), target)
+            }
+            debugGLErrors()
         } else {
-            glGetTexImage(GL_TEXTURE_3D, level, targetFormat.glFormat(), targetType.glType(), target)
+            error("Volume texture reads are not implemented on the GLEW backend")
         }
-        debugGLErrors()
     }
 
     override fun write(source: ByteBuffer, sourceFormat: ColorFormat, sourceType: ColorType, level: Int) {
