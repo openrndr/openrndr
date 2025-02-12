@@ -3,8 +3,11 @@ import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.ColorFormat
 import org.openrndr.draw.ColorType
 import org.openrndr.drawImage
+import org.openrndr.internal.Driver
 import org.openrndr.internal.exr
+import org.openrndr.internal.gl3.DriverTypeGL
 import org.openrndr.internal.gl3.ExrCompression
+import org.openrndr.internal.gl3.glType
 import java.io.File
 import kotlin.test.Test
 
@@ -41,7 +44,9 @@ class TestEXRSaverWithCompression {
 
     @Test
     fun testSaveExrRGB16WithNoCompression() {
-        testSave(ColorFormat.RGB, ColorType.FLOAT16, ExrCompression.NONE)
+        if (Driver.glType == DriverTypeGL.GL) {
+            testSave(ColorFormat.RGB, ColorType.FLOAT16, ExrCompression.NONE)
+        }
     }
 
     @Test
@@ -51,7 +56,9 @@ class TestEXRSaverWithCompression {
 
     @Test
     fun testSaveExrRGB32WithNoCompression() {
-        testSave(ColorFormat.RGB, ColorType.FLOAT32, ExrCompression.NONE)
+        if (Driver.glType == DriverTypeGL.GL) {
+            testSave(ColorFormat.RGB, ColorType.FLOAT32, ExrCompression.NONE)
+        }
     }
 
     @Test
@@ -61,7 +68,9 @@ class TestEXRSaverWithCompression {
 
     @Test
     fun testSaveExrRGB16WithRLECompression() {
-        testSave(ColorFormat.RGB, ColorType.FLOAT16, ExrCompression.RLE)
+        if (Driver.glType == DriverTypeGL.GL) {
+            testSave(ColorFormat.RGB, ColorType.FLOAT16, ExrCompression.RLE)
+        }
     }
 
     @Test
@@ -71,7 +80,9 @@ class TestEXRSaverWithCompression {
 
     @Test
     fun testSaveExrRGB32WithRLECompression() {
-        testSave(ColorFormat.RGB, ColorType.FLOAT32, ExrCompression.RLE)
+        if (Driver.glType == DriverTypeGL.GL) {
+            testSave(ColorFormat.RGB, ColorType.FLOAT32, ExrCompression.RLE)
+        }
     }
 
     @Test
@@ -81,7 +92,9 @@ class TestEXRSaverWithCompression {
 
     @Test
     fun testSaveExrRGB16WithZIPCompression() {
-        testSave(ColorFormat.RGB, ColorType.FLOAT16, ExrCompression.ZIP)
+        if (Driver.glType == DriverTypeGL.GL) {
+            testSave(ColorFormat.RGB, ColorType.FLOAT16, ExrCompression.ZIP)
+        }
     }
 
     @Test
@@ -91,7 +104,9 @@ class TestEXRSaverWithCompression {
 
     @Test
     fun testSaveExrRGB32WithZIPCompression() {
-        testSave(ColorFormat.RGB, ColorType.FLOAT32, ExrCompression.ZIP)
+        if (Driver.glType == DriverTypeGL.GL) {
+            testSave(ColorFormat.RGB, ColorType.FLOAT32, ExrCompression.ZIP)
+        }
     }
 
     @Test
@@ -101,7 +116,9 @@ class TestEXRSaverWithCompression {
 
     @Test
     fun testSaveExrRGB16WithZIPSCompression() {
-        testSave(ColorFormat.RGB, ColorType.FLOAT16, ExrCompression.ZIPS)
+        if (Driver.glType == DriverTypeGL.GL) {
+            testSave(ColorFormat.RGB, ColorType.FLOAT16, ExrCompression.ZIPS)
+        }
     }
 
     @Test
@@ -111,7 +128,9 @@ class TestEXRSaverWithCompression {
 
     @Test
     fun testSaveExrRGB32WithZIPSCompression() {
-        testSave(ColorFormat.RGB, ColorType.FLOAT32, ExrCompression.ZIPS)
+        if (Driver.glType == DriverTypeGL.GL) {
+            testSave(ColorFormat.RGB, ColorType.FLOAT32, ExrCompression.ZIPS)
+        }
     }
 
     @Test
@@ -121,7 +140,9 @@ class TestEXRSaverWithCompression {
 
     @Test
     fun testSaveExrRGB16WithPIZCompression() {
-        testSave(ColorFormat.RGB, ColorType.FLOAT16, ExrCompression.PIZ)
+        if (Driver.glType == DriverTypeGL.GL) {
+            testSave(ColorFormat.RGB, ColorType.FLOAT16, ExrCompression.PIZ)
+        }
     }
 
     @Test
@@ -131,6 +152,8 @@ class TestEXRSaverWithCompression {
 
     @Test
     fun testSaveExrRGB32WithPIZCompression() {
-        testSave(ColorFormat.RGB, ColorType.FLOAT32, ExrCompression.PIZ)
+        if (Driver.glType == DriverTypeGL.GL) {
+            testSave(ColorFormat.RGB, ColorType.FLOAT32, ExrCompression.PIZ)
+        }
     }
 }
