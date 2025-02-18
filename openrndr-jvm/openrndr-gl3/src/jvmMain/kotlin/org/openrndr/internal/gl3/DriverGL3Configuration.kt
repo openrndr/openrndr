@@ -33,19 +33,18 @@ object DriverGL3Configuration {
     /**
      * Provided hints for selecting a GLES back-end.
      *
-     * Hints can be provided using by passing `-Dorg.openrndr.gl3.gles_backend=[angle|system]`
+     * Hints can be provided by passing `-Dorg.openrndr.gl3.gles_backend=[angle|system]`
      * @since openrndr 0.4.5
      */
     val glesBackendHint by lazy {
         when (Platform.property("org.openrndr.gl3.gles_backend")) {
             "system" -> GlesBackend.SYSTEM
             "angle" -> {
-                require(Platform.type == PlatformType.MAC && Platform.architecture == PlatformArchitecture.AARCH64) {
-                    "Angle is only supported on macOS AArch64"
+                require(Platform.type == PlatformType.MAC) {
+                    "Angle is only supported on macOS"
                 }
                 GlesBackend.ANGLE
             }
-
             else -> null
         }
     }
