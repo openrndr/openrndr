@@ -341,11 +341,12 @@ class ImageDriverStbImage : ImageDriver {
 
                     return ImageDataStb(
                         wa[0], ha[0],
-                        when (desiredChannelCount) {
+                        when (val c = if (desiredChannelCount != 0) desiredChannelCount else ca[0]) {
                             1 -> ColorFormat.R
                             2 -> ColorFormat.RG
+                            3 -> ColorFormat.RGB
                             4 -> ColorFormat.RGBa
-                            else -> error("invalid component count ${ca[0]}")
+                            else -> error("unsupported channel count $c")
                         },
                         targetType, false,
                         MPPBuffer(copyData)
