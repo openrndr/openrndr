@@ -1,42 +1,86 @@
 package org.openrndr.internal.gl3
 
-import org.lwjgl.glfw.GLFW
+import io.github.oshai.kotlinlogging.KotlinLogging
+import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL
-import org.lwjgl.opengl.GL33C.GL_TRUE
+import org.lwjgl.opengl.GL43C
+import org.lwjgl.opengles.GLES
 import org.lwjgl.system.MemoryUtil
 import org.openrndr.color.ColorRGBa
 import org.openrndr.internal.Driver
 import org.openrndr.internal.ResourceThread
 import kotlin.concurrent.thread
 
+private val logger = KotlinLogging.logger {  }
+
+/**
+ * A specialized implementation of the `ResourceThread` interface tailored for use with OpenGL
+ * or OpenGL ES.
+ *
+ * `ResourceThreadGL3` is used to initialize and manage a dedicated rendering context in a separate
+ * thread. This ensures that OpenGL-related resources can be managed independently without interfering
+ * with the primary graphics thread.
+ *
+ * This class manages the creation of a hidden GLFW window and sets up an OpenGL or OpenGL ES context
+ * depending on the driver's configuration. Resources are processed within the thread, and a default
+ * render target (`NullRenderTargetGL3`) is used for binding. This ensures a consistent and isolated
+ * environment for resource operations.
+ *
+ * The `create` function sets thread-specific properties, initializes OpenGL/GLES capabilities, and
+ * invokes the provided lambda (`f`) within the resource processing thread. Cleanup of the created
+ * context and GLFW window is handled automatically after the lambda finishes execution.
+ */
 class ResourceThreadGL3 : ResourceThread {
     companion object {
         fun create(f: () -> Unit): ResourceThreadGL3 {
-            GLFW.glfwDefaultWindowHints()
-            GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, 3)
-            GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, 3)
-            GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE)
-            GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_PROFILE, GLFW.GLFW_OPENGL_CORE_PROFILE)
-            GLFW.glfwWindowHint(GLFW.GLFW_RED_BITS, 8)
-            GLFW.glfwWindowHint(GLFW.GLFW_GREEN_BITS, 8)
-            GLFW.glfwWindowHint(GLFW.GLFW_BLUE_BITS, 8)
-            GLFW.glfwWindowHint(GLFW.GLFW_STENCIL_BITS, 8)
-            GLFW.glfwWindowHint(GLFW.GLFW_DEPTH_BITS, 24)
-            GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE)
+            glfwDefaultWindowHints()
+            glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, Driver.glVersion.majorVersion)
+            glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, Driver.glVersion.minorVersion)
 
-            val contextWindow = GLFW.glfwCreateWindow(1,
+            when (Driver.glType) {
+                DriverTypeGL.GL -> {
+                    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL43C.GL_TRUE)
+                    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE)
+                }
+
+                DriverTypeGL.GLES -> {
+                    glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API)
+                    glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_EGL_CONTEXT_API)
+                }
+            }
+            glfwWindowHint(GLFW_RED_BITS, 8)
+            glfwWindowHint(GLFW_GREEN_BITS, 8)
+            glfwWindowHint(GLFW_BLUE_BITS, 8)
+            glfwWindowHint(GLFW_STENCIL_BITS, 8)
+            glfwWindowHint(GLFW_DEPTH_BITS, 24)
+            glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE)
+
+            val contextWindow = glfwCreateWindow(1,
                     1,
                     "", MemoryUtil.NULL, primaryWindow)
 
             thread(isDaemon = true, name = "ResourceThread") {
-                GLFW.glfwMakeContextCurrent(contextWindow)
-                GL.createCapabilities()
+                logger.debug { "Context thread starting" }
+                glfwMakeContextCurrent(contextWindow)
+
+                when (Driver.glType) {
+                    DriverTypeGL.GL -> GL.createCapabilities()
+                    DriverTypeGL.GLES -> GLES.createCapabilities()
+                }
+                val n = NullRenderTargetGL3()
+                n.bind()
                 Driver.instance.clear(ColorRGBa.BLACK)
-                f()
-                GLFW.glfwDestroyWindow(contextWindow)
+                try {
+                    f()
+                } catch(e: Throwable) {
+                    logger.error(e) { "Caught exception in resource thread." }
+                } finally {
+                    logger.debug { "Context thread exiting" }
+                    glfwDestroyWindow(contextWindow)
+                    Driver.instance.destroyContext(contextWindow)
+                }
             }
             return ResourceThreadGL3()
         }
     }
-
 }
