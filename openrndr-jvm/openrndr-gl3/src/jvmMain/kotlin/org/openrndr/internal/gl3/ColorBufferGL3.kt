@@ -172,7 +172,8 @@ class ColorBufferGL3(
             checkGLErrors()
 
             val storageMode = when {
-                Driver.capabilities.textureStorage -> TextureStorageModeGL.STORAGE
+                Driver.capabilities.textureStorage && multisample == Disabled-> TextureStorageModeGL.STORAGE
+                Driver.capabilities.textureMultisampleStorage && multisample is SampleCount-> TextureStorageModeGL.STORAGE
                 else -> TextureStorageModeGL.IMAGE
             }
 

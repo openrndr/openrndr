@@ -78,12 +78,14 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
     data class Capabilities(
         val programUniform: Boolean,
         val textureStorage: Boolean,
+        val textureMultisampleStorage: Boolean,
         val compute: Boolean,
     )
 
     val capabilities = Capabilities(
         programUniform = version.isAtLeast(DriverVersionGL.GL_VERSION_4_1, DriverVersionGL.GLES_VERSION_3_1),
         textureStorage = version.isAtLeast(DriverVersionGL.GL_VERSION_4_1, DriverVersionGL.GLES_VERSION_3_0),
+        textureMultisampleStorage = version.isAtLeast(DriverVersionGL.GL_VERSION_4_3, DriverVersionGL.GLES_VERSION_3_1),
         compute = version.isAtLeast(DriverVersionGL.GL_VERSION_4_3, DriverVersionGL.GLES_VERSION_3_1)
     )
 
