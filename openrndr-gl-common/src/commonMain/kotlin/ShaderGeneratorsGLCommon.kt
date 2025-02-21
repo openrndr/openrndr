@@ -22,10 +22,6 @@ private val rotate2 = """mat2 rotate2(float rotationInDegrees) {
 }
 """.trimIndent()
 
-private const val glFragCoord = """#ifdef OR_GL    
-layout(origin_upper_left) in vec4 gl_FragCoord;
-#endif   
-"""
 
 class ShaderGeneratorsGLCommon : ShaderGenerators {
     override fun vertexBufferFragmentShader(shadeStructure: ShadeStructure): String = """|
@@ -33,7 +29,6 @@ class ShaderGeneratorsGLCommon : ShaderGenerators {
 |${shadeStructure.structDefinitions ?: ""}
 |${shadeStructure.buffers ?: ""}
 |${shadeStructure.uniforms ?: ""}
-|$glFragCoord
 
 |uniform sampler2D image;
 |${drawerUniforms()}
@@ -103,7 +98,6 @@ ${primitiveTypes("d_image")}
 ${shadeStructure.structDefinitions ?: ""}
 ${shadeStructure.buffers ?: ""}
 ${shadeStructure.uniforms ?: ""}
-$glFragCoord
 
 uniform sampler2D image;
 ${drawerUniforms()}
@@ -185,7 +179,6 @@ ${primitiveTypes("d_image")}
 ${shadeStructure.structDefinitions ?: ""}
 ${shadeStructure.buffers ?: ""}
 ${shadeStructure.uniforms ?: ""}
-$glFragCoord
 
 uniform sampler2DArray image;
 ${drawerUniforms()}
@@ -269,7 +262,6 @@ ${primitiveTypes("d_circle")}
 ${shadeStructure.structDefinitions ?: ""}
 ${shadeStructure.buffers ?: ""}
 ${shadeStructure.uniforms ?: ""}
-$glFragCoord
 
 ${drawerUniforms(styleBlock = false)}
 ${shadeStructure.varyingIn ?: ""}
@@ -343,7 +335,6 @@ ${primitiveTypes("d_circle")}
 ${shadeStructure.structDefinitions ?: ""}
 ${shadeStructure.uniforms ?: ""}
 ${shadeStructure.buffers ?: ""}
-$glFragCoord
 
 ${drawerUniforms(styleBlock = false)}
 ${shadeStructure.varyingIn ?: ""}
@@ -434,7 +425,6 @@ ${primitiveTypes("d_font_image_map")}
 ${shadeStructure.structDefinitions ?: ""}
 ${shadeStructure.buffers ?: ""}
 ${shadeStructure.uniforms ?: ""}
-$glFragCoord
 
 uniform sampler2D image;
 flat in int v_instance;
@@ -510,7 +500,6 @@ ${primitiveTypes("d_rectangle")}
 ${shadeStructure.structDefinitions ?: ""}
 ${shadeStructure.buffers ?: ""}
 ${shadeStructure.uniforms ?: ""}
-$glFragCoord
 
 ${drawerUniforms(styleBlock = false)}
 ${shadeStructure.varyingIn ?: ""}
@@ -600,7 +589,7 @@ ${primitiveTypes("d_expansion")}
 ${shadeStructure.structDefinitions ?: ""}
 ${shadeStructure.buffers ?: ""}
 ${shadeStructure.uniforms ?: ""}
-$glFragCoord
+
 ${drawerUniforms()}
 ${shadeStructure.varyingIn ?: ""}
 ${transformVaryingIn}
@@ -698,7 +687,6 @@ ${primitiveTypes("d_fast_line")}
 ${shadeStructure.structDefinitions ?: ""}
 ${shadeStructure.buffers ?: ""}
 ${shadeStructure.uniforms ?: ""}
-$glFragCoord
 
 uniform sampler2D image;
 ${drawerUniforms()}
@@ -765,7 +753,6 @@ ${shadeStructure.vertexTransform?.prependIndent("        ") ?: ""}
         |${shadeStructure.buffers ?: ""}
         |${shadeStructure.outputs ?: ""}
         |${shadeStructure.uniforms ?: ""}
-        |$glFragCoord
         |
         |uniform sampler2D image;
         |${shadeStructure.fragmentPreamble ?: ""}

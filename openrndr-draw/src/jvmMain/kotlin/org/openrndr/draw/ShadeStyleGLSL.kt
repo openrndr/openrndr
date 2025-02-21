@@ -21,6 +21,7 @@ actual class ShadeStyleGLSL {
             instance: String,
             element: String,
             screenPosition: String,
+            screenSize: String,
             contourPosition: String,
             boundsPosition: String,
             boundsSize: String
@@ -29,6 +30,7 @@ actual class ShadeStyleGLSL {
         |#define c_instance ($instance)
         |#define c_element ($element)
         |#define c_screenPosition ($screenPosition)
+        |#define c_screenSize ($screenSize)
         |#define c_contourPosition ($contourPosition)
         |#define c_boundsPosition ($boundsPosition)
         |#define c_boundsSize ($boundsSize)""".trimMargin()

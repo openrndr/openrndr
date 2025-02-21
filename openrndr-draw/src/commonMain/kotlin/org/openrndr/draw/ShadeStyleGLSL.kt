@@ -21,6 +21,7 @@ expect class ShadeStyleGLSL {
             instance: String = "v_instance",
             element: String = "0",
             screenPosition: String = "gl_FragCoord.xy / u_contentScale",
+            screenSize: String = "u_viewDimensions",
             contourPosition: String = "0.0",
             boundsPosition: String = "vec3(0.0)",
             boundsSize: String = "vec3(0.0)"
