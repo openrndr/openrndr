@@ -63,7 +63,6 @@ fun main() = application {
                             .flippedHorizontally(0.0)
                     )
 
-                    drawer.drawStyle.colorMatrix = grayscale()
                     drawer.image(
                         img,
                         img.bounds,
