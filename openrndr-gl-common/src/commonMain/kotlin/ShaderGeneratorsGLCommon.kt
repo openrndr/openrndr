@@ -125,11 +125,11 @@ void main(void) {
 
     vec4 x_fill = texture(image, va_texCoord0);
     vec4 x_stroke = u_stroke;
+    float div = x_fill.a != 0.0 ? x_fill.a : 1.0;
+    x_fill.rgb /= div;
     {
 ${shadeStructure.fragmentTransform?.prependIndent("        ") ?: ""}
     }
-    float div = x_fill.a != 0.0 ? x_fill.a : 1.0;
-    x_fill.rgb /= div;
     x_fill = colorTransform(x_fill, u_colorMatrix);
     x_fill.rgb *= x_fill.a;
     ${if (!shadeStructure.suppressDefaultOutput) "o_color = x_fill;" else ""}
