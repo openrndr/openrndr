@@ -23,8 +23,10 @@ class Parameter<R : Any>(
 ) : ReadWriteProperty<Any, R> {
 
     init {
-        if (initialValue != null) {
-            setValue(customName ?: "value", initialValue)
+        if (initialValue != null && customName != null) {
+            setValue(customName, initialValue)
+        } else if (initialValue != null && customName == null) {
+            error("customName must be provided if initialValue is provided")
         }
     }
 
