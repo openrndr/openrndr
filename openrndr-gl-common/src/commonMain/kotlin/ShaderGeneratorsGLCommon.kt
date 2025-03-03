@@ -119,7 +119,7 @@ vec4 colorTransform(vec4 color, float[25] matrix) {
     float a = color.r * matrix[3] + color.g * matrix[8] + color.b * matrix[13] + color.a * matrix[18] + matrix[23];
     return vec4(r, g, b, a);
 }
-${fragmentMainConstants(boundsPosition = "v_boundsPosition")}
+${fragmentMainConstants(boundsPosition = "v_boundsPosition", boundsSize = "vec3(vi_target.zw, 0.0)")}
 ${shadeStructure.fragmentPreamble ?: ""}
 void main(void) {
 
