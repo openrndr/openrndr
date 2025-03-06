@@ -188,9 +188,13 @@ internal class ExpansionDrawer {
         localStyle.cullTestPass = CullTestPass.ALWAYS
         Driver.instance.setState(localStyle)
 
+        val fillCommands = commands.count { it.type == ExpansionType.FILL }
         for (c in commands) {
             if (c.type == ExpansionType.FILL) {
                 Driver.instance.drawVertexBuffer(shader, listOf(c.vertexBuffer), DrawPrimitive.TRIANGLE_FAN, c.vertexOffset, c.vertexCount, verticesPerPatch = 0)
+                if (fillCommands > 1 && DrawerConfiguration.waitForFinish) {
+                    Driver.instance.finish()
+                }
             }
         }
 
