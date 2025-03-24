@@ -38,7 +38,7 @@ fun main() = application {
                           
                 b_Block2.results[idx + 0] = float(b_Block1.particles[0].position.x) / k;
                 b_Block2.results[idx + 1] = float(b_Block1.particles[0].position.y) / k;
-t                b_Block2.results[idx + 2] = float(b_Block1.particles[0].position.z) / k;
+                b_Block2.results[idx + 2] = float(b_Block1.particles[0].position.z) / k;
                 
                 b_Block2.results[idx + 3] = float(b_Block1.agents[0].position.x) / k;
                 b_Block2.results[idx + 4] = float(b_Block1.agents[0].position.y) / k;
