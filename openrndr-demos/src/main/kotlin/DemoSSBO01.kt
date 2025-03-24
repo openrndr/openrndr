@@ -1,8 +1,5 @@
 import org.openrndr.application
-import org.openrndr.draw.BufferPrimitiveType
-import org.openrndr.draw.ComputeShader
-import org.openrndr.draw.shaderStorageBuffer
-import org.openrndr.draw.shaderStorageFormat
+import org.openrndr.draw.*
 import org.openrndr.internal.Driver
 import org.openrndr.internal.gl3.DriverGL3
 import org.openrndr.math.IntVector3
@@ -33,49 +30,22 @@ fun main() = application {
     }
 
     program {
-        val shader = """#version ${(Driver.instance as DriverGL3).version.glslVersion}
-            //#extension GL_EXT_shader_implicit_conversions: require
-            
-            layout (local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
-            
-            struct Particle {
-                ivec3 position;
-                vec3 velocity;
-                float age;
-                bool isActive;
-            };
-            
-            struct Agent {
-                vec3 position;
-            };
-            
-            // SSBOs are declared as using the `buffer` keyword
-            layout (std430, binding = 3) buffer Block1 {
-                vec2 trap[8];
-                Particle particles[4];
-                Agent agents[2];
-            };
-            
-            layout (std430, binding = 5) buffer Block2 {
-                float results[];
-            };
-            
-            void main(void) {
+        val cs = computeStyle {
+            computeTransform = """
                 ivec2 id = ivec2(gl_GlobalInvocationID.xy);
                 int idx = id.x * 6;
                 float k =  1.0 + float(id.x);
                           
-                results[idx + 0] = float(particles[0].position.x) / k;
-                results[idx + 1] = float(particles[0].position.y) / k;
-                results[idx + 2] = float(particles[0].position.z) / k;
+                b_Block2.results[idx + 0] = float(b_Block1.particles[0].position.x) / k;
+                b_Block2.results[idx + 1] = float(b_Block1.particles[0].position.y) / k;
+t                b_Block2.results[idx + 2] = float(b_Block1.particles[0].position.z) / k;
                 
-                results[idx + 3] = float(agents[0].position.x) / k;
-                results[idx + 4] = float(agents[0].position.y) / k;
-                results[idx + 5] = float(agents[0].position.z) / k;
-            }
-        """.trimIndent()
+                b_Block2.results[idx + 3] = float(b_Block1.agents[0].position.x) / k;
+                b_Block2.results[idx + 4] = float(b_Block1.agents[0].position.y) / k;
+                b_Block2.results[idx + 5] = float(b_Block1.agents[0].position.z) / k;                
+            """.trimIndent()
+        }
 
-        val cs = ComputeShader.fromCode(shader, "Compute")
         // number of parallel calculations in the GPU
         val csWidth = 10
         val resultLength = 6
@@ -87,7 +57,7 @@ fun main() = application {
                 primitive("position", BufferPrimitiveType.VECTOR3_INT32)
                 primitive("velocity", BufferPrimitiveType.VECTOR3_FLOAT32)
                 primitive("age", BufferPrimitiveType.FLOAT32)
-                primitive("isActive", BufferPrimitiveType.BOOLEAN)
+                primitive("isActive", BufferPrimitiveType.INT32) // was BOOLEAN
             }
             struct("Agent", "agents", 2) {
                 primitive("position", BufferPrimitiveType.VECTOR3_FLOAT32)

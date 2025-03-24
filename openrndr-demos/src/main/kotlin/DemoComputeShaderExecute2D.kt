@@ -1,7 +1,6 @@
 import org.openrndr.application
 import org.openrndr.draw.*
 import org.openrndr.draw.font.BufferAccess
-import org.openrndr.internal.Driver
 import org.openrndr.math.IntVector2
 import org.openrndr.math.IntVector3
 
@@ -16,43 +15,38 @@ fun main() = application {
     program {
         val image = colorBuffer(
             width = width - 1,  // we are changing to image size to uneven on purpose
-            height = height -1
+            height = height -1,
+            type = ColorType.FLOAT32
         )
-        val resolution = IntVector2(image.width, image.height)
-        val shader = ComputeShader.fromCode(
-            code = """
-                |${Driver.instance.shaderConfiguration(ShaderType.COMPUTE)}
-                |layout (local_size_x = 8, local_size_y = 8) in;
-                |uniform writeonly restrict image2D image;
-                |uniform ivec2 resolution;
-                |uniform float seconds;
-                |
-                |void main() {
-                |    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);
-                |    if (coord.x >= resolution.x || coord.y >= resolution.y) {
-                |        return;
-                |    }
-                |    vec4 color = vec4(
-                |        float(coord.x) / float(resolution.x),
-                |        float(coord.y) / float(resolution.y),
-                |        sin(seconds) * .5 + .5,
-                |        1.0
-                |    );
-                |    imageStore(image, coord, color);
-                |}
-                """.trimMargin(),
-            name = "image-computer"
-        ).apply {
-            uniform("resolution", IntVector2(image.width, image.height))
-            image("image", 0, image.imageBinding(0, BufferAccess.WRITE))
+        val shader = computeStyle {
+            computeTransform = """
+                ivec2 coord = ivec2(gl_GlobalInvocationID.xy);
+                if (coord.x >= p_resolution.x || coord.y >= p_resolution.y) {
+                    return;
+                }
+                vec4 color = vec4(
+                    float(coord.x) / float(p_resolution.x),
+                    float(coord.y) / float(p_resolution.y),
+                    sin(p_seconds) * 0.5 + 0.5,
+                    1.0
+                );
+                imageStore(p_image, coord, color);                
+            """.trimIndent()
+            workGroupSize = IntVector3(8, 8, 1)
         }
         val executeSize = computeShader2DExecuteSize(
-            workGroupSize = IntVector3(x = 8, y = 8, z = 1),
-            dataSize = resolution
+            shader.workGroupSize,
+            IntVector2(image.width, image.height)
         )
+        println("image size = ${image.width} x ${image.height}")
+        println("workGroupSize = ${shader.workGroupSize}")
+        println("executeSize = $executeSize")
+
         extend {
-            shader.uniform("seconds", seconds)
-            shader.execute(executeSize)
+            shader.parameter("seconds", seconds)
+            shader.parameter("resolution", IntVector2(image.width, image.height))
+            shader.image("image", image.imageBinding(0, BufferAccess.WRITE))
+            shader.execute(executeSize.x, executeSize.y, executeSize.z)
             drawer.image(image)
         }
     }

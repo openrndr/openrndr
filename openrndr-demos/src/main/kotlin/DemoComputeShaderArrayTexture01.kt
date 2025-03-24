@@ -1,6 +1,5 @@
 import org.openrndr.application
 import org.openrndr.draw.*
-import org.openrndr.internal.Driver
 
 /**
  * Create an array of textures (layers)
@@ -37,14 +36,9 @@ fun main() {
              * pixels of different brightnesses.
              * The pattern in each layer depends on the layer id.
              */
-            val glsl = """
-                ${Driver.instance.shaderConfiguration(ShaderType.COMPUTE)}
-                
-                layout(local_size_x=8, local_size_y=8) in;
-                layout(rgba32f) uniform writeonly highp image2DArray writeTex;
-                uniform int numLayers;
-                void main() {
-                    for (int layerId=0; layerId<numLayers; layerId++) {
+            val cs = computeStyle {
+                computeTransform = """
+                    for (int layerId=0; layerId<p_numLayers; layerId++) {
                         // The coordinates of the pixel we want to update
                         ivec3 coords = ivec3(gl_GlobalInvocationID.x, 
                                              gl_GlobalInvocationID.y, 
@@ -54,23 +48,21 @@ fun main() {
                                     cos(float(layerId) * float(coords.y) * 0.03) * 0.5 + 0.5;
                         
                         // Update the pixel
-                        imageStore(writeTex, coords, vec4(bri));
-                    }
-                }
+                        imageStore(p_writeTex, coords, vec4(bri));
+                    }                    
                 """.trimIndent()
-
-            val cs = ComputeShader.fromCode(glsl, "arrayTextureComp")
+            }
 
             // Send a uniform to the shader
-            cs.uniform("numLayers", numLayers)
+            cs.parameter("numLayers", numLayers)
 
             // Bind the array texture we want to write into
             cs.image(
-                "writeTex", 0,
+                "writeTex",
                 arrayTex.imageBinding(0, ImageAccess.WRITE)
             )
 
-            // Run the compute shader to update the target array texture
+            // Run the compute shader once to update the target array texture
             cs.execute(textureSize, textureSize, 1)
 
             extend {
