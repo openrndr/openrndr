@@ -134,11 +134,12 @@ class ObservableHashmap<K, V>(val b: MutableMap<K, V>, val onChange: () -> Unit)
  * enabling advanced rendering techniques and reusable styles.
  */
 @Suppress("unused")
-open class ShadeStyle : StyleParameters, StyleBufferBindings, StyleImageBindings {
+open class ShadeStyle(
+    override var parameterValues: MutableMap<String, Any> = mutableMapOf(),
+    override var textureBaseIndex: Int = 2) : StyleParameters, StyleBufferBindings, StyleImageBindings {
     var dirty = true
 
-    override var textureBaseIndex = 2
-
+    override var parameterTypes: ObservableHashmap<String, String> = ObservableHashmap(mutableMapOf()) { dirty = true }
     /**
      * Represents the preamble for vertex shading code in the shade style.
      * This property is used to define custom vertex processing logic and,
@@ -228,21 +229,6 @@ open class ShadeStyle : StyleParameters, StyleBufferBindings, StyleImageBindings
             field = value
         }
 
-    constructor()
-
-    constructor(other: ShadeStyle) {
-        this.fragmentPreamble = other.fragmentPreamble
-        this.geometryPreamble = other.geometryPreamble
-        this.vertexPreamble = other.vertexPreamble
-
-        this.fragmentTransform = other.fragmentTransform
-        this.geometryTransform = other.geometryTransform
-        this.vertexTransform = other.vertexTransform
-
-        this.parameterTypes.putAll(other.parameterTypes)
-        this.outputs.putAll(other.outputs)
-    }
-
     fun output(name: String, output: ShadeStyleOutput) {
         outputs[name] = output
     }
@@ -284,9 +270,6 @@ open class ShadeStyle : StyleParameters, StyleBufferBindings, StyleImageBindings
 
         return s
     }
-
-    override var parameterValues: MutableMap<String, Any> = mutableMapOf()
-    override var parameterTypes: ObservableHashmap<String, String> = ObservableHashmap(mutableMapOf()) { dirty = true }
 }
 
 /**
