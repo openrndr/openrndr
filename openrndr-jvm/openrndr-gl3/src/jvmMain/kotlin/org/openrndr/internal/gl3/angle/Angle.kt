@@ -9,6 +9,10 @@ import java.io.File
 private class Angle
 
 private val logger = KotlinLogging.logger { }
+
+/**
+ * Extracts ANGLE libraries from resources to the current working directory.
+ */
 fun extractAngleLibraries() {
 
     val platform = "macos"

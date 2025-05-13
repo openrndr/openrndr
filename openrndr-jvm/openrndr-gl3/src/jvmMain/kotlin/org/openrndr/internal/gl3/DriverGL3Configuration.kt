@@ -49,9 +49,15 @@ object DriverGL3Configuration {
         }
     }
 
+    /**
+     * Determines which GLES back-end will be used
+     * @see glesBackendHint
+     * @since openrndr 0.4.5
+     */
     val glesBackend by lazy {
         glesBackendHint ?: when (Pair(Platform.type, Platform.architecture)) {
             Pair(PlatformType.MAC, PlatformArchitecture.AARCH64) -> GlesBackend.ANGLE
+            Pair(PlatformType.MAC, PlatformArchitecture.X86_64) -> GlesBackend.ANGLE
             else -> GlesBackend.SYSTEM
         }
     }
