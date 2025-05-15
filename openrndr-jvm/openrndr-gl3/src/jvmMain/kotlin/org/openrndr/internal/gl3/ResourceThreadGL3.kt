@@ -76,8 +76,11 @@ class ResourceThreadGL3 : ResourceThread {
                     logger.error(e) { "Caught exception in resource thread." }
                 } finally {
                     logger.debug { "Context thread exiting" }
-                    glfwDestroyWindow(contextWindow)
-                    Driver.instance.destroyContext(contextWindow)
+                    (Driver.instance as DriverGL3).executeOnMainThread {
+                        logger.debug { "Destroying resource thread context $contextWindow" }
+                        Driver.instance.destroyContext(contextWindow)
+                        glfwDestroyWindow(contextWindow)
+                    }
                 }
             }
             return ResourceThreadGL3()

@@ -193,7 +193,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
             if (value != null) {
                 glfwSetClipboardString(window, value)
             } else {
-                throw RuntimeException("clipboard contents can't be null")
+                error { "clipboard contents can't be null" }
             }
         }
 
@@ -249,7 +249,6 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
             is SampleCount -> glfwWindowHint(GLFW_SAMPLES, c.count)
             SystemDefault -> glfwWindowHint(GLFW_SAMPLES, GLFW_DONT_CARE)
             Disabled -> glfwWindowHint(GLFW_SAMPLES, 0)
-            else -> error("unsupported value $c")
         }
 
         glfwWindowHint(GLFW_RED_BITS, 8)
@@ -349,7 +348,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
                         glfwWindowHint(GLFW_REFRESH_RATE, refreshRate)
                         mode.refreshRate()
                     } else {
-                        throw RuntimeException("failed to determine current video mode")
+                        error { "failed to determine current video mode" }
                     }
                 }
                 glfwCreateWindow(
@@ -975,7 +974,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
 
         setupException?.let {
             logger.error { "An error occurred inside the program setup" }
-            postloop(setupException)
+            postLoop(setupException)
         }
 
         setupCalled = true
@@ -1001,12 +1000,14 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
             if (presentationMode == PresentationMode.AUTOMATIC) {
                 pointerInput?.pollEvents()
                 glfwPollEvents()
+                (Driver.instance as DriverGL3).processMainThreadExecutables()
             } else {
                 Thread.sleep(10)
                 pointerInput?.pollEvents()
                 glfwPollEvents()
                 deliverEvents()
                 program.dispatcher.execute()
+                (Driver.instance as DriverGL3).processMainThreadExecutables()
             }
 
             for (window in windows) {
@@ -1016,12 +1017,21 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
         }
         logger.debug { "Exiting draw loop" }
 
-        postloop(exception)
+        postLoop(exception)
     }
 
-    fun postloop(exception: Throwable? = null) {
+    /**
+     * Executes the finalization process after the program's main loop ends, ensuring all resources and windows are
+     * properly cleaned up and released.
+     *
+     * @param exception an optional exception that could have occurred during the main loop. If provided, it will be
+     * logged and re-thrown after cleanup.
+     */
+    internal fun postLoop(exception: Throwable? = null) {
         // a child window's context may be current at this point
         glfwMakeContextCurrent(window)
+
+        (Driver.instance as DriverGL3).processMainThreadExecutables()
 
         if (RenderTarget.active != defaultRenderTarget) {
             defaultRenderTarget.bindTarget()

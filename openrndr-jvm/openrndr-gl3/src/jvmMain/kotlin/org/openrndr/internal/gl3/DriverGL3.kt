@@ -75,6 +75,30 @@ inline fun DriverVersionGL.require(minimum: DriverVersionGL) {
 
 class DriverGL3(val version: DriverVersionGL) : Driver {
 
+    private val executionQueue = mutableListOf<() -> Unit>()
+
+    fun executeOnMainThread(f: () -> Unit) {
+        synchronized(executionQueue) {
+            executionQueue.add(f)
+        }
+    }
+
+    fun processMainThreadExecutables() {
+        synchronized(executionQueue) {
+            for (runnable in executionQueue) {
+                try {
+                    runnable()
+                } catch (e: Throwable) {
+                    logger.error(e) {
+                        "an exception occurred during main thread execution"
+                    }
+                    throw e
+                }
+            }
+            executionQueue.clear()
+        }
+    }
+
     data class Capabilities(
         val programUniform: Boolean,
         val textureStorage: Boolean,

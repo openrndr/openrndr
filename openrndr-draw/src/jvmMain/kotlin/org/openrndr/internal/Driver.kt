@@ -13,10 +13,8 @@ private val logger = KotlinLogging.logger {}
  */
 actual interface Driver {
 
-
     fun createResourceThread(session: Session? = Session.active, f: () -> Unit): ResourceThread
     fun createDrawThread(session: Session? = Session.active): DrawThread
-
 
     fun createStaticVertexBuffer(format: VertexFormat, buffer: Buffer, session: Session? = Session.active): VertexBuffer
     actual val contextID: Long
