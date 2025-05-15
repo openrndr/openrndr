@@ -21,7 +21,7 @@ jobs:
           echo "${{secrets.SIGNING_SECRET_KEY_RING_FILE}}" > ~/.gradle/secring.gpg.b64
           base64 -d ~/.gradle/secring.gpg.b64 > ~/.gradle/secring.gpg
       - name: Publish
-        run: ./gradlew publishAllPublicationsToSonatypeRepository closeSonatypeStagingRepository -Prelease.useLastTag=true -Psigning.keyId=${{secrets.SIGNING_KEY_ID}} -Psigning.password=openrndr -Psigning.secretKeyRingFile=$(echo ~/.gradle/secring.gpg)
+        run: ./gradlew publishToSonatype closeSonatypeStagingRepository -Prelease.useLastTag=true -Psigning.keyId=${{secrets.SIGNING_KEY_ID}} -Psigning.password=openrndr -Psigning.secretKeyRingFile=$(echo ~/.gradle/secring.gpg)
         env:
           OSSRH_USERNAME: ${{secrets.OSSRH_USERNAME}}
           OSSRH_PASSWORD: ${{secrets.OSSRH_PASSWORD}}
