@@ -7,10 +7,28 @@ import org.openrndr.shape.internal.BezierCubicSamplerT
 import org.openrndr.shape.internal.BezierQuadraticSamplerT
 import kotlin.math.*
 
-
+/**
+ * Represents a Bézier segment with a general implementation capable of handling linear, quadratic, and cubic segments.
+ *
+ * @param T The type of points used in the Bézier segment, which must extend [EuclideanVector].
+ */
 interface BezierSegment<T : EuclideanVector<T>> {
+
+    /**
+     * Represents the starting point of the [BezierSegment]. This is the first anchor point of the segment.
+     */
     val start: T
+
+    /**
+     * Represents the list of control points that define the shape of a Bézier curve segment.
+     * These points are used to calculate the position, direction, and other geometric properties of the curve.
+     */
     val control: List<T>
+
+    /**
+     * The ending point of the Bézier segment.
+     * This represents the final control point or anchor point of the curve.
+     */
     val end: T
 
     /**
@@ -174,7 +192,7 @@ data class Segment2D(
     override val control: List<Vector2>,
     override val end: Vector2,
     val corner: Boolean = false
-) : BezierSegment<Vector2>, ShapeContourProvider {
+) : BezierSegment<Vector2>, ShapeContourProvider, LinearType<Segment2D> {
 
     @Transient
     private var lut: List<Vector2>? = null
@@ -810,7 +828,7 @@ data class Segment2D(
         return result
     }
 
-    operator fun times(scale: Double): Segment2D {
+    override operator fun times(scale: Double): Segment2D {
         return when (type) {
             SegmentType.LINEAR -> Segment2D(start * scale, end * scale)
             SegmentType.QUADRATIC -> Segment2D(
@@ -828,7 +846,7 @@ data class Segment2D(
         }
     }
 
-    operator fun div(scale: Double): Segment2D {
+    override operator fun div(scale: Double): Segment2D {
         return when (type) {
             SegmentType.LINEAR -> Segment2D(start / scale, end / scale)
             SegmentType.QUADRATIC -> Segment2D(
@@ -846,7 +864,7 @@ data class Segment2D(
         }
     }
 
-    operator fun minus(right: Segment2D): Segment2D {
+    override operator fun minus(right: Segment2D): Segment2D {
         return if (this.type == right.type) {
             when (type) {
                 SegmentType.LINEAR -> Segment2D(
@@ -884,7 +902,7 @@ data class Segment2D(
         }
     }
 
-    operator fun plus(right: Segment2D): Segment2D {
+    override operator fun plus(right: Segment2D): Segment2D {
         return if (this.type == right.type) {
             when (type) {
                 SegmentType.LINEAR -> Segment2D(

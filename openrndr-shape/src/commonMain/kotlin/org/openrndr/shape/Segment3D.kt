@@ -15,7 +15,7 @@ class Segment3D(
     override val start: Vector3,
     override val control: List<Vector3>,
     override val end: Vector3
-) : BezierSegment<Vector3> {
+) : BezierSegment<Vector3>, LinearType<Segment3D> {
 
     private var lut: List<Vector3>? = null
 
@@ -251,7 +251,7 @@ class Segment3D(
         val dd = derivative2(t)
         val numerator = d.cross(dd).length
         val denominator = d.length.pow(3.0)
-        return numerator/denominator
+        return numerator / denominator
     }
 
     override val reverse: Segment3D
@@ -446,6 +446,131 @@ class Segment3D(
         }
         return 1.0
     }
+
+    override operator fun times(scale: Double): Segment3D {
+        return when (type) {
+            SegmentType.LINEAR -> Segment3D(start * scale, end * scale)
+            SegmentType.QUADRATIC -> Segment3D(
+                start * scale,
+                control[0] * scale,
+                end * scale
+            )
+
+            SegmentType.CUBIC -> Segment3D(
+                start * scale,
+                control[0] * scale,
+                control[1] * scale,
+                end * scale
+            )
+        }
+    }
+
+
+    override operator fun div(scale: Double): Segment3D {
+        return when (type) {
+            SegmentType.LINEAR -> Segment3D(start / scale, end / scale)
+            SegmentType.QUADRATIC -> Segment3D(
+                start / scale,
+                control[0] / scale,
+                end / scale
+            )
+
+            SegmentType.CUBIC -> Segment3D(
+                start / scale,
+                control[0] / scale,
+                control[1] / scale,
+                end / scale
+            )
+        }
+    }
+
+    override operator fun minus(right: Segment3D): Segment3D {
+        return if (this.type == right.type) {
+            when (type) {
+                SegmentType.LINEAR -> Segment3D(
+                    start - right.start,
+                    end - right.end
+                )
+
+                SegmentType.QUADRATIC -> Segment3D(
+                    start - right.start,
+                    control[0] - right.control[0],
+                    end - right.end
+                )
+
+                SegmentType.CUBIC -> Segment3D(
+                    start - right.start,
+                    control[0] - right.control[0],
+                    control[1] - right.control[1],
+                    end - right.end
+                )
+            }
+        } else {
+            if (this.type.ordinal > right.type.ordinal) {
+                when (type) {
+                    SegmentType.LINEAR -> error("impossible?")
+                    SegmentType.QUADRATIC -> this - right.quadratic
+                    SegmentType.CUBIC -> this - right.cubic
+                }
+            } else {
+                when (right.type) {
+                    SegmentType.LINEAR -> error("impossible?")
+                    SegmentType.QUADRATIC -> this.quadratic - right
+                    SegmentType.CUBIC -> this.cubic - right
+                }
+            }
+        }
+    }
+
+    override operator fun plus(right: Segment3D): Segment3D {
+        return if (this.type == right.type) {
+            when (type) {
+                SegmentType.LINEAR -> Segment3D(
+                    start + right.start,
+                    end + right.end
+                )
+
+                SegmentType.QUADRATIC -> Segment3D(
+                    start + right.start,
+                    control[0] + right.control[0],
+                    end + right.end
+                )
+
+                SegmentType.CUBIC -> Segment3D(
+                    start + right.start,
+                    control[0] + right.control[0],
+                    control[1] + right.control[1],
+                    end + right.end
+                )
+            }
+        } else {
+            if (this.type.ordinal > right.type.ordinal) {
+                when (type) {
+                    SegmentType.LINEAR -> error("impossible?")
+                    SegmentType.QUADRATIC -> this + right.quadratic
+                    SegmentType.CUBIC -> this + right.cubic
+                }
+            } else {
+                when (right.type) {
+                    SegmentType.LINEAR -> error("impossible?")
+                    SegmentType.QUADRATIC -> this.quadratic + right
+                    SegmentType.CUBIC -> this.cubic + right
+                }
+            }
+        }
+    }
+
+    /** Converts the [Segment2D] to a quadratic Bézier curve. */
+    val quadratic: Segment3D
+        get() = when {
+            control.size == 1 -> this
+            linear -> {
+                val delta = end - start
+                Segment3D(start, start + delta * (1.0 / 2.0), end)
+            }
+
+            else -> error("cannot convert to quadratic segment")
+        }
 
 }
 
