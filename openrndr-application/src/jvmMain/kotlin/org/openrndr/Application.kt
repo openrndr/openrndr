@@ -93,10 +93,16 @@ actual abstract class Application {
         this.loop()
     }
 
-    actual abstract fun requestDraw()
+    internal var drawRequested = false
+    actual open fun requestDraw() {
+        drawRequested = true
+    }
     actual abstract fun requestFocus()
 
-    actual abstract fun exit()
+    protected var  exitRequested = false
+    actual open fun exit() {
+        exitRequested = true
+    }
     actual abstract suspend fun setup()
 
     actual abstract fun loop()

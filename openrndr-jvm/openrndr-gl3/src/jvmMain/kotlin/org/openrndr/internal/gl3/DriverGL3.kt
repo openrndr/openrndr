@@ -1,7 +1,6 @@
 package org.openrndr.internal.gl3
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.lwjgl.glfw.GLFW
 import org.lwjgl.opengl.*
 import org.lwjgl.opengl.GL40C.*
 import org.lwjgl.opengl.KHRBlendEquationAdvanced.*
@@ -13,7 +12,6 @@ import org.openrndr.internal.gl3.extensions.AngleExtensions
 import org.openrndr.internal.glcommon.ComputeStyleManagerGLCommon
 import org.openrndr.internal.glcommon.ShadeStyleManagerGLCommon
 import org.openrndr.internal.glcommon.ShaderGeneratorsGLCommon
-import org.openrndr.internal.glfw.ResourceThreadGLFW
 import org.openrndr.math.Matrix33
 import org.openrndr.math.Matrix44
 import org.openrndr.shape.Rectangle
@@ -68,7 +66,7 @@ enum class DriverVersionGL(
     companion object {
         fun find(type: DriverTypeGL, majorVersion: Int, minorVersion: Int): DriverVersionGL? {
             return entries.find {
-                it.type == type && it.majorVersion == majorVersion && it.minorVersion <= minorVersion
+                it.type == type && it.majorVersion == majorVersion && it.minorVersion == minorVersion
             }
         }
     }
@@ -81,7 +79,7 @@ inline fun DriverVersionGL.require(minimum: DriverVersionGL) {
     }
 }
 
-class DriverGL3(val version: DriverVersionGL) : Driver {
+abstract class DriverGL3(val version: DriverVersionGL) : Driver {
 
     private val executionQueue = mutableListOf<() -> Unit>()
 
@@ -201,9 +199,9 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
             DriverTypeGL.GLES -> """#define OR_GLES
           |precision highp float;
           |precision highp sampler2DArray;
-          |precision highp image2DArray;
-          |precision highp imageCube;
-          |precision highp imageCubeArray;
+          |${if (version >= DriverVersionGL.GLES_VERSION_3_1) {"precision highp image2DArray;"} else ""}
+          |${if (version > DriverVersionGL.GLES_VERSION_3_1) {"precision highp imageCube;"} else ""}
+          |${if (version > DriverVersionGL.GLES_VERSION_3_1) {"precision highp imageCubeArray;"} else ""}
           |${
                 if (Driver.glVersion >= DriverVersionGL.GLES_VERSION_3_1) {
                     "precision highp image2D; precision highp image3D;"
@@ -229,14 +227,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         }
     }
 
-    override val contextID: Long
-        get() {
-            return GLFW.glfwGetCurrentContext()
-        }
 
-    override fun createResourceThread(session: Session?, f: () -> Unit): ResourceThread {
-        return ResourceThreadGLFW.create(f)
-    }
 
     override fun createDrawThread(session: Session?): DrawThread {
         return DrawThreadGL3.create()
