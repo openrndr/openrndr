@@ -182,8 +182,16 @@ class ApplicationSDL(override var program: Program, override var configuration: 
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE)
         SDL_GL_SetAttribute(SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 1)
         SDL_GL_SetAttribute(SDL_GL_FRAMEBUFFER_SRGB_CAPABLE, 1)
-        if (DriverGL3Configuration.driverType == DriverTypeGL.GLES) {
 
+        SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24)
+        SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8)
+
+        when (val c = configuration.multisample) {
+            is WindowMultisample.Disabled -> {}
+            is WindowMultisample.SystemDefault -> {}
+            is WindowMultisample.SampleCount -> SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, c.count)
+        }
+        if (DriverGL3Configuration.driverType == DriverTypeGL.GLES) {
             SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, Driver.glVersion.majorVersion)
             SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, Driver.glVersion.minorVersion)
             SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES)
@@ -194,7 +202,6 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE)
         }
 
-
         window = SDL_CreateWindow(configuration.title, configuration.width, configuration.height, flags)
         require(window != 0L) { "failed to create window" }
 
@@ -202,8 +209,6 @@ class ApplicationSDL(override var program: Program, override var configuration: 
         glContext = SDL_GL_CreateContext(window)
         require(glContext != 0L) { "failed to create GL context. ${SDL_GetError()}" }
         SDL_GL_MakeCurrent(window, glContext)
-
-
     }
 
     private fun modifiersFromSdl(mod: Int): Set<KeyModifier> {
@@ -281,6 +286,10 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             }
             SDL_EVENT_CLIPBOARD_UPDATE -> {
                 println("clipboard updated")
+            }
+
+            SDL_EVENT_MOUSE_WHEEL -> {
+
             }
 
             SDL_EVENT_TEXT_INPUT -> {
