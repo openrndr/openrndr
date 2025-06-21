@@ -8,4 +8,7 @@ class ApplicationBaseNullGL : ApplicationBase() {
     override fun build(program: Program, configuration: Configuration): Application {
         return ApplicationNullGL(program, configuration)
     }
+
+    override fun close() {
+    }
 }

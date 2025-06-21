@@ -30,6 +30,7 @@ dokka-gradle-plugin = { group = "org.jetbrains.dokka", name = "dokka-gradle-plug
 
 lwjgl-core = { group = "org.lwjgl", name = "lwjgl", version.ref = "lwjgl" }
 lwjgl-glfw = { group = "org.lwjgl", name = "lwjgl-glfw", version.ref = "lwjgl" }
+lwjgl-sdl = { group = "org.lwjgl", name = "lwjgl-sdl", version.ref = "lwjgl" }
 lwjgl-jemalloc = { group = "org.lwjgl", name = "lwjgl-jemalloc", version.ref = "lwjgl" }
 lwjgl-opengl = { group = "org.lwjgl", name = "lwjgl-opengl", version.ref = "lwjgl" }
 lwjgl-opengles = { group = "org.lwjgl", name = "lwjgl-opengles", version.ref = "lwjgl" }
@@ -56,7 +57,7 @@ nmcp = { id = "com.gradleup.nmcp.aggregation", version.ref = "nmcp" }
 
 [bundles]
 lwjgl-openal = ["lwjgl-core", "lwjgl-openal"]
-lwjgl-full = ["lwjgl-core", "lwjgl-glfw", "lwjgl-jemalloc", "lwjgl-opengl", "lwjgl-opengles", "lwjgl-stb", "lwjgl-tinyexr", "lwjgl-nfd"]
+lwjgl-full = ["lwjgl-core", "lwjgl-glfw", "lwjgl-jemalloc", "lwjgl-opengl", "lwjgl-opengles", "lwjgl-stb", "lwjgl-tinyexr", "lwjgl-nfd", "lwjgl-sdl"]
 javacpp-ffmpeg = ["ffmpeg"]
 javacpp = ["javacpp"]
 jupiter = ["jupiter-api", "jupiter-engine"]

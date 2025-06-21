@@ -63,4 +63,8 @@ class ApplicationBaseGLFW : ApplicationBase() {
     override fun build(program: Program, configuration: Configuration): Application {
         return ApplicationGLFW(program, configuration)
     }
+
+    override fun close() {
+        glfwTerminate()
+    }
 }
