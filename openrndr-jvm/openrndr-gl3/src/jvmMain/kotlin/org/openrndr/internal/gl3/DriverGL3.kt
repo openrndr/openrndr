@@ -65,6 +65,13 @@ enum class DriverVersionGL(
         version.any {
             (this >= it && it.type == type)
         }
+    companion object {
+        fun find(type: DriverTypeGL, majorVersion: Int, minorVersion: Int): DriverVersionGL? {
+            return entries.find {
+                it.type == type && it.majorVersion == majorVersion && it.minorVersion <= minorVersion
+            }
+        }
+    }
 }
 
 @Suppress("NOTHING_TO_INLINE")

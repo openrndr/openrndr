@@ -8,7 +8,7 @@ private val logger = KotlinLogging.logger {}
 /**
  * This is accessible before finalizing the application in ApplicationBuilder.
  */
-actual abstract class ApplicationBase {
+actual abstract class ApplicationBase : AutoCloseable {
     companion object {
         fun initialize(): ApplicationBase {
             val applicationBaseClass = loadApplicationBase()
@@ -26,12 +26,15 @@ actual abstract class ApplicationBase {
             }
 
             return when (val applicationProperty: String? = System.getProperty("org.openrndr.application")) {
+                "SDL" -> {
+                    val cl = ApplicationBase::class.java.classLoader
+                    val c = try { cl.loadClass("org.openrndr.internal.sdl.ApplicationBaseSDL") } catch (e:ClassNotFoundException) { null }
+                    c!!
+                }
                 null, "", "GLFW" -> {
                     val cl = ApplicationBase::class.java.classLoader
 
-                    val c = try { cl.loadClass("org.openrndr.internal.gl3.ApplicationBaseGLFWGL3") } catch (e:ClassNotFoundException) { null } ?:
-                    try { cl.loadClass("org.openrndr.internal.gles3.ApplicationBaseGLFWGLES3") } catch (e:ClassNotFoundException) { null }
-
+                    val c = try { cl.loadClass("org.openrndr.internal.glfw.ApplicationBaseGLFW") } catch (e:ClassNotFoundException) { null }
                     c!!
                 }
                 "EGL" -> ApplicationBase::class.java.classLoader.loadClass("org.openrndr.internal.gl3.ApplicationBaseEGLGL3")
