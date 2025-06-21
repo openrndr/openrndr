@@ -65,7 +65,6 @@ class ApplicationGLFW(override var program: Program, override var configuration:
 
     private var window: Long = NULL
     private var realWindowTitle = configuration.title
-    private var exitRequested = false
     private var exitHandled = false
     private var setupCalled = false
 
@@ -310,7 +309,6 @@ class ApplicationGLFW(override var program: Program, override var configuration:
         if (configuration.windowTransparent) {
             glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, 1)
         }
-
 
         val versions = DriverGL3.Companion.candidateVersions()
         var versionIndex = 0
@@ -657,7 +655,7 @@ class ApplicationGLFW(override var program: Program, override var configuration:
                     error("primary window could not be created using ${DriverGL3Configuration.driverType} context. $error")
                 }
             }
-            Driver.driver = DriverGL3(foundVersion ?: error("no version found"))
+            Driver.driver = DriverGLGLFW(foundVersion ?: error("no version found"))
         }
     }
 
@@ -1131,13 +1129,7 @@ class ApplicationGLFW(override var program: Program, override var configuration:
         }
     }
 
-    override fun exit() {
-        exitRequested = true
-    }
 
-    override fun requestDraw() {
-        drawRequested = true
-    }
 
     override fun requestFocus() {
         glfwFocusWindow(window)

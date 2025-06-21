@@ -2,10 +2,21 @@ package org.openrndr.internal.sdl
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
+import org.lwjgl.opengl.GL
+import org.lwjgl.opengl.GL11.GL_RENDERER
+import org.lwjgl.opengl.GL11.GL_VENDOR
 import org.lwjgl.opengl.GL11.GL_VERSION
 import org.lwjgl.opengl.GL30.GL_MAJOR_VERSION
 import org.lwjgl.opengl.GL30.GL_MINOR_VERSION
+import org.lwjgl.opengles.GLES
+import org.lwjgl.sdl.SDLError.SDL_GetError
 import org.lwjgl.sdl.SDLEvents.*
+import org.lwjgl.sdl.SDLHints.SDL_HINT_OPENGL_ES_DRIVER
+import org.lwjgl.sdl.SDLHints.SDL_SetHint
+import org.lwjgl.sdl.SDLKeyboard.SDL_StartTextInput
+import org.lwjgl.sdl.SDLKeycode.*
+import org.lwjgl.sdl.SDLProperties.SDL_GetBooleanProperty
+import org.lwjgl.sdl.SDLProperties.SDL_GetPointerProperty
 import org.lwjgl.sdl.SDLTimer.SDL_Delay
 import org.lwjgl.sdl.SDLTimer.SDL_GetTicks
 import org.lwjgl.sdl.SDLVideo.*
@@ -16,17 +27,8 @@ import org.openrndr.*
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.Drawer
 import org.openrndr.internal.Driver
-import org.openrndr.internal.gl3.DriverGL3
-import org.openrndr.internal.gl3.DriverGL3Configuration
-import org.openrndr.internal.gl3.DriverTypeGL
-import org.openrndr.internal.gl3.DriverVersionGL
-import org.openrndr.internal.gl3.ProgramRenderTargetGL3
-import org.openrndr.internal.gl3.glBindVertexArray
-import org.openrndr.internal.gl3.glGetInteger
-import org.openrndr.internal.gl3.glGetString
-import org.openrndr.internal.gl3.glViewport
+import org.openrndr.internal.gl3.*
 import org.openrndr.math.Vector2
-import kotlin.use
 
 private val logger = KotlinLogging.logger {}
 
@@ -35,24 +37,69 @@ class ApplicationSDL(override var program: Program, override var configuration: 
     init {
         program.application = this
     }
+
+    private var primaryWindow: Long = 0L
+    private var primaryGlContext: Long = 0L
+
     var window = 0L
     var glContext = 0L
 
     private val vaos = IntArray(1)
 
-    override fun requestDraw() {
-        TODO("Not yet implemented")
-    }
 
     override fun requestFocus() {
         TODO("Not yet implemented")
     }
 
-    override fun exit() {
-        TODO("Not yet implemented")
-    }
 
     val defaultRenderTarget by lazy { ProgramRenderTargetGL3(program) }
+
+
+    private fun createPrimaryWindow() {
+        SDL_GL_ResetAttributes()
+        SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+        SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
+        SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
+        SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
+        SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
+        SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE)
+
+
+
+        if (DriverGL3Configuration.driverType == DriverTypeGL.GLES) {
+            logger.info { "creating window with GLES context" }
+            SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3)
+            SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2)
+            SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES)
+        } else {
+            SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG)
+            SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4)
+            SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 6)
+            SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE)
+        }
+
+        var windowFlags = SDL_WINDOW_HIDDEN or SDL_WINDOW_OPENGL
+        primaryWindow = SDL_CreateWindow("OPENRNDR - hidden window", 640, 480, windowFlags)
+        require(primaryWindow != 0L) { "failed to create primary window" }
+        primaryGlContext = SDL_GL_CreateContext(primaryWindow)
+        require(primaryGlContext != 0L) { "failed to create primary GL context. ${SDL_GetError()}" }
+
+        when (DriverGL3Configuration.driverType) {
+            DriverTypeGL.GL -> GL.createCapabilities()
+            DriverTypeGL.GLES -> GLES.createCapabilities()
+        }
+
+        val driverVersion =
+            DriverVersionGL.find(DriverGL3Configuration.driverType, glGetInteger(GL_MAJOR_VERSION), glGetInteger(GL_MINOR_VERSION))
+                ?: error("unsupported driver version")
+
+        println("driver version: ${glGetString(GL_VERSION)}")
+        println("driver vendor: ${glGetString(GL_VENDOR)}")
+        println("driver bla ${glGetString(GL_RENDERER)}")
+        logger.info { "creating window with driver version $driverVersion" }
+        Driver.driver = DriverGLSDL(driverVersion)
+    }
 
 
     private fun drawFrame(): Throwable? {
@@ -81,7 +128,6 @@ class ApplicationSDL(override var program: Program, override var configuration: 
         stackPush().use { stack ->
 
             program.window.contentScale = SDL_GetWindowDisplayScale(window).toDouble()
-            logger.info { "window content scale: ${program.window.contentScale}" }
 
 
             val fbw = stack.mallocInt(1)
@@ -100,6 +146,10 @@ class ApplicationSDL(override var program: Program, override var configuration: 
     }
 
     override suspend fun setup() {
+
+        createPrimaryWindow()
+        SDL_GL_MakeCurrent(primaryWindow, primaryGlContext)
+
         var flags = 0L
         if (configuration.hideWindowDecorations) {
             flags = flags or SDL_WINDOW_BORDERLESS
@@ -118,40 +168,85 @@ class ApplicationSDL(override var program: Program, override var configuration: 
         flags = flags or SDL_WINDOW_HIGH_PIXEL_DENSITY
 
 
-        SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
-        SDL_GL_SetAttribute( SDL_GL_ACCELERATED_VISUAL, 1 );
-        SDL_GL_SetAttribute( SDL_GL_RED_SIZE, 8 );
-        SDL_GL_SetAttribute( SDL_GL_GREEN_SIZE, 8 );
-        SDL_GL_SetAttribute( SDL_GL_BLUE_SIZE, 8 );
-        SDL_GL_SetAttribute( SDL_GL_ALPHA_SIZE, 8 );
+        SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+        SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3)
+        SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
+        SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
+        SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
+        SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE)
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG)
+
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4)
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0)
-
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE)
-//        SDL_InitSubSystem(SDL_INIT_VIDEO)
+        SDL_GL_SetAttribute(SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 1)
+        SDL_GL_SetAttribute(SDL_GL_FRAMEBUFFER_SRGB_CAPABLE, 1)
+        if (DriverGL3Configuration.driverType == DriverTypeGL.GLES) {
+
+            SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, Driver.glVersion.majorVersion)
+            SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, Driver.glVersion.minorVersion)
+            SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES)
+        } else {
+            SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG)
+            SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, Driver.glVersion.majorVersion)
+            SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, Driver.glVersion.minorVersion)
+            SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE)
+        }
+
+
         window = SDL_CreateWindow(configuration.title, configuration.width, configuration.height, flags)
+        require(window != 0L) { "failed to create window" }
+
 
         glContext = SDL_GL_CreateContext(window)
-
-        val caps = org.lwjgl.opengl.GL.createCapabilities()
-
-        println(glGetString(GL_VERSION))
-        println("${glGetInteger( GL_MAJOR_VERSION)}.${glGetInteger( GL_MINOR_VERSION)}")
-
-
-        val driverVersion = DriverVersionGL.find(DriverTypeGL.GL, glGetInteger( GL_MAJOR_VERSION), glGetInteger( GL_MINOR_VERSION)) ?: error("unsupported driver version")
-
-        Driver.driver = DriverGL3(driverVersion)
-        println(DriverGL3Configuration.driverType)
-
+        require(glContext != 0L) { "failed to create GL context. ${SDL_GetError()}" }
+        SDL_GL_MakeCurrent(window, glContext)
 
 
     }
 
+    private fun modifiersFromSdl(mod: Int): Set<KeyModifier> {
+
+        if (mod == 0) {
+            return emptySet()
+        } else {
+            val modifiers = mutableSetOf<KeyModifier>()
+            if (mod and SDL_KMOD_ALT != 0) modifiers.add(KeyModifier.ALT)
+            if (mod and SDL_KMOD_CTRL != 0) modifiers.add(KeyModifier.CTRL)
+            if (mod and SDL_KMOD_SHIFT != 0) modifiers.add(KeyModifier.SHIFT)
+            if (mod and SDL_KMOD_GUI != 0) modifiers.add(KeyModifier.SUPER)
+            return modifiers
+        }
+    }
+
     fun handleSDLEvent(event: SDL_Event) {
         when (event.type()) {
+            SDL_EVENT_QUIT -> {
+                exit()
+            }
+
+            SDL_EVENT_WINDOW_MOVED -> {
+                val windowEvent = event.window()
+                val x = windowEvent.data1().toDouble()
+                val y = windowEvent.data2().toDouble()
+                program.window.moved.trigger(WindowEvent(WindowEventType.MOVED, Vector2(x, y), Vector2.ZERO, true))
+            }
+
+            SDL_EVENT_WINDOW_FOCUS_GAINED -> {
+                program.window.focused.trigger(WindowEvent(WindowEventType.FOCUSED, Vector2.ZERO, Vector2.ZERO, true))
+            }
+            SDL_EVENT_WINDOW_FOCUS_LOST -> {
+                program.window.unfocused.trigger(WindowEvent(WindowEventType.UNFOCUSED, Vector2.ZERO, Vector2.ZERO, true))
+            }
+
+            SDL_EVENT_WINDOW_MOUSE_ENTER -> {
+                program.mouse.entered.trigger(MouseEvent(Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, MouseEventType.ENTERED, MouseButton.NONE, emptySet()))
+            }
+            SDL_EVENT_WINDOW_MOUSE_LEAVE -> {
+                program.mouse.exited.trigger(MouseEvent(Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, MouseEventType.EXITED, MouseButton.NONE, emptySet()))
+            }
+
             SDL_EVENT_MOUSE_MOTION -> {
                 val mouseEvent = event.motion()
                 cursorPosition = Vector2(mouseEvent.x().toDouble(), mouseEvent.y().toDouble())
@@ -184,6 +279,42 @@ class ApplicationSDL(override var program: Program, override var configuration: 
                     )
                 )
             }
+            SDL_EVENT_CLIPBOARD_UPDATE -> {
+                println("clipboard updated")
+            }
+
+            SDL_EVENT_TEXT_INPUT -> {
+                val textEvent = event.text()
+                program.keyboard.character.trigger(
+                    CharacterEvent(textEvent.textString()?.first()?:' ', emptySet())
+                )
+            }
+
+            SDL_EVENT_KEY_UP -> {
+                val keyEvent = event.key()
+                val modifiers = modifiersFromSdl(keyEvent.mod().toInt())
+                program.keyboard.keyUp.trigger(
+                    KeyEvent(
+                        KeyEventType.KEY_UP,
+                        keyEvent.key(),
+                        "not implemented yet",
+                        modifiers
+                    )
+                )
+            }
+
+            SDL_EVENT_KEY_DOWN -> {
+                val keyEvent = event.key()
+                val modifiers = modifiersFromSdl(keyEvent.mod().toInt())
+                program.keyboard.keyUp.trigger(
+                    KeyEvent(
+                        KeyEventType.KEY_DOWN,
+                        keyEvent.key(),
+                        "not implemented yet",
+                        modifiers
+                    )
+                )
+            }
 
             else -> {
                 println("got event: ${event.type()}")
@@ -196,6 +327,7 @@ class ApplicationSDL(override var program: Program, override var configuration: 
         SDL_ShowWindow(window)
 
 
+        SDL_StartTextInput(window)
         defaultRenderTarget.bind()
 
         program.driver = Driver.instance
@@ -207,13 +339,14 @@ class ApplicationSDL(override var program: Program, override var configuration: 
         MemoryStack.stackPush().use { stack ->
             val event = SDL_Event.calloc(stack)
 
-            while (true) {
+            while (!exitRequested) {
                 while (SDL_PollEvent(event)) {
                     handleSDLEvent(event)
                 }
                 Driver.instance.clear(ColorRGBa.BLACK)
 
                 drawFrame()
+
 
                 SDL_GL_SwapWindow(window);
                 SDL_Delay(1);
@@ -249,8 +382,10 @@ class ApplicationSDL(override var program: Program, override var configuration: 
         get() = TODO("Not yet implemented")
         set(value) {}
     override var cursorPosition: Vector2
-        get() = TODO("Not yet implemented")
-        set(value) {}
+        get() = field
+        set(value) {
+            field = value
+        }
     override var cursorVisible: Boolean
         get() = TODO("Not yet implemented")
         set(value) {}
@@ -270,7 +405,6 @@ class ApplicationSDL(override var program: Program, override var configuration: 
     override var windowContentScale: Double
         get() =
             SDL_GetWindowDisplayScale(window).toDouble()
-
         set(value) {}
 
     override fun createChildWindow(
