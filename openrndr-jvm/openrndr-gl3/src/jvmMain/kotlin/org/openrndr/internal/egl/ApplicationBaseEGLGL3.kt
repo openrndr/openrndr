@@ -1,9 +1,10 @@
-package org.openrndr.internal.gl3
+package org.openrndr.internal.egl
 
 import org.openrndr.*
 import org.openrndr.draw.font.FontDriverStbTt
 import org.openrndr.draw.font.internal.FontDriver
 import org.openrndr.internal.ImageDriver
+import org.openrndr.internal.gl3.ImageDriverStbImage
 
 class ApplicationBaseEGLGL3 : ApplicationBase() {
     init {

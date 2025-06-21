@@ -1,4 +1,4 @@
-package org.openrndr.internal.gl3
+package org.openrndr.internal.glfw
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.lwjgl.glfw.GLFW.*
@@ -7,13 +7,17 @@ import org.openrndr.*
 import org.openrndr.draw.font.FontDriverStbTt
 import org.openrndr.draw.font.internal.FontDriver
 import org.openrndr.internal.ImageDriver
+import org.openrndr.internal.gl3.DriverGL3Configuration
+import org.openrndr.internal.gl3.DriverTypeGL
+import org.openrndr.internal.gl3.GlesBackend
+import org.openrndr.internal.gl3.ImageDriverStbImage
 import org.openrndr.internal.gl3.angle.extractAngleLibraries
 
 private val logger = KotlinLogging.logger { }
 
-class ApplicationBaseGLFWGL3 : ApplicationBase() {
+class ApplicationBaseGLFW : ApplicationBase() {
     init {
-        logger.debug { "initializing ApplicationBaseGLFWGL3" }
+        logger.debug { "initializing ApplicationBaseGLFW" }
         if (!ApplicationConfiguration.checkThread0) {
             org.lwjgl.system.Configuration.GLFW_CHECK_THREAD0.set(false)
         }
@@ -30,7 +34,7 @@ class ApplicationBaseGLFWGL3 : ApplicationBase() {
         FontDriver.driver = FontDriverStbTt()
     }
 
-    override val displays: List<DisplayGLFWGL3> by lazy {
+    override val displays: List<DisplayGLFW> by lazy {
         val detectedMonitors = glfwGetMonitors()
         if (detectedMonitors != null && detectedMonitors.limit() > 0) {
             stackPush().use {
@@ -45,7 +49,7 @@ class ApplicationBaseGLFWGL3 : ApplicationBase() {
                     // vertical scale is reportedly flaky, so we disregard it
                     glfwGetMonitorContentScale(monitor, contentScale, null)
 
-                    DisplayGLFWGL3(
+                    DisplayGLFW(
                         monitor, glfwGetMonitorName(monitor), x[0], y[0],
                         videoMode?.width(), videoMode?.height(), contentScale[0].toDouble()
                     )
@@ -57,6 +61,6 @@ class ApplicationBaseGLFWGL3 : ApplicationBase() {
     }
 
     override fun build(program: Program, configuration: Configuration): Application {
-        return ApplicationGLFWGL3(program, configuration)
+        return ApplicationGLFW(program, configuration)
     }
 }

@@ -1,4 +1,4 @@
-package org.openrndr.internal.gl3
+package org.openrndr.internal.glfw
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
@@ -20,8 +20,23 @@ import org.openrndr.draw.Drawer
 import org.openrndr.draw.RenderTarget
 import org.openrndr.draw.Session
 import org.openrndr.internal.Driver
-import org.openrndr.internal.gl3.ApplicationGlfwConfiguration.fixWindowSize
+import org.openrndr.internal.gl3.DriverGL3
+import org.openrndr.internal.gl3.DriverGL3Configuration
+import org.openrndr.internal.gl3.DriverTypeGL
+import org.openrndr.internal.gl3.DriverVersionGL
+import org.openrndr.internal.gl3.GLESUtil
+import org.openrndr.internal.gl3.PointerInputManager
+import org.openrndr.internal.gl3.PointerInputManagerWin32
+import org.openrndr.internal.gl3.ProgramRenderTargetGL3
 import org.openrndr.internal.gl3.extensions.BackBuffer
+import org.openrndr.internal.gl3.glBindVertexArray
+import org.openrndr.internal.gl3.glClear
+import org.openrndr.internal.gl3.glClearColor
+import org.openrndr.internal.gl3.glDepthMask
+import org.openrndr.internal.gl3.glEnable
+import org.openrndr.internal.gl3.glGetString
+import org.openrndr.internal.gl3.glType
+import org.openrndr.internal.gl3.glViewport
 import org.openrndr.math.Vector2
 import org.openrndr.platform.Platform
 import org.openrndr.platform.PlatformType
@@ -41,7 +56,7 @@ object ApplicationGlfwConfiguration {
     }
 }
 
-class ApplicationGLFWGL3(override var program: Program, override var configuration: Configuration) : Application() {
+class ApplicationGLFW(override var program: Program, override var configuration: Configuration) : Application() {
 
     internal val windows: CopyOnWriteArrayList<ApplicationWindowGLFW> = CopyOnWriteArrayList()
 
@@ -128,8 +143,8 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
                     val h = it.mallocInt(1)
                     glfwGetWindowSize(window, w, h)
                     _windowSize = Vector2(
-                        if (fixWindowSize) (w[0].toDouble() / program.window.contentScale) else w[0].toDouble(),
-                        if (fixWindowSize) (h[0].toDouble() / program.window.contentScale) else h[0].toDouble()
+                        if (ApplicationGlfwConfiguration.fixWindowSize) (w[0].toDouble() / program.window.contentScale) else w[0].toDouble(),
+                        if (ApplicationGlfwConfiguration.fixWindowSize) (h[0].toDouble() / program.window.contentScale) else h[0].toDouble()
                     )
                 }
             }
@@ -138,8 +153,8 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
         set(value) {
             glfwSetWindowSize(
                 window,
-                if (fixWindowSize) (value.x * program.window.contentScale).toInt() else value.x.toInt(),
-                if (fixWindowSize) (value.y * program.window.contentScale).toInt() else value.y.toInt()
+                if (ApplicationGlfwConfiguration.fixWindowSize) (value.x * program.window.contentScale).toInt() else value.x.toInt(),
+                if (ApplicationGlfwConfiguration.fixWindowSize) (value.y * program.window.contentScale).toInt() else value.y.toInt()
             )
             _windowSize = null
         }
@@ -152,16 +167,16 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
                 val y = it.mallocInt(1)
                 glfwGetWindowPos(window, x, y)
                 return Vector2(
-                    if (fixWindowSize) (x[0].toDouble() / program.window.contentScale) else x[0].toDouble(),
-                    if (fixWindowSize) (y[0].toDouble() / program.window.contentScale) else y[0].toDouble()
+                    if (ApplicationGlfwConfiguration.fixWindowSize) (x[0].toDouble() / program.window.contentScale) else x[0].toDouble(),
+                    if (ApplicationGlfwConfiguration.fixWindowSize) (y[0].toDouble() / program.window.contentScale) else y[0].toDouble()
                 )
             }
         }
         set(value) {
             glfwSetWindowPos(
                 window,
-                if (fixWindowSize) (value.x * program.window.contentScale).toInt() else value.x.toInt(),
-                if (fixWindowSize) (value.y * program.window.contentScale).toInt() else value.y.toInt()
+                if (ApplicationGlfwConfiguration.fixWindowSize) (value.x * program.window.contentScale).toInt() else value.x.toInt(),
+                if (ApplicationGlfwConfiguration.fixWindowSize) (value.y * program.window.contentScale).toInt() else value.y.toInt()
             )
         }
 
@@ -268,7 +283,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
             glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE)
         }
 
-        val display = (configuration.display as? DisplayGLFWGL3)?.pointer ?: glfwGetPrimaryMonitor()
+        val display = (configuration.display as? DisplayGLFW)?.pointer ?: glfwGetPrimaryMonitor()
 
         val xscale = FloatArray(1)
 
@@ -297,7 +312,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
         }
 
 
-        val versions = DriverGL3.candidateVersions()
+        val versions = DriverGL3.Companion.candidateVersions()
         var versionIndex = 0
         while (window == NULL && versionIndex < versions.size) {
 
@@ -320,9 +335,9 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
                 logger.debug { "primary display content scale: ${primaryDisplayScale[0]}" }
 
                 val adjustedWidth =
-                    if (fixWindowSize) (primaryDisplayScale[0] * configuration.width).toInt() else configuration.width
+                    if (ApplicationGlfwConfiguration.fixWindowSize) (primaryDisplayScale[0] * configuration.width).toInt() else configuration.width
                 val adjustedHeight =
-                    if (fixWindowSize) (primaryDisplayScale[0] * configuration.height).toInt() else configuration.height
+                    if (ApplicationGlfwConfiguration.fixWindowSize) (primaryDisplayScale[0] * configuration.height).toInt() else configuration.height
 
                 logger.debug { "adjusted width x height $adjustedWidth x $adjustedHeight" }
 
@@ -526,14 +541,14 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
 
         run {
             val adjustedMinimumWidth =
-                if (fixWindowSize) (xscale[0] * configuration.minimumWidth).toInt() else configuration.minimumWidth
+                if (ApplicationGlfwConfiguration.fixWindowSize) (xscale[0] * configuration.minimumWidth).toInt() else configuration.minimumWidth
             val adjustedMinimumHeight =
-                if (fixWindowSize) (xscale[0] * configuration.minimumHeight).toInt() else configuration.minimumHeight
+                if (ApplicationGlfwConfiguration.fixWindowSize) (xscale[0] * configuration.minimumHeight).toInt() else configuration.minimumHeight
 
             val adjustedMaximumWidth =
-                if (fixWindowSize && configuration.maximumWidth != Int.MAX_VALUE) (xscale[0] * configuration.maximumWidth).toInt() else configuration.maximumWidth
+                if (ApplicationGlfwConfiguration.fixWindowSize && configuration.maximumWidth != Int.MAX_VALUE) (xscale[0] * configuration.maximumWidth).toInt() else configuration.maximumWidth
             val adjustedMaximumHeight =
-                if (fixWindowSize && configuration.maximumHeight != Int.MAX_VALUE) (xscale[0] * configuration.maximumHeight).toInt() else configuration.maximumHeight
+                if (ApplicationGlfwConfiguration.fixWindowSize && configuration.maximumHeight != Int.MAX_VALUE) (xscale[0] * configuration.maximumHeight).toInt() else configuration.maximumHeight
 
             glfwSetWindowSizeLimits(
                 window,
@@ -562,7 +577,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
             val window = createApplicationWindowGlfw(window,this, configuration, program)
             program.application = this
             (program as WindowProgram).applicationWindow = window
-            program.drawer = this@ApplicationGLFWGL3.program.drawer
+            program.drawer = this@ApplicationGLFW.program.drawer
 
             window.setupGlfwEvents(this)
 
@@ -599,7 +614,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
                 }
             })
             val title = "OPENRNDR primary window"
-            val versions = DriverGL3.candidateVersions()
+            val versions = DriverGL3.Companion.candidateVersions()
             glfwDefaultWindowHints()
             when (DriverGL3Configuration.driverType) {
                 DriverTypeGL.GL -> {
@@ -650,7 +665,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
 
     val defaultRenderTarget by lazy { ProgramRenderTargetGL3(program) }
     fun preloop() {
-        when (Driver.glType) {
+        when (Driver.Companion.glType) {
             DriverTypeGL.GL -> org.lwjgl.opengl.GL.createCapabilities()
             DriverTypeGL.GLES -> GLES.createCapabilities()
         }
@@ -904,7 +919,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
         }
 
         glfwSetCursorPosCallback(window) { _, xpos, ypos ->
-            val position = if (fixWindowSize) Vector2(xpos, ypos) / program.window.contentScale else Vector2(xpos, ypos)
+            val position = if (ApplicationGlfwConfiguration.fixWindowSize) Vector2(xpos, ypos) / program.window.contentScale else Vector2(xpos, ypos)
             logger.trace { "mouse moved $xpos $ypos -- $position" }
             realCursorPosition = position
             program.mouse.moved.trigger(

@@ -2,21 +2,21 @@ import kotlinx.coroutines.runBlocking
 import org.openrndr.Configuration
 import org.openrndr.Program
 import org.openrndr.ProgramImplementation
-import org.openrndr.internal.gl3.ApplicationBaseGLFWGL3
-import org.openrndr.internal.gl3.ApplicationGLFWGL3
+import org.openrndr.internal.glfw.ApplicationBaseGLFW
+import org.openrndr.internal.glfw.ApplicationGLFW
 import kotlin.test.*
 
 abstract class AbstractApplicationTestFixture {
-    lateinit var applicationBase: ApplicationBaseGLFWGL3
-    lateinit var application: ApplicationGLFWGL3
+    lateinit var applicationBase: ApplicationBaseGLFW
+    lateinit var application: ApplicationGLFW
     lateinit var program: Program
 
     @BeforeTest
     open fun setup() {
         //System.setProperty("org.openrndr.gl3.debug",  "true")
         program = ProgramImplementation()
-        applicationBase = ApplicationBaseGLFWGL3()
-        application = applicationBase.build(program, Configuration()) as ApplicationGLFWGL3
+        applicationBase = ApplicationBaseGLFW()
+        application = applicationBase.build(program, Configuration()) as ApplicationGLFW
         runBlocking { application.setup() }
         application.preloop()
 
