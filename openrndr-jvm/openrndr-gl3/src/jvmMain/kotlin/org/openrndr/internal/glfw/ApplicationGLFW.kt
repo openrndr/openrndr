@@ -1091,26 +1091,6 @@ class ApplicationGLFW(override var program: Program, override var configuration:
     }
 
 
-    private fun deliverEvents() {
-        program.window.drop.deliver()
-        program.window.sized.deliver()
-        program.window.unfocused.deliver()
-        program.window.focused.deliver()
-        program.window.minimized.deliver()
-        program.window.restored.deliver()
-        program.keyboard.keyDown.deliver()
-        program.keyboard.keyUp.deliver()
-        program.keyboard.keyRepeat.deliver()
-        program.keyboard.character.deliver()
-        program.mouse.moved.deliver()
-        program.mouse.scrolled.deliver()
-        program.mouse.buttonDown.deliver()
-        program.mouse.buttonUp.deliver()
-        program.mouse.dragged.deliver()
-        program.mouse.entered.deliver()
-        program.mouse.exited.deliver()
-    }
-
     private fun drawFrame(): Throwable? {
         // reset cached values
         _windowSize = null

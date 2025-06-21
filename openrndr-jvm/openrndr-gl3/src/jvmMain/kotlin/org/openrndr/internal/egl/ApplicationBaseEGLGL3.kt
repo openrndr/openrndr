@@ -17,4 +17,7 @@ class ApplicationBaseEGLGL3 : ApplicationBase() {
     override fun build(program: Program, configuration: Configuration): Application {
         return ApplicationEGLGL3(program, configuration)
     }
+
+    override fun close() {
+    }
 }

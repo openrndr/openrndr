@@ -53,6 +53,7 @@ kotlin {
                 implementation(libs.kotlin.coroutines)
                 implementation(libs.lwjgl.core)
                 implementation(libs.lwjgl.glfw)
+                implementation(libs.lwjgl.sdl)
                 implementation(libs.lwjgl.jemalloc)
                 implementation(libs.lwjgl.opengl)
                 implementation(libs.lwjgl.opengles)
