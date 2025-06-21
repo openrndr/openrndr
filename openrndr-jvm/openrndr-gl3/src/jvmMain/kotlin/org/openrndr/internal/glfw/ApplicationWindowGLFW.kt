@@ -1,4 +1,4 @@
-package org.openrndr.internal.gl3
+package org.openrndr.internal.glfw
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.lwjgl.BufferUtils
@@ -11,7 +11,12 @@ import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryUtil
 import org.openrndr.*
 import org.openrndr.internal.Driver
-import org.openrndr.internal.gl3.ApplicationGlfwConfiguration.fixWindowSize
+import org.openrndr.internal.gl3.DriverGL3Configuration
+import org.openrndr.internal.gl3.DriverTypeGL
+import org.openrndr.internal.gl3.GlesBackend
+import org.openrndr.internal.gl3.ProgramRenderTargetGL3
+import org.openrndr.internal.gl3.glVersion
+import org.openrndr.internal.gl3.glViewport
 import org.openrndr.math.Vector2
 import java.io.File
 import java.nio.Buffer
@@ -21,7 +26,7 @@ import kotlin.math.ceil
 private val logger = KotlinLogging.logger { }
 
 class ApplicationWindowGLFW(
-    val application: ApplicationGLFWGL3,
+    val application: ApplicationGLFW,
     val window: Long,
     windowTitle: String,
     override val windowResizable: Boolean,
@@ -98,16 +103,16 @@ class ApplicationWindowGLFW(
                 val y = it.mallocInt(1)
                 glfwGetWindowPos(window, x, y)
                 return Vector2(
-                    if (fixWindowSize) (x[0].toDouble() / program.window.contentScale) else x[0].toDouble(),
-                    if (fixWindowSize) (y[0].toDouble() / program.window.contentScale) else y[0].toDouble()
+                    if (ApplicationGlfwConfiguration.fixWindowSize) (x[0].toDouble() / program.window.contentScale) else x[0].toDouble(),
+                    if (ApplicationGlfwConfiguration.fixWindowSize) (y[0].toDouble() / program.window.contentScale) else y[0].toDouble()
                 )
             }
         }
         set(value) {
             glfwSetWindowPos(
                 window,
-                if (fixWindowSize) (value.x * program.window.contentScale).toInt() else value.x.toInt(),
-                if (fixWindowSize) (value.y * program.window.contentScale).toInt() else value.y.toInt()
+                if (ApplicationGlfwConfiguration.fixWindowSize) (value.x * program.window.contentScale).toInt() else value.x.toInt(),
+                if (ApplicationGlfwConfiguration.fixWindowSize) (value.y * program.window.contentScale).toInt() else value.y.toInt()
             )
         }
 
@@ -123,8 +128,8 @@ class ApplicationWindowGLFW(
                     val h = it.mallocInt(1)
                     glfwGetWindowSize(window, w, h)
                     _windowSize = Vector2(
-                        if (fixWindowSize) (w[0].toDouble() / program.window.contentScale) else w[0].toDouble(),
-                        if (fixWindowSize) (h[0].toDouble() / program.window.contentScale) else h[0].toDouble()
+                        if (ApplicationGlfwConfiguration.fixWindowSize) (w[0].toDouble() / program.window.contentScale) else w[0].toDouble(),
+                        if (ApplicationGlfwConfiguration.fixWindowSize) (h[0].toDouble() / program.window.contentScale) else h[0].toDouble()
                     )
                 }
             }
@@ -133,8 +138,8 @@ class ApplicationWindowGLFW(
         set(value) {
             glfwSetWindowSize(
                 window,
-                if (fixWindowSize) (value.x * program.window.contentScale).toInt() else value.x.toInt(),
-                if (fixWindowSize) (value.y * program.window.contentScale).toInt() else value.y.toInt()
+                if (ApplicationGlfwConfiguration.fixWindowSize) (value.x * program.window.contentScale).toInt() else value.x.toInt(),
+                if (ApplicationGlfwConfiguration.fixWindowSize) (value.y * program.window.contentScale).toInt() else value.y.toInt()
             )
             _windowSize = null
         }
@@ -208,7 +213,7 @@ class ApplicationWindowGLFW(
         }
     }
 
-    fun setupGlfwEvents(application: ApplicationGLFWGL3) {
+    fun setupGlfwEvents(application: ApplicationGLFW) {
         val modifiers = mutableSetOf<KeyModifier>()
 
         var down = false
@@ -474,7 +479,7 @@ class ApplicationWindowGLFW(
         }
 
         glfwSetCursorPosCallback(window) { _, xpos, ypos ->
-            val position = if (fixWindowSize) Vector2(xpos, ypos) / program.window.contentScale else Vector2(xpos, ypos)
+            val position = if (ApplicationGlfwConfiguration.fixWindowSize) Vector2(xpos, ypos) / program.window.contentScale else Vector2(xpos, ypos)
             cursorPosition = position
             logger.trace { "mouse moved $xpos $ypos -- $position" }
             program.mouse.moved.trigger(
@@ -536,7 +541,7 @@ class ApplicationWindowGLFW(
 
 fun createApplicationWindowGlfw(
     parentWindow: Long?,
-    application: ApplicationGLFWGL3,
+    application: ApplicationGLFW,
     configuration: WindowConfiguration,
     program: Program
 ): ApplicationWindowGLFW {

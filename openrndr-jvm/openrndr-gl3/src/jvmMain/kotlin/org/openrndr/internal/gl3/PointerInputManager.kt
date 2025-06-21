@@ -5,6 +5,7 @@ import org.lwjgl.glfw.GLFWNativeWin32
 import org.lwjgl.system.MemoryUtil
 import org.lwjgl.system.windows.*
 import org.openrndr.Pointer
+import org.openrndr.internal.glfw.ApplicationGLFW
 import org.openrndr.math.Vector2
 
 private val logger = KotlinLogging.logger { }
@@ -35,7 +36,7 @@ private value class PointerLParam(val value: Long) {
 }
 
 
-internal class PointerInputManagerWin32(val window: Long, val application: ApplicationGLFWGL3) :
+internal class PointerInputManagerWin32(val window: Long, val application: ApplicationGLFW) :
     PointerInputManager() {
     val hwnd = GLFWNativeWin32.glfwGetWin32Window(window)
     var msg: MSG = MSG.calloc()

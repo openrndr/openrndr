@@ -1,4 +1,4 @@
-package org.openrndr.internal.gl3
+package org.openrndr.internal.glfw
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.lwjgl.glfw.GLFW.*
@@ -9,6 +9,11 @@ import org.lwjgl.system.MemoryUtil
 import org.openrndr.color.ColorRGBa
 import org.openrndr.internal.Driver
 import org.openrndr.internal.ResourceThread
+import org.openrndr.internal.gl3.DriverGL3
+import org.openrndr.internal.gl3.DriverTypeGL
+import org.openrndr.internal.gl3.NullRenderTargetGL3
+import org.openrndr.internal.gl3.glType
+import org.openrndr.internal.gl3.glVersion
 import kotlin.concurrent.thread
 
 private val logger = KotlinLogging.logger {  }
@@ -30,14 +35,14 @@ private val logger = KotlinLogging.logger {  }
  * invokes the provided lambda (`f`) within the resource processing thread. Cleanup of the created
  * context and GLFW window is handled automatically after the lambda finishes execution.
  */
-class ResourceThreadGL3 : ResourceThread {
+class ResourceThreadGLFW : ResourceThread {
     companion object {
-        fun create(f: () -> Unit): ResourceThreadGL3 {
+        fun create(f: () -> Unit): ResourceThreadGLFW {
             glfwDefaultWindowHints()
-            glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, Driver.glVersion.majorVersion)
+            glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, Driver.Companion.glVersion.majorVersion)
             glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, Driver.glVersion.minorVersion)
 
-            when (Driver.glType) {
+            when (Driver.Companion.glType) {
                 DriverTypeGL.GL -> {
                     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL43C.GL_TRUE)
                     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE)
@@ -57,7 +62,8 @@ class ResourceThreadGL3 : ResourceThread {
 
             val contextWindow = glfwCreateWindow(1,
                     1,
-                    "", MemoryUtil.NULL, primaryWindow)
+                    "", MemoryUtil.NULL, primaryWindow
+            )
 
             thread(isDaemon = true, name = "ResourceThread") {
                 logger.debug { "Context thread starting" }
@@ -83,7 +89,7 @@ class ResourceThreadGL3 : ResourceThread {
                     }
                 }
             }
-            return ResourceThreadGL3()
+            return ResourceThreadGLFW()
         }
     }
 }
