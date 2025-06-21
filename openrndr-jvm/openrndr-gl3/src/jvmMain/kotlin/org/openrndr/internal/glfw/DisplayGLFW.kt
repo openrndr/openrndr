@@ -1,8 +1,8 @@
-package org.openrndr.internal.gl3
+package org.openrndr.internal.glfw
 
 import org.openrndr.Display
 
-class DisplayGLFWGL3 internal constructor(
+class DisplayGLFW internal constructor(
     val pointer: Long,
     override val name: String?,
     override val x: Int,

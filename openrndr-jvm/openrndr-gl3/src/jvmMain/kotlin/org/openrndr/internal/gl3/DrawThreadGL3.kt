@@ -9,6 +9,7 @@ import org.openrndr.Dispatcher
 import org.openrndr.draw.DrawThread
 import org.openrndr.draw.Drawer
 import org.openrndr.internal.Driver
+import org.openrndr.internal.glfw.primaryWindow
 import kotlin.concurrent.thread
 
 private val logger = KotlinLogging.logger {  }
@@ -32,7 +33,8 @@ class DrawThreadGL3(private val contextWindow: Long) : DrawThread {
             GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE)
             val contextWindow = GLFW.glfwCreateWindow(1,
                     1,
-                    "", MemoryUtil.NULL, primaryWindow)
+                    "", MemoryUtil.NULL, primaryWindow
+            )
 
             require(contextWindow != 0L) { "context creation failed" }
 

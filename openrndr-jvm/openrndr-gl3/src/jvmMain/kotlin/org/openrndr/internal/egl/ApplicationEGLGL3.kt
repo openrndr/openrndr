@@ -1,4 +1,4 @@
-package org.openrndr.internal.gl3
+package org.openrndr.internal.egl
 
 import kotlinx.coroutines.runBlocking
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -13,6 +13,12 @@ import org.openrndr.animatable.Clock
 import org.openrndr.draw.Drawer
 import org.openrndr.draw.renderTarget
 import org.openrndr.internal.Driver
+import org.openrndr.internal.gl3.DriverGL3
+import org.openrndr.internal.gl3.DriverVersionGL
+import org.openrndr.internal.gl3.ProgramRenderTargetGL3
+import org.openrndr.internal.gl3.glBindVertexArray
+import org.openrndr.internal.gl3.glGenVertexArrays
+import org.openrndr.internal.gl3.glGetString
 import org.openrndr.math.Vector2
 
 private val logger = KotlinLogging.logger {}

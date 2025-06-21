@@ -13,6 +13,7 @@ import org.openrndr.internal.gl3.extensions.AngleExtensions
 import org.openrndr.internal.glcommon.ComputeStyleManagerGLCommon
 import org.openrndr.internal.glcommon.ShadeStyleManagerGLCommon
 import org.openrndr.internal.glcommon.ShaderGeneratorsGLCommon
+import org.openrndr.internal.glfw.ResourceThreadGLFW
 import org.openrndr.math.Matrix33
 import org.openrndr.math.Matrix44
 import org.openrndr.shape.Rectangle
@@ -227,7 +228,7 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         }
 
     override fun createResourceThread(session: Session?, f: () -> Unit): ResourceThread {
-        return ResourceThreadGL3.create(f)
+        return ResourceThreadGLFW.create(f)
     }
 
     override fun createDrawThread(session: Session?): DrawThread {
