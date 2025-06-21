@@ -43,10 +43,10 @@ expect abstract class Application {
 
     internal fun run()
 
-    abstract fun requestDraw()
+    open fun requestDraw()
     abstract fun requestFocus()
 
-    abstract fun exit()
+    open fun exit()
     abstract suspend fun setup()
 
     abstract fun loop()

@@ -19,6 +19,7 @@ import org.openrndr.internal.gl3.ProgramRenderTargetGL3
 import org.openrndr.internal.gl3.glBindVertexArray
 import org.openrndr.internal.gl3.glGenVertexArrays
 import org.openrndr.internal.gl3.glGetString
+import org.openrndr.internal.glfw.DriverGLGLFW
 import org.openrndr.math.Vector2
 
 private val logger = KotlinLogging.logger {}
@@ -35,8 +36,7 @@ class ApplicationEGLGL3(override var program: Program, override var configuratio
     override var cursorPosition: Vector2
         get() = Vector2(0.0, 0.0)
         set(value) {}
-    private var driver = DriverGL3(DriverVersionGL.GL_VERSION_3_3)
-    private var exitRequested = false
+    private var driver = DriverGLGLFW(DriverVersionGL.GL_VERSION_3_3)
     private var startTime = System.currentTimeMillis()
     private val vaos = IntArray(1)
 
