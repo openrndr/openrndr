@@ -2,6 +2,7 @@ package org.openrndr.internal.sdl
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
+import org.lwjgl.glfw.GLFW.glfwGetCurrentContext
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11.GL_RENDERER
 import org.lwjgl.opengl.GL11.GL_VENDOR
@@ -11,12 +12,8 @@ import org.lwjgl.opengl.GL30.GL_MINOR_VERSION
 import org.lwjgl.opengles.GLES
 import org.lwjgl.sdl.SDLError.SDL_GetError
 import org.lwjgl.sdl.SDLEvents.*
-import org.lwjgl.sdl.SDLHints.SDL_HINT_OPENGL_ES_DRIVER
-import org.lwjgl.sdl.SDLHints.SDL_SetHint
 import org.lwjgl.sdl.SDLKeyboard.SDL_StartTextInput
 import org.lwjgl.sdl.SDLKeycode.*
-import org.lwjgl.sdl.SDLProperties.SDL_GetBooleanProperty
-import org.lwjgl.sdl.SDLProperties.SDL_GetPointerProperty
 import org.lwjgl.sdl.SDLTimer.SDL_Delay
 import org.lwjgl.sdl.SDLTimer.SDL_GetTicks
 import org.lwjgl.sdl.SDLVideo.*
@@ -29,31 +26,31 @@ import org.openrndr.draw.Drawer
 import org.openrndr.internal.Driver
 import org.openrndr.internal.gl3.*
 import org.openrndr.math.Vector2
+import java.util.concurrent.CopyOnWriteArrayList
 
 private val logger = KotlinLogging.logger {}
 
 class ApplicationSDL(override var program: Program, override var configuration: Configuration) : Application() {
 
+    internal val windows: CopyOnWriteArrayList<ApplicationWindowSDL> = CopyOnWriteArrayList()
+
     init {
         program.application = this
     }
-
+    private var defaultRenderTargetGL3: ProgramRenderTargetGL3? = null
     private var primaryWindow: Long = 0L
     private var primaryGlContext: Long = 0L
 
-    var window = 0L
-    var glContext = 0L
+    private var window = 0L
+    private var glContext = 0L
 
     private val vaos = IntArray(1)
-
 
     override fun requestFocus() {
         TODO("Not yet implemented")
     }
 
-
     val defaultRenderTarget by lazy { ProgramRenderTargetGL3(program) }
-
 
     private fun createPrimaryWindow() {
         SDL_GL_ResetAttributes()
@@ -64,8 +61,6 @@ class ApplicationSDL(override var program: Program, override var configuration: 
         SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
         SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE)
-
-
 
         if (DriverGL3Configuration.driverType == DriverTypeGL.GLES) {
             logger.info { "creating window with GLES context" }
@@ -91,13 +86,18 @@ class ApplicationSDL(override var program: Program, override var configuration: 
         }
 
         val driverVersion =
-            DriverVersionGL.find(DriverGL3Configuration.driverType, glGetInteger(GL_MAJOR_VERSION), glGetInteger(GL_MINOR_VERSION))
+            DriverVersionGL.find(
+                DriverGL3Configuration.driverType,
+                glGetInteger(GL_MAJOR_VERSION),
+                glGetInteger(GL_MINOR_VERSION)
+            )
                 ?: error("unsupported driver version")
 
         println("driver version: ${glGetString(GL_VERSION)}")
         println("driver vendor: ${glGetString(GL_VENDOR)}")
         println("driver bla ${glGetString(GL_RENDERER)}")
-        logger.info { "creating window with driver version $driverVersion" }
+
+
         Driver.driver = DriverGLSDL(driverVersion)
     }
 
@@ -241,15 +241,42 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             SDL_EVENT_WINDOW_FOCUS_GAINED -> {
                 program.window.focused.trigger(WindowEvent(WindowEventType.FOCUSED, Vector2.ZERO, Vector2.ZERO, true))
             }
+
             SDL_EVENT_WINDOW_FOCUS_LOST -> {
-                program.window.unfocused.trigger(WindowEvent(WindowEventType.UNFOCUSED, Vector2.ZERO, Vector2.ZERO, true))
+                program.window.unfocused.trigger(
+                    WindowEvent(
+                        WindowEventType.UNFOCUSED,
+                        Vector2.ZERO,
+                        Vector2.ZERO,
+                        true
+                    )
+                )
             }
 
             SDL_EVENT_WINDOW_MOUSE_ENTER -> {
-                program.mouse.entered.trigger(MouseEvent(Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, MouseEventType.ENTERED, MouseButton.NONE, emptySet()))
+                program.mouse.entered.trigger(
+                    MouseEvent(
+                        Vector2.ZERO,
+                        Vector2.ZERO,
+                        Vector2.ZERO,
+                        MouseEventType.ENTERED,
+                        MouseButton.NONE,
+                        emptySet()
+                    )
+                )
             }
+
             SDL_EVENT_WINDOW_MOUSE_LEAVE -> {
-                program.mouse.exited.trigger(MouseEvent(Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, MouseEventType.EXITED, MouseButton.NONE, emptySet()))
+                program.mouse.exited.trigger(
+                    MouseEvent(
+                        Vector2.ZERO,
+                        Vector2.ZERO,
+                        Vector2.ZERO,
+                        MouseEventType.EXITED,
+                        MouseButton.NONE,
+                        emptySet()
+                    )
+                )
             }
 
             SDL_EVENT_MOUSE_MOTION -> {
@@ -284,6 +311,7 @@ class ApplicationSDL(override var program: Program, override var configuration: 
                     )
                 )
             }
+
             SDL_EVENT_CLIPBOARD_UPDATE -> {
                 println("clipboard updated")
             }
@@ -292,10 +320,28 @@ class ApplicationSDL(override var program: Program, override var configuration: 
 
             }
 
+            SDL_EVENT_FINGER_DOWN -> {
+                val fingerEvent = event.tfinger()
+            }
+
+            SDL_EVENT_FINGER_UP -> {
+                val fingerEvent = event.tfinger()
+                //println(fingerEvent.fingerID())
+            }
+
+            SDL_EVENT_FINGER_MOTION -> {
+                val fingerEvent = event.tfinger()
+            }
+
+            SDL_EVENT_FINGER_CANCELED -> {
+                val fingerEvent = event.tfinger()
+            }
+
+
             SDL_EVENT_TEXT_INPUT -> {
                 val textEvent = event.text()
                 program.keyboard.character.trigger(
-                    CharacterEvent(textEvent.textString()?.first()?:' ', emptySet())
+                    CharacterEvent(textEvent.textString()?.first() ?: ' ', emptySet())
                 )
             }
 
@@ -420,8 +466,9 @@ class ApplicationSDL(override var program: Program, override var configuration: 
         configuration: WindowConfiguration,
         program: Program
     ): ApplicationWindow {
-        TODO("Not yet implemented")
+        // acquire current context, we may be calling this from another context that we want to return to
+        //val currentActiveContext = SDL_GL_GetCurrentContext()
+
+        return createApplicationWindowSDL(this, configuration, program)
     }
-
-
 }

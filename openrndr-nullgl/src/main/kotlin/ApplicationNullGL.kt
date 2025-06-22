@@ -14,7 +14,6 @@ val logger = KotlinLogging.logger {}
 class ApplicationNullGL(override var program: Program, override var configuration: Configuration) : Application() {
 
     val startMS = System.currentTimeMillis()
-    private var exitRequested = false
 
     init {
         Driver.driver = DriverNullGL()

@@ -11,7 +11,6 @@ import org.lwjgl.sdl.SDLStdinc.SDL_free
 import org.lwjgl.sdl.SDLVideo.SDL_GetDesktopDisplayMode
 import org.lwjgl.sdl.SDLVideo.SDL_GetDisplayBounds
 import org.lwjgl.sdl.SDLVideo.SDL_GetDisplayName
-import org.lwjgl.sdl.SDLVideo.SDL_GetDisplayProperties
 import org.lwjgl.sdl.SDLVideo.SDL_GetDisplays
 import org.lwjgl.sdl.SDL_Rect
 import org.openrndr.Application
@@ -74,7 +73,6 @@ class ApplicationBaseSDL : ApplicationBase() {
            }
            SDL_free(displays)
        }
-
     }
 
     override fun close() {
