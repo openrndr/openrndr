@@ -30,10 +30,16 @@ actual abstract class Application {
         }
     }
 
-    actual abstract fun requestDraw()
+    var drawRequested = true
+    actual open fun requestDraw() {
+        drawRequested = true
+    }
     actual abstract fun requestFocus()
 
-    actual abstract fun exit()
+    var exitRequested = false
+    actual open fun exit() {
+        exitRequested = true
+    }
     actual abstract suspend fun setup()
 
     actual abstract fun loop()
