@@ -38,7 +38,6 @@ class ApplicationWebGL(override var program: Program, override var configuration
         TODO("Not yet implemented")
     }
 
-    private var drawRequested: Boolean = true
     private var referenceTime: Double = 0.0
 
     var canvas: HTMLCanvasElement? = null
