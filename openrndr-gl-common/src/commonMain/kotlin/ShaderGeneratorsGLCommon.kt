@@ -626,7 +626,7 @@ ${
 void main(void) {
 	float strokeAlpha = strokeMask();
 
-    vec4 x_stroke = va_color;
+    vec4 x_stroke = u_stroke;
     vec4 x_fill = u_fill;
 
 ${shadeStructure.fragmentTransform?.prependIndent("        ") ?: ""}
