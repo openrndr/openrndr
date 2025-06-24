@@ -29,7 +29,7 @@ class ProgramRenderTargetGL3(override val program: Program) : ProgramRenderTarge
         get() = cachedSize.y.toInt()
 
     override val contentScale: Double
-        get() = cachedContentScale
+        get() = program.window.contentScale
 
     override val hasColorAttachments = true
     override val hasDepthBuffer = true
@@ -41,6 +41,7 @@ class ProgramRenderTargetGL3(override val program: Program) : ProgramRenderTarge
     override fun bindTarget() {
         cachedSize = program.window.size
         cachedContentScale = program.window.contentScale
+        logger.trace { "binding window target $cachedSize, $cachedContentScale" }
         super.bindTarget()
     }
 }
@@ -101,7 +102,6 @@ open class RenderTargetGL3(
     override val hasColorAttachments: Boolean get() = colorAttachments.isNotEmpty()
     override val hasDepthBuffer: Boolean get() = depthBuffer?.hasDepth == true
     override val hasStencilBuffer: Boolean get() = depthBuffer?.hasStencil == true
-
 
     override fun colorBuffer(index: Int): ColorBuffer {
         require(!destroyed)

@@ -2,6 +2,16 @@ package org.openrndr.internal.sdl
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.lwjgl.glfw.GLFW.glfwDestroyWindow
+import org.lwjgl.sdl.SDLMouse.SDL_CursorVisible
+import org.lwjgl.sdl.SDLMouse.SDL_HideCursor
+import org.lwjgl.sdl.SDLMouse.SDL_SYSTEM_CURSOR_CROSSHAIR
+import org.lwjgl.sdl.SDLMouse.SDL_SYSTEM_CURSOR_DEFAULT
+import org.lwjgl.sdl.SDLMouse.SDL_SYSTEM_CURSOR_EW_RESIZE
+import org.lwjgl.sdl.SDLMouse.SDL_SYSTEM_CURSOR_NS_RESIZE
+import org.lwjgl.sdl.SDLMouse.SDL_SYSTEM_CURSOR_POINTER
+import org.lwjgl.sdl.SDLMouse.SDL_SYSTEM_CURSOR_TEXT
+import org.lwjgl.sdl.SDLMouse.SDL_SetCursor
+import org.lwjgl.sdl.SDLMouse.SDL_ShowCursor
 import org.lwjgl.sdl.SDLVideo.SDL_CreateWindow
 import org.lwjgl.sdl.SDLVideo.SDL_GL_ACCELERATED_VISUAL
 import org.lwjgl.sdl.SDLVideo.SDL_GL_ALPHA_SIZE
@@ -19,19 +29,29 @@ import org.lwjgl.sdl.SDLVideo.SDL_GL_DOUBLEBUFFER
 import org.lwjgl.sdl.SDLVideo.SDL_GL_FRAMEBUFFER_SRGB_CAPABLE
 import org.lwjgl.sdl.SDLVideo.SDL_GL_GREEN_SIZE
 import org.lwjgl.sdl.SDLVideo.SDL_GL_MULTISAMPLESAMPLES
+import org.lwjgl.sdl.SDLVideo.SDL_GL_MakeCurrent
 import org.lwjgl.sdl.SDLVideo.SDL_GL_RED_SIZE
 import org.lwjgl.sdl.SDLVideo.SDL_GL_ResetAttributes
 import org.lwjgl.sdl.SDLVideo.SDL_GL_SHARE_WITH_CURRENT_CONTEXT
 import org.lwjgl.sdl.SDLVideo.SDL_GL_STENCIL_SIZE
 import org.lwjgl.sdl.SDLVideo.SDL_GL_SetAttribute
+import org.lwjgl.sdl.SDLVideo.SDL_GL_SwapWindow
 import org.lwjgl.sdl.SDLVideo.SDL_GetWindowDisplayScale
+import org.lwjgl.sdl.SDLVideo.SDL_GetWindowPosition
+import org.lwjgl.sdl.SDLVideo.SDL_GetWindowSize
+import org.lwjgl.sdl.SDLVideo.SDL_GetWindowSizeInPixels
 import org.lwjgl.sdl.SDLVideo.SDL_GetWindowTitle
+import org.lwjgl.sdl.SDLVideo.SDL_SetWindowPosition
+import org.lwjgl.sdl.SDLVideo.SDL_SetWindowSize
 import org.lwjgl.sdl.SDLVideo.SDL_SetWindowTitle
 import org.lwjgl.sdl.SDLVideo.SDL_WINDOW_ALWAYS_ON_TOP
 import org.lwjgl.sdl.SDLVideo.SDL_WINDOW_BORDERLESS
 import org.lwjgl.sdl.SDLVideo.SDL_WINDOW_HIGH_PIXEL_DENSITY
 import org.lwjgl.sdl.SDLVideo.SDL_WINDOW_OPENGL
 import org.lwjgl.sdl.SDLVideo.SDL_WINDOW_RESIZABLE
+import org.lwjgl.sdl.SDL_Event
+import org.lwjgl.system.MemoryStack
+import org.lwjgl.system.MemoryStack.stackPush
 import org.openrndr.ApplicationWindow
 import org.openrndr.CursorType
 import org.openrndr.MouseCursorHideMode
@@ -42,9 +62,11 @@ import org.openrndr.WindowMultisample
 import org.openrndr.internal.Driver
 import org.openrndr.internal.gl3.DriverGL3Configuration
 import org.openrndr.internal.gl3.DriverTypeGL
+import org.openrndr.internal.gl3.ProgramRenderTargetGL3
 import org.openrndr.internal.gl3.glVersion
-import org.openrndr.internal.glfw.ApplicationGLFW
+import org.openrndr.internal.gl3.glViewport
 import org.openrndr.math.Vector2
+import kotlin.use
 
 
 private val logger = KotlinLogging.logger { }
@@ -54,12 +76,13 @@ class ApplicationWindowSDL(
     val window: Long,
     val glContext: Long,
     windowTitle: String,
-    override val windowResizable: Boolean,
-    override val windowMultisample: WindowMultisample,
-    override val windowClosable: Boolean,
+    override var windowResizable: Boolean,
+    override var windowMultisample: WindowMultisample,
+    override var windowClosable: Boolean,
     program: Program,
 ) : ApplicationWindow(program) {
 
+    var closeRequested = false
 
     override var windowTitle: String
         get() = SDL_GetWindowTitle(window) ?: "OPENRNDR"
@@ -67,25 +90,60 @@ class ApplicationWindowSDL(
             SDL_SetWindowTitle(window, value)
         }
     override var windowPosition: Vector2
-        get() = TODO("Not yet implemented")
-        set(value) {}
+        get() {
+            stackPush().use { stack ->
+                val x = stack.mallocInt(1)
+                val y = stack.mallocInt(1)
+                SDL_GetWindowPosition(window, x, y)
+                return Vector2(x[0].toDouble(), y[0].toDouble())
+            }
+        }
+        set(value) {
+            SDL_SetWindowPosition(window, value.x.toInt(), value.y.toInt())
+        }
     override var windowSize: Vector2
-        get() = TODO("Not yet implemented")
-        set(value) {}
+        get() {
+            stackPush().use { stack ->
+                val width = stack.mallocInt(1)
+                val height = stack.mallocInt(1)
+                SDL_GetWindowSize(window, width, height)
+                return Vector2(width[0].toDouble(), height[0].toDouble())
+            }
+        }
+        set(value) {
+            SDL_SetWindowSize(window, value.x.toInt(), value.y.toInt())
+        }
     override val windowFocused: Boolean
         get() = TODO("Not yet implemented")
-    override var cursorPosition: Vector2
-        get() = TODO("Not yet implemented")
-        set(value) {}
+    override var cursorPosition: Vector2 = Vector2.ZERO
     override var cursorVisible: Boolean
-        get() = TODO("Not yet implemented")
-        set(value) {}
+        get() {
+            return SDL_CursorVisible()
+        }
+        set(value) {
+            if (value) {
+                SDL_ShowCursor()
+            } else {
+                SDL_HideCursor()
+            }
+
+        }
     override var cursorHideMode: MouseCursorHideMode
         get() = TODO("Not yet implemented")
         set(value) {}
     override var cursorType: CursorType
         get() = TODO("Not yet implemented")
-        set(value) {}
+        set(value) {
+            val sdlCursor = when (cursorType) {
+                CursorType.HAND_CURSOR -> SDL_SYSTEM_CURSOR_DEFAULT
+                CursorType.ARROW_CURSOR -> SDL_SYSTEM_CURSOR_POINTER
+                CursorType.HRESIZE_CURSOR -> SDL_SYSTEM_CURSOR_EW_RESIZE
+                CursorType.VRESIZE_CURSOR -> SDL_SYSTEM_CURSOR_NS_RESIZE
+                CursorType.CROSSHAIR_CURSOR -> SDL_SYSTEM_CURSOR_CROSSHAIR
+                CursorType.IBEAM_CURSOR -> SDL_SYSTEM_CURSOR_TEXT
+            }
+            SDL_SetCursor(sdlCursor.toLong())
+        }
     override val cursorInWindow: Boolean
         get() = TODO("Not yet implemented")
 
@@ -104,9 +162,7 @@ class ApplicationWindowSDL(
         this.windowTitle = windowTitle
     }
 
-
-
-
+    val defaultRenderTarget by lazy { ProgramRenderTargetGL3(program) }
     override fun destroy() {
         logger.info { "destroying window $window" }
         for (extension in program.extensions) {
@@ -115,6 +171,61 @@ class ApplicationWindowSDL(
         Driver.instance.destroyContext(window)
         glfwDestroyWindow(window)
         application.windows.remove(this)
+    }
+
+    private fun setupSizes() {
+        stackPush().use { stack ->
+            program.window.contentScale = SDL_GetWindowDisplayScale(window).toDouble()
+
+            val fbw = stack.mallocInt(1)
+            val fbh = stack.mallocInt(1)
+
+            SDL_GetWindowSizeInPixels(window, fbw, fbh)
+            glViewport(0, 0, fbw[0], fbh[0])
+
+            SDL_GetWindowSize(window, fbw, fbh)
+            program.width = fbw[0]
+            program.height = fbh[0]
+        }
+    }
+
+
+    fun deliverEvents() {
+        program.window.drop.deliver()
+        program.window.sized.deliver()
+        program.window.unfocused.deliver()
+        program.window.focused.deliver()
+        program.window.minimized.deliver()
+        program.window.restored.deliver()
+        program.keyboard.keyDown.deliver()
+        program.keyboard.keyUp.deliver()
+        program.keyboard.keyRepeat.deliver()
+        program.keyboard.character.deliver()
+        program.mouse.moved.deliver()
+        program.mouse.scrolled.deliver()
+        program.mouse.buttonDown.deliver()
+        program.mouse.buttonUp.deliver()
+        program.mouse.dragged.deliver()
+        program.mouse.entered.deliver()
+        program.mouse.exited.deliver()
+    }
+
+    fun update() {
+        SDL_GL_MakeCurrent(window, glContext)
+        val event = SDL_Event.calloc()
+
+        event.free()
+        setupSizes()
+        deliverEvents()
+        program.drawer.reset()
+        program.drawer.ortho()
+
+        defaultRenderTarget.bindTarget()
+        program.dispatcher.execute()
+
+        program.drawImpl()
+
+        SDL_GL_SwapWindow(window)
     }
 }
 
@@ -177,5 +288,4 @@ fun createApplicationWindowSDL(
         configuration.closable,
         program = program
     )
-
 }
