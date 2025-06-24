@@ -13,6 +13,7 @@ import org.lwjgl.sdl.SDLMouse.SDL_SYSTEM_CURSOR_TEXT
 import org.lwjgl.sdl.SDLMouse.SDL_SetCursor
 import org.lwjgl.sdl.SDLMouse.SDL_ShowCursor
 import org.lwjgl.sdl.SDLVideo.SDL_CreateWindow
+import org.lwjgl.sdl.SDLVideo.SDL_DestroyWindow
 import org.lwjgl.sdl.SDLVideo.SDL_GL_ACCELERATED_VISUAL
 import org.lwjgl.sdl.SDLVideo.SDL_GL_ALPHA_SIZE
 import org.lwjgl.sdl.SDLVideo.SDL_GL_BLUE_SIZE
@@ -59,10 +60,13 @@ import org.openrndr.PresentationMode
 import org.openrndr.Program
 import org.openrndr.WindowConfiguration
 import org.openrndr.WindowMultisample
+import org.openrndr.WindowProgram
+import org.openrndr.draw.Drawer
 import org.openrndr.internal.Driver
 import org.openrndr.internal.gl3.DriverGL3Configuration
 import org.openrndr.internal.gl3.DriverTypeGL
 import org.openrndr.internal.gl3.ProgramRenderTargetGL3
+import org.openrndr.internal.gl3.RenderTargetGL3
 import org.openrndr.internal.gl3.glVersion
 import org.openrndr.internal.gl3.glViewport
 import org.openrndr.math.Vector2
@@ -80,9 +84,21 @@ class ApplicationWindowSDL(
     override var windowMultisample: WindowMultisample,
     override var windowClosable: Boolean,
     program: Program,
+    drawer: Drawer,
 ) : ApplicationWindow(program) {
 
+    init {
+        program.application = application
+        program.drawer = drawer
+        (program as? WindowProgram)?.applicationWindow = this
+    }
+
     var closeRequested = false
+
+    fun close() {
+        SDL_DestroyWindow(window)
+    }
+
 
     override var windowTitle: String
         get() = SDL_GetWindowTitle(window) ?: "OPENRNDR"
@@ -212,6 +228,8 @@ class ApplicationWindowSDL(
 
     fun update() {
         SDL_GL_MakeCurrent(window, glContext)
+        defaultRenderTarget.bind()
+
         val event = SDL_Event.calloc()
 
         event.free()
@@ -220,7 +238,7 @@ class ApplicationWindowSDL(
         program.drawer.reset()
         program.drawer.ortho()
 
-        defaultRenderTarget.bindTarget()
+
         program.dispatcher.execute()
 
         program.drawImpl()
@@ -232,7 +250,8 @@ class ApplicationWindowSDL(
 fun createApplicationWindowSDL(
     application: ApplicationSDL,
     configuration: WindowConfiguration,
-    program: Program
+    program: Program,
+    drawer: Drawer
 ): ApplicationWindowSDL {
 
     SDL_GL_ResetAttributes()
@@ -278,6 +297,9 @@ fun createApplicationWindowSDL(
 
     val window = SDL_CreateWindow(configuration.title, configuration.width, configuration.height, windowFlags)
     val glContext = SDL_GL_CreateContext(window)
+
+
+
     return ApplicationWindowSDL(
         application,
         window,
@@ -286,6 +308,8 @@ fun createApplicationWindowSDL(
         configuration.resizable,
         configuration.multisample,
         configuration.closable,
-        program = program
+        program = program,
+        drawer
+
     )
 }

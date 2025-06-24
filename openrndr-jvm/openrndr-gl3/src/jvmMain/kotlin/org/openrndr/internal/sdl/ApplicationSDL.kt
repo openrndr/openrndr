@@ -167,8 +167,10 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             hideDecorations = configuration.hideWindowDecorations,
             resizable = configuration.windowResizable
         )
+        program.driver = Driver.instance
+        program.drawer = Drawer(Driver.instance)
 
-        window = createApplicationWindowSDL(this, wc, program)
+        window = createApplicationWindowSDL(this, wc, program, program.drawer)
     }
 
     private fun handleSDLEvent(event: SDL_Event) {
@@ -349,8 +351,6 @@ class ApplicationSDL(override var program: Program, override var configuration: 
     override fun loop() {
         defaultRenderTarget.bind()
 
-        program.driver = Driver.instance
-        program.drawer = Drawer(Driver.instance)
         runBlocking {
             program.setup()
         }
@@ -361,6 +361,19 @@ class ApplicationSDL(override var program: Program, override var configuration: 
                 handleSDLEvent(event)
             }
             window.update()
+
+            val closeWindows = windows.filter { it.closeRequested }
+            for (window in closeWindows) {
+                windows.remove(window)
+                windowsById.remove(SDL_GetWindowID(window.window))
+                window.close()
+            }
+
+//            println("main window program: ${window.program}")
+            for (window in windows) {
+                window.update()
+//                println("child window program: ${window.program}")
+            }
         }
     }
 
@@ -391,8 +404,14 @@ class ApplicationSDL(override var program: Program, override var configuration: 
 
         val oldContext = SDL_GL_GetCurrentContext()
         SDL_GL_MakeCurrent(primaryWindow, primaryGlContext)
-        val childWindow = createApplicationWindowSDL(this, configuration, program)
+        val childWindow = createApplicationWindowSDL(this, configuration, program, window.program.drawer)
+        childWindow.defaultRenderTarget.bind()
+
+        runBlocking {
+            program.setup()
+        }
         windows.add(childWindow)
+        windowsById[SDL_GetWindowID(childWindow.window)] = childWindow
 
         if (oldContext != primaryGlContext) {
             SDL_GL_MakeCurrent(primaryWindow, oldContext)
