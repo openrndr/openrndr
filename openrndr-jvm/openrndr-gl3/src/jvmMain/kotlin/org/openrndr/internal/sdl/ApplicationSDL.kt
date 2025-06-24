@@ -156,7 +156,19 @@ class ApplicationSDL(override var program: Program, override var configuration: 
     override suspend fun setup() {
         createPrimaryWindow()
         SDL_GL_MakeCurrent(primaryWindow, primaryGlContext)
-        window = createApplicationWindowSDL(this, WindowConfiguration(), program)
+
+        val wc = WindowConfiguration(
+            width = configuration.width,
+            height = configuration.height,
+            position = configuration.position,
+            title = configuration.title,
+            multisample = configuration.multisample,
+            alwaysOnTop = configuration.windowAlwaysOnTop,
+            hideDecorations = configuration.hideWindowDecorations,
+            resizable = configuration.windowResizable
+        )
+
+        window = createApplicationWindowSDL(this, wc, program)
     }
 
     private fun handleSDLEvent(event: SDL_Event) {
