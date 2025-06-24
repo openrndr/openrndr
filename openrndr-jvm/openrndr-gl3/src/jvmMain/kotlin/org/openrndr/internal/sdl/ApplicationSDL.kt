@@ -247,19 +247,38 @@ class ApplicationSDL(override var program: Program, override var configuration: 
 
             SDL_EVENT_MOUSE_MOTION -> {
                 val mouseEvent = event.motion()
-                cursorPosition = Vector2(mouseEvent.x().toDouble(), mouseEvent.y().toDouble())
-                windowById(event.window().windowID()).program.mouse.moved.trigger(
-                    MouseEvent(
-                        cursorPosition, Vector2.ZERO, Vector2.ZERO, MouseEventType.MOVED,
-                        MouseButton.NONE, emptySet()
+                val window = windowById(event.window().windowID())
+                val cursorPosition = Vector2(mouseEvent.x().toDouble(), mouseEvent.y().toDouble())
+                val displacement = Vector2(mouseEvent.xrel().toDouble(), mouseEvent.yrel().toDouble())
+                window.cursorPosition = cursorPosition
+
+                if (!window.primaryButtonDown) {
+                    window.program.mouse.moved.trigger(
+                        MouseEvent(
+                            cursorPosition, Vector2.ZERO, displacement, MouseEventType.MOVED,
+                            MouseButton.NONE, emptySet()
+                        )
                     )
-                )
+                } else {
+                    window.program.mouse.dragged.trigger(
+                        MouseEvent(
+                            cursorPosition, Vector2.ZERO, displacement, MouseEventType.MOVED,
+                            MouseButton.NONE, emptySet()
+                        )
+                    )
+                }
             }
 
             SDL_EVENT_MOUSE_BUTTON_UP -> {
                 val mouseEvent = event.button()
-                cursorPosition = Vector2(mouseEvent.x().toDouble(), mouseEvent.y().toDouble())
-                windowById(event.window().windowID()).program.mouse.buttonUp.trigger(
+                val cursorPosition = Vector2(mouseEvent.x().toDouble(), mouseEvent.y().toDouble())
+
+                val window = windowById(event.window().windowID())
+                window.cursorPosition = cursorPosition
+                if (mouseEvent.button() == 1.toByte()) {
+                    window.primaryButtonDown = false
+                }
+                window.program.mouse.buttonUp.trigger(
                     MouseEvent(
                         cursorPosition, Vector2.ZERO, Vector2.ZERO, MouseEventType.BUTTON_UP,
                         MouseButton.LEFT, emptySet()
@@ -269,8 +288,13 @@ class ApplicationSDL(override var program: Program, override var configuration: 
 
             SDL_EVENT_MOUSE_BUTTON_DOWN -> {
                 val mouseEvent = event.button()
-                cursorPosition = Vector2(mouseEvent.x().toDouble(), mouseEvent.y().toDouble())
-                windowById(event.window().windowID()).program.mouse.buttonDown.trigger(
+                val cursorPosition = Vector2(mouseEvent.x().toDouble(), mouseEvent.y().toDouble())
+                val window = windowById(event.window().windowID())
+                window.cursorPosition = cursorPosition
+                if (mouseEvent.button() == 1.toByte()) {
+                    window.primaryButtonDown = true
+                }
+                window.program.mouse.buttonDown.trigger(
                     MouseEvent(
                         cursorPosition, Vector2.ZERO, Vector2.ZERO, MouseEventType.BUTTON_DOWN,
                         MouseButton.LEFT, emptySet()
@@ -283,8 +307,17 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             }
 
             SDL_EVENT_MOUSE_WHEEL -> {
-                //program.mouse.scrolled.trigger()
+                val mouseEvent = event.wheel()
 
+                cursorPosition = Vector2(mouseEvent.mouse_x().toDouble(), mouseEvent.mouse_y().toDouble())
+
+                val rotation = Vector2(mouseEvent.x().toDouble(), mouseEvent.y().toDouble())
+                windowById(event.window().windowID()).program.mouse.scrolled.trigger(
+                    MouseEvent(
+                        cursorPosition, rotation, Vector2.ZERO, MouseEventType.BUTTON_DOWN,
+                        MouseButton.LEFT, emptySet()
+                    )
+                )
             }
 
             SDL_EVENT_FINGER_DOWN -> {
