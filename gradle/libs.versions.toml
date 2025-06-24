@@ -1,7 +1,7 @@
 [versions]
-kotlinApi = "2.1"
-kotlinLanguage = "2.1"
-kotlin = "2.1.20"
+kotlinApi = "2.2"
+kotlinLanguage = "2.2"
+kotlin = "2.2.0"
 jvmTarget = "17"
 kotlinxCoroutines = "1.10.2"
 kotlinLogging = "7.0.7"
