@@ -93,6 +93,7 @@ class ApplicationWindowSDL(
         (program as? WindowProgram)?.applicationWindow = this
     }
 
+    var primaryButtonDown = false
     var closeRequested = false
 
     fun close() {
