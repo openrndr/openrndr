@@ -165,7 +165,8 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             multisample = configuration.multisample,
             alwaysOnTop = configuration.windowAlwaysOnTop,
             hideDecorations = configuration.hideWindowDecorations,
-            resizable = configuration.windowResizable
+            resizable = configuration.windowResizable,
+            fullscreen = configuration.fullscreen,
         )
         program.driver = Driver.instance
         program.drawer = Drawer(Driver.instance)
@@ -205,6 +206,7 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             }
 
             SDL_EVENT_WINDOW_FOCUS_GAINED -> {
+                SDL_SetWindowMouseGrab(event.window().windowID().toLong(), true)
                 windowById(event.window().windowID()).program.window.focused.trigger(WindowEvent(WindowEventType.FOCUSED, Vector2.ZERO, Vector2.ZERO, true))
             }
 
@@ -401,11 +403,8 @@ class ApplicationSDL(override var program: Program, override var configuration: 
                 windowsById.remove(SDL_GetWindowID(window.window))
                 window.close()
             }
-
-//            println("main window program: ${window.program}")
             for (window in windows) {
                 window.update()
-//                println("child window program: ${window.program}")
             }
         }
     }
