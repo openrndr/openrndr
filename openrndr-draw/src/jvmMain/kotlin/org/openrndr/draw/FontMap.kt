@@ -12,7 +12,9 @@ import java.net.URL
 
 private val logger = KotlinLogging.logger {}
 
-fun loadFont(
+private val scaleCache = mutableMapOf<Pair<String, (Face) -> Double>, Double>()
+
+fun loadFontImageMap(
     fileOrUrl: String,
     size: Double,
     characterSet: Set<Char> = defaultFontmapCharacterSet,
@@ -20,9 +22,9 @@ fun loadFont(
     fontScaler: (Face) -> Double = ::fontHeightScaler
 ): FontImageMap {
     val activeSet = if (characterSet.contains(' ')) characterSet else (characterSet + ' ')
-    val font = loadFace(fileOrUrl)
-    val scale = fontScaler(font) * size
-    font.close()
+
+    val scale = scaleCache.getOrPut(fileOrUrl to fontScaler) { loadFace(fileOrUrl).use { fontScaler(it) } } * size
+
 
     return try {
         URL(fileOrUrl)
@@ -43,7 +45,7 @@ actual val defaultFontMap by lazy {
     val defaultFontPath = File("data/fonts/default.otf")
     if (defaultFontPath.isFile) {
         logger.info { "loading default font from ${defaultFontPath.absolutePath}" }
-        loadFont(defaultFontPath.path, 16.0, contentScale = RenderTarget.active.contentScale)
+        loadFontImageMap(defaultFontPath.path, 16.0, contentScale = RenderTarget.active.contentScale)
     } else {
         logger.warn { "default font ${defaultFontPath.absolutePath} not found" }
         null
