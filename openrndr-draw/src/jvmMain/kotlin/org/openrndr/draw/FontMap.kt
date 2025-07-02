@@ -59,6 +59,8 @@ private fun isValidUrl(url: String): Boolean {
         true
     } catch (_: MalformedURLException) {
         false
+    } catch(_: IllegalArgumentException) {
+        false
     }
 }
 
