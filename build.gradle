@@ -54,6 +54,17 @@ dependencies {
     dokka(project(":openrndr-js:openrndr-webgl:"))
 }
 
+tasks.every {
+    println(it)
+}
+
+class SleepTask extends DefaultTask {
+    @TaskAction
+    void action() {
+        sleep(60 * 5 * 1000)
+    }
+}
+tasks.register("sleep", SleepTask)
 gradle.buildFinished {
     println("\n")
     println("openrndr = \"${version}\"")
