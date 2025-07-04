@@ -1,35 +1,38 @@
-//package org.openrndr.events
-//
-//import org.amshove.kluent.`should be equal to`
-//import org.spekframework.spek2.Spek
-//import org.spekframework.spek2.style.specification.describe
-//
-//
-//object TestSegment : Spek({
-//
-//    describe("an event") {
-//        val event = Event<Int>()
-//
-//        val listener = { _: Int ->
-//
-//        }
-//
-//        fun listener2(e: Int) {
-//            e
-//        }
-//
-//        val ref = event.listen(listener)
-//        event.listeners.size `should be equal to` 1
-//
-//        event.cancel(ref)
-//        event.listeners.size `should be equal to` 0
-//
-//
-//        event.listen {
-//
-//        }
-//        event.listen(::listener2)
-//
-//    }
-//
-//})
+package org.openrndr.events
+
+import org.junit.jupiter.api.Test
+import kotlin.test.assertEquals
+
+class TestSegment {
+    @Test
+    fun `event should have 1 listener`() {
+        val event = Event<Int>()
+        val listener = { _: Int -> }
+        val ref = event.listen(listener)
+        assertEquals(1, event.listeners.size)
+    }
+
+    @Test
+    fun `event there should be 0 listeners after cancelling`() {
+        val event = Event<Int>()
+        val listener = { _: Int -> }
+        val ref = event.listen(listener)
+        event.cancel(ref)
+        assertEquals(0, event.listeners.size)
+    }
+
+    @Test
+    fun `event should have 3 listeners`() {
+        val event = Event<Int>()
+        val listener = { _: Int -> }
+
+        fun listener2(e: Int) {
+            e
+        }
+
+        event.listen(listener)
+        event.listen {}
+        event.listen(::listener2)
+        assertEquals(3, event.listeners.size)
+    }
+}
