@@ -1,79 +1,82 @@
-import org.amshove.kluent.`should be equal to`
-import org.amshove.kluent.`should be greater or equal to`
-import org.amshove.kluent.`should be less or equal to`
 import org.openrndr.math.Vector2
 import org.openrndr.math.YPolarity
 import org.openrndr.shape.Rectangle
 import org.openrndr.shape.Winding
-import io.kotest.core.spec.style.DescribeSpec
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
-class TestRectangle : DescribeSpec({
-    describe("A rectangle with default height") {
+class TestRectangle {
+    @Test
+    fun `A rectangle's default height equals its width`() {
         val width = 200.0
 
-        it("has default height equal to width") {
-            Rectangle(50.0, 50.0, width).height `should be equal to` width
-            Rectangle.fromCenter(Vector2.ZERO, width).height `should be equal to` width
-            Rectangle(Vector2.ZERO, width).height `should be equal to` width
+        assertEquals(width, Rectangle(50.0, 50.0, width).height)
+        assertEquals(width, Rectangle.fromCenter(Vector2.ZERO, width).height)
+        assertEquals(width, Rectangle(Vector2.ZERO, width).height)
+    }
+
+    val c1 = Rectangle(50.0, 50.0, 200.0, 200.0).contour
+
+    @Test
+    fun `A rectangle's contour is closed`() {
+        assertTrue(c1.closed)
+    }
+
+    @Test
+    fun `A rectangle's contour has CCW winding`() {
+        assertEquals(Winding.CLOCKWISE, c1.winding)
+    }
+
+    @Test
+    fun `A rectangle's contour has CC negative y`() {
+        assertEquals(YPolarity.CW_NEGATIVE_Y, c1.polarity)
+    }
+
+    // testing for issue described in https://github.com/openrndr/openrndr/issues/135
+    val c2 = Rectangle(100.0, 100.0, 300.0, 300.0).contour
+
+    @Test
+    fun `A specific rectangle's contour can be sampled for adaptive positions`() {
+        val aps = c2.adaptivePositions()
+        for (p in aps) {
+            assertTrue(p.x >= 100.0)
+            assertTrue(p.y >= 100.0)
+            assertTrue(p.x <= 400.0)
+            assertTrue(p.y <= 400.0)
         }
     }
 
-    describe("A rectangle's contour") {
+    @Test
+    fun `A specific rectangle's contour can be sampled for equidistant positions`() {
+        val eps = c2.equidistantPositions(10)
 
-        val c = Rectangle(50.0, 50.0, 200.0, 200.0).contour
-        it("is closed") {
-            c.closed `should be equal to` true
-        }
-        it("the winding is CCW") {
-            c.winding `should be equal to` Winding.CLOCKWISE
-        }
+        assertEquals(10, eps.size)
 
-        it("the polarity is CW negative y") {
-            c.polarity `should be equal to` YPolarity.CW_NEGATIVE_Y
-        }
-    }
-
-    describe("A specific rectangle's contour") {
-        // testing for issue described in https://github.com/openrndr/openrndr/issues/135
-        val c = Rectangle(100.0, 100.0, 300.0, 300.0).contour
-
-        it("can be sampled for adaptive positions") {
-            val aps = c.adaptivePositions()
-            for (p in aps) {
-                p.x `should be greater or equal to` 100.0
-                p.y `should be greater or equal to` 100.0
-                p.x `should be less or equal to` 400.0
-                p.y `should be less or equal to` 400.0
-            }
-        }
-
-        it("can be sampled for equidistant positions") {
-            val eps = c.equidistantPositions(10)
-            eps.size `should be equal to` 10
-
-            for (p in eps) {
-                p.x `should be greater or equal to` 100.0 - 1E-6
-                p.y `should be greater or equal to` 100.0 - 1E-6
-                p.x `should be less or equal to` 400.0 + 1E-6
-                p.y `should be less or equal to` 400.0 + 1E-6
-            }
+        for (p in eps) {
+            assertTrue(p.x >= 100.0 - 1E-6)
+            assertTrue(p.y >= 100.0 - 1E-6)
+            assertTrue(p.x <= 400.0 + 1E-6)
+            assertTrue(p.y <= 400.0 + 1E-6)
         }
     }
 
-    describe("A rectangle") {
-        val a = Rectangle.fromCenter(Vector2.ZERO, 50.0)
-        val b = Rectangle.fromCenter(Vector2.ZERO, 100.0)
-        val c = Rectangle(400.0, 400.0, 50.0)
-        val d = Rectangle(410.0, 410.0, 50.0)
+    val a = Rectangle.fromCenter(Vector2.ZERO, 50.0)
+    val b = Rectangle.fromCenter(Vector2.ZERO, 100.0)
+    val c = Rectangle(400.0, 400.0, 50.0)
+    val d = Rectangle(410.0, 410.0, 50.0)
 
-        it("intersects other rectangles") {
-            a.intersects(b) `should be equal to` true
-            b.intersects(a) `should be equal to` true
-            c.intersects(d) `should be equal to` true
-        }
-
-        it("doesn't intersect other rectangles") {
-            a.intersects(c) `should be equal to` false
-        }
+    @Test
+    fun `A rectangle intersects other rectangles`() {
+        assertTrue(a.intersects(b))
+        assertTrue(b.intersects(a))
+        assertTrue(c.intersects(d))
+        assertTrue(a.intersects(a))
     }
-})
+
+    @Test
+    fun `A rectangle doesn't intersect other rectangles`() {
+        assertFalse(a.intersects(c))
+    }
+}

@@ -36,13 +36,13 @@ These following libraries are currently in use for testing:
 
 * Spek
 * Kotest
-* [Kluent](https://github.com/MarkusAmshove/Kluent/) (recommended)
+* [Kluent](https://github.com/MarkusAmshove/Kluent/) (unmaintained)
 * [kotlin.test](https://kotlinlang.org/api/latest/kotlin.test/) (recommended)
 
-We're in the process of removing Spek and Kotest as they add very little in value to testing. When
-writing new tests, you should prefer using kotlin.test and Kluent if needed. You may need to make
-some changes in the build.gradle file to accommodate this. Take a look
-at [openrndr-svg's build.gradle.kts](/openrndr-svg/build.gradle.kts) for an example.
+We're in the process of removing Spek, Kotest and Kluent
+as they add very little in value to testing.
+When writing new tests, you should prefer using kotlin.test. Take a look at 
+[TestRectangle.kt](/openrndr-core/src/test/kotlin/TestRectangle.kt) for an example.
 
 ## I want to contribute to the documentation
 
