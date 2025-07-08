@@ -568,14 +568,11 @@ class TestPath : DescribeSpec({
                         Vector3(x = 672576.534, y = -249452.17125, z = -3334.5),
                         Vector3(x = 672949.54175, y = -248520.52550000002, z = -3334.5)), false)
 
-
         val fullLength = c.length
 
         val s = c.sampleEquidistant(600).sub(0.01, 0.05)
         println(fullLength)
         println(s.length)
         println("${fullLength * 0.04}")
-
     }
-
 })
