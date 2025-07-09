@@ -2,6 +2,7 @@ import org.openrndr.math.Vector3
 import org.openrndr.shape.Path3D
 import org.openrndr.shape.path3D
 import kotlin.test.Test
+import kotlin.test.assertEquals
 
 class TestPath {
     @Test
@@ -12,10 +13,12 @@ class TestPath {
         }
 
         val fullLength = c.length
-        val s = c.sub(0.0, 0.01)
-        println()
-        println("path3D sub length    = ${s.length}")
-        println("path3D length * 0.01 = ${fullLength * 0.01}")
+        val sub = c.sub(0.0, 0.01)
+        assertEquals(
+            fullLength * 0.01,
+            sub.length,
+            fullLength * 1e-5
+        )
     }
 
     @Test
@@ -29,11 +32,12 @@ class TestPath {
         }
 
         val fullLength = c.length
-        val s = c.sampleEquidistant(600).sub(0.0, 0.01)
-        println()
-        println("path3D full length   = $fullLength")
-        println("path3D sub length    = ${s.length}")
-        println("path3D length * 0.01 = ${fullLength * 0.01}")
+        val sub = c.sampleEquidistant(600).sub(0.0, 0.01)
+        assertEquals(
+            fullLength * 0.01,
+            sub.length,
+            fullLength * 1e-5
+        )
     }
 
     @Test
@@ -574,10 +578,11 @@ class TestPath {
         )
 
         val fullLength = c.length
-        val s = c.sampleEquidistant(600).sub(0.01, 0.05)
-        println()
-        println("path3D full length   = $fullLength")
-        println("path3D sub length    = ${s.length}")
-        println("path3D length * 0.04 = ${fullLength * 0.04}")
+        val sub = c.sampleEquidistant(600).sub(0.01, 0.05)
+        assertEquals(
+            fullLength * 0.04,
+            sub.length,
+            fullLength * 1e-5
+        )
     }
 }
