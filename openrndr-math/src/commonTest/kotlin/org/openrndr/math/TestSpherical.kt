@@ -1,9 +1,8 @@
 package org.openrndr.math
 
-import io.kotest.matchers.shouldBe
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class TestSpherical {
@@ -24,21 +23,23 @@ class TestSpherical {
         val sp2 = v.spherical
 
         // then
-        sp2.radius shouldBe sp.radius
-        sp2.phi shouldBe sp.phi
-        sp2.theta shouldBe sp.theta
+        assertEquals(sp.radius, sp2.radius)
+        assertEquals(sp.phi, sp2.phi)
+        assertEquals(sp.theta, sp2.theta)
 
         val v2 = sp2.cartesian
-        v2.x shouldBe v.x
-        v2.y shouldBe v.y
-        v2.z shouldBe v.z
+        assertEquals(v.x, v2.x)
+        assertEquals(v.y, v2.y)
+        assertEquals(v.z, v2.z)
     }
 
     @Test
     fun shouldSerializeToJson() {
         // given
         val spherical = Spherical(1.42, 2.42, 3.42)
-        Json.encodeToString(spherical) shouldBe """{"theta":1.42,"phi":2.42,"radius":3.42}"""
+        assertEquals(
+            """{"theta":1.42,"phi":2.42,"radius":3.42}""",
+            Json.encodeToString(spherical)
+        )
     }
-
 }
