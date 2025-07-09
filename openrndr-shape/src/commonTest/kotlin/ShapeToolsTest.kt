@@ -6,7 +6,7 @@ import kotlin.test.assertEquals
 class ShapeToolsTest {
 
     @Test
-    fun shouldReturnExpectedNumberOfSamples() {
+    fun `sampleEquidistant should return the expected number of samples`() {
         val points = listOf(
             Vector3(0.0, 0.0, 0.0),
             Vector3(100.0, 100.0, 50.0),

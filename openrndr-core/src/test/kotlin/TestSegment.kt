@@ -17,14 +17,14 @@ infix fun Vector2.`should be somewhat near`(other: Vector2) {
     assertEquals(other.y, y, 0.01)
 }
 
-fun assertVeryNear(a: Vector2, b: Vector2) {
-    assertEquals(a.x, b.x, 0.00001)
-    assertEquals(a.y, b.y, 0.00001)
+fun assertVeryNear(a: Vector2, b: Vector2, message: String? = null) {
+    assertEquals(a.x, b.x, 0.00001, message)
+    assertEquals(a.y, b.y, 0.00001, message)
 }
 
-fun assertSomewhatNear(a: Vector2, b: Vector2) {
-    assertEquals(a.x, b.x, 0.01)
-    assertEquals(a.y, b.y, 0.01)
+fun assertSomewhatNear(a: Vector2, b: Vector2, message: String? = null) {
+    assertEquals(a.x, b.x, 0.01, message)
+    assertEquals(a.y, b.y, 0.01, message)
 }
 
 class TestLinearSegment {

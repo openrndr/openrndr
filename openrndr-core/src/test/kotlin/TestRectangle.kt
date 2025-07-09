@@ -20,21 +20,24 @@ class TestRectangle {
     val c1 = Rectangle(50.0, 50.0, 200.0, 200.0).contour
 
     @Test
-    fun `A rectangle's contour is closed`() {
-        assertTrue(c1.closed)
+    fun `A rectangle's contour has the expected properties`() {
+        assertTrue(
+            c1.closed,
+            "A rectangle's contour is closed"
+        )
+
+        assertEquals(
+            Winding.CLOCKWISE, c1.winding,
+            "A rectangle's contour has CCW winding"
+        )
+
+        assertEquals(
+            YPolarity.CW_NEGATIVE_Y, c1.polarity,
+            "A rectangle's contour has CC negative y"
+        )
     }
 
-    @Test
-    fun `A rectangle's contour has CCW winding`() {
-        assertEquals(Winding.CLOCKWISE, c1.winding)
-    }
-
-    @Test
-    fun `A rectangle's contour has CC negative y`() {
-        assertEquals(YPolarity.CW_NEGATIVE_Y, c1.polarity)
-    }
-
-    // testing for issue described in https://github.com/openrndr/openrndr/issues/135
+    // testing for the issue described in https://github.com/openrndr/openrndr/issues/135
     val c2 = Rectangle(100.0, 100.0, 300.0, 300.0).contour
 
     @Test

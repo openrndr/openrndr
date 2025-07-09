@@ -23,48 +23,51 @@ class TestShape {
         assertNotEquals(a, b)
     }
 
-    val width = 640
-    val height = 480
+    @Test
+    fun `shape contours should have expected properties`() {
+        val width = 640
+        val height = 480
 
-    val s = shape {
-        contour {
-            moveTo(Vector2(width / 2.0 - 150.0, height / 2.0 - 150.00))
-            lineTo(cursor + Vector2(300.0, 0.0))
-            lineTo(cursor + Vector2(0.0, 300.0))
-            lineTo(anchor)
-            close()
+        val s = shape {
+            contour {
+                moveTo(Vector2(width / 2.0 - 150.0, height / 2.0 - 150.00))
+                lineTo(cursor + Vector2(300.0, 0.0))
+                lineTo(cursor + Vector2(0.0, 300.0))
+                lineTo(anchor)
+                close()
+            }
+            contour {
+                moveTo(Vector2(width / 2.0 - 80.0, height / 2.0 - 100.0))
+                lineTo(cursor + Vector2(200.0, 0.0))
+                lineTo(cursor + Vector2(0.0, 200.00))
+                lineTo(anchor)
+                close()
+            }
         }
-        contour {
-            moveTo(Vector2(width / 2.0 - 80.0, height / 2.0 - 100.0))
-            lineTo(cursor + Vector2(200.0, 0.0))
-            lineTo(cursor + Vector2(0.0, 200.00))
-            lineTo(anchor)
-            close()
-        }
-    }
 
-    @Test
-    fun `a shape should have 2 contours`() {
-        assertEquals(2, s.contours.size)
-    }
+        assertEquals(
+            2, s.contours.size,
+            message = "a shape should have 2 contours"
+        )
 
-    @Test
-    fun `all contours in the shape should be closed`() {
-        assertTrue { s.contours.all { it.closed } }
-    }
+        assertTrue(
+            s.contours.all { it.closed },
+            message = "all contours in the shape should be closed"
+        )
 
-    @Test
-    fun `a shape all contours have negative polarity`() {
-        assertTrue(s.contours.all { it.polarity == YPolarity.CW_NEGATIVE_Y })
-    }
+        assertTrue(
+            s.contours.all { it.polarity == YPolarity.CW_NEGATIVE_Y },
+            message = "a shape all contours have negative polarity"
+        )
 
-    @Test
-    fun `a shape first contour should have clockwise winding`() {
-        assertEquals(Winding.CLOCKWISE, s.contours.first().winding)
-    }
+        assertEquals(
+            Winding.CLOCKWISE, s.contours.first().winding,
+            message = "a shape first contour should have clockwise winding"
+        )
 
-    @Test
-    fun `second contour should have counter-clockwise winding`() {
-        assertEquals(Winding.COUNTER_CLOCKWISE, s.contours[1].winding)
+        assertEquals(
+            Winding.COUNTER_CLOCKWISE, s.contours[1].winding,
+            message = "second contour should have counter-clockwise winding"
+        )
     }
 }
