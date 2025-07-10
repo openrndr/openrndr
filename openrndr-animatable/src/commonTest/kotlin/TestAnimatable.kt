@@ -14,24 +14,24 @@ class TestAnimatable {
             var n = 0.0
         }
         a.updateAnimation(0L)
-        assertEquals(0L, a.createAtTimeInNs)
+        assertEquals(0L, a.createAtTimeInNs, "create time should be 0")
         a.cancel()
         a.apply {
             ::x.animate(2.0, 1000)
             ::v.animate(Vector2(3.0, 2.0), 2000)
         }
         a.updateAnimation(0L)
-        assertTrue(a.hasAnimations())
+        assertTrue(a.hasAnimations(), "hasAnimations should be true")
         a.apply {
-            assertTrue(::x.hasAnimations)
-            assertTrue(::v.hasAnimations)
-            assertFalse(::n.hasAnimations)
-            assertEquals(1000L, ::x.durationInMs)
-            assertEquals(2000L, ::v.durationInMs)
-            assertEquals(0L, ::n.durationInMs)
+            assertTrue(::x.hasAnimations, "x has animation")
+            assertTrue(::v.hasAnimations, "v has animation")
+            assertFalse(::n.hasAnimations,"n has no animation")
+            assertEquals(1000L, ::x.durationInMs, "x duration should be 1000")
+            assertEquals(2000L, ::v.durationInMs, "v duration should be 2000")
+            assertEquals(0L, ::n.durationInMs, "n duration should be 0")
         }
-        assertEquals(0.0, a.x)
-        assertEquals(Vector2(0.0, 2.0), a.v)
+        assertEquals(0.0, a.x, "initial value of x is 0.0")
+        assertEquals(Vector2(0.0, 2.0), a.v, "initial value of v is (0, 2)")
     }
 
     @Test
@@ -47,8 +47,8 @@ class TestAnimatable {
         }
         a.apply {
             ::x.cancel()
-            assertFalse(::x.hasAnimations)
-            assertTrue(::v.hasAnimations)
+            assertFalse(::x.hasAnimations, "x has no animation")
+            assertTrue(::v.hasAnimations, "v has animation")
         }
     }
 
@@ -63,7 +63,7 @@ class TestAnimatable {
             ::x.animate(1.0, 1000)
             ::x.complete()
             ::v.animate(Vector2.ONE, 2000)
-            assertEquals(3000, ::v.durationInMs)
+            assertEquals(3000, ::v.durationInMs, "v duration should be 3000")
         }
     }
 
@@ -84,7 +84,7 @@ class TestAnimatable {
                 ::x.animate(0.0, 1000)
             }
 
-            assertEquals(2000, ::u1.durationInMs)
+            assertEquals(2000, ::u1.durationInMs, "u1 duration should be 2000")
         }
     }
 
@@ -106,7 +106,7 @@ class TestAnimatable {
         }
         a.updateAnimation(1000 * 1000)
         a.apply {
-            assertEquals(1000, ::u.durationInMs)
+            assertEquals(1000, ::u.durationInMs, "u duration should be 1000")
         }
     }
 
@@ -124,16 +124,16 @@ class TestAnimatable {
                 ::x.animate(1.0, 1000)
                 ::v.animate(Vector2.ONE, 2000)
             }
-            assertTrue(::u.hasAnimations)
-            assertTrue(::x.hasAnimations)
-            assertTrue(::v.hasAnimations)
+            assertTrue(::u.hasAnimations, "u has animation")
+            assertTrue(::x.hasAnimations, "x has animation")
+            assertTrue(::v.hasAnimations, "v has animation")
         }
 
         a.apply {
             ::u.cancel()
-            assertFalse(::u.hasAnimations)
-            assertFalse(::x.hasAnimations)
-            assertFalse(::v.hasAnimations)
+            assertFalse(::u.hasAnimations, "u has no animation")
+            assertFalse(::x.hasAnimations, "x has no animation")
+            assertFalse(::v.hasAnimations, "v has no animation" )
         }
 
 
@@ -142,11 +142,11 @@ class TestAnimatable {
                 ::x.animate(1.0, 1000)
                 ::v.animate(Vector2.ONE, 2000)
             }
-            assertEquals(2000, ::u.durationInMs)
-            assertEquals(1000, ::x.durationInMs)
-            assertEquals(2000, ::v.durationInMs)
+            assertEquals(2000, ::u.durationInMs, "u duration should be 2000")
+            assertEquals(1000, ::x.durationInMs, "x duration should be 1000")
+            assertEquals(2000, ::v.durationInMs, "v duration should be 2000")
             ::u.cancel()
-            assertFalse(hasAnimations())
+            assertFalse(hasAnimations(), "a has no animations")
         }
 
         a.apply {
@@ -161,8 +161,8 @@ class TestAnimatable {
                 completed = true
             }
             updateAnimation(2000 * 1000)
-            assertTrue(completed)
-            assertTrue(xCompleted)
+            assertTrue(completed, "completed is true")
+            assertTrue(xCompleted, "xCompleted is true")
         }
 
 
@@ -181,8 +181,8 @@ class TestAnimatable {
             }
             updateAnimation(500 * 1000)
             ::u.cancel()
-            assertTrue(cancelled)
-            assertTrue(xCancelled)
+            assertTrue(cancelled, "cancelled is true")
+            assertTrue(xCancelled, "xCancelled is true")
         }
     }
 }
