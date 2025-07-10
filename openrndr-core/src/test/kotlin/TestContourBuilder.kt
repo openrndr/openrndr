@@ -1,215 +1,198 @@
-import org.amshove.kluent.`should be equal to`
-import org.amshove.kluent.`should throw`
-import org.amshove.kluent.invoking
 import org.openrndr.shape.contour
 import org.openrndr.shape.contours
-import io.kotest.core.spec.style.DescribeSpec
-import java.lang.IllegalArgumentException
+import kotlin.test.*
 
-class TestContourBuilder : DescribeSpec({
-    describe("single segment org.openrndr.shape.contours") {
-        it("support a single line segment") {
-            val c = contour {
+class TestContourBuilder {
+    @Test
+    fun `contour builder supports a single line segment`() {
+        val c = contour {
+            moveTo(0.0, 0.0)
+            lineTo(100.0, 100.0)
+        }
+        assertFalse(c.closed)
+        assertEquals(1, c.segments.size)
+    }
+
+    @Test
+    fun `contour builder supports a single quadratic curve segment`() {
+        val c = contour {
+            moveTo(0.0, 0.0)
+            curveTo(20.0, 100.0, 100.0, 100.0)
+        }
+        assertFalse(c.closed)
+        assertEquals(1, c.segments.size)
+    }
+
+    @Test
+    fun `contour builder supports a single cubic curve segment`() {
+        val c = contour {
+            moveTo(0.0, 0.0)
+            curveTo(100.0, 20.0, 20.0, 100.0, 100.0, 100.0)
+        }
+        assertFalse(c.closed)
+        assertEquals(1, c.segments.size)
+    }
+
+    @Test
+    fun `contour builder supports a single arc segment `() {
+        val c = contour {
+            moveTo(0.0, 0.0)
+            arcTo(100.0, 100.0, 40.0, largeArcFlag = false, sweepFlag = false, tx = 200.0, ty = 200.0)
+        }
+        assertFalse(c.closed)
+    }
+
+    @Test
+    fun `contour builder supports a single quadratic continueTo segment `() {
+        val c = contour {
+            moveTo(0.0, 0.0)
+            continueTo(100.0, 100.0)
+        }
+        assertFalse(c.closed)
+        assertEquals(1, c.segments.size)
+    }
+
+    @Test
+    fun `contour builder supports a single cubic continueTo segment `() {
+        val c = contour {
+            moveTo(0.0, 0.0)
+            continueTo(20.0, 30.0, 100.0, 100.0)
+        }
+        assertFalse(c.closed)
+        assertEquals(1, c.segments.size)
+    }
+
+    @Test
+    fun `contour builder supports a simple closed shape`() {
+        val c = contour {
+            moveTo(0.0, 0.0)
+            lineTo(100.0, 100.0)
+            lineTo(200.0, 100.0)
+            close()
+        }
+        assertTrue(c.closed)
+        assertEquals(3, c.segments.size)
+    }
+}
+
+class TestContourBuilderErrors {
+    @Test
+    fun `detect contour builder errors`() {
+        assertFailsWith<IllegalArgumentException>("detects multiple moveTo commands") {
+            contour {
                 moveTo(0.0, 0.0)
                 lineTo(100.0, 100.0)
+                moveTo(200.0, 200.0)
             }
-            c.closed `should be equal to` false
-            c.segments.size `should be equal to` 1
         }
-
-        it("support a single quadratic curve segment") {
-            val c = contour {
-                moveTo(0.0, 0.0)
-                curveTo(20.0, 100.0, 100.0, 100.0)
+        assertFailsWith<IllegalArgumentException>("detects lineTo before moveTo") {
+            contour {
+                lineTo(100.0, 100.0)
             }
-            c.closed `should be equal to` false
-            c.segments.size `should be equal to` 1
         }
-
-        it("support a single cubic curve segment") {
-            val c = contour {
-                moveTo(0.0, 0.0)
-                curveTo(100.0, 20.0, 20.0, 100.0, 100.0, 100.0)
+        assertFailsWith<IllegalArgumentException>("detects quadratic curveTo before moveTo") {
+            contour {
+                curveTo(50.0, 50.0, 100.0, 100.0)
             }
-            c.closed `should be equal to` false
-            c.segments.size `should be equal to` 1
         }
-
-        it("support a single arc segment ") {
-            val c = contour {
-                moveTo(0.0, 0.0)
+        assertFailsWith<IllegalArgumentException>("detects cubic curveTo before moveTo") {
+            contour {
+                curveTo(20.0, 20.0, 50.0, 50.0, 100.0, 100.0)
+            }
+        }
+        assertFailsWith<IllegalArgumentException>("detects arcTo before moveTo") {
+            contour {
                 arcTo(100.0, 100.0, 40.0, largeArcFlag = false, sweepFlag = false, tx = 200.0, ty = 200.0)
             }
-            c.closed `should be equal to` false
         }
-
-        it("support a single quadratic continueTo segment ") {
-            val c = contour {
-                moveTo(0.0, 0.0)
-                continueTo(100.0, 100.0)
+        assertFailsWith<IllegalArgumentException>("detects quadratic continueTo before moveTo") {
+            contour {
+                continueTo(200.0, 200.0)
             }
-            c.closed `should be equal to` false
-            c.segments.size `should be equal to` 1
         }
-
-        it("support a single cubic continueTo segment ") {
-            val c = contour {
-                moveTo(0.0, 0.0)
-                continueTo(20.0, 30.0, 100.0, 100.0)
+        assertFailsWith<IllegalArgumentException>("detects cubic continueTo before moveTo") {
+            contour {
+                continueTo(100.0, 300.0, 200.0, 200.0)
             }
-            c.closed `should be equal to` false
-            c.segments.size `should be equal to` 1
-        }
-
-        it("supports a simple closed shape") {
-            val c = contour {
-                moveTo(0.0, 0.0)
-                lineTo(100.0, 100.0)
-                lineTo(200.0, 100.0)
-                close()
-            }
-            c.closed `should be equal to` true
-            c.segments.size `should be equal to` 3
         }
     }
+}
 
-    describe("faulty contour") {
-        it("detects multiple moveTo commands") {
-            invoking {
-                contour {
-                    moveTo(0.0, 0.0)
-                    lineTo(100.0, 100.0)
-                    moveTo(200.0, 200.0)
-                }
-            } `should throw` IllegalArgumentException::class
+class TestContourBuilderMultiple {
+    @Test
+    fun `supports multiple open contours`() {
+        val c = contours {
+            moveTo(0.0, 0.0)
+            lineTo(200.0, 200.0)
+            moveTo(300.0, 300.0)
+            lineTo(400.0, 400.0)
         }
-
-        it("detects lineTo before moveTo") {
-            invoking {
-                contour {
-                    lineTo(100.0, 100.0)
-
-                }
-            } `should throw` IllegalArgumentException::class
-        }
-
-        it("detects quadratic curveTo before moveTo") {
-            invoking {
-                contour {
-                    curveTo(50.0, 50.0, 100.0, 100.0)
-
-                }
-            } `should throw` IllegalArgumentException::class
-        }
-
-        it("detects cubic curveTo before moveTo") {
-            invoking {
-                contour {
-                    curveTo(20.0, 20.0, 50.0, 50.0, 100.0, 100.0)
-
-                }
-            } `should throw` IllegalArgumentException::class
-        }
-
-        it("detects arcTo before moveTo") {
-            invoking {
-                contour {
-                    arcTo(100.0, 100.0, 40.0, largeArcFlag = false, sweepFlag = false, tx = 200.0, ty = 200.0)
-
-                }
-            } `should throw` IllegalArgumentException::class
-        }
-
-        it("detects quadratic continueTo before moveTo") {
-            invoking {
-                contour {
-                    continueTo(200.0, 200.0)
-
-                }
-            } `should throw` IllegalArgumentException::class
-        }
-
-        it("detects cubic continueTo before moveTo") {
-            invoking {
-                contour {
-                    continueTo(100.0, 300.0, 200.0, 200.0)
-
-                }
-            } `should throw` IllegalArgumentException::class
-        }
+        assertEquals(2, c.size)
+        assertTrue(c.all { !it.closed })
+        assertTrue(c.all { it.segments.size == 1 })
     }
-    describe("multiple org.openrndr.shape.contours made with org.openrndr.shape.contours {}") {
-        it("supports multiple open org.openrndr.shape.contours") {
-            val c = contours {
-                moveTo(0.0, 0.0)
-                lineTo(200.0, 200.0)
-                moveTo(300.0, 300.0)
-                lineTo(400.0, 400.0)
-            }
-            c.size `should be equal to` 2
-            c.all { !it.closed } `should be equal to` true
-            c.all { it.segments.size == 1 } `should be equal to` true
-        }
 
-        it("supports a single open contour") {
-            val c = contours {
-                moveTo(0.0, 0.0)
-                lineTo(100.0, 100.0)
-            }
-            c.size `should be equal to` 1
-            c.first().closed `should be equal to` false
-            c.first().segments.size `should be equal to` 1
+    @Test
+    fun `supports a single open contour`() {
+        val c = contours {
+            moveTo(0.0, 0.0)
+            lineTo(100.0, 100.0)
         }
-
-        it("supports an open contour followed by a closed contour") {
-            val c = contours {
-                moveTo(0.0, 0.0)
-                lineTo(100.0, 100.0)
-                moveTo(200.0, 200.0)
-                lineTo(300.0, 200.0)
-                lineTo(200.0, 300.0)
-                close()
-            }
-            c.size `should be equal to` 2
-            c[0].closed `should be equal to` false
-            c[1].closed `should be equal to` true
-            c[0].segments.size `should be equal to` 1
-            c[1].segments.size `should be equal to` 3
-        }
-
-        it("supports a closed contour followed by an open contour") {
-            val c = contours {
-                moveTo(200.0, 200.0)
-                lineTo(300.0, 200.0)
-                lineTo(200.0, 300.0)
-                close()
-                moveTo(0.0, 0.0)
-                lineTo(100.0, 100.0)
-            }
-            c.size `should be equal to` 2
-            c[0].closed `should be equal to` true
-            c[1].closed `should be equal to` false
-            c[0].segments.size `should be equal to` 3
-            c[1].segments.size `should be equal to` 1
-        }
-
-        it("supports multiple closed org.openrndr.shape.contours") {
-            val c = contours {
-                moveTo(200.0, 200.0)
-                lineTo(300.0, 200.0)
-                lineTo(200.0, 300.0)
-                close()
-                moveTo(200.0, 200.0)
-                lineTo(300.0, 200.0)
-                lineTo(200.0, 300.0)
-                close()
-            }
-            c.size `should be equal to` 2
-            c[0].closed `should be equal to` true
-            c[1].closed `should be equal to` true
-            c[0].segments.size `should be equal to` 3
-            c[1].segments.size `should be equal to` 3
-        }
+        assertEquals(1, c.size)
+        assertFalse(c.first().closed)
+        assertEquals(1, c.first().segments.size)
     }
-})
 
+    @Test
+    fun `supports an open contour followed by a closed contour`() {
+        val c = contours {
+            moveTo(0.0, 0.0)
+            lineTo(100.0, 100.0)
+            moveTo(200.0, 200.0)
+            lineTo(300.0, 200.0)
+            lineTo(200.0, 300.0)
+            close()
+        }
+        assertEquals(2, c.size)
+        assertFalse(c[0].closed)
+        assertTrue(c[1].closed)
+        assertEquals(1, c[0].segments.size)
+        assertEquals(3, c[1].segments.size)
+    }
+
+    @Test
+    fun `supports a closed contour followed by an open contour`() {
+        val c = contours {
+            moveTo(200.0, 200.0)
+            lineTo(300.0, 200.0)
+            lineTo(200.0, 300.0)
+            close()
+            moveTo(0.0, 0.0)
+            lineTo(100.0, 100.0)
+        }
+        assertEquals(2, c.size)
+        assertTrue(c[0].closed)
+        assertFalse(c[1].closed)
+        assertEquals(3, c[0].segments.size)
+        assertEquals(1, c[1].segments.size)
+    }
+
+    @Test
+    fun `supports multiple closed contours`() {
+        val c = contours {
+            moveTo(200.0, 200.0)
+            lineTo(300.0, 200.0)
+            lineTo(200.0, 300.0)
+            close()
+            moveTo(200.0, 200.0)
+            lineTo(300.0, 200.0)
+            lineTo(200.0, 300.0)
+            close()
+        }
+        assertEquals(2, c.size)
+        assertTrue(c[0].closed)
+        assertTrue(c[1].closed)
+        assertEquals(3, c[0].segments.size)
+        assertEquals(3, c[1].segments.size)
+    }
+}

@@ -5,18 +5,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-// Deprecated. Remove after removing Kluent.
-infix fun Vector2.`should be near`(other: Vector2) {
-    assertEquals(other.x, x, 0.00001)
-    assertEquals(other.y, y, 0.00001)
-}
-
-// Deprecated. Remove after removing Kluent.
-infix fun Vector2.`should be somewhat near`(other: Vector2) {
-    assertEquals(other.x, x, 0.01)
-    assertEquals(other.y, y, 0.01)
-}
-
 fun assertVeryNear(a: Vector2, b: Vector2, message: String? = null) {
     assertEquals(a.x, b.x, 0.00001, message)
     assertEquals(a.y, b.y, 0.00001, message)

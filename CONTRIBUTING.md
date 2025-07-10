@@ -31,17 +31,8 @@ The style guide is fairly minimal, but it helps to spell it out regardless:
 ### Writing tests
 
 While writing tests is not mandatory, it is highly encouraged.
-
-These following libraries are currently in use for testing:
-
-* Spek
-* Kotest
-* [Kluent](https://github.com/MarkusAmshove/Kluent/) (unmaintained)
-* [kotlin.test](https://kotlinlang.org/api/latest/kotlin.test/) (recommended)
-
-We're in the process of removing Spek, Kotest and Kluent
-as they add very little in value to testing.
-When writing new tests, you should prefer using kotlin.test. Take a look at 
+[kotlin.test](https://kotlinlang.org/api/latest/kotlin.test/) is our preferred testing library. 
+We are replacing older Spek, Kotest and Kluent tests with it. Take a look at 
 [TestRectangle.kt](/openrndr-core/src/test/kotlin/TestRectangle.kt) for an example.
 
 ## I want to contribute to the documentation
@@ -67,7 +58,7 @@ extracted from comments written in OPENRNDR's source code. It goes like this:
 4. Generate the API website locally to verify your changes look correct by running the following
    command: `./gradlew dokkaHtmlMultiModule -Dorg.gradle.jvmargs=-Xmx1536M`. This will create the
    html documentation under `build/dokka/htmlMultiModule/`.
-5. Open the `build/dokka/htmlMultiModule/index.html` in your web browser. If something looks off
+5. Open the `build/dokka/htmlMultiModule/index.html` in your web browser. If something looks off,
    tweak your comments.
 6. To continue improving the API go back to step 3, otherwise send a Pull Requests from your fork.
 
