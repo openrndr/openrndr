@@ -1,30 +1,30 @@
-import org.amshove.kluent.`should be equal to`
-import org.amshove.kluent.`should not be equal to`
 import org.openrndr.math.Vector2
 import org.openrndr.math.YPolarity
 import org.openrndr.shape.Circle
 import org.openrndr.shape.Winding
 import org.openrndr.shape.shape
-import io.kotest.core.spec.style.DescribeSpec
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
+import kotlin.test.assertTrue
 
-class TestShape : DescribeSpec({
-    describe("two equivalent shapes") {
+class TestShape {
+    @Test
+    fun `two equivalent shapes should be equal`() {
         val a = Circle(40.0, 40.0, 100.0).shape
         val b = Circle(40.0, 40.0, 100.0).shape
-        it("should be equal") {
-            a `should be equal to` b
-        }
+        assertEquals(a, b)
     }
 
-    describe("two non-equivalent shapes") {
+    @Test
+    fun `two non-equivalent shapes should not be equal`() {
         val a = Circle(40.0, 40.0, 100.0).shape
         val b = Circle(40.0, 80.0, 100.0).shape
-        it("should not be equal") {
-            a `should not be equal to` b
-        }
+        assertNotEquals(a, b)
     }
 
-    describe("a shape") {
+    @Test
+    fun `shape contours should have expected properties`() {
         val width = 640
         val height = 480
 
@@ -45,24 +45,29 @@ class TestShape : DescribeSpec({
             }
         }
 
-        it("should have 2 org.openrndr.shape.contours") {
-            s.contours.size `should be equal to` 2
-        }
+        assertEquals(
+            2, s.contours.size,
+            message = "a shape should have 2 contours"
+        )
 
-        it("all org.openrndr.shape.contours should be closed") {
-            s.contours.all { it.closed } `should be equal to` true
-        }
+        assertTrue(
+            s.contours.all { it.closed },
+            message = "all contours in the shape should be closed"
+        )
 
-        it("all org.openrndr.shape.contours have negative polarity") {
-            s.contours.all { it.polarity == YPolarity.CW_NEGATIVE_Y } `should be equal to` true
-        }
+        assertTrue(
+            s.contours.all { it.polarity == YPolarity.CW_NEGATIVE_Y },
+            message = "a shape all contours have negative polarity"
+        )
 
-        it("first contour should have clockwise winding") {
-            s.contours.first().winding `should be equal to` Winding.CLOCKWISE
-        }
+        assertEquals(
+            Winding.CLOCKWISE, s.contours.first().winding,
+            message = "a shape first contour should have clockwise winding"
+        )
 
-        it("second contour should have counter-clockwise winding") {
-            s.contours[1].winding `should be equal to` Winding.COUNTER_CLOCKWISE
-        }
+        assertEquals(
+            Winding.COUNTER_CLOCKWISE, s.contours[1].winding,
+            message = "second contour should have counter-clockwise winding"
+        )
     }
-})
+}
