@@ -1,96 +1,115 @@
-import org.amshove.kluent.`should be equal to`
 import org.openrndr.math.YPolarity
 import org.openrndr.shape.Circle
 import org.openrndr.shape.Rectangle
 import org.openrndr.shape.Winding
 import org.openrndr.shape.compound
-import io.kotest.core.spec.style.DescribeSpec
+import kotlin.test.Test
+import kotlin.test.assertEquals
 
-class TestCompoundBuilder : DescribeSpec({
+class TestCompoundBuilderUnion {
     val height = 480
-    describe("a simple org.openrndr.shape.union org.openrndr.shape.compound") {
+
+    @Test
+    fun `a simple org_openrndr_shape_union org_openrndr_shape_compound can be constructed`() {
         val sc = compound {
             union {
                 shape(Circle(185.0, height / 2.0 - 80.0, 100.0).shape)
                 shape(Circle(185.0, height / 2.0 + 80.0, 100.0).shape)
             }
         }
-        it("has one shape") {
-            sc.size `should be equal to` 1
-        }
-
-        it("shape has one contour") {
-            sc[0].contours.size `should be equal to` 1
-        }
-
-        it("contour has clockwise winding") {
-            sc[0].contours[0].winding `should be equal to` Winding.CLOCKWISE
-        }
-
-        it("contour has right polarity") {
-            sc[0].contours[0].polarity `should be equal to` YPolarity.CW_NEGATIVE_Y
-        }
+        assertEquals(
+            1, sc.size,
+            "a union compound has one shape"
+        )
+        assertEquals(
+            1, sc[0].contours.size,
+            "a union compound shape has one contour"
+        )
+        assertEquals(
+            Winding.CLOCKWISE, sc[0].contours[0].winding,
+            "a union compound contour has clockwise winding"
+        )
+        assertEquals(
+            YPolarity.CW_NEGATIVE_Y, sc[0].contours[0].polarity,
+            "a union compound contour has right polarity"
+        )
     }
+}
 
-    describe("a simple difference org.openrndr.shape.compound") {
-        // -- shape difference
+class TestCompoundBuilderDifference {
+    val height = 480
+
+    @Test
+    fun `a simple org_openrndr_shape_difference org_openrndr_shape_compound can be constructed`() {
         val sc = compound {
             difference {
                 shape(Circle(385.0, height / 2.0 - 80.0, 100.0).shape)
                 shape(Circle(385.0, height / 2.0 + 80.0, 100.0).shape)
             }
         }
-        it("has one shape") {
-            sc.size `should be equal to` 1
-        }
-
-        it("shape has one contour") {
-            sc[0].contours.size `should be equal to` 1
-        }
-
-        it("contour has clockwise winding") {
-            sc[0].contours[0].winding `should be equal to` Winding.CLOCKWISE
-        }
-
-        it("contour has right polarity") {
-            sc[0].contours[0].polarity `should be equal to` YPolarity.CW_NEGATIVE_Y
-        }
+        assertEquals(
+            1, sc.size,
+            message = "a difference compound has one shape"
+        )
+        assertEquals(
+            1, sc[0].contours.size,
+            message = "a difference compound shape has one contour"
+        )
+        assertEquals(
+            Winding.CLOCKWISE, sc[0].contours[0].winding,
+            message = "a difference compound contour has clockwise winding"
+        )
+        assertEquals(
+            YPolarity.CW_NEGATIVE_Y, sc[0].contours[0].polarity,
+            message = "a difference compound contour has right polarity"
+        )
     }
+}
 
-    describe("a simple intersection org.openrndr.shape.compound") {
-        // -- shape difference
+class TestCompoundBuilderIntersection {
+    val height = 480
+
+    @Test
+    fun `a simple org_openrndr_shape_intersection org_openrndr_shape_compound can be constructed`() {
         val sc = compound {
             intersection {
                 shape(Circle(385.0, height / 2.0 - 80.0, 100.0).shape)
                 shape(Circle(385.0, height / 2.0 + 80.0, 100.0).shape)
             }
         }
-        it("has one shape") {
-            sc.size `should be equal to` 1
-        }
-
-        it("shape has one contour") {
-            sc[0].contours.size `should be equal to` 1
-        }
-
-        it("contour has clockwise winding") {
-            sc[0].contours[0].winding `should be equal to` Winding.CLOCKWISE
-        }
-
-        it("contour has right polarity") {
-            sc[0].contours[0].polarity `should be equal to` YPolarity.CW_NEGATIVE_Y
-        }
+        assertEquals(
+            1, sc.size,
+            message = "an intersection compound has one shape"
+        )
+        assertEquals(
+            1, sc[0].contours.size,
+            message = "an intersection compound shape has one contour"
+        )
+        assertEquals(
+            Winding.CLOCKWISE, sc[0].contours[0].winding,
+            message = "an intersection compound contour has clockwise winding"
+        )
+        assertEquals(
+            YPolarity.CW_NEGATIVE_Y, sc[0].contours[0].polarity,
+            message = "an intersection compound contour has right polarity"
+        )
     }
+}
 
-    describe("a disjunct intersection org.openrndr.shape.compound") {
+class TestCompoundBuilderDisjunct {
+    val height = 480
+
+    @Test
+    fun `a disjunct intersection compound can be constructed`() {
         val sc = compound {
             intersection {
                 shape(Circle(385.0, height / 2.0 - 80.0, 100.0).shape)
                 shape(Rectangle(0.0, 0.0, 20.0, 20.0).shape)
             }
         }
-        it("it should have no shapes") {
-            sc.size `should be equal to` 0
-        }
+        assertEquals(
+            0, sc.size,
+            message = "a disjunct intersection compound should have no shapes"
+        )
     }
-})
+}
