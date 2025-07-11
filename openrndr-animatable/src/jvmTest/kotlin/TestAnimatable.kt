@@ -5,6 +5,20 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
+/**
+ * # Test animatable.
+ *
+ * These tests should eventually be moved into `commonTest`.
+ * At the time of writing, these tests pass on the JVM but
+ * most fail in JavaScript, maybe due to
+ * [limited support for reflection in JS](https://kotlinlang.org/docs/js-reflection.html).
+ *
+ * Failing asserts include:
+ * - `::x.hasAnimation` being `false` when it should be `true`
+ * - `::x.durationInMs` being `0`, when it should be `1000`
+ *
+ * Asserts on root animations (vs. sub-animations) work properly.
+ */
 class TestAnimatable {
     @Test
     fun `an animatable`() {
@@ -43,7 +57,7 @@ class TestAnimatable {
         a.updateAnimation(0L)
         a.apply {
             ::x.animate(1.0, 1000)
-            ::v.animate(Vector2.ONE, 2000)
+            ::v.animate(Vector2.Companion.ONE, 2000)
         }
         a.apply {
             ::x.cancel()
@@ -62,7 +76,7 @@ class TestAnimatable {
         a.apply {
             ::x.animate(1.0, 1000)
             ::x.complete()
-            ::v.animate(Vector2.ONE, 2000)
+            ::v.animate(Vector2.Companion.ONE, 2000)
             assertEquals(3000, ::v.durationInMs, "v duration should be 3000")
         }
     }
@@ -122,7 +136,7 @@ class TestAnimatable {
         a.apply {
             ::u.animationGroup {
                 ::x.animate(1.0, 1000)
-                ::v.animate(Vector2.ONE, 2000)
+                ::v.animate(Vector2.Companion.ONE, 2000)
             }
             assertTrue(::u.hasAnimations, "u has animation")
             assertTrue(::x.hasAnimations, "x has animation")
@@ -140,7 +154,7 @@ class TestAnimatable {
         a.apply {
             ::u.animationGroup {
                 ::x.animate(1.0, 1000)
-                ::v.animate(Vector2.ONE, 2000)
+                ::v.animate(Vector2.Companion.ONE, 2000)
             }
             assertEquals(2000, ::u.durationInMs, "u duration should be 2000")
             assertEquals(1000, ::x.durationInMs, "x duration should be 1000")
@@ -156,7 +170,7 @@ class TestAnimatable {
                 ::x.animate(1.0, 1000).completed.listen {
                     xCompleted = true
                 }
-                ::v.animate(Vector2.ONE, 2000)
+                ::v.animate(Vector2.Companion.ONE, 2000)
             }.completed.listen {
                 completed = true
             }
@@ -175,7 +189,7 @@ class TestAnimatable {
                 ::x.animate(1.0, 1000).cancelled.listen {
                     xCancelled = true
                 }
-                ::v.animate(Vector2.ONE, 2000)
+                ::v.animate(Vector2.Companion.ONE, 2000)
             }.cancelled.listen {
                 cancelled = true
             }
