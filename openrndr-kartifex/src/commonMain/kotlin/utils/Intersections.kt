@@ -37,6 +37,8 @@ object Intersections {
     const val PARAMETRIC_EPSILON = 1e-5
     const val SPATIAL_EPSILON = 1e-5
 
+    const val FAT_LINE_MIN_LENGTH = 1e-4
+
     const val MAX_CUBIC_CUBIC_INTERSECTIONS = 9
 
     val PARAMETRIC_BOUNDS: Box2 =
@@ -870,7 +872,11 @@ object Intersections {
                 val ka: Double = la.t.size() / aSize
                 val kb: Double = lb.t.size() / bSize
                 if (max(ka, kb) > 0.8) {
-                    // TODO: switch over to subdivision at some point?
+                    if (la.t.size() < FAT_LINE_MIN_LENGTH || lb.t.size() < FAT_LINE_MIN_LENGTH) {
+                        addIntersections(la, lb, acc)
+                        break
+                    }
+
                     for (ap in la.split()) {
                         for (bp in lb.split()) {
                             queue.apply {
