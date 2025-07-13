@@ -14,7 +14,6 @@ dependencies {
     testRuntimeOnly(project(":openrndr-nullgl"))
     testImplementation(libs.kotest.assertions)
     testImplementation(libs.kotest.runner)
-    testImplementation(libs.kluent)
 }
 
 tasks {
