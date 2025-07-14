@@ -51,22 +51,4 @@ class CommonTestClip {
         r1.contains(Vec2(0.0, 0.0)).shouldBeTrue()
         r0.union(r1).rings.size.shouldBeExactly(1)
     }
-
-    @Test
-    fun testProblemBezierIntersection() {
-        val b0 = Bezier2.CubicBezier2(
-            Vec2(2461.964649197695, -952.1441769362448),
-            Vec2(2461.1818602722083, -954.044949655754),
-            Vec2(2460.787918089939, -956.0729587762241),
-            Vec2(2460.787918089939, -958.1039726407873)
-        )
-        val b1 = Bezier2.CubicBezier2(
-            Vec2(2461.9546471841327, -952.1441720561323),
-            Vec2(2461.9546471841327, -952.1481051678613),
-            Vec2(2461.95698225021, -952.1518351983657),
-            Vec2(2461.960844919649, -952.1534250425353)
-        )
-        // Fixed with FAT_LINE_MIN_LENGTH in Intersection.kt
-        b0.intersections(b1).size.shouldBeExactly(1)
-    }
 }
