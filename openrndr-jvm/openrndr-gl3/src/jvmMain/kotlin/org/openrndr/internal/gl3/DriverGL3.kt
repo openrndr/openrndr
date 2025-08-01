@@ -1423,7 +1423,6 @@ internal fun glStencilOp(op: StencilOperation): Int {
         StencilOperation.ZERO -> GL_ZERO
         StencilOperation.INVERT -> GL_INVERT
         StencilOperation.REPLACE -> GL_REPLACE
-        else -> throw RuntimeException("unsupported op")
     }
 }
 

@@ -109,7 +109,6 @@ internal fun glStencilOp(op: StencilOperation): Int {
         StencilOperation.ZERO -> GL.ZERO
         StencilOperation.INVERT -> GL.INVERT
         StencilOperation.REPLACE -> GL.REPLACE
-        else -> throw RuntimeException("unsupported op")
     }
 }
 internal data class ConversionEntry(val format: ColorFormat, val type: ColorType,

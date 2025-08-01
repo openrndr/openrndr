@@ -365,10 +365,6 @@ fun mix(left: ColorRGBa, right: ColorRGBa, x: Double): ColorRGBa {
             Linearity.SRGB -> {
                 mix(left.toSRGB(), right.toSRGB(), x)
             }
-
-            else -> {
-                error("can't blend ${right.linearity} with ${left.linearity}")
-            }
         }
     }
 }

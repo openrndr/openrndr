@@ -479,10 +479,6 @@ class ImageDriverStbImage : ImageDriver {
                     FreeEXRImage(exrImage)
                     return ImageDataStb(exrImage.width(), exrImage.height(), format, type, false, MPPBuffer(data))
                 }
-
-                else -> {
-                    error("format not supported")
-                }
             }
         } finally {
             if (!inputIsDirect) {
