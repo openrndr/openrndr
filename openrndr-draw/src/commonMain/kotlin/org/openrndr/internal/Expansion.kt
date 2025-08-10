@@ -510,7 +510,7 @@ internal class Path {
 
                 when (lineCap) {
                     LineCap.BUTT -> expansion.buttCapStart(p0, dx, dy, weight, -aa * 0.5, aa, offset)
-                    LineCap.SQUARE -> expansion.buttCapStart(p0, dx, dy, weight, weight - aa, aa, offset)
+                    LineCap.SQUARE -> expansion.buttCapStart(p0, dx, dy, weight, weight - aa * 1.5, aa, offset)
                     LineCap.ROUND -> expansion.roundCapStart(p0, dx, dy, weight, capSteps, offset)
                 }
             }
@@ -562,8 +562,8 @@ internal class Path {
                     dy /= l
                 }
                 when (lineCap) {
-                    LineCap.BUTT -> expansion.buttCapEnd(p1, dx, dy, weight, -aa * 0.5, aa, offset)
-                    LineCap.SQUARE -> expansion.buttCapEnd(p1, dx, dy, weight, weight - aa, aa, offset)
+                    LineCap.BUTT -> expansion.buttCapEnd(p1, dx, dy, weight, aa * 0.5, aa, offset)
+                    LineCap.SQUARE -> expansion.buttCapEnd(p1, dx, dy, weight, -weight + aa * 1.5, aa, offset)
                     LineCap.ROUND -> expansion.roundCapEnd(p1, dx, dy, weight, capSteps, offset)
                 }
             }
