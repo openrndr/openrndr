@@ -32,13 +32,14 @@ fun extractAngleLibraries() {
             ?: error("$library not found in resources")
         val target = File(targetDirectory, library)
 
+        val preExists = target.exists()
         if (!target.exists() || DriverGL3Configuration.overwriteExistingAngle) {
             target.outputStream().use {
                 resource.copyTo(it)
             }
         }
 
-        if (DriverGL3Configuration.deleteAngleOnExit) {
+        if (!preExists && DriverGL3Configuration.deleteAngleOnExit) {
             target.deleteOnExit()
         }
     }
