@@ -245,6 +245,7 @@ void main() {
                     value.bind(textureIndex)
                     textureIndex++
                 }
+
             }
         }
 
@@ -406,4 +407,53 @@ open class Filter4to1(shader: Shader? = null, watcher: ShaderWatcher? = null) :
 
     ) =
         apply(arrayOf(source0, source1, source2, source3), arrayOf(target), clip)
+}
+
+/**
+ * A filter class that applies a processing step using a shader and takes a single input color buffer.
+ * The processing result is written to two output color buffers.
+ *
+ * This class extends the functionality of the base [Filter] class by supporting an input of one
+ * [ColorBuffer] and producing outputs to two [ColorBuffer] instances. It allows an optional rectangular
+ * clipping region to be defined for the output targets.
+ *
+ * @constructor Creates a Filter1to2 instance with an optional [Shader] and [ShaderWatcher].
+ * @param shader An optional [Shader] instance to use for the filter. Defaults to null.
+ * @param watcher An optional [ShaderWatcher] instance to observe changes to the shader. Defaults to null.
+ */
+open class Filter1to2(shader: Shader? = null, watcher: ShaderWatcher? = null) :
+    Filter(shader, watcher) {
+    fun apply(
+        source: ColorBuffer,
+        target0: ColorBuffer,
+        target1: ColorBuffer,
+        clip: Rectangle? = null
+
+    ) =
+        apply(arrayOf(source), arrayOf(target0, target1), clip)
+}
+
+/**
+ * A filter extension class that applies a two-source to two-target fragment shader.
+ * This class facilitates the rendering of graphical effects involving two input `ColorBuffer` sources
+ * and two output `ColorBuffer` targets, using a specified `Shader` for processing.
+ *
+ * @constructor Creates a Filter2to2 instance with an optional [shader] and [watcher].
+ * The [shader] defines the graphics pipeline used for rendering. The optional [watcher], if provided,
+ * monitors the state of the [shader].
+ *
+ * @param shader An optional `Shader` instance that implements the rendering logic. Pass `null` to
+ * rely on default behavior.
+ * @param watcher An optional `ShaderWatcher` that observes changes or updates to the [shader].
+ */
+open class Filter2to2(shader: Shader? = null, watcher: ShaderWatcher? = null) :
+    Filter(shader, watcher) {
+    fun apply(
+        source0: ColorBuffer,
+        source1: ColorBuffer,
+        target0: ColorBuffer,
+        target1: ColorBuffer,
+        clip: Rectangle? = null
+    ) =
+        apply(arrayOf(source0, source1), arrayOf(target0, target1), clip)
 }
