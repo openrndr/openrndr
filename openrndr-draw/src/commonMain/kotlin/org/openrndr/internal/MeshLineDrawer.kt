@@ -63,7 +63,7 @@ class MeshLineDrawer {
         val vertices = vertices(segments.size * 6)
 
         val colorCount = colors.size
-        val defaultColor = colors.lastOrNull() ?: drawStyle.stroke ?: ColorRGBa.TRANSPARENT
+        val defaultColor = colors.lastOrNull()?.toLinear() ?: drawStyle.stroke?.toLinear() ?: ColorRGBa.TRANSPARENT
 
         val vertexCount = vertices.put {
             for (i in 0 until segments.size step 2) {
@@ -157,7 +157,7 @@ class MeshLineDrawer {
         val vertices = vertices(strips.sumOf { it.size * 4 + 4 })
 
         val colorCount = colors.size
-        val defaultColor = colors.lastOrNull() ?: drawStyle.stroke ?: ColorRGBa.TRANSPARENT
+        val defaultColor = colors.lastOrNull()?.toLinear() ?: drawStyle.stroke?.toLinear() ?: ColorRGBa.TRANSPARENT
         val vertexCount = vertices.put {
             for ((element, strip) in strips.withIndex()) {
 
@@ -165,7 +165,7 @@ class MeshLineDrawer {
                 var offset = 0.0
 
                 val stripClosed = closed.getOrNull(element) ?: false
-                val color = if (element < colorCount) colors[element] else defaultColor
+                val color = if (element < colorCount) colors[element].toLinear() else defaultColor
 
                 if (strip.size >= 2) {
                     val width = weights.getOrElse(element) { drawStyle.strokeWeight }.toFloat()
