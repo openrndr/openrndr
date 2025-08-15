@@ -67,7 +67,7 @@ class MeshLineDrawer {
 
         val vertexCount = vertices.put {
             for (i in 0 until segments.size step 2) {
-                val width = weights.getOrElse(i) { drawStyle.strokeWeight }.toFloat()
+                val width = weights.getOrElse(i) { drawStyle.strokeWeight }.toFloat() * drawContext.modelViewScalingFactor.toFloat()
                 val element = (i / 2).toFloat()
 
                 val color = if (i < colorCount) colors[i] else defaultColor
@@ -168,7 +168,7 @@ class MeshLineDrawer {
                 val color = if (element < colorCount) colors[element].toLinear() else defaultColor
 
                 if (strip.size >= 2) {
-                    val width = weights.getOrElse(element) { drawStyle.strokeWeight }.toFloat()
+                    val width = weights.getOrElse(element) { drawStyle.strokeWeight }.toFloat() * drawContext.modelViewScalingFactor.toFloat()
                     val elementF = element.toFloat()
                     var previous = if (stripClosed) strip.last() else strip[0]
                     val edgeCount = strip.size + if (stripClosed) 1 else 0
