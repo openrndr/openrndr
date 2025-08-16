@@ -1,5 +1,5 @@
-import org.junit.jupiter.api.Test
 import org.openrndr.kartifex.utils.*
+import kotlin.test.Test
 
 class TestNormalizationFactor    {
 

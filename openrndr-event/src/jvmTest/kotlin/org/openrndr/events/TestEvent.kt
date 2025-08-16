@@ -1,6 +1,6 @@
 package org.openrndr.events
 
-import org.junit.jupiter.api.Test
+import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class TestSegment {
