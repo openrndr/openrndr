@@ -1,7 +1,7 @@
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.openrndr.internal.gl3.DriverVersionGL
 import kotlin.test.Test
 import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class TestDriverVersion {
     /**

@@ -6,7 +6,7 @@ import io.lacuna.artifex.Vec2
 import io.lacuna.bifurcan.DirectedGraph
 import io.lacuna.bifurcan.Graphs
 import io.lacuna.bifurcan.LinearSet
-import org.junit.jupiter.api.Test
+import kotlin.test.Test
 import org.openrndr.kartifex.Vec2 as KVec2
 import org.openrndr.kartifex.utils.graphs.DirectedGraph as KDirectedGraph
 import org.openrndr.kartifex.utils.graphs.Graphs as KGraphs

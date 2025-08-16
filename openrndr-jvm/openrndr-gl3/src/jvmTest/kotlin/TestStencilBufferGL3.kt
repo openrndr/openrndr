@@ -6,7 +6,6 @@ import org.openrndr.internal.gl3.*
 import org.openrndr.shape.Circle
 import kotlin.test.*
 
-
 class TestStencilBufferGL3 : AbstractApplicationTestFixture() {
 
 

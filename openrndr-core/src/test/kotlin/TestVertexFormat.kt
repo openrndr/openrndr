@@ -1,28 +1,24 @@
-import org.amshove.kluent.`should be equal to`
 import org.openrndr.draw.VertexElementType
 import org.openrndr.draw.vertexFormat
-import io.kotest.core.spec.style.DescribeSpec
+import kotlin.test.Test
+import kotlin.test.assertEquals
 
-class TestVertexFormat : DescribeSpec({
-    describe("a vertex format") {
+class TestVertexFormat {
+    @Test
+    fun `a vertex format should have a size of 12 bytes`() {
         val vf = vertexFormat {
             position(3)
         }
 
-        it("should have a size of 12 bytes") {
-            vf.size `should be equal to` 12
-        }
+        assertEquals(12, vf.size)
     }
 
-    describe("a vertex format containing arrays") {
+    @Test
+    fun `a vertex format containing arrays should have a size of 32 bytes`() {
         val vf = vertexFormat {
             attribute("someArray", VertexElementType.VECTOR4_FLOAT32, 2)
         }
 
-        it("should have a size of 36 bytes") {
-            vf.size `should be equal to` 32
-        }
+        assertEquals(32, vf.size)
     }
-
-})
-
+}
