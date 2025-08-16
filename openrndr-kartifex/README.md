@@ -21,6 +21,8 @@ but should not affect precision.
 
 The implementations of `Scalar.normalizationFactor` have been adjusted to address [an Artifex issue](https://github.com/lacuna/artifex/issues/3) in which intersections are not detected.
 
+The implementation of `Intersections.fatLineCurveCurve` has been adjusted to address [an infinite loop](https://github.com/openrndr/openrndr/issues/404) when obtaining the intersection between specific curves.
+
 Artifex sets `Intersections.SPATIAL_EPSILON = 1e-10`. In order to address missed intersections between cubic bezier curves that value
 has been increased to `1e-5`. [Relevant Artifex issue](https://github.com/lacuna/artifex/issues/4)
 

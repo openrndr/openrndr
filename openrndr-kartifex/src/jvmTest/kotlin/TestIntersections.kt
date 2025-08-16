@@ -91,4 +91,21 @@ class TestIntersections {
         ki.size.shouldBeExactly(2)
     }
 
+    @Test
+    fun testProblematicCase2() {
+        val b0 = KBezier2.curve(
+            KVec2(2461.964649197695, -952.1441769362448),
+            KVec2(2461.1818602722083, -954.044949655754),
+            KVec2(2460.787918089939, -956.0729587762241),
+            KVec2(2460.787918089939, -958.1039726407873)
+        )
+        val b1 = KBezier2.curve(
+            KVec2(2461.9546471841327, -952.1441720561323),
+            KVec2(2461.9546471841327, -952.1481051678613),
+            KVec2(2461.95698225021, -952.1518351983657),
+            KVec2(2461.960844919649, -952.1534250425353)
+        )
+        // Infinite loop fixed with FAT_LINE_MIN_LENGTH in Intersection.kt
+        b0.intersections(b1).size.shouldBeExactly(1)
+    }
 }
