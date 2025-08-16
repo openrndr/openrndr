@@ -1,10 +1,10 @@
 [versions]
 kotlinApi = "2.2"
 kotlinLanguage = "2.2"
-kotlin = "2.2.0"
+kotlin = "2.2.10"
 jvmTarget = "17"
 kotlinxCoroutines = "1.10.2"
-kotlinLogging = "7.0.7"
+kotlinLogging = "7.0.12"
 kotlinxSerialization = "1.8.1"
 dokka = "2.0.0"
 nebulaRelease = "18.0.7"
@@ -13,7 +13,7 @@ lwjgl = "3.3.6"
 javacpp = "1.5.12"
 # ffmpeg version suffix should match javacpp version
 ffmpeg = "7.1.1-1.5.12"
-junitJupiter = "5.12.2"
+junitJupiter = "5.13.4"
 kotest = "5.9.1"
 slf4j = "2.0.17"
 
