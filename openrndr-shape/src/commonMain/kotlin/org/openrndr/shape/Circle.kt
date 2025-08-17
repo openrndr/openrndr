@@ -12,13 +12,19 @@ import kotlin.math.abs
 import kotlin.math.PI
 
 /**
- * Creates a [Circle].
+ * Represents a circle defined by its center and radius.
  *
- * Alternatively, see [Ellipse].
+ * This class provides methods to manipulate and query the circle's properties,
+ * including scaling, moving, and generating its shape representation.
+ * It also offers utility functions to create circles based on specific points.
+ *
+ * @property center The central point of the circle represented as a [Vector2].
+ * @property radius The radius of the circle as a [Double].
  */
 @Serializable
 @JvmRecord
-data class Circle(val center: Vector2, val radius: Double): Movable, Scalable1D, ShapeProvider, ShapeContourProvider, LinearType<Circle> {
+data class Circle(val center: Vector2, val radius: Double) : Movable, Scalable1D, ShapeProvider, ShapeContourProvider,
+    LinearType<Circle> {
 
     companion object {
         val INVALID = Circle(Vector2.INFINITY, 0.0)
@@ -90,7 +96,12 @@ data class Circle(val center: Vector2, val radius: Double): Movable, Scalable1D,
         return corner + Vector2(u * 2 * radius, v * 2 * radius)
     }
 
-    /** Returns true if given [point] lies inside the [Shape]. */
+    /**
+     * Checks if the given point is located inside the circle.
+     *
+     * @param point the point to check.
+     * @return true if the point is inside the circle, false otherwise.
+     */
     operator fun contains(point: Vector2): Boolean = point.minus(center).squaredLength < radius * radius
 
     val area: Double
@@ -102,7 +113,7 @@ data class Circle(val center: Vector2, val radius: Double): Movable, Scalable1D,
     /** Returns [ShapeContour] representation of the [Circle]. */
     override val contour: ShapeContour
         get() {
-            if(this == INVALID) {
+            if (this == INVALID) {
                 return ShapeContour.EMPTY
             }
             val x = center.x - radius
@@ -127,62 +138,6 @@ data class Circle(val center: Vector2, val radius: Double): Movable, Scalable1D,
             }
         }
 
-    /**
-     * Calculates the tangent lines between two [Circle]s.
-     *
-     * Defaults to returning the outer tangents.
-     *
-     * @param isInner If true, returns the inner tangents instead.
-     */
-    fun tangents(other: Circle, isInner: Boolean = false): List<Pair<Vector2, Vector2>> {
-        if (this == INVALID || other == INVALID) {
-            return listOf()
-        }
-
-        val distSq = center.squaredDistanceTo(other.center)
-
-        if (isInner) {
-            if (sqrt(distSq) <= radius + other.radius) {
-                return listOf() // circles too close
-            }
-        } else {
-            val rDiff = radius - other.radius
-            if (distSq <= rDiff * rDiff) {
-                return listOf() // nested circles
-            }
-        }
-
-        val otherRadiusSigned = if (isInner) -other.radius else other.radius
-        val hyp = other.center - center // hypotenuse
-        val adj = radius - otherRadiusSigned // adjacent
-        val a = hyp * adj
-        val b = hyp.perpendicular() * sqrt(distSq - adj * adj)
-        val v1 = (a - b) / distSq
-        val v2 = (a + b) / distSq
-
-        return listOf(
-            Pair(center + v1 * radius, other.center + v1 * otherRadiusSigned),
-            Pair(center + v2 * radius, other.center + v2 * otherRadiusSigned)
-        )
-    }
-
-    /** Calculates the tangent lines through an external point. **/
-    fun tangents(point: Vector2): Pair<Vector2, Vector2> {
-        if(this == INVALID) {
-            return Pair(Vector2.INFINITY, Vector2.INFINITY)
-        }
-        val v = Polar.fromVector(point - center)
-        val b = v.radius
-        val theta = (acos(radius / b)).asDegrees
-        val d1 = v.theta + theta
-        val d2 = v.theta - theta
-
-        val tp = center + Polar(d1, radius).cartesian
-        val tp2 = center + Polar(d2, radius).cartesian
-
-        return Pair(tp, tp2)
-    }
-
     override operator fun times(scale: Double) = Circle(center * scale, radius * scale)
 
     override operator fun div(scale: Double) = Circle(center / scale, radius / scale)
@@ -192,7 +147,13 @@ data class Circle(val center: Vector2, val radius: Double): Movable, Scalable1D,
 
     override operator fun minus(right: Circle) =
         Circle(center - right.center, radius - right.radius)
-
 }
 
-fun Circle(x: Double, y: Double, radius: Double) =  Circle(Vector2(x, y), radius)
+/**
+ * Constructs a [Circle] using the given x and y coordinates as the center and a specified radius.
+ *
+ * @param x The x-coordinate of the circle's center.
+ * @param y The y-coordinate of the circle's center.
+ * @param radius The radius of the circle.
+ */
+fun Circle(x: Double, y: Double, radius: Double) = Circle(Vector2(x, y), radius)
