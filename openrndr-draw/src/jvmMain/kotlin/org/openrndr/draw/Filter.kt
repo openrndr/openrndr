@@ -13,17 +13,3 @@ import java.net.URL
 fun filterShaderFromUrl(url: String): Shader {
     return filterShaderFromCode(URL(url).readText(), "filter-shader: $url")
 }
-
-/**
- * Creates and returns a ShaderWatcher configured for the given fragment shader URL.
- * The returned ShaderWatcher uses a predefined vertex shader code and the provided URL for the fragment shader.
- *
- * @param url The URL pointing to the fragment shader source code.
- * @return A ShaderWatcher instance configured with the provided fragment shader URL and predefined vertex shader code.
- */
-fun filterWatcherFromUrl(url: String): ShaderWatcher {
-    return shaderWatcher {
-        vertexShaderCode = Filter.filterVertexCode
-        fragmentShaderUrl = url
-    }
-}

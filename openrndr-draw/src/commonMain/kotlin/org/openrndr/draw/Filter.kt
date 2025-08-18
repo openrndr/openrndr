@@ -39,9 +39,8 @@ fun filterShaderFromCode(fragmentShaderCode: String, name: String, includeShader
  * @constructor
  * Creates a new filter instance, optionally initializing it with a shader or shader watcher.
  * @param shader The optional `Shader` instance to be used by the filter.
- * @param watcher The optional `ShaderWatcher` to dynamically manage the shader during execution.
  */
-open class Filter(private val shader: Shader? = null, private val watcher: ShaderWatcher? = null): AutoCloseable {
+open class Filter(private val shader: Shader?): AutoCloseable {
 
     private val filterDrawStyle = DrawStyle().apply {
         blendMode = BlendMode.REPLACE
@@ -136,8 +135,9 @@ void main() {
      * @param clip An optional `Rectangle` specifying the clipping region for the filter application. Defaults to `null`.
      */
     fun apply(source: Array<ColorBuffer>, target: RenderTarget, clip: Rectangle? = null) {
+        if (shader == null) { return }
+
         filterDrawStyle.clip = clip
-        val shader = if (this.watcher != null) watcher.shader!! else this.shader!!
         target.bind()
 
         if (filterQuad == null) {
@@ -301,16 +301,14 @@ void main() {
  * A filter that processes a single input texture and outputs a single result.
  *
  * This class is a specialized type of [Filter] that operates with a one-to-one
- * relationship between the input and output. It uses an optional [Shader]
- * and an optional [ShaderWatcher] to manage and apply the desired GPU shader effects.
+ * relationship between the input and output.
  *
- * @constructor Creates a Filter1to1 with the specified [shader] and [watcher].
+ * @constructor Creates a Filter1to1 with the specified [shader].
  * @param shader The [Shader] instance used for applying the visual effect.
  * Can be null if no specific shader functionality is needed.
- * @param watcher An optional [ShaderWatcher] instance that monitors the [shader].
  */
-open class Filter1to1(shader: Shader? = null, watcher: ShaderWatcher? = null) :
-    Filter(shader, watcher)
+open class Filter1to1(shader: Shader?) :
+    Filter(shader)
 
 /**
  * A class representing a 2-to-1 filter that applies a shader operation
@@ -318,10 +316,9 @@ open class Filter1to1(shader: Shader? = null, watcher: ShaderWatcher? = null) :
  *
  * @constructor Creates a new instance of the Filter2to1 class.
  * @param shader An optional shader instance, defining the filter's processing logic.
- * @param watcher An optional shader watcher instance to track and manage shader changes.
  */
-open class Filter2to1(shader: Shader? = null, watcher: ShaderWatcher? = null) :
-    Filter(shader, watcher) {
+open class Filter2to1(shader: Shader?) :
+    Filter(shader) {
     /**
      * Applies a shader-based operation to two input color buffers and writes the result to a target color buffer.
      *
@@ -338,17 +335,15 @@ open class Filter2to1(shader: Shader? = null, watcher: ShaderWatcher? = null) :
  * A filter implementation that processes three input color buffers and outputs to a single target color buffer.
  *
  * This class is a specialization of the `Filter` class designed to handle operations involving three input
- * color buffers and a single output. A shader can be optionally provided and monitored with an optional
- * `ShaderWatcher`.
+ * color buffers and a single output.
  *
- * @constructor Creates an instance of `Filter3to1` with an optional shader and shader watcher.
+ * @constructor Creates an instance of `Filter3to1`
  * @param shader An optional shader used for rendering purposes.
- * @param watcher An optional shader watcher for monitoring shader changes.
  *
  * @see Filter
  */
-open class Filter3to1(shader: Shader? = null, watcher: ShaderWatcher? = null) :
-    Filter(shader, watcher) {
+open class Filter3to1(shader: Shader?) :
+    Filter(shader) {
     /**
      * Applies a processing operation using three input color buffers and a single output color buffer.
      *
@@ -380,12 +375,11 @@ open class Filter3to1(shader: Shader? = null, watcher: ShaderWatcher? = null) :
  * into a specified target color buffer. It optionally accepts a clipping rectangle to define
  * the area of processing.
  *
- * @constructor Creates an instance of `Filter4to1` with an optional shader and shader watcher.
+ * @constructor Creates an instance of `Filter4to1`.
  * @param shader The shader used for processing, can be null.
- * @param watcher The shader watcher that monitors shader changes, can be null.
  */
-open class Filter4to1(shader: Shader? = null, watcher: ShaderWatcher? = null) :
-    Filter(shader, watcher) {
+open class Filter4to1(shader: Shader?) :
+    Filter(shader) {
     /**
      * Applies a filter that processes four source color buffers and outputs the result to a target color buffer.
      * Optionally, a clipping rectangle can be provided to specify the area of processing.
@@ -417,12 +411,11 @@ open class Filter4to1(shader: Shader? = null, watcher: ShaderWatcher? = null) :
  * [ColorBuffer] and producing outputs to two [ColorBuffer] instances. It allows an optional rectangular
  * clipping region to be defined for the output targets.
  *
- * @constructor Creates a Filter1to2 instance with an optional [Shader] and [ShaderWatcher].
- * @param shader An optional [Shader] instance to use for the filter. Defaults to null.
- * @param watcher An optional [ShaderWatcher] instance to observe changes to the shader. Defaults to null.
+ * @constructor Creates a Filter1to2 instance.
+ * @param shader A [Shader] instance to use for the filter. Defaults to null.
  */
-open class Filter1to2(shader: Shader? = null, watcher: ShaderWatcher? = null) :
-    Filter(shader, watcher) {
+open class Filter1to2(shader: Shader?) :
+    Filter(shader) {
     fun apply(
         source: ColorBuffer,
         target0: ColorBuffer,
@@ -433,21 +426,19 @@ open class Filter1to2(shader: Shader? = null, watcher: ShaderWatcher? = null) :
         apply(arrayOf(source), arrayOf(target0, target1), clip)
 }
 
+open class Filter2to2(shader: Shader?) :
 /**
  * A filter extension class that applies a two-source to two-target fragment shader.
  * This class facilitates the rendering of graphical effects involving two input `ColorBuffer` sources
  * and two output `ColorBuffer` targets, using a specified `Shader` for processing.
  *
- * @constructor Creates a Filter2to2 instance with an optional [shader] and [watcher].
- * The [shader] defines the graphics pipeline used for rendering. The optional [watcher], if provided,
- * monitors the state of the [shader].
+ * @constructor Creates a Filter2to2 instance with an optional [shader].
+ * The [shader] defines the graphics pipeline used for rendering.
  *
  * @param shader An optional `Shader` instance that implements the rendering logic. Pass `null` to
  * rely on default behavior.
- * @param watcher An optional `ShaderWatcher` that observes changes or updates to the [shader].
  */
-open class Filter2to2(shader: Shader? = null, watcher: ShaderWatcher? = null) :
-    Filter(shader, watcher) {
+Filter(shader) {
     fun apply(
         source0: ColorBuffer,
         source1: ColorBuffer,
