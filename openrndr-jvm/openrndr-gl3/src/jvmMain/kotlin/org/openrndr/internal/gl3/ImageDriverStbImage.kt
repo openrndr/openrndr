@@ -1,9 +1,11 @@
 package org.openrndr.internal.gl3
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.lwjgl.BufferUtils
 import org.lwjgl.PointerBuffer
 import org.lwjgl.stb.STBIWriteCallback
 import org.lwjgl.stb.STBImage
+import org.lwjgl.stb.STBImage.stbi_failure_reason
 import org.lwjgl.stb.STBImage.stbi_info_from_memory
 import org.lwjgl.stb.STBImageWrite
 import org.lwjgl.system.MemoryStack.stackPush
@@ -28,6 +30,8 @@ import java.nio.channels.FileChannel
 import java.nio.file.Path
 import java.util.*
 import kotlin.io.path.exists
+
+private val logger = KotlinLogging.logger { }
 
 class ImageDataStb(
     width: Int,
@@ -108,7 +112,7 @@ class ImageDriverStbImage : ImageDriver {
         }
     }
 
-    override fun probeImage(buffer: MPPBuffer, formatHint: ImageFileFormat?): ImageFileDetails? {
+    override fun probeImage(buffer: MPPBuffer, formatHint: ImageFileFormat?, name: String?): ImageFileDetails? {
         stackPush().use { stack ->
             val x = stack.mallocInt(1)
             val y = stack.mallocInt(1)
@@ -117,6 +121,8 @@ class ImageDriverStbImage : ImageDriver {
 
             if (result) {
                 return ImageFileDetails(x.get(), y.get(), channels.get())
+            } else {
+                logger.warn { "Failed to probe image '$name':  ${stbi_failure_reason() ?: "unknown reason"}" }
             }
         }
         return null
@@ -246,7 +252,7 @@ class ImageDriverStbImage : ImageDriver {
                             else -> error("")
                         }
                     } else {
-                        0
+                        4
                     }
                     val (tdata8, tdata16) = when (bitsPerChannel) {
                         8 -> Pair(
@@ -264,7 +270,7 @@ class ImageDriverStbImage : ImageDriver {
 
                     if (tdata8 != null) {
                         var offset = 0
-                        if (desiredChannelCount == 4 && ca[0] == 4) {
+                        if (desiredChannelCount == 4) {
                             for (y in 0 until ha[0]) {
                                 for (x in 0 until wa[0]) {
                                     val a =
@@ -341,7 +347,7 @@ class ImageDriverStbImage : ImageDriver {
 
                     return ImageDataStb(
                         wa[0], ha[0],
-                        when (val c = if (desiredChannelCount != 0) desiredChannelCount else ca[0]) {
+                        when (val c = desiredChannelCount) {
                             1 -> ColorFormat.R
                             2 -> ColorFormat.RG
                             3 -> ColorFormat.RGB

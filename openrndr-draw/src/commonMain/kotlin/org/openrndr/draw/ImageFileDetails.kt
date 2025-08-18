@@ -3,6 +3,7 @@ package org.openrndr.draw
 
 import org.openrndr.internal.ImageDriver
 import kotlin.jvm.JvmName
+import kotlin.jvm.JvmRecord
 
 /**
  * Details for an image
@@ -11,6 +12,8 @@ import kotlin.jvm.JvmName
  * @param channels the number of channels in the image
  * @since 0.4.3
  */
+@JvmRecord
+@Suppress("unused")
 data class ImageFileDetails(val width: Int, val height: Int, val channels: Int)
 
 /**

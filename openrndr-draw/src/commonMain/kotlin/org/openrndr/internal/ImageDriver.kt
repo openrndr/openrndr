@@ -69,7 +69,7 @@ interface ImageDriver {
      * Probe an image from [buffer]
      * @since 0.4.5
      */
-    fun probeImage(buffer: MPPBuffer, formatHint: ImageFileFormat?): ImageFileDetails?
+    fun probeImage(buffer: MPPBuffer, formatHint: ImageFileFormat?, name: String? = null): ImageFileDetails?
 
 
     /**
