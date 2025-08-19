@@ -18,7 +18,7 @@ class PathProjection3D(val segmentProjection: SegmentProjection3D, val projectio
  * @property closed Indicates whether the path is closed (i.e., the last point connects to the first point).
  */
 @Serializable
-class Path3D(override val segments: List<Segment3D>, override val closed: Boolean) : Path<Vector3> {
+class Path3D(override val segments: List<Segment3D>, override val closed: Boolean) : Path<Vector3>, GeometricPrimitive3D {
     companion object {
 
         val EMPTY: Path3D = Path3D(emptyList(), false)

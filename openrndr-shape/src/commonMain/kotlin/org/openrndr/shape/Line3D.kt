@@ -18,7 +18,7 @@ import kotlin.jvm.JvmRecord
  */
 @Serializable
 @JvmRecord
-data class Line3D(val origin: Vector3, val direction: Vector3) : LinearType<Line3D> {
+data class Line3D(val origin: Vector3, val direction: Vector3) : LinearType<Line3D>, GeometricPrimitive3D {
     override fun plus(right: Line3D): Line3D {
         return copy(origin = origin + right.origin, direction = direction + right.direction)
     }

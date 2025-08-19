@@ -15,7 +15,7 @@ class Segment3D(
     override val start: Vector3,
     override val control: List<Vector3>,
     override val end: Vector3
-) : BezierSegment<Vector3>, LinearType<Segment3D> {
+) : BezierSegment<Vector3>, LinearType<Segment3D>, GeometricPrimitive3D {
 
     private var lut: List<Vector3>? = null
 

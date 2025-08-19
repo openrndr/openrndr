@@ -24,7 +24,7 @@ import kotlin.math.min
 @Serializable
 @JvmRecord
 data class Rectangle(val corner: Vector2, val width: Double, val height: Double = width) : Movable, Scalable2D,
-    ShapeProvider, ShapeContourProvider, LinearType<Rectangle> {
+    ShapeProvider, ShapeContourProvider, LinearType<Rectangle>, GeometricPrimitive2D {
 
     val xRange
         get() = min(corner.x, corner.x + width)..<max(corner.x, corner.x + width)

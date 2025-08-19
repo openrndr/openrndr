@@ -192,7 +192,7 @@ data class Segment2D(
     override val control: List<Vector2>,
     override val end: Vector2,
     val corner: Boolean = false
-) : BezierSegment<Vector2>, ShapeContourProvider, LinearType<Segment2D> {
+) : BezierSegment<Vector2>, ShapeContourProvider, LinearType<Segment2D>, GeometricPrimitive2D {
 
     @Transient
     private var lut: List<Vector2>? = null

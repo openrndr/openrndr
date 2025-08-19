@@ -14,7 +14,8 @@ import kotlin.random.Random
  * Creates a simple three-point polygon.
  */
 @Serializable
-data class Triangle(val x1: Vector2, val x2: Vector2, val x3: Vector2) : ShapeProvider, ShapeContourProvider {
+data class Triangle(val x1: Vector2, val x2: Vector2, val x3: Vector2) : ShapeProvider, ShapeContourProvider,
+    GeometricPrimitive2D {
     /** Returns true if given [v] lies inside the [Triangle]. */
     operator fun contains(v: Vector2): Boolean {
         val x23 = x2 - x3
@@ -110,12 +111,12 @@ data class Triangle(val x1: Vector2, val x2: Vector2, val x3: Vector2) : ShapePr
         return x1 * bary.x + x2 * bary.y + x3 * bary.z
     }
 
-    fun barycentric(position: Vector2) : Vector3 {
+    fun barycentric(position: Vector2): Vector3 {
         val m = Matrix33.fromColumnVectors(
             Vector3(x1.x - x3.x, x1.y - x3.y, 0.0),
             Vector3(x2.x - x3.x, x2.y - x3.y, 0.0),
             Vector3.UNIT_Z
-            )
+        )
         val r = position - x3
         val (b1, b2) = (m.inversed * r.xy1).xy
         return Vector3(b1, b2, 1.0 - b1 - b2)

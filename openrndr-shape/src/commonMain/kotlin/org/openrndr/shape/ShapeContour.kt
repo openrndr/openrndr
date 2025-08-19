@@ -23,7 +23,7 @@ data class ShapeContour(
     override val segments: List<Segment2D>,
     override val closed: Boolean,
     val polarity: YPolarity = YPolarity.CW_NEGATIVE_Y
-) : ShapeProvider, ShapeContourProvider, Path<Vector2> {
+) : ShapeProvider, ShapeContourProvider, Path<Vector2>, GeometricPrimitive2D {
     companion object {
         /**
          * An empty [ShapeContour] object.

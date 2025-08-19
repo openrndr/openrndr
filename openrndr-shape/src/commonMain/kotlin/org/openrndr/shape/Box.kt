@@ -25,7 +25,7 @@ import kotlin.math.min
  */
 @JvmRecord
 @Serializable
-data class Box(val corner: Vector3, val width: Double, val height: Double, val depth: Double) : LinearType<Box>, Movable3D, Scalable3D {
+data class Box(val corner: Vector3, val width: Double, val height: Double, val depth: Double) : LinearType<Box>, Movable3D, Scalable3D, GeometricPrimitive3D {
 
     /**
      * Represents the range along the X-axis for the box.

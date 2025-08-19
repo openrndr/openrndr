@@ -8,7 +8,7 @@ import kotlin.math.min
 
 @Serializable
 @JvmRecord
-data class LineSegment3D(val start: Vector3, val end: Vector3) {
+data class LineSegment3D(val start: Vector3, val end: Vector3): GeometricPrimitive3D {
 
 
     val direction get() = (end - start)

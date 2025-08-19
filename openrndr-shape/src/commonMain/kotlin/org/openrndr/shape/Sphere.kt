@@ -18,7 +18,7 @@ import kotlin.math.PI
  */
 @Serializable
 @JvmRecord
-data class Sphere(val center: Vector3, val radius: Double) : LinearType<Sphere>, Movable3D {
+data class Sphere(val center: Vector3, val radius: Double) : LinearType<Sphere>, Movable3D, GeometricPrimitive3D {
     override fun plus(right: Sphere): Sphere = copy(center = center + right.center, radius = radius + right.radius)
 
     override fun minus(right: Sphere): Sphere = copy(center = center - right.center, radius = radius - right.radius)
@@ -41,7 +41,8 @@ data class Sphere(val center: Vector3, val radius: Double) : LinearType<Sphere>,
      * @param point The [Vector3] representing the point to check.
      * @return `true` if the point is inside the sphere or if the sphere is [INFINITY], `false` otherwise.
      */
-    operator fun contains(point: Vector3): Boolean = if (this == INFINITY) true else point.squaredDistanceTo(center) < radius * radius
+    operator fun contains(point: Vector3): Boolean =
+        if (this == INFINITY) true else point.squaredDistanceTo(center) < radius * radius
 
     /**
      * The volume of the sphere.

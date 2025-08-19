@@ -14,7 +14,7 @@ import kotlin.random.Random
 /**
  * A simple interface for managing a [List] of [ShapeContour].
  */
-class Shape(val contours: List<ShapeContour>) : ShapeProvider {
+class Shape(val contours: List<ShapeContour>) : ShapeProvider, GeometricPrimitive2D {
     companion object {
         /**
          * An empty [Shape] object.

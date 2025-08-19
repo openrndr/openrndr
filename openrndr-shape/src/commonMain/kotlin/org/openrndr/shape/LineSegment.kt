@@ -32,7 +32,7 @@ import kotlin.math.sign
 @JvmRecord
 data class LineSegment(val start: Vector2, val end: Vector2) : LinearType<LineSegment>,
     ShapeProvider,
-    ShapeContourProvider {
+    ShapeContourProvider, GeometricPrimitive2D {
 
 
     /** Direction of the line segment */

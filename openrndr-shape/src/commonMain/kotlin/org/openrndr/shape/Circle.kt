@@ -24,7 +24,7 @@ import kotlin.math.PI
 @Serializable
 @JvmRecord
 data class Circle(val center: Vector2, val radius: Double) : Movable, Scalable1D, ShapeProvider, ShapeContourProvider,
-    LinearType<Circle> {
+    LinearType<Circle>, GeometricPrimitive2D {
 
     companion object {
         val INVALID = Circle(Vector2.INFINITY, 0.0)

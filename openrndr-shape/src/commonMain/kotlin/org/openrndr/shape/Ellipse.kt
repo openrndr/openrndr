@@ -14,7 +14,7 @@ import kotlin.jvm.JvmRecord
  */
 @Serializable
 @JvmRecord
-data class Ellipse(val center: Vector2, val xRadius: Double, val yRadius: Double): Movable, Scalable2D, ShapeProvider, ShapeContourProvider {
+data class Ellipse(val center: Vector2, val xRadius: Double, val yRadius: Double): Movable, Scalable2D, ShapeProvider, ShapeContourProvider, GeometricPrimitive2D {
 
     /** The top-left corner of the [Ellipse]. */
     val corner: Vector2
