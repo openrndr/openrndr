@@ -1,6 +1,7 @@
 package org.openrndr.shape
 
 import kotlinx.serialization.Serializable
+import org.openrndr.math.GeometricPrimitive2D
 import org.openrndr.math.Vector2
 import kotlin.jvm.JvmRecord
 
@@ -14,7 +15,8 @@ import kotlin.jvm.JvmRecord
  */
 @Serializable
 @JvmRecord
-data class Ellipse(val center: Vector2, val xRadius: Double, val yRadius: Double): Movable, Scalable2D, ShapeProvider, ShapeContourProvider, GeometricPrimitive2D {
+data class Ellipse(val center: Vector2, val xRadius: Double, val yRadius: Double): Movable, Scalable2D, ShapeProvider, ShapeContourProvider,
+    GeometricPrimitive2D {
 
     /** The top-left corner of the [Ellipse]. */
     val corner: Vector2

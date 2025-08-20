@@ -1,6 +1,7 @@
 package org.openrndr.shape
 
 import kotlinx.serialization.Serializable
+import org.openrndr.math.GeometricPrimitive3D
 import org.openrndr.math.Vector3
 import kotlin.jvm.JvmRecord
 import kotlin.math.max

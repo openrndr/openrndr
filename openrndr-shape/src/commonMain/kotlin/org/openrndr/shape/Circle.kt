@@ -1,12 +1,10 @@
 package org.openrndr.shape
 
 import kotlinx.serialization.Serializable
+import org.openrndr.math.GeometricPrimitive2D
 import org.openrndr.math.LinearType
-import org.openrndr.math.Polar
 import org.openrndr.math.Vector2
-import org.openrndr.math.asDegrees
 import kotlin.jvm.JvmRecord
-import kotlin.math.acos
 import kotlin.math.sqrt
 import kotlin.math.abs
 import kotlin.math.PI

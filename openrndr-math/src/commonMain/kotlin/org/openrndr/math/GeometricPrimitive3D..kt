@@ -1,4 +1,4 @@
-package org.openrndr.shape
+package org.openrndr.math
 
 /**
  * Represents a basic geometric primitive in a 3D space.

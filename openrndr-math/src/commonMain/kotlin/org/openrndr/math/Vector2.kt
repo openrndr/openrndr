@@ -26,7 +26,7 @@ enum class YPolarity {
  */
 @Serializable
 @JvmRecord
-data class Vector2(val x: Double, val y: Double) : LinearType<Vector2>, EuclideanVector<Vector2> {
+data class Vector2(val x: Double, val y: Double) : LinearType<Vector2>, EuclideanVector<Vector2>, GeometricPrimitive2D {
 
     /**
      * Represents an axis in 2D space. Each axis is associated with a unit vector
@@ -63,7 +63,7 @@ data class Vector2(val x: Double, val y: Double) : LinearType<Vector2>, Euclidea
         YPolarity.CW_NEGATIVE_Y -> Vector2(y, -x)
     }
 
-    override val zero:Vector2 get() = ZERO
+    override val zero: Vector2 get() = ZERO
 
     /**
      * Calculates a cross product between this [Vector2] and [right].
@@ -90,15 +90,15 @@ data class Vector2(val x: Double, val y: Double) : LinearType<Vector2>, Euclidea
         val a = degrees.asRadians
 
         val w = Vector2(
-                p.x * cos(a) - p.y * sin(a),
-                p.y * cos(a) + p.x * sin(a)
+            p.x * cos(a) - p.y * sin(a),
+            p.y * cos(a) + p.x * sin(a)
         )
 
         return w + origin
     }
 
-    val yx:Vector2 get() = Vector2(y, x)
-    val xx:Vector2 get() = Vector2(x, x)
+    val yx: Vector2 get() = Vector2(y, x)
+    val xx: Vector2 get() = Vector2(x, x)
     val yy: Vector2 get() = Vector2(y, y)
     val xy0 get() = Vector3(x, y, 0.0)
     val xy1 get() = Vector3(x, y, 1.0)
@@ -219,6 +219,7 @@ operator fun Double.times(v: Vector2) = v * this
  * @return A new vector containing the minimum x and y components from the two input vectors.
  */
 fun min(a: Vector2, b: Vector2): Vector2 = Vector2(min(a.x, b.x), min(a.y, b.y))
+
 /**
  * Determines the component-wise maximum of two 2D vectors.
  *
@@ -236,7 +237,7 @@ fun mix(a: Vector2, b: Vector2, mix: Double): Vector2 = a * (1 - mix) + b * mix
  * @return A [Vector2] representing the sum of all vectors in the iterable.
  * If the iterable is empty, the returned value is a zero vector.
  */
-fun Iterable<Vector2>.sum() : Vector2 {
+fun Iterable<Vector2>.sum(): Vector2 {
     var x = 0.0
     var y = 0.0
     for (v in this) {
@@ -254,7 +255,7 @@ fun Iterable<Vector2>.sum() : Vector2 {
  *
  * @return A [Vector2] representing the average of all vectors in the collection.
  */
-fun Iterable<Vector2>.average() : Vector2 {
+fun Iterable<Vector2>.average(): Vector2 {
     var x = 0.0
     var y = 0.0
     var count = 0

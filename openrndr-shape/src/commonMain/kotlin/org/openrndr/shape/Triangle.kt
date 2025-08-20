@@ -1,6 +1,7 @@
 package org.openrndr.shape
 
 import kotlinx.serialization.Serializable
+import org.openrndr.math.GeometricPrimitive2D
 import org.openrndr.math.Matrix33
 import org.openrndr.math.Polar
 import org.openrndr.math.Vector2

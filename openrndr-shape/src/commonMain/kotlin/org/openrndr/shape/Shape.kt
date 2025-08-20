@@ -5,6 +5,7 @@ package org.openrndr.shape
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.openrndr.kartifex.Region2
+import org.openrndr.math.GeometricPrimitive2D
 import org.openrndr.math.Matrix44
 import org.openrndr.math.Vector2
 import org.openrndr.utils.resettableLazy
