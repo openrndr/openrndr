@@ -337,6 +337,19 @@ data class ColorRGBa(
     }
 
     override fun toVector4(): Vector4 = Vector4(r, g, b, alpha)
+
+    /**
+     * Retrieves the color's RGBA component value based on the specified index:
+     * [index] should be 0 for red, 1 for green, 2 for blue, 3 for alpha.
+     * Other index values throw an [IndexOutOfBoundsException].
+     */
+    operator fun get(index: Int) = when (index) {
+        0 -> r
+        1 -> g
+        2 -> b
+        3 -> alpha
+        else -> throw IllegalArgumentException("unsupported index")
+    }
 }
 
 /**
