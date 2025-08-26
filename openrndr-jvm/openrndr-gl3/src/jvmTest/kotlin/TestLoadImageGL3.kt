@@ -120,4 +120,14 @@ class TestLoadImageGL3 : AbstractApplicationTestFixture() {
             assertEquals(log2(img.effectiveWidth.toDouble()).toInt(), img.levels)
         }
     }
+
+    @Test
+    fun dataUrls() {
+        loadImage(locateImage("data/images/rgba-8_8_8_8.png")).use { img ->
+            val dataUrl =  img.toDataUrl()
+            loadImage(dataUrl).use { img2 ->
+                assertEquals(img.width, img2.width)
+            }
+        }
+    }
 }

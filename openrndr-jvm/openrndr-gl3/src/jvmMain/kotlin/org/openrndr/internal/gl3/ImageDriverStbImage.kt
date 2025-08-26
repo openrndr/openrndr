@@ -100,6 +100,10 @@ class ImageDriverStbImage : ImageDriver {
     override fun probeImage(fileOrUrl: String): ImageFileDetails? {
         val (file, url) = resolveFileOrUrl(fileOrUrl)
 
+        if (file == null && url == null) {
+            return null
+        }
+
         val header = ByteArray(1024)
         url?.let { it.openStream().use { stream -> stream.read(header) } }
         file?.let { it.inputStream().use { stream -> stream.read(header) } }
