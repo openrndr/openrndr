@@ -103,11 +103,13 @@ class H264Profile : VideoWriterProfile() {
     }
 }
 
-class VideoWriter {
+class VideoWriter(
+    val useVariableFrameRate: Boolean = false
+) {
     internal var ffmpegOutput = File("ffmpegOutput.txt")
     private var stopped = false
 
-    var frameRate = 25
+    var frameRate: Number = 25
     var width = -1
         private set
     var height = -1
@@ -212,26 +214,38 @@ class VideoWriter {
             "-s", String.format("%dx%d", width, height), "-pix_fmt", inputFormat, "-r", "" + frameRate, "-i", "-"
         )
 
-        val codec = profile.arguments()
-        val arguments = ArrayList<String>()
+        var profileArguments = profile.arguments()
+
+        if (useVariableFrameRate) {
+            val setPtsFilter = "setpts=(RTCTIME-RTCSTART)/100000"
+            if (profileArguments.contains("-vf")) {
+                val index = profileArguments.indexOf("-vf")
+                profileArguments[index + 1] += ",$setPtsFilter"
+            } else {
+                profileArguments += arrayOf("-vf", setPtsFilter)
+            }
+            profileArguments += arrayOf("-vsync", "2")
+        }
+
+        val command = mutableListOf<String>()
 
         val ffmpegFile = findFfmpeg()
 
         if (ffmpegFile != null) {
-            arguments.add(ffmpegFile.toString())
+            command.add(ffmpegFile.toString())
         } else {
-            arguments.add(builtInFfmpegBinary)
+            command.add(builtInFfmpegBinary)
         }
-        arguments.addAll(listOf(*preamble))
-        arguments.addAll(listOf(*codec))
+        command.addAll(listOf(*preamble))
+        command.addAll(listOf(*profileArguments))
 
-        arguments.add(finalFilename)
+        command.add(finalFilename)
 
         logger.debug {
-            "using arguments: ${arguments.joinToString()}"
+            "using arguments: ${command.joinToString()}"
         }
 
-        val pb = ProcessBuilder().command(*arguments.toTypedArray())
+        val pb = ProcessBuilder().command(*command.toTypedArray())
         pb.redirectErrorStream(true)
         pb.redirectOutput(ffmpegOutput)
 
@@ -242,7 +256,7 @@ class VideoWriter {
             return this
         } catch (e: IOException) {
             logger.error { "system path: ${System.getenv("path")}" }
-            logger.error { "command: ${arguments.joinToString(" ")}" }
+            logger.error { "command: ${command.joinToString(" ")}" }
             throw RuntimeException("failed to launch ffmpeg", e)
         }
     }
@@ -289,7 +303,7 @@ class VideoWriter {
                 try {
                     logger.info { "waiting for ffmpeg to finish" }
                     ffmpeg!!.waitFor()
-                    logger.info{ "ffmpeg finished" }
+                    logger.info { "ffmpeg finished" }
                 } catch (e: InterruptedException) {
                     e.printStackTrace()
                 }

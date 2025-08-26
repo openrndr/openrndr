@@ -41,7 +41,7 @@ class ScreenRecorder : Extension {
     var outputFile: String? = null
 
     /** the framerate of the output video */
-    var frameRate = 30
+    var frameRate: Number = 30
 
     /**
      * what time the video recorder should start recording at
@@ -61,7 +61,14 @@ class ScreenRecorder : Extension {
     /** the profile to use for the output video */
     var profile: VideoWriterProfile = H264Profile()
 
-    /** should a frameclock be installed, if false system clock is used */
+    /**
+     * A flag indicating whether the frame clock should be used during the screen recording process.
+     *
+     * When set to `true` (default), the frame clock is active and a constant framerate video is produced. This is the recommended
+     * setting for producing video from non-interactive programs.
+     * When set to `false`, the system clock is active and variable framerate video produced. This is the recommended setting
+     * for producing video from interactive programs.
+     */
     var frameClock = true
 
     /** should multisampling be used? */
@@ -78,7 +85,7 @@ class ScreenRecorder : Extension {
 
     var contentScale: Double? = null
 
-    private var storedClock: (()->Double)? = null
+    private var storedClock: (() -> Double)? = null
 
     override fun setup(program: Program) {
         if (program.window.resizable) {
@@ -117,8 +124,7 @@ class ScreenRecorder : Extension {
                 it.mkdirs()
             }
         }
-        videoWriter = VideoWriter()
-        videoWriter.profile(profile)
+        videoWriter = VideoWriter(useVariableFrameRate = !frameClock)
 
         val (advisedWidth, advisedHeight) = videoWriter.advisedSize(frame.pixelWidth, frame.pixelHeight)
         if (advisedWidth != frame.pixelWidth || advisedHeight != frame.pixelHeight) {
@@ -234,6 +240,6 @@ class ScreenRecorder : Extension {
     }
 }
 
-fun ScreenRecorder.h264(configure: H264Profile.()->Unit) {
+fun ScreenRecorder.h264(configure: H264Profile.() -> Unit) {
     profile = H264Profile().apply(configure)
 }
