@@ -90,37 +90,37 @@ data class Matrix44(
                 return this
             }
             val n00 =
-                c1r2 * c2r3 * c3r1 - c1r3 * c2r2 * c3r1 + c1r3 * c2r1 * c3r2 - c1r1 * c2r3 * c3r2 - c1r2 * c2r1 * c3r3 + c1r1 * c2r2 * c3r3
+                fmaDot3(c1r2, c2r3, c3r1,-c1r3, c2r2, c3r1, c1r3, c2r1, c3r2 ,- c1r1 , c2r3 , c3r2 ,- c1r2 , c2r1 , c3r3 , c1r1 , c2r2 , c3r3)
             val n01 =
-                c0r3 * c2r2 * c3r1 - c0r2 * c2r3 * c3r1 - c0r3 * c2r1 * c3r2 + c0r1 * c2r3 * c3r2 + c0r2 * c2r1 * c3r3 - c0r1 * c2r2 * c3r3
+                fmaDot3(c0r3,c2r2,c3r1 ,-c0r2,c2r3,c3r1 ,-c0r3,c2r1,c3r2 , c0r1,c2r3,c3r2 , c0r2,c2r1,c3r3 ,- c0r1,c2r2,c3r3)
             val n02 =
-                c0r2 * c1r3 * c3r1 - c0r3 * c1r2 * c3r1 + c0r3 * c1r1 * c3r2 - c0r1 * c1r3 * c3r2 - c0r2 * c1r1 * c3r3 + c0r1 * c1r2 * c3r3
+                fmaDot3(c0r2, c1r3, c3r1, -c0r3, c1r2, c3r1, c0r3, c1r1, c3r2, -c0r1, c1r3, c3r2, - c0r2, c1r1, c3r3, c0r1, c1r2, c3r3)
             val n03 =
-                c0r3 * c1r2 * c2r1 - c0r2 * c1r3 * c2r1 - c0r3 * c1r1 * c2r2 + c0r1 * c1r3 * c2r2 + c0r2 * c1r1 * c2r3 - c0r1 * c1r2 * c2r3
+                fmaDot3(c0r3,c1r2,c2r1,-c0r2,c1r3,c2r1,-c0r3,c1r1,c2r2,c0r1,c1r3,c2r2,c0r2,c1r1,c2r3,-c0r1,c1r2,c2r3)
             val n10 =
-                c1r3 * c2r2 * c3r0 - c1r2 * c2r3 * c3r0 - c1r3 * c2r0 * c3r2 + c1r0 * c2r3 * c3r2 + c1r2 * c2r0 * c3r3 - c1r0 * c2r2 * c3r3
+                fmaDot3(c1r3,c2r2,c3r0,-c1r2,c2r3,c3r0,-c1r3,c2r0,c3r2,c1r0,c2r3,c3r2,c1r2,c2r0,c3r3,-c1r0,c2r2,c3r3)
             val n11 =
-                c0r2 * c2r3 * c3r0 - c0r3 * c2r2 * c3r0 + c0r3 * c2r0 * c3r2 - c0r0 * c2r3 * c3r2 - c0r2 * c2r0 * c3r3 + c0r0 * c2r2 * c3r3
+                fmaDot3(c0r2,c2r3,c3r0, -c0r3,c2r2,c3r0, c0r3,c2r0,c3r2, -c0r0,c2r3,c3r2, -c0r2,c2r0,c3r3, c0r0,c2r2,c3r3)
             val n12 =
-                c0r3 * c1r2 * c3r0 - c0r2 * c1r3 * c3r0 - c0r3 * c1r0 * c3r2 + c0r0 * c1r3 * c3r2 + c0r2 * c1r0 * c3r3 - c0r0 * c1r2 * c3r3
+                fmaDot3(c0r3, c1r2, c3r0, -c0r2, c1r3, c3r0, -c0r3, c1r0, c3r2, c0r0, c1r3, c3r2, c0r2, c1r0, c3r3, -c0r0, c1r2, c3r3)
             val n13 =
-                c0r2 * c1r3 * c2r0 - c0r3 * c1r2 * c2r0 + c0r3 * c1r0 * c2r2 - c0r0 * c1r3 * c2r2 - c0r2 * c1r0 * c2r3 + c0r0 * c1r2 * c2r3
+                fmaDot3(c0r2, c1r3, c2r0, -c0r3, c1r2, c2r0, c0r3, c1r0, c2r2, -c0r0, c1r3, c2r2, -c0r2, c1r0, c2r3, c0r0, c1r2, c2r3)
             val n20 =
-                c1r1 * c2r3 * c3r0 - c1r3 * c2r1 * c3r0 + c1r3 * c2r0 * c3r1 - c1r0 * c2r3 * c3r1 - c1r1 * c2r0 * c3r3 + c1r0 * c2r1 * c3r3
+                fmaDot3(c1r1, c2r3, c3r0, -c1r3, c2r1, c3r0, c1r3, c2r0, c3r1, -c1r0, c2r3, c3r1, -c1r1, c2r0, c3r3, c1r0, c2r1, c3r3)
             val n21 =
-                c0r3 * c2r1 * c3r0 - c0r1 * c2r3 * c3r0 - c0r3 * c2r0 * c3r1 + c0r0 * c2r3 * c3r1 + c0r1 * c2r0 * c3r3 - c0r0 * c2r1 * c3r3
+                fmaDot3(c0r3, c2r1, c3r0, -c0r1, c2r3, c3r0, -c0r3, c2r0, c3r1, c0r0, c2r3, c3r1, c0r1, c2r0, c3r3, -c0r0, c2r1, c3r3)
             val n22 =
-                c0r1 * c1r3 * c3r0 - c0r3 * c1r1 * c3r0 + c0r3 * c1r0 * c3r1 - c0r0 * c1r3 * c3r1 - c0r1 * c1r0 * c3r3 + c0r0 * c1r1 * c3r3
+                fmaDot3(c0r1, c1r3, c3r0, -c0r3, c1r1, c3r0, c0r3, c1r0, c3r1, -c0r0, c1r3, c3r1, -c0r1, c1r0, c3r3, c0r0, c1r1, c3r3)
             val n23 =
-                c0r3 * c1r1 * c2r0 - c0r1 * c1r3 * c2r0 - c0r3 * c1r0 * c2r1 + c0r0 * c1r3 * c2r1 + c0r1 * c1r0 * c2r3 - c0r0 * c1r1 * c2r3
+                fmaDot3(c0r3, c1r1, c2r0, -c0r1, c1r3, c2r0, -c0r3, c1r0, c2r1, c0r0, c1r3, c2r1, c0r1, c1r0, c2r3, -c0r0, c1r1, c2r3)
             val n30 =
-                c1r2 * c2r1 * c3r0 - c1r1 * c2r2 * c3r0 - c1r2 * c2r0 * c3r1 + c1r0 * c2r2 * c3r1 + c1r1 * c2r0 * c3r2 - c1r0 * c2r1 * c3r2
+                fmaDot3(c1r2, c2r1, c3r0, -c1r1, c2r2, c3r0, -c1r2, c2r0, c3r1, c1r0, c2r2, c3r1, c1r1, c2r0, c3r2, -c1r0, c2r1, c3r2)
             val n31 =
-                c0r1 * c2r2 * c3r0 - c0r2 * c2r1 * c3r0 + c0r2 * c2r0 * c3r1 - c0r0 * c2r2 * c3r1 - c0r1 * c2r0 * c3r2 + c0r0 * c2r1 * c3r2
+                fmaDot3(c0r1, c2r2, c3r0, -c0r2, c2r1, c3r0, c0r2, c2r0, c3r1, -c0r0, c2r2, c3r1, -c0r1, c2r0, c3r2, c0r0, c2r1, c3r2)
             val n32 =
-                c0r2 * c1r1 * c3r0 - c0r1 * c1r2 * c3r0 - c0r2 * c1r0 * c3r1 + c0r0 * c1r2 * c3r1 + c0r1 * c1r0 * c3r2 - c0r0 * c1r1 * c3r2
+                fmaDot3(c0r2, c1r1, c3r0, -c0r1, c1r2, c3r0, -c0r2, c1r0, c3r1, c0r0, c1r2, c3r1, c0r1, c1r0, c3r2, -c0r0, c1r1, c3r2)
             val n33 =
-                c0r1 * c1r2 * c2r0 - c0r2 * c1r1 * c2r0 + c0r2 * c1r0 * c2r1 - c0r0 * c1r2 * c2r1 - c0r1 * c1r0 * c2r2 + c0r0 * c1r1 * c2r2
+                fmaDot3(c0r1, c1r2, c2r0, -c0r2, c1r1, c2r0, c0r2, c1r0, c2r1, -c0r0, c1r2, c2r1, -c0r1, c1r0, c2r2, c0r0, c1r1, c2r2)
 
             val d = determinant
             return Matrix44(
@@ -137,12 +137,12 @@ data class Matrix44(
     val trace: Double get() = c0r0 + c1r1 + c2r2 + c3r3
 
     val determinant: Double
-        get() = c0r3 * c1r2 * c2r1 * c3r0 - c0r2 * c1r3 * c2r1 * c3r0 - c0r3 * c1r1 * c2r2 * c3r0 + c0r1 * c1r3 * c2r2 * c3r0 +
-                c0r2 * c1r1 * c2r3 * c3r0 - c0r1 * c1r2 * c2r3 * c3r0 - c0r3 * c1r2 * c2r0 * c3r1 + c0r2 * c1r3 * c2r0 * c3r1 +
-                c0r3 * c1r0 * c2r2 * c3r1 - c0r0 * c1r3 * c2r2 * c3r1 - c0r2 * c1r0 * c2r3 * c3r1 + c0r0 * c1r2 * c2r3 * c3r1 +
-                c0r3 * c1r1 * c2r0 * c3r2 - c0r1 * c1r3 * c2r0 * c3r2 - c0r3 * c1r0 * c2r1 * c3r2 + c0r0 * c1r3 * c2r1 * c3r2 +
-                c0r1 * c1r0 * c2r3 * c3r2 - c0r0 * c1r1 * c2r3 * c3r2 - c0r2 * c1r1 * c2r0 * c3r3 + c0r1 * c1r2 * c2r0 * c3r3 +
-                c0r2 * c1r0 * c2r1 * c3r3 - c0r0 * c1r2 * c2r1 * c3r3 - c0r1 * c1r0 * c2r2 * c3r3 + c0r0 * c1r1 * c2r2 * c3r3
+        get() = fmaDot4(c0r3, c1r2, c2r1, c3r0, -c0r2, c1r3, c2r1, c3r0, -c0r3, c1r1, c2r2, c3r0,c0r1, c1r3, c2r2, c3r0) +
+                fmaDot4(c0r2, c1r1, c2r3, c3r0, -c0r1, c1r2, c2r3, c3r0, -c0r3, c1r2, c2r0, c3r1,c0r2, c1r3, c2r0, c3r1) +
+                fmaDot4(c0r3, c1r0, c2r2, c3r1, -c0r0, c1r3, c2r2, c3r1, -c0r2, c1r0, c2r3, c3r1,c0r0, c1r2, c2r3, c3r1) +
+                fmaDot4(c0r3, c1r1, c2r0, c3r2, -c0r1, c1r3, c2r0, c3r2, -c0r3, c1r0, c2r1, c3r2,c0r0, c1r3, c2r1, c3r2) +
+                fmaDot4(c0r1, c1r0, c2r3, c3r2, -c0r0, c1r1, c2r3, c3r2, -c0r2, c1r1, c2r0, c3r3,c0r1, c1r2, c2r0, c3r3) +
+                fmaDot4(c0r2, c1r0, c2r1, c3r3, -c0r0, c1r2, c2r1, c3r3, -c0r1, c1r0, c2r2, c3r3,c0r0, c1r1, c2r2, c3r3)
 
     /**
      * Matrix addition
@@ -192,10 +192,10 @@ data class Matrix44(
      * Multiplies the 4x4 matrix with a vector 4
      */
     operator fun times(v: Vector4) = Vector4(
-        v.x * c0r0 + v.y * c1r0 + v.z * c2r0 + v.w * c3r0,
-        v.x * c0r1 + v.y * c1r1 + v.z * c2r1 + v.w * c3r1,
-        v.x * c0r2 + v.y * c1r2 + v.z * c2r2 + v.w * c3r2,
-        v.x * c0r3 + v.y * c1r3 + v.z * c2r3 + v.w * c3r3
+        fmaDot(v.x, c0r0, v.y, c1r0, v.z, c2r0, v.w, c3r0),
+        fmaDot(v.x, c0r1, v.y, c1r1, v.z, c2r1, v.w, c3r1),
+        fmaDot(v.x, c0r2, v.y, c1r2, v.z, c2r2, v.w, c3r2),
+        fmaDot(v.x, c0r3, v.y, c1r3, v.z, c2r3, v.w, c3r3)
     )
 
     /**
@@ -217,31 +217,34 @@ data class Matrix44(
 
 
     /**
-     * Matrix concatenation
+     * Multiplies this 4x4 matrix with another 4x4 matrix.
+     *
+     * @param mat the matrix to multiply with
+     * @return the result of the matrix multiplication
      */
     operator fun times(mat: Matrix44) = when {
         this === IDENTITY -> mat
         mat === IDENTITY -> this
         else -> Matrix44(
-            this.c0r0 * mat.c0r0 + this.c1r0 * mat.c0r1 + this.c2r0 * mat.c0r2 + this.c3r0 * mat.c0r3, // m00
-            this.c0r0 * mat.c1r0 + this.c1r0 * mat.c1r1 + this.c2r0 * mat.c1r2 + this.c3r0 * mat.c1r3, // c1r0
-            this.c0r0 * mat.c2r0 + this.c1r0 * mat.c2r1 + this.c2r0 * mat.c2r2 + this.c3r0 * mat.c2r3, // c2r0
-            this.c0r0 * mat.c3r0 + this.c1r0 * mat.c3r1 + this.c2r0 * mat.c3r2 + this.c3r0 * mat.c3r3, // c3r0
+            fmaDot(this.c0r0, mat.c0r0, this.c1r0, mat.c0r1, this.c2r0, mat.c0r2, this.c3r0, mat.c0r3), // m00
+            fmaDot(this.c0r0, mat.c1r0, this.c1r0, mat.c1r1, this.c2r0, mat.c1r2, this.c3r0, mat.c1r3), // c1r0
+            fmaDot(this.c0r0, mat.c2r0, this.c1r0, mat.c2r1, this.c2r0, mat.c2r2, this.c3r0, mat.c2r3), // c2r0
+            fmaDot(this.c0r0, mat.c3r0, this.c1r0, mat.c3r1, this.c2r0, mat.c3r2, this.c3r0, mat.c3r3), // c3r0
 
-            this.c0r1 * mat.c0r0 + this.c1r1 * mat.c0r1 + this.c2r1 * mat.c0r2 + this.c3r1 * mat.c0r3, // c0r1
-            this.c0r1 * mat.c1r0 + this.c1r1 * mat.c1r1 + this.c2r1 * mat.c1r2 + this.c3r1 * mat.c1r3, // c1r1
-            this.c0r1 * mat.c2r0 + this.c1r1 * mat.c2r1 + this.c2r1 * mat.c2r2 + this.c3r1 * mat.c2r3, // c2r1
-            this.c0r1 * mat.c3r0 + this.c1r1 * mat.c3r1 + this.c2r1 * mat.c3r2 + this.c3r1 * mat.c3r3, // c3r1
+            fmaDot(this.c0r1, mat.c0r0, this.c1r1, mat.c0r1, this.c2r1, mat.c0r2, this.c3r1, mat.c0r3), // c0r1
+            fmaDot(this.c0r1, mat.c1r0, this.c1r1, mat.c1r1, this.c2r1, mat.c1r2, this.c3r1, mat.c1r3), // c1r1
+            fmaDot(this.c0r1, mat.c2r0, this.c1r1, mat.c2r1, this.c2r1, mat.c2r2, this.c3r1, mat.c2r3), // c2r1
+            fmaDot(this.c0r1, mat.c3r0, this.c1r1, mat.c3r1, this.c2r1, mat.c3r2, this.c3r1, mat.c3r3), // c3r1
 
-            this.c0r2 * mat.c0r0 + this.c1r2 * mat.c0r1 + this.c2r2 * mat.c0r2 + this.c3r2 * mat.c0r3, // c0r2
-            this.c0r2 * mat.c1r0 + this.c1r2 * mat.c1r1 + this.c2r2 * mat.c1r2 + this.c3r2 * mat.c1r3, // c1r2
-            this.c0r2 * mat.c2r0 + this.c1r2 * mat.c2r1 + this.c2r2 * mat.c2r2 + this.c3r2 * mat.c2r3, // c2r2
-            this.c0r2 * mat.c3r0 + this.c1r2 * mat.c3r1 + this.c2r2 * mat.c3r2 + this.c3r2 * mat.c3r3, // c3r2
+            fmaDot(this.c0r2, mat.c0r0, this.c1r2, mat.c0r1, this.c2r2, mat.c0r2, this.c3r2, mat.c0r3), // c0r2
+            fmaDot(this.c0r2, mat.c1r0, this.c1r2, mat.c1r1, this.c2r2, mat.c1r2, this.c3r2, mat.c1r3), // c1r2
+            fmaDot(this.c0r2, mat.c2r0, this.c1r2, mat.c2r1, this.c2r2, mat.c2r2, this.c3r2, mat.c2r3), // c2r2
+            fmaDot(this.c0r2, mat.c3r0, this.c1r2, mat.c3r1, this.c2r2, mat.c3r2, this.c3r2, mat.c3r3), // c3r2
 
-            this.c0r3 * mat.c0r0 + this.c1r3 * mat.c0r1 + this.c2r3 * mat.c0r2 + this.c3r3 * mat.c0r3, // c0r3
-            this.c0r3 * mat.c1r0 + this.c1r3 * mat.c1r1 + this.c2r3 * mat.c1r2 + this.c3r3 * mat.c1r3, // c1r3
-            this.c0r3 * mat.c2r0 + this.c1r3 * mat.c2r1 + this.c2r3 * mat.c2r2 + this.c3r3 * mat.c2r3, // c2r3
-            this.c0r3 * mat.c3r0 + this.c1r3 * mat.c3r1 + this.c2r3 * mat.c3r2 + this.c3r3 * mat.c3r3 // c3r3
+            fmaDot(this.c0r3, mat.c0r0, this.c1r3, mat.c0r1, this.c2r3, mat.c0r2, this.c3r3, mat.c0r3), // c0r3
+            fmaDot(this.c0r3, mat.c1r0, this.c1r3, mat.c1r1, this.c2r3, mat.c1r2, this.c3r3, mat.c1r3), // c1r3
+            fmaDot(this.c0r3, mat.c2r0, this.c1r3, mat.c2r1, this.c2r3, mat.c2r2, this.c3r3, mat.c2r3), // c2r3
+            fmaDot(this.c0r3, mat.c3r0, this.c1r3, mat.c3r1, this.c2r3, mat.c3r2, this.c3r3, mat.c3r3) // c3r3
         )
     }
 
