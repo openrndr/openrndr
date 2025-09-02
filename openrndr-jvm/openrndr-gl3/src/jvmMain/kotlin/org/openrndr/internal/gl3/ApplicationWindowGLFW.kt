@@ -7,7 +7,6 @@ import org.lwjgl.PointerBuffer
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.glfw.GLFWImage
 import org.lwjgl.opengl.GL43C
-import org.lwjgl.opengl.GLUtil
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryUtil
 import org.openrndr.*
@@ -536,6 +535,7 @@ class ApplicationWindowGLFW(
 }
 
 fun createApplicationWindowGlfw(
+    parentWindow: Long?,
     application: ApplicationGLFWGL3,
     configuration: WindowConfiguration,
     program: Program
@@ -591,14 +591,31 @@ fun createApplicationWindowGlfw(
         glfwWindowHint(GLFW_FLOATING, GLFW_TRUE)
     }
 
+
+    val displayScale = FloatArray(1)
+
+    if (parentWindow != null) {
+        glfwGetWindowContentScale(parentWindow, displayScale, null)
+    } else {
+        glfwGetMonitorContentScale(glfwGetPrimaryMonitor(), displayScale, null)
+    }
+
+    logger.debug { "primary display content scale: ${displayScale[0]}" }
+
+    val adjustedWidth =
+        if (fixWindowSize) (displayScale[0] * configuration.width).toInt() else configuration.width
+    val adjustedHeight =
+        if (fixWindowSize) (displayScale[0] * configuration.height).toInt() else configuration.height
+
+    logger.debug { "adjusted width x height $adjustedWidth x $adjustedHeight" }
+
     val childWindow = glfwCreateWindow(
-        configuration.width,
-        configuration.height,
+        adjustedWidth,
+        adjustedHeight,
         configuration.title,
         MemoryUtil.NULL,
         primaryWindow
     )
-
 
     logger.debug { "created child window $childWindow" }
 

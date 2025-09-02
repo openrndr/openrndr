@@ -559,7 +559,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
         // acquire current context, we may be calling this from another context that we want to return to
         val currentActiveContext = glfwGetCurrentContext()
         try {
-            val window = createApplicationWindowGlfw(this, configuration, program)
+            val window = createApplicationWindowGlfw(window,this, configuration, program)
             program.application = this
             (program as WindowProgram).applicationWindow = window
             program.drawer = this@ApplicationGLFWGL3.program.drawer
