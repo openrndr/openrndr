@@ -8,7 +8,6 @@ kotlinLogging = "7.0.13"
 kotlinxSerialization = "1.9.0"
 dokka = "2.0.0"
 nebulaRelease = "18.0.7"
-gradleNexusPublish = "2.0.0"
 lwjgl = "3.3.6"
 javacpp = "1.5.12"
 # ffmpeg version suffix should match javacpp version
@@ -16,6 +15,7 @@ ffmpeg = "7.1.1-1.5.12"
 junitJupiter = "5.13.4"
 kotest = "6.0.0"
 slf4j = "2.0.17"
+nmcp = "1.1.0"
 
 [libraries]
 kotlin-logging = { group = "io.github.oshai", name = "kotlin-logging", version.ref = "kotlinLogging" }
@@ -52,7 +52,7 @@ slf4j-simple = { group = "org.slf4j", name = "slf4j-simple", version.ref = "slf4
 [plugins]
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 nebula-release = { id = "nebula.release", version.ref = "nebulaRelease" }
-gradle-nexus-publish = { id = "io.github.gradle-nexus.publish-plugin", version.ref = "gradleNexusPublish" }
+nmcp = { id = "com.gradleup.nmcp.aggregation", version.ref = "nmcp" }
 
 [bundles]
 lwjgl-openal = ["lwjgl-core", "lwjgl-openal"]
