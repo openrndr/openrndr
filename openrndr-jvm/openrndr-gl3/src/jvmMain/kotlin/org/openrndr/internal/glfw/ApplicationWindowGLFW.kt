@@ -608,9 +608,9 @@ fun createApplicationWindowGlfw(
     logger.debug { "primary display content scale: ${displayScale[0]}" }
 
     val adjustedWidth =
-        if (fixWindowSize) (displayScale[0] * configuration.width).toInt() else configuration.width
+        if (ApplicationGlfwConfiguration.fixWindowSize) (displayScale[0] * configuration.width).toInt() else configuration.width
     val adjustedHeight =
-        if (fixWindowSize) (displayScale[0] * configuration.height).toInt() else configuration.height
+        if (ApplicationGlfwConfiguration.fixWindowSize) (displayScale[0] * configuration.height).toInt() else configuration.height
 
     logger.debug { "adjusted width x height $adjustedWidth x $adjustedHeight" }
 
