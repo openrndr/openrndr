@@ -217,7 +217,8 @@ class VideoWriter(
         var profileArguments = profile.arguments()
 
         if (useVariableFrameRate) {
-            val setPtsFilter = "setpts=(RTCTIME-RTCSTART)/100000"
+            val div = (1E6 / frameRate.toDouble()).toInt()
+            val setPtsFilter = "setpts=(RTCTIME-RTCSTART)/$div"
             if (profileArguments.contains("-vf")) {
                 val index = profileArguments.indexOf("-vf")
                 profileArguments[index + 1] += ",$setPtsFilter"
