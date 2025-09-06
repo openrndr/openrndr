@@ -23,14 +23,14 @@ repositories {
 }
 
 group = "org.openrndr"
-
+objects
 dependencies {
     implementation(libs.kotlin.stdlib)
     implementation(libs.kotlin.logging)
     testImplementation(libs.kotlin.test)
     testRuntimeOnly(libs.slf4j.simple)
 }
-
+sourceSets
 tasks {
     val test by getting(Test::class) {
         useJUnitPlatform()
@@ -49,67 +49,8 @@ tasks {
     }
 }
 
-val macosArm64Main = sourceSets.create("macosArm64Main")
-tasks.register<Jar>(macosArm64Main.jarTaskName) {
-    archiveClassifier.set("macos-arm64")
-}
-val main = sourceSets.getByName("main")
-val macosArm64MainApiElements = configurations.create(macosArm64Main.apiElementsConfigurationName) {
-    isCanBeResolved = false
-    isCanBeConsumed = true
-
-    val osAttribute = Attribute.of("org.gradle.native.operatingSystem", String::class.java)
-    val archAttribute = Attribute.of("org.gradle.native.architecture", String::class.java)
-    val typeAttribute = Attribute.of("org.jetbrains.kotlin.platform.type", String::class.java)
-    val environmentAttribute = Attribute.of("org.gradle.jvm.environment", String::class.java)
-
-
-    attributes {
-        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_API))
-        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
-        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.JAR))
-        attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 17)
-        attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.EXTERNAL))
-        attribute(osAttribute, "macos")
-        attribute(archAttribute, "aarch64")
-        attribute(typeAttribute, "jvm")
-        attribute(environmentAttribute, "standard-jvm")
-    }
-    outgoing.artifact(tasks.named(main.jarTaskName))
-    outgoing.artifact(tasks.named(macosArm64Main.jarTaskName))
-}
-
-val macosArm64MainRuntimeElements = configurations.create(macosArm64Main.runtimeElementsConfigurationName) {
-    isCanBeResolved = false
-    isCanBeConsumed = true
-
-    val osAttribute = Attribute.of("org.gradle.native.operatingSystem", String::class.java)
-    val archAttribute = Attribute.of("org.gradle.native.architecture", String::class.java)
-    val typeAttribute = Attribute.of("org.jetbrains.kotlin.platform.type", String::class.java)
-    val environmentAttribute = Attribute.of("org.gradle.jvm.environment", String::class.java)
-
-    extendsFrom(configurations.getByName(macosArm64Main.implementationConfigurationName))
-
-    attributes {
-        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
-        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
-        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.JAR))
-        attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 17)
-        attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.EXTERNAL))
-
-        attribute(osAttribute, "macos")
-        attribute(archAttribute, "aarch64")
-        attribute(typeAttribute, "jvm")
-        attribute(environmentAttribute, "standard-jvm")
-    }
-    outgoing.artifact(tasks.named(macosArm64Main.jarTaskName))
-}
+components.getByName("java") {}
 
 java {
     targetCompatibility = JavaVersion.VERSION_17
 }
-val javaComponent = components["java"] as AdhocComponentWithVariants
-    javaComponent.apply {
-}
-javaComponent.addVariantsFromConfiguration(macosArm64MainApiElements) {}
-javaComponent.addVariantsFromConfiguration(macosArm64MainRuntimeElements) {}
