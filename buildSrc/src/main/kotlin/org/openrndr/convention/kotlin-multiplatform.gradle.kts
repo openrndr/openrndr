@@ -85,3 +85,11 @@ kotlin {
         }
     }
 }
+
+configurations.matching(Configuration::isCanBeResolved).configureEach {
+    attributes {
+        attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, objects.named("macos"))
+        attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, objects.named("aarch64"))
+    }
+}
+
