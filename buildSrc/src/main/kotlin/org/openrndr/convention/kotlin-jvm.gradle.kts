@@ -2,6 +2,7 @@ package org.openrndr.convention
 
 import org.gradle.accessors.dm.LibrariesForLibs
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -47,14 +48,15 @@ java {
     targetCompatibility = JavaVersion.valueOf("VERSION_${libs.versions.jvmTarget.get()}")
 }
 
-    configurations.matching(Configuration::isCanBeResolved).configureEach {
-        attributes {
-            attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, objects.named("macos"))
-            attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, objects.named("aarch64"))
-//        attribute(osAttribute, "macos")
-//        attribute(archAttribute, "arm64")
-        }
+val currentOperatingSystemName: String = DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName()
+val currentArchitectureName: String = DefaultNativePlatform.getCurrentArchitecture().name
+
+configurations.matching {
+    it.name.endsWith("runtimeClasspath", ignoreCase = true)
+}.configureEach {
+    attributes {
+        attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, objects.named(currentOperatingSystemName))
+        attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, objects.named(currentArchitectureName))
     }
-
-
+}
 
