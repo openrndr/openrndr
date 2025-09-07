@@ -1,6 +1,6 @@
 
 plugins {
-    org.openrndr.convention.`kotlin-jvm-with-natives`
+    org.openrndr.convention.`kotlin-jvm`
     org.openrndr.convention.`publish-jvm`
     alias(libs.plugins.kotlin.serialization)
     id("org.openrndr.convention.variant")
@@ -55,17 +55,6 @@ dependencies {
     implementation(libs.kotlin.serialization.json)
     implementation(libs.lwjgl.core)
 }
-
-
-configurations.matching(Configuration::isCanBeResolved).configureEach {
-    attributes {
-        attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, objects.named("macos"))
-        attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, objects.named("aarch64"))
-//        attribute(osAttribute, "macos")
-//        attribute(archAttribute, "arm64")
-    }
-}
-
 
 
 

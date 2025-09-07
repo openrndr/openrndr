@@ -86,10 +86,14 @@ kotlin {
     }
 }
 
-configurations.matching(Configuration::isCanBeResolved).configureEach {
+val currentOperatingSystemName: String = DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName()
+val currentArchitectureName: String = DefaultNativePlatform.getCurrentArchitecture().name
+
+configurations.matching {
+    it.name.endsWith("runtimeClasspath", ignoreCase = true)
+}.configureEach {
     attributes {
-        attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, objects.named("macos"))
-        attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, objects.named("aarch64"))
+        attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, objects.named(currentOperatingSystemName))
+        attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, objects.named(currentArchitectureName))
     }
 }
-
