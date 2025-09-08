@@ -7,37 +7,48 @@ plugins {
 }
 
 variants {
-    platform( OperatingSystemFamily.MACOS, MachineArchitecture.ARM64) {
-        jar {
+    val nativeLibs = listOf(libs.lwjgl.nfd)
 
-        }
+    platform( OperatingSystemFamily.MACOS, MachineArchitecture.ARM64) {
         dependencies {
-            runtimeOnly("org.lwjgl:lwjgl-nfd:${libs.versions.lwjgl.get()}:natives-macos-arm64")
+            nativeLibs.forEach {
+                runtimeOnly(it.get().withClassifier("natives-macos-arm64"))
+            }
         }
     }
     platform( OperatingSystemFamily.MACOS, MachineArchitecture.X86_64) {
         dependencies {
-            runtimeOnly("org.lwjgl:lwjgl-nfd:${libs.versions.lwjgl.get()}:natives-macos")
+            nativeLibs.forEach {
+                runtimeOnly(it.get().withClassifier("natives-macos"))
+            }
         }
     }
     platform( OperatingSystemFamily.LINUX, MachineArchitecture.ARM64) {
         dependencies {
-            runtimeOnly("org.lwjgl:lwjgl-nfd:${libs.versions.lwjgl.get()}:natives-linux-arm64")
+            nativeLibs.forEach {
+                runtimeOnly(it.get().withClassifier("natives-linux-arm64"))
+            }
         }
     }
     platform( OperatingSystemFamily.LINUX, MachineArchitecture.X86_64) {
         dependencies {
-            runtimeOnly("org.lwjgl:lwjgl-nfd:${libs.versions.lwjgl.get()}:natives-linux")
+            nativeLibs.forEach {
+                runtimeOnly(it.get().withClassifier("natives-linux"))
+            }
         }
     }
     platform( OperatingSystemFamily.WINDOWS, MachineArchitecture.ARM64) {
         dependencies {
-            runtimeOnly("org.lwjgl:lwjgl-nfd:${libs.versions.lwjgl.get()}:natives-windows-arm64")
+            nativeLibs.forEach {
+                runtimeOnly(it.get().withClassifier("natives-windows-arm64"))
+            }
         }
     }
     platform( OperatingSystemFamily.WINDOWS, MachineArchitecture.X86_64) {
         dependencies {
-            runtimeOnly("org.lwjgl:lwjgl-nfd:${libs.versions.lwjgl.get()}:natives-windows")
+            nativeLibs.forEach {
+                runtimeOnly(it.get().withClassifier("natives-windows"))
+            }
         }
     }
 }
