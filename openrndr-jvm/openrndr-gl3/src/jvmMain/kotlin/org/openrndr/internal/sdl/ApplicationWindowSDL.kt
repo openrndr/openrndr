@@ -12,6 +12,7 @@ import org.lwjgl.sdl.SDLMouse.SDL_SYSTEM_CURSOR_TEXT
 import org.lwjgl.sdl.SDLMouse.SDL_SetCursor
 import org.lwjgl.sdl.SDLMouse.SDL_ShowCursor
 import org.lwjgl.sdl.SDLVideo.SDL_CreateWindow
+import org.lwjgl.sdl.SDLVideo.SDL_CreateWindowWithProperties
 import org.lwjgl.sdl.SDLVideo.SDL_DestroyWindow
 import org.lwjgl.sdl.SDLVideo.SDL_GL_ACCELERATED_VISUAL
 import org.lwjgl.sdl.SDLVideo.SDL_GL_ALPHA_SIZE
@@ -289,8 +290,25 @@ fun createApplicationWindowSDL(
         WindowMultisample.SystemDefault -> Unit
     }
 
+
+
     val window = SDL_CreateWindow(configuration.title, configuration.width, configuration.height, windowFlags)
     val glContext = SDL_GL_CreateContext(window)
+
+    stackPush().use {
+        val scale = SDL_GetWindowDisplayScale(window).toDouble()
+
+        val w = it.callocInt(1)
+        val h = it.callocInt(1)
+        SDL_GetWindowSizeInPixels(window, w, h)
+
+        if (w.get(0)/scale != configuration.width.toDouble()) {
+            SDL_SetWindowSize(window, (configuration.width * scale).toInt(), (configuration.height * scale).toInt())
+            SDL_GetWindowSizeInPixels(window, w, h)
+            println("new scale ${w.get(0)}, ${h.get(0)}")
+        }
+
+    }
 
     return ApplicationWindowSDL(
         application,

@@ -5,8 +5,8 @@ fun main() {
     application {
         program {
             extend {
-                drawer.circles(pointers.pointers.map { it.position }, 20.0)
-                drawer.circle(mouse.position, 10.0)
+//                drawer.circles(pointers.pointers.map { it.position }, 20.0)
+//                drawer.circle(mouse.position, 10.0)
             }
         }
     }
