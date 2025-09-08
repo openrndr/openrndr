@@ -25,8 +25,6 @@ import org.openrndr.internal.gl3.DriverGL3Configuration
 import org.openrndr.internal.gl3.DriverTypeGL
 import org.openrndr.internal.gl3.DriverVersionGL
 import org.openrndr.internal.gl3.GLESUtil
-import org.openrndr.internal.gl3.PointerInputManager
-import org.openrndr.internal.gl3.PointerInputManagerWin32
 import org.openrndr.internal.gl3.ProgramRenderTargetGL3
 import org.openrndr.internal.gl3.extensions.BackBuffer
 import org.openrndr.internal.gl3.glBindVertexArray
@@ -60,7 +58,6 @@ class ApplicationGLFW(override var program: Program, override var configuration:
 
     internal val windows: CopyOnWriteArrayList<ApplicationWindowGLFW> = CopyOnWriteArrayList()
 
-    private var pointerInput: PointerInputManager? = null
     private var windowFocused = true
 
     private var window: Long = NULL
@@ -131,7 +128,6 @@ class ApplicationGLFW(override var program: Program, override var configuration:
                 field = value
             }
         }
-    override var pointers: List<Pointer> = mutableListOf()
 
     private var _windowSize: Vector2? = null
     override var windowSize: Vector2
@@ -376,13 +372,6 @@ class ApplicationGLFW(override var program: Program, override var configuration:
             throw IllegalStateException("Window creation failed. ${DriverGL3Configuration.driverType}")
         }
 
-
-        if (System.getProperty("os.name")
-                .contains("windows", true) && System.getProperty("org.openrndr.pointerevents") != null
-        ) {
-            logger.info { "experimental touch input enabled" }
-            pointerInput = PointerInputManagerWin32(window, this)
-        }
         if (configuration.windowSetIcon) {
             val buf = BufferUtils.createByteBuffer(128 * 128 * 4)
             (buf as Buffer).rewind()
@@ -958,7 +947,6 @@ class ApplicationGLFW(override var program: Program, override var configuration:
             glDepthMask(false)
             glfwSwapBuffers(window)
 
-            pointerInput?.pollEvents()
             glfwPollEvents()
         }
 
@@ -1011,12 +999,10 @@ class ApplicationGLFW(override var program: Program, override var configuration:
             }
 
             if (presentationMode == PresentationMode.AUTOMATIC) {
-                pointerInput?.pollEvents()
                 glfwPollEvents()
                 (Driver.instance as DriverGL3).processMainThreadExecutables()
             } else {
                 Thread.sleep(10)
-                pointerInput?.pollEvents()
                 glfwPollEvents()
                 deliverEvents()
                 program.dispatcher.execute()

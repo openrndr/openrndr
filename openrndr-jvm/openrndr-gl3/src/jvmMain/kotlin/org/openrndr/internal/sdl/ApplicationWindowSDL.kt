@@ -235,12 +235,8 @@ class ApplicationWindowSDL(
         deliverEvents()
         program.drawer.reset()
         program.drawer.ortho()
-
-
         program.dispatcher.execute()
-
         program.drawImpl()
-
         SDL_GL_SwapWindow(window)
     }
 }
@@ -296,8 +292,6 @@ fun createApplicationWindowSDL(
     val window = SDL_CreateWindow(configuration.title, configuration.width, configuration.height, windowFlags)
     val glContext = SDL_GL_CreateContext(window)
 
-
-
     return ApplicationWindowSDL(
         application,
         window,
@@ -308,6 +302,5 @@ fun createApplicationWindowSDL(
         configuration.closable,
         program = program,
         drawer
-
     )
 }

@@ -147,7 +147,7 @@ class ApplicationSDL(override var program: Program, override var configuration: 
 
         println("driver version: ${glGetString(GL_VERSION)}")
         println("driver vendor: ${glGetString(GL_VENDOR)}")
-        println("driver bla ${glGetString(GL_RENDERER)}")
+        println("driver renderer ${glGetString(GL_RENDERER)}")
 
 
         Driver.driver = DriverGLSDL(driverVersion)
@@ -324,19 +324,48 @@ class ApplicationSDL(override var program: Program, override var configuration: 
 
             SDL_EVENT_FINGER_DOWN -> {
                 val fingerEvent = event.tfinger()
+                window.program.pointers.pointerDown.trigger(
+                    PointerEvent(
+                        fingerEvent.fingerID(),
+                        Vector2(fingerEvent.x().toDouble(),fingerEvent.y().toDouble()) * program.window.size,
+                        Vector2(fingerEvent.dx().toDouble(), fingerEvent.dy().toDouble()) * program.window.size,
+                        fingerEvent.pressure().toDouble()
+                    )
+                )
             }
 
             SDL_EVENT_FINGER_UP -> {
                 val fingerEvent = event.tfinger()
-                //println(fingerEvent.fingerID())
+                window.program.pointers.pointerUp.trigger(
+                    PointerEvent(
+                        fingerEvent.fingerID(),
+                        Vector2.ZERO,
+                        Vector2.ZERO,
+                        0.0)
+                )
             }
 
             SDL_EVENT_FINGER_MOTION -> {
                 val fingerEvent = event.tfinger()
+                window.program.pointers.moved.trigger(
+                    PointerEvent(
+                        fingerEvent.fingerID(),
+                        Vector2(fingerEvent.x().toDouble(),fingerEvent.y().toDouble()) * program.window.size,
+                        Vector2(fingerEvent.dx().toDouble(), fingerEvent.dy().toDouble()) * program.window.size,
+                        fingerEvent.pressure().toDouble()
+                    )
+                )
             }
 
             SDL_EVENT_FINGER_CANCELED -> {
                 val fingerEvent = event.tfinger()
+                window.program.pointers.pointerUp.trigger(
+                    PointerEvent(
+                        fingerEvent.fingerID(),
+                        Vector2.ZERO,
+                        Vector2.ZERO,
+                        0.0)
+                )
             }
 
 
@@ -373,12 +402,12 @@ class ApplicationSDL(override var program: Program, override var configuration: 
                 )
             }
             SDL_EVENT_WINDOW_CLOSE_REQUESTED -> {
-                println("close requested")
+                //println("close requested")
                 windowById(event.window().windowID()).closeRequested = true
             }
 
             else -> {
-                println("got event: ${event.type()}")
+                //println("got event: ${event.type()}")
             }
         }
     }
@@ -422,7 +451,6 @@ class ApplicationSDL(override var program: Program, override var configuration: 
     override var cursorVisible by Proxy { window::cursorVisible }
     override var cursorHideMode by Proxy { window::cursorHideMode }
     override var cursorType by Proxy { window::cursorType }
-    override val pointers = mutableListOf<Pointer>()
     override val seconds: Double
         get() = SDL_GetTicks() / 1000.0
     override var presentationMode by Proxy { window::presentationMode }
