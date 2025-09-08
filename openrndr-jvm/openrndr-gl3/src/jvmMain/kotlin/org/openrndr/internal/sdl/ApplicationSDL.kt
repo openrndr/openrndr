@@ -189,6 +189,7 @@ class ApplicationSDL(override var program: Program, override var configuration: 
                 get() = (program.seconds * 1E6).toLong()
         })
         window = createApplicationWindowSDL(this, wc, program, program.drawer)
+        windowsById[SDL_GetWindowID(window.window)] = window
     }
 
     private inline fun Vector2.toDisplayUnits(scale: Double):Vector2 {
