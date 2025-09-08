@@ -123,8 +123,9 @@ class ApplicationWindowSDL(
             stackPush().use { stack ->
                 val width = stack.mallocInt(1)
                 val height = stack.mallocInt(1)
-                SDL_GetWindowSize(window, width, height)
-                return Vector2(width[0].toDouble(), height[0].toDouble())
+                SDL_GetWindowSizeInPixels(window, width, height)
+                val scale = SDL_GetWindowDisplayScale(window)
+                return Vector2(width[0].toDouble()/scale, height[0].toDouble()/scale)
             }
         }
         set(value) {
@@ -200,9 +201,10 @@ class ApplicationWindowSDL(
             SDL_GetWindowSizeInPixels(window, fbw, fbh)
             glViewport(0, 0, fbw[0], fbh[0])
 
-            SDL_GetWindowSize(window, fbw, fbh)
-            program.width = fbw[0]
-            program.height = fbh[0]
+
+            //SDL_GetWindowSize(window, fbw, fbh)
+            program.width = (fbw[0] / program.window.contentScale).toInt()
+            program.height = (fbh[0] / program.window.contentScale).toInt()
         }
     }
 
@@ -307,7 +309,6 @@ fun createApplicationWindowSDL(
         if (w.get(0)/scale != configuration.width.toDouble()) {
             SDL_SetWindowSize(window, (configuration.width * scale).toInt(), (configuration.height * scale).toInt())
             SDL_GetWindowSizeInPixels(window, w, h)
-            println("new scale ${w.get(0)}, ${h.get(0)}")
         }
         SDL_ShowWindow(window)
 
