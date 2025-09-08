@@ -296,9 +296,8 @@ fun createApplicationWindowSDL(
 
 
 
-    val window = SDL_CreateWindow(configuration.title, configuration.width, configuration.height, windowFlags)
-    val glContext = SDL_GL_CreateContext(window)
-
+    var window = SDL_CreateWindow(configuration.title, configuration.width, configuration.height, windowFlags)
+    val glContext: Long
     stackPush().use {
         val scale = SDL_GetWindowDisplayScale(window).toDouble()
 
@@ -307,10 +306,14 @@ fun createApplicationWindowSDL(
         SDL_GetWindowSizeInPixels(window, w, h)
 
         if (w.get(0)/scale != configuration.width.toDouble()) {
-            SDL_SetWindowSize(window, (configuration.width * scale).toInt(), (configuration.height * scale).toInt())
-            SDL_GetWindowSizeInPixels(window, w, h)
+            SDL_DestroyWindow(window)
+            window = SDL_CreateWindow(configuration.title, (configuration.width *scale).toInt(), (configuration.height * scale).toInt(), windowFlags)
         }
+
+        glContext = SDL_GL_CreateContext(window)
+
         SDL_ShowWindow(window)
+
 
     }
 

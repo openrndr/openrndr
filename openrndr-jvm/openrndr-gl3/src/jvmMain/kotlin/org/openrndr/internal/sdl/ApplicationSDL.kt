@@ -44,6 +44,8 @@ import org.lwjgl.sdl.SDLVideo.*
 import org.lwjgl.sdl.SDL_Event
 
 import org.openrndr.*
+import org.openrndr.animatable.Animatable
+import org.openrndr.animatable.Clock
 import org.openrndr.draw.Drawer
 import org.openrndr.internal.Driver
 import org.openrndr.internal.gl3.*
@@ -180,6 +182,12 @@ class ApplicationSDL(override var program: Program, override var configuration: 
         program.driver = Driver.instance
         program.drawer = Drawer(Driver.instance)
 
+        Animatable.clock(object : Clock {
+            override val time: Long
+                get() = (program.seconds * 1E3).toLong()
+            override val timeNanos: Long
+                get() = (program.seconds * 1E6).toLong()
+        })
         window = createApplicationWindowSDL(this, wc, program, program.drawer)
     }
 
