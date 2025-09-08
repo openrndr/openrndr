@@ -45,8 +45,10 @@ import org.lwjgl.sdl.SDLVideo.SDL_GetWindowTitle
 import org.lwjgl.sdl.SDLVideo.SDL_SetWindowPosition
 import org.lwjgl.sdl.SDLVideo.SDL_SetWindowSize
 import org.lwjgl.sdl.SDLVideo.SDL_SetWindowTitle
+import org.lwjgl.sdl.SDLVideo.SDL_ShowWindow
 import org.lwjgl.sdl.SDLVideo.SDL_WINDOW_ALWAYS_ON_TOP
 import org.lwjgl.sdl.SDLVideo.SDL_WINDOW_BORDERLESS
+import org.lwjgl.sdl.SDLVideo.SDL_WINDOW_HIDDEN
 import org.lwjgl.sdl.SDLVideo.SDL_WINDOW_HIGH_PIXEL_DENSITY
 import org.lwjgl.sdl.SDLVideo.SDL_WINDOW_OPENGL
 import org.lwjgl.sdl.SDLVideo.SDL_WINDOW_RESIZABLE
@@ -271,7 +273,7 @@ fun createApplicationWindowSDL(
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE)
     }
 
-    var windowFlags = SDL_WINDOW_OPENGL or SDL_WINDOW_HIGH_PIXEL_DENSITY
+    var windowFlags = SDL_WINDOW_OPENGL or SDL_WINDOW_HIGH_PIXEL_DENSITY or SDL_WINDOW_HIDDEN
 
     if (configuration.alwaysOnTop) {
         windowFlags = windowFlags or SDL_WINDOW_ALWAYS_ON_TOP
@@ -307,6 +309,7 @@ fun createApplicationWindowSDL(
             SDL_GetWindowSizeInPixels(window, w, h)
             println("new scale ${w.get(0)}, ${h.get(0)}")
         }
+        SDL_ShowWindow(window)
 
     }
 
