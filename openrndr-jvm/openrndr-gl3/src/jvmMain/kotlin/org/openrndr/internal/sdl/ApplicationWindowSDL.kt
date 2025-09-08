@@ -1,7 +1,6 @@
 package org.openrndr.internal.sdl
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.lwjgl.glfw.GLFW.glfwDestroyWindow
 import org.lwjgl.sdl.SDLMouse.SDL_CursorVisible
 import org.lwjgl.sdl.SDLMouse.SDL_HideCursor
 import org.lwjgl.sdl.SDLMouse.SDL_SYSTEM_CURSOR_CROSSHAIR
@@ -51,7 +50,6 @@ import org.lwjgl.sdl.SDLVideo.SDL_WINDOW_HIGH_PIXEL_DENSITY
 import org.lwjgl.sdl.SDLVideo.SDL_WINDOW_OPENGL
 import org.lwjgl.sdl.SDLVideo.SDL_WINDOW_RESIZABLE
 import org.lwjgl.sdl.SDL_Event
-import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryStack.stackPush
 import org.openrndr.ApplicationWindow
 import org.openrndr.CursorType
@@ -66,7 +64,6 @@ import org.openrndr.internal.Driver
 import org.openrndr.internal.gl3.DriverGL3Configuration
 import org.openrndr.internal.gl3.DriverTypeGL
 import org.openrndr.internal.gl3.ProgramRenderTargetGL3
-import org.openrndr.internal.gl3.RenderTargetGL3
 import org.openrndr.internal.gl3.glVersion
 import org.openrndr.internal.gl3.glViewport
 import org.openrndr.math.Vector2
@@ -186,7 +183,7 @@ class ApplicationWindowSDL(
             extension.shutdown(program)
         }
         Driver.instance.destroyContext(window)
-        glfwDestroyWindow(window)
+        SDL_DestroyWindow(window)
         application.windows.remove(this)
     }
 
