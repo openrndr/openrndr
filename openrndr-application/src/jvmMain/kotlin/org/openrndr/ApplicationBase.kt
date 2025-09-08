@@ -26,12 +26,12 @@ actual abstract class ApplicationBase : AutoCloseable {
             }
 
             return when (val applicationProperty: String? = System.getProperty("org.openrndr.application")) {
-                "SDL" -> {
+                null, "", "SDL" -> {
                     val cl = ApplicationBase::class.java.classLoader
                     val c = try { cl.loadClass("org.openrndr.internal.sdl.ApplicationBaseSDL") } catch (e:ClassNotFoundException) { null }
                     c!!
                 }
-                null, "", "GLFW" -> {
+                "GLFW" -> {
                     val cl = ApplicationBase::class.java.classLoader
 
                     val c = try { cl.loadClass("org.openrndr.internal.glfw.ApplicationBaseGLFW") } catch (e:ClassNotFoundException) { null }
