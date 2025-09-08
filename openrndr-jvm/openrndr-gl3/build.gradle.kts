@@ -19,6 +19,9 @@ variants {
         }
     }
     platform(OperatingSystemFamily.MACOS, MachineArchitecture.X86_64) {
+        jar {
+
+        }
         dependencies {
             runtimeOnly("org.lwjgl:lwjgl-opengl:${libs.versions.lwjgl.get()}:natives-macos")
         }
