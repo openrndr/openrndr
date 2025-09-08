@@ -1,9 +1,11 @@
-package org.openrndr.draw.font
+package org.openrndr.fontdriver.stb
 
 import org.lwjgl.stb.STBTTFontinfo
 import org.lwjgl.stb.STBTruetype
 import org.lwjgl.system.MemoryStack.stackPush
 import org.lwjgl.system.MemoryUtil
+import org.openrndr.draw.font.Face
+import org.openrndr.draw.font.Glyph
 import org.openrndr.draw.font.internal.FontDriver
 import org.openrndr.shape.*
 import org.openrndr.utils.buffer.MPPBuffer
@@ -12,8 +14,8 @@ import java.nio.ByteBuffer
 
 class FaceStbTt(data: ByteBuffer, fontInfo: STBTTFontinfo) : Face {
 
-    class State(val data: ByteBuffer, val fontInfo: STBTTFontinfo) {
-        fun destroy() {
+    class State(val data: ByteBuffer, val fontInfo: STBTTFontinfo): AutoCloseable {
+        override fun close() {
             MemoryUtil.memFree(data)
         }
     }
@@ -77,7 +79,7 @@ class FaceStbTt(data: ByteBuffer, fontInfo: STBTTFontinfo) : Face {
     }
 
     override fun close() {
-        state.destroy()
+        state.close()
     }
 
     override fun unitsPerEm(): Int {

@@ -28,6 +28,7 @@ include(
 
 
         "openrndr-jvm:openrndr-ffmpeg",
+        "openrndr-jvm:openrndr-fontdriver-stb",
 
         "openrndr-js:openrndr-webgl",
         "openrndr-js:openrndr-webgl-demo",

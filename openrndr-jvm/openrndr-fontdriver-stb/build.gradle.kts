@@ -6,12 +6,9 @@ plugins {
 }
 
 variants {
-    val nativeLibs = listOf(libs.lwjgl.core, libs.lwjgl.glfw, libs.lwjgl.opengl, libs.lwjgl.stb, libs.lwjgl.opengles)
+    val nativeLibs = listOf(libs.lwjgl.stb)
 
     platform(OperatingSystemFamily.MACOS, MachineArchitecture.ARM64) {
-        jar {
-
-        }
         dependencies {
             nativeLibs.forEach {
                 runtimeOnly(it.get().withClassifier("natives-macos-arm64"))
@@ -130,21 +127,9 @@ dependencies {
     implementation(project(":openrndr-draw"))
     implementation(project(":openrndr-shape"))
     implementation(project(":openrndr-binpack"))
-    implementation(project(":openrndr-dds"))
     implementation(project(":openrndr-extensions"))
-    implementation(project(":openrndr-gl-common"))
-    implementation(project(":openrndr-jvm:openrndr-fontdriver-stb"))
     implementation(libs.kotlin.coroutines)
-    implementation(libs.lwjgl.core)
-    implementation(libs.lwjgl.glfw)
-    implementation(libs.lwjgl.jemalloc)
-    implementation(libs.lwjgl.opengl)
-    implementation(libs.lwjgl.opengles)
     implementation(libs.lwjgl.stb)
-    implementation(libs.lwjgl.tinyexr)
-    implementation(libs.lwjgl.openal)
-    implementation(libs.lwjgl.egl)
-    implementation(project(":openrndr-filter"))
     api(project(":openrndr-math"))
 }
 

@@ -4,8 +4,8 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.system.MemoryStack.*
 import org.openrndr.*
-import org.openrndr.draw.font.FontDriverStbTt
 import org.openrndr.draw.font.internal.FontDriver
+import org.openrndr.fontdriver.stb.FontDriverStbTt
 import org.openrndr.internal.ImageDriver
 import org.openrndr.internal.gl3.angle.extractAngleLibraries
 
