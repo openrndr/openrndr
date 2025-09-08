@@ -19,9 +19,13 @@ import org.openrndr.ApplicationConfiguration
 import org.openrndr.Configuration
 import org.openrndr.Display
 import org.openrndr.Program
+import org.openrndr.draw.font.FontDriverStbTt
+import org.openrndr.draw.font.internal.FontDriver
+import org.openrndr.internal.ImageDriver
 import org.openrndr.internal.gl3.DriverGL3Configuration
 import org.openrndr.internal.gl3.DriverTypeGL
 import org.openrndr.internal.gl3.GlesBackend
+import org.openrndr.internal.gl3.ImageDriverStbImage
 import org.openrndr.internal.gl3.angle.extractAngleLibraries
 
 private val logger = KotlinLogging.logger { }
@@ -52,27 +56,29 @@ class ApplicationBaseSDL : ApplicationBase() {
 
         val displays = SDL_GetDisplays()
 
-       if (displays != null) {
-           for (i in 0 until displays.capacity()) {
-               val mode = SDL_GetDesktopDisplayMode(displays[i])!!
-               val rect = SDL_Rect.create()
-               SDL_GetDisplayBounds(displays[i], rect)
-               val name = SDL_GetDisplayName(displays[i])
+        if (displays != null) {
+            for (i in 0 until displays.capacity()) {
+                val mode = SDL_GetDesktopDisplayMode(displays[i])!!
+                val rect = SDL_Rect.create()
+                SDL_GetDisplayBounds(displays[i], rect)
+                val name = SDL_GetDisplayName(displays[i])
 
-               val dp = DisplaySDL(
-                   displays[i].toLong(),
-                   name,
-                   rect.x(),
-                   rect.y(),
-                   mode.w(),
-                   mode.h(),
-                   mode.pixel_density().toDouble()
-               )
+                val dp = DisplaySDL(
+                    displays[i].toLong(),
+                    name,
+                    rect.x(),
+                    rect.y(),
+                    mode.w(),
+                    mode.h(),
+                    mode.pixel_density().toDouble()
+                )
 
-               realDisplays.add(dp)
-           }
-           SDL_free(displays)
-       }
+                realDisplays.add(dp)
+            }
+            SDL_free(displays)
+        }
+        ImageDriver.driver = ImageDriverStbImage()
+        FontDriver.driver = FontDriverStbTt()
     }
 
     override fun close() {

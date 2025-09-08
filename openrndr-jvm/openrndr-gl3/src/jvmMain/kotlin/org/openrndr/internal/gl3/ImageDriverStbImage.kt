@@ -106,8 +106,14 @@ class ImageDriverStbImage : ImageDriver {
 
         val header = ByteArray(1024)
         url?.let { it.openStream().use { stream -> stream.read(header) } }
-        file?.let { it.inputStream().use { stream -> stream.read(header) } }
 
+        if (file != null) {
+            require(file.exists()) {
+                "file '${file.absolutePath}' does not exist"
+            }
+        }
+
+        file?.let { it.inputStream().use { stream -> stream.read(header) } }
         stackPush().use { stack ->
             val bb = stack.malloc(header.size)
             bb.put(header)

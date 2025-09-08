@@ -415,6 +415,8 @@ class ApplicationSDL(override var program: Program, override var configuration: 
     override fun loop() {
         defaultRenderTarget.bind()
 
+
+        window.setupSizes()
         runBlocking {
             program.setup()
         }

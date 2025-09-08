@@ -187,7 +187,7 @@ class ApplicationWindowSDL(
         application.windows.remove(this)
     }
 
-    private fun setupSizes() {
+    internal fun setupSizes() {
         stackPush().use { stack ->
             program.window.contentScale = SDL_GetWindowDisplayScale(window).toDouble()
 
