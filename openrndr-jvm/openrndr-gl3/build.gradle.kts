@@ -1,10 +1,23 @@
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.gradle.kotlin.dsl.invoke
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 
 plugins {
-    org.openrndr.convention.`kotlin-jvm-with-natives`
+    org.openrndr.convention.`kotlin-jvm`
     org.openrndr.convention.`publish-jvm`
     id("org.openrndr.convention.variant")
 }
 
+tasks {
+    @Suppress("UNUSED_VARIABLE")
+    val test by getting(Test::class) {
+        if (DefaultNativePlatform.getCurrentOperatingSystem().isMacOsX) {
+            allJvmArgs = allJvmArgs + "-XstartOnFirstThread"
+        }
+        useJUnitPlatform()
+        testLogging.exceptionFormat = TestExceptionFormat.FULL
+    }
+}
 variants {
     val nativeLibs = listOf(libs.lwjgl.core, libs.lwjgl.glfw, libs.lwjgl.opengl, libs.lwjgl.stb, libs.lwjgl.opengles)
 
@@ -128,6 +141,14 @@ variants {
 //        }
 //    }
 //}
+
+val main by sourceSets.getting
+val apiElements by configurations.getting
+val runtimeElements by configurations.getting
+
+val macosAarch64MainRuntimeElements by configurations.getting
+val macosAarch64Main by sourceSets.getting
+
 dependencies {
     implementation(project(":openrndr-application"))
     implementation(project(":openrndr-draw"))
@@ -149,6 +170,18 @@ dependencies {
     implementation(libs.lwjgl.egl)
     implementation(project(":openrndr-filter"))
     api(project(":openrndr-math"))
+    testImplementation(libs.kotlin.reflect)
+    testImplementation(main.output)
+    testImplementation(libs.kotest.assertions)
+    testImplementation(macosAarch64Main.output)
+    for (i in apiElements.dependencies) {
+        testImplementation(i)
+    }
+    for (i in macosAarch64MainRuntimeElements.dependencies) {
+        testRuntimeOnly(i)
+    }
+    testRuntimeOnly(main.runtimeClasspath)
+//    testRuntimeOnly(macosAarch64Main.runtimeClasspath)
 }
 
 /*
