@@ -35,6 +35,7 @@ import org.lwjgl.sdl.SDLEvents.SDL_EVENT_WINDOW_MOUSE_LEAVE
 import org.lwjgl.sdl.SDLEvents.SDL_EVENT_WINDOW_MOVED
 import org.lwjgl.sdl.SDLEvents.SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED
 import org.lwjgl.sdl.SDLEvents.SDL_PollEvent
+import org.lwjgl.sdl.SDLKeyboard.SDL_StartTextInput
 import org.lwjgl.sdl.SDLKeycode.SDL_KMOD_ALT
 import org.lwjgl.sdl.SDLKeycode.SDL_KMOD_CTRL
 import org.lwjgl.sdl.SDLKeycode.SDL_KMOD_GUI
@@ -397,6 +398,7 @@ class ApplicationSDL(override var program: Program, override var configuration: 
 
 
             SDL_EVENT_TEXT_INPUT -> {
+                println("hey text input")
                 val textEvent = event.text()
                 windowById(event.window().windowID()).program.keyboard.character.trigger(
                     CharacterEvent(textEvent.textString()?.first() ?: ' ', emptySet())
@@ -409,7 +411,17 @@ class ApplicationSDL(override var program: Program, override var configuration: 
                 windowById(event.window().windowID()).program.keyboard.keyUp.trigger(
                     KeyEvent(
                         KeyEventType.KEY_UP,
-                        keyEvent.key(),
+                        when (val k = keyEvent.key() and 0xff) {
+                            8 -> KEY_BACKSPACE
+                            9 -> KEY_TAB
+                            82 -> KEY_ARROW_UP
+                            81 -> KEY_ARROW_DOWN
+                            13 -> KEY_ENTER
+                            27 -> KEY_ESCAPE
+                            80 -> KEY_ARROW_LEFT
+                            79 -> KEY_ARROW_RIGHT
+                            else -> -1
+                        },
                         "not implemented yet",
                         modifiers
                     )
@@ -419,10 +431,20 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             SDL_EVENT_KEY_DOWN -> {
                 val keyEvent = event.key()
                 val modifiers = modifiersFromSdl(keyEvent.mod().toInt())
-                windowById(event.window().windowID()).program.keyboard.keyUp.trigger(
+                windowById(event.window().windowID()).program.keyboard.keyDown.trigger(
                     KeyEvent(
                         KeyEventType.KEY_DOWN,
-                        keyEvent.key(),
+                        when (val k = keyEvent.key() and 0xff) {
+                            8 -> KEY_BACKSPACE
+                            9 -> KEY_TAB
+                            82 -> KEY_ARROW_UP
+                            81 -> KEY_ARROW_DOWN
+                            13 -> KEY_ENTER
+                            27 -> KEY_ESCAPE
+                            80 -> KEY_ARROW_LEFT
+                            79 -> KEY_ARROW_RIGHT
+                            else -> -1
+                        },
                         "not implemented yet",
                         modifiers
                     )
@@ -442,6 +464,7 @@ class ApplicationSDL(override var program: Program, override var configuration: 
     override fun loop() {
         defaultRenderTarget.bind()
 
+        SDL_StartTextInput(window.window)
 
         window.setupSizes()
         runBlocking {
