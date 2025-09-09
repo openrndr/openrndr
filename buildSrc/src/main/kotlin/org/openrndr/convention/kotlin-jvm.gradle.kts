@@ -47,7 +47,8 @@ tasks {
 java {
     targetCompatibility = JavaVersion.valueOf("VERSION_${libs.versions.jvmTarget.get()}")
 }
-
+val demo: SourceSet by sourceSets.creating {
+}
 val currentOperatingSystemName: String = DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName()
 val currentArchitectureName: String = DefaultNativePlatform.getCurrentArchitecture().name
 
