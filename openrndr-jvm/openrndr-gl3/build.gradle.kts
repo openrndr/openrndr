@@ -52,7 +52,7 @@ variants {
     platform(OperatingSystemFamily.LINUX, MachineArchitecture.ARM64) {
         dependencies {
             nativeLibs.forEach {
-                runtimeOnly(it.get().withClassifier("natives-linnux-arm64"))
+                runtimeOnly(it.get().withClassifier("natives-linux-arm64"))
             }
         }
     }
