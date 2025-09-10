@@ -7,6 +7,14 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
+fun arch(arch: String = System.getProperty("os.arch")): String {
+    return when (arch) {
+        "x86-64", "x86_64", "amd64" -> "x86-64"
+        "arm64", "aarch64" -> "aarch64"
+        else -> error("unsupported arch $arch")
+    }
+}
+
 val libs = the<LibrariesForLibs>()
 
 plugins {
@@ -50,8 +58,7 @@ java {
 val demo: SourceSet by sourceSets.creating {
 }
 val currentOperatingSystemName: String = DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName()
-//val currentArchitectureName: String = DefaultNativePlatform.getCurrentArchitecture().name
-val currentArchitectureName: String = System.getProperty("os.arch").replace("_", "-")
+val currentArchitectureName: String = arch()
 
 
 configurations.matching {

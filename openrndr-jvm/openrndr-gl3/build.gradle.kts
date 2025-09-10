@@ -163,9 +163,6 @@ val main by sourceSets.getting
 val apiElements by configurations.getting
 val runtimeElements by configurations.getting
 
-val macosAarch64MainRuntimeElements by configurations.getting
-val macosAarch64Main by sourceSets.getting
-
 dependencies {
     implementation(project(":openrndr-application"))
     implementation(project(":openrndr-draw"))

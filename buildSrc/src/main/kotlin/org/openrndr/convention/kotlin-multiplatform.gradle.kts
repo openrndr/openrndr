@@ -8,6 +8,13 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 
+fun arch(arch: String = System.getProperty("os.arch")): String {
+    return when (arch) {
+        "x86-64", "x86_64", "amd64" -> "x86-64"
+        "arm64", "aarch64" -> "aarch64"
+        else -> error("unsupported arch $arch")
+    }
+}
 
 val libs = the<LibrariesForLibs>()
 
@@ -88,7 +95,7 @@ kotlin {
 
 val currentOperatingSystemName: String = DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName()
 //val currentArchitectureName: String = DefaultNativePlatform.getCurrentArchitecture().name
-val currentArchitectureName: String = System.getProperty("os.arch").replace("_", "-")
+val currentArchitectureName: String = arch()
 
 configurations.matching {
     it.name.endsWith("runtimeClasspath", ignoreCase = true)
