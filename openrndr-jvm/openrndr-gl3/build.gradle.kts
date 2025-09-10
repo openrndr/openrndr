@@ -19,7 +19,15 @@ tasks {
     }
 }
 variants {
-    val nativeLibs = listOf(libs.lwjgl.core, libs.lwjgl.glfw, libs.lwjgl.opengl, libs.lwjgl.stb, libs.lwjgl.opengles)
+    val nativeLibs = listOf(
+        libs.lwjgl.core,
+        libs.lwjgl.glfw,
+        libs.lwjgl.opengl,
+        libs.lwjgl.stb,
+        libs.lwjgl.opengles,
+        libs.lwjgl.tinyexr,
+        libs.lwjgl.jemalloc,
+        )
 
     platform(OperatingSystemFamily.MACOS, MachineArchitecture.ARM64) {
         jar {
@@ -36,27 +44,36 @@ variants {
 
         }
         dependencies {
-            runtimeOnly("org.lwjgl:lwjgl-opengl:${libs.versions.lwjgl.get()}:natives-macos")
+            nativeLibs.forEach {
+                runtimeOnly(it.get().withClassifier("natives-macos"))
+            }
         }
     }
     platform(OperatingSystemFamily.LINUX, MachineArchitecture.ARM64) {
         dependencies {
-            runtimeOnly("org.lwjgl:lwjgl-opengl:${libs.versions.lwjgl.get()}:natives-linux-arm64")
+            nativeLibs.forEach {
+                runtimeOnly(it.get().withClassifier("natives-linnux-arm64"))
+            }
         }
     }
     platform(OperatingSystemFamily.LINUX, MachineArchitecture.X86_64) {
         dependencies {
-            runtimeOnly("org.lwjgl:lwjgl-opengl:${libs.versions.lwjgl.get()}:natives-linux")
+            nativeLibs.forEach {
+                runtimeOnly(it.get().withClassifier("natives-linux"))
+            }
         }
     }
     platform(OperatingSystemFamily.WINDOWS, MachineArchitecture.ARM64) {
         dependencies {
-            runtimeOnly("org.lwjgl:lwjgl-opengl:${libs.versions.lwjgl.get()}:natives-windows-arm64")
-        }
-    }
+            nativeLibs.forEach {
+                runtimeOnly(it.get().withClassifier("natives-windows-arm64"))
+            }
+        }    }
     platform(OperatingSystemFamily.WINDOWS, MachineArchitecture.X86_64) {
         dependencies {
-            runtimeOnly("org.lwjgl:lwjgl-opengl:${libs.versions.lwjgl.get()}:natives-windows")
+            nativeLibs.forEach {
+                runtimeOnly(it.get().withClassifier("natives-windows"))
+            }
         }
     }
 }
@@ -172,9 +189,6 @@ dependencies {
     api(project(":openrndr-math"))
     testImplementation(libs.kotlin.reflect)
     testImplementation(libs.kotest.assertions)
-    for (i in macosAarch64MainRuntimeElements.dependencies) {
-        testRuntimeOnly(i)
-    }
 }
 
 /*
