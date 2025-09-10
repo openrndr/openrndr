@@ -1,5 +1,5 @@
 plugins {
-    org.openrndr.convention.`kotlin-jvm-with-natives`
+    org.openrndr.convention.`kotlin-jvm`
     org.openrndr.convention.`publish-jvm`
     id("org.openrndr.convention.variant")
 }

@@ -19,8 +19,11 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.jvm.tasks.Jar
+import org.gradle.kotlin.dsl.dependencies
+import org.gradle.kotlin.dsl.getting
 import org.gradle.kotlin.dsl.named
 import org.gradle.language.jvm.tasks.ProcessResources
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import javax.inject.Inject
 
 abstract class VariantContainer @Inject constructor(
@@ -37,10 +40,16 @@ abstract class VariantContainer @Inject constructor(
         return "$group:$name:$version:$classifier"
     }
 
+    /**
+     * Setup dependencies for this variant.
+     */
     fun dependencies(action: Action<in JvmComponentDependencies>) {
         action.execute(getDependencies())
     }
 
+    /**
+     * Specify that this variant comes with a resource bundle.
+     */
     fun jar(action: Action<Unit>) {
         sourceSet.resources.srcDirs.add(sourceSet.java.srcDirs.first().parentFile.resolve("resources"))
         sourceSet.resources.includes.add("**/*.*")
@@ -121,6 +130,22 @@ abstract class VariantContainer @Inject constructor(
         variantContainer.f()
 
         platformMainRuntimeElements.dependencies.addAll(variantContainer.getDependencies().runtimeOnly.dependencies.get())
+
+        /*
+        Setup dependencies for current platform. This will make in-module tests and demos work.
+         */
+        val currentOperatingSystemName: String = DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName()
+        val currentArchitectureName: String = DefaultNativePlatform.getCurrentArchitecture().name
+        if (currentOperatingSystemName == os && currentArchitectureName == arch) {
+            project.dependencies {
+                add("testRuntimeOnly", platformMain.output)
+                add("demoRuntimeOnly", platformMain.output)
+                for (i in platformMainRuntimeElements.dependencies) {
+                    add("testRuntimeOnly", i)
+                    add("demoRuntimeOnly", i)
+                }
+            }
+        }
     }
 }
 

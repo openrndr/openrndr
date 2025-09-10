@@ -171,17 +171,10 @@ dependencies {
     implementation(project(":openrndr-filter"))
     api(project(":openrndr-math"))
     testImplementation(libs.kotlin.reflect)
-    testImplementation(main.output)
     testImplementation(libs.kotest.assertions)
-    testImplementation(macosAarch64Main.output)
-    for (i in apiElements.dependencies) {
-        testImplementation(i)
-    }
     for (i in macosAarch64MainRuntimeElements.dependencies) {
         testRuntimeOnly(i)
     }
-    testRuntimeOnly(main.runtimeClasspath)
-//    testRuntimeOnly(macosAarch64Main.runtimeClasspath)
 }
 
 /*
