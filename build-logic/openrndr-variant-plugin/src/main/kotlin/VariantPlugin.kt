@@ -138,7 +138,10 @@ abstract class VariantExtension(
         Setup dependencies for current platform. This will make in-module tests and demos work.
          */
         val currentOperatingSystemName: String = DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName()
-        val currentArchitectureName: String = DefaultNativePlatform.getCurrentArchitecture().name
+        val currentArchitectureName: String = System.getProperty("os.arch").replace("_", "-")
+
+        //println("${System.getProperty("os.name")} ${System.getProperty("os.arch")}")
+        println("current operating system name: $currentOperatingSystemName $currentArchitectureName")
         if (currentOperatingSystemName == os && currentArchitectureName == arch) {
             project.dependencies {
                 add("testRuntimeOnly", platformMain.output)

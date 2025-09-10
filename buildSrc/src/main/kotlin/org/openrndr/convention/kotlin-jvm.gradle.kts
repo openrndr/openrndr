@@ -50,7 +50,9 @@ java {
 val demo: SourceSet by sourceSets.creating {
 }
 val currentOperatingSystemName: String = DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName()
-val currentArchitectureName: String = DefaultNativePlatform.getCurrentArchitecture().name
+//val currentArchitectureName: String = DefaultNativePlatform.getCurrentArchitecture().name
+val currentArchitectureName: String = System.getProperty("os.arch").replace("_", "-")
+
 
 configurations.matching {
     it.name.endsWith("runtimeClasspath", ignoreCase = true)
