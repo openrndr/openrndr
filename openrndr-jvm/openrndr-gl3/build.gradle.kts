@@ -189,6 +189,11 @@ dependencies {
     api(project(":openrndr-math"))
     testImplementation(libs.kotlin.reflect)
     testImplementation(libs.kotest.assertions)
+    demoImplementation(project(":openrndr-draw"))
+    demoImplementation(project(":openrndr-application"))
+    demoImplementation(project(":openrndr-extensions"))
+    demoRuntimeOnly(libs.slf4j.simple)
+    demoRuntimeOnly(project(":openrndr-jvm:openrndr-gl3"))
 }
 
 /*
