@@ -25,6 +25,14 @@ import org.gradle.language.jvm.tasks.ProcessResources
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import javax.inject.Inject
 
+fun arch(arch: String = System.getProperty("os.arch")): String {
+    return when (arch) {
+        "x86-64", "x86_64", "amd64" -> "x86-64"
+        "arm64", "aarch64" -> "aarch64"
+        else -> error("unsupported arch $arch")
+    }
+}
+
 abstract class VariantContainer @Inject constructor(
     @Inject val tasks: TaskContainer,
     val apiElements: Configuration,
@@ -138,7 +146,7 @@ abstract class VariantExtension(
         Setup dependencies for current platform. This will make in-module tests and demos work.
          */
         val currentOperatingSystemName: String = DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName()
-        val currentArchitectureName: String = System.getProperty("os.arch").replace("_", "-")
+        val currentArchitectureName: String = arch()
 
         //println("${System.getProperty("os.name")} ${System.getProperty("os.arch")}")
         println("current operating system name: $currentOperatingSystemName $currentArchitectureName")
