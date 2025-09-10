@@ -20,7 +20,6 @@ import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.jvm.tasks.Jar
 import org.gradle.kotlin.dsl.dependencies
-import org.gradle.kotlin.dsl.getting
 import org.gradle.kotlin.dsl.named
 import org.gradle.language.jvm.tasks.ProcessResources
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
@@ -31,7 +30,8 @@ abstract class VariantContainer @Inject constructor(
     val apiElements: Configuration,
 
     val runtimeElements: Configuration,
-    val sourceSet: SourceSet) {
+    val sourceSet: SourceSet
+) {
 
     @Nested
     abstract fun getDependencies(): JvmComponentDependencies
@@ -53,13 +53,9 @@ abstract class VariantContainer @Inject constructor(
     fun jar(action: Action<Unit>) {
         sourceSet.resources.srcDirs.add(sourceSet.java.srcDirs.first().parentFile.resolve("resources"))
         sourceSet.resources.includes.add("**/*.*")
-        sourceSet.resources.files.forEach {
-            println("resource: $it")
-        }
-        val pr = tasks.named<ProcessResources>(sourceSet.processResourcesTaskName)
         tasks.named<Jar>(sourceSet.jarTaskName).configure {
             include("**/*.*")
-            dependsOn(pr)
+            dependsOn(tasks.named<ProcessResources>(sourceSet.processResourcesTaskName))
             manifest {
                 //this.attributes()
             }
@@ -70,17 +66,19 @@ abstract class VariantContainer @Inject constructor(
     }
 }
 
- abstract class VariantExtension(
-     @Inject val objectFactory: ObjectFactory,
-     @Inject val project: Project) {
+abstract class VariantExtension(
+    @Inject val objectFactory: ObjectFactory,
+    @Inject val project: Project
+) {
 
     fun platform(os: String, arch: String, f: VariantContainer.() -> Unit) {
         val sourceSets = project.extensions.getByType(SourceSetContainer::class.java)
 
-        val nameMain = "${os}${arch.capitalize()}Main"
+        val sourceSetArch = arch.replace("-", "_")
+        val nameMain = "${os}${sourceSetArch.capitalize()}Main"
         val platformMain = sourceSets.create(nameMain)
         val tasks = project.tasks
-        tasks.register<Jar>(platformMain.jarTaskName, Jar::class.java) {
+        tasks.register(platformMain.jarTaskName, Jar::class.java) {
             archiveClassifier.set("$os-$arch")
         }
 
@@ -126,7 +124,12 @@ abstract class VariantContainer @Inject constructor(
             platformMain.runtimeClasspath.files.add(platformMain.resources.srcDirs.first())
         }
 
-        val variantContainer = objectFactory.newInstance(VariantContainer::class.java, platformMainRuntimeElements, platformMainRuntimeElements, platformMain)
+        val variantContainer = objectFactory.newInstance(
+            VariantContainer::class.java,
+            platformMainRuntimeElements,
+            platformMainRuntimeElements,
+            platformMain
+        )
         variantContainer.f()
 
         platformMainRuntimeElements.dependencies.addAll(variantContainer.getDependencies().runtimeOnly.dependencies.get())
