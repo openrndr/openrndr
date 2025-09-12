@@ -3,6 +3,8 @@ plugins {
     alias(libs.plugins.nmcp)
     id("org.openrndr.convention.dokka")
     id 'com.adarshr.test-logger' version '4.0.0'
+    id 'version-catalog'
+    id 'maven-publish'
 }
 
 repositories {
@@ -27,6 +29,24 @@ subprojects {
         group = HelpTasksPlugin.HELP_GROUP
         description = "Displays all dependencies, including subprojects."
     }
+}
+
+catalog {
+    // declare the aliases, bundles and versions in this block
+    versionCatalog {
+        version('openrndr', "${version}")
+        library('animatable', 'org.openrndr', 'openrndr-animatable').versionRef('openrndr')
+        library('application', 'org.openrndr', 'openrndr-application').versionRef('openrndr')
+    }
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from components.versionCatalog
+        }
+    }
+
 }
 
 dependencies {
@@ -54,17 +74,6 @@ dependencies {
     dokka(project(":openrndr-js:openrndr-webgl:"))
 }
 
-tasks.every {
-    println(it)
-}
-
-class SleepTask extends DefaultTask {
-    @TaskAction
-    void action() {
-        sleep(60 * 5 * 1000)
-    }
-}
-tasks.register("sleep", SleepTask)
 gradle.buildFinished {
     println("\n")
     println("openrndr = \"${version}\"")
