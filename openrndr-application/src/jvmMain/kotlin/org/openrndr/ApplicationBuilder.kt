@@ -1,12 +1,68 @@
 package org.openrndr
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.openrndr.exceptions.installUncaughtExceptionHandler
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.lang.management.ManagementFactory
 import java.nio.file.FileSystems
+import kotlin.jvm.optionals.getOrNull
 
-private fun restartJVM(): Boolean {
+private val logger = KotlinLogging.logger {}
+
+private fun parseCommandLineArgs(input: String): List<String> {
+    val args = mutableListOf<String>()
+    val currentArg = StringBuilder()
+    var inQuotes = false
+    var quoteChar: Char? = null
+    var i = 0
+
+    while (i < input.length) {
+        val char = input[i]
+
+        when {
+            // Handle quote characters
+            (char == '"' || char == '\'') && !inQuotes -> {
+                inQuotes = true
+                quoteChar = char
+            }
+            char == quoteChar && inQuotes -> {
+                inQuotes = false
+                quoteChar = null
+            }
+            // Handle escaped characters
+            char == '\\' && i + 1 < input.length -> {
+                val nextChar = input[i + 1]
+                if (nextChar == '"' || nextChar == '\'' || nextChar == '\\') {
+                    currentArg.append(nextChar)
+                    i++ // Skip the next character
+                } else {
+                    currentArg.append(char)
+                }
+            }
+            // Handle spaces (argument separators)
+            char.isWhitespace() && !inQuotes -> {
+                if (currentArg.isNotEmpty()) {
+                    args.add(currentArg.toString())
+                    currentArg.clear()
+                }
+            }
+            // Regular character
+            else -> {
+                currentArg.append(char)
+            }
+        }
+        i++
+    }
+
+    // Add the last argument if there's one
+    if (currentArg.isNotEmpty()) {
+        args.add(currentArg.toString())
+    }
+
+    return args
+}
+    private fun restartJVM(): Boolean {
     if (!ApplicationConfiguration.checkThread0) {
         return false
     }
@@ -30,6 +86,17 @@ private fun restartJVM(): Boolean {
     if (env != null && env == "1") {
         return false
     }
+    val processHandle = ProcessHandle.current()
+    val parentProcess = processHandle.parent().getOrNull()
+    if (parentProcess != null) {
+        if (parentProcess.info().commandLine().isPresent) {
+            val command = parentProcess.info().commandLine().get()
+            println(command)
+            if (command.contains("GradleDaemon")) {
+                logger.warn { "Detected Gradle daemon parent process. Running without specifying -XstartOnFirstThread can cause issues. " }
+            }
+        }
+    }
 
     // Detect if a debugger is attached
     if (bean.inputArguments.any { it.contains("jdwp") }) {
@@ -47,7 +114,7 @@ private fun restartJVM(): Boolean {
     val separator = FileSystems.getDefault().separator ?: error("file.separator not set")
     val classpath = System.getProperty("java.class.path") ?: error("java.class.path not set")
 
-    val mainClass = System.getenv("JAVA_MAIN_CLASS_$pid") ?: System.getProperty("sun.java.command")
+    val mainClassAndArguments = System.getenv("JAVA_MAIN_CLASS_$pid") ?: System.getProperty("sun.java.command")
     ?: error("JAVA_MAIN_CLASS_$pid and sun.java.command not set")
     val jvmPath = System.getProperty("java.home") + separator + "bin" + separator + "java"
 
@@ -59,7 +126,7 @@ private fun restartJVM(): Boolean {
     jvmArgs.addAll(inputArguments)
     jvmArgs.add("-cp")
     jvmArgs.add(classpath)
-    jvmArgs.add(mainClass)
+    jvmArgs.addAll(parseCommandLineArgs(mainClassAndArguments))
 
     // if you don't need console output, just enable these two lines
     // and delete bits after it. This JVM will then terminate.
