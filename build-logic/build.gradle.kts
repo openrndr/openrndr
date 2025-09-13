@@ -1,3 +1,4 @@
+import org.gradle.accessors.dm.LibrariesForLibs
 plugins {
     `kotlin-dsl`
     //id("org.openrndr.convention.variant")
@@ -6,7 +7,6 @@ plugins {
 repositories {
     gradlePluginPortal()
 }
-
 
 
 //gradlePlugin {

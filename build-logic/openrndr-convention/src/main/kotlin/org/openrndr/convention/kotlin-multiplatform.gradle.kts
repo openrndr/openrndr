@@ -1,7 +1,6 @@
 package org.openrndr.convention
 
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
-import org.gradle.accessors.dm.LibrariesForLibs
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
@@ -16,7 +15,8 @@ fun arch(arch: String = System.getProperty("os.arch")): String {
     }
 }
 
-val libs = the<LibrariesForLibs>()
+
+val libs = extensions.getByType<VersionCatalogsExtension>().named("libs")
 
 plugins {
     kotlin("multiplatform")
@@ -30,15 +30,15 @@ group = "org.openrndr"
 
 tasks.withType<KotlinCompilationTask<*>> {
     compilerOptions {
-        apiVersion.set(KotlinVersion.valueOf("KOTLIN_${libs.versions.kotlinApi.get().replace(".", "_")}"))
-        languageVersion.set(KotlinVersion.valueOf("KOTLIN_${libs.versions.kotlinLanguage.get().replace(".", "_")}"))
+        apiVersion.set(KotlinVersion.valueOf("KOTLIN_${libs.findVersion("kotlinApi").get().displayName.replace(".", "_")}"))
+        languageVersion.set(KotlinVersion.valueOf("KOTLIN_${libs.findVersion("kotlinLanguage").get().displayName.replace(".", "_")}"))
         freeCompilerArgs.add("-Xexpect-actual-classes")
     }
 }
 tasks.withType<KotlinJvmCompile>().configureEach {
     compilerOptions {
-        jvmTarget.set(JvmTarget.fromTarget(libs.versions.jvmTarget.get()))
-        freeCompilerArgs.add("-Xjdk-release=${libs.versions.jvmTarget.get()}")
+        jvmTarget.set(JvmTarget.fromTarget(libs.findVersion("jvmTarget").get().displayName))
+        freeCompilerArgs.add("-Xjdk-release=${libs.findVersion("jvmTarget").get().displayName}")
     }
 }
 
@@ -53,7 +53,6 @@ kotlin {
             testLogging.exceptionFormat = TestExceptionFormat.FULL
         }
     }
-
     js(IR) {
         browser()
         nodejs()
@@ -62,32 +61,32 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation(libs.kotlin.stdlib)
+                implementation(libs.findLibrary("kotlin-stdlib").get())
             }
         }
 
         val jvmMain by getting {
             dependencies {
-                implementation(libs.kotlin.logging)
+                implementation(libs.findLibrary("kotlin-logging").get())
             }
         }
 
         val jsMain by getting {
             dependencies {
-                implementation(libs.kotlin.logging)
+                implementation(libs.findLibrary("kotlin-logging").get())
             }
         }
 
         val commonTest by getting {
             dependencies {
-                implementation(libs.kotlin.test)
+                implementation(libs.findLibrary("kotlin-test").get())
             }
         }
 
         val jvmTest by getting {
             dependencies {
-                runtimeOnly(libs.bundles.jupiter)
-                runtimeOnly(libs.slf4j.simple)
+                runtimeOnly(libs.findBundle("jupiter").get())
+                runtimeOnly(libs.findLibrary("slf4j-simple").get())
             }
         }
     }

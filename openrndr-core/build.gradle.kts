@@ -1,7 +1,7 @@
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 
 plugins {
-    org.openrndr.convention.`kotlin-jvm`
+    id("org.openrndr.convention.kotlin-jvm")
 }
 dependencies {
     api(project(":openrndr-color"))

@@ -2,7 +2,7 @@
 
 
 plugins {
-    org.openrndr.convention.`kotlin-jvm`
+    id("org.openrndr.convention.kotlin-jvm")
 }
 
 

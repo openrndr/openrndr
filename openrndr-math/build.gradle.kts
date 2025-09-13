@@ -1,7 +1,7 @@
 @Suppress("DSL_SCOPE_VIOLATION")
 plugins {
-    org.openrndr.convention.`kotlin-multiplatform`
-    org.openrndr.convention.`publish-multiplatform`
+    id("org.openrndr.convention.kotlin-multiplatform")
+    id("org.openrndr.convention.publish-multiplatform")
     alias(libs.plugins.kotlin.serialization)
 }
 
