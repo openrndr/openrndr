@@ -5,7 +5,6 @@ plugins {
 }
 
 catalog {
-    // declare the aliases, bundles and versions in this block
     versionCatalog {
         from(files("$rootDir/gradle/libs.versions.toml"))
     }
