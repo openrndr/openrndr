@@ -14,7 +14,7 @@ catalog {
         library("draw", "org.openrndr:openrndr-draw:$version")
         library("event", "org.openrndr:openrndr-event:$version")
         // we can't name this 'extensions' because it is a keyword in Gradle
-        library("extensions_", "org.openrndr:openrndr-extensions:$version")
+        library("orextensions", "org.openrndr:openrndr-extensions:$version")
         library("ffmpeg", "org.openrndr:openrndr-ffmpeg:$version")
         library("filter", "org.openrndr:openrndr-filter:$version")
         library("gl3", "org.openrndr:openrndr-gl3:$version")
