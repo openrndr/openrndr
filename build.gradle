@@ -31,24 +31,6 @@ subprojects {
     }
 }
 
-catalog {
-    // declare the aliases, bundles and versions in this block
-    versionCatalog {
-        version('openrndr', "${version}")
-        library('animatable', 'org.openrndr', 'openrndr-animatable').versionRef('openrndr')
-        library('application', 'org.openrndr', 'openrndr-application').versionRef('openrndr')
-    }
-}
-
-publishing {
-    publications {
-        maven(MavenPublication) {
-            from components.versionCatalog
-        }
-    }
-
-}
-
 dependencies {
     dokka(project(":openrndr-animatable:"))
     dokka(project(":openrndr-application:"))
