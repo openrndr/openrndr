@@ -1,6 +1,3 @@
-import org.gradle.api.tasks.testing.logging.TestExceptionFormat
-import org.gradle.kotlin.dsl.invoke
-import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 
 plugins {
     id("org.openrndr.convention.kotlin-jvm")
@@ -8,31 +5,10 @@ plugins {
     id("org.openrndr.convention.variant")
 }
 
-tasks {
-    @Suppress("UNUSED_VARIABLE")
-    val test by getting(Test::class) {
-        if (DefaultNativePlatform.getCurrentOperatingSystem().isMacOsX) {
-            allJvmArgs = allJvmArgs + "-XstartOnFirstThread"
-        }
-        useJUnitPlatform()
-        testLogging.exceptionFormat = TestExceptionFormat.FULL
-    }
-}
 variants {
-    val nativeLibs = listOf(
-        libs.lwjgl.core,
-        libs.lwjgl.glfw,
-        libs.lwjgl.opengl,
-        libs.lwjgl.stb,
-        libs.lwjgl.opengles,
-        libs.lwjgl.tinyexr,
-        libs.lwjgl.jemalloc,
-        )
+    val nativeLibs = listOf(libs.lwjgl.stb)
 
     platform(OperatingSystemFamily.MACOS, MachineArchitecture.ARM64) {
-        jar {
-
-        }
         dependencies {
             nativeLibs.forEach {
                 runtimeOnly(it.get().withClassifier("natives-macos-arm64"))
@@ -40,40 +16,28 @@ variants {
         }
     }
     platform(OperatingSystemFamily.MACOS, MachineArchitecture.X86_64) {
-        jar {
-
-        }
         dependencies {
-            nativeLibs.forEach {
-                runtimeOnly(it.get().withClassifier("natives-macos"))
-            }
+            runtimeOnly("org.lwjgl:lwjgl-opengl:${libs.versions.lwjgl.get()}:natives-macos")
         }
     }
     platform(OperatingSystemFamily.LINUX, MachineArchitecture.ARM64) {
         dependencies {
-            nativeLibs.forEach {
-                runtimeOnly(it.get().withClassifier("natives-linux-arm64"))
-            }
+            runtimeOnly("org.lwjgl:lwjgl-opengl:${libs.versions.lwjgl.get()}:natives-linux-arm64")
         }
     }
     platform(OperatingSystemFamily.LINUX, MachineArchitecture.X86_64) {
         dependencies {
-            nativeLibs.forEach {
-                runtimeOnly(it.get().withClassifier("natives-linux"))
-            }
+            runtimeOnly("org.lwjgl:lwjgl-opengl:${libs.versions.lwjgl.get()}:natives-linux")
         }
     }
     platform(OperatingSystemFamily.WINDOWS, MachineArchitecture.ARM64) {
         dependencies {
-            nativeLibs.forEach {
-                runtimeOnly(it.get().withClassifier("natives-windows-arm64"))
-            }
-        }    }
+            runtimeOnly("org.lwjgl:lwjgl-opengl:${libs.versions.lwjgl.get()}:natives-windows-arm64")
+        }
+    }
     platform(OperatingSystemFamily.WINDOWS, MachineArchitecture.X86_64) {
         dependencies {
-            nativeLibs.forEach {
-                runtimeOnly(it.get().withClassifier("natives-windows"))
-            }
+            runtimeOnly("org.lwjgl:lwjgl-opengl:${libs.versions.lwjgl.get()}:natives-windows")
         }
     }
 }
@@ -158,39 +122,15 @@ variants {
 //        }
 //    }
 //}
-
-val main by sourceSets.getting
-val apiElements by configurations.getting
-val runtimeElements by configurations.getting
-
 dependencies {
     implementation(project(":openrndr-application"))
     implementation(project(":openrndr-draw"))
     implementation(project(":openrndr-shape"))
     implementation(project(":openrndr-binpack"))
-    implementation(project(":openrndr-dds"))
     implementation(project(":openrndr-extensions"))
-    implementation(project(":openrndr-gl-common"))
-    implementation(project(":openrndr-jvm:openrndr-fontdriver-stb"))
     implementation(libs.kotlin.coroutines)
-    implementation(libs.lwjgl.core)
-    implementation(libs.lwjgl.glfw)
-    implementation(libs.lwjgl.jemalloc)
-    implementation(libs.lwjgl.opengl)
-    implementation(libs.lwjgl.opengles)
     implementation(libs.lwjgl.stb)
-    implementation(libs.lwjgl.tinyexr)
-    implementation(libs.lwjgl.openal)
-    implementation(libs.lwjgl.egl)
-    implementation(project(":openrndr-filter"))
     api(project(":openrndr-math"))
-    testImplementation(libs.kotlin.reflect)
-    testImplementation(libs.kotest.assertions)
-    demoImplementation(project(":openrndr-draw"))
-    demoImplementation(project(":openrndr-application"))
-    demoImplementation(project(":openrndr-extensions"))
-    demoRuntimeOnly(libs.slf4j.simple)
-    demoRuntimeOnly(project(":openrndr-jvm:openrndr-gl3"))
 }
 
 /*
