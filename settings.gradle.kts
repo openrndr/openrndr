@@ -51,6 +51,9 @@ include(
         "openrndr-utils",
         "openrndr-dds",
         "openrndr-kartifex",
-        "openrndr-ktessellation"
+        "openrndr-ktessellation",
+
+        "openrndr-dependency-catalog",
+        "openrndr-module-catalog"
     )
 )
