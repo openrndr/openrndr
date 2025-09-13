@@ -1,8 +1,6 @@
 package org.openrndr.convention
 
-import org.gradle.accessors.dm.LibrariesForLibs
 
-val libs = the<LibrariesForLibs>()
 
 plugins {
     `maven-publish` apply false
@@ -15,7 +13,8 @@ group = "org.openrndr"
 
 publishing {
     publications {
-        val fjdj = tasks.create("fakeJavaDocJar", Jar::class) {
+
+        val fjdj = tasks.register<Jar>("fakeJavaDocJar") {
             archiveClassifier.set("javadoc")
         }
         matching { it.name == "jvm" }.forEach { p ->

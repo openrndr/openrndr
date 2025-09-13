@@ -1,5 +1,5 @@
 plugins {
-    org.openrndr.convention.`kotlin-multiplatform`
+    id("org.openrndr.convention.kotlin-multiplatform")
 }
 
 kotlin {

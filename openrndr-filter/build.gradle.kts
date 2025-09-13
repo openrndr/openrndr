@@ -1,6 +1,6 @@
 plugins {
-    org.openrndr.convention.`kotlin-multiplatform`
-    org.openrndr.convention.`publish-multiplatform`
+    id("org.openrndr.convention.kotlin-multiplatform")
+    id("org.openrndr.convention.publish-multiplatform")
 }
 
 val embedShaders = tasks.register<EmbedShadersTask>("embedShaders") {

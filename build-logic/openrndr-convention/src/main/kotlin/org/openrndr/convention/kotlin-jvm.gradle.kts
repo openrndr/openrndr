@@ -1,11 +1,12 @@
 package org.openrndr.convention
 
-import org.gradle.accessors.dm.LibrariesForLibs
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
+import org.gradle.api.JavaVersion
+
 
 fun arch(arch: String = System.getProperty("os.arch")): String {
     return when (arch) {
@@ -15,7 +16,7 @@ fun arch(arch: String = System.getProperty("os.arch")): String {
     }
 }
 
-val libs = the<LibrariesForLibs>()
+val libs = extensions.getByType<VersionCatalogsExtension>().named("libs")
 
 plugins {
     kotlin("jvm")
@@ -28,10 +29,10 @@ repositories {
 group = "org.openrndr"
 
 dependencies {
-    implementation(libs.kotlin.stdlib)
-    implementation(libs.kotlin.logging)
-    testImplementation(libs.kotlin.test)
-    testRuntimeOnly(libs.slf4j.simple)
+    implementation(libs.findLibrary("kotlin-stdlib").get())
+    implementation(libs.findLibrary("kotlin-logging").get())
+    testImplementation(libs.findLibrary("kotlin.test").get())
+    testRuntimeOnly(libs.findLibrary("slf4j-simple").get())
 }
 
 tasks {
@@ -43,20 +44,22 @@ tasks {
 
     withType<KotlinCompile> {
         compilerOptions {
-            jvmTarget.set(JvmTarget.valueOf("JVM_${libs.versions.jvmTarget.get()}"))
+            jvmTarget.set(JvmTarget.valueOf("JVM_${libs.findVersion("jvmTarget").get().displayName}"))
             freeCompilerArgs.add("-Xexpect-actual-classes")
-            freeCompilerArgs.add("-Xjdk-release=${libs.versions.jvmTarget.get()}")
-            apiVersion.set(KotlinVersion.valueOf("KOTLIN_${libs.versions.kotlinApi.get().replace(".", "_")}"))
-            languageVersion.set(KotlinVersion.valueOf("KOTLIN_${libs.versions.kotlinLanguage.get().replace(".", "_")}"))
+            freeCompilerArgs.add("-Xjdk-release=${libs.findVersion("jvmTarget").get().displayName}")
+
+            apiVersion.set(KotlinVersion.valueOf("KOTLIN_${libs.findVersion("kotlinApi").get().displayName.replace(".", "_")}"))
+            languageVersion.set(KotlinVersion.valueOf("KOTLIN_${libs.findVersion("kotlinLanguage").get().displayName.replace(".", "_")}"))
         }
     }
 }
 
 java {
-    targetCompatibility = JavaVersion.valueOf("VERSION_${libs.versions.jvmTarget.get()}")
+    targetCompatibility = JavaVersion.valueOf("VERSION_${libs.findVersion("jvmTarget").get().displayName.replace(".", "_")}")
 }
-val demo: SourceSet by sourceSets.creating {
-}
+//val demo: SourceSet by sourceSets.creating {
+//}
+val demo = project.sourceSets.create("demo")
 val currentOperatingSystemName: String = DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName()
 val currentArchitectureName: String = arch()
 

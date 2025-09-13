@@ -1,4 +1,4 @@
 plugins {
-    org.openrndr.convention.dokka
+    id("org.openrndr.convention.dokka")
 }
 
