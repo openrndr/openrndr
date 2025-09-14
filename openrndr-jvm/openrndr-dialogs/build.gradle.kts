@@ -1,5 +1,3 @@
-import org.gradle.kotlin.dsl.invoke
-
 plugins {
     id("org.openrndr.convention.kotlin-jvm")
     id("org.openrndr.convention.publish-jvm")
