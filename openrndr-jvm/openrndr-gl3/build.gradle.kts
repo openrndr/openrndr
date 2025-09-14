@@ -11,6 +11,8 @@ plugins {
 tasks {
     @Suppress("UNUSED_VARIABLE")
     val test by getting(Test::class) {
+        onlyIf { !project.hasProperty("skip.gl3.tests") }
+
         if (DefaultNativePlatform.getCurrentOperatingSystem().isMacOsX) {
             allJvmArgs = allJvmArgs + "-XstartOnFirstThread"
         }
@@ -27,7 +29,7 @@ variants {
         libs.lwjgl.opengles,
         libs.lwjgl.tinyexr,
         libs.lwjgl.jemalloc,
-        )
+    )
 
     platform(OperatingSystemFamily.MACOS, MachineArchitecture.ARM64) {
         jar {
@@ -68,7 +70,8 @@ variants {
             nativeLibs.forEach {
                 runtimeOnly(it.get().withClassifier("natives-windows-arm64"))
             }
-        }    }
+        }
+    }
     platform(OperatingSystemFamily.WINDOWS, MachineArchitecture.X86_64) {
         dependencies {
             nativeLibs.forEach {
