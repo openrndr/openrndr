@@ -10,6 +10,13 @@ import kotlin.jvm.optionals.getOrNull
 
 private val logger = KotlinLogging.logger {}
 
+/**
+ * Parses a command-line style input string into a list of arguments.
+ * The input may include quoted sections and escaped characters.
+ *
+ * @param input the command-line style input string containing arguments, spaces, quotes, and escape sequences
+ * @return a list of parsed arguments as strings
+ */
 private fun parseCommandLineArgs(input: String): List<String> {
     val args = mutableListOf<String>()
     val currentArg = StringBuilder()
@@ -26,6 +33,7 @@ private fun parseCommandLineArgs(input: String): List<String> {
                 inQuotes = true
                 quoteChar = char
             }
+
             char == quoteChar && inQuotes -> {
                 inQuotes = false
                 quoteChar = null
@@ -62,7 +70,21 @@ private fun parseCommandLineArgs(input: String): List<String> {
 
     return args
 }
-    private fun restartJVM(): Boolean {
+
+/**
+ * Restarts the JVM on macOS with the `-XstartOnFirstThread` flag if certain conditions are met.
+ *
+ * This method performs the following checks:
+ * 1. Ensures the current system is macOS or Darwin-based.
+ * 2. Verifies if the JVM is already started with the `-XstartOnFirstThread` flag.
+ * 3. Detects whether the JVM is launched by Gradle or has a debugger/profiler attached.
+ * 4. Checks the value of `ApplicationConfiguration.restartJvmOnThread0`.
+ *
+ * If all conditions are met, the JVM is restarted with the required settings.
+ *
+ * @return `true` if the JVM was successfully restarted, or `false` if the conditions for restarting were not met.
+ */
+private fun restartJVM(): Boolean {
     if (!ApplicationConfiguration.checkThread0) {
         return false
     }
@@ -86,12 +108,13 @@ private fun parseCommandLineArgs(input: String): List<String> {
     if (env != null && env == "1") {
         return false
     }
+
+    // Detect if the program is launched by Gradle
     val processHandle = ProcessHandle.current()
     val parentProcess = processHandle.parent().getOrNull()
     if (parentProcess != null) {
         if (parentProcess.info().commandLine().isPresent) {
             val command = parentProcess.info().commandLine().get()
-            println(command)
             if (command.contains("GradleDaemon")) {
                 logger.warn { "Detected Gradle daemon parent process. Running without specifying -XstartOnFirstThread can cause issues. " }
             }
@@ -103,7 +126,7 @@ private fun parseCommandLineArgs(input: String): List<String> {
         error("Running on macOS with a debugger attached, but not on the first thread. The process is stopped to prevent the debugger from losing the process. Run with -XstartOnFirstThread to continue.")
     }
     // Detect if a profiler is attached
-    if (bean.inputArguments.any { it.contains("jfrsync=profile")}) {
+    if (bean.inputArguments.any { it.contains("jfrsync=profile") }) {
         error("Running on macOS with a profiler attached, but not on the first thread. The process is stopped to prevent the profiler from losing the process. Run with -XstartOnFirstThread to continue.")
     }
     if (!ApplicationConfiguration.restartJvmOnThread0) {
@@ -189,7 +212,7 @@ class ApplicationBuilderJVM : ApplicationBuilder() {
         return program
     }
 
-    fun run() : Application {
+    fun run(): Application {
         val result = applicationBase.build(this.program, this.configuration)
         result.run()
         return result
