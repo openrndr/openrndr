@@ -1,72 +1,105 @@
-@file:OptIn(ExperimentalKotlinGradlePluginApi::class)
-
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
-import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
-
-val currentOperatingSystemName: String = DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName()
-val currentArchitectureName: String = DefaultNativePlatform.getCurrentArchitecture().name
-
-val arch = when(currentArchitectureName) {
-    "arm64-v8", "aarch64" -> "arm64"
-    "x86-64", "x86_64" -> "x64"
-    else -> error("unknown architecture $currentArchitectureName")
-}
-
-val osArch = when(val c = "$currentOperatingSystemName-$arch") {
-    "windows-x64" -> "windows"
-    "macos-x64" -> "macos"
-    else -> c
-}
 
 plugins {
-    org.openrndr.convention.`kotlin-multiplatform`
-    org.openrndr.convention.`publish-multiplatform`
+    id("org.openrndr.convention.kotlin-jvm")
+    id("org.openrndr.convention.publish-jvm")
     alias(libs.plugins.kotlin.serialization)
+    id("org.openrndr.convention.variant")
 }
 
-
-kotlin {
-    jvm {
-
-        compilations {
-            val main by getting
-
-            val demo by creating {
-                associateWith(main)
-            }
+variants {
+    platform(OperatingSystemFamily.MACOS, MachineArchitecture.ARM64) {
+        dependencies {
+            runtimeOnly(libs.javacpp.get().group + ":" + libs.javacpp.get().name + ":" + libs.javacpp.get().version + ":macosx-arm64")
+            runtimeOnly(libs.ffmpeg.get().group + ":" + libs.ffmpeg.get().name + ":" + libs.ffmpeg.get().version + ":macosx-arm64-gpl")
         }
     }
-
-    sourceSets {
-        val jvmMain by getting {
-            dependencies {
-                api(project(":openrndr-application"))
-                implementation(libs.bundles.lwjgl.openal)
-                implementation(libs.ffmpeg)
-                implementation(project(":openrndr-jvm:openrndr-openal"))
-                implementation(libs.kotlin.coroutines)
-                implementation(libs.kotlin.serialization.core)
-                implementation(libs.kotlin.serialization.json)
-            }
-        }
-
-        val jvmDemo by getting {
-            dependencies {
-                runtimeOnly(libs.slf4j.simple)
-                runtimeOnly(project(":openrndr-jvm:openrndr-gl3-natives-$osArch"))
-                runtimeOnly(project(":openrndr-jvm:openrndr-openal-natives-$osArch"))
-                runtimeOnly(project(":openrndr-jvm:openrndr-gl3"))
-                runtimeOnly(project(":openrndr-jvm:openrndr-ffmpeg-natives-$osArch"))
-            }
+    platform(OperatingSystemFamily.MACOS, MachineArchitecture.X86_64) {
+        dependencies {
+            runtimeOnly(libs.javacpp.get().group + ":" + libs.javacpp.get().name + ":" + libs.javacpp.get().version + ":macosx-x86_64")
+            runtimeOnly(libs.ffmpeg.get().group + ":" + libs.ffmpeg.get().name + ":" + libs.ffmpeg.get().version + ":macosx-x86_64-gpl")
         }
     }
-}
-
-kotlin {
-    jvm().mainRun {
-        classpath(kotlin.jvm().compilations.getByName("demo").output.allOutputs)
-        classpath(kotlin.jvm().compilations.getByName("demo").configurations.runtimeDependencyConfiguration!!)
+    platform(OperatingSystemFamily.LINUX, MachineArchitecture.ARM64) {
+        dependencies {
+            runtimeOnly(libs.javacpp.get().group + ":" + libs.javacpp.get().name + ":" + libs.javacpp.get().version + ":linux-arm64")
+            runtimeOnly(libs.ffmpeg.get().group + ":" + libs.ffmpeg.get().name + ":" + libs.ffmpeg.get().version + ":linux-arm64")
+        }
+    }
+    platform(OperatingSystemFamily.LINUX, MachineArchitecture.X86_64) {
+        dependencies {
+            runtimeOnly(libs.javacpp.get().group + ":" + libs.javacpp.get().name + ":" + libs.javacpp.get().version + ":linux-x86_64")
+            runtimeOnly(libs.ffmpeg.get().group + ":" + libs.ffmpeg.get().name + ":" + libs.ffmpeg.get().version + ":linux-x86_64")
+        }
+    }
+    platform(OperatingSystemFamily.WINDOWS, MachineArchitecture.ARM64) {
+        dependencies {
+            runtimeOnly(libs.javacpp.get().group + ":" + libs.javacpp.get().name + ":" + libs.javacpp.get().version + ":windows-arm64")
+            runtimeOnly(libs.ffmpeg.get().group + ":" + libs.ffmpeg.get().name + ":" + libs.ffmpeg.get().version + ":windows-arm64-gpl")
+        }
+    }
+    platform(OperatingSystemFamily.WINDOWS, MachineArchitecture.X86_64) {
+        dependencies {
+            runtimeOnly(libs.javacpp.get().group + ":" + libs.javacpp.get().name + ":" + libs.javacpp.get().version + ":windows-x86_64")
+            runtimeOnly(libs.ffmpeg.get().group + ":" + libs.ffmpeg.get().name + ":" + libs.ffmpeg.get().version + ":windows-x86_64-gpl")
+        }
     }
 }
 
-tasks.withType<JavaExec>().matching { it.name == "jvmRun" }.configureEach { workingDir = rootDir }
+dependencies {
+    api(project(":openrndr-application"))
+//    implementation(libs.bundles.lwjgl.openal)
+    implementation(libs.ffmpeg)
+    implementation(project(":openrndr-jvm:openrndr-openal"))
+    implementation(libs.kotlin.coroutines)
+    implementation(libs.kotlin.serialization.core)
+    implementation(libs.kotlin.serialization.json)
+    implementation(libs.lwjgl.core)
+}
+
+
+
+
+//kotlin {
+//    jvm {
+//
+//        compilations {
+//            val main by getting
+//
+//            val demo by creating {
+//                associateWith(main)
+//            }
+//        }
+//    }
+//
+//    sourceSets {
+//        val jvmMain by getting {
+//            dependencies {
+//                api(project(":openrndr-application"))
+//                implementation(libs.bundles.lwjgl.openal)
+//                implementation(libs.ffmpeg)
+//                implementation(project(":openrndr-jvm:openrndr-openal"))
+//                implementation(libs.kotlin.coroutines)
+//                implementation(libs.kotlin.serialization.core)
+//                implementation(libs.kotlin.serialization.json)
+//            }
+//        }
+//
+//        val jvmDemo by getting {
+//            dependencies {
+//                runtimeOnly(libs.slf4j.simple)
+//                runtimeOnly(project(":openrndr-jvm:openrndr-gl3"))
+//                runtimeOnly(project(":openrndr-jvm:openrndr-openal"))
+//                runtimeOnly(project(":openrndr-jvm:openrndr-ffmpeg-natives-$osArch"))
+//            }
+//        }
+//    }
+//}
+//
+//kotlin {
+//    jvm().mainRun {
+//        classpath(kotlin.jvm().compilations.getByName("demo").output.allOutputs)
+//        classpath(kotlin.jvm().compilations.getByName("demo").configurations.runtimeDependencyConfiguration!!)
+//    }
+//}
+//
+//tasks.withType<JavaExec>().matching { it.name == "jvmRun" }.configureEach { workingDir = rootDir }
