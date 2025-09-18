@@ -24,7 +24,7 @@ private val logger = KotlinLogging.logger {  }
 
 class DrawThreadGL3(private val contextWindow: Long) : DrawThread {
     companion object {
-        fun create(): DrawThreadGL3 {
+        fun create(primaryWindow: Long): DrawThreadGL3 {
 
             GLFW.glfwDefaultWindowHints()
             val version = (Driver.instance as DriverGL3).version

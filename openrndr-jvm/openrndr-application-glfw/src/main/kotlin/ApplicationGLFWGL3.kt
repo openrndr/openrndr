@@ -16,10 +16,12 @@ import org.openrndr.*
 import org.openrndr.WindowMultisample.*
 import org.openrndr.animatable.Animatable
 import org.openrndr.animatable.Clock
+import org.openrndr.draw.DrawThread
 import org.openrndr.draw.Drawer
 import org.openrndr.draw.RenderTarget
 import org.openrndr.draw.Session
 import org.openrndr.internal.Driver
+import org.openrndr.internal.ResourceThread
 import org.openrndr.internal.gl3.ApplicationGlfwConfiguration.fixWindowSize
 import org.openrndr.internal.gl3.extensions.BackBuffer
 import org.openrndr.math.Vector2
@@ -45,7 +47,6 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
 
     internal val windows: CopyOnWriteArrayList<ApplicationWindowGLFW> = CopyOnWriteArrayList()
 
-    private var pointerInput: PointerInputManager? = null
     private var windowFocused = true
 
     private var window: Long = NULL
@@ -363,13 +364,6 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
             throw IllegalStateException("Window creation failed. ${DriverGL3Configuration.driverType}")
         }
 
-
-        if (System.getProperty("os.name")
-                .contains("windows", true) && System.getProperty("org.openrndr.pointerevents") != null
-        ) {
-            logger.info { "experimental touch input enabled" }
-            pointerInput = PointerInputManagerWin32(window, this)
-        }
         if (configuration.windowSetIcon) {
             val buf = BufferUtils.createByteBuffer(128 * 128 * 4)
             (buf as Buffer).rewind()
@@ -642,7 +636,17 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
                     error("primary window could not be created using ${DriverGL3Configuration.driverType} context. $error")
                 }
             }
-            Driver.driver = DriverGL3(foundVersion ?: error("no version found"))
+            Driver.driver = object: DriverGL3(foundVersion ?: error("no version found")) {
+                override val contextID: Long
+                    get() = glfwGetCurrentContext()
+
+                override fun createResourceThread(
+                    session: Session?,
+                    f: () -> Unit
+                ): ResourceThread = ResourceThreadGL3.create(primaryWindow, f)
+
+                override fun createDrawThread(session: Session?): DrawThread = DrawThreadGL3.create(primaryWindow)
+            }
         }
     }
 
@@ -945,7 +949,6 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
             glDepthMask(false)
             glfwSwapBuffers(window)
 
-            pointerInput?.pollEvents()
             glfwPollEvents()
         }
 
@@ -998,12 +1001,10 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
             }
 
             if (presentationMode == PresentationMode.AUTOMATIC) {
-                pointerInput?.pollEvents()
                 glfwPollEvents()
                 (Driver.instance as DriverGL3).processMainThreadExecutables()
             } else {
                 Thread.sleep(10)
-                pointerInput?.pollEvents()
                 glfwPollEvents()
                 deliverEvents()
                 program.dispatcher.execute()
@@ -1027,7 +1028,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
      * @param exception an optional exception that could have occurred during the main loop. If provided, it will be
      * logged and re-thrown after cleanup.
      */
-    internal fun postLoop(exception: Throwable? = null) {
+    fun postLoop(exception: Throwable? = null) {
         // a child window's context may be current at this point
         glfwMakeContextCurrent(window)
 

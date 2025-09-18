@@ -10,9 +10,12 @@ import org.lwjgl.system.MemoryStack.stackPush
 import org.openrndr.*
 import org.openrndr.animatable.Animatable
 import org.openrndr.animatable.Clock
+import org.openrndr.draw.DrawThread
 import org.openrndr.draw.Drawer
+import org.openrndr.draw.Session
 import org.openrndr.draw.renderTarget
 import org.openrndr.internal.Driver
+import org.openrndr.internal.ResourceThread
 import org.openrndr.math.Vector2
 
 private val logger = KotlinLogging.logger {}
@@ -29,7 +32,22 @@ class ApplicationEGLGL3(override var program: Program, override var configuratio
     override var cursorPosition: Vector2
         get() = Vector2(0.0, 0.0)
         set(value) {}
-    private var driver = DriverGL3(DriverVersionGL.GL_VERSION_3_3)
+    private var driver = object: DriverGL3(DriverVersionGL.GL_VERSION_3_3) {
+        override val contextID: Long
+            get() = eglGetCurrentContext()
+
+        override fun createResourceThread(
+            session: Session?,
+            f: () -> Unit
+        ): ResourceThread {
+            TODO("Not yet implemented")
+        }
+
+        override fun createDrawThread(session: Session?): DrawThread {
+            TODO("Not yet implemented")
+        }
+
+    }
     private var exitRequested = false
     private var startTime = System.currentTimeMillis()
     private val vaos = IntArray(1)

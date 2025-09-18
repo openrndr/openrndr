@@ -148,8 +148,6 @@ abstract class VariantExtension(
         val currentOperatingSystemName: String = DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName()
         val currentArchitectureName: String = arch()
 
-        //println("${System.getProperty("os.name")} ${System.getProperty("os.arch")}")
-        println("current operating system name: $currentOperatingSystemName $currentArchitectureName")
         if (currentOperatingSystemName == os && currentArchitectureName == arch) {
             project.dependencies {
                 add("testRuntimeOnly", platformMain.output)

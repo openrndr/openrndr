@@ -32,7 +32,7 @@ private val logger = KotlinLogging.logger {  }
  */
 class ResourceThreadGL3 : ResourceThread {
     companion object {
-        fun create(f: () -> Unit): ResourceThreadGL3 {
+        fun create(primaryWindow: Long, f: () -> Unit): ResourceThreadGL3 {
             glfwDefaultWindowHints()
             glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, Driver.glVersion.majorVersion)
             glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, Driver.glVersion.minorVersion)

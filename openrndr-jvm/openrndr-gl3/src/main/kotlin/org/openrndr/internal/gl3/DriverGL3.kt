@@ -1,7 +1,6 @@
 package org.openrndr.internal.gl3
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.lwjgl.glfw.GLFW
 import org.lwjgl.opengl.*
 import org.lwjgl.opengl.GL40C.*
 import org.lwjgl.opengl.KHRBlendEquationAdvanced.*
@@ -73,7 +72,7 @@ inline fun DriverVersionGL.require(minimum: DriverVersionGL) {
     }
 }
 
-class DriverGL3(val version: DriverVersionGL) : Driver {
+abstract class DriverGL3(val version: DriverVersionGL) : Driver {
 
     private val executionQueue = mutableListOf<() -> Unit>()
 
@@ -225,18 +224,20 @@ class DriverGL3(val version: DriverVersionGL) : Driver {
         }
     }
 
-    override val contextID: Long
-        get() {
-            return GLFW.glfwGetCurrentContext()
-        }
+    abstract override val contextID: Long
+//        get() {
+//            return GLFW.glfwGetCurrentContext()
+//        }
 
-    override fun createResourceThread(session: Session?, f: () -> Unit): ResourceThread {
-        return ResourceThreadGL3.create(f)
-    }
+    abstract override fun createResourceThread(session: Session?, f: () -> Unit): ResourceThread
+//        return ResourceThreadGL3.create(f)
+//    }
 
-    override fun createDrawThread(session: Session?): DrawThread {
-        return DrawThreadGL3.create()
-    }
+    abstract override fun createDrawThread(session: Session?): DrawThread
+    //{
+//        TODO()
+//        //return DrawThreadGL3.create()
+//    }
 
     private val defaultVAOs = HashMap<Long, Int>()
     private val defaultVAO: Int

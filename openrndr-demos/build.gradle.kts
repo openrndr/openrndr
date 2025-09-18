@@ -8,6 +8,7 @@ plugins {
 
 dependencies {
     implementation(project(":openrndr-application"))
+    runtimeOnly(project(":openrndr-jvm:openrndr-application-glfw"))
     implementation(project(":openrndr-draw"))
     implementation(project(":openrndr-filter"))
     implementation(project(":openrndr-extensions"))

@@ -7,7 +7,10 @@ plugins {
 catalog {
     versionCatalog {
         library("animatable", "org.openrndr:openrndr-animatable:$version")
-        library("application", "org.openrndr:openrndr-application:$version")
+        library("application-core", "org.openrndr:openrndr-application:$version")
+        library("application-glfw", "org.openrndr:openrndr-application-glfw:$version")
+        library("application-egl", "org.openrndr:openrndr-application-egl:$version")
+
         library("binpack", "org.openrndr:openrndr-binpack:$version")
         library("color", "org.openrndr:openrndr-color:$version")
         library("dialogs", "org.openrndr:openrndr-dialogs:$version")
@@ -25,6 +28,9 @@ catalog {
         library("openal", "org.openrndr:openrndr-openal:$version")
         library("shape", "org.openrndr:openrndr-shape:$version")
         library("utils", "org.openrndr:openrndr-utils:$version")
+
+        bundle("basic", listOf("application-core", "draw", "utils"))
+        bundle("runtime-glfw", listOf("application-glfw"))
     }
 }
 
