@@ -1,5 +1,4 @@
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
-import org.gradle.kotlin.dsl.invoke
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 
 plugins {
@@ -7,6 +6,7 @@ plugins {
     id("org.openrndr.convention.publish-jvm")
     id("org.openrndr.convention.variant")
 }
+
 
 tasks {
     @Suppress("UNUSED_VARIABLE")
@@ -20,19 +20,11 @@ tasks {
         testLogging.exceptionFormat = TestExceptionFormat.FULL
     }
 }
+
 variants {
-    val nativeLibs = listOf(
-        libs.lwjgl.core,
-        libs.lwjgl.glfw,
-        libs.lwjgl.opengl,
-        libs.lwjgl.opengles,
-        libs.lwjgl.jemalloc,
-    )
+    val nativeLibs = listOf(libs.lwjgl.stb, libs.lwjgl.tinyexr)
 
     platform(OperatingSystemFamily.MACOS, MachineArchitecture.ARM64) {
-        jar {
-
-        }
         dependencies {
             nativeLibs.forEach {
                 runtimeOnly(it.get().withClassifier("natives-macos-arm64"))
@@ -40,9 +32,6 @@ variants {
         }
     }
     platform(OperatingSystemFamily.MACOS, MachineArchitecture.X86_64) {
-        jar {
-
-        }
         dependencies {
             nativeLibs.forEach {
                 runtimeOnly(it.get().withClassifier("natives-macos"))
@@ -79,31 +68,15 @@ variants {
     }
 }
 
-val main by sourceSets.getting
-val apiElements by configurations.getting
-val runtimeElements by configurations.getting
 
 dependencies {
-    implementation(project(":openrndr-application"))
+    implementation(project(":openrndr-utils"))
     implementation(project(":openrndr-draw"))
-    implementation(project(":openrndr-shape"))
-    implementation(project(":openrndr-binpack"))
-    implementation(project(":openrndr-extensions"))
-    implementation(project(":openrndr-gl-common"))
-    implementation(libs.kotlin.coroutines)
+    implementation(project(":openrndr-dds"))
     implementation(libs.lwjgl.core)
-    implementation(libs.lwjgl.jemalloc)
-    implementation(libs.lwjgl.opengl)
-    implementation(libs.lwjgl.opengles)
-    implementation(project(":openrndr-filter"))
-    api(project(":openrndr-math"))
-    testImplementation(libs.kotlin.reflect)
-    testImplementation(libs.kotest.assertions)
-    testImplementation(project(":openrndr-jvm:openrndr-application-glfw"))
-    demoImplementation(project(":openrndr-draw"))
-    demoImplementation(project(":openrndr-application"))
-    demoImplementation(project(":openrndr-extensions"))
-    demoRuntimeOnly(libs.slf4j.simple)
-    demoRuntimeOnly(project(":openrndr-jvm:openrndr-gl3"))
-    demoRuntimeOnly(project(":openrndr-jvm:openrndr-application-glfw"))
+    implementation(libs.lwjgl.stb)
+    implementation(libs.lwjgl.tinyexr)
+    testImplementation(project(":openrndr-application"))
+    testImplementation(project(":openrndr-jvm:openrndr-gl3"))
+    testRuntimeOnly(project(":openrndr-jvm:openrndr-application-glfw"))
 }

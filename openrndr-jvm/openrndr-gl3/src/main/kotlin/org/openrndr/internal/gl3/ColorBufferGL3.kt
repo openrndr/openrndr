@@ -11,7 +11,6 @@ import org.lwjgl.opengl.GL44.glClearTexImage
 import org.lwjgl.opengl.GL45C.glGenerateTextureMipmap
 import org.lwjgl.opengles.GLES30
 import org.lwjgl.system.MemoryUtil
-import org.lwjgl.util.tinyexr.TinyEXR.*
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
 import org.openrndr.draw.BufferMultisample.Disabled
@@ -38,21 +37,6 @@ enum class TextureStorageModeGL {
     STORAGE
 }
 
-/**
- * Exposes TINYEXR_COMPRESSIONTYPE for convention
- */
-class ExrCompression {
-    companion object {
-        val NONE = TINYEXR_COMPRESSIONTYPE_NONE
-        val RLE = TINYEXR_COMPRESSIONTYPE_RLE
-        val ZIPS = TINYEXR_COMPRESSIONTYPE_ZIPS
-        val ZIP = TINYEXR_COMPRESSIONTYPE_ZIP
-        val PIZ = TINYEXR_COMPRESSIONTYPE_PIZ
-
-        // experimental, see https://tinyexr.docsforge.com/master/getting-started/#zfp
-        val ZFP = TINYEXR_COMPRESSIONTYPE_ZFP
-    }
-}
 
 internal fun internalFormat(format: ColorFormat, type: ColorType): Pair<Int, Int> {
     val entries = arrayOf(
@@ -141,7 +125,6 @@ class ColorBufferGL3(
         destroy()
     }
 
-    var exrCompression = ExrCompression.NONE
 
     private var destroyed = false
     override var flipV: Boolean = false
@@ -910,8 +893,10 @@ class ColorBufferGL3(
     fun toImageData(): ImageData {
         val buffer = MemoryUtil.memAlloc(effectiveWidth * effectiveHeight * format.componentCount * type.componentSize)
         read(buffer)
-        val data = ImageDataStb(effectiveWidth, effectiveHeight, format, type, flipV, MPPBuffer(buffer))
-        return data
+
+        return ImageDriver.instance.createImageData(
+            effectiveWidth, effectiveHeight, format, type, flipV, MPPBuffer(buffer)
+        )
     }
 
     override fun saveToFile(file: File, imageFileFormat: ImageFileFormat, async: Boolean) {

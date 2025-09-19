@@ -38,7 +38,7 @@ kotlin {
         val jvmMain by getting {
 
             dependencies {
-                runtimeOnly(project(":openrndr-jvm:openrndr-gl3"))
+                runtimeOnly(project(":openrndr-jvm:openrndr-application-glfw"))
                 runtimeOnly(libs.slf4j.simple)
             }
         }

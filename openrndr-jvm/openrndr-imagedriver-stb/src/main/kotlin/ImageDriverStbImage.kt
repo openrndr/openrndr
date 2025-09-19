@@ -614,7 +614,17 @@ class ImageDriverStbImage : ImageDriver {
                 val channelCount = imageData.format.componentCount
 
                 exrHeader.num_channels(channelCount)
-                exrHeader.compression_type(configuration.compression)
+
+                fun ExrCompressionType.toTinyExrCompressionType() = when (this) {
+                    ExrCompressionType.None -> TINYEXR_COMPRESSIONTYPE_NONE
+                    ExrCompressionType.Rle -> TINYEXR_COMPRESSIONTYPE_RLE
+                    ExrCompressionType.Zip -> TINYEXR_COMPRESSIONTYPE_ZIP
+                    ExrCompressionType.Piz -> TINYEXR_COMPRESSIONTYPE_PIZ
+                    ExrCompressionType.Zips -> TINYEXR_COMPRESSIONTYPE_ZIPS
+                    ExrCompressionType.Zfp -> TINYEXR_COMPRESSIONTYPE_ZFP
+                }
+
+                exrHeader.compression_type(configuration.compressionType.toTinyExrCompressionType())
 
                 val exrChannels = EXRChannelInfo.calloc(channelCount)
                 val channelNames = "RGBA"
@@ -786,5 +796,16 @@ class ImageDriverStbImage : ImageDriver {
             ddsData.bdata,
             ddsData.bdata2
         )
+    }
+
+    override fun createImageData(
+        width: Int,
+        height: Int,
+        format: ColorFormat,
+        type: ColorType,
+        flipV: Boolean,
+        buffer: MPPBuffer?
+    ): ImageData {
+        return ImageDataStb(width, height, format, type, flipV, buffer)
     }
 }

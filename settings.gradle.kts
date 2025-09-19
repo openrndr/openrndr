@@ -23,12 +23,16 @@ include(
         "openrndr-animatable",
         "openrndr-jvm:openrndr-dialogs",
 
+        "openrndr-jvm:openrndr-application-egl",
+        "openrndr-jvm:openrndr-application-glfw",
         "openrndr-jvm:openrndr-gl3",
         "openrndr-jvm:openrndr-openal",
 
 
         "openrndr-jvm:openrndr-ffmpeg",
         "openrndr-jvm:openrndr-fontdriver-stb",
+        "openrndr-jvm:openrndr-imagedriver-stb",
+
 
         "openrndr-js:openrndr-webgl",
         "openrndr-js:openrndr-webgl-demo",

@@ -2,6 +2,8 @@
 
 package org.openrndr.internal
 
+import org.openrndr.draw.ColorFormat
+import org.openrndr.draw.ColorType
 import org.openrndr.draw.ImageFileDetails
 import org.openrndr.draw.ImageFileFormat
 import org.openrndr.utils.buffer.MPPBuffer
@@ -25,6 +27,19 @@ class JpegImageSaveConfiguration(var quality: Int = 95) : ImageSaveConfiguration
 fun ImageSaveContext.exr(configuration: ExrImageSaveConfiguration.() -> Unit): ExrImageSaveConfiguration =
     ExrImageSaveConfiguration().apply(configuration)
 
+
+/**
+ * Exposes TINYEXR_COMPRESSIONTYPE for convention
+ */
+enum class ExrCompressionType {
+    None,
+    Rle,
+    Zip,
+    Piz,
+    Zips,
+    Zfp
+}
+
 /**
  * Configuration class for saving images in the EXR format.
  *
@@ -35,7 +50,7 @@ fun ImageSaveContext.exr(configuration: ExrImageSaveConfiguration.() -> Unit): E
  * @property compression An integer representing the compression level to be applied when saving the EXR image.
  *                        The valid range and specific levels may depend on the EXR implementation.
  */
-class ExrImageSaveConfiguration(var compression: Int = 0) : ImageSaveConfiguration
+class ExrImageSaveConfiguration(var compressionType: ExrCompressionType = ExrCompressionType.None) : ImageSaveConfiguration
 
 /**
  * Configuration settings for saving images in the PNG format.
@@ -178,6 +193,15 @@ interface ImageDriver {
      */
     fun loadCubemapImage(buffer: MPPBuffer, name: String?, formatHint: ImageFileFormat?): CubemapImageData
 
+
+    fun createImageData(
+        width: Int,
+        height: Int,
+        format: ColorFormat,
+        type: ColorType,
+        flipV: Boolean,
+        buffer: MPPBuffer?
+    ): ImageData
 
     companion object {
         var driver: ImageDriver? = null
