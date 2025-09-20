@@ -118,7 +118,6 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
                 field = value
             }
         }
-    override var pointers: List<Pointer> = mutableListOf()
 
     private var _windowSize: Vector2? = null
     override var windowSize: Vector2

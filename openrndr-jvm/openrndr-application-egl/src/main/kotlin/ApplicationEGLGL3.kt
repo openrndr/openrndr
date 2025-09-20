@@ -27,7 +27,6 @@ class ApplicationEGLGL3(override var program: Program, override var configuratio
     override var cursorHideMode: MouseCursorHideMode = MouseCursorHideMode.HIDE
 
     override var cursorType: CursorType = CursorType.ARROW_CURSOR
-    override var pointers: List<Pointer> = emptyList()
 
     override var cursorPosition: Vector2
         get() = Vector2(0.0, 0.0)

@@ -78,7 +78,6 @@ data class AssetMetadata(
 interface InputEvents {
     val mouse: MouseEvents
     val keyboard: KeyEvents
-    val pointers: Pointers
 }
 
 /**
@@ -492,7 +491,6 @@ open class ProgramImplementation(val suspend: Boolean = false) : Program {
 
     override val keyboard by lazy { Keyboard() }
     override val mouse by lazy { ApplicationMouse(application = { application }) }
-    override val pointers by lazy { Pointers(application = { application }) }
 
     override suspend fun setup() {}
 
