@@ -362,10 +362,11 @@ class ColorBufferGL3(
 
         val fromDiv = 1 shl fromLevel
         val toDiv = 1 shl toLevel
-        val refRectangle = IntRectangle(0, 0, effectiveWidth / fromDiv, effectiveHeight / fromDiv)
+        val sourceRefRectangle = IntRectangle(0, 0, effectiveWidth / fromDiv, effectiveHeight / fromDiv)
+        val targetRefRectangle = IntRectangle(0, 0, target.effectiveWidth / toDiv, target.effectiveHeight / toDiv)
 
         val useTexSubImage =
-            target.type.compressed || (refRectangle == sourceRectangle && refRectangle == targetRectangle && multisample == target.multisample)
+            target.type.compressed || (sourceRefRectangle == sourceRectangle && sourceRefRectangle == targetRectangle && multisample == target.multisample && sourceRefRectangle == targetRefRectangle && fromLevel == toLevel)
 
         val useCopyFilter = Driver.glType == DriverTypeGL.GLES && (
                 (this.multisample is Disabled && target.multisample is SampleCount) ||
@@ -453,7 +454,7 @@ class ColorBufferGL3(
             readTarget.detachColorAttachments()
             readTarget.destroy()
         } else {
-            require(sourceRectangle == refRectangle && targetRectangle == refRectangle) {
+            require(sourceRectangle == sourceRefRectangle && targetRectangle == sourceRefRectangle) {
                 "cropped or scaled copyTo is not allowed with the selected color buffers: $this -> $target"
             }
 
