@@ -19,6 +19,10 @@ interface ShaderImageBindingsGL43 : ShaderImageBindings, ShaderUniformsGL3 {
                 require(bufferTexture.format.componentCount != 3) {
                     "color buffer has unsupported format (${imageBinding.bufferTexture.format}), only formats with 1, 2 or 4 components are supported"
                 }
+                require(!bufferTexture.type.isSRGB) {
+                    "color buffer has unsupported format (${imageBinding.bufferTexture.format}), only non-sRGB formats are supported"
+                }
+
                 glBindImageTexture(
                     image,
                     bufferTexture.texture,
@@ -36,6 +40,10 @@ interface ShaderImageBindingsGL43 : ShaderImageBindings, ShaderUniformsGL3 {
                 require(colorBuffer.format.componentCount != 3) {
                     "color buffer has unsupported format (${imageBinding.colorBuffer.format}), only formats with 1, 2 or 4 components are supported"
                 }
+                require(!colorBuffer.type.isSRGB) {
+                    "color buffer has unsupported format (${imageBinding.colorBuffer.format}), only non-sRGB formats are supported"
+                }
+
                 glBindImageTexture(
                     image,
                     colorBuffer.texture,
@@ -62,6 +70,10 @@ interface ShaderImageBindingsGL43 : ShaderImageBindings, ShaderUniformsGL3 {
                 require(arrayTexture.format.componentCount != 3) {
                     "color buffer has unsupported format (${imageBinding.arrayTexture.format}), only formats with 1, 2 or 4 components are supported"
                 }
+                require(!arrayTexture.type.isSRGB) {
+                    "color buffer has unsupported format (${imageBinding.arrayTexture.format}), only non-sRGB formats are supported"
+                }
+
                 glBindImageTexture(
                     image,
                     arrayTexture.texture,
@@ -79,6 +91,10 @@ interface ShaderImageBindingsGL43 : ShaderImageBindings, ShaderUniformsGL3 {
                 require(cubemap.format.componentCount != 3) {
                     "color buffer has unsupported format (${imageBinding.cubemap.format}), only formats with 1, 2 or 4 components are supported"
                 }
+                require(!cubemap.type.isSRGB) {
+                    "color buffer has unsupported format (${imageBinding.cubemap.format}), only non-sRGB formats are supported"
+                }
+
                 glBindImageTexture(
                     image,
                     cubemap.texture,
@@ -96,6 +112,10 @@ interface ShaderImageBindingsGL43 : ShaderImageBindings, ShaderUniformsGL3 {
                 require(arrayCubemap.format.componentCount != 3) {
                     "color buffer has unsupported format (${imageBinding.arrayCubemap.format}), only formats with 1, 2 or 4 components are supported"
                 }
+                require(!arrayCubemap.type.isSRGB) {
+                    "color buffer has unsupported format (${imageBinding.arrayCubemap.format}), only non-sRGB formats are supported"
+                }
+
                 glBindImageTexture(
                     image,
                     arrayCubemap.texture,
@@ -113,6 +133,10 @@ interface ShaderImageBindingsGL43 : ShaderImageBindings, ShaderUniformsGL3 {
                 require(volumeTexture.format.componentCount != 3) {
                     "color buffer has unsupported format (${imageBinding.volumeTexture.format}), only formats with 1, 2 or 4 components are supported"
                 }
+                require(!volumeTexture.type.isSRGB) {
+                    "color buffer has unsupported format (${imageBinding.volumeTexture.format}), only non-sRGB formats are supported"
+                }
+
                 glBindImageTexture(
                     image,
                     volumeTexture.texture,
@@ -140,7 +164,6 @@ interface ShaderImageBindingsGL43 : ShaderImageBindings, ShaderUniformsGL3 {
                 glProgramUniform1i(programObject, index, image)
             }
         }
-        checkGLErrors()
         debugGLErrors()
     }
 
