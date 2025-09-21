@@ -30,9 +30,9 @@ private val logger = KotlinLogging.logger {  }
  * invokes the provided lambda (`f`) within the resource processing thread. Cleanup of the created
  * context and GLFW window is handled automatically after the lambda finishes execution.
  */
-class ResourceThreadGL3 : ResourceThread {
+class ResourceThreadGLFWGL3 : ResourceThread {
     companion object {
-        fun create(primaryWindow: Long, f: () -> Unit): ResourceThreadGL3 {
+        fun create(primaryWindow: Long, f: () -> Unit): ResourceThreadGLFWGL3 {
             glfwDefaultWindowHints()
             glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, Driver.glVersion.majorVersion)
             glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, Driver.glVersion.minorVersion)
@@ -83,7 +83,7 @@ class ResourceThreadGL3 : ResourceThread {
                     }
                 }
             }
-            return ResourceThreadGL3()
+            return ResourceThreadGLFWGL3()
         }
     }
 }

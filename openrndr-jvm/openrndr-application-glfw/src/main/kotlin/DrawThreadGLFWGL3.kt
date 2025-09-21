@@ -22,9 +22,9 @@ import kotlin.concurrent.thread
 
 private val logger = KotlinLogging.logger {  }
 
-class DrawThreadGL3(private val contextWindow: Long) : DrawThread {
+class DrawThreadGLFWGL3(private val contextWindow: Long) : DrawThread {
     companion object {
-        fun create(primaryWindow: Long): DrawThreadGL3 {
+        fun create(primaryWindow: Long): DrawThreadGLFWGL3 {
 
             GLFW.glfwDefaultWindowHints()
             val version = (Driver.instance as DriverGL3).version
@@ -54,7 +54,7 @@ class DrawThreadGL3(private val contextWindow: Long) : DrawThread {
 
             require(contextWindow != 0L) { "context creation failed" }
 
-            return DrawThreadGL3(contextWindow)
+            return DrawThreadGLFWGL3(contextWindow)
         }
     }
 

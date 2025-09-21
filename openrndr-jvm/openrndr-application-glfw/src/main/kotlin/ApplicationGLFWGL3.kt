@@ -642,9 +642,9 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
                 override fun createResourceThread(
                     session: Session?,
                     f: () -> Unit
-                ): ResourceThread = ResourceThreadGL3.create(primaryWindow, f)
+                ): ResourceThread = ResourceThreadGLFWGL3.create(primaryWindow, f)
 
-                override fun createDrawThread(session: Session?): DrawThread = DrawThreadGL3.create(primaryWindow)
+                override fun createDrawThread(session: Session?): DrawThread = DrawThreadGLFWGL3.create(primaryWindow)
             }
         }
     }
