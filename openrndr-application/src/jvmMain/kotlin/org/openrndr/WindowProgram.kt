@@ -273,7 +273,7 @@ open class WindowProgram(val suspend: Boolean = false) : Program {
 
     override val keyboard by lazy { Keyboard() }
     override val mouse by lazy { ApplicationWindowMouse(applicationWindow = { applicationWindow }) }
-    override val pointers by lazy { Pointers(application = { application }) }
+    override val pointers by lazy { Pointers() }
 
     /**
      * This runs exactly once before the first call to draw()

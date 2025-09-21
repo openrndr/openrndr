@@ -85,7 +85,6 @@ class ApplicationNullGL(override var program: Program, override var configuratio
     override var cursorVisible: Boolean = true
     override var cursorHideMode: MouseCursorHideMode = MouseCursorHideMode.HIDE
     override var cursorType: CursorType = CursorType.ARROW_CURSOR
-    override var pointers: List<Pointer> = emptyList()
 
     override val seconds: Double
         get() = (startMS - System.currentTimeMillis()) / 1000.0
