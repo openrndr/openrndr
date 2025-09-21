@@ -155,8 +155,8 @@ class ColorBufferGL3(
             checkGLErrors()
 
             val storageMode = when {
-                Driver.capabilities.textureStorage && multisample == Disabled-> TextureStorageModeGL.STORAGE
-                Driver.capabilities.textureMultisampleStorage && multisample is SampleCount-> TextureStorageModeGL.STORAGE
+                Driver.capabilities.textureStorage && multisample == Disabled -> TextureStorageModeGL.STORAGE
+                Driver.capabilities.textureMultisampleStorage && multisample is SampleCount -> TextureStorageModeGL.STORAGE
                 else -> TextureStorageModeGL.IMAGE
             }
 
@@ -359,7 +359,6 @@ class ColorBufferGL3(
             }
         }
 
-
         val fromDiv = 1 shl fromLevel
         val toDiv = 1 shl toLevel
         val refRectangle = IntRectangle(0, 0, effectiveWidth / fromDiv, effectiveHeight / fromDiv)
@@ -367,17 +366,21 @@ class ColorBufferGL3(
         val useTexSubImage =
             target.type.compressed || (refRectangle == sourceRectangle && refRectangle == targetRectangle && multisample == target.multisample)
 
-        val useCopyFilter = Driver.glType == DriverTypeGL.GLES && (
-                (this.multisample is Disabled && target.multisample is SampleCount) ||
-                        (type.isFloat != target.type.isFloat) ||
-                        (format.componentCount == 3)
-                )
+        val useCopyFilter =
+            (this.type.isSRGB != target.type.isSRGB) ||
+                    (Driver.glType == DriverTypeGL.GLES && (
+                            (this.multisample is Disabled && target.multisample is SampleCount) ||
+                                    (type.isFloat != target.type.isFloat) ||
+                                    (format.componentCount == 3)
+                            ))
 
         if (useCopyFilter) {
             require(
                 this.effectiveWidth == target.effectiveWidth && this.effectiveHeight == target.effectiveHeight &&
                         sourceRectangle.x == 0 && sourceRectangle.y == 0 && sourceRectangle == targetRectangle && sourceRectangle.width == effectiveWidth && sourceRectangle.height == effectiveHeight
-            )
+            ) {
+                "can't copy to target with different dimensions or different source/target rectangle"
+            }
 
             copy.apply(this, target)
             return
