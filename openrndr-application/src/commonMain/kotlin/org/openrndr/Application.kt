@@ -1,4 +1,5 @@
 @file:JvmName("ApplicationJVM")
+
 package org.openrndr
 
 import org.openrndr.math.IntVector2
@@ -31,8 +32,10 @@ data class WindowConfiguration(
     val closable: Boolean = true,
     val alwaysOnTop: Boolean = false,
     val hideDecorations: Boolean = false,
-    val multisample: WindowMultisample = WindowMultisample.Disabled
-    )
+    val transparent: Boolean = false,
+    val multisample: WindowMultisample = WindowMultisample.Disabled,
+    val fullscreen: Fullscreen = Fullscreen.DISABLED
+)
 
 /**
  * Application interface
