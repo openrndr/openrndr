@@ -24,6 +24,8 @@ plugins {
 
 repositories {
     mavenCentral()
+    // TODO remove this when LWJGL 3.4.0 is released
+    maven("https://central.sonatype.com/repository/maven-snapshots")
 }
 
 group = "org.openrndr"
