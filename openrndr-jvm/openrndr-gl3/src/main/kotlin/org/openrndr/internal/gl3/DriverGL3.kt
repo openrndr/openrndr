@@ -63,6 +63,23 @@ enum class DriverVersionGL(
         version.any {
             (this >= it && it.type == type)
         }
+
+    companion object {
+        /**
+         * Finds and returns a DriverVersionGL constant that matches the specified driver type,
+         * major version, and minor version.
+         *
+         * @param type The type of driver (e.g., GL or GLES).
+         * @param majorVersion The major version of the driver to find.
+         * @param minorVersion The minor version of the driver to find.
+         * @return The matching DriverVersionGL constant, or null if no match is found.
+         */
+        fun find(type: DriverTypeGL, majorVersion: Int, minorVersion: Int): DriverVersionGL? {
+            return entries.find {
+                it.type == type && it.majorVersion == majorVersion && it.minorVersion == minorVersion
+            }
+        }
+    }
 }
 
 @Suppress("NOTHING_TO_INLINE")
