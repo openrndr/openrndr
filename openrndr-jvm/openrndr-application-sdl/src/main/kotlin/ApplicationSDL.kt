@@ -50,6 +50,9 @@ import org.openrndr.draw.Drawer
 import org.openrndr.internal.Driver
 import org.openrndr.internal.gl3.*
 import org.openrndr.application.sdl.ApplicationSDLConfiguration.fixWindowSize
+import org.openrndr.draw.DrawThread
+import org.openrndr.draw.Session
+import org.openrndr.internal.ResourceThread
 import org.openrndr.math.Vector2
 import org.openrndr.platform.Platform
 import org.openrndr.platform.PlatformType
@@ -174,7 +177,18 @@ class ApplicationSDL(override var program: Program, override var configuration: 
         println("driver renderer ${glGetString(GL_RENDERER)}")
 
 
-        Driver.driver = DriverGLSDL(driverVersion)
+        Driver.driver = object: DriverGL3(driverVersion) {
+            override fun createDrawThread(session: Session?): DrawThread {
+                TODO("Not yet implemented")
+            }
+
+            override fun createResourceThread(session: Session?, f: () -> Unit): ResourceThread {
+                return ResourceThreadSDL()
+            }
+
+            override val contextID: Long
+                get() = SDL_GL_GetCurrentContext()
+        }
     }
 
     override suspend fun setup() {

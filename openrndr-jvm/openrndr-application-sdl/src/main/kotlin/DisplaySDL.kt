@@ -12,6 +12,6 @@ class DisplaySDL internal constructor(
     override val contentScale: Double
 ) : Display() {
     override fun toString(): String {
-        return "DisplayGLFWGL3(pointer=$pointer, name=$name, x=$x, y=$y, width=$width, height=$height, contentScale=$contentScale)"
+        return "DisplaySDL(pointer=$pointer, name=$name, x=$x, y=$y, width=$width, height=$height, contentScale=$contentScale)"
     }
 }
