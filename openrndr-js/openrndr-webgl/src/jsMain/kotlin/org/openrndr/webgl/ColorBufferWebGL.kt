@@ -1,35 +1,44 @@
 package org.openrndr.webgl
 
-import WebGL2RenderingContext
 import WebGLRenderingFixedCompressedTexImage
+import js.buffer.ArrayBufferLike
+import js.buffer.ArrayBufferView
 import kotlinx.coroutines.await
-import org.khronos.webgl.*
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
 import org.openrndr.internal.Driver
 import org.openrndr.shape.IntRectangle
 import org.openrndr.utils.buffer.MPPBuffer
-import org.w3c.dom.Image
+import web.events.AddEventListenerOptions
+import web.events.EventType
+import web.events.addEventListener
+import web.gl.GLenum
+import web.gl.TexImageSource
+import web.gl.WebGLFramebuffer
+import web.gl.WebGLTexture
+import web.html.Image
 import kotlin.js.Promise
 import kotlin.math.log2
-import org.khronos.webgl.WebGLRenderingContext as GL
 import kotlin.math.pow
+import web.gl.WebGL2RenderingContext as GL
 
 internal fun promiseImage(url: String): Promise<Image> {
     return Promise { resolve, _ ->
         val image = Image()
-        image.addEventListener("load", {
-            resolve(image)
+        val options: AddEventListenerOptions = js("{}")
+        options.capture = false
 
-        }, false)
+        image.addEventListener(EventType("load"), {
+            resolve(image)
+        }, options)
         image.src = url
     }
 }
 
 
 class ColorBufferWebGL(
-    val context: WebGL2RenderingContext,
-    val target: Int,
+    val context: GL,
+    val target: GLenum,
     val texture: WebGLTexture,
     override val width: Int,
     override val height: Int,
@@ -48,7 +57,7 @@ class ColorBufferWebGL(
 
     companion object {
         fun create(
-            context: WebGL2RenderingContext,
+            context: GL,
             width: Int,
             height: Int,
             contentScale: Double = 1.0,
@@ -102,7 +111,8 @@ class ColorBufferWebGL(
                     val div = 1 shl level
 
                     @Suppress("UNCHECKED_CAST_TO_EXTERNAL_INTERFACE")
-                    val fcontext = context as? WebGLRenderingFixedCompressedTexImage ?: error("cast failed")
+                    val fcontext =
+                        (context as? WebGLRenderingFixedCompressedTexImage) ?: error("cast failed")
                     fcontext.compressedTexImage2D(
                         GL.TEXTURE_2D,
                         level,
@@ -144,7 +154,7 @@ class ColorBufferWebGL(
         }
 
         fun fromImage(
-            context: WebGL2RenderingContext,
+            context: GL,
             image: Image,
             session: Session? = Session.active
         ): ColorBufferWebGL {
@@ -166,14 +176,18 @@ class ColorBufferWebGL(
         }
 
         @Suppress("UNUSED_PARAMETER")
-        fun fromUrl(context: GL, url: String, session: Session? = Session.active): ColorBufferWebGL {
+        fun fromUrl(
+            context: GL,
+            url: String,
+            session: Session? = Session.active
+        ): ColorBufferWebGL {
             error("use fromUrlSuspend")
             //val image = promiseImage(url).await()
             //return fromImage(context, image, session)
         }
 
         suspend fun fromUrlSuspend(
-            context: WebGL2RenderingContext,
+            context: GL,
             url: String,
             session: Session? = Session.active
         ): ColorBufferWebGL {
@@ -189,7 +203,7 @@ class ColorBufferWebGL(
 
     override fun bind(unit: Int) {
         context.checkErrors("pre-existing errors")
-        context.activeTexture(unit + GL.TEXTURE0)
+        context.activeTexture(glTextureEnum(unit))
         context.bindTexture(target, texture)
         context.checkErrors("bindTexture unit:$unit $this")
     }
@@ -207,7 +221,12 @@ class ColorBufferWebGL(
 
     override var flipV: Boolean = false
 
-    override fun copyTo(target: ColorBuffer, fromLevel: Int, toLevel: Int, filter: MagnifyingFilter) {
+    override fun copyTo(
+        target: ColorBuffer,
+        fromLevel: Int,
+        toLevel: Int,
+        filter: MagnifyingFilter
+    ) {
         val sourceRectangle = IntRectangle(
             0,
             0,
@@ -266,7 +285,7 @@ class ColorBufferWebGL(
             } as RenderTargetWebGL
 
             writeTarget.bind()
-            context.bindFramebuffer(WebGL2RenderingContext.READ_FRAMEBUFFER, readTarget.framebuffer)
+            context.bindFramebuffer(GL.READ_FRAMEBUFFER, readTarget.framebuffer)
             context.checkErrors("bindFrameBuffer $this $target")
 
             val ssx = sourceRectangle.x
@@ -299,7 +318,7 @@ class ColorBufferWebGL(
                 GL.COLOR_BUFFER_BIT,
                 filter.toGLFilter()
             )
-            context.bindFramebuffer(WebGL2RenderingContext.READ_FRAMEBUFFER, null)
+            context.bindFramebuffer(GL.READ_FRAMEBUFFER, null)
             context.checkErrors("blitFramebuffer $this $target")
             writeTarget.unbind()
 
@@ -372,7 +391,7 @@ class ColorBufferWebGL(
     }
 
     override fun write(
-        source: ArrayBufferView,
+        source: ArrayBufferView<ArrayBufferLike>,
         sourceFormat: ColorFormat,
         sourceType: ColorType,
         x: Int,
@@ -405,7 +424,9 @@ class ColorBufferWebGL(
                 width,
                 height,
                 sourceType.glType(),
-                source
+                source,
+                null,
+                null
             )
         }
     }
@@ -420,14 +441,22 @@ class ColorBufferWebGL(
         height: Int,
         level: Int
     ) {
-        write(sourceBuffer.dataView, sourceFormat, sourceType, x, y, width, height, level)
+        write(sourceBuffer, sourceFormat, sourceType, x, y, width, height, level)
     }
 
     private val readFrameBuffer by lazy {
         context.createFramebuffer() ?: error("failed to create framebuffer")
     }
 
-    override fun read(target: ArrayBufferView, x: Int, y: Int, width: Int, height: Int, level: Int) {
+    @OptIn(ExperimentalWasmJsInterop::class)
+    override fun read(
+        target: ArrayBufferView<ArrayBufferLike>,
+        x: Int,
+        y: Int,
+        width: Int,
+        height: Int,
+        level: Int
+    ) {
         bind(0)
         val current = context.getParameter(GL.FRAMEBUFFER_BINDING) as WebGLFramebuffer?
         context.bindFramebuffer(GL.FRAMEBUFFER, readFrameBuffer)
@@ -460,8 +489,13 @@ class ColorBufferWebGL(
 
         writeTarget.bind()
         val floatColorData =
-            float32Array(lcolor.r.toFloat(), lcolor.g.toFloat(), lcolor.b.toFloat(), lcolor.alpha.toFloat())
-        context.clearBufferfv(WebGL2RenderingContext.COLOR, 0, floatColorData)
+            float32Array(
+                lcolor.r.toFloat(),
+                lcolor.g.toFloat(),
+                lcolor.b.toFloat(),
+                lcolor.alpha.toFloat()
+            )
+        context.clearBufferfv(GL.COLOR, 0, floatColorData, null)
         writeTarget.unbind()
 
         writeTarget.detachColorAttachments()

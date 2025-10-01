@@ -1,14 +1,16 @@
 package org.openrndr.webgl
 
-import WebGL2RenderingContext
-import WebGLVertexArrayObject
+import js.core.plus
 import org.openrndr.color.ColorRGBa
-import org.khronos.webgl.WebGLRenderingContext as GL
 import org.openrndr.draw.*
 import org.openrndr.internal.*
-import org.openrndr.internal.glcommon.*
+import org.openrndr.internal.glcommon.ShadeStyleManagerGLCommon
+import org.openrndr.internal.glcommon.ShaderGeneratorsGLCommon
+import web.gl.GLenum
+import web.gl.WebGLVertexArrayObject
+import web.gl.WebGL2RenderingContext as GL
 
-class DriverWebGL(val context: WebGL2RenderingContext) : Driver {
+class DriverWebGL(val context: GL) : Driver {
     init {
         Driver.driver = this
     }
@@ -38,6 +40,7 @@ class DriverWebGL(val context: WebGL2RenderingContext) : Driver {
     }
 
 
+    @OptIn(ExperimentalWasmJsInterop::class)
     @Suppress("UNCHECKED_CAST_TO_EXTERNAL_INTERFACE")
     inner class Extensions {
         val instancedArrays by lazy {
@@ -246,7 +249,7 @@ class DriverWebGL(val context: WebGL2RenderingContext) : Driver {
         context.clearDepth(1.0f)
         context.disable(GL.SCISSOR_TEST)
         context.depthMask(true)
-        context.clear(GL.COLOR_BUFFER_BIT or GL.DEPTH_BUFFER_BIT or GL.STENCIL_BUFFER_BIT)
+        context.clear(GL.COLOR_BUFFER_BIT + GL.DEPTH_BUFFER_BIT + GL.STENCIL_BUFFER_BIT)
         context.depthMask(false)
     }
 
@@ -580,13 +583,13 @@ class DriverWebGL(val context: WebGL2RenderingContext) : Driver {
 
                 BlendMode.MIN -> {
                     context.enable(GL.BLEND)
-                    context.blendEquation(WebGL2RenderingContext.MIN)
+                    context.blendEquation(GL.MIN)
                     context.blendFunc(GL.ONE, GL.ONE)
                 }
 
                 BlendMode.MAX -> {
                     context.enable(GL.BLEND)
-                    context.blendEquation(WebGL2RenderingContext.MAX)
+                    context.blendEquation(GL.MAX)
                     context.blendFunc(GL.ONE, GL.ONE)
                 }
                 else -> error("blendmode ${drawStyle.blendMode} is not supported")
@@ -733,7 +736,7 @@ class DriverWebGL(val context: WebGL2RenderingContext) : Driver {
     }
 }
 
-internal fun ColorFormat.glFormat(): Int {
+internal fun ColorFormat.glFormat(): GLenum {
     return when (this) {
         ColorFormat.R -> GL.LUMINANCE
         ColorFormat.RG -> GL.LUMINANCE_ALPHA
@@ -744,7 +747,8 @@ internal fun ColorFormat.glFormat(): Int {
     }
 }
 
-internal fun ColorType.glType(): Int {
+@Suppress("UNCHECKED_CAST_TO_EXTERNAL_INTERFACE")
+internal fun ColorType.glType(): GLenum {
     return when (this) {
         ColorType.UINT8_SRGB, ColorType.UINT8, ColorType.UINT8_INT -> GL.UNSIGNED_BYTE
         ColorType.SINT8_INT -> GL.BYTE
@@ -757,5 +761,5 @@ internal fun ColorType.glType(): Int {
         ColorType.DXT1, ColorType.DXT3, ColorType.DXT5,
         ColorType.DXT1_SRGB, ColorType.DXT3_SRGB, ColorType.DXT5_SRGB,
         ColorType.BPTC_UNORM, ColorType.BPTC_UNORM_SRGB, ColorType.BPTC_FLOAT, ColorType.BPTC_UFLOAT -> throw RuntimeException("gl type of compressed types cannot be queried")
-    }
+    } as GLenum
 }

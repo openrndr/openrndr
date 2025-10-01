@@ -1,15 +1,16 @@
 package org.openrndr.webgl
 
-import org.khronos.webgl.Float32Array
-import org.khronos.webgl.WebGLBuffer
+import js.buffer.ArrayBuffer
+import js.typedarrays.Float32Array
 import org.openrndr.draw.*
 import org.openrndr.utils.buffer.MPPBuffer
-import org.khronos.webgl.WebGLRenderingContext as GL
+import web.gl.WebGLBuffer
+import web.gl.WebGL2RenderingContext as GL
 
 
 class VertexBufferShadowWebGL(override val vertexBuffer: VertexBuffer) : VertexBufferShadow {
 
-    val shadow = Float32Array(vertexBuffer.vertexCount * (vertexBuffer.vertexFormat.size / 4))
+    val shadow = Float32Array<ArrayBuffer>(vertexBuffer.vertexCount * (vertexBuffer.vertexFormat.size / 4))
 
     override fun upload(offsetInBytes: Int, sizeInBytes: Int) {
         vertexBuffer.write(shadow, offsetInBytes, sizeInBytes / 4)
@@ -87,11 +88,11 @@ class VertexBufferWebGL(
     override fun write(data: FloatArray, offsetBytes:Int, floatCount:Int) {
         bind()
         val offsetFloats = offsetBytes / 4
-        context.bufferSubData(GL.ARRAY_BUFFER, offsetBytes, Float32Array(data.toTypedArray()).subarray(offsetFloats, offsetFloats + floatCount))
+        context.bufferSubData(GL.ARRAY_BUFFER, offsetBytes, Float32Array<ArrayBuffer>(data.toTypedArray()).subarray(offsetFloats, offsetFloats + floatCount))
         unbind()
     }
 
-    override fun write(data: Float32Array, offsetBytes:Int, floatCount: Int) {
+    override fun write(data: Float32Array<ArrayBuffer>, offsetBytes:Int, floatCount: Int) {
         bind()
         val offsetFloats = offsetBytes / 4
         context.bufferSubData(GL.ARRAY_BUFFER, offsetBytes, data.subarray(offsetFloats, offsetFloats + floatCount))

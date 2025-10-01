@@ -1,12 +1,13 @@
 package org.openrndr.draw
 
-import org.khronos.webgl.ArrayBufferView
-import org.khronos.webgl.TexImageSource
+import js.buffer.ArrayBufferLike
+import js.buffer.ArrayBufferView
 import org.openrndr.color.ColorRGBa
 import org.openrndr.internal.ImageDriver
 import org.openrndr.shape.IntRectangle
 import org.openrndr.shape.Rectangle
 import org.openrndr.utils.buffer.MPPBuffer
+import web.gl.TexImageSource
 
 actual abstract class ColorBuffer : AutoCloseable {
 
@@ -114,7 +115,7 @@ actual abstract class ColorBuffer : AutoCloseable {
     )
 
     abstract fun write(
-        source: ArrayBufferView,
+        source: ArrayBufferView<ArrayBufferLike>,
         sourceFormat: ColorFormat,
         sourceType: ColorType,
         x: Int = 0,
@@ -125,7 +126,7 @@ actual abstract class ColorBuffer : AutoCloseable {
     )
 
     abstract fun read(
-        target: ArrayBufferView,
+        target: ArrayBufferView<ArrayBufferLike>,
         x: Int,
         y: Int,
         width: Int = this.effectiveWidth,

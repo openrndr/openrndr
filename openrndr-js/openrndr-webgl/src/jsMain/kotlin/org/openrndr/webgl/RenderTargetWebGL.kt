@@ -1,18 +1,17 @@
 package org.openrndr.webgl
 
-import WebGL2RenderingContext
-import org.khronos.webgl.WebGLFramebuffer
 import org.openrndr.Program
 import org.openrndr.collections.pop
 import org.openrndr.collections.push
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
 import org.openrndr.internal.Driver
-import org.khronos.webgl.WebGLRenderingContext as GL
+import web.gl.WebGLFramebuffer
+import web.gl.WebGL2RenderingContext as GL
 
 private val active = ArrayDeque<RenderTargetWebGL>()
 
-class ProgramRenderTargetWebGL(context: WebGL2RenderingContext, override val program: Program) : ProgramRenderTarget,
+class ProgramRenderTargetWebGL(context: GL, override val program: Program) : ProgramRenderTarget,
     RenderTargetWebGL(context, null, 0, 0, 1.0, BufferMultisample.Disabled, Session.root) {
     override val width: Int
         get() = program.window.size.x.toInt()
@@ -30,7 +29,7 @@ class ProgramRenderTargetWebGL(context: WebGL2RenderingContext, override val pro
 }
 
 open class RenderTargetWebGL(
-    val context: WebGL2RenderingContext,
+    val context: GL,
     val framebuffer: WebGLFramebuffer?,
     override val width: Int,
     override val height: Int,
@@ -41,7 +40,7 @@ open class RenderTargetWebGL(
 ) : RenderTarget {
     companion object {
         fun create(
-            context: WebGL2RenderingContext,
+            context: GL,
             width: Int,
             height: Int,
             contentScale: Double = 1.0,
@@ -98,7 +97,7 @@ open class RenderTargetWebGL(
         }
         context.framebufferTexture2D(
             GL.FRAMEBUFFER,
-            GL.COLOR_ATTACHMENT0 + colorAttachments.size,
+            glColorAttachment(colorAttachments.size),
             colorBuffer.target,
             colorBuffer.texture,
             level
@@ -162,7 +161,7 @@ open class RenderTargetWebGL(
     override fun detachColorAttachments() {
         bound {
             for ((index, _) in colorAttachments.withIndex()) {
-                context.framebufferTexture2D(GL.FRAMEBUFFER, GL.COLOR_ATTACHMENT0 + index, GL.TEXTURE_2D, null, 0)
+                context.framebufferTexture2D(GL.FRAMEBUFFER, glColorAttachment(index), GL.TEXTURE_2D, null, 0)
                 context.checkErrors("framebufferTexture2D detach $index")
             }
         }
@@ -199,7 +198,7 @@ open class RenderTargetWebGL(
 
     override fun clearDepth(depth: Double, stencil: Int) {
         bound {
-            context.clearBufferfi(WebGL2RenderingContext.DEPTH_STENCIL, 0, depth.toFloat(), stencil)
+            context.clearBufferfi(GL.DEPTH_STENCIL, 0, depth.toFloat(), stencil)
         }
     }
 

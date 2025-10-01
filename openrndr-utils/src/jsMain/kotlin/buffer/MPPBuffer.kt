@@ -1,9 +1,9 @@
 package org.openrndr.utils.buffer
 
-import org.khronos.webgl.ArrayBuffer
-import org.khronos.webgl.DataView
+import js.buffer.ArrayBuffer
+import js.buffer.DataView
 
-actual class MPPBuffer(val dataView: DataView) {
+actual class MPPBuffer(val dataView: DataView<ArrayBuffer>) {
     private var offset = 0
     actual fun rewind() {
         offset = 0

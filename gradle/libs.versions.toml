@@ -2,6 +2,7 @@
 kotlinApi = "2.3"
 kotlinLanguage = "2.3"
 kotlin = "2.3.0"
+kotlin-wrap = "2025.9.11"
 jvmTarget = "17"
 kotlinxCoroutines = "1.10.2"
 kotlinLogging = "7.0.14"
@@ -26,6 +27,9 @@ kotlin-stdlib = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib", versio
 kotlin-test = { group = "org.jetbrains.kotlin", name = "kotlin-test", version.ref = "kotlin" }
 kotlin-reflect = { group = "org.jetbrains.kotlin", name = "kotlin-reflect", version.ref = "kotlin" }
 kotlin-gradle-plugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
+kotlin-browser = { group = "org.jetbrains.kotlin-wrappers", name = "kotlin-browser", version.ref = "kotlin-wrap"}
+kotlin-js = { group = "org.jetbrains.kotlin-wrappers", name = "kotlin-js", version.ref = "kotlin-wrap"}
+kotlin-web = { group = "org.jetbrains.kotlin-wrappers", name = "kotlin-web", version.ref = "kotlin-wrap"}
 dokka-gradle-plugin = { group = "org.jetbrains.dokka", name = "dokka-gradle-plugin", version.ref = "dokka" }
 
 lwjgl-core = { group = "org.lwjgl", name = "lwjgl", version.ref = "lwjgl" }

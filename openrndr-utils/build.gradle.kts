@@ -12,5 +12,11 @@ kotlin {
                 implementation(libs.kotlin.coroutines)
             }
         }
+
+        val jsMain by getting {
+            dependencies {
+                implementation(libs.kotlin.js)
+            }
+        }
     }
 }

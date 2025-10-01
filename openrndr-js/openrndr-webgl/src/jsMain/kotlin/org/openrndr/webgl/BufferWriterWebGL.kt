@@ -1,12 +1,12 @@
 package org.openrndr.webgl
 
-import org.khronos.webgl.Float32Array
-import org.khronos.webgl.set
+import js.buffer.ArrayBuffer
+import js.typedarrays.Float32Array
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.BufferWriter
 import org.openrndr.math.*
 
-class BufferWriterWebGL(val buffer: Float32Array, val elementSize: Int): BufferWriter() {
+class BufferWriterWebGL(val buffer: Float32Array<ArrayBuffer>, val elementSize: Int): BufferWriter() {
     init {
         require(elementSize % 4 == 0) { "elementSize $elementSize must be a multiple of 4" }
     }

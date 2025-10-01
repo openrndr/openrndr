@@ -1,9 +1,10 @@
 package org.openrndr.webgl
 
-import org.khronos.webgl.WebGLShader
-import org.khronos.webgl.WebGLRenderingContext as GL
+import web.gl.WebGLShader
+import web.gl.WebGL2RenderingContext as GL
 
 class FragmentShaderWebGL(val shaderObject: WebGLShader, val name: String) {
+    @OptIn(ExperimentalWasmJsInterop::class)
     companion object {
         fun fromString(context: GL, code: String, name: String): FragmentShaderWebGL {
             val shader = context.createShader(GL.FRAGMENT_SHADER) ?: error("failed to create shader")

@@ -1,11 +1,11 @@
 package org.openrndr.webgl
 
-import org.khronos.webgl.WebGLRenderbuffer
 import org.openrndr.draw.BufferMultisample
-import org.khronos.webgl.WebGLRenderingContext as GL
 import org.openrndr.draw.DepthBuffer
 import org.openrndr.draw.DepthFormat
 import org.openrndr.draw.Session
+import web.gl.WebGLRenderbuffer
+import web.gl.WebGL2RenderingContext as GL
 
 class DepthBufferWebGL(
     val context: GL,

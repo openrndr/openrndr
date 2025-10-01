@@ -1,16 +1,16 @@
 package org.openrndr.webgl
 
-import org.khronos.webgl.WebGLBuffer
-import org.khronos.webgl.WebGLRenderingContext as GL
 import org.openrndr.draw.IndexBuffer
 import org.openrndr.draw.IndexType
 import org.openrndr.draw.Session
+import web.gl.WebGLBuffer
+import web.gl.WebGL2RenderingContext as GL
 
 class IndexBufferWebGL(val context: GL,
-    val buffer: WebGLBuffer,
-    override val type: IndexType,
-    override val indexCount: Int,
-    override val session: Session?
+                       val buffer: WebGLBuffer,
+                       override val type: IndexType,
+                       override val indexCount: Int,
+                       override val session: Session?
 ) : IndexBuffer {
 
     companion object {

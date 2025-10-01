@@ -1,7 +1,7 @@
 package org.openrndr.webgl
 
-import org.khronos.webgl.WebGLShader
-import org.khronos.webgl.WebGLRenderingContext as GL
+import web.gl.WebGLShader
+import web.gl.WebGL2RenderingContext as GL
 
 class VertexShaderWebGL(val shaderObject: WebGLShader, val name: String) {
     companion object {

@@ -1,24 +1,35 @@
 package org.openrndr.webgl
 
-import WebGL2RenderingContext
-import kotlinx.browser.document
-import kotlinx.browser.window
-import org.khronos.webgl.WebGLContextAttributes
-import org.khronos.webgl.WebGLRenderingContext
+import js.array.asList
 import org.openrndr.*
 import org.openrndr.draw.Drawer
 import org.openrndr.internal.Driver
 import org.openrndr.math.Vector2
-import org.w3c.dom.HTMLCanvasElement
-import org.w3c.dom.asList
-import org.w3c.dom.events.WheelEvent
-import org.w3c.files.File
-import org.w3c.files.FileList
-import org.w3c.files.FileReader
+import web.animations.requestAnimationFrame
+import web.device.devicePixelRatio
+import web.dom.ElementId
+import web.dom.document
+import web.events.EventHandler
+import web.events.EventType
+import web.events.addEventListener
+import web.file.File
+import web.file.FileList
+import web.file.FileReader
+import web.gl.ID
+import web.gl.WebGL2RenderingContext
+import web.gl.WebGLContextAttributes
+import web.html.HTMLCanvasElement
+import web.mouse.AUXILIARY
+import web.mouse.MAIN
+import web.mouse.SECONDARY
+import web.mouse.WheelEvent
+import web.performance.performance
+import web.window.window
 import kotlin.js.Promise
 import kotlin.math.min
-import org.w3c.dom.events.KeyboardEvent as HtmlKeyboardEvent
-import org.w3c.dom.events.MouseEvent as HtmlMouseEvent
+import web.keyboard.KeyboardEvent as HtmlKeyboardEvent
+import web.mouse.MouseButton as HtmlMouseButton
+import web.mouse.MouseEvent as HtmlMouseEvent
 
 class ApplicationWebGL(override var program: Program, override var configuration: Configuration) : Application() {
 
@@ -45,59 +56,66 @@ class ApplicationWebGL(override var program: Program, override var configuration
     var context: WebGL2RenderingContext? = null
     var defaultRenderTarget: ProgramRenderTargetWebGL? = null
     override suspend fun setup() {
-        canvas = document.getElementById(configuration.canvasId) as? HTMLCanvasElement
+        canvas = document.getElementById(ElementId( configuration.canvasId)) as? HTMLCanvasElement
             ?: error("failed to get canvas #${configuration.canvasId}")
-        val contextAttributes = WebGLContextAttributes(stencil = true, preserveDrawingBuffer = true)
-        context = canvas?.getContext("webgl2", contextAttributes) as? WebGL2RenderingContext
+
+        val attrs:WebGLContextAttributes = js("{}")
+        attrs.stencil = true
+        attrs.preserveDrawingBuffer = true
+
+        context = canvas?.getContext(WebGL2RenderingContext.ID, attrs)
             ?: error("failed to create webgl2 context")
         Driver.driver = DriverWebGL(context as WebGL2RenderingContext)
         program.drawer = Drawer(Driver.instance)
-        referenceTime = window.performance.now()
+        referenceTime = performance.now()
 
-        val dpr = min(configuration.maxContentScale, window.devicePixelRatio)
+        val dpr = min(configuration.maxContentScale, devicePixelRatio)
 
         canvas?.width = (dpr * (canvas?.clientWidth ?: error("no width"))).toInt()
         canvas?.height = (dpr * (canvas?.clientHeight ?: error("no height"))).toInt()
 
         windowTitle = configuration.title
 
-        window.addEventListener("resize", {
-            val resizeDpr = min(configuration.maxContentScale, window.devicePixelRatio)
-            canvas?.width = (resizeDpr * (canvas?.clientWidth ?: error("no width"))).toInt()
-            canvas?.height = (resizeDpr * (canvas?.clientHeight ?: error("no height"))).toInt()
+        window.addEventListener(
+            EventType("resize"),
+            {
+                val resizeDpr = min(configuration.maxContentScale, devicePixelRatio)
+                canvas?.width = (resizeDpr * (canvas?.clientWidth ?: error("no width"))).toInt()
+                canvas?.height = (resizeDpr * (canvas?.clientHeight ?: error("no height"))).toInt()
 
-            val newWidth = canvas?.clientWidth?.toDouble() ?: error("no canvas")
-            val newHeight = canvas?.clientHeight?.toDouble() ?: error("no canvas")
+                val newWidth = canvas?.clientWidth?.toDouble() ?: error("no canvas")
+                val newHeight = canvas?.clientHeight?.toDouble() ?: error("no canvas")
 
-            program.window.sized.trigger(
-                WindowEvent(
-                    WindowEventType.RESIZED,
-                    Vector2(0.0, 0.0),
-                    Vector2(newWidth, newHeight),
-                    true
+                program.window.sized.trigger(
+                    WindowEvent(
+                        WindowEventType.RESIZED,
+                        Vector2(0.0, 0.0),
+                        Vector2(newWidth, newHeight),
+                        true
+                    )
                 )
-            )
-        })
+            }
+        )
 
         // Keyboard
-        window.addEventListener("keydown", {
+        window.addEventListener(EventType("keydown"), {
             it as HtmlKeyboardEvent
             program.keyboard.keyDown.trigger(
                 KeyEvent(
                     KeyEventType.KEY_DOWN,
-                    it.which,
+                    0,                      // TODO: investigate alternatives
                     it.key,
                     getModifiers(it)
                 )
             )
         })
 
-        window.addEventListener("keyup", {
+        window.addEventListener(EventType("keyup"), {
             it as HtmlKeyboardEvent
             program.keyboard.keyUp.trigger(
                 KeyEvent(
                     KeyEventType.KEY_UP,
-                    it.which,
+                    0,                      // TODO: investigate alternatives
                     it.key,
                     getModifiers(it)
                 )
@@ -107,7 +125,7 @@ class ApplicationWebGL(override var program: Program, override var configuration
         // Mouse
         var lastDragPosition = Vector2.ZERO
         var down = false
-        window.addEventListener("mousedown", {
+        window.addEventListener(EventType("mousedown"), {
             it as HtmlMouseEvent
             down = true
             val x = it.clientX.toDouble()
@@ -120,18 +138,17 @@ class ApplicationWebGL(override var program: Program, override var configuration
                     Vector2.ZERO,
                     Vector2.ZERO,
                     MouseEventType.BUTTON_DOWN,
-                    when (it.button.toInt()) {
-                        0 -> MouseButton.LEFT
-                        1 -> MouseButton.CENTER
-                        2 -> MouseButton.RIGHT
-                        else -> MouseButton.LEFT
+                    when (it.button) {
+                        HtmlMouseButton.MAIN -> MouseButton.LEFT
+                        HtmlMouseButton.AUXILIARY -> MouseButton.CENTER
+                        HtmlMouseButton.SECONDARY -> MouseButton.RIGHT
                     },
                     emptySet()
                 )
             )
         })
 
-        window.addEventListener("mouseup", {
+        window.addEventListener(EventType("mouseup"), {
             it as HtmlMouseEvent
             down = false
 
@@ -141,18 +158,17 @@ class ApplicationWebGL(override var program: Program, override var configuration
                     Vector2.ZERO,
                     Vector2.ZERO,
                     MouseEventType.BUTTON_UP,
-                    when (it.button.toInt()) {
-                        0 -> MouseButton.LEFT
-                        1 -> MouseButton.CENTER
-                        2 -> MouseButton.RIGHT
-                        else -> MouseButton.LEFT
+                    when (it.button) {
+                        HtmlMouseButton.MAIN -> MouseButton.LEFT
+                        HtmlMouseButton.AUXILIARY -> MouseButton.CENTER
+                        HtmlMouseButton.SECONDARY -> MouseButton.RIGHT
                     },
                     emptySet()
                 )
             )
         })
 
-        window.addEventListener("wheel", {
+        window.addEventListener(EventType("wheel"), {
             it as WheelEvent
             program.mouse.scrolled.trigger(
                 MouseEvent(
@@ -166,7 +182,7 @@ class ApplicationWebGL(override var program: Program, override var configuration
             )
         })
 
-        window.addEventListener("pointermove", {
+        window.addEventListener(EventType("pointermove"), {
             it as HtmlMouseEvent
             val x = it.clientX.toDouble()
             val y = it.clientY.toDouble()
@@ -183,7 +199,7 @@ class ApplicationWebGL(override var program: Program, override var configuration
             )
         })
 
-        window.addEventListener("mousemove", {
+        window.addEventListener(EventType("mousemove"), {
             if (down) {
                 it as HtmlMouseEvent
                 val x = it.clientX.toDouble()
@@ -205,12 +221,12 @@ class ApplicationWebGL(override var program: Program, override var configuration
 
 
         // Drag and drop
-        canvas?.addEventListener("dragover", {
+        canvas?.addEventListener(EventType("dragover"), {
             it.preventDefault()
             println("dragover")
         })
 
-        canvas?.addEventListener("drop", {
+        canvas?.addEventListener(EventType("drop"), {
             it.preventDefault()
             println("drop")
             val files: FileList = js("it.dataTransfer.files")
@@ -237,13 +253,20 @@ class ApplicationWebGL(override var program: Program, override var configuration
         program.setup()
     }
 
+    @OptIn(ExperimentalWasmJsInterop::class)
     private fun readFileOrBlobAsDataUrl(file: File): Promise<String> {
         return Promise { resolve, _ ->
             val reader = FileReader()
-            reader.readAsDataURL(file)
-            reader.onloadend = {
-                resolve(reader.result)
+            reader.onload = EventHandler {
+                val result = reader.result
+                if (result != null) {
+                    // readAsDataURL yields a data URL string
+                    resolve(result.unsafeCast<String>())
+                } else {
+                    error(Throwable("FileReader result is null"))
+                }
             }
+            reader.readAsDataURL(file)
         }
     }
 
@@ -272,7 +295,7 @@ class ApplicationWebGL(override var program: Program, override var configuration
             program.drawImpl()
         }
 
-        window.requestAnimationFrame {
+        requestAnimationFrame {
             loop()
         }
     }
@@ -282,9 +305,9 @@ class ApplicationWebGL(override var program: Program, override var configuration
         set(_) {}
 
     override var windowTitle: String
-        get() = window.document.title
+        get() = document.title
         set(text) {
-            window.document.title = text
+            document.title = text
         }
 
     override var windowPosition: Vector2
@@ -313,12 +336,12 @@ class ApplicationWebGL(override var program: Program, override var configuration
     override var cursorType: CursorType = CursorType.ARROW_CURSOR
     override val seconds: Double
         get() {
-            return (window.performance.now() - referenceTime) / 1000.0
+            return (performance.now() - referenceTime) / 1000.0
         }
 
     override var presentationMode: PresentationMode = PresentationMode.AUTOMATIC
     override var windowContentScale: Double
-        get() = min(configuration.maxContentScale, window.devicePixelRatio)
+        get() = min(configuration.maxContentScale, devicePixelRatio)
         set(_) {}
 
     override var windowMultisample: WindowMultisample

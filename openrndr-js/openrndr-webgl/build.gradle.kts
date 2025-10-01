@@ -11,6 +11,9 @@ kotlin {
                 api(project(":openrndr-draw"))
                 implementation(project(":openrndr-gl-common"))
                 implementation(libs.kotlin.coroutines)
+                implementation(libs.kotlin.js)
+                implementation(libs.kotlin.browser)
+                implementation(libs.kotlin.web)
             }
         }
     }

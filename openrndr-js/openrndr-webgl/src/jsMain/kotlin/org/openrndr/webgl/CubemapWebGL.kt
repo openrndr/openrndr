@@ -1,16 +1,18 @@
 package org.openrndr.webgl
 
-import org.khronos.webgl.ArrayBufferView
-import org.khronos.webgl.TexImageSource
-import org.khronos.webgl.Uint8Array
-import org.khronos.webgl.WebGLRenderingContext as GL
-import org.khronos.webgl.WebGLTexture
+import js.buffer.ArrayBufferLike
+import js.buffer.ArrayBufferView
+import js.typedarrays.Uint8Array
 import org.openrndr.draw.*
 import org.openrndr.utils.buffer.MPPBuffer
+import web.gl.GLenum
+import web.gl.TexImageSource
+import web.gl.WebGLTexture
+import web.gl.WebGL2RenderingContext as GL
 
 class CubemapWebGL(
     val context: GL,
-    val target: Int,
+    val target: GLenum,
     val texture: WebGLTexture,
     override val width: Int,
     override val format: ColorFormat,
@@ -28,11 +30,11 @@ class CubemapWebGL(
             levels: Int,
             session: Session?
         ): CubemapWebGL {
-            val texture = context.createTexture() ?: error("failed to create texture")
+            val texture = context.createTexture()
             context.activeTexture(GL.TEXTURE0)
             context.bindTexture(GL.TEXTURE_CUBE_MAP, texture)
             val (internalFormat, _) = internalFormat(format, type)
-            for (side in CubemapSide.values()) {
+            for (side in CubemapSide.entries) {
                 for (level in 0 until levels) {
                     val div = 1 shl level
                     context.texImage2D(
@@ -73,7 +75,7 @@ class CubemapWebGL(
     }
 
     override fun bind(textureUnit: Int) {
-        context.activeTexture(GL.TEXTURE0 + textureUnit)
+        context.activeTexture(glTextureEnum(textureUnit))
         context.bindTexture(target, texture)
     }
 
@@ -106,7 +108,7 @@ class CubemapWebGL(
 
     override fun write(
         side: CubemapSide,
-        source: ArrayBufferView,
+        source: ArrayBufferView<ArrayBufferLike>,
         sourceFormat: ColorFormat,
         sourceType: ColorType,
         x: Int,
@@ -128,7 +130,7 @@ class CubemapWebGL(
                 height,
                 sourceFormat.glFormat(),
                 sourceType.glType(),
-                u8Source
+                source
             )
         } else {
             context.compressedTexSubImage2D(
@@ -139,7 +141,9 @@ class CubemapWebGL(
                 width,
                 height,
                 sourceType.glType(),
-                source
+                source,
+                null,
+                null
             )
 
         }
@@ -156,7 +160,7 @@ class CubemapWebGL(
         height: Int,
         level: Int
     ) {
-        write(side, source.dataView, sourceFormat, sourceType, x, y, width, height, level)
+        write(side, source, sourceFormat, sourceType, x, y, width, height, level)
     }
 
     override fun close() {

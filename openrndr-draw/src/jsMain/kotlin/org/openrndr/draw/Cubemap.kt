@@ -1,8 +1,9 @@
 package org.openrndr.draw
 
-import org.khronos.webgl.ArrayBufferView
-import org.khronos.webgl.TexImageSource
+import js.buffer.ArrayBufferLike
+import js.buffer.ArrayBufferView
 import org.openrndr.utils.buffer.MPPBuffer
+import web.gl.TexImageSource
 
 actual interface Cubemap: AutoCloseable {
     actual val session: Session?
@@ -36,7 +37,7 @@ actual interface Cubemap: AutoCloseable {
               x: Int = 0, y: Int = 0, level: Int = 0)
     fun write(
         side: CubemapSide,
-        source: ArrayBufferView,
+        source: ArrayBufferView<ArrayBufferLike>,
         sourceFormat: ColorFormat,
         sourceType: ColorType,
         x: Int = 0,

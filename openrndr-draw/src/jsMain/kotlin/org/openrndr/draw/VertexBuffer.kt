@@ -1,6 +1,7 @@
 package org.openrndr.draw
 
-import org.khronos.webgl.Float32Array
+import js.buffer.ArrayBuffer
+import js.typedarrays.Float32Array
 import org.openrndr.internal.Driver
 import org.openrndr.utils.buffer.MPPBuffer
 
@@ -50,7 +51,11 @@ actual abstract class VertexBuffer : AutoCloseable {
     }
 
     abstract fun write(data: FloatArray, offsetBytes: Int, floatCount: Int)
-    abstract fun write(data: Float32Array, offsetBytes: Int, floatCount: Int)
+    abstract fun write(
+        data: Float32Array<ArrayBuffer>,
+        offsetBytes: Int,
+        floatCount: Int
+    )
     actual abstract fun write(
         source: MPPBuffer,
         targetByteOffset: Int,
