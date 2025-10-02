@@ -24,8 +24,10 @@ kotlin {
 
         val commonJvmMain by getting
 
-        val androidMain by getting {
-            dependsOn(commonJvmMain)
+        if (platformConfiguration.android) {
+            val androidMain by getting {
+                dependsOn(commonJvmMain)
+            }
         }
     }
 }

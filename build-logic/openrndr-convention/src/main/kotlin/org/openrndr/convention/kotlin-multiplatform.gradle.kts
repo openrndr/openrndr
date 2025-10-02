@@ -16,13 +16,18 @@ fun arch(arch: String = System.getProperty("os.arch")): String {
     }
 }
 
-
+project.extensions.create("platformConfiguration", PlatformConfiguration::class.java )
 val libs = extensions.getByType<VersionCatalogsExtension>().named("libs")
 
 plugins {
     kotlin("multiplatform")
-    id("com.android.kotlin.multiplatform.library").apply(true)
+   //id("com.android.kotlin.multiplatform.library").apply(true)
 }
+if (property("openrndr.platform.android")=="true") {
+    apply(plugin = "com.android.kotlin.multiplatform.library")
+}
+
+
 
 
 repositories {
@@ -34,8 +39,23 @@ group = "org.openrndr"
 
 tasks.withType<KotlinCompilationTask<*>> {
     compilerOptions {
-        apiVersion.set(KotlinVersion.valueOf("KOTLIN_${libs.findVersion("kotlinApi").get().displayName.replace(".", "_")}"))
-        languageVersion.set(KotlinVersion.valueOf("KOTLIN_${libs.findVersion("kotlinLanguage").get().displayName.replace(".", "_")}"))
+        apiVersion.set(
+            KotlinVersion.valueOf(
+                "KOTLIN_${
+                    libs.findVersion("kotlinApi").get().displayName.replace(
+                        ".",
+                        "_"
+                    )
+                }"
+            )
+        )
+        languageVersion.set(
+            KotlinVersion.valueOf(
+                "KOTLIN_${
+                    libs.findVersion("kotlinLanguage").get().displayName.replace(".", "_")
+                }"
+            )
+        )
         freeCompilerArgs.add("-Xexpect-actual-classes")
     }
 }
@@ -47,11 +67,12 @@ tasks.withType<KotlinJvmCompile>().configureEach {
 }
 
 kotlin {
-
-    androidLibrary {
-        namespace = "org.openrndr"
-        compileSdk = 33
-        minSdk = 24
+    if (property("openrndr.platform.android")=="true") {
+        androidLibrary {
+            namespace = "org.openrndr"
+            compileSdk = 33
+            minSdk = 24
+        }
     }
 
     jvm {
@@ -77,9 +98,11 @@ kotlin {
             }
         }
 
-        val androidMain by getting {
-            dependencies {
-                implementation(libs.findLibrary("kotlin-logging").get())
+        if (property("openrndr.platform.android")=="true") {
+            val androidMain by getting {
+                dependencies {
+                    implementation(libs.findLibrary("kotlin-logging").get())
+                }
             }
         }
 
