@@ -167,7 +167,6 @@ internal val ShaderStorageStruct.glslLayout: String
                     "${it.structName}[${it.arraySize}] ${it.name};"
                 }
             }
-            else -> ""
         }
     }
 
