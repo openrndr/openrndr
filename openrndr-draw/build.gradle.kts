@@ -5,6 +5,16 @@ plugins {
 }
 
 kotlin {
+    applyDefaultHierarchyTemplate { // or .custom depending on your setup
+        common {
+            group("commonJvm") {
+                withJvm()
+                group("jvm") { withJvm() }
+                group("android") { withAndroidTarget() }
+            }
+        }
+    }
+
     sourceSets {
         val commonMain by getting {
             dependencies {
@@ -17,10 +27,10 @@ kotlin {
                 implementation(libs.kotlin.coroutines)
             }
         }
-        val commonTest by getting {
-            dependencies {
-                implementation(libs.kotest.assertions)
-            }
+        val commonJvmMain by getting
+
+        val androidMain by getting {
+            dependsOn(commonJvmMain)
         }
     }
 }

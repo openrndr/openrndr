@@ -185,7 +185,7 @@ interface ImageDriver {
      * Loads a cubemap image from the provided buffer. The cubemap is typically a texture with six
      * faces corresponding to the sides of a cube, used in 3D rendering.
      *
-     * @param buffer an [MPPBuffer] containing the image data for the cubemap.
+     * @param buffer an [org.openrndr.buffer.MPPBuffer] containing the image data for the cubemap.
      * @param name an optional name for the image, typically used for error reporting and debugging.
      * @param formatHint an optional hint for the file format of the image data in the buffer.
      * @return a [CubemapImageData] instance representing the loaded cubemap image. The caller is responsible

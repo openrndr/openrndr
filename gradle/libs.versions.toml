@@ -1,4 +1,6 @@
 [versions]
+androidGradlePlugin = "8.13.0"
+
 kotlinApi = "2.2"
 kotlinLanguage = "2.2"
 kotlin = "2.2.20"
@@ -18,6 +20,8 @@ slf4j = "2.0.17"
 nmcp = "1.1.0"
 
 [libraries]
+android-library-gradle-plugin = { group = "com.android.library", name = "com.android.library.gradle.plugin", version.ref = "androidGradlePlugin" }
+
 kotlin-logging = { group = "io.github.oshai", name = "kotlin-logging", version.ref = "kotlinLogging" }
 kotlin-coroutines = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
 kotlin-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
@@ -52,6 +56,8 @@ kotest-framework-engine = { group = "io.kotest", name = "kotest-framework-engine
 slf4j-simple = { group = "org.slf4j", name = "slf4j-simple", version.ref = "slf4j" }
 
 [plugins]
+android-kotlin-multiplatform-library = { id = "com.android.kotlin.multiplatform.library", version.ref = "androidGradlePlugin" }
+
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 nebula-release = { id = "nebula.release", version.ref = "nebulaRelease" }
 nmcp = { id = "com.gradleup.nmcp.aggregation", version.ref = "nmcp" }

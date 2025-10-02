@@ -79,7 +79,7 @@ abstract class VariantExtension(
     @Inject val project: Project
 ) {
 
-    fun platform(os: String, arch: String, f: VariantContainer.() -> Unit) {
+    fun platform(os: String, arch: String, sourceSetName:String = "main", f: VariantContainer.() -> Unit) {
         val sourceSets = project.extensions.getByType(SourceSetContainer::class.java)
 
         val sourceSetArch = arch.replace("-", "_")
@@ -93,7 +93,7 @@ abstract class VariantExtension(
         val configurations = project.configurations
         val objects = project.objects
 
-        val main = sourceSets.getByName("main")
+        val main = sourceSets.getByName(sourceSetName)
         val mainApi = configurations.getByName(main.apiElementsConfigurationName)
         val mainRuntimeOnly = configurations.getByName(main.runtimeElementsConfigurationName)
 
