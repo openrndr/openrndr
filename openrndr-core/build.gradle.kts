@@ -19,7 +19,7 @@ dependencies {
 tasks {
     test {
         if (DefaultNativePlatform.getCurrentOperatingSystem().isMacOsX) {
-            allJvmArgs = allJvmArgs + "-XstartOnFirstThread"
+            jvmArgs = jvmArgs + "-XstartOnFirstThread"
         }
         useJUnitPlatform()
     }

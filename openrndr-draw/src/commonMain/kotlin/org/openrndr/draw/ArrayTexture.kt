@@ -9,7 +9,7 @@ import org.openrndr.shape.Rectangle
  * This abstract class defines properties and operations essential for managing the texture,
  * including binding, filling, copying contents, and mipmap generation.
  */
-expect abstract class ArrayTexture: AutoCloseable {
+expect abstract class ArrayTexture() : AutoCloseable {
     abstract val session: Session?
 
     abstract val width: Int

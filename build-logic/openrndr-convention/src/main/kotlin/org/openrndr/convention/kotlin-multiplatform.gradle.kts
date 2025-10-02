@@ -1,5 +1,6 @@
 package org.openrndr.convention
 
+import com.android.build.api.dsl.androidLibrary
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
@@ -20,10 +21,13 @@ val libs = extensions.getByType<VersionCatalogsExtension>().named("libs")
 
 plugins {
     kotlin("multiplatform")
+    id("com.android.kotlin.multiplatform.library").apply(true)
 }
+
 
 repositories {
     mavenCentral()
+    google()
 }
 
 group = "org.openrndr"
@@ -43,6 +47,13 @@ tasks.withType<KotlinJvmCompile>().configureEach {
 }
 
 kotlin {
+
+    androidLibrary {
+        namespace = "org.openrndr"
+        compileSdk = 33
+        minSdk = 24
+    }
+
     jvm {
         testRuns["test"].executionTask {
             if (DefaultNativePlatform.getCurrentOperatingSystem().isMacOsX) {
@@ -61,6 +72,12 @@ kotlin {
         }
 
         val jvmMain by getting {
+            dependencies {
+                implementation(libs.findLibrary("kotlin-logging").get())
+            }
+        }
+
+        val androidMain by getting {
             dependencies {
                 implementation(libs.findLibrary("kotlin-logging").get())
             }
