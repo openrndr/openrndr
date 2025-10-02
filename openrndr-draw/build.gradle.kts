@@ -30,8 +30,11 @@ kotlin {
         }
         val commonJvmMain by getting
 
-        val androidMain by getting {
-            dependsOn(commonJvmMain)
+
+        if (platformConfiguration.android) {
+            val androidMain by getting {
+                dependsOn(commonJvmMain)
+            }
         }
         val webMain by getting {
             dependencies {

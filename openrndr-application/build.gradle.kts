@@ -32,10 +32,12 @@ kotlin {
                 implementation(libs.kotlin.coroutines)
             }
         }
-        val androidMain by getting {
-            dependsOn(commonJvmMain)
-            dependencies {
-                implementation(libs.kotlin.coroutines)
+        if (platformConfiguration.android) {
+            val androidMain by getting {
+                dependsOn(commonJvmMain)
+                dependencies {
+                    implementation(libs.kotlin.coroutines)
+                }
             }
         }
     }
