@@ -268,7 +268,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
             glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE)
         }
 
-        val display = (configuration.display as? DisplayGLFWGL3)?.pointer ?: glfwGetPrimaryMonitor()
+        val display = (configuration.display as? DisplayGLFW)?.pointer ?: glfwGetPrimaryMonitor()
 
         val xscale = FloatArray(1)
 

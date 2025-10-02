@@ -30,7 +30,7 @@ class ApplicationBaseGLFWGL3 : ApplicationBase() {
         FontDriver.driver = FontDriverStbTt()
     }
 
-    override val displays: List<DisplayGLFWGL3> by lazy {
+    override val displays: List<DisplayGLFW> by lazy {
         val detectedMonitors = glfwGetMonitors()
         if (detectedMonitors != null && detectedMonitors.limit() > 0) {
             stackPush().use {
@@ -45,7 +45,7 @@ class ApplicationBaseGLFWGL3 : ApplicationBase() {
                     // vertical scale is reportedly flaky, so we disregard it
                     glfwGetMonitorContentScale(monitor, contentScale, null)
 
-                    DisplayGLFWGL3(
+                    DisplayGLFW(
                         monitor, glfwGetMonitorName(monitor), x[0], y[0],
                         videoMode?.width(), videoMode?.height(), contentScale[0].toDouble()
                     )

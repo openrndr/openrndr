@@ -2,7 +2,7 @@ package org.openrndr.internal.gl3
 
 import org.openrndr.Display
 
-class DisplayGLFWGL3(
+class DisplayGLFW(
     val pointer: Long,
     override val name: String?,
     override val x: Int,
