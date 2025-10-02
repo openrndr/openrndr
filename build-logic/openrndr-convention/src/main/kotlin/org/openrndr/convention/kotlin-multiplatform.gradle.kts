@@ -53,11 +53,6 @@ kotlin {
             testLogging.exceptionFormat = TestExceptionFormat.FULL
         }
     }
-    js(IR) {
-        browser()
-        nodejs()
-    }
-
     sourceSets {
         val commonMain by getting {
             dependencies {
@@ -66,12 +61,6 @@ kotlin {
         }
 
         val jvmMain by getting {
-            dependencies {
-                implementation(libs.findLibrary("kotlin-logging").get())
-            }
-        }
-
-        val jsMain by getting {
             dependencies {
                 implementation(libs.findLibrary("kotlin-logging").get())
             }
