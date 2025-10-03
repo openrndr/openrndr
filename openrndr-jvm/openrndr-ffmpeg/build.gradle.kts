@@ -54,8 +54,25 @@ dependencies {
     implementation(libs.kotlin.serialization.core)
     implementation(libs.kotlin.serialization.json)
     implementation(libs.lwjgl.core)
+    demoImplementation(project(":openrndr-jvm:openrndr-ffmpeg"))
+
 }
 
+sourceSets {
+    val main by getting
+    val demo by getting
+
+    demo {
+        runtimeClasspath += main.runtimeClasspath
+        compileClasspath += main.compileClasspath
+        dependencies {
+            implementation(libs.slf4j.simple)
+            implementation(project(":openrndr-jvm:openrndr-gl3"))
+            implementation(project(":openrndr-jvm:openrndr-application-glfw"))
+        }
+    }
+
+}
 
 
 

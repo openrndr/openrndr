@@ -1,5 +1,4 @@
 package org.openrndr.ffmpeg
-
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.bytedeco.ffmpeg.avcodec.AVCodecContext
 import org.bytedeco.ffmpeg.avcodec.AVPacket
@@ -62,7 +61,7 @@ internal class VideoDecoder(
     private val imagePointer =
         arrayOf(BytePointer(av_malloc(scaledFrameSize.toLong())).capacity(scaledFrameSize.toLong()))
     private val videoQueue = Queue<VideoFrame>(configuration.videoFrameQueueSize)
-    private val minVideoFrames = 5 //configuration.videoFrameQueueSize
+    private val minVideoFrames = configuration.videoFrameQueueSize
 
     init {
         av_image_fill_arrays(
@@ -77,7 +76,13 @@ internal class VideoDecoder(
     }
 
     fun dispose() {
+        logger.debug { "disposing video decoder" }
         while (!videoQueue.isEmpty()) videoQueue.pop().unref()
+        av_frame_free(scaledVideoFrame)
+        imagePointer.forEach {
+            av_free(it)
+        }
+        swscale.sws_freeContext(softwareScalingContext)
     }
 
     fun queueCount() = videoQueue.size()
