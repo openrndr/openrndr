@@ -212,8 +212,8 @@ private object DefaultLogger : Callback_Pointer_int_String_Pointer() {
  * @param mode the play mode to use, determines if video and/or audio should be played
  */
 fun Program.loadVideo(
-    audioDevice: AudioDevice?,
     fileOrUrl: String,
+    audioDevice: AudioDevice? = AudioSystem.defaultDevice,
     mode: PlayMode = if (audioDevice == null) PlayMode.VIDEO else PlayMode.BOTH,
     configuration: VideoPlayerConfiguration = VideoPlayerConfiguration()
 ): VideoPlayerFFMPEG {
