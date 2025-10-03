@@ -15,7 +15,7 @@ fun main() {
                 "Set the video environment variable to the path of the video you want to play"
             }
 
-            val video = loadVideo(videoFile)
+            val video = loadVideo(null, videoFile)
             video.play()
 
             video.ended.listen {

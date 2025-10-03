@@ -11,7 +11,8 @@ private val logger = KotlinLogging.logger {  }
 
 internal class PacketReader(private val configuration: VideoPlayerConfiguration,
                             private val formatContext: AVFormatContext,
-                            private val statistics: VideoStatistics) {
+                            private val statistics: VideoStatistics
+) {
 
     val queue = Queue<AVPacket>(configuration.packetQueueSize * 2)
     var disposed = false
@@ -35,9 +36,10 @@ internal class PacketReader(private val configuration: VideoPlayerConfiguration,
                         queue.push(packet)
                         statistics.packetQueueSize = queue.size()
                     } else {
-                        logger.info { "no packet (error)  ${queue.size()}" }
+                        logger.error { "no packet (error)  ${queue.size()}" }
+                        avcodec.av_packet_free(packet)
                         if (res == AVERROR_EOF) {
-                            logger.info  { "packet reader; end of file" }
+                            logger.debug  { "packet reader; end of file" }
                             endOfFile = true
                         }
                     }
@@ -62,13 +64,17 @@ internal class PacketReader(private val configuration: VideoPlayerConfiguration,
     }
 
     fun dispose() {
+        while (!queue.isEmpty())  {
+            val packet = queue.pop()
+            avcodec.av_packet_free(packet)
+        }
         disposed = true
     }
 
     fun flushQueue() {
         while (!queue.isEmpty())  {
             val packet = queue.pop()
-            avcodec.av_packet_unref(packet)
+            avcodec.av_packet_free(packet)
         }
         queue.push(flushPacket)
         endOfFile = false

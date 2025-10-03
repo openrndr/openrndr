@@ -55,7 +55,8 @@ internal class Decoder(
     private val audioCodecContext: AVCodecContext?,
     private val videoStream: AVStream?,
     private val audioStream: AVStream?,
-    private val hwType: Int
+    private val hwType: Int,
+    private val hwDeviceContext: AVBufferRef?
 ) {
     companion object {
         fun fromContext(
@@ -77,6 +78,7 @@ internal class Decoder(
             val videoContext = videoStream?.openCodec()
             val audioContext = audioStream?.openCodec()
             var hwType = AV_HWDEVICE_TYPE_NONE
+            var hwDeviceContext: AVBufferRef? = null
             if (configuration.useHardwareDecoding && videoContext != null) {
                 val preferredHW = when (Platform.type) {
                     PlatformType.WINDOWS -> arrayListOf(
@@ -110,7 +112,8 @@ internal class Decoder(
                     logger.debug { "creating hw device context (type: $name)" }
                     av_hwdevice_ctx_create(hwContextPtr, hwType, null, null, 0).checkAVError()
                     val hwContext = AVHWDeviceContext(hwContextPtr[0])
-                    videoContext.hw_device_ctx(av_buffer_ref(AVBufferRef(hwContext)))
+                    hwDeviceContext = AVBufferRef(hwContext)
+                    videoContext.hw_device_ctx(av_buffer_ref(hwDeviceContext))
                 }
             }
 
@@ -133,7 +136,8 @@ internal class Decoder(
                     audioContext,
                     videoStream,
                     audioStream,
-                    hwType
+                    hwType,
+                    hwDeviceContext,
                 ), CodecInfo(video, audio)
             )
         }
@@ -184,9 +188,17 @@ internal class Decoder(
     private var needFlush = false
     private var seekRequested = false
     private var seekPosition: Double = -1.0
+    var waitingForSeekToComplete = false
+        private set
+
+
+    var seekTimedOut = false
 
     fun seek(positionInSeconds: Double) {
-        logger.debug { "requesting decoder to seek" }
+        logger.debug { "requesting decoder to seek to ${positionInSeconds}"}
+        videoDecoder?.flushQueue()
+        audioDecoder?.flushQueue()
+
         seekPosition = positionInSeconds
         seekRequested = true
     }
@@ -195,15 +207,33 @@ internal class Decoder(
         (packetReader?.endOfFile == true) && (packetReader?.isQueueEmpty() == true) && (videoDecoder?.isQueueEmpty()
             ?: true)
 
+    fun stop() {
+        disposed = true
+    }
+
     fun dispose() {
         logger.debug { "disposing decoder" }
-        disposed = true
+        //disposed = true
+        if (videoCodecContext!= null) {
+            avcodec_free_context(videoCodecContext)
+        }
+        if (audioCodecContext != null) {
+            avcodec_free_context(audioCodecContext)
+        }
         videoDecoder?.dispose()
         audioDecoder?.dispose()
         packetReader?.dispose()
+        if (hwDeviceContext!= null) {
+            av_buffer_unref(hwDeviceContext)
+            av_buffer_unref(hwDeviceContext)
+        }
     }
 
     private fun needMoreFrames(): Boolean {
+        if (atEndOfFile) {
+            return false
+        }
+
         if (videoDecoder?.isQueueAlmostFull() == true) {
             return false
         }
@@ -215,6 +245,8 @@ internal class Decoder(
 
     private fun decodeIfNeeded() {
         if (seekRequested) {
+            logger.debug { "seek requested" }
+            atEndOfFile = false
             videoDecoder?.flushQueue()
             audioDecoder?.flushQueue()
             packetReader?.flushQueue()
@@ -239,6 +271,7 @@ internal class Decoder(
             }
             needFlush = true
             seekRequested = false
+            waitingForSeekToComplete = true
         }
 
         if (needFlush) {
@@ -247,18 +280,17 @@ internal class Decoder(
             audioDecoder?.flushBuffers()
         }
 
-
         var packetsReceived = 0
-        while (needMoreFrames() && !disposed) {
+        while (!seekRequested && needMoreFrames() && !disposed) {
             if (videoDecoder?.isQueueAlmostFull() == true) {
                 logger.warn { "video queue is almost full. [video queue: ${videoDecoder?.queueCount()}, audio queue: ${audioDecoder?.queueCount()}]" }
-                //Thread.sleep(100)
+                Thread.sleep(1)
                 return
             }
 
             if (audioDecoder?.isQueueAlmostFull() == true) {
                 logger.warn { "audio queue is almost full. [video queue: ${videoDecoder?.queueCount()}, audio queue: ${audioDecoder?.queueCount()}]" }
-                //Thread.sleep(100)
+                Thread.sleep(5)
                 return
             }
 
@@ -268,13 +300,12 @@ internal class Decoder(
             val packetResult = av_read_frame(formatContext, packet)
 
             if (packetResult == AVERROR_EOF) {
-
                 if (!atEndOfFile) {
-                    logger.debug { "decoder reached end of file" }
+                    logger.debug { "decoder reached end of file"}
                     reachedEndOfFile()
                     atEndOfFile = true
                 } else {
-                    //logger.debug { "already at end of file" }
+                    //logger.info { "already at end of file" }
                 }
                 av_packet_free(packet)
                 Thread.sleep(10)
@@ -289,10 +320,10 @@ internal class Decoder(
             if (packet != null) {
                 lastPacketReceived = System.currentTimeMillis()
                 packetsReceived++
-                if (seekRequested && packetsReceived == 1) {
-                    logger.debug { "seek completed" }
-                    atEndOfFile = false
+                if (waitingForSeekToComplete) {
+                    logger.debug { "decoder seek completed" }
                     seekCompleted()
+                    waitingForSeekToComplete = false
                 }
 
                 if (seekRequested && packetsReceived == 2) {
@@ -306,7 +337,6 @@ internal class Decoder(
                         require(videoDecoder?.isQueueAlmostFull() != true)
                         videoDecoder?.decodeVideoPacket(videoStream!!, packet, seekPosition)
                     }
-
                     audioStreamIndex -> {
                         require(audioDecoder?.isQueueAlmostFull() != true)
                         audioDecoder?.decodeAudioPacket(audioStream!!, packet, seekPosition)
@@ -331,6 +361,7 @@ internal class Decoder(
     fun nextVideoFrame(): VideoFrame? {
         return videoDecoder?.nextFrame()
     }
+
 
     fun nextAudioFrame(): AudioFrame? {
         return audioDecoder?.nextFrame()
