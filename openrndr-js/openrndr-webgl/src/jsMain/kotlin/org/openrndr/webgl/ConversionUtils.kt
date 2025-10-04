@@ -121,10 +121,13 @@ internal data class ConversionEntry(val format: ColorFormat,
 
 internal fun internalFormat(format: ColorFormat, type: ColorType): Triple<GLenum, GLenum, GLenum> {
     val entries = arrayOf(
+
         ConversionEntry(ColorFormat.R, ColorType.UINT8, GL.R8, GL.RED, GL.UNSIGNED_BYTE),
         ConversionEntry(ColorFormat.RG, ColorType.UINT8, GL.RG8, GL.RG, GL.UNSIGNED_BYTE),
         ConversionEntry(ColorFormat.RGB, ColorType.UINT8, GL.RGB, GL.RGB, GL.UNSIGNED_BYTE),
         ConversionEntry(ColorFormat.RGBa, ColorType.UINT8, GL.RGBA, GL.RGBA, GL.UNSIGNED_BYTE),
+        ConversionEntry(ColorFormat.RGB, ColorType.UINT8_SRGB, GL.SRGB, GL.RGB, GL.UNSIGNED_BYTE),
+        ConversionEntry(ColorFormat.RGBa, ColorType.UINT8_SRGB, GL.SRGB8_ALPHA8, GL.RGBA, GL.UNSIGNED_BYTE),
         ConversionEntry(ColorFormat.R, ColorType.FLOAT16, GL.R16F, GL.RED, GL.HALF_FLOAT),
         ConversionEntry(ColorFormat.RG, ColorType.FLOAT16, GL.RG16F, GL.RG, GL.HALF_FLOAT),
         ConversionEntry(ColorFormat.RGB, ColorType.FLOAT16, GL.RGB16F, GL.RGB, GL.HALF_FLOAT),
