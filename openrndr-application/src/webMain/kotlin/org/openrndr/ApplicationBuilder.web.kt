@@ -5,9 +5,12 @@ package org.openrndr
  * @see <a href="https://guide.openrndr.org/">the OPENRNDR guide</a>
  */
 actual fun application(build: ApplicationBuilder.() -> Unit){
+    logger.info { "application, ${build}" }
     ApplicationBuilderJS().apply {
         build()
-        applicationBase.build(program, configuration).run()
+        val app = applicationBase.build(program, configuration)
+        logger.info { "application built, calling application.run()" }
+        app.run()
     }
 }
 

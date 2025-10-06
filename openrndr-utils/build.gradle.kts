@@ -13,7 +13,7 @@ kotlin {
             }
         }
 
-        val jsMain by getting {
+        val webMain by getting {
             dependencies {
                 implementation(libs.kotlin.js)
             }

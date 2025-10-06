@@ -1,11 +1,13 @@
 package org.openrndr
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.openrndr.math.Vector2
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.coroutines.startCoroutine
 
+val logger = KotlinLogging.logger {}
 var applicationBaseFunc: (() -> ApplicationBase)? = null
 
 fun launch(block: suspend () -> Unit) {
@@ -24,6 +26,7 @@ actual abstract class Application {
     actual abstract var configuration: Configuration
 
     internal actual fun run() {
+        logger.info { "run()" }
         launch {
             setup()
             loop()
@@ -59,8 +62,10 @@ actual abstract class Application {
  * Runs [program] as a synchronous application with the given [configuration].
  * @see application
  */
-actual fun application(program: Program, configuration: Configuration){
+actual fun application(program: Program, configuration: Configuration) {
+    logger.info { "application, ${program}, ${configuration}" }
     val applicationBase = applicationBaseFunc?.invoke() ?: error("applicationBaseFunc not set")
     val application = applicationBase.build(program, configuration)
+    logger.info { "application built, calling application.run()" }
     application.run()
 }

@@ -12,8 +12,12 @@ kotlin {
         browser()
         nodejs()
     }
+    wasmJs() {
+        browser()
+        nodejs()
+    }
     sourceSets {
-        val jsMain by getting {
+        val webMain by creating {
             dependencies {
                 implementation(libs.findLibrary("kotlin-logging").get())
             }

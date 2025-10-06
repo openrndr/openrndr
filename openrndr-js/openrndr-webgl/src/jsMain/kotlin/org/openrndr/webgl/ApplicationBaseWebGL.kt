@@ -1,5 +1,8 @@
 package org.openrndr.webgl
 
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import org.openrndr.*
 
 // This is a hack to get [applicationFunc] initialized. Perhaps there's a better way to do this,
@@ -9,7 +12,6 @@ import org.openrndr.*
 @JsExport
 val applicationBaseWebGLInitializer = object {
     init {
-        console.log("setting up ApplicationBaseWebGL")
         applicationBaseFunc = ::ApplicationBaseWebGL
     }
 }
@@ -18,6 +20,7 @@ class ApplicationBaseWebGL : ApplicationBase() {
     override fun build(program: Program, configuration: Configuration): Application {
         // We need this here to make sure [applicationBaseFunc] is initialized.
         applicationBaseWebGLInitializer
+        console.log("building application")
         return ApplicationWebGL(program, configuration)
     }
 }

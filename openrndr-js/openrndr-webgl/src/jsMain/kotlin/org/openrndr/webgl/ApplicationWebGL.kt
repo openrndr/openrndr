@@ -1,5 +1,6 @@
 package org.openrndr.webgl
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import js.array.asList
 import org.openrndr.*
 import org.openrndr.draw.Drawer
@@ -31,6 +32,8 @@ import web.keyboard.KeyboardEvent as HtmlKeyboardEvent
 import web.mouse.MouseButton as HtmlMouseButton
 import web.mouse.MouseEvent as HtmlMouseEvent
 
+private val logger = KotlinLogging.logger {  }
+
 class ApplicationWebGL(override var program: Program, override var configuration: Configuration) : Application() {
 
     init {
@@ -59,6 +62,7 @@ class ApplicationWebGL(override var program: Program, override var configuration
         canvas = document.getElementById(ElementId( configuration.canvasId)) as? HTMLCanvasElement
             ?: error("failed to get canvas #${configuration.canvasId}")
 
+        logger.debug { "creating context" }
         val attrs:WebGLContextAttributes = js("{}")
         attrs.stencil = true
         attrs.preserveDrawingBuffer = true
@@ -280,6 +284,8 @@ class ApplicationWebGL(override var program: Program, override var configuration
     }
 
     override fun loop() {
+        //("start loop")
+        logger.debug { "start loop" }
         if (presentationMode == PresentationMode.AUTOMATIC || drawRequested) {
             drawRequested = false
 

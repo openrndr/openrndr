@@ -22,7 +22,7 @@ kotlin {
                 implementation(libs.kotest.assertions)
             }
         }
-        val jsMain by getting {
+        val webMain by getting {
             dependencies {
                 implementation(libs.kotlin.js)
                 implementation(libs.kotlin.browser)
