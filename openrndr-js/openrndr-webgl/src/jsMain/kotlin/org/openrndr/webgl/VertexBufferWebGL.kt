@@ -69,12 +69,12 @@ class VertexBufferWebGL(
 
     private var realShadow: VertexBufferShadowWebGL? = null
     override val shadow: VertexBufferShadow
-    get() {
-        if (realShadow == null) {
-            realShadow = VertexBufferShadowWebGL(this)
+        get() {
+            if (realShadow == null) {
+                realShadow = VertexBufferShadowWebGL(this)
+            }
+            return realShadow!!
         }
-        return realShadow!!
-    }
 
 
     override fun destroy() {
@@ -85,14 +85,19 @@ class VertexBufferWebGL(
         Session.active.untrack(this)
     }
 
-    override fun write(data: FloatArray, offsetBytes:Int, floatCount:Int) {
+    override fun write(data: FloatArray, offsetBytes: Int, floatCount: Int) {
+        // this one
         bind()
         val offsetFloats = offsetBytes / 4
-        context.bufferSubData(GL.ARRAY_BUFFER, offsetBytes, Float32Array<ArrayBuffer>(data.toTypedArray()).subarray(offsetFloats, offsetFloats + floatCount))
+        context.bufferSubData(
+            GL.ARRAY_BUFFER,
+            offsetBytes,
+            Float32Array<ArrayBuffer>(data.toTypedArray()).subarray(offsetFloats, offsetFloats + floatCount)
+        )
         unbind()
     }
 
-    override fun write(data: Float32Array<ArrayBuffer>, offsetBytes:Int, floatCount: Int) {
+    override fun write(data: Float32Array<ArrayBuffer>, offsetBytes: Int, floatCount: Int) {
         bind()
         val offsetFloats = offsetBytes / 4
         context.bufferSubData(GL.ARRAY_BUFFER, offsetBytes, data.subarray(offsetFloats, offsetFloats + floatCount))
@@ -101,9 +106,10 @@ class VertexBufferWebGL(
 
     override fun write(source: MPPBuffer, targetByteOffset: Int, sourceByteOffset: Int, byteLength: Int) {
         bind()
-        context.bufferSubData(GL.ARRAY_BUFFER, targetByteOffset,
+        context.bufferSubData(
+            GL.ARRAY_BUFFER, targetByteOffset,
             source.dataView
-            )
+        )
         unbind()
     }
 

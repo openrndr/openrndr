@@ -1,6 +1,8 @@
 package org.openrndr.webgl
 
+import web.console.console
 import web.gl.WebGLShader
+import kotlin.js.ExperimentalWasmJsInterop
 import web.gl.WebGL2RenderingContext as GL
 
 class FragmentShaderWebGL(val shaderObject: WebGLShader, val name: String) {

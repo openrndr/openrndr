@@ -26,9 +26,7 @@ internal fun MagnifyingFilter.toGLFilter(): GLenum {
     }
 }
 
-internal fun float32Array(vararg floats: Float): Float32Array<ArrayBuffer> {
-    return Float32Array(floats.toTypedArray())
-}
+internal expect fun float32Array(vararg floats: Float): Float32Array<ArrayBuffer>
 
 internal fun Matrix44.toFloat32Array(): Float32Array<ArrayBuffer> = float32Array(
     c0r0.toFloat(), c0r1.toFloat(), c0r2.toFloat(), c0r3.toFloat(),
@@ -120,7 +118,7 @@ internal data class ConversionEntry(val format: ColorFormat,
 )
 
 internal fun internalFormat(format: ColorFormat, type: ColorType): Triple<GLenum, GLenum, GLenum> {
-    val entries = arrayOf(
+    val entries = listOf(
 
         ConversionEntry(ColorFormat.R, ColorType.UINT8, GL.R8, GL.RED, GL.UNSIGNED_BYTE),
         ConversionEntry(ColorFormat.RG, ColorType.UINT8, GL.RG8, GL.RG, GL.UNSIGNED_BYTE),
@@ -209,3 +207,32 @@ internal fun glColorAttachment(index: Int): GLenum {
         else -> error("too many color attachments")
     }
 }
+
+internal fun ColorFormat.glFormat(): GLenum {
+    return when (this) {
+        ColorFormat.R -> GL.LUMINANCE
+        ColorFormat.RG -> GL.LUMINANCE_ALPHA
+        ColorFormat.RGB -> GL.RGB
+        ColorFormat.RGBa -> GL.RGBA
+        ColorFormat.BGR -> error("BGR not supported")
+        ColorFormat.BGRa -> error("BGRa not supported")
+    }
+}
+
+@Suppress("UNCHECKED_CAST_TO_EXTERNAL_INTERFACE")
+internal fun ColorType.glType(): GLenum {
+    return when (this) {
+        ColorType.UINT8_SRGB, ColorType.UINT8, ColorType.UINT8_INT -> GL.UNSIGNED_BYTE
+        ColorType.SINT8_INT -> GL.BYTE
+        ColorType.UINT16, ColorType.UINT16_INT -> GL.UNSIGNED_SHORT
+        ColorType.SINT16_INT -> GL.SHORT
+        ColorType.UINT32_INT -> GL.UNSIGNED_INT
+        ColorType.SINT32_INT -> GL.INT
+        ColorType.FLOAT16 -> HALF_FLOAT_OES
+        ColorType.FLOAT32 -> GL.FLOAT
+        ColorType.DXT1, ColorType.DXT3, ColorType.DXT5,
+        ColorType.DXT1_SRGB, ColorType.DXT3_SRGB, ColorType.DXT5_SRGB,
+        ColorType.BPTC_UNORM, ColorType.BPTC_UNORM_SRGB, ColorType.BPTC_FLOAT, ColorType.BPTC_UFLOAT -> throw RuntimeException("gl type of compressed types cannot be queried")
+    } as GLenum
+}
+

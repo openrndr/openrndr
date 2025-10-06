@@ -14,6 +14,12 @@ kotlin {
                 implementation(libs.kotlin.js)
                 implementation(libs.kotlin.browser)
                 implementation(libs.kotlin.web)
+                implementation(libs.kotlin.stdlib)
+            }
+        }
+        val wasmJsMain by getting {
+            dependencies {
+                implementation(libs.kotlin.stdlib)
             }
         }
     }

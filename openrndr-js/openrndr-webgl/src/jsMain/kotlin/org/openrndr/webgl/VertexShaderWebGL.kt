@@ -1,5 +1,6 @@
 package org.openrndr.webgl
 
+import web.console.console
 import web.gl.WebGLShader
 import web.gl.WebGL2RenderingContext as GL
 
