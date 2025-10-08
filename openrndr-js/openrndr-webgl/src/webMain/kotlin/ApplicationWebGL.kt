@@ -2,6 +2,7 @@ package org.openrndr.webgl
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import js.array.asList
+import js.core.JsPrimitives.toDouble
 import org.openrndr.*
 import org.openrndr.draw.Drawer
 import org.openrndr.internal.Driver
@@ -26,13 +27,25 @@ import web.mouse.SECONDARY
 import web.mouse.WheelEvent
 import web.performance.performance
 import web.window.window
+import kotlin.js.ExperimentalWasmJsInterop
+import kotlin.js.JsAny
+import kotlin.js.JsName
+import kotlin.js.JsString
 import kotlin.js.Promise
+import kotlin.js.unsafeCast
 import kotlin.math.min
 import web.keyboard.KeyboardEvent as HtmlKeyboardEvent
 import web.mouse.MouseButton as HtmlMouseButton
 import web.mouse.MouseEvent as HtmlMouseEvent
 
 private val logger = KotlinLogging.logger {  }
+
+@OptIn(ExperimentalWasmJsInterop::class)
+@JsName("Object")
+external object JsObject {
+    fun create(proto: JsAny?): JsAny
+}
+
 
 class ApplicationWebGL(override var program: Program, override var configuration: Configuration) : Application() {
 
@@ -59,11 +72,12 @@ class ApplicationWebGL(override var program: Program, override var configuration
     var context: WebGL2RenderingContext? = null
     var defaultRenderTarget: ProgramRenderTargetWebGL? = null
     override suspend fun setup() {
+        logger.info { "in setup()" }
         canvas = document.getElementById(ElementId( configuration.canvasId)) as? HTMLCanvasElement
             ?: error("failed to get canvas #${configuration.canvasId}")
 
-        logger.debug { "creating context" }
-        val attrs:WebGLContextAttributes = js("{}")
+        logger.info { "creating context" }
+        val attrs = JsObject.create(null).unsafeCast<WebGLContextAttributes>()
         attrs.stencil = true
         attrs.preserveDrawingBuffer = true
 
@@ -71,7 +85,7 @@ class ApplicationWebGL(override var program: Program, override var configuration
             ?: error("failed to create webgl2 context")
         Driver.driver = DriverWebGL(context as WebGL2RenderingContext)
         program.drawer = Drawer(Driver.instance)
-        referenceTime = performance.now()
+        referenceTime = performance.now().toDouble()
 
         val dpr = min(configuration.maxContentScale, devicePixelRatio)
 
@@ -230,21 +244,21 @@ class ApplicationWebGL(override var program: Program, override var configuration
             println("dragover")
         })
 
-        canvas?.addEventListener(EventType("drop"), {
-            it.preventDefault()
-            println("drop")
-            val files: FileList = js("it.dataTransfer.files")
-            val promises = files.asList().map { f -> readFileOrBlobAsDataUrl(f)}
-
-            Promise.all(promises.toTypedArray()).then { images ->
-                program.window.drop.trigger(
-                    DropEvent(
-                        this.cursorPosition,
-                        images.toList()
-                    )
-                )
-            }
-        })
+//        canvas?.addEventListener(EventType("drop"), {
+//            it.preventDefault()
+//            println("drop")
+//            val files: FileList = js("it.dataTransfer.files")
+//            val promises = files.asList().map { f -> readFileOrBlobAsDataUrl(f)}
+//
+//            Promise.all(promises.toTypedArray()).then { images ->
+//                program.window.drop.trigger(
+//                    DropEvent(
+//                        this.cursorPosition,
+//                        images.toList()
+//                    )
+//                )
+//            }
+//        })
 
 
         defaultRenderTarget = ProgramRenderTargetWebGL(context ?: error("no context"), program)
@@ -254,18 +268,21 @@ class ApplicationWebGL(override var program: Program, override var configuration
         val dims = windowSize
         program.width = dims.x.toInt()
         program.height = dims.y.toInt()
+
+        logger.info { "calling program.setup()" }
         program.setup()
+        logger.info { "that's done" }
     }
 
     @OptIn(ExperimentalWasmJsInterop::class)
-    private fun readFileOrBlobAsDataUrl(file: File): Promise<String> {
+    private fun readFileOrBlobAsDataUrl(file: File): Promise<JsString> {
         return Promise { resolve, _ ->
             val reader = FileReader()
             reader.onload = EventHandler {
                 val result = reader.result
                 if (result != null) {
                     // readAsDataURL yields a data URL string
-                    resolve(result.unsafeCast<String>())
+                    resolve(result.unsafeCast<JsString>())
                 } else {
                     error(Throwable("FileReader result is null"))
                 }
@@ -342,7 +359,7 @@ class ApplicationWebGL(override var program: Program, override var configuration
     override var cursorType: CursorType = CursorType.ARROW_CURSOR
     override val seconds: Double
         get() {
-            return (performance.now() - referenceTime) / 1000.0
+            return (performance.now().toDouble() - referenceTime) / 1000.0
         }
 
     override var presentationMode: PresentationMode = PresentationMode.AUTOMATIC

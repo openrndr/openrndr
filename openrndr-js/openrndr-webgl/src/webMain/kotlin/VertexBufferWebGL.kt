@@ -86,15 +86,16 @@ class VertexBufferWebGL(
     }
 
     override fun write(data: FloatArray, offsetBytes: Int, floatCount: Int) {
-        // this one
-        bind()
-        val offsetFloats = offsetBytes / 4
-        context.bufferSubData(
-            GL.ARRAY_BUFFER,
-            offsetBytes,
-            Float32Array<ArrayBuffer>(data.toTypedArray()).subarray(offsetFloats, offsetFloats + floatCount)
-        )
-        unbind()
+        error("not implemented")
+//        // this one
+//        bind()
+//        val offsetFloats = offsetBytes / 4
+//        context.bufferSubData(
+//            GL.ARRAY_BUFFER,
+//            offsetBytes,
+//            Float32Array<ArrayBuffer>(data.toTypedArray()).subarray(offsetFloats, offsetFloats + floatCount)
+//        )
+//        unbind()
     }
 
     override fun write(data: Float32Array<ArrayBuffer>, offsetBytes: Int, floatCount: Int) {

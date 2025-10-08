@@ -17,23 +17,12 @@ import web.gl.TexImageSource
 import web.gl.WebGLFramebuffer
 import web.gl.WebGLTexture
 import web.html.Image
+import kotlin.js.ExperimentalWasmJsInterop
 import kotlin.js.Promise
 import kotlin.math.log2
 import kotlin.math.pow
 import web.gl.WebGL2RenderingContext as GL
 
-internal fun promiseImage(url: String): Promise<Image> {
-    return Promise { resolve, _ ->
-        val image = Image()
-        val options: AddEventListenerOptions = js("{}")
-        options.capture = false
-
-        image.addEventListener(EventType("load"), {
-            resolve(image)
-        }, options)
-        image.src = url
-    }
-}
 
 
 class ColorBufferWebGL(
@@ -184,15 +173,6 @@ class ColorBufferWebGL(
             error("use fromUrlSuspend")
             //val image = promiseImage(url).await()
             //return fromImage(context, image, session)
-        }
-
-        suspend fun fromUrlSuspend(
-            context: GL,
-            url: String,
-            session: Session? = Session.active
-        ): ColorBufferWebGL {
-            val image = promiseImage(url).await()
-            return fromImage(context, image, session)
         }
 
     }

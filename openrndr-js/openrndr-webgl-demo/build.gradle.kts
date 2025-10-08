@@ -3,7 +3,18 @@ plugins {
 }
 
 kotlin {
-    js(IR) {
+//    js(IR) {
+//        browser {
+//            commonWebpackConfig {
+//                outputFileName = "openrndr-program.js"
+//                cssSupport {
+//                    enabled.set(true)
+//                }
+//            }
+//        }
+//        binaries.executable()
+//    }
+    wasmJs() {
         browser {
             commonWebpackConfig {
                 outputFileName = "openrndr-program.js"
@@ -11,12 +22,12 @@ kotlin {
                     enabled.set(true)
                 }
             }
+            binaries.executable()
         }
-        binaries.executable()
     }
 
     sourceSets {
-        val jsMain by getting {
+        val wasmJsMain by getting {
             dependencies {
                 implementation(project(":openrndr-application"))
                 implementation(project(":openrndr-draw"))

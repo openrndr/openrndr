@@ -1,5 +1,7 @@
 package org.openrndr.webgl
 
+import js.core.JsPrimitives.toJsInt
+import js.core.JsUInt
 import js.core.plus
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
@@ -8,7 +10,14 @@ import org.openrndr.internal.glcommon.ShadeStyleManagerGLCommon
 import org.openrndr.internal.glcommon.ShaderGeneratorsGLCommon
 import web.gl.GLenum
 import web.gl.WebGLVertexArrayObject
+import kotlin.js.ExperimentalWasmJsInterop
+import kotlin.js.toJsNumber
+import kotlin.js.unsafeCast
 import web.gl.WebGL2RenderingContext as GL
+
+@OptIn(ExperimentalWasmJsInterop::class)
+internal fun Int.toJsUInt(): JsUInt = this.toJsNumber().unsafeCast<JsUInt>()
+
 
 class DriverWebGL(val context: GL) : Driver {
     init {
@@ -299,18 +308,18 @@ class DriverWebGL(val context: GL) : Driver {
                     when (item.type) {
                         in scalarVectorTypes -> {
                             for (i in 0 until item.arraySize) {
-                                context.enableVertexAttribArray(attributeIndex + i)
+                                context.enableVertexAttribArray((attributeIndex + i).toJsUInt())
                                 val glType = item.type.glType()
                                 if (glType == GL.FLOAT) {
                                     context.vertexAttribPointer(
-                                        attributeIndex + i,
+                                        (attributeIndex + i).toJsUInt(),
                                         item.type.componentCount,
                                         glType, false, format.size, item.offset + i * item.type.sizeInBytes
                                     )
                                 } else {
                                     error("integer attributes are not supported by WebGL")
                                 }
-                                context.vertexAttribDivisor(attributeIndex, divisor)
+                                context.vertexAttribDivisor(attributeIndex.toJsUInt(), divisor.toJsUInt())
                                 attributeBindings++
                             }
                         }
@@ -318,16 +327,16 @@ class DriverWebGL(val context: GL) : Driver {
                         VertexElementType.MATRIX44_FLOAT32 -> {
                             for (i in 0 until item.arraySize) {
                                 for (column in 0 until 4) {
-                                    context.enableVertexAttribArray(attributeIndex + column + i * 4)
+                                    context.enableVertexAttribArray((attributeIndex + column + i * 4).toJsUInt())
                                     context.vertexAttribPointer(
-                                        attributeIndex + column + i * 4,
+                                        (attributeIndex + column + i * 4).toJsUInt(),
                                         4,
                                         item.type.glType(),
                                         false,
                                         format.size,
                                         item.offset + column * 16 + i * 64
                                     )
-                                    context.vertexAttribDivisor(attributeIndex + column + i * 4, divisor)
+                                    context.vertexAttribDivisor((attributeIndex + column + i * 4).toJsUInt(), divisor.toJsUInt())
                                     attributeBindings++
                                 }
                             }
@@ -336,13 +345,13 @@ class DriverWebGL(val context: GL) : Driver {
                         VertexElementType.MATRIX33_FLOAT32 -> {
                             for (i in 0 until item.arraySize) {
                                 for (column in 0 until 3) {
-                                    context.enableVertexAttribArray(attributeIndex + column + i * 3)
+                                    context.enableVertexAttribArray((attributeIndex + column + i * 3).toJsUInt())
                                     context.vertexAttribPointer(
-                                        attributeIndex + column + i * 3,
+                                        (attributeIndex + column + i * 3).toJsUInt(),
                                         3,
                                         item.type.glType(), false, format.size, item.offset + column * 12 + i * 48
                                     )
-                                    context.vertexAttribDivisor(attributeIndex + column + i * 3, divisor)
+                                    context.vertexAttribDivisor((attributeIndex + column + i * 3).toJsUInt(), divisor.toJsUInt())
                                     attributeBindings++
                                 }
                             }
@@ -498,7 +507,7 @@ class DriverWebGL(val context: GL) : Driver {
                 context.stencilFunc(
                     glStencilTest(drawStyle.stencil.stencilTest),
                     drawStyle.stencil.stencilTestReference,
-                    drawStyle.stencil.stencilTestMask
+                    drawStyle.stencil.stencilTestMask.toJsUInt()
                 )
                 //debugGLErrors()
                 context.stencilOp(
@@ -507,7 +516,7 @@ class DriverWebGL(val context: GL) : Driver {
                     glStencilOp(drawStyle.stencil.depthPassOperation)
                 )
                 //debugGLErrors()
-                context.stencilMask(drawStyle.stencil.stencilWriteMask)
+                context.stencilMask(drawStyle.stencil.stencilWriteMask.toJsUInt())
                 //debugGLErrors()
             }
         } else {
@@ -516,13 +525,13 @@ class DriverWebGL(val context: GL) : Driver {
                 GL.FRONT,
                 glStencilTest(drawStyle.frontStencil.stencilTest),
                 drawStyle.frontStencil.stencilTestReference,
-                drawStyle.frontStencil.stencilTestMask
+                drawStyle.frontStencil.stencilTestMask.toJsUInt()
             )
             context.stencilFuncSeparate(
                 GL.BACK,
                 glStencilTest(drawStyle.backStencil.stencilTest),
                 drawStyle.backStencil.stencilTestReference,
-                drawStyle.backStencil.stencilTestMask
+                drawStyle.backStencil.stencilTestMask.toJsUInt()
             )
             context.stencilOpSeparate(
                 GL.FRONT,
@@ -536,8 +545,8 @@ class DriverWebGL(val context: GL) : Driver {
                 glStencilOp(drawStyle.backStencil.depthFailOperation),
                 glStencilOp(drawStyle.backStencil.depthPassOperation)
             )
-            context.stencilMaskSeparate(GL.FRONT, drawStyle.frontStencil.stencilWriteMask)
-            context.stencilMaskSeparate(GL.BACK, drawStyle.backStencil.stencilWriteMask)
+            context.stencilMaskSeparate(GL.FRONT, drawStyle.frontStencil.stencilWriteMask.toJsUInt())
+            context.stencilMaskSeparate(GL.BACK, drawStyle.backStencil.stencilWriteMask.toJsUInt())
         }
         if (dirty || cached.blendMode != drawStyle.blendMode) {
             when (drawStyle.blendMode) {
