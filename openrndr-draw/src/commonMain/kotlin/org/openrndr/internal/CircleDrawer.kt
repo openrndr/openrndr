@@ -1,5 +1,6 @@
 package org.openrndr.internal
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
 import org.openrndr.math.Vector2
@@ -7,6 +8,8 @@ import org.openrndr.math.Vector3
 import org.openrndr.shape.Circle
 import kotlin.math.abs
 
+
+private val logger = KotlinLogging.logger {  }
 
 /**
  * A utility class designed for efficient rendering of circles.
@@ -44,6 +47,7 @@ class CircleDrawer {
     }
 
     init {
+        logger.debug { "Number of batches: ${singleBatches.size}" }
         val w = vertices.shadow.writer()
 
         w.rewind()

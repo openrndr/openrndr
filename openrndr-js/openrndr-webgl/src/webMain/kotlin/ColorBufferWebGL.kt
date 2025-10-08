@@ -3,26 +3,20 @@ package org.openrndr.webgl
 import WebGLRenderingFixedCompressedTexImage
 import js.buffer.ArrayBufferLike
 import js.buffer.ArrayBufferView
-import kotlinx.coroutines.await
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
 import org.openrndr.internal.Driver
 import org.openrndr.shape.IntRectangle
 import org.openrndr.utils.buffer.MPPBuffer
-import web.events.AddEventListenerOptions
-import web.events.EventType
-import web.events.addEventListener
 import web.gl.GLenum
 import web.gl.TexImageSource
 import web.gl.WebGLFramebuffer
 import web.gl.WebGLTexture
 import web.html.Image
 import kotlin.js.ExperimentalWasmJsInterop
-import kotlin.js.Promise
 import kotlin.math.log2
 import kotlin.math.pow
 import web.gl.WebGL2RenderingContext as GL
-
 
 
 class ColorBufferWebGL(
@@ -163,18 +157,6 @@ class ColorBufferWebGL(
                 ColorFormat.RGBa, ColorType.UINT8_SRGB, 1, BufferMultisample.Disabled, session
             )
         }
-
-        @Suppress("UNUSED_PARAMETER")
-        fun fromUrl(
-            context: GL,
-            url: String,
-            session: Session? = Session.active
-        ): ColorBufferWebGL {
-            error("use fromUrlSuspend")
-            //val image = promiseImage(url).await()
-            //return fromImage(context, image, session)
-        }
-
     }
 
     override fun destroy() {

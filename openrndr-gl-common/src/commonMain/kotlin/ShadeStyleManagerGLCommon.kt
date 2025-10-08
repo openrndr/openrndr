@@ -1,9 +1,10 @@
 package org.openrndr.internal.glcommon
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.openrndr.draw.*
 import org.openrndr.internal.Driver
 
-
+private val logger = KotlinLogging.logger {  }
 class ShadeStyleManagerGLCommon(
     name: String,
     val vsGenerator: (ShadeStructure) -> String,
@@ -33,6 +34,7 @@ $this"""
         if (style == null) {
             return run {
                 if (defaultShader == null) {
+                    logger.debug { "Creating default shader $name" }
                     val structure = structureFromShadeStyle(style, vertexFormats, outputInstanceFormats)
                     defaultShader = Shader.createFromCode(
                         vsCode = vsGenerator(structure).prependConfig(ShaderType.VERTEX),
@@ -43,13 +45,12 @@ $this"""
                         name = "shade-style-default:$name",
                         session = Session.root
                     )
-                    //(defaultShader as ShaderGL3).userShader = false
+                    logger.debug { "$name: $defaultShader" }
                 }
-                defaultShader!!
+                defaultShader ?: error("Failed to create default shader '$name'")
             }
         } else {
             return run {
-
                 val structure = structureFromShadeStyle(style, vertexFormats, outputInstanceFormats)
                 val shader = shaders.getOrPut(structure) {
                     try {

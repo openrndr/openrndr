@@ -25,7 +25,6 @@ fun main() {
             }
 
             extend {
-                console.log("drawing to colorbuffer")
                 drawer.clear(ColorRGBa.PINK)
                 drawer.circle(40.0, 40.0, 20.0+ cos(seconds)*20.0 +20.0)
                 drawer.rectangle(80.0, 80.0, 200.0, 200.0)

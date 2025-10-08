@@ -15,6 +15,7 @@ kotlin {
                 implementation(project(":openrndr-utils"))
                 implementation(project(":openrndr-platform"))
                 implementation(libs.kotlin.coroutines)
+                implementation(libs.kotlin.logging)
             }
         }
         val commonTest by getting {

@@ -46,9 +46,7 @@ external object JsObject {
     fun create(proto: JsAny?): JsAny
 }
 
-
 class ApplicationWebGL(override var program: Program, override var configuration: Configuration) : Application() {
-
     init {
         program.application = this
     }
@@ -302,7 +300,6 @@ class ApplicationWebGL(override var program: Program, override var configuration
 
     override fun loop() {
         //("start loop")
-        logger.debug { "start loop" }
         if (presentationMode == PresentationMode.AUTOMATIC || drawRequested) {
             drawRequested = false
 

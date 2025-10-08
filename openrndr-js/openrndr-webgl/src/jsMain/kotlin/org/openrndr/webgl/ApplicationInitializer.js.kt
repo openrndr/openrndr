@@ -7,6 +7,7 @@ import org.openrndr.applicationBaseFunc
 @OptIn(ExperimentalStdlibApi::class, ExperimentalJsExport::class)
 @EagerInitialization
 @JsExport
+@JsStatic
 val applicationBaseWebGLInitializer = object {
     init {
         applicationBaseFunc = ::ApplicationBaseWebGL

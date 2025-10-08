@@ -1,6 +1,9 @@
 package org.openrndr.webgl
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import js.buffer.ArrayBuffer
+import js.core.JsInt
+import js.core.JsPrimitives.toInt
 import js.core.JsPrimitives.toJsFloat
 import js.typedarrays.Float32Array
 import org.openrndr.color.ColorRGBa
@@ -9,22 +12,25 @@ import org.openrndr.math.*
 import web.gl.GLenum
 import web.gl.WebGLProgram
 import web.gl.WebGLUniformLocation
+import kotlin.js.ExperimentalWasmJsInterop
+import kotlin.js.unsafeCast
 import web.gl.WebGL2RenderingContext as GL
 
-
-fun GL.checkErrors(msg: String = "") {
-    val e = getError()
-    if (e != GL.NO_ERROR) {
-        val m = when (e) {
-            GL.INVALID_ENUM -> "Invalid enum"
-            GL.INVALID_VALUE -> "Invalid value"
-            GL.INVALID_OPERATION -> "Invalid operation"
-            GL.INVALID_FRAMEBUFFER_OPERATION -> "Invalid framebuffer operation"
-            GL.OUT_OF_MEMORY -> "Out of memory"
-            GL.CONTEXT_LOST_WEBGL -> "Context lst webgl"
-        }
-        error("$m: $msg")
-    }
+private val logger = KotlinLogging.logger {  }
+inline fun GL.checkErrors(msg: String = "") {
+    // TODO add this back-in for situations in which we really need to check the error
+//    val e = getError()
+//    if (e != GL.NO_ERROR) {
+//        val m = when (e) {
+//            GL.INVALID_ENUM -> "Invalid enum"
+//            GL.INVALID_VALUE -> "Invalid value"
+//            GL.INVALID_OPERATION -> "Invalid operation"
+//            GL.INVALID_FRAMEBUFFER_OPERATION -> "Invalid framebuffer operation"
+//            GL.OUT_OF_MEMORY -> "Out of memory"
+//            GL.CONTEXT_LOST_WEBGL -> "Context lst webgl"
+//        }
+//        error("$m: $msg")
+//    }
 }
 
 data class ActiveUniform(val name: String, val size: Int, val type: GLenum)
@@ -44,12 +50,14 @@ class ShaderWebGL(
             @Suppress("UNUSED_PARAMETER") name: String,
             session: Session?
         ): ShaderWebGL {
+            logger.debug { "creating shader from $vertexShader $fragmentShader"}
+
             val program = context.createProgram()
             context.attachShader(program, vertexShader.shaderObject)
             context.attachShader(program, fragmentShader.shaderObject)
             context.linkProgram(program)
 
-            val activeUniformCount = context.getProgramParameter(program, GL.ACTIVE_UNIFORMS) as Int
+            val activeUniformCount = context.getProgramParameter(program, GL.ACTIVE_UNIFORMS)?.unsafeCast<JsInt>()?.toInt() ?: 0
             val activeUniforms = (0 until activeUniformCount).mapNotNull {
                 val activeUniform = context.getActiveUniform(program, it.toJsUInt())
 
@@ -70,6 +78,7 @@ class ShaderWebGL(
     fun attributeIndex(name: String): Int {
         val index = context.getAttribLocation(program, name)
         if (index == -1) {
+            logger.warn { "missing attribute $name" }
             //console.warn("missing attribute $name")
         }
         return index

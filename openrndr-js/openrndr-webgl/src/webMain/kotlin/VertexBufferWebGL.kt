@@ -1,5 +1,6 @@
 package org.openrndr.webgl
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import js.buffer.ArrayBuffer
 import js.typedarrays.Float32Array
 import org.openrndr.draw.*
@@ -7,6 +8,8 @@ import org.openrndr.utils.buffer.MPPBuffer
 import web.gl.WebGLBuffer
 import web.gl.WebGL2RenderingContext as GL
 
+
+private val logger = KotlinLogging.logger {  }
 
 class VertexBufferShadowWebGL(override val vertexBuffer: VertexBuffer) : VertexBufferShadow {
 
@@ -59,6 +62,7 @@ class VertexBufferWebGL(
             vertexCount: Int,
             session: Session?
         ): VertexBufferWebGL {
+            logger.debug { "Creating vertex buffer with $vertexCount vertices, format $vertexFormat" }
             val buffer = context.createBuffer() ?: error("failed to create buffer")
             context.bindBuffer(GL.ARRAY_BUFFER, buffer)
             val sizeInBytes = vertexFormat.size * vertexCount
@@ -86,6 +90,8 @@ class VertexBufferWebGL(
     }
 
     override fun write(data: FloatArray, offsetBytes: Int, floatCount: Int) {
+        logger.error { "not implemented" }
+
         error("not implemented")
 //        // this one
 //        bind()

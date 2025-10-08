@@ -9,7 +9,7 @@ actual fun application(build: ApplicationBuilder.() -> Unit){
     ApplicationBuilderJS().apply {
         build()
         val app = applicationBase.build(program, configuration)
-        logger.info { "application built, calling application.run()" }
+        logger.debug { "(applicationbuilder.web.kt) application built, calling application.run()" }
         app.run()
     }
 }

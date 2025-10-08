@@ -1,5 +1,6 @@
 package org.openrndr.webgl
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import js.core.JsPrimitives.toJsInt
 import js.core.JsUInt
 import js.core.plus
@@ -18,6 +19,7 @@ import web.gl.WebGL2RenderingContext as GL
 @OptIn(ExperimentalWasmJsInterop::class)
 internal fun Int.toJsUInt(): JsUInt = this.toJsNumber().unsafeCast<JsUInt>()
 
+private val logger = KotlinLogging.logger {  }
 
 class DriverWebGL(val context: GL) : Driver {
     init {
@@ -132,12 +134,16 @@ class DriverWebGL(val context: GL) : Driver {
         name: String,
         session: Session?
     ): Shader {
+
         require(tcsCode == null && tesCode == null && gsCode == null) {
             """only vertex and fragment shaders are supported in WebGL"""
         }
+        logger.debug { "Creating vertex shader: $name" }
         val vertexShader = VertexShaderWebGL.fromString(context, vsCode, name)
+        logger.debug { "Creating fragment shader: $name" }
         val fragmentShader = FragmentShaderWebGL.fromString(context, fsCode, name)
 
+        logger.debug { "Creating shader: $name" }
         return ShaderWebGL.create(context, vertexShader, fragmentShader, name, session)
 
     }

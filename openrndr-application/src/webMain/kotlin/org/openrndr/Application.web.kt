@@ -27,10 +27,13 @@ actual abstract class Application {
 
     internal actual fun run() {
         logger.info { "run()" }
-        launch {
+         launch {
+            logger.debug { "calling setup()" }
             setup()
+            logger.debug { "calling loop()" }
             loop()
         }
+        logger.debug { "launched" }
     }
 
     actual abstract fun requestDraw()
