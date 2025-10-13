@@ -14,6 +14,15 @@ import java.nio.ByteBuffer
 
 class FaceStbTt(data: ByteBuffer, fontInfo: STBTTFontinfo) : Face {
 
+    override fun allCodePoints(): Sequence<Int> = sequence {
+        for (i in 0 until 0xffff) {
+            val index  = STBTruetype.stbtt_FindGlyphIndex(fontInfo, i)
+            if (index != 0) {
+                yield(i)
+            }
+        }
+    }
+
     class State(val data: ByteBuffer, val fontInfo: STBTTFontinfo): AutoCloseable {
         override fun close() {
             MemoryUtil.memFree(data)
@@ -59,6 +68,12 @@ class FaceStbTt(data: ByteBuffer, fontInfo: STBTTFontinfo) : Face {
 
     override fun glyphForCharacter(character: Char): Glyph {
         val glyphIndex = STBTruetype.stbtt_FindGlyphIndex(state.fontInfo, character.code)
+        return GlyphStbTt(this, character, glyphIndex)
+    }
+
+    override fun glyphForCodePoint(codePoint: Int): Glyph {
+        val glyphIndex = STBTruetype.stbtt_FindGlyphIndex(state.fontInfo, codePoint)
+        val character = Char(codePoint)
         return GlyphStbTt(this, character, glyphIndex)
     }
 

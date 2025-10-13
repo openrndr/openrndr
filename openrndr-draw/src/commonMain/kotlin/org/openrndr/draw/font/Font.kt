@@ -55,6 +55,12 @@ interface Glyph {
  */
 interface Face: AutoCloseable {
 
+    /**
+     * Retrieves a sequence of all code points supported by the font face.
+     *
+     * @return a sequence of integers representing all supported Unicode code points.
+     */
+    fun allCodePoints(): Sequence<Int>
 
     fun ascentMetrics() : Int
 
@@ -78,6 +84,9 @@ interface Face: AutoCloseable {
      * Return the glyph for a given character
      */
     fun glyphForCharacter(character: Char): Glyph
+
+    fun glyphForCodePoint(codePoint: Int): Glyph
+
     fun bounds(scale: Double): Rectangle
 }
 
