@@ -132,6 +132,7 @@ class ScreenRecorder : Extension {
             crop = colorBuffer(advisedWidth, advisedHeight)
         }
 
+        videoWriter.profile(profile)
         videoWriter.output(filename)
         videoWriter.size(advisedWidth, advisedHeight)
         videoWriter.frameRate = frameRate
