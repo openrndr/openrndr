@@ -71,7 +71,7 @@ internal data class Dimensions(val w: Int, val h: Int) {
 
 internal class AVFile(
     configuration: VideoPlayerConfiguration,
-    private val fileName: String,
+    private val filename: String,
     playMode: PlayMode,
     formatName: String? = null,
     frameRate: Double? = null,
@@ -105,7 +105,7 @@ internal class AVFile(
             av_dict_set(options, "video_size", "${imageWidth}x$imageHeight", 0)
         }
 
-        if (fileName.startsWith("rtsp://")) {
+        if (filename.startsWith("rtsp://")) {
             av_dict_set(options, "max_delay", "0", 0)
             if (playMode == PlayMode.VIDEO) {
                 av_dict_set(options, "allowed_media_types", "video", 0)
@@ -119,7 +119,7 @@ internal class AVFile(
         )
 
         if (isDevice && frameRate == null) {
-            val result = avformat_open_input(context, fileName, format, options)
+            val result = avformat_open_input(context, filename, format, options)
 
             if (result != 0) {
                 logger.info { "opening device with default frame rate failed." }
@@ -130,7 +130,7 @@ internal class AVFile(
                     val r = av_d2q(candidate, 1001000)
                     av_dict_set(options, "framerate", r.num().toString() + "/" + r.den(), 0)
 
-                    val retryResult = avformat_open_input(context, fileName, format, options)
+                    val retryResult = avformat_open_input(context, filename, format, options)
                     if (retryResult != 0) {
                         logger.warn { retryResult.toAVError() }
                     }
@@ -145,7 +145,7 @@ internal class AVFile(
                 }
             }
         } else {
-            avformat_open_input(context, fileName, format, options).checkAVError()
+            avformat_open_input(context, filename, format, options).checkAVError()
         }
 
         avformat_find_stream_info(context, null as PointerPointer<*>?).checkAVError()
@@ -154,7 +154,7 @@ internal class AVFile(
     }
 
     fun dumpFormat() {
-        av_dump_format(context, 0, fileName, 0)
+        av_dump_format(context, 0, filename, 0)
     }
 
     fun dispose() {
@@ -780,96 +780,19 @@ class VideoPlayerFFMPEG private constructor(
 
 
     var first = true
-    private fun update() {
-        if (state == State.PLAYING) {
-            synchronized(displayQueue) {
-                if (!configuration.synchronizeToClock) {
-                    val frame = displayQueue.peek()
-                    if (frame != null) {
-                        displayQueue.pop()
-                        if (!frame.buffer.isNull) {
-                            colorBuffer?.write(frame.buffer.data().capacity(frame.frameSize.toLong()).asByteBuffer())
-                            colorBuffer?.let { lc ->
-                                position = frame.timeStamp
-                                newFrame.trigger(FrameEvent(lc, frame.timeStamp))
-                            }
-                        } else {
-                            logger.error {
-                                "encountered frame with null buffer"
-                            }
-                        }
-                        frame.unref()
-                    }
-                } else {
-                    var frame: VideoFrame?
+    private fun update(blockUntilFinished: Boolean) {
 
-                    if (audioOut != null && info != null) {
-                        val playPosition = clock() - timeOffset
-                        val mult = if (audioDevice?.pan == 0.0) 2 else 1
-                        val audioPosition = audioOut?.sampleOffset!! / (24000.0 * mult) - audioOffset
-                        val rate = (info!!.video?.fps ?: 1.0)
-                        val duration = 1.0 / rate
+        do {
+            if (state == State.STOPPED || state == State.PAUSED) {
+                return
+            }
 
-                        val tooMuch = duration * 4.0
-
-                        if (audioPosition - playPosition > tooMuch) {
-                            logger.debug {
-                                "audio position is $audioPosition, play position is $playPosition, too much: $tooMuch"
-                            }
-                            timeOffset -= tooMuch / 2.0
-                        }
-
-                        if (audioPosition - playPosition < -tooMuch) {
-                            logger.debug {
-                                "audio position is $audioPosition, play position is $playPosition, too much: $tooMuch"
-                            }
-                            timeOffset = clock() - audioPosition
-                        }
-                    }
-
-
-                    val playPosition = clock() - timeOffset
-
-
-                    while (true) {
-                        frame = displayQueue.peek()
-                        if (frame == null) {
-                            break
-                        }
-
-                        if (seekCompleted) {
-                            logger.info { "seek completed. ${frame!!.timeStamp}" }
-                            timeOffset = clock() - frame.timeStamp
-                            if (audioOut != null) {
-                                val mult = if (audioDevice?.pan == 0.0) 2 else 1
-                                val audioPosition = audioOut?.sampleOffset!! / (24000.0 * mult)
-                                audioOffset = audioPosition - frame.timeStamp
-                            }
-                            logger.debug { "setting timeOffset to ${frame!!.timeStamp} $timeOffset" }
-                            seekCompleted = false
-                        }
-
-                        if (resetVideoTime) {
-                            logger.debug { "resetting video time" }
-                            timeOffset = clock() - frame.timeStamp
-                            resetVideoTime = false
-                        }
-
-                        if (first || frame.timeStamp <= playPosition) {
-                            if (first) {
-                                logger.debug { "received first frame" }
-                                timeOffset = clock() - frame.timeStamp
-                                logger.debug { "setting timeOffset to ${frame!!.timeStamp} $timeOffset" }
-                                first = false
-                            }
+            if (state == State.PLAYING) {
+                synchronized(displayQueue) {
+                    if (!configuration.synchronizeToClock) {
+                        val frame = displayQueue.peek()
+                        if (frame != null) {
                             displayQueue.pop()
-
-                            val next = displayQueue.peek()
-                            if (next != null && next.timeStamp <= playPosition) {
-                                frame.unref()
-                                continue
-                            }
-
                             if (!frame.buffer.isNull) {
                                 colorBuffer?.write(
                                     frame.buffer.data().capacity(frame.frameSize.toLong()).asByteBuffer()
@@ -885,20 +808,113 @@ class VideoPlayerFFMPEG private constructor(
                             }
                             frame.unref()
                             break
-                        } else {
-                            break
+                        } else if (blockUntilFinished) {
+                            logger.debug { "Waiting for frame." }
+                            Thread.sleep(10)
                         }
+                    } else {
+                        var frame: VideoFrame?
+
+                        if (audioOut != null && info != null) {
+                            val playPosition = clock() - timeOffset
+                            val mult = if (audioDevice?.pan == 0.0) 2 else 1
+                            val audioPosition = audioOut?.sampleOffset!! / (24000.0 * mult) - audioOffset
+                            val rate = (info!!.video?.fps ?: 1.0)
+                            val duration = 1.0 / rate
+
+                            val tooMuch = duration * 4.0
+
+                            if (audioPosition - playPosition > tooMuch) {
+                                logger.debug {
+                                    "audio position is $audioPosition, play position is $playPosition, too much: $tooMuch"
+                                }
+                                timeOffset -= tooMuch / 2.0
+                            }
+
+                            if (audioPosition - playPosition < -tooMuch) {
+                                logger.debug {
+                                    "audio position is $audioPosition, play position is $playPosition, too much: $tooMuch"
+                                }
+                                timeOffset = clock() - audioPosition
+                            }
+                        }
+
+
+                        val playPosition = clock() - timeOffset
+
+
+                        while (true) {
+                            frame = displayQueue.peek()
+                            if (frame == null) {
+                                break
+                            }
+
+                            if (seekCompleted) {
+                                logger.info { "seek completed. ${frame!!.timeStamp}" }
+                                timeOffset = clock() - frame.timeStamp
+                                if (audioOut != null) {
+                                    val mult = if (audioDevice?.pan == 0.0) 2 else 1
+                                    val audioPosition = audioOut?.sampleOffset!! / (24000.0 * mult)
+                                    audioOffset = audioPosition - frame.timeStamp
+                                }
+                                logger.debug { "setting timeOffset to ${frame!!.timeStamp} $timeOffset" }
+                                seekCompleted = false
+                            }
+
+                            if (resetVideoTime) {
+                                logger.debug { "resetting video time" }
+                                timeOffset = clock() - frame.timeStamp
+                                resetVideoTime = false
+                            }
+
+                            if (first || frame.timeStamp <= playPosition) {
+                                if (first) {
+                                    logger.debug { "received first frame" }
+                                    timeOffset = clock() - frame.timeStamp
+                                    logger.debug { "setting timeOffset to ${frame!!.timeStamp} $timeOffset" }
+                                    first = false
+                                }
+                                displayQueue.pop()
+
+                                val next = displayQueue.peek()
+                                if (next != null && next.timeStamp <= playPosition) {
+                                    frame.unref()
+                                    continue
+                                }
+
+                                if (!frame.buffer.isNull) {
+                                    colorBuffer?.write(
+                                        frame.buffer.data().capacity(frame.frameSize.toLong()).asByteBuffer()
+                                    )
+                                    colorBuffer?.let { lc ->
+                                        position = frame.timeStamp
+                                        newFrame.trigger(FrameEvent(lc, frame.timeStamp))
+                                    }
+                                } else {
+                                    logger.error {
+                                        "encountered frame with null buffer"
+                                    }
+                                }
+                                frame.unref()
+                                break
+                            } else {
+                                break
+                            }
+                        }
+                        break
                     }
                 }
             }
-        }
-        if (endOfFileReached && displayQueue.isEmpty() && (decoder?.videoQueueSize() ?: 0) == 0) {
-            if (state == State.PLAYING) {
-                logger.debug { "stopping playback" }
-                ended.trigger(VideoEvent())
-                state = State.STOPPED
+
+            if (endOfFileReached && displayQueue.isEmpty() && (decoder?.videoQueueSize() ?: 0) == 0) {
+                if (state == State.PLAYING) {
+                    logger.debug { "stopping playback" }
+                    ended.trigger(VideoEvent())
+                    state = State.STOPPED
+                }
             }
-        }
+
+        } while (blockUntilFinished)
     }
 
     /**
@@ -907,10 +923,10 @@ class VideoPlayerFFMPEG private constructor(
      * @param update does not update the frame data when false
      */
     @Suppress("unused")
-    fun draw(drawer: Drawer, blind: Boolean = false, update: Boolean = true) {
+    fun draw(drawer: Drawer, blind: Boolean = false, update: Boolean = true, blockUntilFinished: Boolean = false) {
         require(!disposed)
         if (update) {
-            update()
+            update(blockUntilFinished)
         }
         colorBuffer?.let {
             if (!blind) {
@@ -931,11 +947,13 @@ class VideoPlayerFFMPEG private constructor(
         y: Double = 0.0,
         width: Double = this.width.toDouble(),
         height: Double = this.height.toDouble(),
-        blind: Boolean = false, update: Boolean = true
+        blind: Boolean = false,
+        update: Boolean = true,
+        blockUntilFinished: Boolean = false
     ) {
         require(!disposed)
         if (update) {
-            update()
+            update(blockUntilFinished)
         }
         colorBuffer?.let {
             if (!blind) {
@@ -956,11 +974,11 @@ class VideoPlayerFFMPEG private constructor(
         drawer: Drawer,
         source: Rectangle,
         target: Rectangle,
-        blind: Boolean = false, update: Boolean = true
+        blind: Boolean = false, update: Boolean = true, blockUntilFinished: Boolean = false
     ) {
         require(!disposed)
         if (update) {
-            update()
+            update(blockUntilFinished)
         }
         colorBuffer?.let {
             if (!blind) {
