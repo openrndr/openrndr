@@ -1,7 +1,6 @@
 package org.openrndr.ffmpeg
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.runBlocking
 import org.bytedeco.ffmpeg.avcodec.AVCodecContext
 import org.bytedeco.ffmpeg.avcodec.AVCodecParameters
 import org.bytedeco.ffmpeg.avformat.AVFormatContext
@@ -70,13 +69,15 @@ internal data class Dimensions(val w: Int, val h: Int) {
     operator fun div(b: Int) = Dimensions(w / b, h / b)
 }
 
-internal class AVFile(configuration: VideoPlayerConfiguration,
-                      private val fileName: String,
-                      playMode: PlayMode,
-                      formatName: String? = null,
-                      frameRate: Double? = null,
-                      imageWidth: Int? = null,
-                      imageHeight: Int? = null) {
+internal class AVFile(
+    configuration: VideoPlayerConfiguration,
+    private val fileName: String,
+    playMode: PlayMode,
+    formatName: String? = null,
+    frameRate: Double? = null,
+    imageWidth: Int? = null,
+    imageHeight: Int? = null
+) {
 
     val context: AVFormatContext = avformat_alloc_context()
 
@@ -148,6 +149,7 @@ internal class AVFile(configuration: VideoPlayerConfiguration,
         }
 
         avformat_find_stream_info(context, null as PointerPointer<*>?).checkAVError()
+
         av_dict_free(options)
     }
 
@@ -185,17 +187,12 @@ class VideoPlayerConfiguration {
     var allowSRGB = true
     var minimumSeekOffset = -0.1
     var maximumSeekOffset = 0.0
-    var legacyStreamOpen = false
     var allowArbitrarySeek = false
     var synchronizeToClock = true
-    var displayQueueCooldown = 10
 
     var audioChannels = 2
 
-    /**
-     * Maximum time in seconds it may take before a new packet is received
-     */
-    var packetTimeout = 60.0
+
 }
 
 private object DefaultLogger : Callback_Pointer_int_String_Pointer() {
@@ -218,7 +215,13 @@ fun Program.loadVideo(
     configuration: VideoPlayerConfiguration = VideoPlayerConfiguration()
 ): VideoPlayerFFMPEG {
     if (audioDevice?.pan != 0.0) configuration.audioChannels = 1
-    return VideoPlayerFFMPEG.fromFile(audioDevice,fileOrUrl, clock = { seconds }, mode = mode, configuration = configuration)
+    return VideoPlayerFFMPEG.fromFile(
+        audioDevice,
+        fileOrUrl,
+        clock = { seconds },
+        mode = mode,
+        configuration = configuration
+    )
 }
 
 
@@ -232,7 +235,15 @@ fun loadVideoDevice(
     configuration: VideoPlayerConfiguration = VideoPlayerConfiguration()
 ): VideoPlayerFFMPEG {
     logger.info { """loading video device $deviceName (mode: $mode)""" }
-    return VideoPlayerFFMPEG.fromDevice(audioDevice, deviceName, mode = mode, imageWidth = width, imageHeight = height, frameRate = frameRate, configuration = configuration)
+    return VideoPlayerFFMPEG.fromDevice(
+        audioDevice,
+        deviceName,
+        mode = mode,
+        imageWidth = width,
+        imageHeight = height,
+        frameRate = frameRate,
+        configuration = configuration
+    )
 }
 
 /**
@@ -249,7 +260,6 @@ class VideoPlayerFFMPEG private constructor(
 ) {
 
     private val displayQueue = Queue<VideoFrame>(configuration.displayQueueSize)
-
 
     private var audioThread: Thread? = null
     private var decoderThread: Thread? = null
@@ -404,6 +414,7 @@ class VideoPlayerFFMPEG private constructor(
 
             av_log_set_level(AV_LOG_QUIET)
             val avfile = AVFile(configuration, fileName, mode)
+
             return VideoPlayerFFMPEG(audioDevice, avfile, mode, configuration, clock)
         }
 
@@ -447,7 +458,7 @@ class VideoPlayerFFMPEG private constructor(
                 PlatformType.WINDOWS -> listDeviceNames()[0]
                 PlatformType.MAC -> "0"
                 PlatformType.GENERIC -> "/dev/video0"
-                else -> error("unsupporte platform ${Platform.type}")
+                else -> error("unsupported platform ${Platform.type}")
             }
         }
 
@@ -526,23 +537,10 @@ class VideoPlayerFFMPEG private constructor(
 
     private var disposed = false
 
-//    /**
-//     * Controls the gain of the audio
-//     */
-//    @Suppress("unused")
-//    var audioGain: Double
-//        set(value) {
-//            audioOut?.let {
-//                it.gain = value
-//            }
-//        }
-//        get() {
-//            return audioOut?.gain ?: 1.0
-//        }
-
 
     private var timeOffset = 0.0
     private var audioOffset = 0.0
+
     /**
      * Start playing the stream
      */
@@ -556,9 +554,8 @@ class VideoPlayerFFMPEG private constructor(
         file.dumpFormat()
         av_format_inject_global_side_data(file.context)
 
-        val (decoder, info) = runBlocking {
+        val (decoder, info) =
             Decoder.fromContext(statistics, configuration, file.context, mode.useVideo, mode.useAudio)
-        }
 
         this.decoder = decoder
         this.info = info
@@ -574,10 +571,12 @@ class VideoPlayerFFMPEG private constructor(
 
         logger.debug { "starting sound with ${configuration.audioChannels}" }
 
-        val audioOutput = if (mode.useAudio) AudioOutput(48000,  configuration.audioChannels, SampleFormat.S16) else null
+        val useAudio = mode.useAudio && info.audio != null && audioDevice != null
+
+        val audioOutput = if (useAudio) AudioOutput(48000, configuration.audioChannels, SampleFormat.S16) else null
         av_format_inject_global_side_data(file.context)
 
-        if (mode.useAudio) {
+        if (useAudio) {
             audioThread = thread(isDaemon = true) {
                 audioContext = audioDevice?.createContext()
                 Thread.currentThread().name = "Audio-${audioContext?.alContext}"
@@ -701,7 +700,7 @@ class VideoPlayerFFMPEG private constructor(
                             val playPosition = clock() - timeOffset
                             val frame = displayQueue.peek()
                             if (frame != null && frame.timeStamp + 0.5 < playPosition) {
-//                                logger.info { "cleaning display queue ${frame.timeStamp} ${playPosition}" }
+                                logger.debug { "cleaning display queue ${frame.timeStamp} ${playPosition}" }
                                 displayQueue.pop()
                                 frame.unref()
                             }
@@ -776,7 +775,6 @@ class VideoPlayerFFMPEG private constructor(
         } else {
             logger.warn { "waiting for seek to complete" }
         }
-
     }
 
 
@@ -814,14 +812,17 @@ class VideoPlayerFFMPEG private constructor(
 
                         val tooMuch = duration * 4.0
 
-                        if (audioPosition - playPosition > tooMuch ) {
-                            println("that's too much $audioPosition $playPosition")
+                        if (audioPosition - playPosition > tooMuch) {
+                            logger.debug {
+                                "audio position is $audioPosition, play position is $playPosition, too much: $tooMuch"
+                            }
                             timeOffset -= tooMuch / 2.0
                         }
 
-                        if (audioPosition - playPosition < -tooMuch ) {
-                            println("that's minus too much $audioPosition $playPosition")
-                            //timeOffset += tooMuch / 2.0
+                        if (audioPosition - playPosition < -tooMuch) {
+                            logger.debug {
+                                "audio position is $audioPosition, play position is $playPosition, too much: $tooMuch"
+                            }
                             timeOffset = clock() - audioPosition
                         }
                     }
@@ -849,7 +850,7 @@ class VideoPlayerFFMPEG private constructor(
                         }
 
                         if (resetVideoTime) {
-                            logger.debug { "resetting video time"}
+                            logger.debug { "resetting video time" }
                             timeOffset = clock() - frame.timeStamp
                             resetVideoTime = false
                         }
