@@ -1,7 +1,6 @@
 package org.openrndr.webgl
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import js.array.asList
 import js.core.JsPrimitives.toDouble
 import org.openrndr.*
 import org.openrndr.draw.Drawer
@@ -15,7 +14,6 @@ import web.events.EventHandler
 import web.events.EventType
 import web.events.addEventListener
 import web.file.File
-import web.file.FileList
 import web.file.FileReader
 import web.gl.ID
 import web.gl.WebGL2RenderingContext
@@ -26,6 +24,7 @@ import web.mouse.MAIN
 import web.mouse.SECONDARY
 import web.mouse.WheelEvent
 import web.performance.performance
+import web.resize.ResizeObserver
 import web.window.window
 import kotlin.js.ExperimentalWasmJsInterop
 import kotlin.js.JsAny
@@ -33,6 +32,8 @@ import kotlin.js.JsName
 import kotlin.js.JsString
 import kotlin.js.Promise
 import kotlin.js.unsafeCast
+import kotlin.math.floor
+import kotlin.math.max
 import kotlin.math.min
 import web.keyboard.KeyboardEvent as HtmlKeyboardEvent
 import web.mouse.MouseButton as HtmlMouseButton
@@ -69,6 +70,7 @@ class ApplicationWebGL(override var program: Program, override var configuration
     var canvas: HTMLCanvasElement? = null
     var context: WebGL2RenderingContext? = null
     var defaultRenderTarget: ProgramRenderTargetWebGL? = null
+    @OptIn(ExperimentalWasmJsInterop::class)
     override suspend fun setup() {
         logger.info { "in setup()" }
         canvas = document.getElementById(ElementId( configuration.canvasId)) as? HTMLCanvasElement
@@ -92,26 +94,43 @@ class ApplicationWebGL(override var program: Program, override var configuration
 
         windowTitle = configuration.title
 
-        window.addEventListener(
-            EventType("resize"),
-            {
-                val resizeDpr = min(configuration.maxContentScale, devicePixelRatio)
-                canvas?.width = (resizeDpr * (canvas?.clientWidth ?: error("no width"))).toInt()
-                canvas?.height = (resizeDpr * (canvas?.clientHeight ?: error("no height"))).toInt()
+        val canvasParent = canvas?.parentElement
 
-                val newWidth = canvas?.clientWidth?.toDouble() ?: error("no canvas")
-                val newHeight = canvas?.clientHeight?.toDouble() ?: error("no canvas")
+        val resizeNow: () -> Unit = resizeNow@{
+            if (canvasParent == null || canvas == null) return@resizeNow
 
-                program.window.sized.trigger(
-                    WindowEvent(
-                        WindowEventType.RESIZED,
-                        Vector2(0.0, 0.0),
-                        Vector2(newWidth, newHeight),
-                        true
-                    )
-                )
+            val resizeDpr = min(configuration.maxContentScale, devicePixelRatio)
+
+            val width = canvasParent.clientWidth
+            val height = canvasParent.clientHeight
+            val w = max(0.0, floor(width * resizeDpr)).toInt()
+            val h = max(0.0, floor(height * resizeDpr)).toInt()
+            if (canvas != null && (canvas!!.width != w || canvas!!.height != h)) {
+                canvas!!.width = w
+                canvas!!.height = h
             }
-        )
+
+            program.window.sized.trigger(
+                WindowEvent(
+                    WindowEventType.RESIZED,
+                    Vector2(0.0, 0.0),
+                    Vector2(width.toDouble(), height.toDouble()),
+                    true
+                )
+            )
+        }
+
+        // Debounce resize events
+        val resize: () -> Unit = {
+            requestAnimationFrame { resizeNow() }
+        }
+
+        if (canvasParent != null) {
+            val ro = ResizeObserver { _, _ ->
+                resize()
+             }
+            ro.observe(canvasParent)
+        }
 
         // Keyboard
         window.addEventListener(EventType("keydown"), {
