@@ -218,7 +218,7 @@ fun Program.loadVideo(
     return VideoPlayerFFMPEG.fromFile(
         audioDevice,
         fileOrUrl,
-        clock = { seconds },
+        clock = { program.clock() },
         mode = mode,
         configuration = configuration
     )
@@ -400,7 +400,7 @@ class VideoPlayerFFMPEG private constructor(
          * Opens a video from file or url
          * @return a ready-to-play video player on success
          */
-        fun fromFile(
+        internal fun fromFile(
             audioDevice: AudioDevice?,
             fileName: String,
             mode: PlayMode = if (audioDevice == null) PlayMode.VIDEO else PlayMode.BOTH,
@@ -695,14 +695,15 @@ class VideoPlayerFFMPEG private constructor(
                             }
                         }
                     } else {
-
-                        synchronized(displayQueue) {
-                            val playPosition = clock() - timeOffset
-                            val frame = displayQueue.peek()
-                            if (frame != null && frame.timeStamp + 0.5 < playPosition) {
-                                logger.debug { "cleaning display queue ${frame.timeStamp} ${playPosition}" }
-                                displayQueue.pop()
-                                frame.unref()
+                        if (configuration.allowFrameSkipping) {
+                            synchronized(displayQueue) {
+                                val playPosition = clock() - timeOffset
+                                val frame = displayQueue.peek()
+                                if (frame != null && frame.timeStamp + 0.5 < playPosition) {
+                                    logger.debug { "cleaning display queue ${frame.timeStamp} ${playPosition}" }
+                                    displayQueue.pop()
+                                    frame.unref()
+                                }
                             }
                         }
                     }
@@ -782,8 +783,7 @@ class VideoPlayerFFMPEG private constructor(
     private fun update() {
         if (state == State.PLAYING) {
             synchronized(displayQueue) {
-                if (!configuration.allowFrameSkipping) {
-
+                if (!configuration.synchronizeToClock) {
                     val frame = displayQueue.peek()
                     if (frame != null) {
                         displayQueue.pop()
