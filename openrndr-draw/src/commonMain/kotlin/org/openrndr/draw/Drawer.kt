@@ -1518,7 +1518,7 @@ class Drawer(val driver: Driver) {
         glyphOutput: GlyphOutput? = null
     ) {
         if (fontMap is FontImageMap) {
-            fontImageMapDrawer.drawTexts(context, drawStyle, texts, positions, true, glyphOutput)
+            fontImageMapDrawer.drawTexts(context, drawStyle, texts, positions, visible, glyphOutput)
         }
     }
 
