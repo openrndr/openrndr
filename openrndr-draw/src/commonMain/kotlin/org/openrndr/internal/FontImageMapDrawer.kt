@@ -2,9 +2,15 @@ package org.openrndr.internal
 
 import org.openrndr.draw.*
 import org.openrndr.math.Vector2
+import org.openrndr.shape.Rectangle
+import kotlin.jvm.JvmRecord
 import kotlin.math.floor
 
-class GlyphRectangle(val character: Char, val x: Double, val y: Double, val width: Double, val height: Double)
+@JvmRecord
+data class GlyphOutput(val characters: MutableList<Char>, val rectangles: MutableList<Pair<Rectangle, Rectangle>>)
+
+@JvmRecord
+data class GlyphRectangle(val character: Char, val x: Double, val y: Double, val width: Double, val height: Double)
 
 /**
  * The `FontImageMapDrawer` class facilitates rendering of text based on a font image map. It handles
@@ -66,14 +72,18 @@ class FontImageMapDrawer {
      * @param text The string of text to be drawn.
      * @param x The x-coordinate of the position where the text starts.
      * @param y The y-coordinate of the position where the text starts.
+     * @param visible The visibility of the text.
+     * @param glyphOutput Optional parameter to output glyph data.
      */
     fun drawText(
         context: DrawContext,
         drawStyle: DrawStyle,
         text: String,
         x: Double,
-        y: Double
-    ) = drawTexts(context, drawStyle, listOf(text), listOf(Vector2(x, y)))
+        y: Double,
+        visible: Boolean,
+        glyphOutput: GlyphOutput?
+    ) = drawTexts(context, drawStyle, listOf(text), listOf(Vector2(x, y)), visible, glyphOutput)
 
 
     /**
@@ -85,13 +95,17 @@ class FontImageMapDrawer {
      * @param drawStyle The style to apply when drawing, including attributes such as font map, kerning, and text settings.
      * @param texts A list of strings to be drawn.
      * @param positions A list of positions where each corresponding string in the `texts` list will be drawn.
+     * @param visible The visibility of the text.
+     * @param glyphOutput Optional parameter to output glyph data.
      * @return A nested list of glyph rectangles representing the dimensions and positioning of the drawn glyphs.
      */
     fun drawTexts(
         context: DrawContext,
         drawStyle: DrawStyle,
         texts: List<String>,
-        positions: List<Vector2>
+        positions: List<Vector2>,
+        visible: Boolean,
+        glyphOutput: GlyphOutput?
     ): List<List<GlyphRectangle>> {
         val count = texts.sumOf { it.length }
         val vertices = getQueue(count)
@@ -122,7 +136,10 @@ class FontImageMapDrawer {
                         position.x + cursorX,
                         position.y + cursorY,
                         instance,
-                        drawStyle.textSetting
+                        drawStyle.textSetting,
+                        visible,
+                        glyphOutput
+
                     )
                     cursorX += glyphMetrics.advanceWidth + dx
                     lastChar = it
@@ -135,6 +152,7 @@ class FontImageMapDrawer {
     }
 
     private var queuedInstances = 0
+
     /**
      * Queues a single line of text for rendering at the specified position with the given font and settings.
      *
@@ -160,6 +178,8 @@ class FontImageMapDrawer {
         kerning: KernMode, // = KernMode.METRIC,
         textSetting: TextSettingMode,// = TextSettingMode.PIXEL,
         vertices: VertexBuffer,
+        visible: Boolean,
+        glyphOutput: GlyphOutput?
     ) {
         val bw = vertices.shadow.writer()
         bw.position = vertices.vertexFormat.size * quadCount * 6
@@ -181,7 +201,9 @@ class FontImageMapDrawer {
                     x + cursorX,
                     y + cursorY,
                     0,
-                    textSetting
+                    textSetting,
+                    visible,
+                    glyphOutput
                 )
                 cursorX += m.advanceWidth + tracking + dx
                 lastChar = it
@@ -236,8 +258,11 @@ class FontImageMapDrawer {
         cx: Double,
         cy: Double,
         instance: Int,
-        textSetting: TextSettingMode
+        textSetting: TextSettingMode,
+        visible: Boolean,
+        glyphOutput: GlyphOutput?
     ): Pair<Double, GlyphRectangle?> {
+
         val rectangle = fontMap.map[character] ?: fontMap.map[' ']
         val targetContentScale = RenderTarget.active.contentScale
         val fmcs = fontMap.contentScale.toFloat()
@@ -257,6 +282,7 @@ class FontImageMapDrawer {
 
         val glyphRectangle =
             if (rectangle != null) {
+                glyphOutput?.characters?.add(character)
                 val pad = 2.0f
                 val u0 = (rectangle.x.toFloat() - pad) / fontMap.texture.effectiveWidth
                 val u1 = (rectangle.x.toFloat() + rectangle.width.toFloat() + pad) / fontMap.texture.effectiveWidth
@@ -279,7 +305,7 @@ class FontImageMapDrawer {
 
                 val floatInstance = instance.toFloat()
 
-                if (quadCount < maxQuads) {
+                if (visible && quadCount < maxQuads) {
                     bw.apply {
                         write(u0, v0); write(s0, t0, w, h); write(x0, y0, z); write(floatInstance)
                         write(u1, v0); write(s1, t0, w, h); write(x1, y0, z); write(floatInstance)
@@ -291,6 +317,13 @@ class FontImageMapDrawer {
                     }
                     quadCount++
                 }
+                val source = Rectangle(
+                    u0 * fontMap.texture.width * 1.0, (1.0-v0) * fontMap.texture.height * 1.0,
+                    (u1 - u0) * fontMap.texture.width * 1.0, (v0 - v1) * fontMap.texture.height * 1.0
+                )
+                val target = Rectangle(x0.toDouble(), y0.toDouble(), w.toDouble(), h.toDouble())
+
+                glyphOutput?.rectangles?.add(Pair(source, target))
                 GlyphRectangle(character, x0.toDouble(), y0.toDouble(), (x1 - x0).toDouble(), (y1 - y0).toDouble())
             } else {
                 null
