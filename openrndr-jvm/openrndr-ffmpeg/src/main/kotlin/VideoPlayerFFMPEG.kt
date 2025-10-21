@@ -250,8 +250,6 @@ fun loadVideoDevice(
  * Video player based on FFMPEG
  */
 class VideoPlayerFFMPEG private constructor(
-
-
     private val audioDevice: AudioDevice?,
     private val file: AVFile,
     private val mode: PlayMode = if (audioDevice == null) PlayMode.VIDEO else PlayMode.BOTH,
@@ -586,33 +584,26 @@ class VideoPlayerFFMPEG private constructor(
                     if (decoder.audioQueue() != null) {
                         synchronized(decoder.audioQueue() ?: error("no queue")) {
                             logger.trace { "queuing audio for play. frames in queue: ${decoder.audioQueueSize()}" }
-
                             if (decoder.audioQueueSize() >= 3) {
                                 val frames = (0 until 3).map { decoder.nextAudioFrame()!! }
                                 val totalSize = frames.map { it?.size ?: 0 }.sum()
 
                                 val bb = ByteBuffer.allocateDirect(totalSize)
-                                bb.order(
-                                    ByteOrder.nativeOrder()
-                                )
-                                val ad = AudioData(
+                                bb.order(ByteOrder.nativeOrder())
+                                val audioData = AudioData(
                                     format = if (configuration.audioChannels == 1) AudioFormat.MONO_16 else AudioFormat.STEREO_16,
                                     buffer = bb,
                                     rate = audioOutput?.sampleRate ?: error("no audio output")
                                 )
 
                                 for (frame in frames) {
-
                                     val data = frame.buffer.data()
                                     data.capacity(frame.size.toLong())
-
                                     bb.put(data.asByteBuffer())
-
-
                                     frame.unref()
                                 }
                                 bb.rewind()
-                                ad
+                                audioData
                             } else {
                                 //logger.info { "no audio packets from upstream: [audio queue size: ${decoder.audioQueueSize()}] [video queue size: ${decoder.videoQueueSize()}]" }
                                 null
@@ -631,14 +622,11 @@ class VideoPlayerFFMPEG private constructor(
 
                 while (!disposed) {
                     Thread.sleep(1)
-
                 }
                 audioOut?.dispose()
                 audioOut = null
                 audioContext?.close()
-
             }
-
         }
 
         decoder.displayQueueFull = { displayQueue.size() >= displayQueue.maxSize - 1 }
@@ -657,8 +645,6 @@ class VideoPlayerFFMPEG private constructor(
         if (mode.useVideo) {
             displayThread = thread(isDaemon = true) {
                 Thread.currentThread().name += "(display)"
-
-
                 while (!disposed) {
                     if (state != State.PLAYING) {
                         Thread.sleep(3)
@@ -667,9 +653,7 @@ class VideoPlayerFFMPEG private constructor(
 
                     if (seekRequested) {
                         logger.debug { "performing seek to $seekPosition" }
-
                         decoder.seek(seekPosition)
-
                         synchronized(displayQueue) {
                             logger.debug { "flushing display queue" }
                             while (!displayQueue.isEmpty()) {
@@ -781,7 +765,6 @@ class VideoPlayerFFMPEG private constructor(
 
     var first = true
     private fun update(blockUntilFinished: Boolean) {
-
         do {
             if (state == State.STOPPED || state == State.PAUSED) {
                 return
@@ -924,14 +907,8 @@ class VideoPlayerFFMPEG private constructor(
      */
     @Suppress("unused")
     fun draw(drawer: Drawer, blind: Boolean = false, update: Boolean = true, blockUntilFinished: Boolean = false) {
-        require(!disposed)
-        if (update) {
-            update(blockUntilFinished)
-        }
-        colorBuffer?.let {
-            if (!blind) {
-                drawer.image(it)
-            }
+        draw(blind, update, blockUntilFinished) {
+            drawer.image(it)
         }
     }
 
@@ -951,14 +928,8 @@ class VideoPlayerFFMPEG private constructor(
         update: Boolean = true,
         blockUntilFinished: Boolean = false
     ) {
-        require(!disposed)
-        if (update) {
-            update(blockUntilFinished)
-        }
-        colorBuffer?.let {
-            if (!blind) {
-                drawer.image(it, x, y, width, height)
-            }
+        draw(blind, update, blockUntilFinished) {
+            drawer.image(it, x, y, width, height)
         }
     }
 
@@ -976,13 +947,19 @@ class VideoPlayerFFMPEG private constructor(
         target: Rectangle,
         blind: Boolean = false, update: Boolean = true, blockUntilFinished: Boolean = false
     ) {
+        draw(blind, update, blockUntilFinished) {
+            drawer.image(it, source, target)
+        }
+    }
+
+    fun draw(blind: Boolean = false, update: Boolean = true, blockUntilFinished: Boolean = true, drawFunction: (ColorBuffer) -> Unit) {
         require(!disposed)
         if (update) {
             update(blockUntilFinished)
         }
         colorBuffer?.let {
             if (!blind) {
-                drawer.image(it, source, target)
+                drawFunction(it)
             }
         }
     }
@@ -1010,7 +987,6 @@ class VideoPlayerFFMPEG private constructor(
 
         colorBuffer?.destroy()
         file.dispose()
-
     }
 }
 
