@@ -133,7 +133,7 @@ class ApplicationWebGL(override var program: Program, override var configuration
         }
 
         // Keyboard
-        window.addEventListener(EventType("keydown"), {
+        canvas?.addEventListener(EventType("keydown"), {
             it as HtmlKeyboardEvent
             program.keyboard.keyDown.trigger(
                 KeyEvent(
@@ -145,7 +145,7 @@ class ApplicationWebGL(override var program: Program, override var configuration
             )
         })
 
-        window.addEventListener(EventType("keyup"), {
+        canvas?.addEventListener(EventType("keyup"), {
             it as HtmlKeyboardEvent
             program.keyboard.keyUp.trigger(
                 KeyEvent(
@@ -160,11 +160,11 @@ class ApplicationWebGL(override var program: Program, override var configuration
         // Mouse
         var lastDragPosition = Vector2.ZERO
         var down = false
-        window.addEventListener(EventType("mousedown"), {
+        canvas?.addEventListener(EventType("mousedown"), {
             it as HtmlMouseEvent
             down = true
-            val x = it.clientX.toDouble()
-            val y = it.clientY.toDouble()
+            val x = it.offsetX
+            val y = it.offsetY
             lastDragPosition = Vector2(x, y)
 
             program.mouse.buttonDown.trigger(
@@ -183,7 +183,7 @@ class ApplicationWebGL(override var program: Program, override var configuration
             )
         })
 
-        window.addEventListener(EventType("mouseup"), {
+        canvas?.addEventListener(EventType("mouseup"), {
             it as HtmlMouseEvent
             down = false
 
@@ -203,7 +203,7 @@ class ApplicationWebGL(override var program: Program, override var configuration
             )
         })
 
-        window.addEventListener(EventType("wheel"), {
+        canvas?.addEventListener(EventType("wheel"), {
             it as WheelEvent
             program.mouse.scrolled.trigger(
                 MouseEvent(
@@ -217,10 +217,10 @@ class ApplicationWebGL(override var program: Program, override var configuration
             )
         })
 
-        window.addEventListener(EventType("pointermove"), {
+        canvas?.addEventListener(EventType("pointermove"), {
             it as HtmlMouseEvent
-            val x = it.clientX.toDouble()
-            val y = it.clientY.toDouble()
+            val x = it.offsetX
+            val y = it.offsetY
             this.cursorPosition = Vector2(x, y)
             program.mouse.moved.trigger(
                 MouseEvent(
@@ -234,11 +234,11 @@ class ApplicationWebGL(override var program: Program, override var configuration
             )
         })
 
-        window.addEventListener(EventType("mousemove"), {
+        canvas?.addEventListener(EventType("mousemove"), {
             if (down) {
                 it as HtmlMouseEvent
-                val x = it.clientX.toDouble()
-                val y = it.clientY.toDouble()
+                val x = it.offsetX
+                val y = it.offsetY
                 this.cursorPosition = Vector2(x, y)
                 program.mouse.dragged.trigger(
                     MouseEvent(
