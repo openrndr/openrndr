@@ -183,6 +183,10 @@ class ApplicationWebGL(override var program: Program, override var configuration
             )
         })
 
+        canvas?.addEventListener(EventType("contextmenu"), {
+            it.preventDefault()
+        })
+
         canvas?.addEventListener(EventType("mouseup"), {
             it as HtmlMouseEvent
             down = false
