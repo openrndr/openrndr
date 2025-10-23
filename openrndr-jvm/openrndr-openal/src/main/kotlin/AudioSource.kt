@@ -16,6 +16,7 @@ open class AudioSource(protected val source: Int, val context: AudioContext) : A
 
     var position: Vector3 = Vector3(0.0, 0.0, 0.0)
         set(value) {
+            context.makeCurrent()
             AL11.alSource3f(source, AL_POSITION, value.x.toFloat(), value.y.toFloat(), value.z.toFloat())
             checkALError()
             field = value
@@ -23,6 +24,7 @@ open class AudioSource(protected val source: Int, val context: AudioContext) : A
 
     var velocity: Vector3 = Vector3(0.0, 0.0, 0.0)
         set(value) {
+            context.makeCurrent()
             AL11.alSource3f(source, AL_VELOCITY, value.x.toFloat(), value.y.toFloat(), value.z.toFloat())
             checkALError()
             field = value
@@ -30,6 +32,7 @@ open class AudioSource(protected val source: Int, val context: AudioContext) : A
 
     var direction: Vector3 = Vector3(0.0, 0.0, 0.0)
         set(value) {
+            context.makeCurrent()
             AL11.alSource3f(source, AL_DIRECTION, value.x.toFloat(), value.y.toFloat(), value.z.toFloat())
             checkALError()
             field = value
@@ -37,7 +40,9 @@ open class AudioSource(protected val source: Int, val context: AudioContext) : A
 
 
     override fun close() {
-        logger.info { "closing audio source"}
+        context.makeCurrent()
+        logger.debug { "Closing audio source"}
         AL11.alDeleteSources(source)
+        checkALError("alDeleteSources")
     }
 }
