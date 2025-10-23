@@ -57,7 +57,7 @@ class AudioContext(val device: AudioDevice, val alContext: Long, val pan: Double
 
     override fun close() {
         synchronized(this) {
-            logger.info { "closing AudioContext" }
+            logger.debug { "Closing AudioContext" }
             val currentContext = ALC11.alcGetCurrentContext()
             if (currentContext == alContext) {
                 ALC11.alcMakeContextCurrent(0L)
@@ -65,7 +65,6 @@ class AudioContext(val device: AudioDevice, val alContext: Long, val pan: Double
             }
             ALC11.alcDestroyContext(alContext)
             checkALCError(device.alDevice)
-            ALC11.alcMakeContextCurrent(currentContext)
             disposed = true
         }
     }

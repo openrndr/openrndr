@@ -48,7 +48,7 @@ class AudioQueueSource(
             Thread.currentThread().name = "AudioQueueSource-${context.alContext}"
             context.makeCurrent()
 
-            logger.info { "starting play" }
+            logger.debug { "Starting play" }
             checkALError("play: pre-existing error")
 
 
@@ -104,7 +104,7 @@ class AudioQueueSource(
                     }
                 }
 
-                while (queued <= bufferCount && !inputQueue.isEmpty()) {
+                while (queued < bufferCount && !inputQueue.isEmpty()) {
                     context.makeCurrent()
                     val data = inputQueue.pop()
                     val buffer = buffers[bufferIndex.mod(buffers.size)]
@@ -126,12 +126,12 @@ class AudioQueueSource(
                     logger.debug { "restarting play" }
                     playing = true
                     AL11.alSourcePlay(source)
-                    checkALError()
+                    checkALError("alSourcePlay")
 
                 }
                 Thread.sleep(0)
             }
-            logger.info { "Stopped play" }
+            logger.debug { "Stopped play" }
             context.removeCurrent()
 //            for (buffer in buffers) {
 //                alDeleteBuffers(buffer)
@@ -141,20 +141,21 @@ class AudioQueueSource(
     }
 
     fun stop() {
+        context.makeCurrent()
         checkALError("pre-existing error")
         flush()
     }
 
     fun pause() {
-        checkALError("pre-existing error")
         context.makeCurrent()
+        checkALError("pre-existing error")
         AL11.alSourcePause(source)
         checkALError()
     }
 
     fun flush() {
         context.makeCurrent()
-        logger.info { "flushing" }
+        logger.debug { "Flushing" }
         checkALError("pre-existing error", exception = false)
         while (!inputQueue.isEmpty()) inputQueue.pop()
         AL11.alSourceStop(source)
@@ -172,7 +173,7 @@ class AudioQueueSource(
     }
 
     fun dispose() {
-        logger.info { "Disposing audio queue source" }
+        logger.debug { "Disposing audio queue source" }
         if (disposed.get()) {
             error("Already disposed")
         }
@@ -182,7 +183,7 @@ class AudioQueueSource(
         disposed.set(true)
 
         if (playThread != null) {
-            logger.info { "Waiting for play thread to stop" }
+            logger.debug { "Waiting for play thread to stop" }
             playThread?.join()
         }
 
@@ -198,6 +199,5 @@ class AudioQueueSource(
             }
             outputQueue.clear()
         }
-
     }
 }

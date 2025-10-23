@@ -10,11 +10,11 @@ class AudioDevice(val alDevice: Long, val pan: Double)  : AutoCloseable {
     var alCaps: ALCapabilities? = null
 
     fun createContext(): AudioContext {
-        logger.info { "creating context" }
+        logger.debug { "Creating context" }
         val attributes = IntArray(1)
         val context = ALC11.alcCreateContext(alDevice, attributes).apply {
             checkALCError(alDevice, "alc create context")
-            logger.info { "making context ${this} current" }
+            logger.debug { "Making context ${this} current" }
             ALC11.alcMakeContextCurrent(this)
             checkALCError(alDevice,"alc make context current")
         }
