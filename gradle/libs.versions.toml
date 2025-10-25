@@ -1,7 +1,7 @@
 [versions]
 kotlinApi = "2.2"
 kotlinLanguage = "2.2"
-kotlin = "2.2.20"
+kotlin = "2.2.21"
 jvmTarget = "17"
 kotlinxCoroutines = "1.10.2"
 kotlinLogging = "7.0.13"
@@ -15,7 +15,7 @@ ffmpeg = "7.1.1-1.5.12"
 junitJupiter = "5.13.4"
 kotest = "6.0.0"
 slf4j = "2.0.17"
-nmcp = "1.1.0"
+nmcp = "1.2.0"
 
 [libraries]
 kotlin-logging = { group = "io.github.oshai", name = "kotlin-logging", version.ref = "kotlinLogging" }
