@@ -546,159 +546,167 @@ class VideoPlayerFFMPEG private constructor(
     fun play() {
         timeOffset = clock()
         require(!disposed)
-        require(state == State.INITIALIZE)
 
-        logger.debug { "start play" }
-        file.dumpFormat()
-        av_format_inject_global_side_data(file.context)
+        if (state == State.INITIALIZE) {
 
-        val (decoder, info) =
-            Decoder.fromContext(statistics, configuration, file.context, mode.useVideo, mode.useAudio)
+            logger.debug { "start play" }
+            file.dumpFormat()
+            av_format_inject_global_side_data(file.context)
 
-        this.decoder = decoder
-        this.info = info
+            val (decoder, info) =
+                Decoder.fromContext(statistics, configuration, file.context, mode.useVideo, mode.useAudio)
 
-        this.info?.video?.let {
-            val type = if (configuration.allowSRGB) ColorType.UINT8_SRGB else ColorType.UINT8
-            colorBuffer = colorBuffer(it.size.w, it.size.h, type = type).apply {
-                flipV = true
-                fill(ColorRGBa.TRANSPARENT, 0)
+            this.decoder = decoder
+            this.info = info
+
+            this.info?.video?.let {
+                val type = if (configuration.allowSRGB) ColorType.UINT8_SRGB else ColorType.UINT8
+                colorBuffer = colorBuffer(it.size.w, it.size.h, type = type).apply {
+                    flipV = true
+                    fill(ColorRGBa.TRANSPARENT, 0)
+                }
             }
-        }
-        val videoOutput = VideoOutput(info.video?.size ?: Dimensions(0, 0), AV_PIX_FMT_RGB32)
+            val videoOutput = VideoOutput(info.video?.size ?: Dimensions(0, 0), AV_PIX_FMT_RGB32)
 
-        logger.debug { "starting sound with ${configuration.audioChannels}" }
+            logger.debug { "starting sound with ${configuration.audioChannels}" }
 
-        val useAudio = mode.useAudio && info.audio != null && audioDevice != null
+            val useAudio = mode.useAudio && info.audio != null && audioDevice != null
 
-        val audioOutput = if (useAudio) AudioOutput(48000, configuration.audioChannels, SampleFormat.S16) else null
-        av_format_inject_global_side_data(file.context)
+            val audioOutput = if (useAudio) AudioOutput(48000, configuration.audioChannels, SampleFormat.S16) else null
+            av_format_inject_global_side_data(file.context)
 
-        if (useAudio) {
-            audioThread = thread(isDaemon = true) {
-                audioContext = audioDevice?.createContext()
-                Thread.currentThread().name = "Audio-${audioContext?.alContext}"
-                logger.debug { "starting thread" }
-                audioContext?.makeCurrent()
-                audioOut = audioContext?.createQueueSource {
-                    if (decoder.audioQueue() != null) {
-                        synchronized(decoder.audioQueue() ?: error("no queue")) {
-                            logger.trace { "queuing audio for play. frames in queue: ${decoder.audioQueueSize()}" }
-                            if (decoder.audioQueueSize() >= 3) {
-                                val frames = (0 until 3).map { decoder.nextAudioFrame()!! }
-                                val totalSize = frames.map { it?.size ?: 0 }.sum()
+            if (useAudio) {
+                audioThread = thread(isDaemon = true) {
+                    audioContext = audioDevice?.createContext()
+                    Thread.currentThread().name = "Audio-${audioContext?.alContext}"
+                    logger.debug { "starting thread" }
+                    audioContext?.makeCurrent()
+                    audioOut = audioContext?.createQueueSource {
+                        if (decoder.audioQueue() != null) {
+                            synchronized(decoder.audioQueue() ?: error("no queue")) {
+                                logger.trace { "queuing audio for play. frames in queue: ${decoder.audioQueueSize()}" }
+                                if (decoder.audioQueueSize() >= 3) {
+                                    val frames = (0 until 3).map { decoder.nextAudioFrame()!! }
+                                    val totalSize = frames.map { it?.size ?: 0 }.sum()
 
-                                val bb = ByteBuffer.allocateDirect(totalSize)
-                                bb.order(ByteOrder.nativeOrder())
-                                val audioData = AudioData(
-                                    format = if (configuration.audioChannels == 1) AudioFormat.MONO_16 else AudioFormat.STEREO_16,
-                                    buffer = bb,
-                                    rate = audioOutput?.sampleRate ?: error("no audio output")
-                                )
+                                    val bb = ByteBuffer.allocateDirect(totalSize)
+                                    bb.order(ByteOrder.nativeOrder())
+                                    val audioData = AudioData(
+                                        format = if (configuration.audioChannels == 1) AudioFormat.MONO_16 else AudioFormat.STEREO_16,
+                                        buffer = bb,
+                                        rate = audioOutput?.sampleRate ?: error("no audio output")
+                                    )
 
-                                for (frame in frames) {
-                                    val data = frame.buffer.data()
-                                    data.capacity(frame.size.toLong())
-                                    bb.put(data.asByteBuffer())
-                                    frame.unref()
-                                }
-                                bb.rewind()
-                                audioData
-                            } else {
-                                //logger.info { "no audio packets from upstream: [audio queue size: ${decoder.audioQueueSize()}] [video queue size: ${decoder.videoQueueSize()}]" }
-                                null
-                            }
-                        }
-                    } else {
-                        null
-                    }
-                }
-
-                audioOut?.play()
-
-                audioOut?.let { ao ->
-                    decoder.audioOutQueueFull = { ao.outputQueueFull }
-                }
-
-                while (!disposed) {
-                    Thread.sleep(1)
-                }
-                audioOut?.dispose()
-                audioOut = null
-                audioContext?.close()
-            }
-        }
-
-        decoder.displayQueueFull = { displayQueue.size() >= displayQueue.maxSize - 1 }
-
-        thread(isDaemon = true) {
-            Thread.currentThread().name += "(decoder)"
-            decoder.start(videoOutput.toVideoDecoderOutput(), audioOutput?.toAudioDecoderOutput())
-        }
-        startTimeMillis = System.currentTimeMillis()
-
-        decoder.reachedEndOfFile = {
-            logger.debug { "end of file reached" }
-            endOfFileReached = true
-        }
-
-        if (mode.useVideo) {
-            displayThread = thread(isDaemon = true) {
-                Thread.currentThread().name += "(display)"
-                while (!disposed) {
-                    if (state != State.PLAYING) {
-                        Thread.sleep(3)
-                        continue
-                    }
-
-                    if (seekRequested) {
-                        logger.debug { "performing seek to $seekPosition" }
-                        decoder.seek(seekPosition)
-                        synchronized(displayQueue) {
-                            logger.debug { "flushing display queue" }
-                            while (!displayQueue.isEmpty()) {
-                                displayQueue.pop().unref()
-                            }
-                        }
-                        audioOut?.flush()
-                        seekRequested = false
-                    }
-
-                    if (displayQueue.size() < displayQueue.maxSize - 1) {
-                        val frame = decoder.nextVideoFrame()
-                        if (frame != null) {
-                            logger.trace { "time stamp: ${frame.timeStamp}" }
-
-                            synchronized(displayQueue) {
-                                if (!frame.buffer.isNull) {
-                                    displayQueue.push(frame)
+                                    for (frame in frames) {
+                                        val data = frame.buffer.data()
+                                        data.capacity(frame.size.toLong())
+                                        bb.put(data.asByteBuffer())
+                                        frame.unref()
+                                    }
+                                    bb.rewind()
+                                    audioData
                                 } else {
-                                    logger.error { "encountered frame with null buffer in play()" }
-                                    frame.unref()
+                                    //logger.info { "no audio packets from upstream: [audio queue size: ${decoder.audioQueueSize()}] [video queue size: ${decoder.videoQueueSize()}]" }
+                                    null
                                 }
                             }
-                        }
-                    } else {
-                        if (configuration.allowFrameSkipping) {
-                            synchronized(displayQueue) {
-                                val playPosition = clock() - timeOffset
-                                val frame = displayQueue.peek()
-                                if (frame != null && frame.timeStamp + 0.5 < playPosition) {
-                                    logger.debug { "cleaning display queue ${frame.timeStamp} ${playPosition}" }
-                                    displayQueue.pop()
-                                    frame.unref()
-                                }
-                            }
+                        } else {
+                            null
                         }
                     }
-                    Thread.sleep(3)
-                }
-                logger.debug {
-                    """display thread ended"""
+
+                    audioOut?.play()
+
+                    audioOut?.let { ao ->
+                        decoder.audioOutQueueFull = { ao.outputQueueFull }
+                    }
+
+                    while (!disposed) {
+                        Thread.sleep(1)
+                    }
+                    audioOut?.dispose()
+                    audioOut = null
+                    audioContext?.close()
                 }
             }
 
+            decoder.displayQueueFull = { displayQueue.size() >= displayQueue.maxSize - 1 }
+
+            thread(isDaemon = true) {
+                Thread.currentThread().name += "(decoder)"
+                decoder.start(videoOutput.toVideoDecoderOutput(), audioOutput?.toAudioDecoderOutput())
+            }
+            startTimeMillis = System.currentTimeMillis()
+
+            decoder.reachedEndOfFile = {
+                logger.debug { "decoder: end of file reached" }
+                endOfFileReached = true
+            }
+
+            if (mode.useVideo) {
+                displayThread = thread(isDaemon = true) {
+                    Thread.currentThread().name += "(display)"
+                    while (!disposed) {
+                        if (state != State.PLAYING) {
+                            Thread.sleep(3)
+                            continue
+                        }
+
+                        if (seekRequested) {
+                            logger.debug { "performing seek to $seekPosition" }
+                            decoder.seek(seekPosition)
+                            synchronized(displayQueue) {
+                                logger.debug { "flushing display queue" }
+                                while (!displayQueue.isEmpty()) {
+                                    displayQueue.pop().unref()
+                                }
+                            }
+                            audioOut?.flush()
+                            seekRequested = false
+                        }
+
+                        if (displayQueue.size() < displayQueue.maxSize - 1) {
+                            val frame = decoder.nextVideoFrame()
+                            if (frame != null) {
+                                logger.trace { "time stamp: ${frame.timeStamp}" }
+
+                                synchronized(displayQueue) {
+                                    if (!frame.buffer.isNull) {
+                                        displayQueue.push(frame)
+                                    } else {
+                                        logger.error { "encountered frame with null buffer in play()" }
+                                        frame.unref()
+                                    }
+                                }
+                            }
+                        } else {
+                            if (configuration.allowFrameSkipping) {
+                                synchronized(displayQueue) {
+                                    val playPosition = clock() - timeOffset
+                                    val frame = displayQueue.peek()
+                                    if (frame != null && frame.timeStamp + 0.5 < playPosition) {
+                                        logger.debug { "cleaning display queue ${frame.timeStamp} ${playPosition}" }
+                                        displayQueue.pop()
+                                        frame.unref()
+                                    }
+                                }
+                            }
+                        }
+                        Thread.sleep(3)
+                    }
+                    logger.debug {
+                        """display thread ended"""
+                    }
+                }
+
+            }
+
+
         }
+        logger.debug { "setting state to playing" }
+        endOfFileReached = false
+        resetVideoTime = true
+        first = true
         state = State.PLAYING
     }
 
@@ -716,7 +724,6 @@ class VideoPlayerFFMPEG private constructor(
         state = state.transition(State.PAUSED, State.PLAYING) {
             resetVideoTime = true
             audioOut?.resume()
-
         }
     }
 
@@ -765,9 +772,9 @@ class VideoPlayerFFMPEG private constructor(
 
     var first = true
     private fun update(blockUntilFinished: Boolean) {
-        do {
+        waitForFrame@do {
             if (state == State.STOPPED || state == State.PAUSED) {
-                return
+                break@waitForFrame
             }
 
             if (state == State.PLAYING) {
@@ -826,10 +833,10 @@ class VideoPlayerFFMPEG private constructor(
                         val playPosition = clock() - timeOffset
 
 
-                        while (true) {
+                        processFrame@while (true) {
                             frame = displayQueue.peek()
                             if (frame == null) {
-                                break
+                                break@processFrame
                             }
 
                             if (seekCompleted) {
@@ -879,23 +886,25 @@ class VideoPlayerFFMPEG private constructor(
                                     }
                                 }
                                 frame.unref()
-                                break
+                                break@processFrame
                             } else {
-                                break
+                                break@processFrame
                             }
                         }
-                        break
+
+                        if (endOfFileReached && displayQueue.isEmpty() && (decoder?.videoQueueSize() ?: 0) == 0) {
+                            if (state == State.PLAYING) {
+                                logger.debug { "stopping playback" }
+                                ended.trigger(VideoEvent())
+                                state = State.STOPPED
+                            }
+                        }
+                        break@waitForFrame
                     }
                 }
             }
 
-            if (endOfFileReached && displayQueue.isEmpty() && (decoder?.videoQueueSize() ?: 0) == 0) {
-                if (state == State.PLAYING) {
-                    logger.debug { "stopping playback" }
-                    ended.trigger(VideoEvent())
-                    state = State.STOPPED
-                }
-            }
+
 
         } while (blockUntilFinished)
     }
@@ -952,7 +961,12 @@ class VideoPlayerFFMPEG private constructor(
         }
     }
 
-    fun draw(blind: Boolean = false, update: Boolean = true, blockUntilFinished: Boolean = true, drawFunction: (ColorBuffer) -> Unit) {
+    fun draw(
+        blind: Boolean = false,
+        update: Boolean = true,
+        blockUntilFinished: Boolean = true,
+        drawFunction: (ColorBuffer) -> Unit
+    ) {
         require(!disposed)
         if (update) {
             update(blockUntilFinished)
