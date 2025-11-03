@@ -173,7 +173,6 @@ class VideoStatistics {
     var packetQueueSize = 0
     var videoBytesReceived = 0L
     var videoDecodeDuration = 0L
-    var videoLastFrame = System.currentTimeMillis()
 }
 
 class VideoPlayerConfiguration {
@@ -189,10 +188,7 @@ class VideoPlayerConfiguration {
     var maximumSeekOffset = 0.0
     var allowArbitrarySeek = false
     var synchronizeToClock = true
-
     var audioChannels = 2
-
-
 }
 
 private object DefaultLogger : Callback_Pointer_int_String_Pointer() {
@@ -475,6 +471,7 @@ class VideoPlayerFFMPEG private constructor(
          * @param configuration optional video player configuration
          * @return a ready-to-play video player on success
          */
+        @Suppress("unused")
         fun fromScreen(
             audioDevice: AudioDevice?,
             screenName: String = defaultScreenDevice(),
@@ -535,7 +532,6 @@ class VideoPlayerFFMPEG private constructor(
 
     private var disposed = false
 
-
     private var timeOffset = 0.0
     private var audioOffset = 0.0
 
@@ -582,7 +578,7 @@ class VideoPlayerFFMPEG private constructor(
 
             if (useAudio) {
                 audioThread = thread(isDaemon = true) {
-                    audioContext = audioDevice?.createContext()
+                    audioContext = audioDevice.createContext()
                     Thread.currentThread().name = "Audio-${audioContext?.alContext}"
                     logger.debug { "starting thread" }
                     audioContext?.makeCurrent()
@@ -592,7 +588,7 @@ class VideoPlayerFFMPEG private constructor(
                                 logger.trace { "queuing audio for play. frames in queue: ${decoder.audioQueueSize()}" }
                                 if (decoder.audioQueueSize() >= 3) {
                                     val frames = (0 until 3).map { decoder.nextAudioFrame()!! }
-                                    val totalSize = frames.map { it?.size ?: 0 }.sum()
+                                    val totalSize = frames.sumOf { it.size }
 
                                     val bb = ByteBuffer.allocateDirect(totalSize)
                                     bb.order(ByteOrder.nativeOrder())
@@ -999,6 +995,7 @@ class VideoPlayerFFMPEG private constructor(
 
         colorBuffer?.destroy()
         file.dispose()
+        state = State.DISPOSED
     }
 }
 
