@@ -37,8 +37,8 @@ class AudioContext(val device: AudioDevice, val alContext: Long, val pan: Double
     }
 
     fun createQueueSource(
-        bufferCount: Int = 100,
-        queueSize: Int = 20,
+        bufferCount: Int = 3,
+        queueSize: Int = 3,
         pullFunction: (() -> AudioData?)? = null
     ): AudioQueueSource {
         makeCurrent()
