@@ -572,7 +572,12 @@ class VideoPlayerFFMPEG private constructor(
 
             val useAudio = mode.useAudio && info.audio != null && audioDevice != null
 
-            val audioOutput = if (useAudio) AudioOutput(48000, configuration.audioChannels, SampleFormat.S16) else null
+            val audioOutput =
+                if (useAudio)
+                    AudioOutput(48000, configuration.audioChannels, SampleFormat.S16)
+                else
+                    null
+
             av_format_inject_global_side_data(file.context)
 
             if (useAudio) {
@@ -769,10 +774,9 @@ class VideoPlayerFFMPEG private constructor(
         }
     }
 
-
     var first = true
     private fun update(blockUntilFinished: Boolean) {
-        waitForFrame@do {
+        waitForFrame@ do {
             if (state == State.STOPPED || state == State.PAUSED) {
                 break@waitForFrame
             }
@@ -828,12 +832,9 @@ class VideoPlayerFFMPEG private constructor(
                                 timeOffset = clock() - audioPosition
                             }
                         }
-
-
                         val playPosition = clock() - timeOffset
 
-
-                        processFrame@while (true) {
+                        processFrame@ while (true) {
                             frame = displayQueue.peek()
                             if (frame == null) {
                                 break@processFrame
@@ -903,9 +904,6 @@ class VideoPlayerFFMPEG private constructor(
                     }
                 }
             }
-
-
-
         } while (blockUntilFinished)
     }
 

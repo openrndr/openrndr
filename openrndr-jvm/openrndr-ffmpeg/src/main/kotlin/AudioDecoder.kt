@@ -51,6 +51,7 @@ internal class AudioDecoder(
     private val audioCodecContext: AVCodecContext,
     val output: AudioDecoderOutput
 ) {
+    private var firstSwr = true
     private val audioFrame = av_frame_alloc()
 
     private val resampleContext: SwrContext = swr_alloc() //= swr_alloc()
@@ -156,15 +157,13 @@ internal class AudioDecoder(
             resampledAudioFrame.format(AV_SAMPLE_FMT_S16)
             resampledAudioFrame.ch_layout(output.channelLayout)
 
-            swr_config_frame(resampleContext, resampledAudioFrame, decodedFrame)
+            if (firstSwr) {
+                swr_config_frame(resampleContext, resampledAudioFrame, decodedFrame)
+                firstSwr = false
+            }
             val result = swr_convert_frame(resampleContext, resampledAudioFrame, decodedFrame)
             if (result == 0) {
-
-                val audioFrameSize =
-                    av_samples_get_buffer_size(
-                        null as IntPointer?, resampledAudioFrame.ch_layout().nb_channels(),
-                        resampledAudioFrame.nb_samples(), resampledAudioFrame.format(), 0
-                    )
+                val audioFrameSize = resampledAudioFrame.ch_layout().nb_channels() * resampledAudioFrame.nb_samples() * av_get_bytes_per_sample(resampledAudioFrame.format())
 
                 val buffer = av_buffer_alloc(audioFrameSize.toLong())
                 val ts = (resampledAudioFrame.best_effort_timestamp()) * av_q2d(audioCodecContext.time_base())
