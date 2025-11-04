@@ -4,7 +4,7 @@ import org.openrndr.ffmpeg.MetadataRetriever
 /**
  * Demonstrate how to use [MetadataRetriever] to query metadata from a media file.
  * typically used with video files, but works also with audio files or images.
- *
+ *a
  */
 fun main() = application {
     program {
