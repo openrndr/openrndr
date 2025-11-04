@@ -70,10 +70,7 @@ VERTICES.forEach(v -> System.out.println(VERTICES.indexOf(v) + " " + v));
 
         //graph.vertices().forEach(v -> System.out.println(VERTICES.indexOf(v) + " " + graph.out(v).stream().map(VERTICES::indexOf).collect(Lists.linearCollector())));
         if (i > 0) {
-            for (path in repairGraph(
-                graph,
-                (pa + pb) - arcs - consumed
-            )) {
+            for (path in repairGraph(graph, (pa + pb) - arcs - consumed)) {
                 for (arc in path) {
                     // if the graph currently contains the arc, remove it
                     if (arcs.contains(arc)) {
@@ -83,7 +80,6 @@ VERTICES.forEach(v -> System.out.println(VERTICES.indexOf(v) + " " + v));
 
                         // if the graph doesn't contain the arc, add it
                     } else {
-                        //describe("add", arc.vertices());
                         graph.link(arc.head(), arc.tail(), mutableSetOf(arc))
                         arcs.add(arc)
                     }
@@ -106,16 +102,14 @@ VERTICES.forEach(v -> System.out.println(VERTICES.indexOf(v) + " " + v));
 
         // extract as many cycles as possible without using the same arc twice
         for (cycle in cycles) {
-            //describe("cycle", cycle.stream().map(Arc::vertices).toArray(IList[]::new));
-            if (cycle.any { value -> consumed.contains(value) }
-            ) {
+            if (cycle.any { value -> consumed.contains(value) }) {
                 continue
             }
             cycle.forEach { value -> consumed.add(value) }
             result.add(ring(cycle))
         }
         arcs = (arcs - consumed).toMutableSet()
-        if (arcs.size == 0) {
+        if (arcs.isEmpty()) {
             break
         }
     }
@@ -133,7 +127,20 @@ private fun isTop(c: Curve2): Boolean {
     } else delta < 0
 }
 
-
+/**
+ * Classifies the relationship between a given arc and its position relative to a region.
+ *
+ * The classification is determined based on whether a point on the arc is inside or outside the region,
+ * whether the arc shares the same edge as the region, or if it lies on a different edge.
+ *
+ * @param region The region against which the arc is being classified.
+ * @param arc The arc whose relationship to the region needs to be determined.
+ * @return A classification of type [Type] representing the relationship of the arc to the region:
+ *         - OUTSIDE: The arc lies outside the region.
+ *         - INSIDE: The arc lies inside the region.
+ *         - SAME_EDGE: The arc coincides with the same edge of the region.
+ *         - DIFF_EDGE: The arc coincides with a different edge of the region.
+ */
 private fun classify(
     region: Region2,
     arc: Arc
@@ -197,6 +204,17 @@ private fun partition(
 
 private val SHORTEST_ARC = { x: Arc, y: Arc -> if (x.length() < y.length()) x else y }
 
+/**
+ * Attempts to repair the provided directed graph by pairing unused arcs with the existing graph to create valid paths.
+ * The function aims to balance the flow of arcs into and out of vertices while minimizing their total length.
+ *
+ * @param graph The directed graph representing the existing structure, where vertices are `Vec2` objects,
+ *              and edges are sets of `Arc` objects.
+ * @param unused A collection of `Arc` objects that are not currently used in the graph.
+ * @return A list of paths, where each path is a list of `Arc` objects representing the shortest possible sequences
+ *         of unused arcs integrated with the original graph. If a valid solution cannot be generated, it returns
+ *         the shortest aggregate pairing of paths.
+ */
 private fun repairGraph(
     graph: DirectedGraph<Vec2, Set<Arc>>,
     unused: Iterable<Arc>
@@ -216,8 +234,6 @@ private fun repairGraph(
         search.link(arc.tail(), arc.head(), arc, SHORTEST_ARC)
     }
 
-    //search.vertices().forEach(v -> System.out.println(VERTICES.indexOf(v) + " " + search.out(v).stream().map(VERTICES::indexOf).collect(Lists.linearCollector())));
-    //graph.vertices().forEach(v -> System.out.println(VERTICES.indexOf(v) + " " + graph.out(v).stream().map(VERTICES::indexOf).collect(Lists.linearCollector())));
     val `in` = graph.vertices()
         .filter { v -> graph.`in`(v).isEmpty() }.toSet()
     val out = graph.vertices()
@@ -254,6 +270,15 @@ private fun repairGraph(
     // possible we won't find a single workable solution this time around.
 }
 
+/**
+ * Finds optimal pairings between vertices in the provided graph by computing shortest paths.
+ *
+ * @param graph The directed graph consisting of vertices of type `Vec2` and edges of type `Arc`.
+ * @param out A list of vertices from which to start finding pairings.
+ * @param in A set of vertices to target during the pairing process.
+ * @return A list of lists, where each inner list contains edges (`Arc`) forming the pairing paths between the vertices.
+ * Returns an empty list if no valid pairing paths can be found.
+ */
 private fun greedyPairing(
     graph: DirectedGraph<Vec2, Arc>,
     out: List<Vec2>,

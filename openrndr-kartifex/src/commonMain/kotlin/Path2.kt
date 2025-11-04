@@ -35,6 +35,13 @@ data class Path2(
 }
 
 
+/**
+ * Constructs a `Path2` instance from a collection of 2D parametric curves, ensuring the curves are continuous in sequence
+ * and adjusting the bounding box and ring status accordingly.
+ *
+ * @param cs An iterable collection of `Curve2` objects that define the path.
+ * @return A new `Path2` object representing the sequence of curves, along with its bounding box and ring status.
+ */
 fun Path2(cs: Iterable<Curve2>): Path2 {
     val l = ArrayDeque<Curve2>()
     var bounds = Box2.EMPTY
