@@ -56,7 +56,7 @@ internal class AudioDecoder(
 
     private val resampleContext: SwrContext = swr_alloc() //= swr_alloc()
     private val minAudioFrames = 10
-    private val maxAudioFrames = 90
+    private val maxAudioFrames = 55
 
     internal val audioQueue = Queue<AudioFrame>(maxAudioFrames)
 
