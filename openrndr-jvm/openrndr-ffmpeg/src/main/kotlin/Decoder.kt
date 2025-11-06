@@ -234,7 +234,22 @@ internal class Decoder(
             return false
         }
 
+        if ((videoDecoder?.queueCount()?:1000) < 2 && audioDecoder?.isQueueAlmostFull() == true) {
+            logger.warn {
+                "video queue underflow, audio queue overflow"
+            }
+        }
+
+        if ((audioDecoder?.queueCount()?:1000) < 2 && videoDecoder?.isQueueAlmostFull() == true) {
+            logger.warn {
+                "audio queue underflow, video queue overflow"
+            }
+        }
+
         if (videoDecoder?.isQueueAlmostFull() == true) {
+            return false
+        }
+        if (audioDecoder?.isQueueAlmostFull() == true) {
             return false
         }
 
