@@ -25,6 +25,7 @@ include(
 
         "openrndr-jvm:openrndr-application-egl",
         "openrndr-jvm:openrndr-application-glfw",
+        "openrndr-jvm:openrndr-application-sdl",
         "openrndr-jvm:openrndr-gl3",
         "openrndr-jvm:openrndr-openal",
 
