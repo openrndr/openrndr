@@ -7,21 +7,39 @@ private val sessionStack = mutableMapOf<Long, ArrayDeque<Session>>()
 /**
  * Session statistics
  */
-class SessionStatistics(
-    val renderTargets: Int,
-    val colorBuffers: Int,
-    val depthBuffers: Int,
-    val bufferTextures: Int,
-    val indexBuffers: Int,
-    val vertexBuffers: Int,
-    val shaders: Int,
-    val cubemaps: Int,
-    val arrayTextures: Int,
-    val computeShaders: Int,
-    val atomicCounterBuffers: Int,
-    val arrayCubemaps: Int,
-    val shaderStorageBuffers: Int
-)
+data class SessionStatistics(
+    val renderTargets: Int = 0,
+    val colorBuffers: Int = 0,
+    val depthBuffers: Int = 0,
+    val bufferTextures: Int = 0,
+    val indexBuffers: Int = 0,
+    val vertexBuffers: Int = 0,
+    val shaders: Int = 0,
+    val cubemaps: Int = 0,
+    val arrayTextures: Int = 0,
+    val computeShaders: Int = 0,
+    val atomicCounterBuffers: Int = 0,
+    val arrayCubemaps: Int = 0,
+    val shaderStorageBuffers: Int = 0,
+    val volumeTextures: Int = 0
+) {
+    operator fun plus(other: SessionStatistics) = SessionStatistics(
+        renderTargets = renderTargets + other.renderTargets,
+        colorBuffers = colorBuffers + other.colorBuffers,
+        depthBuffers = depthBuffers + other.depthBuffers,
+        bufferTextures = bufferTextures + other.bufferTextures,
+        indexBuffers = indexBuffers + other.indexBuffers,
+        vertexBuffers = vertexBuffers + other.vertexBuffers,
+        shaders = shaders + other.shaders,
+        cubemaps = cubemaps + other.cubemaps,
+        arrayTextures = arrayTextures + other.arrayTextures,
+        computeShaders = computeShaders + other.computeShaders,
+        atomicCounterBuffers = atomicCounterBuffers + other.atomicCounterBuffers,
+        arrayCubemaps = arrayCubemaps + other.arrayCubemaps,
+        shaderStorageBuffers = shaderStorageBuffers + other.shaderStorageBuffers,
+        volumeTextures = volumeTextures + other.volumeTextures,
+    )
+}
 
 
 /**
@@ -31,7 +49,7 @@ class SessionStatistics(
  *
  * @property parent The parent session, or null if this is a root session.
  */
-class Session(val parent: Session?): AutoCloseable {
+class Session(val parent: Session?) : AutoCloseable {
     val context = Driver.instance.contextID
 
     companion object {
@@ -68,12 +86,17 @@ class Session(val parent: Session?): AutoCloseable {
             val session = sessionStack.getValue(Driver.instance.contextID).removeLast()
             session.end()
         }
+
+        /**
+         * Returns a sum of the statistics of all sessions in the stack
+         */
+        val statistics: SessionStatistics
+            get() = stack.fold(SessionStatistics()) { acc, session -> acc + session.statistics }
     }
 
     private val children = mutableListOf<Session>()
 
     val renderTargets: Set<RenderTarget> = mutableSetOf<RenderTarget>()
-
     val colorBuffers: Set<ColorBuffer> = mutableSetOf<ColorBuffer>()
     val depthBuffers: Set<DepthBuffer> = mutableSetOf<DepthBuffer>()
     val bufferTextures: Set<BufferTexture> = mutableSetOf<BufferTexture>()
@@ -90,22 +113,22 @@ class Session(val parent: Session?): AutoCloseable {
 
     /** Session statistics */
     val statistics
-        get() =
-            SessionStatistics(
-                renderTargets = renderTargets.size,
-                colorBuffers = colorBuffers.size,
-                depthBuffers = depthBuffers.size,
-                bufferTextures = bufferTextures.size,
-                indexBuffers = indexBuffers.size,
-                vertexBuffers = vertexBuffers.size,
-                shaders = shaders.size,
-                cubemaps = cubemaps.size,
-                arrayTextures = arrayTextures.size,
-                computeShaders = computeShaders.size,
-                atomicCounterBuffers = atomicCounterBuffers.size,
-                arrayCubemaps = arrayCubemaps.size,
-                shaderStorageBuffers = shaderStorageBuffers.size
-            )
+        get() = SessionStatistics(
+            renderTargets = renderTargets.size,
+            colorBuffers = colorBuffers.size,
+            depthBuffers = depthBuffers.size,
+            bufferTextures = bufferTextures.size,
+            indexBuffers = indexBuffers.size,
+            vertexBuffers = vertexBuffers.size,
+            shaders = shaders.size,
+            cubemaps = cubemaps.size,
+            arrayTextures = arrayTextures.size,
+            computeShaders = computeShaders.size,
+            atomicCounterBuffers = atomicCounterBuffers.size,
+            arrayCubemaps = arrayCubemaps.size,
+            shaderStorageBuffers = shaderStorageBuffers.size,
+            volumeTextures = volumeTextures.size
+        )
 
     fun track(renderTarget: RenderTarget) = (renderTargets as MutableSet<RenderTarget>).add(renderTarget)
     fun untrack(renderTarget: RenderTarget) = (renderTargets as MutableSet<RenderTarget>).remove(renderTarget)
@@ -245,6 +268,12 @@ class Session(val parent: Session?): AutoCloseable {
             it.destroy()
         }
         shaderStorageBuffers.clear()
+
+        volumeTextures as MutableSet<VolumeTexture>
+        volumeTextures.map { it }.forEach {
+            it.destroy()
+        }
+        volumeTextures.clear()
     }
 
     fun pop() {
