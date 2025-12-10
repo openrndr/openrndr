@@ -554,62 +554,69 @@ class DriverWebGL(val context: GL) : Driver {
             context.stencilMaskSeparate(GL.FRONT, drawStyle.frontStencil.stencilWriteMask.toJsUInt())
             context.stencilMaskSeparate(GL.BACK, drawStyle.backStencil.stencilWriteMask.toJsUInt())
         }
-        if (dirty || cached.blendMode != drawStyle.blendMode) {
-            when (drawStyle.blendMode) {
-                BlendMode.OVER -> {
-                    context.enable(GL.BLEND)
-                    context.blendEquation(GL.FUNC_ADD)
-                    context.blendFunc(GL.ONE, GL.ONE_MINUS_SRC_ALPHA)
-                }
+        if (true) {
 
-                BlendMode.BLEND -> {
-                    context.enable(GL.BLEND)
-                    context.blendEquation(GL.FUNC_ADD)
-                    context.blendFunc(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-                }
+            val rt = RenderTarget.active
+            for (i in 0 until rt.blendModes.size) {
+                val blendMode = drawStyle.blendMode ?: rt.blendModes[i]
 
-                BlendMode.ADD -> {
-                    context.enable(GL.BLEND)
-                    context.blendEquation(GL.FUNC_ADD)
-                    context.blendFunc(GL.ONE, GL.ONE)
-                }
+                // TODO: use https://developer.mozilla.org/en-US/docs/Web/API/OES_draw_buffers_indexed/blendEquationiOES
+                when (blendMode) {
+                    BlendMode.OVER -> {
+                        context.enable(GL.BLEND)
+                        context.blendEquation(GL.FUNC_ADD)
+                        context.blendFunc(GL.ONE, GL.ONE_MINUS_SRC_ALPHA)
+                    }
 
-                BlendMode.REPLACE -> {
-                    context.disable(GL.BLEND)
-                }
+                    BlendMode.BLEND -> {
+                        context.enable(GL.BLEND)
+                        context.blendEquation(GL.FUNC_ADD)
+                        context.blendFunc(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+                    }
 
-                BlendMode.SUBTRACT -> {
-                    context.enable(GL.BLEND)
-                    context.blendEquationSeparate(GL.FUNC_REVERSE_SUBTRACT, GL.FUNC_ADD)
-                    context.blendFuncSeparate(GL.SRC_ALPHA, GL.ONE, GL.ONE, GL.ONE)
-                }
+                    BlendMode.ADD -> {
+                        context.enable(GL.BLEND)
+                        context.blendEquation(GL.FUNC_ADD)
+                        context.blendFunc(GL.ONE, GL.ONE)
+                    }
 
-                BlendMode.MULTIPLY -> {
-                    context.enable(GL.BLEND)
-                    context.blendEquation(GL.FUNC_ADD)
-                    context.blendFunc(GL.DST_COLOR, GL.ONE_MINUS_SRC_ALPHA)
-                }
+                    BlendMode.REPLACE -> {
+                        context.disable(GL.BLEND)
+                    }
 
-                BlendMode.REMOVE -> {
-                    context.enable(GL.BLEND)
-                    context.blendEquation(GL.FUNC_ADD)
-                    context.blendFunc(GL.ZERO, GL.ONE_MINUS_SRC_ALPHA)
-                }
+                    BlendMode.SUBTRACT -> {
+                        context.enable(GL.BLEND)
+                        context.blendEquationSeparate(GL.FUNC_REVERSE_SUBTRACT, GL.FUNC_ADD)
+                        context.blendFuncSeparate(GL.SRC_ALPHA, GL.ONE, GL.ONE, GL.ONE)
+                    }
 
-                BlendMode.MIN -> {
-                    context.enable(GL.BLEND)
-                    context.blendEquation(GL.MIN)
-                    context.blendFunc(GL.ONE, GL.ONE)
-                }
+                    BlendMode.MULTIPLY -> {
+                        context.enable(GL.BLEND)
+                        context.blendEquation(GL.FUNC_ADD)
+                        context.blendFunc(GL.DST_COLOR, GL.ONE_MINUS_SRC_ALPHA)
+                    }
 
-                BlendMode.MAX -> {
-                    context.enable(GL.BLEND)
-                    context.blendEquation(GL.MAX)
-                    context.blendFunc(GL.ONE, GL.ONE)
+                    BlendMode.REMOVE -> {
+                        context.enable(GL.BLEND)
+                        context.blendEquation(GL.FUNC_ADD)
+                        context.blendFunc(GL.ZERO, GL.ONE_MINUS_SRC_ALPHA)
+                    }
+
+                    BlendMode.MIN -> {
+                        context.enable(GL.BLEND)
+                        context.blendEquation(GL.MIN)
+                        context.blendFunc(GL.ONE, GL.ONE)
+                    }
+
+                    BlendMode.MAX -> {
+                        context.enable(GL.BLEND)
+                        context.blendEquation(GL.MAX)
+                        context.blendFunc(GL.ONE, GL.ONE)
+                    }
+                    else -> error("blendmode ${drawStyle.blendMode} is not supported")
                 }
-                else -> error("blendmode ${drawStyle.blendMode} is not supported")
             }
-            cached.blendMode = drawStyle.blendMode
+//            cached.blendMode = drawStyle.blendMode
         }
         if (dirty || cached.alphaToCoverage != drawStyle.alphaToCoverage) {
             if (drawStyle.alphaToCoverage) {
@@ -751,3 +758,31 @@ class DriverWebGL(val context: GL) : Driver {
     }
 }
 
+internal fun ColorFormat.glFormat(): Int {
+    return when (this) {
+        ColorFormat.R -> GL.LUMINANCE
+        ColorFormat.RG -> GL.LUMINANCE_ALPHA
+        ColorFormat.RGB -> GL.RGB
+        ColorFormat.RGBa -> GL.RGBA
+        ColorFormat.BGR -> error("BGR not supported")
+        ColorFormat.BGRa -> error("BGRa not supported")
+    }
+}
+
+internal fun ColorType.glType(): Int {
+    return when (this) {
+        ColorType.UINT8_SRGB, ColorType.UINT8, ColorType.UINT8_INT -> GL.UNSIGNED_BYTE
+        ColorType.SINT8_INT -> GL.BYTE
+        ColorType.UINT16, ColorType.UINT16_INT -> GL.UNSIGNED_SHORT
+        ColorType.SINT16_INT -> GL.SHORT
+        ColorType.UINT32_INT -> GL.UNSIGNED_INT
+        ColorType.SINT32_INT -> GL.INT
+        ColorType.FLOAT16 -> HALF_FLOAT_OES
+        ColorType.FLOAT32 -> GL.FLOAT
+        ColorType.DXT1, ColorType.DXT3, ColorType.DXT5,
+        ColorType.DXT1_SRGB, ColorType.DXT3_SRGB, ColorType.DXT5_SRGB,
+        ColorType.BPTC_UNORM, ColorType.BPTC_UNORM_SRGB, ColorType.BPTC_FLOAT, ColorType.BPTC_UFLOAT -> throw RuntimeException(
+            "gl type of compressed types cannot be queried"
+        )
+    }
+}

@@ -232,6 +232,13 @@ interface RenderTarget: AutoCloseable {
         return colorAttachments.find { it.name == name }
     }
 
+    val blendModes: List<BlendMode>
+
+    fun setBlendMode(index: Int, blendMode: BlendMode)
+
+    fun defaultBlendMode(): BlendMode = if (blendModes.isEmpty()) BlendMode.OVER else BlendMode.REPLACE
+
+
     val depthBuffer: DepthBuffer?
 
     companion object {
@@ -295,12 +302,6 @@ interface RenderTarget: AutoCloseable {
      * @param stencil the value to use for clearing the stencil attachment, defaults to `0`
      */
     fun clearDepth(depth: Double = 1.0, stencil: Int = 0)
-
-    /**
-     * Set the [BlendMode] for a [ColorAttachment].
-     * @param index the attachment index
-     */
-    fun blendMode(index: Int, blendMode: BlendMode)
 
     /** Binds the [RenderTarget] to the active target. */
     fun bind()

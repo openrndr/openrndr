@@ -439,7 +439,7 @@ data class DrawStyle(
 
     var depthTestPass: DepthTestPass = DepthTestPass.ALWAYS,
     var depthWrite: Boolean = false,
-    var blendMode: BlendMode = BlendMode.OVER,
+    var blendMode: BlendMode? = null,
     var cullTestPass: CullTestPass = CullTestPass.ALWAYS,
     var channelWriteMask: ChannelMask = ChannelMask(red = true, green = true, blue = true, alpha = true),
 

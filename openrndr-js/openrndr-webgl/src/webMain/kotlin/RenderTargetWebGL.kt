@@ -38,6 +38,13 @@ open class RenderTargetWebGL(
     override val session: Session?
 
 ) : RenderTarget {
+
+    override val blendModes: MutableList<BlendMode> = mutableListOf()
+
+    override fun setBlendMode(index: Int, blendMode: BlendMode) {
+        blendModes[index] = blendMode
+    }
+
     companion object {
         fun create(
             context: GL,
@@ -109,7 +116,7 @@ open class RenderTargetWebGL(
         }
 
         colorAttachments.add(ColorBufferAttachment(colorAttachments.size, name, colorBuffer, level, ownedByRenderTarget))
-
+        blendModes.add(BlendMode.OVER)
     }
 
     override fun attach(depthBuffer: DepthBuffer, ownedByRenderTarget: Boolean) {
@@ -202,9 +209,6 @@ open class RenderTargetWebGL(
         }
     }
 
-    override fun blendMode(index: Int, blendMode: BlendMode) {
-        error("not supported")
-    }
 
     private fun bound(function: () -> Unit) {
         bind()

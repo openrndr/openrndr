@@ -43,7 +43,6 @@ fun filterShaderFromCode(fragmentShaderCode: String, name: String, includeShader
 open class Filter(private val shader: Shader?): AutoCloseable {
 
     private val filterDrawStyle = DrawStyle().apply {
-        blendMode = BlendMode.REPLACE
         depthWrite = false
         depthTestPass = DepthTestPass.ALWAYS
         stencil.stencilTest = StencilTest.DISABLED
@@ -109,8 +108,8 @@ void main() {
             renderTarget.attach(it, ownedByRenderTarget = false)
         }
 
-        for (i in 1 until target.size) {
-            renderTarget.blendMode(i, BlendMode.REPLACE)
+        for (i in 0 until target.size) {
+            renderTarget.setBlendMode(i, BlendMode.REPLACE)
         }
 
         apply(source, renderTarget, clip)

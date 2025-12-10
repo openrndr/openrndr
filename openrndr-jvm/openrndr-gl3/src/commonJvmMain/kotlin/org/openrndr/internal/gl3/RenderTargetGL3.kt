@@ -20,6 +20,9 @@ class ProgramRenderTargetGL3(override val program: Program) : ProgramRenderTarge
     private var cachedSize = program.window.size
     private var cachedContentScale = program.window.contentScale
 
+    override val blendModes: MutableList<BlendMode> = mutableListOf(BlendMode.OVER)
+
+
     override val width: Int
         get() = cachedSize.x.toInt()
 
@@ -56,6 +59,11 @@ open class RenderTargetGL3(
     private var ownDepthBuffer = false
     override val colorAttachments: MutableList<ColorAttachment> = mutableListOf()
     override var depthBuffer: DepthBuffer? = null
+
+    override val blendModes: MutableList<BlendMode> = mutableListOf()
+    override fun setBlendMode(index: Int, blendMode: BlendMode) {
+        blendModes[index] = blendMode
+    }
 
     companion object {
         fun create(
@@ -202,6 +210,7 @@ open class RenderTargetGL3(
                 ownedByRenderTarget
             )
         )
+        blendModes.add(defaultBlendMode())
 
         if (active[context]?.peek() != null)
             (active[context]?.peek() as RenderTargetGL3).bindTarget()
@@ -231,6 +240,7 @@ open class RenderTargetGL3(
         checkGLErrors { null }
 
         colorAttachments.add(ArrayCubemapAttachment(colorAttachments.size, name, arrayCubemap, side, layer, level))
+        blendModes.add(defaultBlendMode())
 
         if (active[context]?.peek() != null)
             (active[context]?.peek() as RenderTargetGL3).bindTarget()
@@ -262,6 +272,7 @@ open class RenderTargetGL3(
         checkGLErrors { null }
 
         colorAttachments.add(CubemapAttachment(colorAttachments.size, name, cubemap, side, level))
+        blendModes.add(defaultBlendMode())
 
         if (active[context]?.peek() != null)
             (active[context]?.peek() as RenderTargetGL3).bindTarget()
@@ -299,6 +310,7 @@ open class RenderTargetGL3(
         debugGLErrors { null }
 
         colorAttachments.add(VolumeTextureAttachment(colorAttachments.size, name, volumeTexture, layer, level))
+        blendModes.add(defaultBlendMode())
 
         if (active[context]?.peek() != null)
             (active[context]?.peek() as RenderTargetGL3).bindTarget()
@@ -324,6 +336,7 @@ open class RenderTargetGL3(
         debugGLErrors { null }
 
         colorAttachments.add(LayeredArrayTextureAttachment(colorAttachments.size, name, arrayTexture, level))
+        blendModes.add(defaultBlendMode())
 
         if (active[context]?.peek() != null)
             (active[context]?.peek() as RenderTargetGL3).bindTarget()
@@ -345,6 +358,7 @@ open class RenderTargetGL3(
         checkGLErrors { null }
 
         colorAttachments.add(LayeredArrayCubemapAttachment(colorAttachments.size, name, arrayCubemap, level))
+        blendModes.add(defaultBlendMode())
 
         if (active[context]?.peek() != null)
             (active[context]?.peek() as RenderTargetGL3).bindTarget()
@@ -375,6 +389,7 @@ open class RenderTargetGL3(
         checkGLErrors { null }
 
         colorAttachments.add(LayeredCubemapAttachment(colorAttachments.size, name, cubemap, level))
+        blendModes.add(defaultBlendMode())
 
         if (active[context]?.peek() != null)
             (active[context]?.peek() as RenderTargetGL3).bindTarget()
@@ -403,6 +418,7 @@ open class RenderTargetGL3(
         debugGLErrors { null }
 
         colorAttachments.add(LayeredVolumeTextureAttachment(colorAttachments.size, name, volumeTexture, level))
+        blendModes.add(defaultBlendMode())
 
         if (active[context]?.peek() != null)
             (active[context]?.peek() as RenderTargetGL3).bindTarget()
@@ -434,54 +450,12 @@ open class RenderTargetGL3(
         debugGLErrors { null }
 
         colorAttachments.add(ArrayTextureAttachment(colorAttachments.size, name, arrayTexture, layer, level))
+        blendModes.add(defaultBlendMode())
 
         if (active[context]?.peek() != null)
             (active[context]?.peek() as RenderTargetGL3).bindTarget()
     }
 
-    override fun blendMode(index: Int, blendMode: BlendMode) {
-        when (blendMode) {
-            BlendMode.OVER -> {
-                glEnable(GL_BLEND)
-                glBlendEquationi(index, GL_FUNC_ADD)
-                glBlendFunci(index, GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
-            }
-
-            BlendMode.BLEND -> {
-                glEnable(GL_BLEND)
-                glBlendEquationi(index, GL_FUNC_ADD)
-                glBlendFunci(index, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-            }
-
-            BlendMode.REPLACE -> {
-                glEnable(GL_BLEND)
-                glBlendEquationi(index, GL_FUNC_ADD)
-                glBlendFunci(index, GL_ONE, GL_ZERO)
-            }
-
-            BlendMode.ADD -> {
-                glEnable(GL_BLEND)
-                glBlendEquationi(index, GL_FUNC_ADD)
-                glBlendFunci(index, GL_ONE, GL_ONE)
-            }
-
-            BlendMode.MIN -> {
-                glEnable(GL_BLEND)
-                glBlendEquationi(index, GL_MIN)
-                glBlendFunci(index, GL_ONE, GL_ONE)
-            }
-
-            BlendMode.MAX -> {
-                glEnable(GL_BLEND)
-                glBlendEquationi(index, GL_MAX)
-                glBlendFunci(index, GL_ONE, GL_ONE)
-            }
-
-            else -> {
-                error("unsupported blend mode: $blendMode")
-            }
-        }
-    }
 
     private fun bound(function: () -> Unit) {
         bind()

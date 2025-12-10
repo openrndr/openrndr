@@ -1144,128 +1144,166 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver {
             cached.backStencil = drawStyle.backStencil.copy()
         }
 
-        if (dirty || cached.blendMode != drawStyle.blendMode) {
+        if (true) {
 
-            fun setAdvancedEq(eq: Int) {
-                glEnable(GL_BLEND)
-                if (Driver.glVersion.isAtLeast(DriverVersionGL.GL_VERSION_4_1, DriverVersionGL.GLES_VERSION_3_2)) {
-                    glBlendEquationi(0, eq)
-                    glBlendFunci(0, GL_ONE, GL_ONE)
-                } else {
-                    glBlendEquation(eq)
-                    glBlendFunc(GL_ONE, GL_ONE)
+            val rt = RenderTarget.active
+            for (i in 0 until rt.blendModes.size) {
+
+                val blendMode = drawStyle.blendMode ?: rt.blendModes[i]
+
+                fun setAdvancedEq(buf: Int, eq: Int) {
+                    glEnable(GL_BLEND)
+                    if (Driver.glVersion.isAtLeast(DriverVersionGL.GL_VERSION_4_1, DriverVersionGL.GLES_VERSION_3_2)) {
+                        glBlendEquationi(buf, eq)
+                        glBlendFunci(buf, GL_ONE, GL_ONE)
+                    } else {
+                        glBlendEquation(eq)
+                        glBlendFunc(GL_ONE, GL_ONE)
+                    }
+                }
+
+                when (blendMode) {
+                    BlendMode.OVER -> {
+                        glEnable(GL_BLEND)
+                        if (Driver.glVersion.isAtLeast(
+                                DriverVersionGL.GL_VERSION_4_1,
+                                DriverVersionGL.GLES_VERSION_3_2
+                            )
+                        ) {
+                            glBlendEquationi(0, GL_FUNC_ADD)
+                            glBlendFunci(0, GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
+                        } else {
+                            glBlendEquation(GL_FUNC_ADD)
+                            glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
+                        }
+                    }
+
+                    BlendMode.BLEND -> {
+                        glEnable(GL_BLEND)
+                        if (Driver.glVersion.isAtLeast(
+                                DriverVersionGL.GL_VERSION_4_1,
+                                DriverVersionGL.GLES_VERSION_3_2
+                            )
+                        ) {
+                            glBlendEquationi(0, GL_FUNC_ADD)
+                            glBlendFunci(0, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+                        } else {
+                            glBlendEquation(GL_FUNC_ADD)
+                            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+                        }
+                    }
+
+                    BlendMode.ADD -> {
+                        glEnable(GL_BLEND)
+                        if (Driver.glVersion.isAtLeast(
+                                DriverVersionGL.GL_VERSION_4_1,
+                                DriverVersionGL.GLES_VERSION_3_2
+                            )
+                        ) {
+                            glBlendEquationi(0, GL_FUNC_ADD)
+                            glBlendFunci(0, GL_ONE, GL_ONE)
+                        } else {
+                            glBlendEquation(GL_FUNC_ADD)
+                            glBlendFunc(GL_ONE, GL_ONE)
+                        }
+                    }
+
+                    BlendMode.REPLACE -> {
+                        glDisable(GL_BLEND)
+                    }
+
+                    BlendMode.SUBTRACT -> {
+                        glEnable(GL_BLEND)
+                        if (Driver.glVersion.isAtLeast(
+                                DriverVersionGL.GL_VERSION_4_1,
+                                DriverVersionGL.GLES_VERSION_3_2
+                            )
+                        ) {
+                            glBlendEquationSeparatei(0, GL_FUNC_REVERSE_SUBTRACT, GL_FUNC_ADD)
+                            glBlendFuncSeparatei(0, GL_SRC_ALPHA, GL_ONE, GL_ONE, GL_ONE)
+                        } else {
+                            glBlendEquationSeparate(GL_FUNC_REVERSE_SUBTRACT, GL_FUNC_ADD)
+                            glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE, GL_ONE, GL_ONE)
+                        }
+                    }
+
+                    BlendMode.MULTIPLY -> {
+                        glEnable(GL_BLEND)
+                        if (Driver.glVersion.isAtLeast(
+                                DriverVersionGL.GL_VERSION_4_1,
+                                DriverVersionGL.GLES_VERSION_3_2
+                            )
+                        ) {
+                            glBlendEquationi(0, GL_FUNC_ADD)
+                            glBlendFunci(0, GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA)
+                        } else {
+                            glBlendEquation(GL_FUNC_ADD)
+                            glBlendFunc(GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA)
+                        }
+                    }
+
+                    BlendMode.REMOVE -> {
+                        glEnable(GL_BLEND)
+                        if (Driver.glVersion.isAtLeast(
+                                DriverVersionGL.GL_VERSION_4_1,
+                                DriverVersionGL.GLES_VERSION_3_2
+                            )
+                        ) {
+                            glBlendEquationi(0, GL_FUNC_ADD)
+                            glBlendFunci(0, GL_ZERO, GL_ONE_MINUS_SRC_ALPHA)
+                        } else {
+                            glBlendEquation(GL_FUNC_ADD)
+                            glBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_ALPHA)
+                        }
+                    }
+
+                    BlendMode.MIN -> {
+                        glEnable(GL_BLEND)
+                        if (Driver.glVersion.isAtLeast(
+                                DriverVersionGL.GL_VERSION_4_1,
+                                DriverVersionGL.GLES_VERSION_3_2
+                            )
+                        ) {
+                            glBlendEquationi(0, GL_MIN)
+                            glBlendFunci(0, GL_ONE, GL_ONE)
+                        } else {
+                            glBlendEquation(GL_MIN)
+                            glBlendFunc(GL_ONE, GL_ONE)
+                        }
+                    }
+
+                    BlendMode.MAX -> {
+                        glEnable(GL_BLEND)
+                        if (Driver.glVersion.isAtLeast(
+                                DriverVersionGL.GL_VERSION_4_1,
+                                DriverVersionGL.GLES_VERSION_3_2
+                            )
+                        ) {
+                            glBlendEquationi(0, GL_MAX)
+                            glBlendFunci(0, GL_ONE, GL_ONE)
+                        } else {
+                            glBlendEquation(GL_MAX)
+                            glBlendFunc(GL_ONE, GL_ONE)
+                        }
+                    }
+
+                    BlendMode.SCREEN -> setAdvancedEq(i, GL_SCREEN_KHR)
+                    BlendMode.OVERLAY -> setAdvancedEq(i, GL_OVERLAY_KHR)
+                    BlendMode.DARKEN -> setAdvancedEq(i, GL_DARKEN_KHR)
+                    BlendMode.LIGHTEN -> setAdvancedEq(i, GL_LIGHTEN_KHR)
+                    BlendMode.COLOR_DODGE -> setAdvancedEq(i, GL_COLORDODGE_KHR)
+                    BlendMode.COLOR_BURN -> setAdvancedEq(i, GL_COLORBURN_KHR)
+                    BlendMode.HARD_LIGHT -> setAdvancedEq(i, GL_HARDLIGHT_KHR)
+                    BlendMode.SOFT_LIGHT -> setAdvancedEq(i, GL_SOFTLIGHT_KHR)
+                    BlendMode.DIFFERENCE -> setAdvancedEq(i, GL_DIFFERENCE_KHR)
+                    BlendMode.EXCLUSION -> setAdvancedEq(i, GL_EXCLUSION_KHR)
+                    BlendMode.HSL_HUE -> setAdvancedEq(i, GL_HSL_HUE_KHR)
+                    BlendMode.HSL_SATURATION -> setAdvancedEq(i, GL_HSL_SATURATION_KHR)
+                    BlendMode.HSL_COLOR -> setAdvancedEq(i, GL_HSL_COLOR_KHR)
+                    BlendMode.HSL_LUMINOSITY -> setAdvancedEq(i, GL_HSL_LUMINOSITY_KHR)
                 }
             }
-
-            when (drawStyle.blendMode) {
-                BlendMode.OVER -> {
-                    glEnable(GL_BLEND)
-                    if (Driver.glVersion.isAtLeast(DriverVersionGL.GL_VERSION_4_1, DriverVersionGL.GLES_VERSION_3_2)) {
-                        glBlendEquationi(0, GL_FUNC_ADD)
-                        glBlendFunci(0, GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
-                    } else {
-                        glBlendEquation(GL_FUNC_ADD)
-                        glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
-                    }
-                }
-
-                BlendMode.BLEND -> {
-                    glEnable(GL_BLEND)
-                    if (Driver.glVersion.isAtLeast(DriverVersionGL.GL_VERSION_4_1, DriverVersionGL.GLES_VERSION_3_2)) {
-                        glBlendEquationi(0, GL_FUNC_ADD)
-                        glBlendFunci(0, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-                    } else {
-                        glBlendEquation(GL_FUNC_ADD)
-                        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-                    }
-                }
-
-                BlendMode.ADD -> {
-                    glEnable(GL_BLEND)
-                    if (Driver.glVersion.isAtLeast(DriverVersionGL.GL_VERSION_4_1, DriverVersionGL.GLES_VERSION_3_2)) {
-                        glBlendEquationi(0, GL_FUNC_ADD)
-                        glBlendFunci(0, GL_ONE, GL_ONE)
-                    } else {
-                        glBlendEquation(GL_FUNC_ADD)
-                        glBlendFunc(GL_ONE, GL_ONE)
-                    }
-                }
-
-                BlendMode.REPLACE -> {
-                    glDisable(GL_BLEND)
-                }
-
-                BlendMode.SUBTRACT -> {
-                    glEnable(GL_BLEND)
-                    if (Driver.glVersion.isAtLeast(DriverVersionGL.GL_VERSION_4_1, DriverVersionGL.GLES_VERSION_3_2)) {
-                        glBlendEquationSeparatei(0, GL_FUNC_REVERSE_SUBTRACT, GL_FUNC_ADD)
-                        glBlendFuncSeparatei(0, GL_SRC_ALPHA, GL_ONE, GL_ONE, GL_ONE)
-                    } else {
-                        glBlendEquationSeparate(GL_FUNC_REVERSE_SUBTRACT, GL_FUNC_ADD)
-                        glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE, GL_ONE, GL_ONE)
-                    }
-                }
-
-                BlendMode.MULTIPLY -> {
-                    glEnable(GL_BLEND)
-                    if (Driver.glVersion.isAtLeast(DriverVersionGL.GL_VERSION_4_1, DriverVersionGL.GLES_VERSION_3_2)) {
-                        glBlendEquationi(0, GL_FUNC_ADD)
-                        glBlendFunci(0, GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA)
-                    } else {
-                        glBlendEquation(GL_FUNC_ADD)
-                        glBlendFunc(GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA)
-                    }
-                }
-
-                BlendMode.REMOVE -> {
-                    glEnable(GL_BLEND)
-                    if (Driver.glVersion.isAtLeast(DriverVersionGL.GL_VERSION_4_1, DriverVersionGL.GLES_VERSION_3_2)) {
-                        glBlendEquationi(0, GL_FUNC_ADD)
-                        glBlendFunci(0, GL_ZERO, GL_ONE_MINUS_SRC_ALPHA)
-                    } else {
-                        glBlendEquation(GL_FUNC_ADD)
-                        glBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_ALPHA)
-                    }
-                }
-
-                BlendMode.MIN -> {
-                    glEnable(GL_BLEND)
-                    if (Driver.glVersion.isAtLeast(DriverVersionGL.GL_VERSION_4_1, DriverVersionGL.GLES_VERSION_3_2)) {
-                        glBlendEquationi(0, GL_MIN)
-                        glBlendFunci(0, GL_ONE, GL_ONE)
-                    } else {
-                        glBlendEquation(GL_MIN)
-                        glBlendFunc(GL_ONE, GL_ONE)
-                    }
-                }
-
-                BlendMode.MAX -> {
-                    glEnable(GL_BLEND)
-                    if (Driver.glVersion.isAtLeast(DriverVersionGL.GL_VERSION_4_1, DriverVersionGL.GLES_VERSION_3_2)) {
-                        glBlendEquationi(0, GL_MAX)
-                        glBlendFunci(0, GL_ONE, GL_ONE)
-                    } else {
-                        glBlendEquation(GL_MAX)
-                        glBlendFunc(GL_ONE, GL_ONE)
-                    }
-                }
-
-                BlendMode.SCREEN -> setAdvancedEq(GL_SCREEN_KHR)
-                BlendMode.OVERLAY -> setAdvancedEq(GL_OVERLAY_KHR)
-                BlendMode.DARKEN -> setAdvancedEq(GL_DARKEN_KHR)
-                BlendMode.LIGHTEN -> setAdvancedEq(GL_LIGHTEN_KHR)
-                BlendMode.COLOR_DODGE -> setAdvancedEq(GL_COLORDODGE_KHR)
-                BlendMode.COLOR_BURN -> setAdvancedEq(GL_COLORBURN_KHR)
-                BlendMode.HARD_LIGHT -> setAdvancedEq(GL_HARDLIGHT_KHR)
-                BlendMode.SOFT_LIGHT -> setAdvancedEq(GL_SOFTLIGHT_KHR)
-                BlendMode.DIFFERENCE -> setAdvancedEq(GL_DIFFERENCE_KHR)
-                BlendMode.EXCLUSION -> setAdvancedEq(GL_EXCLUSION_KHR)
-                BlendMode.HSL_HUE -> setAdvancedEq(GL_HSL_HUE_KHR)
-                BlendMode.HSL_SATURATION -> setAdvancedEq(GL_HSL_SATURATION_KHR)
-                BlendMode.HSL_COLOR -> setAdvancedEq(GL_HSL_COLOR_KHR)
-                BlendMode.HSL_LUMINOSITY -> setAdvancedEq(GL_HSL_LUMINOSITY_KHR)
-            }
-            cached.blendMode = drawStyle.blendMode
+            //cached.blendMode = drawStyle.blendMode
         }
         if (dirty || cached.alphaToCoverage != drawStyle.alphaToCoverage) {
             if (drawStyle.alphaToCoverage) {

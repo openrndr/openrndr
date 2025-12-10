@@ -6,6 +6,11 @@ import org.openrndr.draw.*
 class RenderTargetNullGL(override val width: Int, override val height: Int, override val contentScale: Double, override val multisample: BufferMultisample, override val session: Session?) : RenderTarget {
     override val colorAttachments : MutableList<ColorAttachment> = mutableListOf()
 
+    override val blendModes: List<BlendMode> = emptyList()
+
+    override fun setBlendMode(index: Int, blendMode: BlendMode) {
+    }
+
     override var depthBuffer: DepthBuffer? = null
     override fun attach(colorBuffer: ColorBuffer, level: Int, name: String?, ownedByRenderTarget: Boolean) {
         colorAttachments.add(ColorBufferAttachment(colorAttachments.size, name, colorBuffer, level, ownedByRenderTarget))
@@ -77,10 +82,6 @@ class RenderTargetNullGL(override val width: Int, override val height: Int, over
     }
 
     override fun clearDepth(depth: Double, stencil: Int) {
-    }
-
-    override fun blendMode(index: Int, blendMode: BlendMode) {
-
     }
 
     override fun bind() {
