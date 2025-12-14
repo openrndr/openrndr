@@ -1183,7 +1183,7 @@ class Drawer(val driver: Driver) {
      * @param loops A list of lists representing the points for each line loop, where each inner list defines a single loop using Vector3 points.
      * @param weights A list of weights corresponding to each line loop, used in the quality drawing mode.
      */
-    @JvmName("lineLoops3d)")
+    @JvmName("lineLoops3d")
     fun lineLoops(loops: List<List<Vector3>>, weights: List<Double>) {
         when (drawStyle.quality) {
             DrawQuality.PERFORMANCE -> fastLineDrawer.drawLineLoops(context, drawStyle, loops)
