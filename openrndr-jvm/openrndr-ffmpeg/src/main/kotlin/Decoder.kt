@@ -90,6 +90,7 @@ internal class Decoder(
                     PlatformType.MAC -> arrayListOf(AV_HWDEVICE_TYPE_VIDEOTOOLBOX)
                     PlatformType.GENERIC -> arrayListOf(AV_HWDEVICE_TYPE_OPENCL)
                     PlatformType.BROWSER -> error("browser not supported")
+                    PlatformType.ANDROID -> error("android not supported") // TODO: supported?
                 }.reversed()
 
                 val foundHW = mutableListOf<Int>()
