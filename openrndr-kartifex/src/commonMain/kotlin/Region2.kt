@@ -4,7 +4,14 @@ import org.openrndr.kartifex.utils.regions.difference
 import org.openrndr.kartifex.utils.regions.intersection
 import org.openrndr.kartifex.utils.regions.union
 
-
+/**
+ * Represents a 2D region composed of multiple rings, where each ring defines a contour of the region.
+ * Multiple rings can be used to create complex shapes, including those with holes.
+ *
+ * @constructor Creates a `Region2` object with the specified rings.
+ * @property rings An array of `Ring2` objects that represent the contours of the region.
+ * @property bounds The bounding box, represented by `Box2`, that encompasses all the rings in the region.
+ */
 class Region2(val rings: Array<Ring2>) {
     val bounds: Box2
 

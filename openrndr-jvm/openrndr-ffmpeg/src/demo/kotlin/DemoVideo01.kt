@@ -1,5 +1,7 @@
+import kotlinx.coroutines.delay
 import org.openrndr.application
 import org.openrndr.ffmpeg.loadVideo
+import org.openrndr.launch
 
 /**
  * A simple demo that demonstrates VideoPlayerFFMPEG. This is mostly here to provide a quick in-repo way to test
@@ -19,8 +21,11 @@ fun main() {
             video.play()
 
             video.ended.listen {
-                println("video ended")
-                video.seek(0.0)
+                launch {
+                    delay(100)
+                    video.seek(0.0)
+                    video.play()
+                }
             }
 
             mouse.buttonDown.listen {

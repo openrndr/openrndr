@@ -27,6 +27,13 @@ fun powerOfTwoD(exp: Double): Double {
     return 2.0.pow(exp)
 }
 
+/**
+ * Computes the size of the unit in the last place (ULP) of the provided double-precision floating-point value.
+ * The ULP of a nonzero floating-point value is the positive distance between the given value and the next larger representable value of the same precision.
+ *
+ * @param d the double value for which the ULP is to be computed
+ * @return the size of the unit in the last place of the provided value
+ */
 fun ulp(d: Double): Double {
     var exp: Int = getExponent(d)
     return when (exp) {
@@ -45,8 +52,7 @@ fun ulp(d: Double): Double {
                 // number of positions
 
                 Double.fromBits(
-                    1L shl
-                            exp - (MIN_EXPONENT - (SIGNIFICAND_WIDTH - 1))
+                    1L shl exp - (MIN_EXPONENT - (SIGNIFICAND_WIDTH - 1))
                 )
             }
         }
@@ -59,6 +65,14 @@ fun equals(a: Double, b: Double, epsilon: Double): Boolean {
     return abs(a - b) < epsilon
 }
 
+/**
+ * Compares two angles, taking into account wrapping around at 2π, to determine if they are approximately equal within a given tolerance.
+ *
+ * @param t0 the first angle in radians
+ * @param t1 the second angle in radians
+ * @param epsilon the tolerance within which the angles are considered equal
+ * @return `true` if the angles are approximately equal within the given tolerance, `false` otherwise
+ */
 @Suppress("NAME_SHADOWING")
 fun angleEquals(t0: Double, t1: Double, epsilon: Double): Boolean {
     var t0 = t0
@@ -76,26 +90,18 @@ fun angleEquals(t0: Double, t1: Double, epsilon: Double): Boolean {
     return result
 }
 
-fun normalize(a: Double, b: Double, n: Double): Double {
-    return (n - a) / (b - a)
-}
+fun normalize(a: Double, b: Double, n: Double): Double = (n - a) / (b - a)
 
-fun lerp(a: Double, b: Double, t: Double): Double {
-    return a + (b - a) * t
-}
+fun lerp(a: Double, b: Double, t: Double): Double = a + (b - a) * t
 
-fun inside(min: Double, n: Double, max: Double): Boolean {
-    return min < n && n < max
-}
+fun inside(min: Double, n: Double, max: Double): Boolean = min < n && n < max
 
-fun clamp(min: Double, n: Double, max: Double): Double {
-    return if (n <= min) {
-        min
-    } else if (n >= max) {
-        max
-    } else {
-        n
-    }
+fun clamp(min: Double, n: Double, max: Double): Double = if (n <= min) {
+    min
+} else if (n >= max) {
+    max
+} else {
+    n
 }
 
 /**
@@ -156,18 +162,10 @@ fun normalizationFactor(a: Double, b: Double): Double {
     }
 }
 
-fun max(a: Double, b: Double): Double {
-    return if (a < b) b else a
-}
+fun max(a: Double, b: Double): Double = if (a < b) b else a
 
-fun max(a: Double, b: Double, c: Double): Double {
-    return max(a, max(b, c))
-}
+fun max(a: Double, b: Double, c: Double): Double = max(a, max(b, c))
 
-fun min(a: Double, b: Double): Double {
-    return if (a > b) b else a
-}
+fun min(a: Double, b: Double): Double = if (a > b) b else a
 
-fun min(a: Double, b: Double, c: Double): Double {
-    return min(a, min(b, c))
-}
+fun min(a: Double, b: Double, c: Double): Double = min(a, min(b, c))

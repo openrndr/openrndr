@@ -9,6 +9,10 @@ import org.openrndr.ffmpeg.loadVideoDevice
 
 fun main() {
     application {
+        configure {
+            width = 1280
+            height = 720
+        }
         program {
 
 

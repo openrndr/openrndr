@@ -46,7 +46,7 @@ class ScreenRecorder : Extension {
     /**
      * what time the video recorder should start recording at
      */
-    var timeOffset = 0.0
+    var timeOffset: Double? = null
 
     /**
      * how many frames to skip before starting to record
@@ -88,6 +88,10 @@ class ScreenRecorder : Extension {
     private var storedClock: (() -> Double)? = null
 
     override fun setup(program: Program) {
+
+        if (timeOffset == null) {
+            timeOffset = program.clock()
+        }
         if (program.window.resizable) {
             logger.warn { "Resizable windows are not supported, disabling window resizing." }
             program.window.resizable = false
@@ -132,6 +136,7 @@ class ScreenRecorder : Extension {
             crop = colorBuffer(advisedWidth, advisedHeight)
         }
 
+        videoWriter.profile(profile)
         videoWriter.output(filename)
         videoWriter.size(advisedWidth, advisedHeight)
         videoWriter.frameRate = frameRate
@@ -141,7 +146,7 @@ class ScreenRecorder : Extension {
         if (frameClock) {
             storedClock = program.clock
             program.clock = {
-                frameIndex / frameRate.toDouble() + timeOffset
+                frameIndex / frameRate.toDouble() + (timeOffset ?: 0.0)
             }
             program.updateFrameSecondsFromClock()
         }

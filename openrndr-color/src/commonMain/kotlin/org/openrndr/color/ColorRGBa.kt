@@ -6,10 +6,22 @@ import org.openrndr.math.Vector3
 import org.openrndr.math.Vector4
 import kotlin.math.pow
 
-
 @Serializable
 enum class Linearity(val certainty: Int) {
+    /**
+     * Represents a linear color space.
+     *
+     * LINEAR typically signifies that the values in the color space are in a linear relationship,
+     * meaning there is no gamma correction or transformation applied to the data.
+     */
     LINEAR(1),
+
+    /**
+     * Represents a standard RGB (sRGB) color space.
+     *
+     * SRGB typically refers to a non-linear color space with gamma correction applied,
+     * designed for consistent color representation across devices.
+     */
     SRGB(1),
     ;
 
@@ -28,15 +40,19 @@ enum class Linearity(val certainty: Int) {
 }
 
 /**
- * A generic RGB color space capable of representing
- * both the linear and the sRGB color spaces.
+ * Represents a color in the RGBA color space. Each component, including red, green, blue, and alpha (opacity),
+ * is represented as a `Double` in the range `[0.0, 1.0]`. The color can be defined in either linear or sRGB space,
+ * determined by the `linearity` property.
  *
- * @param r red as a percentage between 0.0 and 1.0
- * @param g green as a percentage between 0.0 and 1.0
- * @param b blue as a percentage between 0.0 and 1.0
- * @param alpha alpha as a percentage between 0.0 and 1.0
- * @see [rgb]
- * @see [rgba]
+ * This class provides a wide variety of utility functions for manipulating and converting colors, such as shading,
+ * opacity adjustment, and format transformations. It also includes methods for parsing colors from hexadecimal
+ * notation or vectors.
+ *
+ * @property r Red component of the color as a value between `0.0` and `1.0`.
+ * @property g Green component of the color as a value between `0.0` and `1.0`.
+ * @property b Blue component of the color as a value between `0.0` and `1.0`.
+ * @property alpha Alpha (opacity) component of the color as a value between `0.0` and `1.0`. Defaults to `1.0`.
+ * @property linearity Indicates whether the color is defined in linear or sRGB space. Defaults to [Linearity.LINEAR].
  */
 @Serializable
 @Suppress("EqualsOrHashCode") // generated equals() is ok, only hashCode() needs to be overridden
@@ -390,14 +406,14 @@ fun mix(left: ColorRGBa, right: ColorRGBa, x: Double): ColorRGBa {
  * @param b blue in `[0,1]`
  * @param a alpha in `[0,1]`, defaults to `1.0`
  */
-fun rgb(r: Double, g: Double, b: Double, a: Double = 1.0) = ColorRGBa(r, g, b, a, linearity = Linearity.SRGB)
+fun rgb(r: Double, g: Double, b: Double, a: Double = 1.0) = ColorRGBa(r, g, b, a, linearity = Linearity.LINEAR)
 
 /**
  * Shorthand for calling [ColorRGBa].
  * @param gray shade of gray in `[0,1]`
  * @param a alpha in `[0,1]`, defaults to `1.0`
  */
-fun rgb(gray: Double, a: Double = 1.0) = ColorRGBa(gray, gray, gray, a, linearity = Linearity.SRGB)
+fun rgb(gray: Double, a: Double = 1.0) = ColorRGBa(gray, gray, gray, a, linearity = Linearity.LINEAR)
 
 /**
  * Create a color in RGBa space
@@ -408,14 +424,26 @@ fun rgb(gray: Double, a: Double = 1.0) = ColorRGBa(gray, gray, gray, a, linearit
  * @param a alpha in `[0,1]`
  */
 @Deprecated("Use rgb(r, g, b, a)", ReplaceWith("rgb(r, g, b, a)"), DeprecationLevel.WARNING)
-fun rgba(r: Double, g: Double, b: Double, a: Double) = ColorRGBa(r, g, b, a, linearity = Linearity.SRGB)
+fun rgba(r: Double, g: Double, b: Double, a: Double) = ColorRGBa(r, g, b, a, linearity = Linearity.LINEAR)
 
 /**
  * Shorthand for calling [ColorRGBa.fromHex].
- * Creates a [ColorRGBa] from a hex string.
+ * Creates a [ColorRGBa] with [Linearity.SRGB] from a hex string.
  * @param hex string encoded hex value, for example `"ffc0cd"`
  */
 fun rgb(hex: String) = ColorRGBa.fromHex(hex)
+
+/**
+ * Converts RGB integer color values into a ColorRGBa object with sRGB linearity.
+ *
+ * @param red The red component of the color, in the range 0-255.
+ * @param green The green component of the color, in the range 0-255.
+ * @param blue The blue component of the color, in the range 0-255.
+ * @param alpha The alpha (transparency) component of the color, in the range 0-255. Default value is 255 (fully opaque).
+ */
+fun rgb(red: Int, green: Int, blue: Int, alpha: Int = 255) =
+    ColorRGBa(red / 255.0, green / 255.0, blue / 255.0, alpha / 255.0, Linearity.SRGB)
+
 
 /**
  * Multiplies a 5x5 matrix with a ColorRGBa instance.

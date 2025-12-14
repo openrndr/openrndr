@@ -69,7 +69,7 @@ actual val defaultFontMap by lazy {
     val defaultFontPath = File("data/fonts/default.otf")
     if (defaultFontPath.isFile) {
         logger.info { "loading default font from ${defaultFontPath.absolutePath}" }
-        loadFontImageMap(defaultFontPath.path, 16.0, contentScale = RenderTarget.active.contentScale)
+        loadFontImageMap(defaultFontPath.toURI().toString(), 16.0, contentScale = RenderTarget.active.contentScale)
     } else {
         logger.warn { "default font ${defaultFontPath.absolutePath} not found" }
         null

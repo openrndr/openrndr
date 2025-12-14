@@ -10,12 +10,10 @@ class Ring2 {
 
         constructor(curve: Curve2) : this(true, curve)
 
-        override fun toString(): String {
-            return if (inside) {
-                if (curve == null) "INSIDE" else "EDGE: $curve"
-            } else {
-                "OUTSIDE"
-            }
+        override fun toString(): String = if (inside) {
+            if (curve == null) "INSIDE" else "EDGE: $curve"
+        } else {
+            "OUTSIDE"
         }
 
         companion object {
@@ -64,9 +62,7 @@ class Ring2 {
         curves[lastIdx] = curves[lastIdx].endpoints(curves[lastIdx].start(), curves[0].start())
     }
 
-    fun region(): Region2 {
-        return Region2(listOf(this))
-    }
+    fun region(): Region2 = Region2(listOf(this))
 
     fun test(p: Vec2): Result {
         if (!bounds.expand(Intersections.SPATIAL_EPSILON).contains(p)) {
@@ -105,7 +101,7 @@ class Ring2 {
                                 )
                             }
                         }
-                        .filter { v ->  Intersections.PARAMETRIC_BOUNDS.contains(v) }
+                        .filter { v -> Intersections.PARAMETRIC_BOUNDS.contains(v) }
                         .minByOrNull { v: Vec2 -> v.x }
 
                 if (i != null) {
@@ -129,17 +125,12 @@ class Ring2 {
     fun transform(m: Matrix3): Ring2 = Ring2(curves.map { c -> c.transform(m) })
 
     companion object {
-        fun of(vararg cs: Curve2): Ring2 {
-            return Ring2(cs.toList())
-        }
+        fun of(vararg cs: Curve2): Ring2 = Ring2(cs.toList())
 
         /**
          * @return a unit square from [0, 0] to [1, 1]
          */
-        fun square(): Ring2 {
-            return Box.box(Vec2(0.0, 0.0), Vec2(1.0, 1.0))
-                .outline()
-        }
+        fun square(): Ring2 = Box.box(Vec2(0.0, 0.0), Vec2(1.0, 1.0)).outline()
 
         /**
          * @return a unit circle with radius of 1, centered at [0, 0]
@@ -148,30 +139,10 @@ class Ring2 {
             // taken from http://whizkidtech.redprince.net/bezier/circle/kappa/
             val k: Double = 4.0 / 3.0 * (sqrt(2.0) - 1)
             return of(
-                Bezier2.curve(
-                    Vec2(1.0, 0.0),
-                    Vec2(1.0, k),
-                    Vec2(k, 1.0),
-                    Vec2(0.0, 1.0)
-                ),
-                Bezier2.curve(
-                    Vec2(0.0, 1.0),
-                    Vec2(-k, 1.0),
-                    Vec2(-1.0, k),
-                    Vec2(-1.0, 0.0)
-                ),
-                Bezier2.curve(
-                    Vec2(-1.0, 0.0),
-                    Vec2(-1.0, -k),
-                    Vec2(-k, -1.0),
-                    Vec2(0.0, -1.0)
-                ),
-                Bezier2.curve(
-                    Vec2(0.0, -1.0),
-                    Vec2(k, -1.0),
-                    Vec2(1.0, -k),
-                    Vec2(1.0, 0.0)
-                )
+                Bezier2.curve(Vec2(1.0, 0.0), Vec2(1.0, k), Vec2(k, 1.0), Vec2(0.0, 1.0)),
+                Bezier2.curve(Vec2(0.0, 1.0), Vec2(-k, 1.0), Vec2(-1.0, k), Vec2(-1.0, 0.0)),
+                Bezier2.curve(Vec2(-1.0, 0.0), Vec2(-1.0, -k), Vec2(-k, -1.0), Vec2(0.0, -1.0)),
+                Bezier2.curve(Vec2(0.0, -1.0), Vec2(k, -1.0), Vec2(1.0, -k), Vec2(1.0, 0.0))
             )
         }
     }

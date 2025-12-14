@@ -6,6 +6,18 @@ import org.openrndr.utils.hash
 import kotlin.math.max
 import kotlin.math.min
 
+/**
+ * Represents a mathematical interval defined by a lower bound (`lo`) and an upper bound (`hi`).
+ * Provides various operations and utilities to manipulate and query intervals.
+ *
+ * @property lo The lower bound of the interval.
+ * @property hi The upper bound of the interval.
+ * @constructor Initializes an Interval instance using two double values. The lowest value
+ * becomes `lo`, and the highest value becomes `hi`.
+ *
+ * @param a The first boundary of the interval.
+ * @param b The second boundary of the interval.
+ */
 class Interval(a: Double, b: Double) {
     var lo = 0.0
     var hi = 0.0
@@ -36,6 +48,18 @@ class Interval(a: Double, b: Double) {
             Interval(lo * hi, i.lo * i.hi).union(Interval(lo * i.hi, i.lo * hi))
         }
 
+    /**
+     * Divides the current interval by the given interval and returns the resulting interval.
+     * Division is computed by multiplying the current interval by the reciprocal of the given interval.
+     *
+     * Special cases are handled:
+     * - If both boundaries of the given interval are zero, the result is the interval spanning from negative infinity to positive infinity.
+     * - If only the lower boundary is zero, the result is multiplied by an interval spanning from the reciprocal of the upper boundary to positive infinity.
+     * - If only the upper boundary is zero, the result is multiplied by an interval spanning from negative infinity to the reciprocal of the lower boundary.
+     *
+     * @param i the interval to divide by
+     * @return the resulting interval after division
+     */
     operator fun div(i: Interval) = when {
         i.lo == 0.0 && i.hi == 0.0 -> Interval(Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY)
         i.lo == 0.0 -> mul(Interval(1 / i.hi, Double.POSITIVE_INFINITY))

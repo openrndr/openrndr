@@ -48,7 +48,6 @@ enum class TransformTarget {
 }
 
 
-
 /**
  * The `Drawer` class is a utility that provides various drawing operations such as drawing shapes,
  * transformations, and managing drawing states in a graphical rendering context.
@@ -126,7 +125,6 @@ class Drawer(val driver: Driver) {
             field = value
             modelViewScalingFactor = ((view * model).matrix33 * Vector3.UNIT_XYZ).length
         }
-
 
 
     /**
@@ -317,7 +315,7 @@ class Drawer(val driver: Driver) {
     fun translate(x: Double, y: Double, target: TransformTarget = TransformTarget.MODEL) {
         translate(x, y, 0.0, target)
     }
-  
+
     /**
      * Translates the target by the specified x, y, and z values.
      *
@@ -330,7 +328,7 @@ class Drawer(val driver: Driver) {
         transform(target) *= Matrix44.translate(Vector3(x, y, z))
     }
 
- 
+
     /**
      * Rotates the target by the specified angle in degrees around the Z-axis.
      *
@@ -341,7 +339,7 @@ class Drawer(val driver: Driver) {
         transform(target) *= Matrix44.rotateZ(rotationInDegrees)
     }
 
- 
+
     /**
      * Rotates a transformation using the specified axis and angle in degrees,
      * applying the rotation to the given transformation target.
@@ -1470,30 +1468,57 @@ class Drawer(val driver: Driver) {
         imageDrawer.drawImage(context, drawStyle, arrayTexture, layers, rectangles)
     }
 
+
     /**
-     * Draws [text] at ([position])
+     * Renders the given text at the specified position.
+     *
+     * @param text the string to be rendered
+     * @param position the position where text should be drawn, specified as a Vector2 object
+     * @param visible a flag indicating if the text should be visible. Default is true.
+     * @param glyphOutput an optional GlyphOutput object to capture glyph-level rendering details
      */
-    fun text(text: String, position: Vector2) {
+    fun text(text: String, position: Vector2, visible: Boolean = true, glyphOutput: GlyphOutput? = null) {
         if (fontMap is FontImageMap) {
-            fontImageMapDrawer.drawText(context, drawStyle, text, position.x, position.y)
+            fontImageMapDrawer.drawText(context, drawStyle, text, position.x, position.y, visible, glyphOutput)
         }
     }
 
     /**
-     * Draws [text] at ([x], [y])
+     * Draws text at the specified coordinates using the font map.
+     *
+     * @param text The string of text to be drawn.
+     * @param x The x-coordinate where the text rendering starts. Default is 0.0.
+     * @param y The y-coordinate where the text rendering starts. Default is 0.0.
+     * @param glyphOutput Optional parameter to output glyph data for further usage or analysis.
      */
-    fun text(text: String, x: Double = 0.0, y: Double = 0.0) {
+    fun text(
+        text: String,
+        x: Double = 0.0,
+        y: Double = 0.0,
+        visible: Boolean = true,
+        glyphOutput: GlyphOutput? = null
+    ) {
         if (fontMap is FontImageMap) {
-            fontImageMapDrawer.drawText(context, drawStyle, text, x, y)
+            fontImageMapDrawer.drawText(context, drawStyle, text, x, y, visible, glyphOutput)
         }
     }
 
     /**
-     * Draws [texts] at [positions])
+     * Draws a list of texts at the specified positions.
+     *
+     * @param texts A list of text strings to be drawn.
+     * @param positions A list of positions corresponding to each text string.
+     * @param visible A flag indicating whether the texts should be visible. Default is true.
+     * @param glyphOutput An optional parameter for glyph output configuration.
      */
-    fun texts(texts: List<String>, positions: List<Vector2>) {
+    fun texts(
+        texts: List<String>,
+        positions: List<Vector2>,
+        visible: Boolean = true,
+        glyphOutput: GlyphOutput? = null
+    ) {
         if (fontMap is FontImageMap) {
-            fontImageMapDrawer.drawTexts(context, drawStyle, texts, positions)
+            fontImageMapDrawer.drawTexts(context, drawStyle, texts, positions, visible, glyphOutput)
         }
     }
 

@@ -65,11 +65,14 @@ extracted from comments written in OPENRNDR's source code. It goes like this:
 3. Find the corresponding Kotlin file in your cloned repo and add missing comments. Read about
    the [suggested style](https://developers.google.com/style).
 4. Generate the API website locally to verify your changes look correct by running the following
-   command: `./gradlew dokkaHtmlMultiModule -Dorg.gradle.jvmargs=-Xmx1536M`. This will create the
-   html documentation under `build/dokka/htmlMultiModule/`.
-5. Open the `build/dokka/htmlMultiModule/index.html` in your web browser. If something looks off
-   tweak your comments.
-6. To continue improving the API go back to step 3, otherwise send a Pull Requests from your fork.
+   command: `./gradlew :dokkaGenerate -Dorg.gradle.jvmargs=-Xmx1536M`. This will create the
+   html documentation under `build/dokka/html/`.
+5. Serve `build/dokka/html/` with a local web server, for example with `cd build/dokka/html && python3 -m http.server`.
+6. Open `localhost:8000` in your web browser. If something looks off tweak your comments.
+7. To continue improving the API go back to step 3, otherwise send a Pull Requests from your fork.
+
+Note: if you double click `build/dokka/html/index.html` instead of using a web server the page will open, 
+but the left navigation bar may be missing.
 
 ## I want to contribute demos
 

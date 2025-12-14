@@ -72,8 +72,9 @@ class IndexBufferGL3(
                 debugGLErrors()
             }
 
-            DriverTypeGL.GLES -> {
+            DriverTypeGL.GLES -> bound {
                 glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, offsetInBytes.toLong(), data)
+                debugGLErrors()
             }
         }
     }

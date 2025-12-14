@@ -64,25 +64,18 @@ class DirectedGraph<V, E>(
     val out: MutableMap<V, MutableMap<V, E>> = mutableMapOf(),
     val `in`: MutableMap<V, MutableSet<V>> = mutableMapOf()
 ) {
-    fun indexOf(vertex: V): Int {
-        return out.keys.indexOf(vertex)
-    }
+    fun indexOf(vertex: V): Int = out.keys.indexOf(vertex)
 
+    fun vertices(): Set<V> = out.keys
 
-    fun vertices(): Set<V> {
-        return out.keys
-    }
-
-    fun edges(): Iterable<Edge<V, E>> {
-        return Iterable {
-            out.entries
-                .flatMap { outer ->
-                    outer.value
-                        .entries
-                        .map { inner -> Edge(inner.value, inner.key, outer.key) }
-                }
-                .iterator()
-        }
+    fun edges(): Iterable<Edge<V, E>> = Iterable {
+        out.entries
+            .flatMap { outer ->
+                outer.value
+                    .entries
+                    .map { inner -> Edge(inner.value, inner.key, outer.key) }
+            }
+            .iterator()
     }
 
     fun edge(from: V, to: V): E {
@@ -159,6 +152,15 @@ class DirectedGraph<V, E>(
 //        return this
 //    }
 
+    /**
+     * Creates a subgraph containing only the vertices and corresponding edges from the original graph
+     * that are present in the specified selection.
+     *
+     * @param selection A set of vertices to include in the subgraph. Only the edges between these vertices
+     * will be retained in the resulting graph.
+     * @return A new directed graph containing the selected vertices and their respective edges
+     * from the original graph.
+     */
     fun select(selection: Set<V>): DirectedGraph<V, E> {
         val newOut = mutableMapOf<V, MutableMap<V,E>>()
         val newIn = mutableMapOf<V, MutableSet<V>>()
@@ -213,6 +215,21 @@ private class TarjanState(val index: Int) {
 }
 
 object Graphs {
+
+    /**
+     * Computes the strongly connected components of a given directed graph using Tarjan's algorithm.
+     * A strongly connected component (SCC) is a maximal subgraph where every vertex is reachable
+     * from every other vertex in the same subgraph.
+     *
+     * @param V The type representing the vertices in the graph.
+     * @param graph The directed graph to compute the SCCs for. It must be an instance of `DirectedGraph`.
+     * @param includeSingletons A boolean flag indicating whether to include single-vertex components
+     *                           (vertices without edges) as separate SCCs in the result.
+     * @see <a href="https://en.wikipedia.org/wiki/Tarjan%27s_strongly_connected_components_algorithm">Tarjan's algorithm</a>
+     * @see <a href="https://en.wikipedia.org/wiki/Strongly_connected_component">Strongly connected component</a>
+     * @return A set of strongly connected components, each represented as a set of vertices.
+     */
+
     fun <V> stronglyConnectedComponents(
         graph: DirectedGraph<V, *>,
         includeSingletons: Boolean
@@ -285,6 +302,15 @@ object Graphs {
         return result
     }
 
+    /**
+     * Identifies strongly connected subgraphs within the given directed graph.
+     *
+     * @param V the type of vertices in the graph.
+     * @param E the type of edges in the graph.
+     * @param graph the directed graph to analyze for strongly connected components.
+     * @param includeSingletons a boolean indicating whether to include single-vertex subgraphs as strongly connected subgraphs.
+     * @return a list of directed subgraphs that represent strongly connected components of the input graph. Each subgraph corresponds to one strongly connected component.
+     */
 
     fun <V, E> stronglyConnectedSubgraphs(
         graph: DirectedGraph<V, E>,
@@ -301,6 +327,18 @@ object Graphs {
     }
 
 
+    /**
+     * Finds all simple cycles in a directed graph. A cycle is defined as a non-empty sequence of vertices
+     * such that the first and last vertices in the sequence are the same, and each edge in the sequence
+     * is traversed exactly once.
+     *
+     * The algorithm analyzes strongly connected subgraphs of the input graph to identify cycles.
+     *
+     * @param V The type representing the vertices in the graph.
+     * @param E The type representing the edges in the graph.
+     * @param graph The directed graph to analyze for cycles.
+     * @return A list of cycles, where each cycle is represented as a list of vertices.
+     */
     fun <V, E> cycles(graph: DirectedGraph<V, E>): List<List<V>> {
         // traversal
         val path = mutableListOf<V>()
@@ -323,8 +361,6 @@ object Graphs {
                 continue
             }
             for (seed in subgraph.vertices()) {
-
-
                 val threshold = subgraph.indexOf(seed)
                 path.add(seed)
                 branches.add(subgraph.out(seed).iterator())
@@ -380,6 +416,13 @@ object Graphs {
         return bfsVertices(listOf(start), adjacent)
     }
 
+    /**
+     * Performs a breadth-first traversal of vertices starting from the given set of initial vertices.
+     *
+     * @param start an iterable collection of starting vertices for the traversal
+     * @param adjacent a function that provides the adjacent vertices for a given vertex
+     * @return an iterator of vertices visited in breadth-first order
+     */
     fun <V> bfsVertices(start: Iterable<V>, adjacent: (V) -> Iterable<V>): Iterator<V> {
         val queue = ArrayDeque<V>()
         val traversed = mutableSetOf<V>()

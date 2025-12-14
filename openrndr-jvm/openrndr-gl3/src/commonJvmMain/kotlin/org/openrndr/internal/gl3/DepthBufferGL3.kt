@@ -58,26 +58,25 @@ class DepthBufferGL3(
                     }
                     when (multisample) {
                         BufferMultisample.Disabled -> {
-                            val buffer = glGenRenderbuffers()
-                            glBindRenderbuffer(GL_RENDERBUFFER, buffer)
-                            glRenderbufferStorage(
-                                GL_RENDERBUFFER,
-                                type,
-                                width,
-                                height
-                            )
-                            checkGLErrors {
-                                logger.error {
-                                    """failed to create depth buffer. width: $width, height: $height, format: $format, multisample: $multisample"""
+                            val glFormat = when (format) {
+                                DepthFormat.DEPTH16, DepthFormat.DEPTH24, DepthFormat.DEPTH32F -> GL_DEPTH_COMPONENT
+                                DepthFormat.DEPTH_STENCIL, DepthFormat.DEPTH24_STENCIL8, DepthFormat.DEPTH32F_STENCIL8 -> GL_DEPTH_COMPONENT
+                                DepthFormat.STENCIL8 -> {
+                                    (Driver.instance as DriverGL3).version.require(DriverVersionGL.GL_VERSION_4_4); GL_STENCIL_INDEX
                                 }
+                            }
+                            glTexStorage2D(GL_TEXTURE_2D, 1, type, width, height)
+                            checkGLErrors {
                                 when (it) {
-                                    GL_INVALID_ENUM -> "$format not supported?"
+                                    GL_INVALID_ENUM -> "format is not one of the accepted values."
                                     else -> null
                                 }
                             }
-
-                            glBindRenderbuffer(GL_RENDERBUFFER, 0)
-                            DepthBufferGL3(-1, buffer, target, width, height, format, multisample, session)
+                            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
+                            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
+                            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
+                            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
+                            DepthBufferGL3(glTexture, -1, target, width, height, format, multisample, session)
                         }
 
                         is BufferMultisample.SampleCount -> {
