@@ -27,6 +27,9 @@ include(
         "openrndr-platform",
 
         "openrndr-animatable",
+
+        "openrndr-android:openrndr-android",
+
         "openrndr-jvm:openrndr-dialogs",
 
         "openrndr-jvm:openrndr-application-egl",
