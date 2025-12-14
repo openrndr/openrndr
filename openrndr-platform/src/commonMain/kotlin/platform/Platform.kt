@@ -4,12 +4,14 @@ enum class PlatformType {
     GENERIC,
     WINDOWS,
     MAC,
-    BROWSER
+    BROWSER,
+    ANDROID
 }
 
 enum class PlatformArchitecture {
     X86_64,
     AARCH64,
+    ARMV8A,
     UNKNOWN
 }
 
