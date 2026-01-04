@@ -30,6 +30,7 @@ catalog {
         library("utils", "org.openrndr:openrndr-utils:$version")
 
         bundle("basic", listOf("application-core", "draw", "utils"))
+        bundle("video", listOf("ffmpeg", "openal"))
         bundle("runtime-glfw", listOf("application-glfw"))
     }
 }
