@@ -10,7 +10,7 @@ catalog {
         library("application-core", "org.openrndr:openrndr-application:$version")
         library("application-glfw", "org.openrndr:openrndr-application-glfw:$version")
         library("application-egl", "org.openrndr:openrndr-application-egl:$version")
-
+        library("application-sdl", "org.openrndr:openrndr-application-sdl:$version")
         library("binpack", "org.openrndr:openrndr-binpack:$version")
         library("color", "org.openrndr:openrndr-color:$version")
         library("dialogs", "org.openrndr:openrndr-dialogs:$version")
@@ -32,6 +32,7 @@ catalog {
         bundle("basic", listOf("application-core", "draw", "utils"))
         bundle("video", listOf("ffmpeg", "openal"))
         bundle("runtime-glfw", listOf("application-glfw"))
+        bundle("runtime-sdl", listOf("application-sdl"))
     }
 }
 
