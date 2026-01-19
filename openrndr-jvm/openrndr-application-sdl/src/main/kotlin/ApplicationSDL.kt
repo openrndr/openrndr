@@ -231,20 +231,20 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             }
 
             SDL_EVENT_WINDOW_EXPOSED -> {
-                println("window exposed")
+//                println("window exposed")
             }
             SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED -> {
-                println("pixel size changed")
+//                println("pixel size changed")
             }
             SDL_EVENT_WINDOW_ICCPROF_CHANGED -> {
-                println("icc profile changed")
+//                println("icc profile changed")
             }
             SDL_EVENT_WINDOW_DISPLAY_CHANGED -> {
-                println("display changed")
+//                println("display changed")
             }
 
             SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED -> {
-                println("display scale changed")
+//                println("display scale changed")
             }
 
             SDL_EVENT_WINDOW_MOVED -> {
