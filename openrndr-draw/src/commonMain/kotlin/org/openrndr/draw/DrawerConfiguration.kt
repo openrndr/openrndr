@@ -63,7 +63,7 @@ object DrawerConfiguration {
         if (disableVertexBufferOptimizations) {
             1
         } else {
-            if (forceVertexBufferOptimizations || Platform.type == PlatformType.MAC) {
+            if (forceVertexBufferOptimizations || Platform.type == PlatformType.MAC || Platform.type == PlatformType.BROWSER) {
                 vertexBufferMultiBufferHint
             } else {
                 1

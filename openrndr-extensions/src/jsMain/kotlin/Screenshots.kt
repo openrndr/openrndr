@@ -66,7 +66,8 @@ open class Screenshots : Extension {
         beforeScreenshot.trigger(ScreenshotEvent("before-screenshot"))
         val link = document.createElement("a") as HTMLAnchorElement
         link.download = "$name.png"
-        link.href = (programRef!!.application as ApplicationWebGL).canvas!!.toDataURL()
+        // TODO: Fix screenshots
+//        link.href = (programRef!!.application as ApplicationWebGL).canvas.toDataURL()
         link.click()
         afterScreenshot.trigger(ScreenshotEvent("after-screenshot"))
     }

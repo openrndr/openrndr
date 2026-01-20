@@ -9,6 +9,7 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation(project(":openrndr-draw"))
+                implementation(libs.kotlin.logging)
             }
 
         }

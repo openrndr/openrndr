@@ -14,5 +14,12 @@ kotlin {
                 implementation(libs.kotlin.coroutines)
             }
         }
+        val jsMain by getting {
+            dependencies {
+                implementation(libs.kotlin.js)
+                implementation(libs.kotlin.browser)
+                implementation(libs.kotlin.web)
+            }
+        }
     }
 }

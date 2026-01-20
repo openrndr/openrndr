@@ -13,5 +13,10 @@ kotlin {
                 api(project(":openrndr-event"))
             }
         }
+        val webMain by getting {
+            dependencies {
+                implementation(libs.kotlin.browser)
+            }
+        }
     }
 }

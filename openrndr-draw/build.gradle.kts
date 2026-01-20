@@ -15,11 +15,18 @@ kotlin {
                 implementation(project(":openrndr-utils"))
                 implementation(project(":openrndr-platform"))
                 implementation(libs.kotlin.coroutines)
+                implementation(libs.kotlin.logging)
             }
         }
         val commonTest by getting {
             dependencies {
                 implementation(libs.kotest.assertions)
+            }
+        }
+        val webMain by getting {
+            dependencies {
+                implementation(libs.kotlin.js)
+                implementation(libs.kotlin.browser)
             }
         }
     }
