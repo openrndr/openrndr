@@ -1,7 +1,7 @@
 package org.openrndr.webgl
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import js.core.JsPrimitives.toDouble
+import js.core.JsPrimitives.toKotlinDouble
 import org.openrndr.*
 import org.openrndr.draw.Drawer
 import org.openrndr.internal.Driver
@@ -85,7 +85,7 @@ class ApplicationWebGL(override var program: Program, override var configuration
             ?: error("failed to create webgl2 context")
         Driver.driver = DriverWebGL(context as WebGL2RenderingContext)
         program.drawer = Drawer(Driver.instance)
-        referenceTime = performance.now().toDouble()
+        referenceTime = performance.now().toKotlinDouble()
 
         val dpr = min(configuration.maxContentScale, devicePixelRatio)
 
@@ -379,7 +379,7 @@ class ApplicationWebGL(override var program: Program, override var configuration
     override var cursorType: CursorType = CursorType.ARROW_CURSOR
     override val seconds: Double
         get() {
-            return (performance.now().toDouble() - referenceTime) / 1000.0
+            return (performance.now().toKotlinDouble() - referenceTime) / 1000.0
         }
 
     override var presentationMode: PresentationMode = PresentationMode.AUTOMATIC

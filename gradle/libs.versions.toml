@@ -2,7 +2,7 @@
 kotlinApi = "2.3"
 kotlinLanguage = "2.3"
 kotlin = "2.3.0"
-kotlin-wrap = "2025.10.11"
+kotlin-wrap = "2026.1.9"
 jvmTarget = "17"
 kotlinxCoroutines = "1.10.2"
 kotlinLogging = "7.0.14"

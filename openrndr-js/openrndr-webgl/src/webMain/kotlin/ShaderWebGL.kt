@@ -3,8 +3,8 @@ package org.openrndr.webgl
 import io.github.oshai.kotlinlogging.KotlinLogging
 import js.buffer.ArrayBuffer
 import js.core.JsInt
-import js.core.JsPrimitives.toInt
 import js.core.JsPrimitives.toJsFloat
+import js.core.JsPrimitives.toKotlinInt
 import js.typedarrays.Float32Array
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
@@ -57,7 +57,7 @@ class ShaderWebGL(
             context.attachShader(program, fragmentShader.shaderObject)
             context.linkProgram(program)
 
-            val activeUniformCount = context.getProgramParameter(program, GL.ACTIVE_UNIFORMS)?.unsafeCast<JsInt>()?.toInt() ?: 0
+            val activeUniformCount = context.getProgramParameter(program, GL.ACTIVE_UNIFORMS)?.unsafeCast<JsInt>()?.toKotlinInt() ?: 0
             val activeUniforms = (0 until activeUniformCount).mapNotNull {
                 val activeUniform = context.getActiveUniform(program, it.toJsUInt())
 
