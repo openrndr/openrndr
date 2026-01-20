@@ -24,16 +24,24 @@ actual abstract class ApplicationBase {
             } catch (e: ClassNotFoundException) {
                 logger.debug { "NullGL not found" }
             }
-
+            val cl = ApplicationBase::class.java.classLoader
             return when (val applicationProperty: String? = System.getProperty("org.openrndr.application")) {
-                null, "", "GLFW" -> {
-                    val cl = ApplicationBase::class.java.classLoader
-
+                null, "" -> {
+                    val c = try { cl.loadClass("org.openrndr.internal.gl3.ApplicationBaseGLFWGL3") } catch (e:ClassNotFoundException) { null } ?:
+                    try { cl.loadClass("org.openrndr.internal.gles3.ApplicationBaseGLFWGLES3") } catch (e:ClassNotFoundException) { null } ?:
+                    try { cl.loadClass("org.openrndr.application.sdl.ApplicationBaseSDL") } catch (e:ClassNotFoundException) { null }
+                    c ?: error("No application backend not available")
+                }
+                "GLFW" -> {
                     val c = try { cl.loadClass("org.openrndr.internal.gl3.ApplicationBaseGLFWGL3") } catch (e:ClassNotFoundException) { null } ?:
                     try { cl.loadClass("org.openrndr.internal.gles3.ApplicationBaseGLFWGLES3") } catch (e:ClassNotFoundException) { null }
-
-                    c!!
+                    c ?: error("GLFW application backend not available")
                 }
+                "SDL" -> {
+                    val c = try { cl.loadClass("org.openrndr.application.sdl.ApplicationBaseSDL") } catch (e:ClassNotFoundException) { null }
+                    c ?: error("SDL application backend not available")
+                }
+
                 "EGL" -> ApplicationBase::class.java.classLoader.loadClass("org.openrndr.internal.gl3.ApplicationBaseEGLGL3")
                 else -> throw IllegalArgumentException("Unknown value '${applicationProperty}' provided for org.openrndr.application")
             }
