@@ -16,6 +16,12 @@ kotlin {
     }
 
     sourceSets {
+        val commonTest by getting {
+            dependencies {
+                implementation(libs.kotest.assertions)
+            }
+        }
+
         val commonMain by getting {
             dependencies {
                 api(project(":openrndr-math"))

@@ -21,14 +21,11 @@ val libs = extensions.getByType<VersionCatalogsExtension>().named("libs")
 
 plugins {
     kotlin("multiplatform")
-   //id("com.android.kotlin.multiplatform.library").apply(true)
 }
+
 if (property("openrndr.platform.android")=="true") {
     apply(plugin = "com.android.kotlin.multiplatform.library")
 }
-
-
-
 
 repositories {
     mavenCentral()
