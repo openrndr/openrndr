@@ -293,8 +293,6 @@ fun createApplicationWindowSDL(
         WindowMultisample.SystemDefault -> Unit
     }
 
-
-
     var window = SDL_CreateWindow(configuration.title, configuration.width, configuration.height, windowFlags)
     val glContext: Long
     stackPush().use {
@@ -312,8 +310,6 @@ fun createApplicationWindowSDL(
         glContext = SDL_GL_CreateContext(window)
 
         SDL_ShowWindow(window)
-
-
     }
 
     return ApplicationWindowSDL(

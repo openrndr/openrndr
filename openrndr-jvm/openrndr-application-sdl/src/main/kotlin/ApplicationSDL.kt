@@ -9,8 +9,13 @@ import org.lwjgl.opengl.GL11.GL_VERSION
 import org.lwjgl.opengl.GL30.GL_MAJOR_VERSION
 import org.lwjgl.opengl.GL30.GL_MINOR_VERSION
 import org.lwjgl.opengles.GLES
+import org.lwjgl.sdl.SDLClipboard.SDL_GetClipboardText
 import org.lwjgl.sdl.SDLError.SDL_GetError
 import org.lwjgl.sdl.SDLEvents.SDL_EVENT_CLIPBOARD_UPDATE
+import org.lwjgl.sdl.SDLEvents.SDL_EVENT_DROP_BEGIN
+import org.lwjgl.sdl.SDLEvents.SDL_EVENT_DROP_COMPLETE
+import org.lwjgl.sdl.SDLEvents.SDL_EVENT_DROP_FILE
+import org.lwjgl.sdl.SDLEvents.SDL_EVENT_DROP_POSITION
 import org.lwjgl.sdl.SDLEvents.SDL_EVENT_FINGER_CANCELED
 import org.lwjgl.sdl.SDLEvents.SDL_EVENT_FINGER_DOWN
 import org.lwjgl.sdl.SDLEvents.SDL_EVENT_FINGER_MOTION
@@ -106,6 +111,9 @@ class ApplicationSDL(override var program: Program, override var configuration: 
     private val thread = Thread.currentThread()
     internal val windows: CopyOnWriteArrayList<ApplicationWindowSDL> = CopyOnWriteArrayList()
     private val windowsById = mutableMapOf<Int, ApplicationWindowSDL>()
+
+    private val dropFiles = mutableListOf<String>()
+
 
     init {
         program.application = this
@@ -357,14 +365,44 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             }
 
             SDL_EVENT_CLIPBOARD_UPDATE -> {
-                println("clipboard updated")
+                val clipboardEvent = event.clipboard()
+
+//                println("number of mime types: ${clipboardEvent.num_mime_types()}")
+            }
+
+            SDL_EVENT_DROP_POSITION -> {
+//                val dropEvent = event.drop()
+//                println("${dropEvent.x()} ${dropEvent.y()}")
+//                println(dropEvent.sourceString())
+//                println(dropEvent.dataString())
+//                println(dropEvent.data())
+            }
+
+            SDL_EVENT_DROP_BEGIN -> {
+                dropFiles.clear()
+            }
+
+            SDL_EVENT_DROP_FILE -> {
+                val dropEvent = event.drop()
+                val data = dropEvent.dataString()
+                if (data != null) {
+                    dropFiles.add(data)
+                }
+            }
+
+            SDL_EVENT_DROP_COMPLETE -> {
+                val dropEvent = event.drop()
+                val window = windowById(event.window().windowID())
+                window.program.window.drop.trigger(
+                    DropEvent(
+                        Vector2(dropEvent.x().toDouble(), dropEvent.y().toDouble()),
+                        dropFiles
+                    )
+                )
             }
 
             SDL_EVENT_MOUSE_WHEEL -> {
                 val mouseEvent = event.wheel()
-
-
-
                 val window = windowById(event.window().windowID())
                 cursorPosition = Vector2(mouseEvent.mouse_x().toDouble(), mouseEvent.mouse_y().toDouble()).toDisplayUnits(window.windowContentScale)
                 val rotation = Vector2(mouseEvent.x().toDouble(), mouseEvent.y().toDouble())
@@ -456,7 +494,6 @@ class ApplicationSDL(override var program: Program, override var configuration: 
                 )
             }
             SDL_EVENT_WINDOW_CLOSE_REQUESTED -> {
-                //println("close requested")
                 windowById(event.window().windowID()).closeRequested = true
             }
 
