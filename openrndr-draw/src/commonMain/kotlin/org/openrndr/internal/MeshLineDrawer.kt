@@ -161,7 +161,11 @@ class MeshLineDrawer {
         val vertexCount = vertices.put {
             for ((element, strip) in strips.withIndex()) {
 
-                val stripLength = strip.asSequence().windowed(2, 1).sumOf { it[0].distanceTo(it[1]) }
+                var stripLength = 0.0
+                for (i in 0 until strip.size - 1) {
+                    stripLength += strip[i].distanceTo(strip[(i + 1)])
+                }
+
                 var offset = 0.0
 
                 val stripClosed = closed.getOrNull(element) ?: false
