@@ -1,5 +1,11 @@
 rootProject.name = "openrndr"
-
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+        google()
+    }
+}
 plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "0.7.0"
 }
@@ -27,6 +33,7 @@ include(
         "openrndr-jvm:openrndr-application-glfw",
         "openrndr-jvm:openrndr-application-sdl",
         "openrndr-jvm:openrndr-gl3",
+        "openrndr-jvm:openrndr-gl3-support",
         "openrndr-jvm:openrndr-openal",
 
 

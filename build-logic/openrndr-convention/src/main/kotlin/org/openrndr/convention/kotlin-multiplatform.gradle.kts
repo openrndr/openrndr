@@ -1,5 +1,6 @@
 package org.openrndr.convention
 
+import com.android.build.api.dsl.androidLibrary
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
@@ -15,23 +16,43 @@ fun arch(arch: String = System.getProperty("os.arch")): String {
     }
 }
 
-
+project.extensions.create("platformConfiguration", PlatformConfiguration::class.java )
 val libs = extensions.getByType<VersionCatalogsExtension>().named("libs")
 
 plugins {
     kotlin("multiplatform")
 }
 
+if (property("openrndr.platform.android")=="true") {
+    apply(plugin = "com.android.kotlin.multiplatform.library")
+}
+
 repositories {
     mavenCentral()
+    google()
 }
 
 group = "org.openrndr"
 
 tasks.withType<KotlinCompilationTask<*>> {
     compilerOptions {
-        apiVersion.set(KotlinVersion.valueOf("KOTLIN_${libs.findVersion("kotlinApi").get().displayName.replace(".", "_")}"))
-        languageVersion.set(KotlinVersion.valueOf("KOTLIN_${libs.findVersion("kotlinLanguage").get().displayName.replace(".", "_")}"))
+        apiVersion.set(
+            KotlinVersion.valueOf(
+                "KOTLIN_${
+                    libs.findVersion("kotlinApi").get().displayName.replace(
+                        ".",
+                        "_"
+                    )
+                }"
+            )
+        )
+        languageVersion.set(
+            KotlinVersion.valueOf(
+                "KOTLIN_${
+                    libs.findVersion("kotlinLanguage").get().displayName.replace(".", "_")
+                }"
+            )
+        )
         freeCompilerArgs.add("-Xexpect-actual-classes")
     }
 }
@@ -43,6 +64,14 @@ tasks.withType<KotlinJvmCompile>().configureEach {
 }
 
 kotlin {
+    if (property("openrndr.platform.android")=="true") {
+        androidLibrary {
+            namespace = "org.openrndr"
+            compileSdk = 33
+            minSdk = 24
+        }
+    }
+
     jvm {
         testRuns["test"].executionTask {
             if (DefaultNativePlatform.getCurrentOperatingSystem().isMacOsX) {
@@ -63,6 +92,14 @@ kotlin {
         val jvmMain by getting {
             dependencies {
                 implementation(libs.findLibrary("kotlin-logging").get())
+            }
+        }
+
+        if (property("openrndr.platform.android")=="true") {
+            val androidMain by getting {
+                dependencies {
+                    implementation(libs.findLibrary("kotlin-logging").get())
+                }
             }
         }
 

@@ -5,13 +5,30 @@ plugins {
 }
 
 kotlin {
+    applyDefaultHierarchyTemplate { // or .custom depending on your setup
+        common {
+            group("commonJvm") {
+                withJvm()
+                group("jvm") { withJvm() }
+                group("android") { withAndroidTarget() }
+            }
+        }
+    }
+
     sourceSets {
         val commonMain by getting {
             dependencies {
                 implementation(project(":openrndr-draw"))
                 implementation(libs.kotlin.logging)
             }
+        }
 
+        val commonJvmMain by getting
+
+        if (platformConfiguration.android) {
+            val androidMain by getting {
+                dependsOn(commonJvmMain)
+            }
         }
     }
 }

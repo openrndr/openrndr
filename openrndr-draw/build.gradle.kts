@@ -5,7 +5,23 @@ plugins {
 }
 
 kotlin {
+    applyDefaultHierarchyTemplate { // or .custom depending on your setup
+        common {
+            group("commonJvm") {
+                withJvm()
+                group("jvm") { withJvm() }
+                group("android") { withAndroidTarget() }
+            }
+        }
+    }
+
     sourceSets {
+        val commonTest by getting {
+            dependencies {
+                implementation(libs.kotest.assertions)
+            }
+        }
+
         val commonMain by getting {
             dependencies {
                 api(project(":openrndr-math"))
@@ -18,9 +34,12 @@ kotlin {
                 implementation(libs.kotlin.logging)
             }
         }
-        val commonTest by getting {
-            dependencies {
-                implementation(libs.kotest.assertions)
+        val commonJvmMain by getting
+
+
+        if (platformConfiguration.android) {
+            val androidMain by getting {
+                dependsOn(commonJvmMain)
             }
         }
         val webMain by getting {

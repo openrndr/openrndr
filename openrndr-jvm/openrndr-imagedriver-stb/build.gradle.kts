@@ -14,7 +14,7 @@ tasks {
         onlyIf { !project.hasProperty("skip.gl3.tests") }
 
         if (DefaultNativePlatform.getCurrentOperatingSystem().isMacOsX) {
-            allJvmArgs = allJvmArgs + "-XstartOnFirstThread"
+            jvmArgs = jvmArgs + "-XstartOnFirstThread"
         }
         useJUnitPlatform()
         testLogging.exceptionFormat = TestExceptionFormat.FULL
