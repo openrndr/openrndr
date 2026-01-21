@@ -233,7 +233,7 @@ class FontImageMapDrawer {
 
             Driver.instance.setState(drawStyle)
             drawStyle.applyToShader(shader)
-            (drawStyle.fontMap as FontImageMap).texture.bind(0)
+            shader.textureBindings[0] = (drawStyle.fontMap as FontImageMap).texture
             Driver.instance.drawVertexBuffer(
                 shader,
                 listOf(vertices),

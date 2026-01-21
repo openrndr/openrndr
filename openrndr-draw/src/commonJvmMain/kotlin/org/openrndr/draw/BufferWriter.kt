@@ -8,8 +8,6 @@ import java.nio.ByteBuffer
 actual abstract class BufferWriter {
    abstract fun copyBuffer(sourceBuffer: ByteBuffer, sourceOffset: Int, sourceSizeInBytes: Int)
 
-
-    actual abstract fun write(vararg v: Vector3)
     actual abstract fun write(v: Byte)
     actual abstract fun write(v: Short)
     actual abstract fun write(v: Vector3)

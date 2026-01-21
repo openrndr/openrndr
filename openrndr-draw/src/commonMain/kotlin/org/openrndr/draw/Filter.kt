@@ -42,6 +42,7 @@ fun filterShaderFromCode(fragmentShaderCode: String, name: String, includeShader
  */
 open class Filter(private val shader: Shader?): AutoCloseable {
 
+    private val textureBindings = TextureBindings()
     private val filterDrawStyle = DrawStyle().apply {
         depthWrite = false
         depthTestPass = DepthTestPass.ALWAYS
@@ -159,7 +160,7 @@ void main() {
         shader.begin()
 
         source.forEachIndexed { index, colorBuffer ->
-            colorBuffer.bind(index)
+            shader.textureBindings[index] = colorBuffer
             shader.uniform("tex$index", index)
             shader.uniform(
                 "textureSize$index",
@@ -223,7 +224,7 @@ void main() {
                         "textureSize$textureIndex",
                         Vector2(value.effectiveWidth.toDouble(), value.effectiveHeight.toDouble())
                     )
-                    value.bind(textureIndex)
+                    shader.textureBindings[textureIndex] = value
                     textureIndex++
                 }
 
@@ -235,7 +236,8 @@ void main() {
 
                 is ArrayCubemap -> {
                     shader.uniform(uniform, textureIndex)
-                    value.bind(textureIndex)
+                    textureBindings[textureIndex] = value
+//                    value.bind(textureIndex)
                     textureIndex++
                 }
 

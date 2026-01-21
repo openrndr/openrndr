@@ -129,7 +129,7 @@ class ImageDrawer {
         }
         localInstanceAttributes.shadow.uploadElements(0, rectangles.size)
 
-        colorBuffer.bind(0)
+        shader.textureBindings[0] = colorBuffer
         shader.begin()
         drawContext.applyToShader(shader)
         shader.uniform("u_flipV", if (colorBuffer.flipV) 1 else 0)
@@ -193,7 +193,6 @@ class ImageDrawer {
         }
         instanceAttributes.shadow.uploadElements(0, rectangles.size)
 
-        arrayTexture.bind(0)
         shader.begin()
         drawContext.applyToShader(shader)
         shader.uniform("u_flipV", if (arrayTexture.flipV) 1 else 0)

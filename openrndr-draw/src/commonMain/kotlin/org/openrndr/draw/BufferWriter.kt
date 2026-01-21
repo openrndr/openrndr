@@ -15,7 +15,7 @@ expect abstract class BufferWriter {
      *
      * @param v one or more 3D vectors of type Vector3 to be written
      */
-    abstract fun write(vararg v: Vector3)
+//    abstract fun write(vararg v: Vector3)
 
     /**
      * Writes the provided byte value to the buffer.

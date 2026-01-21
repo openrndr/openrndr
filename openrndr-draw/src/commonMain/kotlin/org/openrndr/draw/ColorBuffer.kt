@@ -3,6 +3,7 @@ package org.openrndr.draw
 import org.openrndr.color.ColorRGBa
 import org.openrndr.internal.Driver
 import org.openrndr.internal.ImageDriver
+import org.openrndr.math.IntVector2
 import org.openrndr.shape.IntRectangle
 import org.openrndr.shape.Rectangle
 import org.openrndr.utils.buffer.MPPBuffer
@@ -76,7 +77,7 @@ fun defaultColorType(format: ColorFormat): ColorType = when (format) {
  * operations like mipmapping, filtering, and copying of image data. A `ColorBuffer` can be used in
  * various scenarios such as rendering to textures or managing image storage in graphics applications.
  */
-expect abstract class ColorBuffer : AutoCloseable {
+expect abstract class ColorBuffer : Texture, AutoCloseable {
     abstract val session: Session?
 
     /** the width of the [ColorBuffer] in device units */
@@ -119,8 +120,6 @@ expect abstract class ColorBuffer : AutoCloseable {
     /** permanently destroy the underlying [ColorBuffer] resources, [ColorBuffer] can not be used after it is destroyed */
     abstract fun destroy()
 
-    /** bind the colorbuffer to a texture unit, internal API */
-    abstract fun bind(unit: Int)
 
 
     /** generates mipmaps from the top-level mipmap */
@@ -316,6 +315,17 @@ fun loadImage(
     } finally {
         data.close()
     }
+}
+
+fun dimensionsInPixels(width: Int, height: Int, contentScale: Double, level: Int) : IntVector2 {
+    val effectiveWidth = (width * contentScale).toInt()
+    val effectiveHeight = (height * contentScale).toInt()
+    return IntVector2((effectiveWidth / (1 shl level)), (effectiveHeight / (1 shl level)))
+}
+
+
+fun ColorBuffer.dimensionsInPixels(level: Int = 0) : IntVector2 {
+    return dimensionsInPixels(width, height, contentScale, level)
 }
 
 expect suspend fun loadImageSuspend(

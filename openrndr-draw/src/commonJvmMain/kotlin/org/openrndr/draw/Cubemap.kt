@@ -5,7 +5,7 @@ import org.openrndr.internal.ImageDriver
 import org.openrndr.utils.buffer.MPPBuffer
 import java.nio.ByteBuffer
 
-actual interface Cubemap:AutoCloseable {
+actual interface Cubemap : Texture, AutoCloseable {
 
     companion object {
         fun create(
@@ -72,7 +72,11 @@ actual interface Cubemap:AutoCloseable {
     )
 }
 
-fun loadCubemap(fileOrUrl: String, formatHint: ImageFileFormat? = ImageFileFormat.DDS, session: Session? = Session.active): Cubemap {
+fun loadCubemap(
+    fileOrUrl: String,
+    formatHint: ImageFileFormat? = ImageFileFormat.DDS,
+    session: Session? = Session.active
+): Cubemap {
     val data = ImageDriver.instance.loadCubemapImage(fileOrUrl, formatHint)
     try {
         return loadCubemap(data, session)

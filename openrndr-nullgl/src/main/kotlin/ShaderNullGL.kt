@@ -6,6 +6,9 @@ import org.openrndr.math.*
 
 class ShaderNullGL(override val session: Session?) : Shader {
 
+    override var textureBindings: TextureBindings
+        get() = TODO("Not yet implemented")
+        set(value) {}
     override val types: Set<ShaderType> = emptySet()
 
     override fun begin() {

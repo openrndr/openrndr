@@ -110,6 +110,16 @@ class DriverNullGL: Driver {
 
     }
 
+    override fun drawMultiVertexBuffer(
+        shader: Shader,
+        vertexBuffers: List<VertexBuffer>,
+        drawPrimitive: DrawPrimitive,
+        counts: IntArray,
+        offsets: IntArray
+    ) {
+
+    }
+
     override fun drawInstances(
         shader: Shader,
         vertexBuffers: List<VertexBuffer>,

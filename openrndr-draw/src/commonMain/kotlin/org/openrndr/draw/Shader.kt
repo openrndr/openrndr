@@ -12,7 +12,7 @@ enum class ShaderType {
     COMPUTE
 }
 
-interface Shader : ShaderImageBindings, ShaderUniforms, ShaderBufferBindings {
+interface Shader : ShaderImageBindings, ShaderUniforms, ShaderTextureBindings, ShaderBufferBindings {
     val session: Session?
     val types: Set<ShaderType>
 
@@ -41,8 +41,6 @@ interface Shader : ShaderImageBindings, ShaderUniforms, ShaderBufferBindings {
     fun createBlock(blockName: String): UniformBlock?
     fun blockLayout(blockName: String): UniformBlockLayout?
     fun block(blockName: String, block: UniformBlock)
-
-
 
 
     fun destroy()

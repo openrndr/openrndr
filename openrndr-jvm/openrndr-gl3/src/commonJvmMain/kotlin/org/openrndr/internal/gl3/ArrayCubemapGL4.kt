@@ -60,11 +60,6 @@ class ArrayCubemapGL4(val target: Int,
         checkGLErrors()
     }
 
-    override fun bind(unit: Int) {
-        glActiveTexture(GL_TEXTURE0 + unit)
-        glBindTexture(target, texture)
-    }
-
     override fun write(side: CubemapSide, layer: Int, buffer: ByteBuffer, sourceFormat: ColorFormat, sourceType: ColorType, level: Int) {
         bound {
             val div = 1 shl level

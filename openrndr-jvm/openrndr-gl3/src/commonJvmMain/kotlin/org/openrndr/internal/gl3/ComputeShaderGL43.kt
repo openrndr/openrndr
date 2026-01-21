@@ -17,6 +17,8 @@ class ComputeShaderGL43(
 ) : ComputeShader,
     ShaderBufferBindingsGL3, ShaderUniformsGL3, ShaderImageBindingsGL43 {
 
+    override var textureBindings: TextureBindings = TextureBindings()
+
     override val uniforms = mutableMapOf<String, Int>()
     override val useProgramUniform = Driver.capabilities.programUniform
     private var destroyed = false

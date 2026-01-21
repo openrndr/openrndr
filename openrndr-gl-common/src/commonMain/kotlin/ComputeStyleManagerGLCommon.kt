@@ -40,7 +40,7 @@ ${structure.computeTransform.prependIndent("    ")}
         }
 
         dispatchBufferBindings(style, shader)
-        dispatchParameters(style, shader)
+        dispatchParameters(style, shader, shader.textureBindings)
         dispatchImageBindings(style, shader)
 
         return shader

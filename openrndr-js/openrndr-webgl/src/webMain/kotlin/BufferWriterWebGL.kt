@@ -14,10 +14,6 @@ class BufferWriterWebGL(val buffer: Float32Array<ArrayBuffer>, val elementSize: 
 
     override var position: Int = 0
 
-    override fun write(vararg v: Vector3) {
-        TODO("Not yet implemented")
-    }
-
     override fun write(v: Byte) {
         error("only float types")
     }

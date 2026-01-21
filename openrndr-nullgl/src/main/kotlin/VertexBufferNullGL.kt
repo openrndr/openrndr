@@ -66,10 +66,6 @@ class BufferWriterNullGL : BufferWriter() {
 
     }
 
-    override fun write(vararg v: Vector3) {
-
-    }
-
     override fun rewind() {
     }
     override var position: Int = 0

@@ -9,7 +9,7 @@ import org.openrndr.shape.Rectangle
 import org.openrndr.utils.buffer.MPPBuffer
 import web.gl.TexImageSource
 
-actual abstract class ColorBuffer : AutoCloseable {
+actual abstract class ColorBuffer : Texture, AutoCloseable {
 
     /**
      * write the contents from [sourceBuffer] to the [ColorBuffer], potentially with format and type conversions
@@ -61,9 +61,6 @@ actual abstract class ColorBuffer : AutoCloseable {
 
     /** permanently destroy the underlying [ColorBuffer] resources, [ColorBuffer] can not be used after it is destroyed */
     actual abstract fun destroy()
-
-    /** bind the colorbuffer to a texture unit, internal API */
-    actual abstract fun bind(unit: Int)
 
     /** generates mipmaps from the top-level mipmap */
     actual abstract fun generateMipmaps()

@@ -7,14 +7,14 @@ import org.openrndr.math.*
 interface StyleManagerDispatchUniform {
     var textureIndex: Int
 
-    fun <T> dispatchParameters(style: StyleParameters, shader: T) where T: ShaderUniforms {
+    fun <T> dispatchParameters(style: StyleParameters, shader: T, textureBindings: TextureBindings) where T: ShaderUniforms {
         textureIndex = style.textureBaseIndex
         for (it in style.parameterValues.entries) {
-            setUniform(shader,"p_${it.key}", it.key, it.value)
+            setUniform(shader, textureBindings,"p_${it.key}", it.key, it.value)
         }
     }
 
-    fun <T> setUniform(shader: T, targetName: String, name: String, value: Any) where T : ShaderUniforms {
+    fun <T> setUniform(shader: T, textureBindings: TextureBindings, targetName: String, name: String, value: Any) where T : ShaderUniforms {
         when (value) {
             is Boolean -> shader.uniform(targetName, value)
             is Int -> shader.uniform(targetName, value)
@@ -30,7 +30,7 @@ interface StyleManagerDispatchUniform {
             is IntVector4 -> shader.uniform(targetName, value)
             is ColorRGBa -> shader.uniform(targetName, value)
             is ColorBuffer -> {
-                value.bind(textureIndex)
+                textureBindings[textureIndex] = value
                 shader.uniform(targetName, textureIndex)
                 textureIndex++
             }
@@ -54,13 +54,13 @@ interface StyleManagerDispatchUniform {
             }
 
             is ArrayTexture -> {
-                value.bind(textureIndex)
+                textureBindings[textureIndex] = value
                 shader.uniform(targetName, textureIndex)
                 textureIndex++
             }
 
             is ArrayCubemap -> {
-                value.bind(textureIndex)
+                textureBindings[textureIndex] = value
                 shader.uniform(targetName, textureIndex)
                 textureIndex++
             }
@@ -121,7 +121,7 @@ interface StyleManagerDispatchUniform {
 
                     is Struct<*> -> {
                         for (i in 0 until value.size) {
-                            setUniform(shader, "$targetName[$i]", "", value[i]!!)
+                            setUniform(shader, textureBindings,"$targetName[$i]", "", value[i]!!)
                         }
                     }
                 }
@@ -133,7 +133,7 @@ interface StyleManagerDispatchUniform {
 
             is Struct<*> -> {
                 for (f in value.values.keys) {
-                    setUniform(shader, "$targetName.$f", "", value.values.getValue(f))
+                    setUniform(shader, textureBindings,"$targetName.$f", "", value.values.getValue(f))
                 }
             }
 

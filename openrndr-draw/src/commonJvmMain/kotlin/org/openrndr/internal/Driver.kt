@@ -164,6 +164,14 @@ actual interface Driver {
         verticesPerPatch: Int
     )
 
+    actual fun drawMultiVertexBuffer(
+        shader: Shader,
+        vertexBuffers: List<VertexBuffer>,
+        drawPrimitive: DrawPrimitive,
+        counts: IntArray,
+        offsets: IntArray
+    )
+
     actual fun drawInstances(
         shader: Shader,
         vertexBuffers: List<VertexBuffer>,

@@ -6,7 +6,7 @@ package org.openrndr.draw
  * systems. This is a common interface to be implemented in various
  * target languages.
  */
-expect interface ArrayCubemap : AutoCloseable {
+expect interface ArrayCubemap : Texture, AutoCloseable {
     val session: Session?
 
     val width: Int
@@ -15,8 +15,6 @@ expect interface ArrayCubemap : AutoCloseable {
     val type: ColorType
     val levels: Int
     fun destroy()
-
-    fun bind(unit: Int)
 
     /**
      * Copy contents in layer to target ColorBuffer

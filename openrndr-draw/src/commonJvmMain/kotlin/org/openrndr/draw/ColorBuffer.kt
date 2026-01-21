@@ -26,7 +26,7 @@ import kotlin.math.min
  * [ColorBuffer] is an unmanaged GPU resource, the user is responsible for destroying a [ColorBuffer] once it is no
  * longer used.
  */
-actual abstract class ColorBuffer: AutoCloseable {
+actual abstract class ColorBuffer: Texture, AutoCloseable {
     actual abstract val session: Session?
 
     /** the width of the [ColorBuffer] in device units */
@@ -185,8 +185,6 @@ actual abstract class ColorBuffer: AutoCloseable {
     /** permanently destroy the underlying [ColorBuffer] resources, [ColorBuffer] can not be used after it is destroyed */
     actual abstract fun destroy()
 
-    /** bind the colorbuffer to a texture unit, internal API */
-    actual abstract fun bind(unit: Int)
 
     /** generates mipmaps from the top-level mipmap */
     actual abstract fun generateMipmaps()

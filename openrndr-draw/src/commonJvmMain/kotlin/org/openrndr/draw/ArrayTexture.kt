@@ -5,7 +5,7 @@ import org.openrndr.math.Vector2
 import org.openrndr.shape.Rectangle
 import java.nio.ByteBuffer
 
-actual abstract class ArrayTexture: AutoCloseable {
+actual abstract class ArrayTexture: Texture, AutoCloseable {
     actual abstract val session: Session?
 
     actual abstract val width: Int
@@ -15,8 +15,6 @@ actual abstract class ArrayTexture: AutoCloseable {
     actual abstract val type: ColorType
     actual abstract val levels: Int
     actual abstract fun destroy()
-
-    actual abstract fun bind(unit: Int)
 
     actual abstract fun fill(color: ColorRGBa, layer: Int, level: Int)
     /**

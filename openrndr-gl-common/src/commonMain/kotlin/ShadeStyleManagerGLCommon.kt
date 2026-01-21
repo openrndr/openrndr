@@ -72,7 +72,7 @@ $this"""
                     }
                 }
                 dispatchBufferBindings(style, shader)
-                dispatchParameters(style, shader)
+                dispatchParameters(style, shader, shader.textureBindings)
                 dispatchImageBindings(style, shader)
                 shader
             }

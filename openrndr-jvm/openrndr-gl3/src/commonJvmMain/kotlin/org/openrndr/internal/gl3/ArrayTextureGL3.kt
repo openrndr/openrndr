@@ -122,11 +122,6 @@ class ArrayTextureGL3(
         checkGLErrors()
     }
 
-    override fun bind(unit: Int) {
-        glActiveTexture(GL_TEXTURE0 + unit)
-        glBindTexture(target, texture)
-    }
-
     override fun write(layer: Int, buffer: ByteBuffer, sourceFormat: ColorFormat, sourceType: ColorType, level: Int) {
         bound {
             val div = 1 shl level

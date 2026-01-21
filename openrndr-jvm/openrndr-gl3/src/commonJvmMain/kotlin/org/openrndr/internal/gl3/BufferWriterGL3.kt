@@ -66,13 +66,6 @@ class BufferWriterGL3(
         (sourceBuffer as Buffer).limit(sourceBuffer.capacity())
     }
 
-    override fun write(vararg v: Vector3) {
-        for (i in v) {
-            next(BufferPrimitiveType.VECTOR3_FLOAT32)
-            write(i)
-        }
-    }
-
     override fun write(v: Byte) {
         require(alignment == BufferAlignment.NONE && elementIterator == null)
         buffer.put(v)

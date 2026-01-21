@@ -86,6 +86,220 @@ inline fun DriverVersionGL.require(minimum: DriverVersionGL) {
 
 abstract class DriverGL3(val version: DriverVersionGL) : Driver {
 
+
+    private val cachedTextureBindings = IntArray(32) { 0 }
+
+    fun applyBlendMode(drawStyle: DrawStyle) {
+        if (true) {
+
+            // TODO introduce caching
+
+            val rt = RenderTarget.active
+            for (i in 0 until rt.blendModes.size) {
+
+                val blendMode = drawStyle.blendMode ?: rt.blendModes[i]
+
+                fun setAdvancedEq(buf: Int, eq: Int) {
+                    glEnable(GL_BLEND)
+                    if (Driver.glVersion.isAtLeast(DriverVersionGL.GL_VERSION_4_1, DriverVersionGL.GLES_VERSION_3_2)) {
+                        glBlendEquationi(buf, eq)
+                        glBlendFunci(buf, GL_ONE, GL_ONE)
+                    } else {
+                        glBlendEquation(eq)
+                        glBlendFunc(GL_ONE, GL_ONE)
+                    }
+                }
+
+                when (blendMode) {
+                    BlendMode.OVER -> {
+                        glEnable(GL_BLEND)
+                        if (Driver.glVersion.isAtLeast(
+                                DriverVersionGL.GL_VERSION_4_1,
+                                DriverVersionGL.GLES_VERSION_3_2
+                            )
+                        ) {
+                            glBlendEquationi(0, GL_FUNC_ADD)
+                            glBlendFunci(0, GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
+                        } else {
+                            glBlendEquation(GL_FUNC_ADD)
+                            glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
+                        }
+                    }
+
+                    BlendMode.BLEND -> {
+                        glEnable(GL_BLEND)
+                        if (Driver.glVersion.isAtLeast(
+                                DriverVersionGL.GL_VERSION_4_1,
+                                DriverVersionGL.GLES_VERSION_3_2
+                            )
+                        ) {
+                            glBlendEquationi(0, GL_FUNC_ADD)
+                            glBlendFunci(0, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+                        } else {
+                            glBlendEquation(GL_FUNC_ADD)
+                            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+                        }
+                    }
+
+                    BlendMode.ADD -> {
+                        glEnable(GL_BLEND)
+                        if (Driver.glVersion.isAtLeast(
+                                DriverVersionGL.GL_VERSION_4_1,
+                                DriverVersionGL.GLES_VERSION_3_2
+                            )
+                        ) {
+                            glBlendEquationi(0, GL_FUNC_ADD)
+                            glBlendFunci(0, GL_ONE, GL_ONE)
+                        } else {
+                            glBlendEquation(GL_FUNC_ADD)
+                            glBlendFunc(GL_ONE, GL_ONE)
+                        }
+                    }
+
+                    BlendMode.REPLACE -> {
+                        glDisable(GL_BLEND)
+                    }
+
+                    BlendMode.SUBTRACT -> {
+                        glEnable(GL_BLEND)
+                        if (Driver.glVersion.isAtLeast(
+                                DriverVersionGL.GL_VERSION_4_1,
+                                DriverVersionGL.GLES_VERSION_3_2
+                            )
+                        ) {
+                            glBlendEquationSeparatei(0, GL_FUNC_REVERSE_SUBTRACT, GL_FUNC_ADD)
+                            glBlendFuncSeparatei(0, GL_SRC_ALPHA, GL_ONE, GL_ONE, GL_ONE)
+                        } else {
+                            glBlendEquationSeparate(GL_FUNC_REVERSE_SUBTRACT, GL_FUNC_ADD)
+                            glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE, GL_ONE, GL_ONE)
+                        }
+                    }
+
+                    BlendMode.MULTIPLY -> {
+                        glEnable(GL_BLEND)
+                        if (Driver.glVersion.isAtLeast(
+                                DriverVersionGL.GL_VERSION_4_1,
+                                DriverVersionGL.GLES_VERSION_3_2
+                            )
+                        ) {
+                            glBlendEquationi(0, GL_FUNC_ADD)
+                            glBlendFunci(0, GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA)
+                        } else {
+                            glBlendEquation(GL_FUNC_ADD)
+                            glBlendFunc(GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA)
+                        }
+                    }
+
+                    BlendMode.REMOVE -> {
+                        glEnable(GL_BLEND)
+                        if (Driver.glVersion.isAtLeast(
+                                DriverVersionGL.GL_VERSION_4_1,
+                                DriverVersionGL.GLES_VERSION_3_2
+                            )
+                        ) {
+                            glBlendEquationi(0, GL_FUNC_ADD)
+                            glBlendFunci(0, GL_ZERO, GL_ONE_MINUS_SRC_ALPHA)
+                        } else {
+                            glBlendEquation(GL_FUNC_ADD)
+                            glBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_ALPHA)
+                        }
+                    }
+
+                    BlendMode.MIN -> {
+                        glEnable(GL_BLEND)
+                        if (Driver.glVersion.isAtLeast(
+                                DriverVersionGL.GL_VERSION_4_1,
+                                DriverVersionGL.GLES_VERSION_3_2
+                            )
+                        ) {
+                            glBlendEquationi(0, GL_MIN)
+                            glBlendFunci(0, GL_ONE, GL_ONE)
+                        } else {
+                            glBlendEquation(GL_MIN)
+                            glBlendFunc(GL_ONE, GL_ONE)
+                        }
+                    }
+
+                    BlendMode.MAX -> {
+                        glEnable(GL_BLEND)
+                        if (Driver.glVersion.isAtLeast(
+                                DriverVersionGL.GL_VERSION_4_1,
+                                DriverVersionGL.GLES_VERSION_3_2
+                            )
+                        ) {
+                            glBlendEquationi(0, GL_MAX)
+                            glBlendFunci(0, GL_ONE, GL_ONE)
+                        } else {
+                            glBlendEquation(GL_MAX)
+                            glBlendFunc(GL_ONE, GL_ONE)
+                        }
+                    }
+
+                    BlendMode.SCREEN -> setAdvancedEq(i, GL_SCREEN_KHR)
+                    BlendMode.OVERLAY -> setAdvancedEq(i, GL_OVERLAY_KHR)
+                    BlendMode.DARKEN -> setAdvancedEq(i, GL_DARKEN_KHR)
+                    BlendMode.LIGHTEN -> setAdvancedEq(i, GL_LIGHTEN_KHR)
+                    BlendMode.COLOR_DODGE -> setAdvancedEq(i, GL_COLORDODGE_KHR)
+                    BlendMode.COLOR_BURN -> setAdvancedEq(i, GL_COLORBURN_KHR)
+                    BlendMode.HARD_LIGHT -> setAdvancedEq(i, GL_HARDLIGHT_KHR)
+                    BlendMode.SOFT_LIGHT -> setAdvancedEq(i, GL_SOFTLIGHT_KHR)
+                    BlendMode.DIFFERENCE -> setAdvancedEq(i, GL_DIFFERENCE_KHR)
+                    BlendMode.EXCLUSION -> setAdvancedEq(i, GL_EXCLUSION_KHR)
+                    BlendMode.HSL_HUE -> setAdvancedEq(i, GL_HSL_HUE_KHR)
+                    BlendMode.HSL_SATURATION -> setAdvancedEq(i, GL_HSL_SATURATION_KHR)
+                    BlendMode.HSL_COLOR -> setAdvancedEq(i, GL_HSL_COLOR_KHR)
+                    BlendMode.HSL_LUMINOSITY -> setAdvancedEq(i, GL_HSL_LUMINOSITY_KHR)
+                }
+            }
+            //cached.blendMode = drawStyle.blendMode
+        }
+    }
+
+    fun applyTextureBindings(bindings: TextureBindings) {
+        bindings.binding.forEach { i, texture ->
+            glActiveTexture(GL_TEXTURE0 + i)
+
+            when (texture) {
+                is ColorBufferGL3 -> {
+                    if (cachedTextureBindings[i] != texture.texture) {
+                        glBindTexture(texture.target, texture.texture)
+                        cachedTextureBindings[i] = texture.texture
+                    }
+                }
+
+                is ArrayTextureGL3 -> {
+                    if (cachedTextureBindings[i] != texture.texture) {
+                        glBindTexture(texture.target, texture.texture)
+                        cachedTextureBindings[i] = texture.texture
+                    }
+                }
+
+                is ArrayCubemapGL4 -> {
+                    if (cachedTextureBindings[i] != texture.texture) {
+                        glBindTexture(texture.target, texture.texture)
+                        cachedTextureBindings[i] = texture.texture
+                    }
+                }
+
+                is VolumeTextureGL3 -> {
+                    if (cachedTextureBindings[i] != texture.texture) {
+                        glBindTexture(GL_TEXTURE_3D, texture.texture)
+                        cachedTextureBindings[i] = texture.texture
+                    }
+                }
+
+                is CubemapGL3 -> {
+                    if (cachedTextureBindings[i] != texture.texture) {
+                        glBindTexture(GL_TEXTURE_CUBE_MAP, texture.texture)
+                        cachedTextureBindings[i] = texture.texture
+                    }
+                }
+
+                else -> error("unsupported texture type $texture")
+            }
+        }
+    }
+
     private val executionQueue = mutableListOf<() -> Unit>()
 
     fun executeOnMainThread(f: () -> Unit) {
@@ -551,6 +765,28 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver {
         }
     }
 
+    private fun getVao(
+        shaderVertexDescription: ShaderVertexDescription,
+        vertexBuffers: List<VertexBuffer>,
+        instanceAttributeBuffers: List<VertexBuffer>,
+        shader: ShaderGL3
+    ): Int {
+        return vaos.getOrPut(shaderVertexDescription) {
+            logger.debug {
+                "[context=$contextID] creating new VAO for hash $shaderVertexDescription"
+            }
+
+            val arrays = IntArray(1)
+            synchronized(Driver.instance) {
+                glGenVertexArrays(arrays)
+                glBindVertexArray(arrays[0])
+                setupFormat(vertexBuffers, instanceAttributeBuffers, shader)
+                glBindVertexArray(defaultVAO)
+            }
+            arrays[0]
+        }
+    }
+
     override fun drawVertexBuffer(
         shader: Shader,
         vertexBuffers: List<VertexBuffer>,
@@ -559,6 +795,7 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver {
         vertexCount: Int,
         verticesPerPatch: Int
     ) {
+        applyTextureBindings(shader.textureBindings)
         debugGLErrors {
             "a pre-existing GL error occurred before Driver.drawVertexBuffer "
         }
@@ -578,20 +815,8 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver {
             IntArray(0)
         )
 
-        val vao = vaos.getOrPut(shaderVertexDescription) {
-            logger.debug {
-                "[context=$contextID] creating new VAO for hash $shaderVertexDescription"
-            }
+        val vao = getVao(shaderVertexDescription, vertexBuffers, emptyList(), shader)
 
-            val arrays = IntArray(1)
-            synchronized(Driver.instance) {
-                glGenVertexArrays(arrays)
-                glBindVertexArray(arrays[0])
-                setupFormat(vertexBuffers, emptyList(), shader)
-                glBindVertexArray(defaultVAO)
-            }
-            arrays[0]
-        }
         glBindVertexArray(vao)
         debugGLErrors {
             when (it) {
@@ -656,7 +881,7 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver {
 
         shader as ShaderGL3
         indexBuffer as IndexBufferGL3
-
+        applyTextureBindings(shader.textureBindings)
         if (drawPrimitive == DrawPrimitive.PATCHES) {
             if (Driver.glVersion >= DriverVersionGL.GL_VERSION_4_1) {
                 glPatchParameteri(GL_PATCH_VERTICES, verticesPerPatch)
@@ -713,6 +938,55 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver {
     }
 
 
+    override fun drawMultiVertexBuffer(
+        shader: Shader,
+        vertexBuffers: List<VertexBuffer>,
+        drawPrimitive: DrawPrimitive,
+        counts: IntArray,
+        offsets: IntArray
+    ) {
+        applyTextureBindings(shader.textureBindings)
+        debugGLErrors {
+            "a pre-existing GL error occurred before Driver.drawVertexBuffer "
+        }
+
+
+        shader as ShaderGL3
+        // -- find or create a VAO for our shader + vertex buffers combination
+        val shaderVertexDescription = ShaderVertexDescription(
+            Driver.instance.contextID,
+            shader.programObject,
+            IntArray(vertexBuffers.size) { (vertexBuffers[it] as VertexBufferGL3).buffer },
+            IntArray(0)
+        )
+
+        val vao = getVao(shaderVertexDescription, vertexBuffers, emptyList(), shader)
+
+        glBindVertexArray(vao)
+        debugGLErrors {
+            when (it) {
+                GL_INVALID_OPERATION -> "array ($vao) is not zero or the name of a vertex array object previously returned from a call to glGenVertexArrays"
+                else -> "unknown error $it"
+            }
+        }
+
+        //logger.trace { "drawing vertex buffer with $drawPrimitive(${drawPrimitive.glType()}) and $vertexCount vertices with vertexOffset $vertexOffset " }
+        glMultiDrawArrays(drawPrimitive.glType(), offsets, counts)
+
+        //glDrawArrays(drawPrimitive.glType(), vertexOffset, vertexCount)
+
+//        debugGLErrors {
+//            when (it) {
+//                GL_INVALID_ENUM -> "mode ($drawPrimitive) is not an accepted value."
+//                GL_INVALID_VALUE -> "count ($vertexCount) is negative."
+//                GL_INVALID_OPERATION -> "a non-zero buffer object name is bound to an enabled array and the buffer object's data store is currently mapped."
+//                else -> null
+//            }
+//        }
+        // -- restore defaultVAO binding
+        glBindVertexArray(defaultVAO)
+    }
+
     @Suppress("DuplicatedCode")
     override fun drawInstances(
         shader: Shader,
@@ -728,6 +1002,7 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver {
         require(instanceOffset == 0 || Driver.glVersion >= DriverVersionGL.GL_VERSION_4_2) {
             "non-zero instance offsets require OpenGL 4.2 (current config: ${Driver.glVersion.versionString})"
         }
+        applyTextureBindings(shader.textureBindings)
 
         if (drawPrimitive == DrawPrimitive.PATCHES) {
             if (Driver.glVersion >= DriverVersionGL.GL_VERSION_4_1) {
@@ -801,6 +1076,7 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver {
         instanceCount: Int,
         verticesPerPatch: Int
     ) {
+        applyTextureBindings(shader.textureBindings)
         require(instanceOffset == 0 || (Driver.glVersion >= DriverVersionGL.GL_VERSION_4_2 && Driver.glVersion.type == DriverTypeGL.GL)) {
             "non-zero instance offsets require OpenGL 4.2 (current config: ${Driver.glVersion.versionString})"
         }
@@ -1042,6 +1318,7 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver {
         if (Driver.glType == DriverTypeGL.GL) {
             glEnable(GL_FRAMEBUFFER_SRGB)
         }
+        applyBlendMode(drawStyle)
 
         val dirty = dirtyPerContext.getOrDefault(contextID, true)
         val cached = cachedPerContext.getOrPut(contextID) { DrawStyle() }
@@ -1144,167 +1421,7 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver {
             cached.backStencil = drawStyle.backStencil.copy()
         }
 
-        if (true) {
 
-            val rt = RenderTarget.active
-            for (i in 0 until rt.blendModes.size) {
-
-                val blendMode = drawStyle.blendMode ?: rt.blendModes[i]
-
-                fun setAdvancedEq(buf: Int, eq: Int) {
-                    glEnable(GL_BLEND)
-                    if (Driver.glVersion.isAtLeast(DriverVersionGL.GL_VERSION_4_1, DriverVersionGL.GLES_VERSION_3_2)) {
-                        glBlendEquationi(buf, eq)
-                        glBlendFunci(buf, GL_ONE, GL_ONE)
-                    } else {
-                        glBlendEquation(eq)
-                        glBlendFunc(GL_ONE, GL_ONE)
-                    }
-                }
-
-                when (blendMode) {
-                    BlendMode.OVER -> {
-                        glEnable(GL_BLEND)
-                        if (Driver.glVersion.isAtLeast(
-                                DriverVersionGL.GL_VERSION_4_1,
-                                DriverVersionGL.GLES_VERSION_3_2
-                            )
-                        ) {
-                            glBlendEquationi(0, GL_FUNC_ADD)
-                            glBlendFunci(0, GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
-                        } else {
-                            glBlendEquation(GL_FUNC_ADD)
-                            glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
-                        }
-                    }
-
-                    BlendMode.BLEND -> {
-                        glEnable(GL_BLEND)
-                        if (Driver.glVersion.isAtLeast(
-                                DriverVersionGL.GL_VERSION_4_1,
-                                DriverVersionGL.GLES_VERSION_3_2
-                            )
-                        ) {
-                            glBlendEquationi(0, GL_FUNC_ADD)
-                            glBlendFunci(0, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-                        } else {
-                            glBlendEquation(GL_FUNC_ADD)
-                            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-                        }
-                    }
-
-                    BlendMode.ADD -> {
-                        glEnable(GL_BLEND)
-                        if (Driver.glVersion.isAtLeast(
-                                DriverVersionGL.GL_VERSION_4_1,
-                                DriverVersionGL.GLES_VERSION_3_2
-                            )
-                        ) {
-                            glBlendEquationi(0, GL_FUNC_ADD)
-                            glBlendFunci(0, GL_ONE, GL_ONE)
-                        } else {
-                            glBlendEquation(GL_FUNC_ADD)
-                            glBlendFunc(GL_ONE, GL_ONE)
-                        }
-                    }
-
-                    BlendMode.REPLACE -> {
-                        glDisable(GL_BLEND)
-                    }
-
-                    BlendMode.SUBTRACT -> {
-                        glEnable(GL_BLEND)
-                        if (Driver.glVersion.isAtLeast(
-                                DriverVersionGL.GL_VERSION_4_1,
-                                DriverVersionGL.GLES_VERSION_3_2
-                            )
-                        ) {
-                            glBlendEquationSeparatei(0, GL_FUNC_REVERSE_SUBTRACT, GL_FUNC_ADD)
-                            glBlendFuncSeparatei(0, GL_SRC_ALPHA, GL_ONE, GL_ONE, GL_ONE)
-                        } else {
-                            glBlendEquationSeparate(GL_FUNC_REVERSE_SUBTRACT, GL_FUNC_ADD)
-                            glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE, GL_ONE, GL_ONE)
-                        }
-                    }
-
-                    BlendMode.MULTIPLY -> {
-                        glEnable(GL_BLEND)
-                        if (Driver.glVersion.isAtLeast(
-                                DriverVersionGL.GL_VERSION_4_1,
-                                DriverVersionGL.GLES_VERSION_3_2
-                            )
-                        ) {
-                            glBlendEquationi(0, GL_FUNC_ADD)
-                            glBlendFunci(0, GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA)
-                        } else {
-                            glBlendEquation(GL_FUNC_ADD)
-                            glBlendFunc(GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA)
-                        }
-                    }
-
-                    BlendMode.REMOVE -> {
-                        glEnable(GL_BLEND)
-                        if (Driver.glVersion.isAtLeast(
-                                DriverVersionGL.GL_VERSION_4_1,
-                                DriverVersionGL.GLES_VERSION_3_2
-                            )
-                        ) {
-                            glBlendEquationi(0, GL_FUNC_ADD)
-                            glBlendFunci(0, GL_ZERO, GL_ONE_MINUS_SRC_ALPHA)
-                        } else {
-                            glBlendEquation(GL_FUNC_ADD)
-                            glBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_ALPHA)
-                        }
-                    }
-
-                    BlendMode.MIN -> {
-                        glEnable(GL_BLEND)
-                        if (Driver.glVersion.isAtLeast(
-                                DriverVersionGL.GL_VERSION_4_1,
-                                DriverVersionGL.GLES_VERSION_3_2
-                            )
-                        ) {
-                            glBlendEquationi(0, GL_MIN)
-                            glBlendFunci(0, GL_ONE, GL_ONE)
-                        } else {
-                            glBlendEquation(GL_MIN)
-                            glBlendFunc(GL_ONE, GL_ONE)
-                        }
-                    }
-
-                    BlendMode.MAX -> {
-                        glEnable(GL_BLEND)
-                        if (Driver.glVersion.isAtLeast(
-                                DriverVersionGL.GL_VERSION_4_1,
-                                DriverVersionGL.GLES_VERSION_3_2
-                            )
-                        ) {
-                            glBlendEquationi(0, GL_MAX)
-                            glBlendFunci(0, GL_ONE, GL_ONE)
-                        } else {
-                            glBlendEquation(GL_MAX)
-                            glBlendFunc(GL_ONE, GL_ONE)
-                        }
-                    }
-
-                    BlendMode.SCREEN -> setAdvancedEq(i, GL_SCREEN_KHR)
-                    BlendMode.OVERLAY -> setAdvancedEq(i, GL_OVERLAY_KHR)
-                    BlendMode.DARKEN -> setAdvancedEq(i, GL_DARKEN_KHR)
-                    BlendMode.LIGHTEN -> setAdvancedEq(i, GL_LIGHTEN_KHR)
-                    BlendMode.COLOR_DODGE -> setAdvancedEq(i, GL_COLORDODGE_KHR)
-                    BlendMode.COLOR_BURN -> setAdvancedEq(i, GL_COLORBURN_KHR)
-                    BlendMode.HARD_LIGHT -> setAdvancedEq(i, GL_HARDLIGHT_KHR)
-                    BlendMode.SOFT_LIGHT -> setAdvancedEq(i, GL_SOFTLIGHT_KHR)
-                    BlendMode.DIFFERENCE -> setAdvancedEq(i, GL_DIFFERENCE_KHR)
-                    BlendMode.EXCLUSION -> setAdvancedEq(i, GL_EXCLUSION_KHR)
-                    BlendMode.HSL_HUE -> setAdvancedEq(i, GL_HSL_HUE_KHR)
-                    BlendMode.HSL_SATURATION -> setAdvancedEq(i, GL_HSL_SATURATION_KHR)
-                    BlendMode.HSL_COLOR -> setAdvancedEq(i, GL_HSL_COLOR_KHR)
-                    BlendMode.HSL_LUMINOSITY -> setAdvancedEq(i, GL_HSL_LUMINOSITY_KHR)
-                }
-            }
-            //cached.blendMode = drawStyle.blendMode
-        }
         if (dirty || cached.alphaToCoverage != drawStyle.alphaToCoverage) {
             if (drawStyle.alphaToCoverage) {
                 glEnable(GL_SAMPLE_ALPHA_TO_COVERAGE)

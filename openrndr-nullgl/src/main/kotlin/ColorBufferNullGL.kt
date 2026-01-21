@@ -39,10 +39,6 @@ class ColorBufferNullGL(
 
     }
 
-    override fun bind(unit: Int) {
-
-    }
-
     override fun write(sourceBuffer: ByteBuffer, sourceFormat: ColorFormat, sourceType: ColorType, level: Int) {
 
     }

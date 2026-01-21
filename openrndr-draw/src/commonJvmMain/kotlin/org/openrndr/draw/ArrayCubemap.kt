@@ -5,7 +5,7 @@ import org.openrndr.math.Vector2
 import org.openrndr.shape.Rectangle
 import java.nio.ByteBuffer
 
-actual interface ArrayCubemap : AutoCloseable {
+actual interface ArrayCubemap : Texture, AutoCloseable {
     actual val session: Session?
 
     actual val width: Int
@@ -14,8 +14,6 @@ actual interface ArrayCubemap : AutoCloseable {
     actual val type: ColorType
     actual val levels: Int
     actual fun destroy()
-
-    actual fun bind(unit: Int)
 
     /**
      * Write to a single layer in the array texture

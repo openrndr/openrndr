@@ -163,7 +163,7 @@ class ColorBufferWebGL(
         context.deleteTexture(texture)
     }
 
-    override fun bind(unit: Int) {
+    fun bind(unit: Int) {
         context.checkErrors("pre-existing errors")
         context.activeTexture(glTextureEnum(unit))
         context.bindTexture(target, texture)

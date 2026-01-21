@@ -4,7 +4,6 @@ import org.openrndr.color.ColorRGBa
 import org.openrndr.math.*
 
 actual abstract class BufferWriter {
-    actual abstract fun write(vararg v: Vector3)
     actual abstract fun write(v: Byte)
     actual abstract fun write(v: Short)
     actual abstract fun write(v: Vector3)

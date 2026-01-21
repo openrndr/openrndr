@@ -417,6 +417,16 @@ class DriverWebGL(val context: GL) : Driver {
         context.bindVertexArray(null)
     }
 
+    override fun drawMultiVertexBuffer(
+        shader: Shader,
+        vertexBuffers: List<VertexBuffer>,
+        drawPrimitive: DrawPrimitive,
+        counts: IntArray,
+        offsets: IntArray
+    ) {
+        TODO("not implemented")
+    }
+
     override fun drawIndexedVertexBuffer(
         shader: Shader,
         indexBuffer: IndexBuffer,

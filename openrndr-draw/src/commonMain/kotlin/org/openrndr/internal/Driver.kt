@@ -324,6 +324,10 @@ expect interface Driver {
         vertexOffset: Int, vertexCount: Int, verticesPerPatch: Int = 0
     )
 
+    fun drawMultiVertexBuffer(
+        shader: Shader, vertexBuffers: List<VertexBuffer>,
+        drawPrimitive: DrawPrimitive, counts: IntArray, offsets: IntArray
+    )
     /**
      * Renders geometry from the provided indexed vertex buffer using the specified shader and draw primitive.
      *

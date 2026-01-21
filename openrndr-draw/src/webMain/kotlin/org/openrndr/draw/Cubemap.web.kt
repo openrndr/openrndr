@@ -5,7 +5,7 @@ import js.buffer.ArrayBufferView
 import org.openrndr.utils.buffer.MPPBuffer
 import web.gl.TexImageSource
 
-actual interface Cubemap: AutoCloseable {
+actual interface Cubemap: Texture, AutoCloseable {
     actual val session: Session?
     actual val width: Int
     actual val format: ColorFormat

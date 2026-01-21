@@ -99,6 +99,8 @@ class ShaderGL3(
     override val session: Session?
 ) : Shader, ShaderUniformsGL3, ShaderBufferBindingsGL3, ShaderImageBindingsGL43 {
 
+    override var textureBindings: TextureBindings = TextureBindings()
+
     override val ssbo: Int = createSSBO()
     override val ssboResourceIndices = mutableMapOf<String, Int>()
     override val useProgramUniform = Driver.capabilities.programUniform

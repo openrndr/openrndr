@@ -162,9 +162,6 @@ class ColorBufferGL3(
 
             checkGLErrors()
 
-            val effectiveWidth = (width * contentScale).toInt()
-            val effectiveHeight = (height * contentScale).toInt()
-
             val nullBB: ByteBuffer? = null
 
             if (levels > 1) {
@@ -174,15 +171,15 @@ class ColorBufferGL3(
             when (storageMode) {
                 TextureStorageModeGL.IMAGE -> {
                     for (level in 0 until levels) {
-                        val div = 1 shl level
+                        val pixelDimensions = dimensionsInPixels(width, height, contentScale, level)
                         when (multisample) {
                             Disabled -> if (!type.compressed) {
                                 glTexImage2D(
                                     GL_TEXTURE_2D,
                                     level,
                                     internalFormat,
-                                    effectiveWidth / div,
-                                    effectiveHeight / div,
+                                    pixelDimensions.x,
+                                    pixelDimensions.y,
                                     0,
                                     internalType,
                                     type.glType(),
@@ -193,8 +190,8 @@ class ColorBufferGL3(
                                     GL_TEXTURE_2D,
                                     level,
                                     internalFormat,
-                                    effectiveWidth,
-                                    effectiveHeight,
+                                    pixelDimensions.x,
+                                    pixelDimensions.y,
                                     0,
                                     internalType,
                                     GL_UNSIGNED_BYTE,
@@ -206,8 +203,8 @@ class ColorBufferGL3(
                                 GL_TEXTURE_2D_MULTISAMPLE,
                                 multisample.sampleCount,
                                 internalFormat,
-                                effectiveWidth / div,
-                                effectiveHeight / div,
+                                pixelDimensions.x,
+                                pixelDimensions.y,
                                 true
                             )
                         }
@@ -215,16 +212,17 @@ class ColorBufferGL3(
                 }
 
                 TextureStorageModeGL.STORAGE -> {
+                    val pixelDimensions = dimensionsInPixels(width, height, contentScale, 0)
                     when (multisample) {
                         Disabled ->
-                            glTexStorage2D(GL_TEXTURE_2D, levels, internalFormat, effectiveWidth, effectiveHeight)
+                            glTexStorage2D(GL_TEXTURE_2D, levels, internalFormat, pixelDimensions.x, pixelDimensions.y)
 
                         is SampleCount -> glTexStorage2DMultisample(
                             GL_TEXTURE_2D_MULTISAMPLE,
                             multisample.sampleCount.coerceAtMost(glGetInteger(GL_MAX_COLOR_TEXTURE_SAMPLES)),
                             internalFormat,
-                            effectiveWidth,
-                            effectiveHeight,
+                            pixelDimensions.x,
+                            pixelDimensions.y,
                             true
                         )
                     }
@@ -629,7 +627,8 @@ class ColorBufferGL3(
         when {
             (Driver.glVersion < DriverVersionGL.GL_VERSION_4_4 || Driver.glType == DriverTypeGL.GLES) -> {
 
-                val writeTarget = renderTarget(lwidth, lheight, contentScale) {
+                val pixelDimensions = this.dimensionsInPixels(level)
+                val writeTarget = renderTarget(pixelDimensions.x, pixelDimensions.y, 1.0) {
                     colorBuffer(this@ColorBufferGL3, level)
                 } as RenderTargetGL3
 
@@ -928,11 +927,6 @@ class ColorBufferGL3(
         }
     }
 
-    override fun bind(unit: Int) {
-        checkDestroyed()
-        glActiveTexture(GL_TEXTURE0 + unit)
-        glBindTexture(target, texture)
-    }
 
     private fun checkDestroyed() {
         if (destroyed) {

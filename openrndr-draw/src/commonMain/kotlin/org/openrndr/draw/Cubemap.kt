@@ -38,7 +38,7 @@ enum class CubemapSide(val forward: Vector3, val up: Vector3) {
  * @property type The color data type of the cubemap sides.
  * @property levels The number of mipmap levels of the cubemap.
  */
-expect interface Cubemap: AutoCloseable {
+expect interface Cubemap: Texture, AutoCloseable {
     val session: Session?
 
     val width: Int

@@ -41,6 +41,9 @@ class ShaderWebGL(
     val activeUniforms: Map<String, ActiveUniform>,
     override val session: Session?
 ) : Shader {
+
+    override var textureBindings: TextureBindings = TextureBindings()
+
     @OptIn(ExperimentalWasmJsInterop::class)
     companion object {
         fun create(
