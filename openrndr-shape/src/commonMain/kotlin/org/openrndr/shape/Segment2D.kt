@@ -108,6 +108,9 @@ interface BezierSegment<T : EuclideanVector<T>> {
     val length: Double
 
     @Transient
+    val quadratic: BezierSegment<T>
+
+    @Transient
     val cubic: BezierSegment<T>
 
     /**
@@ -153,8 +156,9 @@ interface BezierSegment<T : EuclideanVector<T>> {
      *
      * @param distanceTolerance The square of the maximal distance of each point from curve.
      */
-    fun adaptivePositions(distanceTolerance: Double = 0.5): List<T> =
-        adaptivePositionsWithT(distanceTolerance).map { it.first }
+    open fun adaptivePositions(distanceTolerance: Double = 0.5): List<T> {
+        return adaptivePositionsWithT(distanceTolerance).map { it.first }
+    }
 
 
     fun adaptivePositionsWithT(distanceTolerance: Double = 0.5): List<Pair<T, Double>> = when (control.size) {
@@ -606,8 +610,20 @@ data class Segment2D(
 
 
     /** Converts the [Segment2D] to a quadratic Bézier curve. */
-    val quadratic: Segment2D
+    override val quadratic: Segment2D
         get() = when {
+            control.size == 2 -> {
+                val p0 = start
+                val p1 = control[0]
+                val p2 = control[1]
+                val p3 = end
+
+                val c1 = (p1 * 3.0 - p0) * 0.5
+                val c2 = (p2 * 3.0 - p3) * 0.5
+                val c = (c1 + c2) * 0.5
+                Segment2D(p0, c, p3)
+            }
+
             control.size == 1 -> this
             linear -> {
                 val delta = end - start
@@ -651,7 +667,7 @@ data class Segment2D(
         val dd = derivative2(t)
         val numerator = d.cross(dd)
         val denominator = d.length.pow(3.0)
-        return numerator/denominator
+        return numerator / denominator
     }
 
 

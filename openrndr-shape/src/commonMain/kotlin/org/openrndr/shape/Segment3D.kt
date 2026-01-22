@@ -561,8 +561,19 @@ class Segment3D(
     }
 
     /** Converts the [Segment2D] to a quadratic Bézier curve. */
-    val quadratic: Segment3D
+    override val quadratic: Segment3D
         get() = when {
+            control.size == 2 -> {
+                val p0 = start
+                val p1 = control[0]
+                val p2 = control[1]
+                val p3 = end
+
+                val c1 = (p1 * 3.0 - p0) * 0.5
+                val c2 = (p2 * 3.0 - p3) * 0.5
+                val c = (c1 + c2) * 0.5
+                Segment3D(p0, c, p3)
+            }
             control.size == 1 -> this
             linear -> {
                 val delta = end - start
