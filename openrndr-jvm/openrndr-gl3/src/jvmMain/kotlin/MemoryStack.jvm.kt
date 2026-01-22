@@ -6,7 +6,7 @@ import java.nio.IntBuffer
 import org.lwjgl.system.MemoryStack as MemoryStack_
 actual class MemoryStack: AutoCloseable {
 
-    lateinit var ms: MemoryStack
+    lateinit var ms: MemoryStack_
     actual fun mallocFloat(size: Int): FloatBuffer {
         return ms.mallocFloat(size)
 
@@ -20,7 +20,7 @@ actual class MemoryStack: AutoCloseable {
     }
     actual companion object {
         actual fun stackPush(): MemoryStack {
-            return MemoryStack().apply { this.ms = MemoryStack.stackPush() }
+            return MemoryStack().apply { this.ms = MemoryStack_.stackPush() }
         }
     }
 
