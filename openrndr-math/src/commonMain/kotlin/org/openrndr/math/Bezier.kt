@@ -248,8 +248,8 @@ fun safeDerivative(p0: Vector2, p1: Vector2, p2: Vector2, p3: Vector2, t: Double
 }
 
 fun normal(x0: Vector2, c0: Vector2, x1: Vector2, t: Double): Vector2 {
-    val (x, y) = derivative(x0, c0, x1, t)
-    return Vector2(-y, x).normalized
+    val d = derivative(x0, c0, x1, t)
+    return Vector2(-d.y, d.x).normalized
 }
 
 // linear type bezier
