@@ -16,7 +16,7 @@ const val GL_ALWAYS = 0x207
 
 const val GL_DEPTH_BUFFER_BIT = 0x100
 const val GL_STENCIL_BUFFER_BIT = 0x400
-const val GL_COLOR_BUFFER_BIT = 0x400
+const val GL_COLOR_BUFFER_BIT = 0x4000
 
 //
 
