@@ -2,6 +2,10 @@ package org.openrndr.shape
 
 import kotlinx.serialization.Serializable
 import org.openrndr.math.*
+import org.openrndr.shape.internal.flattenCubic
+import org.openrndr.shape.internal.flattenQuadratic
+import org.openrndr.shape.internal.flattenSegment
+import org.openrndr.shape.internal.flattenSegmentWithT
 import kotlin.math.pow
 
 private fun sumDifferences(points: List<Vector3>) =
@@ -19,12 +23,23 @@ class Segment3D(
 
     private var lut: List<Vector3>? = null
 
+    override fun adaptivePositions(distanceTolerance: Double): List<Vector3> {
+        return flattenSegment(this, distanceTolerance, distanceTolerance)
+    }
+
+    override fun adaptivePositionsWithT(distanceTolerance: Double): List<Pair<Vector3, Double>> {
+        return flattenSegmentWithT(this, distanceTolerance, distanceTolerance)
+    }
 
     fun lut(size: Int = 100): List<Vector3> {
         if (lut == null || lut!!.size != size) {
             lut = (0..size).map { position((it.toDouble() / size)) }
         }
         return lut!!
+    }
+
+    override fun sub(t0: Double, t1: Double): Segment3D {
+        return super.sub(t0, t1) as Segment3D
     }
 
     fun on(point: Vector3, error: Double = 5.0): Double? {
