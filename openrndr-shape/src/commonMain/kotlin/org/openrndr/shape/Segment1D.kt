@@ -2,8 +2,6 @@ package org.openrndr.shape
 
 import kotlinx.serialization.Serializable
 import org.openrndr.math.*
-import org.openrndr.shape.internal.BezierCubicSamplerT
-import org.openrndr.shape.internal.BezierQuadraticSamplerT
 import kotlin.jvm.JvmRecord
 import kotlin.math.max
 
@@ -279,13 +277,7 @@ data class Segment1D(val start: Double, val control: Array<Double>, val end: Dou
     fun adaptivePositions(distanceTolerance: Double = 25.0): List<Double> =
         adaptivePositionsWithT(distanceTolerance).map { it.first }
 
-    fun adaptivePositionsWithT(distanceTolerance: Double = 25.0): List<Pair<Double, Double>> = when (control.size) {
-        0 -> listOf(start to 0.0, end to 1.0)
-        1 -> BezierQuadraticSamplerT<Vector1>().apply { this.distanceTolerance = distanceTolerance }.sample(Vector1(start), Vector1(control[0]), Vector1(end)).map { Pair(it.first.x, it.second) }
-        2 -> BezierCubicSamplerT<Vector1>().apply { this.distanceTolerance = distanceTolerance }.sample(Vector1(start), Vector1(control[0]), Vector1(control[1]), Vector1(end)).map { Pair(it.first.x, it.second) }
-        else -> throw RuntimeException("unsupported number of control points")
-    }
-
+    fun adaptivePositionsWithT(distanceTolerance: Double = 25.0): List<Pair<Double, Double>> = TODO("")
     fun equidistantPositions(pointCount: Int, distanceTolerance: Double = 0.5): List<Double> {
         return sampleEquidistant(adaptivePositions(distanceTolerance).map { Vector1(it) }, pointCount).map { it.x }
     }
