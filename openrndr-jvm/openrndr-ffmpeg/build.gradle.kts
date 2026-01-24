@@ -47,7 +47,6 @@ variants {
 
 dependencies {
     api(project(":openrndr-application"))
-//    implementation(libs.bundles.lwjgl.openal)
     implementation(libs.ffmpeg)
     implementation(project(":openrndr-jvm:openrndr-openal"))
     implementation(libs.kotlin.coroutines)
@@ -55,7 +54,9 @@ dependencies {
     implementation(libs.kotlin.serialization.json)
     implementation(libs.lwjgl.core)
     demoImplementation(project(":openrndr-jvm:openrndr-ffmpeg"))
-
+    demoImplementation(libs.slf4j.simple)
+    demoImplementation(project(":openrndr-jvm:openrndr-gl3"))
+    demoImplementation(project(":openrndr-jvm:openrndr-application-glfw"))
 }
 
 sourceSets {
@@ -65,58 +66,5 @@ sourceSets {
     demo {
         runtimeClasspath += main.runtimeClasspath
         compileClasspath += main.compileClasspath
-        dependencies {
-            implementation(libs.slf4j.simple)
-            implementation(project(":openrndr-jvm:openrndr-gl3"))
-            implementation(project(":openrndr-jvm:openrndr-application-glfw"))
-        }
     }
-
 }
-
-
-
-//kotlin {
-//    jvm {
-//
-//        compilations {
-//            val main by getting
-//
-//            val demo by creating {
-//                associateWith(main)
-//            }
-//        }
-//    }
-//
-//    sourceSets {
-//        val jvmMain by getting {
-//            dependencies {
-//                api(project(":openrndr-application"))
-//                implementation(libs.bundles.lwjgl.openal)
-//                implementation(libs.ffmpeg)
-//                implementation(project(":openrndr-jvm:openrndr-openal"))
-//                implementation(libs.kotlin.coroutines)
-//                implementation(libs.kotlin.serialization.core)
-//                implementation(libs.kotlin.serialization.json)
-//            }
-//        }
-//
-//        val jvmDemo by getting {
-//            dependencies {
-//                runtimeOnly(libs.slf4j.simple)
-//                runtimeOnly(project(":openrndr-jvm:openrndr-gl3"))
-//                runtimeOnly(project(":openrndr-jvm:openrndr-openal"))
-//                runtimeOnly(project(":openrndr-jvm:openrndr-ffmpeg-natives-$osArch"))
-//            }
-//        }
-//    }
-//}
-//
-//kotlin {
-//    jvm().mainRun {
-//        classpath(kotlin.jvm().compilations.getByName("demo").output.allOutputs)
-//        classpath(kotlin.jvm().compilations.getByName("demo").configurations.runtimeDependencyConfiguration!!)
-//    }
-//}
-//
-//tasks.withType<JavaExec>().matching { it.name == "jvmRun" }.configureEach { workingDir = rootDir }
