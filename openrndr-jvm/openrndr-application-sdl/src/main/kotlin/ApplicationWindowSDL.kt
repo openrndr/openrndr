@@ -244,6 +244,8 @@ class ApplicationWindowSDL(
     }
 
     fun update() {
+
+
         SDL_GL_MakeCurrent(window, glContext)
         defaultRenderTarget.bind()
 
