@@ -325,6 +325,11 @@ fun createApplicationWindowSDL(
         glContext = SDL_GL_CreateContext(window)
 
         SDL_ShowWindow(window)
+        if (configuration.hideMouseCursor) {
+            if (!SDL_HideCursor()) {
+                logger.warn { "Failed to hide mouse cursor." }
+            }
+        }
     }
 
     return ApplicationWindowSDL(

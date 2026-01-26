@@ -34,7 +34,8 @@ data class WindowConfiguration(
     val hideDecorations: Boolean = false,
     val transparent: Boolean = false,
     val multisample: WindowMultisample = WindowMultisample.Disabled,
-    val fullscreen: Fullscreen = Fullscreen.DISABLED
+    val fullscreen: Fullscreen = Fullscreen.DISABLED,
+    val hideMouseCursor: Boolean = false
 )
 
 /**
