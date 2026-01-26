@@ -9,55 +9,22 @@ import org.lwjgl.opengl.GL11.GL_VERSION
 import org.lwjgl.opengl.GL30.GL_MAJOR_VERSION
 import org.lwjgl.opengl.GL30.GL_MINOR_VERSION
 import org.lwjgl.opengles.GLES
-import org.lwjgl.sdl.SDLClipboard.SDL_GetClipboardText
 import org.lwjgl.sdl.SDLError.SDL_GetError
-import org.lwjgl.sdl.SDLEvents.SDL_EVENT_CLIPBOARD_UPDATE
-import org.lwjgl.sdl.SDLEvents.SDL_EVENT_DROP_BEGIN
-import org.lwjgl.sdl.SDLEvents.SDL_EVENT_DROP_COMPLETE
-import org.lwjgl.sdl.SDLEvents.SDL_EVENT_DROP_FILE
-import org.lwjgl.sdl.SDLEvents.SDL_EVENT_DROP_POSITION
-import org.lwjgl.sdl.SDLEvents.SDL_EVENT_FINGER_CANCELED
-import org.lwjgl.sdl.SDLEvents.SDL_EVENT_FINGER_DOWN
-import org.lwjgl.sdl.SDLEvents.SDL_EVENT_FINGER_MOTION
-import org.lwjgl.sdl.SDLEvents.SDL_EVENT_FINGER_UP
-import org.lwjgl.sdl.SDLEvents.SDL_EVENT_KEY_DOWN
-import org.lwjgl.sdl.SDLEvents.SDL_EVENT_KEY_UP
-import org.lwjgl.sdl.SDLEvents.SDL_EVENT_MOUSE_BUTTON_DOWN
-import org.lwjgl.sdl.SDLEvents.SDL_EVENT_MOUSE_BUTTON_UP
-import org.lwjgl.sdl.SDLEvents.SDL_EVENT_MOUSE_MOTION
-import org.lwjgl.sdl.SDLEvents.SDL_EVENT_MOUSE_WHEEL
-import org.lwjgl.sdl.SDLEvents.SDL_EVENT_QUIT
-import org.lwjgl.sdl.SDLEvents.SDL_EVENT_TEXT_INPUT
-import org.lwjgl.sdl.SDLEvents.SDL_EVENT_WINDOW_CLOSE_REQUESTED
-import org.lwjgl.sdl.SDLEvents.SDL_EVENT_WINDOW_DISPLAY_CHANGED
-import org.lwjgl.sdl.SDLEvents.SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED
-import org.lwjgl.sdl.SDLEvents.SDL_EVENT_WINDOW_EXPOSED
-import org.lwjgl.sdl.SDLEvents.SDL_EVENT_WINDOW_FOCUS_GAINED
-import org.lwjgl.sdl.SDLEvents.SDL_EVENT_WINDOW_FOCUS_LOST
-import org.lwjgl.sdl.SDLEvents.SDL_EVENT_WINDOW_ICCPROF_CHANGED
-import org.lwjgl.sdl.SDLEvents.SDL_EVENT_WINDOW_MOUSE_ENTER
-import org.lwjgl.sdl.SDLEvents.SDL_EVENT_WINDOW_MOUSE_LEAVE
-import org.lwjgl.sdl.SDLEvents.SDL_EVENT_WINDOW_MOVED
-import org.lwjgl.sdl.SDLEvents.SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED
-import org.lwjgl.sdl.SDLEvents.SDL_PollEvent
-import org.lwjgl.sdl.SDLKeycode.SDL_KMOD_ALT
-import org.lwjgl.sdl.SDLKeycode.SDL_KMOD_CTRL
-import org.lwjgl.sdl.SDLKeycode.SDL_KMOD_GUI
-import org.lwjgl.sdl.SDLKeycode.SDL_KMOD_SHIFT
+import org.lwjgl.sdl.SDLEvents.*
+import org.lwjgl.sdl.SDLKeycode.*
 import org.lwjgl.sdl.SDLTimer.SDL_GetTicks
 import org.lwjgl.sdl.SDLVideo.*
 import org.lwjgl.sdl.SDL_Event
-
 import org.openrndr.*
 import org.openrndr.animatable.Animatable
 import org.openrndr.animatable.Clock
-import org.openrndr.draw.Drawer
-import org.openrndr.internal.Driver
-import org.openrndr.internal.gl3.*
 import org.openrndr.application.sdl.ApplicationSDLConfiguration.fixWindowSize
 import org.openrndr.draw.DrawThread
+import org.openrndr.draw.Drawer
 import org.openrndr.draw.Session
+import org.openrndr.internal.Driver
 import org.openrndr.internal.ResourceThread
+import org.openrndr.internal.gl3.*
 import org.openrndr.math.Vector2
 import org.openrndr.platform.Platform
 import org.openrndr.platform.PlatformType
@@ -503,9 +470,10 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             SDL_EVENT_KEY_DOWN -> {
                 val keyEvent = event.key()
                 val modifiers = modifiersFromSdl(keyEvent.mod().toInt())
+                val eventType = if (keyEvent.repeat()) KeyEventType.KEY_REPEAT else KeyEventType.KEY_DOWN
                 windowById(event.window().windowID()).program.keyboard.keyDown.trigger(
                     KeyEvent(
-                        KeyEventType.KEY_DOWN,
+                        eventType,
                         keyEvent.key(),
                         "not implemented yet",
                         modifiers
