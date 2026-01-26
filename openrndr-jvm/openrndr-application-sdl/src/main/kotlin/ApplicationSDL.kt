@@ -286,7 +286,7 @@ class ApplicationSDL(override var program: Program, override var configuration: 
                         Vector2.ZERO,
                         MouseEventType.ENTERED,
                         MouseButton.NONE,
-                        emptySet()
+                        modifiersFromSdl(SDL_GetModState().toInt())
                     )
                 )
             }
@@ -299,7 +299,7 @@ class ApplicationSDL(override var program: Program, override var configuration: 
                         Vector2.ZERO,
                         MouseEventType.EXITED,
                         MouseButton.NONE,
-                        emptySet()
+                        modifiersFromSdl(SDL_GetModState().toInt())
                     )
                 )
             }
