@@ -676,7 +676,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
         program.drawer = Drawer(Driver.instance)
 
 
-        // TODO: fix this
+//        // TODO: fix this
 //        when (Driver.glType) {
 //            DriverTypeGL.GL -> {}
 //            DriverTypeGL.GLES -> (Driver.instance as DriverGL3).setupExtensions(

@@ -180,6 +180,7 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             hideDecorations = configuration.hideWindowDecorations,
             resizable = configuration.windowResizable,
             fullscreen = configuration.fullscreen,
+            transparent = configuration.windowTransparent
         )
         program.driver = Driver.instance
         program.drawer = Drawer(Driver.instance)

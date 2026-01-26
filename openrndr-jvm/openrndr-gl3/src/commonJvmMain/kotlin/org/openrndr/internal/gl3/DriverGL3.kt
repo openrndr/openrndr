@@ -92,7 +92,6 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver {
 
     fun applyBlendMode(drawStyle: DrawStyle) {
         if (true) {
-
             // TODO introduce caching
 
             val rt = RenderTarget.active
@@ -119,8 +118,8 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver {
                                 DriverVersionGL.GLES_VERSION_3_2
                             )
                         ) {
-                            glBlendEquationi(0, GL_FUNC_ADD)
-                            glBlendFunci(0, GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
+                            glBlendEquationi(i, GL_FUNC_ADD)
+                            glBlendFunci(i, GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
                         } else {
                             glBlendEquation(GL_FUNC_ADD)
                             glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
@@ -134,8 +133,8 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver {
                                 DriverVersionGL.GLES_VERSION_3_2
                             )
                         ) {
-                            glBlendEquationi(0, GL_FUNC_ADD)
-                            glBlendFunci(0, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+                            glBlendEquationi(i, GL_FUNC_ADD)
+                            glBlendFunci(i, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
                         } else {
                             glBlendEquation(GL_FUNC_ADD)
                             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
@@ -149,8 +148,8 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver {
                                 DriverVersionGL.GLES_VERSION_3_2
                             )
                         ) {
-                            glBlendEquationi(0, GL_FUNC_ADD)
-                            glBlendFunci(0, GL_ONE, GL_ONE)
+                            glBlendEquationi(i, GL_FUNC_ADD)
+                            glBlendFunci(i, GL_ONE, GL_ONE)
                         } else {
                             glBlendEquation(GL_FUNC_ADD)
                             glBlendFunc(GL_ONE, GL_ONE)
@@ -168,8 +167,8 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver {
                                 DriverVersionGL.GLES_VERSION_3_2
                             )
                         ) {
-                            glBlendEquationSeparatei(0, GL_FUNC_REVERSE_SUBTRACT, GL_FUNC_ADD)
-                            glBlendFuncSeparatei(0, GL_SRC_ALPHA, GL_ONE, GL_ONE, GL_ONE)
+                            glBlendEquationSeparatei(i, GL_FUNC_REVERSE_SUBTRACT, GL_FUNC_ADD)
+                            glBlendFuncSeparatei(i, GL_SRC_ALPHA, GL_ONE, GL_ONE, GL_ONE)
                         } else {
                             glBlendEquationSeparate(GL_FUNC_REVERSE_SUBTRACT, GL_FUNC_ADD)
                             glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE, GL_ONE, GL_ONE)
@@ -183,8 +182,8 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver {
                                 DriverVersionGL.GLES_VERSION_3_2
                             )
                         ) {
-                            glBlendEquationi(0, GL_FUNC_ADD)
-                            glBlendFunci(0, GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA)
+                            glBlendEquationi(i, GL_FUNC_ADD)
+                            glBlendFunci(i, GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA)
                         } else {
                             glBlendEquation(GL_FUNC_ADD)
                             glBlendFunc(GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA)
@@ -198,8 +197,8 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver {
                                 DriverVersionGL.GLES_VERSION_3_2
                             )
                         ) {
-                            glBlendEquationi(0, GL_FUNC_ADD)
-                            glBlendFunci(0, GL_ZERO, GL_ONE_MINUS_SRC_ALPHA)
+                            glBlendEquationi(i, GL_FUNC_ADD)
+                            glBlendFunci(i, GL_ZERO, GL_ONE_MINUS_SRC_ALPHA)
                         } else {
                             glBlendEquation(GL_FUNC_ADD)
                             glBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_ALPHA)
@@ -213,8 +212,8 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver {
                                 DriverVersionGL.GLES_VERSION_3_2
                             )
                         ) {
-                            glBlendEquationi(0, GL_MIN)
-                            glBlendFunci(0, GL_ONE, GL_ONE)
+                            glBlendEquationi(i, GL_MIN)
+                            glBlendFunci(i, GL_ONE, GL_ONE)
                         } else {
                             glBlendEquation(GL_MIN)
                             glBlendFunc(GL_ONE, GL_ONE)
@@ -228,8 +227,8 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver {
                                 DriverVersionGL.GLES_VERSION_3_2
                             )
                         ) {
-                            glBlendEquationi(0, GL_MAX)
-                            glBlendFunci(0, GL_ONE, GL_ONE)
+                            glBlendEquationi(i, GL_MAX)
+                            glBlendFunci(i, GL_ONE, GL_ONE)
                         } else {
                             glBlendEquation(GL_MAX)
                             glBlendFunc(GL_ONE, GL_ONE)

@@ -47,14 +47,17 @@ import org.lwjgl.sdl.SDLVideo.SDL_SetWindowTitle
 import org.lwjgl.sdl.SDLVideo.SDL_ShowWindow
 import org.lwjgl.sdl.SDLVideo.SDL_WINDOW_ALWAYS_ON_TOP
 import org.lwjgl.sdl.SDLVideo.SDL_WINDOW_BORDERLESS
+import org.lwjgl.sdl.SDLVideo.SDL_WINDOW_FULLSCREEN
 import org.lwjgl.sdl.SDLVideo.SDL_WINDOW_HIDDEN
 import org.lwjgl.sdl.SDLVideo.SDL_WINDOW_HIGH_PIXEL_DENSITY
 import org.lwjgl.sdl.SDLVideo.SDL_WINDOW_OPENGL
 import org.lwjgl.sdl.SDLVideo.SDL_WINDOW_RESIZABLE
+import org.lwjgl.sdl.SDLVideo.SDL_WINDOW_TRANSPARENT
 import org.lwjgl.sdl.SDL_Event
 import org.lwjgl.system.MemoryStack.stackPush
 import org.openrndr.ApplicationWindow
 import org.openrndr.CursorType
+import org.openrndr.Fullscreen
 import org.openrndr.MouseCursorHideMode
 import org.openrndr.PresentationMode
 import org.openrndr.Program
@@ -287,6 +290,17 @@ fun createApplicationWindowSDL(
     if (configuration.hideDecorations) {
         windowFlags = windowFlags or SDL_WINDOW_BORDERLESS
     }
+
+    if (configuration.transparent) {
+        windowFlags = windowFlags or SDL_WINDOW_TRANSPARENT
+    }
+
+    when (configuration.fullscreen) {
+        Fullscreen.DISABLED -> Unit
+        Fullscreen.CURRENT_DISPLAY_MODE -> windowFlags = windowFlags or SDL_WINDOW_FULLSCREEN
+        Fullscreen.SET_DISPLAY_MODE -> TODO("not yet implemented")
+    }
+
     when (val ms = configuration.multisample) {
         WindowMultisample.Disabled -> Unit
         is WindowMultisample.SampleCount -> SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, ms.count)
