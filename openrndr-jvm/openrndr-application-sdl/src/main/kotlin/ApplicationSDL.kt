@@ -12,6 +12,7 @@ import org.lwjgl.opengles.GLES
 import org.lwjgl.sdl.SDLError.SDL_GetError
 import org.lwjgl.sdl.SDLEvents.*
 import org.lwjgl.sdl.SDLKeyboard.SDL_GetKeyName
+import org.lwjgl.sdl.SDLKeyboard.SDL_GetModState
 import org.lwjgl.sdl.SDLKeycode.*
 import org.lwjgl.sdl.SDLTimer.SDL_GetTicks
 import org.lwjgl.sdl.SDLVideo.*
@@ -291,6 +292,7 @@ class ApplicationSDL(override var program: Program, override var configuration: 
                 val window = windowById(event.window().windowID())
                 val scale = window.windowContentScale
                 val cursorPosition = Vector2(mouseEvent.x().toDouble(), mouseEvent.y().toDouble()).toDisplayUnits(scale)
+                val modifiers = modifiersFromSdl(SDL_GetModState().toInt())
                 val displacement =
                     Vector2(mouseEvent.xrel().toDouble(), mouseEvent.yrel().toDouble()).toDisplayUnits(scale)
                 window.cursorPosition = cursorPosition
@@ -298,14 +300,14 @@ class ApplicationSDL(override var program: Program, override var configuration: 
                 window.program.mouse.moved.trigger(
                     MouseEvent(
                         cursorPosition, Vector2.ZERO, displacement, MouseEventType.MOVED,
-                        MouseButton.NONE, emptySet()
+                        MouseButton.NONE, modifiers
                     )
                 )
                 if (window.primaryButtonDown) {
                     window.program.mouse.dragged.trigger(
                         MouseEvent(
                             cursorPosition, Vector2.ZERO, displacement, MouseEventType.DRAGGED,
-                            MouseButton.LEFT, emptySet()
+                            MouseButton.LEFT, modifiers // TODO: RIGHT?
                         )
                     )
                 }
@@ -316,6 +318,7 @@ class ApplicationSDL(override var program: Program, override var configuration: 
                 val window = windowById(event.window().windowID())
                 val scale = window.windowContentScale
                 val cursorPosition = Vector2(mouseEvent.x().toDouble(), mouseEvent.y().toDouble()).toDisplayUnits(scale)
+                val modifiers = modifiersFromSdl(SDL_GetModState().toInt())
                 window.cursorPosition = cursorPosition
                 if (mouseEvent.button() == 1.toByte()) {
                     window.primaryButtonDown = false
@@ -323,7 +326,7 @@ class ApplicationSDL(override var program: Program, override var configuration: 
                 window.program.mouse.buttonUp.trigger(
                     MouseEvent(
                         cursorPosition, Vector2.ZERO, Vector2.ZERO, MouseEventType.BUTTON_UP,
-                        MouseButton.LEFT, emptySet()
+                        MouseButton.LEFT, modifiers // TODO: RIGHT?
                     )
                 )
             }
@@ -333,7 +336,7 @@ class ApplicationSDL(override var program: Program, override var configuration: 
                 val window = windowById(event.window().windowID())
                 val scale = window.windowContentScale
                 val cursorPosition = Vector2(mouseEvent.x().toDouble(), mouseEvent.y().toDouble()).toDisplayUnits(scale)
-
+                val modifiers = modifiersFromSdl(SDL_GetModState().toInt())
                 window.cursorPosition = cursorPosition
                 if (mouseEvent.button() == 1.toByte()) {
                     window.primaryButtonDown = true
@@ -341,7 +344,7 @@ class ApplicationSDL(override var program: Program, override var configuration: 
                 window.program.mouse.buttonDown.trigger(
                     MouseEvent(
                         cursorPosition, Vector2.ZERO, Vector2.ZERO, MouseEventType.BUTTON_DOWN,
-                        MouseButton.LEFT, emptySet()
+                        MouseButton.LEFT, modifiers // TODO: RIGHT?
                     )
                 )
             }
@@ -391,15 +394,14 @@ class ApplicationSDL(override var program: Program, override var configuration: 
                     mouseEvent.mouse_y().toDouble()
                 ).toDisplayUnits(window.windowContentScale)
                 val rotation = Vector2(mouseEvent.x().toDouble(), mouseEvent.y().toDouble())
-
+                val modifiers = modifiersFromSdl(SDL_GetModState().toInt())
                 window.program.mouse.scrolled.trigger(
                     MouseEvent(
                         cursorPosition, rotation, Vector2.ZERO, MouseEventType.SCROLLED,
-                        MouseButton.NONE, emptySet()
+                        MouseButton.NONE, modifiers
                     )
                 )
             }
-
 
             SDL_EVENT_FINGER_DOWN -> {
                 val fingerEvent = event.tfinger()
