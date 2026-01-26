@@ -294,6 +294,7 @@ fun createApplicationWindowSDL(
     }
 
     var window = SDL_CreateWindow(configuration.title, configuration.width, configuration.height, windowFlags)
+    require(window != 0L) { "Failed to create window with configuration $configuration" }
     val glContext: Long
     stackPush().use {
         val scale = SDL_GetWindowDisplayScale(window).toDouble()
