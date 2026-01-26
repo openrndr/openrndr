@@ -503,7 +503,7 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             SDL_EVENT_KEY_DOWN -> {
                 val keyEvent = event.key()
                 val modifiers = modifiersFromSdl(keyEvent.mod().toInt())
-                windowById(event.window().windowID()).program.keyboard.keyUp.trigger(
+                windowById(event.window().windowID()).program.keyboard.keyDown.trigger(
                     KeyEvent(
                         KeyEventType.KEY_DOWN,
                         keyEvent.key(),
