@@ -23,6 +23,7 @@ import org.openrndr.animatable.Animatable
 import org.openrndr.animatable.Clock
 import org.openrndr.application.sdl.ApplicationSDLConfiguration.fixWindowSize
 import org.openrndr.draw.DrawThread
+import org.openrndr.draw.Drawer
 import org.openrndr.draw.Session
 import org.openrndr.internal.Driver
 import org.openrndr.internal.KeyboardDriver
