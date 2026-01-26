@@ -637,8 +637,7 @@ class ApplicationSDL(override var program: Program, override var configuration: 
                         fingerEvent.fingerID(),
                         Vector2.ZERO,
                         Vector2.ZERO,
-                        0.0
-                    )
+                        0.0)
                 )
             }
 
