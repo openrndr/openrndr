@@ -35,7 +35,10 @@ data class WindowConfiguration(
     val transparent: Boolean = false,
     val multisample: WindowMultisample = WindowMultisample.Disabled,
     val fullscreen: Fullscreen = Fullscreen.DISABLED,
-    val hideMouseCursor: Boolean = false
+    val hideMouseCursor: Boolean = false,
+    val relativeMouseCoordinates: Boolean = false,
+    val utilityWindow: Boolean = false,
+    val display: Display? = null
 )
 
 /**

@@ -10,6 +10,7 @@ import org.lwjgl.sdl.SDLMouse.SDL_SYSTEM_CURSOR_NS_RESIZE
 import org.lwjgl.sdl.SDLMouse.SDL_SYSTEM_CURSOR_POINTER
 import org.lwjgl.sdl.SDLMouse.SDL_SYSTEM_CURSOR_TEXT
 import org.lwjgl.sdl.SDLMouse.SDL_SetCursor
+import org.lwjgl.sdl.SDLMouse.SDL_SetWindowRelativeMouseMode
 import org.lwjgl.sdl.SDLMouse.SDL_ShowCursor
 import org.lwjgl.sdl.SDLVideo.SDL_CreateWindow
 import org.lwjgl.sdl.SDLVideo.SDL_DestroyWindow
@@ -38,7 +39,6 @@ import org.lwjgl.sdl.SDLVideo.SDL_GL_SetAttribute
 import org.lwjgl.sdl.SDLVideo.SDL_GL_SwapWindow
 import org.lwjgl.sdl.SDLVideo.SDL_GetWindowDisplayScale
 import org.lwjgl.sdl.SDLVideo.SDL_GetWindowPosition
-import org.lwjgl.sdl.SDLVideo.SDL_GetWindowSize
 import org.lwjgl.sdl.SDLVideo.SDL_GetWindowSizeInPixels
 import org.lwjgl.sdl.SDLVideo.SDL_GetWindowTitle
 import org.lwjgl.sdl.SDLVideo.SDL_SetWindowPosition
@@ -50,9 +50,11 @@ import org.lwjgl.sdl.SDLVideo.SDL_WINDOW_BORDERLESS
 import org.lwjgl.sdl.SDLVideo.SDL_WINDOW_FULLSCREEN
 import org.lwjgl.sdl.SDLVideo.SDL_WINDOW_HIDDEN
 import org.lwjgl.sdl.SDLVideo.SDL_WINDOW_HIGH_PIXEL_DENSITY
+import org.lwjgl.sdl.SDLVideo.SDL_WINDOW_MOUSE_CAPTURE
 import org.lwjgl.sdl.SDLVideo.SDL_WINDOW_OPENGL
 import org.lwjgl.sdl.SDLVideo.SDL_WINDOW_RESIZABLE
 import org.lwjgl.sdl.SDLVideo.SDL_WINDOW_TRANSPARENT
+import org.lwjgl.sdl.SDLVideo.SDL_WINDOW_UTILITY
 import org.lwjgl.sdl.SDL_Event
 import org.lwjgl.system.MemoryStack.stackPush
 import org.openrndr.ApplicationWindow
@@ -294,6 +296,14 @@ fun createApplicationWindowSDL(
         windowFlags = windowFlags or SDL_WINDOW_TRANSPARENT
     }
 
+    if (configuration.utilityWindow) {
+        windowFlags = windowFlags or SDL_WINDOW_UTILITY
+    }
+
+    if (configuration.relativeMouseCoordinates) {
+        logger.info { "Enabling mouse capture and relative mode for window" }
+        windowFlags = windowFlags or SDL_WINDOW_MOUSE_CAPTURE //or SDL_WINDOW_MOUSE_RELATIVE_MODE
+    }
     when (configuration.fullscreen) {
         Fullscreen.DISABLED -> Unit
         Fullscreen.CURRENT_DISPLAY_MODE -> windowFlags = windowFlags or SDL_WINDOW_FULLSCREEN
@@ -327,6 +337,11 @@ fun createApplicationWindowSDL(
         if (configuration.hideMouseCursor) {
             if (!SDL_HideCursor()) {
                 logger.warn { "Failed to hide mouse cursor." }
+            }
+        }
+        if (configuration.relativeMouseCoordinates) {
+            if (!SDL_SetWindowRelativeMouseMode(window, true)) {
+                logger.warn { "Failed to enable mouse capture and relative mode." }
             }
         }
     }

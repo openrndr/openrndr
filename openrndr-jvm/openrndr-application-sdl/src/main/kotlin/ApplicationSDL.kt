@@ -183,7 +183,9 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             resizable = configuration.windowResizable,
             fullscreen = configuration.fullscreen,
             transparent = configuration.windowTransparent,
-            hideMouseCursor = configuration.hideCursor
+            hideMouseCursor = configuration.hideCursor,
+            display = configuration.display,
+            relativeMouseCoordinates = configuration.cursorHideMode == MouseCursorHideMode.DISABLE
         )
         program.driver = Driver.instance
         program.drawer = Drawer(Driver.instance)
