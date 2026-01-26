@@ -185,7 +185,8 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             transparent = configuration.windowTransparent,
             hideMouseCursor = configuration.hideCursor,
             display = configuration.display,
-            relativeMouseCoordinates = configuration.cursorHideMode == MouseCursorHideMode.DISABLE
+            relativeMouseCoordinates = configuration.cursorHideMode == MouseCursorHideMode.DISABLE,
+            unfocusBehaviour = configuration.unfocusBehaviour
         )
         program.driver = Driver.instance
         program.drawer = Drawer(Driver.instance)
@@ -249,385 +250,398 @@ class ApplicationSDL(override var program: Program, override var configuration: 
                 SDL_SetWindowMouseGrab(event.window().windowID().toLong(), true)
                 windowById(
                     event.window().windowID()
-                ).program.window.focused.trigger(WindowEvent(WindowEventType.FOCUSED, Vector2.ZERO, Vector2.ZERO, true))
-            }
-
-            SDL_EVENT_WINDOW_FOCUS_LOST -> {
-                windowById(event.window().windowID()).program.window.unfocused.trigger(
-                    WindowEvent(
-                        WindowEventType.UNFOCUSED,
-                        Vector2.ZERO,
-                        Vector2.ZERO,
-                        true
-                    )
-                )
-            }
-
-            SDL_EVENT_WINDOW_MOUSE_ENTER -> {
-                windowById(event.window().windowID()).program.mouse.entered.trigger(
-                    MouseEvent(
-                        Vector2.ZERO,
-                        Vector2.ZERO,
-                        Vector2.ZERO,
-                        MouseEventType.ENTERED,
-                        MouseButton.NONE,
-                        emptySet()
-                    )
-                )
-            }
-
-            SDL_EVENT_WINDOW_MOUSE_LEAVE -> {
-                windowById(event.window().windowID()).program.mouse.exited.trigger(
-                    MouseEvent(
-                        Vector2.ZERO,
-                        Vector2.ZERO,
-                        Vector2.ZERO,
-                        MouseEventType.EXITED,
-                        MouseButton.NONE,
-                        emptySet()
-                    )
-                )
-            }
-
-            SDL_EVENT_MOUSE_MOTION -> {
-                val mouseEvent = event.motion()
-                val window = windowById(event.window().windowID())
-                val scale = window.windowContentScale
-                val cursorPosition = Vector2(mouseEvent.x().toDouble(), mouseEvent.y().toDouble()).toDisplayUnits(scale)
-                val displacement =
-                    Vector2(mouseEvent.xrel().toDouble(), mouseEvent.yrel().toDouble()).toDisplayUnits(scale)
-                window.cursorPosition = cursorPosition
-                window.program.mouse.moved.trigger(
-                    MouseEvent(
-                        cursorPosition, Vector2.ZERO, displacement, MouseEventType.MOVED,
-                        MouseButton.NONE, modifiersFromSdl(SDL_GetModState().toInt())
-                    )
-                )
-                val button = getMouseButton(mouseEvent.state())
-                if (button != MouseButton.NONE) {
-                    window.program.mouse.dragged.trigger(
-                        MouseEvent(
-                            cursorPosition, Vector2.ZERO, displacement, MouseEventType.DRAGGED,
-                            button, modifiersFromSdl(SDL_GetModState().toInt())
+                ).let {
+                    it.windowFocused = true
+                    program.window.focused.trigger(
+                        WindowEvent(
+                            WindowEventType.FOCUSED,
+                            Vector2.ZERO,
+                            Vector2.ZERO,
+                            true
                         )
                     )
                 }
             }
 
-            SDL_EVENT_MOUSE_BUTTON_UP -> {
-                val mouseEvent = event.button()
-                val window = windowById(event.window().windowID())
-                val scale = window.windowContentScale
-                val cursorPosition = Vector2(mouseEvent.x().toDouble(), mouseEvent.y().toDouble()).toDisplayUnits(scale)
-                window.cursorPosition = cursorPosition
-                window.program.mouse.buttonUp.trigger(
+            SDL_EVENT_WINDOW_FOCUS_LOST -> {
+                windowById(event.window().windowID()).let {
+                    it.windowFocused = false
+                    it.program.window.unfocused.trigger(
+                        WindowEvent(
+                            WindowEventType.UNFOCUSED,
+                            Vector2.ZERO,
+                            Vector2.ZERO,
+                            true
+                        )
+                    )
+                }
+            }
+
+        SDL_EVENT_WINDOW_MOUSE_ENTER -> {
+            windowById(event.window().windowID()).program.mouse.entered.trigger(
+                MouseEvent(
+                    Vector2.ZERO,
+                    Vector2.ZERO,
+                    Vector2.ZERO,
+                    MouseEventType.ENTERED,
+                    MouseButton.NONE,
+                    emptySet()
+                )
+            )
+        }
+
+        SDL_EVENT_WINDOW_MOUSE_LEAVE -> {
+            windowById(event.window().windowID()).program.mouse.exited.trigger(
+                MouseEvent(
+                    Vector2.ZERO,
+                    Vector2.ZERO,
+                    Vector2.ZERO,
+                    MouseEventType.EXITED,
+                    MouseButton.NONE,
+                    emptySet()
+                )
+            )
+        }
+
+        SDL_EVENT_MOUSE_MOTION -> {
+            val mouseEvent = event.motion()
+            val window = windowById(event.window().windowID())
+            val scale = window.windowContentScale
+            val cursorPosition = Vector2(mouseEvent.x().toDouble(), mouseEvent.y().toDouble()).toDisplayUnits(scale)
+            val displacement =
+                Vector2(mouseEvent.xrel().toDouble(), mouseEvent.yrel().toDouble()).toDisplayUnits(scale)
+            window.cursorPosition = cursorPosition
+            window.program.mouse.moved.trigger(
+                MouseEvent(
+                    cursorPosition, Vector2.ZERO, displacement, MouseEventType.MOVED,
+                    MouseButton.NONE, modifiersFromSdl(SDL_GetModState().toInt())
+                )
+            )
+            val button = getMouseButton(mouseEvent.state())
+            if (button != MouseButton.NONE) {
+                window.program.mouse.dragged.trigger(
                     MouseEvent(
-                        cursorPosition,
-                        Vector2.ZERO,
-                        Vector2.ZERO,
-                        MouseEventType.BUTTON_UP,
-                        getMouseButton(mouseEvent.button().toInt()),
-                        modifiersFromSdl(SDL_GetModState().toInt())
+                        cursorPosition, Vector2.ZERO, displacement, MouseEventType.DRAGGED,
+                        button, modifiersFromSdl(SDL_GetModState().toInt())
                     )
                 )
             }
+        }
 
-            SDL_EVENT_MOUSE_BUTTON_DOWN -> {
-                val mouseEvent = event.button()
-                val window = windowById(event.window().windowID())
-                val scale = window.windowContentScale
-                val cursorPosition = Vector2(mouseEvent.x().toDouble(), mouseEvent.y().toDouble()).toDisplayUnits(scale)
-                window.cursorPosition = cursorPosition
-                window.program.mouse.buttonDown.trigger(
-                    MouseEvent(
-                        cursorPosition,
-                        Vector2.ZERO,
-                        Vector2.ZERO,
-                        MouseEventType.BUTTON_DOWN,
-                        getMouseButton(mouseEvent.button().toInt()),
-                        modifiersFromSdl(SDL_GetModState().toInt())
-                    )
+        SDL_EVENT_MOUSE_BUTTON_UP -> {
+            val mouseEvent = event.button()
+            val window = windowById(event.window().windowID())
+            val scale = window.windowContentScale
+            val cursorPosition = Vector2(mouseEvent.x().toDouble(), mouseEvent.y().toDouble()).toDisplayUnits(scale)
+            window.cursorPosition = cursorPosition
+            window.program.mouse.buttonUp.trigger(
+                MouseEvent(
+                    cursorPosition,
+                    Vector2.ZERO,
+                    Vector2.ZERO,
+                    MouseEventType.BUTTON_UP,
+                    getMouseButton(mouseEvent.button().toInt()),
+                    modifiersFromSdl(SDL_GetModState().toInt())
                 )
-            }
+            )
+        }
 
-            SDL_EVENT_CLIPBOARD_UPDATE -> {
-                val clipboardEvent = event.clipboard()
+        SDL_EVENT_MOUSE_BUTTON_DOWN -> {
+            val mouseEvent = event.button()
+            val window = windowById(event.window().windowID())
+            val scale = window.windowContentScale
+            val cursorPosition = Vector2(mouseEvent.x().toDouble(), mouseEvent.y().toDouble()).toDisplayUnits(scale)
+            window.cursorPosition = cursorPosition
+            window.program.mouse.buttonDown.trigger(
+                MouseEvent(
+                    cursorPosition,
+                    Vector2.ZERO,
+                    Vector2.ZERO,
+                    MouseEventType.BUTTON_DOWN,
+                    getMouseButton(mouseEvent.button().toInt()),
+                    modifiersFromSdl(SDL_GetModState().toInt())
+                )
+            )
+        }
+
+        SDL_EVENT_CLIPBOARD_UPDATE -> {
+            val clipboardEvent = event.clipboard()
 
 //                println("number of mime types: ${clipboardEvent.num_mime_types()}")
-            }
+        }
 
-            SDL_EVENT_DROP_POSITION -> {
+        SDL_EVENT_DROP_POSITION -> {
 //                val dropEvent = event.drop()
 //                println("${dropEvent.x()} ${dropEvent.y()}")
 //                println(dropEvent.sourceString())
 //                println(dropEvent.dataString())
 //                println(dropEvent.data())
-            }
-
-            SDL_EVENT_DROP_BEGIN -> {
-                dropFiles.clear()
-            }
-
-            SDL_EVENT_DROP_FILE -> {
-                val dropEvent = event.drop()
-                val data = dropEvent.dataString()
-                if (data != null) {
-                    dropFiles.add(data)
-                }
-            }
-
-            SDL_EVENT_DROP_COMPLETE -> {
-                val dropEvent = event.drop()
-                val window = windowById(event.window().windowID())
-                window.program.window.drop.trigger(
-                    DropEvent(
-                        Vector2(dropEvent.x().toDouble(), dropEvent.y().toDouble()),
-                        dropFiles
-                    )
-                )
-            }
-
-            SDL_EVENT_MOUSE_WHEEL -> {
-                val mouseEvent = event.wheel()
-                val window = windowById(event.window().windowID())
-                cursorPosition = Vector2(
-                    mouseEvent.mouse_x().toDouble(),
-                    mouseEvent.mouse_y().toDouble()
-                ).toDisplayUnits(window.windowContentScale)
-                val rotation = Vector2(mouseEvent.x().toDouble(), mouseEvent.y().toDouble())
-                window.program.mouse.scrolled.trigger(
-                    MouseEvent(
-                        cursorPosition, rotation, Vector2.ZERO, MouseEventType.SCROLLED,
-                        MouseButton.NONE, modifiersFromSdl(SDL_GetModState().toInt())
-                    )
-                )
-            }
-
-            SDL_EVENT_FINGER_DOWN -> {
-                val fingerEvent = event.tfinger()
-                window.program.pointers.pointerDown.trigger(
-                    PointerEvent(
-                        fingerEvent.fingerID(),
-                        Vector2(fingerEvent.x().toDouble(), fingerEvent.y().toDouble()) * program.window.size,
-                        Vector2(fingerEvent.dx().toDouble(), fingerEvent.dy().toDouble()) * program.window.size,
-                        fingerEvent.pressure().toDouble()
-                    )
-                )
-            }
-
-            SDL_EVENT_FINGER_UP -> {
-                val fingerEvent = event.tfinger()
-                window.program.pointers.pointerUp.trigger(
-                    PointerEvent(
-                        fingerEvent.fingerID(),
-                        Vector2.ZERO,
-                        Vector2.ZERO,
-                        0.0
-                    )
-                )
-            }
-
-            SDL_EVENT_FINGER_MOTION -> {
-                val fingerEvent = event.tfinger()
-                window.program.pointers.moved.trigger(
-                    PointerEvent(
-                        fingerEvent.fingerID(),
-                        Vector2(fingerEvent.x().toDouble(), fingerEvent.y().toDouble()) * program.window.size,
-                        Vector2(fingerEvent.dx().toDouble(), fingerEvent.dy().toDouble()) * program.window.size,
-                        fingerEvent.pressure().toDouble()
-                    )
-                )
-            }
-
-            SDL_EVENT_FINGER_CANCELED -> {
-                val fingerEvent = event.tfinger()
-                window.program.pointers.pointerUp.trigger(
-                    PointerEvent(
-                        fingerEvent.fingerID(),
-                        Vector2.ZERO,
-                        Vector2.ZERO,
-                        0.0
-                    )
-                )
-            }
-
-
-            SDL_EVENT_TEXT_INPUT -> {
-                val textEvent = event.text()
-                windowById(event.window().windowID()).program.keyboard.character.trigger(
-                    CharacterEvent(textEvent.textString()?.first() ?: ' ', emptySet())
-                )
-            }
-
-            SDL_EVENT_KEY_UP -> {
-                val keyEvent = event.key()
-                val key = keyEvent.key()
-                windowById(event.window().windowID()).program.keyboard.keyUp.trigger(
-                    KeyEvent(
-                        KeyEventType.KEY_UP,
-                        key,
-                        getKeyName(key),
-                        modifiersFromSdl(keyEvent.mod().toInt())
-                    )
-                )
-            }
-
-            SDL_EVENT_KEY_DOWN -> {
-                val keyEvent = event.key()
-                val eventType = if (keyEvent.repeat()) KeyEventType.KEY_REPEAT else KeyEventType.KEY_DOWN
-                val key = keyEvent.key()
-                windowById(event.window().windowID()).program.keyboard.keyDown.trigger(
-                    KeyEvent(
-                        eventType,
-                        key,
-                        getKeyName(key),
-                        modifiersFromSdl(keyEvent.mod().toInt())
-                    )
-                )
-            }
-
-            SDL_EVENT_WINDOW_CLOSE_REQUESTED -> {
-                windowById(event.window().windowID()).closeRequested = true
-            }
-
-            else -> {
-                //println("got event: ${event.type()}")
-            }
-        }
-    }
-
-    /**
-     * Takes integer key codes and converts them to string names
-     * following the same mapping found in ApplicationGLFWGL3.kt.
-     */
-    private fun getKeyName(key: Int) = when (key) {
-        SDLK_SPACE -> "space"
-        SDLK_RETURN -> "enter"
-        SDLK_TAB -> "tab"
-        SDLK_ESCAPE -> "escape"
-        SDLK_UP -> "arrow-up"
-        SDLK_DOWN -> "arrow-down"
-        SDLK_LEFT -> "arrow-left"
-        SDLK_RIGHT -> "arrow-right"
-        SDLK_PRINTSCREEN -> "print-screen"
-        SDLK_PAGEDOWN -> "page-down"
-        SDLK_PAGEUP -> "page-up"
-        SDLK_HOME -> "home"
-        SDLK_END -> "end"
-        SDLK_BACKSPACE -> "backspace"
-        SDLK_LALT -> "left-alt"
-        SDLK_RALT -> "right-alt"
-        SDLK_LCTRL -> "left-control"
-        SDLK_RCTRL -> "right-control"
-        SDLK_INSERT -> "insert"
-        SDLK_DELETE -> "delete"
-        SDLK_LSHIFT -> "left-shift"
-        SDLK_RSHIFT -> "right-shift"
-        SDLK_LGUI -> "left-super"
-        SDLK_RGUI -> "right-super"
-        SDLK_F1 -> "f1"
-        SDLK_F2 -> "f2"
-        SDLK_F3 -> "f3"
-        SDLK_F4 -> "f4"
-        SDLK_F5 -> "f5"
-        SDLK_F6 -> "f6"
-        SDLK_F7 -> "f7"
-        SDLK_F8 -> "f8"
-        SDLK_F9 -> "f9"
-        SDLK_F10 -> "f10"
-        SDLK_F11 -> "f11"
-        SDLK_F12 -> "f12"
-        SDLK_CAPSLOCK -> "caps-lock"
-        else -> SDL_GetKeyName(key) ?: "<null>"
-    }
-
-    /**
-     * Maps an SDL mouse button event to a corresponding `MouseButton` constant.
-     *
-     * Note: SDL provides SDL_BUTTON_X1 and SDL_BUTTON_X2, but MouseButton doesn't.
-     */
-    private fun getMouseButton(buttons: Int) = when (buttons) {
-        SDL_BUTTON_LEFT -> MouseButton.LEFT
-        SDL_BUTTON_MIDDLE -> MouseButton.CENTER
-        SDL_BUTTON_RIGHT -> MouseButton.RIGHT
-        // SDL_BUTTON_X1 -> ?
-        // SDL_BUTTON_X2 -> ?
-        else -> MouseButton.NONE
-    }
-
-    override fun loop() {
-        defaultRenderTarget.bind()
-
-
-        window.setupSizes()
-        runBlocking {
-            program.setup()
         }
 
-        val event = SDL_Event.create()
-        while (!exitRequested && !window.closeRequested) {
-            while (SDL_PollEvent(event)) {
-                handleSDLEvent(event)
+        SDL_EVENT_DROP_BEGIN -> {
+            dropFiles.clear()
+        }
+
+        SDL_EVENT_DROP_FILE -> {
+            val dropEvent = event.drop()
+            val data = dropEvent.dataString()
+            if (data != null) {
+                dropFiles.add(data)
             }
+        }
+
+        SDL_EVENT_DROP_COMPLETE -> {
+            val dropEvent = event.drop()
+            val window = windowById(event.window().windowID())
+            window.program.window.drop.trigger(
+                DropEvent(
+                    Vector2(dropEvent.x().toDouble(), dropEvent.y().toDouble()),
+                    dropFiles
+                )
+            )
+        }
+
+        SDL_EVENT_MOUSE_WHEEL -> {
+            val mouseEvent = event.wheel()
+            val window = windowById(event.window().windowID())
+            cursorPosition = Vector2(
+                mouseEvent.mouse_x().toDouble(),
+                mouseEvent.mouse_y().toDouble()
+            ).toDisplayUnits(window.windowContentScale)
+            val rotation = Vector2(mouseEvent.x().toDouble(), mouseEvent.y().toDouble())
+            window.program.mouse.scrolled.trigger(
+                MouseEvent(
+                    cursorPosition, rotation, Vector2.ZERO, MouseEventType.SCROLLED,
+                    MouseButton.NONE, modifiersFromSdl(SDL_GetModState().toInt())
+                )
+            )
+        }
+
+        SDL_EVENT_FINGER_DOWN -> {
+            val fingerEvent = event.tfinger()
+            window.program.pointers.pointerDown.trigger(
+                PointerEvent(
+                    fingerEvent.fingerID(),
+                    Vector2(fingerEvent.x().toDouble(), fingerEvent.y().toDouble()) * program.window.size,
+                    Vector2(fingerEvent.dx().toDouble(), fingerEvent.dy().toDouble()) * program.window.size,
+                    fingerEvent.pressure().toDouble()
+                )
+            )
+        }
+
+        SDL_EVENT_FINGER_UP -> {
+            val fingerEvent = event.tfinger()
+            window.program.pointers.pointerUp.trigger(
+                PointerEvent(
+                    fingerEvent.fingerID(),
+                    Vector2.ZERO,
+                    Vector2.ZERO,
+                    0.0
+                )
+            )
+        }
+
+        SDL_EVENT_FINGER_MOTION -> {
+            val fingerEvent = event.tfinger()
+            window.program.pointers.moved.trigger(
+                PointerEvent(
+                    fingerEvent.fingerID(),
+                    Vector2(fingerEvent.x().toDouble(), fingerEvent.y().toDouble()) * program.window.size,
+                    Vector2(fingerEvent.dx().toDouble(), fingerEvent.dy().toDouble()) * program.window.size,
+                    fingerEvent.pressure().toDouble()
+                )
+            )
+        }
+
+        SDL_EVENT_FINGER_CANCELED -> {
+            val fingerEvent = event.tfinger()
+            window.program.pointers.pointerUp.trigger(
+                PointerEvent(
+                    fingerEvent.fingerID(),
+                    Vector2.ZERO,
+                    Vector2.ZERO,
+                    0.0
+                )
+            )
+        }
+
+
+        SDL_EVENT_TEXT_INPUT -> {
+            val textEvent = event.text()
+            windowById(event.window().windowID()).program.keyboard.character.trigger(
+                CharacterEvent(textEvent.textString()?.first() ?: ' ', emptySet())
+            )
+        }
+
+        SDL_EVENT_KEY_UP -> {
+            val keyEvent = event.key()
+            val key = keyEvent.key()
+            windowById(event.window().windowID()).program.keyboard.keyUp.trigger(
+                KeyEvent(
+                    KeyEventType.KEY_UP,
+                    key,
+                    getKeyName(key),
+                    modifiersFromSdl(keyEvent.mod().toInt())
+                )
+            )
+        }
+
+        SDL_EVENT_KEY_DOWN -> {
+            val keyEvent = event.key()
+            val eventType = if (keyEvent.repeat()) KeyEventType.KEY_REPEAT else KeyEventType.KEY_DOWN
+            val key = keyEvent.key()
+            windowById(event.window().windowID()).program.keyboard.keyDown.trigger(
+                KeyEvent(
+                    eventType,
+                    key,
+                    getKeyName(key),
+                    modifiersFromSdl(keyEvent.mod().toInt())
+                )
+            )
+        }
+
+        SDL_EVENT_WINDOW_CLOSE_REQUESTED -> {
+            windowById(event.window().windowID()).closeRequested = true
+        }
+
+        else -> {
+            //println("got event: ${event.type()}")
+        }
+    }
+}
+
+/**
+ * Takes integer key codes and converts them to string names
+ * following the same mapping found in ApplicationGLFWGL3.kt.
+ */
+private fun getKeyName(key: Int) = when (key) {
+    SDLK_SPACE -> "space"
+    SDLK_RETURN -> "enter"
+    SDLK_TAB -> "tab"
+    SDLK_ESCAPE -> "escape"
+    SDLK_UP -> "arrow-up"
+    SDLK_DOWN -> "arrow-down"
+    SDLK_LEFT -> "arrow-left"
+    SDLK_RIGHT -> "arrow-right"
+    SDLK_PRINTSCREEN -> "print-screen"
+    SDLK_PAGEDOWN -> "page-down"
+    SDLK_PAGEUP -> "page-up"
+    SDLK_HOME -> "home"
+    SDLK_END -> "end"
+    SDLK_BACKSPACE -> "backspace"
+    SDLK_LALT -> "left-alt"
+    SDLK_RALT -> "right-alt"
+    SDLK_LCTRL -> "left-control"
+    SDLK_RCTRL -> "right-control"
+    SDLK_INSERT -> "insert"
+    SDLK_DELETE -> "delete"
+    SDLK_LSHIFT -> "left-shift"
+    SDLK_RSHIFT -> "right-shift"
+    SDLK_LGUI -> "left-super"
+    SDLK_RGUI -> "right-super"
+    SDLK_F1 -> "f1"
+    SDLK_F2 -> "f2"
+    SDLK_F3 -> "f3"
+    SDLK_F4 -> "f4"
+    SDLK_F5 -> "f5"
+    SDLK_F6 -> "f6"
+    SDLK_F7 -> "f7"
+    SDLK_F8 -> "f8"
+    SDLK_F9 -> "f9"
+    SDLK_F10 -> "f10"
+    SDLK_F11 -> "f11"
+    SDLK_F12 -> "f12"
+    SDLK_CAPSLOCK -> "caps-lock"
+    else -> SDL_GetKeyName(key) ?: "<null>"
+}
+
+/**
+ * Maps an SDL mouse button event to a corresponding `MouseButton` constant.
+ *
+ * Note: SDL provides SDL_BUTTON_X1 and SDL_BUTTON_X2, but MouseButton doesn't.
+ */
+private fun getMouseButton(buttons: Int) = when (buttons) {
+    SDL_BUTTON_LEFT -> MouseButton.LEFT
+    SDL_BUTTON_MIDDLE -> MouseButton.CENTER
+    SDL_BUTTON_RIGHT -> MouseButton.RIGHT
+    // SDL_BUTTON_X1 -> ?
+    // SDL_BUTTON_X2 -> ?
+    else -> MouseButton.NONE
+}
+
+override fun loop() {
+    defaultRenderTarget.bind()
+
+
+    window.setupSizes()
+    runBlocking {
+        program.setup()
+    }
+
+    val event = SDL_Event.create()
+    while (!exitRequested && !window.closeRequested) {
+        while (SDL_PollEvent(event)) {
+            handleSDLEvent(event)
+        }
+        window.update()
+
+        val closeWindows = windows.filter { it.closeRequested }
+        for (window in closeWindows) {
+            windows.remove(window)
+            windowsById.remove(SDL_GetWindowID(window.window))
+            window.close()
+        }
+        for (window in windows) {
             window.update()
-
-            val closeWindows = windows.filter { it.closeRequested }
-            for (window in closeWindows) {
-                windows.remove(window)
-                windowsById.remove(SDL_GetWindowID(window.window))
-                window.close()
-            }
-            for (window in windows) {
-                window.update()
-            }
         }
     }
+}
 
-    override var clipboardContents: String?
-        get() = TODO("Not yet implemented")
-        set(value) {}
-    override var windowTitle: String by Proxy { window::windowTitle }
+override var clipboardContents: String?
+    get() = TODO("Not yet implemented")
+    set(value) {}
+override var windowTitle: String by Proxy { window::windowTitle }
 
-    override var windowPosition: Vector2 by Proxy { window::windowPosition }
-    override var windowSize: Vector2 by Proxy { window::windowSize }
-    override var windowResizable by Proxy { window::windowResizable }
-    override var windowMultisample by Proxy { window::windowMultisample }
-    override var cursorPosition by Proxy { window::cursorPosition }
-    override var cursorVisible by Proxy { window::cursorVisible }
-    override var cursorHideMode by Proxy { window::cursorHideMode }
-    override var cursorType by Proxy { window::cursorType }
-    override val seconds: Double
-        get() = SDL_GetTicks() / 1000.0
-    override var presentationMode by Proxy { window::presentationMode }
-    override var windowContentScale by Proxy { window::windowContentScale }
+override var windowPosition: Vector2 by Proxy { window::windowPosition }
+override var windowSize: Vector2 by Proxy { window::windowSize }
+override var windowResizable by Proxy { window::windowResizable }
+override var windowMultisample by Proxy { window::windowMultisample }
+override var cursorPosition by Proxy { window::cursorPosition }
+override var cursorVisible by Proxy { window::cursorVisible }
+override var cursorHideMode by Proxy { window::cursorHideMode }
+override var cursorType by Proxy { window::cursorType }
+override val seconds: Double
+    get() = SDL_GetTicks() / 1000.0
+override var presentationMode by Proxy { window::presentationMode }
+override var windowContentScale by Proxy { window::windowContentScale }
 
-    override fun createChildWindow(
-        configuration: WindowConfiguration,
-        program: Program
-    ): ApplicationWindow {
-        require(Thread.currentThread() === thread) { "createChildWindow should be called from thread '${thread.name}'" }
+override fun createChildWindow(
+    configuration: WindowConfiguration,
+    program: Program
+): ApplicationWindow {
+    require(Thread.currentThread() === thread) { "createChildWindow should be called from thread '${thread.name}'" }
 
-        val oldContext = SDL_GL_GetCurrentContext()
-        SDL_GL_MakeCurrent(primaryWindow, primaryGlContext)
-        val childWindow = createApplicationWindowSDL(this, configuration, program, window.program.drawer)
-        childWindow.defaultRenderTarget.bind()
+    val oldContext = SDL_GL_GetCurrentContext()
+    SDL_GL_MakeCurrent(primaryWindow, primaryGlContext)
+    val childWindow = createApplicationWindowSDL(this, configuration, program, window.program.drawer)
+    childWindow.defaultRenderTarget.bind()
 
-        runBlocking {
-            program.setup()
-        }
-        windows.add(childWindow)
-        windowsById[SDL_GetWindowID(childWindow.window)] = childWindow
-
-        if (oldContext != primaryGlContext) {
-            SDL_GL_MakeCurrent(primaryWindow, oldContext)
-        } else if (oldContext == window.glContext) {
-            SDL_GL_MakeCurrent(window.window, window.glContext)
-        } else {
-            val oldWindow = windows.find { it.glContext == oldContext }
-            require(oldWindow != null) { "could not find old context $oldContext" }
-            SDL_GL_MakeCurrent(oldWindow.window, oldContext)
-        }
-
-        return childWindow
+    runBlocking {
+        program.setup()
     }
+    windows.add(childWindow)
+    windowsById[SDL_GetWindowID(childWindow.window)] = childWindow
+
+    if (oldContext != primaryGlContext) {
+        SDL_GL_MakeCurrent(primaryWindow, oldContext)
+    } else if (oldContext == window.glContext) {
+        SDL_GL_MakeCurrent(window.window, window.glContext)
+    } else {
+        val oldWindow = windows.find { it.glContext == oldContext }
+        require(oldWindow != null) { "could not find old context $oldContext" }
+        SDL_GL_MakeCurrent(oldWindow.window, oldContext)
+    }
+
+    return childWindow
+}
 }

@@ -63,6 +63,7 @@ import org.openrndr.Fullscreen
 import org.openrndr.MouseCursorHideMode
 import org.openrndr.PresentationMode
 import org.openrndr.Program
+import org.openrndr.UnfocusBehaviour
 import org.openrndr.WindowConfiguration
 import org.openrndr.WindowMultisample
 import org.openrndr.WindowProgram
@@ -87,9 +88,12 @@ class ApplicationWindowSDL(
     override var windowResizable: Boolean,
     override var windowMultisample: WindowMultisample,
     override var windowClosable: Boolean,
+    override var unfocusBehaviour: UnfocusBehaviour,
     program: Program,
     drawer: Drawer,
 ) : ApplicationWindow(program) {
+
+    var lastUpdate = -1L
 
     init {
         program.application = application
@@ -134,8 +138,8 @@ class ApplicationWindowSDL(
         set(value) {
             SDL_SetWindowSize(window, value.x.toInt(), value.y.toInt())
         }
-    override val windowFocused: Boolean
-        get() = TODO("Not yet implemented")
+    override var windowFocused: Boolean = true
+
     override var cursorPosition: Vector2 = Vector2.ZERO
     override var cursorVisible: Boolean
         get() {
@@ -233,19 +237,25 @@ class ApplicationWindowSDL(
     }
 
     fun update() {
+
+
         SDL_GL_MakeCurrent(window, glContext)
         defaultRenderTarget.bind()
 
-        val event = SDL_Event.calloc()
-
-        event.free()
         setupSizes()
         deliverEvents()
         program.drawer.reset()
         program.drawer.ortho()
         program.dispatcher.execute()
-        program.drawImpl()
-        SDL_GL_SwapWindow(window)
+
+        val ct = System.currentTimeMillis()
+        val draw = windowFocused || unfocusBehaviour == UnfocusBehaviour.NORMAL || (ct - lastUpdate >= 100)
+
+        if (draw) {
+            program.drawImpl()
+            SDL_GL_SwapWindow(window)
+            lastUpdate = ct
+        }
     }
 }
 
@@ -354,6 +364,7 @@ fun createApplicationWindowSDL(
         configuration.resizable,
         configuration.multisample,
         configuration.closable,
+        unfocusBehaviour = configuration.unfocusBehaviour,
         program = program,
         drawer
     )

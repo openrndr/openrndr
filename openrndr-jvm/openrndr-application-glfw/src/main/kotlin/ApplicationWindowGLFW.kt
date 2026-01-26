@@ -32,6 +32,10 @@ class ApplicationWindowGLFW(
     private var defaultRenderTargetGL3: ProgramRenderTargetGL3? = null
     private var drawRequested = true
 
+    override var unfocusBehaviour: UnfocusBehaviour
+        get() = TODO("Not yet implemented")
+        set(value) {}
+
     internal fun updateSize() {
         MemoryStack.stackPush().use { stack ->
             val wcsx = stack.mallocFloat(1)

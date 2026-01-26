@@ -38,7 +38,8 @@ data class WindowConfiguration(
     val hideMouseCursor: Boolean = false,
     val relativeMouseCoordinates: Boolean = false,
     val utilityWindow: Boolean = false,
-    val display: Display? = null
+    val display: Display? = null,
+    val unfocusBehaviour: UnfocusBehaviour = UnfocusBehaviour.NORMAL
 )
 
 /**
