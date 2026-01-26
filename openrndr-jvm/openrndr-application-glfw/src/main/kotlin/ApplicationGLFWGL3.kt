@@ -705,6 +705,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
         var lastMouseButtonDown = MouseButton.NONE
         val modifiers = mutableSetOf<KeyModifier>()
 
+        // Equivalent mapping found also in ApplicationSDL.kt
         glfwSetKeyCallback(window) { _, key, scancode, action, _ ->
             val name = when (key) {
                 GLFW_KEY_SPACE -> "space"

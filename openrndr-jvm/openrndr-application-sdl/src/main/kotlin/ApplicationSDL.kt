@@ -11,6 +11,7 @@ import org.lwjgl.opengl.GL30.GL_MINOR_VERSION
 import org.lwjgl.opengles.GLES
 import org.lwjgl.sdl.SDLError.SDL_GetError
 import org.lwjgl.sdl.SDLEvents.*
+import org.lwjgl.sdl.SDLKeyboard.SDL_GetKeyName
 import org.lwjgl.sdl.SDLKeycode.*
 import org.lwjgl.sdl.SDLTimer.SDL_GetTicks
 import org.lwjgl.sdl.SDLVideo.*
@@ -458,11 +459,12 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             SDL_EVENT_KEY_UP -> {
                 val keyEvent = event.key()
                 val modifiers = modifiersFromSdl(keyEvent.mod().toInt())
+                val key = keyEvent.key()
                 windowById(event.window().windowID()).program.keyboard.keyUp.trigger(
                     KeyEvent(
                         KeyEventType.KEY_UP,
-                        keyEvent.key(),
-                        "not implemented yet",
+                        key,
+                        getKeyName(key),
                         modifiers
                     )
                 )
@@ -472,11 +474,12 @@ class ApplicationSDL(override var program: Program, override var configuration: 
                 val keyEvent = event.key()
                 val modifiers = modifiersFromSdl(keyEvent.mod().toInt())
                 val eventType = if (keyEvent.repeat()) KeyEventType.KEY_REPEAT else KeyEventType.KEY_DOWN
+                val key = keyEvent.key()
                 windowById(event.window().windowID()).program.keyboard.keyDown.trigger(
                     KeyEvent(
                         eventType,
-                        keyEvent.key(),
-                        "not implemented yet",
+                        key,
+                        getKeyName(key),
                         modifiers
                     )
                 )
@@ -490,6 +493,51 @@ class ApplicationSDL(override var program: Program, override var configuration: 
                 //println("got event: ${event.type()}")
             }
         }
+    }
+
+    /**
+     * Takes integer key codes and converts them to string names
+     * following the same mapping found in ApplicationGLFWGL3.kt.
+     */
+    fun getKeyName(key: Int) = when (key) {
+        SDLK_SPACE -> "space"
+        SDLK_RETURN -> "enter"
+        SDLK_TAB -> "tab"
+        SDLK_ESCAPE -> "escape"
+        SDLK_UP -> "arrow-up"
+        SDLK_DOWN -> "arrow-down"
+        SDLK_LEFT -> "arrow-left"
+        SDLK_RIGHT -> "arrow-right"
+        SDLK_PRINTSCREEN -> "print-screen"
+        SDLK_PAGEDOWN -> "page-down"
+        SDLK_PAGEUP -> "page-up"
+        SDLK_HOME -> "home"
+        SDLK_END -> "end"
+        SDLK_BACKSPACE -> "backspace"
+        SDLK_LALT -> "left-alt"
+        SDLK_RALT -> "right-alt"
+        SDLK_LCTRL -> "left-control"
+        SDLK_RCTRL -> "right-control"
+        SDLK_INSERT -> "insert"
+        SDLK_DELETE -> "delete"
+        SDLK_LSHIFT -> "left-shift"
+        SDLK_RSHIFT -> "right-shift"
+        SDLK_LGUI -> "left-super"
+        SDLK_RGUI -> "right-super"
+        SDLK_F1 -> "f1"
+        SDLK_F2 -> "f2"
+        SDLK_F3 -> "f3"
+        SDLK_F4 -> "f4"
+        SDLK_F5 -> "f5"
+        SDLK_F6 -> "f6"
+        SDLK_F7 -> "f7"
+        SDLK_F8 -> "f8"
+        SDLK_F9 -> "f9"
+        SDLK_F10 -> "f10"
+        SDLK_F11 -> "f11"
+        SDLK_F12 -> "f12"
+        SDLK_CAPSLOCK -> "caps-lock"
+        else -> SDL_GetKeyName(key) ?: "<null>"
     }
 
     override fun loop() {
