@@ -13,11 +13,14 @@ import org.lwjgl.sdl.SDLMouse.SDL_SYSTEM_CURSOR_TEXT
 import org.lwjgl.sdl.SDLMouse.SDL_SetCursor
 import org.lwjgl.sdl.SDLMouse.SDL_SetWindowRelativeMouseMode
 import org.lwjgl.sdl.SDLMouse.SDL_ShowCursor
-import org.lwjgl.sdl.SDLVideo.SDL_CreateWindow
+import org.lwjgl.sdl.SDLProperties.SDL_CreateProperties
+import org.lwjgl.sdl.SDLProperties.SDL_DestroyProperties
+import org.lwjgl.sdl.SDLProperties.SDL_SetBooleanProperty
+import org.lwjgl.sdl.SDLProperties.SDL_SetNumberProperty
+import org.lwjgl.sdl.SDLProperties.SDL_SetStringProperty
+import org.lwjgl.sdl.SDLVideo.SDL_CreateWindowWithProperties
 import org.lwjgl.sdl.SDLVideo.SDL_DestroyWindow
 import org.lwjgl.sdl.SDLVideo.SDL_GL_ACCELERATED_VISUAL
-import org.lwjgl.sdl.SDLVideo.SDL_GL_ALPHA_SIZE
-import org.lwjgl.sdl.SDLVideo.SDL_GL_BLUE_SIZE
 import org.lwjgl.sdl.SDLVideo.SDL_GL_CONTEXT_FLAGS
 import org.lwjgl.sdl.SDLVideo.SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG
 import org.lwjgl.sdl.SDLVideo.SDL_GL_CONTEXT_MAJOR_VERSION
@@ -41,21 +44,25 @@ import org.lwjgl.sdl.SDLVideo.SDL_GetWindowDisplayScale
 import org.lwjgl.sdl.SDLVideo.SDL_GetWindowPosition
 import org.lwjgl.sdl.SDLVideo.SDL_GetWindowSizeInPixels
 import org.lwjgl.sdl.SDLVideo.SDL_GetWindowTitle
+import org.lwjgl.sdl.SDLVideo.SDL_PROP_WINDOW_CREATE_ALWAYS_ON_TOP_BOOLEAN
+import org.lwjgl.sdl.SDLVideo.SDL_PROP_WINDOW_CREATE_BORDERLESS_BOOLEAN
+import org.lwjgl.sdl.SDLVideo.SDL_PROP_WINDOW_CREATE_FULLSCREEN_BOOLEAN
+import org.lwjgl.sdl.SDLVideo.SDL_PROP_WINDOW_CREATE_HEIGHT_NUMBER
+import org.lwjgl.sdl.SDLVideo.SDL_PROP_WINDOW_CREATE_HIDDEN_BOOLEAN
+import org.lwjgl.sdl.SDLVideo.SDL_PROP_WINDOW_CREATE_HIGH_PIXEL_DENSITY_BOOLEAN
+import org.lwjgl.sdl.SDLVideo.SDL_PROP_WINDOW_CREATE_OPENGL_BOOLEAN
+import org.lwjgl.sdl.SDLVideo.SDL_PROP_WINDOW_CREATE_RESIZABLE_BOOLEAN
+import org.lwjgl.sdl.SDLVideo.SDL_PROP_WINDOW_CREATE_TITLE_STRING
+import org.lwjgl.sdl.SDLVideo.SDL_PROP_WINDOW_CREATE_TRANSPARENT_BOOLEAN
+import org.lwjgl.sdl.SDLVideo.SDL_PROP_WINDOW_CREATE_UTILITY_BOOLEAN
+import org.lwjgl.sdl.SDLVideo.SDL_PROP_WINDOW_CREATE_WIDTH_NUMBER
+import org.lwjgl.sdl.SDLVideo.SDL_PROP_WINDOW_CREATE_X_NUMBER
+import org.lwjgl.sdl.SDLVideo.SDL_PROP_WINDOW_CREATE_Y_NUMBER
 import org.lwjgl.sdl.SDLVideo.SDL_SetWindowPosition
 import org.lwjgl.sdl.SDLVideo.SDL_SetWindowSize
 import org.lwjgl.sdl.SDLVideo.SDL_SetWindowTitle
 import org.lwjgl.sdl.SDLVideo.SDL_ShowWindow
-import org.lwjgl.sdl.SDLVideo.SDL_WINDOW_ALWAYS_ON_TOP
-import org.lwjgl.sdl.SDLVideo.SDL_WINDOW_BORDERLESS
-import org.lwjgl.sdl.SDLVideo.SDL_WINDOW_FULLSCREEN
-import org.lwjgl.sdl.SDLVideo.SDL_WINDOW_HIDDEN
-import org.lwjgl.sdl.SDLVideo.SDL_WINDOW_HIGH_PIXEL_DENSITY
-import org.lwjgl.sdl.SDLVideo.SDL_WINDOW_MOUSE_CAPTURE
-import org.lwjgl.sdl.SDLVideo.SDL_WINDOW_OPENGL
-import org.lwjgl.sdl.SDLVideo.SDL_WINDOW_RESIZABLE
-import org.lwjgl.sdl.SDLVideo.SDL_WINDOW_TRANSPARENT
-import org.lwjgl.sdl.SDLVideo.SDL_WINDOW_UTILITY
-import org.lwjgl.sdl.SDL_Event
+import org.lwjgl.sdl.SDLVideo.SDL_WINDOWPOS_CENTERED_DISPLAY
 import org.lwjgl.system.MemoryStack.stackPush
 import org.openrndr.ApplicationWindow
 import org.openrndr.CursorType
@@ -285,35 +292,40 @@ fun createApplicationWindowSDL(
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE)
     }
 
-    var windowFlags = SDL_WINDOW_OPENGL or SDL_WINDOW_HIGH_PIXEL_DENSITY or SDL_WINDOW_HIDDEN
+    val props = SDL_CreateProperties()
+
+    SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_OPENGL_BOOLEAN, true)
+    SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_HIGH_PIXEL_DENSITY_BOOLEAN, true)
+    SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_HIDDEN_BOOLEAN, true)
 
     if (configuration.alwaysOnTop) {
-        windowFlags = windowFlags or SDL_WINDOW_ALWAYS_ON_TOP
+        SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_ALWAYS_ON_TOP_BOOLEAN, true)
     }
 
     if (configuration.resizable) {
-        windowFlags = windowFlags or SDL_WINDOW_RESIZABLE
+        SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_RESIZABLE_BOOLEAN, true)
     }
 
     if (configuration.hideDecorations) {
-        windowFlags = windowFlags or SDL_WINDOW_BORDERLESS
+        SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_BORDERLESS_BOOLEAN, true)
     }
 
     if (configuration.transparent) {
-        windowFlags = windowFlags or SDL_WINDOW_TRANSPARENT
+        SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_TRANSPARENT_BOOLEAN, true)
     }
 
     if (configuration.utilityWindow) {
-        windowFlags = windowFlags or SDL_WINDOW_UTILITY
+        SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_UTILITY_BOOLEAN, true)
     }
 
-    if (configuration.relativeMouseCoordinates) {
-        logger.info { "Enabling mouse capture and relative mode for window" }
-        windowFlags = windowFlags or SDL_WINDOW_MOUSE_CAPTURE //or SDL_WINDOW_MOUSE_RELATIVE_MODE
-    }
+//    if (configuration.relativeMouseCoordinates) {
+//        logger.info { "Enabling mouse capture and relative mode for window" }
+//        SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_MOUSE_CAPTURE_BOOLEAN, true)
+//        windowFlags = windowFlags or SDL_WINDOW_MOUSE_CAPTURE //or SDL_WINDOW_MOUSE_RELATIVE_MODE
+//    }
     when (configuration.fullscreen) {
         Fullscreen.DISABLED -> Unit
-        Fullscreen.CURRENT_DISPLAY_MODE -> windowFlags = windowFlags or SDL_WINDOW_FULLSCREEN
+        Fullscreen.CURRENT_DISPLAY_MODE -> SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_FULLSCREEN_BOOLEAN, true)
         Fullscreen.SET_DISPLAY_MODE -> TODO("not yet implemented")
     }
 
@@ -326,7 +338,34 @@ fun createApplicationWindowSDL(
         WindowMultisample.SystemDefault -> Unit
     }
 
-    var window = SDL_CreateWindow(configuration.title, configuration.width, configuration.height, windowFlags)
+
+    var baseX: Long? = 0L
+    var baseY: Long? = 0L
+    var displayX = 0L
+    var displayY = 0L
+
+    (configuration.display as? DisplaySDL)?.let {
+        baseX = SDL_WINDOWPOS_CENTERED_DISPLAY(it.pointer.toInt()).toLong()
+        baseY = SDL_WINDOWPOS_CENTERED_DISPLAY(it.pointer.toInt()).toLong()
+        displayX = (it.x ?: 0).toLong()
+        displayY = (it.y ?: 0).toLong()
+    }
+
+    configuration.position?.let {
+        baseX = (displayX) + it.x.toLong()
+        baseY = (displayY) + it.y.toLong()
+    }
+    baseX?.let { SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_X_NUMBER, it) }
+    baseY?.let { SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_Y_NUMBER, it) }
+
+    SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_WIDTH_NUMBER, configuration.width.toLong())
+    SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_HEIGHT_NUMBER, configuration.height.toLong())
+
+    SDL_SetStringProperty(props, SDL_PROP_WINDOW_CREATE_TITLE_STRING, configuration.title)
+
+    var window = SDL_CreateWindowWithProperties(props)
+
+    SDL_DestroyProperties(props)
     require(window != 0L) { "Failed to create window with configuration $configuration" }
     val glContext: Long
     stackPush().use {
@@ -338,7 +377,9 @@ fun createApplicationWindowSDL(
 
         if (w.get(0)/scale != configuration.width.toDouble()) {
             SDL_DestroyWindow(window)
-            window = SDL_CreateWindow(configuration.title, (configuration.width *scale).toInt(), (configuration.height * scale).toInt(), windowFlags)
+            SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_WIDTH_NUMBER, (configuration.width * scale).toLong())
+            SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_HEIGHT_NUMBER, (configuration.height * scale).toLong())
+            window = SDL_CreateWindowWithProperties(props)
             require(window != 0L) { "Failed to re-create window with configuration $configuration" }
         }
 
