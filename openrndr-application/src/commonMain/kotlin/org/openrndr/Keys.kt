@@ -1,6 +1,7 @@
 package org.openrndr
 
 import org.openrndr.events.Event
+import org.openrndr.internal.KeyboardDriver
 
 /**
  * Represents key modifiers that can be used in combination with keyboard or mouse input.
@@ -100,43 +101,81 @@ data class KeyEvent(
     }
 }
 
-const val KEY_SPACEBAR = 32
+const val KEYNAME_SPACEBAR = "spacebar"
+const val KEYNAME_ESCAPE = "escape"
+const val KEYNAME_ENTER = "enter"
+const val KEYNAME_TAB = "tab"
+const val KEYNAME_BACKSPACE = "backspace"
+const val KEYNAME_INSERT = "insert"
+const val KEYNAME_DELETE = "delete"
+const val KEYNAME_ARROW_RIGHT = "arrow-right"
+const val KEYNAME_ARROW_LEFT = "arrow-left"
+const val KEYNAME_ARROW_DOWN = "arrow-down"
+const val KEYNAME_ARROW_UP = "arrow-up"
+const val KEYNAME_PAGE_UP = "page-up"
+const val KEYNAME_PAGE_DOWN = "page-down"
+const val KEYNAME_HOME = "home"
+const val KEYNAME_END = "end"
+const val KEYNAME_LEFT_SHIFT = "left-shift"
+const val KEYNAME_RIGHT_SHIFT = "right-shift"
+const val KEYNAME_LEFT_ALT = "left-alt"
+const val KEYNAME_RIGHT_ALT = "right-alt"
+const val KEYNAME_LEFT_CONTROL = "left-control"
+const val KEYNAME_RIGHT_CONTROL = "right-control"
+const val KEYNAME_LEFT_SUPER = "left-super"
+const val KEYNAME_RIGHT_SUPER = "right-super"
+const val KEYNAME_CAPSLOCK = "caps-lock"
+const val KEYNAME_PRINT_SCREEN = "print-screen"
+const val KEYNAME_F1 = "f1"
+const val KEYNAME_F2 = "f2"
+const val KEYNAME_F3 = "f3"
+const val KEYNAME_F4 = "f4"
+const val KEYNAME_F5 = "f5"
+const val KEYNAME_F6 = "f6"
+const val KEYNAME_F7 = "f7"
+const val KEYNAME_F8 = "f8"
+const val KEYNAME_F9 = "f9"
+const val KEYNAME_F10 = "f10"
+const val KEYNAME_F11 = "f11"
+const val KEYNAME_F12 = "f12"
 
-const val KEY_ESCAPE = 256
-const val KEY_ENTER = 257
 
-const val KEY_TAB = 258
-const val KEY_BACKSPACE = 259
-const val KEY_INSERT = 260
-const val KEY_DELETE = 261
-const val KEY_ARROW_RIGHT = 262
-const val KEY_ARROW_LEFT = 263
-const val KEY_ARROW_DOWN = 264
-const val KEY_ARROW_UP = 265
-const val KEY_PAGE_UP = 266
-const val KEY_PAGE_DOWN = 267
-const val KEY_HOME = 268
-const val KEY_END = 269
+val KEY_SPACEBAR by lazy { KeyboardDriver.instance.getKeyId(KEYNAME_SPACEBAR) }
+val KEY_ESCAPE by lazy { KeyboardDriver.instance.getKeyId(KEYNAME_ESCAPE) }
+val KEY_ENTER by lazy { KeyboardDriver.instance.getKeyId(KEYNAME_ENTER) }
+val KEY_TAB by lazy { KeyboardDriver.instance.getKeyId(KEYNAME_TAB) }
+val KEY_BACKSPACE by lazy { KeyboardDriver.instance.getKeyId(KEYNAME_BACKSPACE)}
+val KEY_INSERT by lazy { KeyboardDriver.instance.getKeyId(KEYNAME_INSERT)}
+val KEY_DELETE by lazy { KeyboardDriver.instance.getKeyId(KEYNAME_DELETE)}
+val KEY_ARROW_RIGHT by lazy { KeyboardDriver.instance.getKeyId(KEYNAME_ARROW_RIGHT) }
+val KEY_ARROW_LEFT by lazy { KeyboardDriver.instance.getKeyId(KEYNAME_ARROW_LEFT) }
+val KEY_ARROW_DOWN by lazy { KeyboardDriver.instance.getKeyId(KEYNAME_ARROW_DOWN) }
+val KEY_ARROW_UP by lazy { KeyboardDriver.instance.getKeyId(KEYNAME_ARROW_UP) }
+val KEY_PAGE_UP by lazy { KeyboardDriver.instance.getKeyId(KEYNAME_PAGE_UP) }
+val KEY_PAGE_DOWN by lazy { KeyboardDriver.instance.getKeyId(KEYNAME_PAGE_DOWN) }
+val KEY_HOME by lazy { KeyboardDriver.instance.getKeyId(KEYNAME_HOME) }
+val KEY_END by lazy { KeyboardDriver.instance.getKeyId(KEYNAME_END) }
 
-const val KEY_CAPSLOCK = 280
-const val KEY_PRINT_SCREEN = 283
+val KEY_CAPSLOCK by lazy { KeyboardDriver.instance.getKeyId(KEYNAME_CAPSLOCK) }
+val KEY_PRINT_SCREEN by lazy { KeyboardDriver.instance.getKeyId(KEYNAME_PRINT_SCREEN) }
 
+val KEY_F1 by lazy { KeyboardDriver.instance.getKeyId(KEYNAME_F1) }
+val KEY_F2 by lazy { KeyboardDriver.instance.getKeyId(KEYNAME_F2) }
+val KEY_F3 by lazy { KeyboardDriver.instance.getKeyId(KEYNAME_F3) }
+val KEY_F4 by lazy { KeyboardDriver.instance.getKeyId(KEYNAME_F4) }
+val KEY_F5 by lazy { KeyboardDriver.instance.getKeyId(KEYNAME_F5) }
+val KEY_F6 by lazy { KeyboardDriver.instance.getKeyId(KEYNAME_F6) }
+val KEY_F7 by lazy { KeyboardDriver.instance.getKeyId(KEYNAME_F7) }
+val KEY_F8 by lazy { KeyboardDriver.instance.getKeyId(KEYNAME_F8) }
+val KEY_F9 by lazy { KeyboardDriver.instance.getKeyId(KEYNAME_F9) }
+val KEY_F10 by lazy { KeyboardDriver.instance.getKeyId(KEYNAME_F10) }
+val KEY_F11 by lazy { KeyboardDriver.instance.getKeyId(KEYNAME_F11) }
+val KEY_F12 by lazy { KeyboardDriver.instance.getKeyId(KEYNAME_F12) }
 
-const val KEY_F1 = 290
-const val KEY_F2 = 291
-const val KEY_F3 = 292
-const val KEY_F4 = 293
-const val KEY_F5 = 294
-const val KEY_F6 = 295
-const val KEY_F7 = 296
-const val KEY_F8 = 297
-const val KEY_F9 = 298
-const val KEY_F10 = 299
-const val KEY_F11 = 300
-const val KEY_F12 = 301
-
-const val KEY_LEFT_SHIFT = 340
-const val KEY_RIGHT_SHIFT = 344
+val KEY_LEFT_SHIFT by lazy { KeyboardDriver.instance.getKeyId(KEYNAME_LEFT_SHIFT) }
+val KEY_RIGHT_SHIFT by lazy { KeyboardDriver.instance.getKeyId(KEYNAME_RIGHT_SHIFT) }
+val KEY_LEFT_CONTROL by lazy { KeyboardDriver.instance.getKeyId(KEYNAME_LEFT_CONTROL) }
+val KEY_RIGHT_CONTROL by lazy { KeyboardDriver.instance.getKeyId(KEYNAME_RIGHT_CONTROL) }
 
 /**
  * Interface for handling keyboard events. This interface provides access

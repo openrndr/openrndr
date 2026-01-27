@@ -27,6 +27,7 @@ import org.openrndr.draw.DrawThread
 import org.openrndr.draw.Drawer
 import org.openrndr.draw.Session
 import org.openrndr.internal.Driver
+import org.openrndr.internal.KeyboardDriver
 import org.openrndr.internal.ResourceThread
 import org.openrndr.internal.gl3.*
 import org.openrndr.math.Vector2
@@ -490,7 +491,7 @@ class ApplicationSDL(override var program: Program, override var configuration: 
                     KeyEvent(
                         KeyEventType.KEY_UP,
                         key,
-                        getKeyName(key),
+                        KeyboardDriver.instance.getKeyName(key),
                         modifiersFromSdl(keyEvent.mod().toInt())
                     )
                 )
@@ -504,7 +505,7 @@ class ApplicationSDL(override var program: Program, override var configuration: 
                     KeyEvent(
                         eventType,
                         key,
-                        getKeyName(key),
+                        KeyboardDriver.instance.getKeyName(key),
                         modifiersFromSdl(keyEvent.mod().toInt())
                     )
                 )
@@ -520,50 +521,6 @@ class ApplicationSDL(override var program: Program, override var configuration: 
         }
     }
 
-    /**
-     * Takes integer key codes and converts them to string names
-     * following the same mapping found in ApplicationGLFWGL3.kt.
-     */
-    private fun getKeyName(key: Int) = when (key) {
-        SDLK_SPACE -> "space"
-        SDLK_RETURN -> "enter"
-        SDLK_TAB -> "tab"
-        SDLK_ESCAPE -> "escape"
-        SDLK_UP -> "arrow-up"
-        SDLK_DOWN -> "arrow-down"
-        SDLK_LEFT -> "arrow-left"
-        SDLK_RIGHT -> "arrow-right"
-        SDLK_PRINTSCREEN -> "print-screen"
-        SDLK_PAGEDOWN -> "page-down"
-        SDLK_PAGEUP -> "page-up"
-        SDLK_HOME -> "home"
-        SDLK_END -> "end"
-        SDLK_BACKSPACE -> "backspace"
-        SDLK_LALT -> "left-alt"
-        SDLK_RALT -> "right-alt"
-        SDLK_LCTRL -> "left-control"
-        SDLK_RCTRL -> "right-control"
-        SDLK_INSERT -> "insert"
-        SDLK_DELETE -> "delete"
-        SDLK_LSHIFT -> "left-shift"
-        SDLK_RSHIFT -> "right-shift"
-        SDLK_LGUI -> "left-super"
-        SDLK_RGUI -> "right-super"
-        SDLK_F1 -> "f1"
-        SDLK_F2 -> "f2"
-        SDLK_F3 -> "f3"
-        SDLK_F4 -> "f4"
-        SDLK_F5 -> "f5"
-        SDLK_F6 -> "f6"
-        SDLK_F7 -> "f7"
-        SDLK_F8 -> "f8"
-        SDLK_F9 -> "f9"
-        SDLK_F10 -> "f10"
-        SDLK_F11 -> "f11"
-        SDLK_F12 -> "f12"
-        SDLK_CAPSLOCK -> "caps-lock"
-        else -> SDL_GetKeyName(key) ?: "<null>"
-    }
 
     /**
      * Maps an SDL mouse button event to a corresponding `MouseButton` constant.

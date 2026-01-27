@@ -21,6 +21,7 @@ import org.openrndr.draw.Drawer
 import org.openrndr.draw.RenderTarget
 import org.openrndr.draw.Session
 import org.openrndr.internal.Driver
+import org.openrndr.internal.KeyboardDriver
 import org.openrndr.internal.ResourceThread
 import org.openrndr.internal.gl3.ApplicationGlfwConfiguration.fixWindowSize
 import org.openrndr.internal.gl3.extensions.BackBuffer
@@ -707,46 +708,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
 
         // Equivalent mapping found also in ApplicationSDL.kt
         glfwSetKeyCallback(window) { _, key, scancode, action, _ ->
-            val name = when (key) {
-                GLFW_KEY_SPACE -> "space"
-                GLFW_KEY_ENTER -> "enter"
-                GLFW_KEY_TAB -> "tab"
-                GLFW_KEY_ESCAPE -> "escape"
-                GLFW_KEY_UP -> "arrow-up"
-                GLFW_KEY_DOWN -> "arrow-down"
-                GLFW_KEY_LEFT -> "arrow-left"
-                GLFW_KEY_RIGHT -> "arrow-right"
-                GLFW_KEY_PRINT_SCREEN -> "print-screen"
-                GLFW_KEY_PAGE_DOWN -> "page-down"
-                GLFW_KEY_PAGE_UP -> "page-up"
-                GLFW_KEY_HOME -> "home"
-                GLFW_KEY_END -> "end"
-                GLFW_KEY_BACKSPACE -> "backspace"
-                GLFW_KEY_LEFT_ALT -> "left-alt"
-                GLFW_KEY_RIGHT_ALT -> "right-alt"
-                GLFW_KEY_LEFT_CONTROL -> "left-control"
-                GLFW_KEY_RIGHT_CONTROL -> "right-control"
-                GLFW_KEY_INSERT -> "insert"
-                GLFW_KEY_DELETE -> "delete"
-                GLFW_KEY_LEFT_SHIFT -> "left-shift"
-                GLFW_KEY_RIGHT_SHIFT -> "right-shift"
-                GLFW_KEY_LEFT_SUPER -> "left-super"
-                GLFW_KEY_RIGHT_SUPER -> "right-super"
-                GLFW_KEY_F1 -> "f1"
-                GLFW_KEY_F2 -> "f2"
-                GLFW_KEY_F3 -> "f3"
-                GLFW_KEY_F4 -> "f4"
-                GLFW_KEY_F5 -> "f5"
-                GLFW_KEY_F6 -> "f6"
-                GLFW_KEY_F7 -> "f7"
-                GLFW_KEY_F8 -> "f8"
-                GLFW_KEY_F9 -> "f9"
-                GLFW_KEY_F10 -> "f10"
-                GLFW_KEY_F11 -> "f11"
-                GLFW_KEY_F12 -> "f12"
-                GLFW_KEY_CAPS_LOCK -> "caps-lock"
-                else -> glfwGetKeyName(key, scancode) ?: "<null>"
-            }
+            val name = KeyboardDriver.instance.getKeyName(key)
 
             when (action) {
                 GLFW_PRESS -> {
