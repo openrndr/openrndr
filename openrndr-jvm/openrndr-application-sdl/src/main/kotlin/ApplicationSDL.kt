@@ -111,31 +111,42 @@ class ApplicationSDL(override var program: Program, override var configuration: 
 
     private fun createPrimaryWindow() {
         SDL_GL_ResetAttributes()
-        SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1)
-        SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1)
-        SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8)
-        SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8)
-        SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8)
-        SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8)
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE)
+        SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+        SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
+        SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
+        SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
+        SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
+        SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
 
-        if (DriverGL3Configuration.driverType == DriverTypeGL.GLES) {
-            logger.info { "creating window with GLES context" }
-            SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3)
-            SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2)
-            SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES)
-        } else {
-            SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG)
-            SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4)
-            SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 6)
-            SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE)
+        for (version in DriverGL3Configuration.candidateVersions()) {
+            when (version.type) {
+                DriverTypeGL.GL -> {
+                    SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG)
+                    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, version.majorVersion)
+                    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, version.minorVersion)
+                    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE)
+                }
+                DriverTypeGL.GLES ->  {
+                    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, version.majorVersion)
+                    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, version.minorVersion)
+                    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES)
+                }
+            }
+            val windowFlags = SDL_WINDOW_HIDDEN or SDL_WINDOW_OPENGL
+            primaryWindow = SDL_CreateWindow("OPENRNDR - hidden window", 640, 480, windowFlags)
+            require(primaryWindow != 0L) { "failed to create primary window" }
+
+            primaryGlContext = SDL_GL_CreateContext(primaryWindow)
+            if (primaryGlContext != 0L) {
+                logger.debug { "Created GL context ${version.type} ${version.majorVersion}.${version.minorVersion}" }
+                break
+            } else {
+                SDL_DestroyWindow(primaryWindow)
+            }
         }
 
-        var windowFlags = SDL_WINDOW_HIDDEN or SDL_WINDOW_OPENGL
-        primaryWindow = SDL_CreateWindow("OPENRNDR - hidden window", 640, 480, windowFlags)
-        require(primaryWindow != 0L) { "failed to create primary window" }
-        primaryGlContext = SDL_GL_CreateContext(primaryWindow)
-        require(primaryGlContext != 0L) { "failed to create primary GL context. ${SDL_GetError()}" }
+        require(primaryGlContext != 0L) { "Failed to create primary GL context. '${SDL_GetError()}', tried versions ${DriverGL3Configuration.candidateVersions().joinToString(", ") { "${it.type} ${it.majorVersion}.${it.minorVersion}" }}" }
+        SDL_GL_MakeCurrent(primaryWindow, primaryGlContext)
 
         when (DriverGL3Configuration.driverType) {
             DriverTypeGL.GL -> GL.createCapabilities()
@@ -154,7 +165,6 @@ class ApplicationSDL(override var program: Program, override var configuration: 
         println("driver vendor: ${glGetString(GL_VENDOR)}")
         println("driver renderer ${glGetString(GL_RENDERER)}")
 
-
         Driver.driver = object : DriverGL3(driverVersion) {
             override fun createDrawThread(session: Session?): DrawThread {
                 TODO("Not yet implemented")
@@ -171,7 +181,6 @@ class ApplicationSDL(override var program: Program, override var configuration: 
 
     override suspend fun setup() {
         createPrimaryWindow()
-        SDL_GL_MakeCurrent(primaryWindow, primaryGlContext)
 
         val wc = WindowConfiguration(
             width = configuration.width,

@@ -378,7 +378,7 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver {
                 DriverTypeGL.GLES -> 4
                 DriverTypeGL.GL -> glGetInteger(GL_MAX_COLOR_TEXTURE_SAMPLES)
             },
-            maxTextureSize = glGetInteger(GL_MAX_TEXTURE_SIZE),
+            maxTextureSize = glGetInteger(GL_MAX_TEXTURE_SIZE).let { if (it == 0) 16384 else it },
         )
     }
 

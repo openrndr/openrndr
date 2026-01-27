@@ -1,6 +1,7 @@
 package org.openrndr.application.sdl
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.lwjgl.sdl.SDLError.SDL_GetError
 import org.lwjgl.sdl.SDLMouse.SDL_CursorVisible
 import org.lwjgl.sdl.SDLMouse.SDL_HideCursor
 import org.lwjgl.sdl.SDLMouse.SDL_SYSTEM_CURSOR_CROSSHAIR
@@ -28,10 +29,9 @@ import org.lwjgl.sdl.SDLVideo.SDL_GL_CreateContext
 import org.lwjgl.sdl.SDLVideo.SDL_GL_DEPTH_SIZE
 import org.lwjgl.sdl.SDLVideo.SDL_GL_DOUBLEBUFFER
 import org.lwjgl.sdl.SDLVideo.SDL_GL_FRAMEBUFFER_SRGB_CAPABLE
-import org.lwjgl.sdl.SDLVideo.SDL_GL_GREEN_SIZE
+import org.lwjgl.sdl.SDLVideo.SDL_GL_MULTISAMPLEBUFFERS
 import org.lwjgl.sdl.SDLVideo.SDL_GL_MULTISAMPLESAMPLES
 import org.lwjgl.sdl.SDLVideo.SDL_GL_MakeCurrent
-import org.lwjgl.sdl.SDLVideo.SDL_GL_RED_SIZE
 import org.lwjgl.sdl.SDLVideo.SDL_GL_ResetAttributes
 import org.lwjgl.sdl.SDLVideo.SDL_GL_SHARE_WITH_CURRENT_CONTEXT
 import org.lwjgl.sdl.SDLVideo.SDL_GL_STENCIL_SIZE
@@ -269,10 +269,7 @@ fun createApplicationWindowSDL(
     SDL_GL_ResetAttributes()
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1)
     SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1)
-    SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8)
-    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8)
-    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8)
-    SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8)
+
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24)
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8)
     SDL_GL_SetAttribute(SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 1)
@@ -322,7 +319,10 @@ fun createApplicationWindowSDL(
 
     when (val ms = configuration.multisample) {
         WindowMultisample.Disabled -> Unit
-        is WindowMultisample.SampleCount -> SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, ms.count)
+        is WindowMultisample.SampleCount -> {
+            SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, ms.count)
+            SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1)
+        }
         WindowMultisample.SystemDefault -> Unit
     }
 
@@ -339,9 +339,11 @@ fun createApplicationWindowSDL(
         if (w.get(0)/scale != configuration.width.toDouble()) {
             SDL_DestroyWindow(window)
             window = SDL_CreateWindow(configuration.title, (configuration.width *scale).toInt(), (configuration.height * scale).toInt(), windowFlags)
+            require(window != 0L) { "Failed to re-create window with configuration $configuration" }
         }
 
         glContext = SDL_GL_CreateContext(window)
+        require(glContext != 0L) { "Failed to create OpenGL context. ${SDL_GetError()}" }
 
         SDL_ShowWindow(window)
         if (configuration.hideMouseCursor) {
