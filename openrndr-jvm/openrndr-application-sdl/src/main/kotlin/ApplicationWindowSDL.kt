@@ -318,11 +318,6 @@ fun createApplicationWindowSDL(
         SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_UTILITY_BOOLEAN, true)
     }
 
-//    if (configuration.relativeMouseCoordinates) {
-//        logger.info { "Enabling mouse capture and relative mode for window" }
-//        SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_MOUSE_CAPTURE_BOOLEAN, true)
-//        windowFlags = windowFlags or SDL_WINDOW_MOUSE_CAPTURE //or SDL_WINDOW_MOUSE_RELATIVE_MODE
-//    }
     when (configuration.fullscreen) {
         Fullscreen.DISABLED -> Unit
         Fullscreen.CURRENT_DISPLAY_MODE -> SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_FULLSCREEN_BOOLEAN, true)
@@ -338,25 +333,24 @@ fun createApplicationWindowSDL(
         WindowMultisample.SystemDefault -> Unit
     }
 
-
-    var baseX: Long? = 0L
-    var baseY: Long? = 0L
+    var positionX: Long = SDL_WINDOWPOS_CENTERED_DISPLAY(0).toLong()
+    var positionY: Long = SDL_WINDOWPOS_CENTERED_DISPLAY(0).toLong()
     var displayX = 0L
     var displayY = 0L
 
     (configuration.display as? DisplaySDL)?.let {
-        baseX = SDL_WINDOWPOS_CENTERED_DISPLAY(it.pointer.toInt()).toLong()
-        baseY = SDL_WINDOWPOS_CENTERED_DISPLAY(it.pointer.toInt()).toLong()
-        displayX = (it.x ?: 0).toLong()
-        displayY = (it.y ?: 0).toLong()
+        positionX = SDL_WINDOWPOS_CENTERED_DISPLAY(it.pointer.toInt()).toLong()
+        positionY = SDL_WINDOWPOS_CENTERED_DISPLAY(it.pointer.toInt()).toLong()
+        displayX = it.x.toLong()
+        displayY = it.y.toLong()
     }
 
     configuration.position?.let {
-        baseX = (displayX) + it.x.toLong()
-        baseY = (displayY) + it.y.toLong()
+        positionX = (displayX) + it.x.toLong()
+        positionY = (displayY) + it.y.toLong()
     }
-    baseX?.let { SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_X_NUMBER, it) }
-    baseY?.let { SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_Y_NUMBER, it) }
+    SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_X_NUMBER, positionX)
+    SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_Y_NUMBER, positionY)
 
     SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_WIDTH_NUMBER, configuration.width.toLong())
     SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_HEIGHT_NUMBER, configuration.height.toLong())
