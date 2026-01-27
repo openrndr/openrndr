@@ -53,6 +53,7 @@ abstract class ApplicationWindow(val program: Program) {
     abstract fun requestDraw()
     abstract var windowContentScale: Double
 
+    abstract var unfocusBehaviour: UnfocusBehaviour
     abstract fun destroy()
 }
 

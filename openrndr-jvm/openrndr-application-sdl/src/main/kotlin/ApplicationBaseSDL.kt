@@ -1,6 +1,7 @@
 package org.openrndr.application.sdl
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.lwjgl.sdl.SDLHints.SDL_HINT_MAC_SCROLL_MOMENTUM
 import org.lwjgl.sdl.SDLHints.SDL_HINT_OPENGL_ES_DRIVER
 import org.lwjgl.sdl.SDLHints.SDL_HINT_TRACKPAD_IS_TOUCH_ONLY
 import org.lwjgl.sdl.SDLHints.SDL_SetHint
@@ -22,6 +23,7 @@ import org.openrndr.Program
 import org.openrndr.draw.font.internal.FontDriver
 import org.openrndr.fontdriver.stb.FontDriverStbTt
 import org.openrndr.internal.ImageDriver
+import org.openrndr.internal.KeyboardDriver
 import org.openrndr.internal.gl3.DriverGL3Configuration
 import org.openrndr.internal.gl3.DriverTypeGL
 import org.openrndr.internal.gl3.GlesBackend
@@ -52,6 +54,7 @@ class ApplicationBaseSDL : ApplicationBase() {
         }
 
         SDL_SetHint(SDL_HINT_TRACKPAD_IS_TOUCH_ONLY, "1")
+        SDL_SetHint(SDL_HINT_MAC_SCROLL_MOMENTUM, "1")
         SDL_Init(SDL_INIT_VIDEO)
 
         val displays = SDL_GetDisplays()
@@ -77,6 +80,7 @@ class ApplicationBaseSDL : ApplicationBase() {
             }
             SDL_free(displays)
         }
+        KeyboardDriver.driver = KeyboardDriverSDL()
         ImageDriver.driver = ImageDriverStbImage()
         FontDriver.driver = FontDriverStbTt()
     }

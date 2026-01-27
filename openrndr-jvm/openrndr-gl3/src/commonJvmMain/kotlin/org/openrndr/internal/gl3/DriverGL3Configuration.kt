@@ -98,4 +98,8 @@ object DriverGL3Configuration {
             DriverTypeGL.GLES -> false
         }
     }
+
+    fun candidateVersions() : List<DriverVersionGL> {
+        return DriverVersionGL.entries.filter { it.type == driverType }.reversed()
+    }
 }

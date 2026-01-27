@@ -9,55 +9,27 @@ import org.lwjgl.opengl.GL11.GL_VERSION
 import org.lwjgl.opengl.GL30.GL_MAJOR_VERSION
 import org.lwjgl.opengl.GL30.GL_MINOR_VERSION
 import org.lwjgl.opengles.GLES
-import org.lwjgl.sdl.SDLClipboard.SDL_GetClipboardText
 import org.lwjgl.sdl.SDLError.SDL_GetError
-import org.lwjgl.sdl.SDLEvents.SDL_EVENT_CLIPBOARD_UPDATE
-import org.lwjgl.sdl.SDLEvents.SDL_EVENT_DROP_BEGIN
-import org.lwjgl.sdl.SDLEvents.SDL_EVENT_DROP_COMPLETE
-import org.lwjgl.sdl.SDLEvents.SDL_EVENT_DROP_FILE
-import org.lwjgl.sdl.SDLEvents.SDL_EVENT_DROP_POSITION
-import org.lwjgl.sdl.SDLEvents.SDL_EVENT_FINGER_CANCELED
-import org.lwjgl.sdl.SDLEvents.SDL_EVENT_FINGER_DOWN
-import org.lwjgl.sdl.SDLEvents.SDL_EVENT_FINGER_MOTION
-import org.lwjgl.sdl.SDLEvents.SDL_EVENT_FINGER_UP
-import org.lwjgl.sdl.SDLEvents.SDL_EVENT_KEY_DOWN
-import org.lwjgl.sdl.SDLEvents.SDL_EVENT_KEY_UP
-import org.lwjgl.sdl.SDLEvents.SDL_EVENT_MOUSE_BUTTON_DOWN
-import org.lwjgl.sdl.SDLEvents.SDL_EVENT_MOUSE_BUTTON_UP
-import org.lwjgl.sdl.SDLEvents.SDL_EVENT_MOUSE_MOTION
-import org.lwjgl.sdl.SDLEvents.SDL_EVENT_MOUSE_WHEEL
-import org.lwjgl.sdl.SDLEvents.SDL_EVENT_QUIT
-import org.lwjgl.sdl.SDLEvents.SDL_EVENT_TEXT_INPUT
-import org.lwjgl.sdl.SDLEvents.SDL_EVENT_WINDOW_CLOSE_REQUESTED
-import org.lwjgl.sdl.SDLEvents.SDL_EVENT_WINDOW_DISPLAY_CHANGED
-import org.lwjgl.sdl.SDLEvents.SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED
-import org.lwjgl.sdl.SDLEvents.SDL_EVENT_WINDOW_EXPOSED
-import org.lwjgl.sdl.SDLEvents.SDL_EVENT_WINDOW_FOCUS_GAINED
-import org.lwjgl.sdl.SDLEvents.SDL_EVENT_WINDOW_FOCUS_LOST
-import org.lwjgl.sdl.SDLEvents.SDL_EVENT_WINDOW_ICCPROF_CHANGED
-import org.lwjgl.sdl.SDLEvents.SDL_EVENT_WINDOW_MOUSE_ENTER
-import org.lwjgl.sdl.SDLEvents.SDL_EVENT_WINDOW_MOUSE_LEAVE
-import org.lwjgl.sdl.SDLEvents.SDL_EVENT_WINDOW_MOVED
-import org.lwjgl.sdl.SDLEvents.SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED
-import org.lwjgl.sdl.SDLEvents.SDL_PollEvent
-import org.lwjgl.sdl.SDLKeycode.SDL_KMOD_ALT
-import org.lwjgl.sdl.SDLKeycode.SDL_KMOD_CTRL
-import org.lwjgl.sdl.SDLKeycode.SDL_KMOD_GUI
-import org.lwjgl.sdl.SDLKeycode.SDL_KMOD_SHIFT
+import org.lwjgl.sdl.SDLEvents.*
+import org.lwjgl.sdl.SDLKeyboard.SDL_GetKeyName
+import org.lwjgl.sdl.SDLKeyboard.SDL_GetModState
+import org.lwjgl.sdl.SDLKeycode.*
+import org.lwjgl.sdl.SDLMouse.*
 import org.lwjgl.sdl.SDLTimer.SDL_GetTicks
 import org.lwjgl.sdl.SDLVideo.*
 import org.lwjgl.sdl.SDL_Event
-
+import org.lwjgl.system.MemoryStack.stackPush
 import org.openrndr.*
 import org.openrndr.animatable.Animatable
 import org.openrndr.animatable.Clock
-import org.openrndr.draw.Drawer
-import org.openrndr.internal.Driver
-import org.openrndr.internal.gl3.*
 import org.openrndr.application.sdl.ApplicationSDLConfiguration.fixWindowSize
 import org.openrndr.draw.DrawThread
+import org.openrndr.draw.Drawer
 import org.openrndr.draw.Session
+import org.openrndr.internal.Driver
+import org.openrndr.internal.KeyboardDriver
 import org.openrndr.internal.ResourceThread
+import org.openrndr.internal.gl3.*
 import org.openrndr.math.Vector2
 import org.openrndr.platform.Platform
 import org.openrndr.platform.PlatformType
@@ -91,7 +63,6 @@ private fun modifiersFromSdl(mod: Int): Set<KeyModifier> {
         return modifiers
     }
 }
-
 
 class ApplicationSDL(override var program: Program, override var configuration: Configuration) : Application() {
 
@@ -147,25 +118,36 @@ class ApplicationSDL(override var program: Program, override var configuration: 
         SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
         SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
         SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE)
 
-        if (DriverGL3Configuration.driverType == DriverTypeGL.GLES) {
-            logger.info { "creating window with GLES context" }
-            SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3)
-            SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2)
-            SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES)
-        } else {
-            SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG)
-            SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4)
-            SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 6)
-            SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE)
+        for (version in DriverGL3Configuration.candidateVersions()) {
+            when (version.type) {
+                DriverTypeGL.GL -> {
+                    SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG)
+                    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, version.majorVersion)
+                    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, version.minorVersion)
+                    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE)
+                }
+                DriverTypeGL.GLES ->  {
+                    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, version.majorVersion)
+                    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, version.minorVersion)
+                    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES)
+                }
+            }
+            val windowFlags = SDL_WINDOW_HIDDEN or SDL_WINDOW_OPENGL
+            primaryWindow = SDL_CreateWindow("OPENRNDR - hidden window", 640, 480, windowFlags)
+            require(primaryWindow != 0L) { "failed to create primary window" }
+
+            primaryGlContext = SDL_GL_CreateContext(primaryWindow)
+            if (primaryGlContext != 0L) {
+                logger.debug { "Created GL context ${version.type} ${version.majorVersion}.${version.minorVersion}" }
+                break
+            } else {
+                SDL_DestroyWindow(primaryWindow)
+            }
         }
 
-        var windowFlags = SDL_WINDOW_HIDDEN or SDL_WINDOW_OPENGL
-        primaryWindow = SDL_CreateWindow("OPENRNDR - hidden window", 640, 480, windowFlags)
-        require(primaryWindow != 0L) { "failed to create primary window" }
-        primaryGlContext = SDL_GL_CreateContext(primaryWindow)
-        require(primaryGlContext != 0L) { "failed to create primary GL context. ${SDL_GetError()}" }
+        require(primaryGlContext != 0L) { "Failed to create primary GL context. '${SDL_GetError()}', tried versions ${DriverGL3Configuration.candidateVersions().joinToString(", ") { "${it.type} ${it.majorVersion}.${it.minorVersion}" }}" }
+        SDL_GL_MakeCurrent(primaryWindow, primaryGlContext)
 
         when (DriverGL3Configuration.driverType) {
             DriverTypeGL.GL -> GL.createCapabilities()
@@ -184,8 +166,7 @@ class ApplicationSDL(override var program: Program, override var configuration: 
         println("driver vendor: ${glGetString(GL_VENDOR)}")
         println("driver renderer ${glGetString(GL_RENDERER)}")
 
-
-        Driver.driver = object: DriverGL3(driverVersion) {
+        Driver.driver = object : DriverGL3(driverVersion) {
             override fun createDrawThread(session: Session?): DrawThread {
                 TODO("Not yet implemented")
             }
@@ -201,7 +182,6 @@ class ApplicationSDL(override var program: Program, override var configuration: 
 
     override suspend fun setup() {
         createPrimaryWindow()
-        SDL_GL_MakeCurrent(primaryWindow, primaryGlContext)
 
         val wc = WindowConfiguration(
             width = configuration.width,
@@ -213,6 +193,11 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             hideDecorations = configuration.hideWindowDecorations,
             resizable = configuration.windowResizable,
             fullscreen = configuration.fullscreen,
+            transparent = configuration.windowTransparent,
+            hideMouseCursor = configuration.hideCursor,
+            display = configuration.display,
+            relativeMouseCoordinates = configuration.cursorHideMode == MouseCursorHideMode.DISABLE,
+            unfocusBehaviour = configuration.unfocusBehaviour
         )
         program.driver = Driver.instance
         program.drawer = Drawer(Driver.instance)
@@ -227,7 +212,7 @@ class ApplicationSDL(override var program: Program, override var configuration: 
         windowsById[SDL_GetWindowID(window.window)] = window
     }
 
-    private inline fun Vector2.toDisplayUnits(scale: Double):Vector2 {
+    private inline fun Vector2.toDisplayUnits(scale: Double): Vector2 {
         return if (!fixWindowSize) this else this / scale
     }
 
@@ -241,12 +226,15 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             SDL_EVENT_WINDOW_EXPOSED -> {
 //                println("window exposed")
             }
+
             SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED -> {
 //                println("pixel size changed")
             }
+
             SDL_EVENT_WINDOW_ICCPROF_CHANGED -> {
 //                println("icc profile changed")
             }
+
             SDL_EVENT_WINDOW_DISPLAY_CHANGED -> {
 //                println("display changed")
             }
@@ -259,34 +247,56 @@ class ApplicationSDL(override var program: Program, override var configuration: 
                 val windowEvent = event.window()
                 val x = windowEvent.data1().toDouble()
                 val y = windowEvent.data2().toDouble()
-                windowById(event.window().windowID()).program.window.moved.trigger(WindowEvent(WindowEventType.MOVED, Vector2(x, y), Vector2.ZERO, true))
-            }
-
-            SDL_EVENT_WINDOW_FOCUS_GAINED -> {
-                SDL_SetWindowMouseGrab(event.window().windowID().toLong(), true)
-                windowById(event.window().windowID()).program.window.focused.trigger(WindowEvent(WindowEventType.FOCUSED, Vector2.ZERO, Vector2.ZERO, true))
-            }
-
-            SDL_EVENT_WINDOW_FOCUS_LOST -> {
-                windowById(event.window().windowID()).program.window.unfocused.trigger(
+                windowById(event.window().windowID()).program.window.moved.trigger(
                     WindowEvent(
-                        WindowEventType.UNFOCUSED,
-                        Vector2.ZERO,
+                        WindowEventType.MOVED,
+                        Vector2(x, y),
                         Vector2.ZERO,
                         true
                     )
                 )
             }
 
+            SDL_EVENT_WINDOW_FOCUS_GAINED -> {
+                SDL_SetWindowMouseGrab(event.window().windowID().toLong(), true)
+                windowById(
+                    event.window().windowID()
+                ).let {
+                    it.windowFocused = true
+                    program.window.focused.trigger(
+                        WindowEvent(
+                            WindowEventType.FOCUSED,
+                            getMousePosition(),
+                            Vector2.ZERO,
+                            true
+                        )
+                    )
+                }
+            }
+
+            SDL_EVENT_WINDOW_FOCUS_LOST -> {
+                windowById(event.window().windowID()).let {
+                    it.windowFocused = false
+                    it.program.window.unfocused.trigger(
+                        WindowEvent(
+                            WindowEventType.UNFOCUSED,
+                            getMousePosition(),
+                            Vector2.ZERO,
+                            true
+                        )
+                    )
+                }
+            }
+
             SDL_EVENT_WINDOW_MOUSE_ENTER -> {
                 windowById(event.window().windowID()).program.mouse.entered.trigger(
                     MouseEvent(
-                        Vector2.ZERO,
+                        getMousePosition(),
                         Vector2.ZERO,
                         Vector2.ZERO,
                         MouseEventType.ENTERED,
                         MouseButton.NONE,
-                        emptySet()
+                        modifiersFromSdl(SDL_GetModState().toInt())
                     )
                 )
             }
@@ -294,12 +304,12 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             SDL_EVENT_WINDOW_MOUSE_LEAVE -> {
                 windowById(event.window().windowID()).program.mouse.exited.trigger(
                     MouseEvent(
-                        Vector2.ZERO,
+                        getMousePosition(),
                         Vector2.ZERO,
                         Vector2.ZERO,
                         MouseEventType.EXITED,
                         MouseButton.NONE,
-                        emptySet()
+                        modifiersFromSdl(SDL_GetModState().toInt())
                     )
                 )
             }
@@ -309,21 +319,21 @@ class ApplicationSDL(override var program: Program, override var configuration: 
                 val window = windowById(event.window().windowID())
                 val scale = window.windowContentScale
                 val cursorPosition = Vector2(mouseEvent.x().toDouble(), mouseEvent.y().toDouble()).toDisplayUnits(scale)
-                val displacement = Vector2(mouseEvent.xrel().toDouble(), mouseEvent.yrel().toDouble()).toDisplayUnits(scale)
+                val displacement =
+                    Vector2(mouseEvent.xrel().toDouble(), mouseEvent.yrel().toDouble()).toDisplayUnits(scale)
                 window.cursorPosition = cursorPosition
-
-                if (!window.primaryButtonDown) {
-                    window.program.mouse.moved.trigger(
-                        MouseEvent(
-                            cursorPosition, Vector2.ZERO, displacement, MouseEventType.MOVED,
-                            MouseButton.NONE, emptySet()
-                        )
+                window.program.mouse.moved.trigger(
+                    MouseEvent(
+                        cursorPosition, Vector2.ZERO, displacement, MouseEventType.MOVED,
+                        MouseButton.NONE, modifiersFromSdl(SDL_GetModState().toInt())
                     )
-                } else {
+                )
+                val button = getMouseButton(mouseEvent.state())
+                if (button != MouseButton.NONE) {
                     window.program.mouse.dragged.trigger(
                         MouseEvent(
-                            cursorPosition, Vector2.ZERO, displacement, MouseEventType.MOVED,
-                            MouseButton.NONE, emptySet()
+                            cursorPosition, Vector2.ZERO, displacement, MouseEventType.DRAGGED,
+                            button, modifiersFromSdl(SDL_GetModState().toInt())
                         )
                     )
                 }
@@ -332,16 +342,17 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             SDL_EVENT_MOUSE_BUTTON_UP -> {
                 val mouseEvent = event.button()
                 val window = windowById(event.window().windowID())
-                val scale =  window.windowContentScale
+                val scale = window.windowContentScale
                 val cursorPosition = Vector2(mouseEvent.x().toDouble(), mouseEvent.y().toDouble()).toDisplayUnits(scale)
                 window.cursorPosition = cursorPosition
-                if (mouseEvent.button() == 1.toByte()) {
-                    window.primaryButtonDown = false
-                }
                 window.program.mouse.buttonUp.trigger(
                     MouseEvent(
-                        cursorPosition, Vector2.ZERO, Vector2.ZERO, MouseEventType.BUTTON_UP,
-                        MouseButton.LEFT, emptySet()
+                        cursorPosition,
+                        Vector2.ZERO,
+                        Vector2.ZERO,
+                        MouseEventType.BUTTON_UP,
+                        getMouseButton(mouseEvent.button().toInt()),
+                        modifiersFromSdl(SDL_GetModState().toInt())
                     )
                 )
             }
@@ -351,15 +362,15 @@ class ApplicationSDL(override var program: Program, override var configuration: 
                 val window = windowById(event.window().windowID())
                 val scale = window.windowContentScale
                 val cursorPosition = Vector2(mouseEvent.x().toDouble(), mouseEvent.y().toDouble()).toDisplayUnits(scale)
-
                 window.cursorPosition = cursorPosition
-                if (mouseEvent.button() == 1.toByte()) {
-                    window.primaryButtonDown = true
-                }
                 window.program.mouse.buttonDown.trigger(
                     MouseEvent(
-                        cursorPosition, Vector2.ZERO, Vector2.ZERO, MouseEventType.BUTTON_DOWN,
-                        MouseButton.LEFT, emptySet()
+                        cursorPosition,
+                        Vector2.ZERO,
+                        Vector2.ZERO,
+                        MouseEventType.BUTTON_DOWN,
+                        getMouseButton(mouseEvent.button().toInt()),
+                        modifiersFromSdl(SDL_GetModState().toInt())
                     )
                 )
             }
@@ -404,12 +415,15 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             SDL_EVENT_MOUSE_WHEEL -> {
                 val mouseEvent = event.wheel()
                 val window = windowById(event.window().windowID())
-                cursorPosition = Vector2(mouseEvent.mouse_x().toDouble(), mouseEvent.mouse_y().toDouble()).toDisplayUnits(window.windowContentScale)
+                cursorPosition = Vector2(
+                    mouseEvent.mouse_x().toDouble(),
+                    mouseEvent.mouse_y().toDouble()
+                ).toDisplayUnits(window.windowContentScale)
                 val rotation = Vector2(mouseEvent.x().toDouble(), mouseEvent.y().toDouble())
                 window.program.mouse.scrolled.trigger(
                     MouseEvent(
-                        cursorPosition, rotation, Vector2.ZERO, MouseEventType.BUTTON_DOWN,
-                        MouseButton.LEFT, emptySet()
+                        cursorPosition, rotation, Vector2.ZERO, MouseEventType.SCROLLED,
+                        MouseButton.NONE, modifiersFromSdl(SDL_GetModState().toInt())
                     )
                 )
             }
@@ -419,7 +433,7 @@ class ApplicationSDL(override var program: Program, override var configuration: 
                 window.program.pointers.pointerDown.trigger(
                     PointerEvent(
                         fingerEvent.fingerID(),
-                        Vector2(fingerEvent.x().toDouble(),fingerEvent.y().toDouble()) * program.window.size,
+                        Vector2(fingerEvent.x().toDouble(), fingerEvent.y().toDouble()) * program.window.size,
                         Vector2(fingerEvent.dx().toDouble(), fingerEvent.dy().toDouble()) * program.window.size,
                         fingerEvent.pressure().toDouble()
                     )
@@ -433,7 +447,8 @@ class ApplicationSDL(override var program: Program, override var configuration: 
                         fingerEvent.fingerID(),
                         Vector2.ZERO,
                         Vector2.ZERO,
-                        0.0)
+                        0.0
+                    )
                 )
             }
 
@@ -442,7 +457,7 @@ class ApplicationSDL(override var program: Program, override var configuration: 
                 window.program.pointers.moved.trigger(
                     PointerEvent(
                         fingerEvent.fingerID(),
-                        Vector2(fingerEvent.x().toDouble(),fingerEvent.y().toDouble()) * program.window.size,
+                        Vector2(fingerEvent.x().toDouble(), fingerEvent.y().toDouble()) * program.window.size,
                         Vector2(fingerEvent.dx().toDouble(), fingerEvent.dy().toDouble()) * program.window.size,
                         fingerEvent.pressure().toDouble()
                     )
@@ -456,7 +471,8 @@ class ApplicationSDL(override var program: Program, override var configuration: 
                         fingerEvent.fingerID(),
                         Vector2.ZERO,
                         Vector2.ZERO,
-                        0.0)
+                        0.0
+                    )
                 )
             }
 
@@ -470,29 +486,31 @@ class ApplicationSDL(override var program: Program, override var configuration: 
 
             SDL_EVENT_KEY_UP -> {
                 val keyEvent = event.key()
-                val modifiers = modifiersFromSdl(keyEvent.mod().toInt())
+                val key = keyEvent.key()
                 windowById(event.window().windowID()).program.keyboard.keyUp.trigger(
                     KeyEvent(
                         KeyEventType.KEY_UP,
-                        keyEvent.key(),
-                        "not implemented yet",
-                        modifiers
+                        key,
+                        KeyboardDriver.instance.getKeyName(key),
+                        modifiersFromSdl(keyEvent.mod().toInt())
                     )
                 )
             }
 
             SDL_EVENT_KEY_DOWN -> {
                 val keyEvent = event.key()
-                val modifiers = modifiersFromSdl(keyEvent.mod().toInt())
-                windowById(event.window().windowID()).program.keyboard.keyUp.trigger(
+                val eventType = if (keyEvent.repeat()) KeyEventType.KEY_REPEAT else KeyEventType.KEY_DOWN
+                val key = keyEvent.key()
+                windowById(event.window().windowID()).program.keyboard.keyDown.trigger(
                     KeyEvent(
-                        KeyEventType.KEY_DOWN,
-                        keyEvent.key(),
-                        "not implemented yet",
-                        modifiers
+                        eventType,
+                        key,
+                        KeyboardDriver.instance.getKeyName(key),
+                        modifiersFromSdl(keyEvent.mod().toInt())
                     )
                 )
             }
+
             SDL_EVENT_WINDOW_CLOSE_REQUESTED -> {
                 windowById(event.window().windowID()).closeRequested = true
             }
@@ -500,6 +518,33 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             else -> {
                 //println("got event: ${event.type()}")
             }
+        }
+    }
+
+
+    /**
+     * Maps an SDL mouse button event to a corresponding `MouseButton` constant.
+     *
+     * Note: SDL provides SDL_BUTTON_X1 and SDL_BUTTON_X2, but MouseButton doesn't.
+     */
+    private fun getMouseButton(buttons: Int) = when (buttons) {
+        SDL_BUTTON_LEFT -> MouseButton.LEFT
+        SDL_BUTTON_MIDDLE -> MouseButton.CENTER
+        SDL_BUTTON_RIGHT -> MouseButton.RIGHT
+        // SDL_BUTTON_X1 -> ?
+        // SDL_BUTTON_X2 -> ?
+        else -> MouseButton.NONE
+    }
+
+    /**
+     * Query SDL for the current mouse position
+     */
+    private fun getMousePosition(): Vector2 {
+        stackPush().use { stack ->
+            val mouseX = stack.mallocFloat(1)
+            val mouseY = stack.mallocFloat(1)
+            SDL_GetMouseState(mouseX, mouseY)
+            return Vector2(mouseX[0].toDouble(), mouseY[0].toDouble())
         }
     }
 
@@ -514,7 +559,7 @@ class ApplicationSDL(override var program: Program, override var configuration: 
 
         val event = SDL_Event.create()
         while (!exitRequested && !window.closeRequested) {
-            while(SDL_PollEvent(event)) {
+            while (SDL_PollEvent(event)) {
                 handleSDLEvent(event)
             }
             window.update()

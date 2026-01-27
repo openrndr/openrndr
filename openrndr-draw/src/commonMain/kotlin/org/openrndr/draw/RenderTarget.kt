@@ -564,8 +564,10 @@ fun renderTarget(
         callsInPlace(builder, InvocationKind.EXACTLY_ONCE)
     }
 
-    if (width <= 0 || height <= 0 || width > Driver.instance.properties.maxTextureSize || height > Driver.instance.properties.maxTextureSize) {
-        error("unsupported resolution ($width×$height)")
+    val effectiveWidth = (width * contentScale).toInt()
+    val effectiveHeight = (height * contentScale).toInt()
+    if (width <= 0 || height <= 0 || effectiveWidth > Driver.instance.properties.maxTextureSize || effectiveHeight > Driver.instance.properties.maxTextureSize) {
+        error("Unsupported render target dimensions ($width × $height @ $contentScale) maximum size: ${Driver.instance.properties.maxTextureSize}")
     }
 
     val effectiveMultisample = when (multisample) {
