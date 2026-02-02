@@ -11,7 +11,6 @@ import org.lwjgl.opengl.GL30.GL_MINOR_VERSION
 import org.lwjgl.opengles.GLES
 import org.lwjgl.sdl.SDLError.SDL_GetError
 import org.lwjgl.sdl.SDLEvents.*
-import org.lwjgl.sdl.SDLKeyboard.SDL_GetKeyName
 import org.lwjgl.sdl.SDLKeyboard.SDL_GetModState
 import org.lwjgl.sdl.SDLKeycode.*
 import org.lwjgl.sdl.SDLMouse.*
@@ -24,7 +23,6 @@ import org.openrndr.animatable.Animatable
 import org.openrndr.animatable.Clock
 import org.openrndr.application.sdl.ApplicationSDLConfiguration.fixWindowSize
 import org.openrndr.draw.DrawThread
-import org.openrndr.draw.Drawer
 import org.openrndr.draw.Session
 import org.openrndr.internal.Driver
 import org.openrndr.internal.KeyboardDriver
@@ -112,12 +110,17 @@ class ApplicationSDL(override var program: Program, override var configuration: 
 
     private fun createPrimaryWindow() {
         SDL_GL_ResetAttributes()
-        SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-        SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
-        SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
-        SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
-        SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
-        SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
+        SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1)
+        SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1)
+
+        SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24)
+        SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8)
+        SDL_GL_SetAttribute(SDL_GL_FRAMEBUFFER_SRGB_CAPABLE, 1)
+
+        SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8)
+        SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8)
+        SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8)
+        SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8)
 
         for (version in DriverGL3Configuration.candidateVersions()) {
             when (version.type) {
@@ -162,9 +165,9 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             )
                 ?: error("unsupported driver version")
 
-        println("driver version: ${glGetString(GL_VERSION)}")
-        println("driver vendor: ${glGetString(GL_VENDOR)}")
-        println("driver renderer ${glGetString(GL_RENDERER)}")
+        logger.info { "OpenGL vendor: ${glGetString(GL_VENDOR)}" }
+        logger.info { "OpenGL renderer: ${glGetString(GL_RENDERER)}" }
+        logger.info { "OpenGL version: ${glGetString(GL_VERSION)}" }
 
         Driver.driver = object : DriverGL3(driverVersion) {
             override fun createDrawThread(session: Session?): DrawThread {
@@ -199,8 +202,8 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             relativeMouseCoordinates = configuration.cursorHideMode == MouseCursorHideMode.DISABLE,
             unfocusBehaviour = configuration.unfocusBehaviour
         )
+        SDL_GL_MakeCurrent(primaryWindow, primaryGlContext)
         program.driver = Driver.instance
-        program.drawer = Drawer(Driver.instance)
 
         Animatable.clock(object : Clock {
             override val time: Long
@@ -208,7 +211,8 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             override val timeNanos: Long
                 get() = (program.seconds * 1E6).toLong()
         })
-        window = createApplicationWindowSDL(this, wc, program, program.drawer)
+        window = createApplicationWindowSDL(this, wc, program, null)
+        SDL_GL_MakeCurrent(window.window, window.glContext)
         windowsById[SDL_GetWindowID(window.window)] = window
     }
 

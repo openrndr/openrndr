@@ -270,7 +270,7 @@ fun createApplicationWindowSDL(
     application: ApplicationSDL,
     configuration: WindowConfiguration,
     program: Program,
-    drawer: Drawer
+    drawer: Drawer?
 ): ApplicationWindowSDL {
 
     SDL_GL_ResetAttributes()
@@ -393,6 +393,7 @@ fun createApplicationWindowSDL(
         }
     }
 
+    val drawer = drawer ?: Drawer(Driver.instance)
     return ApplicationWindowSDL(
         application,
         window,
