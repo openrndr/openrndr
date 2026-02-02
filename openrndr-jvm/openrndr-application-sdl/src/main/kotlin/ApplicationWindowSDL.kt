@@ -139,7 +139,7 @@ class ApplicationWindowSDL(
                 val height = stack.mallocInt(1)
                 SDL_GetWindowSizeInPixels(window, width, height)
                 val scale = SDL_GetWindowDisplayScale(window)
-                return Vector2(width[0].toDouble()/scale, height[0].toDouble()/scale)
+                return Vector2(width[0].toDouble() / scale, height[0].toDouble() / scale)
             }
         }
         set(value) {
@@ -244,8 +244,6 @@ class ApplicationWindowSDL(
     }
 
     fun update() {
-
-
         SDL_GL_MakeCurrent(window, glContext)
         defaultRenderTarget.bind()
 
@@ -296,8 +294,10 @@ fun createApplicationWindowSDL(
 
     SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_OPENGL_BOOLEAN, true)
     SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_HIGH_PIXEL_DENSITY_BOOLEAN, true)
-    SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_HIDDEN_BOOLEAN, true)
 
+    if (configuration.fullscreen == Fullscreen.DISABLED) {
+        SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_HIDDEN_BOOLEAN, true)
+    }
     if (configuration.alwaysOnTop) {
         SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_ALWAYS_ON_TOP_BOOLEAN, true)
     }
@@ -320,7 +320,12 @@ fun createApplicationWindowSDL(
 
     when (configuration.fullscreen) {
         Fullscreen.DISABLED -> Unit
-        Fullscreen.CURRENT_DISPLAY_MODE -> SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_FULLSCREEN_BOOLEAN, true)
+        Fullscreen.CURRENT_DISPLAY_MODE -> SDL_SetBooleanProperty(
+            props,
+            SDL_PROP_WINDOW_CREATE_FULLSCREEN_BOOLEAN,
+            true
+        )
+
         Fullscreen.SET_DISPLAY_MODE -> TODO("not yet implemented")
     }
 
@@ -330,6 +335,7 @@ fun createApplicationWindowSDL(
             SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, ms.count)
             SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1)
         }
+
         WindowMultisample.SystemDefault -> Unit
     }
 
@@ -362,36 +368,48 @@ fun createApplicationWindowSDL(
     SDL_DestroyProperties(props)
     require(window != 0L) { "Failed to create window with configuration $configuration" }
     val glContext: Long
-    stackPush().use {
-        val scale = SDL_GetWindowDisplayScale(window).toDouble()
 
-        val w = it.callocInt(1)
-        val h = it.callocInt(1)
-        SDL_GetWindowSizeInPixels(window, w, h)
+    if (configuration.fullscreen == Fullscreen.DISABLED) {
+        stackPush().use {
+            val scale = SDL_GetWindowDisplayScale(window).toDouble()
 
-        if (w.get(0)/scale != configuration.width.toDouble()) {
-            SDL_DestroyWindow(window)
-            SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_WIDTH_NUMBER, (configuration.width * scale).toLong())
-            SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_HEIGHT_NUMBER, (configuration.height * scale).toLong())
-            window = SDL_CreateWindowWithProperties(props)
-            require(window != 0L) { "Failed to re-create window with configuration $configuration" }
-        }
+            val w = it.callocInt(1)
+            val h = it.callocInt(1)
+            SDL_GetWindowSizeInPixels(window, w, h)
 
-        glContext = SDL_GL_CreateContext(window)
-        require(glContext != 0L) { "Failed to create OpenGL context. ${SDL_GetError()}" }
-
-        SDL_ShowWindow(window)
-        if (configuration.hideMouseCursor) {
-            if (!SDL_HideCursor()) {
-                logger.warn { "Failed to hide mouse cursor." }
-            }
-        }
-        if (configuration.relativeMouseCoordinates) {
-            if (!SDL_SetWindowRelativeMouseMode(window, true)) {
-                logger.warn { "Failed to enable mouse capture and relative mode." }
+            if (w.get(0) / scale != configuration.width.toDouble()) {
+                logger.warn { "Window size ${w.get(0)}x${h.get(0)} does not match requested size ${configuration.width}x${configuration.height}" }
+                SDL_DestroyWindow(window)
+                SDL_SetNumberProperty(
+                    props,
+                    SDL_PROP_WINDOW_CREATE_WIDTH_NUMBER,
+                    (configuration.width * scale).toLong()
+                )
+                SDL_SetNumberProperty(
+                    props,
+                    SDL_PROP_WINDOW_CREATE_HEIGHT_NUMBER,
+                    (configuration.height * scale).toLong()
+                )
+                window = SDL_CreateWindowWithProperties(props)
+                require(window != 0L) { "Failed to re-create window with configuration $configuration" }
             }
         }
     }
+    glContext = SDL_GL_CreateContext(window)
+    require(glContext != 0L) { "Failed to create OpenGL context. ${SDL_GetError()}" }
+
+    SDL_ShowWindow(window)
+    if (configuration.hideMouseCursor) {
+        if (!SDL_HideCursor()) {
+            logger.warn { "Failed to hide mouse cursor." }
+        }
+    }
+    if (configuration.relativeMouseCoordinates) {
+        if (!SDL_SetWindowRelativeMouseMode(window, true)) {
+            logger.warn { "Failed to enable mouse capture and relative mode." }
+        }
+    }
+
 
     val drawer = drawer ?: Drawer(Driver.instance)
     return ApplicationWindowSDL(

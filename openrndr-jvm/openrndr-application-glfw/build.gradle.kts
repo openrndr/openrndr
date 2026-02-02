@@ -62,5 +62,17 @@ dependencies {
     implementation(libs.lwjgl.glfw)
     implementation(libs.lwjgl.opengl)
     implementation(libs.lwjgl.opengles)
+
+    demoImplementation(libs.slf4j.simple)
+}
+
+sourceSets {
+    val main by getting
+    val demo by getting
+
+    demo {
+        runtimeClasspath += main.runtimeClasspath
+        compileClasspath += main.compileClasspath
+    }
 }
 

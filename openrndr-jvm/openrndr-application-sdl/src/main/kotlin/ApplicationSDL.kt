@@ -101,11 +101,11 @@ class ApplicationSDL(override var program: Program, override var configuration: 
 
     val defaultRenderTarget by lazy { ProgramRenderTargetGL3(program) }
 
-    fun windowById(id: Int): ApplicationWindowSDL {
+    fun windowById(id: Int): ApplicationWindowSDL? {
         if (SDL_GetWindowID(window.window) == id) {
             return window
         }
-        return windowsById[id] ?: error("window with id $id not found")
+        return windowsById[id]
     }
 
     private fun createPrimaryWindow() {
@@ -130,7 +130,8 @@ class ApplicationSDL(override var program: Program, override var configuration: 
                     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, version.minorVersion)
                     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE)
                 }
-                DriverTypeGL.GLES ->  {
+
+                DriverTypeGL.GLES -> {
                     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, version.majorVersion)
                     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, version.minorVersion)
                     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES)
@@ -149,7 +150,12 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             }
         }
 
-        require(primaryGlContext != 0L) { "Failed to create primary GL context. '${SDL_GetError()}', tried versions ${DriverGL3Configuration.candidateVersions().joinToString(", ") { "${it.type} ${it.majorVersion}.${it.minorVersion}" }}" }
+        require(primaryGlContext != 0L) {
+            "Failed to create primary GL context. '${SDL_GetError()}', tried versions ${
+                DriverGL3Configuration.candidateVersions()
+                    .joinToString(", ") { "${it.type} ${it.majorVersion}.${it.minorVersion}" }
+            }"
+        }
         SDL_GL_MakeCurrent(primaryWindow, primaryGlContext)
 
         when (DriverGL3Configuration.driverType) {
@@ -181,6 +187,7 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             override val contextID: Long
                 get() = SDL_GL_GetCurrentContext()
         }
+        logger.info { "Created primary window with id ${SDL_GetWindowID(primaryWindow)}" }
     }
 
     override suspend fun setup() {
@@ -248,10 +255,14 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             }
 
             SDL_EVENT_WINDOW_MOVED -> {
+                val windowId = event.window().windowID()
+                val eventWindow = windowById(windowId)
+                    ?: run { logger.warn { "got event (=SDL_EVENT_WINDOW_MOVED) for unknown window id (=${windowId}): " }; return };
+
                 val windowEvent = event.window()
                 val x = windowEvent.data1().toDouble()
                 val y = windowEvent.data2().toDouble()
-                windowById(event.window().windowID()).program.window.moved.trigger(
+                eventWindow.program.window.moved.trigger(
                     WindowEvent(
                         WindowEventType.MOVED,
                         Vector2(x, y),
@@ -262,10 +273,13 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             }
 
             SDL_EVENT_WINDOW_FOCUS_GAINED -> {
+                val windowId = event.window().windowID()
+                val eventWindow = windowById(windowId)
+                    ?: run { logger.warn { "got event (=SDL_EVENT_WINDOW_FOCUS_GAINED) for unknown window id (=${windowId}): " }; return };
+
+
                 SDL_SetWindowMouseGrab(event.window().windowID().toLong(), true)
-                windowById(
-                    event.window().windowID()
-                ).let {
+                eventWindow.let {
                     it.windowFocused = true
                     program.window.focused.trigger(
                         WindowEvent(
@@ -279,7 +293,11 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             }
 
             SDL_EVENT_WINDOW_FOCUS_LOST -> {
-                windowById(event.window().windowID()).let {
+                val windowId = event.window().windowID()
+                val eventWindow = windowById(windowId)
+                    ?: run { logger.warn { "got event (=SDL_EVENT_WINDOW_FOCUS_LOST) for unknown window id (=${windowId}): " }; return };
+
+                eventWindow.let {
                     it.windowFocused = false
                     it.program.window.unfocused.trigger(
                         WindowEvent(
@@ -293,7 +311,11 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             }
 
             SDL_EVENT_WINDOW_MOUSE_ENTER -> {
-                windowById(event.window().windowID()).program.mouse.entered.trigger(
+                val windowId = event.window().windowID()
+                val eventWindow = windowById(windowId)
+                    ?: run { logger.warn { "got event (=SDL_EVENT_WINDOW_MOUSE_ENTER) for unknown window id (=${windowId}): " }; return };
+
+                eventWindow.program.mouse.entered.trigger(
                     MouseEvent(
                         getMousePosition(),
                         Vector2.ZERO,
@@ -306,7 +328,11 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             }
 
             SDL_EVENT_WINDOW_MOUSE_LEAVE -> {
-                windowById(event.window().windowID()).program.mouse.exited.trigger(
+                val windowId = event.window().windowID()
+                val eventWindow = windowById(windowId)
+                    ?: run { logger.warn { "got event (=SDL_EVENT_WINDOW_MOUSE_LEAVE) for unknown window id (=${windowId}): " }; return };
+
+                eventWindow.program.mouse.exited.trigger(
                     MouseEvent(
                         getMousePosition(),
                         Vector2.ZERO,
@@ -319,14 +345,17 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             }
 
             SDL_EVENT_MOUSE_MOTION -> {
+                val windowId = event.motion().windowID()
+                val eventWindow = windowById(windowId)
+                    ?: run { logger.warn { "got event (=SDL_EVENT_MOUSE_MOTION) for unknown window id (=${windowId}): " }; return };
+
                 val mouseEvent = event.motion()
-                val window = windowById(event.window().windowID())
-                val scale = window.windowContentScale
+                val scale = eventWindow.windowContentScale
                 val cursorPosition = Vector2(mouseEvent.x().toDouble(), mouseEvent.y().toDouble()).toDisplayUnits(scale)
                 val displacement =
                     Vector2(mouseEvent.xrel().toDouble(), mouseEvent.yrel().toDouble()).toDisplayUnits(scale)
-                window.cursorPosition = cursorPosition
-                window.program.mouse.moved.trigger(
+                eventWindow.cursorPosition = cursorPosition
+                eventWindow.program.mouse.moved.trigger(
                     MouseEvent(
                         cursorPosition, Vector2.ZERO, displacement, MouseEventType.MOVED,
                         MouseButton.NONE, modifiersFromSdl(SDL_GetModState().toInt())
@@ -334,7 +363,7 @@ class ApplicationSDL(override var program: Program, override var configuration: 
                 )
                 val button = getMouseButton(mouseEvent.state())
                 if (button != MouseButton.NONE) {
-                    window.program.mouse.dragged.trigger(
+                    eventWindow.program.mouse.dragged.trigger(
                         MouseEvent(
                             cursorPosition, Vector2.ZERO, displacement, MouseEventType.DRAGGED,
                             button, modifiersFromSdl(SDL_GetModState().toInt())
@@ -344,12 +373,15 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             }
 
             SDL_EVENT_MOUSE_BUTTON_UP -> {
+                val windowId = event.button().windowID()
+                val eventWindow = windowById(windowId)
+                    ?: run { logger.warn { "got event (=SDL_EVENT_MOUSE_BUTTON_UP) for unknown window id (=${windowId}): " }; return };
+
                 val mouseEvent = event.button()
-                val window = windowById(event.window().windowID())
-                val scale = window.windowContentScale
+                val scale = eventWindow.windowContentScale
                 val cursorPosition = Vector2(mouseEvent.x().toDouble(), mouseEvent.y().toDouble()).toDisplayUnits(scale)
-                window.cursorPosition = cursorPosition
-                window.program.mouse.buttonUp.trigger(
+                eventWindow.cursorPosition = cursorPosition
+                eventWindow.program.mouse.buttonUp.trigger(
                     MouseEvent(
                         cursorPosition,
                         Vector2.ZERO,
@@ -362,12 +394,15 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             }
 
             SDL_EVENT_MOUSE_BUTTON_DOWN -> {
+                val windowId = event.button().windowID()
+                val eventWindow = windowById(windowId)
+                    ?: run { logger.warn { "got event (=SDL_EVENT_MOUSE_BUTTON_DOWN) for unknown window id (=${windowId}): " }; return };
+
                 val mouseEvent = event.button()
-                val window = windowById(event.window().windowID())
-                val scale = window.windowContentScale
+                val scale = eventWindow.windowContentScale
                 val cursorPosition = Vector2(mouseEvent.x().toDouble(), mouseEvent.y().toDouble()).toDisplayUnits(scale)
-                window.cursorPosition = cursorPosition
-                window.program.mouse.buttonDown.trigger(
+                eventWindow.cursorPosition = cursorPosition
+                eventWindow.program.mouse.buttonDown.trigger(
                     MouseEvent(
                         cursorPosition,
                         Vector2.ZERO,
@@ -406,9 +441,12 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             }
 
             SDL_EVENT_DROP_COMPLETE -> {
+                val windowId = event.drop().windowID()
+                val eventWindow = windowById(windowId)
+                    ?: run { logger.warn { "got event (=SDL_EVENT_DROP_COMPLETE) for unknown window id (=${windowId}): " }; return };
+
                 val dropEvent = event.drop()
-                val window = windowById(event.window().windowID())
-                window.program.window.drop.trigger(
+                eventWindow.program.window.drop.trigger(
                     DropEvent(
                         Vector2(dropEvent.x().toDouble(), dropEvent.y().toDouble()),
                         dropFiles
@@ -417,14 +455,17 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             }
 
             SDL_EVENT_MOUSE_WHEEL -> {
+                val windowId = event.wheel().windowID()
+                val eventWindow = windowById(windowId)
+                    ?: run { logger.warn { "got event (=SDL_EVENT_MOUSE_WHEEL) for unknown window id (=${windowId}): " }; return };
+
                 val mouseEvent = event.wheel()
-                val window = windowById(event.window().windowID())
                 cursorPosition = Vector2(
                     mouseEvent.mouse_x().toDouble(),
                     mouseEvent.mouse_y().toDouble()
-                ).toDisplayUnits(window.windowContentScale)
+                ).toDisplayUnits(eventWindow.windowContentScale)
                 val rotation = Vector2(mouseEvent.x().toDouble(), mouseEvent.y().toDouble())
-                window.program.mouse.scrolled.trigger(
+                eventWindow.program.mouse.scrolled.trigger(
                     MouseEvent(
                         cursorPosition, rotation, Vector2.ZERO, MouseEventType.SCROLLED,
                         MouseButton.NONE, modifiersFromSdl(SDL_GetModState().toInt())
@@ -433,8 +474,12 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             }
 
             SDL_EVENT_FINGER_DOWN -> {
+                val windowId = event.tfinger().windowID()
+                val eventWindow = windowById(windowId)
+                    ?: run { logger.warn { "got event (=SDL_EVENT_FINGER_DOWN) for unknown window id (=${windowId}): " }; return };
+
                 val fingerEvent = event.tfinger()
-                window.program.pointers.pointerDown.trigger(
+                eventWindow.program.pointers.pointerDown.trigger(
                     PointerEvent(
                         fingerEvent.fingerID(),
                         Vector2(fingerEvent.x().toDouble(), fingerEvent.y().toDouble()) * program.window.size,
@@ -445,8 +490,12 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             }
 
             SDL_EVENT_FINGER_UP -> {
+                val windowId = event.tfinger().windowID()
+                val eventWindow = windowById(windowId)
+                    ?: run { logger.warn { "got event (=SDL_EVENT_FINGER_UP) for unknown window id (=${windowId}): " }; return };
+
                 val fingerEvent = event.tfinger()
-                window.program.pointers.pointerUp.trigger(
+                eventWindow.program.pointers.pointerUp.trigger(
                     PointerEvent(
                         fingerEvent.fingerID(),
                         Vector2.ZERO,
@@ -457,8 +506,12 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             }
 
             SDL_EVENT_FINGER_MOTION -> {
+                val windowId = event.tfinger().windowID()
+                val eventWindow = windowById(windowId)
+                    ?: run { logger.warn { "got event (=SDL_EVENT_FINGER_MOTION) for unknown window id (=${windowId}): " }; return };
+
                 val fingerEvent = event.tfinger()
-                window.program.pointers.moved.trigger(
+                eventWindow.program.pointers.moved.trigger(
                     PointerEvent(
                         fingerEvent.fingerID(),
                         Vector2(fingerEvent.x().toDouble(), fingerEvent.y().toDouble()) * program.window.size,
@@ -469,8 +522,12 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             }
 
             SDL_EVENT_FINGER_CANCELED -> {
+                val windowId = event.tfinger().windowID()
+                val eventWindow = windowById(windowId)
+                    ?: run { logger.warn { "got event for (=SDL_EVENT_FINGER_CANCELED) unknown window id (=${windowId}): " }; return };
+
                 val fingerEvent = event.tfinger()
-                window.program.pointers.pointerUp.trigger(
+                eventWindow.program.pointers.pointerUp.trigger(
                     PointerEvent(
                         fingerEvent.fingerID(),
                         Vector2.ZERO,
@@ -482,16 +539,24 @@ class ApplicationSDL(override var program: Program, override var configuration: 
 
 
             SDL_EVENT_TEXT_INPUT -> {
+                val windowId = event.text().windowID()
+                val eventWindow = windowById(windowId)
+                    ?: run { logger.warn { "got event for unknown window id (=${windowId}): " }; return };
+
                 val textEvent = event.text()
-                windowById(event.window().windowID()).program.keyboard.character.trigger(
+                eventWindow.program.keyboard.character.trigger(
                     CharacterEvent(textEvent.textString()?.first() ?: ' ', emptySet())
                 )
             }
 
             SDL_EVENT_KEY_UP -> {
+                val windowId = event.key().windowID()
+                val eventWindow = windowById(windowId)
+                    ?: run { logger.warn { "got event for unknown window id (=${windowId}): " }; return };
+
                 val keyEvent = event.key()
                 val key = keyEvent.key()
-                windowById(event.window().windowID()).program.keyboard.keyUp.trigger(
+                eventWindow.program.keyboard.keyUp.trigger(
                     KeyEvent(
                         KeyEventType.KEY_UP,
                         key,
@@ -502,10 +567,14 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             }
 
             SDL_EVENT_KEY_DOWN -> {
+                val windowId = event.key().windowID()
+                val eventWindow = windowById(windowId)
+                    ?: run { logger.warn { "got event for unknown window id (=${windowId}): " }; return };
+
                 val keyEvent = event.key()
                 val eventType = if (keyEvent.repeat()) KeyEventType.KEY_REPEAT else KeyEventType.KEY_DOWN
                 val key = keyEvent.key()
-                windowById(event.window().windowID()).program.keyboard.keyDown.trigger(
+                eventWindow.program.keyboard.keyDown.trigger(
                     KeyEvent(
                         eventType,
                         key,
@@ -516,7 +585,11 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             }
 
             SDL_EVENT_WINDOW_CLOSE_REQUESTED -> {
-                windowById(event.window().windowID()).closeRequested = true
+                val windowId = event.window().windowID()
+                val eventWindow = windowById(windowId)
+                    ?: run { logger.warn { "got event for unknown window id (=${windowId}): " }; return };
+
+                eventWindow.closeRequested = true
             }
 
             else -> {
