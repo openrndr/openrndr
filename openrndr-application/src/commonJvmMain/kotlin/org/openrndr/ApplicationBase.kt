@@ -25,20 +25,60 @@ actual abstract class ApplicationBase {
                 logger.debug { "NullGL not found" }
             }
             val cl = ApplicationBase::class.java.classLoader
+
+            val glfwBase = try {
+                cl.loadClass("org.openrndr.internal.gl3.ApplicationBaseGLFWGL3")
+            } catch (e: ClassNotFoundException) {
+                null
+            }
+            val sdlBase = try {
+                cl.loadClass("org.openrndr.application.sdl.ApplicationBaseSDL")
+            } catch (e: ClassNotFoundException) {
+                null
+            }
+
+            if (glfwBase != null && sdlBase != null) {
+                logger.warn { "Both GLFW and SDL application backends are available" }
+            }
+
+
             return when (val applicationProperty: String? = System.getProperty("org.openrndr.application")) {
                 null, "" -> {
-                    val c = try { cl.loadClass("org.openrndr.internal.gl3.ApplicationBaseGLFWGL3") } catch (e:ClassNotFoundException) { null } ?:
-                    try { cl.loadClass("org.openrndr.internal.gles3.ApplicationBaseGLFWGLES3") } catch (e:ClassNotFoundException) { null } ?:
-                    try { cl.loadClass("org.openrndr.application.sdl.ApplicationBaseSDL") } catch (e:ClassNotFoundException) { null }
+                    val c = try {
+                        cl.loadClass("org.openrndr.internal.gl3.ApplicationBaseGLFWGL3")
+                    } catch (e: ClassNotFoundException) {
+                        null
+                    } ?: try {
+                        cl.loadClass("org.openrndr.internal.gles3.ApplicationBaseGLFWGLES3")
+                    } catch (e: ClassNotFoundException) {
+                        null
+                    } ?: try {
+                        cl.loadClass("org.openrndr.application.sdl.ApplicationBaseSDL")
+                    } catch (e: ClassNotFoundException) {
+                        null
+                    }
                     c ?: error("No application backend not available")
                 }
+
                 "GLFW" -> {
-                    val c = try { cl.loadClass("org.openrndr.internal.gl3.ApplicationBaseGLFWGL3") } catch (e:ClassNotFoundException) { null } ?:
-                    try { cl.loadClass("org.openrndr.internal.gles3.ApplicationBaseGLFWGLES3") } catch (e:ClassNotFoundException) { null }
+                    val c = try {
+                        cl.loadClass("org.openrndr.internal.gl3.ApplicationBaseGLFWGL3")
+                    } catch (e: ClassNotFoundException) {
+                        null
+                    } ?: try {
+                        cl.loadClass("org.openrndr.internal.gles3.ApplicationBaseGLFWGLES3")
+                    } catch (e: ClassNotFoundException) {
+                        null
+                    }
                     c ?: error("GLFW application backend not available")
                 }
+
                 "SDL" -> {
-                    val c = try { cl.loadClass("org.openrndr.application.sdl.ApplicationBaseSDL") } catch (e:ClassNotFoundException) { null }
+                    val c = try {
+                        cl.loadClass("org.openrndr.application.sdl.ApplicationBaseSDL")
+                    } catch (e: ClassNotFoundException) {
+                        null
+                    }
                     c ?: error("SDL application backend not available")
                 }
 
