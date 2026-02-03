@@ -2,7 +2,6 @@ package org.openrndr.internal.gl3
 
 import android.opengl.GLES30
 import android.opengl.GLES32
-import android.opengl.GLU
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.ArrayCubemap
@@ -33,9 +32,9 @@ import org.openrndr.draw.ShaderStorageBuffer
 import org.openrndr.draw.ShaderStorageFormat
 import org.openrndr.draw.ShaderType
 import org.openrndr.draw.VertexBuffer
+import org.openrndr.draw.VertexElementType
 import org.openrndr.draw.VertexFormat
 import org.openrndr.draw.VolumeTexture
-import org.openrndr.draw.vertexFormat
 import org.openrndr.internal.Driver
 import org.openrndr.internal.DriverProperties
 import org.openrndr.internal.FontMapManager
@@ -43,24 +42,20 @@ import org.openrndr.internal.GLSL
 import org.openrndr.internal.ResourceThread
 import org.openrndr.internal.ShaderGenerators
 import org.openrndr.internal.ShaderLanguage
-import org.openrndr.internal.gl.BASIC_SOLID_FS
-import org.openrndr.internal.gl.BASIC_SOLID_VS
+import org.openrndr.internal.gl3.DriverGL3.ShaderVertexDescription
 import org.openrndr.internal.glcommon.ComputeStyleManagerGLCommon
 import org.openrndr.internal.glcommon.ShadeStyleManagerGLCommon
 import org.openrndr.internal.glcommon.ShaderGeneratorsGLCommon
 import java.nio.Buffer
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
 
 private val logger = KotlinLogging.logger {}
 
-class DriverAndroidGLES : Driver {
+class DriverAndroidGLES(val version: DriverVersionGL) : Driver {
 
     private var currentWidth = 0
     private var currentHeight = 0
     private var currentFill = ColorRGBa.WHITE
 
-    //    private var renderTarget = RenderTargetGLES.create(0, 0, 1.0, BufferMultisample.Disabled, null)
     private lateinit var renderTarget: RenderTargetGLES
 
     override val contextID: Long
@@ -68,33 +63,31 @@ class DriverAndroidGLES : Driver {
             return Thread.currentThread().id
         }
 
-    private val vao = IntArray(1)
-    private var vaoReady = false
+    data class Capabilities(
+        val programUniform: Boolean,
+        val textureStorage: Boolean,
+        val textureMultisampleStorage: Boolean,
+        val compute: Boolean,
+    )
 
-    // dev: to test triangle display only
-    private lateinit var vb: VertexBuffer
-
-    private fun ensureVaoOrThrow() {
-        // Clear any stale error so next check is meaningful
-        while (GLES30.glGetError() != GLES30.GL_NO_ERROR) {
-        }
-
-        if (!vaoReady) {
-            GLES30.glGenVertexArrays(1, vao, 0)
-            if (vao[0] == 0) {
-                throw RuntimeException("Failed to create VAO (id==0). Check GL context & version.")
-            }
-            vaoReady = true
-        }
-        GLES30.glBindVertexArray(vao[0])
-        val err = GLES30.glGetError()
-        if (err != GLES30.GL_NO_ERROR) {
-            throw RuntimeException(
-                "glBindVertexArray(${vao[0]}) failed with error $err. " +
-                        "Ensure you really have a GLES 3.x context (setEGLContextClientVersion(3))."
-            )
-        }
-    }
+    val capabilities = Capabilities(
+        programUniform = version.isAtLeast(
+            DriverVersionGL.GL_VERSION_4_1,
+            DriverVersionGL.GLES_VERSION_3_1
+        ),
+        textureStorage = version.isAtLeast(
+            DriverVersionGL.GL_VERSION_4_1,
+            DriverVersionGL.GLES_VERSION_3_0
+        ),
+        textureMultisampleStorage = version.isAtLeast(
+            DriverVersionGL.GL_VERSION_4_3,
+            DriverVersionGL.GLES_VERSION_3_1
+        ),
+        compute = version.isAtLeast(
+            DriverVersionGL.GL_VERSION_4_3,
+            DriverVersionGL.GLES_VERSION_3_1
+        )
+    )
 
     fun onSurfaceChanged(width: Int, height: Int) {
         logger.info { "onSurfaceChanged - width: $width - height: $height" }
@@ -103,25 +96,6 @@ class DriverAndroidGLES : Driver {
         renderTarget = RenderTargetGLES.create(width, height, 1.0, BufferMultisample.Disabled, null)
         viewport(width, height) // make sure GL viewport matches display
 
-
-        val verts = floatArrayOf(
-            100f, 100f,
-            300f, 100f,
-            200f, 300f
-        )
-        val bb = ByteBuffer
-            .allocateDirect(verts.size * 4)
-            .order(ByteOrder.nativeOrder())
-
-        // 2) Fill it via a FloatBuffer view
-        bb.asFloatBuffer().put(verts)
-
-        // 3) Rewind the ByteBuffer (important!)
-        bb.position(0)
-
-        val vf = vertexFormat { position(2) }
-        vb = createDynamicVertexBuffer(vf, 3)
-        (vb as VertexBufferGLES).write(bb, 0)
     }
 
     override fun createShader(
@@ -133,10 +107,32 @@ class DriverAndroidGLES : Driver {
         name: String,
         session: Session?
     ): Shader {
-        // If explicit code is provided, compile it; otherwise use the solid fill shader.
-        val vs = vsCode.ifBlank { BASIC_SOLID_VS }
-        val fs = fsCode.ifBlank { BASIC_SOLID_FS }
-        return ShaderGLES.fromSource(vs, fs, session)
+        logger.trace {
+            "creating shader:\n${gsCode}\n${vsCode}\n${fsCode}"
+        }
+        val vertexShader = VertexShaderGL3.fromString(vsCode, name)
+        val geometryShader = gsCode?.let { GeometryShaderGL3.fromString(it, name) }
+        val tcShader = tcsCode?.let { TessellationControlShaderGL3.fromString(it, name) }
+        val teShader = tesCode?.let { TessellationEvaluationShaderGL3.fromString(it, name) }
+        val fragmentShader = FragmentShaderGL3.fromString(fsCode, name)
+
+        synchronized(this) {
+            return ShaderGLES.create(
+                vertexShader,
+                tcShader,
+                teShader,
+                geometryShader,
+                fragmentShader,
+                name,
+                session
+            )
+        }
+
+
+//        // If explicit code is provided, compile it; otherwise use the solid fill shader.
+//        val vs = vsCode.ifBlank { BASIC_SOLID_VS }
+//        val fs = fsCode.ifBlank { BASIC_SOLID_FS }
+//        return ShaderGLES.fromSource(vs, fs, session)
     }
 
     override fun createComputeShader(code: String, name: String, session: Session?): ComputeShader {
@@ -286,20 +282,31 @@ class DriverAndroidGLES : Driver {
         TODO("Not yet implemented")
     }
 
+    private val defaultVAOs = HashMap<Long, Int>()
+    private val defaultVAO: Int
+        get() = defaultVAOs.getOrPut(contextID) {
+            val vaos = IntArray(1)
+            synchronized(Driver.instance) {
+                logger.debug { "[context=$contextID] creating default VAO" }
+                glGenVertexArrays(vaos)
+            }
+            vaos[0]
+        }
+
     override fun clear(color: ColorRGBa) {
         // Bind the on-screen framebuffer (default)
-        GLES30.glBindFramebuffer(GLES30.GL_FRAMEBUFFER, 0)
+        glBindFramebuffer(GLES30.GL_FRAMEBUFFER, 0)
         // Clear entire surface
-        GLES30.glDisable(GLES30.GL_SCISSOR_TEST)
+        glDisable(GLES30.GL_SCISSOR_TEST)
         // Set the clear color
-        GLES30.glClearColor(
+        glClearColor(
             color.r.toFloat(),
             color.g.toFloat(),
             color.b.toFloat(),
             color.a.toFloat()
         )
         // Clear color (and optionally depth/stencil)
-        GLES30.glClear(
+        glClear(
             GLES30.GL_COLOR_BUFFER_BIT /* or add: or GLES30.GL_DEPTH_BUFFER_BIT or GLES30.GL_STENCIL_BUFFER_BIT */
         )
 
@@ -319,7 +326,11 @@ class DriverAndroidGLES : Driver {
         vertexCount: Int,
         session: Session?
     ): VertexBuffer {
-        return VertexBufferGLES(format, vertexCount, session)
+        synchronized(this) {
+            val vertexBuffer = VertexBufferGLES.createDynamic(format, vertexCount, session)
+            session?.track(vertexBuffer)
+            return vertexBuffer
+        }
     }
 
     override fun createStaticVertexBuffer(
@@ -327,7 +338,7 @@ class DriverAndroidGLES : Driver {
         buffer: Buffer,
         session: Session?
     ): VertexBuffer {
-        return VertexBufferGLES(format, 100, session)
+        TODO("not implemented")
     }
 
     override fun createDynamicIndexBuffer(
@@ -335,7 +346,11 @@ class DriverAndroidGLES : Driver {
         type: IndexType,
         session: Session?
     ): IndexBuffer {
-        TODO("Not yet implemented")
+        synchronized(this) {
+            val indexBuffer = IndexBufferGL3.create(elementCount, type, session)
+            session?.track(indexBuffer)
+            return indexBuffer
+        }
     }
 
     override fun createShaderStorageBuffer(
@@ -353,43 +368,60 @@ class DriverAndroidGLES : Driver {
         vertexCount: Int,
         verticesPerPatch: Int
     ) {
-        ensureVaoOrThrow()
-
-        val sh = (shader as ShaderGLES)// ?: solidShader
-        sh.begin()
-        sh.uniform2f("u_resolution", currentWidth.toFloat(), currentHeight.toFloat())
-        sh.uniform4f(
-            "u_fill",
-            currentFill.r.toFloat(),
-            currentFill.g.toFloat(),
-            currentFill.b.toFloat(),
-            currentFill.a.toFloat()
-        )
-
-        // per-vertex (divisor 0), no base shift; we pass vertexOffset in draw
-        vertexBuffers.forEach { vb ->
-            vb as VertexBufferGLES
-            GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, vb.id)
-            bindFormatAttributesForProgram(
-                sh.programId,
-                vb.vertexFormat,
-                baseShiftBytes = 0,
-                divisor = 0
-            )
+        debugGLErrors {
+            "a pre-existing GL error occurred before Driver.drawVertexBuffer "
         }
 
-        val mode = glMode(drawPrimitive)
+        if (drawPrimitive == DrawPrimitive.PATCHES) {
+            if (Driver.glVersion >= DriverVersionGL.GL_VERSION_4_1) {
+                glPatchParameteri(GL_PATCH_VERTICES, verticesPerPatch)
+            }
+        }
 
-        GLES30.glDrawArrays(mode, vertexOffset, vertexCount)
+        shader as ShaderGLES
+        // -- find or create a VAO for our shader + vertex buffers combination
+        val shaderVertexDescription = ShaderVertexDescription(
+            Driver.instance.contextID,
+            shader.programObject,
+            IntArray(vertexBuffers.size) { (vertexBuffers[it] as VertexBufferGLES).buffer },
+            IntArray(0)
+        )
 
-        // cleanup
-        GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, 0)
-        sh.end()
+        val vao = vaos.getOrPut(shaderVertexDescription) {
+            logger.debug {
+                "[context=$contextID] creating new VAO for hash $shaderVertexDescription"
+            }
 
-        debugGLErrors("drawVertexBuffer")
+            val arrays = IntArray(1)
+            synchronized(Driver.instance) {
+                glGenVertexArrays(arrays)
+                glBindVertexArray(arrays[0])
+                setupFormat(vertexBuffers, emptyList(), shader)
+                glBindVertexArray(defaultVAO)
+            }
+            arrays[0]
+        }
+        glBindVertexArray(vao)
+        debugGLErrors {
+            when (it) {
+                GL_INVALID_OPERATION -> "array ($vao) is not zero or the name of a vertex array object previously returned from a call to glGenVertexArrays"
+                else -> "unknown error $it"
+            }
+        }
 
-//        logger.info { "draw mode=${mode}, count=$vertexCount, res=${currentWidth}x${currentHeight}, fill=$currentFill" }
-//        println("draw mode=${mode}, count=$vertexCount, res=${currentWidth}x${currentHeight}, fill=$currentFill")
+        logger.trace { "drawing vertex buffer with $drawPrimitive(${drawPrimitive.glType()}) and $vertexCount vertices with vertexOffset $vertexOffset " }
+        glDrawArrays(drawPrimitive.glType(), vertexOffset, vertexCount)
+
+        debugGLErrors {
+            when (it) {
+                GL_INVALID_ENUM -> "mode ($drawPrimitive) is not an accepted value."
+                GL_INVALID_VALUE -> "count ($vertexCount) is negative."
+                GL_INVALID_OPERATION -> "a non-zero buffer object name is bound to an enabled array and the buffer object's data store is currently mapped."
+                else -> null
+            }
+        }
+        // -- restore defaultVAO binding
+        glBindVertexArray(defaultVAO)
     }
 
     override fun drawIndexedVertexBuffer(
@@ -423,59 +455,53 @@ class DriverAndroidGLES : Driver {
             "DrawPrimitive.PATCHES is not supported on OpenGL ES"
         }
 
-        val progId = (shader as ShaderGLES).programId
+        shader as ShaderGLES
 
-        // Build a VAO key
-        val vbIds = IntArray(vertexBuffers.size) { (vertexBuffers[it] as VertexBufferGLES).id }
-        val instIds =
-            IntArray(instanceAttributes.size) { (instanceAttributes[it] as VertexBufferGLES).id }
-        val key = VaoKey(
-            contextID = contextID,
-            programId = progId,
-            vertexBuffers = vbIds.toList(),
-            instanceAttributeBuffers = instIds.toList(),
-            indexBuffer = null
+        // -- find or create a VAO for our shader + vertex buffers + instance buffers combination
+        val hash = ShaderVertexDescription(
+            contextID,
+            shader.programObject,
+            IntArray(vertexBuffers.size) { (vertexBuffers[it] as VertexBufferGLES).buffer },
+            IntArray(instanceAttributes.size) { (instanceAttributes[it] as VertexBufferGLES).buffer }
         )
 
-        // Find or create the VAO
-        val vao = vaos.getOrPut(key) {
-            logger.debug { "creating new instances VAO for key=$key" }
-            val arr = IntArray(1)
-            GLES30.glGenVertexArrays(1, arr, 0)
-            val vaoId = arr[0]
-            GLES30.glBindVertexArray(vaoId)
-
-            // Setup per-vertex attributes (divisor 0)
-            vertexBuffers.forEach {
-                bindAttributesForBuffer(
-                    it as VertexBufferGLES,
-                    divisor = 0,
-                    progId = progId
-                )
+        val vao = vaos.getOrPut(hash) {
+            logger.debug {
+                "creating new instances VAO for hash $hash"
             }
-            // Setup per-instance attributes (divisor 1)
-            instanceAttributes.forEach {
-                bindAttributesForBuffer(
-                    it as VertexBufferGLES,
-                    divisor = 1,
-                    progId = progId
-                )
+            val arrays = IntArray(1)
+            synchronized(Driver.instance) {
+                glGenVertexArrays(arrays)
+                glBindVertexArray(arrays[0])
+                setupFormat(vertexBuffers, instanceAttributes, shader)
+                debugGLErrors()
+                glBindVertexArray(defaultVAO)
+                debugGLErrors()
             }
-
-            GLES30.glBindVertexArray(defaultVAO)
-            vaoId
+            arrays[0]
         }
 
-        // Bind VAO and draw
-        GLES30.glBindVertexArray(vao)
-        val mode = glMode(drawPrimitive)
-        GLES30.glDrawArraysInstanced(mode, vertexOffset, vertexCount, instanceCount)
+        debugGLErrors()
+        glBindVertexArray(vao)
+        debugGLErrors()
 
-        // Optional debug
-        debugGLErrors("drawInstances")
+        logger.trace { "drawing $instanceCount instances with $drawPrimitive(${drawPrimitive.glType()}) and $vertexCount vertices with vertexOffset $vertexOffset " }
+        if (instanceOffset == 0) {
+            glDrawArraysInstanced(drawPrimitive.glType(), vertexOffset, vertexCount, instanceCount)
+        } else {
+            glDrawArraysInstancedBaseInstance(
+                drawPrimitive.glType(),
+                vertexOffset,
+                vertexCount,
+                instanceCount,
+                instanceOffset
+            )
+        }
+
+        debugGLErrors()
 
         // Restore default VAO
-        GLES30.glBindVertexArray(defaultVAO)
+        glBindVertexArray(defaultVAO)
     }
 
     override fun drawIndexedInstances(
@@ -491,6 +517,176 @@ class DriverAndroidGLES : Driver {
         verticesPerPatch: Int
     ) {
         println("drawIndexedInstances")
+    }
+
+    private fun setupFormat(
+        vertexBuffer: List<VertexBuffer>,
+        instanceAttributes: List<VertexBuffer>,
+        shader: ShaderGLES
+    ) {
+        run {
+            debugGLErrors()
+
+            val scalarVectorTypes = setOf(
+                VertexElementType.UINT8,
+                VertexElementType.VECTOR2_UINT8,
+                VertexElementType.VECTOR3_UINT8,
+                VertexElementType.VECTOR4_UINT8,
+                VertexElementType.INT8,
+                VertexElementType.VECTOR2_INT8,
+                VertexElementType.VECTOR3_INT8,
+                VertexElementType.VECTOR4_INT8,
+                VertexElementType.UINT16,
+                VertexElementType.VECTOR2_UINT16,
+                VertexElementType.VECTOR3_UINT16,
+                VertexElementType.VECTOR4_UINT16,
+                VertexElementType.INT16,
+                VertexElementType.VECTOR2_INT16,
+                VertexElementType.VECTOR3_INT16,
+                VertexElementType.VECTOR4_INT16,
+                VertexElementType.UINT32,
+                VertexElementType.VECTOR2_UINT32,
+                VertexElementType.VECTOR3_UINT32,
+                VertexElementType.VECTOR4_UINT32,
+                VertexElementType.INT32,
+                VertexElementType.VECTOR2_INT32,
+                VertexElementType.VECTOR3_INT32,
+                VertexElementType.VECTOR4_INT32,
+                VertexElementType.FLOAT32,
+                VertexElementType.VECTOR2_FLOAT32,
+                VertexElementType.VECTOR3_FLOAT32,
+                VertexElementType.VECTOR4_FLOAT32
+            )
+
+            fun setupBuffer(buffer: VertexBufferGLES, divisor: Int = 0) {
+                val prefix = if (divisor == 0) "a" else "i"
+                var attributeBindings = 0
+
+                glBindBuffer(GL_ARRAY_BUFFER, buffer.buffer)
+                val format = buffer.vertexFormat
+                for (item in format.items) {
+                    // skip over padding attributes
+                    if (item.attribute == "_") {
+                        continue
+                    }
+
+                    val attributeIndex = shader.attributeIndex("${prefix}_${item.attribute}")
+                    if (attributeIndex != -1) {
+                        when (item.type) {
+                            in scalarVectorTypes -> {
+                                for (i in 0 until item.arraySize) {
+                                    glEnableVertexAttribArray(attributeIndex + i)
+                                    debugGLErrors {
+                                        when (it) {
+                                            GL_INVALID_OPERATION -> "no vertex array object is bound"
+                                            GL_INVALID_VALUE -> "index ($attributeIndex) is greater than or equal to GL_MAX_VERTEX_ATTRIBS"
+                                            else -> null
+                                        }
+                                    }
+                                    val glType = item.type.glType()
+
+                                    if (glType == GL_FLOAT) {
+                                        glVertexAttribPointer(
+                                            attributeIndex + i,
+                                            item.type.componentCount,
+                                            glType,
+                                            false,
+                                            format.size,
+                                            buffer.offset + item.offset.toLong() + i * item.type.sizeInBytes
+                                        )
+                                    } else {
+                                        glVertexAttribIPointer(
+                                            attributeIndex + i,
+                                            item.type.componentCount,
+                                            glType,
+                                            format.size,
+                                            buffer.offset + item.offset.toLong() + i * item.type.sizeInBytes
+                                        )
+
+                                    }
+                                    debugGLErrors {
+                                        when (it) {
+                                            GL_INVALID_VALUE -> "index ($attributeIndex) is greater than or equal to GL_MAX_VERTEX_ATTRIBS"
+                                            else -> null
+                                        }
+                                    }
+                                    glVertexAttribDivisor(attributeIndex, divisor)
+                                    attributeBindings++
+                                }
+                            }
+
+                            VertexElementType.MATRIX44_FLOAT32 -> {
+                                for (i in 0 until item.arraySize) {
+                                    for (column in 0 until 4) {
+                                        glEnableVertexAttribArray(attributeIndex + column + i * 4)
+                                        debugGLErrors()
+
+                                        glVertexAttribPointer(
+                                            attributeIndex + column + i * 4,
+                                            4,
+                                            item.type.glType(),
+                                            false,
+                                            format.size,
+                                            buffer.offset + item.offset.toLong() + column * 16 + i * 64
+                                        )
+                                        debugGLErrors()
+
+                                        glVertexAttribDivisor(
+                                            attributeIndex + column + i * 4,
+                                            divisor
+                                        )
+                                        debugGLErrors()
+                                        attributeBindings++
+                                    }
+                                }
+                            }
+
+                            VertexElementType.MATRIX33_FLOAT32 -> {
+                                for (i in 0 until item.arraySize) {
+                                    for (column in 0 until 3) {
+                                        glEnableVertexAttribArray(attributeIndex + column + i * 3)
+                                        debugGLErrors()
+
+                                        glVertexAttribPointer(
+                                            attributeIndex + column + i * 3,
+                                            3,
+                                            item.type.glType(),
+                                            false,
+                                            format.size,
+                                            buffer.offset + item.offset.toLong() + column * 12 + i * 48
+                                        )
+                                        debugGLErrors()
+
+                                        glVertexAttribDivisor(
+                                            attributeIndex + column + i * 3,
+                                            divisor
+                                        )
+                                        debugGLErrors()
+                                        attributeBindings++
+                                    }
+                                }
+                            }
+
+                            else -> {
+                                TODO("implement support for ${item.type}")
+                            }
+                        }
+                    }
+                }
+
+                if (attributeBindings > 16) {
+                    throw RuntimeException("Maximum vertex attributes exceeded $attributeBindings (limit is 16)")
+                }
+            }
+            vertexBuffer.forEach {
+                require(!(it as VertexBufferGLES).isDestroyed)
+                setupBuffer(it, 0)
+            }
+
+            instanceAttributes.forEach {
+                setupBuffer(it as VertexBufferGLES, 1)
+            }
+        }
     }
 
     override fun setState(drawStyle: DrawStyle) {
@@ -595,7 +791,7 @@ class DriverAndroidGLES : Driver {
     }
 
     fun viewport(width: Int, height: Int) {
-        GLES30.glViewport(0, 0, width, height)
+        glViewport(0, 0, width, height)
     }
 
     override fun destroyContext(context: Long) {
@@ -603,19 +799,17 @@ class DriverAndroidGLES : Driver {
     }
 
     fun destroyVAOsForVertexBuffer(vertexBuffer: VertexBufferGLES) {
-        val candidates = vaos.keys.filter { key ->
-            key.vertexBuffers.contains(vertexBuffer.id) || key.instanceAttributeBuffers.contains(
-                vertexBuffer.id
+        val candidates = vaos.keys.filter {
+            it.vertexBuffers.contains(vertexBuffer.buffer) || it.instanceAttributeBuffers.contains(
+                vertexBuffer.buffer
             )
         }
-
-        for (key in candidates) {
-            val vaoId = vaos[key] ?: error("no vao found for key: $key")
-            logger.debug { "removing VAO $vaoId for $key" }
-            val arr = intArrayOf(vaoId)
-            GLES30.glDeleteVertexArrays(1, arr, 0)
-            debugGLErrors("destroyVAOsForVertexBuffer")
-            vaos.remove(key)
+        for (candidate in candidates) {
+            val value = vaos[candidate] ?: error("no vao found")
+            logger.debug { "removing VAO $value for $candidate" }
+            glDeleteVertexArrays(value)
+            debugGLErrors()
+            vaos.remove(candidate)
         }
     }
 
@@ -637,32 +831,34 @@ class DriverAndroidGLES : Driver {
         val indexBuffer: Int?
     )
 
-    private val vaos = mutableMapOf<VaoKey, Int>() // Key -> VAO id
+    private val vaos = mutableMapOf<ShaderVertexDescription, Int>()
 
-    // Create a default VAO once (ES requires a bound VAO when setting pointers)
-    private val defaultVAO: Int by lazy {
-        val a = IntArray(1)
-        GLES30.glGenVertexArrays(1, a, 0)
-        a[0]
+    inline fun checkGLErrors(crossinline errorFunction: ((Int) -> String?) = { null }) {
+        val error = glGetError()
+        if (error != GL_NO_ERROR) {
+            val message = when (error) {
+                GL_INVALID_OPERATION -> "GL_INVALID_OPERATION"
+                GL_INVALID_VALUE -> "GL_INVALID_VALUE"
+                GL_INVALID_ENUM -> "GL_INVALID_ENUM"
+                GL_INVALID_FRAMEBUFFER_OPERATION -> "GL_INVALID_FRAMEBUFFER_OPERATION"
+                GL_OUT_OF_MEMORY -> "GL_OUT_OF_MEMORY"
+                GL_STACK_UNDERFLOW -> "GL_STACK_UNDERFLOW"
+                GL_STACK_OVERFLOW -> "GL_STACK_OVERFLOW"
+                else -> "<untranslated: $error>"
+            }
+            throw GL3Exception(
+                "[context=${Driver.instance.contextID}] GL ERROR: $message ${
+                    errorFunction.invoke(
+                        error
+                    )
+                }"
+            )
+        }
     }
 
-    // Map DrawPrimitive → GLES mode
-    private fun glMode(p: DrawPrimitive): Int = when (p) {
-        DrawPrimitive.POINTS -> GLES30.GL_POINTS
-        DrawPrimitive.LINES -> GLES30.GL_LINES
-        DrawPrimitive.LINE_STRIP -> GLES30.GL_LINE_STRIP
-        DrawPrimitive.TRIANGLES -> GLES30.GL_TRIANGLES
-        DrawPrimitive.TRIANGLE_STRIP -> GLES30.GL_TRIANGLE_STRIP
-        DrawPrimitive.TRIANGLE_FAN -> GLES30.GL_TRIANGLE_FAN
-        else -> GLES30.GL_TRIANGLES
-    }
-
-    private fun debugGLErrors(context: String = "DriverAndroidGLES") {
-        val err = GLES30.glGetError()
-        if (err != GLES30.GL_NO_ERROR) {
-            val errorString = GLU.gluErrorString(err)
-            println("$context: glGetError() = $err - errorString: $errorString")
-//            logger.warn { "$context: glGetError() = $err" }
+    inline fun debugGLErrors(crossinline errorFunction: ((Int) -> String?) = { null }) {
+        if (DriverGL3Configuration.useDebugContext) {
+            checkGLErrors(errorFunction)
         }
     }
 
@@ -759,7 +955,7 @@ class DriverAndroidGLES : Driver {
             if (elem.attribute == "_") return@forEachIndexed // padding
 
             // Try the declared name; if not found, fall back to common alias
-            var loc = GLES30.glGetAttribLocation(programId, elem.attribute)
+            var loc = glGetAttribLocation(programId, elem.attribute)
             if (loc < 0) {
                 val alias = when (elem.attribute) {
                     "position" -> "a_position"
@@ -770,7 +966,7 @@ class DriverAndroidGLES : Driver {
                     "a_normal" -> "normal"
                     else -> null
                 }
-                if (alias != null) loc = GLES30.glGetAttribLocation(programId, alias)
+                if (alias != null) loc = glGetAttribLocation(programId, alias)
             }
             if (loc < 0) {
                 // Attribute not used by the current shader – skip it
@@ -780,18 +976,18 @@ class DriverAndroidGLES : Driver {
             val (size, glType, normalized, isInteger) = glAttribOf(elem.type)
             val pointer = elem.offset + baseShiftBytes
 
-            GLES30.glEnableVertexAttribArray(loc)
-            val err0 = GLES30.glGetError()
+            glEnableVertexAttribArray(loc)
+            val err0 = glGetError()
             if (err0 != GLES30.GL_NO_ERROR) {
                 throw RuntimeException("glEnableVertexAttribArray($loc) error=$err0 (attr='${elem.attribute}')")
             }
 
             if (isInteger) {
-                GLES30.glVertexAttribIPointer(loc, size, glType, stride, pointer)
+                glVertexAttribIPointer(loc, size, glType, stride, pointer.toLong())
             } else {
-                GLES30.glVertexAttribPointer(loc, size, glType, normalized, stride, pointer)
+                glVertexAttribPointer(loc, size, glType, normalized, stride, pointer.toLong())
             }
-            val err1 = GLES30.glGetError()
+            val err1 = glGetError()
             if (err1 != GLES30.GL_NO_ERROR) {
                 throw RuntimeException(
                     "glVertexAttribPointer/IPointer(loc=$loc,size=$size,stride=$stride,ptr=$pointer) error=$err1 " +
@@ -799,40 +995,74 @@ class DriverAndroidGLES : Driver {
                 )
             }
 
-            GLES30.glVertexAttribDivisor(loc, divisor)
-            val err2 = GLES30.glGetError()
+            glVertexAttribDivisor(loc, divisor)
+            val err2 = glGetError()
             if (err2 != GLES30.GL_NO_ERROR) {
                 throw RuntimeException("glVertexAttribDivisor($loc,$divisor) error=$err2")
             }
         }
     }
 
-    // Bind all attributes of a VBO with the requested divisor (0 = per-vertex, 1 = per-instance)
-    private fun bindAttributesForBuffer(vb: VertexBufferGLES, divisor: Int, progId: Int) {
-        GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, vb.id)
-        val stride = vb.vertexFormat.size
-
-        vb.vertexFormat.items.forEachIndexed { rawIndex, elem ->
-            if (elem.attribute == "_") return@forEachIndexed
-            // Resolve location from shader — safer than hardcoding indices
-            val loc = GLES30.glGetAttribLocation(progId, elem.attribute)
-            if (loc < 0) return@forEachIndexed // shader doesn't use it
-
-            val (size, glType, normalized, isInteger) = glAttribOf(elem.type)
-
-            GLES30.glEnableVertexAttribArray(loc)
-
-            if (isInteger) {
-                // ONLY use IPointer if shader input is ivec*/uvec*
-                GLES30.glVertexAttribIPointer(loc, size, glType, stride, elem.offset)
-            } else {
-                GLES30.glVertexAttribPointer(loc, size, glType, normalized, stride, elem.offset)
-            }
-            GLES30.glVertexAttribDivisor(loc, divisor)
-            // Optional: check error per attribute during bring-up
-            // val err = GLES30.glGetError(); if (err != GLES30.GL_NO_ERROR) log...
+    fun destroyVAOsForShader(shader: ShaderGLES) {
+        val candidates = vaos.keys.filter {
+            it.vertexBuffers.contains(shader.programObject) || it.instanceAttributeBuffers.contains(
+                shader.programObject
+            )
         }
-        // DO NOT glBindBuffer(GL_ARRAY_BUFFER, 0) here — harmless to keep bound.
+        for (candidate in candidates) {
+            val value = vaos[candidate] ?: error("no vao found")
+            logger.debug { "removing VAO $value for $candidate" }
+            glDeleteVertexArrays(value)
+            debugGLErrors()
+            vaos.remove(candidate)
+        }
+    }
+
+    private fun destroyAllVAOs() {
+        defaultVAOs.keys.forEach {
+            val value = defaultVAOs[it]!!
+            glDeleteVertexArrays(value)
+            debugGLErrors()
+        }
+        defaultVAOs.clear()
+
+        vaos.keys.forEach {
+            val value = vaos[it]!!
+            glDeleteVertexArrays(value)
+            debugGLErrors()
+        }
+        vaos.clear()
+    }
+
+    private fun DrawPrimitive.glType(): Int {
+        return when (this) {
+            DrawPrimitive.TRIANGLES -> GL_TRIANGLES
+            DrawPrimitive.TRIANGLE_FAN -> GL_TRIANGLE_FAN
+            DrawPrimitive.POINTS -> GL_POINTS
+            DrawPrimitive.LINES -> GL_LINES
+            DrawPrimitive.LINE_STRIP -> GL_LINE_STRIP
+            DrawPrimitive.LINE_LOOP -> GL_LINE_LOOP
+            DrawPrimitive.TRIANGLE_STRIP -> GL_TRIANGLE_STRIP
+            DrawPrimitive.PATCHES -> GL_PATCHES
+        }
+    }
+
+    private fun VertexElementType.glType(): Int = when (this) {
+        VertexElementType.UINT8, VertexElementType.VECTOR2_UINT8, VertexElementType.VECTOR3_UINT8, VertexElementType.VECTOR4_UINT8 -> GL_UNSIGNED_BYTE
+        VertexElementType.UINT16, VertexElementType.VECTOR2_UINT16, VertexElementType.VECTOR3_UINT16, VertexElementType.VECTOR4_UINT16 -> GL_UNSIGNED_SHORT
+        VertexElementType.UINT32, VertexElementType.VECTOR2_UINT32, VertexElementType.VECTOR3_UINT32, VertexElementType.VECTOR4_UINT32 -> GL_UNSIGNED_INT
+
+        VertexElementType.INT8, VertexElementType.VECTOR2_INT8, VertexElementType.VECTOR3_INT8, VertexElementType.VECTOR4_INT8 -> GL_BYTE
+        VertexElementType.INT16, VertexElementType.VECTOR2_INT16, VertexElementType.VECTOR3_INT16, VertexElementType.VECTOR4_INT16 -> GL_SHORT
+        VertexElementType.INT32, VertexElementType.VECTOR2_INT32, VertexElementType.VECTOR3_INT32, VertexElementType.VECTOR4_INT32 -> GL_INT
+
+        VertexElementType.FLOAT32 -> GL_FLOAT
+        VertexElementType.MATRIX22_FLOAT32 -> GL_FLOAT
+        VertexElementType.MATRIX33_FLOAT32 -> GL_FLOAT
+        VertexElementType.MATRIX44_FLOAT32 -> GL_FLOAT
+        VertexElementType.VECTOR2_FLOAT32 -> GL_FLOAT
+        VertexElementType.VECTOR3_FLOAT32 -> GL_FLOAT
+        VertexElementType.VECTOR4_FLOAT32 -> GL_FLOAT
     }
 
     private data class GlAttrib(
@@ -842,63 +1072,63 @@ class DriverAndroidGLES : Driver {
         val isInteger: Boolean
     )
 
-    private fun glAttribOf(type: org.openrndr.draw.VertexElementType): GlAttrib = when (type) {
-        org.openrndr.draw.VertexElementType.FLOAT32 -> GlAttrib(1, GLES30.GL_FLOAT, false, false)
-        org.openrndr.draw.VertexElementType.VECTOR2_FLOAT32 -> GlAttrib(
+    private fun glAttribOf(type: VertexElementType): GlAttrib = when (type) {
+        VertexElementType.FLOAT32 -> GlAttrib(1, GLES30.GL_FLOAT, false, false)
+        VertexElementType.VECTOR2_FLOAT32 -> GlAttrib(
             2,
             GLES30.GL_FLOAT,
             false,
             false
         )
 
-        org.openrndr.draw.VertexElementType.VECTOR3_FLOAT32 -> GlAttrib(
+        VertexElementType.VECTOR3_FLOAT32 -> GlAttrib(
             3,
             GLES30.GL_FLOAT,
             false,
             false
         )
 
-        org.openrndr.draw.VertexElementType.VECTOR4_FLOAT32 -> GlAttrib(
+        VertexElementType.VECTOR4_FLOAT32 -> GlAttrib(
             4,
             GLES30.GL_FLOAT,
             false,
             false
         )
 
-        org.openrndr.draw.VertexElementType.INT32 -> GlAttrib(1, GLES30.GL_INT, false, true)
-        org.openrndr.draw.VertexElementType.VECTOR2_INT32 -> GlAttrib(2, GLES30.GL_INT, false, true)
-        org.openrndr.draw.VertexElementType.VECTOR3_INT32 -> GlAttrib(3, GLES30.GL_INT, false, true)
-        org.openrndr.draw.VertexElementType.VECTOR4_INT32 -> GlAttrib(4, GLES30.GL_INT, false, true)
+        VertexElementType.INT32 -> GlAttrib(1, GLES30.GL_INT, false, true)
+        VertexElementType.VECTOR2_INT32 -> GlAttrib(2, GLES30.GL_INT, false, true)
+        VertexElementType.VECTOR3_INT32 -> GlAttrib(3, GLES30.GL_INT, false, true)
+        VertexElementType.VECTOR4_INT32 -> GlAttrib(4, GLES30.GL_INT, false, true)
 
-        org.openrndr.draw.VertexElementType.UINT32 -> GlAttrib(
+        VertexElementType.UINT32 -> GlAttrib(
             1,
             GLES30.GL_UNSIGNED_INT,
             false,
             true
         )
 
-        org.openrndr.draw.VertexElementType.VECTOR2_UINT32 -> GlAttrib(
+        VertexElementType.VECTOR2_UINT32 -> GlAttrib(
             2,
             GLES30.GL_UNSIGNED_INT,
             false,
             true
         )
 
-        org.openrndr.draw.VertexElementType.VECTOR3_UINT32 -> GlAttrib(
+        VertexElementType.VECTOR3_UINT32 -> GlAttrib(
             3,
             GLES30.GL_UNSIGNED_INT,
             false,
             true
         )
 
-        org.openrndr.draw.VertexElementType.VECTOR4_UINT32 -> GlAttrib(
+        VertexElementType.VECTOR4_UINT32 -> GlAttrib(
             4,
             GLES30.GL_UNSIGNED_INT,
             false,
             true
         )
 
-        org.openrndr.draw.VertexElementType.UINT8 -> GlAttrib(
+        VertexElementType.UINT8 -> GlAttrib(
             1,
             GLES30.GL_UNSIGNED_BYTE,
             true,
@@ -920,3 +1150,15 @@ class DriverAndroidGLES : Driver {
         else -> 8 + fallbackIndex
     }
 }
+
+val Driver.Companion.glVersion
+    get() = (instance as DriverAndroidGLES).version
+
+val Driver.Companion.glType
+    get() = (instance as DriverAndroidGLES).version.type
+
+/**
+ * Quick access to capabilities
+ */
+val Driver.Companion.capabilities
+    get() = (instance as DriverAndroidGLES).capabilities

@@ -1,12 +1,14 @@
 package org.openrndr.internal.gl3
 
-import android.opengl.GLES30
-import android.opengl.GLES31
+import org.openrndr.draw.BufferPrimitiveType
 import org.openrndr.draw.BufferWriter
 import org.openrndr.draw.Session
 import org.openrndr.draw.ShaderStorageBuffer
 import org.openrndr.draw.ShaderStorageBufferShadow
 import org.openrndr.draw.ShaderStorageFormat
+import org.openrndr.draw.ShaderStoragePrimitive
+import org.openrndr.draw.ShaderStorageStruct
+import org.openrndr.internal.Driver
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
@@ -14,76 +16,115 @@ import java.nio.ByteOrder
  * SSBO "view" over an existing VertexBufferGLES.
  * It does not own the GL buffer; destroy() is a no-op here (the VBO owns deletion).
  */
-class ShaderStorageBufferGLES(
-    val vbo: VertexBufferGLES,
+data class ShaderStorageBufferGLES(
+    val buffer: Int,
+    val ownsBuffer: Boolean,
     override val format: ShaderStorageFormat,
+    override val session: Session? = Session.active
 ) : ShaderStorageBuffer {
-
-    override val session: Session? get() = vbo.session
-
     private var destroyed = false
 
     override fun clear() {
-        // Zero the buffer with a small zero slab to avoid allocating a giant array on big SSBOs
-        GLES30.glBindBuffer(GLES31.GL_SHADER_STORAGE_BUFFER, vbo.id)
-        val chunk = 1 shl 16 // 64 KiB
-        val zeros = ZeroCache.buf(chunk)
-        var remaining = vbo.sizeInBytes
-        var off = 0
-        while (remaining > 0) {
-            val n = minOf(remaining, chunk)
-            zeros.limit(n)
-            GLES30.glBufferSubData(GLES31.GL_SHADER_STORAGE_BUFFER, off, n, zeros)
-            zeros.clear()
-            off += n
-            remaining -= n
+        when (Driver.glType) {
+            DriverTypeGL.GL -> {
+                if ((Driver.instance as DriverGL3).version >= DriverVersionGL.GL_VERSION_4_5) {
+                    glClearNamedBufferData(
+                        buffer,
+                        GL_R8UI,
+                        GL_RED_INTEGER,
+                        GL_UNSIGNED_BYTE,
+                        intArrayOf(0)
+                    )
+                } else {
+                    glBindBuffer(GL_SHADER_STORAGE_BUFFER, buffer)
+                    glClearBufferData(
+                        GL_SHADER_STORAGE_BUFFER,
+                        GL_R8UI,
+                        GL_RED_INTEGER,
+                        GL_UNSIGNED_BYTE,
+                        intArrayOf(0)
+                    )
+                }
+            }
+
+            DriverTypeGL.GLES -> {
+                error("not supported")
+            }
         }
-        GLES30.glBindBuffer(GLES31.GL_SHADER_STORAGE_BUFFER, 0)
     }
 
-    internal var realShadow: ShaderStorageBufferShadowGLES? = null
-    override val shadow: ShaderStorageBufferShadow
-        get() {
-            if (destroyed) {
-                throw IllegalStateException("buffer is destroyed")
-            }
-            if (realShadow == null) {
-                realShadow = ShaderStorageBufferShadowGLES(this)
-            }
-            return realShadow!!
-        }
 
     override fun write(source: ByteBuffer, writeOffset: Int) {
-        val src = ensureDirect(source)
-        require(writeOffset >= 0 && writeOffset + src.remaining() <= vbo.sizeInBytes) {
-            "SSBO write out of bounds (offset=$writeOffset, size=${src.remaining()}, cap=${vbo.sizeInBytes})"
+        val allowed = format.size - writeOffset
+        require(source.remaining() <= allowed)
+        if (Driver.glType == DriverTypeGL.GL && Driver.glVersion <= DriverVersionGL.GL_VERSION_4_5 ||
+            Driver.glType == DriverTypeGL.GLES
+        ) {
+            glBindBuffer(GL_SHADER_STORAGE_BUFFER, buffer)
+            debugGLErrors()
+            glBufferSubData(GL_SHADER_STORAGE_BUFFER, writeOffset.toLong(), source)
+            debugGLErrors()
+            glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0)
+        } else {
+            glNamedBufferSubData(buffer, writeOffset.toLong(), source)
+            debugGLErrors()
         }
-        GLES30.glBindBuffer(GLES31.GL_SHADER_STORAGE_BUFFER, vbo.id)
-        GLES30.glBufferSubData(GLES31.GL_SHADER_STORAGE_BUFFER, writeOffset, src.remaining(), src)
-        GLES30.glBindBuffer(GLES31.GL_SHADER_STORAGE_BUFFER, 0)
     }
 
     override fun read(target: ByteBuffer, readOffset: Int) {
-        val bytes = target.remaining()
-        require(readOffset >= 0 && readOffset + bytes <= vbo.sizeInBytes) {
-            "SSBO read out of bounds (offset=$readOffset, size=$bytes, cap=${vbo.sizeInBytes})"
+        val needed = format.size - readOffset
+        require(target.remaining() >= needed) {
+            "target buffer remaining bytes: ${target.remaining()}, need $needed bytes"
         }
-        GLES30.glBindBuffer(GLES31.GL_SHADER_STORAGE_BUFFER, vbo.id)
-        val mapped = GLES30.glMapBufferRange(
-            GLES31.GL_SHADER_STORAGE_BUFFER,
-            readOffset,
-            bytes,
-            GLES30.GL_MAP_READ_BIT
-        ) as? ByteBuffer ?: error("glMapBufferRange returned null for SSBO read")
-        val old = target.position()
-        target.put(mapped)
-        target.position(old)
-        GLES30.glUnmapBuffer(GLES31.GL_SHADER_STORAGE_BUFFER)
-        GLES30.glBindBuffer(GLES31.GL_SHADER_STORAGE_BUFFER, 0)
+
+        when (Driver.glType) {
+            DriverTypeGL.GL -> {
+                glBindBuffer(GL_SHADER_STORAGE_BUFFER, buffer)
+                debugGLErrors()
+                glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, readOffset.toLong(), target)
+                debugGLErrors()
+                glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0)
+                debugGLErrors()
+            }
+
+            DriverTypeGL.GLES -> {
+                glBindBuffer(GL_SHADER_STORAGE_BUFFER, buffer)
+                debugGLErrors()
+                val mappedBuffer = glMapBufferRange(
+                    GL_SHADER_STORAGE_BUFFER,
+                    readOffset.toLong(),
+                    target.remaining().toLong(),
+                    GL_MAP_READ_BIT
+                )
+                checkGLErrors()
+                require(mappedBuffer != null)
+                target.put(mappedBuffer)
+                glUnmapBuffer(GL_SHADER_STORAGE_BUFFER)
+                glBindBuffer(GL_COPY_READ_BUFFER, 0)
+                debugGLErrors()
+            }
+        }
     }
 
+    /**
+     * Create a byte buffer matching the format size
+     * to be able to download the SSBO to the CPU.
+     * Note that the buffer will contain padding
+     * following elements that need it.
+     *
+     * @return a [ByteBuffer] with the expected size.
+     */
     override fun createByteBuffer(): ByteBuffer =
-        ByteBuffer.allocateDirect(vbo.sizeInBytes).order(ByteOrder.nativeOrder())
+        ByteBuffer.allocateDirect(format.size).order(ByteOrder.nativeOrder())
+
+    override fun destroy() {
+        if (!destroyed) {
+            if (ownsBuffer) {
+                glDeleteBuffers(buffer)
+            }
+            session?.untrack(this)
+        }
+    }
 
     override fun put(elementOffset: Int, putter: BufferWriter.() -> Unit): Int {
         val w = shadow.writer()
@@ -108,36 +149,68 @@ class ShaderStorageBufferGLES(
         return count
     }
 
-    override fun destroy() {
-        // View does not own the underlying GL buffer; nothing to delete here.
-        // If you want to detach SSBO binding, you can bind base to 0 in the call site.
+
+    internal var realShadow: ShaderStorageBufferShadowGLES? = null
+    override val shadow: ShaderStorageBufferShadow
+        get() {
+            if (destroyed) {
+                throw IllegalStateException("buffer is destroyed")
+            }
+            if (realShadow == null) {
+                realShadow = ShaderStorageBufferShadowGLES(this)
+            }
+            return realShadow!!
+        }
+
+    private fun elementPosition(elementName: String): Long {
+        var position = 0L
+        for (element in format.elements) {
+            if (element.name == elementName) {
+                break
+            } else {
+                if (element is ShaderStorageStruct) {
+                    TODO("struct sizes not implemented yet")
+                } else {
+                    val s = when (val t = (element as ShaderStoragePrimitive).type) {
+                        BufferPrimitiveType.VECTOR3_FLOAT32, BufferPrimitiveType.VECTOR3_INT32,
+                        BufferPrimitiveType.VECTOR4_FLOAT32, BufferPrimitiveType.VECTOR4_INT32 -> 16
+
+                        BufferPrimitiveType.VECTOR2_FLOAT32, BufferPrimitiveType.VECTOR2_INT32 -> 8
+                        BufferPrimitiveType.FLOAT32, BufferPrimitiveType.INT32 -> 4
+                        else -> TODO("size not implemented for $t")
+                    }
+                    position += s * element.arraySize.coerceAtLeast(1)
+                }
+            }
+        }
+        return position
     }
 
-    override fun close() = destroy()
 
-    // ---- Helpers ----
-
-    private fun ensureDirect(src: ByteBuffer): ByteBuffer {
-        if (src.isDirect) return src
-        val copy = ByteBuffer.allocateDirect(src.remaining()).order(ByteOrder.nativeOrder())
-        val p = src.position()
-        copy.put(src).flip()
-        src.position(p)
-        return copy
+    override fun close() {
+        destroy()
     }
 
-    internal fun bindBase(bindingIndex: Int) {
-        GLES31.glBindBufferBase(GLES31.GL_SHADER_STORAGE_BUFFER, bindingIndex, vbo.id)
-    }
+    companion object {
+        fun create(format: ShaderStorageFormat, session: Session?): ShaderStorageBufferGL43 {
+            val ssbo = glGenBuffers()
+            glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo)
+            checkGLErrors()
 
-    internal fun bindRange(bindingIndex: Int, offsetInBytes: Int, sizeInBytes: Int) {
-        require(offsetInBytes >= 0 && sizeInBytes >= 0 && offsetInBytes + sizeInBytes <= vbo.sizeInBytes)
-        GLES31.glBindBufferRange(
-            GLES31.GL_SHADER_STORAGE_BUFFER,
-            bindingIndex,
-            vbo.id,
-            offsetInBytes,
-            sizeInBytes
-        )
+            val useBufferStorage = true // todo to change
+//                (Driver.instance as DriverGL3).version >= DriverVersionGL.GL_VERSION_4_4 && Driver.glType == DriverTypeGL.GL
+
+            if (useBufferStorage) {
+                glBufferStorage(
+                    GL_SHADER_STORAGE_BUFFER,
+                    format.size.toLong(),
+                    GL_DYNAMIC_STORAGE_BIT
+                )
+            } else {
+                glBufferData(GL_SHADER_STORAGE_BUFFER, format.size.toLong(), GL_DYNAMIC_COPY)
+            }
+            checkGLErrors()
+            return ShaderStorageBufferGL43(ssbo, true, format, session)
+        }
     }
 }

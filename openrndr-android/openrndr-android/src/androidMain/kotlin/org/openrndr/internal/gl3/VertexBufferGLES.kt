@@ -1,6 +1,5 @@
 package org.openrndr.internal.gl3
 
-import android.opengl.GLES30
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.openrndr.draw.BufferPrimitiveType
 import org.openrndr.draw.BufferReader
@@ -13,12 +12,17 @@ import org.openrndr.draw.VertexBufferShadow
 import org.openrndr.draw.VertexElementType
 import org.openrndr.draw.VertexFormat
 import org.openrndr.draw.shaderStorageFormat
+import org.openrndr.internal.Driver
 import org.openrndr.utils.buffer.MPPBuffer
 import java.nio.Buffer
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import java.util.concurrent.atomic.AtomicInteger
+import kotlin.math.max
 
 private val logger = KotlinLogging.logger {}
+
+private val bufferId = AtomicInteger(0)
 
 class VertexBufferShadowGLES(override val vertexBuffer: VertexBuffer) : VertexBufferShadow {
 
@@ -46,7 +50,12 @@ class VertexBufferShadowGLES(override val vertexBuffer: VertexBuffer) : VertexBu
     }
 
     override fun writer(): BufferWriter {
-        return BufferWriterGLES(buffer, vertexBuffer.vertexFormat.size, vertexBuffer.vertexFormat.alignment, null)
+        return BufferWriterGLES(
+            buffer,
+            vertexBuffer.vertexFormat.size,
+            vertexBuffer.vertexFormat.alignment,
+            null
+        )
     }
 
     override fun close() {
@@ -59,6 +68,8 @@ class VertexBufferShadowGLES(override val vertexBuffer: VertexBuffer) : VertexBu
 }
 
 class VertexBufferGLES(
+    val buffer: Int,
+    val offset: Long,
     override val vertexFormat: VertexFormat,
     override val vertexCount: Int,
     override val session: Session?
@@ -68,134 +79,98 @@ class VertexBufferGLES(
         destroy()
     }
 
-    val id: Int
-    val sizeInBytes: Int = vertexFormat.size * vertexCount
+    internal val bufferHash = bufferId.getAndAdd(1)
+    internal var realShadow: VertexBufferShadowGLES? = null
 
-    private var realShadow: VertexBufferShadowGLES? = null
+    internal var isDestroyed = false
 
-    internal var isDestroyed: Boolean = false
-
-    init {
-        val out = IntArray(1)
-        GLES30.glGenBuffers(1, out, 0)
-        id = out[0]
-        require(id != 0) { "Failed to create GL buffer" }
-
-        GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, id)
-        // Use DYNAMIC_DRAW by default; change to STATIC later if you like
-        GLES30.glBufferData(GLES30.GL_ARRAY_BUFFER, sizeInBytes, null, GLES30.GL_DYNAMIC_DRAW)
-        GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, 0)
+    override fun toString(): String {
+        return "VertexBufferGLES(vertexFormat: $vertexFormat, vertexCount: $vertexCount, buffer: $buffer, session: $session)"
     }
 
-    /** Uploads data.remaining() bytes starting at offsetInBytes. */
-    override fun write(data: ByteBuffer, offsetInBytes: Int) {
-        val src = ensureDirect(data)
-        require(offsetInBytes >= 0 && offsetInBytes + src.remaining() <= sizeInBytes) {
-            "write overrun: offset=$offsetInBytes, size=${src.remaining()}, cap=$sizeInBytes"
+    companion object {
+        fun createDynamic(
+            vertexFormat: VertexFormat,
+            vertexCount: Int,
+            session: Session?
+        ): VertexBufferGLES {
+            debugGLErrors {
+                "pre-existing errors before creating vertex buffer"
+            }
+            val buffer = glGenBuffers()
+            debugGLErrors()
+            logger.debug {
+                "created new vertex buffer[buffer=${buffer}, vertexCount=${vertexCount}, vertexFormat=${vertexFormat}]"
+            }
+            glBindBuffer(GL_ARRAY_BUFFER, buffer)
+            debugGLErrors()
+            val sizeInBytes = vertexFormat.size * vertexCount
+            val useBufferStorage = false // todo to change
+//                (Driver.instance as DriverGL3).version >= DriverVersionGL.GL_VERSION_4_4 && (Driver.instance as DriverAndroidGLES).version.type == DriverTypeGL.GL
+
+            if (useBufferStorage) {
+                glBufferStorage(
+                    GL_ARRAY_BUFFER,
+                    max(1L, sizeInBytes.toLong()), GL_DYNAMIC_STORAGE_BIT
+                )
+            } else {
+                glBufferData(GL_ARRAY_BUFFER, max(1L, sizeInBytes.toLong()), GL_DYNAMIC_DRAW)
+            }
+            debugGLErrors()
+            return VertexBufferGLES(buffer, 0L, vertexFormat, vertexCount, session)
         }
-        GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, id)
-        GLES30.glBufferSubData(GLES30.GL_ARRAY_BUFFER, offsetInBytes, src.remaining(), src)
-        GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, 0)
-    }
-
-    override fun read(data: ByteBuffer, offsetInBytes: Int) {
-        require(!isDestroyed) { "buffer is destroyed" }
-        val bytesToRead = data.remaining()
-        require(offsetInBytes >= 0 && bytesToRead >= 0 && offsetInBytes + bytesToRead <= sizeInBytes) {
-            "read overrun: offset=$offsetInBytes, size=$bytesToRead, cap=$sizeInBytes"
-        }
-
-        // Bind & map
-        GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, id)
-        val mapped: java.nio.Buffer? = GLES30.glMapBufferRange(
-            GLES30.GL_ARRAY_BUFFER,
-            offsetInBytes,
-            bytesToRead,
-            GLES30.GL_MAP_READ_BIT
-        )
-        if (mapped == null) {
-            // Some drivers return null if the range can't be mapped; fall back to a slow path
-            // (optional) Or throw:
-            throw IllegalStateException("glMapBufferRange returned null (offset=$offsetInBytes, size=$bytesToRead)")
-        }
-
-        // Copy from mapped to data
-        val src = (mapped as ByteBuffer).order(ByteOrder.nativeOrder())
-        val oldDataPos = data.position()
-        data.put(src)              // copies bytesToRead bytes
-        data.position(oldDataPos)   // leave data position unchanged if that’s your convention
-
-        // Unmap & unbind
-        GLES30.glUnmapBuffer(GLES30.GL_ARRAY_BUFFER)
-        GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, 0)
     }
 
     override val shadow: VertexBufferShadow
         get() {
-            if (isDestroyed) error("buffer is destroyed")
+            if (isDestroyed) {
+                error("buffer is destroyed")
+            }
             if (realShadow == null) {
                 realShadow = VertexBufferShadowGLES(this)
             }
             return realShadow ?: error("no shadow")
         }
 
-    /**
-     * Binds this VBO’s attributes with the conventional locations used by the basic pipeline:
-     *  position→0, normal→1, color→2, texCoordN→3+N, others start at 8+index.
-     *
-     * Call this with a VAO bound (Driver ensures that).
-     */
-    fun bindAttributes() {
-        GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, id)
-        val stride = vertexFormat.size
+    private val useNamedBuffer = false // todo to change
+//        (Driver.instance as DriverAndroidGLES).version >= DriverVersionGL.GL_VERSION_4_5 && (Driver.instance as DriverGL3).version.type == DriverTypeGL.GL
 
-        vertexFormat.items.forEachIndexed { rawIndex, elem ->
-            if (elem.attribute == "_") return@forEachIndexed // padding
-
-            val (size, glType, normalized, isInteger) = glAttribOf(elem.type)
-            val loc = attributeLocation(elem.attribute, rawIndex)
-
-            if (loc < 0) return@forEachIndexed   // not used by current shader
-
-            GLES30.glEnableVertexAttribArray(loc)
-            val pointer = elem.offset
-
-            if (isInteger) {
-                GLES30.glVertexAttribIPointer(loc, size, glType, stride, pointer)
-            } else {
-                GLES30.glVertexAttribPointer(loc, size, glType, normalized, stride, pointer)
-            }
-            // divisor 0 for per-vertex data
-            GLES30.glVertexAttribDivisor(loc, 0)
+    override fun write(data: ByteBuffer, offsetInBytes: Int) {
+        if (isDestroyed) {
+            error("buffer is destroyed")
         }
-        // leave ARRAY_BUFFER bound or unbound — driver will rebind as needed
-        // GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, 0)
-    }
 
-    override fun destroy() {
-        if (!isDestroyed) {
-            logger.debug { "destroying vertex buffer with id $id" }
+        if (data.isDirect) {
+            logger.trace { "writing to vertex buffer, ${data.remaining()} bytes" }
 
-            // 1) Untrack from sessions
-            session?.untrack(this)
-            Session.active.untrack(this)
-
-            // 2) Mark & drop shadow
-            isDestroyed = true
-            realShadow = null
-
-            // 3) Delete the GL buffer
-            val arr = intArrayOf(id)
-            GLES30.glDeleteBuffers(1, arr, 0)
-
-            // 4) Ask the driver to invalidate VAOs that reference this VBO (if supported)
-            (org.openrndr.internal.Driver.driver as DriverAndroidGLES).destroyVAOsForVertexBuffer(this)
-
-            // 5) Optional: check GL error once in debug builds
-            val err = GLES30.glGetError()
-            if (err != GLES30.GL_NO_ERROR) {
-                logger.warn { "glDeleteBuffers($id) -> GL error $err" }
+            if (useNamedBuffer) {
+                glNamedBufferSubData(buffer, offsetInBytes.toLong(), data)
+            } else {
+                debugGLErrors()
+                bind()
+                debugGLErrors()
+                glBufferSubData(GL_ARRAY_BUFFER, offsetInBytes.toLong(), data)
             }
+
+            debugGLErrors {
+                val vertexArrayBinding = IntArray(1)
+                glGetIntegerv(GL_VERTEX_ARRAY_BINDING, vertexArrayBinding)
+
+                val arrayBufferBinding = IntArray(1)
+                glGetIntegerv(GL_ARRAY_BUFFER_BINDING, arrayBufferBinding)
+
+                val isBuffer = glIsBuffer(buffer)
+                when (it) {
+                    GL_INVALID_OPERATION -> "zero is bound to target. (is buffer: $isBuffer, GL_VERTEX_ARRAY_BINDING: ${vertexArrayBinding[0]}, GL_ARRAY_BUFFER_BINDING: ${arrayBufferBinding[0]})"
+                    GL_INVALID_VALUE -> "offset ($offsetInBytes) or size is negative, or offset+sizeoffset+size is greater than the value of GL_BUFFER_SIZE for the specified buffer object."
+                    else -> null
+                }
+            }
+        } else {
+            val temp = BufferUtils.createByteBuffer(data.capacity())
+            temp.put(data)
+            temp.flip()
+            write(temp, offsetInBytes)
         }
     }
 
@@ -210,15 +185,68 @@ class VertexBufferGLES(
         write(source.byteBuffer, targetByteOffset)
     }
 
-    override fun shaderStorageBufferView(): ShaderStorageBuffer {
-        // SSBOs require GLES 3.1
-        val supportsSSBO = try {
-            Class.forName("android.opengl.GLES31"); true
-        } catch (_: Throwable) { false }
-        if (!supportsSSBO) {
-            throw UnsupportedOperationException("Shader storage buffers require OpenGL ES 3.1+")
+    override fun read(data: ByteBuffer, offsetInBytes: Int) {
+        if (isDestroyed) {
+            error("buffer is destroyed")
         }
+        when (Driver.glType) {
+            DriverTypeGL.GL -> {
+                if (data.isDirect) {
+                    if (useNamedBuffer) {
+                        glGetNamedBufferSubData(buffer, offsetInBytes.toLong(), data)
+                    } else {
+                        bind()
+                        glGetBufferSubData(GL_ARRAY_BUFFER, offsetInBytes.toLong(), data)
+                        debugGLErrors()
+                    }
+                } else {
+                    val temp = BufferUtils.createByteBuffer(data.capacity())
+                    read(temp, offsetInBytes)
+                    data.put(temp)
+                }
+            }
 
+            DriverTypeGL.GLES -> {
+                bind()
+                val bufferLengthInBytes = (vertexFormat.size * vertexCount) - offsetInBytes
+                val buffer = glMapBufferRange(
+                    GL_ARRAY_BUFFER,
+                    offsetInBytes.toLong(),
+                    bufferLengthInBytes.toLong(),
+                    GL_MAP_READ_BIT
+                )
+                require(buffer != null)
+                data.put(buffer)
+                glUnmapBuffer(GL_ARRAY_BUFFER)
+            }
+        }
+    }
+
+    override fun destroy() {
+        if (!isDestroyed) {
+            logger.debug {
+                "destroying vertex buffer with id $buffer"
+            }
+            session?.untrack(this)
+            isDestroyed = true
+            realShadow = null
+            glDeleteBuffers(buffer)
+            (Driver.instance as DriverAndroidGLES).destroyVAOsForVertexBuffer(this)
+            checkGLErrors()
+            Session.active.untrack(this)
+        }
+    }
+
+    override fun shaderStorageBufferView(): ShaderStorageBuffer {
+//        require(
+//            (Driver.instance as DriverAndroidGLES).version.isAtLeast(
+//                DriverVersionGL.GL_VERSION_4_3,
+//                DriverVersionGL.GLES_VERSION_3_1
+//            )
+//        ) {
+//
+//        }
+        require(vertexFormat.isInStd430Layout) { "Vertex buffer is not according to Std 430 layout rules." }
         val ssf = shaderStorageFormat {
             struct("Vertex_${vertexFormat.hashCode().toUInt()}", "vertex", vertexCount) {
                 for (item in vertexFormat.items) {
@@ -247,58 +275,21 @@ class VertexBufferGLES(
                 }
             }
         }
-
-        return ShaderStorageBufferGLES(this, ssf)
+        return ShaderStorageBufferGL43(buffer, false, ssf, session)
     }
 
-    // --- Helpers ---
-
-    private data class GlAttrib(val size: Int, val glType: Int, val normalized: Boolean, val isInteger: Boolean)
-
-    private fun glAttribOf(type: VertexElementType): GlAttrib = when (type) {
-        VertexElementType.FLOAT32         -> GlAttrib(1, GLES30.GL_FLOAT, false, false)
-        VertexElementType.VECTOR2_FLOAT32 -> GlAttrib(2, GLES30.GL_FLOAT, false, false)
-        VertexElementType.VECTOR3_FLOAT32 -> GlAttrib(3, GLES30.GL_FLOAT, false, false)
-        VertexElementType.VECTOR4_FLOAT32 -> GlAttrib(4, GLES30.GL_FLOAT, false, false)
-
-        VertexElementType.INT32           -> GlAttrib(1, GLES30.GL_INT, false, true)
-        VertexElementType.VECTOR2_INT32   -> GlAttrib(2, GLES30.GL_INT, false, true)
-        VertexElementType.VECTOR3_INT32   -> GlAttrib(3, GLES30.GL_INT, false, true)
-        VertexElementType.VECTOR4_INT32   -> GlAttrib(4, GLES30.GL_INT, false, true)
-
-        VertexElementType.UINT32          -> GlAttrib(1, GLES30.GL_UNSIGNED_INT, false, true)
-        VertexElementType.VECTOR2_UINT32  -> GlAttrib(2, GLES30.GL_UNSIGNED_INT, false, true)
-        VertexElementType.VECTOR3_UINT32  -> GlAttrib(3, GLES30.GL_UNSIGNED_INT, false, true)
-        VertexElementType.VECTOR4_UINT32  -> GlAttrib(4, GLES30.GL_UNSIGNED_INT, false, true)
-
-        VertexElementType.UINT8           -> GlAttrib(1, GLES30.GL_UNSIGNED_BYTE, true,  false)
-
-        // matrices should be expanded in VertexFormat upstream; error if encountered here
-        VertexElementType.MATRIX22_FLOAT32,
-        VertexElementType.MATRIX33_FLOAT32,
-        VertexElementType.MATRIX44_FLOAT32 ->
-            error("Matrix vertex attributes should be expanded to vectors in VertexFormat")
-
-        else -> error("Unsupported vertex element type: ${type}, it is not compatible with the STD430 layout rules.")
-    }
-
-    private fun attributeLocation(name: String, fallbackIndex: Int): Int = when {
-        name == "position" || name == "a_position" -> 0
-        name == "normal"   || name == "a_normal"   -> 1
-        name == "color"    || name == "a_color"    -> 2
-        name.startsWith("texCoord") || name.startsWith("a_tex") -> {
-            val idx = name.removePrefix("texCoord").removePrefix("a_tex").toIntOrNull() ?: 0
-            3 + idx
+    fun bind() {
+        if (isDestroyed) {
+            error("buffer is destroyed")
         }
-        else -> 8 + fallbackIndex
+        logger.trace { "binding vertex buffer $buffer" }
+        glBindBuffer(GL_ARRAY_BUFFER, buffer)
+        debugGLErrors()
     }
 
-    private fun ensureDirect(src: ByteBuffer): ByteBuffer {
-        if (src.isDirect) return src
-        val copy = ByteBuffer.allocateDirect(src.remaining()).order(ByteOrder.nativeOrder())
-        val pos = src.position()
-        copy.put(src).flip()
-        src.position(pos)
-        return copy
+    fun unbind() {
+        logger.trace { "unbinding vertex buffer" }
+        glBindBuffer(GL_ARRAY_BUFFER, 0)
+        debugGLErrors()
     }
 }

@@ -1,6 +1,5 @@
 package org.openrndr.internal.gl3
 
-import android.opengl.GLES30
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
 import org.openrndr.Application
@@ -34,7 +33,7 @@ class ApplicationAndroidGLES(
     override var cursorPosition: Vector2
         get() = Vector2(0.0, 0.0)
         set(value) {}
-    private var driver = DriverAndroidGLES()
+    private var driver = DriverAndroidGLES(DriverVersionGL.GLES_VERSION_3_1)
 
     //    private var exitRequested = false
     private var startTime = 0L//System.currentTimeMillis()
@@ -50,8 +49,8 @@ class ApplicationAndroidGLES(
     fun onSurfaceCreated() {
         logger.info { "ApplicationAndroidGLES.onSurfaceCreated" }
         // GL state that must happen on the GL thread:
-        GLES30.glGenVertexArrays(1, vaos, 0)
-        GLES30.glBindVertexArray(vaos[0])
+        glGenVertexArrays(vaos)
+        glBindVertexArray(vaos[0])
 
         // Install drawer & run Program.setup() on the GL thread
         program.drawer = Drawer(driver)
@@ -69,7 +68,7 @@ class ApplicationAndroidGLES(
 
     /** Called every frame from Renderer.onDrawFrame (GL thread). */
     fun onDrawFrame() {
-//        GLES30.glBindVertexArray(vaos[0])
+        glBindVertexArray(vaos[0])
         @Suppress("DEPRECATION")
         program.drawer.reset()
         program.drawer.ortho()

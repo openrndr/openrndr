@@ -12,12 +12,12 @@ import java.nio.ByteOrder
 
 private val logger = KotlinLogging.logger {}
 
-class ShaderStorageBufferShadowGLES(
-    override val shaderStorageBuffer: ShaderStorageBufferGLES,
-) : ShaderStorageBufferShadow {
-
+class ShaderStorageBufferShadowGLES(override val shaderStorageBuffer: ShaderStorageBufferGLES) :
+    ShaderStorageBufferShadow {
     val buffer: ByteBuffer =
-        ByteBuffer.allocateDirect(shaderStorageBuffer.vbo.sizeInBytes).order(ByteOrder.nativeOrder())
+        BufferUtils.createByteBuffer(shaderStorageBuffer.format.size).apply {
+            order(ByteOrder.nativeOrder())
+        }
 
     override fun upload(offset: Int, size: Int) {
         logger.trace { "uploading shadow to shader storage buffer" }
@@ -39,7 +39,7 @@ class ShaderStorageBufferShadowGLES(
 
     override fun writer(): BufferWriter {
         buffer.rewind()
-        return BufferWriterGLES(
+        return BufferWriterGL3(
             buffer,
             shaderStorageBuffer.format.size,
             BufferAlignment.STD430,

@@ -1,211 +1,345 @@
 package org.openrndr.internal.gl3
 
-import android.opengl.GLES30
-import org.openrndr.color.ColorRGBa
-import org.openrndr.draw.AtomicCounterBuffer
-import org.openrndr.draw.ImageBinding
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.openrndr.draw.Session
 import org.openrndr.draw.Shader
-import org.openrndr.draw.ShaderStorageBuffer
 import org.openrndr.draw.ShaderType
 import org.openrndr.draw.UniformBlock
 import org.openrndr.draw.UniformBlockLayout
-import org.openrndr.draw.VertexBuffer
-import org.openrndr.internal.gl.compileShader
-import org.openrndr.internal.gl.linkProgram
-import org.openrndr.math.BooleanVector2
-import org.openrndr.math.BooleanVector3
-import org.openrndr.math.BooleanVector4
-import org.openrndr.math.IntVector2
-import org.openrndr.math.IntVector3
-import org.openrndr.math.IntVector4
-import org.openrndr.math.Matrix33
-import org.openrndr.math.Matrix44
-import org.openrndr.math.Vector2
-import org.openrndr.math.Vector3
-import org.openrndr.math.Vector4
+import org.openrndr.draw.UniformDescription
+import org.openrndr.draw.UniformType
+import org.openrndr.internal.Driver
+import java.nio.Buffer
+
+private val logger = KotlinLogging.logger {}
 
 class ShaderGLES(
-    val programId: Int,
-    private val owned: Boolean = true,
-    override val session: Session?,
-) : Shader {
+    override val programObject: Int,
+    override val name: String,
+    @Suppress("UNUSED_PARAMETER") vertexShader: VertexShaderGL3,
+    @Suppress("UNUSED_PARAMETER") tessellationControlShader: TessellationControlShaderGL3?,
+    @Suppress("UNUSED_PARAMETER") tessellationEvaluationShader: TessellationEvaluationShaderGL3?,
+    geometryShader: GeometryShaderGL3?,
+    @Suppress("UNUSED_PARAMETER") fragmentShader: FragmentShaderGL3,
+    override val session: Session?
+) : Shader, ShaderUniformsGL3, ShaderBufferBindingsGLES, ShaderImageBindingsGL43 {
+
+    override val ssbo: Int = createSSBO()
+    override val ssboResourceIndices = mutableMapOf<String, Int>()
+    override val useProgramUniform = Driver.capabilities.programUniform
+
+    override val types: Set<ShaderType> =
+        if (geometryShader != null) setOf(
+            ShaderType.VERTEX,
+            ShaderType.GEOMETRY,
+            ShaderType.FRAGMENT
+        ) else
+            setOf(ShaderType.VERTEX, ShaderType.FRAGMENT)
+
+    private var destroyed = false
+    private var running = false
+    override var uniforms: MutableMap<String, Int> = hashMapOf()
+    private var attributes: MutableMap<String, Int> = hashMapOf()
+    private var blockBindings = hashMapOf<String, Int>()
+    private val blocks: MutableMap<String, Int> = hashMapOf()
 
     companion object {
-        fun fromSource(vsSrc: String, fsSrc: String, session: Session?): ShaderGLES {
-            val vs = compileShader(GLES30.GL_VERTEX_SHADER, vsSrc)
-            val fs = compileShader(GLES30.GL_FRAGMENT_SHADER, fsSrc)
-            val pid = linkProgram(vs, fs)
-            return ShaderGLES(pid, owned = true, session = session)
+        fun create(
+            vertexShader: VertexShaderGL3,
+            tessellationControlShader: TessellationControlShaderGL3?,
+            tessellationEvaluationShader: TessellationEvaluationShaderGL3?,
+            geometryShader: GeometryShaderGL3?,
+            fragmentShader: FragmentShaderGL3,
+            name: String,
+            session: Session?
+        ): ShaderGLES {
+            synchronized(Driver.instance) {
+                debugGLErrors()
+
+                val program = glCreateProgram()
+                debugGLErrors()
+
+                glAttachShader(program, vertexShader.shaderObject)
+                debugGLErrors()
+
+                tessellationControlShader?.let {
+                    glAttachShader(program, it.shaderObject)
+                    debugGLErrors()
+                }
+
+                tessellationEvaluationShader?.let {
+                    glAttachShader(program, it.shaderObject)
+                    debugGLErrors()
+                }
+
+                geometryShader?.let {
+                    glAttachShader(program, it.shaderObject)
+                    debugGLErrors()
+                }
+
+                glAttachShader(program, fragmentShader.shaderObject)
+                debugGLErrors()
+
+                glLinkProgram(program)
+                debugGLErrors()
+
+                val linkStatus = IntArray(1)
+                glGetProgramiv(program, GL_LINK_STATUS, linkStatus)
+                debugGLErrors()
+
+                if (linkStatus[0] != GL_TRUE) {
+                    checkProgramInfoLog(program, "noname")
+                }
+                glFinish()
+                return ShaderGLES(
+                    program,
+                    name,
+                    vertexShader,
+                    tessellationControlShader,
+                    tessellationEvaluationShader,
+                    geometryShader,
+                    fragmentShader,
+                    session
+                )
+            }
         }
-
-        private var nextBindingPoint: Int = 0
     }
 
-    override val types: Set<ShaderType> = emptySet()
-
-    override fun begin() {
-        GLES30.glUseProgram(programId)
-    }
-
-    override fun end() {
-        GLES30.glUseProgram(0)
-    }
 
     override fun hasUniform(name: String): Boolean {
-        return true
+        return uniformIndex(name, true) != -1
     }
 
-    override fun createBlock(blockName: String): UniformBlock {
-        // TODO: derive the real layout by querying GL (glGetActiveUniformBlockiv)
-        val layout = UniformBlockLayout(0, emptyMap())
 
-        // 1. Generate a new UBO
-        val ids = IntArray(1)
-        GLES30.glGenBuffers(1, ids, 0)
-        val uboId = ids[0]
-        require(uboId != 0) { "Failed to create UBO for block '$blockName'" }
-
-        // 2. Pick a binding point (you may want to manage a counter or a map per blockName)
-        val bindingPoint = nextBindingPoint++
-
-        // 3. Create the GLES implementation
-        return UniformBlockGLES(layout, uboId, bindingPoint)
+    override fun createBlock(blockName: String): UniformBlock? {
+        val layout = blockLayout(blockName)
+        return if (layout != null) {
+            UniformBlockGL3.create(layout)
+        } else {
+            null
+        }
     }
+
 
     override fun blockLayout(blockName: String): UniformBlockLayout? {
-        return null
+
+        val blockIndex = blockIndex(blockName)
+
+        if (blockIndex == -1) {
+            return null
+        }
+
+        val blockSize = run {
+            val blockSizeBuffer = BufferUtils.createIntBuffer(1)
+            glGetActiveUniformBlockiv(
+                programObject,
+                blockIndex,
+                GL_UNIFORM_BLOCK_DATA_SIZE,
+                blockSizeBuffer
+            )
+            checkGLErrors {
+                when (it) {
+                    GL_INVALID_VALUE -> "uniformBlockIndex ($blockIndex) is greater than or equal to the value of GL_ACTIVE_UNIFORM_BLOCKS (${
+                        glGetInteger(
+                            GL_ACTIVE_UNIFORM_BLOCKS
+                        )
+                    }) or is not the index of an active uniform block in program.\n"
+
+                    else -> null
+                }
+            }
+            blockSizeBuffer[0]
+        }
+
+        if (blockSize != 0) {
+            val uniformCount = run {
+                val uniformCountBuffer = BufferUtils.createIntBuffer(1)
+                glGetActiveUniformBlockiv(
+                    programObject,
+                    blockIndex,
+                    GL_UNIFORM_BLOCK_ACTIVE_UNIFORMS,
+                    uniformCountBuffer
+                )
+                checkGLErrors()
+                uniformCountBuffer[0]
+            }
+
+            val uniformIndicesBuffer = BufferUtils.createIntBuffer(uniformCount)
+            val uniformIndices = run {
+                glGetActiveUniformBlockiv(
+                    programObject,
+                    blockIndex,
+                    GL_UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES,
+                    uniformIndicesBuffer
+                )
+                checkGLErrors()
+                (uniformIndicesBuffer as Buffer).rewind()
+                val array = IntArray(uniformCount)
+                uniformIndicesBuffer.get(array)
+                array
+            }
+
+            (uniformIndicesBuffer as Buffer).rewind()
+
+            val uniformTypes = run {
+                val buffer = BufferUtils.createIntBuffer(uniformCount)
+                glGetActiveUniformsiv(programObject, uniformIndicesBuffer, GL_UNIFORM_TYPE, buffer)
+                checkGLErrors()
+                (buffer as Buffer).rewind()
+                val array = IntArray(uniformCount)
+                buffer.get(array)
+                array
+            }
+            val uniformSizes = run {
+                val buffer = BufferUtils.createIntBuffer(uniformCount)
+                glGetActiveUniformsiv(programObject, uniformIndicesBuffer, GL_UNIFORM_SIZE, buffer)
+                checkGLErrors()
+                (buffer as Buffer).rewind()
+                val array = IntArray(uniformCount)
+                buffer.get(array)
+                array
+            }
+
+            val uniformOffsets = run {
+                val buffer = BufferUtils.createIntBuffer(uniformCount)
+                glGetActiveUniformsiv(
+                    programObject,
+                    uniformIndicesBuffer,
+                    GL_UNIFORM_OFFSET,
+                    buffer
+                )
+                checkGLErrors()
+                (buffer as Buffer).rewind()
+                val array = IntArray(uniformCount)
+                buffer.get(array)
+                array
+            }
+
+            val uniformStrides = run {
+                val buffer = BufferUtils.createIntBuffer(uniformCount)
+                glGetActiveUniformsiv(
+                    programObject,
+                    uniformIndicesBuffer,
+                    GL_UNIFORM_ARRAY_STRIDE,
+                    buffer
+                )
+                checkGLErrors()
+                (buffer as Buffer).rewind()
+                val array = IntArray(uniformCount)
+                buffer.get(array)
+                array
+            }
+
+            val uniformNames = uniformIndices.map {
+                glGetActiveUniformName(programObject, it, 128).also {
+                    checkGLErrors()
+                }
+            }
+
+
+            return UniformBlockLayout(blockSize, (0 until uniformCount).map {
+                @Suppress("RegExpRedundantEscape")
+                UniformDescription(
+                    uniformNames[it].replace(Regex("\\[.*\\]"), ""),
+                    uniformTypes[it].toUniformType(),
+                    uniformSizes[it],
+                    uniformOffsets[it],
+                    uniformStrides[it]
+                )
+            }.associateBy { it.name })
+
+
+        } else {
+            return null
+        }
+
     }
 
     override fun block(blockName: String, block: UniformBlock) {
+        if (Thread.currentThread() != (block as UniformBlockGLES).thread) {
+            throw IllegalStateException("block is created on ${block.thread} and is now used on ${Thread.currentThread()}")
+        }
+
+        if (!running) {
+            throw IllegalStateException("use begin() before setting blocks")
+        }
+        val blockIndex = blockIndex(blockName)
+        if (blockIndex != -1) {
+            if (blockBindings[blockName] != block.blockBinding) {
+                //checkGLErrors()
+                glUniformBlockBinding(programObject, blockIndex, block.blockBinding)
+                debugGLErrors()
+                blockBindings[blockName] = block.blockBinding
+            }
+        }
     }
 
-    override fun uniform(name: String, value: Matrix33) {
+    private fun blockIndex(block: String): Int {
+        return blocks.getOrPut(block) {
+            glGetUniformBlockIndex(programObject, block).also {
+                checkGLErrors()
+            }
+        }
     }
 
-    override fun uniform(name: String, value: Matrix44) {
+    override fun begin() {
+        if (ssbo != -1) {
+            glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo)
+        }
+        logger.trace { "shader begin $name" }
+        running = true
+
+        glUseProgram(programObject)
+
+        debugGLErrors {
+            when (it) {
+                GL_INVALID_VALUE -> "program is neither 0 nor a value generated by OpenGL"
+                GL_INVALID_OPERATION -> "program ($programObject) is not a program object / program could not be made part of current state / transform feedback mode is active."
+                else -> null
+            }
+        }
     }
 
-    override fun uniform(name: String, value: Array<Matrix33>) {
+    override fun end() {
+        logger.trace { "shader end $name" }
+
+        glUseProgram(0)
+
+        debugGLErrors()
+        running = false
     }
 
-
-    override fun uniform(name: String, value: Array<Matrix44>) {
-    }
-
-    override fun buffer(name: String, vertexBuffer: VertexBuffer) {
-    }
-
-    override fun buffer(name: String, shaderStorageBuffer: ShaderStorageBuffer) {
-    }
-
-    override fun buffer(name: String, counterBuffer: AtomicCounterBuffer) {
-    }
-
-    override fun uniform(name: String, value: ColorRGBa) {
-    }
-
-    override fun uniform(name: String, value: Vector4) {
-    }
-
-    override fun uniform(name: String, value: Vector3) {
-    }
-
-    override fun uniform(name: String, value: Vector2) {
-    }
-
-    override fun uniform(name: String, value: IntVector4) {
-    }
-
-    override fun uniform(name: String, value: BooleanVector2) {
-    }
-
-    override fun uniform(name: String, value: BooleanVector3) {
-    }
-
-    override fun uniform(name: String, value: BooleanVector4) {
-    }
-
-    override fun uniform(name: String, value: IntVector3) {
-    }
-
-    override fun uniform(name: String, value: IntVector2) {
-    }
-
-    override fun uniform(name: String, x: Float, y: Float, z: Float, w: Float) {
-    }
-
-    override fun uniform(name: String, x: Float, y: Float, z: Float) {
-    }
-
-    override fun uniform(name: String, x: Float, y: Float) {
-    }
-
-    override fun uniform(name: String, value: Double) {
-        val loc = GLES30.glGetUniformLocation(programId, name)
-        if (loc >= 0) GLES30.glUniform1f(loc, value.toFloat())
-    }
-
-    override fun uniform(name: String, value: Float) {
-        val loc = GLES30.glGetUniformLocation(programId, name)
-        if (loc >= 0) GLES30.glUniform1f(loc, value)
-    }
-
-    override fun uniform(name: String, value: Int) {
-        val loc = GLES30.glGetUniformLocation(programId, name)
-        if (loc >= 0) GLES30.glUniform1i(loc, value)
-    }
-
-    override fun uniform(name: String, value: Boolean) {
-    }
-
-    override fun uniform(name: String, value: Array<Double>) {
-    }
-
-    override fun uniform(name: String, value: Array<ColorRGBa>) {
-    }
-
-    override fun uniform(name: String, value: Array<Vector4>) {
-    }
-
-    override fun uniform(name: String, value: Array<Vector3>) {
-    }
-
-    override fun uniform(name: String, value: Array<Vector2>) {
-    }
-
-    override fun uniform(name: String, value: Array<IntVector4>) {
-    }
-
-    override fun uniform(name: String, value: Array<IntVector3>) {
-    }
-
-    override fun uniform(name: String, value: Array<IntVector2>) {
-    }
-
-    override fun uniform(name: String, value: FloatArray) {
-    }
-
-    override fun uniform(name: String, value: IntArray) {
-    }
-
-    // helpers
-    fun uniform2f(name: String, x: Float, y: Float) {
-        val loc = GLES30.glGetUniformLocation(programId, name)
-        if (loc >= 0) GLES30.glUniform2f(loc, x, y)
-    }
-    fun uniform4f(name: String, x: Float, y: Float, z: Float, w: Float) {
-        val loc = GLES30.glGetUniformLocation(programId, name)
-        if (loc >= 0) GLES30.glUniform4f(loc, x, y, z, w)
-    }
+    fun attributeIndex(name: String): Int =
+        attributes.getOrPut(name) {
+            val location = glGetAttribLocation(programObject, name)
+            debugGLErrors()
+            location
+        }
 
     override fun destroy() {
-        if (owned) GLES30.glDeleteProgram(programId)
+        if (!destroyed) {
+            session?.untrack(this)
+            glDeleteProgram(programObject)
+            destroyed = true
+            (Driver.instance as DriverAndroidGLES).destroyVAOsForShader(this)
+            Session.active.untrack(this)
+        }
     }
+}
 
-    override fun image(name: String, image: Int, imageBinding: ImageBinding) {
-    }
-
-    override fun image(name: String, image: Int, imageBinding: Array<out ImageBinding>) {
+private fun Int.toUniformType(): UniformType {
+    return when (this) {
+        GL_FLOAT -> UniformType.FLOAT32
+        GL_FLOAT_VEC2 -> UniformType.VECTOR2_FLOAT32
+        GL_FLOAT_VEC3 -> UniformType.VECTOR3_FLOAT32
+        GL_FLOAT_VEC4 -> UniformType.VECTOR4_FLOAT32
+        GL_INT -> UniformType.INT32
+        GL_INT_VEC2 -> UniformType.VECTOR2_INT32
+        GL_INT_VEC3 -> UniformType.VECTOR3_INT32
+        GL_INT_VEC4 -> UniformType.VECTOR4_INT32
+        GL_FLOAT_MAT4 -> UniformType.MATRIX44_FLOAT32
+        GL_FLOAT_MAT3 -> UniformType.MATRIX33_FLOAT32
+        GL_FLOAT_MAT2 -> UniformType.MATRIX22_FLOAT32
+        else -> throw RuntimeException("unsupported uniform type $this")
     }
 }

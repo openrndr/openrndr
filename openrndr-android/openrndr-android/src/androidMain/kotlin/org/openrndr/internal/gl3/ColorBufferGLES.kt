@@ -1,43 +1,20 @@
 package org.openrndr.internal.gl3
 
-import android.opengl.GLES20.GL_RGB
-import android.opengl.GLES20.GL_RGBA
 import android.opengl.GLES30
-import android.opengl.GLES30.GL_R16F
-import android.opengl.GLES30.GL_R16I
-import android.opengl.GLES30.GL_R16UI
-import android.opengl.GLES30.GL_R32F
-import android.opengl.GLES30.GL_R32I
-import android.opengl.GLES30.GL_R32UI
-import android.opengl.GLES30.GL_R8
-import android.opengl.GLES30.GL_R8I
-import android.opengl.GLES30.GL_R8UI
-import android.opengl.GLES30.GL_RED
-import android.opengl.GLES30.GL_RED_INTEGER
-import android.opengl.GLES30.GL_RG
-import android.opengl.GLES30.GL_RG16F
-import android.opengl.GLES30.GL_RG16I
-import android.opengl.GLES30.GL_RG16UI
-import android.opengl.GLES30.GL_RG32F
-import android.opengl.GLES30.GL_RG32I
-import android.opengl.GLES30.GL_RG32UI
-import android.opengl.GLES30.GL_RG8
-import android.opengl.GLES30.GL_RG8UI
-import android.opengl.GLES30.GL_RGB16F
-import android.opengl.GLES30.GL_RGB16I
-import android.opengl.GLES30.GL_RGB16UI
-import android.opengl.GLES30.GL_RGB32F
-import android.opengl.GLES30.GL_RGB32I
-import android.opengl.GLES30.GL_RGB32UI
-import android.opengl.GLES30.GL_RGB8
-import android.opengl.GLES30.GL_RGB8UI
-import android.opengl.GLES30.GL_RGBA8
-import android.opengl.GLES30.GL_RGBA8UI
-import android.opengl.GLES30.GL_RGB_INTEGER
-import android.opengl.GLES30.GL_RG_INTEGER
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.openrndr.color.ColorRGBa
-import org.openrndr.draw.*
+import org.openrndr.draw.ArrayTexture
+import org.openrndr.draw.BufferMultisample
+import org.openrndr.draw.ColorBuffer
+import org.openrndr.draw.ColorBufferShadow
+import org.openrndr.draw.ColorFormat
+import org.openrndr.draw.ColorType
+import org.openrndr.draw.ImageFileFormat
+import org.openrndr.draw.MagnifyingFilter
+import org.openrndr.draw.MinifyingFilter
+import org.openrndr.draw.Session
+import org.openrndr.draw.WrapMode
+import org.openrndr.draw.renderTarget
 import org.openrndr.internal.ImageData
 import org.openrndr.internal.ImageDriver
 import org.openrndr.internal.ImageSaveConfiguration
@@ -59,26 +36,14 @@ class ExrCompression {
     companion object {
         // Values mirror TinyEXR's public enum for consistency, but they’re no-ops here.
         const val NONE = 0
-        const val RLE  = 1
+        const val RLE = 1
         const val ZIPS = 2
-        const val ZIP  = 3
-        const val PIZ  = 4
+        const val ZIP = 3
+        const val PIZ = 4
 
         // Experimental in TinyEXR; exposed for parity.
-        const val ZFP  = 9
+        const val ZFP = 9
     }
-}
-
-private data class ConversionEntry(
-    val format: ColorFormat,
-    val type: ColorType,
-    val glInternalFormat: Int,
-    val glExternalFormat: Int
-)
-
-enum class TextureStorageModeGL {
-    IMAGE,
-    STORAGE
 }
 
 /**
@@ -90,57 +55,6 @@ enum class TextureStorageModeGL {
  * - S3TC/BPTC are not in core GLES; rejected here.
  * - sRGB is supported as GL_SRGB8 / GL_SRGB8_ALPHA8 (UNSIGNED_BYTE only).
  */
-internal fun internalFormat(format: ColorFormat, type: ColorType): Pair<Int, Int> {
-    // Fast-path: reject compressed desktop types up front on GLES
-    when (type) {
-        ColorType.DXT1, ColorType.DXT3, ColorType.DXT5,
-        ColorType.DXT1_SRGB, ColorType.DXT3_SRGB, ColorType.DXT5_SRGB,
-        ColorType.BPTC_UNORM, ColorType.BPTC_UNORM_SRGB,
-        ColorType.BPTC_FLOAT, ColorType.BPTC_UFLOAT -> error("Compressed desktop formats ($type) are not supported on GLES.")
-        else -> { /* ok */ }
-    }
-
-    // Reject desktop-only external formats
-    when (format) {
-        ColorFormat.BGR, ColorFormat.BGRa -> error("ColorFormat $format is not supported on GLES.")
-        else -> { /* ok */ }
-    }
-
-    val entries = arrayOf(
-        // R
-        ConversionEntry(ColorFormat.R,   ColorType.UINT8,   GLES30.GL_R8,    GLES30.GL_RED),
-        ConversionEntry(ColorFormat.R,   ColorType.FLOAT16, GLES30.GL_R16F,  GLES30.GL_RED),
-        ConversionEntry(ColorFormat.R,   ColorType.FLOAT32, GLES30.GL_R32F,  GLES30.GL_RED),
-
-        // RG
-        ConversionEntry(ColorFormat.RG,  ColorType.UINT8,   GLES30.GL_RG8,   GLES30.GL_RG),
-        ConversionEntry(ColorFormat.RG,  ColorType.FLOAT16, GLES30.GL_RG16F, GLES30.GL_RG),
-        ConversionEntry(ColorFormat.RG,  ColorType.FLOAT32, GLES30.GL_RG32F, GLES30.GL_RG),
-
-        // RGB
-        ConversionEntry(ColorFormat.RGB, ColorType.UINT8,   GLES30.GL_RGB8,  GLES30.GL_RGB),
-        // FLOAT16/32 for RGB exist in ES 3.x, but beware device support; keep them if you need HDR paths:
-        ConversionEntry(ColorFormat.RGB, ColorType.FLOAT16, GLES30.GL_RGB16F, GLES30.GL_RGB),
-        ConversionEntry(ColorFormat.RGB, ColorType.FLOAT32, GLES30.GL_RGB32F, GLES30.GL_RGB),
-
-        // RGBA
-        ConversionEntry(ColorFormat.RGBa, ColorType.UINT8,   GLES30.GL_RGBA8,  GLES30.GL_RGBA),
-        ConversionEntry(ColorFormat.RGBa, ColorType.FLOAT16, GLES30.GL_RGBA16F, GLES30.GL_RGBA),
-        ConversionEntry(ColorFormat.RGBa, ColorType.FLOAT32, GLES30.GL_RGBA32F, GLES30.GL_RGBA),
-
-        // sRGB (UNSIGNED_BYTE only)
-        ConversionEntry(ColorFormat.RGB,  ColorType.UINT8_SRGB,  GLES30.GL_SRGB8,         GLES30.GL_RGB),
-        ConversionEntry(ColorFormat.RGBa, ColorType.UINT8_SRGB,  GLES30.GL_SRGB8_ALPHA8,  GLES30.GL_RGBA),
-    )
-
-    for (e in entries) {
-        if (e.format == format && e.type == type) {
-            return e.glInternalFormat to e.glExternalFormat
-        }
-    }
-
-    error("No GLES internal format mapping for $format / $type")
-}
 
 class ColorBufferGLES(
     val target: Int,

@@ -10,6 +10,7 @@ kotlin {
                 api(project(":openrndr-application"))
                 api(project(":openrndr-color"))
                 api(project(":openrndr-draw"))
+                api(project(":openrndr-jvm:openrndr-gl3"))
                 api(project(":openrndr-math"))
                 implementation(project(":openrndr-gl-common"))
                 implementation(libs.kotlin.coroutines)
