@@ -22,7 +22,7 @@ object AndroidAppRegistry {
                     return current
                 }
             } else {
-                error("No ApplicationBuilder was provided. Did you call application { … } before starting the activity?")
+                error("No ApplicationBuilder was provided. Did you call androidApplication { … } before creating the SurfaceView?")
             }
         }
     }
