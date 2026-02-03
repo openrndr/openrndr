@@ -9,7 +9,7 @@ import org.openrndr.internal.gl3.ApplicationAndroidGLES
 
 fun createSurfaceView(context: Context): GLSurfaceView {
 
-    // 1) Take the builder prepared by application { … }
+    // 1) Take the builder prepared by androidApplication { … }
     val (config: Configuration, program: ProgramImplementation) =
         AndroidAppRegistry.consume().build()
 
