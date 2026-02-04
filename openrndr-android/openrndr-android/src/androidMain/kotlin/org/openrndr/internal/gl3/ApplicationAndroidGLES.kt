@@ -7,7 +7,6 @@ import org.openrndr.ApplicationWindow
 import org.openrndr.Configuration
 import org.openrndr.CursorType
 import org.openrndr.MouseCursorHideMode
-import org.openrndr.Pointer
 import org.openrndr.PresentationMode
 import org.openrndr.Program
 import org.openrndr.WindowConfiguration
@@ -36,7 +35,7 @@ class ApplicationAndroidGLES(
     private var driver = DriverAndroidGLES(DriverVersionGL.GLES_VERSION_3_1)
 
     //    private var exitRequested = false
-    private var startTime = 0L//System.currentTimeMillis()
+    private var startTime = 0L
     private val vaos = IntArray(1)
 
     init {
