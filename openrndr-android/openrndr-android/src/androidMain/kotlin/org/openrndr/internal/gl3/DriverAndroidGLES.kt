@@ -1,7 +1,5 @@
 package org.openrndr.internal.gl3
 
-import android.opengl.GLES30
-import android.opengl.GLES32
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.ArrayCubemap
@@ -16,8 +14,10 @@ import org.openrndr.draw.ColorType
 import org.openrndr.draw.ComputeShader
 import org.openrndr.draw.ComputeStyleManager
 import org.openrndr.draw.Cubemap
+import org.openrndr.draw.CullTestPass
 import org.openrndr.draw.DepthBuffer
 import org.openrndr.draw.DepthFormat
+import org.openrndr.draw.DepthTestPass
 import org.openrndr.draw.DrawPrimitive
 import org.openrndr.draw.DrawStyle
 import org.openrndr.draw.DrawThread
@@ -31,10 +31,14 @@ import org.openrndr.draw.Shader
 import org.openrndr.draw.ShaderStorageBuffer
 import org.openrndr.draw.ShaderStorageFormat
 import org.openrndr.draw.ShaderType
+import org.openrndr.draw.StencilOperation
+import org.openrndr.draw.StencilTest
 import org.openrndr.draw.VertexBuffer
 import org.openrndr.draw.VertexElementType
 import org.openrndr.draw.VertexFormat
 import org.openrndr.draw.VolumeTexture
+import org.openrndr.draw.contextBlocks
+import org.openrndr.draw.styleBlocks
 import org.openrndr.internal.Driver
 import org.openrndr.internal.DriverProperties
 import org.openrndr.internal.FontMapManager
@@ -46,6 +50,7 @@ import org.openrndr.internal.gl3.DriverGL3.ShaderVertexDescription
 import org.openrndr.internal.glcommon.ComputeStyleManagerGLCommon
 import org.openrndr.internal.glcommon.ShadeStyleManagerGLCommon
 import org.openrndr.internal.glcommon.ShaderGeneratorsGLCommon
+import org.openrndr.shape.Rectangle
 import java.nio.Buffer
 
 private val logger = KotlinLogging.logger {}
@@ -127,16 +132,11 @@ class DriverAndroidGLES(val version: DriverVersionGL) : Driver {
                 session
             )
         }
-
-
-//        // If explicit code is provided, compile it; otherwise use the solid fill shader.
-//        val vs = vsCode.ifBlank { BASIC_SOLID_VS }
-//        val fs = fsCode.ifBlank { BASIC_SOLID_FS }
-//        return ShaderGLES.fromSource(vs, fs, session)
     }
 
     override fun createComputeShader(code: String, name: String, session: Session?): ComputeShader {
-        TODO("Not yet implemented")
+//        version.require(DriverVersionGL.GLES_VERSION_3_0)
+        return ComputeShaderGL43.createFromCode(code, name)
     }
 
     override fun createShadeStyleManager(
@@ -182,7 +182,11 @@ class DriverAndroidGLES(val version: DriverVersionGL) : Driver {
         levels: Int,
         session: Session?
     ): ArrayCubemap {
-        TODO("Not yet implemented")
+        logger.trace { "creating array texture" }
+        version.require(DriverVersionGL.GLES_VERSION_3_0)
+        val arrayTexture = ArrayCubemapGL4.create(width, layers, format, type, levels, session)
+        session?.track(arrayTexture)
+        return arrayTexture
     }
 
     override fun createArrayTexture(
@@ -194,7 +198,11 @@ class DriverAndroidGLES(val version: DriverVersionGL) : Driver {
         levels: Int,
         session: Session?
     ): ArrayTexture {
-        TODO("Not yet implemented")
+        logger.trace { "creating array texture" }
+        val arrayTexture =
+            ArrayTextureGL3.create(width, height, layers, format, type, levels, session)
+        session?.track(arrayTexture)
+        return arrayTexture
     }
 
     override fun createAtomicCounterBuffer(
@@ -215,7 +223,7 @@ class DriverAndroidGLES(val version: DriverVersionGL) : Driver {
         session: Session?
     ): ColorBuffer {
         logger.trace { "creating color buffer $width x $height @ $format:$type" }
-        val colorBuffer = ColorBufferGLES.create(
+        val colorBuffer = ColorBufferGL3.create(
             width,
             height,
             contentScale,
@@ -293,43 +301,53 @@ class DriverAndroidGLES(val version: DriverVersionGL) : Driver {
             vaos[0]
         }
 
-    override fun clear(color: ColorRGBa) {
-        // Bind the on-screen framebuffer (default)
-        glBindFramebuffer(GLES30.GL_FRAMEBUFFER, 0)
-        // Clear entire surface
-        glDisable(GLES30.GL_SCISSOR_TEST)
-        // Set the clear color
+    fun clearImpl(color: ColorRGBa) {
+        val targetColor = color
+        debugGLErrors()
+        if (Driver.glType == DriverTypeGL.GLES) {
+            glEnable(GL_FRAMEBUFFER_SRGB)
+        }
         glClearColor(
-            color.r.toFloat(),
-            color.g.toFloat(),
-            color.b.toFloat(),
-            color.a.toFloat()
+            targetColor.r.toFloat(),
+            targetColor.g.toFloat(),
+            targetColor.b.toFloat(),
+            targetColor.alpha.toFloat()
         )
-        // Clear color (and optionally depth/stencil)
-        glClear(
-            GLES30.GL_COLOR_BUFFER_BIT /* or add: or GLES30.GL_DEPTH_BUFFER_BIT or GLES30.GL_STENCIL_BUFFER_BIT */
-        )
+        glClearDepth(1.0)
+        val depthWriteMask = glGetInteger(GL_DEPTH_WRITEMASK) != 0
+        val scissorTestEnabled = glIsEnabled(GL_SCISSOR_TEST)
+        if (scissorTestEnabled) {
+            glDisable(GL_SCISSOR_TEST)
+        }
 
-//        val solidShader = ShaderGLES.fromSource(BASIC_SOLID_VS, BASIC_SOLID_FS, Session.active)
-//        drawVertexBuffer(
-//            solidShader,
-//            listOf(vb),
-//            DrawPrimitive.TRIANGLES,
-//            0,
-//            3,
-//            0
-//        )
+        debugGLErrors()
+        glDepthMask(true)
+        debugGLErrors()
+
+        glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT or GL_STENCIL_BUFFER_BIT)
+        debugGLErrors()
+
+        debugGLErrors {
+            when (it) {
+                GL_INVALID_VALUE -> "any bit other than the three defined bits is set in mask."
+                else -> null
+            }
+        }
+        glDepthMask(depthWriteMask)
+        if (scissorTestEnabled) {
+            glEnable(GL_SCISSOR_TEST)
+        }
     }
 
-    override fun createDynamicVertexBuffer(
-        format: VertexFormat,
-        vertexCount: Int,
-        session: Session?
-    ): VertexBuffer {
-        synchronized(this) {
-            val vertexBuffer = VertexBufferGLES.createDynamic(format, vertexCount, session)
-            session?.track(vertexBuffer)
-            return vertexBuffer
+    override fun clear(color: ColorRGBa) {
+        if (RenderTarget.active.colorAttachments.firstOrNull()?.type?.isSRGB == true || RenderTarget.active is ProgramRenderTargetGL3) {
+//            if (quirks.clearIgnoresSRGB) {
+//                clearImpl(color.toSRGB())
+//            } else {
+            clearImpl(color.toLinear())
+//            }
+        } else {
+            clearImpl(color.toLinear())
         }
     }
 
@@ -357,7 +375,19 @@ class DriverAndroidGLES(val version: DriverVersionGL) : Driver {
         format: ShaderStorageFormat,
         session: Session?
     ): ShaderStorageBuffer {
-        TODO("Not yet implemented")
+        return ShaderStorageBufferGLES.create(format, session)
+    }
+
+    override fun createDynamicVertexBuffer(
+        format: VertexFormat,
+        vertexCount: Int,
+        session: Session?
+    ): VertexBuffer {
+        synchronized(this) {
+            val vertexBuffer = VertexBufferGLES.createDynamic(format, vertexCount, session)
+            session?.track(vertexBuffer)
+            return vertexBuffer
+        }
     }
 
     override fun drawVertexBuffer(
@@ -373,7 +403,7 @@ class DriverAndroidGLES(val version: DriverVersionGL) : Driver {
         }
 
         if (drawPrimitive == DrawPrimitive.PATCHES) {
-            if (Driver.glVersion >= DriverVersionGL.GL_VERSION_4_1) {
+            if (Driver.glVersion >= DriverVersionGL.GLES_VERSION_3_0) {
                 glPatchParameteri(GL_PATCH_VERTICES, verticesPerPatch)
             }
         }
@@ -433,7 +463,67 @@ class DriverAndroidGLES(val version: DriverVersionGL) : Driver {
         indexCount: Int,
         verticesPerPatch: Int
     ) {
-        println("drawIndexedVertexBuffer")
+        shader as ShaderGLES
+        indexBuffer as IndexBufferGL3
+
+        if (drawPrimitive == DrawPrimitive.PATCHES) {
+            if (Driver.glVersion >= DriverVersionGL.GL_VERSION_4_1) {
+                glPatchParameteri(GL_PATCH_VERTICES, verticesPerPatch)
+            }
+        }
+
+
+        // -- find or create a VAO for our shader + vertex buffers combination
+        val shaderVertexDescription =
+            ShaderVertexDescription(
+                contextID,
+                shader.programObject,
+                IntArray(vertexBuffers.size) { (vertexBuffers[it] as VertexBufferGLES).buffer },
+                IntArray(0)
+            )
+
+        val vao =
+            vaos.getOrPut(shaderVertexDescription) {
+                logger.debug {
+                    "creating new VAO for hash $shaderVertexDescription"
+                }
+                val arrays = IntArray(1)
+                synchronized(Driver.instance) {
+                    glGenVertexArrays(arrays)
+                    glBindVertexArray(arrays[0])
+                    setupFormat(vertexBuffers, emptyList(), shader)
+                    glBindVertexArray(defaultVAO)
+                }
+                arrays[0]
+            }
+
+
+        glBindVertexArray(vao)
+
+
+        //logger.trace { "drawing vertex buffer with $drawPrimitive(${drawPrimitive.glType()}) and $indexCount indices with indexOffset $indexOffset " }
+        indexBuffer.bind()
+
+
+        glDrawElements(
+            drawPrimitive.glType(),
+            indexCount,
+            indexBuffer.type.glType(),
+            indexOffset.toLong()
+        )
+
+
+        debugGLErrors {
+            when (it) {
+                GL_INVALID_ENUM -> "mode ($drawPrimitive) is not an accepted value."
+                GL_INVALID_VALUE -> "count ($indexCount) is negative."
+                GL_INVALID_OPERATION -> "a non-zero buffer object name is bound to an enabled array and the buffer object's data store is currently mapped."
+                else -> null
+            }
+        }
+
+        // -- restore defaultVAO binding
+        glBindVertexArray(defaultVAO)
     }
 
     override fun drawInstances(
@@ -516,7 +606,74 @@ class DriverAndroidGLES(val version: DriverVersionGL) : Driver {
         instanceCount: Int,
         verticesPerPatch: Int
     ) {
-        println("drawIndexedInstances")
+        require(instanceOffset == 0 || (Driver.glVersion >= DriverVersionGL.GLES_VERSION_3_0 && Driver.glVersion.type == DriverTypeGL.GLES)) {
+            "non-zero instance offsets require OpenGL ES 3.0 (current config: ${Driver.glVersion.versionString})"
+        }
+
+        if (drawPrimitive == DrawPrimitive.PATCHES) {
+            if (Driver.glVersion >= DriverVersionGL.GLES_VERSION_3_0) {
+                glPatchParameteri(GL_PATCH_VERTICES, verticesPerPatch)
+            }
+        }
+
+
+        // -- find or create a VAO for our shader + vertex buffers + instance buffers combination
+        val shaderVertexDescription = ShaderVertexDescription(
+            contextID,
+            (shader as ShaderGLES).programObject,
+            IntArray(vertexBuffers.size) { (vertexBuffers[it] as VertexBufferGLES).buffer },
+            IntArray(instanceAttributes.size) { (instanceAttributes[it] as VertexBufferGL3).buffer }
+        )
+
+        val vao = vaos.getOrPut(shaderVertexDescription) {
+            logger.debug {
+                "creating new instances VAO for hash $shaderVertexDescription"
+            }
+            val arrays = IntArray(1)
+            synchronized(Driver.instance) {
+                glGenVertexArrays(arrays)
+                glBindVertexArray(arrays[0])
+                setupFormat(vertexBuffers, instanceAttributes, shader)
+                glBindVertexArray(defaultVAO)
+            }
+            arrays[0]
+        }
+
+        glBindVertexArray(vao)
+        indexBuffer as IndexBufferGL3
+        indexBuffer.bind()
+
+        logger.trace { "drawing $instanceCount instances with $drawPrimitive(${drawPrimitive.glType()}) and $indexCount vertices with vertexOffset $indexOffset " }
+
+        if (instanceOffset == 0) {
+            glDrawElementsInstanced(
+                drawPrimitive.glType(),
+                indexCount,
+                indexBuffer.type.glType(),
+                indexOffset.toLong(),
+                instanceCount
+            )
+        } else {
+            glDrawElementsInstancedBaseInstance(
+                drawPrimitive.glType(),
+                indexCount,
+                indexBuffer.type.glType(),
+                indexOffset.toLong(),
+                instanceCount,
+                instanceOffset
+            )
+        }
+
+        debugGLErrors {
+            when (it) {
+                GL_INVALID_ENUM -> "mode is not one of the accepted values."
+                GL_INVALID_VALUE -> "count ($instanceCount) or primcount ($indexCount) are negative."
+                GL_INVALID_OPERATION -> "a non-zero buffer object name is bound to an enabled array and the buffer object's data store is currently mapped."
+                else -> null
+            }
+        }
+        // -- restore default VAO binding
+        glBindVertexArray(defaultVAO)
     }
 
     private fun setupFormat(
@@ -689,105 +846,349 @@ class DriverAndroidGLES(val version: DriverVersionGL) : Driver {
         }
     }
 
+    private val dirtyPerContext = mutableMapOf<Long, Boolean>()
+    private val cachedPerContext = mutableMapOf<Long, DrawStyle>()
+
     override fun setState(drawStyle: DrawStyle) {
-        // keep your current fill color cache if you use it later
-        val fill = drawStyle.fill ?: ColorRGBa.WHITE
-        currentFill = fill
-
-        fun enableBlend() {
-            GLES32.glEnable(GLES32.GL_BLEND)
+        if (Driver.glType == DriverTypeGL.GL) {
+            glEnable(GL_FRAMEBUFFER_SRGB)
         }
 
-        fun disableBlend() {
-            GLES32.glDisable(GLES32.GL_BLEND)
+        val dirty = dirtyPerContext.getOrDefault(contextID, true)
+        val cached = cachedPerContext.getOrPut(contextID) { DrawStyle() }
+
+        if (dirty || cached.clip != drawStyle.clip) {
+            if (drawStyle.clip != null) {
+                drawStyle.clip?.let { it: Rectangle ->
+                    val target = RenderTarget.active
+                    glEnable(GL_SCISSOR_TEST)
+                    glScissor(
+                        (it.x * target.contentScale).toInt(),
+                        (target.height * target.contentScale - it.y * target.contentScale - it.height * target.contentScale).toInt(),
+                        (it.width * target.contentScale).toInt(),
+                        (it.height * target.contentScale).toInt()
+                    )
+
+                }
+            } else {
+                glDisable(GL_SCISSOR_TEST)
+            }
+            cached.clip = drawStyle.clip
         }
 
-        fun func(srcRGB: Int, dstRGB: Int, srcA: Int = srcRGB, dstA: Int = dstRGB) =
-            GLES32.glBlendFuncSeparate(srcRGB, dstRGB, srcA, dstA)
-
-        fun eq(rgb: Int, a: Int = rgb) = GLES32.glBlendEquationSeparate(rgb, a)
-
-        when (drawStyle.blendMode) {
-            BlendMode.REPLACE -> {
-                // no blending — overwrite dst with src
-                disableBlend()
-            }
-
-            BlendMode.OVER -> {
-                // standard alpha compositing
-                enableBlend()
-                func(
-                    GLES32.GL_SRC_ALPHA,
-                    GLES32.GL_ONE_MINUS_SRC_ALPHA,
-                    GLES32.GL_ONE,
-                    GLES32.GL_ONE_MINUS_SRC_ALPHA
-                )
-                eq(GLES32.GL_FUNC_ADD)
-            }
-
-            BlendMode.ADD -> {
-                enableBlend()
-                func(GLES32.GL_ONE, GLES32.GL_ONE)            // src + dst
-                eq(GLES32.GL_FUNC_ADD)
-            }
-
-            BlendMode.SUBTRACT -> {
-                enableBlend()
-                func(GLES32.GL_ONE, GLES32.GL_ONE)            // src - dst
-                eq(GLES32.GL_FUNC_REVERSE_SUBTRACT)
-            }
-
-            BlendMode.MULTIPLY -> {
-                enableBlend()
-                // common multiply approximation
-                func(
-                    GLES32.GL_DST_COLOR,
-                    GLES32.GL_ONE_MINUS_SRC_ALPHA,
-                    GLES32.GL_ONE,
-                    GLES32.GL_ONE_MINUS_SRC_ALPHA
-                )
-                eq(GLES32.GL_FUNC_ADD)
-            }
-
-            BlendMode.SCREEN -> {
-                enableBlend()
-                // screen ≈ 1 - (1-src)*(1-dst)
-                func(
-                    GLES32.GL_ONE,
-                    GLES32.GL_ONE_MINUS_SRC_COLOR,
-                    GLES32.GL_ONE,
-                    GLES32.GL_ONE_MINUS_SRC_ALPHA
-                )
-                eq(GLES32.GL_FUNC_ADD)
-            }
-
-            BlendMode.LIGHTEN -> {
-                enableBlend()
-                func(
-                    GLES32.GL_ONE,
-                    GLES32.GL_ONE
-                )            // factors irrelevant; equation picks max
-                eq(GLES32.GL_MAX, GLES32.GL_MAX)              // ES 3.0 supports MIN/MAX
-            }
-
-            BlendMode.DARKEN -> {
-                enableBlend()
-                func(GLES32.GL_ONE, GLES32.GL_ONE)
-                eq(GLES32.GL_MIN, GLES32.GL_MIN)
-            }
-
-            else -> {
-                // Fallback to OVER if new/unknown mode appears
-                enableBlend()
-                func(
-                    GLES32.GL_SRC_ALPHA,
-                    GLES32.GL_ONE_MINUS_SRC_ALPHA,
-                    GLES32.GL_ONE,
-                    GLES32.GL_ONE_MINUS_SRC_ALPHA
-                )
-                eq(GLES32.GL_FUNC_ADD)
-            }
+        if (dirty || cached.channelWriteMask != drawStyle.channelWriteMask) {
+            glColorMask(
+                drawStyle.channelWriteMask.red,
+                drawStyle.channelWriteMask.green,
+                drawStyle.channelWriteMask.blue,
+                drawStyle.channelWriteMask.alpha
+            )
+            cached.channelWriteMask = drawStyle.channelWriteMask
         }
+
+        if (dirty || cached.depthWrite != drawStyle.depthWrite) {
+            when (drawStyle.depthWrite) {
+                true -> glDepthMask(true)
+                false -> glDepthMask(false)
+            }
+            glEnable(GL_DEPTH_TEST)
+            debugGLErrors()
+            cached.depthWrite = drawStyle.depthWrite
+        }
+
+        if (dirty || cached.stencil != drawStyle.stencil || cached.backStencil != drawStyle.backStencil || cached.frontStencil != drawStyle.frontStencil) {
+            if (drawStyle.frontStencil === drawStyle.backStencil) {
+                if (drawStyle.stencil.stencilTest == StencilTest.DISABLED) {
+                    glDisable(GL_STENCIL_TEST)
+                } else {
+                    glEnable(GL_STENCIL_TEST)
+                    glStencilFuncSeparate(
+                        GL_FRONT_AND_BACK,
+                        glStencilTest(drawStyle.stencil.stencilTest),
+                        drawStyle.stencil.stencilTestReference,
+                        drawStyle.stencil.stencilTestMask
+                    )
+                    debugGLErrors()
+                    glStencilOpSeparate(
+                        GL_FRONT_AND_BACK,
+                        glStencilOp(drawStyle.stencil.stencilFailOperation),
+                        glStencilOp(drawStyle.stencil.depthFailOperation),
+                        glStencilOp(drawStyle.stencil.depthPassOperation)
+                    )
+                    debugGLErrors()
+                    glStencilMaskSeparate(GL_FRONT_AND_BACK, drawStyle.stencil.stencilWriteMask)
+                    debugGLErrors()
+                }
+            } else {
+                require(drawStyle.frontStencil.stencilTest != StencilTest.DISABLED)
+                require(drawStyle.backStencil.stencilTest != StencilTest.DISABLED)
+                glEnable(GL_STENCIL_TEST)
+                glStencilFuncSeparate(
+                    GL_FRONT,
+                    glStencilTest(drawStyle.frontStencil.stencilTest),
+                    drawStyle.frontStencil.stencilTestReference,
+                    drawStyle.frontStencil.stencilTestMask
+                )
+                glStencilFuncSeparate(
+                    GL_BACK,
+                    glStencilTest(drawStyle.backStencil.stencilTest),
+                    drawStyle.backStencil.stencilTestReference,
+                    drawStyle.backStencil.stencilTestMask
+                )
+                glStencilOpSeparate(
+                    GL_FRONT,
+                    glStencilOp(drawStyle.frontStencil.stencilFailOperation),
+                    glStencilOp(drawStyle.frontStencil.depthFailOperation),
+                    glStencilOp(drawStyle.frontStencil.depthPassOperation)
+                )
+                glStencilOpSeparate(
+                    GL_BACK,
+                    glStencilOp(drawStyle.backStencil.stencilFailOperation),
+                    glStencilOp(drawStyle.backStencil.depthFailOperation),
+                    glStencilOp(drawStyle.backStencil.depthPassOperation)
+                )
+                glStencilMaskSeparate(GL_FRONT, drawStyle.frontStencil.stencilWriteMask)
+                glStencilMaskSeparate(GL_BACK, drawStyle.backStencil.stencilWriteMask)
+            }
+            cached.stencil = drawStyle.stencil.copy()
+            cached.frontStencil = drawStyle.frontStencil.copy()
+            cached.backStencil = drawStyle.backStencil.copy()
+        }
+
+        if (dirty || cached.blendMode != drawStyle.blendMode) {
+
+            fun setAdvancedEq(eq: Int) {
+                glEnable(GL_BLEND)
+                if (Driver.glVersion.isAtLeast(
+                        DriverVersionGL.GL_VERSION_4_1,
+                        DriverVersionGL.GLES_VERSION_3_2
+                    )
+                ) {
+                    glBlendEquationi(0, eq)
+                    glBlendFunci(0, GL_ONE, GL_ONE)
+                } else {
+                    glBlendEquation(eq)
+                    glBlendFunc(GL_ONE, GL_ONE)
+                }
+            }
+
+            when (drawStyle.blendMode) {
+                BlendMode.OVER -> {
+                    glEnable(GL_BLEND)
+                    if (Driver.glVersion.isAtLeast(
+                            DriverVersionGL.GL_VERSION_4_1,
+                            DriverVersionGL.GLES_VERSION_3_2
+                        )
+                    ) {
+                        glBlendEquationi(0, GL_FUNC_ADD)
+                        glBlendFunci(0, GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
+                    } else {
+                        glBlendEquation(GL_FUNC_ADD)
+                        glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
+                    }
+                }
+
+                BlendMode.BLEND -> {
+                    glEnable(GL_BLEND)
+                    if (Driver.glVersion.isAtLeast(
+                            DriverVersionGL.GL_VERSION_4_1,
+                            DriverVersionGL.GLES_VERSION_3_2
+                        )
+                    ) {
+                        glBlendEquationi(0, GL_FUNC_ADD)
+                        glBlendFunci(0, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+                    } else {
+                        glBlendEquation(GL_FUNC_ADD)
+                        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+                    }
+                }
+
+                BlendMode.ADD -> {
+                    glEnable(GL_BLEND)
+                    if (Driver.glVersion.isAtLeast(
+                            DriverVersionGL.GL_VERSION_4_1,
+                            DriverVersionGL.GLES_VERSION_3_2
+                        )
+                    ) {
+                        glBlendEquationi(0, GL_FUNC_ADD)
+                        glBlendFunci(0, GL_ONE, GL_ONE)
+                    } else {
+                        glBlendEquation(GL_FUNC_ADD)
+                        glBlendFunc(GL_ONE, GL_ONE)
+                    }
+                }
+
+                BlendMode.REPLACE -> {
+                    glDisable(GL_BLEND)
+                }
+
+                BlendMode.SUBTRACT -> {
+                    glEnable(GL_BLEND)
+                    if (Driver.glVersion.isAtLeast(
+                            DriverVersionGL.GL_VERSION_4_1,
+                            DriverVersionGL.GLES_VERSION_3_2
+                        )
+                    ) {
+                        glBlendEquationSeparatei(0, GL_FUNC_REVERSE_SUBTRACT, GL_FUNC_ADD)
+                        glBlendFuncSeparatei(0, GL_SRC_ALPHA, GL_ONE, GL_ONE, GL_ONE)
+                    } else {
+                        glBlendEquationSeparate(GL_FUNC_REVERSE_SUBTRACT, GL_FUNC_ADD)
+                        glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE, GL_ONE, GL_ONE)
+                    }
+                }
+
+                BlendMode.MULTIPLY -> {
+                    glEnable(GL_BLEND)
+                    if (Driver.glVersion.isAtLeast(
+                            DriverVersionGL.GL_VERSION_4_1,
+                            DriverVersionGL.GLES_VERSION_3_2
+                        )
+                    ) {
+                        glBlendEquationi(0, GL_FUNC_ADD)
+                        glBlendFunci(0, GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA)
+                    } else {
+                        glBlendEquation(GL_FUNC_ADD)
+                        glBlendFunc(GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA)
+                    }
+                }
+
+                BlendMode.REMOVE -> {
+                    glEnable(GL_BLEND)
+                    if (Driver.glVersion.isAtLeast(
+                            DriverVersionGL.GL_VERSION_4_1,
+                            DriverVersionGL.GLES_VERSION_3_2
+                        )
+                    ) {
+                        glBlendEquationi(0, GL_FUNC_ADD)
+                        glBlendFunci(0, GL_ZERO, GL_ONE_MINUS_SRC_ALPHA)
+                    } else {
+                        glBlendEquation(GL_FUNC_ADD)
+                        glBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_ALPHA)
+                    }
+                }
+
+                BlendMode.MIN -> {
+                    glEnable(GL_BLEND)
+                    if (Driver.glVersion.isAtLeast(
+                            DriverVersionGL.GL_VERSION_4_1,
+                            DriverVersionGL.GLES_VERSION_3_2
+                        )
+                    ) {
+                        glBlendEquationi(0, GL_MIN)
+                        glBlendFunci(0, GL_ONE, GL_ONE)
+                    } else {
+                        glBlendEquation(GL_MIN)
+                        glBlendFunc(GL_ONE, GL_ONE)
+                    }
+                }
+
+                BlendMode.MAX -> {
+                    glEnable(GL_BLEND)
+                    if (Driver.glVersion.isAtLeast(
+                            DriverVersionGL.GL_VERSION_4_1,
+                            DriverVersionGL.GLES_VERSION_3_2
+                        )
+                    ) {
+                        glBlendEquationi(0, GL_MAX)
+                        glBlendFunci(0, GL_ONE, GL_ONE)
+                    } else {
+                        glBlendEquation(GL_MAX)
+                        glBlendFunc(GL_ONE, GL_ONE)
+                    }
+                }
+
+                BlendMode.SCREEN -> setAdvancedEq(GL_SCREEN_KHR)
+                BlendMode.OVERLAY -> setAdvancedEq(GL_OVERLAY_KHR)
+                BlendMode.DARKEN -> setAdvancedEq(GL_DARKEN_KHR)
+                BlendMode.LIGHTEN -> setAdvancedEq(GL_LIGHTEN_KHR)
+                BlendMode.COLOR_DODGE -> setAdvancedEq(GL_COLORDODGE_KHR)
+                BlendMode.COLOR_BURN -> setAdvancedEq(GL_COLORBURN_KHR)
+                BlendMode.HARD_LIGHT -> setAdvancedEq(GL_HARDLIGHT_KHR)
+                BlendMode.SOFT_LIGHT -> setAdvancedEq(GL_SOFTLIGHT_KHR)
+                BlendMode.DIFFERENCE -> setAdvancedEq(GL_DIFFERENCE_KHR)
+                BlendMode.EXCLUSION -> setAdvancedEq(GL_EXCLUSION_KHR)
+                BlendMode.HSL_HUE -> setAdvancedEq(GL_HSL_HUE_KHR)
+                BlendMode.HSL_SATURATION -> setAdvancedEq(GL_HSL_SATURATION_KHR)
+                BlendMode.HSL_COLOR -> setAdvancedEq(GL_HSL_COLOR_KHR)
+                BlendMode.HSL_LUMINOSITY -> setAdvancedEq(GL_HSL_LUMINOSITY_KHR)
+            }
+            cached.blendMode = drawStyle.blendMode
+        }
+        if (dirty || cached.alphaToCoverage != drawStyle.alphaToCoverage) {
+            if (drawStyle.alphaToCoverage) {
+                glEnable(GL_SAMPLE_ALPHA_TO_COVERAGE)
+                glDisable(GL_BLEND)
+            } else {
+                glDisable(GL_SAMPLE_ALPHA_TO_COVERAGE)
+            }
+            cached.alphaToCoverage = drawStyle.alphaToCoverage
+        }
+
+        if (dirty || cached.depthTestPass != drawStyle.depthTestPass) {
+            when (drawStyle.depthTestPass) {
+                DepthTestPass.ALWAYS -> {
+                    glDepthFunc(GL_ALWAYS)
+                }
+
+                DepthTestPass.GREATER -> {
+                    glDepthFunc(GL_GREATER)
+                }
+
+                DepthTestPass.GREATER_OR_EQUAL -> {
+                    glDepthFunc(GL_GEQUAL)
+                }
+
+                DepthTestPass.LESS -> {
+                    glDepthFunc(GL_LESS)
+                }
+
+                DepthTestPass.LESS_OR_EQUAL -> {
+                    glDepthFunc(GL_LEQUAL)
+                }
+
+                DepthTestPass.EQUAL -> {
+                    glDepthFunc(GL_EQUAL)
+                }
+
+                DepthTestPass.NEVER -> {
+                    glDepthFunc(GL_NEVER)
+                }
+            }
+            debugGLErrors()
+            cached.depthTestPass = drawStyle.depthTestPass
+        }
+
+        if (dirty || cached.cullTestPass != drawStyle.cullTestPass) {
+            when (drawStyle.cullTestPass) {
+                CullTestPass.ALWAYS -> {
+                    glDisable(GL_CULL_FACE)
+                }
+
+                CullTestPass.FRONT -> {
+                    glEnable(GL_CULL_FACE)
+                    glCullFace(GL_BACK)
+                }
+
+                CullTestPass.BACK -> {
+                    glEnable(GL_CULL_FACE)
+                    glCullFace(GL_FRONT)
+                }
+
+                CullTestPass.NEVER -> {
+                    glEnable(GL_CULL_FACE)
+                    glCullFace(GL_FRONT_AND_BACK)
+                }
+            }
+            cached.cullTestPass = drawStyle.cullTestPass
+        }
+
+        if (Driver.glType == DriverTypeGL.GL) {
+            glEnable(GL_VERTEX_PROGRAM_POINT_SIZE)
+        }
+
+        dirtyPerContext[contextID] = false
+        debugGLErrors()
+
     }
 
     fun viewport(width: Int, height: Int) {
@@ -795,7 +1196,18 @@ class DriverAndroidGLES(val version: DriverVersionGL) : Driver {
     }
 
     override fun destroyContext(context: Long) {
+        logger.debug { "destroying context: $context" }
+        styleBlocks.remove(context)
+        contextBlocks.remove(context)
+        defaultVAOs[context]?.let {
+            glDeleteVertexArrays(it)
+            debugGLErrors()
+            defaultVAOs.remove(context)
+        }
 
+        destroyAllVAOs()
+
+        dirtyPerContext.remove(context)
     }
 
     fun destroyVAOsForVertexBuffer(vertexBuffer: VertexBufferGLES) {
@@ -822,14 +1234,6 @@ class DriverAndroidGLES(val version: DriverVersionGL) : Driver {
         get() = GLSL("300 es")
 
     override val shaderGenerators: ShaderGenerators = ShaderGeneratorsGLCommon()
-
-    private data class VaoKey(
-        val contextID: Long,
-        val programId: Int,
-        val vertexBuffers: List<Int>,
-        val instanceAttributeBuffers: List<Int>,
-        val indexBuffer: Int?
-    )
 
     private val vaos = mutableMapOf<ShaderVertexDescription, Int>()
 
@@ -866,7 +1270,8 @@ class DriverAndroidGLES(val version: DriverVersionGL) : Driver {
         get() = renderTarget
 
     override fun finish() {
-
+        glFlush()
+        glFinish()
     }
 
     private fun readAll(input: java.io.InputStream): String =
@@ -943,66 +1348,6 @@ class DriverAndroidGLES(val version: DriverVersionGL) : Driver {
         DriverProperties(maxRenderTargetSamples = 4, maxTextureSamples = 4, maxTextureSize = 16384)
     }
 
-    private fun bindFormatAttributesForProgram(
-        programId: Int,
-        format: VertexFormat,
-        baseShiftBytes: Int,
-        divisor: Int
-    ) {
-        val stride = format.size
-
-        format.items.forEachIndexed { rawIndex, elem ->
-            if (elem.attribute == "_") return@forEachIndexed // padding
-
-            // Try the declared name; if not found, fall back to common alias
-            var loc = glGetAttribLocation(programId, elem.attribute)
-            if (loc < 0) {
-                val alias = when (elem.attribute) {
-                    "position" -> "a_position"
-                    "a_position" -> "position"
-                    "color" -> "a_color"
-                    "a_color" -> "color"
-                    "normal" -> "a_normal"
-                    "a_normal" -> "normal"
-                    else -> null
-                }
-                if (alias != null) loc = glGetAttribLocation(programId, alias)
-            }
-            if (loc < 0) {
-                // Attribute not used by the current shader – skip it
-                return@forEachIndexed
-            }
-
-            val (size, glType, normalized, isInteger) = glAttribOf(elem.type)
-            val pointer = elem.offset + baseShiftBytes
-
-            glEnableVertexAttribArray(loc)
-            val err0 = glGetError()
-            if (err0 != GLES30.GL_NO_ERROR) {
-                throw RuntimeException("glEnableVertexAttribArray($loc) error=$err0 (attr='${elem.attribute}')")
-            }
-
-            if (isInteger) {
-                glVertexAttribIPointer(loc, size, glType, stride, pointer.toLong())
-            } else {
-                glVertexAttribPointer(loc, size, glType, normalized, stride, pointer.toLong())
-            }
-            val err1 = glGetError()
-            if (err1 != GLES30.GL_NO_ERROR) {
-                throw RuntimeException(
-                    "glVertexAttribPointer/IPointer(loc=$loc,size=$size,stride=$stride,ptr=$pointer) error=$err1 " +
-                            "(attr='${elem.attribute}', type=${elem.type})"
-                )
-            }
-
-            glVertexAttribDivisor(loc, divisor)
-            val err2 = glGetError()
-            if (err2 != GLES30.GL_NO_ERROR) {
-                throw RuntimeException("glVertexAttribDivisor($loc,$divisor) error=$err2")
-            }
-        }
-    }
-
     fun destroyVAOsForShader(shader: ShaderGLES) {
         val candidates = vaos.keys.filter {
             it.vertexBuffers.contains(shader.programObject) || it.instanceAttributeBuffers.contains(
@@ -1034,6 +1379,40 @@ class DriverAndroidGLES(val version: DriverVersionGL) : Driver {
         vaos.clear()
     }
 
+    private fun IndexType.glType(): Int {
+        return when (this) {
+            IndexType.INT16 -> GL_UNSIGNED_SHORT
+            IndexType.INT32 -> GL_UNSIGNED_INT
+        }
+    }
+
+    internal fun glStencilTest(test: StencilTest): Int {
+        return when (test) {
+            StencilTest.NEVER -> GL_NEVER
+            StencilTest.ALWAYS -> GL_ALWAYS
+            StencilTest.LESS -> GL_LESS
+            StencilTest.LESS_OR_EQUAL -> GL_LEQUAL
+            StencilTest.GREATER -> GL_GREATER
+            StencilTest.GREATER_OR_EQUAL -> GL_GEQUAL
+            StencilTest.EQUAL -> GL_EQUAL
+            StencilTest.NOT_EQUAL -> GL_NOTEQUAL
+            else -> throw RuntimeException("unsupported test: $test")
+        }
+    }
+
+    internal fun glStencilOp(op: StencilOperation): Int {
+        return when (op) {
+            StencilOperation.KEEP -> GL_KEEP
+            StencilOperation.DECREASE -> GL_DECR
+            StencilOperation.DECREASE_WRAP -> GL_DECR_WRAP
+            StencilOperation.INCREASE -> GL_INCR
+            StencilOperation.INCREASE_WRAP -> GL_INCR_WRAP
+            StencilOperation.ZERO -> GL_ZERO
+            StencilOperation.INVERT -> GL_INVERT
+            StencilOperation.REPLACE -> GL_REPLACE
+        }
+    }
+
     private fun DrawPrimitive.glType(): Int {
         return when (this) {
             DrawPrimitive.TRIANGLES -> GL_TRIANGLES
@@ -1063,91 +1442,6 @@ class DriverAndroidGLES(val version: DriverVersionGL) : Driver {
         VertexElementType.VECTOR2_FLOAT32 -> GL_FLOAT
         VertexElementType.VECTOR3_FLOAT32 -> GL_FLOAT
         VertexElementType.VECTOR4_FLOAT32 -> GL_FLOAT
-    }
-
-    private data class GlAttrib(
-        val size: Int,
-        val glType: Int,
-        val normalized: Boolean,
-        val isInteger: Boolean
-    )
-
-    private fun glAttribOf(type: VertexElementType): GlAttrib = when (type) {
-        VertexElementType.FLOAT32 -> GlAttrib(1, GLES30.GL_FLOAT, false, false)
-        VertexElementType.VECTOR2_FLOAT32 -> GlAttrib(
-            2,
-            GLES30.GL_FLOAT,
-            false,
-            false
-        )
-
-        VertexElementType.VECTOR3_FLOAT32 -> GlAttrib(
-            3,
-            GLES30.GL_FLOAT,
-            false,
-            false
-        )
-
-        VertexElementType.VECTOR4_FLOAT32 -> GlAttrib(
-            4,
-            GLES30.GL_FLOAT,
-            false,
-            false
-        )
-
-        VertexElementType.INT32 -> GlAttrib(1, GLES30.GL_INT, false, true)
-        VertexElementType.VECTOR2_INT32 -> GlAttrib(2, GLES30.GL_INT, false, true)
-        VertexElementType.VECTOR3_INT32 -> GlAttrib(3, GLES30.GL_INT, false, true)
-        VertexElementType.VECTOR4_INT32 -> GlAttrib(4, GLES30.GL_INT, false, true)
-
-        VertexElementType.UINT32 -> GlAttrib(
-            1,
-            GLES30.GL_UNSIGNED_INT,
-            false,
-            true
-        )
-
-        VertexElementType.VECTOR2_UINT32 -> GlAttrib(
-            2,
-            GLES30.GL_UNSIGNED_INT,
-            false,
-            true
-        )
-
-        VertexElementType.VECTOR3_UINT32 -> GlAttrib(
-            3,
-            GLES30.GL_UNSIGNED_INT,
-            false,
-            true
-        )
-
-        VertexElementType.VECTOR4_UINT32 -> GlAttrib(
-            4,
-            GLES30.GL_UNSIGNED_INT,
-            false,
-            true
-        )
-
-        VertexElementType.UINT8 -> GlAttrib(
-            1,
-            GLES30.GL_UNSIGNED_BYTE,
-            true,
-            false
-        )
-
-        else -> throw IllegalArgumentException("Unsupported vertex element type in attribute arrays: $type")
-    }
-
-    private fun attributeLocation(name: String, fallbackIndex: Int): Int = when {
-        name == "position" || name == "a_position" -> 0
-        name == "normal" || name == "a_normal" -> 1
-        name == "color" || name == "a_color" -> 2
-        name.startsWith("texCoord") || name.startsWith("a_tex") -> {
-            val idx = name.removePrefix("texCoord").removePrefix("a_tex").toIntOrNull() ?: 0
-            3 + idx
-        }
-
-        else -> 8 + fallbackIndex
     }
 }
 
