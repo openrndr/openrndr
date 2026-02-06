@@ -23,5 +23,3 @@ class AndroidApplicationBuilder {
         return configuration to program
     }
 }
-
-expect fun androidApplication(block: AndroidApplicationBuilder.() -> Unit)

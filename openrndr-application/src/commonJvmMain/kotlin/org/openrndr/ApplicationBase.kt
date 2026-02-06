@@ -35,6 +35,17 @@ actual abstract class ApplicationBase {
                     c!!
                 }
                 "EGL" -> ApplicationBase::class.java.classLoader.loadClass("org.openrndr.internal.gl3.ApplicationBaseEGLGL3")
+                "ANDROID-GLES" -> {
+                    try {
+                        val c = ApplicationBase::class.java.classLoader.loadClass("org.openrndr.internal.gl3.ApplicationBaseAndroidGLES")
+                        logger.debug { "ApplicationBaseAndroidGLES found" }
+                        return c
+                    } catch (e: ClassNotFoundException) {
+                        logger.debug { "ApplicationBaseAndroidGLES not found" }
+                        throw IllegalArgumentException("Unable to load ApplicationBaseAndroidGLES")
+                    }
+                }
+
                 else -> throw IllegalArgumentException("Unknown value '${applicationProperty}' provided for org.openrndr.application")
             }
         }

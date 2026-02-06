@@ -6,6 +6,7 @@ import org.openrndr.Application
 import org.openrndr.ApplicationWindow
 import org.openrndr.Configuration
 import org.openrndr.CursorType
+import org.openrndr.GLSurfaceViewListener
 import org.openrndr.MouseCursorHideMode
 import org.openrndr.PresentationMode
 import org.openrndr.Program
@@ -21,7 +22,7 @@ private val logger = KotlinLogging.logger {}
 class ApplicationAndroidGLES(
     override var program: Program,
     override var configuration: Configuration
-) : Application() {
+) : Application(), GLSurfaceViewListener {
 
     override var cursorVisible: Boolean = false
     override var cursorHideMode: MouseCursorHideMode = MouseCursorHideMode.HIDE
@@ -45,7 +46,7 @@ class ApplicationAndroidGLES(
     }
 
     /** Called from Renderer.onSurfaceCreated (GL thread). */
-    fun onSurfaceCreated() {
+    override fun onSurfaceCreated() {
         logger.info { "ApplicationAndroidGLES.onSurfaceCreated" }
         // GL state that must happen on the GL thread:
         glGenVertexArrays(vaos)
@@ -59,14 +60,14 @@ class ApplicationAndroidGLES(
     }
 
     /** Called from Renderer.onSurfaceChanged (GL thread). */
-    fun onSurfaceChanged(width: Int, height: Int) {
+    override fun onSurfaceChanged(width: Int, height: Int) {
         driver.onSurfaceChanged(width, height)
         program.width = width
         program.height = height
     }
 
     /** Called every frame from Renderer.onDrawFrame (GL thread). */
-    fun onDrawFrame() {
+    override fun onDrawFrame() {
         glBindVertexArray(vaos[0])
         @Suppress("DEPRECATION")
         program.drawer.reset()
