@@ -24,6 +24,7 @@ fun androidApplication(
         setEGLContextClientVersion(3)
         setRenderer(renderer)
         renderMode = GLSurfaceView.RENDERMODE_CONTINUOUSLY
+        setOnTouchListener { view, event -> listener.onTouch(view, event) }
     }
 
     val lifecycle = (context as LifecycleOwner).lifecycle

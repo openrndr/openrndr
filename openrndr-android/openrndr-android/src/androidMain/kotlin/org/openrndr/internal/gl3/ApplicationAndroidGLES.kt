@@ -1,5 +1,7 @@
 package org.openrndr.internal.gl3
 
+import android.view.MotionEvent
+import android.view.View
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
 import org.openrndr.Application
@@ -8,6 +10,7 @@ import org.openrndr.Configuration
 import org.openrndr.CursorType
 import org.openrndr.GLSurfaceViewListener
 import org.openrndr.MouseCursorHideMode
+import org.openrndr.PointerEvent
 import org.openrndr.PresentationMode
 import org.openrndr.Program
 import org.openrndr.WindowConfiguration
@@ -83,6 +86,76 @@ class ApplicationAndroidGLES(
         program.drawer.reset()
         program.drawer.ortho()
         program.drawImpl()
+    }
+
+    override fun onTouch(view: View?, event: MotionEvent): Boolean {
+        when (event.actionMasked) {
+            MotionEvent.ACTION_DOWN, MotionEvent.ACTION_POINTER_DOWN -> {
+                val pointerIndex = event.actionIndex
+                val pointerId = event.getPointerId(pointerIndex)
+                val x = event.getX(pointerId).toDouble()
+                val y = event.getY(pointerId).toDouble()
+                program.pointers.pointerDown.trigger(
+                    PointerEvent(
+                        pointerID = pointerId.toLong(),
+                        position = Vector2(x, y),
+                        displacement = Vector2(0.0, 0.0), // don't know what is it
+                        pressure = event.pressure.toDouble(),
+                    )
+                )
+            }
+
+            MotionEvent.ACTION_MOVE -> {
+                (0 until event.pointerCount).forEach { pointerIndex ->
+                    val pointerId = event.getPointerId(pointerIndex)
+                    val x = event.getX(pointerIndex).toDouble()
+                    val y = event.getY(pointerIndex).toDouble()
+                    program.pointers.moved.trigger(
+                        PointerEvent(
+                            pointerID = pointerId.toLong(),
+                            position = Vector2(x, y),
+                            displacement = Vector2(0.0, 0.0), // don't know what is it
+                            pressure = event.pressure.toDouble(),
+                        )
+                    )
+                }
+
+            }
+
+            MotionEvent.ACTION_UP, MotionEvent.ACTION_POINTER_UP -> {
+                val pointerIndex = event.actionIndex
+                val pointerId = event.getPointerId(pointerIndex)
+                val x = event.getX(pointerIndex).toDouble()
+                val y = event.getY(pointerIndex).toDouble()
+                program.pointers.pointerUp.trigger(
+                    PointerEvent(
+                        pointerID = pointerId.toLong(),
+                        position = Vector2(x, y),
+                        displacement = Vector2(0.0, 0.0), // don't know what is it
+                        pressure = event.pressure.toDouble(),
+                    )
+                )
+            }
+
+            MotionEvent.ACTION_CANCEL -> {
+                val pointerIndex = event.actionIndex
+                val pointerId = event.getPointerId(pointerIndex)
+                val x = event.getX(pointerIndex).toDouble()
+                val y = event.getY(pointerIndex).toDouble()
+                program.pointers.cancelled.trigger(
+                    PointerEvent(
+                        pointerID = pointerId.toLong(),
+                        position = Vector2(x, y),
+                        displacement = Vector2(0.0, 0.0), // don't know what is it
+                        pressure = event.pressure.toDouble(),
+                    )
+                )
+            }
+
+            else -> return false
+        }
+
+        return true
     }
 
     override fun requestDraw() { /* GLSurfaceView drives the loop */
