@@ -70,7 +70,7 @@ kotlin {
     if (property("openrndr.platform.android")=="true") {
         androidLibrary {
             namespace = "org.openrndr"
-            compileSdk = 33
+            compileSdk = 34
             minSdk = 24
         }
     }

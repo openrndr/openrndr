@@ -2,6 +2,7 @@ package org.openrndr
 
 import android.content.Context
 import android.opengl.GLSurfaceView
+import androidx.lifecycle.LifecycleOwner
 
 fun androidApplication(
     context: Context,
@@ -19,11 +20,24 @@ fun androidApplication(
     val listener = result as GLSurfaceViewListener
     val renderer = ORSurfaceViewRenderer(listener)
 
-    return GLSurfaceView(context).apply {
+    val surfaceView = GLSurfaceView(context).apply {
         setEGLContextClientVersion(3)
         setRenderer(renderer)
         renderMode = GLSurfaceView.RENDERMODE_CONTINUOUSLY
     }
+
+    val lifecycle = (context as LifecycleOwner).lifecycle
+    AndroidAppLifecycleHandler(lifecycle, object : AndroidAppLifecycleListener {
+        override fun onPause() {
+            surfaceView.onPause()
+        }
+
+        override fun onResume() {
+            surfaceView.onResume()
+        }
+    })
+
+    return surfaceView
 }
 
 @Suppress("DeprecatedCallableAddReplaceWith")

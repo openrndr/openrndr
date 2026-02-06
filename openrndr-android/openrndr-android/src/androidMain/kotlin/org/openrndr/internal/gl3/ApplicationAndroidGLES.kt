@@ -35,6 +35,8 @@ class ApplicationAndroidGLES(
         set(value) {}
     private var driver = DriverAndroidGLES(DriverVersionGL.GLES_VERSION_3_1)
 
+    private var initialized = false
+
     //    private var exitRequested = false
     private var startTime = 0L
     private val vaos = IntArray(1)
@@ -47,7 +49,8 @@ class ApplicationAndroidGLES(
 
     /** Called from Renderer.onSurfaceCreated (GL thread). */
     override fun onSurfaceCreated() {
-        logger.info { "ApplicationAndroidGLES.onSurfaceCreated" }
+        logger.info { "onSurfaceCreated" }
+
         // GL state that must happen on the GL thread:
         glGenVertexArrays(vaos)
         glBindVertexArray(vaos[0])
@@ -56,11 +59,18 @@ class ApplicationAndroidGLES(
         program.drawer = Drawer(driver)
         program.driver = driver
         startTime = System.currentTimeMillis()
-        runBlocking { program.setup() }
+
+        // TODO: need to handle app foreground after going background
+        if (!initialized) {
+            runBlocking { program.setup() }
+        }
+
+        initialized = true
     }
 
     /** Called from Renderer.onSurfaceChanged (GL thread). */
     override fun onSurfaceChanged(width: Int, height: Int) {
+        logger.info { "onSurfaceChanged" }
         driver.onSurfaceChanged(width, height)
         program.width = width
         program.height = height

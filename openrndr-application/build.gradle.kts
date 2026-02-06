@@ -37,6 +37,7 @@ kotlin {
                 dependsOn(commonJvmMain)
                 dependencies {
                     implementation(libs.kotlin.coroutines)
+                    implementation(libs.androidx.lifecycle.runtime.ktx)
                 }
             }
         }

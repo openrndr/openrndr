@@ -1,5 +1,6 @@
 [versions]
 androidGradlePlugin = "8.13.0"
+lifecycleRuntimeKtx = "2.9.3"
 
 kotlinApi = "2.2"
 kotlinLanguage = "2.2"
@@ -21,6 +22,7 @@ nmcp = "1.2.0"
 
 [libraries]
 android-library-gradle-plugin = { group = "com.android.library", name = "com.android.library.gradle.plugin", version.ref = "androidGradlePlugin" }
+androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
 
 kotlin-logging = { group = "io.github.oshai", name = "kotlin-logging", version.ref = "kotlinLogging" }
 kotlin-coroutines = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
