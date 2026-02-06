@@ -15,6 +15,8 @@ import org.openrndr.PresentationMode
 import org.openrndr.Program
 import org.openrndr.WindowConfiguration
 import org.openrndr.WindowMultisample
+import org.openrndr.animatable.Animatable
+import org.openrndr.animatable.Clock
 import org.openrndr.draw.Drawer
 import org.openrndr.internal.Driver
 import org.openrndr.math.Vector2
@@ -58,10 +60,20 @@ class ApplicationAndroidGLES(
         glGenVertexArrays(vaos)
         glBindVertexArray(vaos[0])
 
+        startTime = System.currentTimeMillis()
+
+        Animatable.clock(object : Clock {
+            override val time: Long
+                get() = (program.seconds * 1E3).toLong()
+            override val timeNanos: Long
+                get() = (program.seconds * 1E6).toLong()
+        })
+
+        setupPreload(program, configuration)
+
         // Install drawer & run Program.setup() on the GL thread
         program.drawer = Drawer(driver)
         program.driver = driver
-        startTime = System.currentTimeMillis()
 
         // TODO: need to handle app foreground after going background
         if (!initialized) {
