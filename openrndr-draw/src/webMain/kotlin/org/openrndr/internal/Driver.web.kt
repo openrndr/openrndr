@@ -8,6 +8,15 @@ import org.openrndr.draw.*
  */
 actual interface Driver {
 
+    actual fun createCommandBuffer(size: UInt, session: Session?): CommandBuffer
+
+    actual fun drawCommandBuffer(
+        shader: Shader,
+        commandBuffer: CommandBuffer,
+        vertexBuffers: List<VertexBuffer>,
+        instanceAttributes: List<VertexBuffer>,
+        primitiveType: DrawPrimitive, commandCount: Int, commandBufferIndex: Int)
+
     //    fun createColorBufferFromStream(
 //        stream: InputStream,
 //        name: String? = null,

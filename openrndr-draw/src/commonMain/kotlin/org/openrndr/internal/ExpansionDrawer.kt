@@ -3,7 +3,7 @@ package org.openrndr.internal
 import org.openrndr.draw.*
 import org.openrndr.math.Vector4
 
-internal data class Command(val vertexBuffer: VertexBuffer, val type: ExpansionType, val vertexOffset: Int, val vertexCount: Int,
+internal data class ExpansionCommand(val vertexBuffer: VertexBuffer, val type: ExpansionType, val vertexOffset: Int, val vertexCount: Int,
                             val minX: Double, val minY: Double, val maxX: Double, val maxY: Double)
 
 /**
@@ -36,7 +36,7 @@ internal class ExpansionDrawer {
 
     val quads = List(DrawerConfiguration.vertexBufferMultiBufferCount) { VertexBuffer.createDynamic(vertexFormat, 6, Session.root) }
 
-    private fun renderStrokeCommands(drawContext: DrawContext, drawStyle: DrawStyle, commands: List<Command>, fringeWidth: Double) {
+    private fun renderStrokeCommands(drawContext: DrawContext, drawStyle: DrawStyle, commands: List<ExpansionCommand>, fringeWidth: Double) {
 
         val shader = shaderManager.shader(drawStyle.shadeStyle, listOf(vertexFormat), emptyList())
         shader.begin()
@@ -80,7 +80,7 @@ internal class ExpansionDrawer {
         shader.end()
     }
 
-    private fun renderStrokeCommandsInterleaved(drawContext: DrawContext, drawStyle: DrawStyle, commands: List<Command>, fringeScale: Double) {
+    private fun renderStrokeCommandsInterleaved(drawContext: DrawContext, drawStyle: DrawStyle, commands: List<ExpansionCommand>, fringeScale: Double) {
         if (commands.isNotEmpty()) {
             val shader = shaderManager.shader(drawStyle.shadeStyle, listOf(vertexFormat))
             shader.begin()
@@ -123,7 +123,7 @@ internal class ExpansionDrawer {
         }
     }
 
-    private fun renderConvexFillCommands(drawContext: DrawContext, drawStyle: DrawStyle, commands: List<Command>, fringeScale: Double) {
+    private fun renderConvexFillCommands(drawContext: DrawContext, drawStyle: DrawStyle, commands: List<ExpansionCommand>, fringeScale: Double) {
         val shader = shaderManager.shader(drawStyle.shadeStyle, vertexFormat)
         shader.begin()
         drawContext.applyToShader(shader)
@@ -146,7 +146,7 @@ internal class ExpansionDrawer {
         }
     }
 
-    private fun renderFillCommands(drawContext: DrawContext, drawStyle: DrawStyle, commands: List<Command>, fringeWidth: Double) {
+    private fun renderFillCommands(drawContext: DrawContext, drawStyle: DrawStyle, commands: List<ExpansionCommand>, fringeWidth: Double) {
         if (commands.isEmpty()) {
             return
         }
@@ -246,9 +246,9 @@ internal class ExpansionDrawer {
         shader.end()
     }
 
-    private fun toCommand(vertices: VertexBuffer, expansion: Expansion, vertexOffset: Int): Command {
+    private fun toCommand(vertices: VertexBuffer, expansion: Expansion, vertexOffset: Int): ExpansionCommand {
         if (expansion.vertexCount > 0) {
-            val command = Command(vertices, expansion.type, vertexOffset, expansion.vertexCount + 2,
+            val command = ExpansionCommand(vertices, expansion.type, vertexOffset, expansion.vertexCount + 2,
                     expansion.minx, expansion.miny, expansion.maxx, expansion.maxy)
             val w = vertices.shadow.writer().apply {
                 positionElements = vertexOffset
@@ -266,7 +266,7 @@ internal class ExpansionDrawer {
 
             return command
         } else {
-            return Command(vertices, ExpansionType.SKIP, 0, 0, 0.0, 0.0, 0.0, 0.0)
+            return ExpansionCommand(vertices, ExpansionType.SKIP, 0, 0, 0.0, 0.0, 0.0, 0.0)
         }
     }
 
@@ -277,9 +277,9 @@ internal class ExpansionDrawer {
      * @param expansions A list of expansions that define the geometry to be processed into commands.
      * @return A list of commands resulting from converting the geometry expansions.
      */
-    private fun toCommands(vertices: VertexBuffer, expansions: List<Expansion>): List<Command> {
+    private fun toCommands(vertices: VertexBuffer, expansions: List<Expansion>): List<ExpansionCommand> {
         var vertexOffset = 0
-        val commands = mutableListOf<Command>()
+        val commands = mutableListOf<ExpansionCommand>()
         expansions.forEach {
             val command = toCommand(vertices, it, vertexOffset)
             if (command.type != ExpansionType.SKIP) {

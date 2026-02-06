@@ -5,6 +5,8 @@ import org.lwjgl.opengl.GL14.glMultiDrawArrays
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
 import org.openrndr.internal.*
+import org.openrndr.internal.gl3.org.openrndr.internal.gl3.CommandBufferGL3
+import org.openrndr.internal.gl3.org.openrndr.internal.gl3.CommandGL3
 import org.openrndr.internal.glcommon.ComputeStyleManagerGLCommon
 import org.openrndr.internal.glcommon.ShadeStyleManagerGLCommon
 import org.openrndr.internal.glcommon.ShaderGeneratorsGLCommon
@@ -87,6 +89,61 @@ inline fun DriverVersionGL.require(minimum: DriverVersionGL) {
 
 abstract class DriverGL3(val version: DriverVersionGL) : Driver {
 
+    override fun createCommandBuffer(size: UInt, session: Session?): CommandBuffer<Command> {
+        return CommandBufferGL3(size, session)
+    }
+
+    override fun createCommand(
+        vertexCount: UInt,
+        instanceCount: UInt,
+        baseVertex: Int,
+        baseInstance: UInt
+    ): Command = CommandGL3(vertexCount, instanceCount, baseVertex, baseInstance)
+
+    override fun drawCommandBuffer(
+        shader: Shader,
+        commandBuffer: CommandBuffer<Command>,
+        vertexBuffers: List<VertexBuffer>,
+        instanceAttributes: List<VertexBuffer>,
+        drawPrimitive: DrawPrimitive,
+        commandCount: Int,
+        commandBufferIndex: Int
+    ) {
+        shader as ShaderGL3
+        commandBuffer as CommandBufferGL3
+        commandBuffer.ssbo as ShaderStorageBufferGL43
+
+        glBindBuffer(GL_DRAW_INDIRECT_BUFFER, commandBuffer.ssbo.buffer)
+
+        // -- find or create a VAO for our shader + vertex buffers combination
+        val shaderVertexDescription = ShaderVertexDescription(
+            Driver.instance.contextID,
+            shader.programObject,
+            IntArray(vertexBuffers.size) { (vertexBuffers[it] as VertexBufferGL3).buffer },
+            IntArray(0)
+        )
+
+        val vao = getVao(shaderVertexDescription, vertexBuffers, emptyList(), shader)
+
+        glBindVertexArray(vao)
+        debugGLErrors {
+            when (it) {
+                GL_INVALID_OPERATION -> "array ($vao) is not zero or the name of a vertex array object previously returned from a call to glGenVertexArrays"
+                else -> "unknown error $it"
+            }
+        }
+
+        glMultiDrawArraysIndirect(drawPrimitive.glType(), IntArray(1), commandCount, 4 * 4)
+
+        debugGLErrors {
+            when (it) {
+                else -> null
+            }
+        }
+        Driver.instance.finish()
+        // -- restore defaultVAO binding
+        glBindVertexArray(defaultVAO)
+    }
 
     private val cachedTextureBindings = IntArray(32) { 0 }
 
@@ -404,6 +461,13 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver {
     override fun shaderConfiguration(type: ShaderType): String = """
         #version ${version.glslVersion}
         #define OR_IN_OUT
+        ${
+        if (type == ShaderType.VERTEX) {
+            """
+            #extension GL_ANGLE_multi_draw:enable
+            """
+        } else { "" }
+    }
         ${
         if (type == ShaderType.FRAGMENT) {
             """#extension GL_KHR_blend_equation_advanced : enable
@@ -795,10 +859,11 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver {
         vertexCount: Int,
         verticesPerPatch: Int
     ) {
-        applyTextureBindings(shader.textureBindings)
         debugGLErrors {
             "a pre-existing GL error occurred before Driver.drawVertexBuffer "
         }
+
+        applyTextureBindings(shader.textureBindings)
 
         if (drawPrimitive == DrawPrimitive.PATCHES) {
             if (Driver.glVersion >= DriverVersionGL.GL_VERSION_4_1) {

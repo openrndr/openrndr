@@ -2,6 +2,9 @@
 
 package org.openrndr.internal.gl3
 
+import org.lwjgl.PointerBuffer
+import org.lwjgl.opengles.EXTMultiDrawArrays
+import org.lwjgl.opengles.EXTMultiDrawIndirect
 import org.lwjgl.system.MemoryUtil
 import org.lwjgl.system.MemoryUtil.memASCII
 import org.openrndr.internal.Driver
@@ -9,6 +12,7 @@ import java.nio.Buffer
 import java.nio.ByteBuffer
 import java.nio.FloatBuffer
 import java.nio.IntBuffer
+import java.util.Objects
 import org.lwjgl.opengl.GL45C as GL
 import org.lwjgl.opengles.GLES32 as GLES
 
@@ -1969,5 +1973,36 @@ actual inline fun glUnmapBuffer(target: Int): Boolean {
     return when (driverType) {
         DriverTypeGL.GL -> GL.glUnmapBuffer(target)
         DriverTypeGL.GLES -> GLES.glUnmapBuffer(target)
+    }
+}
+
+actual inline fun glMultiDrawArrays(mode: Int, first: IntArray, count: IntArray) {
+    when (driverType) {
+        DriverTypeGL.GL -> GL.glMultiDrawArrays(mode, first, count)
+        DriverTypeGL.GLES -> EXTMultiDrawArrays.glMultiDrawArraysEXT(mode, first, count)
+    }
+}
+
+actual inline fun glMultiDrawElements(mode: Int, count: IntArray, type: Int, indices: Any) {
+    (indices as PointerBuffer)
+    when (driverType) {
+        DriverTypeGL.GL -> GL.glMultiDrawElements(mode, count, type, indices)
+        DriverTypeGL.GLES -> EXTMultiDrawArrays.glMultiDrawElementsEXT(mode, count, type, indices)
+    }
+}
+
+actual inline fun glMultiDrawArraysIndirect(mode: Int, indirect: Any, drawcount: Int, stride: Int) {
+
+    when (driverType) {
+        DriverTypeGL.GL -> GL.glMultiDrawArraysIndirect(mode, 0L, drawcount, stride)
+        DriverTypeGL.GLES -> EXTMultiDrawIndirect.glMultiDrawArraysIndirectEXT(mode, 0L, drawcount, stride)
+    }
+}
+
+actual inline fun glMultiDrawElementsIndirect(mode: Int, type: Int, indirect: Any, drawcount: Int, stride: Int) {
+    (indirect as IntArray)
+    when (driverType) {
+        DriverTypeGL.GL -> GL.glMultiDrawElementsIndirect(mode, type, indirect, drawcount, stride)
+        DriverTypeGL.GLES -> EXTMultiDrawIndirect.glMultiDrawElementsIndirectEXT(mode, type, indirect, drawcount, stride)
     }
 }

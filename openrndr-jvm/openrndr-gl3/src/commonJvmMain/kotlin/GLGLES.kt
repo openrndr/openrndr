@@ -118,6 +118,12 @@ expect inline fun glDrawElementsInstanced(
     primcount: Int
 )
 
+expect inline fun glMultiDrawArrays(mode: Int, first: IntArray, count: IntArray)
+expect inline fun glMultiDrawElements(mode: Int, count: IntArray, type: Int, indices: Any)
+expect inline fun glMultiDrawArraysIndirect(mode: Int, indirect: Any, drawcount: Int, stride: Int)
+expect inline fun glMultiDrawElementsIndirect(mode: Int, type: Int, indirect: Any, drawcount: Int, stride: Int)
+
+
 expect inline fun glEnableVertexAttribArray(index: Int)
 expect inline fun glVertexAttribPointer(
     index: Int,

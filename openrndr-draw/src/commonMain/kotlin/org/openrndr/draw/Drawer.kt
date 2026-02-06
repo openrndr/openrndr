@@ -70,7 +70,7 @@ class Drawer(val driver: Driver) {
     private var vertexBufferDrawer = VertexBufferDrawer()
 
 
-    private var circleDrawer = CircleDrawer()
+    private val circleDrawer = CircleDrawer()
     private var pointDrawer = PointDrawer()
     private var imageDrawer = ImageDrawer()
     private var fastLineDrawer = PerformanceLineDrawer()
@@ -1638,6 +1638,37 @@ class Drawer(val driver: Driver) {
             offset,
             indexCount,
             instanceCount
+        )
+    }
+
+    /**
+     * Executes a series of drawing commands using the provided vertex buffers and draw parameters.
+     *
+     * @param vertexBuffers The list of vertex buffers containing the vertex data to be used for rendering.
+     * @param instanceAttributes The list of vertex buffers containing instance-specific attributes, for instanced rendering.
+     * @param primitive The type of primitive to be drawn (e.g., triangles, lines).
+     * @param commandBuffer The buffer containing the sequence of drawing commands to execute.
+     * @param commandCount The number of drawing commands to execute from the command buffer.
+     * @param commandOffset The starting offset in the command buffer from which to begin executing commands. Defaults to 0.
+     */
+
+    fun vertexBufferCommands(
+        vertexBuffers: List<VertexBuffer>,
+        instanceAttributes: List<VertexBuffer>,
+        primitive: DrawPrimitive,
+        commandBuffer: CommandBuffer<Command>,
+        commandCount: Int,
+        commandOffset: Int = 0
+    ) {
+        vertexBufferDrawer.drawVertexBufferCommands(
+            context,
+            drawStyle,
+            primitive,
+            vertexBuffers,
+            instanceAttributes,
+            commandBuffer,
+            commandCount,
+            commandOffset
         )
     }
 

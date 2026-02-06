@@ -11,6 +11,19 @@ class DriverNullGL: Driver {
         return Thread.currentThread().id
     }
 
+    override fun createCommandBuffer(size: UInt, session: Session?): CommandBuffer {
+        TODO("Not yet implemented")
+    }
+
+    override fun drawCommandBuffer(
+        commandBuffer: CommandBuffer,
+        primitiveType: DrawPrimitive,
+        commandCount: Int,
+        commandBufferIndex: Int
+    ) {
+        TODO("Not yet implemented")
+    }
+
     override fun createShader(vsCode: String, tcsCode: String?, tesCode: String?, gsCode: String?, fsCode: String, name: String, session: Session?): Shader {
         return ShaderNullGL(session)
     }

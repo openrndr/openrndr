@@ -12,11 +12,20 @@ import org.openrndr.draw.*
  */
 class VertexBufferDrawer {
 
-    private val shaderManager: ShadeStyleManager = ShadeStyleManager.fromGenerators("vertex-buffer",
-            vsGenerator = Driver.instance.shaderGenerators::vertexBufferVertexShader,
-            fsGenerator = Driver.instance.shaderGenerators::vertexBufferFragmentShader)
+    private val shaderManager: ShadeStyleManager = ShadeStyleManager.fromGenerators(
+        "vertex-buffer",
+        vsGenerator = Driver.instance.shaderGenerators::vertexBufferVertexShader,
+        fsGenerator = Driver.instance.shaderGenerators::vertexBufferFragmentShader
+    )
 
-    fun drawVertexBuffer(drawContext: DrawContext, drawStyle: DrawStyle, primitive: DrawPrimitive, vertexBuffers:List<VertexBuffer>, offset:Int, vertexCount:Int) {
+    fun drawVertexBuffer(
+        drawContext: DrawContext,
+        drawStyle: DrawStyle,
+        primitive: DrawPrimitive,
+        vertexBuffers: List<VertexBuffer>,
+        offset: Int,
+        vertexCount: Int
+    ) {
         val shader = shaderManager.shader(drawStyle.shadeStyle, vertexBuffers.map { it.vertexFormat })
         shader.begin()
         drawContext.applyToShader(shader)
@@ -26,7 +35,15 @@ class VertexBufferDrawer {
         shader.end()
     }
 
-    fun drawVertexBuffer(drawContext: DrawContext, drawStyle: DrawStyle, primitive: DrawPrimitive, indexBuffer: IndexBuffer, vertexBuffers:List<VertexBuffer>, offset:Int, indexCount:Int) {
+    fun drawVertexBuffer(
+        drawContext: DrawContext,
+        drawStyle: DrawStyle,
+        primitive: DrawPrimitive,
+        indexBuffer: IndexBuffer,
+        vertexBuffers: List<VertexBuffer>,
+        offset: Int,
+        indexCount: Int
+    ) {
         val shader = shaderManager.shader(drawStyle.shadeStyle, vertexBuffers.map { it.vertexFormat })
         shader.begin()
         drawContext.applyToShader(shader)
@@ -55,13 +72,34 @@ class VertexBufferDrawer {
      * @param vertexCount The number of vertices to use from the vertex buffers for rendering each instance.
      * @param instanceCount The number of instances of the specified primitive to render.
      */
-    fun drawVertexBufferInstances(drawContext: DrawContext, drawStyle: DrawStyle, primitive: DrawPrimitive, vertexBuffers:List<VertexBuffer>, instanceAttributes:List<VertexBuffer>, offset:Int, vertexCount:Int, instanceCount:Int) {
-        val shader = shaderManager.shader(drawStyle.shadeStyle, vertexBuffers.map { it.vertexFormat }, instanceAttributes.map { it.vertexFormat })
+    fun drawVertexBufferInstances(
+        drawContext: DrawContext,
+        drawStyle: DrawStyle,
+        primitive: DrawPrimitive,
+        vertexBuffers: List<VertexBuffer>,
+        instanceAttributes: List<VertexBuffer>,
+        offset: Int,
+        vertexCount: Int,
+        instanceCount: Int
+    ) {
+        val shader = shaderManager.shader(
+            drawStyle.shadeStyle,
+            vertexBuffers.map { it.vertexFormat },
+            instanceAttributes.map { it.vertexFormat })
         shader.begin()
         drawContext.applyToShader(shader)
         drawStyle.applyToShader(shader)
         Driver.instance.setState(drawStyle)
-        Driver.instance.drawInstances(shader, vertexBuffers, instanceAttributes + (drawStyle.shadeStyle?.attributes?: emptyList()), primitive, offset, vertexCount, 0, instanceCount)
+        Driver.instance.drawInstances(
+            shader,
+            vertexBuffers,
+            instanceAttributes + (drawStyle.shadeStyle?.attributes ?: emptyList()),
+            primitive,
+            offset,
+            vertexCount,
+            0,
+            instanceCount
+        )
         shader.end()
     }
 
@@ -88,13 +126,66 @@ class VertexBufferDrawer {
      * @param indexCount The number of indices from the index buffer to be used for rendering.
      * @param instanceCount The number of instances of the specified primitive to render.
      */
-    fun drawVertexBufferInstances(drawContext: DrawContext, drawStyle: DrawStyle, primitive: DrawPrimitive, indexBuffer: IndexBuffer, vertexBuffers:List<VertexBuffer>, instanceAttributes:List<VertexBuffer>, offset:Int, indexCount:Int, instanceCount:Int) {
-        val shader = shaderManager.shader(drawStyle.shadeStyle, vertexBuffers.map { it.vertexFormat }, instanceAttributes.map { it.vertexFormat })
+    fun drawVertexBufferInstances(
+        drawContext: DrawContext,
+        drawStyle: DrawStyle,
+        primitive: DrawPrimitive,
+        indexBuffer: IndexBuffer,
+        vertexBuffers: List<VertexBuffer>,
+        instanceAttributes: List<VertexBuffer>,
+        offset: Int,
+        indexCount: Int,
+        instanceCount: Int
+    ) {
+        val shader = shaderManager.shader(
+            drawStyle.shadeStyle,
+            vertexBuffers.map { it.vertexFormat },
+            instanceAttributes.map { it.vertexFormat })
         shader.begin()
         drawContext.applyToShader(shader)
         drawStyle.applyToShader(shader)
         Driver.instance.setState(drawStyle)
-        Driver.instance.drawIndexedInstances(shader, indexBuffer, vertexBuffers, instanceAttributes + (drawStyle.shadeStyle?.attributes?: emptyList()), primitive, offset, indexCount, 0, instanceCount)
+        Driver.instance.drawIndexedInstances(
+            shader,
+            indexBuffer,
+            vertexBuffers,
+            instanceAttributes + (drawStyle.shadeStyle?.attributes ?: emptyList()),
+            primitive,
+            offset,
+            indexCount,
+            0,
+            instanceCount
+        )
+        shader.end()
+    }
+
+    fun drawVertexBufferCommands(
+        drawContext: DrawContext,
+        drawStyle: DrawStyle,
+        primitive: DrawPrimitive,
+        vertexBuffers: List<VertexBuffer>,
+        instanceAttributes: List<VertexBuffer>,
+        commandBuffer: CommandBuffer<Command>,
+        commandCount: Int,
+        commandOffset: Int
+    ) {
+        val shader = shaderManager.shader(
+            drawStyle.shadeStyle,
+            vertexBuffers.map { it.vertexFormat },
+            instanceAttributes.map { it.vertexFormat })
+        shader.begin()
+        drawContext.applyToShader(shader)
+        drawStyle.applyToShader(shader)
+        Driver.instance.setState(drawStyle)
+        Driver.instance.drawCommandBuffer(
+            shader,
+            commandBuffer,
+            vertexBuffers,
+            instanceAttributes + (drawStyle.shadeStyle?.attributes ?: emptyList()),
+            primitive,
+            commandCount,
+            0,
+        )
         shader.end()
     }
 }

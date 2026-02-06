@@ -9,6 +9,7 @@ import org.lwjgl.opengl.GL11.GL_VERSION
 import org.lwjgl.opengl.GL30.GL_MAJOR_VERSION
 import org.lwjgl.opengl.GL30.GL_MINOR_VERSION
 import org.lwjgl.opengles.GLES
+import org.lwjgl.opengles.GLES30
 import org.lwjgl.sdl.SDLError.SDL_GetError
 import org.lwjgl.sdl.SDLEvents.*
 import org.lwjgl.sdl.SDLKeyboard.SDL_GetModState
@@ -122,7 +123,10 @@ class ApplicationSDL(override var program: Program, override var configuration: 
         SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8)
         SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8)
 
-        for (version in DriverGL3Configuration.candidateVersions()) {
+        //val versions = listOf(DriverVersionGL.GLES_VERSION_3_0)
+        val versions = DriverGL3Configuration.candidateVersions()
+        for (version in versions) {
+            println("trying version $version")
             when (version.type) {
                 DriverTypeGL.GL -> {
                     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG)
@@ -139,8 +143,11 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             }
             val windowFlags = SDL_WINDOW_HIDDEN or SDL_WINDOW_OPENGL
             primaryWindow = SDL_CreateWindow("OPENRNDR - hidden window", 640, 480, windowFlags)
-            require(primaryWindow != 0L) { "failed to create primary window" }
 
+            if (primaryWindow == 0L) {
+                println("failed to create primary window: ${SDL_GetError()}")
+                continue
+            }
             primaryGlContext = SDL_GL_CreateContext(primaryWindow)
             if (primaryGlContext != 0L) {
                 logger.debug { "Created GL context ${version.type} ${version.majorVersion}.${version.minorVersion}" }
@@ -149,6 +156,8 @@ class ApplicationSDL(override var program: Program, override var configuration: 
                 SDL_DestroyWindow(primaryWindow)
             }
         }
+        require(primaryWindow != 0L) { "failed to create primary window: ${SDL_GetError()}" }
+
 
         require(primaryGlContext != 0L) {
             "Failed to create primary GL context. '${SDL_GetError()}', tried versions ${
@@ -161,6 +170,16 @@ class ApplicationSDL(override var program: Program, override var configuration: 
         when (DriverGL3Configuration.driverType) {
             DriverTypeGL.GL -> GL.createCapabilities()
             DriverTypeGL.GLES -> GLES.createCapabilities()
+        }
+
+
+        if (DriverGL3Configuration.driverType == DriverTypeGL.GLES) {
+            val extensions = IntArray(1)
+            glGetIntegerv(GL_NUM_EXTENSIONS, extensions)
+            for (i in 0 until extensions[0]) {
+                println(GLES30.glGetStringi(GL_EXTENSIONS, i))
+            }
+
         }
 
         val driverVersion =

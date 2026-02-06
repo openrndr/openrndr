@@ -26,6 +26,22 @@ class DriverWebGL(val context: GL) : Driver {
         Driver.driver = this
     }
 
+    override fun createCommandBuffer(size: UInt, session: Session?): CommandBuffer {
+        TODO("Not yet implemented")
+    }
+
+    override fun drawCommandBuffer(
+        shader: Shader,
+        commandBuffer: CommandBuffer,
+        vertexBuffers: List<VertexBuffer>,
+        instanceAttributes: List<VertexBuffer>,
+        primitiveType: DrawPrimitive,
+        commandCount: Int,
+        commandBufferIndex: Int
+    ) {
+        TODO("Not yet implemented")
+    }
+
     data class ShaderVertexDescription(
         val shader: Int,
         val vertexBuffers: IntArray,

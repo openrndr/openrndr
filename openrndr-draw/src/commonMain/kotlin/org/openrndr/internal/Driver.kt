@@ -39,6 +39,7 @@ expect interface Driver {
     val properties: DriverProperties
 
     val contextID: Long
+
     /**
      * Create a shader from code
      * @param vsCode vertex shader code
@@ -55,6 +56,27 @@ expect interface Driver {
         name: String,
         session: Session? = Session.active
     ): Shader
+
+
+    fun createCommand(
+        vertexCount: UInt,
+        instanceCount: UInt,
+        baseVertex: Int,
+        baseInstance: UInt
+    ): Command
+
+    fun createCommandBuffer(size: UInt, session: Session? = Session.active): CommandBuffer<Command>
+
+
+    fun drawCommandBuffer(
+        shader: Shader,
+        commandBuffer: CommandBuffer<Command>,
+        vertexBuffers: List<VertexBuffer>,
+        instanceAttributes: List<VertexBuffer>,
+        primitiveType: DrawPrimitive,
+        commandCount: Int,
+        commandBufferIndex: Int = 0
+    )
 
     /**
      * Creates a compute shader from the provided source code.
@@ -73,7 +95,7 @@ expect interface Driver {
      * @param session The session associated with the ComputeStyleManager. Defaults to the root session if not provided.
      * @return A new instance of ComputeStyleManager.
      */
-    fun createComputeStyleManager(session: Session? = Session.root) : ComputeStyleManager
+    fun createComputeStyleManager(session: Session? = Session.root): ComputeStyleManager
 
     /**
      * Creates a new instance of `ShadeStyleManager` used to manage shade styles.
@@ -328,6 +350,7 @@ expect interface Driver {
         shader: Shader, vertexBuffers: List<VertexBuffer>,
         drawPrimitive: DrawPrimitive, counts: IntArray, offsets: IntArray
     )
+
     /**
      * Renders geometry from the provided indexed vertex buffer using the specified shader and draw primitive.
      *

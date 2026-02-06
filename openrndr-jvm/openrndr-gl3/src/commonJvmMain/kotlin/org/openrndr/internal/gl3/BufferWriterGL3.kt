@@ -84,6 +84,14 @@ class BufferWriterGL3(
         buffer.putInt(v)
     }
 
+    override fun write(v: UInt) {
+        if (alignment == BufferAlignment.STD430) {
+            buffer.alignTo(4)
+        }
+        next(BufferPrimitiveType.UINT32)
+        buffer.putInt(v.toInt())
+    }
+
     override fun write(v: IntVector2) {
         if (alignment == BufferAlignment.STD430) {
             buffer.alignTo(8)
