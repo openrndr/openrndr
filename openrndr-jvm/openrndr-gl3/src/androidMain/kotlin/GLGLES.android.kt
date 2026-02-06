@@ -1014,3 +1014,10 @@ actual inline fun glUnmapBuffer(target: Int): Boolean = GLES.glUnmapBuffer(targe
 actual inline fun glIsBuffer(buffer: Int): Boolean = GLES20.glIsBuffer(buffer)
 actual inline fun glIsTexture(texture: Int): Boolean = GLES20.glIsTexture(texture)
 
+actual inline fun glMultiDrawArrays(mode: Int, first: IntArray, count: IntArray) {
+    TODO("not implemented")
+}
+
+actual inline fun glMultiDrawElements(mode: Int, count: IntArray, type: Int, indices: Any) {
+    TODO("not implemented")
+}

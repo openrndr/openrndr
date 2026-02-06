@@ -425,9 +425,9 @@ internal class ExpansionDrawer {
      * @param expansions A list of expansions that define the geometry to be processed into commands.
      * @return A list of commands resulting from converting the geometry expansions.
      */
-    private fun toCommands(vertices: VertexBuffer, expansions: List<Expansion>): List<Command> {
+    private fun toCommands(vertices: VertexBuffer, expansions: List<Expansion>): List<ExpansionCommand> {
         var vertexOffset = 0
-        val commands = mutableListOf<Command>()
+        val commands = mutableListOf<ExpansionCommand>()
         expansions.forEach {
             val command = toCommand(vertices, it, vertexOffset)
             if (command.type != ExpansionType.SKIP) {

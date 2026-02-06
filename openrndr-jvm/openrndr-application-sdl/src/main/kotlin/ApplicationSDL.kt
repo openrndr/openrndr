@@ -190,6 +190,16 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             DriverTypeGL.GLES -> GLES.createCapabilities()
         }
 
+
+        if (DriverGL3Configuration.driverType == DriverTypeGL.GLES) {
+            val extensions = IntArray(1)
+            glGetIntegerv(GL_NUM_EXTENSIONS, extensions)
+            for (i in 0 until extensions[0]) {
+                println(GLES30.glGetStringi(GL_EXTENSIONS, i))
+            }
+
+        }
+
         val driverVersion =
             DriverVersionGL.find(
                 DriverGL3Configuration.driverType,
