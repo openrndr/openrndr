@@ -29,6 +29,14 @@ class DriverWebGL(var context: GL) : Driver {
         enableErrorChecking = true
     }
 
+    override fun createCommandBuffer(size: UInt, session: Session?): CommandBuffer<Command> = error("command buffers are not supported in WebGL")
+
+    override fun createIndexedCommandBuffer(
+        size: UInt,
+        session: Session?
+    ): CommandBuffer<IndexedCommand> = error("command buffers are not supported in WebGL")
+
+
     data class ShaderVertexDescription(
         val context: GL,
         val shader: Int,
@@ -60,13 +68,21 @@ class DriverWebGL(var context: GL) : Driver {
         val srgb: Boolean,
         val colorBufferFloat: Boolean,
         val floatTexturesLinear: Boolean,
+        val multiDraw: Boolean
     )
 
+    class Extensions(context: GL) {
+        val multiDraw by lazy { context.getExtensionOrNull<WEBGL_multi_draw>() }
+//        val baseInstance by lazy { context.getExtensionOrNull<WEBGL_multi_draw>() }
+    }
+
+    val extensions = Extensions(context)
     @OptIn(ExperimentalWasmJsInterop::class)
     val capabilities = Capabilities(
         srgb = context.getExtensionOrNull<EXT_sRGB>() != null,
         colorBufferFloat = context.getExtensionOrNull<EXT_color_buffer_float>() != null,
         floatTexturesLinear = context.getExtensionOrNull<OES_texture_float_linear>() != null,
+        multiDraw = extensions.multiDraw != null
     )
 
     override val contextID: Long
@@ -350,6 +366,18 @@ class DriverWebGL(var context: GL) : Driver {
         }
     }
 
+    override fun drawCommandBuffer(
+        shader: Shader,
+        commandBuffer: CommandBuffer<Command>,
+        vertexBuffers: List<VertexBuffer>,
+        instanceAttributes: List<VertexBuffer>,
+        primitiveType: DrawPrimitive,
+        commandCount: Int,
+        commandBufferIndex: Int
+    ) {
+        error("not supported")
+    }
+
     override fun drawVertexBuffer(
         shader: Shader,
         vertexBuffers: List<VertexBuffer>,
@@ -380,21 +408,10 @@ class DriverWebGL(var context: GL) : Driver {
 
         context.bindVertexArray(vao)
         context.checkErrors()
-//        setupFormat(vertexBuffers, emptyList(), shader)
         context.drawArrays(drawPrimitive.glType(), vertexOffset, vertexCount)
         context.checkErrors()
         context.bindVertexArray(null)
         context.checkErrors()
-    }
-
-    override fun drawMultiVertexBuffer(
-        shader: Shader,
-        vertexBuffers: List<VertexBuffer>,
-        drawPrimitive: DrawPrimitive,
-        counts: IntArray,
-        offsets: IntArray
-    ) {
-        TODO("not implemented")
     }
 
     override fun drawIndexedVertexBuffer(
@@ -727,8 +744,42 @@ class DriverWebGL(var context: GL) : Driver {
         DriverProperties(
             maxRenderTargetSamples = 4,
             maxTextureSamples = 4,
-            maxTextureSize = context.getParameter(MAX_TEXTURE_SIZE) as? Int ?: 4096
+            maxTextureSize = context.getParameter(MAX_TEXTURE_SIZE) as? Int ?: 4096,
+            hasComputeShaders = false,
+            hasCommandBuffers = false
         )
+    }
+
+    override fun createCommand(
+        vertexCount: UInt,
+        instanceCount: UInt,
+        baseVertex: Int,
+        baseInstance: UInt
+    ): Command {
+        TODO("Not yet implemented")
+    }
+
+    override fun createIndexedCommand(
+        vertexCount: UInt,
+        instanceCount: UInt,
+        firstIndex: UInt,
+        baseVertex: Int,
+        baseInstance: UInt
+    ): IndexedCommand {
+        TODO("Not yet implemented")
+    }
+
+    override fun drawIndexedCommandBuffer(
+        shader: Shader,
+        indexBuffer: IndexBuffer,
+        commandBuffer: CommandBuffer<IndexedCommand>,
+        vertexBuffers: List<VertexBuffer>,
+        instanceAttributes: List<VertexBuffer>,
+        primitiveType: DrawPrimitive,
+        commandCount: Int,
+        commandBufferIndex: Int
+    ) {
+        TODO("Not yet implemented")
     }
 
 

@@ -8,6 +8,14 @@ fun <T> T.structDefinitions(): String where T : StyleParameters, T : StyleBuffer
         it.startsWith("struct")
     } + bufferTypes.filterValues { it.startsWith("struct") }
 
+    val hasCommandBuffer = buffers.any { it.value == "CommandBuffer" }
+    val hasIndexedCommandBuffer = buffers.any { it.value == "IndexedCommandBuffer" }
+
+    val commandStruct = """struct Command { uint vertexCount; uint instanceCount; int baseVertex; uint baseInstance; };"""
+    val indexedCommandStruct = """struct IndexedCommand { uint vertexCount; uint instanceCount; uint firstIndex; int baseVertex; uint baseInstance; };"""
+
+    val commandBufferStructs = listOf(if (hasCommandBuffer) commandStruct else null, if (hasIndexedCommandBuffer) indexedCommandStruct else null).filterNotNull().joinToString("\n")
+
     val bufferStructs = bufferValues.values.mapNotNull { it as? ShaderStorageBuffer }.flatMap {
         it.format.elements.filter { it is ShaderStorageStruct }.map { it as ShaderStorageStruct }.distinctBy { it.structName }
     }
@@ -25,7 +33,7 @@ fun <T> T.structDefinitions(): String where T : StyleParameters, T : StyleBuffer
     val structProtoValues = structValues.distinctBy {
         it.second::class.simpleName
     }
-    return structProtoValues.joinToString("\n") {
+    return commandBufferStructs + structProtoValues.joinToString("\n") {
         it.second.typeDef(
             (parameterTypes[it.first]
                 ?: bufferTypes[it.first])!!.split(" ")[1].split(",")[0]
@@ -88,10 +96,27 @@ fun StyleBufferBindings.buffers(): String {
 
             is ShaderStorageBuffer -> "layout(std430, binding = $bufferIndex) buffer B_${it.key} { ${v.format.glslLayout} } b_${it.key};"
             is AtomicCounterBuffer -> "layout(binding = $bufferIndex, offset = 0) uniform atomic_uint b_${it.key}[${(it.value as AtomicCounterBuffer).size}];"
+            is IndexBuffer -> "layout(std430, binding = $bufferIndex) buffer B_${it.key} { int indices[${v.indexCount}]; } b_${it.key};"
+            is CommandBuffer<*> ->  {
+
+                    "layout(std430, binding = $bufferIndex) buffer B_${it.key} { ${v.glslLayout()} } b_${it.key};"
+
+
+
+
+            }
 
             else -> error("unsupported buffer type: $v")
         }
         bufferIndex++
         r
     }.joinToString("\n")
+}
+
+fun CommandBuffer<*>.glslLayout(): String {
+    return when (type) {
+        Command::class -> "Command commands[${size}];"
+        IndexedCommand::class -> "IndexedCommand commands[${size}];"
+        else -> error("unknown command type ${type::class}")
+    }
 }

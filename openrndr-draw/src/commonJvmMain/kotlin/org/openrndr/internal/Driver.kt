@@ -21,6 +21,45 @@ actual interface Driver {
     fun createStaticVertexBuffer(format: VertexFormat, buffer: Buffer, session: Session? = Session.active): VertexBuffer
     actual val contextID: Long
 
+    actual fun createCommand(
+        vertexCount: UInt,
+        instanceCount: UInt,
+        baseVertex: Int,
+        baseInstance: UInt
+    ): Command
+
+    actual fun createIndexedCommand(
+        vertexCount: UInt,
+        instanceCount: UInt,
+        firstIndex: UInt,
+        baseVertex: Int,
+        baseInstance: UInt
+    ): IndexedCommand
+
+    actual fun createCommandBuffer(size: UInt, session: Session?): CommandBuffer<Command>
+
+    actual fun createIndexedCommandBuffer(size: UInt, session: Session?): CommandBuffer<IndexedCommand>
+
+    actual fun drawCommandBuffer(
+        shader: Shader,
+        commandBuffer: CommandBuffer<Command>,
+        vertexBuffers: List<VertexBuffer>,
+        instanceAttributes: List<VertexBuffer>,
+        drawPrimitive: DrawPrimitive, commandCount: Int, commandBufferIndex: Int
+    )
+
+    actual fun drawIndexedCommandBuffer(
+        shader: Shader,
+        indexBuffer: IndexBuffer,
+        commandBuffer: CommandBuffer<IndexedCommand>,
+        vertexBuffers: List<VertexBuffer>,
+        instanceAttributes: List<VertexBuffer>,
+        primitiveType: DrawPrimitive,
+        commandCount: Int,
+        commandBufferIndex: Int
+    )
+
+
     /**
      * Create a shader from code
      * @param vsCode vertex shader code
@@ -164,14 +203,6 @@ actual interface Driver {
         indexOffset: Int,
         indexCount: Int,
         verticesPerPatch: Int
-    )
-
-    actual fun drawMultiVertexBuffer(
-        shader: Shader,
-        vertexBuffers: List<VertexBuffer>,
-        drawPrimitive: DrawPrimitive,
-        counts: IntArray,
-        offsets: IntArray
     )
 
     actual fun drawInstances(

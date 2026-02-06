@@ -9,6 +9,7 @@ import org.lwjgl.opengl.GL11.GL_VERSION
 import org.lwjgl.opengl.GL30.GL_MAJOR_VERSION
 import org.lwjgl.opengl.GL30.GL_MINOR_VERSION
 import org.lwjgl.opengles.GLES
+import org.lwjgl.opengles.GLES30
 import org.lwjgl.sdl.SDLClipboard.SDL_GetClipboardText
 import org.lwjgl.sdl.SDLClipboard.SDL_SetClipboardText
 import org.lwjgl.sdl.SDLError.SDL_GetError
@@ -188,6 +189,16 @@ class ApplicationSDL(override var program: Program, override var configuration: 
         when (DriverGL3Configuration.driverType) {
             DriverTypeGL.GL -> GL.createCapabilities()
             DriverTypeGL.GLES -> GLES.createCapabilities()
+        }
+
+
+        if (DriverGL3Configuration.driverType == DriverTypeGL.GLES) {
+            val extensions = IntArray(1)
+            glGetIntegerv(GL_NUM_EXTENSIONS, extensions)
+            for (i in 0 until extensions[0]) {
+                println(GLES30.glGetStringi(GL_EXTENSIONS, i))
+            }
+
         }
 
         val driverVersion =
@@ -747,6 +758,7 @@ class ApplicationSDL(override var program: Program, override var configuration: 
         defaultRenderTarget.bind()
 
         window.setupSizes()
+        @Suppress("DEPRECATION")
         program.drawer.reset()
         program.drawer.ortho()
 
@@ -831,6 +843,7 @@ class ApplicationSDL(override var program: Program, override var configuration: 
         childWindow.defaultRenderTarget.bind()
 
         childWindow.setupSizes()
+        @Suppress("DEPRECATION")
         program.drawer.reset()
         program.drawer.ortho()
 

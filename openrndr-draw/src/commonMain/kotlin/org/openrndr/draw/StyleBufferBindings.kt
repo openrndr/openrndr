@@ -2,6 +2,7 @@ package org.openrndr.draw
 
 import org.openrndr.draw.font.BufferAccess
 import org.openrndr.draw.font.BufferFlag
+import kotlin.jvm.JvmName
 
 interface StyleBufferBindings {
 
@@ -10,6 +11,30 @@ interface StyleBufferBindings {
     val bufferTypes: MutableMap<String, String>
     val bufferFlags: MutableMap<String, Set<BufferFlag>>
     val bufferAccess: MutableMap<String, BufferAccess>
+
+    fun buffer(name: String, buffer: IndexBuffer) {
+        bufferValues[name] = buffer
+        buffers[name] = "IndexBuffer${buffer.type.name}"
+    }
+
+//    fun buffer(name: String, buffer: VertexBuffer) {
+//
+//    }
+
+
+    @Suppress("INAPPLICABLE_JVM_NAME") // https://youtrack.jetbrains.com/issue/KT-31420
+    @JvmName("bufferCommand")
+    fun buffer(name: String, buffer: CommandBuffer<Command>) {
+        bufferValues[name] = buffer
+        buffers[name] = "CommandBuffer"
+    }
+
+    @Suppress("INAPPLICABLE_JVM_NAME") // https://youtrack.jetbrains.com/issue/KT-31420
+    @JvmName("bufferIndexedCommand")
+    fun buffer(name: String, buffer: CommandBuffer<IndexedCommand>) {
+        bufferValues[name] = buffer
+        buffers[name] = "IndexedCommandBuffer"
+    }
 
     fun buffer(name: String, buffer: ShaderStorageBuffer) {
         bufferValues[name] = buffer

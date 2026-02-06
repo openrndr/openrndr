@@ -10,6 +10,7 @@ actual abstract class BufferWriter {
     actual abstract fun write(v: Vector2)
     actual abstract fun write(v: Vector4)
     actual abstract fun write(v: Int)
+    actual abstract fun write(v: UInt)
     actual abstract fun write(v: IntVector2)
     actual abstract fun write(v: IntVector3)
     actual abstract fun write(v: IntVector4)

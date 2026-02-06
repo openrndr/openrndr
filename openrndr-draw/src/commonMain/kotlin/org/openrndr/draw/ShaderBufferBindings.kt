@@ -20,8 +20,9 @@ interface ShaderBufferBindings {
      * @param vertexBuffer The vertex buffer to bind to the shader. It contains vertex data
      *                     and conforms to a specific vertex format required for rendering or processing.
      */
-    fun buffer(name:String, vertexBuffer: VertexBuffer)
+    fun buffer(name: String, vertexBuffer: VertexBuffer)
 
+    fun buffer(name: String, indexBuffer: IndexBuffer)
 
     /**
      * Binds a shader storage buffer to a shader using the specified name.
@@ -35,7 +36,7 @@ interface ShaderBufferBindings {
      * @param shaderStorageBuffer The shader storage buffer to bind to the shader. It represents
      *                            a GPU buffer that allows shaders to read and write data.
      */
-    fun buffer(name:String, shaderStorageBuffer: ShaderStorageBuffer)
+    fun buffer(name: String, shaderStorageBuffer: ShaderStorageBuffer)
 
 
     /**
@@ -50,5 +51,5 @@ interface ShaderBufferBindings {
      * @param counterBuffer The atomic counter buffer to bind to the shader. It contains counters that
      *                      support atomic operations for use in shader programs.
      */
-    fun buffer(name:String, counterBuffer: AtomicCounterBuffer)
+    fun buffer(name: String, counterBuffer: AtomicCounterBuffer)
 }

@@ -320,6 +320,10 @@ class ShaderWebGL(
 
     }
 
+    override fun buffer(name: String, indexBuffer: IndexBuffer) {
+        TODO("Not yet implemented")
+    }
+
     override fun buffer(name: String, vertexBuffer: VertexBuffer) {
         error("WebGL 2.0 does not support ssbos")
     }

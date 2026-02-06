@@ -15,6 +15,55 @@ class DriverNullGL: Driver {
         return Thread.currentThread().id
     }
 
+    override fun createCommand(vertexCount: UInt, instanceCount: UInt, baseVertex: Int, baseInstance: UInt): Command {
+        TODO("Not yet implemented")
+    }
+
+    override fun createIndexedCommand(
+        vertexCount: UInt,
+        instanceCount: UInt,
+        firstIndex: UInt,
+        baseVertex: Int,
+        baseInstance: UInt
+    ): IndexedCommand {
+        TODO("Not yet implemented")
+    }
+
+    override fun createIndexedCommandBuffer(size: UInt, session: Session?): CommandBuffer<IndexedCommand> {
+        TODO("Not yet implemented")
+    }
+
+    override fun createCommandBuffer(size: UInt, session: Session?): CommandBuffer<Command> {
+        TODO("Not yet implemented")
+    }
+
+
+    override fun drawCommandBuffer(
+        shader: Shader,
+        commandBuffer: CommandBuffer<Command>,
+        vertexBuffers: List<VertexBuffer>,
+        instanceAttributes: List<VertexBuffer>,
+        primitiveType: DrawPrimitive,
+        commandCount: Int,
+        commandBufferIndex: Int
+    ) {
+        TODO("Not yet implemented")
+    }
+
+    override fun drawIndexedCommandBuffer(
+        shader: Shader,
+        indexBuffer: IndexBuffer,
+        commandBuffer: CommandBuffer<IndexedCommand>,
+        vertexBuffers: List<VertexBuffer>,
+        instanceAttributes: List<VertexBuffer>,
+        primitiveType: DrawPrimitive,
+        commandCount: Int,
+        commandBufferIndex: Int
+    ) {
+        TODO("Not yet implemented")
+    }
+
+
     override fun createShader(vsCode: String, tcsCode: String?, tesCode: String?, gsCode: String?, fsCode: String, name: String, session: Session?): Shader {
         return ShaderNullGL(session)
     }
@@ -114,15 +163,6 @@ class DriverNullGL: Driver {
 
     }
 
-    override fun drawMultiVertexBuffer(
-        shader: Shader,
-        vertexBuffers: List<VertexBuffer>,
-        drawPrimitive: DrawPrimitive,
-        counts: IntArray,
-        offsets: IntArray
-    ) {
-
-    }
 
     override fun drawInstances(
         shader: Shader,
@@ -191,7 +231,8 @@ class DriverNullGL: Driver {
     }
 
     override val properties: DriverProperties by lazy {
-        DriverProperties(maxRenderTargetSamples = 4, maxTextureSamples = 4, maxTextureSize = 16384)
+        DriverProperties(maxRenderTargetSamples = 4, maxTextureSamples = 4, maxTextureSize = 16384,
+            hasComputeShaders = false, hasCommandBuffers = false)
     }
 
 

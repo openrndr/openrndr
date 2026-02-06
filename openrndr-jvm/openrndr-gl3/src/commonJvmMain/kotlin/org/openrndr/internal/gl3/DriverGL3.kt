@@ -1,10 +1,12 @@
 package org.openrndr.internal.gl3
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.lwjgl.opengl.GL14.glMultiDrawArrays
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
 import org.openrndr.internal.*
+import org.openrndr.internal.gl3.org.openrndr.internal.gl3.CommandBufferGL3
+import org.openrndr.internal.gl3.org.openrndr.internal.gl3.CommandGL3
+import org.openrndr.internal.gl3.org.openrndr.internal.gl3.IndexedCommandGL3
 import org.openrndr.internal.glcommon.ComputeStyleManagerGLCommon
 import org.openrndr.internal.glcommon.ShadeStyleManagerGLCommon
 import org.openrndr.internal.glcommon.ShaderGeneratorsGLCommon
@@ -91,9 +93,130 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver {
     override fun enableErrorChecking() {
 
     }
+
+    override fun createCommandBuffer(size: UInt, session: Session?): CommandBuffer<Command> {
+        val commandBuffer =  CommandBufferGL3<Command>(size, session)
+        session?.track(commandBuffer)
+        return commandBuffer
+    }
+
+    override fun createIndexedCommandBuffer(size: UInt, session: Session?): CommandBuffer<IndexedCommand> {
+        return CommandBufferGL3(size, session)
+    }
+
+
+    override fun createCommand(
+        vertexCount: UInt,
+        instanceCount: UInt,
+        baseVertex: Int,
+        baseInstance: UInt
+    ): Command = CommandGL3(vertexCount, instanceCount, baseVertex, baseInstance)
+
+    override fun createIndexedCommand(
+        vertexCount: UInt,
+        instanceCount: UInt,
+        firstIndex: UInt,
+        baseVertex: Int,
+        baseInstance: UInt
+    ): IndexedCommand = IndexedCommandGL3(vertexCount, instanceCount, firstIndex, baseVertex, baseInstance)
+
+    override fun drawCommandBuffer(
+        shader: Shader,
+        commandBuffer: CommandBuffer<Command>,
+        vertexBuffers: List<VertexBuffer>,
+        instanceAttributes: List<VertexBuffer>,
+        drawPrimitive: DrawPrimitive,
+        commandCount: Int,
+        commandBufferIndex: Int
+    ) {
+        shader as ShaderGL3
+        commandBuffer as CommandBufferGL3
+        commandBuffer.ssbo as ShaderStorageBufferGL43
+
+        glBindBuffer(GL_DRAW_INDIRECT_BUFFER, commandBuffer.ssbo.buffer)
+
+        // -- find or create a VAO for our shader + vertex buffers combination
+        val shaderVertexDescription = ShaderVertexDescription(
+            Driver.instance.contextID,
+            shader.programObject,
+            IntArray(vertexBuffers.size) { (vertexBuffers[it] as VertexBufferGL3).buffer },
+            IntArray(0)
+        )
+
+        val vao = getVao(shaderVertexDescription, vertexBuffers, instanceAttributes, shader)
+
+        glBindVertexArray(vao)
+        debugGLErrors {
+            when (it) {
+                GL_INVALID_OPERATION -> "array ($vao) is not zero or the name of a vertex array object previously returned from a call to glGenVertexArrays"
+                else -> "unknown error $it"
+            }
+        }
+
+
+        glMultiDrawArraysIndirect(drawPrimitive.glType(), 0L, commandCount, 4 * 4)
+
+        debugGLErrors {
+            when (it) {
+                else -> null
+            }
+        }
+        Driver.instance.finish()
+        // -- restore defaultVAO binding
+        glBindVertexArray(defaultVAO)
+    }
+
+
     private val cacheStates = mutableMapOf<Long, CacheState>()
     private val cacheState: CacheState
         get() = synchronized(cacheStates) { cacheStates.getOrPut(contextID) { CacheState() } }
+
+    override fun drawIndexedCommandBuffer(
+        shader: Shader,
+        indexBuffer: IndexBuffer,
+        commandBuffer: CommandBuffer<IndexedCommand>,
+        vertexBuffers: List<VertexBuffer>,
+        instanceAttributes: List<VertexBuffer>,
+        primitiveType: DrawPrimitive,
+        commandCount: Int,
+        commandBufferIndex: Int
+    ) {
+        shader as ShaderGL3
+        commandBuffer as CommandBufferGL3
+        commandBuffer.ssbo as ShaderStorageBufferGL43
+
+        glBindBuffer(GL_DRAW_INDIRECT_BUFFER, commandBuffer.ssbo.buffer)
+
+        // -- find or create a VAO for our shader + vertex buffers combination
+        val shaderVertexDescription = ShaderVertexDescription(
+            Driver.instance.contextID,
+            shader.programObject,
+            IntArray(vertexBuffers.size) { (vertexBuffers[it] as VertexBufferGL3).buffer },
+            IntArray(0)
+        )
+
+        val vao = getVao(shaderVertexDescription, vertexBuffers, emptyList(), shader)
+
+        glBindVertexArray(vao)
+        debugGLErrors {
+            when (it) {
+                GL_INVALID_OPERATION -> "array ($vao) is not zero or the name of a vertex array object previously returned from a call to glGenVertexArrays"
+                else -> "unknown error $it"
+            }
+        }
+
+        (indexBuffer as IndexBufferGL3).bind()
+        glMultiDrawElementsIndirect(primitiveType.glType(), indexBuffer.type.glType(), IntArray(1), commandCount, 4 * 4)
+
+        debugGLErrors {
+            when (it) {
+                else -> null
+            }
+        }
+        Driver.instance.finish()
+        // -- restore defaultVAO binding
+        glBindVertexArray(defaultVAO)
+    }
 
     fun applyBlendMode(drawStyle: DrawStyle) {
         if (true) {
@@ -265,13 +388,13 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver {
         val cachedTextureBindings = cacheState.cachedTextureBindings
         bindings.binding.forEach { i, texture ->
             glActiveTexture(GL_TEXTURE0 + i)
-            debugGLErrors {"Failed to set active texture unit $i"}
+            debugGLErrors { "Failed to set active texture unit $i" }
             when (texture) {
                 is ColorBufferGL3 -> {
                     if (cachedTextureBindings[i] != texture.resourceId) {
                         require(!texture.destroyed)
                         glBindTexture(texture.target, texture.texture)
-                        debugGLErrors {"Failed to bind $texture to unit $i"}
+                        debugGLErrors { "Failed to bind $texture to unit $i" }
                         cachedTextureBindings[i] = texture.resourceId
                     }
                 }
@@ -279,7 +402,7 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver {
                 is DepthBufferGL3 -> {
                     if (cachedTextureBindings[i] != texture.resourceId) {
                         glBindTexture(texture.target, texture.texture)
-                        debugGLErrors {"Failed to bind $texture to unit $i"}
+                        debugGLErrors { "Failed to bind $texture to unit $i" }
                         cachedTextureBindings[i] = texture.resourceId
                     }
                 }
@@ -287,7 +410,7 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver {
                 is BufferTextureGL3 -> {
                     if (cachedTextureBindings[i] != texture.resourceId) {
                         glBindTexture(GL_TEXTURE_BUFFER, texture.texture)
-                        debugGLErrors {"Failed to bind $texture to unit $i"}
+                        debugGLErrors { "Failed to bind $texture to unit $i" }
                         cachedTextureBindings[i] = texture.resourceId
                     }
                 }
@@ -295,7 +418,7 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver {
                 is ArrayTextureGL3 -> {
                     if (cachedTextureBindings[i] != texture.resourceId) {
                         glBindTexture(texture.target, texture.texture)
-                        debugGLErrors {"Failed to bind $texture to unit $i"}
+                        debugGLErrors { "Failed to bind $texture to unit $i" }
                         cachedTextureBindings[i] = texture.resourceId
                     }
                 }
@@ -303,7 +426,7 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver {
                 is ArrayCubemapGL4 -> {
                     if (cachedTextureBindings[i] != texture.resourceId) {
                         glBindTexture(texture.target, texture.texture)
-                        debugGLErrors {"Failed to bind $texture to unit $i"}
+                        debugGLErrors { "Failed to bind $texture to unit $i" }
                         cachedTextureBindings[i] = texture.resourceId
                     }
                 }
@@ -311,7 +434,7 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver {
                 is VolumeTextureGL3 -> {
                     if (cachedTextureBindings[i] != texture.resourceId) {
                         glBindTexture(GL_TEXTURE_3D, texture.texture)
-                        debugGLErrors {"Failed to bind $texture to unit $i"}
+                        debugGLErrors { "Failed to bind $texture to unit $i" }
                         cachedTextureBindings[i] = texture.resourceId
                     }
                 }
@@ -319,7 +442,7 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver {
                 is CubemapGL3 -> {
                     if (cachedTextureBindings[i] != texture.resourceId) {
                         glBindTexture(GL_TEXTURE_CUBE_MAP, texture.texture)
-                        debugGLErrors {"Failed to bind $texture to unit $i"}
+                        debugGLErrors { "Failed to bind $texture to unit $i" }
                         cachedTextureBindings[i] = texture.resourceId
                     }
                 }
@@ -408,6 +531,14 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver {
                 DriverTypeGL.GL -> glGetInteger(GL_MAX_COLOR_TEXTURE_SAMPLES)
             },
             maxTextureSize = glGetInteger(GL_MAX_TEXTURE_SIZE).let { if (it == 0) 16384 else it },
+            hasComputeShaders = when (Driver.glType) {
+                DriverTypeGL.GLES -> Driver.glVersion >= DriverVersionGL.GLES_VERSION_3_1
+                DriverTypeGL.GL -> Driver.glVersion >= DriverVersionGL.GL_VERSION_4_3
+            },
+            hasCommandBuffers = when (Driver.glType) {
+                DriverTypeGL.GLES -> Driver.glVersion >= DriverVersionGL.GLES_VERSION_3_1
+                DriverTypeGL.GL -> Driver.glVersion >= DriverVersionGL.GL_VERSION_4_3
+            }
         )
     }
 
@@ -433,6 +564,15 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver {
     override fun shaderConfiguration(type: ShaderType): String = """
         #version ${version.glslVersion}
         #define OR_IN_OUT
+        ${
+        if (type == ShaderType.VERTEX) {
+            """
+            #extension GL_ANGLE_multi_draw:require
+            """
+        } else {
+            ""
+        }
+    }
         ${
         if (type == ShaderType.FRAGMENT) {
             """#extension GL_KHR_blend_equation_advanced : enable
@@ -791,7 +931,9 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver {
     }
 
     override fun createShaderStorageBuffer(format: ShaderStorageFormat, session: Session?): ShaderStorageBuffer {
-        return ShaderStorageBufferGL43.create(format, session)
+        val shaderStorageBuffer = ShaderStorageBufferGL43.create(format, session)
+        session?.track(shaderStorageBuffer)
+        return shaderStorageBuffer
     }
 
     override fun createDynamicVertexBuffer(format: VertexFormat, vertexCount: Int, session: Session?): VertexBuffer {
@@ -918,7 +1060,6 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver {
         indexCount: Int,
         verticesPerPatch: Int
     ) {
-
         shader as ShaderGL3
         indexBuffer as IndexBufferGL3
         applyTextureBindings(shader.textureBindings)
@@ -973,56 +1114,6 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver {
             }
         }
 
-        // -- restore defaultVAO binding
-        glBindVertexArray(defaultVAO)
-    }
-
-
-    override fun drawMultiVertexBuffer(
-        shader: Shader,
-        vertexBuffers: List<VertexBuffer>,
-        drawPrimitive: DrawPrimitive,
-        counts: IntArray,
-        offsets: IntArray
-    ) {
-        applyTextureBindings(shader.textureBindings)
-        debugGLErrors {
-            "a pre-existing GL error occurred before Driver.drawVertexBuffer "
-        }
-
-
-        shader as ShaderGL3
-        // -- find or create a VAO for our shader + vertex buffers combination
-        val shaderVertexDescription = ShaderVertexDescription(
-            Driver.instance.contextID,
-            shader.programObject,
-            IntArray(vertexBuffers.size) { (vertexBuffers[it] as VertexBufferGL3).buffer },
-            IntArray(0)
-        )
-
-        val vao = getVao(shaderVertexDescription, vertexBuffers, emptyList(), shader)
-
-        glBindVertexArray(vao)
-        debugGLErrors {
-            when (it) {
-                GL_INVALID_OPERATION -> "array ($vao) is not zero or the name of a vertex array object previously returned from a call to glGenVertexArrays"
-                else -> "unknown error $it"
-            }
-        }
-
-        //logger.trace { "drawing vertex buffer with $drawPrimitive(${drawPrimitive.glType()}) and $vertexCount vertices with vertexOffset $vertexOffset " }
-        glMultiDrawArrays(drawPrimitive.glType(), offsets, counts)
-
-        //glDrawArrays(drawPrimitive.glType(), vertexOffset, vertexCount)
-
-//        debugGLErrors {
-//            when (it) {
-//                GL_INVALID_ENUM -> "mode ($drawPrimitive) is not an accepted value."
-//                GL_INVALID_VALUE -> "count ($vertexCount) is negative."
-//                GL_INVALID_OPERATION -> "a non-zero buffer object name is bound to an enabled array and the buffer object's data store is currently mapped."
-//                else -> null
-//            }
-//        }
         // -- restore defaultVAO binding
         glBindVertexArray(defaultVAO)
     }

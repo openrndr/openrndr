@@ -301,6 +301,7 @@ class ApplicationWindowSDL(
             return
 
 
+        @Suppress("DEPRECATION")
         program.drawer.reset()
         program.drawer.ortho()
         program.dispatcher.execute()
@@ -338,7 +339,7 @@ fun createApplicationWindowSDL(
 
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24)
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8)
-    SDL_GL_SetAttribute(SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 1)
+//    SDL_GL_SetAttribute(SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 1)
     SDL_GL_SetAttribute(SDL_GL_FRAMEBUFFER_SRGB_CAPABLE, 1)
 
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, Driver.glVersion.majorVersion)

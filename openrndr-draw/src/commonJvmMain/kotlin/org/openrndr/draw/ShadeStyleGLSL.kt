@@ -43,7 +43,7 @@ actual class ShadeStyleGLSL {
             instance: String,
             element: String
         ) = """
-        |#define c_instance $instance
+        |#define c_instance ($instance)
         |#define c_element ($element)""".trimMargin()
 
         /**

@@ -24,7 +24,8 @@ data class SessionStatistics(
     val atomicCounterBuffers: Int = 0,
     val arrayCubemaps: Int = 0,
     val shaderStorageBuffers: Int = 0,
-    val volumeTextures: Int = 0
+    val volumeTextures: Int = 0,
+    val commandBuffers: Int = 0
 ) {
     operator fun plus(other: SessionStatistics) = SessionStatistics(
         renderTargets = renderTargets + other.renderTargets,
@@ -41,6 +42,7 @@ data class SessionStatistics(
         arrayCubemaps = arrayCubemaps + other.arrayCubemaps,
         shaderStorageBuffers = shaderStorageBuffers + other.shaderStorageBuffers,
         volumeTextures = volumeTextures + other.volumeTextures,
+        commandBuffers = commandBuffers + other.commandBuffers
     )
 }
 
@@ -113,6 +115,7 @@ class Session(val parent: Session?) : AutoCloseable {
     val volumeTextures: Set<VolumeTexture> = mutableSetOf<VolumeTexture>()
     val shaderStorageBuffers: Set<ShaderStorageBuffer> = mutableSetOf<ShaderStorageBuffer>()
     val atomicCounterBuffers: Set<AtomicCounterBuffer> = mutableSetOf<AtomicCounterBuffer>()
+    val commandBuffers: Set<CommandBuffer<*>> = mutableSetOf<CommandBuffer<*>>()
 
     /** Session statistics */
     val statistics
@@ -130,7 +133,8 @@ class Session(val parent: Session?) : AutoCloseable {
             atomicCounterBuffers = atomicCounterBuffers.size,
             arrayCubemaps = arrayCubemaps.size,
             shaderStorageBuffers = shaderStorageBuffers.size,
-            volumeTextures = volumeTextures.size
+            volumeTextures = volumeTextures.size,
+            commandBuffers = commandBuffers.size,
         )
 
     fun track(renderTarget: RenderTarget) = (renderTargets as MutableSet<RenderTarget>).add(renderTarget)
@@ -174,6 +178,9 @@ class Session(val parent: Session?) : AutoCloseable {
 
     fun track(shaderStorageBuffer: ShaderStorageBuffer) = (shaderStorageBuffers as MutableSet<ShaderStorageBuffer>).add(shaderStorageBuffer)
     fun untrack(shaderStorageBuffer: ShaderStorageBuffer) = (shaderStorageBuffers as MutableSet<ShaderStorageBuffer>).remove(shaderStorageBuffer)
+
+    fun track(commandBuffer: CommandBuffer<*>) = (commandBuffers as MutableSet<CommandBuffer<*>>).add(commandBuffer)
+    fun untrack(commandBuffer: CommandBuffer<*>) = (commandBuffers as MutableSet<CommandBuffer<*>>).remove(commandBuffer)
 
     /**
      * Fork the session

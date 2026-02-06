@@ -10,6 +10,31 @@ actual interface Driver {
 
     actual fun enableErrorChecking()
 
+    actual fun createCommandBuffer(size: UInt, session: Session?): CommandBuffer<Command>
+
+    actual fun createIndexedCommandBuffer(size: UInt, session: Session?): CommandBuffer<IndexedCommand>
+
+    actual fun drawCommandBuffer(
+        shader: Shader,
+        commandBuffer: CommandBuffer<Command>,
+        vertexBuffers: List<VertexBuffer>,
+        instanceAttributes: List<VertexBuffer>,
+        drawPrimitive: DrawPrimitive, commandCount: Int, commandBufferIndex: Int)
+
+    //    fun createColorBufferFromStream(
+//        stream: InputStream,
+//        name: String? = null,
+//        formatHint: ImageFileFormat? = null,
+//        session: Session? = Session.active
+//    ): ColorBuffer
+
+    //    fun createColorBufferFromBuffer(
+//        buffer: ByteBuffer,
+//        name: String? = null,
+//        formatHint: ImageFileFormat? = null,
+//        session: Session? = Session.active
+//    ): ColorBuffer
+
     actual val contextID: Long
 
     /**
@@ -156,15 +181,7 @@ actual interface Driver {
         indexCount: Int,
         verticesPerPatch: Int
     )
-
-    actual fun drawMultiVertexBuffer(
-        shader: Shader,
-        vertexBuffers: List<VertexBuffer>,
-        drawPrimitive: DrawPrimitive,
-        counts: IntArray,
-        offsets: IntArray
-    )
-
+    
     actual fun drawInstances(
         shader: Shader,
         vertexBuffers: List<VertexBuffer>,
@@ -216,6 +233,25 @@ actual interface Driver {
     actual val shaderLanguage: ShaderLanguage
     actual fun createComputeStyleManager(session: Session?): ComputeStyleManager
     actual val properties: DriverProperties
+    actual fun createCommand(vertexCount: UInt, instanceCount: UInt, baseVertex: Int, baseInstance: UInt): Command
+    actual fun createIndexedCommand(
+        vertexCount: UInt,
+        instanceCount: UInt,
+        firstIndex: UInt,
+        baseVertex: Int,
+        baseInstance: UInt
+    ): IndexedCommand
+
+    actual fun drawIndexedCommandBuffer(
+        shader: Shader,
+        indexBuffer: IndexBuffer,
+        commandBuffer: CommandBuffer<IndexedCommand>,
+        vertexBuffers: List<VertexBuffer>,
+        instanceAttributes: List<VertexBuffer>,
+        primitiveType: DrawPrimitive,
+        commandCount: Int,
+        commandBufferIndex: Int
+    )
 
 
 }

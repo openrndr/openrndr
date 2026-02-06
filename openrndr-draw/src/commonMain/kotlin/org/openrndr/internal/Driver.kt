@@ -21,7 +21,9 @@ class WebGLSL(val version: String) : ShaderLanguage()
 data class DriverProperties(
     val maxRenderTargetSamples: Int,
     val maxTextureSamples: Int,
-    val maxTextureSize: Int
+    val maxTextureSize: Int,
+    val hasComputeShaders: Boolean,
+    val hasCommandBuffers: Boolean,
 )
 
 
@@ -41,6 +43,7 @@ expect interface Driver {
     val properties: DriverProperties
 
     val contextID: Long
+
     /**
      * Create a shader from code
      * @param vsCode vertex shader code
@@ -57,6 +60,59 @@ expect interface Driver {
         name: String,
         session: Session? = Session.active
     ): Shader
+
+
+
+    fun createCommand(
+        vertexCount: UInt,
+        instanceCount: UInt,
+        baseVertex: Int,
+        baseInstance: UInt
+    ): Command
+
+    fun createIndexedCommand(
+        vertexCount: UInt,
+        instanceCount: UInt,
+        firstIndex: UInt,
+        baseVertex: Int,
+        baseInstance: UInt
+    ): IndexedCommand
+
+    fun createCommandBuffer(size: UInt, session: Session? = Session.active): CommandBuffer<Command>
+
+    fun createIndexedCommandBuffer(size: UInt, session: Session? = Session.active): CommandBuffer<IndexedCommand>
+
+    /**
+     * Renders a set of commands using the specified shader, vertex buffers, and other rendering parameters.
+     *
+     * @param shader The shader program used for rendering.
+     * @param commandBuffer The buffer containing rendering commands to execute.
+     * @param vertexBuffers A list of vertex buffers containing vertex data for rendering.
+     * @param instanceAttributes A list of vertex buffers containing instance-specific attributes.
+     * @param drawPrimitive The type of primitive to render (e.g., triangles, lines).
+     * @param commandCount The number of commands to process and execute from the command buffer.
+     * @param commandBufferIndex The index within the command buffer to start processing from. Defaults to 0.
+     */
+    fun drawCommandBuffer(
+        shader: Shader,
+        commandBuffer: CommandBuffer<Command>,
+        vertexBuffers: List<VertexBuffer>,
+        instanceAttributes: List<VertexBuffer>,
+        drawPrimitive: DrawPrimitive,
+        commandCount: Int,
+        commandBufferIndex: Int = 0
+    )
+
+    fun drawIndexedCommandBuffer(
+        shader: Shader,
+        indexBuffer: IndexBuffer,
+        commandBuffer: CommandBuffer<IndexedCommand>,
+        vertexBuffers: List<VertexBuffer>,
+        instanceAttributes: List<VertexBuffer>,
+        primitiveType: DrawPrimitive,
+        commandCount: Int,
+        commandBufferIndex: Int = 0
+    )
 
     /**
      * Creates a compute shader from the provided source code.
@@ -75,7 +131,7 @@ expect interface Driver {
      * @param session The session associated with the ComputeStyleManager. Defaults to the root session if not provided.
      * @return A new instance of ComputeStyleManager.
      */
-    fun createComputeStyleManager(session: Session? = Session.root) : ComputeStyleManager
+    fun createComputeStyleManager(session: Session? = Session.root): ComputeStyleManager
 
     /**
      * Creates a new instance of `ShadeStyleManager` used to manage shade styles.
@@ -326,10 +382,6 @@ expect interface Driver {
         vertexOffset: Int, vertexCount: Int, verticesPerPatch: Int = 0
     )
 
-    fun drawMultiVertexBuffer(
-        shader: Shader, vertexBuffers: List<VertexBuffer>,
-        drawPrimitive: DrawPrimitive, counts: IntArray, offsets: IntArray
-    )
     /**
      * Renders geometry from the provided indexed vertex buffer using the specified shader and draw primitive.
      *

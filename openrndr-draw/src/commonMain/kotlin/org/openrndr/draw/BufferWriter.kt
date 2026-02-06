@@ -60,6 +60,13 @@ expect abstract class BufferWriter {
     abstract fun write(v: Int)
 
     /**
+     * Writes the provided unsigned integer value to the buffer.
+     *
+     * @param v the unsigned integer value to be written
+     */
+    abstract fun write(v: UInt)
+
+    /**
      * Writes the provided 2D integer vector to the buffer.
      *
      * @param v the 2D integer vector to be written
