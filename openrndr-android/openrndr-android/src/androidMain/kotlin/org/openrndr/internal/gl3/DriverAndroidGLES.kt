@@ -223,7 +223,7 @@ class DriverAndroidGLES(val version: DriverVersionGL) : Driver {
         session: Session?
     ): ColorBuffer {
         logger.trace { "creating color buffer $width x $height @ $format:$type" }
-        val colorBuffer = ColorBufferGL3.create(
+        val colorBuffer = ColorBufferGLES.create(
             width,
             height,
             contentScale,
