@@ -55,27 +55,20 @@ import java.nio.Buffer
 
 private val logger = KotlinLogging.logger {}
 
-class DriverAndroidGLES(val version: DriverVersionGL) : Driver {
+class DriverAndroidGLES(override val version: DriverVersionGL) : Driver, VersionableDriverGL {
 
     private var currentWidth = 0
     private var currentHeight = 0
     private var currentFill = ColorRGBa.WHITE
 
-    private lateinit var renderTarget: RenderTargetGLES
+    private lateinit var renderTarget: RenderTargetGL3
 
     override val contextID: Long
         get() {
             return Thread.currentThread().id
         }
 
-    data class Capabilities(
-        val programUniform: Boolean,
-        val textureStorage: Boolean,
-        val textureMultisampleStorage: Boolean,
-        val compute: Boolean,
-    )
-
-    val capabilities = Capabilities(
+    override val capabilities = DriverGL3.Capabilities(
         programUniform = version.isAtLeast(
             DriverVersionGL.GL_VERSION_4_1,
             DriverVersionGL.GLES_VERSION_3_1
@@ -98,7 +91,7 @@ class DriverAndroidGLES(val version: DriverVersionGL) : Driver {
         logger.info { "onSurfaceChanged - width: $width - height: $height" }
         currentWidth = width
         currentHeight = height
-        renderTarget = RenderTargetGLES.create(width, height, 1.0, BufferMultisample.Disabled, null)
+        renderTarget = RenderTargetGL3.create(width, height, 1.0, BufferMultisample.Disabled, null)
         viewport(width, height) // make sure GL viewport matches display
 
     }
@@ -122,7 +115,7 @@ class DriverAndroidGLES(val version: DriverVersionGL) : Driver {
         val fragmentShader = FragmentShaderGL3.fromString(fsCode, name)
 
         synchronized(this) {
-            return ShaderGLES.create(
+            return ShaderGL3.create(
                 vertexShader,
                 tcShader,
                 teShader,
@@ -168,7 +161,7 @@ class DriverAndroidGLES(val version: DriverVersionGL) : Driver {
         logger.trace { "creating render target $width x $height @ ${contentScale}x $multisample" }
         synchronized(this) {
             val renderTarget =
-                RenderTargetGLES.create(width, height, contentScale, multisample, session)
+                RenderTargetGL3.create(width, height, contentScale, multisample, session)
             session?.track(renderTarget)
             return renderTarget
         }
@@ -223,7 +216,7 @@ class DriverAndroidGLES(val version: DriverVersionGL) : Driver {
         session: Session?
     ): ColorBuffer {
         logger.trace { "creating color buffer $width x $height @ $format:$type" }
-        val colorBuffer = ColorBufferGLES.create(
+        val colorBuffer = ColorBufferGL3.create(
             width,
             height,
             contentScale,
@@ -246,7 +239,7 @@ class DriverAndroidGLES(val version: DriverVersionGL) : Driver {
     ): DepthBuffer {
         logger.trace { "creating depth buffer $width x $height @ $format" }
         synchronized(this) {
-            val depthBuffer = DepthBufferGLES.create(width, height, format, multisample, session)
+            val depthBuffer = DepthBufferGL3.create(width, height, format, multisample, session)
             return depthBuffer
         }
     }
@@ -375,7 +368,7 @@ class DriverAndroidGLES(val version: DriverVersionGL) : Driver {
         format: ShaderStorageFormat,
         session: Session?
     ): ShaderStorageBuffer {
-        return ShaderStorageBufferGLES.create(format, session)
+        return ShaderStorageBufferGL43.create(format, session)
     }
 
     override fun createDynamicVertexBuffer(
@@ -384,7 +377,7 @@ class DriverAndroidGLES(val version: DriverVersionGL) : Driver {
         session: Session?
     ): VertexBuffer {
         synchronized(this) {
-            val vertexBuffer = VertexBufferGLES.createDynamic(format, vertexCount, session)
+            val vertexBuffer = VertexBufferGL3.createDynamic(format, vertexCount, session)
             session?.track(vertexBuffer)
             return vertexBuffer
         }
@@ -408,12 +401,12 @@ class DriverAndroidGLES(val version: DriverVersionGL) : Driver {
             }
         }
 
-        shader as ShaderGLES
+        shader as ShaderGL3
         // -- find or create a VAO for our shader + vertex buffers combination
         val shaderVertexDescription = ShaderVertexDescription(
             Driver.instance.contextID,
             shader.programObject,
-            IntArray(vertexBuffers.size) { (vertexBuffers[it] as VertexBufferGLES).buffer },
+            IntArray(vertexBuffers.size) { (vertexBuffers[it] as VertexBufferGL3).buffer },
             IntArray(0)
         )
 
@@ -463,7 +456,7 @@ class DriverAndroidGLES(val version: DriverVersionGL) : Driver {
         indexCount: Int,
         verticesPerPatch: Int
     ) {
-        shader as ShaderGLES
+        shader as ShaderGL3
         indexBuffer as IndexBufferGL3
 
         if (drawPrimitive == DrawPrimitive.PATCHES) {
@@ -478,7 +471,7 @@ class DriverAndroidGLES(val version: DriverVersionGL) : Driver {
             ShaderVertexDescription(
                 contextID,
                 shader.programObject,
-                IntArray(vertexBuffers.size) { (vertexBuffers[it] as VertexBufferGLES).buffer },
+                IntArray(vertexBuffers.size) { (vertexBuffers[it] as VertexBufferGL3).buffer },
                 IntArray(0)
             )
 
@@ -545,14 +538,14 @@ class DriverAndroidGLES(val version: DriverVersionGL) : Driver {
             "DrawPrimitive.PATCHES is not supported on OpenGL ES"
         }
 
-        shader as ShaderGLES
+        shader as ShaderGL3
 
         // -- find or create a VAO for our shader + vertex buffers + instance buffers combination
         val hash = ShaderVertexDescription(
             contextID,
             shader.programObject,
-            IntArray(vertexBuffers.size) { (vertexBuffers[it] as VertexBufferGLES).buffer },
-            IntArray(instanceAttributes.size) { (instanceAttributes[it] as VertexBufferGLES).buffer }
+            IntArray(vertexBuffers.size) { (vertexBuffers[it] as VertexBufferGL3).buffer },
+            IntArray(instanceAttributes.size) { (instanceAttributes[it] as VertexBufferGL3).buffer }
         )
 
         val vao = vaos.getOrPut(hash) {
@@ -620,8 +613,8 @@ class DriverAndroidGLES(val version: DriverVersionGL) : Driver {
         // -- find or create a VAO for our shader + vertex buffers + instance buffers combination
         val shaderVertexDescription = ShaderVertexDescription(
             contextID,
-            (shader as ShaderGLES).programObject,
-            IntArray(vertexBuffers.size) { (vertexBuffers[it] as VertexBufferGLES).buffer },
+            (shader as ShaderGL3).programObject,
+            IntArray(vertexBuffers.size) { (vertexBuffers[it] as VertexBufferGL3).buffer },
             IntArray(instanceAttributes.size) { (instanceAttributes[it] as VertexBufferGL3).buffer }
         )
 
@@ -679,7 +672,7 @@ class DriverAndroidGLES(val version: DriverVersionGL) : Driver {
     private fun setupFormat(
         vertexBuffer: List<VertexBuffer>,
         instanceAttributes: List<VertexBuffer>,
-        shader: ShaderGLES
+        shader: ShaderGL3
     ) {
         run {
             debugGLErrors()
@@ -715,7 +708,7 @@ class DriverAndroidGLES(val version: DriverVersionGL) : Driver {
                 VertexElementType.VECTOR4_FLOAT32
             )
 
-            fun setupBuffer(buffer: VertexBufferGLES, divisor: Int = 0) {
+            fun setupBuffer(buffer: VertexBufferGL3, divisor: Int = 0) {
                 val prefix = if (divisor == 0) "a" else "i"
                 var attributeBindings = 0
 
@@ -836,12 +829,12 @@ class DriverAndroidGLES(val version: DriverVersionGL) : Driver {
                 }
             }
             vertexBuffer.forEach {
-                require(!(it as VertexBufferGLES).isDestroyed)
+                require(!(it as VertexBufferGL3).isDestroyed)
                 setupBuffer(it, 0)
             }
 
             instanceAttributes.forEach {
-                setupBuffer(it as VertexBufferGLES, 1)
+                setupBuffer(it as VertexBufferGL3, 1)
             }
         }
     }
@@ -1210,7 +1203,7 @@ class DriverAndroidGLES(val version: DriverVersionGL) : Driver {
         dirtyPerContext.remove(context)
     }
 
-    fun destroyVAOsForVertexBuffer(vertexBuffer: VertexBufferGLES) {
+    fun destroyVAOsForVertexBuffer(vertexBuffer: VertexBufferGL3) {
         val candidates = vaos.keys.filter {
             it.vertexBuffers.contains(vertexBuffer.buffer) || it.instanceAttributeBuffers.contains(
                 vertexBuffer.buffer
@@ -1348,7 +1341,7 @@ class DriverAndroidGLES(val version: DriverVersionGL) : Driver {
         DriverProperties(maxRenderTargetSamples = 4, maxTextureSamples = 4, maxTextureSize = 16384)
     }
 
-    fun destroyVAOsForShader(shader: ShaderGLES) {
+    fun destroyVAOsForShader(shader: ShaderGL3) {
         val candidates = vaos.keys.filter {
             it.vertexBuffers.contains(shader.programObject) || it.instanceAttributeBuffers.contains(
                 shader.programObject
