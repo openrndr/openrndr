@@ -3,6 +3,7 @@ package org.openrndr.extensions
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.openrndr.AssetMetadata
 import org.openrndr.Extension
+import org.openrndr.KEYNAME_SPACEBAR
 import org.openrndr.Program
 import org.openrndr.RequestAssetsEvent
 import org.openrndr.draw.*
@@ -95,11 +96,12 @@ open class Screenshots : Extension {
     /**
      * the key that should be pressed to take a screenshot
      */
-    var key: String = "space"
+    var key: String = KEYNAME_SPACEBAR
 
     /**
-     * the folder where the screenshot will be saved to. Default value is "screenshots", saves in current working
-     * directory when set to null.
+     * The name of the folder where the screenshot will be saved to.
+     * The Default value is "screenshots". If set to null, the image
+     * is saved in the current working directory.
      */
     var folder: String? = "screenshots"
 
