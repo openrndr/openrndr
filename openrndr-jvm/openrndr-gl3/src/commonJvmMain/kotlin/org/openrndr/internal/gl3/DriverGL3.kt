@@ -4,6 +4,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
 import org.openrndr.internal.*
+import org.openrndr.internal.gl3.DriverGL3.Capabilities
 import org.openrndr.internal.glcommon.ComputeStyleManagerGLCommon
 import org.openrndr.internal.glcommon.ShadeStyleManagerGLCommon
 import org.openrndr.internal.glcommon.ShaderGeneratorsGLCommon
@@ -84,7 +85,12 @@ inline fun DriverVersionGL.require(minimum: DriverVersionGL) {
     }
 }
 
-abstract class DriverGL3(val version: DriverVersionGL) : Driver {
+interface VersionableDriverGL {
+    val version: DriverVersionGL
+    val capabilities: Capabilities
+}
+
+abstract class DriverGL3(override val version: DriverVersionGL) : Driver, VersionableDriverGL {
 
     private val executionQueue = mutableListOf<() -> Unit>()
 
@@ -117,7 +123,7 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver {
         val compute: Boolean,
     )
 
-    val capabilities = Capabilities(
+    override val capabilities = Capabilities(
         programUniform = version.isAtLeast(DriverVersionGL.GL_VERSION_4_1, DriverVersionGL.GLES_VERSION_3_1),
         textureStorage = version.isAtLeast(DriverVersionGL.GL_VERSION_4_1, DriverVersionGL.GLES_VERSION_3_0),
         textureMultisampleStorage = version.isAtLeast(DriverVersionGL.GL_VERSION_4_3, DriverVersionGL.GLES_VERSION_3_1),
@@ -1526,13 +1532,13 @@ internal fun Matrix33.toFloatArray(): FloatArray = floatArrayOf(
 )
 
 val Driver.Companion.glVersion
-    get() = (instance as DriverGL3).version
+    get() = (instance as VersionableDriverGL).version
 
 val Driver.Companion.glType
-    get() = (instance as DriverGL3).version.type
+    get() = (instance as VersionableDriverGL).version.type
 
 /**
  * Quick access to capabilities
  */
 val Driver.Companion.capabilities
-    get() = (instance as DriverGL3).capabilities
+    get() = (instance as VersionableDriverGL).capabilities

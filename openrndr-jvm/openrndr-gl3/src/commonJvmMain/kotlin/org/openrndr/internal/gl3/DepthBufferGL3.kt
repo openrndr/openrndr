@@ -46,7 +46,7 @@ class DepthBufferGL3(
                         DepthFormat.DEPTH16, DepthFormat.DEPTH24, DepthFormat.DEPTH32F -> GL_DEPTH_COMPONENT
                         DepthFormat.DEPTH_STENCIL, DepthFormat.DEPTH24_STENCIL8, DepthFormat.DEPTH32F_STENCIL8 -> GL_DEPTH_STENCIL
                         DepthFormat.STENCIL8 -> {
-                            (Driver.instance as DriverGL3).version.require(DriverVersionGL.GL_VERSION_4_4); GL_STENCIL_INDEX
+                            (Driver.instance as VersionableDriverGL).version.require(DriverVersionGL.GL_VERSION_4_4); GL_STENCIL_INDEX
                         }
                     }
                     val type = when (format) {
@@ -62,7 +62,7 @@ class DepthBufferGL3(
                                 DepthFormat.DEPTH16, DepthFormat.DEPTH24, DepthFormat.DEPTH32F -> GL_DEPTH_COMPONENT
                                 DepthFormat.DEPTH_STENCIL, DepthFormat.DEPTH24_STENCIL8, DepthFormat.DEPTH32F_STENCIL8 -> GL_DEPTH_COMPONENT
                                 DepthFormat.STENCIL8 -> {
-                                    (Driver.instance as DriverGL3).version.require(DriverVersionGL.GL_VERSION_4_4); GL_STENCIL_INDEX
+                                    (Driver.instance as VersionableDriverGL).version.require(DriverVersionGL.GL_VERSION_4_4); GL_STENCIL_INDEX
                                 }
                             }
                             glTexStorage2D(GL_TEXTURE_2D, 1, type, width, height)

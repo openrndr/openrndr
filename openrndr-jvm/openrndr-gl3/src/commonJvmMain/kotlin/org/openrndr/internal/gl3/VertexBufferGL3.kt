@@ -67,7 +67,7 @@ class VertexBufferGL3(
     internal val bufferHash = bufferId.getAndAdd(1)
     internal var realShadow: VertexBufferShadowGL3? = null
 
-    internal var isDestroyed = false
+    var isDestroyed = false
 
     override fun toString(): String {
         return "VertexBufferGL3(vertexFormat: $vertexFormat, vertexCount: $vertexCount, buffer: $buffer, session: $session)"
@@ -87,7 +87,7 @@ class VertexBufferGL3(
             debugGLErrors()
             val sizeInBytes = vertexFormat.size * vertexCount
             val useBufferStorage =
-                (Driver.instance as DriverGL3).version >= DriverVersionGL.GL_VERSION_4_4 && (Driver.instance as DriverGL3).version.type == DriverTypeGL.GL
+                (Driver.instance as VersionableDriverGL).version >= DriverVersionGL.GL_VERSION_4_4 && (Driver.instance as VersionableDriverGL).version.type == DriverTypeGL.GL
 
             if (useBufferStorage) {
                 glBufferStorage(GL_ARRAY_BUFFER, max(1L, sizeInBytes.toLong()), GL_DYNAMIC_STORAGE_BIT)
@@ -111,7 +111,7 @@ class VertexBufferGL3(
         }
 
     private val useNamedBuffer =
-        (Driver.instance as DriverGL3).version >= DriverVersionGL.GL_VERSION_4_5 && (Driver.instance as DriverGL3).version.type == DriverTypeGL.GL
+        (Driver.instance as VersionableDriverGL).version >= DriverVersionGL.GL_VERSION_4_5 && (Driver.instance as VersionableDriverGL).version.type == DriverTypeGL.GL
 
     override fun write(data: ByteBuffer, offsetInBytes: Int) {
         if (isDestroyed) {
@@ -212,7 +212,7 @@ class VertexBufferGL3(
 
     override fun shaderStorageBufferView(): ShaderStorageBuffer {
         require(
-            (Driver.instance as DriverGL3).version.isAtLeast(
+            (Driver.instance as VersionableDriverGL).version.isAtLeast(
                 DriverVersionGL.GL_VERSION_4_3,
                 DriverVersionGL.GLES_VERSION_3_1
             )
