@@ -32,6 +32,16 @@ fun command(vertexCount: UInt, instanceCount: UInt = 1u,  baseVertex: Int = 0, b
     return Driver.instance.createCommand(vertexCount, instanceCount, baseVertex, baseInstance)
 }
 
+
+fun indexedCommand(vertexCount: UInt, instanceCount: UInt = 1u, baseVertex: Int = 0, firstIndex: UInt, baseInstance: UInt = 0u): IndexedCommand {
+    return Driver.instance.createIndexedCommand(
+        vertexCount,
+        instanceCount,
+        firstIndex,
+        baseVertex,
+        baseInstance)
+}
+
 /**
  * Represents a buffer for storing and managing graphical commands. A `CommandBuffer`
  * provides functionality for writing commands to the buffer and reading them in bulk.

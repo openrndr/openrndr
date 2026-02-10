@@ -11,9 +11,14 @@ actual interface Driver {
     actual fun enableErrorChecking()
     actual fun createCommandBuffer(size: UInt, session: Session?): CommandBuffer
 
+
+    actual fun createCommandBuffer(size: UInt, session: Session?): CommandBuffer<Command>
+
+    actual fun createIndexedCommandBuffer(size: UInt, session: Session?): CommandBuffer<IndexedCommand>
+
     actual fun drawCommandBuffer(
         shader: Shader,
-        commandBuffer: CommandBuffer,
+        commandBuffer: CommandBuffer<Command>,
         vertexBuffers: List<VertexBuffer>,
         instanceAttributes: List<VertexBuffer>,
         primitiveType: DrawPrimitive, commandCount: Int, commandBufferIndex: Int)
@@ -238,6 +243,25 @@ actual interface Driver {
     actual val shaderLanguage: ShaderLanguage
     actual fun createComputeStyleManager(session: Session?): ComputeStyleManager
     actual val properties: DriverProperties
+    actual fun createCommand(vertexCount: UInt, instanceCount: UInt, baseVertex: Int, baseInstance: UInt): Command
+    actual fun createIndexedCommand(
+        vertexCount: UInt,
+        instanceCount: UInt,
+        firstIndex: UInt,
+        baseVertex: Int,
+        baseInstance: UInt
+    ): IndexedCommand
+
+    actual fun drawIndexedCommandBuffer(
+        shader: Shader,
+        indexBuffer: IndexBuffer,
+        commandBuffer: CommandBuffer<IndexedCommand>,
+        vertexBuffers: List<VertexBuffer>,
+        instanceAttributes: List<VertexBuffer>,
+        primitiveType: DrawPrimitive,
+        commandCount: Int,
+        commandBufferIndex: Int
+    )
 
 
 }

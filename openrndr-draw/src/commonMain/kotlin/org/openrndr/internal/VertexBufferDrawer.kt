@@ -188,4 +188,36 @@ class VertexBufferDrawer {
         )
         shader.end()
     }
+
+    fun drawVertexBufferCommands(
+        drawContext: DrawContext,
+        drawStyle: DrawStyle,
+        primitive: DrawPrimitive,
+        indexBuffer: IndexBuffer,
+        vertexBuffers: List<VertexBuffer>,
+        instanceAttributes: List<VertexBuffer>,
+        commandBuffer: CommandBuffer<IndexedCommand>,
+        commandCount: Int,
+        commandOffset: Int
+    ) {
+        val shader = shaderManager.shader(
+            drawStyle.shadeStyle,
+            vertexBuffers.map { it.vertexFormat },
+            instanceAttributes.map { it.vertexFormat })
+        shader.begin()
+        drawContext.applyToShader(shader)
+        drawStyle.applyToShader(shader)
+        Driver.instance.setState(drawStyle)
+        Driver.instance.drawIndexedCommandBuffer(
+            shader,
+            indexBuffer,
+            commandBuffer,
+            vertexBuffers,
+            instanceAttributes + (drawStyle.shadeStyle?.attributes ?: emptyList()),
+            primitive,
+            commandCount,
+            0,
+        )
+        shader.end()
+    }
 }
