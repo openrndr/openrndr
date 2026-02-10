@@ -17,7 +17,7 @@ private val ignoreExceptions by lazy { System.getProperties().containsKey(ignore
  * @param name a name for the event, this is used for logging and debugging purposes only, default is "<unnamed-event>"
  * @param postpone should message delivery for this event be postponed, default is false
  */
-actual class Event<T> actual constructor(val name: String, var postpone: Boolean) {
+actual class Event<T> actual constructor(val name: String, var postpone: Boolean): AutoCloseable {
     private var lastTriggered = Instant.ofEpochMilli(0L)
 
     /**
@@ -157,5 +157,11 @@ actual class Event<T> actual constructor(val name: String, var postpone: Boolean
 
     actual fun listenOnce(listener: Event<T>) {
         oneShotListeners.add { v1 -> listener.trigger(v1) }
+    }
+
+    actual override fun close() {
+        messages.clear()
+        listeners.clear()
+        oneShotListeners.clear()
     }
 }

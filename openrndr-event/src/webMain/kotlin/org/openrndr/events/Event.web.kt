@@ -5,7 +5,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 
 private val logger = KotlinLogging.logger {}
 
-actual class Event<T> actual constructor(val name: String, val postpone: Boolean) {
+actual class Event<T> actual constructor(val name: String, val postpone: Boolean): AutoCloseable {
     actual val listeners: MutableList<(T) -> Unit> = mutableListOf()
     private val oneShotListeners: MutableList<(T) -> Unit> = mutableListOf()
     private val messages = mutableListOf<T>()
@@ -74,6 +74,12 @@ actual class Event<T> actual constructor(val name: String, val postpone: Boolean
 
     actual fun listenOnce(listener: Event<T>) {
         oneShotListeners.add { v1 -> listener.trigger(v1) }
+    }
+
+    actual override fun close() {
+        messages.clear()
+        oneShotListeners.clear()
+        listeners.clear()
     }
 
 }

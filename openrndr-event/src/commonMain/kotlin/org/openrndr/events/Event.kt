@@ -1,6 +1,6 @@
 package org.openrndr.events
 
-expect class Event<T>(name: String = "<unnamed-event>", postpone: Boolean = false) {
+expect class Event<T>(name: String = "<unnamed-event>", postpone: Boolean = false): AutoCloseable {
     val listeners: MutableList<(T) -> Unit>
 
     fun trigger(message: T)
@@ -20,6 +20,8 @@ expect class Event<T>(name: String = "<unnamed-event>", postpone: Boolean = fals
     fun cancel(listener: (T) -> Unit)
     fun listenOnce(listener: (T) -> Unit)
     fun listenOnce(listener: Event<T>)
+
+    override fun close()
 }
 
 /**
