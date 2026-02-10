@@ -15,7 +15,9 @@ interface StyleManagerDispatchBufferBindings {
                 is AtomicCounterBuffer -> {
                     shader.buffer("b_${it.key}[0]", value)
                 }
-                else -> error("unsupported buffer type $value")
+                is IndexBuffer -> {
+                    shader.buffer("B_${it.key}", value)
+                }
             }
         }
     }

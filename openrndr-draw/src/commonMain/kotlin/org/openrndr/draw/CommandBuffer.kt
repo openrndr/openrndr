@@ -1,6 +1,7 @@
 package org.openrndr.draw
 
 import org.openrndr.internal.Driver
+import kotlin.reflect.KClass
 
 /**
  * Represents a generic command that contains parameters typically used for rendering operations.
@@ -51,4 +52,5 @@ interface CommandBuffer<T: CommandBase>: AutoCloseable {
     fun write(source: List<T>)
     fun read(): List<T>
     val session: Session?
+    val type: KClass<T>
 }
