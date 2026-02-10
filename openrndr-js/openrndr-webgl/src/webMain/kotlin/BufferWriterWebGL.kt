@@ -53,6 +53,10 @@ class BufferWriterWebGL(val buffer: Float32Array<ArrayBuffer>, val elementSize: 
         error("only float types")
     }
 
+    override fun write(v: UInt) {
+        error("only float types")
+    }
+
     override fun write(v: IntVector2) {
         error("only float types")
     }

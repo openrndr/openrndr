@@ -93,6 +93,11 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver {
         return CommandBufferGL3(size, session)
     }
 
+    override fun createIndexedCommandBuffer(size: UInt, session: Session?): CommandBuffer<IndexedCommand> {
+        return CommandBufferGL3(size, session)
+    }
+
+
     override fun createCommand(
         vertexCount: UInt,
         instanceCount: UInt,
@@ -144,6 +149,54 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver {
         // -- restore defaultVAO binding
         glBindVertexArray(defaultVAO)
     }
+
+    override fun drawIndexedCommandBuffer(
+        shader: Shader,
+        indexBuffer: IndexBuffer,
+        commandBuffer: CommandBuffer<IndexedCommand>,
+        vertexBuffers: List<VertexBuffer>,
+        instanceAttributes: List<VertexBuffer>,
+        drawPrimitive: DrawPrimitive,
+        commandCount: Int,
+        commandBufferIndex: Int
+    ) {
+        shader as ShaderGL3
+        commandBuffer as CommandBufferGL3
+        commandBuffer.ssbo as ShaderStorageBufferGL43
+
+        glBindBuffer(GL_DRAW_INDIRECT_BUFFER, commandBuffer.ssbo.buffer)
+
+        // -- find or create a VAO for our shader + vertex buffers combination
+        val shaderVertexDescription = ShaderVertexDescription(
+            Driver.instance.contextID,
+            shader.programObject,
+            IntArray(vertexBuffers.size) { (vertexBuffers[it] as VertexBufferGL3).buffer },
+            IntArray(0)
+        )
+
+        val vao = getVao(shaderVertexDescription, vertexBuffers, emptyList(), shader)
+
+        glBindVertexArray(vao)
+        debugGLErrors {
+            when (it) {
+                GL_INVALID_OPERATION -> "array ($vao) is not zero or the name of a vertex array object previously returned from a call to glGenVertexArrays"
+                else -> "unknown error $it"
+            }
+        }
+
+        (indexBuffer as IndexBufferGL3).bind()
+        glMultiDrawElementsIndirect(drawPrimitive.glType(), indexBuffer.type.glType(), IntArray(1), commandCount, 4 * 4)
+
+        debugGLErrors {
+            when (it) {
+                else -> null
+            }
+        }
+        Driver.instance.finish()
+        // -- restore defaultVAO binding
+        glBindVertexArray(defaultVAO)
+    }
+
 
     private val cachedTextureBindings = IntArray(32) { 0 }
 
@@ -468,16 +521,7 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver {
             """
         } else { "" }
     }
-        ${
-        if (type == ShaderType.FRAGMENT) {
-            """#extension GL_KHR_blend_equation_advanced : enable
-            |#ifdef GL_KHR_blend_equation_advanced
-            |layout(blend_support_all_equations) out;
-            |#endif
-            |
-        """.trimMargin()
-        } else ""
-    }
+
         
         ${
         when (version.type) {
@@ -943,7 +987,6 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver {
         indexCount: Int,
         verticesPerPatch: Int
     ) {
-
         shader as ShaderGL3
         indexBuffer as IndexBufferGL3
         applyTextureBindings(shader.textureBindings)
@@ -1010,6 +1053,7 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver {
         counts: IntArray,
         offsets: IntArray
     ) {
+//        Thread.sleep(1000)
         applyTextureBindings(shader.textureBindings)
         debugGLErrors {
             "a pre-existing GL error occurred before Driver.drawVertexBuffer "

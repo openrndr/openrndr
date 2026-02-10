@@ -26,13 +26,20 @@ class DriverWebGL(val context: GL) : Driver {
         Driver.driver = this
     }
 
-    override fun createCommandBuffer(size: UInt, session: Session?): CommandBuffer {
+    override fun createCommandBuffer(size: UInt, session: Session?): CommandBuffer<Command> {
+        TODO("Not yet implemented")
+    }
+
+    override fun createIndexedCommandBuffer(
+        size: UInt,
+        session: Session?
+    ): CommandBuffer<IndexedCommand> {
         TODO("Not yet implemented")
     }
 
     override fun drawCommandBuffer(
         shader: Shader,
-        commandBuffer: CommandBuffer,
+        commandBuffer: CommandBuffer<Command>,
         vertexBuffers: List<VertexBuffer>,
         instanceAttributes: List<VertexBuffer>,
         primitiveType: DrawPrimitive,
@@ -771,6 +778,38 @@ class DriverWebGL(val context: GL) : Driver {
             maxTextureSamples = 4,
             maxTextureSize = context.getParameter(GL.MAX_TEXTURE_SIZE) as? Int ?: 4096
         )
+    }
+
+    override fun createCommand(
+        vertexCount: UInt,
+        instanceCount: UInt,
+        baseVertex: Int,
+        baseInstance: UInt
+    ): Command {
+        TODO("Not yet implemented")
+    }
+
+    override fun createIndexedCommand(
+        vertexCount: UInt,
+        instanceCount: UInt,
+        firstIndex: UInt,
+        baseVertex: Int,
+        baseInstance: UInt
+    ): IndexedCommand {
+        TODO("Not yet implemented")
+    }
+
+    override fun drawIndexedCommandBuffer(
+        shader: Shader,
+        indexBuffer: IndexBuffer,
+        commandBuffer: CommandBuffer<IndexedCommand>,
+        vertexBuffers: List<VertexBuffer>,
+        instanceAttributes: List<VertexBuffer>,
+        primitiveType: DrawPrimitive,
+        commandCount: Int,
+        commandBufferIndex: Int
+    ) {
+        TODO("Not yet implemented")
     }
 
 

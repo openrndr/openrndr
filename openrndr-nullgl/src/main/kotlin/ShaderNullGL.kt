@@ -49,6 +49,9 @@ class ShaderNullGL(override val session: Session?) : Shader {
     override fun buffer(name: String, vertexBuffer: VertexBuffer) {
     }
 
+    override fun buffer(name: String, indexBuffer: IndexBuffer) {
+    }
+
     override fun buffer(name: String, shaderStorageBuffer: ShaderStorageBuffer) {
     }
 

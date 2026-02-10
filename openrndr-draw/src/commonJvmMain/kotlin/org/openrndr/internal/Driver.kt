@@ -26,7 +26,17 @@ actual interface Driver {
         baseInstance: UInt
     ): Command
 
+    actual fun createIndexedCommand(
+        vertexCount: UInt,
+        instanceCount: UInt,
+        firstIndex: UInt,
+        baseVertex: Int,
+        baseInstance: UInt
+    ): IndexedCommand
+
     actual fun createCommandBuffer(size: UInt, session: Session?): CommandBuffer<Command>
+
+    actual fun createIndexedCommandBuffer(size: UInt, session: Session?): CommandBuffer<IndexedCommand>
 
     actual fun drawCommandBuffer(
         shader: Shader,
@@ -35,6 +45,18 @@ actual interface Driver {
         instanceAttributes: List<VertexBuffer>,
         primitiveType: DrawPrimitive, commandCount: Int, commandBufferIndex: Int
     )
+
+    actual fun drawIndexedCommandBuffer(
+        shader: Shader,
+        indexBuffer: IndexBuffer,
+        commandBuffer: CommandBuffer<IndexedCommand>,
+        vertexBuffers: List<VertexBuffer>,
+        instanceAttributes: List<VertexBuffer>,
+        primitiveType: DrawPrimitive,
+        commandCount: Int,
+        commandBufferIndex: Int
+    )
+
 
     /**
      * Create a shader from code

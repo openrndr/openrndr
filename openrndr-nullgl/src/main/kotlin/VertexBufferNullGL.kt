@@ -11,6 +11,10 @@ class BufferWriterNullGL : BufferWriter() {
 
     }
 
+    override fun write(v: UInt) {
+
+    }
+
     override fun write(v: IntVector2) {
     }
 

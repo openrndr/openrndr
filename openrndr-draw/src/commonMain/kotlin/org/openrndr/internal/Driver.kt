@@ -58,6 +58,7 @@ expect interface Driver {
     ): Shader
 
 
+
     fun createCommand(
         vertexCount: UInt,
         instanceCount: UInt,
@@ -65,12 +66,32 @@ expect interface Driver {
         baseInstance: UInt
     ): Command
 
+    fun createIndexedCommand(
+        vertexCount: UInt,
+        instanceCount: UInt,
+        firstIndex: UInt,
+        baseVertex: Int,
+        baseInstance: UInt
+    ): IndexedCommand
+
     fun createCommandBuffer(size: UInt, session: Session? = Session.active): CommandBuffer<Command>
 
+    fun createIndexedCommandBuffer(size: UInt, session: Session? = Session.active): CommandBuffer<IndexedCommand>
 
     fun drawCommandBuffer(
         shader: Shader,
         commandBuffer: CommandBuffer<Command>,
+        vertexBuffers: List<VertexBuffer>,
+        instanceAttributes: List<VertexBuffer>,
+        primitiveType: DrawPrimitive,
+        commandCount: Int,
+        commandBufferIndex: Int = 0
+    )
+
+    fun drawIndexedCommandBuffer(
+        shader: Shader,
+        indexBuffer: IndexBuffer,
+        commandBuffer: CommandBuffer<IndexedCommand>,
         vertexBuffers: List<VertexBuffer>,
         instanceAttributes: List<VertexBuffer>,
         primitiveType: DrawPrimitive,

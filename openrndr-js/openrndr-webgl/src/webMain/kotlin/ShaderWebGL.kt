@@ -300,6 +300,10 @@ class ShaderWebGL(
 
     }
 
+    override fun buffer(name: String, indexBuffer: IndexBuffer) {
+        TODO("Not yet implemented")
+    }
+
     override fun buffer(name: String, vertexBuffer: VertexBuffer) {
         TODO("Not yet implemented")
     }

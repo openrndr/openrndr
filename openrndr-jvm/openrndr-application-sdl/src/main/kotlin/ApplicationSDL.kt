@@ -123,7 +123,7 @@ class ApplicationSDL(override var program: Program, override var configuration: 
         SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8)
         SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8)
 
-        //val versions = listOf(DriverVersionGL.GLES_VERSION_3_0)
+//        val versions = listOf(DriverVersionGL.GLES_VERSION_3_1)
         val versions = DriverGL3Configuration.candidateVersions()
         for (version in versions) {
             println("trying version $version")
