@@ -16,10 +16,10 @@ import kotlin.math.cos
 fun main() {
     application {
         program {
-//            val cb = Driver.instance.createCommandBuffer(2u)
-//            cb.write(listOf(
-//                command(3u),
-//                command(3u, baseVertex = 3, baseInstance = 0u, instanceCount = 3u)))
+            val cb = Driver.instance.createCommandBuffer(2u)
+            cb.write(listOf(
+                command(3u),
+                command(3u, baseVertex = 3, baseInstance = 0u, instanceCount = 3u)))
 
             val vb = vertexBuffer(vertexFormat { position(3) }, 6)
             vb.put {
@@ -49,14 +49,14 @@ fun main() {
 
 //                drawer.translate(cos(seconds) * 100.0, 0.0)
 //                drawer.circle(width / 2.0, height / 2.0, 100.0)
-                drawer.vertexBuffer(ib, listOf(vb), DrawPrimitive.TRIANGLES, 0 , 3)
+//                drawer.vertexBuffer(ib, listOf(vb), DrawPrimitive.TRIANGLES, 0 , 3)
 //                drawer.shadeStyle = shadeStyle {
 //                    vertexPreamble = """"""
 //                    vertexTransform = """
 //                       float f = float(gl_DrawID);
 //                    """
 //                }
-//                drawer.vertexBufferCommands(listOf(vb), emptyList(), DrawPrimitive.TRIANGLES, cb, 2, 0)
+                drawer.vertexBufferCommands(listOf(vb), emptyList(), DrawPrimitive.TRIANGLES, cb, 2, 0)
             }
         }
     }

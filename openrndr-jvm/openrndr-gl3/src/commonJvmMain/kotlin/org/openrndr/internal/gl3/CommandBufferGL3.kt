@@ -9,6 +9,7 @@ import org.openrndr.draw.Session
 import org.openrndr.draw.ShaderStorageBuffer
 import org.openrndr.draw.shaderStorageFormat
 import org.openrndr.internal.gl3.ShaderStorageBufferGL43
+import kotlin.reflect.KClass
 
 @JvmRecord
 data class CommandGL3(
@@ -31,7 +32,8 @@ data class IndexedCommandGL3(
 class CommandBufferGL3<T : CommandBase>(
     val ssbo: ShaderStorageBuffer,
     override val size: UInt,
-    override val session: Session?
+    override val session: Session?,
+    override val type: KClass<T>
 ) :
     CommandBuffer<T> {
 
@@ -80,6 +82,7 @@ inline fun <reified T : CommandBase> CommandBufferGL3(size: UInt, session: Sessi
     return CommandBufferGL3(
         ssbo,
         size,
-        session
+        session,
+        T::class
     )
 }
