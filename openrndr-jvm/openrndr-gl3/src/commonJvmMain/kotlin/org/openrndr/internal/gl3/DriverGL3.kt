@@ -7,6 +7,7 @@ import org.openrndr.draw.*
 import org.openrndr.internal.*
 import org.openrndr.internal.gl3.org.openrndr.internal.gl3.CommandBufferGL3
 import org.openrndr.internal.gl3.org.openrndr.internal.gl3.CommandGL3
+import org.openrndr.internal.gl3.org.openrndr.internal.gl3.IndexedCommandGL3
 import org.openrndr.internal.glcommon.ComputeStyleManagerGLCommon
 import org.openrndr.internal.glcommon.ShadeStyleManagerGLCommon
 import org.openrndr.internal.glcommon.ShaderGeneratorsGLCommon
@@ -104,6 +105,14 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver {
         baseVertex: Int,
         baseInstance: UInt
     ): Command = CommandGL3(vertexCount, instanceCount, baseVertex, baseInstance)
+
+    override fun createIndexedCommand(
+        vertexCount: UInt,
+        instanceCount: UInt,
+        firstIndex: UInt,
+        baseVertex: Int,
+        baseInstance: UInt
+    ): IndexedCommand = IndexedCommandGL3(vertexCount, instanceCount, firstIndex, baseVertex, baseInstance)
 
     override fun drawCommandBuffer(
         shader: Shader,
