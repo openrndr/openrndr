@@ -103,7 +103,7 @@ interface Clock {
  * It provides common properties and methods for managing the lifecycle of a program, drawing operations,
  * and asset management.
  */
-interface Program : InputEvents, ExtensionHost, Clock {
+interface Program : InputEvents, ExtensionHost, Clock, SensorDriver {
 
     /**
      * A map that can be used to store arbitrary data, including functions
@@ -527,6 +527,14 @@ open class ProgramImplementation(val suspend: Boolean = false) : Program {
 
     override fun updateFrameSecondsFromClock() {
         frameSeconds = clock()
+    }
+
+    override fun gyroscope(sensorRate: SensorRate): Gyroscope {
+        error("not supported")
+    }
+
+    override fun accelerometer(sensorRate: SensorRate): Accelerometer {
+        error("not supported")
     }
 }
 

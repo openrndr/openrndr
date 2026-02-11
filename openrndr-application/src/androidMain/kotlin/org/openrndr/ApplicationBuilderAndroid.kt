@@ -11,30 +11,33 @@ fun androidApplication(
     System.setProperty("org.openrndr.application", "ANDROID-GLES")
 
     val result: Application
-    ApplicationBuilderAndroid().apply {
+    val builder = ApplicationBuilderAndroid(context)
+    builder.apply {
         build()
         result = applicationBase.build(this.program, this.configuration)
         result.run()
     }
 
-    val listener = result as GLSurfaceViewListener
-    val renderer = ORSurfaceViewRenderer(listener)
+    val surfaceViewListener = result as GLSurfaceViewListener
+    val renderer = ORSurfaceViewRenderer(surfaceViewListener)
 
     val surfaceView = GLSurfaceView(context).apply {
         setEGLContextClientVersion(3)
         setRenderer(renderer)
         renderMode = GLSurfaceView.RENDERMODE_CONTINUOUSLY
-        setOnTouchListener { view, event -> listener.onTouch(view, event) }
+        setOnTouchListener { view, event -> surfaceViewListener.onTouch(view, event) }
     }
 
     val lifecycle = (context as LifecycleOwner).lifecycle
     AndroidAppLifecycleHandler(lifecycle, object : AndroidAppLifecycleListener {
-        override fun onPause() {
-            surfaceView.onPause()
+        override fun onResume() {
+            builder.onResume()
+            surfaceView.onResume()
         }
 
-        override fun onResume() {
-            surfaceView.onResume()
+        override fun onPause() {
+            builder.onPause()
+            surfaceView.onPause()
         }
     })
 
@@ -42,7 +45,7 @@ fun androidApplication(
 }
 
 @Suppress("DeprecatedCallableAddReplaceWith")
-class ApplicationBuilderAndroid : ApplicationBuilder() {
+class ApplicationBuilderAndroid(context: Context) : ApplicationBuilder() {
     override val configuration = Configuration()
     override var program: Program = ProgramImplementation()
     override val applicationBase: ApplicationBase = ApplicationBase.initialize()
@@ -52,13 +55,31 @@ class ApplicationBuilderAndroid : ApplicationBuilder() {
         configuration.init()
     }
 
+    private val sensorHandler = SensorHandler(context)
+
     override fun program(init: suspend Program.() -> Unit): Program {
         program = object : ProgramImplementation() {
             override suspend fun setup() {
                 init()
             }
+
+            override fun gyroscope(sensorRate: SensorRate): Gyroscope {
+                return sensorHandler.provideGyroscope(sensorRate)
+            }
+
+            override fun accelerometer(sensorRate: SensorRate): Accelerometer {
+                return sensorHandler.provideAccelerometer(sensorRate)
+            }
         }
         return program
+    }
+
+    fun onResume() {
+        sensorHandler.onResume()
+    }
+
+    fun onPause() {
+        sensorHandler.onPause()
     }
 
     fun run(): Application {

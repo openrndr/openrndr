@@ -317,6 +317,14 @@ open class WindowProgram(val suspend: Boolean = false) : Program {
     override fun updateFrameSecondsFromClock() {
         frameSeconds = clock()
     }
+
+    override fun gyroscope(sensorRate: SensorRate): Gyroscope {
+        return DummyGyroscope.instance
+    }
+
+    override fun accelerometer(sensorRate: SensorRate): Accelerometer {
+        return DummyAccelerometer.instance
+    }
 }
 fun Program.window(
     configuration: WindowConfiguration = WindowConfiguration(),
