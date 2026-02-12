@@ -361,7 +361,7 @@ class ApplicationSDL(override var program: Program, override var configuration: 
                         MouseButton.NONE, modifiersFromSdl(SDL_GetModState().toInt())
                     )
                 )
-                val button = getMouseButton(mouseEvent.state())
+                val button = getMouseButtonFromMask(mouseEvent.state())
                 if (button != MouseButton.NONE) {
                     eventWindow.program.mouse.dragged.trigger(
                         MouseEvent(
@@ -600,16 +600,29 @@ class ApplicationSDL(override var program: Program, override var configuration: 
 
 
     /**
-     * Maps an SDL mouse button event to a corresponding `MouseButton` constant.
+     * Maps an SDL mouse button bitmask to a corresponding `MouseButton` constant.
      *
+     * @param buttons A button bitmask. Example: 1110 = Left, Middle and Right buttons
+     * pressed simultaneously.
+     *
+     * Note: `buttons` can contain a combination of buttons, but here
+     * we only return the first matching one.
+     */
+    private fun getMouseButtonFromMask(buttons: Int) = when {
+        SDL_BUTTON_LMASK and buttons != 0 -> MouseButton.LEFT
+        SDL_BUTTON_MMASK and buttons != 0 -> MouseButton.CENTER
+        SDL_BUTTON_RMASK and buttons != 0 -> MouseButton.RIGHT
+        else -> MouseButton.NONE
+    }
+
+    /**
+     * Maps an SDL mouse button constant to a `MouseButton` constant
      * Note: SDL provides SDL_BUTTON_X1 and SDL_BUTTON_X2, but MouseButton doesn't.
      */
-    private fun getMouseButton(buttons: Int) = when (buttons) {
+    private fun getMouseButton(button: Int) = when(button) {
         SDL_BUTTON_LEFT -> MouseButton.LEFT
         SDL_BUTTON_MIDDLE -> MouseButton.CENTER
         SDL_BUTTON_RIGHT -> MouseButton.RIGHT
-        // SDL_BUTTON_X1 -> ?
-        // SDL_BUTTON_X2 -> ?
         else -> MouseButton.NONE
     }
 
