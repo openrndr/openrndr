@@ -19,3 +19,6 @@ data class DeviceRotationEvent(
     val roll: Double,
     val matrix: Matrix44
 )
+
+@JvmRecord
+data class ProximityEvent(val distance: Double)

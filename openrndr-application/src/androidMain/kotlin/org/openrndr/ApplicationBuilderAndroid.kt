@@ -78,6 +78,10 @@ class ApplicationBuilderAndroid(context: Context) : ApplicationBuilder() {
             override fun deviceRotation(sensorRate: SensorRate): DeviceRotation {
                 return sensorHandler.provideDeviceRotation(sensorRate)
             }
+
+            override fun proximity(sensorRate: SensorRate): Proximity {
+                return sensorHandler.provideProximity(sensorRate)
+            }
         }
         return program
     }

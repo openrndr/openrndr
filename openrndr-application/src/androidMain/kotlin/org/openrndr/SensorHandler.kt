@@ -87,11 +87,22 @@ class SensorHandler(context: Context) {
             )
         }
     }
+
+    private var proximityEventListener: SensorEventListener? = object : SensorEventListener {
+        override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
+
+        override fun onSensorChanged(event: SensorEvent) {
+            AndroidProximity.instance.updateEvent.trigger(
+                ProximityEvent(distance = event.values[0].toDouble())
+            )
+        }
+    }
     private val sensorManager = context.getSystemService(SENSOR_SERVICE) as SensorManager
     private val gyroscopeSensor = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
     private val accelerometerSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
     private val compassSensor = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
     private val deviceRotationSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR)
+    private val proximitySensor = sensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY)
 
     fun provideGyroscope(sensorRate: SensorRate): Gyroscope {
         val gyroscope = AndroidGyroscope.instance
@@ -124,6 +135,14 @@ class SensorHandler(context: Context) {
         registerDeviceRotationListener(listener)
         return deviceRotation
     }
+
+    fun provideProximity(sensorRate: SensorRate): Proximity {
+        val proximity = AndroidProximity.instance
+        val listener = ProximityListener(sensorRate)
+        proximityListener = listener
+        registerProximityListener(listener)
+        return proximity
+    }
     private fun registerGyroscopeListener(listener: GyroscopeListener) {
         sensorManager.registerListener(
             gyroscopeEventListener,
@@ -155,6 +174,14 @@ class SensorHandler(context: Context) {
             androidSensorRate(listener.sensorRate)
         )
     }
+
+    private fun registerProximityListener(listener: ProximityListener) {
+        sensorManager.registerListener(
+            proximityEventListener,
+            proximitySensor,
+            androidSensorRate(listener.sensorRate)
+        )
+    }
     private fun androidSensorRate(sensorRate: SensorRate): Int {
         return when (sensorRate) {
             SensorRate.NORMAL -> SensorManager.SENSOR_DELAY_UI
@@ -169,6 +196,7 @@ class SensorHandler(context: Context) {
         accelerometerListener?.let { registerAccelerometerListener(it) }
         compassListener?.let { registerCompassListener(it) }
         deviceRotationListener?.let { registerDeviceRotationListener(it) }
+        proximityListener?.let { registerProximityListener(it) }
     }
 
     fun onPause() {
@@ -176,5 +204,6 @@ class SensorHandler(context: Context) {
         accelerometerListener?.let { sensorManager.unregisterListener(accelerometerEventListener) }
         compassListener?.let { sensorManager.unregisterListener(compassEventListener) }
         deviceRotationListener?.let { sensorManager.unregisterListener(deviceRotationEventListener) }
+        proximityListener?.let { sensorManager.unregisterListener(proximityEventListener) }
     }
 }

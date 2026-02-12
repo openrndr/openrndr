@@ -5,4 +5,5 @@ actual interface SensorDriver {
     actual fun accelerometer(sensorRate: SensorRate): Accelerometer
     actual fun compass(sensorRate: SensorRate): Compass
     actual fun deviceRotation(sensorRate: SensorRate): DeviceRotation
+    actual fun proximity(sensorRate: SensorRate): Proximity
 }

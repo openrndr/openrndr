@@ -29,3 +29,10 @@ internal class DummyDeviceRotation : DeviceRotation {
     }
     override val updateEvent: Event<DeviceRotationEvent> = Event("device-rotation")
 }
+
+internal class DummyProximity : Proximity {
+    companion object {
+        val instance = DummyProximity()
+    }
+    override val updateEvent: Event<ProximityEvent> = Event("proximity")
+}
