@@ -159,6 +159,6 @@ class KeyboardDriverSDL : KeyboardDriver {
         SDLK_F11 -> KEYNAME_F11
         SDLK_F12 -> KEYNAME_F12
         SDLK_CAPSLOCK -> KEYNAME_CAPSLOCK
-        else -> SDL_GetKeyName(keyId) ?: "<null>"
+        else -> SDL_GetKeyName(keyId)?.lowercase() ?: "<null>"
     }
 }
