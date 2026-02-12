@@ -8,6 +8,7 @@ actual interface SensorDriver {
     actual fun compass(sensorRate: SensorRate): Compass
     actual fun deviceRotation(sensorRate: SensorRate): DeviceRotation
     actual fun proximity(sensorRate: SensorRate): Proximity
+    actual fun light(sensorRate: SensorRate): Light
 }
 
 data class GyroscopeListener(val sensorRate: SensorRate)
@@ -15,6 +16,7 @@ data class AccelerometerListener(val sensorRate: SensorRate)
 data class CompassListener(val sensorRate: SensorRate)
 data class DeviceRotationListener(val sensorRate: SensorRate)
 data class ProximityListener(val sensorRate: SensorRate)
+data class LightListener(val sensorRate: SensorRate)
 
 internal class AndroidGyroscope : Gyroscope {
 
@@ -59,4 +61,13 @@ internal class AndroidProximity : Proximity {
     }
 
     override val updateEvent: Event<ProximityEvent> = Event("proximity")
+}
+
+internal class AndroidLight : Light {
+
+    companion object {
+        val instance = AndroidLight()
+    }
+
+    override val updateEvent: Event<LightEvent> = Event("light")
 }

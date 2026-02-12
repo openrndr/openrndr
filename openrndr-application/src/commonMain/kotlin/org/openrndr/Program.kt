@@ -548,6 +548,10 @@ open class ProgramImplementation(val suspend: Boolean = false) : Program {
     override fun proximity(sensorRate: SensorRate): Proximity {
         error("not supported")
     }
+
+    override fun light(sensorRate: SensorRate): Light {
+        error("not supported")
+    }
 }
 
 /**

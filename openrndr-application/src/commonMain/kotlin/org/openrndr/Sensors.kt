@@ -22,3 +22,6 @@ data class DeviceRotationEvent(
 
 @JvmRecord
 data class ProximityEvent(val distance: Double)
+
+@JvmRecord
+data class LightEvent(val light: Double)

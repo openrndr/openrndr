@@ -8,6 +8,7 @@ expect interface SensorDriver {
     fun compass(sensorRate: SensorRate): Compass
     fun deviceRotation(sensorRate: SensorRate): DeviceRotation
     fun proximity(sensorRate: SensorRate): Proximity
+    fun light(sensorRate: SensorRate): Light
 }
 
 enum class SensorRate {
@@ -35,4 +36,8 @@ interface DeviceRotation {
 
 interface Proximity {
     val updateEvent: Event<ProximityEvent>
+}
+
+interface Light {
+    val updateEvent: Event<LightEvent>
 }

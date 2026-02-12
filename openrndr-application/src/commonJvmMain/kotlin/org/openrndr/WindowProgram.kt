@@ -337,6 +337,10 @@ open class WindowProgram(val suspend: Boolean = false) : Program {
     override fun proximity(sensorRate: SensorRate): Proximity {
         return DummyProximity.instance
     }
+
+    override fun light(sensorRate: SensorRate): Light {
+        return DummyLight.instance
+    }
 }
 fun Program.window(
     configuration: WindowConfiguration = WindowConfiguration(),

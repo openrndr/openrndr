@@ -82,6 +82,10 @@ class ApplicationBuilderAndroid(context: Context) : ApplicationBuilder() {
             override fun proximity(sensorRate: SensorRate): Proximity {
                 return sensorHandler.provideProximity(sensorRate)
             }
+
+            override fun light(sensorRate: SensorRate): Light {
+                return sensorHandler.provideLight(sensorRate)
+            }
         }
         return program
     }

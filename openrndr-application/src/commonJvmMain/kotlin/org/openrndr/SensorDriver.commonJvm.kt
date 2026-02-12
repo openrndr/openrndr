@@ -36,3 +36,10 @@ internal class DummyProximity : Proximity {
     }
     override val updateEvent: Event<ProximityEvent> = Event("proximity")
 }
+
+internal class DummyLight : Light {
+    companion object {
+        val instance = DummyLight()
+    }
+    override val updateEvent: Event<LightEvent> = Event("light")
+}
