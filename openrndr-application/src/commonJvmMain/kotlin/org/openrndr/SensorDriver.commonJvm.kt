@@ -22,3 +22,10 @@ internal class DummyCompass : Compass {
     }
     override val updateEvent: Event<CompassEvent> = Event("compass")
 }
+
+internal class DummyDeviceRotation : DeviceRotation {
+    companion object {
+        val instance = DummyDeviceRotation()
+    }
+    override val updateEvent: Event<DeviceRotationEvent> = Event("device-rotation")
+}

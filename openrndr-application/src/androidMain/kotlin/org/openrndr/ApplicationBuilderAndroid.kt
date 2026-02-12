@@ -74,6 +74,10 @@ class ApplicationBuilderAndroid(context: Context) : ApplicationBuilder() {
             override fun compass(sensorRate: SensorRate): Compass {
                 return sensorHandler.provideCompass(sensorRate)
             }
+
+            override fun deviceRotation(sensorRate: SensorRate): DeviceRotation {
+                return sensorHandler.provideDeviceRotation(sensorRate)
+            }
         }
         return program
     }

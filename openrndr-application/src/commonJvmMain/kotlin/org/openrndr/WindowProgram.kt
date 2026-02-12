@@ -329,6 +329,10 @@ open class WindowProgram(val suspend: Boolean = false) : Program {
     override fun compass(sensorRate: SensorRate): Compass {
         return DummyCompass.instance
     }
+
+    override fun deviceRotation(sensorRate: SensorRate): DeviceRotation {
+        return DummyDeviceRotation.instance
+    }
 }
 fun Program.window(
     configuration: WindowConfiguration = WindowConfiguration(),

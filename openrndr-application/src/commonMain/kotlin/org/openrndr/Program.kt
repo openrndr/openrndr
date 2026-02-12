@@ -540,6 +540,10 @@ open class ProgramImplementation(val suspend: Boolean = false) : Program {
     override fun compass(sensorRate: SensorRate): Compass {
         error("not supported")
     }
+
+    override fun deviceRotation(sensorRate: SensorRate): DeviceRotation {
+        error("not supported")
+    }
 }
 
 /**
