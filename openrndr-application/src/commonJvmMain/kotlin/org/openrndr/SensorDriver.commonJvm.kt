@@ -15,3 +15,10 @@ internal class DummyAccelerometer : Accelerometer {
     }
     override val updateEvent: Event<AccelerometerEvent> = Event("accelerometer")
 }
+
+internal class DummyCompass : Compass {
+    companion object {
+        val instance = DummyCompass()
+    }
+    override val updateEvent: Event<CompassEvent> = Event("compass")
+}

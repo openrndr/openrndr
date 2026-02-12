@@ -11,6 +11,7 @@ class SensorHandler(context: Context) {
 
     private var gyroscopeListener: GyroscopeListener? = null
     private var accelerometerListener: AccelerometerListener? = null
+    private var compassListener: CompassListener? = null
 
     private var gyroscopeEventListener: SensorEventListener? = object : SensorEventListener {
         override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
@@ -40,9 +41,23 @@ class SensorHandler(context: Context) {
         }
     }
 
+    private var compassEventListener: SensorEventListener? = object : SensorEventListener {
+        override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
+
+        override fun onSensorChanged(event: SensorEvent) {
+            AndroidCompass.instance.updateEvent.trigger(
+                CompassEvent(
+                    x = event.values[0].toDouble(),
+                    y = event.values[1].toDouble(),
+                    z = event.values[2].toDouble(),
+                )
+            )
+        }
+    }
     private val sensorManager = context.getSystemService(SENSOR_SERVICE) as SensorManager
     private val gyroscopeSensor = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
     private val accelerometerSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+    private val compassSensor = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
 
     fun provideGyroscope(sensorRate: SensorRate): Gyroscope {
         val gyroscope = AndroidGyroscope.instance
@@ -60,6 +75,13 @@ class SensorHandler(context: Context) {
         return accelerometer
     }
 
+    fun provideCompass(sensorRate: SensorRate): Compass {
+        val compass = AndroidCompass.instance
+        val listener = CompassListener(sensorRate)
+        compassListener = listener
+        registerCompassListener(listener)
+        return compass
+    }
     private fun registerGyroscopeListener(listener: GyroscopeListener) {
         sensorManager.registerListener(
             gyroscopeEventListener,
@@ -76,6 +98,13 @@ class SensorHandler(context: Context) {
         )
     }
 
+    private fun registerCompassListener(listener: CompassListener) {
+        sensorManager.registerListener(
+            compassEventListener,
+            compassSensor,
+            androidSensorRate(listener.sensorRate)
+        )
+    }
     private fun androidSensorRate(sensorRate: SensorRate): Int {
         return when (sensorRate) {
             SensorRate.NORMAL -> SensorManager.SENSOR_DELAY_UI
@@ -88,10 +117,12 @@ class SensorHandler(context: Context) {
     fun onResume() {
         gyroscopeListener?.let { registerGyroscopeListener(it) }
         accelerometerListener?.let { registerAccelerometerListener(it) }
+        compassListener?.let { registerCompassListener(it) }
     }
 
     fun onPause() {
         gyroscopeListener?.let { sensorManager.unregisterListener(gyroscopeEventListener) }
         accelerometerListener?.let { sensorManager.unregisterListener(accelerometerEventListener) }
+        compassListener?.let { sensorManager.unregisterListener(compassEventListener) }
     }
 }

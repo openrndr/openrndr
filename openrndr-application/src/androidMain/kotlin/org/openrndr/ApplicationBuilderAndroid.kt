@@ -70,6 +70,10 @@ class ApplicationBuilderAndroid(context: Context) : ApplicationBuilder() {
             override fun accelerometer(sensorRate: SensorRate): Accelerometer {
                 return sensorHandler.provideAccelerometer(sensorRate)
             }
+
+            override fun compass(sensorRate: SensorRate): Compass {
+                return sensorHandler.provideCompass(sensorRate)
+            }
         }
         return program
     }

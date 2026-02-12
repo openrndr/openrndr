@@ -325,6 +325,10 @@ open class WindowProgram(val suspend: Boolean = false) : Program {
     override fun accelerometer(sensorRate: SensorRate): Accelerometer {
         return DummyAccelerometer.instance
     }
+
+    override fun compass(sensorRate: SensorRate): Compass {
+        return DummyCompass.instance
+    }
 }
 fun Program.window(
     configuration: WindowConfiguration = WindowConfiguration(),
