@@ -259,7 +259,7 @@ open class WindowProgram(val suspend: Boolean = false) : Program {
         override val drop = Event<DropEvent>("window-drop", postpone = true)
 
         /**
-         * Drop event, triggered when files are dropped on the window
+         * Drop event, triggered when texts are dropped on the window
          */
         override val dropTexts = Event<DropTextEvent>("window-drop-text", postpone = true)
 
