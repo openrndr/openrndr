@@ -71,16 +71,10 @@ class ApplicationAndroidGLES(
 
         setupPreload(program, configuration)
 
-        // Install drawer & run Program.setup() on the GL thread
         program.drawer = Drawer(driver)
         program.driver = driver
 
         // TODO: need to handle app foreground after going background
-        if (!initialized) {
-            runBlocking { program.setup() }
-        }
-
-        initialized = true
     }
 
     /** Called from Renderer.onSurfaceChanged (GL thread). */
@@ -89,6 +83,14 @@ class ApplicationAndroidGLES(
         driver.onSurfaceChanged(width, height)
         program.width = width
         program.height = height
+
+        val defaultRenderTarget = ProgramRenderTargetGL3(program)
+        defaultRenderTarget.bind()
+
+        if (!initialized) {
+            runBlocking { program.setup() }
+            initialized = true
+        }
     }
 
     /** Called every frame from Renderer.onDrawFrame (GL thread). */
@@ -188,7 +190,7 @@ class ApplicationAndroidGLES(
     override var windowTitle: String get() = ""; set(_) {}
     override var windowPosition: Vector2 get() = Vector2.ZERO; set(_) {}
     override var windowSize: Vector2
-        get() = Vector2(configuration.width.toDouble(), configuration.height.toDouble())
+        get() = Vector2(program.width.toDouble(), program.height.toDouble())
         set(_) {}
     override var windowMultisample: WindowMultisample
         get() = WindowMultisample.Disabled

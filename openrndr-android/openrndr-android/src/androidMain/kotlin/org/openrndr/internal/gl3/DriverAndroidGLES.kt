@@ -61,8 +61,6 @@ class DriverAndroidGLES(override val version: DriverVersionGL) : Driver, Version
     private var currentHeight = 0
     private var currentFill = ColorRGBa.WHITE
 
-    private lateinit var renderTarget: RenderTargetGL3
-
     override val contextID: Long
         get() {
             return Thread.currentThread().id
@@ -91,9 +89,7 @@ class DriverAndroidGLES(override val version: DriverVersionGL) : Driver, Version
         logger.info { "onSurfaceChanged - width: $width - height: $height" }
         currentWidth = width
         currentHeight = height
-        renderTarget = RenderTargetGL3.create(width, height, 1.0, BufferMultisample.Disabled, null)
         viewport(width, height) // make sure GL viewport matches display
-
     }
 
     override fun createShader(
@@ -1260,7 +1256,7 @@ class DriverAndroidGLES(override val version: DriverVersionGL) : Driver, Version
     }
 
     override val activeRenderTarget: RenderTarget
-        get() = renderTarget
+        get() = RenderTargetGL3.activeRenderTarget
 
     override fun finish() {
         glFlush()
