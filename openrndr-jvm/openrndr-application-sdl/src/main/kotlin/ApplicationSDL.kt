@@ -479,6 +479,8 @@ class ApplicationSDL(override var program: Program, override var configuration: 
                             )
                         )
                     }
+
+                    else -> run { logger.warn { "got event (=SDL_EVENT_DROP_COMPLETE) with unsupported dropType (=$dropType): " }; return }
                 }
             }
 
