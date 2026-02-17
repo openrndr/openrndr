@@ -75,10 +75,11 @@ open class RenderTargetGL3(
         ): RenderTargetGL3 {
             logger.trace { "created new render target ($width*$height) @ ${contentScale}x $multisample" }
             val framebuffer = glGenFramebuffers()
+
             if (multisample is BufferMultisample.SampleCount) {
                 val maxSamples = glGetInteger(GL_MAX_SAMPLES)
                 if (maxSamples < multisample.sampleCount) {
-                    logger.info {
+                    logger.warn {
                         "requested multisampling with ${multisample.sampleCount} samples, but only $maxSamples are supported"
                     }
                 }
@@ -128,6 +129,7 @@ open class RenderTargetGL3(
     }
 
     open fun bindTarget() {
+        require(!destroyed)
         debugGLErrors { null }
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer)
 
@@ -158,6 +160,7 @@ open class RenderTargetGL3(
     }
 
     override fun unbind() {
+        require(!destroyed)
         if (!bound) {
             val previous = active.getOrPut(Driver.instance.contextID) { Stack() }.let {
                 it.pop()
@@ -190,8 +193,10 @@ open class RenderTargetGL3(
         val levelPixelDimensions = colorBuffer.dimensionsInPixels(level)
 
         if (!(levelPixelDimensions.x == effectiveWidth && levelPixelDimensions.y == effectiveHeight)) {
-            throw IllegalArgumentException("buffer pixel dimension mismatch. expected: ($effectiveWidth x $effectiveHeight)" +
-                    "got: (${levelPixelDimensions.x} x ${levelPixelDimensions.y} ($colorBuffer)")
+            throw IllegalArgumentException(
+                "buffer pixel dimension mismatch. expected: ($effectiveWidth x $effectiveHeight)" +
+                        "got: (${levelPixelDimensions.x} x ${levelPixelDimensions.y} ($colorBuffer)"
+            )
         }
         colorBuffer as ColorBufferGL3
         glFramebufferTexture2D(
@@ -288,7 +293,7 @@ open class RenderTargetGL3(
         require(level >= 0 && level < volumeTexture.depth) {
             "Invalid attachment operation: level (=$level) is out of valid range [0, ${volumeTexture.depth - 1}]."
         }
-        require(Driver.glType == DriverTypeGL.GL ||  volumeTexture.format.componentCount != 3) {
+        require(Driver.glType == DriverTypeGL.GL || volumeTexture.format.componentCount != 3) {
             "attachments with format (=${volumeTexture.format}) are not supported in GLES mode"
         }
 
@@ -458,19 +463,20 @@ open class RenderTargetGL3(
             (active[context]?.peek() as RenderTargetGL3).bindTarget()
     }
 
-
-    private fun bound(function: () -> Unit) {
-        bind()
+    private fun bufferBound(function: () -> Unit) {
+        val currentBuf = glGetInteger(GL_FRAMEBUFFER_BINDING)
+        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer)
+        debugGLErrors { "problem binding framebuffer $framebuffer" }
         function()
-        unbind()
+        glBindFramebuffer(GL_FRAMEBUFFER, currentBuf)
     }
 
     override fun clearColor(index: Int, color: ColorRGBa) {
+        require(!destroyed)
         val type = (colorAttachments[index] as ColorBufferAttachment).colorBuffer.type
         val targetColor = color.toLinearity(if (type.isSRGB) Linearity.SRGB else Linearity.LINEAR)
 
-        require(!destroyed)
-        bound {
+        bufferBound {
             val ca = floatArrayOf(
                 targetColor.r.toFloat(),
                 targetColor.g.toFloat(),
@@ -483,7 +489,7 @@ open class RenderTargetGL3(
 
     override fun clearDepth(depth: Double, stencil: Int) {
         require(!destroyed)
-        bound {
+        bufferBound {
             val mask = glGetBoolean(GL_DEPTH_WRITEMASK)
             if (!mask) {
                 glDepthMask(true)
@@ -524,7 +530,7 @@ open class RenderTargetGL3(
         if (depthBuffer.multisample != multisample) {
             throw IllegalArgumentException("buffer multisample mismatch")
         }
-        bound {
+        bufferBound {
             depthBuffer as DepthBufferGL3
 
             if (depthBuffer.texture != -1) {
@@ -585,7 +591,7 @@ open class RenderTargetGL3(
         require(!destroyed)
         this.depthBuffer?.let {
             it as DepthBufferGL3
-            bound {
+            bufferBound {
                 glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, it.target, 0, 0)
                 glFramebufferTexture2D(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, it.target, 0, 0)
                 checkGLErrors()
@@ -594,6 +600,7 @@ open class RenderTargetGL3(
     }
 
     private fun checkFramebufferStatus() {
+        require(!destroyed)
         val status = glCheckFramebufferStatus(GL_FRAMEBUFFER)
         if (status != GL_FRAMEBUFFER_COMPLETE) {
             when (status) {
@@ -611,9 +618,12 @@ open class RenderTargetGL3(
 
     override fun detachColorAttachments() {
         require(!destroyed)
-        bound {
+        bufferBound {
             for ((index, _) in colorAttachments.withIndex()) {
                 glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + index, GL_TEXTURE_2D, 0, 0)
+                debugGLErrors {
+                    "error detaching color attachment $index"
+                }
             }
         }
         colorAttachments.clear()
@@ -628,6 +638,18 @@ open class RenderTargetGL3(
     }
 
     override fun destroy() {
+        require(!destroyed)
+        require(RenderTarget.active != this) {
+            "cannot destroy render target that is currently active"
+        }
+
+        debugGLErrors {
+            "existing errors before destroying render target"
+        }
+
+        detachColorAttachments()
+        detachDepthBuffer()
+
         for (colorAttachment in colorAttachments) {
             if (colorAttachment.ownedByRenderTarget) {
                 when (colorAttachment) {
@@ -641,12 +663,11 @@ open class RenderTargetGL3(
             depthBuffer?.destroy()
         }
 
-        detachColorAttachments()
-        detachDepthBuffer()
-
         session?.untrack(this)
         destroyed = true
+
         glDeleteFramebuffers(framebuffer)
+        debugGLErrors()
     }
 
     override fun toString(): String {
