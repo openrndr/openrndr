@@ -221,6 +221,7 @@ class ApplicationSDL(override var program: Program, override var configuration: 
         window = createApplicationWindowSDL(this, wc, program, null)
         SDL_GL_MakeCurrent(window.window, window.glContext)
         windowsById[SDL_GetWindowID(window.window)] = window
+        setupPreload(program, configuration)
     }
 
     private inline fun Vector2.toDisplayUnits(scale: Double): Vector2 {
