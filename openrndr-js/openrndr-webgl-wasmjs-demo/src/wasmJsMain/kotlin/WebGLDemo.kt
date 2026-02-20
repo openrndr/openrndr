@@ -13,7 +13,7 @@ import kotlin.math.cos
 
 private val logger by lazy { KotlinLogging.logger { } }
 fun main() {
-    KotlinLoggingConfiguration.logLevel = Level.DEBUG
+    //KotlinLoggingConfiguration.logLevel = Level.DEBUG
 
     application {
         configure {
