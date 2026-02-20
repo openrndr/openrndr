@@ -17,6 +17,7 @@ import org.lwjgl.sdl.SDLMouse.*
 import org.lwjgl.sdl.SDLTimer.SDL_GetTicks
 import org.lwjgl.sdl.SDLVideo.*
 import org.lwjgl.sdl.SDL_Event
+import org.lwjgl.sdl.SDL_EventFilterI
 import org.lwjgl.system.MemoryStack.stackPush
 import org.openrndr.*
 import org.openrndr.animatable.Animatable
@@ -251,8 +252,17 @@ class ApplicationSDL(override var program: Program, override var configuration: 
                 exitRequested = true
             }
 
+            SDL_EVENT_WINDOW_RESIZED -> {
+                val windowId = event.window().windowID()
+                val eventWindow = windowById(windowId)
+                    ?: run { logger.warn { "got event (=SDL_EVENT_WINDOW_RESIZED) for unknown window id (=${windowId}): " }; return };
+            }
+
             SDL_EVENT_WINDOW_EXPOSED -> {
-//                println("window exposed")
+                val windowId = event.window().windowID()
+                val eventWindow = windowById(windowId)
+                    ?: run { logger.warn { "got event (=SDL_EVENT_WINDOW_RESIZED) for unknown window id (=${windowId}): " }; return };
+                eventWindow.update()
             }
 
             SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED -> {
@@ -610,7 +620,7 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             }
 
             else -> {
-                //println("got event: ${event.type()}")
+//                println("got event: ${event.type()}")
             }
         }
     }
@@ -636,7 +646,7 @@ class ApplicationSDL(override var program: Program, override var configuration: 
      * Maps an SDL mouse button constant to a `MouseButton` constant
      * Note: SDL provides SDL_BUTTON_X1 and SDL_BUTTON_X2, but MouseButton doesn't.
      */
-    private fun getMouseButton(button: Int) = when(button) {
+    private fun getMouseButton(button: Int) = when (button) {
         SDL_BUTTON_LEFT -> MouseButton.LEFT
         SDL_BUTTON_MIDDLE -> MouseButton.CENTER
         SDL_BUTTON_RIGHT -> MouseButton.RIGHT
@@ -664,7 +674,27 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             program.setup()
         }
 
+        try {
+            // https://wiki.libsdl.org/SDL3/AppFreezeDuringDrag
+            val eventWatcher = object : SDL_EventFilterI {
+                override fun invoke(p0: Long, p1: Long): Boolean {
+                    val event = SDL_Event.create(p1)
+                    if (event.type() == SDL_EVENT_WINDOW_EXPOSED) {
+                        handleSDLEvent(event)
+                    }
+                    return true
+                }
+            }
+            SDL_AddEventWatch(eventWatcher, 0L)
+        } catch (e: NullPointerException) {
+            // it does not seem to work on JVM 25
+            logger.warn { "Failed to set up SDL event watcher: ${e.message}" }
+            logger.warn { "This may be caused by a bug in LWJGL or JVM 25. Consider using a different JVM version" }
+        }
+
         val event = SDL_Event.create()
+
+
         while (!exitRequested && !window.closeRequested) {
             while (SDL_PollEvent(event)) {
                 handleSDLEvent(event)
@@ -682,6 +712,7 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             }
         }
     }
+
 
     override var clipboardContents: String?
         get() = TODO("Not yet implemented")
