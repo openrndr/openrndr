@@ -174,6 +174,26 @@ open class WindowProgram(val suspend: Boolean = false) : Program {
      * Simplified window interface
      */
     inner class Window : org.openrndr.Window {
+
+
+
+        override fun close() {
+            applicationWindow.close()
+        }
+
+        override fun minimize() {
+            applicationWindow.minimize()
+        }
+
+        override fun maximize() {
+            applicationWindow.maximize()
+        }
+
+        override fun fullscreen(mode: Fullscreen) {
+            applicationWindow.fullscreen(mode)
+        }
+
+
         override var title: String
             get() = applicationWindow.windowTitle
             set(value) {
@@ -208,10 +228,15 @@ open class WindowProgram(val suspend: Boolean = false) : Program {
 
         override var resizable: Boolean
             get() {
-                return application.windowResizable
+                return applicationWindow.windowResizable
             }
             set(value) {
                 application.windowResizable = value
+            }
+        override var hitTest: ((Vector2) -> Hit)?
+            get() = applicationWindow.windowHitTest
+            set(value) {
+                applicationWindow.windowHitTest = value
             }
 
         override fun requestFocus() = application.requestFocus()

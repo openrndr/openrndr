@@ -67,6 +67,11 @@ expect abstract class Application {
     abstract var windowMultisample: WindowMultisample
     abstract var windowResizable: Boolean
 
+    abstract fun windowClose()
+    abstract fun windowMinimize()
+    abstract fun windowMaximize()
+    abstract fun windowFullscreen(mode: Fullscreen)
+
     abstract var cursorPosition: Vector2
     abstract var cursorVisible: Boolean
     abstract var cursorHideMode: MouseCursorHideMode

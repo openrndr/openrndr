@@ -81,6 +81,12 @@ class ApplicationWindowGLFW(
         }
     }
 
+    override var windowHitTest: ((Vector2) -> Hit)? = null
+        set(value) {
+            logger.warn { "window hit test is not supported on GLFW" }
+            field = value
+        }
+
     override var windowContentScale: Double
         get() {
             val wcsx = FloatArray(1)
@@ -535,6 +541,18 @@ class ApplicationWindowGLFW(
         Driver.instance.destroyContext(window)
         glfwDestroyWindow(window)
         application.windows.remove(this)
+    }
+
+    override fun maximize() {
+        glfwMaximizeWindow(window)
+    }
+
+    override fun minimize() {
+        glfwIconifyWindow(window)
+    }
+
+    override fun fullscreen(mode: Fullscreen) {
+        TODO("Not yet implemented")
     }
 }
 

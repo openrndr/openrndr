@@ -53,6 +53,11 @@ actual abstract class Application {
     actual abstract var cursorHideMode: MouseCursorHideMode
     actual abstract var cursorType: CursorType
 
+    actual abstract fun windowClose()
+    actual abstract fun windowMinimize()
+    actual abstract fun windowMaximize()
+    actual abstract fun windowFullscreen(mode: Fullscreen)
+
     actual abstract val seconds: Double
 
     actual abstract var presentationMode: PresentationMode

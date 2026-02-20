@@ -62,6 +62,22 @@ class ApplicationNullGL(override var program: Program, override var configuratio
 
     }
 
+    override fun windowClose() {
+        TODO("Not yet implemented")
+    }
+
+    override fun windowFullscreen(mode: Fullscreen) {
+        TODO("Not yet implemented")
+    }
+
+    override fun windowMaximize() {
+        TODO("Not yet implemented")
+    }
+
+    override fun windowMinimize() {
+        TODO("Not yet implemented")
+    }
+
     override var clipboardContents: String?
         get() = TODO("Not yet implemented")
         set(_) {}

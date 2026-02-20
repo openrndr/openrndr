@@ -68,6 +68,23 @@ class ApplicationEGLGL3(override var program: Program, override var configuratio
         exitRequested = true
     }
 
+    override fun windowClose() {
+
+    }
+
+    override fun windowMaximize() {
+
+    }
+
+    override fun windowMinimize() {
+
+    }
+
+    override fun windowFullscreen(mode: Fullscreen) {
+
+    }
+
+
     override suspend fun setup() {
 
         val display = eglGetDisplay(EGL_DEFAULT_DISPLAY)

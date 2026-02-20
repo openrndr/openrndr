@@ -181,6 +181,25 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
             error("Changing window multisampling is not supported.")
         }
 
+    override fun windowClose() {
+
+    }
+
+    override fun windowMaximize() {
+        glfwMaximizeWindow(window)
+    }
+
+    override fun windowMinimize() {
+        glfwIconifyWindow(window)
+    }
+
+    override fun windowFullscreen(mode: Fullscreen) {
+        logger.warn {
+            "Changing window fullscreen mode is not supported. " +
+                    "Use the 'fullscreen' property in the window configuration instead."
+        }
+    }
+
     override var clipboardContents: String?
         get() {
             return try {

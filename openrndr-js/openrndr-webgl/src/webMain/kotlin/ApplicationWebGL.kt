@@ -290,9 +290,23 @@ class ApplicationWebGL(override var program: Program, override var configuration
         program.width = dims.x.toInt()
         program.height = dims.y.toInt()
 
-        logger.info { "calling program.setup()" }
         program.setup()
-        logger.info { "that's done" }
+    }
+
+    override fun windowClose() {
+
+    }
+
+    override fun windowMaximize() {
+
+    }
+
+    override fun windowFullscreen(mode: Fullscreen) {
+
+    }
+
+    override fun windowMinimize() {
+
     }
 
     @OptIn(ExperimentalWasmJsInterop::class)

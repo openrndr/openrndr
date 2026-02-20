@@ -192,6 +192,19 @@ interface Program : InputEvents, ExtensionHost, Clock {
     fun updateFrameSecondsFromClock()
 }
 
+enum class Hit {
+    NORMAL,
+    DRAG,
+    RESIZE_TOPLEFT,
+    RESIZE_TOP,
+    RESIZE_TOPRIGHT,
+    RESIZE_RIGHT,
+    RESIZE_BOTTOMRIGHT,
+    RESIZE_BOTTOM,
+    RESIZE_BOTTOMLEFT,
+    RESIZE_LEFT,
+}
+
 /**
  * Represents a window with configurable properties and behavior.
  */
@@ -202,6 +215,40 @@ interface Window {
     var presentationMode: PresentationMode
     var multisample: WindowMultisample
     var resizable: Boolean
+
+    var hitTest: ((Vector2) -> Hit)?
+
+    /**
+     * Minimizes the window.
+     */
+    fun minimize()
+
+    /**
+     * Maximizes the window to occupy the full available screen space.
+     *
+     * This method adjusts the window size and position to match the screen's dimensions,
+     * while respecting any platform-specific constraints or decorations, such as taskbars
+     * or system menus. If the window is already maximized, this method has no effect.
+     */
+    fun maximize()
+
+    fun close()
+
+    /**
+     * Toggles the window fullscreen mode based on the specified parameter.
+     *
+     * This method allows switching the window to or from fullscreen mode
+     * according to the desired `Fullscreen` configuration. The window's behavior
+     * when entering or exiting fullscreen mode depends on the specific mode selected
+     * and platform implementation.
+     *
+     * @param mode Specifies the fullscreen mode to apply. This can be:
+     * - `Fullscreen.DISABLED`: Disables fullscreen and returns the window to its previous size and position.
+     * - `Fullscreen.CURRENT_DISPLAY_MODE`: Uses the current display's resolution and settings for fullscreen.
+     * - `Fullscreen.SET_DISPLAY_MODE`: Adjusts fullscreen settings to use a specific display mode defined elsewhere.
+     */
+    fun fullscreen(mode: Fullscreen)
+
 
     /**
      * Requests focus for the window, making it the active window.
@@ -421,6 +468,28 @@ open class ProgramImplementation(val suspend: Boolean = false) : Program {
      * Simplified window interface
      */
     inner class Window : org.openrndr.Window {
+
+        override var hitTest: ((Vector2) -> Hit)?
+            get() = TODO("Not yet implemented")
+            set(value) {}
+
+        override fun close() {
+            TODO("Not yet implemented")
+        }
+
+        override fun minimize() {
+            TODO("Not yet implemented")
+        }
+
+        override fun maximize() {
+            TODO("Not yet implemented")
+        }
+
+        override fun fullscreen(mode: Fullscreen) {
+            TODO("Not yet implemented")
+        }
+
+
         override var title: String
             get() = application.windowTitle
             set(value) {

@@ -34,7 +34,10 @@ open class ApplicationPreload {
 }
 
 
-abstract class ApplicationWindow(val program: Program) {
+abstract class ApplicationWindow(val program: Program) : AutoCloseable {
+
+    abstract var windowHitTest: ((Vector2) -> Hit)?
+
     abstract var windowTitle: String
     abstract var windowPosition: Vector2
     abstract var windowSize: Vector2
@@ -55,6 +58,14 @@ abstract class ApplicationWindow(val program: Program) {
 
     abstract var unfocusBehaviour: UnfocusBehaviour
     abstract fun destroy()
+
+    override fun close() {
+        destroy()
+    }
+    abstract fun minimize()
+    abstract fun maximize()
+    abstract fun fullscreen(mode: Fullscreen)
+
 }
 
 /**
@@ -107,6 +118,11 @@ actual abstract class Application {
     actual abstract var windowSize: Vector2
     actual abstract var windowResizable: Boolean
     actual abstract var windowMultisample: WindowMultisample
+
+    actual abstract fun windowClose()
+    actual abstract fun windowMinimize()
+    actual abstract fun windowMaximize()
+    actual abstract fun windowFullscreen(mode: Fullscreen)
 
     actual abstract var cursorPosition: Vector2
     actual abstract var cursorVisible: Boolean
