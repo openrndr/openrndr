@@ -108,7 +108,7 @@ private val logger = KotlinLogging.logger { }
 
 class ApplicationWindowSDL(
     val application: ApplicationSDL,
-    val window: Long,
+    window: Long,
     val glContext: Long,
     windowTitle: String,
     override var windowResizable: Boolean,
@@ -119,6 +119,12 @@ class ApplicationWindowSDL(
     drawer: Drawer,
 ) : ApplicationWindow(program) {
 
+    val window: Long = window
+        get() {
+            require(!destroyed) { "window destroyed" }
+            return field
+        }
+
     var lastUpdate = -1L
     var destroyed = false
         private set
@@ -126,9 +132,6 @@ class ApplicationWindowSDL(
     init {
         program.application = application
         program.drawer = drawer
-        if (program is WindowProgram) {
-            logger.info { "setting application window for ${program::class.simpleName}" }
-        }
         (program as? WindowProgram)?.applicationWindow = this
     }
 
@@ -182,19 +185,25 @@ class ApplicationWindowSDL(
     override var windowTitle: String
         get() = SDL_GetWindowTitle(window) ?: "OPENRNDR"
         set(value) {
-            SDL_SetWindowTitle(window, value)
+            if (!SDL_SetWindowTitle(window, value)) {
+                logger.error { "failed to set window title to $value" }
+            }
         }
     override var windowPosition: Vector2
         get() {
             stackPush().use { stack ->
                 val x = stack.mallocInt(1)
                 val y = stack.mallocInt(1)
-                SDL_GetWindowPosition(window, x, y)
+                if (!SDL_GetWindowPosition(window, x, y)) {
+                    logger.error { "failed to get window position" }
+                }
                 return Vector2(x[0].toDouble(), y[0].toDouble())
             }
         }
         set(value) {
-            SDL_SetWindowPosition(window, value.x.toInt(), value.y.toInt())
+            if (!SDL_SetWindowPosition(window, value.x.toInt(), value.y.toInt())) {
+                logger.error { "failed to set window position to $value" }
+            }
         }
     override var windowSize: Vector2
         get() {
@@ -207,7 +216,9 @@ class ApplicationWindowSDL(
             }
         }
         set(value) {
-            SDL_SetWindowSize(window, value.x.toInt(), value.y.toInt())
+            if (!SDL_SetWindowSize(window, value.x.toInt(), value.y.toInt())) {
+                logger.error { "failed to set window size to $value" }
+            }
         }
     override var windowFocused: Boolean = true
 
@@ -218,11 +229,14 @@ class ApplicationWindowSDL(
         }
         set(value) {
             if (value) {
-                SDL_ShowCursor()
+                if (!SDL_ShowCursor()) {
+                    logger.error { "failed to show cursor" }
+                }
             } else {
-                SDL_HideCursor()
+                if (!SDL_HideCursor()) {
+                    logger.error { "failed to hide cursor" }
+                }
             }
-
         }
     override var cursorHideMode: MouseCursorHideMode
         get() = TODO("Not yet implemented")
@@ -251,7 +265,9 @@ class ApplicationWindowSDL(
     }
 
     override var windowContentScale: Double
-        get() = SDL_GetWindowDisplayScale(window).toDouble()
+        get() {
+            return SDL_GetWindowDisplayScale(window).toDouble()
+        }
         set(value) {}
 
     init {
@@ -260,17 +276,21 @@ class ApplicationWindowSDL(
 
     val defaultRenderTarget by lazy { ProgramRenderTargetGL3(program) }
     override fun destroy() {
-        logger.info { "destroying window $window" }
-        destroyed = true
+        if (destroyed) {
+            return
+        }
         for (extension in program.extensions) {
             extension.shutdown(program)
         }
         Driver.instance.destroyContext(window)
         SDL_DestroyWindow(window)
         application.windows.remove(this)
+        destroyed = true
+
     }
 
     internal fun setupSizes() {
+        require(!destroyed) { "window destroyed" }
         stackPush().use { stack ->
             program.window.contentScale = SDL_GetWindowDisplayScale(window).toDouble()
 
@@ -289,6 +309,9 @@ class ApplicationWindowSDL(
 
 
     fun deliverEvents() {
+        if (destroyed)
+            return
+
         program.window.drop.deliver()
         program.window.sized.deliver()
         program.window.unfocused.deliver()
