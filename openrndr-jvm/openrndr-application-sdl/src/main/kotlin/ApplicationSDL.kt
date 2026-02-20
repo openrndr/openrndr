@@ -82,6 +82,8 @@ class ApplicationSDL(override var program: Program, override var configuration: 
     private val windowsById = mutableMapOf<Int, ApplicationWindowSDL>()
 
     private val dropFiles = mutableListOf<String>()
+    private val dropTexts = mutableListOf<String>()
+    private var dropType = 0
 
 
     init {
@@ -431,6 +433,8 @@ class ApplicationSDL(override var program: Program, override var configuration: 
 
             SDL_EVENT_DROP_BEGIN -> {
                 dropFiles.clear()
+                dropTexts.clear()
+                dropType = 0
             }
 
             SDL_EVENT_DROP_FILE -> {
@@ -439,6 +443,16 @@ class ApplicationSDL(override var program: Program, override var configuration: 
                 if (data != null) {
                     dropFiles.add(data)
                 }
+                dropType = dropEvent.type()
+            }
+
+            SDL_EVENT_DROP_TEXT -> {
+                val dropEvent = event.drop()
+                val data = dropEvent.dataString()
+                if (data != null) {
+                    dropTexts.add(data)
+                }
+                dropType = dropEvent.type()
             }
 
             SDL_EVENT_DROP_COMPLETE -> {
@@ -447,12 +461,28 @@ class ApplicationSDL(override var program: Program, override var configuration: 
                     ?: run { logger.warn { "got event (=SDL_EVENT_DROP_COMPLETE) for unknown window id (=${windowId}): " }; return };
 
                 val dropEvent = event.drop()
-                eventWindow.program.window.drop.trigger(
-                    DropEvent(
-                        Vector2(dropEvent.x().toDouble(), dropEvent.y().toDouble()),
-                        dropFiles
-                    )
-                )
+
+                when (dropType) {
+                    SDL_EVENT_DROP_FILE -> {
+                        eventWindow.program.window.drop.trigger(
+                            DropEvent(
+                                Vector2(dropEvent.x().toDouble(), dropEvent.y().toDouble()),
+                                dropFiles
+                            )
+                        )
+                    }
+
+                    SDL_EVENT_DROP_TEXT -> {
+                        eventWindow.program.window.dropTexts.trigger(
+                            DropTextEvent(
+                                Vector2(dropEvent.x().toDouble(), dropEvent.y().toDouble()),
+                                dropTexts
+                            )
+                        )
+                    }
+
+                    else -> run { logger.warn { "got event (=SDL_EVENT_DROP_COMPLETE) with unsupported dropType (=$dropType): " }; return }
+                }
             }
 
             SDL_EVENT_MOUSE_WHEEL -> {
@@ -620,7 +650,7 @@ class ApplicationSDL(override var program: Program, override var configuration: 
      * Maps an SDL mouse button constant to a `MouseButton` constant
      * Note: SDL provides SDL_BUTTON_X1 and SDL_BUTTON_X2, but MouseButton doesn't.
      */
-    private fun getMouseButton(button: Int) = when(button) {
+    private fun getMouseButton(button: Int) = when (button) {
         SDL_BUTTON_LEFT -> MouseButton.LEFT
         SDL_BUTTON_MIDDLE -> MouseButton.CENTER
         SDL_BUTTON_RIGHT -> MouseButton.RIGHT

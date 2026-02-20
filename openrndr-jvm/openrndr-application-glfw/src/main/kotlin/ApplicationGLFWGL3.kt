@@ -1042,6 +1042,7 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
 
     private fun deliverEvents() {
         program.window.drop.deliver()
+        //program.window.dropTexts.deliver()
         program.window.sized.deliver()
         program.window.unfocused.deliver()
         program.window.focused.deliver()
