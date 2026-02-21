@@ -9,6 +9,8 @@ import org.lwjgl.opengl.GL11.GL_VERSION
 import org.lwjgl.opengl.GL30.GL_MAJOR_VERSION
 import org.lwjgl.opengl.GL30.GL_MINOR_VERSION
 import org.lwjgl.opengles.GLES
+import org.lwjgl.sdl.SDLClipboard.SDL_GetClipboardText
+import org.lwjgl.sdl.SDLClipboard.SDL_SetClipboardText
 import org.lwjgl.sdl.SDLError.SDL_GetError
 import org.lwjgl.sdl.SDLEvents.*
 import org.lwjgl.sdl.SDLKeyboard.SDL_GetModState
@@ -708,8 +710,12 @@ class ApplicationSDL(override var program: Program, override var configuration: 
 
 
     override var clipboardContents: String?
-        get() = TODO("Not yet implemented")
-        set(value) {}
+        get() = SDL_GetClipboardText()
+        set(value) {
+            if (value != null) {
+                SDL_SetClipboardText(value)
+            }
+        }
     override var windowTitle: String by Proxy { window::windowTitle }
 
     override var windowPosition: Vector2 by Proxy { window::windowPosition }
