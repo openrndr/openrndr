@@ -17,8 +17,8 @@ import org.lwjgl.sdl.SDLMouse.*
 import org.lwjgl.sdl.SDLTimer.SDL_GetTicks
 import org.lwjgl.sdl.SDLVideo.*
 import org.lwjgl.sdl.SDL_Event
-import org.lwjgl.sdl.SDL_EventFilterI
 import org.lwjgl.system.MemoryStack.stackPush
+import org.lwjgl.system.MemoryUtil.NULL
 import org.openrndr.*
 import org.openrndr.animatable.Animatable
 import org.openrndr.animatable.Clock
@@ -674,26 +674,19 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             program.setup()
         }
 
-        try {
+        if (System.getProperty("org.openrndr.application.eventwatch") != "false") {
             // https://wiki.libsdl.org/SDL3/AppFreezeDuringDrag
-            val eventWatcher = object : SDL_EventFilterI {
-                override fun invoke(p0: Long, p1: Long): Boolean {
-                    val event = SDL_Event.create(p1)
-                    if (event.type() == SDL_EVENT_WINDOW_EXPOSED) {
-                        handleSDLEvent(event)
-                    }
-                    return true
+            SDL_AddEventWatch({ p0: Long, p1: Long ->
+                val event = SDL_Event.create(p1)
+                if (event.type() == SDL_EVENT_WINDOW_EXPOSED) {
+                    handleSDLEvent(event)
                 }
-            }
-            SDL_AddEventWatch(eventWatcher, 0L)
-        } catch (e: NullPointerException) {
-            // it does not seem to work on JVM 25
-            logger.warn { "Failed to set up SDL event watcher: ${e.message}" }
-            logger.warn { "This may be caused by a bug in LWJGL or JVM 25. Consider using a different JVM version" }
+                true
+
+            }, NULL)
         }
 
         val event = SDL_Event.create()
-
 
         while (!exitRequested && !window.closeRequested) {
             while (SDL_PollEvent(event)) {
