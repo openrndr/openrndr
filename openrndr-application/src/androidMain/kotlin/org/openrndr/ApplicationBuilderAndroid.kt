@@ -3,12 +3,16 @@ package org.openrndr
 import android.content.Context
 import android.opengl.GLSurfaceView
 import androidx.lifecycle.LifecycleOwner
+import org.openrndr.internal.AppContextHolder
 
 fun androidApplication(
     context: Context,
     build: ApplicationBuilderAndroid.() -> Unit
 ): GLSurfaceView {
     System.setProperty("org.openrndr.application", "ANDROID-GLES")
+
+    AppContextHolder.context = context.applicationContext
+    AndroidAssetManager.copyAssetsToFilesDir(context.applicationContext)
 
     val result: Application
     val builder = ApplicationBuilderAndroid(context)
