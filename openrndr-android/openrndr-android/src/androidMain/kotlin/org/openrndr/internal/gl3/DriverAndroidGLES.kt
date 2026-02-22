@@ -1214,8 +1214,16 @@ class DriverAndroidGLES(override val version: DriverVersionGL) : Driver, Version
         }
     }
 
+    private var fontImageMapManagerInstance: FontImageMapManager? = null
+
     override val fontImageMapManager: FontMapManager
-        get() = TODO("Not yet implemented")
+        get() {
+            if (fontImageMapManagerInstance == null) {
+                fontImageMapManagerInstance = FontImageMapManager()
+            }
+            return fontImageMapManagerInstance!!
+        }
+
     override val fontVectorMapManager: FontMapManager
         get() = TODO("Not yet implemented")
 
