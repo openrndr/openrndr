@@ -40,6 +40,7 @@ include(
 
 
         "openrndr-jvm:openrndr-ffmpeg",
+        "openrndr-jvm:openrndr-fontdriver-android",
         "openrndr-jvm:openrndr-fontdriver-stb",
         "openrndr-jvm:openrndr-imagedriver-stb",
 
