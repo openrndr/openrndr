@@ -1,3 +1,4 @@
+import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.*
 import org.openrndr.draw.font.BufferAccess
 import org.openrndr.draw.font.BufferFlag
@@ -5,6 +6,7 @@ import org.openrndr.internal.Driver
 import org.openrndr.internal.gl3.*
 import org.openrndr.math.*
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class TestComputeStyleGL3 : AbstractApplicationTestFixture() {
@@ -34,6 +36,43 @@ class TestComputeStyleGL3 : AbstractApplicationTestFixture() {
             cs.execute(1, 1, 1)
         }
         img.destroy()
+    }
+
+
+    @Test
+    fun testImageBindingCopy() {
+        val source = colorBuffer(256, 256, type = ColorType.FLOAT32)
+        val target = colorBuffer(256, 256, type = ColorType.FLOAT32)
+        if (Driver.capabilities.compute) {
+            source.fill(ColorRGBa.RED)
+            target.fill(ColorRGBa.BLUE)
+
+            val cs = computeStyle {
+                computeTransform = """
+                    for (int y = 0; y < 256; ++y) {
+                        for (int x = 0; x < 256; ++x) {
+                            vec4 c = imageLoad(p_source, ivec2(x, y));
+                            imageStore(p_target, ivec2(x, y), c);
+                        }
+                    }
+                """.trimIndent()
+
+                image("source", source.imageBinding(0, ImageAccess.READ))
+                image("target", target.imageBinding(0, ImageAccess.WRITE))
+
+                workGroupSize = IntVector3(1, 1, 1)
+            }
+            cs.execute(1, 1, 1)
+            target.shadow.download()
+            val s = target.shadow
+            for (y in 0 until 256) {
+                for (x in 0 until 256) {
+                    assertEquals(ColorRGBa.RED.toLinear(), s[x, y])
+                }
+            }
+
+        }
+        target.destroy()
     }
 
     @Test

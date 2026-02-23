@@ -65,6 +65,12 @@ kotlin {
             }
         }
 
+        val jvmTest by getting {
+            dependencies {
+                implementation(project(":openrndr-jvm:openrndr-application-glfw"))
+            }
+        }
+
         if (platformConfiguration.android) {
             val androidMain by getting {
                 dependsOn(commonJvmMain)
