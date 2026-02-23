@@ -56,6 +56,11 @@ class ApplicationEGLGL3(override var program: Program, override var configuratio
         program.application = this
     }
 
+    override var windowHitTest: ((Vector2) -> Hit)?
+        get() = null
+        set(value) {
+            logger.warn { "window hit test is not supported" }
+        }
     override fun requestDraw() {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }

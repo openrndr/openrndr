@@ -67,6 +67,8 @@ expect abstract class Application {
     abstract var windowMultisample: WindowMultisample
     abstract var windowResizable: Boolean
 
+    abstract var windowHitTest: ((Vector2) -> Hit)?
+
     abstract fun windowClose()
     abstract fun windowMinimize()
     abstract fun windowMaximize()

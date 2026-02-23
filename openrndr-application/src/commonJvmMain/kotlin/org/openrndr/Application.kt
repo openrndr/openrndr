@@ -135,6 +135,7 @@ actual abstract class Application {
     actual abstract var presentationMode: PresentationMode
     actual abstract var windowContentScale: Double
     abstract fun createChildWindow(configuration: WindowConfiguration, program: Program): ApplicationWindow
+    actual abstract var windowHitTest: ((Vector2) -> Hit)?
 }
 
 /**

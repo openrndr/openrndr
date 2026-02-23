@@ -470,25 +470,26 @@ open class ProgramImplementation(val suspend: Boolean = false) : Program {
     inner class Window : org.openrndr.Window {
 
         override var hitTest: ((Vector2) -> Hit)?
-            get() = TODO("Not yet implemented")
-            set(value) {}
+            get() = application.windowHitTest
+            set(value) {
+                application.windowHitTest = value
+            }
 
         override fun close() {
-            TODO("Not yet implemented")
+            application.windowClose()
         }
 
         override fun minimize() {
-            TODO("Not yet implemented")
+            application.windowMinimize()
         }
 
         override fun maximize() {
-            TODO("Not yet implemented")
+            application.windowMaximize()
         }
 
         override fun fullscreen(mode: Fullscreen) {
-            TODO("Not yet implemented")
+            application.windowFullscreen(mode)
         }
-
 
         override var title: String
             get() = application.windowTitle

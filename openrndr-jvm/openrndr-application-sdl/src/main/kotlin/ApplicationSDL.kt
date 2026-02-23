@@ -102,6 +102,12 @@ class ApplicationSDL(override var program: Program, override var configuration: 
         TODO("Not yet implemented")
     }
 
+    override var windowHitTest: ((Vector2) -> Hit)?
+        get() = window.windowHitTest
+        set(value) {
+            window.windowHitTest = value
+        }
+
     override fun windowClose() {
         window.close()
     }

@@ -56,7 +56,15 @@ class ApplicationGLFWGL3(override var program: Program, override var configurati
     private var exitHandled = false
     private var setupCalled = false
 
+
     override var presentationMode: PresentationMode = PresentationMode.AUTOMATIC
+
+    override var windowHitTest: ((Vector2) -> Hit)?
+        get() = null
+        set(value) {
+            logger.warn { "window hit test is not supported" }
+        }
+
     override var windowContentScale: Double
         get() {
             val wcsx = FloatArray(1)

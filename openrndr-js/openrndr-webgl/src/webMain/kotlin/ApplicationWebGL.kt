@@ -67,6 +67,13 @@ class ApplicationWebGL(override var program: Program, override var configuration
     private var drawRequested: Boolean = true
     private var referenceTime: Double = 0.0
 
+
+    override var windowHitTest: ((Vector2) -> Hit)?
+        get() =  null
+        set(value) {
+            logger.warn { "window hit test is not supported" }
+        }
+
     var canvas: HTMLCanvasElement? = null
     var context: WebGL2RenderingContext? = null
     var defaultRenderTarget: ProgramRenderTargetWebGL? = null

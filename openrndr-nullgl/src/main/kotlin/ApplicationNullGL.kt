@@ -21,6 +21,11 @@ class ApplicationNullGL(override var program: Program, override var configuratio
         program.application = this
     }
 
+
+    override var windowHitTest: ((Vector2) -> Hit)?
+        get() = null
+        set(value) {}
+
     override fun requestDraw() {
 
     }

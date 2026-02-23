@@ -46,6 +46,8 @@ actual abstract class Application {
     actual abstract var clipboardContents: String?
     actual abstract var windowTitle: String
 
+    actual abstract var windowHitTest: ((Vector2) -> Hit)?
+
     actual abstract var windowPosition: Vector2
     actual abstract var windowSize: Vector2
     actual abstract var cursorPosition: Vector2
