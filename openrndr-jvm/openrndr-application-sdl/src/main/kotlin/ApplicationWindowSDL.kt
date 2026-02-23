@@ -278,6 +278,9 @@ class ApplicationWindowSDL(
 
     val defaultRenderTarget by lazy { ProgramRenderTargetGL3(program) }
     override fun destroy() {
+        if (windowHitTest != null) {
+            SDL_SetWindowHitTest(window, null, 0L)
+        }
         if (destroyed) {
             return
         }
@@ -288,7 +291,6 @@ class ApplicationWindowSDL(
         SDL_DestroyWindow(window)
         application.windows.remove(this)
         destroyed = true
-
     }
 
     internal fun setupSizes() {
