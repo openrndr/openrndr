@@ -505,7 +505,7 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             SDL_EVENT_FINGER_DOWN -> {
                 val windowId = event.tfinger().windowID()
                 val eventWindow = windowById(windowId)
-                    ?: run { logger.debug { "got event (=SDL_EVENT_FINGER_DOWN) for unknown window id (=${windowId}): " }; return };
+                    ?: run { logger.trace { "got event (=SDL_EVENT_FINGER_DOWN) for unknown window id (=${windowId}): " }; return };
 
                 val fingerEvent = event.tfinger()
                 eventWindow.program.pointers.pointerDown.trigger(
@@ -521,7 +521,7 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             SDL_EVENT_FINGER_UP -> {
                 val windowId = event.tfinger().windowID()
                 val eventWindow = windowById(windowId)
-                    ?: run { logger.debug { "got event (=SDL_EVENT_FINGER_UP) for unknown window id (=${windowId}): " }; return };
+                    ?: run { logger.trace { "got event (=SDL_EVENT_FINGER_UP) for unknown window id (=${windowId}): " }; return };
 
                 val fingerEvent = event.tfinger()
                 eventWindow.program.pointers.pointerUp.trigger(
@@ -537,7 +537,7 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             SDL_EVENT_FINGER_MOTION -> {
                 val windowId = event.tfinger().windowID()
                 val eventWindow = windowById(windowId)
-                    ?: run { logger.debug { "got event (=SDL_EVENT_FINGER_MOTION) for unknown window id (=${windowId}): " }; return };
+                    ?: run { logger.trace { "got event (=SDL_EVENT_FINGER_MOTION) for unknown window id (=${windowId}): " }; return };
 
                 val fingerEvent = event.tfinger()
                 eventWindow.program.pointers.moved.trigger(
@@ -553,7 +553,7 @@ class ApplicationSDL(override var program: Program, override var configuration: 
             SDL_EVENT_FINGER_CANCELED -> {
                 val windowId = event.tfinger().windowID()
                 val eventWindow = windowById(windowId)
-                    ?: run { logger.debug { "got event for (=SDL_EVENT_FINGER_CANCELED) unknown window id (=${windowId}): " }; return };
+                    ?: run { logger.trace { "got event for (=SDL_EVENT_FINGER_CANCELED) unknown window id (=${windowId}): " }; return };
 
                 val fingerEvent = event.tfinger()
                 eventWindow.program.pointers.pointerUp.trigger(

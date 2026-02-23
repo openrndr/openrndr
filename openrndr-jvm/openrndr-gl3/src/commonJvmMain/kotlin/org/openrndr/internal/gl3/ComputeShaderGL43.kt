@@ -11,7 +11,7 @@ fun ImageAccess.gl(): Int {
     }
 }
 
-class ComputeShaderGL43(
+data class ComputeShaderGL43(
     override val programObject: Int,
     override val name: String = "compute_shader"
 ) : ComputeShader,
@@ -24,6 +24,7 @@ class ComputeShaderGL43(
     private var destroyed = false
 
     override fun execute(width: Int, height: Int, depth: Int) {
+        (Driver.instance as DriverGL3).applyTextureBindings(textureBindings)
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo)
         checkGLErrors()
         glUseProgram(this.programObject)

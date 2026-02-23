@@ -1,7 +1,10 @@
 package org.openrndr.internal.glcommon
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.openrndr.draw.*
 import org.openrndr.internal.Driver
+
+private val logger = KotlinLogging.logger {  }
 
 fun ComputeStyle.structure(): ComputeStructure {
     return ComputeStructure(
@@ -36,11 +39,16 @@ ${structure.computePreamble}
 void main() {
 ${structure.computeTransform.prependIndent("    ")}        
 }"""
-            Driver.instance.createComputeShader(code, name)
+            val computeShader = Driver.instance.createComputeShader(code, name)
+            logger.debug { "created compute shader '$name', ${computeShader} " }
+            computeShader
         }
 
+//        logger.debug { "dispatching buffer bindings for '$name', '$shader'" }
         dispatchBufferBindings(style, shader)
+  //      logger.debug { "dispatched uniforms for shader '$name', '$shader'" }
         dispatchParameters(style, shader, shader.textureBindings)
+//        logger.debug { "dispatched image bindings for shader '$name', '$shader'" }
         dispatchImageBindings(style, shader)
 
         return shader

@@ -267,6 +267,20 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver {
                     }
                 }
 
+                is DepthBufferGL3 -> {
+                    if (cachedTextureBindings[i] != texture.texture) {
+                        glBindTexture(texture.target, texture.texture)
+                        cachedTextureBindings[i] = texture.texture
+                    }
+                }
+
+                is BufferTextureGL3 -> {
+                    if (cachedTextureBindings[i] != texture.texture) {
+                        glBindTexture(GL_TEXTURE_BUFFER, texture.texture)
+                        cachedTextureBindings[i] = texture.texture
+                    }
+                }
+
                 is ArrayTextureGL3 -> {
                     if (cachedTextureBindings[i] != texture.texture) {
                         glBindTexture(texture.target, texture.texture)
@@ -1019,7 +1033,7 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver {
         )
 
         val vao = vaos.getOrPut(hash) {
-            logger.debug {
+            logger.trace {
                 "creating new instances VAO for hash $hash"
             }
             val arrays = IntArray(1)
@@ -1097,7 +1111,7 @@ abstract class DriverGL3(val version: DriverVersionGL) : Driver {
         )
 
         val vao = vaos.getOrPut(shaderVertexDescription) {
-            logger.debug {
+            logger.trace {
                 "creating new instances VAO for hash $shaderVertexDescription"
             }
             val arrays = IntArray(1)

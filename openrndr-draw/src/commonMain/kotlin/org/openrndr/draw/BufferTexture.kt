@@ -5,7 +5,7 @@ package org.openrndr.draw
  * Buffer textures provide a mechanism for storing structured data
  * that can be accessed in shaders as a one-dimensional texture.
  */
-expect abstract class BufferTexture: AutoCloseable {
+expect abstract class BufferTexture: Texture, AutoCloseable {
     abstract val session: Session?
     abstract val shadow: BufferTextureShadow
     abstract val format: ColorFormat

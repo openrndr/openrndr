@@ -10,7 +10,7 @@ import org.openrndr.internal.Driver
  * The depth buffer is associated with a specific [Session], which manages its lifecycle.
  * It has a defined width, height, format, and multisample configuration.
  */
-interface DepthBuffer: AutoCloseable {
+interface DepthBuffer: Texture, AutoCloseable {
     val session: Session?
     val width: Int
     val height: Int

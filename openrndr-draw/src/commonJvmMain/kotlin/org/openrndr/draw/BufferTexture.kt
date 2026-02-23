@@ -12,7 +12,7 @@ enum class BufferTextureFileFormat(val extension: String) {
     ORB("orb")
 }
 
-actual abstract class BufferTexture: AutoCloseable {
+actual abstract class BufferTexture: Texture, AutoCloseable {
     companion object {
         fun create(elementCount: Int, format: ColorFormat = ColorFormat.RGBa, type: ColorType = ColorType.FLOAT32, session: Session? = Session.active): BufferTexture {
             val bufferTexture = Driver.instance.createBufferTexture(elementCount, format, type)
