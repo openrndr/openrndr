@@ -2,6 +2,7 @@ package org.openrndr.application.sdl
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.lwjgl.sdl.SDLError.SDL_GetError
+import org.lwjgl.sdl.SDLKeyboard.SDL_StartTextInput
 import org.lwjgl.sdl.SDLMouse.SDL_CursorVisible
 import org.lwjgl.sdl.SDLMouse.SDL_HideCursor
 import org.lwjgl.sdl.SDLMouse.SDL_SYSTEM_CURSOR_CROSSHAIR
@@ -521,6 +522,9 @@ fun createApplicationWindowSDL(
         }
     }
 
+    if (System.getProperty("org.openrndr.application.textinput") != "false") {
+        SDL_StartTextInput(window)
+    }
 
     val drawer = drawer ?: Drawer(Driver.instance)
     return ApplicationWindowSDL(
