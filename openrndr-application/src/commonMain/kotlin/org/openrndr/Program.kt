@@ -34,10 +34,16 @@ enum class WindowEventType {
 data class WindowEvent(val type: WindowEventType, val position: Vector2, val size: Vector2, val focused: Boolean)
 
 /**
- * window drop item event message
+ * window drop file event message
  */
 @JvmRecord
 data class DropEvent(val position: Vector2, val files: List<String>)
+
+/**
+ * window drop text event message
+ */
+@JvmRecord
+data class DropTextEvent(val position: Vector2, val texts: List<String>)
 
 /**
  * program event type
@@ -300,14 +306,19 @@ interface Window {
     val restored: Event<WindowEvent>
 
     /**
-     * Window restored (from minimization) event
+     * Window closed event
      */
     val closed: Event<WindowEvent>
 
     /**
-     * Drop event, triggered when a file is dropped on the window
+     * Drop event, triggered when files are dropped on the window
      */
     val drop: Event<DropEvent>
+
+    /**
+     * Drop event, triggered when texts are dropped on the window
+     */
+    val dropTexts: Event<DropTextEvent>
 
     /**
      * Window position
@@ -549,6 +560,8 @@ open class ProgramImplementation(val suspend: Boolean = false) : Program {
         override val closed = Event<WindowEvent>("window-closed", postpone = true)
 
         override val drop = Event<DropEvent>("window-drop", postpone = true)
+
+        override val dropTexts = Event<DropTextEvent>("window-drop-text", postpone = true)
 
         override var position: Vector2
             get() = application.windowPosition
