@@ -4,6 +4,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import org.lwjgl.sdl.SDLError.SDL_GetError
 import org.lwjgl.sdl.SDLKeyboard.SDL_HasKeyboard
 import org.lwjgl.sdl.SDLKeyboard.SDL_StartTextInput
+import org.lwjgl.sdl.SDLMouse.SDL_CreateSystemCursor
 import org.lwjgl.sdl.SDLMouse.SDL_CursorVisible
 import org.lwjgl.sdl.SDLMouse.SDL_HideCursor
 import org.lwjgl.sdl.SDLMouse.SDL_SYSTEM_CURSOR_CROSSHAIR
@@ -243,18 +244,26 @@ class ApplicationWindowSDL(
     override var cursorHideMode: MouseCursorHideMode
         get() = TODO("Not yet implemented")
         set(value) {}
-    override var cursorType: CursorType
-        get() = TODO("Not yet implemented")
+    override var cursorType: CursorType = CursorType.ARROW_CURSOR
         set(value) {
-            val sdlCursor = when (cursorType) {
-                CursorType.HAND_CURSOR -> SDL_SYSTEM_CURSOR_DEFAULT
-                CursorType.ARROW_CURSOR -> SDL_SYSTEM_CURSOR_POINTER
-                CursorType.HRESIZE_CURSOR -> SDL_SYSTEM_CURSOR_EW_RESIZE
-                CursorType.VRESIZE_CURSOR -> SDL_SYSTEM_CURSOR_NS_RESIZE
-                CursorType.CROSSHAIR_CURSOR -> SDL_SYSTEM_CURSOR_CROSSHAIR
-                CursorType.IBEAM_CURSOR -> SDL_SYSTEM_CURSOR_TEXT
+            if (field != value) {
+                val sdlCursor = when (value) {
+                    CursorType.HAND_CURSOR -> SDL_SYSTEM_CURSOR_POINTER
+                    CursorType.ARROW_CURSOR -> SDL_SYSTEM_CURSOR_DEFAULT
+                    CursorType.HRESIZE_CURSOR -> SDL_SYSTEM_CURSOR_EW_RESIZE
+                    CursorType.VRESIZE_CURSOR -> SDL_SYSTEM_CURSOR_NS_RESIZE
+                    CursorType.CROSSHAIR_CURSOR -> SDL_SYSTEM_CURSOR_CROSSHAIR
+                    CursorType.IBEAM_CURSOR -> SDL_SYSTEM_CURSOR_TEXT
+                }
+                val systemCursor = SDL_CreateSystemCursor(sdlCursor)
+                if (systemCursor == 0L) {
+                    logger.warn { "failed to create system cursor: ${SDL_GetError()}" }
+                } else if (!SDL_SetCursor(systemCursor)) {
+                    logger.warn { "failed to set mouse cursor: ${SDL_GetError()}" }
+                } else {
+                    field = value
+                }
             }
-            SDL_SetCursor(sdlCursor.toLong())
         }
     override val cursorInWindow: Boolean
         get() = TODO("Not yet implemented")
