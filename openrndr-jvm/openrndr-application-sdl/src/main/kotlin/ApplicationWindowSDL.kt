@@ -44,6 +44,7 @@ import org.lwjgl.sdl.SDLVideo.SDL_GL_STENCIL_SIZE
 import org.lwjgl.sdl.SDLVideo.SDL_GL_SetAttribute
 import org.lwjgl.sdl.SDLVideo.SDL_GL_SwapWindow
 import org.lwjgl.sdl.SDLVideo.SDL_GetWindowDisplayScale
+import org.lwjgl.sdl.SDLVideo.SDL_GetWindowID
 import org.lwjgl.sdl.SDLVideo.SDL_GetWindowPosition
 import org.lwjgl.sdl.SDLVideo.SDL_GetWindowSizeInPixels
 import org.lwjgl.sdl.SDLVideo.SDL_GetWindowTitle
@@ -123,7 +124,6 @@ class ApplicationWindowSDL(
 
     val window: Long = window
         get() {
-            require(!destroyed) { "window destroyed" }
             return field
         }
 
@@ -288,8 +288,10 @@ class ApplicationWindowSDL(
             extension.shutdown(program)
         }
         Driver.instance.destroyContext(window)
-        SDL_DestroyWindow(window)
+
+        application.windowsById.remove(SDL_GetWindowID(window))
         application.windows.remove(this)
+        SDL_DestroyWindow(window)
         destroyed = true
     }
 
@@ -467,12 +469,6 @@ fun createApplicationWindowSDL(
     if (configuration.utilityWindow) {
         if (!SDL_SetPointerProperty(props, SDL_PROP_WINDOW_CREATE_PARENT_POINTER, application.window.window)) {
             logger.warn { "Failed to set parent pointer for utility window" }
-        }
-//        if (!SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_MODAL_BOOLEAN, true)) {
-//            logger.warn { "Failed to set modal property for utility window" }
-//        }
-        if (!SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_MENU_BOOLEAN, true)) {
-            logger.warn { "Failed to set menu property for utility window" }
         }
     }
 

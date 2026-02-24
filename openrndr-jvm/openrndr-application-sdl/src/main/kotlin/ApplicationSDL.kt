@@ -82,7 +82,7 @@ class ApplicationSDL(override var program: Program, override var configuration: 
 
     private val thread = Thread.currentThread()
     internal val windows: CopyOnWriteArrayList<ApplicationWindowSDL> = CopyOnWriteArrayList()
-    private val windowsById = mutableMapOf<Int, ApplicationWindowSDL>()
+    internal val windowsById = mutableMapOf<Int, ApplicationWindowSDL>()
 
     private val dropFiles = mutableListOf<String>()
 
