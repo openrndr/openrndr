@@ -484,7 +484,6 @@ fun createApplicationWindowSDL(
 
     var window = SDL_CreateWindowWithProperties(props)
 
-    SDL_DestroyProperties(props)
     require(window != 0L) { "Failed to create window with configuration $configuration" }
     val glContext: Long
 
@@ -498,7 +497,7 @@ fun createApplicationWindowSDL(
             SDL_GetWindowSizeInPixels(window, w, h)
 
             if (w.get(0) / scale != configuration.width.toDouble()) {
-                logger.warn { "Window size ${w.get(0)}x${h.get(0)} does not match requested size ${configuration.width}x${configuration.height}" }
+                logger.warn { "Window size in pixels ${w.get(0) / scale}x${h.get(0) / scale} does not match requested size ${configuration.width}x${configuration.height}" }
                 SDL_DestroyWindow(window)
                 SDL_SetNumberProperty(
                     props,
@@ -515,6 +514,8 @@ fun createApplicationWindowSDL(
             }
         }
     }
+    SDL_DestroyProperties(props)
+
     glContext = SDL_GL_CreateContext(window)
     require(glContext != 0L) { "Failed to create OpenGL context. ${SDL_GetError()}" }
 
